@@ -1,6 +1,7 @@
 ## k8s-snap
 
 [![Integration Tests](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml/badge.svg)](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml)
+[![k8s](https://snapcraft.io/k8s/badge.svg)](https://snapcraft.io/k8s)
 
 > *NOTE*: This is work in progress, please do not share externally.
 
