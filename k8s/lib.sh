@@ -209,7 +209,7 @@ k8s::init::ca() {
   done
 
   # Generate Kubernetes CA
-  k8s::cmd::openssl req -x509 -new -sha256 -nodes -days 3650 -key /etc/kubernetes/pki/ca.key -subj "/CN=10.152.183.1" -out /etc/kubernetes/pki/ca.crt
+  k8s::cmd::openssl req -x509 -new -sha256 -nodes -days 3650 -key /etc/kubernetes/pki/ca.key -subj "/CN=kubernetes-ca" -out /etc/kubernetes/pki/ca.crt
   # Generate Front Proxy CA
   k8s::cmd::openssl req -x509 -new -sha256 -nodes -days 3650 -key /etc/kubernetes/pki/front-proxy-ca.key -subj "/CN=kubernetes-front-proxy-ca" -out /etc/kubernetes/pki/front-proxy-ca.crt
 }
