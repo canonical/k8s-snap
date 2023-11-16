@@ -1,5 +1,7 @@
 ## k8s-snap
 
+[![Integration Tests](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml/badge.svg)](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml)
+
 > *NOTE*: This is work in progress, please do not share externally.
 
 Canonical Kubernetes is an opinionated and CNCF conformant Kubernetes operated by Snaps and Charms, which come together to bring simplified operations and an enhanced security posture on any infrastructure.
