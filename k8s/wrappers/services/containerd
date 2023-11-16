@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+. "$SNAP/k8s/lib.sh"
+
+# Apply the containerd profile
+apparmor_parser -r "$SNAP/k8s/profiles/containerd"
+
+k8s::common::execute_service containerd

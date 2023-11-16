@@ -1,0 +1,373 @@
+name: k8s
+adopt-info: kubernetes-version
+summary: TODO
+description: |-
+  TODO
+license: GPL-3.0
+grade: stable
+confinement: strict
+base: core20
+environment:
+  REAL_PATH: $PATH
+  REAL_LD_LIBRARY_PATH: $LD_LIBRARY_PATH
+  SNAPCRAFT_ARCH_TRIPLET: $SNAPCRAFT_ARCH_TRIPLET
+
+parts:
+  build-deps:
+    plugin: nil
+    override-build: |
+      snap install go --classic --channel 1.21/stable
+      snap refresh go --channel 1.21/stable
+    build-packages:
+      - autoconf
+      - automake
+      - autopoint
+      - autotools-dev
+      - bison
+      - btrfs-progs
+      - libbtrfs-dev
+      - build-essential
+      - curl
+      - flex
+      - git
+      - libjansson-dev
+      - liblz4-dev
+      - libnetfilter-conntrack-dev
+      - libnetfilter-conntrack3
+      - libnfnetlink-dev
+      - libseccomp-dev
+      - libtool
+      - pkg-config
+      - rsync
+      - tcl
+
+  k8s-dqlite:
+    after: [build-deps]
+    build-attributes: [no-patchelf]
+    source: build-scripts/components/k8s-dqlite
+    plugin: nil
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
+
+  cni:
+    after: [build-deps]
+    plugin: nil
+    source: build-scripts/components/cni
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh cni
+
+  kubernetes:
+    after: [build-deps]
+    plugin: nil
+    source: build-scripts/components/kubernetes
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh kubernetes
+
+  kubernetes-version:
+    plugin: nil
+    source: build-scripts/components/kubernetes
+    override-build: snapcraftctl set-version "$(./version.sh)"
+
+  helm:
+    after: [build-deps]
+    build-attributes: [no-patchelf]
+    plugin: nil
+    source: build-scripts/components/helm
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh helm
+
+  libmnl:
+    after: [build-deps]
+    plugin: autotools
+    source: https://www.netfilter.org/pub/libmnl/libmnl-1.0.4.tar.bz2
+    prime:
+      - -usr/local/include
+
+  libnftnl:
+    after: [libmnl]
+    plugin: autotools
+    source: https://www.netfilter.org/projects/libnftnl/files/libnftnl-1.1.8.tar.bz2
+    build-environment:
+      - LIBMNL_LIBS: $SNAPCRAFT_STAGE/usr/lib
+    prime:
+      - -usr/local/include
+
+  iptables:
+    after: [libnftnl]
+    source: https://www.netfilter.org/projects/iptables/files/iptables-1.8.6.tar.bz2
+    plugin: autotools
+    build-environment:
+      - LIBMNL_LIBS: $SNAPCRAFT_STAGE/usr/lib
+      - LIBNFTNL_LIBS: $SNAPCRAFT_STAGE/usr/lib
+    autotools-configure-parameters:
+      - "--prefix=/usr"
+      - "--exec-prefix=/"
+      - "--disable-shared"
+      - "--enable-static"
+    stage:
+      - -usr
+      - -lib/pkgconfig
+      - -bin/iptables-xml
+
+  containerd:
+    after: [runc]
+    plugin: nil
+    source: build-scripts/components/containerd
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
+    build-attributes: [no-patchelf]
+
+  runc:
+    after: [iptables, build-deps]
+    source: build-scripts/components/runc
+    build-attributes: [no-patchelf]
+    plugin: nil
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh runc
+
+  bash-utils:
+    plugin: nil
+    stage-packages:
+      - conntrack
+      - coreutils
+      - diffutils
+      - ethtool
+      - hostname
+      - iproute2
+      - kmod
+      - libatm1
+      - libnss-resolve
+      - libnss-myhostname
+      - libnss-mymachines
+      - members
+      - nano
+      - net-tools
+      - openssl
+      - procps
+      - tar
+      - util-linux
+    stage:
+      - -etc/bash_completion.d
+      - -etc/cron.d
+      - -etc/depmod.d
+      - -etc/ldap
+      - -etc/logrotate.d
+      - -etc/init.d
+      - -etc/perl
+      - -etc/rsyslog.d
+      - -etc/sudoers.d
+      - -lib/systemd
+      - -usr/bin/perl*
+      - -usr/include
+      - -usr/lib/*/*perl*
+      - -usr/share
+
+  k8s:
+    plugin: nil
+    source: k8s
+    override-build: |
+      rm $SNAPCRAFT_PART_INSTALL/k8s -rf
+      cp --archive --link --no-dereference . $SNAPCRAFT_PART_INSTALL/k8s
+
+  bom:
+    after:
+      - cni
+      - containerd
+      - helm
+      - k8s-dqlite
+      - kubernetes
+      - runc
+    plugin: nil
+    source: .
+    build-packages:
+      - python3-yaml
+    override-build: |
+      ./build-scripts/generate-bom.py > "${SNAPCRAFT_PART_INSTALL}/bom.json"
+
+apps:
+  k8s:
+    command: k8s/wrappers/commands/k8s
+    plugs:
+      - account-control
+      - firewall-control
+      - home-read-all
+      - home
+      - kernel-module-observe
+      - kubernetes-support
+      - login-session-observe
+      - log-observe
+      - mount-observe
+      - network
+      - network-control
+      - network-observe
+      - opengl
+      - system-observe
+  containerd:
+    command: k8s/wrappers/services/containerd
+    daemon: notify
+    install-mode: disable
+    # when stopped send only sigterm
+    # https://forum.snapcraft.io/t/process-lifecycle-on-snap-refresh/140/37
+    stop-mode: sigterm
+    restart-condition: always
+    start-timeout: 3s
+    plugs:
+      - k8s-journald
+      - network-bind
+      - docker-privileged
+      - firewall-control
+      - network-control
+      - mount-observe
+      - kubernetes-support
+      - opengl
+      - cifs-mount
+      - fuse-support
+      - kernel-crypto-api
+  k8s-dqlite:
+    command: k8s/wrappers/services/k8s-dqlite
+    install-mode: disable
+    daemon: simple
+    plugs:
+      - network-bind
+  kubelet:
+    install-mode: disable
+    command: k8s/wrappers/services/kubelet
+    daemon: simple
+    after: [containerd]
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - mount-observe
+      - network-bind
+      - network-observe
+      - network-control
+      - process-control
+      - system-observe
+      - opengl
+      - kernel-module-observe
+  kube-apiserver:
+    install-mode: disable
+    command: k8s/wrappers/services/kube-apiserver
+    daemon: simple
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - mount-observe
+      - network-bind
+      - network-observe
+      - network-control
+      - process-control
+      - system-observe
+      - opengl
+      - kernel-module-observe
+  kube-controller-manager:
+    install-mode: disable
+    command: k8s/wrappers/services/kube-controller-manager
+    daemon: simple
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - mount-observe
+      - network-bind
+      - network-observe
+      - network-control
+      - process-control
+      - system-observe
+      - opengl
+      - kernel-module-observe
+  kube-proxy:
+    install-mode: disable
+    command: k8s/wrappers/services/kube-proxy
+    daemon: simple
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - mount-observe
+      - network-bind
+      - network-observe
+      - network-control
+      - process-control
+      - system-observe
+      - opengl
+      - kernel-module-observe
+  kube-scheduler:
+    install-mode: disable
+    command: k8s/wrappers/services/kube-scheduler
+    daemon: simple
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - mount-observe
+      - network-bind
+      - network-observe
+      - network-control
+      - process-control
+      - system-observe
+      - opengl
+      - kernel-module-observe
+  # k8s-apiserver-proxy:
+  #   install-mode: disable
+  #   command: k8s/wrappers/services/k8s-apiserver-proxy
+  #   daemon: simple
+  #   plugs:
+  #     - network-bind
+
+layout:
+  # Kubernetes paths
+  /etc/kubernetes:
+    bind: $SNAP_COMMON/etc/kubernetes
+  /etc/cni/net.d:
+    bind: $SNAP_COMMON/etc/cni/net.d
+  /opt/cni/bin:
+    bind: $SNAP_COMMON/opt/cni/bin
+  /var/lib/kubelet:
+    bind: $SNAP_COMMON/var/lib/kubelet
+  /etc/containerd:
+    bind: $SNAP_COMMON/etc/containerd
+  /var/lib/containerd:
+    bind: $SNAP_COMMON/var/lib/containerd
+  /var/lib/k8s-dqlite:
+    bind: $SNAP_COMMON/var/lib/k8s-dqlite
+  # Logs and temporary files
+  /var/log/pods:
+    bind: $SNAP_COMMON/var/log/pods
+  /var/log/containers:
+    bind: $SNAP_COMMON/var/log/containers
+  # CNI
+  /var/lib/cni:
+    bind: $SNAP_COMMON/var/lib/cni
+  /var/lib/calico:
+    bind: $SNAP_COMMON/var/lib/calico
+  # TBD (maybe not required)
+  /usr/libexec:
+    bind: $SNAP_COMMON/usr/libexec
+  /var/lib/kube-proxy:
+    bind: $SNAP_COMMON/var/lib/kube-proxy
+  /etc/service/enabled:
+    bind: $SNAP_COMMON/etc/service/enabled
+  /etc/nanorc:
+    bind-file: $SNAP_COMMON/etc/nanorc
+
+plugs:
+  home-read-all:
+    interface: home
+    read: all
+  docker-privileged:
+    interface: docker-support
+    privileged-containers: true
+  docker-unprivileged:
+    interface: docker-support
+    privileged-containers: false
+  k8s-kubelet:
+    interface: kubernetes-support
+    flavor: kubelet
+  k8s-kubeproxy:
+    interface: kubernetes-support
+    flavor: kubeproxy
+  k8s-journald:
+    interface: kubernetes-support
+    flavor: autobind-unix
