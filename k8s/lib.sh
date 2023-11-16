@@ -83,6 +83,8 @@ k8s::cmd::hostname() {
 # Get the default host IP
 # Example: 'default_ip="$(k8s::util::default_ip)"'
 k8s::util::default_ip() {
+  k8s::common::setup_env
+
   # default_interface="eth0"
   # ip_addr_cidr="10.0.1.83/24"
   # ip_addr="10.0.1.83"
