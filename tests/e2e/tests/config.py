@@ -22,7 +22,7 @@ LXD_PROFILE_NAME = os.getenv("TEST_LXD_PROFILE_NAME") or "k8s-e2e"
 
 # LXD_PROFILE is the profile to use for LXD containers.
 LXD_PROFILE = (
-    os.getenv("TEST_LXD_PROFILE") or (DIR / ".." / "conf" / "lxd.yaml").read_text()
+    os.getenv("TEST_LXD_PROFILE") or (DIR / ".." / "lxd-profile.yaml").read_text()
 )
 
 # LXD_IMAGE is the image to use for LXD containers.
