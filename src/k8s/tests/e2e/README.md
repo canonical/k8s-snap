@@ -1,0 +1,94 @@
+# End To End Tests
+
+## Overview
+
+End to end tests are written in Python. They are built on top of a [Harness](./tests/conftest.py) fixture so that they can run on multiple environments like LXD, multipass or the local machine.
+
+End to end tests can be configured using environment variables. You can see all available options in [./tests/config.py](./tests/config.py).
+
+## Running end to end tests
+
+Running the end to end tests requires `python3` and `tox`. Install with:
+
+```bash
+sudo apt install python3-virtualenv
+virtualenv .venv
+. .venv/bin/activate
+pip install 'tox<5'
+```
+
+In general, all end to end tests will require specifying the local path to the snap package under test, using the `TEST_SNAP` environment variable. Make sure to specify the full path to the file.
+
+End to end tests are typically run with: `cd src/k8s/tests/e2e && tox -e e2e`
+
+### Running end to end tests on the local machine
+
+```bash
+export TEST_SNAP=/path/to/k8s.snap
+export TEST_SUBSTRATE=local
+
+cd src/k8s/tests/e2e && tox -e e2e
+```
+
+> *NOTE*: When running locally, end to end tests that create more than one instance will fail.
+
+### Running end to end tests on LXD containers
+
+First, make sure that you have initialized LXD:
+
+```bash
+sudo lxd init --auto
+```
+
+Then, run the tests with:
+
+```bash
+export TEST_SUBSTRATE=lxd
+export TEST_LXD_IMAGE=ubuntu:22.04          # (optionally) specify which image to use for LXD containers
+export TEST_LXD_PROFILE=k8s-e2e             # (optionally) specify profile name to configure
+export TEST_SKIP_CLEANUP=1                  # (optionally) do not destroy machines after tests finish
+
+cd src/k8s/tests/e2e && tox -e e2e
+```
+
+## Writing an End to End test
+
+For a simple way to write end to end tests, have a look at [`test_smoke.py`](./smoke_test.go), which spins up a single instance, installs k8s and ensures that the kubelet node registers in the cluster.
+
+Make sure to use the [Harness](./tests/conftest.py) interfac. That way, there _should not_ be a need for extra logic to handle running the tests locally, in LXD, or Multipass.
+
+```python
+# tests/e2e/test_<feature>.py
+#
+# Copyright 2023 Canonical, Ltd.
+#
+import logging
+import subprocess
+import time
+from pathlib import Path
+
+import config
+import pytest
+from conftest import Harness
+
+LOG = logging.getLogger(__name__)
+
+
+def test_feature(h: Harness, tmp_path: Path):
+    if not config.SNAP:
+        pytest.fail("Set TEST_SNAP to the path where the snap is")
+
+    snap_path = (tmp_path / "k8s.snap").as_posix()
+
+    LOG.info("Create instance")
+    instance_id = h.new_instance()
+
+    LOG.info("Install snap")
+    h.exec(instance_id, ["mkdir", "-p", tmp_path.as_posix()])
+    h.send_file(instance_id, config.SNAP, snap_path)
+    h.exec(instance_id, ["snap", "install", snap_path, "--dangerous"])
+
+    LOG.info("Test something")
+    # h.exec(...)
+
+```

@@ -40,3 +40,7 @@ sudo k8s start
 # Kubectl commands
 sudo k8s kubectl get pod,node -A
 ```
+
+#### Run end to end tests
+
+See [src/k8s/tests/e2e/README.md](./src/k8s/tests/e2e/README.md) for more details
