@@ -89,7 +89,7 @@ For a simple way to write end to end tests, have a look at [`test_smoke.py`](./s
 Make sure to use the [Harness](./tests/conftest.py) fixture. That way, there _should not_ be a need for extra logic to handle running the tests locally, in LXD, or Multipass.
 
 ```python
-# tests/e2e/test_<feature>.py
+# tests/e2e/tests/test_<feature>.py
 #
 # Copyright 2023 Canonical, Ltd.
 #
