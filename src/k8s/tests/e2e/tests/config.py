@@ -53,3 +53,15 @@ devices:
 
 # LXD_IMAGE is the image to use for LXD containers.
 LXD_IMAGE = os.getenv("TEST_LXD_IMAGE") or "ubuntu:22.04"
+
+# MULTIPASS_IMAGE is the image to use for Multipass VMs.
+MULTIPASS_IMAGE = os.getenv("TEST_MULTIPASS_IMAGE") or "22.04"
+
+# MULTIPASS_CPUS is the number of cpus for Multipass VMs.
+MULTIPASS_CPUS = os.getenv("TEST_MULTIPASS_CPUS") or "2"
+
+# MULTIPASS_MEMORY is the memory for Multipass VMs.
+MULTIPASS_MEMORY = os.getenv("TEST_MULTIPASS_MEMORY") or "2G"
+
+# MULTIPASS_DISK is the disk size for Multipass VMs.
+MULTIPASS_DISK = os.getenv("TEST_MULTIPASS_DISK") or "10G"
