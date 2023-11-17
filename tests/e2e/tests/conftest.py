@@ -124,7 +124,7 @@ class LXDHarness(Harness):
 
         try:
             LOG.debug("Configuring LXD profile %s", self.profile)
-            subprocess.run(
+            run(
                 ["lxc", "profile", "edit", self.profile],
                 input=config.LXD_PROFILE.encode(),
             )
