@@ -199,7 +199,7 @@ k8s::init::k8s_dqlite() {
 k8s::init::containerd() {
   k8s::common::setup_env
 
-  mkdir "$SNAP_DATA/args" -m 0700
+  mkdir -p "$SNAP_DATA/args"
   cp "$SNAP/k8s/args/containerd" "$SNAP_DATA/args/containerd"
   cp "$SNAP/k8s/config/containerd/config.toml" /etc/containerd/config.toml
   cp "$SNAP/opt/cni/bin/"* /opt/cni/bin/
@@ -298,7 +298,7 @@ k8s::util::generate_x509_kubeconfig() {
 k8s::init::kubernetes() {
   k8s::common::setup_env
 
-  mkdir "$SNAP_DATA/args" -m 0700
+  mkdir -p "$SNAP_DATA/args"
   cp "$SNAP/k8s/args/kubelet" "$SNAP_DATA/args/kubelet"
   cp "$SNAP/k8s/args/kube-apiserver" "$SNAP_DATA/args/kube-apiserver"
   cp "$SNAP/k8s/args/kube-proxy" "$SNAP_DATA/args/kube-proxy"
