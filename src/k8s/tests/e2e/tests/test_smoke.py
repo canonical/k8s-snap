@@ -23,7 +23,6 @@ def test_smoke(h: Harness, tmp_path: Path):
     instance_id = h.new_instance()
 
     LOG.info("Install snap")
-    h.exec(instance_id, ["mkdir", "-p", tmp_path.as_posix()])
     h.send_file(instance_id, config.SNAP, snap_path)
     h.exec(instance_id, ["snap", "install", snap_path, "--dangerous"])
 

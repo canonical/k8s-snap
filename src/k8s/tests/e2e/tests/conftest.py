@@ -168,7 +168,11 @@ class LXDHarness(Harness):
             "Copying file %s to instance %s at %s", source, instance_id, destination
         )
         try:
-            run(["lxc", "file", "push", source, f"{instance_id}{destination}"])
+            self.exec(
+                instance_id,
+                ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
+            )
+            run(["lxc", "file", "push", source, f"{instance_id}:{destination}"])
         except subprocess.CalledProcessError as e:
             raise HarnessError("lxc file push command failed") from e
 
@@ -245,7 +249,12 @@ class LocalHarness(Harness):
 
         LOG.debug("Copying file %s to %s", source, destination)
         try:
+            self.exec(
+                _, ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()]
+            )
             shutil.copy(source, destination)
+        except subprocess.CalledProcessError as e:
+            raise HarnessError("failed to copy file") from e
         except shutil.SameFileError:
             pass
 
