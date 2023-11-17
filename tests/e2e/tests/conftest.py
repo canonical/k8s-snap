@@ -30,68 +30,72 @@ class HarnessError(Exception):
 
 
 class Harness:
-    """Abstract how e2e tests can start and manage multiple machines. This allows writing
-    e2e tests that can run on the local machine, LXD, or Multipass with minimum effort.
+    """Abstract how e2e tests can start and manage multiple machines. This allows
+    writing e2e tests that can run on the local machine, LXD, or Multipass with minimum
+    effort.
     """
 
     def new_instance(self) -> str:
-        """
-        creates a new instance on the infrastructure and returns an ID that
+        """Creates a new instance on the infrastructure and returns an ID that
         can be used to interact with it.
 
-        :raise: an exception in case the operation failed
+        If the operation fails, a HarnessError is raised.
         """
         raise NotImplementedError
 
     def send_file(self, instance_id: str, source: str, destination: str):
-        """send a local file to the instance.
+        """Send a local file to the instance.
 
         :param instance_id: The instance_id, as returned by new_instance()
         :param source: Path to the file that will be copied to the instance
         :param destination: Path in the instance where the file will be copied.
                                  This must always be an absolute path.
 
-        :raise: an exception in case the operation failed
+
+        If the operation fails, a HarnessError is raised.
         """
         raise NotImplementedError
 
     def pull_file(self, instance_id: str, source: str, destination: str):
-        """pull a file from the instance and save it on the local machine
+        """Pull a file from the instance and save it on the local machine
 
         :param instance_id: The instance_id, as returned by new_instance()
         :param source: Path to the file that will be copied from the instance.
                             This must always be an absolute path.
         :param destination: Path on the local machine the file will be saved.
 
-        :raise: an exception in case the operation failed
+        If the operation fails, a HarnessError is raised.
         """
         raise NotImplementedError
 
     def exec(
         self, instance_id: str, command: list, **kwargs
     ) -> subprocess.CompletedProcess:
-        """run a command as root on the instance.
+        """Run a command as root on the instance.
 
         :param instance_id: The instance_id, as returned by new_instance()
         :param command: Command for subprocess.run()
         :param kwargs: Keyword args compatible with subprocess.run()
 
-        :raise: an exception in case the operation failed
+        If the operation fails, a subprocesss.CalledProcessError is raised.
         """
         raise NotImplementedError
 
     def delete_instance(self, instance_id: str):
-        """delete a previously created instance.
+        """Delete a previously created instance.
 
         :param instance_id: The instance_id, as returned by new_instance()
 
-        :raise: an exception in case the operation failed
+        If the operation fails, a HarnessError is raised.
         """
         raise NotImplementedError
 
     def cleanup(self):
-        """delete any leftover resources after the tests are done, e.g. delete any instances
-        that might still be running"""
+        """Delete any leftover resources after the tests are done, e.g. delete any
+        instances that might still be running.
+
+        If the operation fails, a HarnessError is raised.
+        """
         raise NotImplementedError
 
 
@@ -172,7 +176,7 @@ class LXDHarness(Harness):
                 instance_id,
                 ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
             )
-            run(["lxc", "file", "push", source, f"{instance_id}:{destination}"])
+            run(["lxc", "file", "push", source, f"{instance_id}{destination}"])
         except subprocess.CalledProcessError as e:
             raise HarnessError("lxc file push command failed") from e
 

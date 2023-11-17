@@ -21,7 +21,7 @@ sudo mv k8s_*.snap k8s.snap
 
 ```bash
 lxc profile create k8s
-cat ./test/lxd-profile.yaml | lxc profile edit k8s
+cat ./tests/e2e/lxd-profile.yaml | lxc profile edit k8s
 
 lxc launch ubuntu:22.04 -p default -p k8s u1
 lxc shell u1
@@ -43,4 +43,4 @@ sudo k8s kubectl get pod,node -A
 
 #### Run end to end tests
 
-See [src/k8s/tests/e2e/README.md](./src/k8s/tests/e2e/README.md) for more details
+See [tests/e2e/README.md](./tests/e2e/README.md) for more details

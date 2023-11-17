@@ -57,4 +57,4 @@ jobs:
       - name: Run end to end tests
         run: |
           export TEST_SNAP="$PWD/build/k8s.snap"
-          cd src/k8s/tests/e2e && tox -e e2e
+          cd tests/e2e && tox -e e2e

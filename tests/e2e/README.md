@@ -26,7 +26,7 @@ mv k8s_*.snap k8s.snap
 
 In general, all end to end tests will require specifying the local path to the snap package under test, using the `TEST_SNAP` environment variable. Make sure to specify the full path to the file.
 
-End to end tests are typically run with: `cd src/k8s/tests/e2e && tox -e e2e`
+End to end tests are typically run with: `cd tests/e2e && tox -e e2e`
 
 ### Running end to end tests on the local machine
 
@@ -34,7 +34,7 @@ End to end tests are typically run with: `cd src/k8s/tests/e2e && tox -e e2e`
 export TEST_SNAP=$PWD/k8s.snap
 export TEST_SUBSTRATE=local
 
-cd src/k8s/tests/e2e && tox -e e2e
+cd tests/e2e && tox -e e2e
 ```
 
 > *NOTE*: When running locally, end to end tests that create more than one instance will fail.
@@ -57,7 +57,7 @@ export TEST_LXD_IMAGE=ubuntu:22.04          # (optionally) specify which image t
 export TEST_LXD_PROFILE=k8s-e2e             # (optionally) specify profile name to configure
 export TEST_SKIP_CLEANUP=1                  # (optionally) do not destroy machines after tests finish
 
-cd src/k8s/tests/e2e && tox -e e2e
+cd tests/e2e && tox -e e2e
 ```
 
 ### Running end to end tests on multipass VMs
@@ -79,14 +79,16 @@ export TEST_MULTIPASS_CPUS=4                # (optionally) specify how many cpus
 export TEST_MULTIPASS_MEMORY=2G             # (optionally) specify how much RAM each VM should have
 export TEST_MULTIPASS_DISK=10G              # (optionally) specify how much disk each VM should have
 
-cd src/k8s/tests/e2e && tox -e e2e
+cd tests/e2e && tox -e e2e
 ```
 
 ## Writing an End to End test
 
-For a simple way to write end to end tests, have a look at [`test_smoke.py`](./smoke_test.go), which spins up a single instance, installs k8s and ensures that the kubelet node registers in the cluster.
+For a simple way to write end to end tests, have a look at [`test_smoke.py`](./tests/test_smoke.py), which spins up a single instance, installs k8s and ensures that the kubelet node registers in the cluster.
 
 Make sure to use the [Harness](./tests/conftest.py) fixture. That way, there _should not_ be a need for extra logic to handle running the tests locally, in LXD, or Multipass.
+
+A typical end to end test for feature `<feature>` should look like this:
 
 ```python
 # tests/e2e/tests/test_<feature>.py
