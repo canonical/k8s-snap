@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2002,SC2030,SC2031
+
 # Configure execution environment, locales and XDG to use paths from SNAP
 # Example: 'k8s::common::setup_env'
 k8s::common::setup_env() {
-  if [ ! -z "$_K8S_ENV_SETUP_ONCE" ]; then
+  if [ -n "$_K8S_ENV_SETUP_ONCE" ]; then
     return 0
   fi
 
-  local SNAP_CURRENT="${SNAP%$SNAP_REVISION}current"
+  local SNAP_CURRENT="${SNAP%"${SNAP_REVISION}"}current"
 
   # Configure PATH, LD_LIBRARY_PATH
   export PATH="$SNAP_CURRENT/usr/bin:$SNAP_CURRENT/bin:$SNAP_CURRENT/usr/sbin:$SNAP_CURRENT/sbin:$REAL_PATH"
@@ -77,7 +79,7 @@ k8s::cmd::snapctl() {
 k8s::cmd::hostname() {
   k8s::common::setup_env
 
-  hostname "${@}" | tr '[:upper:]' '[:lower:]'
+  hostname | tr '[:upper:]' '[:lower:]'
 }
 
 # Get the default host IP
@@ -85,18 +87,22 @@ k8s::cmd::hostname() {
 k8s::util::default_ip() {
   k8s::common::setup_env
 
+  local default_interface
+  local ip_addr_cidr
+  local ip_addr
+
   # default_interface="eth0"
   # ip_addr_cidr="10.0.1.83/24"
   # ip_addr="10.0.1.83"
-  local default_interface="$(ip route show default | awk '{for(i=1; i<NF; i++) if ($i=="dev") print $(i+1)}' | head -1)"
-  local ip_addr_cidr="$(ip -o -4 addr list "${default_interface}" | awk '{print $4}')"
-  local ip_addr="${ip_addr_cidr%/*}"
+  default_interface="$(ip route show default | awk '{for(i=1; i<NF; i++) if ($i=="dev") print $(i+1)}' | head -1)"
+  ip_addr_cidr="$(ip -o -4 addr list "${default_interface}" | awk '{print $4}')"
+  ip_addr="${ip_addr_cidr%/*}"
 
   if [ -z "$ip_addr" ]; then
-    local ip_addr="$(ip route get 255.255.255.255 | awk '{for(i=1; i<NF; i++) if ($i=="src") print $(i+1)})' | head -1)"
+    ip_addr="$(ip route get 255.255.255.255 | awk '{for(i=1; i<NF; i++) if ($i=="src") print $(i+1)})' | head -1)"
   fi
   if [ -z "$ip_addr" ]; then
-    local ip_addr="127.0.0.1"
+    ip_addr="127.0.0.1"
   fi
 
   echo "$ip_addr"
@@ -157,7 +163,7 @@ k8s::util::pki::sign_cert() {
   fi
 
   # Sign certificate and print to stdout
-  echo "$csr" | k8s::cmd::openssl x509 -req -sha256 -CA "/etc/kubernetes/pki/ca.crt" -CAkey "/etc/kubernetes/pki/ca.key" -CAcreateserial -days 3650 -extfile <(echo "${extensions}") "${@}"
+  echo "$csr" | k8s::cmd::openssl x509 -req -sha256 -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -days 3650 -extfile <(echo "${extensions}") "${@}"
 }
 
 # Execute a "$SNAP/bin/$service" with arguments from "$SNAP_DATA/args/$service"
@@ -186,17 +192,17 @@ k8s::init::k8s_dqlite() {
   echo 'Address: "127.0.0.1:2380"' > /var/lib/k8s-dqlite/init.yaml
 
   mkdir -p "$SNAP_DATA/args"
-  cp $SNAP/k8s/args/k8s-dqlite $SNAP_DATA/args/k8s-dqlite
+  cp "$SNAP/k8s/args/k8s-dqlite" "$SNAP_DATA/args/k8s-dqlite"
 }
 
 # Initialize containerd for the local node
 k8s::init::containerd() {
   k8s::common::setup_env
 
-  mkdir -p $SNAP_DATA/args
-  cp $SNAP/k8s/args/containerd $SNAP_DATA/args/containerd
-  cp $SNAP/k8s/config/containerd/config.toml /etc/containerd/config.toml
-  cp $SNAP/opt/cni/bin/* /opt/cni/bin/
+  mkdir "$SNAP_DATA/args" -m 0700
+  cp "$SNAP/k8s/args/containerd" "$SNAP_DATA/args/containerd"
+  cp "$SNAP/k8s/config/containerd/config.toml" /etc/containerd/config.toml
+  cp "$SNAP/opt/cni/bin/"* /opt/cni/bin/
 }
 
 # Initialize Kubernetes PKI CA (self-signed)
@@ -237,8 +243,8 @@ k8s::init::pki() {
   " | tr '\n' ' ')" | k8s::util::pki::sign_cert > /etc/kubernetes/pki/apiserver.crt
 
   # Generate front-proxy-client certificate (signed by front-proxy-ca)
-  k8s::util::pki::generate_csr "/CN=front-proxy-client" /etc/kubernetes/pki/front-proxy-client.key -config $SNAP/k8s/csr/csr.conf |
-    k8s::util::pki::sign_cert -extensions v3_ext -extfile $SNAP/k8s/csr/csr.conf -CA "/etc/kubernetes/pki/front-proxy-ca.crt" -CAkey "/etc/kubernetes/pki/front-proxy-ca.key" \
+  k8s::util::pki::generate_csr /CN=front-proxy-client /etc/kubernetes/pki/front-proxy-client.key -config "$SNAP/k8s/csr/csr.conf" |
+    k8s::util::pki::sign_cert -extensions v3_ext -extfile "$SNAP/k8s/csr/csr.conf" -CA "/etc/kubernetes/pki/front-proxy-ca.crt" -CAkey "/etc/kubernetes/pki/front-proxy-ca.key" \
       > /etc/kubernetes/pki/front-proxy-client.crt
 
   # Generate kubelet certificates
@@ -270,17 +276,13 @@ k8s::init::kubeconfigs() {
 k8s::util::generate_x509_kubeconfig() {
   k8s::common::setup_env
 
-  cert="$1"
-  key="$2"
-  ca="$3"
-
-  cert_data="$(cat $cert | base64 -w 0)"
-  key_data="$(cat $key | base64 -w 0)"
-  ca_data="$(cat $ca | base64 -w 0)"
+  cert_data="$(base64 -w 0 < "$1")"
+  key_data="$(base64 -w 0 < "$2")"
+  ca_data="$(base64 -w 0 < "$3")"
 
   # optional arguments (apiserver IP and port)
   apiserver="${4:-127.0.0.1}"
-  apiserver_port=$(cat $SNAP_DATA/args/kube-apiserver | grep -- --secure-port | tr '=' ' ' | cut -f2 -d' ')
+  apiserver_port="$(cat "$SNAP_DATA/args/kube-apiserver" | grep -- --secure-port | tr '=' ' ' | cut -f2 -d' ')"
   port="${5:-$apiserver_port}"
 
   cat "$SNAP/k8s/config/kubeconfig" |
@@ -296,7 +298,7 @@ k8s::util::generate_x509_kubeconfig() {
 k8s::init::kubernetes() {
   k8s::common::setup_env
 
-  mkdir -p "$SNAP_DATA/args" -m 0700
+  mkdir "$SNAP_DATA/args" -m 0700
   cp "$SNAP/k8s/args/kubelet" "$SNAP_DATA/args/kubelet"
   cp "$SNAP/k8s/args/kube-apiserver" "$SNAP_DATA/args/kube-apiserver"
   cp "$SNAP/k8s/args/kube-proxy" "$SNAP_DATA/args/kube-proxy"
