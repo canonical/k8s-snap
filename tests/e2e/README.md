@@ -82,6 +82,16 @@ export TEST_MULTIPASS_DISK=10G              # (optionally) specify how much disk
 cd tests/e2e && tox -e e2e
 ```
 
+Multipass can also be used to run the tests on Ubuntu Core:
+
+```bash
+export TEST_SNAP=$PWD/k8s.snap
+export TEST_SUBSTRATE=multipass
+export TEST_MULTIPASS_IMAGE=core20
+
+cd tests/e2e && tox -e e2e
+```
+
 ## Writing an End to End test
 
 For a simple way to write end to end tests, have a look at [`test_smoke.py`](./tests/test_smoke.py), which spins up a single instance, installs k8s and ensures that the kubelet node registers in the cluster.
