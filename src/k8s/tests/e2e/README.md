@@ -17,6 +17,13 @@ virtualenv .venv
 pip install 'tox<5'
 ```
 
+Further, make sure that you have built `k8s.snap`:
+
+```bash
+snapcraft --use-lxd
+mv k8s_*.snap k8s.snap
+```
+
 In general, all end to end tests will require specifying the local path to the snap package under test, using the `TEST_SNAP` environment variable. Make sure to specify the full path to the file.
 
 End to end tests are typically run with: `cd src/k8s/tests/e2e && tox -e e2e`
@@ -24,7 +31,7 @@ End to end tests are typically run with: `cd src/k8s/tests/e2e && tox -e e2e`
 ### Running end to end tests on the local machine
 
 ```bash
-export TEST_SNAP=/path/to/k8s.snap
+export TEST_SNAP=$PWD/k8s.snap
 export TEST_SUBSTRATE=local
 
 cd src/k8s/tests/e2e && tox -e e2e
@@ -43,10 +50,34 @@ sudo lxd init --auto
 Then, run the tests with:
 
 ```bash
+export TEST_SNAP=$PWD/k8s.snap
 export TEST_SUBSTRATE=lxd
+
 export TEST_LXD_IMAGE=ubuntu:22.04          # (optionally) specify which image to use for LXD containers
 export TEST_LXD_PROFILE=k8s-e2e             # (optionally) specify profile name to configure
 export TEST_SKIP_CLEANUP=1                  # (optionally) do not destroy machines after tests finish
+
+cd src/k8s/tests/e2e && tox -e e2e
+```
+
+### Running end to end tests on multipass VMs
+
+First, make sure that you have installed Multipass:
+
+```bash
+sudo snap install multipass
+```
+
+Then, run the tests with:
+
+```bash
+export TEST_SNAP=$PWD/k8s.snap
+export TEST_SUBSTRATE=multipass
+
+export TEST_MULTIPASS_IMAGE=22.04           # (optionally) specify ubuntu version for VMs
+export TEST_MULTIPASS_CPUS=4                # (optionally) specify how many cpus each VM should have
+export TEST_MULTIPASS_MEMORY=2G             # (optionally) specify how much RAM each VM should have
+export TEST_MULTIPASS_DISK=10G              # (optionally) specify how much disk each VM should have
 
 cd src/k8s/tests/e2e && tox -e e2e
 ```
@@ -55,7 +86,7 @@ cd src/k8s/tests/e2e && tox -e e2e
 
 For a simple way to write end to end tests, have a look at [`test_smoke.py`](./smoke_test.go), which spins up a single instance, installs k8s and ensures that the kubelet node registers in the cluster.
 
-Make sure to use the [Harness](./tests/conftest.py) interfac. That way, there _should not_ be a need for extra logic to handle running the tests locally, in LXD, or Multipass.
+Make sure to use the [Harness](./tests/conftest.py) fixture. That way, there _should not_ be a need for extra logic to handle running the tests locally, in LXD, or Multipass.
 
 ```python
 # tests/e2e/test_<feature>.py
