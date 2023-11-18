@@ -2,7 +2,7 @@
 
 ## Overview
 
-End to end tests are written in Python. They are built on top of a [Harness](./tests/conftest.py) fixture so that they can run on multiple environments like LXD, multipass or the local machine.
+End to end tests are written in Python. They are built on top of a [Harness](./tests/conftest.py) fixture so that they can run on multiple environments like LXD, Multipass, Juju, or the local machine.
 
 End to end tests can be configured using environment variables. You can see all available options in [./tests/config.py](./tests/config.py).
 
@@ -133,7 +133,7 @@ cd tests/e2e && tox -e e2e
 
 For a simple way to write end to end tests, have a look at [`test_smoke.py`](./tests/test_smoke.py), which spins up a single instance, installs k8s and ensures that the kubelet node registers in the cluster.
 
-Make sure to use the [Harness](./tests/conftest.py) fixture. That way, there _should not_ be a need for extra logic to handle running the tests locally, in LXD, or Multipass.
+Make sure to use the [Harness](./tests/conftest.py) fixture. That way, there _should not_ be a need for extra logic to handle running the tests in LXD, Multipass, Juju or locally.
 
 A typical end to end test for feature `<feature>` should look like this:
 
@@ -147,14 +147,13 @@ import subprocess
 import time
 from pathlib import Path
 
-import config
 import pytest
-from conftest import Harness
+from e2e_util import config, harness
 
 LOG = logging.getLogger(__name__)
 
 
-def test_feature(h: Harness, tmp_path: Path):
+def test_feature(h: harness.Harness, tmp_path: Path):
     if not config.SNAP:
         pytest.fail("Set TEST_SNAP to the path where the snap is")
 
@@ -164,11 +163,9 @@ def test_feature(h: Harness, tmp_path: Path):
     instance_id = h.new_instance()
 
     LOG.info("Install snap")
-    h.exec(instance_id, ["mkdir", "-p", tmp_path.as_posix()])
     h.send_file(instance_id, config.SNAP, snap_path)
     h.exec(instance_id, ["snap", "install", snap_path, "--dangerous"])
 
     LOG.info("Test something")
     # h.exec(...)
-
 ```

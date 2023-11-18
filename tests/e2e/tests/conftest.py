@@ -3,9 +3,8 @@
 #
 import logging
 
-import config
-import harness
 import pytest
+from e2e_util import config, harness
 
 LOG = logging.getLogger(__name__)
 
@@ -14,7 +13,7 @@ LOG = logging.getLogger(__name__)
 def h() -> harness.Harness:
     LOG.debug("Create harness for %s", config.SUBSTRATE)
     if config.SUBSTRATE == "local":
-        h = harness.LocalHarness()
+        h = harness.local.LocalHarness()
     elif config.SUBSTRATE == "lxd":
         h = harness.LXDHarness()
     elif config.SUBSTRATE == "multipass":

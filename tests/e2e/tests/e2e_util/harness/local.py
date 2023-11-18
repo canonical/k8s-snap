@@ -9,8 +9,8 @@ import socket
 import subprocess
 from pathlib import Path
 
-from harness_base import Harness, HarnessError
-from util import run
+from e2e_util.harness import Harness, HarnessError
+from e2e_util.util import run
 
 LOG = logging.getLogger(__name__)
 

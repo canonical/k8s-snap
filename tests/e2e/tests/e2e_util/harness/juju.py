@@ -6,9 +6,9 @@ import shlex
 import subprocess
 from pathlib import Path
 
-import config
-from harness_base import Harness, HarnessError
-from util import run
+from e2e_util import config
+from e2e_util.harness import Harness, HarnessError
+from e2e_util.util import run
 
 LOG = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ class JujuHarness(Harness):
 
             instance_id = output.split(" ")[2]
         except subprocess.CalledProcessError as e:
-            raise HarnessError(f"Failed to create Juju machine") from e
+            raise HarnessError("Failed to create Juju machine") from e
 
         self.instances.add(instance_id)
 

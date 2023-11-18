@@ -6,14 +6,13 @@ import subprocess
 import time
 from pathlib import Path
 
-import config
 import pytest
-from harness import Harness
+from e2e_util import config, harness
 
 LOG = logging.getLogger(__name__)
 
 
-def test_smoke(h: Harness, tmp_path: Path):
+def test_smoke(h: harness.Harness, tmp_path: Path):
     if not config.SNAP:
         pytest.fail("Set TEST_SNAP to the path where the snap is")
 

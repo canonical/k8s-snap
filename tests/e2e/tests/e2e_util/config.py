@@ -10,7 +10,7 @@ DIR = Path(__file__).absolute().parent
 SNAP = os.getenv("TEST_SNAP")
 
 # SUBSTRATE is the substrate to use for running the e2e tests.
-# One of 'local' (default), 'lxd' or 'multipass'.
+# One of 'local' (default), 'lxd', 'juju', or 'multipass'.
 SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "local"
 
 # SKIP_CLEANUP can be used to prevent machines to be automatically destroyed
@@ -22,7 +22,8 @@ LXD_PROFILE_NAME = os.getenv("TEST_LXD_PROFILE_NAME") or "k8s-e2e"
 
 # LXD_PROFILE is the profile to use for LXD containers.
 LXD_PROFILE = (
-    os.getenv("TEST_LXD_PROFILE") or (DIR / ".." / "lxd-profile.yaml").read_text()
+    os.getenv("TEST_LXD_PROFILE")
+    or (DIR / ".." / ".." / "lxd-profile.yaml").read_text()
 )
 
 # LXD_IMAGE is the image to use for LXD containers.

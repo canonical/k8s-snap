@@ -7,54 +7,32 @@ import subprocess
 import time
 from pathlib import Path
 
-import config
-from harness_base import Harness, HarnessError
-from util import run
+from e2e_util import config
+from e2e_util.harness import Harness, HarnessError
+from e2e_util.util import run
 
 LOG = logging.getLogger(__name__)
 
 
-class LXDHarness(Harness):
-    """A Harness that creates an LXD container for each instance."""
+class MultipassHarness(Harness):
+    """A Harness that creates a Multipass VM for each instance."""
 
     def next_id(self) -> int:
         self._next_id += 1
         return self._next_id
 
     def __init__(self):
-        super(LXDHarness, self).__init__()
+        super(MultipassHarness, self).__init__()
 
         self._next_id = 0
 
-        self.profile = config.LXD_PROFILE_NAME
-        self.image = config.LXD_IMAGE
+        self.image = config.MULTIPASS_IMAGE
+        self.cpus = config.MULTIPASS_CPUS
+        self.memory = config.MULTIPASS_MEMORY
+        self.disk = config.MULTIPASS_DISK
         self.instances = set()
 
-        LOG.debug("Checking for LXD profile %s", self.profile)
-        try:
-            run(["lxc", "profile", "show", self.profile])
-        except subprocess.CalledProcessError:
-            try:
-                LOG.debug("Creating LXD profile %s", self.profile)
-                run(["lxc", "profile", "create", self.profile])
-
-            except subprocess.CalledProcessError as e:
-                raise HarnessError(
-                    f"Failed to create LXD profile {self.profile}"
-                ) from e
-
-        try:
-            LOG.debug("Configuring LXD profile %s", self.profile)
-            run(
-                ["lxc", "profile", "edit", self.profile],
-                input=config.LXD_PROFILE.encode(),
-            )
-        except subprocess.CalledProcessError as e:
-            raise HarnessError(f"Failed to configure LXD profile {self.profile}") from e
-
-        LOG.debug(
-            "Configured LXD substrate (profile %s, image %s)", self.profile, self.image
-        )
+        LOG.debug("Configured Multipass substrate (image %s)", self.image)
 
     def new_instance(self) -> str:
         # TODO(neoaggelos): make this unique
@@ -64,18 +42,21 @@ class LXDHarness(Harness):
         try:
             run(
                 [
-                    "lxc",
+                    "multipass",
                     "launch",
                     self.image,
+                    "--name",
                     instance_id,
-                    "-p",
-                    "default",
-                    "-p",
-                    self.profile,
+                    "--cpus",
+                    self.cpus,
+                    "--memory",
+                    self.memory,
+                    "--disk",
+                    self.disk,
                 ]
             )
         except subprocess.CalledProcessError as e:
-            raise HarnessError(f"Failed to create LXD container {instance_id}") from e
+            raise HarnessError(f"Failed to create multipass VM {instance_id}") from e
 
         self.instances.add(instance_id)
 
@@ -97,7 +78,7 @@ class LXDHarness(Harness):
                 instance_id,
                 ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
             )
-            run(["lxc", "file", "push", source, f"{instance_id}{destination}"])
+            run(["multipass", "transfer", source, f"{instance_id}:{destination}"])
         except subprocess.CalledProcessError as e:
             raise HarnessError("lxc file push command failed") from e
 
@@ -112,7 +93,7 @@ class LXDHarness(Harness):
             "Copying file %s from instance %s to %s", source, instance_id, destination
         )
         try:
-            run(["lxc", "file", "pull", f"{instance_id}{source}", destination])
+            run(["multipass", "transfer", f"{instance_id}:{source}", destination])
         except subprocess.CalledProcessError as e:
             raise HarnessError("lxc file push command failed") from e
 
@@ -122,7 +103,16 @@ class LXDHarness(Harness):
 
         LOG.debug("Execute command %s in instance %s", command, instance_id)
         return run(
-            ["lxc", "shell", instance_id, "--", "bash", "-c", shlex.join(command)],
+            [
+                "multipass",
+                "exec",
+                instance_id,
+                "--",
+                "sudo",
+                "bash",
+                "-c",
+                shlex.join(command),
+            ],
             **kwargs,
         )
 
@@ -131,7 +121,8 @@ class LXDHarness(Harness):
             raise HarnessError(f"unknown instance {instance_id}")
 
         try:
-            run(["lxc", "rm", instance_id, "--force"])
+            run(["multipass", "delete", instance_id])
+            run(["multipass", "purge"])
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"failed to delete instance {instance_id}") from e
 
