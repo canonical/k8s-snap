@@ -8,7 +8,7 @@ from pathlib import Path
 
 import config
 import pytest
-from conftest import Harness
+from harness import Harness
 
 LOG = logging.getLogger(__name__)
 
@@ -33,13 +33,16 @@ def test_smoke(h: Harness, tmp_path: Path):
     LOG.info("Start Kubernetes")
     h.exec(instance_id, ["k8s", "start"])
 
+    hostname = (
+        h.exec(instance_id, ["hostname"], capture_output=True).stdout.decode().strip()
+    )
     success = False
     for attempt in range(30):
         try:
             LOG.info("(attempt %d) Waiting for Kubelet to register", attempt)
             p = h.exec(
                 instance_id,
-                ["k8s", "kubectl", "get", "node", instance_id, "--no-headers"],
+                ["k8s", "kubectl", "get", "node", hostname, "--no-headers"],
                 capture_output=True,
             )
             success = True
@@ -53,5 +56,5 @@ def test_smoke(h: Harness, tmp_path: Path):
     if not success:
         pytest.fail("Kubelet node did not register")
 
-    LOG.info("Remove Kubernetes")
-    h.exec(instance_id, ["snap", "remove", "k8s", "--purge"])
+    # LOG.info("Remove Kubernetes")
+    # h.exec(instance_id, ["snap", "remove", "k8s", "--purge"])

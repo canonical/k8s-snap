@@ -39,3 +39,18 @@ MULTIPASS_MEMORY = os.getenv("TEST_MULTIPASS_MEMORY") or "2G"
 
 # MULTIPASS_DISK is the disk size for Multipass VMs.
 MULTIPASS_DISK = os.getenv("TEST_MULTIPASS_DISK") or "10G"
+
+# JUJU_MODEL is the Juju model to use.
+JUJU_MODEL = os.getenv("TEST_JUJU_MODEL")
+
+# JUJU_CONTROLLER is the Juju controller to use.
+JUJU_CONTROLLER = os.getenv("TEST_JUJU_CONTROLLER")
+
+# JUJU_CONSTRAINTS is the constraints to use when creating Juju machines.
+JUJU_CONSTRAINTS = os.getenv("TEST_JUJU_CONSTRAINTS", "mem=4G cores=2 root-disk=20G")
+
+# JUJU_BASE is the base OS to use when creating Juju machines.
+JUJU_BASE = os.getenv("TEST_JUJU_BASE") or "ubuntu@22.04"
+
+# JUJU_MACHINES is a list of existing Juju machines to use.
+JUJU_MACHINES = os.getenv("TEST_JUJU_MACHINES") or ""

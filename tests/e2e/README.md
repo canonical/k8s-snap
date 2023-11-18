@@ -92,6 +92,43 @@ export TEST_MULTIPASS_IMAGE=core20
 cd tests/e2e && tox -e e2e
 ```
 
+### Running end to end tests on Juju
+
+First, make sure you have installed Juju and bootstrapped a Juju controller. You can provision a local controller on LXD and create a `k8s-e2e` model using:
+
+```bash
+sudo snap install juju
+mkdir -p ~/.local/share
+juju bootstrap localhost
+juju add-model k8s-e2e
+```
+
+Then, run the tests with:
+
+```bash
+export TEST_SNAP=$PWD/k8s.snap
+export TEST_SUBSTRATE=juju
+export TEST_JUJU_MODEL=k8s-e2e
+
+export TEST_JUJU_CONTROLLER=localhost       # (optionally) specify Juju controller to use for running the tests
+export TEST_JUJU_BASE=ubuntu@22.04          # (optionally) specify base OS to use for new Juju machines
+export TEST_JUJU_CONSTRAINTS='mem=4G'       # (optionally) specify constraints for new Juju machines
+
+cd tests/e2e && tox -e e2e
+```
+
+Alternatively, you can specify a list of existing Juju machines to use for the tests (e.g. machines created using `juju add-machine`):
+
+```bash
+export TEST_SNAP=$PWD/k8s.snap
+export TEST_SUBSTRATE=juju
+export TEST_JUJU_MODEL=k8s-e2e
+
+export TEST_JUJU_MACHINES=0,1,2
+
+cd tests/e2e && tox -e e2e
+```
+
 ## Writing an End to End test
 
 For a simple way to write end to end tests, have a look at [`test_smoke.py`](./tests/test_smoke.py), which spins up a single instance, installs k8s and ensures that the kubelet node registers in the cluster.
