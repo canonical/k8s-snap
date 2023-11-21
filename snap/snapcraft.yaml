@@ -337,6 +337,9 @@ layout:
     bind: $SNAP_COMMON/var/log/pods
   /var/log/containers:
     bind: $SNAP_COMMON/var/log/containers
+  # Containerd runtime state (note: snapd does not allow "/run/containerd")
+  /var/lib/run/containerd:
+    type: tmpfs
   # CNI
   /var/lib/cni:
     bind: $SNAP_COMMON/var/lib/cni
