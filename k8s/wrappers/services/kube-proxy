@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+. "$SNAP/k8s/lib.sh"
+
+k8s::util::wait_kube_apiserver
+k8s::common::execute_service kube-proxy

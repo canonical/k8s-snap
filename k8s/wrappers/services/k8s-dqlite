@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+. "$SNAP/k8s/lib.sh"
+
+k8s::common::execute_service k8s-dqlite
