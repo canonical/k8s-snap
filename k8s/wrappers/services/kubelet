@@ -2,6 +2,14 @@
 
 . "$SNAP/k8s/lib.sh"
 
+k8s::common::setup_env
+
+if ! findmnt -o PROPAGATION /var/lib/kubelet -n | grep -q shared; then
+  echo "Ensure /var/lib/kubelet mount propagation is rshared"
+  mount -o remount --make-rshared "$SNAP_COMMON/var/lib/kubelet" /var/lib/kubelet
+fi
+
 k8s::util::wait_containerd_socket
 k8s::util::wait_kube_apiserver
+
 k8s::common::execute_service kubelet
