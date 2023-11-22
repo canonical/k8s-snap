@@ -47,11 +47,12 @@ parts:
     plugin: nil
     override-build: |
       make static -j
-
       INSTALL="${SNAPCRAFT_PART_INSTALL}/bin"
       mkdir -p "${INSTALL}"
-      cp bin/static/k8s-dqlite "${INSTALL}/k8s-dqlite"
-      cp bin/static/dqlite "${INSTALL}/dqlite"
+
+      for binary in k8s k8sd k8s-dqlite dqlite; do
+        cp "bin/static/${binary}" "${INSTALL}/${binary}"
+      done
 
   cni:
     after: [build-deps]

@@ -118,6 +118,8 @@ jobs:
         run: |
           make -j static
 
+          ./bin/static/k8s --help
+          ./bin/static/k8sd --help
           ./bin/static/k8s-dqlite --help
           ./bin/static/dqlite --help
 
@@ -127,5 +129,7 @@ jobs:
           make -j dynamic
           export LD_LIBRARY_PATH=bin/dynamic/lib
 
+          ./bin/dynamic/k8s --help
+          ./bin/dynamic/k8sd --help
           ./bin/dynamic/k8s-dqlite --help
           ./bin/dynamic/dqlite --help
