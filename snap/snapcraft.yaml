@@ -43,10 +43,15 @@ parts:
 
   k8s-dqlite:
     after: [build-deps]
-    build-attributes: [no-patchelf]
-    source: build-scripts/components/k8s-dqlite
+    source: src/k8s
     plugin: nil
-    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
+    override-build: |
+      make static -j
+
+      INSTALL="${SNAPCRAFT_PART_INSTALL}/bin"
+      mkdir -p "${INSTALL}"
+      cp bin/static/k8s-dqlite "${INSTALL}/k8s-dqlite"
+      cp bin/static/dqlite "${INSTALL}/dqlite"
 
   cni:
     after: [build-deps]

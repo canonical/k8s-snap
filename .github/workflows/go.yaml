@@ -1,0 +1,131 @@
+name: Go
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Unit Tests & Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4.1.0
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: go mod download
+        working-directory: src/k8s
+        run: go mod download
+
+      - name: go fmt
+        working-directory: src/k8s
+        run: make go.fmt
+
+      - name: check diff
+        run: |
+          if ! git diff; then
+            echo "Detected changes that have not been committed to the repository"
+            exit 1
+          fi
+
+      - name: install dqlite
+        run: |
+          sudo add-apt-repository ppa:dqlite/dev
+          sudo apt update
+          sudo apt install -y libdqlite-dev
+
+      - name: go vet
+        working-directory: src/k8s
+        run: make go.vet
+
+      - name: go test
+        working-directory: src/k8s
+        run: make go.unit
+
+  test-k8s-sqlite:
+    name: k8s-dqlite integration tests (sqlite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4.1.0
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: go mod download
+        working-directory: src/k8s
+        run: go mod download
+
+      - name: go test
+        working-directory: src/k8s
+        run: make go.k8s-dqlite.test
+
+  test-k8s-dqlite:
+    name: k8s-dqlite integration tests (dqlite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4.1.0
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: go mod download
+        working-directory: src/k8s
+        run: go mod download
+
+      - name: install dqlite
+        run: |
+          sudo add-apt-repository ppa:dqlite/dev
+          sudo apt update
+          sudo apt install -y libdqlite-dev
+
+      - name: go test
+        working-directory: src/k8s
+        run: make go.k8s-dqlite.test.dqlite
+
+  test-static:
+    name: Build k8s-dqlite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4.1.0
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: go mod download
+        working-directory: src/k8s
+        run: go mod download
+
+      - name: Build static binaries
+        working-directory: src/k8s
+        run: |
+          make -j static
+
+          ./bin/static/k8s-dqlite --help
+          ./bin/static/dqlite --help
+
+      - name: Build shared binaries
+        working-directory: src/k8s
+        run: |
+          make -j dynamic
+          export LD_LIBRARY_PATH=bin/dynamic/lib
+
+          ./bin/dynamic/k8s-dqlite --help
+          ./bin/dynamic/dqlite --help
