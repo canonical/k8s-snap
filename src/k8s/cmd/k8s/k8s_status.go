@@ -10,7 +10,7 @@ var (
 		Use:   "status",
 		Short: "Retrieve the current status of the cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if rootCmdOpts.flagLogDebug {
+			if rootCmdOpts.logDebug {
 				logrus.SetLevel(logrus.TraceLevel)
 			}
 

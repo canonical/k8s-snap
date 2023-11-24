@@ -3,7 +3,7 @@ package k8s
 import (
 	"context"
 
-	cluster "github.com/canonical/k8s/pkg/k8s"
+	"github.com/canonical/k8s/pkg/k8s/cluster"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -13,15 +13,15 @@ var (
 		Use:   "bootstrap-cluster",
 		Short: "Create new cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if rootCmdOpts.flagLogDebug {
+			if rootCmdOpts.logDebug {
 				logrus.SetLevel(logrus.TraceLevel)
 			}
 
 			err := cluster.Bootstrap(context.Background(), cluster.ClusterOpts{
-				Address:  clusterCmdOpts.flagAddress,
-				StateDir: clusterCmdOpts.flagStateDir,
-				Verbose:  rootCmdOpts.flagLogVerbose,
-				Debug:    rootCmdOpts.flagLogDebug,
+				Address:  clusterCmdOpts.address,
+				StateDir: clusterCmdOpts.stateDir,
+				Verbose:  rootCmdOpts.logVerbose,
+				Debug:    rootCmdOpts.logDebug,
 			})
 			if err == nil {
 				logrus.Info("Cluster created.")

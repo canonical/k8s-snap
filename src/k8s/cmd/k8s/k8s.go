@@ -7,15 +7,16 @@ import (
 
 var (
 	rootCmdOpts struct {
-		flagLogDebug   bool
-		flagLogVerbose bool
+		logDebug   bool
+		logVerbose bool
 	}
 
 	rootCmd = &cobra.Command{
-		Use:   "k8s",
-		Short: "Canonical Kubernetes CLI",
+		Use:          "k8s",
+		Short:        "Canonical Kubernetes CLI",
+		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if rootCmdOpts.flagLogDebug {
+			if rootCmdOpts.logDebug {
 				logrus.SetLevel(logrus.TraceLevel)
 			}
 
@@ -25,7 +26,6 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.flagLogDebug, "debug", "d", false, "Show all debug messages")
-	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.flagLogVerbose, "verbose", "v", true, "Show all information messages")
-	rootCmd.SilenceUsage = true
+	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
+	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
 }

@@ -2,6 +2,7 @@ package k8sd
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/canonical/microcluster/microcluster"
 	"github.com/spf13/cobra"
@@ -9,10 +10,10 @@ import (
 
 var (
 	rootCmdOpts struct {
-		flagVersion    bool
-		flagLogDebug   bool
-		flagLogVerbose bool
-		flagStateDir   string
+		version    bool
+		logDebug   bool
+		logVerbose bool
+		stateDir   string
 	}
 
 	rootCmd = &cobra.Command{
@@ -22,23 +23,28 @@ var (
 			m, err := microcluster.App(
 				context.Background(),
 				microcluster.Args{
-					StateDir: rootCmdOpts.flagStateDir,
-					Verbose:  rootCmdOpts.flagLogVerbose,
-					Debug:    rootCmdOpts.flagLogDebug,
+					StateDir: rootCmdOpts.stateDir,
+					Verbose:  rootCmdOpts.logVerbose,
+					Debug:    rootCmdOpts.logDebug,
 				},
 			)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to initialize microcluster app: %w", err)
 			}
 
-			return m.Start(nil, nil, nil)
+			err = m.Start(nil, nil, nil)
+			if err != nil {
+				return fmt.Errorf("failed to start microcluster app: %w", err)
+			}
+
+			return nil
 		},
 	}
 )
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.flagLogDebug, "debug", "d", false, "Show all debug messages")
-	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.flagLogVerbose, "verbose", "v", true, "Show all information messages")
+	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
+	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
 
-	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.flagStateDir, "state-dir", "", "Path to store state information")
+	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Path to store state information")
 }
