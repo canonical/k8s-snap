@@ -41,7 +41,7 @@ parts:
       - rsync
       - tcl
 
-  k8s-dqlite:
+  k8s:
     after: [build-deps]
     source: src/k8s
     plugin: nil
