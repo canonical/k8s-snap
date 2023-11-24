@@ -23,12 +23,12 @@ go.k8s-dqlite.bench.dqlite:
 	CGO_LDFLAGS_ALLOW=-Wl,-z,now go test -tags=dqlite,libsqlite3 -v ./test/k8s-dqlite -run "^$$" -bench "Benchmark" -benchmem
 
 ## Static Builds
-static: bin/static/k8s-dqlite bin/static/dqlite
+static: bin/static/k8s bin/static/k8sd bin/static/k8s-dqlite bin/static/dqlite
 
 deps/static/lib/libdqlite.a: hack/compile-static-dqlite.sh
 	./hack/compile-static-dqlite.sh
 
-bin/static/k8s-dqlite: deps/static/lib/libdqlite.a
+bin/static/k8s: deps/static/lib/libdqlite.a
 	mkdir -p bin/static
 	env \
 		PATH="${PATH}:${PWD}/deps/static/musl/bin" \
@@ -38,9 +38,15 @@ bin/static/k8s-dqlite: deps/static/lib/libdqlite.a
 		CC="musl-gcc" \
 		go build \
 			-tags=dqlite,libsqlite3 \
-			-o bin/static/k8s-dqlite \
+			-o bin/static/k8s \
 			-ldflags '-s -w -linkmode "external" -extldflags "-static"' \
 			cmd/main.go
+
+bin/static/k8s-dqlite: bin/static/k8s
+	cd bin/static && ln -s k8s k8s-dqlite
+
+bin/static/k8sd: bin/static/k8s
+	cd bin/static && ln -s k8s k8sd
 
 bin/static/dqlite: deps/static/lib/libdqlite.a
 	mkdir -p bin/static
@@ -59,7 +65,7 @@ bin/static/dqlite: deps/static/lib/libdqlite.a
 			github.com/canonical/go-dqlite/cmd/dqlite
 
 ## Dynamic Builds
-dynamic: bin/dynamic/lib/libdqlite.so bin/dynamic/k8s-dqlite bin/dynamic/dqlite
+dynamic: bin/dynamic/lib/libdqlite.so bin/dynamic/k8s bin/dynamic/k8sd bin/dynamic/k8s-dqlite bin/dynamic/dqlite
 
 bin/dynamic/lib/libdqlite.so: deps/dynamic/lib/libdqlite.so
 	mkdir -p bin/dynamic/lib
@@ -68,7 +74,7 @@ bin/dynamic/lib/libdqlite.so: deps/dynamic/lib/libdqlite.so
 deps/dynamic/lib/libdqlite.so:
 	./hack/compile-dynamic-dqlite.sh
 
-bin/dynamic/k8s-dqlite: deps/dynamic/lib/libdqlite.so
+bin/dynamic/k8s: deps/dynamic/lib/libdqlite.so
 	mkdir -p bin/dynamic
 	env \
 		CGO_CFLAGS="-I${PWD}/deps/dynamic/include" \
@@ -76,9 +82,15 @@ bin/dynamic/k8s-dqlite: deps/dynamic/lib/libdqlite.so
 		CGO_LDFLAGS_ALLOW="-Wl,-z,now" \
 		go build \
 			-tags=dqlite,libsqlite3 \
-			-o bin/dynamic/k8s-dqlite \
+			-o bin/dynamic/k8s \
 			-ldflags '-s -w' \
 			cmd/main.go
+
+bin/dynamic/k8s-dqlite: bin/dynamic/k8s
+	cd bin/dynamic && ln -s k8s k8s-dqlite
+
+bin/dynamic/k8sd: bin/dynamic/k8s
+	cd bin/dynamic && ln -s k8s k8sd
 
 bin/dynamic/dqlite: deps/dynamic/lib/libdqlite.so
 	mkdir -p bin/dynamic
