@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"errors"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -8,7 +9,7 @@ import (
 
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
-		logrus.WithError(err).Print("k8s command failed")
+		logrus.Print(errors.Unwrap(err))
 		os.Exit(1)
 	}
 }

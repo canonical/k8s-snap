@@ -1,31 +1,44 @@
 package k8sd
 
 import (
-	"github.com/sirupsen/logrus"
+	"context"
+
+	"github.com/canonical/microcluster/microcluster"
 	"github.com/spf13/cobra"
 )
 
 var (
 	rootCmdOpts struct {
-		testFlag string
-		debug    bool
+		flagVersion    bool
+		flagLogDebug   bool
+		flagLogVerbose bool
+		flagStateDir   string
 	}
 
 	rootCmd = &cobra.Command{
 		Use:   "k8sd",
 		Short: "Canonical Kubernetes orchestrator and clustering daemon",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if rootCmdOpts.debug {
-				logrus.SetLevel(logrus.TraceLevel)
+			m, err := microcluster.App(
+				context.Background(),
+				microcluster.Args{
+					StateDir: rootCmdOpts.flagStateDir,
+					Verbose:  rootCmdOpts.flagLogVerbose,
+					Debug:    rootCmdOpts.flagLogDebug,
+				},
+			)
+			if err != nil {
+				return err
 			}
 
-			logrus.WithField("flag", rootCmdOpts.testFlag).Info("Placeholder k8sd command")
-			return nil
+			return m.Start(nil, nil, nil)
 		},
 	}
 )
 
 func init() {
-	rootCmd.Flags().StringVar(&rootCmdOpts.testFlag, "flag", "value", "test flag (TODO: remove)")
-	rootCmd.Flags().BoolVar(&rootCmdOpts.debug, "debug", false, "debug logs")
+	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.flagLogDebug, "debug", "d", false, "Show all debug messages")
+	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.flagLogVerbose, "verbose", "v", true, "Show all information messages")
+
+	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.flagStateDir, "state-dir", "", "Path to store state information")
 }
