@@ -41,7 +41,7 @@ parts:
       - rsync
       - tcl
 
-  k8s:
+  k8s-binaries:
     after: [build-deps]
     source: src/k8s
     plugin: nil
