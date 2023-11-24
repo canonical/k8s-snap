@@ -6,15 +6,11 @@ import (
 )
 
 var (
-	statusCmdOpts struct {
-		debug bool
-	}
-
 	statusCmd = &cobra.Command{
 		Use:   "status",
 		Short: "Retrieve the current status of the cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if statusCmdOpts.debug {
+			if rootCmdOpts.logDebug {
 				logrus.SetLevel(logrus.TraceLevel)
 			}
 
@@ -25,6 +21,5 @@ var (
 )
 
 func init() {
-	statusCmd.Flags().BoolVar(&statusCmdOpts.debug, "debug", false, "debug logs")
 	rootCmd.AddCommand(statusCmd)
 }
