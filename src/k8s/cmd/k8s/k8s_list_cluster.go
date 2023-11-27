@@ -23,12 +23,17 @@ var (
 				logrus.SetLevel(logrus.TraceLevel)
 			}
 
-			clusterMembers, err := cluster.GetMembers(cmd.Context(), cluster.ClusterOpts{
+			client, err := cluster.NewClient(cmd.Context(), cluster.ClusterOpts{
 				Address:  clusterCmdOpts.address,
 				StateDir: clusterCmdOpts.stateDir,
 				Verbose:  rootCmdOpts.logVerbose,
 				Debug:    rootCmdOpts.logDebug,
 			})
+			if err != nil {
+				return fmt.Errorf("failed to create cluster client: %w", err)
+			}
+
+			clusterMembers, err := client.GetMembers(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("failed to retrieve cluster members: %w", err)
 			}

@@ -14,11 +14,15 @@ import (
 	"github.com/canonical/microcluster/microcluster"
 )
 
-// Boostrap sets up new cluster and returns the informations about the daemon.
-func Bootstrap(ctx context.Context, config ClusterOpts) (ClusterMember, error) {
-	m, err := getMicroClusterApp(ctx, config)
+// Bootstrap sets up new cluster and returns the information about the daemon.
+func Bootstrap(ctx context.Context, opts ClusterOpts) (ClusterMember, error) {
+	m, err := microcluster.App(ctx, microcluster.Args{
+		StateDir: opts.StateDir,
+		Verbose:  opts.Verbose,
+		Debug:    opts.Debug,
+	})
 	if err != nil {
-		return ClusterMember{}, fmt.Errorf("unable to configure cluster: %w", err)
+		return ClusterMember{}, fmt.Errorf("failed to configure cluster: %w", err)
 	}
 
 	// Get system hostname.
@@ -28,8 +32,9 @@ func Bootstrap(ctx context.Context, config ClusterOpts) (ClusterMember, error) {
 	}
 
 	// Get system address.
-	address := util.NetworkInterfaceAddress()
-	address = util.CanonicalNetworkAddress(address, 6443)
+	address := util.CanonicalNetworkAddress(
+		util.NetworkInterfaceAddress(), 6443,
+	)
 
 	member := ClusterMember{
 		Name:    hostname,
@@ -39,13 +44,53 @@ func Bootstrap(ctx context.Context, config ClusterOpts) (ClusterMember, error) {
 	return member, err
 }
 
-func GetMembers(ctx context.Context, config ClusterOpts) ([]ClusterMember, error) {
-	client, err := getClient(ctx, config)
+// NewClient returns a client to interact with the cluster.
+// It will return:
+//   - a local client, if executing node is part of cluster (valid config.stateDir)
+//   - a remote client, if executing node is part of cluster but config.Address is set
+//
+// TODO(bschimke):
+//   - a REST client, if executed from outside of a cluster. A REST client has limited functionality.
+//     This requires a mechanism to distribute the server certificates to the client
+func NewClient(ctx context.Context, opts ClusterOpts) (*Client, error) {
+	err := opts.isValid()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid configuration: %w", err)
 	}
 
-	clusterMembers, err := client.GetClusterMembers(context.Background())
+	m, err := microcluster.App(ctx, microcluster.Args{
+		StateDir: opts.StateDir,
+		Verbose:  opts.Verbose,
+		Debug:    opts.Debug,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("cannot read cluster info: %w", err)
+	}
+
+	var microClient *client.Client
+	if opts.Address != "" {
+		microClient, err = m.RemoteClient(opts.Address)
+	} else {
+		microClient, err = m.LocalClient()
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create client: %w", err)
+	}
+
+	return &Client{
+		microClient: microClient,
+	}, nil
+}
+
+// Client is a wrapper around the MicroCluster client
+type Client struct {
+	microClient *client.Client
+}
+
+// GetMembers returns information about all members of the cluster.
+func (c *Client) GetMembers(ctx context.Context) ([]ClusterMember, error) {
+	clusterMembers, err := c.microClient.GetClusterMembers(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -67,44 +112,6 @@ func GetMembers(ctx context.Context, config ClusterOpts) ([]ClusterMember, error
 	}
 
 	return members, nil
-}
-
-// Returns client to interact with the cluster.
-// It will return:
-//   - a local client, if executing node is part of cluster (valid config.stateDir)
-//   - a remote client, if executing node is part of cluster but config.Address is set
-//
-// TODO(bschimke):
-//   - a REST client, if executed from outside of a cluster. A REST client has limited functionality.
-//     This requires a mechanism to distribute the server certificates to the client
-func getClient(ctx context.Context, config ClusterOpts) (*client.Client, error) {
-	err := config.isValid()
-	if err != nil {
-		return nil, fmt.Errorf("invalid config: %w", err)
-	}
-
-	m, err := getMicroClusterApp(ctx, config)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create client: %w", err)
-	}
-
-	if config.Address != "" {
-		return m.RemoteClient(config.Address)
-	}
-
-	return m.LocalClient()
-}
-
-func getMicroClusterApp(ctx context.Context, config ClusterOpts) (*microcluster.MicroCluster, error) {
-	m, err := microcluster.App(ctx, microcluster.Args{
-		StateDir: config.StateDir,
-		Verbose:  config.Verbose,
-		Debug:    config.Debug,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("cannot read cluster info: %w", err)
-	}
-	return m, nil
 }
 
 // ClusterMember holds information about a server in a cluster.
