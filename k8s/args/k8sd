@@ -1,0 +1,2 @@
+--port=6444
+--storage-dir=/var/lib/k8sd

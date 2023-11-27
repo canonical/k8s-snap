@@ -24,10 +24,10 @@ var (
 			}
 
 			client, err := cluster.NewClient(cmd.Context(), cluster.ClusterOpts{
-				Address:  clusterCmdOpts.address,
-				StateDir: clusterCmdOpts.stateDir,
-				Verbose:  rootCmdOpts.logVerbose,
-				Debug:    rootCmdOpts.logDebug,
+				Address:    clusterCmdOpts.address,
+				StorageDir: clusterCmdOpts.storageDir,
+				Verbose:    rootCmdOpts.logVerbose,
+				Debug:      rootCmdOpts.logDebug,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create cluster client: %w", err)
