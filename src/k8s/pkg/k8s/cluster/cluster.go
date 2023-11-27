@@ -14,24 +14,29 @@ import (
 	"github.com/canonical/microcluster/microcluster"
 )
 
-// Boostrap sets up new cluster
-func Bootstrap(ctx context.Context, config ClusterOpts) error {
+// Boostrap sets up new cluster and returns the informations about the daemon.
+func Bootstrap(ctx context.Context, config ClusterOpts) (ClusterMember, error) {
 	m, err := getMicroClusterApp(ctx, config)
 	if err != nil {
-		return fmt.Errorf("unable to configure cluster: %w", err)
+		return ClusterMember{}, fmt.Errorf("unable to configure cluster: %w", err)
 	}
 
 	// Get system hostname.
 	hostname, err := os.Hostname()
 	if err != nil {
-		return fmt.Errorf("failed to retrieve system hostname: %w", err)
+		return ClusterMember{}, fmt.Errorf("failed to retrieve system hostname: %w", err)
 	}
 
 	// Get system address.
 	address := util.NetworkInterfaceAddress()
 	address = util.CanonicalNetworkAddress(address, 6443)
 
-	return m.NewCluster(hostname, address, time.Second*30)
+	member := ClusterMember{
+		Name:    hostname,
+		Address: address,
+	}
+	err = m.NewCluster(hostname, address, time.Second*30)
+	return member, err
 }
 
 func GetMembers(ctx context.Context, config ClusterOpts) ([]ClusterMember, error) {

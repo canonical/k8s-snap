@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"context"
+	"fmt"
 	"sort"
 
 	lxdCmd "github.com/canonical/lxd/shared/cmd"
@@ -23,14 +23,14 @@ var (
 				logrus.SetLevel(logrus.TraceLevel)
 			}
 
-			clusterMembers, err := cluster.GetMembers(context.Background(), cluster.ClusterOpts{
+			clusterMembers, err := cluster.GetMembers(cmd.Context(), cluster.ClusterOpts{
 				Address:  clusterCmdOpts.address,
 				StateDir: clusterCmdOpts.stateDir,
 				Verbose:  rootCmdOpts.logVerbose,
 				Debug:    rootCmdOpts.logDebug,
 			})
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to retrieve cluster members: %w", err)
 			}
 
 			members := make([][]string, len(clusterMembers))

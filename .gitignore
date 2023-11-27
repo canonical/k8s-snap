@@ -5,10 +5,7 @@
 
 **/__pycache__
 
-# ignore binaries but not directories
-k8s
-!k8s/
-k8sd
-!k8sd/
-k8s-dqlite
-!k8s-dqlite/
+# ignore binaries
+/src/k8s/k8s
+/src/k8s/k8sd
+/src/k8s/k8s-dqlite
