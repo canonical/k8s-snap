@@ -195,6 +195,14 @@ k8s::init::k8s_dqlite() {
   cp "$SNAP/k8s/args/k8s-dqlite" "$SNAP_DATA/args/k8s-dqlite"
 }
 
+# Initialize a single-node k8sd cluster
+k8s::init::k8sd() {
+  k8s::common::setup_env
+
+  mkdir -p "$SNAP_DATA/args"
+  cp "$SNAP/k8s/args/k8sd" "$SNAP_DATA/args/k8sd"
+}
+
 # Initialize containerd for the local node
 k8s::init::containerd() {
   k8s::common::setup_env
@@ -319,6 +327,7 @@ k8s::init::permissions() {
 k8s::init() {
   k8s::init::containerd
   k8s::init::k8s_dqlite
+  k8s::init::k8sd
   k8s::init::ca
   k8s::init::pki
   k8s::init::kubernetes
