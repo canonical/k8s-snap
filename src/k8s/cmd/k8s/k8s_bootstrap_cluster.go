@@ -18,10 +18,11 @@ var (
 			}
 
 			cluster, err := cluster.Bootstrap(cmd.Context(), cluster.ClusterOpts{
-				Address:  clusterCmdOpts.address,
-				StateDir: clusterCmdOpts.stateDir,
-				Verbose:  rootCmdOpts.logVerbose,
-				Debug:    rootCmdOpts.logDebug,
+				Address:    clusterCmdOpts.address,
+				Debug:      rootCmdOpts.logDebug,
+				Port:       clusterCmdOpts.port,
+				StorageDir: clusterCmdOpts.storageDir,
+				Verbose:    rootCmdOpts.logVerbose,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to bootstrap cluster: %w", err)

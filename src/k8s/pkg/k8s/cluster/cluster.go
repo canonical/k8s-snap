@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/canonical/lxd/lxd/util"
@@ -17,9 +18,10 @@ import (
 // Bootstrap sets up new cluster and returns the information about the daemon.
 func Bootstrap(ctx context.Context, opts ClusterOpts) (ClusterMember, error) {
 	m, err := microcluster.App(ctx, microcluster.Args{
-		StateDir: opts.StateDir,
-		Verbose:  opts.Verbose,
-		Debug:    opts.Debug,
+		Debug:      opts.Debug,
+		ListenPort: opts.Port,
+		StateDir:   opts.StorageDir,
+		Verbose:    opts.Verbose,
 	})
 	if err != nil {
 		return ClusterMember{}, fmt.Errorf("failed to configure cluster: %w", err)
@@ -31,9 +33,13 @@ func Bootstrap(ctx context.Context, opts ClusterOpts) (ClusterMember, error) {
 		return ClusterMember{}, fmt.Errorf("failed to retrieve system hostname: %w", err)
 	}
 
+	port, err := strconv.Atoi(opts.Port)
+	if err != nil {
+		return ClusterMember{}, fmt.Errorf("failed to parse Port: %w", err)
+	}
 	// Get system address.
 	address := util.CanonicalNetworkAddress(
-		util.NetworkInterfaceAddress(), 6443,
+		util.NetworkInterfaceAddress(), port,
 	)
 
 	member := ClusterMember{
@@ -59,9 +65,10 @@ func NewClient(ctx context.Context, opts ClusterOpts) (*Client, error) {
 	}
 
 	m, err := microcluster.App(ctx, microcluster.Args{
-		StateDir: opts.StateDir,
-		Verbose:  opts.Verbose,
-		Debug:    opts.Debug,
+		Debug:      opts.Debug,
+		ListenPort: opts.Port,
+		StateDir:   opts.StorageDir,
+		Verbose:    opts.Verbose,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("cannot read cluster info: %w", err)
@@ -127,10 +134,11 @@ type ClusterMember struct {
 // ClusterOpts contains options for cluster queries.
 type ClusterOpts struct {
 	// Directory containing cluster information (for local clients)
-	// TODO(bschimke): We can set the snaps default directory here once we snapped the CLI
-	StateDir string
+	StorageDir string
 	// Cluster address (for remote clients)
 	Address string
+	// Port on which the REST-API is exposed
+	Port string
 	// Enable info level logging
 	Verbose bool
 	// Enable trace level logging
@@ -147,11 +155,11 @@ func (c ClusterOpts) isValid() error {
 		return nil
 	}
 
-	if c.StateDir != "" {
-		if _, err := os.Stat(c.StateDir); os.IsNotExist(err) {
-			return fmt.Errorf("%s does not exist", c.StateDir)
+	if c.StorageDir != "" {
+		if _, err := os.Stat(c.StorageDir); os.IsNotExist(err) {
+			return fmt.Errorf("%s does not exist", c.StorageDir)
 		}
-		_, err := net.Dial("unix", filepath.Join(c.StateDir, "control.socket"))
+		_, err := net.Dial("unix", filepath.Join(c.StorageDir, "control.socket"))
 		if err != nil {
 			return fmt.Errorf("cannot connect to local cluster - is it running?")
 		}
