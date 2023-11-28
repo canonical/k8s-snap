@@ -350,6 +350,9 @@ layout:
     bind: $SNAP_COMMON/var/lib/cni
   /var/lib/calico:
     bind: $SNAP_COMMON/var/lib/calico
+  # Extras
+  /usr/local:
+    bind: $SNAP_COMMON/usr/local
   # TBD (maybe not required)
   /usr/libexec:
     bind: $SNAP_COMMON/usr/libexec
