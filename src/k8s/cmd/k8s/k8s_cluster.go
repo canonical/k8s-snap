@@ -1,15 +1,21 @@
 package k8s
 
+import (
+	"strconv"
+
+	"github.com/canonical/k8s/pkg/k8s/cluster"
+)
+
 var (
 	clusterCmdOpts struct {
-		address    string
-		port       string
-		storageDir string
+		remoteAddress string
+		port          string
+		storageDir    string
 	}
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.address, "address", "", "IP Address of the cluster - required if not running on k8s node")
-	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.port, "port", "6444", "Port on which the REST-API is exposed")
+	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.remoteAddress, "remote-address", "", "IP Address of another cluster member")
+	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.port, "port", strconv.Itoa(cluster.DefaultPort), "Port on which the REST-API is exposed")
 	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.storageDir, "storage-dir", "", "Directory with the dqlite datastore")
 }
