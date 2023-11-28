@@ -3,7 +3,9 @@ package k8sd
 import (
 	"context"
 	"fmt"
+	"strconv"
 
+	"github.com/canonical/k8s/pkg/k8s/cluster"
 	"github.com/canonical/microcluster/microcluster"
 	"github.com/spf13/cobra"
 )
@@ -48,7 +50,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
 
-	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.port, "port", "6444", "Port on which the REST-API is exposed")
+	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.port, "port", strconv.Itoa(cluster.DefaultPort), "Port on which the REST-API is exposed")
 
 	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.storageDir, "storage-dir", "", "directory with the dqlite datastore")
 }
