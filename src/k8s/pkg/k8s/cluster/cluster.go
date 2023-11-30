@@ -142,6 +142,19 @@ func (c *Client) JoinCluster(ctx context.Context, name string, address string, t
 	return c.app.JoinCluster(name, address, token, time.Second*30)
 }
 
+// RemoveNode removes a node by name from the cluster
+func (c *Client) RemoveNode(ctx context.Context, name string, force bool) error {
+	microClient, err := c.microClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+	err = microClient.DeleteClusterMember(ctx, name, force)
+	if err != nil {
+		return fmt.Errorf("failed to delete cluster member %s: %w", name, err)
+	}
+	return nil
+}
+
 // ClusterMember holds information about a server in a cluster.
 // This is a wrapper around the internal microcluster ClusterMember type.
 type ClusterMember struct {

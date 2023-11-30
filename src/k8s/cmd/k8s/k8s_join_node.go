@@ -54,7 +54,7 @@ var (
 
 			err = client.JoinCluster(cmd.Context(), joinNodeCmdOpts.name, joinNodeCmdOpts.address, token)
 			if err != nil {
-				return fmt.Errorf("failed to join cluser: %w", err)
+				return fmt.Errorf("failed to join cluster: %w", err)
 			}
 
 			return nil
