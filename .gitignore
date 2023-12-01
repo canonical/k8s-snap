@@ -4,3 +4,8 @@
 **.snap
 
 **/__pycache__
+
+# ignore binaries
+/src/k8s/k8s
+/src/k8s/k8sd
+/src/k8s/k8s-dqlite
