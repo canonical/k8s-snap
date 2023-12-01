@@ -1,27 +1,21 @@
-# Parts directory
+# Components directory
 
-This directory contains the build scripts for Go components built into k8s.
+This directory contains components built into k8s.
 
 The directory structure looks like this:
 
 ```
-build-scripts/
-    build-component.sh              <-- runs as `build-component.sh $component_name`
-                                        - checks out the git repository
-                                        - runs the `pre-patch.sh` script (if any)
-                                        - applies the patches (if any)
-                                        - runs the `build.sh` script to build the component
-    component/
-        $component_name/
-            repository              <-- git repository to clone
-            version.sh              <-- prints the repository tag or commit to checkout
-            build.sh                <-- runs as `build.sh $output $version`
-                                        first argument is the output directory where
-                                        binaries should be placed, second is the component version
-            pre-patch.sh            <-- runs as `pre-patch.sh`. takes any action needed before applying
-                                        the component patches
-            patches/                <-- list of patches to apply after checkout (see section below)
-                ...
+component/
+    $component_name/
+        repository              <-- git repository to clone
+        version.sh              <-- prints the repository tag or commit to checkout
+        build.sh                <-- runs as `build.sh $output $version`
+                                    first argument is the output directory where
+                                    binaries should be placed, second is the component version
+        pre-patch.sh            <-- runs as `pre-patch.sh`. takes any action needed before applying
+                                    the component patches
+        patches/                <-- list of patches to apply after checkout (see section below)
+            ...
 ```
 
 ## Applying patches
