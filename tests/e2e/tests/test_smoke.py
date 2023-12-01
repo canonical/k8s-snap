@@ -2,12 +2,10 @@
 # Copyright 2023 Canonical, Ltd.
 #
 import logging
-import subprocess
-import time
 from pathlib import Path
 
 import pytest
-from e2e_util import config, harness
+from e2e_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
 
@@ -21,39 +19,6 @@ def test_smoke(h: harness.Harness, tmp_path: Path):
     LOG.info("Create instance")
     instance_id = h.new_instance()
 
-    LOG.info("Install snap")
-    h.send_file(instance_id, config.SNAP, snap_path)
-    h.exec(instance_id, ["snap", "install", snap_path, "--dangerous"])
-
-    LOG.info("Initialize Kubernetes")
-    h.exec(instance_id, ["/snap/k8s/current/k8s/init.sh"])
-    h.exec(instance_id, ["k8s", "init"])
-
-    LOG.info("Start Kubernetes")
-    h.exec(instance_id, ["k8s", "start"])
-
-    hostname = (
-        h.exec(instance_id, ["hostname"], capture_output=True).stdout.decode().strip()
-    )
-    success = False
-    for attempt in range(30):
-        try:
-            LOG.info("(attempt %d) Waiting for Kubelet to register", attempt)
-            p = h.exec(
-                instance_id,
-                ["k8s", "kubectl", "get", "node", hostname, "--no-headers"],
-                capture_output=True,
-            )
-            success = True
-            LOG.info("Kubelet registered successfully!")
-            p.stdout
-            LOG.info("%s", p.stdout.decode())
-            break
-        except subprocess.CalledProcessError:
-            time.sleep(5)
-
-    if not success:
-        pytest.fail("Kubelet node did not register")
-
-    # LOG.info("Remove Kubernetes")
-    # h.exec(instance_id, ["snap", "remove", "k8s", "--purge"])
+    # TODO(bschimke): The node will not report ready as the CNI is not yet implemented in the k8s snap.
+    #                 Set `wait_ready` to True once this is done.
+    util.setup_k8s_snap(h, instance_id, snap_path, wait_ready=False)

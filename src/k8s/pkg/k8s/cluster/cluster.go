@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
@@ -128,7 +127,7 @@ func (c *Client) GetMembers(ctx context.Context) ([]ClusterMember, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client: %w", err)
 	}
-	clusterMembers, err := microClient.GetClusterMembers(context.Background())
+	clusterMembers, err := microClient.GetClusterMembers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cluster members: %w", err)
 	}
@@ -192,10 +191,6 @@ func (c ClusterOpts) isValid() error {
 	if c.StorageDir != "" {
 		if _, err := os.Stat(c.StorageDir); os.IsNotExist(err) {
 			return fmt.Errorf("%s does not exist", c.StorageDir)
-		}
-		_, err := net.Dial("unix", filepath.Join(c.StorageDir, "control.socket"))
-		if err != nil {
-			return fmt.Errorf("cannot connect to local cluster - is it running?")
 		}
 		return nil
 	}

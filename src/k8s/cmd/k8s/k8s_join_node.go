@@ -17,7 +17,7 @@ var (
 	}
 
 	joinNodeCmd = &cobra.Command{
-		Use:   "join-node <name>",
+		Use:   "join-node <token>",
 		Short: "Join a cluster",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -57,6 +57,7 @@ var (
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}
 
+			logrus.Infof("Joined %s (%s) to cluster.", joinNodeCmdOpts.name, joinNodeCmdOpts.address)
 			return nil
 		},
 	}
