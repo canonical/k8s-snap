@@ -6,11 +6,6 @@ from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
 
-# SNAPCRAFT_PART_SRC is set as the components source when building the snap. 
-# If unset, resolve based on current file path
-_COMPONENT_DIR = os.getenv("SNAPCRAFT_PART_SRC") or ""
-COMPONENT_DIR = _COMPONENT_DIR and Path(_COMPONENT_DIR) or None
-
 
 class Version:
     def __init__(self, version_string: str):
@@ -75,9 +70,7 @@ def get_patches_for(component: str, version_string: str) -> list:
     with target 'version'.
     """
     component_version = Version(version_string)
-    component_dir = COMPONENT_DIR
-    if component_dir is None:
-        component_dir = DIR / "../components" / component
+    component_dir = DIR / "components" / component
 
     patches_dir = component_dir / "patches"
     if not patches_dir.is_dir():

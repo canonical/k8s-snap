@@ -43,10 +43,6 @@ parts:
       - pkg-config
       - rsync
       - tcl
-    source : build-scripts
-    override-stage: |
-      snapcraftctl stage
-      cp -rv $SNAPCRAFT_PART_SRC $SNAPCRAFT_STAGE/build-deps
 
   k8s-binaries:
     after: [build-deps]
@@ -64,25 +60,25 @@ parts:
   cni:
     after: [build-deps]
     plugin: nil
-    source: components/cni
-    override-build: $SNAPCRAFT_STAGE/build-deps/build-component.sh cni
+    source: build-scripts
+    override-build: ./build-component.sh cni
 
   helm:
     after: [build-deps]
     build-attributes: [no-patchelf]
     plugin: nil
-    source: components/helm
-    override-build: $SNAPCRAFT_STAGE/build-deps/build-component.sh helm
+    source: build-scripts
+    override-build: ./build-component.sh helm
 
   kubernetes:
     after: [build-deps]
     plugin: nil
-    source: components/kubernetes
-    override-build: $SNAPCRAFT_STAGE/build-deps/build-component.sh kubernetes
+    source: build-scripts
+    override-build: ./build-component.sh kubernetes
 
   kubernetes-version:
     plugin: nil
-    source: components/kubernetes
+    source: build-scripts/components/kubernetes
     override-build: snapcraftctl set-version "$(./version.sh)"
 
   libmnl:
@@ -121,16 +117,16 @@ parts:
   containerd:
     after: [runc]
     plugin: nil
-    source: components/containerd
-    override-build: $SNAPCRAFT_STAGE/build-deps/build-component.sh containerd
     build-attributes: [no-patchelf]
+    source: build-scripts
+    override-build: ./build-component.sh containerd
 
   runc:
     after: [iptables, build-deps]
-    source: components/runc
-    build-attributes: [no-patchelf]
     plugin: nil
-    override-build: $SNAPCRAFT_STAGE/build-deps/build-component.sh runc
+    build-attributes: [no-patchelf]
+    source: build-scripts
+    override-build: ./build-component.sh runc
 
   bash-utils:
     plugin: nil
