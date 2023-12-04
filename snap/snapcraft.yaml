@@ -183,6 +183,10 @@ parts:
     override-build: |
       ./build-scripts/generate-bom.py > "${SNAPCRAFT_PART_INSTALL}/bom.json"
 
+  charts:
+    plugin: dump
+    source: ./charts
+
 apps:
   k8s:
     command: k8s/wrappers/commands/k8s
