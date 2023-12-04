@@ -1,6 +1,6 @@
-# Components directory
+# Parts directory
 
-This directory contains components built into k8s.
+This directory contains the build scripts for Go components built into k8s.
 
 The directory structure looks like this:
 
@@ -11,7 +11,6 @@ build-scripts/
                                         - runs the `pre-patch.sh` script (if any)
                                         - applies the patches (if any)
                                         - runs the `build.sh` script to build the component
-
     components/
         $component_name/
             repository              <-- git repository to clone

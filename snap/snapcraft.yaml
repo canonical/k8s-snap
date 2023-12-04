@@ -63,13 +63,6 @@ parts:
     source: build-scripts
     override-build: ./build-component.sh cni
 
-  helm:
-    after: [build-deps]
-    build-attributes: [no-patchelf]
-    plugin: nil
-    source: build-scripts
-    override-build: ./build-component.sh helm
-
   kubernetes:
     after: [build-deps]
     plugin: nil
@@ -80,6 +73,13 @@ parts:
     plugin: nil
     source: build-scripts/components/kubernetes
     override-build: snapcraftctl set-version "$(./version.sh)"
+
+  helm:
+    after: [build-deps]
+    build-attributes: [no-patchelf]
+    plugin: nil
+    source: build-scripts
+    override-build: ./build-component.sh helm
 
   libmnl:
     after: [build-deps]
