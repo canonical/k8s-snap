@@ -36,7 +36,6 @@ func runEnableCmd(opts *struct {
 	file string
 }) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		fmt.Println(args[0], opts.sets, opts.file)
 		if opts.file != "" {
 			if _, err := os.Stat(opts.file); os.IsNotExist(err) {
 				return fmt.Errorf("file does not exist: %s", opts.file)
