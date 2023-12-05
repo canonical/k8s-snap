@@ -1,6 +1,6 @@
 name: k8s
 adopt-info: kubernetes-version
-summary: Canonical Kubernetes, a CNCF-conformant Kubernetes distribution delivered by Canonical
+summary: Canonical Kubernetes, a CNCF-conformant K8s distribution by Canonical
 description: |-
   Canonical Kubernetes is an opinionated and CNCF conformant Kubernetes delivered by snaps.
   Enjoy the simplified, almost zero, operations and enhanced security posture
