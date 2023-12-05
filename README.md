@@ -1,7 +1,7 @@
 # Canonical Kubernetes Snap
 [![End to End Tests](https://github.com/canonical/k8s-snap/actions/workflows/e2e.yaml/badge.svg)](https://github.com/canonical/k8s-snap/actions/workflows/e2e.yaml)
 
-Canonical Kubernetes is an opinionated and conformant Kubernetes delivered by snaps and operated by charms. The focus is on:
+Canonical Kubernetes is an opinionated and CNCF conformant Kubernetes delivered by snaps and operated by charms. The focus is on:
 - simplified almost zero operations and
 - enhanced security posture on any infrastructure
 
