@@ -21,6 +21,36 @@ const (
 	DefaultPort = 6400
 )
 
+// Client is a wrapper around the MicroCluster client
+type Client struct {
+	opts ClusterOpts
+	app  *microcluster.MicroCluster
+}
+
+// ClusterMember holds information about a server in a cluster.
+// This is a wrapper around the internal microcluster ClusterMember type.
+type ClusterMember struct {
+	Name        string
+	Address     string
+	Role        string
+	Fingerprint string
+	Status      string
+}
+
+// ClusterOpts contains options for cluster queries.
+type ClusterOpts struct {
+	// StorageDir is the directory that contains the cluster state (for local clients).
+	StorageDir string
+	// RemoteAddress is the address of the cluster (for remote clients).
+	RemoteAddress string
+	// Port is the port on which the REST-API is exposed.
+	Port string
+	// Verbose enables info level logging.
+	Verbose bool
+	// Debug enables trace level logging.
+	Debug bool
+}
+
 // NewClient returns a client to interact with the cluster.
 // It will return:
 //   - a local client, if executing node is part of cluster (valid config.stateDir)
@@ -49,12 +79,6 @@ func NewClient(ctx context.Context, opts ClusterOpts) (*Client, error) {
 		opts: opts,
 		app:  m,
 	}, nil
-}
-
-// Client is a wrapper around the MicroCluster client
-type Client struct {
-	opts ClusterOpts
-	app  *microcluster.MicroCluster
 }
 
 func (c *Client) microClient(ctx context.Context) (*client.Client, error) {
@@ -153,30 +177,6 @@ func (c *Client) RemoveNode(ctx context.Context, name string, force bool) error 
 		return fmt.Errorf("failed to delete cluster member %s: %w", name, err)
 	}
 	return nil
-}
-
-// ClusterMember holds information about a server in a cluster.
-// This is a wrapper around the internal microcluster ClusterMember type.
-type ClusterMember struct {
-	Name        string
-	Address     string
-	Role        string
-	Fingerprint string
-	Status      string
-}
-
-// ClusterOpts contains options for cluster queries.
-type ClusterOpts struct {
-	// StorageDir is the directory that contains the cluster state (for local clients).
-	StorageDir string
-	// RemoteAddress is the address of the cluster (for remote clients).
-	RemoteAddress string
-	// Port is the port on which the REST-API is exposed.
-	Port string
-	// Verbose enables info level logging.
-	Verbose bool
-	// Debug enables trace level logging.
-	Debug bool
 }
 
 // isValid verifies that a valid IP address is set (for remote)
