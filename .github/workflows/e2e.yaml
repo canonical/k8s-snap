@@ -76,3 +76,42 @@ jobs:
           # Only the user who started the workflow can access the tmate session.
           limit-access-to-actor: true
         if: ${{ failure() }}
+
+  security-scan:
+    name: Security scan
+    runs-on: ubuntu-20.04
+    needs: build
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+      - name: Fetch snap
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: k8s.snap
+          path: build
+      - name: Setup Trivy vulnerability scanner
+        run: |
+          mkdir -p sarifs
+          VER=$(curl --silent -qI https://github.com/aquasecurity/trivy/releases/latest | awk -F '/' '/^location/ {print  substr($NF, 1, length($NF)-1)}');
+          wget https://github.com/aquasecurity/trivy/releases/download/${VER}/trivy_${VER#v}_Linux-64bit.tar.gz
+          tar -zxvf ./trivy_${VER#v}_Linux-64bit.tar.gz
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          ignore-unfixed: true
+          format: "sarif"
+          output: "trivy-k8s-repo-scan--results.sarif"
+          severity: "CRITICAL"
+      - name: Gather Trivy repo scan results
+        run: |
+          cp trivy-k8s-repo-scan--results.sarif ./sarifs/
+      - name: Run Trivy vulnerability scanner on the snap
+        run: |
+          cp build/k8s.snap .
+          unsquashfs k8s.snap
+          ./trivy rootfs ./squashfs-root/ --format sarif > sarifs/snap.sarif
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "sarifs"
