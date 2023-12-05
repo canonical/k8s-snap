@@ -6,10 +6,6 @@ from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
 
-# SNAPCRAFT_PROJECT_DIR is set when building the snap. If unset, resolve based on current file path
-_SNAPCRAFT_PROJECT_DIR = os.getenv("SNAPCRAFT_PROJECT_DIR") or ""
-SNAPCRAFT_PROJECT_DIR = _SNAPCRAFT_PROJECT_DIR and Path(_SNAPCRAFT_PROJECT_DIR) or Path(DIR / "..")
-
 
 class Version:
     def __init__(self, version_string: str):
@@ -74,7 +70,7 @@ def get_patches_for(component: str, version_string: str) -> list:
     with target 'version'.
     """
     component_version = Version(version_string)
-    component_dir = SNAPCRAFT_PROJECT_DIR / "build-scripts" / "components" / component
+    component_dir = DIR / "components" / component
 
     patches_dir = component_dir / "patches"
     if not patches_dir.is_dir():

@@ -11,7 +11,7 @@ build-scripts/
                                         - runs the `pre-patch.sh` script (if any)
                                         - applies the patches (if any)
                                         - runs the `build.sh` script to build the component
-    component/
+    components/
         $component_name/
             repository              <-- git repository to clone
             version.sh              <-- prints the repository tag or commit to checkout

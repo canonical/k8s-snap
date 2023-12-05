@@ -1,7 +1,10 @@
 /parts/
 /stage/
 /prime/
+
+
 **.snap
+k8s_*.txt
 
 **/__pycache__
 
