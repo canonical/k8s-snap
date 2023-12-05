@@ -44,13 +44,13 @@ func runEnableCmd(opts *struct {
 
 		values := parseSets(opts.sets)
 		if values == nil {
-			return errors.New("invalid format for --set, expected key=value")
+			return fmt.Errorf("invalid format for --set, expected key=value")
 		}
 		if err := component.EnableComponent(args[0], values, opts.file); err != nil {
 			return err
 		}
 
-		logrus.Infof("Component %s enabled", args[0])
+		logrus.WithField("component", args[0]).Info("Component enabled")
 		return nil
 
 	}
