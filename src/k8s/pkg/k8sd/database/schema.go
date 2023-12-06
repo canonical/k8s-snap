@@ -20,11 +20,11 @@ var (
 )
 
 func schemaApplyMigration(migrationName string) schema.Update {
+	b, err := sqlMigrations.ReadFile(filepath.Join("sql", "migrations", migrationName))
+	if err != nil {
+		panic(fmt.Errorf("migration %q not defined: %s", migrationName, err))
+	}
 	return func(ctx context.Context, tx *sql.Tx) error {
-		b, err := sqlMigrations.ReadFile(filepath.Join("sql", "migrations", migrationName))
-		if err != nil {
-			panic(fmt.Errorf("migration %q not defined: %s", migrationName, err))
-		}
 		if _, err := tx.ExecContext(ctx, string(b)); err != nil {
 			return fmt.Errorf("failed to apply migration %s: %w", migrationName, err)
 		}
