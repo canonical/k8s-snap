@@ -49,6 +49,8 @@ func postKubernetesAuthToken(state *state.State, r *http.Request) response.Respo
 	return response.SyncResponse(true, v1.CreateKubernetesAuthTokenResponse{Token: token})
 }
 
+// kubernetesAuthTokenReviewWebhook is used by kube-apiserver to handle TokenReview objects.
+// Note that we do not use the normal response.SyncResponse here, because it breaks the response format that kube-apiserver expects.
 func kubernetesAuthTokenReviewWebhook(state *state.State, r *http.Request) response.Response {
 	review := v1.TokenReview{
 		APIVersion: "authentication.k8s.io/v1",
