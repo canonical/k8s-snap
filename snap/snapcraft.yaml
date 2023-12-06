@@ -1,8 +1,10 @@
 name: k8s
 adopt-info: kubernetes-version
-summary: TODO
+summary: Canonical Kubernetes, a CNCF-conformant K8s distribution by Canonical
 description: |-
-  TODO
+  Canonical Kubernetes is an opinionated and CNCF conformant Kubernetes delivered by snaps.
+  Enjoy the simplified, almost zero, operations and enhanced security posture
+  on any infrastructure
 license: GPL-3.0
 grade: stable
 confinement: strict
