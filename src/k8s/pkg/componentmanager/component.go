@@ -48,7 +48,7 @@ func logAdapter(format string, v ...any) {
 // NewHelm creates a new Helm client with the provided settings and configuration
 func NewHelm() (*helmClient, error) {
 	settings := cli.New()
-	settings.KubeConfig = "/var/snap/k8s/common/etc/kubernetes/admin.conf"
+	settings.KubeConfig = "/etc/kubernetes/admin.conf"
 	actionConfig := new(action.Configuration)
 	if err := actionConfig.Init(settings.RESTClientGetter(), settings.Namespace(), os.Getenv("HELM_DRIVER"), logAdapter); err != nil {
 		return nil, fmt.Errorf("failed to initialize Helm configuration: %w", err)
