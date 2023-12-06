@@ -19,7 +19,7 @@ type CheckTokenResponse struct {
 	Error    string   `json:"error,omitempty"`
 }
 
-// TokenReviewRequest is the request for "POST 1.0/k8sd/tokens/webhook/v1".
+// TokenReviewRequest is the request for "POST 1.0/k8sd/tokens/webhook".
 // This mirrors the definition of the Kubernetes API group="authentication.k8s.io/v1" kind="TokenReview"
 // https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-review-v1/
 type TokenReview struct {
