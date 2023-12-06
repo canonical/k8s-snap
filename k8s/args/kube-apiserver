@@ -12,6 +12,7 @@
 --allow-privileged=true
 --service-account-issuer='https://kubernetes.default.svc'
 --service-account-signing-key-file=/etc/kubernetes/pki/serviceaccount.key
+--authentication-token-webhook-config-file=/etc/kubernetes/apiserver-token-hook.conf
 
 # Enable the aggregation layer
 --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt

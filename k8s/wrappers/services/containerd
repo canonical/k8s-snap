@@ -10,4 +10,6 @@ mkdir -p "${XDG_RUNTIME_DIR}"
 # Apply the containerd profile
 apparmor_parser -r "$SNAP/k8s/profiles/containerd"
 
+export CILIUM_SOCK="${SNAP_COMMON}/var/run/cilium/cilium.sock"
+
 k8s::common::execute_service containerd
