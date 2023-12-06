@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/canonical/lxd/lxd/db/cluster"
+	"github.com/canonical/microcluster/cluster"
 )
 
 type KubernetesIdentity struct {
@@ -18,17 +18,11 @@ type KubernetesIdentity struct {
 }
 
 var (
-	//go:embed sql/queries/k8sd-tokens-select-auth-by-token.sql
-	k8sdTokensSelectAuthByTokenSQL  string
-	k8sdTokensSelectAuthByTokenStmt = cluster.RegisterStmt(k8sdTokensSelectAuthByTokenSQL)
-
-	//go:embed sql/queries/k8sd-tokens-select-token-by-auth.sql
-	k8sdTokensSelectTokenByAuthSQL  string
-	k8sdTokensSelectTokenByAuthStmt = cluster.RegisterStmt(k8sdTokensSelectTokenByAuthSQL)
-
-	//go:embed sql/queries/k8sd-tokens-insert-token.sql
-	k8sdTokensInsertTokenSQL  string
-	k8sdTokensInsertTokenStmt = cluster.RegisterStmt(k8sdTokensInsertTokenSQL)
+	k8sdTokensStmts = map[string]int{
+		"insert-token":         mustPrepareStatement("k8sd-tokens", "insert-token.sql"),
+		"select-auth-by-token": mustPrepareStatement("k8sd-tokens", "select-auth-by-token.sql"),
+		"select-token-by-auth": mustPrepareStatement("k8sd-tokens", "select-token-by-auth.sql"),
+	}
 )
 
 func groupsToString(inGroups []string) (string, error) {
@@ -58,10 +52,16 @@ func groupsToList(inGroups string) []string {
 // CheckToken returns the username and groups of a token (if valid).
 // CheckToken returns an error in case the token is not valid.
 func CheckToken(ctx context.Context, tx *sql.Tx, token string) (string, []string, error) {
-	// TODO(neoaggelos): use prepared statements once we figure out what's wrong
+	txStmt, err := cluster.Stmt(tx, k8sdTokensStmts["select-auth-by-token"])
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to prepare statement: %w", err)
+	}
 	var username, groupsString string
-	if err := tx.QueryRowContext(ctx, k8sdTokensSelectAuthByTokenSQL, token).Scan(&username, &groupsString); err != nil {
-		return "", nil, fmt.Errorf("unknown token %s: %w", token, err)
+	if err := txStmt.QueryRowContext(ctx, token).Scan(&username, &groupsString); err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil, fmt.Errorf("invalid token")
+		}
+		return "", nil, fmt.Errorf("failed to check token: %w", err)
 	}
 
 	return username, groupsToList(groupsString), nil
@@ -79,50 +79,23 @@ func GetOrCreateToken(ctx context.Context, tx *sql.Tx, username string, groups [
 	if err != nil {
 		return "", fmt.Errorf("invalid groups: %w", err)
 	}
+	selectTxStmt, err := cluster.Stmt(tx, k8sdTokensStmts["select-token-by-auth"])
+	if err != nil {
+		return "", fmt.Errorf("failed to prepare select statement: %w", err)
+	}
 	var token string
-	if tx.QueryRowContext(ctx, k8sdTokensSelectTokenByAuthSQL, username, groupsString).Scan(&token) == nil {
+	if selectTxStmt.QueryRowContext(ctx, username, groupsString).Scan(&token) == nil {
 		return token, nil
 	}
 
 	// TODO: make this crypto safe
 	token = fmt.Sprintf("token-123-%d", time.Now().Nanosecond())
-
-	if _, err := tx.ExecContext(ctx, k8sdTokensInsertTokenSQL, username, groupsString, token); err != nil {
-		return "", fmt.Errorf("insert token query failed: %w", err)
-	}
-
-	return token, nil
-}
-
-// GetOrCreateToken_prepared is GetOrCreateToken, but uses prepared statements
-// TODO(neoaggelos): try to figure out why prepared statements fail with ""
-func GetOrCreateToken_prepared(ctx context.Context, tx *sql.Tx, username string, groups []string) (string, error) {
-	if username == "" {
-		return "", fmt.Errorf("username cannot be empty")
-	}
-	groupsString, err := groupsToString(groups)
-	if err != nil {
-		return "", fmt.Errorf("invalid groups: %w", err)
-	}
-
-	findStmt, err := cluster.Stmt(tx, k8sdTokensSelectTokenByAuthStmt)
-	if err != nil {
-		return "", fmt.Errorf("failed to prepare select statement: %w", err)
-	}
-
-	var token string
-	if findStmt.QueryRowContext(ctx, username, groupsString).Scan(&token) == nil {
-		return token, nil
-	}
-
-	insertStmt, err := cluster.Stmt(tx, k8sdTokensInsertTokenStmt)
+	insertTxStmt, err := cluster.Stmt(tx, k8sdTokensStmts["insert-token"])
 	if err != nil {
 		return "", fmt.Errorf("failed to prepare insert statement: %w", err)
 	}
-
-	token = fmt.Sprintf("token-123-%d", time.Now().Nanosecond())
-	if _, err := insertStmt.ExecContext(ctx, username, groupsString, token); err != nil {
-		return "", fmt.Errorf("insert query failed: %w", err)
+	if _, err := insertTxStmt.ExecContext(ctx, username, groupsString, token); err != nil {
+		return "", fmt.Errorf("insert token query failed: %w", err)
 	}
 
 	return token, nil
