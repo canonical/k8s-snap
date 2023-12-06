@@ -216,7 +216,6 @@ apps:
     restart-condition: always
     start-timeout: 3s
     plugs:
-      - k8s-journald
       - network-bind
       - docker-privileged
       - firewall-control
@@ -387,12 +386,3 @@ plugs:
   docker-unprivileged:
     interface: docker-support
     privileged-containers: false
-  k8s-kubelet:
-    interface: kubernetes-support
-    flavor: kubelet
-  k8s-kubeproxy:
-    interface: kubernetes-support
-    flavor: kubeproxy
-  k8s-journald:
-    interface: kubernetes-support
-    flavor: autobind-unix
