@@ -15,7 +15,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func getK8sdToken(state *state.State, r *http.Request) response.Response {
+func getKubernetesAuthToken(state *state.State, r *http.Request) response.Response {
 	token := r.Header.Get("token")
 
 	var username string
@@ -28,11 +28,11 @@ func getK8sdToken(state *state.State, r *http.Request) response.Response {
 		return response.NotFound(err)
 	}
 
-	return response.SyncResponse(true, v1.CheckTokenResponse{Username: username, Groups: groups})
+	return response.SyncResponse(true, v1.CheckKubernetesAuthTokenResponse{Username: username, Groups: groups})
 }
 
-func postK8sdToken(state *state.State, r *http.Request) response.Response {
-	request := v1.CreateTokenRequest{}
+func postKubernetesAuthToken(state *state.State, r *http.Request) response.Response {
+	request := v1.CreateKubernetesAuthTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -46,10 +46,10 @@ func postK8sdToken(state *state.State, r *http.Request) response.Response {
 		return response.InternalError(err)
 	}
 
-	return response.SyncResponse(true, v1.CreateTokenResponse{Token: token})
+	return response.SyncResponse(true, v1.CreateKubernetesAuthTokenResponse{Token: token})
 }
 
-func tokenReviewWebhook(state *state.State, r *http.Request) response.Response {
+func kubernetesAuthTokenReviewWebhook(state *state.State, r *http.Request) response.Response {
 	review := v1.TokenReview{
 		APIVersion: "authentication.k8s.io/v1",
 		Kind:       "TokenReview",

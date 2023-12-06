@@ -13,7 +13,7 @@ import (
 
 var (
 	SchemaExtensions = map[int]schema.Update{
-		1: schemaApplyMigration("k8sd-tokens", "000-create.sql"),
+		1: schemaApplyMigration("kubernetes-auth-tokens", "000-create.sql"),
 	}
 
 	//go:embed sql/migrations

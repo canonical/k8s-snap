@@ -10,8 +10,8 @@ import (
 
 // GenerateAuthToken calls "POST 1.0/k8sd/tokens".
 func (c *Client) GenerateAuthToken(ctx context.Context, username string, groups []string) (string, error) {
-	request := v1.CreateTokenRequest{Username: username, Groups: groups}
-	response := v1.CreateTokenResponse{}
+	request := v1.CreateKubernetesAuthTokenRequest{Username: username, Groups: groups}
+	response := v1.CreateKubernetesAuthTokenResponse{}
 	client, err := c.microClient(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to create client: %w", err)

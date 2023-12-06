@@ -12,16 +12,11 @@ import (
 	"github.com/canonical/microcluster/cluster"
 )
 
-type KubernetesIdentity struct {
-	Username string   `json:"username"`
-	Groups   []string `json:"groups"`
-}
-
 var (
 	k8sdTokensStmts = map[string]int{
-		"insert-token":         mustPrepareStatement("k8sd-tokens", "insert-token.sql"),
-		"select-auth-by-token": mustPrepareStatement("k8sd-tokens", "select-auth-by-token.sql"),
-		"select-token-by-auth": mustPrepareStatement("k8sd-tokens", "select-token-by-auth.sql"),
+		"insert-token":       mustPrepareStatement("kubernetes-auth-tokens", "insert-token.sql"),
+		"select-by-token":    mustPrepareStatement("kubernetes-auth-tokens", "select-by-token.sql"),
+		"select-by-username": mustPrepareStatement("kubernetes-auth-tokens", "select-by-username.sql"),
 	}
 )
 
@@ -52,7 +47,7 @@ func groupsToList(inGroups string) []string {
 // CheckToken returns the username and groups of a token (if valid).
 // CheckToken returns an error in case the token is not valid.
 func CheckToken(ctx context.Context, tx *sql.Tx, token string) (string, []string, error) {
-	txStmt, err := cluster.Stmt(tx, k8sdTokensStmts["select-auth-by-token"])
+	txStmt, err := cluster.Stmt(tx, k8sdTokensStmts["select-by-token"])
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to prepare statement: %w", err)
 	}
@@ -79,7 +74,7 @@ func GetOrCreateToken(ctx context.Context, tx *sql.Tx, username string, groups [
 	if err != nil {
 		return "", fmt.Errorf("invalid groups: %w", err)
 	}
-	selectTxStmt, err := cluster.Stmt(tx, k8sdTokensStmts["select-token-by-auth"])
+	selectTxStmt, err := cluster.Stmt(tx, k8sdTokensStmts["select-by-username"])
 	if err != nil {
 		return "", fmt.Errorf("failed to prepare select statement: %w", err)
 	}

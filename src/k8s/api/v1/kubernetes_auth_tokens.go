@@ -1,23 +1,23 @@
 package v1
 
-// CreateTokenRequest is the request for "POST 1.0/k8sd/tokens".
-type CreateTokenRequest struct {
+// CreateKubernetesAuthTokenRequest is used to request a new Kubernetes auth token.
+type CreateKubernetesAuthTokenRequest struct {
 	Username string   `json:"username"`
 	Groups   []string `json:"groups"`
 }
 
-// CreateTokenResponse is the response for "POST 1.0/k8sd/tokens".
-type CreateTokenResponse struct {
+// CreateKubernetesAuthTokenResponse is used to return the Kubernetes auth token.
+type CreateKubernetesAuthTokenResponse struct {
 	Token string `json:"token"`
 }
 
-// CheckTokenResponse is the response for "GET 1.0/k8sd/tokens".
-type CheckTokenResponse struct {
+// CheckKubernetesAuthTokenResponse is the response for "GET 1.0/kubernetes/auth/tokens".
+type CheckKubernetesAuthTokenResponse struct {
 	Username string   `json:"username"`
 	Groups   []string `json:"groups"`
 }
 
-// TokenReviewRequest is the request for "POST 1.0/k8sd/tokens/webhook".
+// TokenReviewRequest is the request for "POST 1.0/kubernetes/auth/webhook".
 // This mirrors the definition of the Kubernetes API group="authentication.k8s.io/v1" kind="TokenReview"
 // https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-review-v1/
 type TokenReview struct {
