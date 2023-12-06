@@ -9,14 +9,12 @@ type CreateTokenRequest struct {
 // CreateTokenResponse is the response for "POST 1.0/k8sd/tokens".
 type CreateTokenResponse struct {
 	Token string `json:"token"`
-	Error string `json:"error,omitempty"`
 }
 
 // CheckTokenResponse is the response for "GET 1.0/k8sd/tokens".
 type CheckTokenResponse struct {
 	Username string   `json:"username"`
 	Groups   []string `json:"groups"`
-	Error    string   `json:"error,omitempty"`
 }
 
 // TokenReviewRequest is the request for "POST 1.0/k8sd/tokens/webhook".

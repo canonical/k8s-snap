@@ -22,6 +22,7 @@ var (
 		Path: "k8sd/tokens",
 
 		Get: rest.EndpointAction{
+			AllowUntrusted: true,
 			Handler: func(state *state.State, r *http.Request) response.Response {
 				token := r.Header.Get("token")
 
@@ -32,17 +33,17 @@ var (
 					username, groups, err = database.CheckToken(ctx, tx, token)
 					return err
 				}); err != nil {
-					return httputil.JSONResponse(http.StatusNotFound, v1.CheckTokenResponse{Error: err.Error()})
+					return response.NotFound(err)
 				}
 
-				return httputil.JSONResponse(http.StatusOK, v1.CheckTokenResponse{Username: username, Groups: groups})
+				return response.SyncResponse(true, v1.CheckTokenResponse{Username: username, Groups: groups})
 			},
 		},
 		Post: rest.EndpointAction{
 			Handler: func(state *state.State, r *http.Request) response.Response {
 				request := v1.CreateTokenRequest{}
 				if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-					return httputil.JSONResponse(http.StatusBadRequest, v1.CreateTokenResponse{Error: fmt.Errorf("failed to parse request: %w", err).Error()})
+					return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 				}
 
 				var token string
@@ -51,10 +52,10 @@ var (
 					token, err = database.GetOrCreateToken(ctx, tx, request.Username, request.Groups)
 					return err
 				}); err != nil {
-					return httputil.JSONResponse(http.StatusInternalServerError, v1.CreateTokenResponse{Error: err.Error()})
+					return response.InternalError(err)
 				}
 
-				return httputil.JSONResponse(http.StatusOK, v1.CreateTokenResponse{Token: token})
+				return response.SyncResponse(true, v1.CreateTokenResponse{Token: token})
 			},
 		},
 	}
