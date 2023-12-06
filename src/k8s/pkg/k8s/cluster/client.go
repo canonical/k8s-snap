@@ -1,9 +1,13 @@
 package cluster
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net"
+	"net/http"
 	"os"
 
 	"github.com/canonical/microcluster/client"
@@ -15,6 +19,12 @@ const (
 	// the REST API is exposed by default.
 	DefaultPort = 6400
 )
+
+// ResponseWithErrorMessage is a REST API response that includes additional info about the reason why it failed.
+type ResponseWithErrorMessage interface {
+	// GetError is used to retrieve the reason why the request failed.
+	GetError() error
+}
 
 // Client is a wrapper around the MicroCluster client
 type Client struct {
@@ -111,4 +121,46 @@ func (c ClusterOpts) isValid() error {
 	}
 
 	return fmt.Errorf("Neither cluster address nor local state dir is set")
+}
+
+// doHTTP performs an HTTP request with method against an endpoint, using the microcluster client.
+// doHTTP will marshal any request data as JSON and include in the request body.
+// doHTTP will attempt to unmarshal the response as JSON (if response is set).
+// doHTTP will return an error if the request failed and the response type is a ResponseWithErrorMessage.
+func (c *Client) doHTTP(ctx context.Context, method string, endpoint string, request any, response any) error {
+	client, err := c.microClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create microclient: %w", err)
+	}
+	var body io.Reader
+	if request != nil {
+		b, err := json.Marshal(request)
+		if err != nil {
+			return fmt.Errorf("failed to marshal request: %w", err)
+		}
+		body = bytes.NewBuffer(b)
+	}
+
+	baseURL := client.URL()
+	req, err := http.NewRequestWithContext(ctx, method, baseURL.JoinPath(endpoint).String(), body)
+	if err != nil {
+		return fmt.Errorf("failed to prepare HTTP request: %w", err)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed HTTP request: %w", err)
+	}
+	// TODO(neoaggelos): check status code
+
+	if response != nil {
+		if err := json.NewDecoder(resp.Body).Decode(response); err != nil {
+			return fmt.Errorf("failed to parse HTTP response into %t: %w", response, err)
+		}
+	}
+	if response, ok := response.(ResponseWithErrorMessage); ok {
+		if err := response.GetError(); err != nil {
+			return fmt.Errorf("request failed: %w", err)
+		}
+	}
+	return nil
 }
