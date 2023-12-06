@@ -1,44 +1,37 @@
 package k8sd
 
 import (
-	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/canonical/k8s/pkg/k8s/cluster"
-	"github.com/canonical/microcluster/microcluster"
+	"github.com/canonical/k8s/pkg/k8sd/app"
 	"github.com/spf13/cobra"
 )
 
 var (
 	rootCmdOpts struct {
-		version    bool
 		logDebug   bool
 		logVerbose bool
 		storageDir string
-		port       string
+		port       uint
 	}
 
 	rootCmd = &cobra.Command{
 		Use:   "k8sd",
 		Short: "Canonical Kubernetes orchestrator and clustering daemon",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			m, err := microcluster.App(
-				context.Background(),
-				microcluster.Args{
-					ListenPort: rootCmdOpts.port,
-					StateDir:   rootCmdOpts.storageDir,
-					Verbose:    rootCmdOpts.logVerbose,
-					Debug:      rootCmdOpts.logDebug,
-				},
-			)
+			app, err := app.New(cmd.Context(), app.Config{
+				Debug:      rootCmdOpts.logDebug,
+				Verbose:    rootCmdOpts.logVerbose,
+				StateDir:   rootCmdOpts.storageDir,
+				ListenPort: rootCmdOpts.port,
+			})
 			if err != nil {
-				return fmt.Errorf("failed to initialize microcluster app: %w", err)
+				return fmt.Errorf("failed to initialize k8sd: %w", err)
 			}
 
-			err = m.Start(nil, nil, nil)
-			if err != nil {
-				return fmt.Errorf("failed to start microcluster app: %w", err)
+			if err := app.Run(); err != nil {
+				return fmt.Errorf("failed to run k8sd: %w", err)
 			}
 
 			return nil
@@ -49,6 +42,6 @@ var (
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
-	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.port, "port", strconv.Itoa(cluster.DefaultPort), "Port on which the REST-API is exposed")
+	rootCmd.PersistentFlags().UintVar(&rootCmdOpts.port, "port", cluster.DefaultPort, "Port on which the REST API is exposed")
 	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.storageDir, "storage-dir", "", "Directory with the dqlite datastore")
 }
