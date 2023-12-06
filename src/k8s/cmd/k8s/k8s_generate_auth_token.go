@@ -16,8 +16,8 @@ var (
 	}
 
 	generateAuthTokenCmd = &cobra.Command{
-		Use:    "generate-auth-token",
-		Short:  "List auth tokens",
+		Use:    "generate-auth-token --username <user> [--groups <group1>,<group2>]",
+		Short:  "Generate an auth token for Kubernetes",
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootCmdOpts.logDebug {

@@ -8,12 +8,6 @@ import (
 )
 
 var (
-	sqlCmdOpts struct {
-		verbose  bool
-		debug    bool
-		stateDir string
-	}
-
 	sqlCmd = &cobra.Command{
 		Use:    "sql <query>",
 		Short:  "Execute an SQL query against the daemon",
@@ -24,9 +18,9 @@ var (
 				return fmt.Errorf("invalid query")
 			}
 			cluster, err := app.New(cmd.Context(), app.Config{
-				Debug:    sqlCmdOpts.debug,
-				Verbose:  sqlCmdOpts.verbose,
-				StateDir: sqlCmdOpts.stateDir,
+				Debug:    rootCmdOpts.logDebug,
+				Verbose:  rootCmdOpts.logVerbose,
+				StateDir: rootCmdOpts.storageDir,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create k8sd app: %w", err)
@@ -44,8 +38,5 @@ var (
 )
 
 func init() {
-	sqlCmd.Flags().BoolVar(&sqlCmdOpts.debug, "debug", false, "")
-	sqlCmd.Flags().BoolVar(&sqlCmdOpts.verbose, "verbose", false, "")
-	sqlCmd.Flags().StringVar(&sqlCmdOpts.stateDir, "state-dir", "./build/stage", "")
 	rootCmd.AddCommand(sqlCmd)
 }

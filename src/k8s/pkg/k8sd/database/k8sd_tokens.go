@@ -68,7 +68,7 @@ func CheckToken(ctx context.Context, tx *sql.Tx, token string) (string, []string
 }
 
 // GetOrCreateToken returns a token that matches the specified identify (username and groups).
-// GetOrCreateToken will create an existing token (if availble).
+// GetOrCreateToken will create an existing token (if available).
 // GetOrCreateToken will create a new token otherwise.
 // GetOrCreateToken returns an error in case the auth is empty or a token could not be generated.
 func GetOrCreateToken(ctx context.Context, tx *sql.Tx, username string, groups []string) (string, error) {
