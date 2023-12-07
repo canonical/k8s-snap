@@ -187,6 +187,10 @@ parts:
     plugin: dump
     source: ./charts
 
+  config:
+    plugin: dump
+    source: ./config
+
 apps:
   k8s:
     command: k8s/wrappers/commands/k8s

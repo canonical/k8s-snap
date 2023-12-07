@@ -1,0 +1,8 @@
+cni:
+  release: "ck-cni"
+  chart: "cilium-1.14.1.tgz"
+  namespace: "kube-system"
+dns:
+  release: "ck-dns"
+  chart: "coredns-1.28.2.tgz"
+  namespace: "kube-system"
