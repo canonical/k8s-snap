@@ -1,3 +1,5 @@
+GO_SOURCES = $(shell find . -name '*.go')
+
 ## Development
 go.fmt:
 	go mod tidy
@@ -28,7 +30,7 @@ static: bin/static/k8s bin/static/k8sd bin/static/k8s-dqlite bin/static/dqlite
 deps/static/lib/libdqlite.a: hack/compile-static-dqlite.sh
 	./hack/compile-static-dqlite.sh
 
-bin/static/k8s: deps/static/lib/libdqlite.a
+bin/static/k8s: deps/static/lib/libdqlite.a $(GO_SOURCES)
 	mkdir -p bin/static
 	env \
 		PATH="${PATH}:${PWD}/deps/static/musl/bin" \
@@ -43,10 +45,10 @@ bin/static/k8s: deps/static/lib/libdqlite.a
 			cmd/main.go
 
 bin/static/k8s-dqlite: bin/static/k8s
-	cd bin/static && ln -s k8s k8s-dqlite
+	cd bin/static && ln -sf k8s k8s-dqlite
 
 bin/static/k8sd: bin/static/k8s
-	cd bin/static && ln -s k8s k8sd
+	cd bin/static && ln -sf k8s k8sd
 
 bin/static/dqlite: deps/static/lib/libdqlite.a
 	mkdir -p bin/static
