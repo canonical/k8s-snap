@@ -16,8 +16,14 @@ func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus,
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster members: %w", err)
 	}
 
+	components, err := GetComponents()
+	if err != nil {
+		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster components: %w", err)
+	}
+
 	return apiv1.ClusterStatus{
-		Members: members,
+		Members:    members,
+		Components: components,
 	}, nil
 }
 

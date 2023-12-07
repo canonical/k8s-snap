@@ -19,8 +19,8 @@ type ClusterMember struct {
 
 // ClusterStatus holds information about the cluster, e.g. its current members
 type ClusterStatus struct {
-	Members []ClusterMember `json:"members"`
-	// TODO(KU-145): add components status here
+	Members    []ClusterMember `json:"members"`
+	Components []Component     `json:"components"`
 }
 
 // HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
