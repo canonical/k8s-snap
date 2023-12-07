@@ -70,7 +70,7 @@ func NewManager() (*helmClient, error) {
 		logAdapter,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize Helm configuration: %w", err)
+		return nil, fmt.Errorf("failed to initialize component manager configuration: %w", err)
 	}
 
 	return &helmClient{
@@ -101,12 +101,12 @@ func (h *helmClient) Enable(name string) error {
 
 	chart, err := loader.Load(path.Join(os.Getenv("SNAP"), component.Chart))
 	if err != nil {
-		return fmt.Errorf("failed to load chart: %w", err)
+		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
 
 	_, err = install.Run(chart, nil)
 	if err != nil {
-		return fmt.Errorf("failed to install chart: %w", err)
+		return fmt.Errorf("failed to enable component '%s': %w", name, err)
 	}
 	return nil
 }
@@ -116,7 +116,7 @@ func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
 	list := action.NewList(h.actionConfig)
 	releases, err := list.Run()
 	if err != nil {
-		return false, fmt.Errorf("failed to list Helm releases: %w", err)
+		return false, fmt.Errorf("failed to list components: %w", err)
 	}
 
 	for _, release := range releases {
@@ -133,7 +133,7 @@ func (h *helmClient) List() ([]Component, error) {
 	list := action.NewList(h.actionConfig)
 	releases, err := list.Run()
 	if err != nil {
-		return nil, fmt.Errorf("failed to list Helm releases: %w", err)
+		return nil, fmt.Errorf("failed to list components: %w", err)
 	}
 
 	allComponents := make([]Component, len(h.config))
@@ -172,7 +172,7 @@ func (h *helmClient) Disable(name string) error {
 	}
 	_, err = uninstall.Run(component.ReleaseName)
 	if err != nil {
-		return fmt.Errorf("failed to uninstall release '%s': %w", component.ReleaseName, err)
+		return fmt.Errorf("failed to uninstall component '%s': %w", name, err)
 	}
 
 	return nil
@@ -191,12 +191,12 @@ func (h *helmClient) Refresh(name string) error {
 
 	chart, err := loader.Load(path.Join(os.Getenv("SNAP"), component.Chart))
 	if err != nil {
-		return fmt.Errorf("failed to load chart: %w", err)
+		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
 
 	_, err = upgrade.Run(component.ReleaseName, chart, nil)
 	if err != nil {
-		return fmt.Errorf("failed to upgrade release '%s': %w", component.ReleaseName, err)
+		return fmt.Errorf("failed to upgrade component '%s': %w", name, err)
 	}
 	return nil
 }
