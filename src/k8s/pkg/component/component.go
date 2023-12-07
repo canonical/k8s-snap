@@ -52,7 +52,7 @@ func logAdapter(format string, v ...any) {
 func NewManager() (*helmClient, error) {
 	viper.SetConfigName("components")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(os.Getenv("SNAP"))
+	viper.AddConfigPath(path.Join(os.Getenv("SNAP"), "k8s", "components"))
 	err := viper.ReadInConfig()
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (h *helmClient) Enable(name string) error {
 		return nil
 	}
 
-	chart, err := loader.Load(path.Join(os.Getenv("SNAP"), component.Chart))
+	chart, err := loader.Load(path.Join(os.Getenv("SNAP"), "k8s", "components", "charts", component.Chart))
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}

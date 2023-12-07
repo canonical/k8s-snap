@@ -1,5 +1,5 @@
-cni:
-  release: "ck-cni"
+network:
+  release: "ck-network"
   chart: "cilium-1.14.1.tgz"
   namespace: "kube-system"
 dns:
