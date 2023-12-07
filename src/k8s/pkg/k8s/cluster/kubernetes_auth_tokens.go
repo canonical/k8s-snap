@@ -17,7 +17,7 @@ func (c *Client) GenerateAuthToken(ctx context.Context, username string, groups 
 		return "", fmt.Errorf("failed to create client: %w", err)
 	}
 
-	if err := client.Query(ctx, "POST", api.NewURL().Path("k8sd", "tokens"), request, &response); err != nil {
+	if err := client.Query(ctx, "POST", api.NewURL().Path("kubernetes", "auth", "tokens"), request, &response); err != nil {
 		return "", fmt.Errorf("HTTP request failed: %w", err)
 	}
 
