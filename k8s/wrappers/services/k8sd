@@ -3,6 +3,6 @@
 . "$SNAP/k8s/lib.sh"
 
 # required to open unix-socket in the snap
-export DQLITE_SOCKET="@snap.${SNAP_INSTANCE_NAME}.dqlite"
+export DQLITE_SOCKET="@snap.${SNAP_INSTANCE_NAME}.k8sd"
 
 k8s::common::execute_service k8sd

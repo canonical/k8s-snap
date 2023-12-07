@@ -33,11 +33,11 @@ jobs:
           path: k8s.snap
 
   test-e2e:
-    name: Test ${{ matrix.runner }}
+    name: Test ${{ matrix.os }}
     strategy:
       matrix:
-        runner: [ubuntu-20.04, ubuntu-22.04]
-    runs-on: "${{ matrix.runner }}"
+        os: ["ubuntu:20.04", "ubuntu:22.04"]
+    runs-on: ubuntu-20.04
     needs: build
 
     steps:
@@ -49,6 +49,11 @@ jobs:
           python-version: '3.8'
       - name: Install tox
         run: pip install tox
+      - name: Install lxd
+        run: |
+          sudo lxd init --auto
+          sudo usermod --append --groups lxd $USER
+          sg lxd -c 'lxc version'
       - name: Download snap
         uses: actions/download-artifact@v3.0.2
         with:
@@ -57,4 +62,6 @@ jobs:
       - name: Run end to end tests
         run: |
           export TEST_SNAP="$PWD/build/k8s.snap"
-          cd tests/e2e && tox -e e2e
+          export TEST_SUBSTRATE=lxd
+          export TEST_LXD_IMAGE=${{ matrix.os }}
+          cd tests/e2e && sg lxd -c 'tox -e e2e'
