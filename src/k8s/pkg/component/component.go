@@ -92,7 +92,7 @@ func (h *helmClient) Enable(name string) error {
 
 	isEnabled, err := h.isComponentEnabled(name, component.Namespace)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get components status: %w", err)
 	}
 
 	if isEnabled {
@@ -116,7 +116,7 @@ func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
 	list := action.NewList(h.actionConfig)
 	releases, err := list.Run()
 	if err != nil {
-		return false, fmt.Errorf("failed to list components: %w", err)
+		return false, err
 	}
 
 	for _, release := range releases {
@@ -164,7 +164,7 @@ func (h *helmClient) Disable(name string) error {
 
 	isEnabled, err := h.isComponentEnabled(name, component.Namespace)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get components status: %w", err)
 	}
 
 	if !isEnabled {
