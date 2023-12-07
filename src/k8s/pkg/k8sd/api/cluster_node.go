@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	api "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
@@ -28,7 +28,7 @@ func clusterNodePost(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to parse node name from URL '%s': %w", r.URL, err))
 	}
 
-	var req api.AddNodeRequest
+	var req apiv1.AddNodeRequest
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		return response.SmartError(err)
@@ -37,7 +37,7 @@ func clusterNodePost(s *state.State, r *http.Request) response.Response {
 	logrus.Info(nodeName)
 	// TODO: Implement k8s joining stuff (e.g. get kubelet args etc.)
 
-	result := api.AddNodeResponse{}
+	result := apiv1.AddNodeResponse{}
 	return response.SyncResponse(true, &result)
 }
 
@@ -48,7 +48,7 @@ func clusterNodeDelete(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to parse node name from URL '%s': %w", r.URL, err))
 	}
 
-	var req api.RemoveNodeRequest
+	var req apiv1.RemoveNodeRequest
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to parse request data: %w", err))
@@ -59,6 +59,6 @@ func clusterNodeDelete(s *state.State, r *http.Request) response.Response {
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to delete cluster member: %w", err))
 	}
-	result := api.AddNodeResponse{}
+	result := apiv1.AddNodeResponse{}
 	return response.SyncResponse(true, &result)
 }

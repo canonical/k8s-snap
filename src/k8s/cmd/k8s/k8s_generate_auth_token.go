@@ -3,7 +3,7 @@ package k8s
 import (
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/k8s/cluster"
+	"github.com/canonical/k8s/pkg/k8s/client"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -24,7 +24,7 @@ var (
 				logrus.SetLevel(logrus.TraceLevel)
 			}
 
-			client, err := cluster.NewClient(cmd.Context(), cluster.ClusterOpts{
+			client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
 				RemoteAddress: clusterCmdOpts.remoteAddress,
 				StorageDir:    clusterCmdOpts.storageDir,
 				Verbose:       rootCmdOpts.logVerbose,

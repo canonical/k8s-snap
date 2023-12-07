@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	api "github.com/canonical/k8s/api/v1"
-	lxdApi "github.com/canonical/lxd/shared/api"
+	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/lxd/shared/api"
 	"github.com/canonical/microcluster/microcluster"
 )
 
@@ -35,12 +35,12 @@ func (c *Client) JoinNode(ctx context.Context, name string, address string, toke
 		return fmt.Errorf("failed to join node %s to cluster: %w", name, err)
 	}
 
-	request := api.AddNodeRequest{
+	request := apiv1.AddNodeRequest{
 		Address: address,
 		Token:   token,
 	}
-	var response api.AddNodeResponse
-	err = c.mc.Query(queryCtx, "POST", lxdApi.NewURL().Path("k8sd", "cluster", name), request, &response)
+	var response apiv1.AddNodeResponse
+	err = c.mc.Query(queryCtx, "POST", api.NewURL().Path("k8sd", "cluster", name), request, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
 		return fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
@@ -53,11 +53,11 @@ func (c *Client) RemoveNode(ctx context.Context, name string, force bool) error 
 	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
-	request := api.RemoveNodeRequest{
+	request := apiv1.RemoveNodeRequest{
 		Force: force,
 	}
-	var response api.RemoveNodeResponse
-	err := c.mc.Query(queryCtx, "DELETE", lxdApi.NewURL().Path("k8sd", "cluster", name), request, &response)
+	var response apiv1.RemoveNodeResponse
+	err := c.mc.Query(queryCtx, "DELETE", api.NewURL().Path("k8sd", "cluster", name), request, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
 		return fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)

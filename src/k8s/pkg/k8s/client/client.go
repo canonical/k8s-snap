@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/canonical/microcluster/client"
@@ -55,11 +56,8 @@ func NewClient(ctx context.Context, opts ClusterOpts) (*Client, error) {
 			return nil, fmt.Errorf("cannot create local client: %w", err)
 		}
 	} else {
-		// TODO: this expects the cluster certificate at --storage-dir - doesn't work yet
-		microClient, err = m.RemoteClient(opts.RemoteAddress)
-		if err != nil {
-			return nil, fmt.Errorf("cannot create local client: %w", err)
-		}
+		// TODO: Implement the remote client. This requires the cluster certs to be available at `opts.StorageDir`
+		return nil, errors.New("remote clients are not yet supported. The CLI needs to run on a cluster node.")
 	}
 
 	return &Client{

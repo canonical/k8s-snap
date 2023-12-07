@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	api "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
@@ -19,7 +19,7 @@ var k8sdToken = rest.Endpoint{
 
 func tokenPost(s *state.State, r *http.Request) response.Response {
 	// Decode the POST body to get the node name.
-	var req api.CreateJoinTokenRequest
+	var req apiv1.CreateJoinTokenRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		return response.SmartError(err)
@@ -31,7 +31,7 @@ func tokenPost(s *state.State, r *http.Request) response.Response {
 		response.SmartError(err)
 	}
 
-	result := api.CreateJoinTokenResponse{
+	result := apiv1.CreateJoinTokenResponse{
 		Token: token,
 	}
 

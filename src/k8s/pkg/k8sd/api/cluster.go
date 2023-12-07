@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	api "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
@@ -21,7 +21,7 @@ func clusterGet(s *state.State, r *http.Request) response.Response {
 		response.InternalError(err)
 	}
 
-	result := api.GetClusterStatusResponse{
+	result := apiv1.GetClusterStatusResponse{
 		ClusterStatus: status,
 	}
 

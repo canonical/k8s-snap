@@ -4,25 +4,25 @@ import (
 	"context"
 	"fmt"
 
-	api "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/lxd/shared"
 	"github.com/canonical/microcluster/state"
 )
 
 // GetClusterStatus retrieves the status of the cluster, including information about its members.
-func GetClusterStatus(ctx context.Context, s *state.State) (api.ClusterStatus, error) {
+func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus, error) {
 	members, err := GetClusterMembers(ctx, s)
 	if err != nil {
-		return api.ClusterStatus{}, fmt.Errorf("failed to get cluster members: %w", err)
+		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster members: %w", err)
 	}
 
-	return api.ClusterStatus{
+	return apiv1.ClusterStatus{
 		Members: members,
 	}, nil
 }
 
 // GetClusterMembers retrieves information about the members of the cluster.
-func GetClusterMembers(ctx context.Context, s *state.State) ([]api.ClusterMember, error) {
+func GetClusterMembers(ctx context.Context, s *state.State) ([]apiv1.ClusterMember, error) {
 	c, err := s.Leader()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get leader client: %w", err)
@@ -33,14 +33,14 @@ func GetClusterMembers(ctx context.Context, s *state.State) ([]api.ClusterMember
 		return nil, fmt.Errorf("failed to get cluster members: %w", err)
 	}
 
-	members := make([]api.ClusterMember, len(clusterMembers))
+	members := make([]apiv1.ClusterMember, len(clusterMembers))
 	for i, clusterMember := range clusterMembers {
 		fingerprint, err := shared.CertFingerprintStr(clusterMember.Certificate.String())
 		if err != nil {
 			continue
 		}
 
-		members[i] = api.ClusterMember{
+		members[i] = apiv1.ClusterMember{
 			Name:        clusterMember.Name,
 			Address:     clusterMember.Address.String(),
 			Role:        clusterMember.Role,
