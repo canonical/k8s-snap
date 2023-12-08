@@ -2,12 +2,13 @@ package database
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
 	_ "embed"
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/canonical/microcluster/cluster"
 )
@@ -83,8 +84,13 @@ func GetOrCreateToken(ctx context.Context, tx *sql.Tx, username string, groups [
 		return token, nil
 	}
 
-	// TODO: make this crypto safe
-	token = fmt.Sprintf("token-123-%d", time.Now().Nanosecond())
+	// generate random bytes for the token
+	b := make([]byte, 20)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("is the system entropy low? failed to get random bytes: %w", err)
+	}
+	token = fmt.Sprintf("token::%s", hex.EncodeToString(b))
+
 	insertTxStmt, err := cluster.Stmt(tx, k8sdTokensStmts["insert-token"])
 	if err != nil {
 		return "", fmt.Errorf("failed to prepare insert statement: %w", err)
