@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"sort"
 
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func parseAddresses(endpoint *v1.Endpoints) []string {
+func parseAddresses(endpoint *corev1.Endpoints) []string {
 	if endpoint == nil {
 		return nil
 	}
 	addresses := make([]string, 0, len(endpoint.Subsets))
 	for _, subset := range endpoint.Subsets {
-		portNumber := 16443
+		portNumber := 6443
 		for _, port := range subset.Ports {
 			if port.Name == "https" {
 				portNumber = int(port.Port)

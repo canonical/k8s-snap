@@ -23,7 +23,7 @@ func TestParseAddresses(t *testing.T) {
 					{Addresses: []v1.EndpointAddress{{IP: "1.1.1.1"}}},
 				},
 			},
-			addresses: []string{"1.1.1.1:16443"},
+			addresses: []string{"1.1.1.1:6443"},
 		},
 		{
 			name: "two",
@@ -32,7 +32,7 @@ func TestParseAddresses(t *testing.T) {
 					{Addresses: []v1.EndpointAddress{{IP: "1.1.1.1"}, {IP: "2.2.2.2"}}},
 				},
 			},
-			addresses: []string{"1.1.1.1:16443", "2.2.2.2:16443"},
+			addresses: []string{"1.1.1.1:6443", "2.2.2.2:6443"},
 		},
 		{
 			name: "multiple-subsets",
@@ -42,7 +42,7 @@ func TestParseAddresses(t *testing.T) {
 					{Addresses: []v1.EndpointAddress{{IP: "3.3.3.3"}}},
 				},
 			},
-			addresses: []string{"1.1.1.1:16443", "2.2.2.2:16443", "3.3.3.3:16443"},
+			addresses: []string{"1.1.1.1:6443", "2.2.2.2:6443", "3.3.3.3:6443"},
 		},
 		{
 			name: "override-port",
@@ -52,7 +52,7 @@ func TestParseAddresses(t *testing.T) {
 					{Addresses: []v1.EndpointAddress{{IP: "3.3.3.3"}}, Ports: []v1.EndpointPort{{Port: int32(10000), Name: "https"}}},
 				},
 			},
-			addresses: []string{"1.1.1.1:16443", "2.2.2.2:16443", "3.3.3.3:10000"},
+			addresses: []string{"1.1.1.1:6443", "2.2.2.2:6443", "3.3.3.3:10000"},
 		},
 		{
 			name: "sort",
@@ -62,7 +62,7 @@ func TestParseAddresses(t *testing.T) {
 					{Addresses: []v1.EndpointAddress{{IP: "2.2.2.2"}}, Ports: []v1.EndpointPort{{Port: int32(10000), Name: "https"}}},
 				},
 			},
-			addresses: []string{"1.1.1.1:16443", "2.2.2.2:10000", "3.3.3.3:16443"},
+			addresses: []string{"1.1.1.1:6443", "2.2.2.2:10000", "3.3.3.3:6443"},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
