@@ -37,6 +37,10 @@ var (
 			// TODO: make this nice and bright
 			fmt.Printf("Number of nodes in the cluster: %d\n", len(clusterStatus.Members))
 			fmt.Printf("HA cluster: %t\n", clusterStatus.HaClusterFormed())
+			fmt.Println()
+			for _, component := range clusterStatus.Components {
+				fmt.Printf("%s: %s\n", component.Name, component.Status)
+			}
 
 			return nil
 		},
