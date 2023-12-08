@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/canonical/k8s/pkg/k8s/cluster"
+	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -17,9 +17,10 @@ var (
 	}
 
 	joinNodeCmd = &cobra.Command{
-		Use:   "join-node <token>",
-		Short: "Join a cluster",
-		Args:  cobra.ExactArgs(1),
+		Use:    "join-node <token>",
+		Short:  "Join a cluster",
+		Args:   cobra.ExactArgs(1),
+		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootCmdOpts.logDebug {
 				logrus.SetLevel(logrus.TraceLevel)
@@ -38,11 +39,11 @@ var (
 
 			if joinNodeCmdOpts.address == "" {
 				joinNodeCmdOpts.address = util.CanonicalNetworkAddress(
-					util.NetworkInterfaceAddress(), cluster.DefaultPort,
+					util.NetworkInterfaceAddress(), client.DefaultPort,
 				)
 			}
 
-			client, err := cluster.NewClient(cmd.Context(), cluster.ClusterOpts{
+			client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
 				RemoteAddress: clusterCmdOpts.remoteAddress,
 				StorageDir:    clusterCmdOpts.storageDir,
 				Verbose:       rootCmdOpts.logVerbose,
@@ -52,7 +53,7 @@ var (
 				return fmt.Errorf("failed to create cluster client: %w", err)
 			}
 
-			err = client.JoinCluster(cmd.Context(), joinNodeCmdOpts.name, joinNodeCmdOpts.address, token)
+			err = client.JoinNode(cmd.Context(), joinNodeCmdOpts.name, joinNodeCmdOpts.address, token)
 			if err != nil {
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
-	v1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/httputil"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/lxd/lxd/response"
@@ -43,11 +43,11 @@ func getKubernetesAuthToken(state *state.State, r *http.Request) response.Respon
 		return response.NotFound(err)
 	}
 
-	return response.SyncResponse(true, v1.CheckKubernetesAuthTokenResponse{Username: username, Groups: groups})
+	return response.SyncResponse(true, apiv1.CheckKubernetesAuthTokenResponse{Username: username, Groups: groups})
 }
 
 func postKubernetesAuthToken(state *state.State, r *http.Request) response.Response {
-	request := v1.CreateKubernetesAuthTokenRequest{}
+	request := apiv1.CreateKubernetesAuthTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -61,13 +61,13 @@ func postKubernetesAuthToken(state *state.State, r *http.Request) response.Respo
 		return response.InternalError(err)
 	}
 
-	return response.SyncResponse(true, v1.CreateKubernetesAuthTokenResponse{Token: token})
+	return response.SyncResponse(true, apiv1.CreateKubernetesAuthTokenResponse{Token: token})
 }
 
 // kubernetesAuthTokenReviewWebhook is used by kube-apiserver to handle TokenReview objects.
 // Note that we do not use the normal response.SyncResponse here, because it breaks the response format that kube-apiserver expects.
 func kubernetesAuthTokenReviewWebhook(state *state.State, r *http.Request) response.Response {
-	review := v1.TokenReview{
+	review := apiv1.TokenReview{
 		APIVersion: "authentication.k8s.io/v1",
 		Kind:       "TokenReview",
 	}
@@ -76,7 +76,7 @@ func kubernetesAuthTokenReviewWebhook(state *state.State, r *http.Request) respo
 		return httputil.JSONResponse(http.StatusBadRequest, review)
 	}
 	// reset anything the client might be passing over in the status already
-	review.Status = v1.TokenReviewStatus{}
+	review.Status = apiv1.TokenReviewStatus{}
 
 	// handle APIVersion and Kind
 	var apiVersionErr, kindErr error
@@ -109,10 +109,10 @@ func kubernetesAuthTokenReviewWebhook(state *state.State, r *http.Request) respo
 		return httputil.JSONResponse(http.StatusUnauthorized, review)
 	}
 
-	review.Status = v1.TokenReviewStatus{
+	review.Status = apiv1.TokenReviewStatus{
 		Audiences:     review.Spec.Audiences,
 		Authenticated: true,
-		User: v1.TokenReviewStatusUserInfo{
+		User: apiv1.TokenReviewStatusUserInfo{
 			UID:      username,
 			Username: username,
 			Groups:   groups,
