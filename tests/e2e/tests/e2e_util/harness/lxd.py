@@ -2,9 +2,9 @@
 # Copyright 2023 Canonical, Ltd.
 #
 import logging
+import os
 import shlex
 import subprocess
-import time
 from pathlib import Path
 
 from e2e_util import config
@@ -57,8 +57,7 @@ class LXDHarness(Harness):
         )
 
     def new_instance(self) -> str:
-        # TODO(neoaggelos): make this unique
-        instance_id = f"k8s-e2e-{int(time.time())}-{self.next_id()}"
+        instance_id = f"k8s-e2e-{os.urandom(3).hex()}-{self.next_id()}"
 
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
         try:
