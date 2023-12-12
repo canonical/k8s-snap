@@ -63,6 +63,10 @@ func (cm *CertificateManager) GenerateServerCerts() (err error) {
 	if err != nil {
 		return err
 	}
+	cm.generateKubelet()
+	if err != nil {
+		return err
+	}
 	cm.generateKubeletClient()
 	if err != nil {
 		return err
@@ -85,10 +89,6 @@ func (cm *CertificateManager) GenerateClientCerts() (err error) {
 		return err
 	}
 	cm.generateKubeScheduler()
-	if err != nil {
-		return err
-	}
-	cm.generateKubelet()
 	if err != nil {
 		return err
 	}
