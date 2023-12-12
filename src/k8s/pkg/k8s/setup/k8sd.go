@@ -6,12 +6,13 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/canonical/k8s/pkg/k8s/cluster"
+	v1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/sirupsen/logrus"
 )
 
 // InitContainerd handles the setup of K8sd.
-func InitK8sd(ctx context.Context, clusterOpts cluster.ClusterOpts) (*cluster.Client, error) {
+func InitK8sd(ctx context.Context, clusterOpts client.ClusterOpts) (*client.Client, error) {
 	startCmd := exec.Command("snapctl", "start", "k8s.k8sd")
 	var err error
 
@@ -20,20 +21,20 @@ func InitK8sd(ctx context.Context, clusterOpts cluster.ClusterOpts) (*cluster.Cl
 		return nil, fmt.Errorf("failed to start services: %w", err)
 	}
 
-	var client *cluster.Client
-	var member cluster.ClusterMember
+	var cl *client.Client
+	var member v1.ClusterMember
 
 	ch := make(chan struct{}, 1)
 	go func() {
 		for {
 			time.Sleep(2 * time.Second)
-			client, err = cluster.NewClient(ctx, clusterOpts)
+			cl, err = client.NewClient(ctx, clusterOpts)
 			if err != nil {
 				err = fmt.Errorf("failed to create client: %w", err)
 				continue
 			}
 
-			member, err = client.Bootstrap(ctx)
+			member, err = cl.Bootstrap(ctx)
 			if err != nil {
 				err = fmt.Errorf("failed to bootstrap cluster: %w", err)
 				continue
@@ -52,5 +53,5 @@ func InitK8sd(ctx context.Context, clusterOpts cluster.ClusterOpts) (*cluster.Cl
 		return nil, fmt.Errorf("timed out while waiting for k8sd initialization: %w", err)
 	}
 
-	return client, nil
+	return cl, nil
 }

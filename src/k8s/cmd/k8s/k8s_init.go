@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/canonical/k8s/pkg/k8s/cluster"
+	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/k8s/pkg/k8s/setup"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -35,7 +35,7 @@ var (
 				return fmt.Errorf("failed to initialize containerd: %w", err)
 			}
 
-			client, err := setup.InitK8sd(cmd.Context(), cluster.ClusterOpts{
+			client, err := setup.InitK8sd(cmd.Context(), client.ClusterOpts{
 				RemoteAddress: clusterCmdOpts.remoteAddress,
 				Debug:         rootCmdOpts.logDebug,
 				Port:          clusterCmdOpts.port,

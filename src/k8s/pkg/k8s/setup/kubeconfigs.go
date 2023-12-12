@@ -6,12 +6,12 @@ import (
 	"os"
 
 	"github.com/canonical/k8s/pkg/k8s/certutils"
-	"github.com/canonical/k8s/pkg/k8s/cluster"
+	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/k8s/pkg/k8s/utils"
 )
 
 // InitKubeconfigs generates the kubeconfig files that services use to communicate with the apiserver.
-func InitKubeconfigs(ctx context.Context, client *cluster.Client, ca *certutils.CertKeyPair) error {
+func InitKubeconfigs(ctx context.Context, client *client.Client, ca *certutils.CertKeyPair) error {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return fmt.Errorf("failed to get hostname: %w", err)

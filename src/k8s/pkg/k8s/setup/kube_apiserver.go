@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/canonical/k8s/pkg/k8s/cluster"
+	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/k8s/pkg/k8s/utils"
 )
 
@@ -22,7 +22,7 @@ func InitKubeApiserver() error {
 			WebhookPort int
 		}{
 			WebhookIp:   defaultIp.String(),
-			WebhookPort: cluster.DefaultPort,
+			WebhookPort: client.DefaultPort,
 		},
 		"/etc/kubernetes/apiserver-token-hook.conf",
 	)
