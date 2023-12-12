@@ -11,7 +11,7 @@ import (
 	"syscall"
 )
 
-// TODO: Replace this with a proper snap helper/interface
+// TODO (KU-167): Replace this with a proper snap helper/interface
 var (
 	SNAP_DATA   = os.Getenv("SNAP_DATA")
 	SNAP_COMMON = os.Getenv("SNAP_COMMON")

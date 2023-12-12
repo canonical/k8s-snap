@@ -6,12 +6,10 @@ import (
 	"os/exec"
 	"time"
 
-	v1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/client"
-	"github.com/sirupsen/logrus"
 )
 
-// InitContainerd handles the setup of K8sd.
+// InitK8sd handles the setup of K8sd.
 func InitK8sd(ctx context.Context, clusterOpts client.ClusterOpts) (*client.Client, error) {
 	startCmd := exec.Command("snapctl", "start", "k8s.k8sd")
 	var err error
@@ -22,7 +20,7 @@ func InitK8sd(ctx context.Context, clusterOpts client.ClusterOpts) (*client.Clie
 	}
 
 	var cl *client.Client
-	var member v1.ClusterMember
+	// var member v1.ClusterMember
 
 	ch := make(chan struct{}, 1)
 	go func() {
@@ -34,11 +32,12 @@ func InitK8sd(ctx context.Context, clusterOpts client.ClusterOpts) (*client.Clie
 				continue
 			}
 
-			member, err = cl.Bootstrap(ctx)
-			if err != nil {
-				err = fmt.Errorf("failed to bootstrap cluster: %w", err)
-				continue
-			}
+			// TODO (KU-166): It's not yet possible to join two bootstrapped clusters
+			// member, err = cl.Bootstrap(ctx)
+			// if err != nil {
+			// 	err = fmt.Errorf("failed to bootstrap cluster: %w", err)
+			// 	continue
+			// }
 			break
 		}
 		ch <- struct{}{}
@@ -48,7 +47,7 @@ func InitK8sd(ctx context.Context, clusterOpts client.ClusterOpts) (*client.Clie
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case <-ch:
-		logrus.Infof("Cluster with member %s on %s created.", member.Name, member.Address)
+		// logrus.Infof("Cluster with member %s on %s created.", member.Name, member.Address)
 	case <-time.After(30 * time.Second):
 		return nil, fmt.Errorf("timed out while waiting for k8sd initialization: %w", err)
 	}
