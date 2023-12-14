@@ -6,6 +6,7 @@ import shlex
 import subprocess
 import time
 from pathlib import Path
+from typing import Optional
 
 import pytest
 from e2e_util import config, harness
@@ -19,6 +20,41 @@ def run(command: list, **kwargs) -> subprocess.CompletedProcess:
 
     LOG.debug("Execute command %s (kwargs=%s)", shlex.join(command), kwargs)
     return subprocess.run(command, **kwargs)
+
+
+def run_with_retry(
+    command,
+    max_retries=3,
+    delay_between_retries=1,
+    exceptions: Optional[tuple] = None,
+    **kwargs,
+) -> subprocess.CompletedProcess:
+    """
+    Run a command using subprocess.run with retry logic.
+
+    Parameters:
+    - command (list): The command to be executed, as a list of strings.
+    - max_retries (int): Maximum number of retries in case of failure.
+    - delay_between_retries (int): Delay in seconds between retries.
+    - exceptions (tuple(Exception)): Excepections that should be retried. Retry all if None or empty (default)
+    - **kwargs: Additional keyword arguments to be passed to subprocess.run.
+
+    Returns:
+    - subprocess.CompletedProcess: CompletedProcess object representing the result of the command.
+    """
+    for attempt in range(1, max_retries + 1):
+        try:
+            result = run(command, **kwargs)
+            return result
+        except Exception as e:
+            if exceptions is None or len(exceptions) == 0 or isinstance(e, exceptions):
+                LOG.info(f"Attempt {attempt}/{max_retries} failed. Error: {e}")
+                if attempt < max_retries:
+                    LOG.info(f"Retrying in {delay_between_retries} seconds...")
+                    time.sleep(delay_between_retries)
+                else:
+                    # If all attempts fail, raise the last error
+                    raise e
 
 
 # Installs and setups the k8s snap on the given instance.

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from e2e_util import config
 from e2e_util.harness import Harness, HarnessError
-from e2e_util.util import run
+from e2e_util.util import run, run_with_retry
 
 LOG = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class LXDHarness(Harness):
 
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
         try:
-            run(
+            run_with_retry(
                 [
                     "lxc",
                     "launch",
