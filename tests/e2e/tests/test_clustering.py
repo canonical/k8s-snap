@@ -12,13 +12,6 @@ from e2e_util import config, harness, util
 LOG = logging.getLogger(__name__)
 # TODO(bschimke): Remove when snap supports CLI alias
 K8S_BINARY_PATH = "/snap/k8s/current/bin/k8s"
-# TODO(KU-142): Remove when CLI uses snap env variables
-K8S_CLI_CONFIG = [
-    "--storage-dir",
-    "/var/snap/k8s/common/var/lib/k8sd",
-    "--port",
-    "6400",
-]
 
 
 # Create <num_instances> instances and setup the k8s snap in each.
@@ -39,7 +32,7 @@ def setup_k8s_instances(
 def bootstrap_cluster(h: harness.Harness, instance_id: str):
     out = h.exec(
         instance_id,
-        [K8S_BINARY_PATH, "bootstrap-cluster", *K8S_CLI_CONFIG],
+        [K8S_BINARY_PATH, "bootstrap-cluster"],
         capture_output=True,
     )
     assert "created" in out.stderr.decode()
@@ -49,7 +42,7 @@ def bootstrap_cluster(h: harness.Harness, instance_id: str):
 def add_node(h: harness.Harness, cluster_node: str, joining_node: str) -> str:
     out = h.exec(
         cluster_node,
-        [K8S_BINARY_PATH, "add-node", *K8S_CLI_CONFIG, joining_node],
+        [K8S_BINARY_PATH, "add-node", joining_node],
         capture_output=True,
     )
     token = out.stdout.decode().strip()
@@ -63,7 +56,7 @@ def add_node(h: harness.Harness, cluster_node: str, joining_node: str) -> str:
 def join_cluster(h: harness.Harness, instance_id, token):
     out = h.exec(
         instance_id,
-        [K8S_BINARY_PATH, "join-node", *K8S_CLI_CONFIG, token],
+        [K8S_BINARY_PATH, "join-node", token],
         capture_output=True,
     )
     LOG.info(out.stdout.decode())

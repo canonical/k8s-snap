@@ -17,5 +17,6 @@ var (
 func init() {
 	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.remoteAddress, "remote-address", "", "IP Address of another cluster member")
 	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.port, "port", strconv.Itoa(client.DefaultPort), "Port on which the REST-API is exposed")
-	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.storageDir, "storage-dir", "", "Directory with the dqlite datastore")
+	// TODO: Use snap interface instead of hardcoded string
+	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.storageDir, "storage-dir", "/var/snap/k8s/common/var/lib/k8sd", "Directory with the dqlite datastore")
 }
