@@ -67,7 +67,7 @@ def setup_k8s_snap(
     h.exec(instance_id, ["snap", "install", snap_path, "--dangerous"])
 
     LOG.info("Initialize Kubernetes")
-    h.exec(instance_id, ["/snap/k8s/current/k8s/init.sh"])
+    h.exec(instance_id, ["/snap/k8s/current/k8s/connect-interfaces.sh"])
     h.exec(instance_id, ["k8s", "init"])
 
     LOG.info("Start Kubernetes")
