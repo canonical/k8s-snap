@@ -1,2 +1,2 @@
---storage-dir=/var/lib/k8s-dqlite
---listen=unix:///var/lib/k8s-dqlite/k8s-dqlite.sock
+--storage-dir=${SNAP_COMMON}/var/lib/k8s-dqlite 
+--listen=unix://${SNAP_COMMON}/var/lib/k8s-dqlite/k8s-dqlite.sock

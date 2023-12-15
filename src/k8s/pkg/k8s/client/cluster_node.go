@@ -12,7 +12,8 @@ import (
 
 // JoinNode calls "POST 1.0/k8sd/cluster/<node>"
 func (c *Client) JoinNode(ctx context.Context, name string, address string, token string) error {
-	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	// Joining a node takes some time since services need to be restarted.
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*180)
 	defer cancel()
 
 	// TODO: This is super ugly but we first need to "initialize" the database with this join command before we can

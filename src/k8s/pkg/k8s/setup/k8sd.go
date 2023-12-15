@@ -3,18 +3,15 @@ package setup
 import (
 	"context"
 	"fmt"
-	"os/exec"
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8s/client"
+	"github.com/canonical/k8s/pkg/snap"
 )
 
 // InitK8sd handles the setup of K8sd.
 func InitK8sd(ctx context.Context, clusterOpts client.ClusterOpts) (*client.Client, error) {
-	startCmd := exec.Command("snapctl", "start", "k8s.k8sd")
-	var err error
-
-	_, err = startCmd.Output()
+	err := snap.StartService(ctx, "k8sd")
 	if err != nil {
 		return nil, fmt.Errorf("failed to start services: %w", err)
 	}
