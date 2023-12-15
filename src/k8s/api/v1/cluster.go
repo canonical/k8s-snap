@@ -8,6 +8,12 @@ type GetClusterStatusResponse struct {
 	ClusterStatus ClusterStatus `json:"status"`
 }
 
+// InitClusterRequest is used to initialize a k8s cluster.
+type InitClusterRequest struct{}
+
+// InitClusterResponse is the response for "POST 1.0/k8sd/cluster".
+type InitClusterResponse struct{}
+
 // ClusterMember holds information about a node in the k8s cluster.
 type ClusterMember struct {
 	Name        string `json:"name"`

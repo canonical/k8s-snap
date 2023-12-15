@@ -2,10 +2,10 @@ package k8s
 
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/k8s/pkg/k8s/setup"
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -61,14 +61,12 @@ var (
 				return fmt.Errorf("failed to initialize kube-apiserver: %w", err)
 			}
 
-			err = setup.InitPermissions()
+			err = setup.InitPermissions(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("failed to setup permissions: %w", err)
 			}
 
-			startCmd := exec.Command("snapctl", "start", "k8s")
-
-			_, err = startCmd.Output()
+			err = snap.StartService(cmd.Context(), "k8s")
 			if err != nil {
 				return fmt.Errorf("failed to start services: %w", err)
 			}
