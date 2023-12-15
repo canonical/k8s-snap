@@ -57,10 +57,9 @@ def run_with_retry(
                     raise e
 
 
-# Installs and setups the k8s snap on the given instance.
-# If wait_ready is set, it is validated that the K8s node is in Ready state.
+# Installs and setups the k8s snap on the given instance and connects the interfaces.
 def setup_k8s_snap(
-    h: harness.Harness, instance_id: str, snap_path: Path, wait_ready: bool = True
+    h: harness.Harness, instance_id: str, snap_path: Path 
 ):
     LOG.info("Install snap")
     h.send_file(instance_id, config.SNAP, snap_path)
@@ -68,14 +67,10 @@ def setup_k8s_snap(
 
     LOG.info("Initialize Kubernetes")
     h.exec(instance_id, ["/snap/k8s/current/k8s/connect-interfaces.sh"])
-    h.exec(instance_id, ["k8s", "init"])
 
-    LOG.info("Start Kubernetes")
-    h.exec(instance_id, ["k8s", "start"])
 
-    if not wait_ready:
-        return
-
+# Validates that the K8s node is in Ready state.
+def wait_until_k8s_ready(h: harness.Harness, instance_id):
     hostname = (
         h.exec(instance_id, ["hostname"], capture_output=True).stdout.decode().strip()
     )

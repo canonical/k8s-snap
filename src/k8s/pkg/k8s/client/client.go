@@ -9,12 +9,6 @@ import (
 	"github.com/canonical/microcluster/microcluster"
 )
 
-const (
-	// DefaultPort is the port under which
-	// the REST API is exposed by default.
-	DefaultPort = 6400
-)
-
 // ClusterOpts contains options for cluster queries.
 type ClusterOpts struct {
 	// StorageDir is the directory that contains the cluster state (for local clients).
@@ -32,6 +26,7 @@ type ClusterOpts struct {
 // Client interacts with the k8s REST-API via unix-socket or HTTPS
 type Client struct {
 	opts ClusterOpts
+	m    *microcluster.MicroCluster
 	mc   *client.Client
 }
 
@@ -62,6 +57,7 @@ func NewClient(ctx context.Context, opts ClusterOpts) (*Client, error) {
 
 	return &Client{
 		opts: opts,
+		m:    m,
 		mc:   microClient,
 	}, nil
 }

@@ -4,26 +4,4 @@
 
 k8s::common::setup_env
 
-# TODO(neoaggelos): replace with an actual CLI, this is simply placeholder commands so that we can start iterating
-case "$1" in
-  init) k8s::init ;;
-  start) snapctl start k8s ;;
-  kubectl) shift; k8s::cmd::kubectl "${@}" ;;
-  config) k8s::util::generate_x509_kubeconfig /etc/kubernetes/pki/admin.crt /etc/kubernetes/pki/admin.key /etc/kubernetes/pki/ca.crt "$(k8s::util::default_ip)" ;;
-  bash) exec bash --init-file "$SNAP/k8s/lib.sh" ;;
-  *)
-    echo "
-k8s: Canonical Kubernetes v0
-
-Commands:
-
-    init          Initialize a single-node cluster
-    start         Start all services
-    config        Print an admin kubeconfig file
-
-    kubectl       Run kubectl commands
-
-    bash          Start a shell with helpers
-"
-    ;;
-esac
+${SNAP}/bin/k8s $@

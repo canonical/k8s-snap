@@ -7,34 +7,18 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/lxd/shared/api"
-	"github.com/canonical/microcluster/microcluster"
 )
 
 // JoinNode calls "POST 1.0/k8sd/cluster/<node>"
 func (c *Client) JoinNode(ctx context.Context, name string, address string, token string) error {
+	err := c.m.JoinCluster(name, address, token, time.Second*30)
+	if err != nil {
+		return fmt.Errorf("failed to join k8sd cluster: %w", err)
+	}
+
 	// Joining a node takes some time since services need to be restarted.
 	queryCtx, cancel := context.WithTimeout(ctx, time.Second*180)
 	defer cancel()
-
-	// TODO: This is super ugly but we first need to "initialize" the database with this join command before we can
-	// access the REST-API.
-	// This 'workaround' joins the microcluster to the bootstrapped microcluster and then calls our own '/clustering' endpoint -ugh
-	// This will break if we do not have a k8sd instance running on this node.
-	// Some notes:
-	// (1) Find a way to access the REST-API /clustering endpoint before "init" the DB (if we try to access before it fails with "daemon not initialized")
-	// (2) we cannot use the hooks that microcluster provides (e.g. onJoinMember) as we require additional req/resp data that are not covered by the /cluster endpoint
-	// (3) I tried to bootstrap nodes independently (having two independent clusters) and then join the one to the other by calling our own `/clustering`:
-	// 		(a) simply trying this causes 'node' does already exist errors
-	// 		(b) Tried to remove all nodes from the joining node but this fails as a cluster cannot have zero members.
-	m, err := microcluster.App(ctx, microcluster.Args{StateDir: c.opts.StorageDir, Verbose: false, Debug: false})
-	if err != nil {
-		return fmt.Errorf("failed to configure MicroCluster: %w", err)
-	}
-
-	err = m.JoinCluster(name, address, token, time.Second*10)
-	if err != nil {
-		return fmt.Errorf("failed to join node %s to cluster: %w", name, err)
-	}
 
 	request := apiv1.AddNodeRequest{
 		Address: address,

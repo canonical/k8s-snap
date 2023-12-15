@@ -10,7 +10,7 @@ import (
 
 // InitFolders creates the necessary folders for service arguments and certificates.
 func InitFolders() error {
-	argsDir := snap.Path("args")
+	argsDir := snap.DataPath("args")
 	err := os.MkdirAll(argsDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed to create arguments directory: %w", err)

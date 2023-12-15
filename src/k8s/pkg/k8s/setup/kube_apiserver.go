@@ -3,7 +3,7 @@ package setup
 import (
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/k8s/client"
+	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/k8s/utils"
 	"github.com/canonical/k8s/pkg/snap"
 )
@@ -22,7 +22,7 @@ func InitKubeApiserver() error {
 			WebhookPort int
 		}{
 			WebhookIp:   defaultIp.String(),
-			WebhookPort: client.DefaultPort,
+			WebhookPort: config.DefaultPort,
 		},
 		"/etc/kubernetes/apiserver-token-hook.conf",
 	)
