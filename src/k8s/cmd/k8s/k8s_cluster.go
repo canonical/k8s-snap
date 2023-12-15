@@ -3,7 +3,8 @@ package k8s
 import (
 	"strconv"
 
-	"github.com/canonical/k8s/pkg/k8s/client"
+	"github.com/canonical/k8s/pkg/config"
+	"github.com/canonical/k8s/pkg/snap"
 )
 
 var (
@@ -16,7 +17,6 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.remoteAddress, "remote-address", "", "IP Address of another cluster member")
-	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.port, "port", strconv.Itoa(client.DefaultPort), "Port on which the REST-API is exposed")
-	// TODO(bschimke): Use common path from snap when k8s CLI is enabled
-	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.storageDir, "storage-dir", "/var/snap/k8s/common/var/lib/k8sd", "Directory with the dqlite datastore")
+	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.port, "port", strconv.Itoa(config.DefaultPort), "Port on which the REST-API is exposed")
+	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.storageDir, "storage-dir", snap.CommonPath("/var/lib/k8sd"), "Directory with the dqlite datastore")
 }

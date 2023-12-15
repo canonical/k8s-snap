@@ -234,7 +234,7 @@ apps:
       - network-bind
   k8sd:
     command: k8s/wrappers/services/k8sd
-    install-mode: disable
+    install-mode: enable
     daemon: simple
     plugs:
       - network

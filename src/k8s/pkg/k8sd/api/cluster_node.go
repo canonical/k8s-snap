@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/k8s/setup"
 	"github.com/canonical/k8s/pkg/k8sd/api/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
@@ -38,8 +39,27 @@ func clusterNodePost(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to parse host address %s: %w", req.Address, err))
 	}
 
-	logrus.Info("Join k8s-dqlite")
-	err = utils.UpdateK8sDqlite(r.Context(), s, k8sdToken.JoinAddresses, host.Addr().String())
+	err = setup.InitFolders()
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to setup folders: %w", err))
+	}
+
+	err = setup.InitServiceArgs()
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to setup service arguments: %w", err))
+	}
+
+	err = setup.InitContainerd()
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to initialize containerd: %w", err))
+	}
+
+	err = setup.InitPermissions(r.Context())
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to setup permissions: %w", err))
+	}
+
+	err = utils.JoinK8sDqliteCluster(r.Context(), s, k8sdToken.JoinAddresses, host.Addr().String())
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to join k8s-dqlite nodes: %w", err))
 	}

@@ -3,7 +3,7 @@ package k8sd
 import (
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/k8s/client"
+	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/k8sd/app"
 	"github.com/spf13/cobra"
 )
@@ -41,6 +41,6 @@ var (
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
-	rootCmd.PersistentFlags().UintVar(&rootCmdOpts.port, "port", client.DefaultPort, "Port on which the REST API is exposed")
+	rootCmd.PersistentFlags().UintVar(&rootCmdOpts.port, "port", config.DefaultPort, "Port on which the REST API is exposed")
 	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.storageDir, "storage-dir", "", "Directory with the dqlite datastore")
 }
