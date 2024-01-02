@@ -64,6 +64,10 @@ def join_cluster(h: harness.Harness, instance_id, token):
     assert f"Joined {instance_id}" in out.stderr.decode()
 
 
+@pytest.mark.skip(
+    reason="k8s init bootstraps a microcluster and joining two bootstrapped \
+                  clusters is currently not possible"
+)
 def test_clustering(h: harness.Harness, tmp_path: Path):
     if not config.SNAP:
         pytest.fail("Set TEST_SNAP to the path where the snap is")
