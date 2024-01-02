@@ -10,6 +10,7 @@ require (
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/mattn/go-sqlite3 v1.14.18
+	github.com/moby/sys/mountinfo v0.6.2
 	github.com/onsi/gomega v1.30.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.17.0

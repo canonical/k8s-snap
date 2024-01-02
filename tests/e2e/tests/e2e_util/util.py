@@ -6,9 +6,8 @@ import shlex
 import subprocess
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
-import pytest
 from e2e_util import config, harness
 
 LOG = logging.getLogger(__name__)
@@ -57,6 +56,115 @@ def run_with_retry(
                     raise e
 
 
+# TODO: Consider how to handle more advanced retry logic
+def retry_until_condition(
+    h: harness.Harness,
+    instance_id,
+    command,
+    condition: Callable[[subprocess.CompletedProcess], bool] = None,
+    max_retries=15,
+    delay_between_retries=5,
+    exceptions: Optional[tuple] = None,
+    **kwargs,
+) -> subprocess.CompletedProcess:
+    for attempt in range(max_retries):
+        try:
+            p = h.exec(instance_id, command, capture_output=True, **kwargs)
+            if condition is not None:
+                assert condition(p), "Failed to meet condition."
+            return p
+        except Exception as e:
+            if (
+                exceptions is None
+                or len(exceptions) == 0
+                or isinstance(e, exceptions)
+                or isinstance(e, AssertionError)
+            ):
+                LOG.info(f"Attempt {attempt}/{max_retries} failed. Error: {e}")
+                if attempt < max_retries:
+                    LOG.info(f"Retrying in {delay_between_retries} seconds...")
+                    time.sleep(delay_between_retries)
+                else:
+                    # If all attempts fail, raise the last error
+                    raise e
+
+
+def setup_network(h: harness.Harness, instance_id: str):
+    h.exec(instance_id, ["/snap/k8s/current/k8s/network-requirements.sh"])
+
+    LOG.info("Waiting for network to be enabled...")
+    retry_until_condition(
+        h,
+        instance_id,
+        ["k8s", "enable", "network"],
+        condition=lambda p: "enabled" in p.stderr.decode(),
+    )
+    LOG.info("Network enabled.")
+
+    LOG.info("Waiting for cilium pods to show up...")
+    retry_until_condition(
+        h,
+        instance_id,
+        [
+            "/snap/k8s/current/bin/kubectl",
+            "--kubeconfig",
+            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "get",
+            "po",
+            "-n",
+            "kube-system",
+            "-o",
+            "json",
+        ],
+        condition=lambda p: "cilium" in p.stdout.decode(),
+    )
+    LOG.info("Cilium pods showed up.")
+
+    retry_until_condition(
+        h,
+        instance_id,
+        [
+            "/snap/k8s/current/bin/kubectl",
+            "--kubeconfig",
+            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-n",
+            "kube-system",
+            "-l",
+            "io.cilium/app=operator",
+            "--timeout",
+            "180s",
+        ],
+        max_retries=3,
+        delay_between_retries=1,
+        check=True,
+    )
+
+    retry_until_condition(
+        h,
+        instance_id,
+        [
+            "/snap/k8s/current/bin/kubectl",
+            "--kubeconfig",
+            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-n",
+            "kube-system",
+            "-l",
+            "k8s-app=cilium",
+            "--timeout",
+            "180s",
+        ],
+        max_retries=3,
+        delay_between_retries=1,
+        check=True,
+    )
+
+
 # Installs and setups the k8s snap on the given instance and connects the interfaces.
 def setup_k8s_snap(h: harness.Harness, instance_id: str, snap_path: Path):
     LOG.info("Install snap")
@@ -72,25 +180,20 @@ def wait_until_k8s_ready(h: harness.Harness, instance_id):
     hostname = (
         h.exec(instance_id, ["hostname"], capture_output=True).stdout.decode().strip()
     )
-    success = False
-    for attempt in range(30):
-        try:
-            LOG.info("(attempt %d) Waiting for Kubelet to register", attempt)
-            p = h.exec(
-                instance_id,
-                ["k8s", "kubectl", "get", "node", hostname, "--no-headers"],
-                capture_output=True,
-            )
 
-            if "NotReady" in p.stdout.decode():
-                continue
-
-            success = True
-            LOG.info("Kubelet registered successfully!")
-            LOG.info("%s", p.stdout.decode())
-            break
-        except subprocess.CalledProcessError:
-            time.sleep(5)
-
-    if not success:
-        pytest.fail("Kubelet node did not register")
+    result = retry_until_condition(
+        h,
+        instance_id,
+        [
+            "/snap/k8s/current/bin/kubectl",
+            "--kubeconfig",
+            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "get",
+            "node",
+            hostname,
+            "--no-headers",
+        ],
+        condition=lambda p: "Ready" in p.stdout.decode(),
+    )
+    LOG.info("Kubelet registered successfully!")
+    LOG.info("%s", result.stdout.decode())

@@ -236,9 +236,12 @@ apps:
     command: k8s/wrappers/services/k8sd
     install-mode: enable
     daemon: simple
+    # FIXME: we keep 'kubernetes-support' because 'mount-observe' is not sufficient for some reason, investigate
     plugs:
       - network
       - network-bind
+      - mount-observe
+      - kubernetes-support
   kubelet:
     install-mode: disable
     command: k8s/wrappers/services/kubelet
