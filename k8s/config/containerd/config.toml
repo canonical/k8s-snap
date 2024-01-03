@@ -1,6 +1,6 @@
 version = 2
 oom_score = 0
-includes = ["/etc/containerd/conf.d/*.toml"]
+imports = ["/etc/containerd/conf.d/*.toml"]
 
 [grpc]
   uid = 0

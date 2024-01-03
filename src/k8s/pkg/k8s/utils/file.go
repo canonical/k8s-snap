@@ -9,13 +9,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"syscall"
-)
 
-// TODO (KU-167): Replace this with a proper snap helper/interface
-var (
-	SNAP_DATA   = os.Getenv("SNAP_DATA")
-	SNAP_COMMON = os.Getenv("SNAP_COMMON")
-	SNAP        = os.Getenv("SNAP")
+	"github.com/canonical/k8s/pkg/snap"
 )
 
 // TemplateAndSave compiles a template with the data and saves it to the given target path.
@@ -60,7 +55,7 @@ func ChmodRecursive(name string, mode fs.FileMode) error {
 func GetServiceArgument(service string, argument string) (string, error) {
 	re := regexp.MustCompile(fmt.Sprintf("%s=(.+)", argument))
 
-	b, err := os.ReadFile(filepath.Join(SNAP_DATA, "args", service)) // just pass the file name
+	b, err := os.ReadFile(snap.DataPath("args", service)) // just pass the file name
 	if err != nil {
 		return "", fmt.Errorf("failed to read args file: %w", err)
 	}
