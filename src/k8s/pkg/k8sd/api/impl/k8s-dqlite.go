@@ -1,4 +1,4 @@
-package utils
+package impl
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
-	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/microcluster/rest/types"
 	"github.com/canonical/microcluster/state"
 	"github.com/sirupsen/logrus"
@@ -21,8 +21,8 @@ import (
 
 var (
 	// TODO(bschimke): Do not use global state here.
-	clusterDir       = snap.CommonPath("var/lib/k8s-dqlite")
-	clusterBackupDir = snap.CommonPath("var/lib/k8s-dqlite-backup")
+	clusterDir       = utils.CommonPath("var/lib/k8s-dqlite")
+	clusterBackupDir = utils.CommonPath("var/lib/k8s-dqlite-backup")
 	// TODO(bschimke): add the port as a configuration option to k8sd so that this can be determined dynamically.
 	k8sDqliteDefaultPort = 9000
 )
@@ -66,7 +66,7 @@ func JoinK8sDqliteCluster(ctx context.Context, state *state.State, voters []stri
 		return fmt.Errorf("failed to update cluster info.yaml file: %w", err)
 	}
 
-	if err := snap.StartService(ctx, "k8s-dqlite"); err != nil {
+	if err := utils.StartService(ctx, "k8s-dqlite"); err != nil {
 		return fmt.Errorf("failed to stop k8s-dqlite: %w", err)
 	}
 
@@ -156,7 +156,7 @@ func waitForNodeJoin(ctx context.Context, host string) error {
 			default:
 				// TODO: Use go-dqlite lib instead of shelling out.
 				cmd := exec.Command(
-					snap.Path("bin/dqlite"),
+					utils.Path("bin/dqlite"),
 					"-s", fmt.Sprintf("file://%s/cluster.yaml", clusterDir),
 					"-c", fmt.Sprintf("%s/cluster.crt", clusterDir),
 					"-k", fmt.Sprintf("%s/cluster.key", clusterDir),
@@ -177,7 +177,7 @@ func waitForNodeJoin(ctx context.Context, host string) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-time.After(time.Minute):
-		return fmt.Errorf("Node did not finish joining the cluster within time.")
+		return fmt.Errorf("node (%s) did not finish joining the cluster within time", host)
 	case <-ch:
 		return nil
 	}

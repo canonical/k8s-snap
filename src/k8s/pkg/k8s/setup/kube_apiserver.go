@@ -4,8 +4,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/config"
-	"github.com/canonical/k8s/pkg/k8s/utils"
-	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 // InitKubeApiserver handles the setup of kube-apiserver.
@@ -16,7 +15,7 @@ func InitKubeApiserver() error {
 		return fmt.Errorf("failed to get default ip: %w", err)
 	}
 
-	utils.TemplateAndSave(snap.Path("k8s/config/apiserver-token-hook.tmpl"),
+	utils.TemplateAndSave(utils.Path("k8s/config/apiserver-token-hook.tmpl"),
 		struct {
 			WebhookIp   string
 			WebhookPort int

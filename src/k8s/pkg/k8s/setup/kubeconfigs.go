@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/canonical/k8s/pkg/k8s/certutils"
-	"github.com/canonical/k8s/pkg/k8s/utils"
-	apiUtils "github.com/canonical/k8s/pkg/k8sd/api/utils"
+	"github.com/canonical/k8s/pkg/utils/cert"
+	"github.com/canonical/k8s/pkg/utils"
+	apiImpl "github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/microcluster/state"
 )
 
 // InitKubeconfigs generates the kubeconfig files that services use to communicate with the apiserver.
-func InitKubeconfigs(ctx context.Context, state *state.State, ca *certutils.CertKeyPair) error {
+func InitKubeconfigs(ctx context.Context, state *state.State, ca *cert.CertKeyPair) error {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return fmt.Errorf("failed to get hostname: %w", err)
@@ -53,7 +53,7 @@ func InitKubeconfigs(ctx context.Context, state *state.State, ca *certutils.Cert
 	}
 
 	for _, config := range configs {
-		token, err := apiUtils.GetOrCreateAuthToken(ctx, state, config.username, config.groups)
+		token, err := apiImpl.GetOrCreateAuthToken(ctx, state, config.username, config.groups)
 		if err != nil {
 			return fmt.Errorf("could not generate auth token for %s: %w", config.username, err)
 		}

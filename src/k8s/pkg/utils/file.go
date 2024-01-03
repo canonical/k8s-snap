@@ -9,8 +9,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"syscall"
-
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 // TemplateAndSave compiles a template with the data and saves it to the given target path.
@@ -55,7 +53,7 @@ func ChmodRecursive(name string, mode fs.FileMode) error {
 func GetServiceArgument(service string, argument string) (string, error) {
 	re := regexp.MustCompile(fmt.Sprintf("%s=(.+)", argument))
 
-	b, err := os.ReadFile(snap.DataPath("args", service)) // just pass the file name
+	b, err := os.ReadFile(DataPath("args", service)) // just pass the file name
 	if err != nil {
 		return "", fmt.Errorf("failed to read args file: %w", err)
 	}
@@ -93,14 +91,14 @@ func CopyDirectory(scrDir, dest string) error {
 
 		switch fileInfo.Mode() & os.ModeType {
 		case os.ModeDir:
-			if err := CreateIfNotExists(destPath, 0755); err != nil {
+			if err := _createIfNotExists(destPath, 0755); err != nil {
 				return err
 			}
 			if err := CopyDirectory(sourcePath, destPath); err != nil {
 				return err
 			}
 		case os.ModeSymlink:
-			if err := CopySymLink(sourcePath, destPath); err != nil {
+			if err := _copySymLink(sourcePath, destPath); err != nil {
 				return err
 			}
 		default:
@@ -151,7 +149,7 @@ func CopyFile(srcFile, dstFile string) error {
 	return nil
 }
 
-func Exists(filePath string) bool {
+func _exists(filePath string) bool {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return false
 	}
@@ -159,8 +157,8 @@ func Exists(filePath string) bool {
 	return true
 }
 
-func CreateIfNotExists(dir string, perm os.FileMode) error {
-	if Exists(dir) {
+func _createIfNotExists(dir string, perm os.FileMode) error {
+	if _exists(dir) {
 		return nil
 	}
 
@@ -171,7 +169,7 @@ func CreateIfNotExists(dir string, perm os.FileMode) error {
 	return nil
 }
 
-func CopySymLink(source, dest string) error {
+func _copySymLink(source, dest string) error {
 	link, err := os.Readlink(source)
 	if err != nil {
 		return fmt.Errorf("could not read symlink: %w", err)

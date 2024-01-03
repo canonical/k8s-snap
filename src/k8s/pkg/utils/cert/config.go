@@ -1,4 +1,4 @@
-package certutils
+package cert
 
 const (
 	// The path where kubernetes services certificates will live in.
