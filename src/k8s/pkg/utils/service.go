@@ -3,21 +3,8 @@ package utils
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 )
-
-func Path(parts ...string) string {
-	return filepath.Join(append([]string{os.Getenv("SNAP")}, parts...)...)
-}
-
-func DataPath(parts ...string) string {
-	return filepath.Join(append([]string{os.Getenv("SNAP_DATA")}, parts...)...)
-}
-func CommonPath(parts ...string) string {
-	return filepath.Join(append([]string{os.Getenv("SNAP_COMMON")}, parts...)...)
-}
 
 // StartService starts a k8s service. The name can be either prefixed or not.
 func StartService(ctx context.Context, name string) error {

@@ -11,6 +11,18 @@ import (
 	"syscall"
 )
 
+func Path(parts ...string) string {
+	return filepath.Join(append([]string{os.Getenv("SNAP")}, parts...)...)
+}
+
+func DataPath(parts ...string) string {
+	return filepath.Join(append([]string{os.Getenv("SNAP_DATA")}, parts...)...)
+}
+
+func CommonPath(parts ...string) string {
+	return filepath.Join(append([]string{os.Getenv("SNAP_COMMON")}, parts...)...)
+}
+
 // TemplateAndSave compiles a template with the data and saves it to the given target path.
 func TemplateAndSave(tmplFile string, data any, target string) error {
 	tmpl := template.Must(template.ParseFiles(tmplFile))
@@ -91,14 +103,14 @@ func CopyDirectory(scrDir, dest string) error {
 
 		switch fileInfo.Mode() & os.ModeType {
 		case os.ModeDir:
-			if err := _createIfNotExists(destPath, 0755); err != nil {
+			if err := CreateIfNotExists(destPath, 0755); err != nil {
 				return err
 			}
 			if err := CopyDirectory(sourcePath, destPath); err != nil {
 				return err
 			}
 		case os.ModeSymlink:
-			if err := _copySymLink(sourcePath, destPath); err != nil {
+			if err := CopySymLink(sourcePath, destPath); err != nil {
 				return err
 			}
 		default:
@@ -149,7 +161,7 @@ func CopyFile(srcFile, dstFile string) error {
 	return nil
 }
 
-func _exists(filePath string) bool {
+func Exists(filePath string) bool {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return false
 	}
@@ -157,8 +169,8 @@ func _exists(filePath string) bool {
 	return true
 }
 
-func _createIfNotExists(dir string, perm os.FileMode) error {
-	if _exists(dir) {
+func CreateIfNotExists(dir string, perm os.FileMode) error {
+	if Exists(dir) {
 		return nil
 	}
 
@@ -169,7 +181,7 @@ func _createIfNotExists(dir string, perm os.FileMode) error {
 	return nil
 }
 
-func _copySymLink(source, dest string) error {
+func CopySymLink(source, dest string) error {
 	link, err := os.Readlink(source)
 	if err != nil {
 		return fmt.Errorf("could not read symlink: %w", err)
