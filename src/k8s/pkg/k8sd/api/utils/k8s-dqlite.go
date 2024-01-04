@@ -151,31 +151,16 @@ type clusterInit struct {
 	Cluster []string `yaml:"Cluster,omitempty"`
 }
 
-// createClusterInitFile writes the `init.yaml` file to the k8s-dqlite directory.
-// it contains the informations to join an existing cluster (e.g. members addresses)
+// createClusterInitFile writes an `init.yaml` file to the k8s-dqlite directory
+// that contains the informations to join an existing cluster (e.g. members addresses)
 // and is picked up by k8s-dqlite on startup.
 func createClusterInitFile(voters []string, host string) error {
-	// Get the dqlite port from the already existing deployment
-	port := 2380
-	infoFileData, err := os.ReadFile(filepath.Join(clusterBackupDir, "info.yaml"))
-	if err != nil {
-		return fmt.Errorf("failed to %s: %w", filepath.Join(clusterBackupDir, "info.yaml"), err)
-	}
-
-	info := clusterInit{}
-	err = yaml.Unmarshal(infoFileData, &info)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal the info.yaml from the cluster backup: %w", err)
-	}
-
-	addr, err := types.ParseAddrPort(info.Address)
-	if err == nil {
-		port = int(addr.Port())
-	}
+	// TODO(bschimke): add the port as a configuration option to k8sd so that this can be determined dynamically.
+	port := 9000
 
 	// Assumes that all cluster members use the same port for k8s-dqlite
 	// TODO: do not reuse voter information from the k8sd token but encode the real k8s-dqlite
-	// member data into a new token (see `UpdateDqlite` above for more).
+	// member data into a new token.
 	v := []string{}
 	addrPorts, err := types.ParseAddrPorts(voters)
 	if err != nil {
@@ -205,20 +190,27 @@ func waitForNodeJoin(ctx context.Context, host string) error {
 	ch := make(chan struct{}, 1)
 	go func() {
 		for {
-			cmd := exec.Command(
-				snap.Path("bin/dqlite"),
-				"-s", fmt.Sprintf("file://%s/cluster.yaml", clusterDir),
-				"-c", fmt.Sprintf("%s/cluster.crt", clusterDir),
-				"-k", fmt.Sprintf("%s/cluster.key", clusterDir),
-				"-f", "json", "k8s", ".cluster",
-			)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				// TODO: Use go-dqlite lib instead of shelling out.
+				cmd := exec.Command(
+					snap.Path("bin/dqlite"),
+					"-s", fmt.Sprintf("file://%s/cluster.yaml", clusterDir),
+					"-c", fmt.Sprintf("%s/cluster.crt", clusterDir),
+					"-k", fmt.Sprintf("%s/cluster.key", clusterDir),
+					"-f", "json", "k8s", ".cluster",
+				)
 
-			out, err := cmd.CombinedOutput()
-			if err == nil && strings.Contains(string(out), host) {
-				break
+				out, err := cmd.CombinedOutput()
+				if err == nil && strings.Contains(string(out), host) {
+					ch <- struct{}{}
+					return
+				}
 			}
+			time.Sleep(time.Second)
 		}
-		ch <- struct{}{}
 	}()
 
 	select {
