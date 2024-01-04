@@ -32,12 +32,7 @@ func TemplateAndSave(tmplFile string, data any, target string) error {
 		return err
 	}
 
-	err = tmpl.Execute(f, data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return tmpl.Execute(f, data)
 }
 
 // ChmodRecursive changes permissions of files and folders recursively.
