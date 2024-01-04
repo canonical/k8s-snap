@@ -60,6 +60,22 @@ def test_clustering(h: harness.Harness, tmp_path: Path):
     joining_node = instances[1]
 
     h.exec(cluster_node, ["k8s", "init"])
+    util.setup_network(h, cluster_node)
 
     token = add_node(h, cluster_node, joining_node)
     join_cluster(h, joining_node, token)
+
+    util.wait_until_k8s_ready(h, instances)
+
+    h.exec(
+        cluster_node,
+        [
+            "/snap/k8s/current/bin/kubectl",
+            "--kubeconfig",
+            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "get",
+            "nodes",
+            "--no-headers",
+        ],
+        capture_output=True,
+    )

@@ -9,13 +9,13 @@ import (
 
 // InitKubeApiserver handles the setup of kube-apiserver.
 //   - Sets up the token webhook authentication.
-func InitKubeApiserver() error {
+func InitKubeApiserver(apiServerTokenHookPathTemplate string) error {
 	defaultIp, err := utils.GetDefaultIP()
 	if err != nil {
 		return fmt.Errorf("failed to get default ip: %w", err)
 	}
 
-	utils.TemplateAndSave(utils.SnapPath("k8s/config/apiserver-token-hook.tmpl"),
+	utils.TemplateAndSave(apiServerTokenHookPathTemplate,
 		struct {
 			WebhookIp   string
 			WebhookPort int
