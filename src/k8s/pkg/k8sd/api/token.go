@@ -27,7 +27,7 @@ func tokenPost(s *state.State, r *http.Request) response.Response {
 	}
 
 	logrus.WithField("nodeName", req.Name).Info("create token entry")
-	token, err := impl.CreateJoinToken(r.Context(), s, req.Name)
+	token, err := impl.CreateK8sdToken(r.Context(), s, req.Name)
 	if err != nil {
 		response.SmartError(fmt.Errorf("failed to create token entry: %w", err))
 	}

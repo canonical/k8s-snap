@@ -2,7 +2,6 @@ package impl
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,54 +10,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/canonical/k8s/pkg/k8sd/database"
-	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils/cert"
 	"github.com/canonical/microcluster/rest/types"
 	"github.com/canonical/microcluster/state"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
 var (
-	// TODO(bschimke): Do not use global state here.
-	clusterDir       = utils.SnapCommonPath("var/lib/k8s-dqlite")
-	clusterBackupDir = utils.SnapCommonPath("var/lib/k8s-dqlite-backup")
 	// TODO(bschimke): add the port as a configuration option to k8sd so that this can be determined dynamically.
 	k8sDqliteDefaultPort = 9000
 )
-
-// WriteK8sDqliteCertInfoToK8sd gets local cert and key and stores them in the k8sd database.
-func WriteK8sDqliteCertInfoToK8sd(ctx context.Context, state *state.State) error {
-	// Read cert and key from local
-	cert, err := os.ReadFile(path.Join(clusterDir, "cluster.crt"))
-	if err != nil {
-		return fmt.Errorf("failed to read cluster.cert from %s: %w", clusterDir, err)
-	}
-	key, err := os.ReadFile(path.Join(clusterDir, "cluster.key"))
-	if err != nil {
-		return fmt.Errorf("failed to read cluster.key from %s: %w", clusterDir, err)
-	}
-
-	logrus.WithField("cert_length", len(string(cert))).WithField("key_length", len(string(key))).Debug("Writing k8s-dqlite cert and key to database")
-	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		err = database.CreateCertificate(ctx, tx, "k8s-dqlite", string(cert), string(key))
-		if err != nil {
-			return fmt.Errorf("failed to write k8s-dqlite certs and key to database: %w", err)
-		}
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to perform k8s-dqlite certificate transaction write request: %w", err)
-	}
-	return nil
-}
 
 // JoinK8sDqliteCluster joins a node to an existing k8s-dqlite cluster. It:
 //
 //   - retrieves k8s-dqlite certificates from cluster node (k8sd is already joined at this point so we can access the certificates)
 //   - stores new certificates in k8s-dqlite cluster directory
 //   - writes k8s-dqlite init file with the cluster node information
-func JoinK8sDqliteCluster(ctx context.Context, state *state.State, voters []string, host string) error {
-	if err := storeClusterCertificates(ctx, state); err != nil {
+func JoinK8sDqliteCluster(ctx context.Context, state *state.State, snap snap.Snap, voters []string, host string) error {
+	if err := cert.StoreCertKeyPair(ctx, state, "k8s-dqlite", path.Join(cert.K8sDqlitePkiPath, "cluster.crt"), path.Join(cert.K8sDqlitePkiPath, "cluster.key")); err != nil {
 		return fmt.Errorf("failed to update k8s-dqlite cluster certificate: %w", err)
 	}
 
@@ -66,42 +36,14 @@ func JoinK8sDqliteCluster(ctx context.Context, state *state.State, voters []stri
 		return fmt.Errorf("failed to update cluster info.yaml file: %w", err)
 	}
 
-	if err := utils.StartService(ctx, "k8s-dqlite"); err != nil {
+	if err := snap.StartService(ctx, "k8s-dqlite"); err != nil {
 		return fmt.Errorf("failed to stop k8s-dqlite: %w", err)
 	}
 
-	if err := waitForNodeJoin(ctx, host); err != nil {
+	if err := waitForNodeJoin(ctx, snap.Path("bin/dqlite"), host); err != nil {
 		return fmt.Errorf("failed to wait for k8s-dqlite cluster to join: %w", err)
 	}
 
-	return nil
-}
-
-// storeClusterCertificates read the k8s-dqlite certificate & key from the k8sd database and write it
-// to the joining node k8s-dqlite directory.
-func storeClusterCertificates(ctx context.Context, state *state.State) error {
-	// Get the certificates from the k8sd cluster
-	var cert, key string
-	var err error
-	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		cert, key, err = database.GetCertificateAndKey(ctx, tx, "k8s-dqlite")
-		if err != nil {
-			return fmt.Errorf("failed to get k8s-dqlite certs and key from database: %w", err)
-		}
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to perform k8s-dqlite certificate transaction request: %w", err)
-	}
-
-	logrus.WithField("cert", cert).Debug("Write k8s-dqlite certificate")
-	// Write them to the k8s-dqlite cluster directory
-	if err := os.WriteFile(path.Join(clusterDir, "cluster.crt"), []byte(cert), 0644); err != nil {
-		return fmt.Errorf("failed to write cluster.cert to %s: %w", clusterDir, err)
-	}
-	logrus.WithField("key", key).Debug("Write k8s-dqlite cert key")
-	if err := os.WriteFile(path.Join(clusterDir, "cluster.key"), []byte(key), 0644); err != nil {
-		return fmt.Errorf("failed to write cluster.key to %s: %w", clusterDir, err)
-	}
 	return nil
 }
 
@@ -140,13 +82,13 @@ func createClusterInitFile(voters []string, host string) error {
 		return fmt.Errorf("failed to marshal cluster init data: %w", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(clusterDir, "init.yaml"), []byte(marshaled), 0644); err != nil {
-		return fmt.Errorf("failed to write init.yaml to %s: %w", clusterDir, err)
+	if err := os.WriteFile(filepath.Join(cert.K8sDqlitePkiPath, "init.yaml"), []byte(marshaled), 0644); err != nil {
+		return fmt.Errorf("failed to write init.yaml to %s: %w", cert.K8sDqlitePkiPath, err)
 	}
 	return nil
 }
 
-func waitForNodeJoin(ctx context.Context, host string) error {
+func waitForNodeJoin(ctx context.Context, dqlitePath string, host string) error {
 	ch := make(chan struct{}, 1)
 	go func() {
 		for {
@@ -156,10 +98,10 @@ func waitForNodeJoin(ctx context.Context, host string) error {
 			default:
 				// TODO: Use go-dqlite lib instead of shelling out.
 				cmd := exec.Command(
-					utils.SnapPath("bin/dqlite"),
-					"-s", fmt.Sprintf("file://%s/cluster.yaml", clusterDir),
-					"-c", fmt.Sprintf("%s/cluster.crt", clusterDir),
-					"-k", fmt.Sprintf("%s/cluster.key", clusterDir),
+					dqlitePath,
+					"-s", fmt.Sprintf("file://%s/cluster.yaml", cert.K8sDqlitePkiPath),
+					"-c", fmt.Sprintf("%s/cluster.crt", cert.K8sDqlitePkiPath),
+					"-k", fmt.Sprintf("%s/cluster.key", cert.K8sDqlitePkiPath),
 					"-f", "json", "k8s", ".cluster",
 				)
 

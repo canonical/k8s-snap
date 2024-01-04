@@ -3,9 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/microcluster"
 )
 
@@ -28,16 +30,26 @@ type App struct {
 
 // New initializes a new microcluster instance from configuration.
 func New(ctx context.Context, cfg Config) (*App, error) {
-	cluster, err := microcluster.App(ctx, microcluster.Args{
+	snapCtx := snap.ContextWithSnap(ctx, snap.NewSnap(
+		os.Getenv("SNAP"),
+		os.Getenv("SNAP_DATA"),
+		os.Getenv("SNAP_COMMON"),
+	))
+
+	cluster, err := microcluster.App(snapCtx, microcluster.Args{
 		Verbose:    cfg.Verbose,
 		Debug:      cfg.Debug,
 		ListenPort: fmt.Sprintf("%d", cfg.ListenPort),
 		StateDir:   cfg.StateDir,
 	})
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to create microcluster app: %w", err)
 	}
-	return &App{MicroCluster: cluster}, nil
+
+	return &App{
+		MicroCluster: cluster,
+	}, nil
 }
 
 // Run starts the microcluster node and waits until it terminates.

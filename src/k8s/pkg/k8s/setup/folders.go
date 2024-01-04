@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
 )
 
 // InitFolders creates the necessary folders for service arguments and certificates.
-func InitFolders() error {
-	argsDir := utils.SnapDataPath("args")
+func InitFolders(argsDir string) error {
 	err := os.MkdirAll(argsDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed to create arguments directory: %w", err)

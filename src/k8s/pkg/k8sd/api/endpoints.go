@@ -7,6 +7,7 @@ import (
 
 var Endpoints = []rest.Endpoint{
 	k8sdCluster,
+	k8sdClusterJoin,
 	k8sdClusterNode,
 	k8sdComponents,
 	k8sdComponentsName,

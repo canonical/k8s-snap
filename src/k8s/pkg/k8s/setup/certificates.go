@@ -7,15 +7,20 @@ import (
 )
 
 // InitCertificates sets up the CAs and the necessary server certificates that is used by Kubernetes.
-func InitCertificates() (*cert.CertificateManager, error) {
+// An initial CertificateAuthority can be provided. If not, a self-signed one will be generated.
+func InitCertificates(ca *cert.CertKeyPair) (*cert.CertificateManager, error) {
 	certMan, err := cert.NewCertificateManager()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate manager: %w", err)
 	}
 
-	err = certMan.GenerateCA()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate certificate authority: %w", err)
+	if ca != nil {
+		certMan.CA = ca
+	} else {
+		err = certMan.GenerateCA()
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate certificate authority: %w", err)
+		}
 	}
 
 	err = certMan.GenerateFrontProxyCA()

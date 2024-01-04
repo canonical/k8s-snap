@@ -5,11 +5,12 @@ import (
 
 	api "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/component"
+	"github.com/canonical/k8s/pkg/snap"
 )
 
 // GetComponent returns the current status of the k8s components.
-func GetComponents() ([]api.Component, error) {
-	manager, err := component.NewManager()
+func GetComponents(snap snap.Snap) ([]api.Component, error) {
+	manager, err := component.NewManager(snap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get component manager: %w", err)
 	}
