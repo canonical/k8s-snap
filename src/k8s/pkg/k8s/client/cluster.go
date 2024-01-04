@@ -40,6 +40,20 @@ func (c *Client) Bootstrap(ctx context.Context) (apiv1.ClusterMember, error) {
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to configure MicroCluster: %w", err)
 	}
 	err = m.NewCluster(hostname, address, time.Second*30)
+
+	// Make init cluster call to REST endpoint
+	// TODO: Right now this only takes care of storing k8s-dqlite certificates in k8sd
+	//       Eventually we need to move all the k8s init code to the REST api
+	//       and drop k8s bootstrap-cluster
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+	var response apiv1.GetClusterStatusResponse
+	err = c.mc.Query(queryCtx, "POST", api.NewURL().Path("k8sd", "cluster"), nil, &response)
+	if err != nil {
+		clientURL := c.mc.URL()
+		return apiv1.ClusterMember{}, fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
+	}
+
 	return member, err
 }
 

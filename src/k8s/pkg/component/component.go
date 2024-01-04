@@ -3,8 +3,8 @@ package component
 import (
 	"fmt"
 	"os"
-	"path"
 
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"helm.sh/helm/v3/pkg/action"
@@ -52,7 +52,7 @@ func logAdapter(format string, v ...any) {
 func NewManager() (*helmClient, error) {
 	viper.SetConfigName("components")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(path.Join(os.Getenv("SNAP"), "k8s", "components"))
+	viper.AddConfigPath(snap.Path("k8s/components"))
 	err := viper.ReadInConfig()
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (h *helmClient) Enable(name string) error {
 		return nil
 	}
 
-	chart, err := loader.Load(path.Join(os.Getenv("SNAP"), "k8s", "components", "charts", component.Chart))
+	chart, err := loader.Load(snap.Path("k8s/components/charts", component.Chart))
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
@@ -189,7 +189,7 @@ func (h *helmClient) Refresh(name string) error {
 	upgrade.Namespace = component.Namespace
 	upgrade.ReuseValues = true
 
-	chart, err := loader.Load(path.Join(os.Getenv("SNAP"), component.Chart))
+	chart, err := loader.Load(snap.Path(component.Chart))
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}

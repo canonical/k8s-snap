@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/api/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
+	"github.com/canonical/microcluster/rest/types"
 	"github.com/canonical/microcluster/state"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -22,19 +23,27 @@ var k8sdClusterNode = rest.Endpoint{
 }
 
 func clusterNodePost(s *state.State, r *http.Request) response.Response {
-	// Get node name from URL.
-	nodeName, err := url.PathUnescape(mux.Vars(r)["node"])
+	var req apiv1.AddNodeRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to parse node name from URL '%s': %w", r.URL, err))
+		return response.SmartError(fmt.Errorf("failed to decode request data: %w", err))
 	}
 
-	var req apiv1.AddNodeRequest
-	err = json.NewDecoder(r.Body).Decode(&req)
+	k8sdToken, err := utils.K8sdTokenFromBase64Token(req.Token)
 	if err != nil {
-		return response.SmartError(err)
+		return response.SmartError(fmt.Errorf("failed to parse token information: %w", err))
 	}
-	logrus.Info(req)
-	logrus.Info(nodeName)
+	host, err := types.ParseAddrPort(req.Address)
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to parse host address %s: %w", req.Address, err))
+	}
+
+	logrus.Info("Join k8s-dqlite")
+	err = utils.UpdateK8sDqlite(r.Context(), s, k8sdToken.JoinAddresses, host.Addr().String())
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to join k8s-dqlite nodes: %w", err))
+	}
+
 	// TODO: Implement k8s joining stuff (e.g. get kubelet args etc.)
 
 	result := apiv1.AddNodeResponse{}
