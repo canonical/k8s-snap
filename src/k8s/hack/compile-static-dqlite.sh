@@ -35,7 +35,7 @@ if [ ! -f "${INSTALL_DIR}/musl/bin/musl-gcc" ]; then
     ln -s /usr/include/${MACHINE_TYPE}-linux-gnu/asm "${INSTALL_DIR}/musl/include/asm" || true
     ln -s /usr/include/asm-generic "${INSTALL_DIR}/musl/include/asm-generic" || true
     ln -s /usr/include/linux "${INSTALL_DIR}/musl/include/linux" || true
-    curl --silent https://dev.midipix.org/compat/musl-compat/raw/main/f/include/sys/queue.h -o "${INSTALL_DIR}/musl/include/sys/queue.h"
+    curl -k --silent https://dev.midipix.org/compat/musl-compat/raw/main/f/include/sys/queue.h -o "${INSTALL_DIR}/musl/include/sys/queue.h"
   )
 fi
 
