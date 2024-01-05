@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/k8s/client"
-	"github.com/canonical/k8s/pkg/k8s/setup"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -20,58 +18,23 @@ var (
 				logrus.SetLevel(logrus.TraceLevel)
 			}
 
-			err := setup.InitFolders()
-			if err != nil {
-				return fmt.Errorf("failed to setup folders: %w", err)
-			}
-
-			err = setup.InitServiceArgs()
-			if err != nil {
-				return fmt.Errorf("failed to setup service arguments: %w", err)
-			}
-
-			err = setup.InitContainerd()
-			if err != nil {
-				return fmt.Errorf("failed to initialize containerd: %w", err)
-			}
-
-			client, err := setup.InitK8sd(cmd.Context(), client.ClusterOpts{
-				RemoteAddress: clusterCmdOpts.remoteAddress,
-				Debug:         rootCmdOpts.logDebug,
-				Port:          clusterCmdOpts.port,
+			c, err := client.NewClient(cmd.Context(), client.ClusterOpts{
 				StorageDir:    clusterCmdOpts.storageDir,
+				RemoteAddress: clusterCmdOpts.remoteAddress,
+				Port:          clusterCmdOpts.port,
 				Verbose:       rootCmdOpts.logVerbose,
+				Debug:         rootCmdOpts.logDebug,
 			})
 			if err != nil {
-				return fmt.Errorf("failed to initialize k8sd: %w", err)
+				return fmt.Errorf("failed to create client: %w", err)
 			}
 
-			certMan, err := setup.InitCertificates()
+			cluster, err := c.Init(cmd.Context())
 			if err != nil {
-				return fmt.Errorf("failed to setup certificates: %w", err)
+				return fmt.Errorf("failed to initialize k8s cluster: %w", err)
 			}
 
-			err = setup.InitKubeconfigs(cmd.Context(), client, certMan.CA)
-			if err != nil {
-				return fmt.Errorf("failed to kubeconfig files: %w", err)
-			}
-
-			err = setup.InitKubeApiserver()
-			if err != nil {
-				return fmt.Errorf("failed to initialize kube-apiserver: %w", err)
-			}
-
-			err = setup.InitPermissions(cmd.Context())
-			if err != nil {
-				return fmt.Errorf("failed to setup permissions: %w", err)
-			}
-
-			err = snap.StartService(cmd.Context(), "k8s")
-			if err != nil {
-				return fmt.Errorf("failed to start services: %w", err)
-			}
-
-			logrus.Infof("Successfully initialized k8s node.")
+			logrus.Infof("Initialized k8s cluster on %q (%s).", cluster.Name, cluster.Address)
 			return nil
 		},
 	}

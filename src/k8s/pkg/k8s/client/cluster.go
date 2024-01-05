@@ -10,12 +10,10 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/canonical/lxd/shared/api"
-	"github.com/canonical/microcluster/microcluster"
 )
 
-// Bootstrap Cluster (to be removed)
-// TODO: This does not use an REST endpoint because it will eventually move into the k8s init command anyway.
-func (c *Client) Bootstrap(ctx context.Context) (apiv1.ClusterMember, error) {
+// Init bootstraps the k8s cluster
+func (c *Client) Init(ctx context.Context) (apiv1.ClusterMember, error) {
 	// Get system hostname.
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -26,27 +24,29 @@ func (c *Client) Bootstrap(ctx context.Context) (apiv1.ClusterMember, error) {
 	if err != nil {
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to parse Port: %w", err)
 	}
-	// Get system address.
-	address := util.CanonicalNetworkAddress(
+	// Get system addrPort.
+	addrPort := util.CanonicalNetworkAddress(
 		util.NetworkInterfaceAddress(), port,
 	)
 
-	member := apiv1.ClusterMember{
-		Name:    hostname,
-		Address: address,
-	}
-	m, err := microcluster.App(ctx, microcluster.Args{StateDir: c.opts.StorageDir, Verbose: false, Debug: false})
+	// This should be done behind the REST API.
+	// However, the K8sd daemon needs to be initialized before
+	// the REST API can be used.
+	// TODO: Find a way to do the bootstrapping/joining of k8sd behind
+	//       the REST API.
+	err = c.m.NewCluster(hostname, addrPort, time.Second*30)
 	if err != nil {
-		return apiv1.ClusterMember{}, fmt.Errorf("failed to configure MicroCluster: %w", err)
+		return apiv1.ClusterMember{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
 	}
-	err = m.NewCluster(hostname, address, time.Second*30)
 
-	// Make init cluster call to REST endpoint
-	// TODO: Right now this only takes care of storing k8s-dqlite certificates in k8sd
-	//       Eventually we need to move all the k8s init code to the REST api
-	//       and drop k8s bootstrap-cluster
+	err = c.m.Ready(30)
+	if err != nil {
+		return apiv1.ClusterMember{}, fmt.Errorf("cluster did not come up in time: %w", err)
+	}
+
 	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
+
 	var response apiv1.GetClusterStatusResponse
 	err = c.mc.Query(queryCtx, "POST", api.NewURL().Path("k8sd", "cluster"), nil, &response)
 	if err != nil {
@@ -54,7 +54,10 @@ func (c *Client) Bootstrap(ctx context.Context) (apiv1.ClusterMember, error) {
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
 	}
 
-	return member, err
+	return apiv1.ClusterMember{
+		Name:    hostname,
+		Address: util.NetworkInterfaceAddress(),
+	}, err
 }
 
 // ClusterStatus returns the current status of the cluster.

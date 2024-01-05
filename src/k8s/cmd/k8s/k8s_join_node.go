@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/sirupsen/logrus"
@@ -39,7 +40,7 @@ var (
 
 			if joinNodeCmdOpts.address == "" {
 				joinNodeCmdOpts.address = util.CanonicalNetworkAddress(
-					util.NetworkInterfaceAddress(), client.DefaultPort,
+					util.NetworkInterfaceAddress(), config.DefaultPort,
 				)
 			}
 

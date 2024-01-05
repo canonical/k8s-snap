@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -28,7 +29,7 @@ func tokenPost(s *state.State, r *http.Request) response.Response {
 	logrus.WithField("nodeName", req.Name).Info("create token entry")
 	token, err := utils.CreateJoinToken(r.Context(), s, req.Name)
 	if err != nil {
-		response.SmartError(err)
+		response.SmartError(fmt.Errorf("failed to create token entry: %w", err))
 	}
 
 	result := apiv1.CreateJoinTokenResponse{

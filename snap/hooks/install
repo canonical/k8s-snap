@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+. "$SNAP/k8s/lib.sh"
+
+k8s::common::setup_env
+
+# k8s has a REST interface to initialize a cluster.
+# In order to interact with the REST API the k8sd service
+# needs to be started and configured in the installation step.
+k8s::init::k8sd

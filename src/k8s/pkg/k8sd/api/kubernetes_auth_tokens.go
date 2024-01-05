@@ -10,6 +10,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/httputil"
+	"github.com/canonical/k8s/pkg/k8sd/api/utils"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
@@ -52,12 +53,8 @@ func postKubernetesAuthToken(state *state.State, r *http.Request) response.Respo
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	var token string
-	if err := state.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
-		var err error
-		token, err = database.GetOrCreateToken(ctx, tx, request.Username, request.Groups)
-		return err
-	}); err != nil {
+	token, err := utils.GetOrCreateAuthToken(r.Context(), state, request.Username, request.Groups)
+	if err != nil {
 		return response.InternalError(err)
 	}
 

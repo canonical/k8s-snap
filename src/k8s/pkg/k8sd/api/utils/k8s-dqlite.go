@@ -23,6 +23,8 @@ var (
 	// TODO(bschimke): Do not use global state here.
 	clusterDir       = snap.CommonPath("var/lib/k8s-dqlite")
 	clusterBackupDir = snap.CommonPath("var/lib/k8s-dqlite-backup")
+	// TODO(bschimke): add the port as a configuration option to k8sd so that this can be determined dynamically.
+	k8sDqliteDefaultPort = 9000
 )
 
 // WriteK8sDqliteCertInfoToK8sd gets local cert and key and stores them in the k8sd database.
@@ -50,74 +52,34 @@ func WriteK8sDqliteCertInfoToK8sd(ctx context.Context, state *state.State) error
 	return nil
 }
 
-// UpdateK8sDqlite joins the k8s-dqlite databases by performing the following steps:
+// JoinK8sDqliteCluster joins a node to an existing k8s-dqlite cluster. It:
 //
-//	Stop apiserver and k8s-dqlite
-//	Backup existing k8s-cluster
-//	Retrieve k8s-dqlite certificates from cluster node (k8sd is already joined at this point so we can access the certificates)
-//	Store new certificates in k8s-dqlite cluster directory
-//	Get current address and port from backup `info.yaml`
-//	Get voters from join token (TODO: implement new token that encodes k8sd token and voter info into one token)
-//	for now - just use the voter IPs from the k8sd token and assume the default k8s-dqlite port
-//	write k8s-dqlite init file
-//	restart services and wait to join
-func UpdateK8sDqlite(ctx context.Context, state *state.State, voters []string, host string) error {
-	logrus.Debug("Stop kube-apiserver")
-	if err := snap.StopService(ctx, "kube-apiserver"); err != nil {
-		return fmt.Errorf("failed to stop apiserver: %w", err)
-	}
-
-	logrus.Debug("Stop k8s-dqlite")
-	if err := snap.StopService(ctx, "k8s-dqlite"); err != nil {
-		return fmt.Errorf("failed to stop k8s-dqlite: %w", err)
-	}
-
-	logrus.Debug("Clean backupdir")
-	if err := os.RemoveAll(clusterBackupDir); err != nil {
-		return fmt.Errorf("failed to remove directory: %w", err)
-	}
-
-	logrus.Debugf("Rename %s to %s", clusterDir, clusterBackupDir)
-	if err := os.Rename(clusterDir, clusterBackupDir); err != nil {
-		return fmt.Errorf("failed to move directory: %w", err)
-	}
-
-	logrus.Debug("Create new cluster dir")
-	if err := os.Mkdir(clusterDir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create directory: %w", err)
-	}
-
-	logrus.Debug("Update cluster certificates")
-	if err := updateClusterCertificate(ctx, state); err != nil {
+//   - retrieves k8s-dqlite certificates from cluster node (k8sd is already joined at this point so we can access the certificates)
+//   - stores new certificates in k8s-dqlite cluster directory
+//   - writes k8s-dqlite init file with the cluster node information
+func JoinK8sDqliteCluster(ctx context.Context, state *state.State, voters []string, host string) error {
+	if err := storeClusterCertificates(ctx, state); err != nil {
 		return fmt.Errorf("failed to update k8s-dqlite cluster certificate: %w", err)
 	}
 
-	logrus.Debug("Update cluster info file")
 	if err := createClusterInitFile(voters, host); err != nil {
 		return fmt.Errorf("failed to update cluster info.yaml file: %w", err)
 	}
 
-	logrus.Debug("Start k8s-dqlite service")
 	if err := snap.StartService(ctx, "k8s-dqlite"); err != nil {
 		return fmt.Errorf("failed to stop k8s-dqlite: %w", err)
 	}
 
-	logrus.Debug("Wait for node to join")
 	if err := waitForNodeJoin(ctx, host); err != nil {
 		return fmt.Errorf("failed to wait for k8s-dqlite cluster to join: %w", err)
-	}
-
-	logrus.Debug("Start kube-apiserver")
-	if err := snap.StartService(ctx, "kube-apiserver"); err != nil {
-		return fmt.Errorf("failed to stop apiserver: %w", err)
 	}
 
 	return nil
 }
 
-// updateClusterCertificate read the k8s-dqlite certificate & key from the k8sd database and write it
+// storeClusterCertificates read the k8s-dqlite certificate & key from the k8sd database and write it
 // to the joining node k8s-dqlite directory.
-func updateClusterCertificate(ctx context.Context, state *state.State) error {
+func storeClusterCertificates(ctx context.Context, state *state.State) error {
 	// Get the certificates from the k8sd cluster
 	var cert, key string
 	var err error
@@ -151,43 +113,26 @@ type clusterInit struct {
 	Cluster []string `yaml:"Cluster,omitempty"`
 }
 
-// createClusterInitFile writes the `init.yaml` file to the k8s-dqlite directory.
-// it contains the informations to join an existing cluster (e.g. members addresses)
+// createClusterInitFile writes an `init.yaml` file to the k8s-dqlite directory
+// that contains the informations to join an existing cluster (e.g. members addresses)
 // and is picked up by k8s-dqlite on startup.
 func createClusterInitFile(voters []string, host string) error {
-	// Get the dqlite port from the already existing deployment
-	port := 2380
-	infoFileData, err := os.ReadFile(filepath.Join(clusterBackupDir, "info.yaml"))
-	if err != nil {
-		return fmt.Errorf("failed to %s: %w", filepath.Join(clusterBackupDir, "info.yaml"), err)
-	}
-
-	info := clusterInit{}
-	err = yaml.Unmarshal(infoFileData, &info)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal the info.yaml from the cluster backup: %w", err)
-	}
-
-	addr, err := types.ParseAddrPort(info.Address)
-	if err == nil {
-		port = int(addr.Port())
-	}
 
 	// Assumes that all cluster members use the same port for k8s-dqlite
 	// TODO: do not reuse voter information from the k8sd token but encode the real k8s-dqlite
-	// member data into a new token (see `UpdateDqlite` above for more).
+	// member data into a new token.
 	v := []string{}
 	addrPorts, err := types.ParseAddrPorts(voters)
 	if err != nil {
 		return fmt.Errorf("failed to parse voter addresses: %w", err)
 	}
 	for _, a := range addrPorts {
-		v = append(v, fmt.Sprintf("%s:%d", a.Addr(), port))
+		v = append(v, fmt.Sprintf("%s:%d", a.Addr(), k8sDqliteDefaultPort))
 	}
 
 	initData := clusterInit{
 		Cluster: v,
-		Address: fmt.Sprintf("%s:%d", host, port),
+		Address: fmt.Sprintf("%s:%d", host, k8sDqliteDefaultPort),
 	}
 
 	marshaled, err := yaml.Marshal(&initData)
@@ -205,20 +150,27 @@ func waitForNodeJoin(ctx context.Context, host string) error {
 	ch := make(chan struct{}, 1)
 	go func() {
 		for {
-			cmd := exec.Command(
-				snap.Path("bin/dqlite"),
-				"-s", fmt.Sprintf("file://%s/cluster.yaml", clusterDir),
-				"-c", fmt.Sprintf("%s/cluster.crt", clusterDir),
-				"-k", fmt.Sprintf("%s/cluster.key", clusterDir),
-				"-f", "json", "k8s", ".cluster",
-			)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				// TODO: Use go-dqlite lib instead of shelling out.
+				cmd := exec.Command(
+					snap.Path("bin/dqlite"),
+					"-s", fmt.Sprintf("file://%s/cluster.yaml", clusterDir),
+					"-c", fmt.Sprintf("%s/cluster.crt", clusterDir),
+					"-k", fmt.Sprintf("%s/cluster.key", clusterDir),
+					"-f", "json", "k8s", ".cluster",
+				)
 
-			out, err := cmd.CombinedOutput()
-			if err == nil && strings.Contains(string(out), host) {
-				break
+				out, err := cmd.CombinedOutput()
+				if err == nil && strings.Contains(string(out), host) {
+					ch <- struct{}{}
+					return
+				}
 			}
+			time.Sleep(time.Second)
 		}
-		ch <- struct{}{}
 	}()
 
 	select {
