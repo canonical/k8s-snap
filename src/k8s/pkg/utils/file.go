@@ -11,15 +11,15 @@ import (
 	"syscall"
 )
 
-func Path(parts ...string) string {
+func SnapPath(parts ...string) string {
 	return filepath.Join(append([]string{os.Getenv("SNAP")}, parts...)...)
 }
 
-func DataPath(parts ...string) string {
+func SnapDataPath(parts ...string) string {
 	return filepath.Join(append([]string{os.Getenv("SNAP_DATA")}, parts...)...)
 }
 
-func CommonPath(parts ...string) string {
+func SnapCommonPath(parts ...string) string {
 	return filepath.Join(append([]string{os.Getenv("SNAP_COMMON")}, parts...)...)
 }
 
@@ -60,7 +60,7 @@ func ChmodRecursive(name string, mode fs.FileMode) error {
 func GetServiceArgument(service string, argument string) (string, error) {
 	re := regexp.MustCompile(fmt.Sprintf("%s=(.+)", argument))
 
-	b, err := os.ReadFile(DataPath("args", service)) // just pass the file name
+	b, err := os.ReadFile(SnapDataPath("args", service)) // just pass the file name
 	if err != nil {
 		return "", fmt.Errorf("failed to read args file: %w", err)
 	}

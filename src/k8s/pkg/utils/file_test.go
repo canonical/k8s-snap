@@ -2,11 +2,12 @@ package utils
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
+	
+	. "github.com/onsi/gomega"
 )
 
-func TestPath(t *testing.T) {
+func TestSnapPaths(t *testing.T) {
 	t.Setenv("SNAP", "snapenv")
 	t.Setenv("SNAP_DATA", "/data/snapenv")
 	t.Setenv("SNAP_COMMON", "common/snapenv")
@@ -30,19 +31,9 @@ func TestPath(t *testing.T) {
 			expected_path: "snapenv/abc/def",
 		},
 	} {
-		t.Run(tc.name, func(t *testing.T) {
-			simple := tc.expected_path
-			data := fmt.Sprintf("/data/%s", tc.expected_path)
-			common := fmt.Sprintf("common/%s", tc.expected_path)
-			if parsed := Path(tc.input_path...); !reflect.DeepEqual(parsed, simple) {
-				t.Fatalf("expected path to be %v but it was %v instead", simple, parsed)
-			}
-			if parsed := DataPath(tc.input_path...); !reflect.DeepEqual(parsed, data) {
-				t.Fatalf("expected data path to be %v but it was %v instead", data, parsed)
-			}
-			if parsed := CommonPath(tc.input_path...); !reflect.DeepEqual(parsed, common) {
-				t.Fatalf("expected common path to be %v but it was %v instead", common, parsed)
-			}
-		})
+		g := NewWithT(t)
+		g.Expect(SnapPath(tc.input_path...)).To(Equal(tc.expected_path))
+		g.Expect(SnapDataPath(tc.input_path...)).To(Equal(fmt.Sprintf("/data/%s", tc.expected_path)))
+		g.Expect(SnapCommonPath(tc.input_path...)).To(Equal(fmt.Sprintf("common/%s", tc.expected_path)))
 	}
 }

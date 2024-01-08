@@ -15,7 +15,7 @@ func InitKubeApiserver() error {
 		return fmt.Errorf("failed to get default ip: %w", err)
 	}
 
-	utils.TemplateAndSave(utils.Path("k8s/config/apiserver-token-hook.tmpl"),
+	utils.TemplateAndSave(utils.SnapPath("k8s/config/apiserver-token-hook.tmpl"),
 		struct {
 			WebhookIp   string
 			WebhookPort int

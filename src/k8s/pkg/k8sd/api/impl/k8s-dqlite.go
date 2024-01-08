@@ -21,8 +21,8 @@ import (
 
 var (
 	// TODO(bschimke): Do not use global state here.
-	clusterDir       = utils.CommonPath("var/lib/k8s-dqlite")
-	clusterBackupDir = utils.CommonPath("var/lib/k8s-dqlite-backup")
+	clusterDir       = utils.SnapCommonPath("var/lib/k8s-dqlite")
+	clusterBackupDir = utils.SnapCommonPath("var/lib/k8s-dqlite-backup")
 	// TODO(bschimke): add the port as a configuration option to k8sd so that this can be determined dynamically.
 	k8sDqliteDefaultPort = 9000
 )
@@ -156,7 +156,7 @@ func waitForNodeJoin(ctx context.Context, host string) error {
 			default:
 				// TODO: Use go-dqlite lib instead of shelling out.
 				cmd := exec.Command(
-					utils.Path("bin/dqlite"),
+					utils.SnapPath("bin/dqlite"),
 					"-s", fmt.Sprintf("file://%s/cluster.yaml", clusterDir),
 					"-c", fmt.Sprintf("%s/cluster.crt", clusterDir),
 					"-k", fmt.Sprintf("%s/cluster.key", clusterDir),

@@ -9,12 +9,12 @@ import (
 // InitContainerd handles the setup of containerd.
 //   - Copies required files and binaries needed by Containerd to the correct paths.
 func InitContainerd() error {
-	err := utils.CopyFile(utils.Path("k8s/config/containerd/config.toml"), "/etc/containerd/config.toml")
+	err := utils.CopyFile(utils.SnapPath("k8s/config/containerd/config.toml"), "/etc/containerd/config.toml")
 	if err != nil {
 		return fmt.Errorf("failed to copy containerd config: %w", err)
 	}
 
-	err = utils.CopyDirectory(utils.Path("opt/cni/bin/"), "/opt/cni/bin")
+	err = utils.CopyDirectory(utils.SnapPath("opt/cni/bin/"), "/opt/cni/bin")
 	if err != nil {
 		return fmt.Errorf("failed to copy cni/bin: %w", err)
 	}

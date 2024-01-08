@@ -12,11 +12,11 @@ func InitPermissions(ctx context.Context) error {
 	// Shelling out since go doesn't support symbolic mode definitions.
 	err := utils.RunCommand(ctx,
 		"chmod", "go-rxw", "-R",
-		utils.DataPath("args"),
-		utils.CommonPath("opt"),
-		utils.CommonPath("etc"),
-		utils.CommonPath("var/lib"),
-		utils.CommonPath("var/log"),
+		utils.SnapDataPath("args"),
+		utils.SnapCommonPath("opt"),
+		utils.SnapCommonPath("etc"),
+		utils.SnapCommonPath("var/lib"),
+		utils.SnapCommonPath("var/log"),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to change folder permissions: %w", err)

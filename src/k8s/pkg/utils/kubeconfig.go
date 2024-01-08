@@ -18,7 +18,7 @@ func GenerateX509Kubeconfig(keyPem, certPem, caCertPem []byte, path string) erro
 		return fmt.Errorf("apiserver port is not an integer: %w", err)
 	}
 
-	return TemplateAndSave(Path("k8s/config/kubeconfig-with-x509.tmpl"),
+	return TemplateAndSave(SnapPath("k8s/config/kubeconfig-with-x509.tmpl"),
 		struct {
 			CaData        string
 			ApiServerIp   string
@@ -48,7 +48,7 @@ func GenerateKubeconfig(token string, caCertPem []byte, path string) error {
 		return fmt.Errorf("apiserver port is not an integer: %w", err)
 	}
 
-	return TemplateAndSave(Path("k8s/config/kubeconfig-with-token.tmpl"),
+	return TemplateAndSave(SnapPath("k8s/config/kubeconfig-with-token.tmpl"),
 		struct {
 			CaData        string
 			ApiServerIp   string
