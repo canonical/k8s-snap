@@ -21,6 +21,6 @@ def test_smoke(h: harness.Harness, tmp_path: Path):
 
     util.setup_k8s_snap(h, instance_id, snap_path)
     h.exec(instance_id, ["k8s", "init"])
+    util.setup_network(h, instance_id)
 
-    # TODO(bschimke): The node will not report ready as the CNI is not yet implemented in the k8s snap.
-    #                 Validate ready state with the `wait_until_k8s_ready` method once this is done.
+    util.wait_until_k8s_ready(h, instance_id)

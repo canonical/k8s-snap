@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"syscall"
+
+	"github.com/moby/sys/mountinfo"
 )
 
 func SnapPath(parts ...string) string {
@@ -182,4 +184,17 @@ func CopySymLink(source, dest string) error {
 		return fmt.Errorf("could not read symlink: %w", err)
 	}
 	return os.Symlink(link, dest)
+}
+
+// GetMountPath returns the first mountpath for a given filesystem type.
+func GetMountPath(fsType string) (string, error) {
+	mounts, err := mountinfo.GetMounts(mountinfo.FSTypeFilter(fsType))
+	if err != nil {
+		return "", fmt.Errorf("failed to find the mount info for %s: %w", fsType, err)
+	}
+	if len(mounts) == 0 {
+		return "", fmt.Errorf("could not find any %s filesystem mount", fsType)
+	}
+
+	return mounts[0].Mountpoint, nil
 }

@@ -6,6 +6,8 @@ from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
 
+MANIFESTS_DIR = DIR / ".." / ".." / "templates"
+
 # SNAP is the absolute path to the snap against which we run the e2e tests.
 SNAP = os.getenv("TEST_SNAP")
 

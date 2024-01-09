@@ -104,7 +104,16 @@ func (h *helmClient) Enable(name string) error {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
 
-	_, err = install.Run(chart, nil)
+	var values map[string]any = nil
+	valuesHook, ok := valuesHooks[name]
+	if ok {
+		values, err = valuesHook()
+		if err != nil {
+			return fmt.Errorf("could not generate config for component '%s': %w", name, err)
+		}
+	}
+
+	_, err = install.Run(chart, values)
 	if err != nil {
 		return fmt.Errorf("failed to enable component '%s': %w", name, err)
 	}
