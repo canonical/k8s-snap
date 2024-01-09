@@ -9,9 +9,9 @@ import (
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/httputil"
-	"github.com/canonical/k8s/pkg/k8sd/api/utils"
+	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/state"
@@ -53,7 +53,7 @@ func postKubernetesAuthToken(state *state.State, r *http.Request) response.Respo
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	token, err := utils.GetOrCreateAuthToken(r.Context(), state, request.Username, request.Groups)
+	token, err := impl.GetOrCreateAuthToken(r.Context(), state, request.Username, request.Groups)
 	if err != nil {
 		return response.InternalError(err)
 	}
@@ -70,7 +70,7 @@ func kubernetesAuthTokenReviewWebhook(state *state.State, r *http.Request) respo
 	}
 	if err := json.NewDecoder(r.Body).Decode(&review); err != nil {
 		review.Status.Error = fmt.Errorf("failed to parse TokenReview: %w", err).Error()
-		return httputil.JSONResponse(http.StatusBadRequest, review)
+		return utils.JSONResponse(http.StatusBadRequest, review)
 	}
 	// reset anything the client might be passing over in the status already
 	review.Status = apiv1.TokenReviewStatus{}
@@ -91,7 +91,7 @@ func kubernetesAuthTokenReviewWebhook(state *state.State, r *http.Request) respo
 	}
 	if err := errors.Join(apiVersionErr, kindErr); err != nil {
 		review.Status.Error = fmt.Errorf("invalid TokenReview: %w", err).Error()
-		return httputil.JSONResponse(http.StatusUnauthorized, review)
+		return utils.JSONResponse(http.StatusUnauthorized, review)
 	}
 
 	// check token
@@ -103,7 +103,7 @@ func kubernetesAuthTokenReviewWebhook(state *state.State, r *http.Request) respo
 		return err
 	}); err != nil {
 		review.Status.Error = "invalid token"
-		return httputil.JSONResponse(http.StatusUnauthorized, review)
+		return utils.JSONResponse(http.StatusUnauthorized, review)
 	}
 
 	review.Status = apiv1.TokenReviewStatus{
@@ -115,5 +115,5 @@ func kubernetesAuthTokenReviewWebhook(state *state.State, r *http.Request) respo
 			Groups:   groups,
 		},
 	}
-	return httputil.JSONResponse(http.StatusOK, review)
+	return utils.JSONResponse(http.StatusOK, review)
 }

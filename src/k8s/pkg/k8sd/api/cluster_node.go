@@ -8,7 +8,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/setup"
-	"github.com/canonical/k8s/pkg/k8sd/api/utils"
+	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/rest/types"
@@ -30,7 +30,7 @@ func clusterNodePost(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to decode request data: %w", err))
 	}
 
-	k8sdToken, err := utils.K8sdTokenFromBase64Token(req.Token)
+	k8sdToken, err := impl.K8sdTokenFromBase64Token(req.Token)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to parse token information: %w", err))
 	}
@@ -59,7 +59,7 @@ func clusterNodePost(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to setup permissions: %w", err))
 	}
 
-	err = utils.JoinK8sDqliteCluster(r.Context(), s, k8sdToken.JoinAddresses, host.Addr().String())
+	err = impl.JoinK8sDqliteCluster(r.Context(), s, k8sdToken.JoinAddresses, host.Addr().String())
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to join k8s-dqlite nodes: %w", err))
 	}
@@ -84,7 +84,7 @@ func clusterNodeDelete(s *state.State, r *http.Request) response.Response {
 	}
 
 	logrus.WithField("name", nodeName).Info("Delete cluster member")
-	err = utils.DeleteClusterMember(r.Context(), s, nodeName, req.Force)
+	err = impl.DeleteClusterMember(r.Context(), s, nodeName, req.Force)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to delete cluster member: %w", err))
 	}

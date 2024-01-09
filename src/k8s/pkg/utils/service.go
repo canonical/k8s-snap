@@ -1,34 +1,19 @@
-package snap
+package utils
 
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
-
-	"github.com/canonical/k8s/pkg/utils"
 )
-
-func Path(parts ...string) string {
-	return filepath.Join(append([]string{os.Getenv("SNAP")}, parts...)...)
-}
-
-func DataPath(parts ...string) string {
-	return filepath.Join(append([]string{os.Getenv("SNAP_DATA")}, parts...)...)
-}
-func CommonPath(parts ...string) string {
-	return filepath.Join(append([]string{os.Getenv("SNAP_COMMON")}, parts...)...)
-}
 
 // StartService starts a k8s service. The name can be either prefixed or not.
 func StartService(ctx context.Context, name string) error {
-	return utils.RunCommand(ctx, "snapctl", "start", serviceName(name))
+	return RunCommand(ctx, "snapctl", "start", serviceName(name))
 }
 
 // StopService stops a k8s service. The name can be either prefixed or not.
 func StopService(ctx context.Context, name string) error {
-	return utils.RunCommand(ctx, "snapctl", "stop", serviceName(name))
+	return RunCommand(ctx, "snapctl", "stop", serviceName(name))
 }
 
 // serviceName infers the name of the snapctl daemon from the service name.

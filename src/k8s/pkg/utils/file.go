@@ -9,9 +9,19 @@ import (
 	"path/filepath"
 	"regexp"
 	"syscall"
-
-	"github.com/canonical/k8s/pkg/snap"
 )
+
+func SnapPath(parts ...string) string {
+	return filepath.Join(append([]string{os.Getenv("SNAP")}, parts...)...)
+}
+
+func SnapDataPath(parts ...string) string {
+	return filepath.Join(append([]string{os.Getenv("SNAP_DATA")}, parts...)...)
+}
+
+func SnapCommonPath(parts ...string) string {
+	return filepath.Join(append([]string{os.Getenv("SNAP_COMMON")}, parts...)...)
+}
 
 // TemplateAndSave compiles a template with the data and saves it to the given target path.
 func TemplateAndSave(tmplFile string, data any, target string) error {
@@ -22,12 +32,7 @@ func TemplateAndSave(tmplFile string, data any, target string) error {
 		return err
 	}
 
-	err = tmpl.Execute(f, data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return tmpl.Execute(f, data)
 }
 
 // ChmodRecursive changes permissions of files and folders recursively.
@@ -55,7 +60,7 @@ func ChmodRecursive(name string, mode fs.FileMode) error {
 func GetServiceArgument(service string, argument string) (string, error) {
 	re := regexp.MustCompile(fmt.Sprintf("%s=(.+)", argument))
 
-	b, err := os.ReadFile(snap.DataPath("args", service)) // just pass the file name
+	b, err := os.ReadFile(SnapDataPath("args", service)) // just pass the file name
 	if err != nil {
 		return "", fmt.Errorf("failed to read args file: %w", err)
 	}

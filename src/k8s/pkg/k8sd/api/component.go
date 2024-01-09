@@ -7,8 +7,9 @@ import (
 	"net/url"
 
 	api "github.com/canonical/k8s/api/v1"
+
 	"github.com/canonical/k8s/pkg/component"
-	"github.com/canonical/k8s/pkg/k8sd/api/utils"
+	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/state"
@@ -26,7 +27,7 @@ var k8sdComponentsName = rest.Endpoint{
 }
 
 func componentsGet(s *state.State, r *http.Request) response.Response {
-	components, err := utils.GetComponents()
+	components, err := impl.GetComponents()
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to get components: %w", err))
 	}

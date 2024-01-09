@@ -4,8 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
-
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 // GenerateX509Kubeconfig creates a kubeconfig file with the given x509 certificate and key data.
@@ -20,7 +18,7 @@ func GenerateX509Kubeconfig(keyPem, certPem, caCertPem []byte, path string) erro
 		return fmt.Errorf("apiserver port is not an integer: %w", err)
 	}
 
-	return TemplateAndSave(snap.Path("k8s/config/kubeconfig-with-x509.tmpl"),
+	return TemplateAndSave(SnapPath("k8s/config/kubeconfig-with-x509.tmpl"),
 		struct {
 			CaData        string
 			ApiServerIp   string
@@ -50,7 +48,7 @@ func GenerateKubeconfig(token string, caCertPem []byte, path string) error {
 		return fmt.Errorf("apiserver port is not an integer: %w", err)
 	}
 
-	return TemplateAndSave(snap.Path("k8s/config/kubeconfig-with-token.tmpl"),
+	return TemplateAndSave(SnapPath("k8s/config/kubeconfig-with-token.tmpl"),
 		struct {
 			CaData        string
 			ApiServerIp   string

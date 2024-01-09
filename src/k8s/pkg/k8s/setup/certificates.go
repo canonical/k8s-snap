@@ -3,12 +3,12 @@ package setup
 import (
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/k8s/certutils"
+	"github.com/canonical/k8s/pkg/utils/cert"
 )
 
 // InitCertificates sets up the CAs and the necessary server certificates that is used by Kubernetes.
-func InitCertificates() (*certutils.CertificateManager, error) {
-	certMan, err := certutils.NewCertificateManager()
+func InitCertificates() (*cert.CertificateManager, error) {
+	certMan, err := cert.NewCertificateManager()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate manager: %w", err)
 	}

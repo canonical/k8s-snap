@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/canonical/k8s/pkg/k8s/certutils"
-	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/cert"
 )
 
 // InitFolders creates the necessary folders for service arguments and certificates.
 func InitFolders() error {
-	argsDir := snap.DataPath("args")
+	argsDir := utils.SnapDataPath("args")
 	err := os.MkdirAll(argsDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed to create arguments directory: %w", err)
 	}
 
-	err = os.MkdirAll(certutils.KubePkiPath, os.ModePerm)
+	err = os.MkdirAll(cert.KubePkiPath, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed to create pki directory: %w", err)
 	}

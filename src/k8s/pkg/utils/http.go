@@ -1,21 +1,21 @@
-package httputil
+package utils
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/canonical/lxd/lxd/response"
+	lxd "github.com/canonical/lxd/lxd/response"
 )
 
 // JSONResponse marshals the response to JSON and sets the status code.
-func JSONResponse(status int, v any) response.Response {
+func JSONResponse(status int, v any) lxd.Response {
 	b, _ := json.Marshal(v)
-	return Response(status, b)
+	return response(status, b)
 }
 
 // Response writes the response and sets the status code.
-func Response(status int, v []byte) response.Response {
-	return response.ManualResponse(func(w http.ResponseWriter) error {
+func response(status int, v []byte) lxd.Response {
+	return lxd.ManualResponse(func(w http.ResponseWriter) error {
 		w.WriteHeader(status)
 		w.Write(v)
 		w.Write([]byte("\n"))

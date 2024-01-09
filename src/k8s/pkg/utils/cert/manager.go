@@ -1,4 +1,4 @@
-package certutils
+package cert
 
 import (
 	"crypto/rand"
@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/canonical/k8s/pkg/k8s/utils"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 // CertificateManager contains and manages certificates that is used by the k8s node.

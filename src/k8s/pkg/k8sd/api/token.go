@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/k8sd/api/utils"
+	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/state"
@@ -27,7 +27,7 @@ func tokenPost(s *state.State, r *http.Request) response.Response {
 	}
 
 	logrus.WithField("nodeName", req.Name).Info("create token entry")
-	token, err := utils.CreateJoinToken(r.Context(), s, req.Name)
+	token, err := impl.CreateJoinToken(r.Context(), s, req.Name)
 	if err != nil {
 		response.SmartError(fmt.Errorf("failed to create token entry: %w", err))
 	}

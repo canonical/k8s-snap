@@ -6,8 +6,8 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/setup"
-	"github.com/canonical/k8s/pkg/k8sd/api/utils"
-	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/k8sd/api/impl"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/state"
@@ -20,7 +20,7 @@ var k8sdCluster = rest.Endpoint{
 }
 
 func clusterGet(s *state.State, r *http.Request) response.Response {
-	status, err := utils.GetClusterStatus(r.Context(), s)
+	status, err := impl.GetClusterStatus(r.Context(), s)
 	if err != nil {
 		response.InternalError(err)
 	}
@@ -68,12 +68,12 @@ func clusterPost(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to setup permissions: %w", err))
 	}
 
-	err = utils.WriteK8sDqliteCertInfoToK8sd(r.Context(), s)
+	err = impl.WriteK8sDqliteCertInfoToK8sd(r.Context(), s)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to write k8s-dqlite cert to k8sd: %w", err))
 	}
 
-	err = snap.StartService(r.Context(), "k8s")
+	err = utils.StartService(r.Context(), "k8s")
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to start services: %w", err))
 	}
