@@ -13,19 +13,24 @@ To pull the new charts, follow these steps:
 
 - **Pull the Chart**: Use the following command to pull the chart:
     ```bash
-    helm pull [chart-name] --destination ./charts
+    helm pull [chart-name] --destination ./k8s/components/charts
     ```
     Replace `[chart-name]` with the name of your chart. This command saves the chart as a `.tgz` file in the `charts` folder.
 
-### 2. Updating the Component Matrix in the Code
-You need to update the `componentMap` entry for the component in the code. Follow these instructions:
+### 2. Updating the Component Matrix in the File
+You need to update the component entry in the `components.yaml` file. Follow these instructions:
 
-- **Locate the Component File**: Open the `component.go` file located at `src/k8s/pkg/component`.
+- **Locate the Component File**: Open the `components.yaml` file located at `k8s/components/components.yaml`.
 
-- **Edit the Chart Path**: Find the entry for the component you are updating (e.g., `cilium`). If the new chart version is `1.14.2`, update the `ChartPath` to point to the new chart version. For example:
-    ```go
-    var componentMap = map[string]ChartInfo{
-	"cni": {ReleaseName: "ck-cni", ChartPath: path.Join(os.Getenv("SNAP"), "cilium-1.14.2.tgz")},
-	"dns": {ReleaseName: "ck-dns", ChartPath: path.Join(os.Getenv("SNAP"), "coredns-1.28.2.tgz")},
-    }
+- **Edit the Chart Name**: Find the entry for the component you are updating (e.g., `network`). For example, if updating Cilium to version `1.14.2`, modify as follows:
+    ```diff
+    network:
+      release: "ck-network"
+    -  chart: "cilium-1.14.1.tgz"
+    +  chart: "cilium-1.14.2.tgz"
+      namespace: "kube-system"
+    dns:
+      release: "ck-dns"
+      chart: "coredns-1.28.2.tgz"
+      namespace: "kube-system"
     ```
