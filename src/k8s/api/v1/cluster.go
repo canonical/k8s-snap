@@ -14,6 +14,14 @@ type InitClusterRequest struct{}
 // InitClusterResponse is the response for "POST 1.0/k8sd/cluster".
 type InitClusterResponse struct{}
 
+// GetKubeConfigRequest is used to ask for the admin kubeconfig
+type GetKubeConfigRequest struct{}
+
+// GetKubeConfigResponse is the response for "GET 1.0/k8sd/cluster/config".
+type GetKubeConfigResponse struct {
+	KubeConfig string `json:"kube_config"`
+}
+
 // ClusterMember holds information about a node in the k8s cluster.
 type ClusterMember struct {
 	Name        string `json:"name"`

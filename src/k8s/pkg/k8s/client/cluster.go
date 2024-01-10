@@ -73,3 +73,17 @@ func (c *Client) ClusterStatus(ctx context.Context) (apiv1.ClusterStatus, error)
 	}
 	return response.ClusterStatus, nil
 }
+
+// KubeConfig returns admin kubeconfig to connect to the cluster.
+func (c *Client) KubeConfig(ctx context.Context) (string, error) {
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	var response apiv1.GetKubeConfigResponse
+	err := c.mc.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "config"), nil, &response)
+	if err != nil {
+		clientURL := c.mc.URL()
+		return "", fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
+	}
+	return response.KubeConfig, nil
+}
