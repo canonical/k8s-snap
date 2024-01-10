@@ -90,7 +90,7 @@ func (h *helmClient) Enable(name string) error {
 	install.ReleaseName = component.ReleaseName
 	install.Namespace = component.Namespace
 
-	isEnabled, err := h.isComponentEnabled(name, component.Namespace)
+	isEnabled, err := h.isComponentEnabled(component.ReleaseName, component.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get components status: %w", err)
 	}
@@ -171,7 +171,7 @@ func (h *helmClient) Disable(name string) error {
 		return fmt.Errorf("invalid component %s", name)
 	}
 
-	isEnabled, err := h.isComponentEnabled(name, component.Namespace)
+	isEnabled, err := h.isComponentEnabled(component.ReleaseName, component.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get components status: %w", err)
 	}
