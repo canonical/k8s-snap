@@ -1,0 +1,288 @@
+From 6eadc61c35316d18b5dff105ffdcf76673bba9e4 Mon Sep 17 00:00:00 2001
+From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
+Date: Wed, 10 Jan 2024 15:22:41 +0200
+Subject: [PATCH] use a resolv.conf file with non-loopback nameservers
+
+This replaces the const kubetypes.ResolvConfDefault with a function.
+We use the same name so that we can identify all consumers and fail to
+build if any is not updated.
+
+Includes a unit test for how we handle specific resolv.conf scenarios.
+---
+ pkg/kubelet/apis/config/fuzzer/fuzzer.go      |  2 +-
+ pkg/kubelet/apis/config/v1beta1/defaults.go   |  2 +-
+ .../apis/config/v1beta1/defaults_test.go      |  8 +-
+ pkg/kubelet/types/constants.go                |  4 +-
+ pkg/kubelet/types/resolv_conf.go              | 71 +++++++++++++++
+ pkg/kubelet/types/resolv_conf_test.go         | 87 +++++++++++++++++++
+ pkg/kubemark/hollow_kubelet.go                |  2 +-
+ 7 files changed, 167 insertions(+), 9 deletions(-)
+ create mode 100644 pkg/kubelet/types/resolv_conf.go
+ create mode 100644 pkg/kubelet/types/resolv_conf_test.go
+
+diff --git a/pkg/kubelet/apis/config/fuzzer/fuzzer.go b/pkg/kubelet/apis/config/fuzzer/fuzzer.go
+index dfa988c0d04..8c51bd40f5c 100644
+--- a/pkg/kubelet/apis/config/fuzzer/fuzzer.go
++++ b/pkg/kubelet/apis/config/fuzzer/fuzzer.go
+@@ -87,7 +87,7 @@ func Funcs(codecs runtimeserializer.CodecFactory) []interface{} {
+ 			obj.ReadOnlyPort = ports.KubeletReadOnlyPort
+ 			obj.RegistryBurst = 10
+ 			obj.RegistryPullQPS = 5
+-			obj.ResolverConfig = kubetypes.ResolvConfDefault
++			obj.ResolverConfig = kubetypes.ResolvConfDefault()
+ 			obj.SerializeImagePulls = true
+ 			obj.StreamingConnectionIdleTimeout = metav1.Duration{Duration: 4 * time.Hour}
+ 			obj.SyncFrequency = metav1.Duration{Duration: 1 * time.Minute}
+diff --git a/pkg/kubelet/apis/config/v1beta1/defaults.go b/pkg/kubelet/apis/config/v1beta1/defaults.go
+index bf52fc2396a..2a9c7045647 100644
+--- a/pkg/kubelet/apis/config/v1beta1/defaults.go
++++ b/pkg/kubelet/apis/config/v1beta1/defaults.go
+@@ -182,7 +182,7 @@ func SetDefaults_KubeletConfiguration(obj *kubeletconfigv1beta1.KubeletConfigura
+ 	}
+
+ 	if obj.ResolverConfig == nil {
+-		obj.ResolverConfig = utilpointer.String(kubetypes.ResolvConfDefault)
++		obj.ResolverConfig = utilpointer.String(kubetypes.ResolvConfDefault())
+ 	}
+ 	if obj.CPUCFSQuota == nil {
+ 		obj.CPUCFSQuota = utilpointer.Bool(true)
+diff --git a/pkg/kubelet/apis/config/v1beta1/defaults_test.go b/pkg/kubelet/apis/config/v1beta1/defaults_test.go
+index 55a6068e44d..0ffca8e6e22 100644
+--- a/pkg/kubelet/apis/config/v1beta1/defaults_test.go
++++ b/pkg/kubelet/apis/config/v1beta1/defaults_test.go
+@@ -93,7 +93,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
+ 				HairpinMode:                               v1beta1.PromiscuousBridge,
+ 				MaxPods:                                   110,
+ 				PodPidsLimit:                              utilpointer.Int64(-1),
+-				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault),
++				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault()),
+ 				CPUCFSQuota:                               utilpointer.Bool(true),
+ 				CPUCFSQuotaPeriod:                         &metav1.Duration{Duration: 100 * time.Millisecond},
+ 				NodeStatusMaxImages:                       utilpointer.Int32(50),
+@@ -702,7 +702,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
+ 				HairpinMode:                               v1beta1.PromiscuousBridge,
+ 				MaxPods:                                   110,
+ 				PodPidsLimit:                              utilpointer.Int64(-1),
+-				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault),
++				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault()),
+ 				CPUCFSQuota:                               utilpointer.Bool(true),
+ 				CPUCFSQuotaPeriod:                         &metav1.Duration{Duration: 100 * time.Millisecond},
+ 				NodeStatusMaxImages:                       utilpointer.Int32(50),
+@@ -791,7 +791,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
+ 				HairpinMode:                               v1beta1.PromiscuousBridge,
+ 				MaxPods:                                   110,
+ 				PodPidsLimit:                              utilpointer.Int64(-1),
+-				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault),
++				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault()),
+ 				CPUCFSQuota:                               utilpointer.Bool(true),
+ 				CPUCFSQuotaPeriod:                         &metav1.Duration{Duration: 100 * time.Millisecond},
+ 				NodeStatusMaxImages:                       utilpointer.Int32Ptr(50),
+@@ -880,7 +880,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
+ 				HairpinMode:                               v1beta1.PromiscuousBridge,
+ 				MaxPods:                                   110,
+ 				PodPidsLimit:                              utilpointer.Int64(-1),
+-				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault),
++				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault()),
+ 				CPUCFSQuota:                               utilpointer.Bool(true),
+ 				CPUCFSQuotaPeriod:                         &metav1.Duration{Duration: 100 * time.Millisecond},
+ 				NodeStatusMaxImages:                       utilpointer.Int32Ptr(50),
+diff --git a/pkg/kubelet/types/constants.go b/pkg/kubelet/types/constants.go
+index 796825aecb1..a4b6a6a1e98 100644
+--- a/pkg/kubelet/types/constants.go
++++ b/pkg/kubelet/types/constants.go
+@@ -17,8 +17,8 @@ limitations under the License.
+ package types
+
+ const (
+-	// ResolvConfDefault is the system default DNS resolver configuration.
+-	ResolvConfDefault = "/etc/resolv.conf"
++	// ResolvConfDefault_Static is the system default DNS resolver configuration.
++	ResolvConfDefault_Static = "/etc/resolv.conf"
+ 	// RFC3339NanoFixed is the fixed width version of time.RFC3339Nano.
+ 	RFC3339NanoFixed = "2006-01-02T15:04:05.000000000Z07:00"
+ 	// RFC3339NanoLenient is the variable width RFC3339 time format for lenient parsing of strings into timestamps.
+diff --git a/pkg/kubelet/types/resolv_conf.go b/pkg/kubelet/types/resolv_conf.go
+new file mode 100644
+index 00000000000..0170e151b92
+--- /dev/null
++++ b/pkg/kubelet/types/resolv_conf.go
+@@ -0,0 +1,71 @@
++package types
++
++import (
++	"net"
++	"os"
++	"regexp"
++	"strings"
++)
++
++var (
++	// knownResolvConfFiles is a list of well-known locations to look for a resolv.conf file.
++	knownResolvConfFiles = []string{
++		"/run/systemd/resolve/resolv.conf",
++		"/etc/resolv.conf",
++	}
++
++	// nameserverRegex is a regular expression to match 'nameserver' lines in a resolv.conf file
++	// https://regex101.com/r/3WCriE/1
++	nameserverRegex = regexp.MustCompile(`(?m)^\s*nameserver\s+(\S*)\s*$`)
++)
++
++// ResolvConfDefault returns the default resolv.conf file to use.
++func ResolvConfDefault() string {
++	return resolvConfDefault(knownResolvConfFiles)
++}
++
++// resolvConfFileHasNonLoopbackNameservers returns true if the specified resolv.conf file has a list of valid nameservers that are not loopback addresses.
++// resolvConfFileHasNonLoopbackNameservers returns false if any error occurs while processing the file.
++func resolvConfFileHasNonLoopbackNameservers(file string) bool {
++	// reject file if we cannot read it
++	b, err := os.ReadFile(file)
++	if err != nil {
++		return false
++	}
++
++	// reject file if it does not have any 'nameserver' entries
++	matches := nameserverRegex.FindAllStringSubmatch(string(b), -1)
++	if len(matches) == 0 {
++		return false
++	}
++
++	// reject file if it has at least one invalid or loopback address
++	for _, match := range matches {
++		if len(match) != 2 {
++			return false
++		}
++
++		// IPv6 addresses may contain zone, e.g. "::1%2". Drop the '%' suffix, if any.
++		splitToDropScopeIfAny := strings.SplitN(match[1], "%", 2)
++		cleanIP := splitToDropScopeIfAny[0]
++
++		if ip := net.ParseIP(cleanIP); ip == nil || ip.IsLoopback() {
++			return false
++		}
++	}
++
++	return true
++}
++
++// resolvConfDefault iterates over a list of candidate resolv.conf file paths and returns the first that does not contain upstream nameservers on a loopback address.
++// If we cannot find one, we default to ResolvConfDefault_Static.
++func resolvConfDefault(files []string) string {
++	for _, file := range files {
++		if resolvConfFileHasNonLoopbackNameservers(file) {
++			return file
++		}
++	}
++
++	// fallback to the static default
++	return ResolvConfDefault_Static
++}
+diff --git a/pkg/kubelet/types/resolv_conf_test.go b/pkg/kubelet/types/resolv_conf_test.go
+new file mode 100644
+index 00000000000..e67f2ab4e53
+--- /dev/null
++++ b/pkg/kubelet/types/resolv_conf_test.go
+@@ -0,0 +1,87 @@
++package types
++
++import (
++	"os"
++	"testing"
++)
++
++func Test_resolvConfFileHasNonLoopbackNameservers(t *testing.T) {
++	if err := os.MkdirAll("testdata", 0755); err != nil {
++		t.Errorf("could not create temporary testdata dir: %v", err)
++	}
++	defer os.RemoveAll("testdata")
++
++	for _, tc := range []struct {
++		name        string
++		resolvConf  string
++		expectValid bool
++	}{
++		{
++			name:       "no-nameservers",
++			resolvConf: "search .",
++		},
++		{
++			name:       "ipv4-loopback",
++			resolvConf: "nameserver 127.0.0.53",
++		},
++		{
++			name:       "ipv6-loopback",
++			resolvConf: "nameserver ::1",
++		},
++		{
++			name:       "ipv6-loopback-scoped",
++			resolvConf: "nameserver ::1%2",
++		},
++		{
++			name:        "ipv4-one",
++			resolvConf:  "nameserver 10.0.0.1",
++			expectValid: true,
++		},
++		{
++			name:        "ipv4-two",
++			resolvConf:  "nameserver 10.0.0.1\nnameserver 10.0.0.2",
++			expectValid: true,
++		},
++		{
++			name:       "ipv4-one-loopback-one-valid",
++			resolvConf: "nameserver 10.0.0.1\nnameserver 127.0.0.53",
++		},
++		{
++			name:        "ipv6-one",
++			resolvConf:  "nameserver fade::",
++			expectValid: true,
++		},
++		{
++			name:        "ipv6-scoped",
++			resolvConf:  "nameserver fade::%3",
++			expectValid: true,
++		},
++		{
++			name:       "ipv6-one-loopback-one-valid",
++			resolvConf: "nameserver fade::\nnameserver ::1",
++		},
++		{
++			name:        "dualstack",
++			resolvConf:  "nameserver 10.0.0.1\nnameserver ::fade",
++			expectValid: true,
++		},
++		{
++			name:        "dualstack-scoped",
++			resolvConf:  "nameserver 10.0.0.1\nnameserver ::fade%3",
++			expectValid: true,
++		},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			if err := os.WriteFile("testdata/resolv.conf", []byte(tc.resolvConf), 0644); err != nil {
++				t.Errorf("failed to write file: %v", err)
++			}
++			isValid := resolvConfFileHasNonLoopbackNameservers("testdata/resolv.conf")
++			if !isValid && tc.expectValid {
++				t.Error("expected resolv.conf to be valid, but it was not")
++			}
++			if isValid && !tc.expectValid {
++				t.Errorf("expected resolv.conf to be invalid, but it was not")
++			}
++		})
++	}
++}
+diff --git a/pkg/kubemark/hollow_kubelet.go b/pkg/kubemark/hollow_kubelet.go
+index 74db6c95c37..3d39dec411c 100644
+--- a/pkg/kubemark/hollow_kubelet.go
++++ b/pkg/kubemark/hollow_kubelet.go
+@@ -202,7 +202,7 @@ func GetHollowKubeletConfig(opt *HollowKubeletOptions) (*options.KubeletFlags, *
+ 	c.MaxOpenFiles = 1024
+ 	c.RegistryBurst = 10
+ 	c.RegistryPullQPS = 5.0
+-	c.ResolverConfig = kubetypes.ResolvConfDefault
++	c.ResolverConfig = kubetypes.ResolvConfDefault()
+ 	c.KubeletCgroups = "/kubelet"
+ 	c.SerializeImagePulls = true
+ 	c.SystemCgroups = ""
+--
+2.34.1
