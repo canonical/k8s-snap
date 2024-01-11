@@ -11,7 +11,7 @@ import (
 var (
 	configCmd = &cobra.Command{
 		Use:    "config",
-		Short:  "Prints the admin config to connect to the cluster",
+		Short:  "Generate a kubeconfig that can be used to access the Kubernetes cluster",
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootCmdOpts.logDebug {

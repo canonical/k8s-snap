@@ -80,7 +80,7 @@ func (c *Client) KubeConfig(ctx context.Context) (string, error) {
 	defer cancel()
 
 	var response apiv1.GetKubeConfigResponse
-	err := c.mc.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "config"), nil, &response)
+	err := c.mc.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "kubeconfig"), nil, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
 		return "", fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)

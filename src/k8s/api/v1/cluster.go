@@ -19,7 +19,7 @@ type GetKubeConfigRequest struct{}
 
 // GetKubeConfigResponse is the response for "GET 1.0/k8sd/cluster/config".
 type GetKubeConfigResponse struct {
-	KubeConfig string `json:"kube_config"`
+	KubeConfig string `json:"kubeconfig"`
 }
 
 // ClusterMember holds information about a node in the k8s cluster.

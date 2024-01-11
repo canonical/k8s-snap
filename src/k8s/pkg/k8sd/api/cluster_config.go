@@ -12,11 +12,13 @@ import (
 )
 
 var k8sdClusterConfig = rest.Endpoint{
-	Path: "k8sd/config",
+	Path: "k8sd/kubeconfig",
 	Get:  rest.EndpointAction{Handler: clusterConfigGet, AllowUntrusted: false},
 }
 
 func clusterConfigGet(s *state.State, r *http.Request) response.Response {
+	// TODO: Render a new kubeconfig instead of reading the existing one
+	//       when the config can be altered via request parameters.
 	config, err := os.ReadFile("/etc/kubernetes/admin.conf")
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to read admin kubeconfig: %w", err))
