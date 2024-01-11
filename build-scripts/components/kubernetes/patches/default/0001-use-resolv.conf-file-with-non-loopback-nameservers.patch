@@ -1,7 +1,7 @@
-From 6eadc61c35316d18b5dff105ffdcf76673bba9e4 Mon Sep 17 00:00:00 2001
+From db58d03a5ee3f345d32206e78102952c76d6da10 Mon Sep 17 00:00:00 2001
 From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
-Date: Wed, 10 Jan 2024 15:22:41 +0200
-Subject: [PATCH] use a resolv.conf file with non-loopback nameservers
+Date: Thu, 11 Jan 2024 11:10:22 +0200
+Subject: [PATCH] use resolv.conf file with non-loopback nameservers
 
 This replaces the const kubetypes.ResolvConfDefault with a function.
 We use the same name so that we can identify all consumers and fail to
@@ -13,10 +13,10 @@ Includes a unit test for how we handle specific resolv.conf scenarios.
  pkg/kubelet/apis/config/v1beta1/defaults.go   |  2 +-
  .../apis/config/v1beta1/defaults_test.go      |  8 +-
  pkg/kubelet/types/constants.go                |  4 +-
- pkg/kubelet/types/resolv_conf.go              | 71 +++++++++++++++
+ pkg/kubelet/types/resolv_conf.go              | 75 ++++++++++++++++
  pkg/kubelet/types/resolv_conf_test.go         | 87 +++++++++++++++++++
  pkg/kubemark/hollow_kubelet.go                |  2 +-
- 7 files changed, 167 insertions(+), 9 deletions(-)
+ 7 files changed, 171 insertions(+), 9 deletions(-)
  create mode 100644 pkg/kubelet/types/resolv_conf.go
  create mode 100644 pkg/kubelet/types/resolv_conf_test.go
 
@@ -39,7 +39,7 @@ index bf52fc2396a..2a9c7045647 100644
 +++ b/pkg/kubelet/apis/config/v1beta1/defaults.go
 @@ -182,7 +182,7 @@ func SetDefaults_KubeletConfiguration(obj *kubeletconfigv1beta1.KubeletConfigura
  	}
-
+ 
  	if obj.ResolverConfig == nil {
 -		obj.ResolverConfig = utilpointer.String(kubetypes.ResolvConfDefault)
 +		obj.ResolverConfig = utilpointer.String(kubetypes.ResolvConfDefault())
@@ -92,7 +92,7 @@ index 796825aecb1..a4b6a6a1e98 100644
 +++ b/pkg/kubelet/types/constants.go
 @@ -17,8 +17,8 @@ limitations under the License.
  package types
-
+ 
  const (
 -	// ResolvConfDefault is the system default DNS resolver configuration.
 -	ResolvConfDefault = "/etc/resolv.conf"
@@ -103,10 +103,10 @@ index 796825aecb1..a4b6a6a1e98 100644
  	// RFC3339NanoLenient is the variable width RFC3339 time format for lenient parsing of strings into timestamps.
 diff --git a/pkg/kubelet/types/resolv_conf.go b/pkg/kubelet/types/resolv_conf.go
 new file mode 100644
-index 00000000000..0170e151b92
+index 00000000000..dbdd9eb84a5
 --- /dev/null
 +++ b/pkg/kubelet/types/resolv_conf.go
-@@ -0,0 +1,71 @@
+@@ -0,0 +1,75 @@
 +package types
 +
 +import (
@@ -114,6 +114,8 @@ index 00000000000..0170e151b92
 +	"os"
 +	"regexp"
 +	"strings"
++
++	"k8s.io/klog/v2"
 +)
 +
 +var (
@@ -131,6 +133,21 @@ index 00000000000..0170e151b92
 +// ResolvConfDefault returns the default resolv.conf file to use.
 +func ResolvConfDefault() string {
 +	return resolvConfDefault(knownResolvConfFiles)
++}
++
++// resolvConfDefault iterates over a list of candidate resolv.conf file paths and returns the first that does not contain upstream nameservers on a loopback address.
++// If we cannot find one, we default to ResolvConfDefault_Static.
++func resolvConfDefault(files []string) string {
++	for _, file := range files {
++		if resolvConfFileHasNonLoopbackNameservers(file) {
++			klog.Infof("Using %s for the DNS resolver config", file)
++			return file
++		}
++	}
++
++	// fallback to the static default
++	klog.Infof("Failed to find a resolv.conf with non-loopback nameservers, falling back to %s", ResolvConfDefault_Static)
++	return ResolvConfDefault_Static
 +}
 +
 +// resolvConfFileHasNonLoopbackNameservers returns true if the specified resolv.conf file has a list of valid nameservers that are not loopback addresses.
@@ -164,19 +181,6 @@ index 00000000000..0170e151b92
 +	}
 +
 +	return true
-+}
-+
-+// resolvConfDefault iterates over a list of candidate resolv.conf file paths and returns the first that does not contain upstream nameservers on a loopback address.
-+// If we cannot find one, we default to ResolvConfDefault_Static.
-+func resolvConfDefault(files []string) string {
-+	for _, file := range files {
-+		if resolvConfFileHasNonLoopbackNameservers(file) {
-+			return file
-+		}
-+	}
-+
-+	// fallback to the static default
-+	return ResolvConfDefault_Static
 +}
 diff --git a/pkg/kubelet/types/resolv_conf_test.go b/pkg/kubelet/types/resolv_conf_test.go
 new file mode 100644
@@ -284,5 +288,6 @@ index 74db6c95c37..3d39dec411c 100644
  	c.KubeletCgroups = "/kubelet"
  	c.SerializeImagePulls = true
  	c.SystemCgroups = ""
---
+-- 
 2.34.1
+
