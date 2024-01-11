@@ -192,7 +192,6 @@ apps:
   k8s:
     command: k8s/wrappers/commands/k8s
     plugs:
-      - account-control
       - firewall-control
       - home-read-all
       - home
