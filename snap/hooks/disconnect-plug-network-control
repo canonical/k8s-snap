@@ -4,6 +4,4 @@
 
 k8s::common::setup_env
 
-echo "removing network control plug"
-
 k8s::remove::network
