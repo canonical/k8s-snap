@@ -31,6 +31,29 @@ k8s::common::setup_env() {
   _K8S_ENV_SETUP_ONCE="1"
 }
 
+# Cleanup configuration left by the network component
+#   - Iptables Rules
+#   - Network Interfaces
+#   - Traffic Control(tc) rules
+k8s::remove::network() {
+  for link in cilium_vxlan cilium_host cilium_net
+  do
+    ip link delete ${link} || true
+  done
+
+  iptables-save | grep -iv cilium | iptables-restore
+  ip6tables-save | grep -iv cilium | ip6tables-restore
+  iptables-legacy-save | grep -iv cilium | iptables-legacy-restore
+  ip6tables-legacy-save | grep -iv cilium | ip6tables-legacy-restore
+
+  default_interface=$(ip route get 1.1.1.1 | sed -n 's/.*dev \([^\ ]*\).*/\1/p')
+
+  for d in ingress egress
+  do
+    tc filter del dev $default_interface ${d} || true
+  done
+}
+
 # Run an openssl command
 # Example: 'k8s::cmd::openssl genrsa 2048'
 k8s::cmd::openssl() {
