@@ -390,7 +390,7 @@ plugs:
     privileged-containers: false
 
 hooks:
-  disconnect-plug-network-control:
+  remove:
     plugs:
       - network
       - network-bind
