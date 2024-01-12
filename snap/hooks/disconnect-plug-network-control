@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -e
 
 . "$SNAP/k8s/lib.sh"
 
