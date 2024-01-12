@@ -46,7 +46,7 @@ k8s::remove::network() {
   iptables-legacy-save | grep -iv cilium | iptables-legacy-restore
   ip6tables-legacy-save | grep -iv cilium | ip6tables-legacy-restore
 
-  default_interface=$(ip route get 1.1.1.1 | sed -n 's/.*dev \([^\ ]*\).*/\1/p')
+  default_interface=$(ip route show default | sed -n 's/.*dev \([^\ ]*\).*/\1/p')
 
   for d in ingress egress
   do
