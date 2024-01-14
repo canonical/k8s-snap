@@ -12,6 +12,62 @@ type valuesHook func() (map[string]any, error)
 
 var valuesHooks = map[string]valuesHook{
 	"network": networkValues,
+	"dns":     dnsValues,
+}
+
+func dnsValues() (map[string]any, error) {
+	nameserverStr, err := utils.GetServiceArgument("kubelet", "--resolv-conf")
+	if err != nil {
+		_, err := utils.LocateValidResolvConf()
+		if err != nil {
+			nameserverStr = "8.8.8.8 8.8.4.4"
+		} else {
+			nameserverStr = "/etc/resolv.conf"
+		}
+	}
+
+	serviceClusterCIDR, err := utils.GetServiceArgument("kube-apiserver", "--service-cluster-ip-range")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get serviceClusterCIDR: %w", err)
+	}
+
+	// TODO: Implement configurable clusterIP
+	var dnsIP string
+	// If not using a custom service CIDR, then use the well-known address 10.152.183.10
+	if serviceClusterCIDR == "10.152.183.0/24" {
+		dnsIP = "10.152.183.10"
+	}
+
+	values := map[string]any{
+		"service": map[string]any{
+			"clusterIP": dnsIP,
+		},
+		"servers": []map[string]any{
+			{
+				"zones": []map[string]any{
+					{"zone": "."},
+				},
+				"port": 53,
+				"plugins": []map[string]any{
+					{"name": "errors"},
+					{"name": "health", "configBlock": "lameduck 5s"},
+					{"name": "ready"},
+					{
+						"name":        "kubernetes",
+						"parameters":  "cluster.local in-addr.arpa ip6.arpa",
+						"configBlock": "pods insecure\nfallthrough in-addr.arpa ip6.arpa\nttl 30",
+					},
+					{"name": "prometheus", "parameters": "0.0.0.0:9153"},
+					{"name": "forward", "parameters": fmt.Sprintf(". %s", nameserverStr)},
+					{"name": "cache", "parameters": "30"},
+					{"name": "loop"},
+					{"name": "reload"},
+					{"name": "loadbalance"},
+				},
+			},
+		},
+	}
+	return values, nil
 }
 
 func networkValues() (map[string]any, error) {

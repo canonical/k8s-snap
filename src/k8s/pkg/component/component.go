@@ -44,6 +44,14 @@ type Component struct {
 	Status bool
 }
 
+type PostConfigFunc func(values map[string]any) error
+
+// postConfigs defines the functions to be run as post-configuration steps after a
+// component is enabled.
+var postConfigs = map[string]PostConfigFunc{
+	"dns": ExecuteDNSPostConfig,
+}
+
 func logAdapter(format string, v ...any) {
 	logrus.Debugf(format, v...)
 }
@@ -117,6 +125,12 @@ func (h *helmClient) Enable(name string) error {
 	if err != nil {
 		return fmt.Errorf("failed to enable component '%s': %w", name, err)
 	}
+
+	postconfigFn, exists := postConfigs[name]
+	if exists {
+		return postconfigFn(values)
+	}
+
 	return nil
 }
 

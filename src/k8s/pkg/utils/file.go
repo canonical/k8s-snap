@@ -76,6 +76,30 @@ func GetServiceArgument(service string, argument string) (string, error) {
 	return matches[1], nil
 }
 
+// UpdateServiceArgs updates the value of an argument in a service arguments file.
+func UpdateServiceArgs(argument, value, service string) error {
+	argument = "--" + argument
+	configFile := SnapDataPath("args", service)
+	replaceLine := argument + "=" + value
+
+	fileContent, err := os.ReadFile(configFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return os.WriteFile(configFile, []byte(replaceLine+"\n"), 0o644)
+		}
+		return fmt.Errorf("failed to read %s config file: %w", service, err)
+	}
+
+	regexPattern := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(argument) + `=.*$`)
+	if regexPattern.Match(fileContent) {
+		fileContent = regexPattern.ReplaceAll(fileContent, []byte(replaceLine))
+	} else {
+		fileContent = append(fileContent, []byte(replaceLine+"\n")...)
+	}
+
+	return os.WriteFile(configFile, fileContent, 0o644)
+}
+
 // CopyDirectory recursively copies files and directories from the given srcDir.
 //
 // https://stackoverflow.com/a/56314145
@@ -100,7 +124,7 @@ func CopyDirectory(scrDir, dest string) error {
 
 		switch fileInfo.Mode() & os.ModeType {
 		case os.ModeDir:
-			if err := CreateIfNotExists(destPath, 0755); err != nil {
+			if err := CreateIfNotExists(destPath, 0o755); err != nil {
 				return err
 			}
 			if err := CopyDirectory(sourcePath, destPath); err != nil {
