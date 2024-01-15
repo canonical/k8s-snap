@@ -35,7 +35,12 @@ k8s::common::setup_env() {
 #   - Iptables Rules
 #   - Network Interfaces
 #   - Traffic Control(tc) rules
+# https://github.com/cilium/cilium/blob/7318ce2d0d89a91227e3f313adebce892f3c388e/cilium-dbg/cmd/cleanup.go#L132-L139
 k8s::remove::network() {
+  k8s::common::setup_env
+
+  local default_interface
+
   for link in cilium_vxlan cilium_host cilium_net
   do
     ip link delete ${link} || true
@@ -46,7 +51,7 @@ k8s::remove::network() {
   iptables-legacy-save | grep -iv cilium | iptables-legacy-restore
   ip6tables-legacy-save | grep -iv cilium | ip6tables-legacy-restore
 
-  default_interface=$(ip route show default | sed -n 's/.*dev \([^\ ]*\).*/\1/p')
+  default_interface="$(k8s::util::default_interface)"
 
   for d in ingress egress
   do
@@ -105,6 +110,12 @@ k8s::cmd::hostname() {
   hostname | tr '[:upper:]' '[:lower:]'
 }
 
+k8s::util::default_interface() {
+  k8s::common::setup_env
+
+  ip route show default | awk '{for(i=1; i<NF; i++) if ($i=="dev") print $(i+1)}' | head -1
+}
+
 # Get the default host IP
 # Example: 'default_ip="$(k8s::util::default_ip)"'
 k8s::util::default_ip() {
@@ -117,7 +128,7 @@ k8s::util::default_ip() {
   # default_interface="eth0"
   # ip_addr_cidr="10.0.1.83/24"
   # ip_addr="10.0.1.83"
-  default_interface="$(ip route show default | awk '{for(i=1; i<NF; i++) if ($i=="dev") print $(i+1)}' | head -1)"
+  default_interface="$(k8s::util::default_interface)"
   ip_addr_cidr="$(ip -o -4 addr list "${default_interface}" | awk '{print $4}')"
   ip_addr="${ip_addr_cidr%/*}"
 
