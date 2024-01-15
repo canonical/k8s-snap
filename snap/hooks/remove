@@ -1,0 +1,7 @@
+#!/bin/bash -e
+
+. "$SNAP/k8s/lib.sh"
+
+k8s::common::setup_env
+
+k8s::remove::network

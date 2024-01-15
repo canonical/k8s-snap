@@ -388,3 +388,11 @@ plugs:
   docker-unprivileged:
     interface: docker-support
     privileged-containers: false
+
+hooks:
+  remove:
+    plugs:
+      - network
+      - network-bind
+      - network-control
+      - firewall-control
