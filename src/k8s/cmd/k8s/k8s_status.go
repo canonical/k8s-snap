@@ -3,12 +3,17 @@ package k8s
 import (
 	"fmt"
 
+	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 var (
+	statusCmdOpts struct {
+		outputFormat string
+	}
+
 	statusCmd = &cobra.Command{
 		Use:    "status",
 		Short:  "Retrieve the current status of the cluster",
@@ -34,19 +39,16 @@ var (
 				return fmt.Errorf("failed to get cluster status: %w", err)
 			}
 
-			// TODO: make this nice and bright
-			fmt.Printf("Number of nodes in the cluster: %d\n", len(clusterStatus.Members))
-			fmt.Printf("HA cluster: %t\n", clusterStatus.HaClusterFormed())
-			fmt.Println()
-			for _, component := range clusterStatus.Components {
-				fmt.Printf("%s: %s\n", component.Name, component.Status)
+			f, err := formatter.New(statusCmdOpts.outputFormat, cmd.OutOrStdout())
+			if err != nil {
+				return fmt.Errorf("failed to create formatter: %w", err)
 			}
-
-			return nil
+			return f.Print(clusterStatus)
 		},
 	}
 )
 
 func init() {
 	rootCmd.AddCommand(statusCmd)
+	rootCmd.PersistentFlags().StringVar(&statusCmdOpts.outputFormat, "format", "plain", "Specify in which format the output should be printed. One of plain, json or yaml")
 }
