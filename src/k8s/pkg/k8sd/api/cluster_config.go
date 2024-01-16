@@ -11,7 +11,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-var k8sdClusterConfig = rest.Endpoint{
+var k8sdConfig = rest.Endpoint{
 	Path: "k8sd/kubeconfig",
 	Get:  rest.EndpointAction{Handler: clusterConfigGet, AllowUntrusted: false},
 }
