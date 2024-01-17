@@ -105,17 +105,7 @@ def setup_network(h: harness.Harness, instance_id: str):
     retry_until_condition(
         h,
         instance_id,
-        [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
-            "get",
-            "po",
-            "-n",
-            "kube-system",
-            "-o",
-            "json",
-        ],
+        ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
         condition=lambda p: "cilium" in p.stdout.decode(),
     )
     LOG.info("Cilium pods showed up.")
@@ -124,9 +114,8 @@ def setup_network(h: harness.Harness, instance_id: str):
         h,
         instance_id,
         [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "k8s",
+            "kubectl",
             "wait",
             "--for=condition=ready",
             "pod",
@@ -146,9 +135,8 @@ def setup_network(h: harness.Harness, instance_id: str):
         h,
         instance_id,
         [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "k8s",
+            "kubectl",
             "wait",
             "--for=condition=ready",
             "pod",
@@ -184,15 +172,7 @@ def wait_until_k8s_ready(h: harness.Harness, instance_id):
     result = retry_until_condition(
         h,
         instance_id,
-        [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
-            "get",
-            "node",
-            hostname,
-            "--no-headers",
-        ],
+        ["k8s", "kubectl", "get", "node", hostname, "--no-headers"],
         condition=lambda p: "Ready" in p.stdout.decode(),
     )
     LOG.info("Kubelet registered successfully!")
