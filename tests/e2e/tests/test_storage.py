@@ -38,7 +38,6 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         instance_id,
         ["k8s", "enable", "storage"],
         capture_output=True,
-        check=True,
     )
     assert "enabled" in out.stderr.decode()
 
@@ -69,14 +68,12 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         ],
         max_retries=3,
         delay_between_retries=1,
-        check=True,
     )
 
     manifest = MANIFESTS_DIR / "storage-test.yaml"
     h.exec(
         instance_id,
         ["k8s", "kubectl", "apply", "-f", "-"],
-        check=True,
         input=Path(manifest).read_bytes(),
     )
 
@@ -106,7 +103,6 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         ],
         max_retries=3,
         delay_between_retries=1,
-        check=True,
     )
 
     LOG.info("Waiting for storage to get provisioned...")
@@ -144,7 +140,6 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         ],
         max_retries=3,
         delay_between_retries=1,
-        check=True,
     )
 
     util.retry_until_condition(
@@ -154,6 +149,5 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         condition=lambda p: "LOREM IPSUM" in p.stdout.decode(),
         max_retries=5,
         delay_between_retries=10,
-        check=True,
     )
     LOG.info("Data can be read between pods.")

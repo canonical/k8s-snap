@@ -73,7 +73,6 @@ def test_network(h: harness.Harness, tmp_path: Path):
     p = h.exec(
         instance_id,
         ["k8s", "kubectl", "apply", "-f", "-"],
-        check=True,
         input=Path(manifest).read_bytes(),
     )
 
@@ -93,7 +92,6 @@ def test_network(h: harness.Harness, tmp_path: Path):
         ],
         max_retries=3,
         delay_between_retries=1,
-        check=True,
     )
 
     p = h.exec(
