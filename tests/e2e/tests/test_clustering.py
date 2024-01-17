@@ -67,15 +67,4 @@ def test_clustering(h: harness.Harness, tmp_path: Path):
 
     util.wait_until_k8s_ready(h, instances)
 
-    h.exec(
-        cluster_node,
-        [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
-            "get",
-            "nodes",
-            "--no-headers",
-        ],
-        capture_output=True,
-    )
+    h.cleanup()

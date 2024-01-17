@@ -24,3 +24,5 @@ def test_smoke(h: harness.Harness, tmp_path: Path):
     util.setup_network(h, instance_id)
 
     util.wait_until_k8s_ready(h, instance_id)
+
+    h.cleanup()
