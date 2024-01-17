@@ -22,7 +22,7 @@ func GetComponents(snap snap.Snap) ([]api.Component, error) {
 
 	// Decouple the internal Component type from the external API types.
 	extComponents := make([]api.Component, len(components))
-	for _, component := range components {
+	for i, component := range components {
 		var status api.ComponentStatus
 		if component.Status {
 			status = api.ComponentEnable
@@ -30,10 +30,10 @@ func GetComponents(snap snap.Snap) ([]api.Component, error) {
 			status = api.ComponentDisable
 		}
 
-		extComponents = append(extComponents, api.Component{
+		extComponents[i] = api.Component{
 			Name:   component.Name,
 			Status: status,
-		})
+		}
 	}
 	return extComponents, nil
 }

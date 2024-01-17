@@ -2,11 +2,17 @@ package v1
 
 import (
 	"fmt"
+	"net"
 	"strings"
 )
 
 // GetClusterStatusRequest is used to request the current status of the cluster.
-type GetClusterStatusRequest struct{}
+type GetClusterStatusRequest struct {
+	// WaitReady indicates if the server will wait until at
+	// least one cluster node is ready.
+	// TODO: Also wait for all components to come up.
+	WaitReady bool `json:"waitReady"`
+}
 
 // GetClusterStatusResponse is the response for "GET 1.0/k8sd/cluster".
 type GetClusterStatusResponse struct {
@@ -80,9 +86,9 @@ func (c ClusterStatus) String() string {
 	result := strings.Builder{}
 
 	if c.Ready {
-		result.WriteString("k8s is running")
+		result.WriteString("k8s is ready.")
 	} else {
-		result.WriteString("k8s is not running.\n")
+		result.WriteString("k8s is not ready.\n")
 		return result.String()
 	}
 	result.WriteString("\n")
@@ -94,10 +100,18 @@ func (c ClusterStatus) String() string {
 		result.WriteString("no")
 	}
 	result.WriteString("\n\n")
+	result.WriteString("control-plane nodes:\n")
+	for _, member := range c.Members {
+		// There is not much that we can do if the hostport is wrong.
+		// Thus, ignore the error and just display an empty IP field.
+		apiServerIp, _, _ := net.SplitHostPort(member.Address)
+		result.WriteString(fmt.Sprintf("  %s: %s\n", member.Name, apiServerIp))
+	}
+	result.WriteString("\n")
 
 	result.WriteString("components:\n")
 	for _, component := range c.Components {
-		result.WriteString(fmt.Sprintf("  %s: %s\n", component.Name, component.Status))
+		result.WriteString(fmt.Sprintf("  %-10s %s\n", component.Name, component.Status))
 	}
 
 	return result.String()

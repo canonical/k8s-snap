@@ -26,6 +26,6 @@ type ComponentStatus string
 
 const (
 	Unknown          ComponentStatus = "unknown"
-	ComponentEnable  ComponentStatus = "enable"
-	ComponentDisable ComponentStatus = "disable"
+	ComponentEnable  ComponentStatus = "enabled"
+	ComponentDisable ComponentStatus = "disabled"
 )

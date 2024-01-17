@@ -3,10 +3,22 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/canonical/k8s/pkg/utils"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// WaitApiServerReady waits until the kube-apiserver becomes available.
+func WaitApiServerReady(ctx context.Context, client *k8sClient) error {
+	checkFunc := func() bool {
+		_, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+		return err == nil
+	}
+
+	return utils.WaitUntilReady(ctx, checkFunc, time.Second*30, "api server did not become ready in time")
+}
 
 // ClusterReady checks the status of all nodes in the Kubernetes cluster.
 // If at least one node is in READY state it will return true.

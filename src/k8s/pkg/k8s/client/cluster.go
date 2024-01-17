@@ -8,6 +8,7 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/canonical/lxd/shared/api"
 )
@@ -61,17 +62,22 @@ func (c *Client) Init(ctx context.Context) (apiv1.ClusterMember, error) {
 }
 
 // ClusterStatus returns the current status of the cluster.
-func (c *Client) ClusterStatus(ctx context.Context) (apiv1.ClusterStatus, error) {
-	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
-	defer cancel()
-
-	var response apiv1.GetClusterStatusResponse
-	err := c.mc.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "cluster"), nil, &response)
-	if err != nil {
-		clientURL := c.mc.URL()
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
+func (c *Client) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error) {
+	request := apiv1.GetClusterStatusRequest{
+		WaitReady: waitReady,
 	}
-	return response.ClusterStatus, nil
+	var response apiv1.GetClusterStatusResponse
+
+	checkFunc := func() bool {
+		err := c.mc.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster"), request, &response)
+		if err != nil {
+			return false
+		}
+		return response.ClusterStatus.Ready
+	}
+
+	err := utils.WaitUntilReady(ctx, checkFunc, time.Minute*3, "cluster did not become ready in time")
+	return response.ClusterStatus, err
 }
 
 // KubeConfig returns admin kubeconfig to connect to the cluster.

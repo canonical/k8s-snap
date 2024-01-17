@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
 	"github.com/canonical/microcluster/rest/types"
 	"github.com/canonical/microcluster/state"
@@ -89,38 +90,21 @@ func createClusterInitFile(voters []string, host string) error {
 }
 
 func waitForNodeJoin(ctx context.Context, dqlitePath string, host string) error {
-	ch := make(chan struct{}, 1)
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				// TODO: Use go-dqlite lib instead of shelling out.
-				cmd := exec.Command(
-					dqlitePath,
-					"-s", fmt.Sprintf("file://%s/cluster.yaml", cert.K8sDqlitePkiPath),
-					"-c", fmt.Sprintf("%s/cluster.crt", cert.K8sDqlitePkiPath),
-					"-k", fmt.Sprintf("%s/cluster.key", cert.K8sDqlitePkiPath),
-					"-f", "json", "k8s", ".cluster",
-				)
+	checkFunc := func() bool {
+		cmd := exec.Command(
+			dqlitePath,
+			"-s", fmt.Sprintf("file://%s/cluster.yaml", cert.K8sDqlitePkiPath),
+			"-c", fmt.Sprintf("%s/cluster.crt", cert.K8sDqlitePkiPath),
+			"-k", fmt.Sprintf("%s/cluster.key", cert.K8sDqlitePkiPath),
+			"-f", "json", "k8s", ".cluster",
+		)
 
-				out, err := cmd.CombinedOutput()
-				if err == nil && strings.Contains(string(out), host) {
-					ch <- struct{}{}
-					return
-				}
-			}
-			time.Sleep(time.Second)
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return false
 		}
-	}()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(time.Minute):
-		return fmt.Errorf("node (%s) did not finish joining the cluster within time", host)
-	case <-ch:
-		return nil
+		return strings.Contains(string(out), host)
 	}
+
+	return utils.WaitUntilReady(ctx, checkFunc, time.Minute, fmt.Sprintf("node (%s) did not finish joining the cluster within time", host))
 }
