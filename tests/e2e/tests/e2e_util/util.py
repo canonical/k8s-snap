@@ -128,7 +128,6 @@ def setup_network(h: harness.Harness, instance_id: str):
         ],
         max_retries=3,
         delay_between_retries=1,
-        check=True,
     )
 
     retry_until_condition(
@@ -149,7 +148,6 @@ def setup_network(h: harness.Harness, instance_id: str):
         ],
         max_retries=3,
         delay_between_retries=1,
-        check=True,
     )
 
 
