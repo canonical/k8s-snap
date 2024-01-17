@@ -16,6 +16,11 @@ func (c *Client) JoinNode(ctx context.Context, name string, address string, toke
 		return fmt.Errorf("failed to join k8sd cluster: %w", err)
 	}
 
+	err = c.m.Ready(30)
+	if err != nil {
+		return fmt.Errorf("cluster did not come up in time: %w", err)
+	}
+
 	// Joining a node takes some time since services need to be restarted.
 	queryCtx, cancel := context.WithTimeout(ctx, time.Second*180)
 	defer cancel()
