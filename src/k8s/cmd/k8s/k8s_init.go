@@ -34,7 +34,7 @@ var (
 				return fmt.Errorf("failed to initialize k8s cluster: %w", err)
 			}
 
-			logrus.Infof("Initialized k8s cluster on %q (%s).", cluster.Name, cluster.Address)
+			fmt.Printf("Bootstrapped k8s cluster on %q (%s).\n", cluster.Name, cluster.Address)
 			return nil
 		},
 	}

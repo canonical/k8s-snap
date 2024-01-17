@@ -59,7 +59,7 @@ var (
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}
 
-			logrus.Infof("Joined %s (%s) to cluster.", joinNodeCmdOpts.name, joinNodeCmdOpts.address)
+			fmt.Println("Joined the cluster.")
 			return nil
 		},
 	}

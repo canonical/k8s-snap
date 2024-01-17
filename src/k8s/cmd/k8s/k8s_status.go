@@ -1,7 +1,9 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/canonical/k8s/pkg/k8s/client"
@@ -12,6 +14,8 @@ import (
 var (
 	statusCmdOpts struct {
 		outputFormat string
+		timeout      time.Duration
+		waitReady    bool
 	}
 
 	statusCmd = &cobra.Command{
@@ -34,7 +38,15 @@ var (
 				return fmt.Errorf("failed to create client: %w", err)
 			}
 
-			clusterStatus, err := c.ClusterStatus(cmd.Context())
+			const minTimeout = 3
+			if statusCmdOpts.timeout < minTimeout*time.Second {
+				cmd.PrintErrf("Timeout %v is less than minimum of %ds. Using the minimum %ds instead.\n", statusCmdOpts.timeout, minTimeout, minTimeout)
+				statusCmdOpts.timeout = minTimeout * time.Second
+			}
+
+			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), statusCmdOpts.timeout)
+			defer cancel()
+			clusterStatus, err := c.ClusterStatus(timeoutCtx, statusCmdOpts.waitReady)
 			if err != nil {
 				return fmt.Errorf("failed to get cluster status: %w", err)
 			}
@@ -51,4 +63,6 @@ var (
 func init() {
 	rootCmd.AddCommand(statusCmd)
 	rootCmd.PersistentFlags().StringVar(&statusCmdOpts.outputFormat, "format", "plain", "Specify in which format the output should be printed. One of plain, json or yaml")
+	rootCmd.PersistentFlags().DurationVar(&statusCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for the K8s API server to be ready.")
+	rootCmd.PersistentFlags().BoolVar(&statusCmdOpts.waitReady, "wait-ready", false, "If set, the command will block until at least one cluster node is ready.")
 }

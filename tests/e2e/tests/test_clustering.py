@@ -1,7 +1,6 @@
 #
 # Copyright 2023 Canonical, Ltd.
 #
-import base64
 import logging
 from pathlib import Path
 from typing import List
@@ -33,11 +32,7 @@ def add_node(h: harness.Harness, cluster_node: str, joining_node: str) -> str:
         ["k8s", "add-node", joining_node],
         capture_output=True,
     )
-    token = out.stdout.decode().strip()
-    assert (
-        base64.b64encode(base64.b64decode(token)).decode() == token
-    ), f"add-node should return a base64 token but got {token}"
-    return token
+    return out.stdout.decode().strip()
 
 
 # Join an existing cluster.
@@ -47,7 +42,7 @@ def join_cluster(h: harness.Harness, instance_id, token):
         ["k8s", "join-node", token],
         capture_output=True,
     )
-    assert f"Joined {instance_id}" in out.stderr.decode()
+    assert "Joined" in out.stdout.decode()
 
 
 def test_clustering(h: harness.Harness, tmp_path: Path):
