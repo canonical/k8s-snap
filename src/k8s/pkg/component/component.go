@@ -16,6 +16,8 @@ import (
 type ComponentManager interface {
 	// Enable enables a k8s component.
 	Enable(name string) error
+	// EnableWithValues enables a k8s component with custom configuration.
+	EnableWithValues(name string, values map[string]any) error
 	// List returns a list of enabled components.
 	List() ([]Component, error)
 	// Disable disables a component from the cluster.
@@ -42,14 +44,6 @@ type helmClient struct {
 type Component struct {
 	Name   string
 	Status bool
-}
-
-type PostConfigFunc func(values map[string]any) error
-
-// postConfigs defines the functions to be run as post-configuration steps after a
-// component is enabled.
-var postConfigs = map[string]PostConfigFunc{
-	"dns": ExecuteDNSPostConfig,
 }
 
 func logAdapter(format string, v ...any) {
@@ -126,9 +120,36 @@ func (h *helmClient) Enable(name string) error {
 		return fmt.Errorf("failed to enable component '%s': %w", name, err)
 	}
 
-	postconfigFn, exists := postConfigs[name]
-	if exists {
-		return postconfigFn(values)
+	return nil
+}
+
+// Enable enables a specified component.
+func (h *helmClient) EnableWithValues(name string, values map[string]any) error {
+	install := action.NewInstall(h.actionConfig)
+	component, ok := h.config[name]
+	if !ok {
+		return fmt.Errorf("invalid component %s", name)
+	}
+	install.ReleaseName = component.ReleaseName
+	install.Namespace = component.Namespace
+
+	isEnabled, err := h.isComponentEnabled(component.ReleaseName, component.Namespace)
+	if err != nil {
+		return fmt.Errorf("failed to get components status: %w", err)
+	}
+
+	if isEnabled {
+		return nil
+	}
+
+	chart, err := loader.Load(utils.SnapPath("k8s/components/charts", component.Chart))
+	if err != nil {
+		return fmt.Errorf("failed to load component manifest: %w", err)
+	}
+
+	_, err = install.Run(chart, values)
+	if err != nil {
+		return fmt.Errorf("failed to enable component '%s': %w", name, err)
 	}
 
 	return nil

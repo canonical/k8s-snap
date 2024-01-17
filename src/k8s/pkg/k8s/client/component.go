@@ -23,6 +23,20 @@ func (c *Client) ListComponents(ctx context.Context) ([]api.Component, error) {
 	return response.Components, nil
 }
 
+func (c *Client) UpdateDNSComponent(ctx context.Context, request api.UpdateDNSComponentRequest) error {
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	var response api.UpdateDNSComponentResponse
+	// TODO: This URL is a temporary measure to prevent collisions with the /k8sd/components/{name} path
+	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "dns:enable"), request, &response)
+	if err != nil {
+		clientURL := c.mc.URL()
+		return fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
+	}
+	return nil
+}
+
 // UpdateComponent updates the state of a component.
 func (c *Client) UpdateComponent(ctx context.Context, name string, status api.ComponentStatus) error {
 	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)

@@ -12,37 +12,6 @@ type valuesHook func() (map[string]any, error)
 
 var valuesHooks = map[string]valuesHook{
 	"network": networkValues,
-	"dns":     dnsValues,
-}
-
-func dnsValues() (map[string]any, error) {
-	values := map[string]any{
-		"servers": []map[string]any{
-			{
-				"zones": []map[string]any{
-					{"zone": "."},
-				},
-				"port": 53,
-				"plugins": []map[string]any{
-					{"name": "errors"},
-					{"name": "health", "configBlock": "lameduck 5s"},
-					{"name": "ready"},
-					{
-						"name":        "kubernetes",
-						"parameters":  "cluster.local in-addr.arpa ip6.arpa",
-						"configBlock": "pods insecure\nfallthrough in-addr.arpa ip6.arpa\nttl 30",
-					},
-					{"name": "prometheus", "parameters": "0.0.0.0:9153"},
-					{"name": "forward", "parameters": fmt.Sprintf(". %s", "/etc/resolv.conf")},
-					{"name": "cache", "parameters": "30"},
-					{"name": "loop"},
-					{"name": "reload"},
-					{"name": "loadbalance"},
-				},
-			},
-		},
-	}
-	return values, nil
 }
 
 func networkValues() (map[string]any, error) {

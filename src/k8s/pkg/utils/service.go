@@ -16,6 +16,11 @@ func StopService(ctx context.Context, name string) error {
 	return RunCommand(ctx, "snapctl", "stop", serviceName(name))
 }
 
+// RestartService restarts a k8s service. The name can be either prefixed or not.
+func RestartService(ctx context.Context, name string) error {
+	return RunCommand(ctx, "snapctl", "restart", serviceName(name))
+}
+
 // serviceName infers the name of the snapctl daemon from the service name.
 // if the serviceName is the snap name `k8s` (=referes to all services) it will return it as is.
 func serviceName(serviceName string) string {

@@ -21,6 +21,12 @@ var k8sdComponents = rest.Endpoint{
 	Get:  rest.EndpointAction{Handler: componentsGet, AllowUntrusted: false},
 }
 
+// TODO: This endpoint is a temporary measure to prevent collisions with the /k8sd/components/{name} path
+var k8sdDNSComponent = rest.Endpoint{
+	Path: "k8sd/components/dns:enable",
+	Put:  rest.EndpointAction{Handler: dnsComponentPut, AllowUntrusted: false},
+}
+
 var k8sdComponentsName = rest.Endpoint{
 	Path: "k8sd/components/{name}",
 	Put:  rest.EndpointAction{Handler: componentsNamePut, AllowUntrusted: false},
@@ -37,6 +43,19 @@ func componentsGet(s *state.State, r *http.Request) response.Response {
 	}
 
 	return response.SyncResponse(true, &result)
+}
+
+func dnsComponentPut(s *state.State, r *http.Request) response.Response {
+	var req api.UpdateDNSComponentRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
+	}
+
+	err = component.EnableDNSComponent(req)
+
+	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
 }
 
 func componentsNamePut(s *state.State, r *http.Request) response.Response {

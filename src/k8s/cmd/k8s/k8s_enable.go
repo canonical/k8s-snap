@@ -13,7 +13,6 @@ import (
 var componentList = []string{"network", "dns", "gateway", "ingress", "rbac", "storage"}
 
 func init() {
-
 	enableCmd := &cobra.Command{
 		Use:       "enable <component>",
 		Short:     "Enable a specific component in the cluster",
@@ -44,4 +43,5 @@ func init() {
 	}
 
 	rootCmd.AddCommand(enableCmd)
+	enableCmd.AddCommand(enableDNSCmd)
 }

@@ -13,6 +13,22 @@ type UpdateComponentRequest struct {
 	Status ComponentStatus `json:"status"`
 }
 
+// UpdateDNSComponentRequest is used to update the DNS component state.
+type UpdateDNSComponentRequest struct {
+	Config *DNSComponentConfig `json:"config,omitempty"`
+	Status string              `json:"status"`
+}
+
+// DNSComponentConfig holds the configuration values for the DNS component.
+type DNSComponentConfig struct {
+	ClusterDomain       string   `json:"clusterDomain,omitempty"`
+	ServiceIP           string   `json:"serviceIP,omitempty"`
+	UpstreamNameservers []string `json:"upstreamNameservers,omitempty"`
+}
+
+// UpdateComponentResponse is the response for "PUT 1.0/k8sd/components/dns".
+type UpdateDNSComponentResponse struct{}
+
 // UpdateComponentResponse is the response for "PUT 1.0/k8sd/components".
 type UpdateComponentResponse struct{}
 
