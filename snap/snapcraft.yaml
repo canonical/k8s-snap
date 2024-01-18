@@ -55,7 +55,7 @@ parts:
       INSTALL="${SNAPCRAFT_PART_INSTALL}/bin"
       mkdir -p "${INSTALL}"
 
-      for binary in k8s k8sd k8s-dqlite dqlite; do
+      for binary in k8s k8sd k8s-dqlite k8s-apiserver-proxy dqlite; do
         cp "bin/static/${binary}" "${INSTALL}/${binary}"
       done
 
@@ -327,12 +327,12 @@ apps:
       - system-observe
       - opengl
       - kernel-module-observe
-  # k8s-apiserver-proxy:
-  #   install-mode: disable
-  #   command: k8s/wrappers/services/k8s-apiserver-proxy
-  #   daemon: simple
-  #   plugs:
-  #     - network-bind
+  k8s-apiserver-proxy:
+    install-mode: disable
+    command: k8s/wrappers/services/k8s-apiserver-proxy
+    daemon: simple
+    plugs:
+      - network-bind
 
 layout:
   # Kubernetes paths
