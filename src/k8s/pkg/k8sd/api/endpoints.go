@@ -7,10 +7,12 @@ import (
 
 var Endpoints = []rest.Endpoint{
 	k8sdCluster,
+	k8sdClusterJoin,
 	k8sdClusterNode,
 	k8sdDNSComponent,
 	k8sdComponents,
 	k8sdComponentsName,
+	k8sdConfig,
 	k8sdToken,
 
 	kubernetesAuthTokens,

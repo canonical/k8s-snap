@@ -28,11 +28,10 @@ def test_network(h: harness.Harness, tmp_path: Path):
     p = h.exec(
         instance_id,
         [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "k8s",
+            "kubectl",
             "get",
-            "po",
+            "pod",
             "-n",
             "kube-system",
             "-l",
@@ -51,9 +50,8 @@ def test_network(h: harness.Harness, tmp_path: Path):
     p = h.exec(
         instance_id,
         [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "k8s",
+            "kubectl",
             "exec",
             "-it",
             cilium_pod["metadata"]["name"],
@@ -74,15 +72,7 @@ def test_network(h: harness.Harness, tmp_path: Path):
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
     p = h.exec(
         instance_id,
-        [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
-            "apply",
-            "-f",
-            "-",
-        ],
-        check=True,
+        ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
@@ -90,9 +80,8 @@ def test_network(h: harness.Harness, tmp_path: Path):
         h,
         instance_id,
         [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "k8s",
+            "kubectl",
             "wait",
             "--for=condition=ready",
             "pod",
@@ -103,15 +92,13 @@ def test_network(h: harness.Harness, tmp_path: Path):
         ],
         max_retries=3,
         delay_between_retries=1,
-        check=True,
     )
 
     p = h.exec(
         instance_id,
         [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "k8s",
+            "kubectl",
             "exec",
             "-it",
             cilium_pod["metadata"]["name"],

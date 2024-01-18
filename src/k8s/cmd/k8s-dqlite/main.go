@@ -1,14 +1,9 @@
 package k8s_dqlite
 
-import (
-	"os"
-
-	"github.com/sirupsen/logrus"
-)
+import "os"
 
 func Main() {
-	if err := rootCmd.Execute(); err != nil {
-		logrus.WithError(err).Print("k8s-dqlite command failed")
+	if rootCmd.Execute() != nil {
 		os.Exit(1)
 	}
 }

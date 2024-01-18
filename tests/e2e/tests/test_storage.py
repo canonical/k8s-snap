@@ -38,7 +38,6 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         instance_id,
         ["k8s", "enable", "storage"],
         capture_output=True,
-        check=True,
     )
     assert "enabled" in out.stderr.decode()
 
@@ -46,17 +45,7 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     util.retry_until_condition(
         h,
         instance_id,
-        [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
-            "get",
-            "po",
-            "-n",
-            "kube-system",
-            "-o",
-            "json",
-        ],
+        ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
         condition=lambda p: "ck-storage" in p.stdout.decode(),
     )
     LOG.info("Storage provisioner pod showed up.")
@@ -65,9 +54,8 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         h,
         instance_id,
         [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "k8s",
+            "kubectl",
             "wait",
             "--for=condition=ready",
             "pod",
@@ -80,21 +68,12 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         ],
         max_retries=3,
         delay_between_retries=1,
-        check=True,
     )
 
     manifest = MANIFESTS_DIR / "storage-test.yaml"
     h.exec(
         instance_id,
-        [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
-            "apply",
-            "-f",
-            "-",
-        ],
-        check=True,
+        ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
@@ -102,15 +81,7 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     util.retry_until_condition(
         h,
         instance_id,
-        [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
-            "get",
-            "po",
-            "-o",
-            "json",
-        ],
+        ["k8s", "kubectl", "get", "pod", "-o", "json"],
         condition=lambda p: "storage-writer-pod" in p.stdout.decode(),
         delay_between_retries=10,
     )
@@ -120,9 +91,8 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         h,
         instance_id,
         [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "k8s",
+            "kubectl",
             "wait",
             "--for=condition=ready",
             "pod",
@@ -133,22 +103,13 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         ],
         max_retries=3,
         delay_between_retries=1,
-        check=True,
     )
 
     LOG.info("Waiting for storage to get provisioned...")
     util.retry_until_condition(
         h,
         instance_id,
-        [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
-            "get",
-            "pvc",
-            "-o",
-            "json",
-        ],
+        ["k8s", "kubectl", "get", "pvc", "-o", "json"],
         condition=check_pvc_bound,
     )
     LOG.info("Storage got provisioned and pvc is bound.")
@@ -157,15 +118,7 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     util.retry_until_condition(
         h,
         instance_id,
-        [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
-            "get",
-            "po",
-            "-o",
-            "json",
-        ],
+        ["k8s", "kubectl", "get", "pod", "-o", "json"],
         condition=lambda p: "storage-reader-pod" in p.stdout.decode(),
         delay_between_retries=10,
     )
@@ -175,9 +128,8 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         h,
         instance_id,
         [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
+            "k8s",
+            "kubectl",
             "wait",
             "--for=condition=ready",
             "pod",
@@ -188,22 +140,14 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         ],
         max_retries=3,
         delay_between_retries=1,
-        check=True,
     )
 
     util.retry_until_condition(
         h,
         instance_id,
-        [
-            "/snap/k8s/current/bin/kubectl",
-            "--kubeconfig",
-            "/var/snap/k8s/common/etc/kubernetes/admin.conf",
-            "logs",
-            "storage-reader-pod",
-        ],
+        ["k8s", "kubectl", "logs", "storage-reader-pod"],
         condition=lambda p: "LOREM IPSUM" in p.stdout.decode(),
         max_retries=5,
         delay_between_retries=10,
-        check=True,
     )
     LOG.info("Data can be read between pods.")

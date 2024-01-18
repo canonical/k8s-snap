@@ -10,6 +10,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/component"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/state"
@@ -33,7 +34,9 @@ var k8sdComponentsName = rest.Endpoint{
 }
 
 func componentsGet(s *state.State, r *http.Request) response.Response {
-	components, err := impl.GetComponents()
+	snap := snap.SnapFromContext(s.Context)
+
+	components, err := impl.GetComponents(snap)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to get components: %w", err))
 	}
@@ -59,6 +62,8 @@ func dnsComponentPut(s *state.State, r *http.Request) response.Response {
 }
 
 func componentsNamePut(s *state.State, r *http.Request) response.Response {
+	snap := snap.SnapFromContext(s.Context)
+
 	componentName, err := url.PathUnescape(mux.Vars(r)["name"])
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to parse component name from URL '%s': %w", r.URL, err))
@@ -70,7 +75,7 @@ func componentsNamePut(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	manager, err := component.NewManager()
+	manager, err := component.NewManager(snap)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to get component manager: %w", err))
 	}

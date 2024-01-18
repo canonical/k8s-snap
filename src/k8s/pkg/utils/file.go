@@ -1,29 +1,19 @@
 package utils
 
 import (
+	"bufio"
 	"fmt"
 	"html/template"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
+	"sort"
+	"strings"
 	"syscall"
 
 	"github.com/moby/sys/mountinfo"
 )
-
-func SnapPath(parts ...string) string {
-	return filepath.Join(append([]string{os.Getenv("SNAP")}, parts...)...)
-}
-
-func SnapDataPath(parts ...string) string {
-	return filepath.Join(append([]string{os.Getenv("SNAP_DATA")}, parts...)...)
-}
-
-func SnapCommonPath(parts ...string) string {
-	return filepath.Join(append([]string{os.Getenv("SNAP_COMMON")}, parts...)...)
-}
 
 // TemplateAndSave compiles a template with the data and saves it to the given target path.
 func TemplateAndSave(tmplFile string, data any, target string) error {
@@ -35,6 +25,97 @@ func TemplateAndSave(tmplFile string, data any, target string) error {
 	}
 
 	return tmpl.Execute(f, data)
+}
+
+// FileExists returns true if the specified path exists.
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
+}
+
+// ReadFile returns the file contents as a string.
+func ReadFile(path string) (string, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to read %s: %w", path, err)
+	}
+	return string(b), nil
+}
+
+// ParseArgumentLine parses a command-line argument from a single line.
+// The returned key includes any dash prefixes.
+func ParseArgumentLine(line string) (key string, value string) {
+	line = strings.TrimSpace(line)
+
+	// parse "--argument value" and "--argument=value" variants
+	if parts := strings.Split(line, "="); len(parts) >= 2 {
+		key = parts[0]
+		value = parts[1]
+	} else if parts := strings.Split(line, " "); len(parts) >= 2 {
+		key = parts[0]
+		value = strings.Join(parts[1:], " ")
+	} else {
+		key = line
+	}
+
+	return
+}
+
+// Reads an argument file and parses the lines to an <arg, value> map.
+func ParseArgumentFile(path string) (map[string]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read argument file %s: %w", path, err)
+	}
+	defer file.Close()
+
+	sc := bufio.NewScanner(file)
+	lines := make([]string, 0)
+
+	// Read through 'tokens' until an EOF is encountered.
+	for sc.Scan() {
+		lines = append(lines, sc.Text())
+	}
+
+	if err := sc.Err(); err != nil {
+		return nil, fmt.Errorf("failed to scan lines in argument file: %w", err)
+	}
+
+	args := make(map[string]string, len(lines))
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			a, v := ParseArgumentLine(line)
+			args[a] = v
+		}
+	}
+	return args, nil
+}
+
+// Serializes a map of service arguments in the format "argument=value" to file.
+func SerializeArgumentFile(arguments map[string]string, path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("failed to write argument file %s: %w", path, err)
+	}
+	defer file.Close()
+
+	// Order the argument keys alphabetically to make the output deterministic
+	keys := make([]string, 0)
+	for k := range arguments {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		value := arguments[k]
+		if value == "" {
+			// support for boolean flags, e.g. "--allow-feature"
+			file.WriteString(fmt.Sprintf("%s\n", k))
+		} else {
+			file.WriteString(fmt.Sprintf("%s=%s\n", k, value))
+		}
+	}
+
+	return nil
 }
 
 // ChmodRecursive changes permissions of files and folders recursively.
@@ -56,48 +137,6 @@ func ChmodRecursive(name string, mode fs.FileMode) error {
 	}
 
 	return nil
-}
-
-// GetServiceArgument returns the value from `--argument=value` in a service arguments file.
-func GetServiceArgument(service string, argument string) (string, error) {
-	re := regexp.MustCompile(fmt.Sprintf("%s=(.+)", argument))
-
-	b, err := os.ReadFile(SnapDataPath("args", service)) // just pass the file name
-	if err != nil {
-		return "", fmt.Errorf("failed to read args file: %w", err)
-	}
-
-	matches := re.FindStringSubmatch(string(b))
-
-	if len(matches) < 2 {
-		return "", fmt.Errorf("failed to find argument in args file: %w", err)
-	}
-
-	return matches[1], nil
-}
-
-// UpdateServiceArgs updates the value of an argument in a service arguments file.
-func UpdateServiceArgs(argument, value, service string) error {
-	argument = "--" + argument
-	configFile := SnapDataPath("args", service)
-	replaceLine := argument + "=" + value
-
-	fileContent, err := os.ReadFile(configFile)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return os.WriteFile(configFile, []byte(replaceLine+"\n"), 0o644)
-		}
-		return fmt.Errorf("failed to read %s config file: %w", service, err)
-	}
-
-	regexPattern := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(argument) + `=.*$`)
-	if regexPattern.Match(fileContent) {
-		fileContent = regexPattern.ReplaceAll(fileContent, []byte(replaceLine))
-	} else {
-		fileContent = append(fileContent, []byte(replaceLine+"\n")...)
-	}
-
-	return os.WriteFile(configFile, fileContent, 0o644)
 }
 
 // CopyDirectory recursively copies files and directories from the given srcDir.

@@ -1,4 +1,4 @@
-package k8sd
+package k8s_apiserver_proxy
 
 import "os"
 
