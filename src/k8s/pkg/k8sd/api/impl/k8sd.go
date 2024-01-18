@@ -7,6 +7,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/shared"
 	"github.com/canonical/lxd/shared/api"
 	"github.com/canonical/microcluster/state"
@@ -26,7 +27,18 @@ func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus,
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster components: %w", err)
 	}
 
+	k8sClient, err := k8s.NewClient()
+	if err != nil {
+		return apiv1.ClusterStatus{}, fmt.Errorf("failed to create k8s client: %w", err)
+	}
+
+	ready, err := k8s.ClusterReady(ctx, k8sClient)
+	if err != nil {
+		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster components: %w", err)
+	}
+
 	return apiv1.ClusterStatus{
+		Ready:      ready,
 		Members:    members,
 		Components: components,
 	}, nil
