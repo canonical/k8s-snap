@@ -21,9 +21,8 @@ var (
 	}
 
 	rootCmd = &cobra.Command{
-		Use:    "k8s-apiserver-proxy",
-		Short:  "Local API server proxy used in worker nodes. Forwards requests to active kube-apiserver instances",
-		Hidden: true,
+		Use:   "k8s-apiserver-proxy",
+		Short: "Local API server proxy used in worker nodes. Forwards requests to active kube-apiserver instances",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var refreshCh <-chan time.Time
 			if rootCmdOpts.refreshEndpointsInterval == 0 {
