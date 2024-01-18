@@ -5,17 +5,17 @@ import (
 	"net"
 	"strings"
 
-	s "github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-type valuesHook func(s.Snap) (map[string]any, error)
+type valuesHook func(snap.Snap) (map[string]any, error)
 
 var valuesHooks = map[string]valuesHook{
 	"network": networkValues,
 }
 
-func networkValues(snap s.Snap) (map[string]any, error) {
+func networkValues(s snap.Snap) (map[string]any, error) {
 	bpfMnt, err := utils.GetMountPath("bpf")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get bpf mount path: %w", err)
@@ -27,7 +27,7 @@ func networkValues(snap s.Snap) (map[string]any, error) {
 	}
 
 	// TODO: the cluster cidr should be configurable through a common interface
-	clusterCIDRStr := s.GetServiceArgument(snap, "kube-proxy", "--cluster-cidr")
+	clusterCIDRStr := snap.GetServiceArgument(s, "kube-proxy", "--cluster-cidr")
 	clusterCIDRs := strings.Split(clusterCIDRStr, ",")
 	if v := len(clusterCIDRs); v != 1 && v != 2 {
 		return nil, fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", clusterCIDRs)
@@ -55,7 +55,7 @@ func networkValues(snap s.Snap) (map[string]any, error) {
 			"binPath":  "/opt/cni/bin",
 		},
 		"daemon": map[string]any{
-			"runPath": snap.CommonPath("var", "run", "cilium"),
+			"runPath": s.CommonPath("var", "run", "cilium"),
 		},
 		"operator": map[string]any{
 			"replicas": 1,
