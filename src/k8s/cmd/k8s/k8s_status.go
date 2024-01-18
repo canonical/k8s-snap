@@ -7,7 +7,6 @@ import (
 
 	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/canonical/k8s/pkg/k8s/client"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -23,16 +22,10 @@ var (
 		Short:  "Retrieve the current status of the cluster",
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if rootCmdOpts.logDebug {
-				logrus.SetLevel(logrus.TraceLevel)
-			}
-
 			c, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				StorageDir:    clusterCmdOpts.storageDir,
-				RemoteAddress: clusterCmdOpts.remoteAddress,
-				Port:          clusterCmdOpts.port,
-				Verbose:       rootCmdOpts.logVerbose,
-				Debug:         rootCmdOpts.logDebug,
+				StorageDir: clusterCmdOpts.storageDir,
+				Verbose:    rootCmdOpts.logVerbose,
+				Debug:      rootCmdOpts.logDebug,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create client: %w", err)

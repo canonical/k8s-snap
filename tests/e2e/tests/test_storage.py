@@ -31,7 +31,7 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     instance_id = h.new_instance()
 
     util.setup_k8s_snap(h, instance_id, snap_path)
-    h.exec(instance_id, ["k8s", "init"])
+    h.exec(instance_id, ["k8s", "bootstrap"])
     util.setup_network(h, instance_id)
 
     out = h.exec(
@@ -40,7 +40,7 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         capture_output=True,
         check=True,
     )
-    assert "enabled" in out.stderr.decode()
+    assert "enabled" in out.stdout.decode()
 
     LOG.info("Waiting for storage provisioner pod to show up...")
     util.retry_until_condition(

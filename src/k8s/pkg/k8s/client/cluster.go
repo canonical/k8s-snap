@@ -4,30 +4,26 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/canonical/lxd/shared/api"
 )
 
-// Init bootstraps the k8s cluster
-func (c *Client) Init(ctx context.Context) (apiv1.ClusterMember, error) {
+// Bootstrap bootstraps the k8s cluster
+func (c *Client) Bootstrap(ctx context.Context) (apiv1.ClusterMember, error) {
 	// Get system hostname.
 	hostname, err := os.Hostname()
 	if err != nil {
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to retrieve system hostname: %w", err)
 	}
 
-	port, err := strconv.Atoi(c.opts.Port)
-	if err != nil {
-		return apiv1.ClusterMember{}, fmt.Errorf("failed to parse Port: %w", err)
-	}
 	// Get system addrPort.
 	addrPort := util.CanonicalNetworkAddress(
-		util.NetworkInterfaceAddress(), port,
+		util.NetworkInterfaceAddress(), config.DefaultPort,
 	)
 
 	// This should be done behind the REST API.

@@ -2,13 +2,12 @@ package k8s
 
 import (
 	"os"
-
-	"github.com/sirupsen/logrus"
 )
 
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
-		logrus.WithError(err).Print("k8s command failed")
+		// TODO: We need to define actionable error message in the future
+		// That tell the user what went wrong on a high-level and - if possible - how it can be fixed.
 		os.Exit(1)
 	}
 }
