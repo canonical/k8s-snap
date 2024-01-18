@@ -120,6 +120,7 @@ jobs:
 
           ./bin/static/k8s --help
           ./bin/static/k8sd --help
+          ./bin/static/k8s-apiserver-proxy --help
           ./bin/static/k8s-dqlite --help
           ./bin/static/dqlite --help
 
@@ -131,5 +132,6 @@ jobs:
 
           ./bin/dynamic/k8s --help
           ./bin/dynamic/k8sd --help
+          ./bin/dynamic/k8s-apiserver-proxy --help
           ./bin/dynamic/k8s-dqlite --help
           ./bin/dynamic/dqlite --help
