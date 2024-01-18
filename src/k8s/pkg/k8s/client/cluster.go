@@ -63,13 +63,9 @@ func (c *Client) Init(ctx context.Context) (apiv1.ClusterMember, error) {
 
 // ClusterStatus returns the current status of the cluster.
 func (c *Client) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error) {
-	request := apiv1.GetClusterStatusRequest{
-		WaitReady: waitReady,
-	}
 	var response apiv1.GetClusterStatusResponse
-
 	checkFunc := func() bool {
-		err := c.mc.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster"), request, &response)
+		err := c.mc.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster"), nil, &response)
 		if err != nil {
 			return false
 		}

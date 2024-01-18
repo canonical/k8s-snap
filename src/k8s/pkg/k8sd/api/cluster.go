@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"path"
@@ -23,12 +22,6 @@ var k8sdCluster = rest.Endpoint{
 }
 
 func clusterGet(s *state.State, r *http.Request) response.Response {
-	var req apiv1.GetClusterStatusRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to decode request data: %w", err))
-	}
-
 	status, err := impl.GetClusterStatus(r.Context(), s)
 	if err != nil {
 		response.InternalError(err)

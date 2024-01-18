@@ -14,7 +14,7 @@ import (
 var (
 	statusCmdOpts struct {
 		outputFormat string
-		timeout      int
+		timeout      time.Duration
 		waitReady    bool
 	}
 
@@ -38,7 +38,7 @@ var (
 				return fmt.Errorf("failed to create client: %w", err)
 			}
 
-			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), time.Second*time.Duration(statusCmdOpts.timeout))
+			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), time.Second*statusCmdOpts.timeout)
 			defer cancel()
 			clusterStatus, err := c.ClusterStatus(timeoutCtx, statusCmdOpts.waitReady)
 			if err != nil {
@@ -57,6 +57,6 @@ var (
 func init() {
 	rootCmd.AddCommand(statusCmd)
 	rootCmd.PersistentFlags().StringVar(&statusCmdOpts.outputFormat, "format", "plain", "Specify in which format the output should be printed. One of plain, json or yaml")
-	rootCmd.PersistentFlags().IntVar(&statusCmdOpts.timeout, "timeout", 90, "The max time in seconds to wait for the K8s API server to be ready.")
+	rootCmd.PersistentFlags().DurationVar(&statusCmdOpts.timeout, "timeout", 90, "The max time in seconds to wait for the K8s API server to be ready.")
 	rootCmd.PersistentFlags().BoolVar(&statusCmdOpts.waitReady, "wait-ready", false, "If set, the command will block until at least one cluster node is ready.")
 }
