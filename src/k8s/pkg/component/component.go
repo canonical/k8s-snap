@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"helm.sh/helm/v3/pkg/action"
@@ -36,6 +36,7 @@ type helmClient struct {
 	config       map[string]componentDefinition
 	settings     *cli.EnvSettings
 	actionConfig *action.Configuration
+	snap         snap.Snap
 }
 
 // Component defines the name and status of a k8s Component.
@@ -49,10 +50,10 @@ func logAdapter(format string, v ...any) {
 }
 
 // NewManager creates a new Component manager instance.
-func NewManager() (*helmClient, error) {
+func NewManager(snap snap.Snap) (*helmClient, error) {
 	viper.SetConfigName("components")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(utils.SnapPath("k8s/components"))
+	viper.AddConfigPath(snap.Path("k8s/components"))
 	err := viper.ReadInConfig()
 	if err != nil {
 		return nil, err
@@ -77,6 +78,7 @@ func NewManager() (*helmClient, error) {
 		config:       config,
 		settings:     settings,
 		actionConfig: actionConfig,
+		snap:         snap,
 	}, nil
 }
 
@@ -99,7 +101,7 @@ func (h *helmClient) Enable(name string) error {
 		return nil
 	}
 
-	chart, err := loader.Load(utils.SnapPath("k8s/components/charts", component.Chart))
+	chart, err := loader.Load(h.snap.Path("k8s/components/charts", component.Chart))
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
@@ -107,7 +109,7 @@ func (h *helmClient) Enable(name string) error {
 	var values map[string]any = nil
 	valuesHook, ok := valuesHooks[name]
 	if ok {
-		values, err = valuesHook()
+		values, err = valuesHook(h.snap)
 		if err != nil {
 			return fmt.Errorf("could not generate config for component '%s': %w", name, err)
 		}
@@ -198,7 +200,7 @@ func (h *helmClient) Refresh(name string) error {
 	upgrade.Namespace = component.Namespace
 	upgrade.ReuseValues = true
 
-	chart, err := loader.Load(utils.SnapPath(component.Chart))
+	chart, err := loader.Load(h.snap.Path(component.Chart))
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}

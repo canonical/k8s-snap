@@ -3,11 +3,13 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"path"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/setup"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
-	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils/cert"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/state"
@@ -33,47 +35,56 @@ func clusterGet(s *state.State, r *http.Request) response.Response {
 }
 
 func clusterPost(s *state.State, r *http.Request) response.Response {
-	err := setup.InitFolders()
+	snap := snap.SnapFromContext(s.Context)
+
+	err := setup.InitFolders(snap.DataPath("args"))
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to setup folders: %w", err))
 	}
 
-	err = setup.InitServiceArgs()
+	err = setup.InitServiceArgs(snap, apiv1.ExtraServiceArgs{})
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to setup service arguments: %w", err))
 	}
 
-	err = setup.InitContainerd()
+	err = setup.InitContainerd(snap.Path("k8s/config/containerd/config.toml"), snap.Path("opt/cni/bin/"))
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to initialize containerd: %w", err))
 	}
 
-	certMan, err := setup.InitCertificates()
+	certMan, err := setup.InitCertificates(nil)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to setup certificates: %w", err))
 	}
 
-	err = setup.InitKubeconfigs(r.Context(), s, certMan.CA)
+	err = setup.InitKubeconfigs(r.Context(), s, certMan.CA, nil, nil)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to kubeconfig files: %w", err))
 	}
 
-	err = setup.InitKubeApiserver()
+	err = setup.InitKubeApiserver(snap.Path("k8s/config/apiserver-token-hook.tmpl"))
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to initialize kube-apiserver: %w", err))
 	}
 
-	err = setup.InitPermissions(r.Context())
+	err = setup.InitPermissions(r.Context(), snap)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to setup permissions: %w", err))
 	}
 
-	err = impl.WriteK8sDqliteCertInfoToK8sd(r.Context(), s)
+	err = cert.WriteCertKeyPairToK8sd(r.Context(), s, "k8s-dqlite",
+		path.Join(cert.K8sDqlitePkiPath, "cluster.crt"), path.Join(cert.K8sDqlitePkiPath, "cluster.key"))
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to write k8s-dqlite cert to k8sd: %w", err))
 	}
 
-	err = utils.StartService(r.Context(), "k8s")
+	err = cert.WriteCertKeyPairToK8sd(r.Context(), s, "ca",
+		path.Join(cert.KubePkiPath, "ca.crt"), path.Join(cert.KubePkiPath, "ca.key"))
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to write CA to k8sd: %w", err))
+	}
+
+	err = snap.StartService(r.Context(), "k8s")
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to start services: %w", err))
 	}
