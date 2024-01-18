@@ -57,6 +57,6 @@ var (
 func init() {
 	rootCmd.Flags().StringVar(&rootCmdOpts.listenAddress, "listen", ":6443", "listen address")
 	rootCmd.Flags().StringVar(&rootCmdOpts.endpointsConfigFile, "endpoints", "/etc/kubernetes/k8s-apiserver-proxy.json", "configuration file with known kube-apiserver endpoints")
-	rootCmd.Flags().StringVar(&rootCmdOpts.refreshEndpointsKubeconfig, "kubeconfig", "/etc/kubernetes/kubelet.config", "kubeconfig file to use for updating list of known kube-apiserver endpoints")
+	rootCmd.Flags().StringVar(&rootCmdOpts.refreshEndpointsKubeconfig, "kubeconfig", "/etc/kubernetes/kubelet.conf", "kubeconfig file to use for updating list of known kube-apiserver endpoints")
 	rootCmd.Flags().DurationVar(&rootCmdOpts.refreshEndpointsInterval, "refresh-interval", 30*time.Second, "interval between checking for new kube-apiserver endpoints. set to 0 to disable")
 }
