@@ -8,7 +8,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
@@ -90,7 +89,7 @@ func createClusterInitFile(voters []string, host string) error {
 }
 
 func waitForNodeJoin(ctx context.Context, dqlitePath string, host string) error {
-	checkFunc := func() bool {
+	checkFunc := func() (bool, error) {
 		cmd := exec.Command(
 			dqlitePath,
 			"-s", fmt.Sprintf("file://%s/cluster.yaml", cert.K8sDqlitePkiPath),
@@ -101,10 +100,13 @@ func waitForNodeJoin(ctx context.Context, dqlitePath string, host string) error 
 
 		out, err := cmd.CombinedOutput()
 		if err != nil {
-			return false
+			return false, fmt.Errorf("failed to execute dqlite: %w", err)
 		}
-		return strings.Contains(string(out), host)
+		return strings.Contains(string(out), host), nil
 	}
 
-	return utils.WaitUntilReady(ctx, checkFunc, time.Minute, fmt.Sprintf("node (%s) did not finish joining the cluster within time", host))
+	if err := utils.WaitUntilReady(ctx, checkFunc); err != nil {
+		return fmt.Errorf("node (%s) did not finish joining the cluster within time: %w", host, err)
+	}
+	return nil
 }

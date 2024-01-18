@@ -7,19 +7,18 @@ import (
 )
 
 // WaitUntilReady waits until the specified condition becomes true.
-func WaitUntilReady(ctx context.Context, checkFunc func() bool, timeout time.Duration, errorMessage string) error {
+// checkFunc can return an error to return early.
+func WaitUntilReady(ctx context.Context, checkFunc func() (bool, error)) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(timeout):
-			return fmt.Errorf("%s: %w", errorMessage, context.DeadlineExceeded)
-		default:
-			ready := checkFunc()
-			if ready {
+		case <-time.After(time.Second):
+			if ok, err := checkFunc(); err != nil {
+				return fmt.Errorf("wait check failed: %w", err)
+			} else if ok {
 				return nil
 			}
-			<-time.After(time.Second)
 		}
 	}
 }
