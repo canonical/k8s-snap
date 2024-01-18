@@ -327,12 +327,12 @@ apps:
       - system-observe
       - opengl
       - kernel-module-observe
-  # k8s-apiserver-proxy:
-  #   install-mode: disable
-  #   command: k8s/wrappers/services/k8s-apiserver-proxy
-  #   daemon: simple
-  #   plugs:
-  #     - network-bind
+  k8s-apiserver-proxy:
+    install-mode: disable
+    command: k8s/wrappers/services/k8s-apiserver-proxy
+    daemon: simple
+    plugs:
+      - network-bind
 
 layout:
   # Kubernetes paths
