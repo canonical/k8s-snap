@@ -22,7 +22,7 @@ var (
 	nextIdx int
 )
 
-// DB creates transactions against the microcluster database.
+// DB is an interface for the internal microcluster DB type.
 type DB interface {
 	Transaction(ctx context.Context, f func(context.Context, *sql.Tx) error) error
 }
