@@ -30,7 +30,7 @@ var (
 				return fmt.Errorf("failed to initialize k8sd: %w", err)
 			}
 
-			if err := app.Run(); err != nil {
+			if err := app.Run(nil); err != nil {
 				return fmt.Errorf("failed to run k8sd: %w", err)
 			}
 			return nil
