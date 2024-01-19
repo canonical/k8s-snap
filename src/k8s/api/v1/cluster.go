@@ -1,5 +1,10 @@
 package v1
 
+import (
+	"fmt"
+	"strings"
+)
+
 // GetClusterStatusRequest is used to request the current status of the cluster.
 type GetClusterStatusRequest struct{}
 
@@ -69,4 +74,31 @@ func (c ClusterStatus) HaClusterFormed() bool {
 		}
 	}
 	return voters > 2
+}
+
+func (c ClusterStatus) String() string {
+	result := strings.Builder{}
+
+	if c.Ready {
+		result.WriteString("k8s is running")
+	} else {
+		result.WriteString("k8s is not running.\n")
+		return result.String()
+	}
+	result.WriteString("\n")
+
+	result.WriteString("high-availability: ")
+	if c.HaClusterFormed() {
+		result.WriteString("yes")
+	} else {
+		result.WriteString("no")
+	}
+	result.WriteString("\n\n")
+
+	result.WriteString("components:\n")
+	for _, component := range c.Components {
+		result.WriteString(fmt.Sprintf("  %s: %s\n", component.Name, component.Status))
+	}
+
+	return result.String()
 }

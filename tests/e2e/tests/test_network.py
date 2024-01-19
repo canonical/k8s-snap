@@ -116,3 +116,5 @@ def test_network(h: harness.Harness, tmp_path: Path):
         capture_output=True,
     )
     assert "nginx" in p.stdout.decode().strip()
+
+    h.cleanup()
