@@ -8,6 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/microcluster/config"
 	"github.com/canonical/microcluster/microcluster"
 )
 
@@ -53,9 +54,9 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 }
 
 // Run starts the microcluster node and waits until it terminates.
-func (a *App) Run() error {
+func (a *App) Run(hooks *config.Hooks) error {
 	// TODO: define endpoints, schema migrations, hooks
-	err := a.MicroCluster.Start(api.Endpoints, database.SchemaExtensions, nil)
+	err := a.MicroCluster.Start(api.Endpoints, database.SchemaExtensions, hooks)
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
 	}
