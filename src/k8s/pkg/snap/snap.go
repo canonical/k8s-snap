@@ -58,6 +58,7 @@ func (s *snap) Path(parts ...string) string {
 func (s *snap) DataPath(parts ...string) string {
 	return filepath.Join(append([]string{s.snapDataDir}, parts...)...)
 }
+
 func (s *snap) CommonPath(parts ...string) string {
 	return filepath.Join(append([]string{s.snapCommonDir}, parts...)...)
 }
@@ -72,12 +73,17 @@ func (s *snap) StopService(ctx context.Context, name string) error {
 	return utils.RunCommand(ctx, "snapctl", "stop", serviceName(name))
 }
 
+// RestartService restarts a k8s service. The name can be either prefixed or not.
+func (s *snap) RestartService(ctx context.Context, name string) error {
+	return utils.RunCommand(ctx, "snapctl", "restart", serviceName(name))
+}
+
 func (s *snap) ReadServiceArguments(serviceName string) (string, error) {
 	return utils.ReadFile(s.DataPath("args", serviceName))
 }
 
 func (s *snap) WriteServiceArguments(serviceName string, arguments []byte) error {
-	return os.WriteFile(s.DataPath("args", serviceName), arguments, 0660)
+	return os.WriteFile(s.DataPath("args", serviceName), arguments, 0o660)
 }
 
 // serviceName infers the name of the snapctl daemon from the service name.

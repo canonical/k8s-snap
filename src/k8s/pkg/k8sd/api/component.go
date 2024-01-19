@@ -56,7 +56,14 @@ func dnsComponentPut(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	err = component.EnableDNSComponent(req)
+	snap := snap.SnapFromContext(s.Context)
+
+	err = component.EnableDNSComponent(
+		req.Config.ClusterDomain,
+		req.Config.ServiceIP,
+		req.Config.UpstreamNameservers,
+		snap,
+	)
 
 	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
 }
@@ -80,8 +87,9 @@ func componentsNamePut(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to get component manager: %w", err))
 	}
 
+	var values map[string]any
 	if req.Status == api.ComponentEnable {
-		err = manager.Enable(componentName)
+		err = manager.EnableWithValues(componentName, values)
 	} else {
 		err = manager.Disable(componentName)
 	}

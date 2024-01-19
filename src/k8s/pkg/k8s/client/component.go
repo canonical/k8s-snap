@@ -31,8 +31,7 @@ func (c *Client) UpdateDNSComponent(ctx context.Context, request api.UpdateDNSCo
 	// TODO: This URL is a temporary measure to prevent collisions with the /k8sd/components/{name} path
 	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "dns:enable"), request, &response)
 	if err != nil {
-		clientURL := c.mc.URL()
-		return fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
+		return fmt.Errorf("failed to enable dns component: %w", err)
 	}
 	return nil
 }

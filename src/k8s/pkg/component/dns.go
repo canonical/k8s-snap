@@ -6,30 +6,20 @@ import (
 	"strings"
 	"time"
 
-	api "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-func EnableDNSComponent(request api.UpdateDNSComponentRequest) error {
-	manager, err := NewManager()
+func EnableDNSComponent(clusterDomain, serviceIP string, upstreamNameservers []string, snapIns snap.Snap) error {
+	manager, err := NewManager(snapIns)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	var serviceIP string
 	upstreamNameserver := "/etc/resolv.conf"
-	clusterDomain := "cluster.local"
-	if request.Config != nil {
-		config := request.Config
-		if len(config.UpstreamNameservers) > 0 {
-			upstreamNameserver = strings.Join(config.UpstreamNameservers, " ")
-		}
-
-		if config.ClusterDomain != "" {
-			clusterDomain = config.ClusterDomain
-		}
-
-		serviceIP = config.ServiceIP
+	clusterDomain = "cluster.local"
+	if len(upstreamNameservers) > 0 {
+		upstreamNameserver = strings.Join(upstreamNameservers, " ")
 	}
 
 	values := map[string]any{
@@ -85,23 +75,25 @@ func EnableDNSComponent(request api.UpdateDNSComponentRequest) error {
 
 	dnsIP := svc.Spec.ClusterIP
 
-	err = utils.UpdateServiceArgs("cluster-dns", dnsIP, "kubelet")
-	if err != nil {
-		return fmt.Errorf("failed to update cluster-dns argument: %w", err)
+	kubeletArgs := []map[string]string{
+		{"cluster-dns": dnsIP},
+		{"cluster-domain": clusterDomain},
 	}
 
-	err = utils.UpdateServiceArgs("cluster-domain", clusterDomain, "kubelet")
+	changed, err := snap.UpdateServiceArguments(snapIns, "kubelet", kubeletArgs, []string{})
 	if err != nil {
-		return fmt.Errorf("failed to update cluster-domain argument: %w", err)
+		return fmt.Errorf("failed to update 'kubelet' arguments: %w", err)
 	}
 
-	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	if changed {
+		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
-	err = utils.RestartService(ctx, "kubelet")
-	if err != nil {
-		return fmt.Errorf("failed to restart service 'kubelet': %w", err)
+		err = snapIns.RestartService(ctx, "kubelet")
+		if err != nil {
+			return fmt.Errorf("failed to restart service 'kubelet': %w", err)
+		}
+
 	}
-
 	return nil
 }

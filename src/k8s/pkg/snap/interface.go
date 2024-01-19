@@ -13,6 +13,8 @@ type Snap interface {
 	StartService(ctx context.Context, serviceName string) error
 	// StopService stops a k8s service.
 	StopService(ctx context.Context, serviceName string) error
+	// RestartService restarts a k8s service.
+	RestartService(ctx context.Context, serviceName string) error
 
 	// Path concenates any passed path parts with the $SNAP path
 	Path(parts ...string) string

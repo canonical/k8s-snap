@@ -25,6 +25,10 @@ func (s *Snap) StopService(_ context.Context, service string) error {
 	return nil
 }
 
+func (s *Snap) RestartService(_ context.Context, service string) error {
+	return nil
+}
+
 func (s *Snap) ReadServiceArguments(service string) (string, error) {
 	if s.ServiceArguments == nil {
 		s.ServiceArguments = make(map[string]string)
@@ -48,6 +52,7 @@ func (s *Snap) Path(parts ...string) string {
 func (s *Snap) DataPath(parts ...string) string {
 	return filepath.Join(parts...)
 }
+
 func (s *Snap) CommonPath(parts ...string) string {
 	return filepath.Join(parts...)
 }

@@ -15,8 +15,8 @@ type UpdateComponentRequest struct {
 
 // UpdateDNSComponentRequest is used to update the DNS component state.
 type UpdateDNSComponentRequest struct {
-	Config *DNSComponentConfig `json:"config,omitempty"`
-	Status string              `json:"status"`
+	Status ComponentStatus    `json:"status"`
+	Config DNSComponentConfig `json:"config,omitempty"`
 }
 
 // DNSComponentConfig holds the configuration values for the DNS component.

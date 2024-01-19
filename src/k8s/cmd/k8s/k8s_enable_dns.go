@@ -27,15 +27,13 @@ var enableDNSCmd = &cobra.Command{
 			return fmt.Errorf("failed to create client: %w", err)
 		}
 
-		config := api.DNSComponentConfig{
-			ServiceIP:           dnsConfig.ServiceIP,
-			UpstreamNameservers: dnsConfig.UpstreamNameservers,
-			ClusterDomain:       dnsConfig.ClusterDomain,
-		}
-
 		request := api.UpdateDNSComponentRequest{
-			Status: "enabled",
-			Config: &config,
+			Status: api.ComponentEnable,
+			Config: api.DNSComponentConfig{
+				ServiceIP:           dnsConfig.ServiceIP,
+				UpstreamNameservers: dnsConfig.UpstreamNameservers,
+				ClusterDomain:       dnsConfig.ClusterDomain,
+			},
 		}
 
 		err = client.UpdateDNSComponent(cmd.Context(), request)

@@ -14,9 +14,8 @@ import (
 
 // ComponentManager defines an interface for managing k8s components.
 type ComponentManager interface {
-	// Enable enables a k8s component.
+	// Enable enables a k8s component, optionally specifying custom configuration options.
 	Enable(name string) error
-	// EnableWithValues enables a k8s component with custom configuration.
 	EnableWithValues(name string, values map[string]any) error
 	// List returns a list of enabled components.
 	List() ([]Component, error)
@@ -143,12 +142,10 @@ func (h *helmClient) EnableWithValues(name string, values map[string]any) error 
 	if isEnabled {
 		return nil
 	}
-
-	chart, err := loader.Load(utils.SnapPath("k8s/components/charts", component.Chart))
+	chart, err := loader.Load(h.snap.Path("k8s/components/charts", component.Chart))
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
-
 	_, err = install.Run(chart, values)
 	if err != nil {
 		return fmt.Errorf("failed to enable component '%s': %w", name, err)
