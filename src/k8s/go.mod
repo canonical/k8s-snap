@@ -10,6 +10,7 @@ require (
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/mattn/go-sqlite3 v1.14.18
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/sys/mountinfo v0.6.2
 	github.com/onsi/gomega v1.30.0
 	github.com/pkg/errors v0.9.1
@@ -121,7 +122,6 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/locker v1.0.1 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect

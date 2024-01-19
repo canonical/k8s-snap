@@ -78,7 +78,8 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 	}
 
 	nextIdx++
-	if err := app.MicroCluster.NewCluster("test", fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), microclusterDatabaseInitTimeout); err != nil {
+	fmt.Println(app.MicroCluster.FileSystem.DatabaseDir)
+	if err := app.MicroCluster.NewCluster(fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), microclusterDatabaseInitTimeout); err != nil {
 		t.Fatalf("microcluster app failed to bootstrap: %v", err)
 	}
 
