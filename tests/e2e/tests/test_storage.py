@@ -151,3 +151,5 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         delay_between_retries=10,
     )
     LOG.info("Data can be read between pods.")
+
+    h.cleanup()
