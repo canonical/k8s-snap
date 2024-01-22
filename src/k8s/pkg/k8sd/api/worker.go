@@ -9,6 +9,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
@@ -90,10 +91,10 @@ func k8sdWorkerInfoPost(s *state.State, r *http.Request) response.Response {
 		return response.BadRequest(fmt.Errorf("node name cannot be empty"))
 	}
 
-	var clusterConfig database.ClusterConfig
+	var clusterConfig clusterconfigs.ClusterConfig
 	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		clusterConfig, err = database.GetClusterConfig(ctx, tx)
+		clusterConfig, err = clusterconfigs.GetClusterConfig(ctx, tx)
 		if err != nil {
 			return fmt.Errorf("failed to retrieve cluster configuration: %w", err)
 		}

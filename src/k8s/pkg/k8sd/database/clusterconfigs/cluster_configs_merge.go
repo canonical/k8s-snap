@@ -1,4 +1,4 @@
-package database
+package clusterconfigs
 
 import "fmt"
 
@@ -13,10 +13,10 @@ func mergeValue[T comparable](old T, new T, allowChange bool) (T, error) {
 	return old, nil
 }
 
-// mergeConfig applies updates from non-empty values of the new ClusterConfig to an existing one.
-// mergeConfig will return an error if we try to update a config that must not be updated. once such an operation is implemented in the future, we can allow the change here.
-// mergeConfig will create a new ClusterConfig object to avoid mutating the existing config objects.
-func mergeConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfig, error) {
+// Merge applies updates from non-empty values of the new ClusterConfig to an existing one.
+// Merge will return an error if we try to update a config that must not be updated. once such an operation is implemented in the future, we can allow the change here.
+// Merge will create a new ClusterConfig object to avoid mutating the existing config objects.
+func Merge(existing ClusterConfig, new ClusterConfig) (ClusterConfig, error) {
 	var (
 		config ClusterConfig
 		err    error
@@ -37,6 +37,7 @@ func mergeConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfig, erro
 		{name: "apiserver-to-kubelet key", val: &config.Certificates.APIServerToKubeletKey, old: existing.Certificates.APIServerToKubeletKey, new: new.Certificates.APIServerToKubeletKey, allowChange: true},
 		{name: "front proxy CA certificate", val: &config.Certificates.FrontProxyCACert, old: existing.Certificates.FrontProxyCACert, new: new.Certificates.FrontProxyCACert, allowChange: true},
 		{name: "front proxy CA key", val: &config.Certificates.FrontProxyCAKey, old: existing.Certificates.FrontProxyCAKey, new: new.Certificates.FrontProxyCAKey, allowChange: true},
+		{name: "authorization-mode", val: &config.APIServer.AuthorizationMode, old: existing.APIServer.AuthorizationMode, new: new.APIServer.AuthorizationMode, allowChange: true},
 		{name: "service account key", val: &config.APIServer.ServiceAccountKey, old: existing.APIServer.ServiceAccountKey, new: new.APIServer.ServiceAccountKey},
 		{name: "cluster cidr", val: &config.Cluster.CIDR, old: existing.Cluster.CIDR, new: new.Cluster.CIDR},
 		{name: "datastore", val: &config.APIServer.Datastore, old: existing.APIServer.Datastore, new: new.APIServer.Datastore, allowChange: true},

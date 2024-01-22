@@ -15,11 +15,11 @@ import (
 
 var (
 	k8sdTokensStmts = map[string]int{
-		"insert-token":       mustPrepareStatement("kubernetes-auth-tokens", "insert-token.sql"),
-		"select-by-token":    mustPrepareStatement("kubernetes-auth-tokens", "select-by-token.sql"),
-		"select-by-username": mustPrepareStatement("kubernetes-auth-tokens", "select-by-username.sql"),
-		"delete-by-token":    mustPrepareStatement("kubernetes-auth-tokens", "delete-by-token.sql"),
-		"delete-by-username": mustPrepareStatement("kubernetes-auth-tokens", "delete-by-username.sql"),
+		"insert-token":       MustPrepareStatement("kubernetes-auth-tokens", "insert-token.sql"),
+		"select-by-token":    MustPrepareStatement("kubernetes-auth-tokens", "select-by-token.sql"),
+		"select-by-username": MustPrepareStatement("kubernetes-auth-tokens", "select-by-username.sql"),
+		"delete-by-token":    MustPrepareStatement("kubernetes-auth-tokens", "delete-by-token.sql"),
+		"delete-by-username": MustPrepareStatement("kubernetes-auth-tokens", "delete-by-username.sql"),
 	}
 )
 

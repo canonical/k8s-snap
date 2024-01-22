@@ -13,10 +13,12 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/setup"
-	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -27,7 +29,7 @@ func onBootstrap(s *state.State, initConfig map[string]string) error {
 		return onBootstrapWorkerNode(s, workerToken)
 	}
 
-	return onBootstrapControlPlane(s)
+	return onBootstrapControlPlane(s, initConfig)
 }
 
 func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
@@ -135,7 +137,7 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	return nil
 }
 
-func onBootstrapControlPlane(s *state.State) error {
+func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error {
 	snap := snap.SnapFromContext(s.Context)
 
 	err := setup.InitFolders(snap.DataPath("args"))
@@ -189,25 +191,37 @@ func onBootstrapControlPlane(s *state.State) error {
 	//                   - see "k8s::init::k8s_dqlite" in k8s/lib.sh for details.
 	//                   - do not bind on 127.0.0.1, use configuration option or fallback to default address like microcluster.
 
+	clusterConfig := clusterconfigs.Default()
+	bootstrapConfig, err := apiv1.BootstrapConfigFromMap(initConfig)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
+	}
+
+	clusterConfig, err = clusterconfigs.Merge(clusterConfig, utils.ConvertBootstrapToClusterConfig(bootstrapConfig))
+	if err != nil {
+		return fmt.Errorf("failed to merge cluster config with bootstrap config: %w", err)
+	}
+
 	// TODO(neoaggelos): first generate config then reconcile state
 	s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-		return database.SetClusterConfig(ctx, tx, database.ClusterConfig{
-			Cluster: database.ClusterConfigCluster{
-				CIDR: "10.1.0.0/16",
-			},
-			APIServer: database.ClusterConfigAPIServer{
-				AuthorizationMode: "Node,RBAC",
-				SecurePort:        6443,
-			},
-			Kubelet: database.ClusterConfigKubelet{
-				ClusterDomain: "cluster.local",
-			},
-		})
+		return clusterconfigs.SetClusterConfig(ctx, tx, clusterConfig)
 	})
 
 	err = snap.StartService(s.Context, "k8s")
 	if err != nil {
 		return fmt.Errorf("failed to start services: %w", err)
 	}
+	k8sClient, err := k8s.NewClient()
+	if err != nil {
+		return fmt.Errorf("failed to create k8s client: %w", err)
+	}
+
+	// The apiserver needs to be ready to start components.
+	err = k8s.WaitApiServerReady(s.Context, k8sClient)
+	if err != nil {
+		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
+	}
+
+	// TODO: start configured components.
 	return nil
 }
