@@ -81,6 +81,10 @@ def retry_until_condition(
                 or isinstance(e, AssertionError)
             ):
                 LOG.info(f"Attempt {attempt}/{max_retries} failed. Error: {e}")
+                if isinstance(e, subprocess.CalledProcessError):
+                    LOG.error(f"  rc={e.returncode}")
+                    LOG.error(f"  stdout={e.stdout.decode()}")
+                    LOG.error(f"  stderr={e.stderr.decode()}")
                 if attempt < max_retries:
                     LOG.info(f"Retrying in {delay_between_retries} seconds...")
                     time.sleep(delay_between_retries)
@@ -93,15 +97,11 @@ def setup_network(h: harness.Harness, instance_id: str):
     h.exec(instance_id, ["/snap/k8s/current/k8s/network-requirements.sh"])
 
     LOG.info("Waiting for network to be enabled...")
-    def network_enabled(p):
-        LOG.debug(f"stderr={p.stderr.decode()}")
-        LOG.debug(f"stderr={p.stdout.decode()}")
-        return "enabled" in p.stderr.decode()
     retry_until_condition(
         h,
         instance_id,
         ["k8s", "enable", "network"],
-        condition=network_enabled,
+        condition=lambda p: "enabled" in p.stdout.decode(),
     )
     LOG.info("Network enabled.")
 
