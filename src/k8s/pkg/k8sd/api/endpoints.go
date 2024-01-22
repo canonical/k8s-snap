@@ -10,8 +10,8 @@ var Endpoints = []rest.Endpoint{
 	k8sdClusterJoin,
 	k8sdClusterNode,
 	k8sdDNSComponent,
+	k8sdNetworkComponent,
 	k8sdComponents,
-	k8sdComponentsName,
 	k8sdConfig,
 	k8sdToken,
 

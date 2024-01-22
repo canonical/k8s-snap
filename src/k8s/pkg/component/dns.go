@@ -10,14 +10,17 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-func EnableDNSComponent(clusterDomain, serviceIP string, upstreamNameservers []string, snapIns snap.Snap) error {
-	manager, err := NewManager(snapIns)
+func EnableDNSComponent(clusterDomain, serviceIP string, upstreamNameservers []string, s snap.Snap) error {
+	manager, err := NewManager(s)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
 	upstreamNameserver := "/etc/resolv.conf"
-	clusterDomain = "cluster.local"
+	if clusterDomain == "" {
+		clusterDomain = "cluster.local"
+	}
+
 	if len(upstreamNameservers) > 0 {
 		upstreamNameserver = strings.Join(upstreamNameservers, " ")
 	}
@@ -55,7 +58,7 @@ func EnableDNSComponent(clusterDomain, serviceIP string, upstreamNameservers []s
 		}
 	}
 
-	err = manager.EnableWithValues("dns", values)
+	err = manager.Enable("dns", values)
 	if err != nil {
 		return fmt.Errorf("failed to enable dns component: %w", err)
 	}
@@ -76,11 +79,11 @@ func EnableDNSComponent(clusterDomain, serviceIP string, upstreamNameservers []s
 	dnsIP := svc.Spec.ClusterIP
 
 	kubeletArgs := []map[string]string{
-		{"cluster-dns": dnsIP},
-		{"cluster-domain": clusterDomain},
+		{"--cluster-dns": dnsIP},
+		{"--cluster-domain": clusterDomain},
 	}
 
-	changed, err := snap.UpdateServiceArguments(snapIns, "kubelet", kubeletArgs, []string{})
+	changed, err := snap.UpdateServiceArguments(s, "kubelet", kubeletArgs, []string{})
 	if err != nil {
 		return fmt.Errorf("failed to update 'kubelet' arguments: %w", err)
 	}
@@ -89,11 +92,47 @@ func EnableDNSComponent(clusterDomain, serviceIP string, upstreamNameservers []s
 		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		err = snapIns.RestartService(ctx, "kubelet")
+		err = s.RestartService(ctx, "kubelet")
 		if err != nil {
 			return fmt.Errorf("failed to restart service 'kubelet': %w", err)
 		}
 
 	}
+	return nil
+}
+
+func DisableDNSComponent(s snap.Snap) error {
+	manager, err := NewManager(s)
+	if err != nil {
+		return fmt.Errorf("failed to get component manager: %w", err)
+	}
+
+	err = manager.Disable("dns")
+	if err != nil {
+		return fmt.Errorf("failed to disable dns component: %w", err)
+	}
+
+	kubeletArgs := []map[string]string{
+		{"--cluster-domain": "cluster.local"},
+	}
+
+	removeArgs := []string{"--cluster-dns"}
+
+	changed, err := snap.UpdateServiceArguments(s, "kubelet", kubeletArgs, removeArgs)
+	if err != nil {
+		return fmt.Errorf("failed to update 'kubelet' arguments: %w", err)
+	}
+
+	if changed {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		err = s.RestartService(ctx, "kubelet")
+		if err != nil {
+			return fmt.Errorf("failed to restart service 'kubelet': %w", err)
+		}
+
+	}
+
 	return nil
 }

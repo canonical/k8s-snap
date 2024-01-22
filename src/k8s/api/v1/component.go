@@ -26,11 +26,16 @@ type DNSComponentConfig struct {
 	UpstreamNameservers []string `json:"upstreamNameservers,omitempty"`
 }
 
-// UpdateComponentResponse is the response for "PUT 1.0/k8sd/components/dns".
+// UpdateDNSComponentRequest is used to update the DNS component state.
+type UpdateNetworkComponentRequest struct {
+	Status ComponentStatus `json:"status"`
+}
+
+// UpdateDNSComponentResponse is the response for "PUT 1.0/k8sd/components/dns".
 type UpdateDNSComponentResponse struct{}
 
-// UpdateComponentResponse is the response for "PUT 1.0/k8sd/components".
-type UpdateComponentResponse struct{}
+// UpdateNetworkComponentResponse is the response for "PUT 1.0/k8sd/components/network".
+type UpdateNetworkComponentResponse struct{}
 
 // Component holds information about a k8s component.
 type Component struct {

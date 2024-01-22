@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -10,8 +11,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
+type disableFunc func(ctx context.Context, client *client.Client) error
 
+var disableActions = map[string]disableFunc{
+	"dns":     disableDns,
+	"network": disableNetwork,
+}
+
+func init() {
 	disableCmd := &cobra.Command{
 		Use:       "disable <component>",
 		Short:     "Disable a specific component in the cluster",
@@ -31,9 +38,14 @@ func init() {
 				return fmt.Errorf("failed to create client: %w", err)
 			}
 
-			err = client.UpdateComponent(cmd.Context(), name, api.ComponentDisable)
+			action, ok := disableActions[name]
+			if !ok {
+				return fmt.Errorf("unsupported component: %s", name)
+			}
+
+			err = action(cmd.Context(), client)
 			if err != nil {
-				return fmt.Errorf("failed to %s %s: %w", name, api.ComponentDisable, err)
+				return fmt.Errorf("failed to disable %s component: %w", name, err)
 			}
 
 			logrus.WithField("component", name).Info("Component disabled.")
@@ -42,4 +54,18 @@ func init() {
 	}
 
 	rootCmd.AddCommand(disableCmd)
+}
+
+func disableDns(ctx context.Context, client *client.Client) error {
+	request := api.UpdateDNSComponentRequest{
+		Status: api.ComponentDisable,
+	}
+	return client.UpdateDNSComponent(ctx, request)
+}
+
+func disableNetwork(ctx context.Context, client *client.Client) error {
+	request := api.UpdateNetworkComponentRequest{
+		Status: api.ComponentDisable,
+	}
+	return client.UpdateNetworkComponent(ctx, request)
 }

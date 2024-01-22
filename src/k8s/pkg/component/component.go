@@ -84,48 +84,7 @@ func NewManager(snap snap.Snap) (*helmClient, error) {
 }
 
 // Enable enables a specified component.
-func (h *helmClient) Enable(name string) error {
-	install := action.NewInstall(h.actionConfig)
-	component, ok := h.config[name]
-	if !ok {
-		return fmt.Errorf("invalid component %s", name)
-	}
-	install.ReleaseName = component.ReleaseName
-	install.Namespace = component.Namespace
-
-	isEnabled, err := h.isComponentEnabled(component.ReleaseName, component.Namespace)
-	if err != nil {
-		return fmt.Errorf("failed to get components status: %w", err)
-	}
-
-	if isEnabled {
-		return nil
-	}
-
-	chart, err := loader.Load(h.snap.Path("k8s/components/charts", component.Chart))
-	if err != nil {
-		return fmt.Errorf("failed to load component manifest: %w", err)
-	}
-
-	var values map[string]any = nil
-	valuesHook, ok := valuesHooks[name]
-	if ok {
-		values, err = valuesHook(h.snap)
-		if err != nil {
-			return fmt.Errorf("could not generate config for component '%s': %w", name, err)
-		}
-	}
-
-	_, err = install.Run(chart, values)
-	if err != nil {
-		return fmt.Errorf("failed to enable component '%s': %w", name, err)
-	}
-
-	return nil
-}
-
-// Enable enables a specified component.
-func (h *helmClient) EnableWithValues(name string, values map[string]any) error {
+func (h *helmClient) Enable(name string, values map[string]any) error {
 	install := action.NewInstall(h.actionConfig)
 	component, ok := h.config[name]
 	if !ok {
