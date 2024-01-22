@@ -35,6 +35,11 @@ var k8sdStorageComponent = rest.Endpoint{
 	Put:  rest.EndpointAction{Handler: storageComponentPut, AllowUntrusted: false},
 }
 
+var k8sdIngressComponent = rest.Endpoint{
+	Path: "k8sd/components/ingress",
+	Put:  rest.EndpointAction{Handler: ingressComponentPut, AllowUntrusted: false},
+}
+
 func componentsGet(s *state.State, r *http.Request) response.Response {
 	snap := snap.SnapFromContext(s.Context)
 
@@ -108,4 +113,29 @@ func storageComponentPut(s *state.State, r *http.Request) response.Response {
 		err = component.DisableStorageComponent(snap)
 	}
 	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
+}
+
+func ingressComponentPut(s *state.State, r *http.Request) response.Response {
+	var req api.UpdateIngressComponentRequest
+	snap := snap.SnapFromContext(s.Context)
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
+	}
+
+	if req.Status == api.ComponentEnable {
+		err = component.EnableIngressComponent(
+			snap,
+			req.Config.DefaultTLSSecret,
+			req.Config.EnableProxyProtocol,
+		)
+	} else {
+		err = component.DisableIngressComponent(snap)
+	}
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to %s %s: %w", req.Status, "ingress", err))
+	}
+
+	return response.SyncResponse(true, &api.UpdateIngressComponentResponse{})
 }

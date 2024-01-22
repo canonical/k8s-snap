@@ -26,9 +26,10 @@ type ComponentManager interface {
 
 // componentDefinition defines each component metadata.
 type componentDefinition struct {
-	ReleaseName string `mapstructure:"release"`
-	Chart       string `mapstructure:"chart"`
-	Namespace   string `mapstructure:"namespace"`
+	ParentComponent string `mapstructure:"parent"`
+	ReleaseName     string `mapstructure:"release"`
+	Chart           string `mapstructure:"chart"`
+	Namespace       string `mapstructure:"namespace"`
 }
 
 // helmClient implements the ComponentManager interface
@@ -84,11 +85,12 @@ func NewManager(snap snap.Snap) (*helmClient, error) {
 
 // Enable enables a specified component.
 func (h *helmClient) Enable(name string, values map[string]any) error {
-	install := action.NewInstall(h.actionConfig)
 	component, ok := h.config[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
 	}
+
+	install := action.NewInstall(h.actionConfig)
 	install.ReleaseName = component.ReleaseName
 	install.Namespace = component.Namespace
 
@@ -180,7 +182,7 @@ func (h *helmClient) Disable(name string) error {
 }
 
 // Refresh refreshes a specified component.
-func (h *helmClient) Refresh(name string) error {
+func (h *helmClient) Refresh(name string, values map[string]any) error {
 	component, ok := h.config[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
@@ -190,12 +192,12 @@ func (h *helmClient) Refresh(name string) error {
 	upgrade.Namespace = component.Namespace
 	upgrade.ReuseValues = true
 
-	chart, err := loader.Load(h.snap.Path(component.Chart))
+	chart, err := loader.Load(h.snap.Path("k8s/components/charts", component.Chart))
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
 
-	_, err = upgrade.Run(component.ReleaseName, chart, nil)
+	_, err = upgrade.Run(component.ReleaseName, chart, values)
 	if err != nil {
 		return fmt.Errorf("failed to upgrade component '%s': %w", name, err)
 	}

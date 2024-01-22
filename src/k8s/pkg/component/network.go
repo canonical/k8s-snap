@@ -49,6 +49,9 @@ func EnableNetworkComponent(s snap.Snap) error {
 	}
 
 	values := map[string]any{
+		"socketLB": map[string]any{
+			"enabled": true,
+		},
 		"cni": map[string]any{
 			"confPath": "/etc/cni/net.d",
 			"binPath":  "/opt/cni/bin",
@@ -101,7 +104,7 @@ func DisableNetworkComponent(s snap.Snap) error {
 
 	err = manager.Disable("network")
 	if err != nil {
-		return fmt.Errorf("failed to enable network component: %w", err)
+		return fmt.Errorf("failed to disable network component: %w", err)
 	}
 
 	return nil

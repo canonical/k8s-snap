@@ -10,3 +10,5 @@ storage:
   release: "ck-storage"
   chart: "hostpath-provisioner-0.1.0.tgz"
   namespace: "kube-system"
+ingress:
+  parent: "network"

@@ -58,3 +58,15 @@ func (c *Client) UpdateStorageComponent(ctx context.Context, request api.UpdateS
 	}
 	return nil
 }
+
+func (c *Client) UpdateIngressComponent(ctx context.Context, request api.UpdateIngressComponentRequest) error {
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	var response api.UpdateIngressComponentResponse
+	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "ingress"), request, &response)
+	if err != nil {
+		return fmt.Errorf("failed to enable ingress component: %w", err)
+	}
+	return nil
+}
