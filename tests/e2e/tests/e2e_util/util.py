@@ -67,7 +67,7 @@ def retry_until_condition(
     exceptions: Optional[tuple] = None,
     **kwargs,
 ) -> subprocess.CompletedProcess:
-    for attempt in range(max_retries):
+    for attempt in range(1, max_retries + 1):
         try:
             p = h.exec(instance_id, command, capture_output=True, **kwargs)
             if condition is not None:
@@ -93,11 +93,15 @@ def setup_network(h: harness.Harness, instance_id: str):
     h.exec(instance_id, ["/snap/k8s/current/k8s/network-requirements.sh"])
 
     LOG.info("Waiting for network to be enabled...")
+    def network_enabled(p):
+        LOG.debug(f"stderr={p.stderr.decode()}")
+        LOG.debug(f"stderr={p.stdout.decode()}")
+        return "enabled" in p.stderr.decode()
     retry_until_condition(
         h,
         instance_id,
         ["k8s", "enable", "network"],
-        condition=lambda p: "enabled" in p.stderr.decode(),
+        condition=network_enabled,
     )
     LOG.info("Network enabled.")
 
