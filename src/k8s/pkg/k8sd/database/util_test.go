@@ -66,7 +66,7 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 	// app.Run() is blocking, so we get the database handle through a channel
 	go func() {
 		doneCh <- app.Run(&config.Hooks{
-			OnBootstrap: func(s *state.State) error {
+			OnBootstrap: func(s *state.State, initConfig map[string]string) error {
 				databaseCh <- s.Database
 				return nil
 			},
@@ -78,8 +78,7 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 	}
 
 	nextIdx++
-	fmt.Println(app.MicroCluster.FileSystem.DatabaseDir)
-	if err := app.MicroCluster.NewCluster(fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), microclusterDatabaseInitTimeout); err != nil {
+	if err := app.MicroCluster.NewCluster(fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), nil, microclusterDatabaseInitTimeout); err != nil {
 		t.Fatalf("microcluster app failed to bootstrap: %v", err)
 	}
 

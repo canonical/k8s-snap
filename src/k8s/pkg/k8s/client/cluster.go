@@ -31,7 +31,7 @@ func (c *Client) Bootstrap(ctx context.Context) (apiv1.ClusterMember, error) {
 	// the REST API can be used.
 	// TODO: Find a way to do the bootstrapping/joining of k8sd behind
 	//       the REST API.
-	err = c.m.NewCluster(hostname, addrPort, time.Second*30)
+	err = c.m.NewCluster(hostname, addrPort, nil, time.Second*30)
 	if err != nil {
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
 	}

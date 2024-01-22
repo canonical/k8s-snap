@@ -6,7 +6,7 @@ require (
 	github.com/Rican7/retry v0.3.1
 	github.com/canonical/go-dqlite v1.21.0
 	github.com/canonical/lxd v0.0.0-20231002162033-38796399c135
-	github.com/canonical/microcluster v0.0.0-20231004070507-e3b7b60a4d71
+	github.com/canonical/microcluster v0.0.0-20231129081021-39c3a6d3e1b6
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/mattn/go-sqlite3 v1.14.18
@@ -217,3 +217,6 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
+
+// TODO(neoaggelos): remove after https://github.com/canonical/microcluster/pull/81 is merged
+replace github.com/canonical/microcluster => github.com/neoaggelos/microcluster v0.0.0-20240122183258-10c6f6779a0b
