@@ -17,22 +17,27 @@ import (
 func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus, error) {
 	snap := snap.SnapFromContext(s.Context)
 
+	k8sClient, err := k8s.NewClient()
+	if err != nil {
+		return apiv1.ClusterStatus{}, fmt.Errorf("failed to create k8s client: %w", err)
+	}
+
+	err = k8s.WaitApiServerReady(ctx, k8sClient)
+	if err != nil {
+		return apiv1.ClusterStatus{}, fmt.Errorf("k8s api server did not become ready in time: %w", err)
+	}
+
+	ready, err := k8s.ClusterReady(ctx, k8sClient)
+	if err != nil {
+		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster components: %w", err)
+	}
+
 	members, err := GetClusterMembers(ctx, s)
 	if err != nil {
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster members: %w", err)
 	}
 
 	components, err := GetComponents(snap)
-	if err != nil {
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster components: %w", err)
-	}
-
-	k8sClient, err := k8s.NewClient()
-	if err != nil {
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to create k8s client: %w", err)
-	}
-
-	ready, err := k8s.ClusterReady(ctx, k8sClient)
 	if err != nil {
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster components: %w", err)
 	}

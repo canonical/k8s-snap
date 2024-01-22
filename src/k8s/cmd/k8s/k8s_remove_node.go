@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/k8s/client"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -14,21 +13,15 @@ var (
 	}
 
 	removeNodeCmd = &cobra.Command{
-		Use:    "remove-node <name>",
-		Short:  "Remove a node from the cluster",
-		Hidden: true,
-		Args:   cobra.ExactArgs(1),
+		Use:   "remove-node <name>",
+		Short: "Remove a node from the cluster",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if rootCmdOpts.logDebug {
-				logrus.SetLevel(logrus.TraceLevel)
-			}
-
 			name := args[0]
 			client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				RemoteAddress: clusterCmdOpts.remoteAddress,
-				StorageDir:    clusterCmdOpts.storageDir,
-				Verbose:       rootCmdOpts.logVerbose,
-				Debug:         rootCmdOpts.logDebug,
+				StorageDir: clusterCmdOpts.storageDir,
+				Verbose:    rootCmdOpts.logVerbose,
+				Debug:      rootCmdOpts.logDebug,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create cluster client: %w", err)
@@ -38,7 +31,7 @@ var (
 			if err != nil {
 				return fmt.Errorf("failed to remove node from cluster: %w", err)
 			}
-			logrus.Infof("Removed %s from cluster", name)
+			fmt.Printf("Removed %s from cluster.\n", name)
 			return nil
 		},
 	}

@@ -6,13 +6,11 @@ import (
 
 	api "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/client"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-func init() {
-
-	disableCmd := &cobra.Command{
+var (
+	disableCmd = &cobra.Command{
 		Use:       "disable <component>",
 		Short:     "Disable a specific component in the cluster",
 		Long:      fmt.Sprintf("Disable one of the specific components: %s.", strings.Join(componentList, ",")),
@@ -22,10 +20,9 @@ func init() {
 			name := args[0]
 
 			client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				RemoteAddress: clusterCmdOpts.remoteAddress,
-				StorageDir:    clusterCmdOpts.storageDir,
-				Verbose:       rootCmdOpts.logVerbose,
-				Debug:         rootCmdOpts.logDebug,
+				StorageDir: clusterCmdOpts.storageDir,
+				Verbose:    rootCmdOpts.logVerbose,
+				Debug:      rootCmdOpts.logDebug,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create client: %w", err)
@@ -36,10 +33,12 @@ func init() {
 				return fmt.Errorf("failed to %s %s: %w", name, api.ComponentDisable, err)
 			}
 
-			logrus.WithField("component", name).Info("Component disabled.")
+			fmt.Printf("Component %q disabled.\n", name)
 			return nil
 		},
 	}
+)
 
+func init() {
 	rootCmd.AddCommand(disableCmd)
 }

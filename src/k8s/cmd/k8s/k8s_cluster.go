@@ -3,21 +3,18 @@ package k8s
 import (
 	"os"
 	"path"
-	"strconv"
-
-	"github.com/canonical/k8s/pkg/config"
 )
 
 var (
 	clusterCmdOpts struct {
-		remoteAddress string
-		port          string
-		storageDir    string
+		storageDir string
 	}
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.remoteAddress, "remote-address", "", "IP Address of another cluster member")
-	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.port, "port", strconv.Itoa(config.DefaultPort), "Port on which the REST-API is exposed")
 	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.storageDir, "storage-dir", path.Join(os.Getenv("SNAP_COMMON"), "/var/lib/k8sd"), "Directory with the dqlite datastore")
+
+	// By default, the storage dir is set to a fixed directory in the snap.
+	// This shouldn't be overwritten by the user.
+	rootCmd.Flags().MarkHidden("storage-dir")
 }

@@ -6,15 +6,13 @@ import (
 
 	api "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/client"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-var componentList = []string{"network", "dns", "gateway", "ingress", "rbac", "storage"}
+var (
+	componentList = []string{"network", "dns", "gateway", "ingress", "rbac", "storage"}
 
-func init() {
-
-	enableCmd := &cobra.Command{
+	enableCmd = &cobra.Command{
 		Use:       "enable <component>",
 		Short:     "Enable a specific component in the cluster",
 		Long:      fmt.Sprintf("Enable one of the specific components: %s.", strings.Join(componentList, ",")),
@@ -24,10 +22,9 @@ func init() {
 			name := args[0]
 
 			client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				RemoteAddress: clusterCmdOpts.remoteAddress,
-				StorageDir:    clusterCmdOpts.storageDir,
-				Verbose:       rootCmdOpts.logVerbose,
-				Debug:         rootCmdOpts.logDebug,
+				StorageDir: clusterCmdOpts.storageDir,
+				Verbose:    rootCmdOpts.logVerbose,
+				Debug:      rootCmdOpts.logDebug,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create client: %w", err)
@@ -38,10 +35,12 @@ func init() {
 				return fmt.Errorf("failed to %s %s: %w", name, api.ComponentEnable, err)
 			}
 
-			logrus.WithField("component", name).Info("Component enabled.")
+			fmt.Printf("Component %q enabled.\n", name)
 			return nil
 		},
 	}
+)
 
+func init() {
 	rootCmd.AddCommand(enableCmd)
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8s/client"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -20,15 +19,10 @@ var (
 		Short:  "Generate an auth token for Kubernetes",
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if rootCmdOpts.logDebug {
-				logrus.SetLevel(logrus.TraceLevel)
-			}
-
 			client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				RemoteAddress: clusterCmdOpts.remoteAddress,
-				StorageDir:    clusterCmdOpts.storageDir,
-				Verbose:       rootCmdOpts.logVerbose,
-				Debug:         rootCmdOpts.logDebug,
+				StorageDir: clusterCmdOpts.storageDir,
+				Verbose:    rootCmdOpts.logVerbose,
+				Debug:      rootCmdOpts.logDebug,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create cluster client: %w", err)
