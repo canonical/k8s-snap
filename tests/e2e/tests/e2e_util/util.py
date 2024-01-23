@@ -102,26 +102,22 @@ def stubbornly(retries=3, delay_s=1, exceptions: Optional[tuple] = None):
 
 def setup_dns(h: harness.Harness, instance_id: str):
     LOG.info("Waiting for dns to be enabled...")
-    retry_until_condition(
+    stubbornly(retries=15, delay_s=5).exec(
+        ["k8s", "enable", "dns", "--cluster-domain=foo.local"],
         h,
         instance_id,
-        ["k8s", "enable", "dns", "--cluster-domain=foo.local"],
-        condition=lambda p: p.returncode == 0,
     )
     LOG.info("DNS enabled.")
 
     LOG.info("Waiting for CoreDNS pod to show up...")
-    retry_until_condition(
+    stubbornly(retries=15, delay_s=5).exec(
+        ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
         h,
         instance_id,
-        ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
-        condition=lambda p: "coredns" in p.stdout.decode(),
-    )
+    ).until(lambda p: "coredns" in p.stdout.decode())
     LOG.info("CoreDNS pod showed up.")
 
-    retry_until_condition(
-        h,
-        instance_id,
+    stubbornly(retries=3, delay_s=1).exec(
         [
             "k8s",
             "kubectl",
@@ -135,8 +131,8 @@ def setup_dns(h: harness.Harness, instance_id: str):
             "--timeout",
             "180s",
         ],
-        max_retries=3,
-        delay_between_retries=1,
+        h,
+        instance_id,
     )
 
 

@@ -40,9 +40,7 @@ def test_dns(h: harness.Harness, tmp_path: Path):
         ],
     )
 
-    util.retry_until_condition(
-        h,
-        instance_id,
+    util.stubbornly(retries=3, delay_s=1).exec(
         [
             "k8s",
             "kubectl",
@@ -54,8 +52,8 @@ def test_dns(h: harness.Harness, tmp_path: Path):
             "--timeout",
             "180s",
         ],
-        max_retries=3,
-        delay_between_retries=1,
+        h,
+        instance_id,
     )
 
     result = h.exec(
