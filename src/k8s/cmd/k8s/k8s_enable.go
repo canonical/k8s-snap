@@ -7,17 +7,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var componentList = []string{"network", "dns", "gateway", "ingress", "rbac", "storage"}
+var (
+	componentList = []string{"network", "dns", "gateway", "ingress", "rbac", "storage"}
 
-func init() {
-	enableCmd := &cobra.Command{
+	enableCmd = &cobra.Command{
 		Use:       "enable <component>",
 		Short:     "Enable a specific component in the cluster",
 		Long:      fmt.Sprintf("Enable one of the specific components: %s.", strings.Join(componentList, ",")),
 		Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		ValidArgs: componentList,
 	}
+)
 
+func init() {
 	rootCmd.AddCommand(enableCmd)
 	enableCmd.AddCommand(enableDNSCmd)
 	enableCmd.AddCommand(enableNetworkCmd)

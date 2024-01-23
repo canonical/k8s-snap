@@ -24,7 +24,7 @@ func New(formatterType string, writer io.Writer) (Formatter, error) {
 	case "yaml":
 		return yamlFormatter{writer: writer}, nil
 	default:
-		return nil, fmt.Errorf("unknown formatter type %s", formatterType)
+		return nil, fmt.Errorf("unknown formatter type %q", formatterType)
 	}
 }
 

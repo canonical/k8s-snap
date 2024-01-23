@@ -1,7 +1,6 @@
 package k8s
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -15,13 +14,6 @@ var (
 		Use:          "k8s",
 		Short:        "Canonical Kubernetes CLI",
 		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if rootCmdOpts.logDebug {
-				logrus.SetLevel(logrus.TraceLevel)
-			}
-
-			return nil
-		},
 	}
 )
 

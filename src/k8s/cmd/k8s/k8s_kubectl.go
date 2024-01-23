@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -17,10 +16,6 @@ var (
 		// All commands should be passed to kubectl
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if rootCmdOpts.logDebug {
-				logrus.SetLevel(logrus.TraceLevel)
-			}
-
 			// Allow users to provide their own kubeconfig but
 			// fallback to the admin config if nothing is provided.
 			if os.Getenv("KUBECONFIG") == "" {

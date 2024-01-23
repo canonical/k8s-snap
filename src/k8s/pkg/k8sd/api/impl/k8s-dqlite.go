@@ -8,9 +8,9 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
 	"github.com/canonical/microcluster/rest/types"
 	"github.com/canonical/microcluster/state"
@@ -89,38 +89,22 @@ func createClusterInitFile(voters []string, host string) error {
 }
 
 func waitForNodeJoin(ctx context.Context, dqlitePath string, host string) error {
-	ch := make(chan struct{}, 1)
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				// TODO: Use go-dqlite lib instead of shelling out.
-				cmd := exec.Command(
-					dqlitePath,
-					"-s", fmt.Sprintf("file://%s/cluster.yaml", cert.K8sDqlitePkiPath),
-					"-c", fmt.Sprintf("%s/cluster.crt", cert.K8sDqlitePkiPath),
-					"-k", fmt.Sprintf("%s/cluster.key", cert.K8sDqlitePkiPath),
-					"-f", "json", "k8s", ".cluster",
-				)
-
-				out, err := cmd.CombinedOutput()
-				if err == nil && strings.Contains(string(out), host) {
-					ch <- struct{}{}
-					return
-				}
-			}
-			time.Sleep(time.Second)
-		}
-	}()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(time.Minute):
-		return fmt.Errorf("node (%s) did not finish joining the cluster within time", host)
-	case <-ch:
-		return nil
+	err := utils.WaitUntilReady(ctx, func() (bool, error) {
+		cmd := exec.Command(
+			dqlitePath,
+			"-s", fmt.Sprintf("file://%s/cluster.yaml", cert.K8sDqlitePkiPath),
+			"-c", fmt.Sprintf("%s/cluster.crt", cert.K8sDqlitePkiPath),
+			"-k", fmt.Sprintf("%s/cluster.key", cert.K8sDqlitePkiPath),
+			"-f", "json", "k8s", ".cluster",
+		)
+		fmt.Println(cmd.Args)
+		out, err := cmd.CombinedOutput()
+		// dqlite will throw an error if the cluster is not ready yet.
+		// We want to retry this case, so the error is not returned in the error result.
+		return strings.Contains(string(out), host) && err == nil, nil
+	})
+	if err != nil {
+		return fmt.Errorf("node (%s) did not finish joining the cluster within time: %w", host, err)
 	}
+	return nil
 }

@@ -22,7 +22,7 @@ def test_network(h: harness.Harness, tmp_path: Path):
     instance_id = h.new_instance()
 
     util.setup_k8s_snap(h, instance_id, snap_path)
-    h.exec(instance_id, ["k8s", "init"])
+    h.exec(instance_id, ["k8s", "bootstrap"])
     util.setup_network(h, instance_id)
 
     p = h.exec(
