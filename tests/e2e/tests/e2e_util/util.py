@@ -216,7 +216,7 @@ def wait_until_k8s_ready(h: harness.Harness, instances: Union[str, List[str]]):
         result = (
             stubbornly(retries=15, delay_s=5)
             .until(lambda p: "Ready" in p.stdout.decode())
-            .exec(f"k8s kubectl get node {hostname} --no-headers")
+            .exec(["k8s", "kubectl", "get", "node", hostname, "--no-headers"])
         )
     LOG.info("Kubelet registered successfully!")
     LOG.info("%s", result.stdout.decode())
