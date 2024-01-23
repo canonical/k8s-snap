@@ -79,7 +79,21 @@ def test_cilium_e2e(h: harness.Harness, tmp_path: Path):
     util.stubbornly(retries=15, delay_s=5).until(
         lambda p: "OK" == p.stdout.decode().strip()
     ).exec(
-        "k8s kubectl exec -it ds/cilium -n kube-system -c cilium-agent -- cilium status --brief",
+        [
+            "k8s",
+            "kubectl",
+            "exec",
+            "-it",
+            "ds/cilium",
+            "-n",
+            "kube-system",
+            "-c",
+            "cilium-agent",
+            "--",
+            "cilium",
+            "status",
+            "--brief",
+        ],
         h,
         instance_id,
     )

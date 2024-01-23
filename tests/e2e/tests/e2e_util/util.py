@@ -57,7 +57,7 @@ def stubbornly(retries=3, delay_s=1, exceptions: Optional[tuple] = None):
         )
         def exec(
             self,
-            command_args: Union[str, List[str]],
+            command_args: List[str],
             harness: Optional[harness.Harness] = None,
             instance: str = "",
             **command_kwds,
@@ -65,14 +65,11 @@ def stubbornly(retries=3, delay_s=1, exceptions: Optional[tuple] = None):
             """
             Execute a command against a harness or locally with subprocess to be retried.
 
-            :param str | List[str]       command_args: The command to be executed, as a str or list of str
-            :param Map[str,str]          command_kwds: Additional keyword arguments to be passed to exec
-            :param Optional[Harness]          harness: test Harness object, to run the command on
-            :param str                       instance: Instance id in the test harness.
+            :param  List[str]        command_args: The command to be executed, as a str or list of str
+            :param Map[str,str]      command_kwds: Additional keyword arguments to be passed to exec
+            :param Optional[Harness]      harness: test Harness object, to run the command on
+            :param str                   instance: Instance id in the test harness.
             """
-            if isinstance(command_args, str):
-                # Safely split the string command into command arguments
-                command_args = shlex.split(command_args)
 
             try:
                 if harness is not None:

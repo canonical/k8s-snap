@@ -61,7 +61,7 @@ class LXDHarness(Harness):
 
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
         try:
-            stubbornly(retries=3, delay_s=1)(
+            stubbornly(retries=3, delay_s=1).exec(
                 [
                     "lxc",
                     "launch",
