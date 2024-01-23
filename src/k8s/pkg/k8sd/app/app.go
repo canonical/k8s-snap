@@ -56,9 +56,11 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 // Run starts the microcluster node and waits until it terminates.
 // any non-nil customHooks override the default hooks.
 func (a *App) Run(customHooks *config.Hooks) error {
+	// TODO: consider improving API for overriding hooks.
 	hooks := &config.Hooks{
 		OnBootstrap: onBootstrap,
 		PostJoin:    onPostJoin,
+		PostRemove:  onPostRemove,
 	}
 	if customHooks != nil {
 		if customHooks.OnBootstrap != nil {
@@ -66,6 +68,9 @@ func (a *App) Run(customHooks *config.Hooks) error {
 		}
 		if customHooks.PostJoin != nil {
 			hooks.PostJoin = customHooks.PostJoin
+		}
+		if customHooks.PostRemove != nil {
+			hooks.PostRemove = customHooks.PostRemove
 		}
 	}
 	err := a.MicroCluster.Start(api.Endpoints, database.SchemaExtensions, hooks)

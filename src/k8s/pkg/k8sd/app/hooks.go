@@ -178,3 +178,8 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 	return nil
 }
+
+func onPostRemove(s *state.State, force bool) error {
+	// TODO: the current node has left the cluster, stop services and reset configs
+	return nil
+}
