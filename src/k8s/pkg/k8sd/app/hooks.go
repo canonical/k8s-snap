@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
 	"path"
 
 	"github.com/canonical/k8s/pkg/k8s/setup"
@@ -167,7 +168,8 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// TODO(neoaggelos): k8s-dqlite cluster host and port must come from the cluster config.
-	if err := setup.JoinK8sDqliteCluster(s.Context, s, snap, leader.URL().URL.Host); err != nil {
+	host, _, _ := net.SplitHostPort(leader.URL().URL.Host)
+	if err := setup.JoinK8sDqliteCluster(s.Context, s, snap, host); err != nil {
 		return fmt.Errorf("failed to join k8s-dqlite nodes: %w", err)
 	}
 
