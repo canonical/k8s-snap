@@ -44,12 +44,27 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     LOG.info("Waiting for storage provisioner pod to show up...")
     util.stubbornly(retries=15, delay_s=5).until(
         lambda p: "ck-storage" in p.stdout.decode()
-    ).exec("k8s kubectl get pod -n kube-system -o json", h, instance_id)
+    ).exec(
+        ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
+        h,
+        instance_id,
+    )
     LOG.info("Storage provisioner pod showed up.")
 
     util.stubbornly().exec(
-        "k8s kubectl wait --for=condition=ready pod -n kube-system "
-        "-l app.kubernetes.io/instance=ck-storage --timeout 180s",
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-n",
+            "kube-system",
+            "-l",
+            "app.kubernetes.io/instance=ck-storage",
+            "--timeout",
+            "180s",
+        ],
         h,
         instance_id,
     )
@@ -64,36 +79,56 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     LOG.info("Waiting for storage writer pod to show up...")
     util.stubbornly(delay_s=10).until(
         lambda p: "storage-writer-pod" in p.stdout.decode()
-    ).exec("k8s kubectl get pod -o json", h, instance_id)
+    ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"], h, instance_id)
     LOG.info("Storage writer pod showed up.")
 
     util.stubbornly().exec(
-        "k8s kubectl wait --for=condition=ready pod -l k8s-api=storage-writer-pod --timeout 180s",
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-l",
+            "k8s-app=storage-writer-pod",
+            "--timeout",
+            "180s",
+        ],
         h,
         instance_id,
     )
 
     LOG.info("Waiting for storage to get provisioned...")
     util.stubbornly().until(check_pvc_bound).exec(
-        "k8s kubectl get pvc -o json", h, instance_id
+        ["k8s", "kubectl", "get", "pvc", "-o", "json"], h, instance_id
     )
     LOG.info("Storage got provisioned and pvc is bound.")
 
     LOG.info("Waiting for storage reader pod to show up...")
     util.stubbornly(delay_s=10).until(
         lambda p: "storage-reader-pod" in p.stdout.decode()
-    ).exec("k8s kubectl get pod -o json", h, instance_id)
+    ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"], h, instance_id)
     LOG.info("Storage reader pod showed up.")
 
     util.stubbornly().exec(
-        "k8s kubectl wait --for=condition=ready pod -l k8s-api=storage-reader-pod --timeout 180s",
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-l",
+            "k8s-app=storage-reader-pod",
+            "--timeout",
+            "180s",
+        ],
         h,
         instance_id,
     )
 
     util.stubbornly(retries=5, delay_s=10).until(
         lambda p: "LOREM IPSUM" in p.stdout.decode()
-    ).exec("k8s kubectl logs storage-reader-pod", h, instance_id)
+    ).exec(["k8s", "kubectl", "logs", "storage-reader-pod"], h, instance_id)
 
     LOG.info("Data can be read between pods.")
 

@@ -155,17 +155,45 @@ def setup_network(h: harness.Harness, instance_id: str):
     LOG.info("Waiting for cilium pods to show up...")
     stubbornly(retries=15, delay_s=5).until(
         lambda p: "cilium" in p.stdout.decode()
-    ).exec("k8s kubectl get pod -n kube-system -o json", h, instance_id)
+    ).exec(
+        ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
+        h,
+        instance_id,
+    )
     LOG.info("Cilium pods showed up.")
 
     stubbornly().exec(
-        "k8s kubectl wait --for=condition=ready pod -n kube-system -l io.cilium/app=operator --timeout=180s",
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-n",
+            "kube-system",
+            "-l",
+            "io.cilium/app=operator",
+            "--timeout",
+            "180s",
+        ],
         h,
         instance_id,
     )
 
     stubbornly().exec(
-        "k8s kubectl wait --for=condition=ready pod -n kube-system -l k8s-app=cilium --timeout=180s",
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-n",
+            "kube-system",
+            "-l",
+            "k8s-app=cilium",
+            "--timeout",
+            "180s",
+        ],
         h,
         instance_id,
     )

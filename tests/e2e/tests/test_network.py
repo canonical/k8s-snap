@@ -77,7 +77,17 @@ def test_network(h: harness.Harness, tmp_path: Path):
     )
 
     util.stubbornly().exec(
-        "k8s kubectl wait --for=condition=ready pod -l app=nginx --timeout 180s",
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-l",
+            "app=nginx",
+            "--timeout",
+            "180s",
+        ],
         h,
         instance_id,
     )
