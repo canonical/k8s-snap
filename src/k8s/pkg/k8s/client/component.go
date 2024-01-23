@@ -42,7 +42,19 @@ func (c *Client) UpdateNetworkComponent(ctx context.Context, request api.UpdateN
 	var response api.UpdateNetworkComponentResponse
 	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "network"), request, &response)
 	if err != nil {
-		return fmt.Errorf("failed to enable dns component: %w", err)
+		return fmt.Errorf("failed to enable network component: %w", err)
+	}
+	return nil
+}
+
+func (c *Client) UpdateStorageComponent(ctx context.Context, request api.UpdateStorageComponentRequest) error {
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	var response api.UpdateStorageComponentResponse
+	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "storage"), request, &response)
+	if err != nil {
+		return fmt.Errorf("failed to enable storage component: %w", err)
 	}
 	return nil
 }

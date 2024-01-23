@@ -23,4 +23,5 @@ func init() {
 	rootCmd.AddCommand(enableCmd)
 	enableCmd.AddCommand(enableDNSCmd)
 	enableCmd.AddCommand(enableNetworkCmd)
+	enableCmd.AddCommand(enableStorageCmd)
 }

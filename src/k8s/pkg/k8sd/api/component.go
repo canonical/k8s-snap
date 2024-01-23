@@ -30,6 +30,11 @@ var k8sdNetworkComponent = rest.Endpoint{
 	Put:  rest.EndpointAction{Handler: networkComponentPut, AllowUntrusted: false},
 }
 
+var k8sdStorageComponent = rest.Endpoint{
+	Path: "k8sd/components/storage",
+	Put:  rest.EndpointAction{Handler: storageComponentPut, AllowUntrusted: false},
+}
+
 func componentsGet(s *state.State, r *http.Request) response.Response {
 	snap := snap.SnapFromContext(s.Context)
 
@@ -84,6 +89,23 @@ func networkComponentPut(s *state.State, r *http.Request) response.Response {
 		err = component.EnableNetworkComponent(snap)
 	} else {
 		err = component.DisableNetworkComponent(snap)
+	}
+	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
+}
+
+func storageComponentPut(s *state.State, r *http.Request) response.Response {
+	var req api.UpdateStorageComponentRequest
+	snap := snap.SnapFromContext(s.Context)
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
+	}
+
+	if req.Status == api.ComponentEnable {
+		err = component.EnableStorageComponent(snap)
+	} else {
+		err = component.DisableStorageComponent(snap)
 	}
 	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
 }

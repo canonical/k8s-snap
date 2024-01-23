@@ -70,8 +70,6 @@ def retry_until_condition(
     for attempt in range(max_retries):
         try:
             p = h.exec(instance_id, command, capture_output=True, **kwargs)
-            LOG.info(p.stdout.decode())
-            LOG.info(p.stderr.decode())
             if condition is not None:
                 assert condition(p), "Failed to meet condition."
             return p
@@ -97,7 +95,7 @@ def setup_dns(h: harness.Harness, instance_id: str):
         h,
         instance_id,
         ["k8s", "enable", "dns", "--cluster-domain=foo.local"],
-        condition=lambda p: "enabled" in p.stderr.decode(),
+        condition=lambda p: p.returncode == 0,
     )
     LOG.info("DNS enabled.")
 
@@ -140,7 +138,7 @@ def setup_network(h: harness.Harness, instance_id: str):
         h,
         instance_id,
         ["k8s", "enable", "network"],
-        condition=lambda p: "enabled" in p.stderr.decode(),
+        condition=lambda p: p.returncode == 0,
     )
     LOG.info("Network enabled.")
 

@@ -8,11 +8,6 @@ type GetComponentsResponse struct {
 	Components []Component `json:"components"`
 }
 
-// UpdateComponentRequest is used to update component state.
-type UpdateComponentRequest struct {
-	Status ComponentStatus `json:"status"`
-}
-
 // UpdateDNSComponentRequest is used to update the DNS component state.
 type UpdateDNSComponentRequest struct {
 	Status ComponentStatus    `json:"status"`
@@ -26,8 +21,13 @@ type DNSComponentConfig struct {
 	UpstreamNameservers []string `json:"upstreamNameservers,omitempty"`
 }
 
-// UpdateDNSComponentRequest is used to update the DNS component state.
+// UpdateNetworkComponentRequest is used to update the Network component state.
 type UpdateNetworkComponentRequest struct {
+	Status ComponentStatus `json:"status"`
+}
+
+// UpdateStorageComponentRequest is used to update the Storage component state.
+type UpdateStorageComponentRequest struct {
 	Status ComponentStatus `json:"status"`
 }
 
@@ -36,6 +36,9 @@ type UpdateDNSComponentResponse struct{}
 
 // UpdateNetworkComponentResponse is the response for "PUT 1.0/k8sd/components/network".
 type UpdateNetworkComponentResponse struct{}
+
+// UpdateStorageComponentResponse is the response for "PUT 1.0/k8sd/components/storage".
+type UpdateStorageComponentResponse struct{}
 
 // Component holds information about a k8s component.
 type Component struct {
