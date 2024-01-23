@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
 func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNameservers []string) error {
@@ -63,7 +63,7 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 		return fmt.Errorf("failed to enable dns component: %w", err)
 	}
 
-	client, err := utils.NewKubeClient("/etc/kubernetes/admin.conf")
+	client, err := k8s.NewClient()
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
@@ -71,12 +71,10 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	svc, err := client.GetService(ctx, "ck-dns-coredns", "kube-system")
+	dnsIP, err := k8s.GetServiceClusterIP(ctx, client, "ck-dns-coredns", "kube-system")
 	if err != nil {
 		return fmt.Errorf("failed to get dns service: %w", err)
 	}
-
-	dnsIP := svc.Spec.ClusterIP
 
 	kubeletArgs := []map[string]string{
 		{"--cluster-dns": dnsIP},
