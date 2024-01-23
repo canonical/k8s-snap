@@ -93,7 +93,48 @@ def retry_until_condition(
                     raise e
 
 
+def setup_dns(h: harness.Harness, instance_id: str):
+    LOG.info("Waiting for dns to be enabled...")
+    retry_until_condition(
+        h,
+        instance_id,
+        ["k8s", "enable", "dns", "--cluster-domain=foo.local"],
+        condition=lambda p: p.returncode == 0,
+    )
+    LOG.info("DNS enabled.")
+
+    LOG.info("Waiting for CoreDNS pod to show up...")
+    retry_until_condition(
+        h,
+        instance_id,
+        ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
+        condition=lambda p: "coredns" in p.stdout.decode(),
+    )
+    LOG.info("CoreDNS pod showed up.")
+
+    retry_until_condition(
+        h,
+        instance_id,
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-n",
+            "kube-system",
+            "-l",
+            "app.kubernetes.io/name=coredns",
+            "--timeout",
+            "180s",
+        ],
+        max_retries=3,
+        delay_between_retries=1,
+    )
+
+
 def setup_network(h: harness.Harness, instance_id: str):
+    time.sleep(30)
     h.exec(instance_id, ["/snap/k8s/current/k8s/network-requirements.sh"])
 
     LOG.info("Waiting for network to be enabled...")
@@ -101,7 +142,7 @@ def setup_network(h: harness.Harness, instance_id: str):
         h,
         instance_id,
         ["k8s", "enable", "network"],
-        condition=lambda p: "enabled" in p.stdout.decode(),
+        condition=lambda p: p.returncode == 0,
     )
     LOG.info("Network enabled.")
 

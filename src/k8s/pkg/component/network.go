@@ -9,28 +9,27 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-type valuesHook func(snap.Snap) (map[string]any, error)
+func EnableNetworkComponent(s snap.Snap) error {
+	manager, err := NewManager(s)
+	if err != nil {
+		return fmt.Errorf("failed to get component manager: %w", err)
+	}
 
-var valuesHooks = map[string]valuesHook{
-	"network": networkValues,
-}
-
-func networkValues(s snap.Snap) (map[string]any, error) {
 	bpfMnt, err := utils.GetMountPath("bpf")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get bpf mount path: %w", err)
+		return fmt.Errorf("failed to get bpf mount path: %w", err)
 	}
 
 	cgrMnt, err := utils.GetMountPath("cgroup2")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cgroup2 mount path: %w", err)
+		return fmt.Errorf("failed to get cgroup2 mount path: %w", err)
 	}
 
 	// TODO: the cluster cidr should be configurable through a common interface
 	clusterCIDRStr := snap.GetServiceArgument(s, "kube-proxy", "--cluster-cidr")
 	clusterCIDRs := strings.Split(clusterCIDRStr, ",")
 	if v := len(clusterCIDRs); v != 1 && v != 2 {
-		return nil, fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", clusterCIDRs)
+		return fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", clusterCIDRs)
 	}
 
 	var (
@@ -41,7 +40,7 @@ func networkValues(s snap.Snap) (map[string]any, error) {
 		_, parsed, err := net.ParseCIDR(cidr)
 		switch {
 		case err != nil:
-			return nil, fmt.Errorf("failed to parse cidr: %w", err)
+			return fmt.Errorf("failed to parse cidr: %w", err)
 		case parsed.IP.To4() != nil:
 			ipv4CIDR = cidr
 		default:
@@ -86,5 +85,24 @@ func networkValues(s snap.Snap) (map[string]any, error) {
 		},
 	}
 
-	return values, nil
+	err = manager.Enable("network", values)
+	if err != nil {
+		return fmt.Errorf("failed to enable network component: %w", err)
+	}
+
+	return nil
+}
+
+func DisableNetworkComponent(s snap.Snap) error {
+	manager, err := NewManager(s)
+	if err != nil {
+		return fmt.Errorf("failed to get component manager: %w", err)
+	}
+
+	err = manager.Disable("network")
+	if err != nil {
+		return fmt.Errorf("failed to enable network component: %w", err)
+	}
+
+	return nil
 }

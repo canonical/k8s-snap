@@ -4,7 +4,7 @@ network:
   namespace: "kube-system"
 dns:
   release: "ck-dns"
-  chart: "coredns-1.28.2.tgz"
+  chart: "coredns-1.29.0.tgz"
   namespace: "kube-system"
 storage:
   release: "ck-storage"

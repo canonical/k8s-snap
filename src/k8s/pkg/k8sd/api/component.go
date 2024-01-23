@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	api "github.com/canonical/k8s/api/v1"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/state"
-	"github.com/gorilla/mux"
 )
 
 var k8sdComponents = rest.Endpoint{
@@ -22,9 +20,19 @@ var k8sdComponents = rest.Endpoint{
 	Get:  rest.EndpointAction{Handler: componentsGet, AllowUntrusted: false},
 }
 
-var k8sdComponentsName = rest.Endpoint{
-	Path: "k8sd/components/{name}",
-	Put:  rest.EndpointAction{Handler: componentsNamePut, AllowUntrusted: false},
+var k8sdDNSComponent = rest.Endpoint{
+	Path: "k8sd/components/dns",
+	Put:  rest.EndpointAction{Handler: dnsComponentPut, AllowUntrusted: false},
+}
+
+var k8sdNetworkComponent = rest.Endpoint{
+	Path: "k8sd/components/network",
+	Put:  rest.EndpointAction{Handler: networkComponentPut, AllowUntrusted: false},
+}
+
+var k8sdStorageComponent = rest.Endpoint{
+	Path: "k8sd/components/storage",
+	Put:  rest.EndpointAction{Handler: storageComponentPut, AllowUntrusted: false},
 }
 
 func componentsGet(s *state.State, r *http.Request) response.Response {
@@ -42,34 +50,62 @@ func componentsGet(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &result)
 }
 
-func componentsNamePut(s *state.State, r *http.Request) response.Response {
+func dnsComponentPut(s *state.State, r *http.Request) response.Response {
+	var req api.UpdateDNSComponentRequest
 	snap := snap.SnapFromContext(s.Context)
 
-	componentName, err := url.PathUnescape(mux.Vars(r)["name"])
-	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to parse component name from URL '%s': %w", r.URL, err))
-	}
-
-	var req api.UpdateComponentRequest
-	err = json.NewDecoder(r.Body).Decode(&req)
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	manager, err := component.NewManager(snap)
+	if req.Status == api.ComponentEnable {
+		err = component.EnableDNSComponent(
+			snap,
+			req.Config.ClusterDomain,
+			req.Config.ServiceIP,
+			req.Config.UpstreamNameservers,
+		)
+	} else {
+		err = component.DisableDNSComponent(snap)
+	}
 	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to get component manager: %w", err))
+		return response.SmartError(fmt.Errorf("failed to %s %s: %w", req.Status, "dns", err))
+	}
+
+	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
+}
+
+func networkComponentPut(s *state.State, r *http.Request) response.Response {
+	var req api.UpdateNetworkComponentRequest
+	snap := snap.SnapFromContext(s.Context)
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
 	if req.Status == api.ComponentEnable {
-		err = manager.Enable(componentName)
+		err = component.EnableNetworkComponent(snap)
 	} else {
-		err = manager.Disable(componentName)
+		err = component.DisableNetworkComponent(snap)
 	}
+	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
+}
 
+func storageComponentPut(s *state.State, r *http.Request) response.Response {
+	var req api.UpdateStorageComponentRequest
+	snap := snap.SnapFromContext(s.Context)
+
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to %s %s: %w", req.Status, componentName, err))
+		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	return response.SyncResponse(true, &api.UpdateComponentResponse{})
+	if req.Status == api.ComponentEnable {
+		err = component.EnableStorageComponent(snap)
+	} else {
+		err = component.DisableStorageComponent(snap)
+	}
+	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
 }

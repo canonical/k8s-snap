@@ -23,19 +23,38 @@ func (c *Client) ListComponents(ctx context.Context) ([]api.Component, error) {
 	return response.Components, nil
 }
 
-// UpdateComponent updates the state of a component.
-func (c *Client) UpdateComponent(ctx context.Context, name string, status api.ComponentStatus) error {
+func (c *Client) UpdateDNSComponent(ctx context.Context, request api.UpdateDNSComponentRequest) error {
 	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
-	request := api.UpdateComponentRequest{
-		Status: status,
-	}
-	var response api.UpdateComponentResponse
-	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", name), request, &response)
+	var response api.UpdateDNSComponentResponse
+	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "dns"), request, &response)
 	if err != nil {
-		clientURL := c.mc.URL()
-		return fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
+		return fmt.Errorf("failed to enable dns component: %w", err)
+	}
+	return nil
+}
+
+func (c *Client) UpdateNetworkComponent(ctx context.Context, request api.UpdateNetworkComponentRequest) error {
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	var response api.UpdateNetworkComponentResponse
+	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "network"), request, &response)
+	if err != nil {
+		return fmt.Errorf("failed to enable network component: %w", err)
+	}
+	return nil
+}
+
+func (c *Client) UpdateStorageComponent(ctx context.Context, request api.UpdateStorageComponentRequest) error {
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	var response api.UpdateStorageComponentResponse
+	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "storage"), request, &response)
+	if err != nil {
+		return fmt.Errorf("failed to enable storage component: %w", err)
 	}
 	return nil
 }
