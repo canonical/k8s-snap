@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -12,6 +14,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/setup"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
+	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/cert"
 	"github.com/canonical/lxd/lxd/response"
@@ -68,17 +71,30 @@ func clusterNodePost(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to initialize containerd: %w", err))
 	}
 
-	// Get the CA certificate and key from the k8sd database and store it locally.
-	if err := cert.StoreCertKeyPair(r.Context(), s, "ca", path.Join(cert.KubePkiPath, "ca.crt"), path.Join(cert.KubePkiPath, "ca.key")); err != nil {
+	// TODO: Cleanup once the cluster config is fully fetched from the database and not from the RPC endpoint above.
+	var ca, caKey string
+	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
+		config, err := database.GetClusterConfig(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get CA and key from database: %w", err)
+		}
+		ca = config.K8sCertificateAuthority
+		caKey = config.K8sCertificateAuthorityKey
+		return nil
+	}); err != nil {
+		return response.SmartError(fmt.Errorf("failed to perform CA transaction request: %w", err))
+	}
+
+	if err := cert.StoreCertKeyPair(ca, caKey, path.Join(cert.KubePkiPath, "ca.crt"), path.Join(cert.KubePkiPath, "ca.key")); err != nil {
 		return response.SmartError(fmt.Errorf("failed to store CA certificate: %w", err))
 	}
 
 	// Use the CA from the cluster to sign the certificates
-	ca, err := cert.LoadCertKeyPair(path.Join(cert.KubePkiPath, "ca.key"), path.Join(cert.KubePkiPath, "ca.crt"))
+	caKeyPair, err := cert.LoadCertKeyPair(path.Join(cert.KubePkiPath, "ca.key"), path.Join(cert.KubePkiPath, "ca.crt"))
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to read CA: %w", err))
 	}
-	certMan, err := setup.InitCertificates(ca)
+	certMan, err := setup.InitCertificates(caKeyPair)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to setup certificates: %w", err))
 	}

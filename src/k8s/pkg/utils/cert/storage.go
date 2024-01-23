@@ -13,21 +13,7 @@ import (
 
 // StoreCertKeyPair read the certificate & key from the k8sd database and writes
 // them to the specified path on disk.
-func StoreCertKeyPair(ctx context.Context, state *state.State, certName string, certPath string, keyPath string) error {
-	// Get the certificates from the k8sd cluster
-	var cert, key string
-	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		config, err := database.GetClusterConfig(ctx, tx)
-		if err != nil {
-			return fmt.Errorf("failed to get %s certs and key from database: %w", certName, err)
-		}
-		cert = config.K8sDqliteCertificate
-		key = config.K8sDqliteKey
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to perform %s certificate transaction request: %w", certName, err)
-	}
-
+func StoreCertKeyPair(cert string, key string, certPath string, keyPath string) error {
 	logrus.WithField("cert_length", len(string(cert))).WithField("key_length", len(string(key))).Debug("Writing k8s-dqlite cert and key to disk")
 	if err := os.WriteFile(certPath, []byte(cert), 0644); err != nil {
 		return fmt.Errorf("failed to write cert to %s: %w", certPath, err)
