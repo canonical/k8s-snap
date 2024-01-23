@@ -68,7 +68,6 @@ func (a *App) Run(customHooks *config.Hooks) error {
 			hooks.PostJoin = customHooks.PostJoin
 		}
 	}
-	fmt.Println("AAAA")
 	err := a.MicroCluster.Start(api.Endpoints, database.SchemaExtensions, hooks)
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
