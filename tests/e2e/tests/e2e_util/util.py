@@ -70,6 +70,8 @@ def retry_until_condition(
     for attempt in range(max_retries):
         try:
             p = h.exec(instance_id, command, capture_output=True, **kwargs)
+            LOG.info(p.stdout.decode())
+            LOG.info(p.stderr.decode())
             if condition is not None:
                 assert condition(p), "Failed to meet condition."
             return p
@@ -130,6 +132,7 @@ def setup_dns(h: harness.Harness, instance_id: str):
 
 
 def setup_network(h: harness.Harness, instance_id: str):
+    time.sleep(30)
     h.exec(instance_id, ["/snap/k8s/current/k8s/network-requirements.sh"])
 
     LOG.info("Waiting for network to be enabled...")
