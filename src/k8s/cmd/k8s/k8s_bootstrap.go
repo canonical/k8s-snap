@@ -14,9 +14,9 @@ var (
 		Long:  "Initialize the necessary folders, permissions, service arguments, certificates and start up the Kubernetes services.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				StorageDir: clusterCmdOpts.storageDir,
-				Verbose:    rootCmdOpts.logVerbose,
-				Debug:      rootCmdOpts.logDebug,
+				StateDir: clusterCmdOpts.stateDir,
+				Verbose:  rootCmdOpts.logVerbose,
+				Debug:    rootCmdOpts.logDebug,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create client: %w", err)

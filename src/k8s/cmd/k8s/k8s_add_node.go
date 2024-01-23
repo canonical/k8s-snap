@@ -16,9 +16,9 @@ var (
 			name := args[0]
 
 			c, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				StorageDir: clusterCmdOpts.storageDir,
-				Verbose:    rootCmdOpts.logVerbose,
-				Debug:      rootCmdOpts.logDebug,
+				StateDir: clusterCmdOpts.stateDir,
+				Verbose:  rootCmdOpts.logVerbose,
+				Debug:    rootCmdOpts.logDebug,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create client: %w", err)

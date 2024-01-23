@@ -20,9 +20,9 @@ var (
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				StorageDir: clusterCmdOpts.storageDir,
-				Verbose:    rootCmdOpts.logVerbose,
-				Debug:      rootCmdOpts.logDebug,
+				StateDir: clusterCmdOpts.stateDir,
+				Verbose:  rootCmdOpts.logVerbose,
+				Debug:    rootCmdOpts.logDebug,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create cluster client: %w", err)
