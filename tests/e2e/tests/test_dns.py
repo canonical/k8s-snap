@@ -1,10 +1,8 @@
 #
 # Copyright 2023 Canonical, Ltd.
 #
-import json
 import logging
 from pathlib import Path
-from subprocess import check_output
 
 import pytest
 from e2e_util import config, harness, util
@@ -38,8 +36,8 @@ def test_dns(h: harness.Harness, tmp_path: Path):
             "--restart=Never",
             "--",
             "sleep",
-            "3600"
-        ]
+            "3600",
+        ],
     )
 
     util.retry_until_condition(
@@ -62,33 +60,17 @@ def test_dns(h: harness.Harness, tmp_path: Path):
 
     result = h.exec(
         instance_id,
-        [
-            "k8s",
-            "kubectl",
-            "exec",
-            "busybox",
-            "--",
-            "nslookup",
-            "kubernetes.default"
-        ],
-        capture_output=True
+        ["k8s", "kubectl", "exec", "busybox", "--", "nslookup", "kubernetes.default"],
+        capture_output=True,
     )
 
     assert "10.152.183.1 kubernetes.default.svc.foo.local" in result.stdout.decode()
 
     result = h.exec(
         instance_id,
-        [
-            "k8s",
-            "kubectl",
-            "exec",
-            "busybox",
-            "--",
-            "nslookup",
-            "canonical.com"
-        ],
+        ["k8s", "kubectl", "exec", "busybox", "--", "nslookup", "canonical.com"],
         capture_output=True,
-        check=False
+        check=False,
     )
 
     assert not ("can't resolve" in result.stdout.decode())

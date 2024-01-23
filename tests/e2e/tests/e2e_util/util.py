@@ -88,6 +88,7 @@ def retry_until_condition(
                     # If all attempts fail, raise the last error
                     raise e
 
+
 def setup_dns(h: harness.Harness, instance_id: str):
     LOG.info("Waiting for dns to be enabled...")
     retry_until_condition(
@@ -126,6 +127,7 @@ def setup_dns(h: harness.Harness, instance_id: str):
         max_retries=3,
         delay_between_retries=1,
     )
+
 
 def setup_network(h: harness.Harness, instance_id: str):
     h.exec(instance_id, ["/snap/k8s/current/k8s/network-requirements.sh"])
