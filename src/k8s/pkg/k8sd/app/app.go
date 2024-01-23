@@ -54,8 +54,21 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 }
 
 // Run starts the microcluster node and waits until it terminates.
-func (a *App) Run(hooks *config.Hooks) error {
-	// TODO: define endpoints, schema migrations, hooks
+// any non-nil customHooks override the default hooks.
+func (a *App) Run(customHooks *config.Hooks) error {
+	hooks := &config.Hooks{
+		OnBootstrap: onBootstrap,
+		PostJoin:    onPostJoin,
+	}
+	if customHooks != nil {
+		if customHooks.OnBootstrap != nil {
+			hooks.OnBootstrap = customHooks.OnBootstrap
+		}
+		if customHooks.PostJoin != nil {
+			hooks.PostJoin = customHooks.PostJoin
+		}
+	}
+	fmt.Println("AAAA")
 	err := a.MicroCluster.Start(api.Endpoints, database.SchemaExtensions, hooks)
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)

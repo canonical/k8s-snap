@@ -17,38 +17,45 @@ var (
 	}
 )
 
+type ClusterConfigAPIServer struct {
+	// TODO(neoaggelos): change to int, after we resolve this error from mapstructure
+	// - 'apiserver-secure-port' expected type 'uint', got unconvertible type 'string', value: '6443'
+	SecurePort string `mapstructure:"apiserver-secure-port,omitempty"`
+	// TODO(neoaggelos): change to bool, after we resolve this error from mapstructure
+	// - 'apiserver-rbac' expected type 'bool', got unconvertible type 'string', value: '1'
+	RBAC                string `mapstructure:"apiserver-rbac,omitempty"`
+	ServiceAccountKey   string `mapstructure:"apiserver-service-account-key,omitempty"`
+	Datastore           string `mapstructure:"apiserver-datastore,omitempty"`
+	DatastoreURL        string `mapstructure:"apiserver-datastore-url,omitempty"`
+	DatastoreCA         string `mapstructure:"apiserver-datastore-ca,omitempty"`
+	DatastoreClientCert string `mapstructure:"apiserver-datastore-client-crt,omitempty"`
+	DatastoreClientKey  string `mapstructure:"apiserver-datastore-client-key,omitempty"`
+}
+
+type ClusterConfigKubelet struct {
+	CloudProvider string `mapstructure:"kubelet-cloud-provider,omitempty"`
+	ClusterDNS    string `mapstructure:"kubelet-cluster-dns,omitempty"`
+	ClusterDomain string `mapstructure:"kubelet-cluster-domain,omitempty"`
+}
+
+type ClusterConfigCertificates struct {
+	CertificateAuthorityCert string `mapstructure:"certificates-ca-crt,omitempty"`
+	CertificateAuthorityKey  string `mapstructure:"certificates-ca-key,omitempty"`
+	APIServerToKubeletCert   string `mapstructure:"certificates-apiserver-to-kubelet-crt,omitempty"`
+	APIServerToKubeletKey    string `mapstructure:"certificates-apiserver-to-kubelet-key,omitempty"`
+	K8sDqliteCert            string `mapstructure:"certificates-k8s-dqlite-crt,omitempty"`
+	K8sDqliteKey             string `mapstructure:"certificates-k8s-dqlite-key,omitempty"`
+}
+
+type ClusterConfigCluster struct {
+	CIDR string `mapstructure:"cluster-cidr,omitempty"`
+}
+
 type ClusterConfig struct {
-	// K8sCertificateAuthority represents the Kubernetes Certificate Authority certificate.
-	// Empty if we don't use self-signed certificates.
-	K8sCertificateAuthority string `mapstructure:"k8s-ca-crt,omitempty"`
-	// K8sCertificateAuthorityKey represents the Kubernetes Certificate Authority private key.
-	// Empty if we don't use self-signed certificates.
-	K8sCertificateAuthorityKey string `mapstructure:"k8s-ca-key,omitempty"`
-	// K8sDqliteCertificate represents the Kubernetes Dqlite Certificate.
-	K8sDqliteCertificate string `mapstructure:"k8s-dqlite-crt,omitempty"`
-	// K8sDqliteKey represents the Kubernetes Dqlite private key.
-	K8sDqliteKey string `mapstructure:"k8s-dqlite-key,omitempty"`
-	// K8sClusterCIDR represents the Kubernetes Cluster CIDR.
-	K8sClusterCIDR string `mapstructure:"k8s-cluster-cidr,omitempty"`
-	// KubeletClusterDNS represents the DNS address for the Kubelet in the cluster.
-	KubeletClusterDNS string `mapstructure:"kubelet-cluster-dns,omitempty"`
-	// KubeletClusterDomain represents the domain for the Kubelet in the cluster.
-	KubeletClusterDomain string `mapstructure:"kubelet-cluster-domain,omitempty"`
-	// KubeletCloudProvider represents the cloud provider for the Kubelet.
-	KubeletCloudProvider string `mapstructure:"kubelet-cloud-provider,omitempty"`
-	// APIServerRBAC defines if RBAC (Role-Based Access Control) is enabled for this cluster.
-	APIServerRBAC bool `mapstructure:"apiserver-rbac,omitempty"`
-	// APIServerDatastore represents the data store configuration for the API server.
-	// "k8s-dqlite" by default, "etcd" if using a custom datastore.
-	APIServerDatastore string `mapstructure:"apiserver-datastore,omitempty"`
-	// APIServerEtcdURL represents the URL for the external etcd service used by the API server.
-	APIServerEtcdURL string `mapstructure:"apiserver-etcd-url,omitempty"`
-	// APIServerEtcdCertificateAuthority represents the Certificate Authority for external etcd used by the API server.
-	APIServerEtcdCertificateAuthority string `mapstructure:"apiserver-etcd-ca,omitempty"`
-	// APIServerEtcdClientCertificate represents the client certificate for external etcd used by the API server.
-	APIServerEtcdClientCertificate string `mapstructure:"apiserver-etcd-client-crt,omitempty"`
-	// APIServerEtcdClientKey represents the client private key for external etcd used by the API server.
-	APIServerEtcdClientKey string `mapstructure:"apiserver-etcd-client-key,omitempty"`
+	Cluster      ClusterConfigCluster      `mapstructure:",squash"`
+	Certificates ClusterConfigCertificates `mapstructure:",squash"`
+	Kubelet      ClusterConfigKubelet      `mapstructure:",squash"`
+	APIServer    ClusterConfigAPIServer    `mapstructure:",squash"`
 }
 
 // UpdateClusterConfig inserts or updates a single cluster config entry.

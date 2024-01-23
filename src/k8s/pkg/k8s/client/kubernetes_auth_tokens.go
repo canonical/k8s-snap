@@ -20,7 +20,7 @@ func (c *Client) GenerateAuthToken(ctx context.Context, username string, groups 
 	err := c.mc.Query(queryCtx, "POST", api.NewURL().Path("kubernetes", "auth", "tokens"), request, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
-		return "", fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
+		return "", fmt.Errorf("failed to query endpoint POST /kubernetes/auth/tokens on %q: %w", clientURL.String(), err)
 	}
 
 	return response.Token, nil
