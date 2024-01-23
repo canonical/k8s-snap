@@ -4,6 +4,7 @@
 import logging
 import shlex
 import subprocess
+import time
 from pathlib import Path
 from typing import Callable, List, Optional, Union
 
@@ -13,6 +14,7 @@ from tenacity import (
     retry,
     retry_if_exception_type,
     stop_after_attempt,
+    stop_never,
     wait_fixed,
 )
 
@@ -27,34 +29,55 @@ def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run(command, **kwargs)
 
 
-def stubbornly(retries=3, delay_s=1, exceptions: Optional[tuple] = None):
+def stubbornly(
+    retries: Optional[int] = None,
+    delay_s: Optional[Union[float, int]] = None,
+    exceptions: Optional[tuple] = None,
+    **retry_kds,
+):
     """
+    Retry a command for a while, using tenacity
+
+    By default, retry immediately and forever until no exceptions occur.
+
     Some commands need to execute until they pass some condition
     > stubbornly(*retry_args).until(*some_condition).exec(*some_command)
 
     Some commands need to execute until they complete
     > stubbornly(*retry_args).exec(*some_command)
+
+    : param    retries              int: convenience param to use stop=retry.stop_after_attempt(<int>)
+    : param    delay_s        float|int: convenience param to use wait=retry.wait_fixed(delay_s)
+    : param exceptions Tuple[Exception]: convenience param to use retry=retry.retry_if_exception_type(exceptions)
+    : param retry_kds               Map: direct interface to all tenacity arguments for retrying
     """
 
     def _before_sleep(retry_state: RetryCallState):
         attempt = retry_state.attempt_number
+        tries = f"/{retries}" if retries is not None else ""
         LOG.info(
-            f"Attempt {attempt}/{retries} failed. Error: {retry_state.outcome.exception()}"
+            f"Attempt {attempt}{tries} failed. Error: {retry_state.outcome.exception()}"
         )
         LOG.info(f"Retrying in {delay_s} seconds...")
 
+    _waits = wait_fixed(delay_s) if delay_s is not None else wait_fixed(0)
+    _stops = stop_after_attempt(retries) if retries is not None else stop_never
     _exceptions = exceptions or (Exception,)  # default to retry on all exceptions
+
+    _retry_args = dict(
+        wait=_waits,
+        stop=_stops,
+        retry=retry_if_exception_type(_exceptions),
+        before_sleep=_before_sleep,
+    )
+    # Permit any tenacity retry overrides from these ^defaults
+    _retry_args.update(retry_kds)
 
     class Retriable:
         def __init__(self) -> None:
             self.condition = None
 
-        @retry(
-            wait=wait_fixed(delay_s),
-            stop=stop_after_attempt(retries),
-            retry=retry_if_exception_type(_exceptions),
-            before_sleep=_before_sleep,
-        )
+        @retry(**_retry_args)
         def exec(
             self,
             command_args: List[str],
@@ -110,11 +133,13 @@ def setup_dns(h: harness.Harness, instance_id: str):
     LOG.info("DNS enabled.")
 
     LOG.info("Waiting for CoreDNS pod to show up...")
-    stubbornly(retries=15, delay_s=5).exec(
+    stubbornly(retries=15, delay_s=5).until(
+        lambda p: "coredns" in p.stdout.decode()
+    ).exec(
         ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
         h,
         instance_id,
-    ).until(lambda p: "coredns" in p.stdout.decode())
+    )
     LOG.info("CoreDNS pod showed up.")
 
     stubbornly(retries=3, delay_s=1).exec(
@@ -137,6 +162,7 @@ def setup_dns(h: harness.Harness, instance_id: str):
 
 
 def setup_network(h: harness.Harness, instance_id: str):
+    time.sleep(30)
     h.exec(instance_id, ["/snap/k8s/current/k8s/network-requirements.sh"])
 
     LOG.info("Waiting for network to be enabled...")
@@ -153,7 +179,7 @@ def setup_network(h: harness.Harness, instance_id: str):
     )
     LOG.info("Cilium pods showed up.")
 
-    stubbornly().exec(
+    stubbornly(retries=3, delay_s=1).exec(
         [
             "k8s",
             "kubectl",
@@ -171,7 +197,7 @@ def setup_network(h: harness.Harness, instance_id: str):
         instance_id,
     )
 
-    stubbornly().exec(
+    stubbornly(retries=3, delay_s=1).exec(
         [
             "k8s",
             "kubectl",

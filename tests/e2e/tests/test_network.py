@@ -76,7 +76,7 @@ def test_network(h: harness.Harness, tmp_path: Path):
         input=Path(manifest).read_bytes(),
     )
 
-    util.stubbornly().exec(
+    util.stubbornly(retries=3, delay_s=1).exec(
         [
             "k8s",
             "kubectl",

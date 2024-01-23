@@ -51,7 +51,7 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     )
     LOG.info("Storage provisioner pod showed up.")
 
-    util.stubbornly().exec(
+    util.stubbornly(retries=3, delay_s=1).exec(
         [
             "k8s",
             "kubectl",
@@ -77,12 +77,12 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     )
 
     LOG.info("Waiting for storage writer pod to show up...")
-    util.stubbornly(delay_s=10).until(
+    util.stubbornly(retries=3, delay_s=10).until(
         lambda p: "storage-writer-pod" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"], h, instance_id)
     LOG.info("Storage writer pod showed up.")
 
-    util.stubbornly().exec(
+    util.stubbornly(retries=3, delay_s=1).exec(
         [
             "k8s",
             "kubectl",
@@ -99,18 +99,18 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     )
 
     LOG.info("Waiting for storage to get provisioned...")
-    util.stubbornly().until(check_pvc_bound).exec(
+    util.stubbornly(retries=3, delay_s=1).until(check_pvc_bound).exec(
         ["k8s", "kubectl", "get", "pvc", "-o", "json"], h, instance_id
     )
     LOG.info("Storage got provisioned and pvc is bound.")
 
     LOG.info("Waiting for storage reader pod to show up...")
-    util.stubbornly(delay_s=10).until(
+    util.stubbornly(retries=3, delay_s=10).until(
         lambda p: "storage-reader-pod" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"], h, instance_id)
     LOG.info("Storage reader pod showed up.")
 
-    util.stubbornly().exec(
+    util.stubbornly(retries=3, delay_s=1).exec(
         [
             "k8s",
             "kubectl",
