@@ -10,7 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-func EnableDNSComponent(clusterDomain, serviceIP string, upstreamNameservers []string, s snap.Snap) error {
+func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNameservers []string) error {
 	manager, err := NewManager(s)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)

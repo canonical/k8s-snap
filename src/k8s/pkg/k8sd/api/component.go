@@ -56,10 +56,10 @@ func dnsComponentPut(s *state.State, r *http.Request) response.Response {
 
 	if req.Status == api.ComponentEnable {
 		err = component.EnableDNSComponent(
+			snap,
 			req.Config.ClusterDomain,
 			req.Config.ServiceIP,
 			req.Config.UpstreamNameservers,
-			snap,
 		)
 	} else {
 		err = component.DisableDNSComponent(snap)
@@ -73,15 +73,17 @@ func dnsComponentPut(s *state.State, r *http.Request) response.Response {
 
 func networkComponentPut(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateNetworkComponentRequest
+	snap := snap.SnapFromContext(s.Context)
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	snap := snap.SnapFromContext(s.Context)
-
-	err = component.EnableNetworkComponent(snap)
-
+	if req.Status == api.ComponentEnable {
+		err = component.EnableNetworkComponent(snap)
+	} else {
+		err = component.DisableNetworkComponent(snap)
+	}
 	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
 }

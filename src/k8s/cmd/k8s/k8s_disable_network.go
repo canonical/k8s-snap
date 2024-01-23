@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var enableNetworkCmd = &cobra.Command{
+var disableNetworkCmd = &cobra.Command{
 	Use:   "network",
-	Short: "Enable the Network component in the cluster.",
+	Short: "Disable the Network component in the cluster.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
 			StorageDir: clusterCmdOpts.storageDir,
@@ -22,15 +22,15 @@ var enableNetworkCmd = &cobra.Command{
 		}
 
 		request := api.UpdateNetworkComponentRequest{
-			Status: api.ComponentEnable,
+			Status: api.ComponentDisable,
 		}
 
 		err = client.UpdateNetworkComponent(cmd.Context(), request)
 		if err != nil {
-			return fmt.Errorf("failed to enable Network component: %w", err)
+			return fmt.Errorf("failed to disable Network component: %w", err)
 		}
 
-		cmd.Println("Component 'Network' enabled")
+		cmd.Println("Component 'Network' disabled")
 		return nil
 	},
 }

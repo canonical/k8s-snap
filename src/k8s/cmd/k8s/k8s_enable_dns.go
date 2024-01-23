@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var dnsConfig struct {
+var enableDNSCmdConfig struct {
 	ServiceIP           string
 	ClusterDomain       string
 	UpstreamNameservers []string
@@ -29,9 +29,9 @@ var enableDNSCmd = &cobra.Command{
 		request := api.UpdateDNSComponentRequest{
 			Status: api.ComponentEnable,
 			Config: api.DNSComponentConfig{
-				ServiceIP:           dnsConfig.ServiceIP,
-				UpstreamNameservers: dnsConfig.UpstreamNameservers,
-				ClusterDomain:       dnsConfig.ClusterDomain,
+				ServiceIP:           enableDNSCmdConfig.ServiceIP,
+				UpstreamNameservers: enableDNSCmdConfig.UpstreamNameservers,
+				ClusterDomain:       enableDNSCmdConfig.ClusterDomain,
 			},
 		}
 
@@ -40,13 +40,13 @@ var enableDNSCmd = &cobra.Command{
 			return fmt.Errorf("failed to enable DNS component: %w", err)
 		}
 
-		cmd.Println("DNS component enabled")
+		cmd.Println("Component 'DNS' enabled")
 		return nil
 	},
 }
 
 func init() {
-	enableDNSCmd.Flags().StringVar(&dnsConfig.ServiceIP, "service-ip", "", "IP address to assign to the DNS service")
-	enableDNSCmd.Flags().StringSliceVar(&dnsConfig.UpstreamNameservers, "upstream-nameservers", []string{}, "Upstream nameservers for the DNS service")
-	enableDNSCmd.Flags().StringVar(&dnsConfig.ClusterDomain, "cluster-domain", "", "Cluster DNS domain")
+	enableDNSCmd.Flags().StringVar(&enableDNSCmdConfig.ServiceIP, "service-ip", "", "IP address to assign to the DNS service")
+	enableDNSCmd.Flags().StringSliceVar(&enableDNSCmdConfig.UpstreamNameservers, "upstream-nameservers", []string{}, "Upstream nameservers for the DNS service")
+	enableDNSCmd.Flags().StringVar(&enableDNSCmdConfig.ClusterDomain, "cluster-domain", "", "Cluster DNS domain")
 }

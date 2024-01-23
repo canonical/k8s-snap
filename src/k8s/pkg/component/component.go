@@ -15,8 +15,7 @@ import (
 // ComponentManager defines an interface for managing k8s components.
 type ComponentManager interface {
 	// Enable enables a k8s component, optionally specifying custom configuration options.
-	Enable(name string) error
-	EnableWithValues(name string, values map[string]any) error
+	Enable(name string, values map[string]any) error
 	// List returns a list of enabled components.
 	List() ([]Component, error)
 	// Disable disables a component from the cluster.
