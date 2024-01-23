@@ -39,7 +39,7 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         ["k8s", "enable", "storage"],
         capture_output=True,
     )
-    assert "enabled" in out.stdout.decode()
+    assert out.returncode == 0
 
     LOG.info("Waiting for storage provisioner pod to show up...")
     util.retry_until_condition(
