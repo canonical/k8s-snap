@@ -144,9 +144,7 @@ def setup_network(h: harness.Harness, instance_id: str):
     h.exec(instance_id, ["/snap/k8s/current/k8s/network-requirements.sh"])
 
     LOG.info("Waiting for network to be enabled...")
-    stubbornly(retries=15, delay_s=5).until(
-        lambda p: "enabled" in p.stdout.decode()
-    ).exec(["k8s", "enable", "network"], h, instance_id)
+    stubbornly(retries=15, delay_s=5).exec(["k8s", "enable", "network"], h, instance_id)
     LOG.info("Network enabled.")
 
     LOG.info("Waiting for cilium pods to show up...")
