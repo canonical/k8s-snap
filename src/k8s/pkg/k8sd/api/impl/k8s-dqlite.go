@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
@@ -28,7 +30,21 @@ var (
 //   - stores new certificates in k8s-dqlite cluster directory
 //   - writes k8s-dqlite init file with the cluster node information
 func JoinK8sDqliteCluster(ctx context.Context, state *state.State, snap snap.Snap, voters []string, host string) error {
-	if err := cert.StoreCertKeyPair(ctx, state, "k8s-dqlite", path.Join(cert.K8sDqlitePkiPath, "cluster.crt"), path.Join(cert.K8sDqlitePkiPath, "cluster.key")); err != nil {
+	// TODO: Cleanup once the cluster config is fully fetched from the database and not from the RPC endpoint above.
+	var crt, key string
+	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		config, err := database.GetClusterConfig(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get k8s-dqlite cert and key from database: %w", err)
+		}
+		crt = config.K8sDqliteCertificate
+		key = config.K8sDqliteKey
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to perform k8s-dqlite transaction request: %w", err)
+	}
+
+	if err := cert.StoreCertKeyPair(crt, key, path.Join(cert.K8sDqlitePkiPath, "cluster.crt"), path.Join(cert.K8sDqlitePkiPath, "cluster.key")); err != nil {
 		return fmt.Errorf("failed to update k8s-dqlite cluster certificate: %w", err)
 	}
 

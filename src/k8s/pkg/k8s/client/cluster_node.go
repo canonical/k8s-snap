@@ -11,7 +11,7 @@ import (
 
 // JoinNode calls "POST 1.0/k8sd/cluster/<node>"
 func (c *Client) JoinNode(ctx context.Context, name string, address string, token string) error {
-	err := c.m.JoinCluster(name, address, token, time.Second*30)
+	err := c.m.JoinCluster(name, address, token, nil, time.Second*30)
 	if err != nil {
 		return fmt.Errorf("failed to join k8sd cluster: %w", err)
 	}

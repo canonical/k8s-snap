@@ -67,7 +67,7 @@ def retry_until_condition(
     exceptions: Optional[tuple] = None,
     **kwargs,
 ) -> subprocess.CompletedProcess:
-    for attempt in range(max_retries):
+    for attempt in range(1, max_retries + 1):
         try:
             p = h.exec(instance_id, command, capture_output=True, **kwargs)
             if condition is not None:
@@ -81,6 +81,10 @@ def retry_until_condition(
                 or isinstance(e, AssertionError)
             ):
                 LOG.info(f"Attempt {attempt}/{max_retries} failed. Error: {e}")
+                if isinstance(e, subprocess.CalledProcessError):
+                    LOG.error(f"  rc={e.returncode}")
+                    LOG.error(f"  stdout={e.stdout.decode()}")
+                    LOG.error(f"  stderr={e.stderr.decode()}")
                 if attempt < max_retries:
                     LOG.info(f"Retrying in {delay_between_retries} seconds...")
                     time.sleep(delay_between_retries)
