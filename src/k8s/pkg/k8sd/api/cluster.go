@@ -78,7 +78,7 @@ func clusterPost(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to write k8s-dqlite cert to k8sd: %w", err))
 	}
 
-	err = cert.WriteCertKeyPairToK8sd(r.Context(), s, "ca",
+	err = cert.WriteCertKeyPairToK8sd(r.Context(), s, "k8s-ca",
 		path.Join(cert.KubePkiPath, "ca.crt"), path.Join(cert.KubePkiPath, "ca.key"))
 	if err != nil {
 		return response.SmartError(fmt.Errorf("failed to write CA to k8sd: %w", err))
