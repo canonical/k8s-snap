@@ -26,6 +26,12 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 	}
 
 	values := map[string]any{
+		"service": map[string]any{
+			"name": "coredns",
+		},
+		"deployment": map[string]any{
+			"name": "coredns",
+		},
 		"servers": []map[string]any{
 			{
 				"zones": []map[string]any{
@@ -52,10 +58,10 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 		},
 	}
 
+	// TODO: Store the serviceIP value in the cluster database
 	if serviceIP != "" {
-		values["service"] = map[string]any{
-			"clusterIP": serviceIP,
-		}
+		service := values["service"].(map[string]any)
+		service["clusterIP"] = serviceIP
 	}
 
 	err = manager.Enable("dns", values)
@@ -71,7 +77,7 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	dnsIP, err := k8s.GetServiceClusterIP(ctx, client, "ck-dns-coredns", "kube-system")
+	dnsIP, err := k8s.GetServiceClusterIP(ctx, client, "coredns", "kube-system")
 	if err != nil {
 		return fmt.Errorf("failed to get dns service: %w", err)
 	}

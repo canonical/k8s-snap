@@ -73,6 +73,6 @@ def test_dns(h: harness.Harness, tmp_path: Path):
         check=False,
     )
 
-    assert not ("can't resolve" in result.stdout.decode())
+    assert "can't resolve" not in result.stdout.decode()
 
     h.cleanup()
