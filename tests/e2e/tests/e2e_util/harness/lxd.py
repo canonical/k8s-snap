@@ -96,7 +96,10 @@ class LXDHarness(Harness):
                 instance_id,
                 ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
             )
-            run(["lxc", "file", "push", source, f"{instance_id}{destination}"])
+            run(
+                ["lxc", "file", "push", source, f"{instance_id}{destination}"],
+                stdout=subprocess.DEVNULL,
+            )
         except subprocess.CalledProcessError as e:
             raise HarnessError("lxc file push command failed") from e
 
@@ -111,7 +114,10 @@ class LXDHarness(Harness):
             "Copying file %s from instance %s to %s", source, instance_id, destination
         )
         try:
-            run(["lxc", "file", "pull", f"{instance_id}{source}", destination])
+            run(
+                ["lxc", "file", "pull", f"{instance_id}{source}", destination],
+                stdout=subprocess.DEVNULL,
+            )
         except subprocess.CalledProcessError as e:
             raise HarnessError("lxc file push command failed") from e
 
