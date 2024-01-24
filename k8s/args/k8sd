@@ -1,2 +1,2 @@
 --port=6400
---storage-dir=/var/lib/k8sd
+--state-dir=/var/lib/k8sd/state

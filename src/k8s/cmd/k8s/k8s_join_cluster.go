@@ -39,9 +39,9 @@ var (
 			}
 
 			client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				StorageDir: clusterCmdOpts.storageDir,
-				Verbose:    rootCmdOpts.logVerbose,
-				Debug:      rootCmdOpts.logDebug,
+				StateDir: clusterCmdOpts.stateDir,
+				Verbose:  rootCmdOpts.logVerbose,
+				Debug:    rootCmdOpts.logDebug,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create cluster client: %w", err)
@@ -51,6 +51,8 @@ var (
 			if err != nil {
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}
+
+			// TODO: (with flag) wait until the node has joined the cluster (e.g. node appears on Kubernetes)
 
 			fmt.Println("Joined the cluster.")
 			return nil

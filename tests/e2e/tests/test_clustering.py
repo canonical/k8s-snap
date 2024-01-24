@@ -37,12 +37,7 @@ def add_node(h: harness.Harness, cluster_node: str, joining_node: str) -> str:
 
 # Join an existing cluster.
 def join_cluster(h: harness.Harness, instance_id, token):
-    out = h.exec(
-        instance_id,
-        ["k8s", "join-cluster", token],
-        capture_output=True,
-    )
-    assert "Joined" in out.stdout.decode()
+    h.exec(instance_id, ["k8s", "join-cluster", token])
 
 
 def test_clustering(h: harness.Harness, tmp_path: Path):

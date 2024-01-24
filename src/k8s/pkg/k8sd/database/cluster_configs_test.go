@@ -14,8 +14,10 @@ func TestClusterConfig(t *testing.T) {
 		t.Run("Set", func(t *testing.T) {
 			g := NewWithT(t)
 			expectedClusterConfig := database.ClusterConfig{
-				K8sCertificateAuthority:    "some_cert",
-				K8sCertificateAuthorityKey: "some_key",
+				Certificates: database.ClusterConfigCertificates{
+					CertificateAuthorityCert: "CA CERT DATA",
+					CertificateAuthorityKey:  "CA KEY DATA",
+				},
 			}
 
 			// Write some config to the database
@@ -39,12 +41,18 @@ func TestClusterConfig(t *testing.T) {
 		t.Run("Update", func(t *testing.T) {
 			g := NewWithT(t)
 			expectedClusterConfig := database.ClusterConfig{
-				K8sCertificateAuthority:    "some_cert",
-				K8sCertificateAuthorityKey: "some_overwritten_key",
+				Certificates: database.ClusterConfigCertificates{
+					CertificateAuthorityCert: "CA CERT UPDATED DATA",
+					CertificateAuthorityKey:  "CA KEY DATA",
+				},
 			}
 
 			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-				err := database.SetClusterConfig(context.Background(), tx, expectedClusterConfig)
+				err := database.SetClusterConfig(context.Background(), tx, database.ClusterConfig{
+					Certificates: database.ClusterConfigCertificates{
+						CertificateAuthorityCert: "CA CERT UPDATED DATA",
+					},
+				})
 				g.Expect(err).To(BeNil())
 				return nil
 			})

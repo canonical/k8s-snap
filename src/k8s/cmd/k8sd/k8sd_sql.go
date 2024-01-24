@@ -20,7 +20,7 @@ var (
 			cluster, err := app.New(cmd.Context(), app.Config{
 				Debug:    rootCmdOpts.logDebug,
 				Verbose:  rootCmdOpts.logVerbose,
-				StateDir: rootCmdOpts.storageDir,
+				StateDir: rootCmdOpts.stateDir,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create k8sd app: %w", err)

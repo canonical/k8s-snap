@@ -18,7 +18,7 @@ func (c *Client) ListComponents(ctx context.Context) ([]api.Component, error) {
 	err := c.mc.Query(queryCtx, "GET", lxdApi.NewURL().Path("k8sd", "components"), nil, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
-		return nil, fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
+		return nil, fmt.Errorf("failed to query endpoint GET /k8sd/components on %q: %w", clientURL.String(), err)
 	}
 	return response.Components, nil
 }

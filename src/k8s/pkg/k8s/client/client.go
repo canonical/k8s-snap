@@ -10,8 +10,8 @@ import (
 
 // ClusterOpts contains options for cluster queries.
 type ClusterOpts struct {
-	// StorageDir is the directory that contains the cluster state (for local clients).
-	StorageDir string
+	// StateDir is the directory that contains the cluster state (for local clients).
+	StateDir string
 	// Verbose enables info level logging.
 	Verbose bool
 	// Debug enables trace level logging.
@@ -27,11 +27,11 @@ type Client struct {
 
 // NewClient returns a client to interact with the k8s REST-API
 // On a cluster node it will return a client connected to the unix-socket
-// elsewhere it returns a HTTPS client that expects the certificates to be located at ClusterOpts.StorageDir
+// elsewhere it returns a HTTPS client that expects the certificates to be located at ClusterOpts.StateDir
 func NewClient(ctx context.Context, opts ClusterOpts) (*Client, error) {
 	m, err := microcluster.App(ctx, microcluster.Args{
 		Debug:    opts.Debug,
-		StateDir: opts.StorageDir,
+		StateDir: opts.StateDir,
 		Verbose:  opts.Verbose,
 	})
 	if err != nil {

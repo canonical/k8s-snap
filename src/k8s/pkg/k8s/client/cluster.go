@@ -22,39 +22,20 @@ func (c *Client) Bootstrap(ctx context.Context) (apiv1.ClusterMember, error) {
 	}
 
 	// Get system addrPort.
-	addrPort := util.CanonicalNetworkAddress(
-		util.NetworkInterfaceAddress(), config.DefaultPort,
-	)
+	addrPort := util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), config.DefaultPort)
 
-	// This should be done behind the REST API.
-	// However, the K8sd daemon needs to be initialized before
-	// the REST API can be used.
-	// TODO: Find a way to do the bootstrapping/joining of k8sd behind
-	//       the REST API.
-	err = c.m.NewCluster(hostname, addrPort, nil, time.Second*30)
-	if err != nil {
+	if err := c.m.Ready(30); err != nil {
+		return apiv1.ClusterMember{}, fmt.Errorf("cluster did not come up in time: %w", err)
+	}
+	if err := c.m.NewCluster(hostname, addrPort, nil, time.Second*30); err != nil {
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
 	}
 
-	err = c.m.Ready(30)
-	if err != nil {
-		return apiv1.ClusterMember{}, fmt.Errorf("cluster did not come up in time: %w", err)
-	}
-
-	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
-	defer cancel()
-
-	var response apiv1.GetClusterStatusResponse
-	err = c.mc.Query(queryCtx, "POST", api.NewURL().Path("k8sd", "cluster"), nil, &response)
-	if err != nil {
-		clientURL := c.mc.URL()
-		return apiv1.ClusterMember{}, fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
-	}
-
+	// TODO(neoaggelos): retrieve hostname and address from the cluster, do not guess
 	return apiv1.ClusterMember{
 		Name:    hostname,
 		Address: util.NetworkInterfaceAddress(),
-	}, err
+	}, nil
 }
 
 // ClusterStatus returns the current status of the cluster.
@@ -79,7 +60,7 @@ func (c *Client) KubeConfig(ctx context.Context) (string, error) {
 	err := c.mc.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "kubeconfig"), nil, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
-		return "", fmt.Errorf("failed to query endpoint on %q: %w", clientURL.String(), err)
+		return "", fmt.Errorf("failed to query endpoint GET /k8sd/kubeconfig on %q: %w", clientURL.String(), err)
 	}
 	return response.KubeConfig, nil
 }

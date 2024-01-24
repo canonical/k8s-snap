@@ -100,8 +100,8 @@ func New(
 		if err := fileUnmarshal(&init, dir, "init.yaml"); err != nil {
 			return nil, fmt.Errorf("failed to read init.yaml: %w", err)
 		}
-		if init.Address == "" {
-			return nil, fmt.Errorf("empty address in init.yaml")
+		if init.Address == "" && len(init.Cluster) == 0 {
+			return nil, fmt.Errorf("empty address and cluster in init.yaml")
 		}
 
 		// delete init.yaml from disk

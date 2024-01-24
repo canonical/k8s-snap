@@ -3,7 +3,6 @@ package setup
 import (
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -28,13 +27,13 @@ func TestRenderKubeconfig(t *testing.T) {
 	testCases := []struct {
 		name               string
 		hostOverwrite      string
-		portOverwrite      int
+		portOverwrite      string
 		expectedKubeconfig string
 	}{
 		{
 			name:          "withOverwrites",
 			hostOverwrite: "192.168.12.3",
-			portOverwrite: 6000,
+			portOverwrite: "6000",
 			expectedKubeconfig: `apiVersion: v1
 clusters:
 - cluster:
@@ -66,7 +65,7 @@ users:
 			g.Expect(err).NotTo(HaveOccurred())
 
 			expectedKubeconfig := strings.ReplaceAll(tc.expectedKubeconfig, "{{ .ApiServerIp }}", tc.hostOverwrite)
-			expectedKubeconfig = strings.ReplaceAll(expectedKubeconfig, "{{ .ApiServerPort }}", strconv.Itoa(tc.portOverwrite))
+			expectedKubeconfig = strings.ReplaceAll(expectedKubeconfig, "{{ .ApiServerPort }}", tc.portOverwrite)
 			g.Expect(content).To(Equal(expectedKubeconfig))
 		})
 	}
