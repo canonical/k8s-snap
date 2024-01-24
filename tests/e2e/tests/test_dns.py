@@ -40,7 +40,7 @@ def test_dns(h: harness.Harness, tmp_path: Path):
         ],
     )
 
-    util.stubbornly(retries=3, delay_s=1).exec(
+    util.stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
         [
             "k8s",
             "kubectl",
@@ -51,9 +51,7 @@ def test_dns(h: harness.Harness, tmp_path: Path):
             "run=busybox",
             "--timeout",
             "180s",
-        ],
-        h,
-        instance_id,
+        ]
     )
 
     result = h.exec(

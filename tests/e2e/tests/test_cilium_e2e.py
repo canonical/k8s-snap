@@ -76,7 +76,7 @@ def test_cilium_e2e(h: harness.Harness, tmp_path: Path):
     h.exec(instance_id, ["./cilium", "version", "--client"])
 
     # TODO(neoaggelos): replace with "k8s status --wait-ready"
-    util.stubbornly(retries=15, delay_s=5).until(
+    util.stubbornly(retries=15, delay_s=5).on(h, instance_id).until(
         lambda p: "OK" == p.stdout.decode().strip()
     ).exec(
         [
@@ -93,9 +93,7 @@ def test_cilium_e2e(h: harness.Harness, tmp_path: Path):
             "cilium",
             "status",
             "--brief",
-        ],
-        h,
-        instance_id,
+        ]
     )
 
     # Run cilium e2e tests

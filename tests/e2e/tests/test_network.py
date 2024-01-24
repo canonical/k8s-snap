@@ -76,7 +76,7 @@ def test_network(h: harness.Harness, tmp_path: Path):
         input=Path(manifest).read_bytes(),
     )
 
-    util.stubbornly(retries=3, delay_s=1).exec(
+    util.stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
         [
             "k8s",
             "kubectl",
@@ -87,9 +87,7 @@ def test_network(h: harness.Harness, tmp_path: Path):
             "app=nginx",
             "--timeout",
             "180s",
-        ],
-        h,
-        instance_id,
+        ]
     )
 
     p = h.exec(
