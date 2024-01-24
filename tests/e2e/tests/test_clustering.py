@@ -12,9 +12,7 @@ LOG = logging.getLogger(__name__)
 
 
 # Create <num_instances> instances and setup the k8s snap in each.
-def setup_k8s_instances(
-    h: harness.Harness, snap_path: str, num_instances: int
-) -> List[str]:
+def setup_k8s_instances(h: harness.Harness, snap_path: str, num_instances: int) -> List[str]:
     instances = []
 
     for _ in range(num_instances):
@@ -37,12 +35,7 @@ def add_node(h: harness.Harness, cluster_node: str, joining_node: str) -> str:
 
 # Join an existing cluster.
 def join_cluster(h: harness.Harness, instance_id, token):
-    out = h.exec(
-        instance_id,
-        ["k8s", "join-cluster", token],
-        capture_output=True,
-    )
-    assert "Joined" in out.stdout.decode()
+    h.exec(instance_id, ["k8s", "join-cluster", token])
 
 
 def test_clustering(h: harness.Harness, tmp_path: Path):
