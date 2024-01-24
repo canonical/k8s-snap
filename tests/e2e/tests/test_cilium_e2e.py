@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Canonical, Ltd.
+# Copyright 2024 Canonical, Ltd.
 #
 import logging
 import platform
@@ -76,9 +76,9 @@ def test_cilium_e2e(h: harness.Harness, tmp_path: Path):
     h.exec(instance_id, ["./cilium", "version", "--client"])
 
     # TODO(neoaggelos): replace with "k8s status --wait-ready"
-    util.retry_until_condition(
-        h,
-        instance_id,
+    util.stubbornly(retries=15, delay_s=5).on(h, instance_id).until(
+        lambda p: "OK" == p.stdout.decode().strip()
+    ).exec(
         [
             "k8s",
             "kubectl",
@@ -93,8 +93,7 @@ def test_cilium_e2e(h: harness.Harness, tmp_path: Path):
             "cilium",
             "status",
             "--brief",
-        ],
-        condition=lambda p: p.stdout.decode().strip() == "OK",
+        ]
     )
 
     # Run cilium e2e tests

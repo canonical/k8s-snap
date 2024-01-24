@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Canonical, Ltd.
+# Copyright 2024 Canonical, Ltd.
 #
 from e2e_util.harness.base import Harness, HarnessError
 from e2e_util.harness.juju import JujuHarness

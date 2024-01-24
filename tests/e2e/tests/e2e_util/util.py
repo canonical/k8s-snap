@@ -1,14 +1,23 @@
 #
-# Copyright 2023 Canonical, Ltd.
+# Copyright 2024 Canonical, Ltd.
 #
 import logging
 import shlex
 import subprocess
 import time
+from functools import partial
 from pathlib import Path
 from typing import Callable, List, Optional, Union
 
 from e2e_util import config, harness
+from tenacity import (
+    RetryCallState,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    stop_never,
+    wait_fixed,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -21,100 +30,117 @@ def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run(command, **kwargs)
 
 
-def run_with_retry(
-    command,
-    max_retries=3,
-    delay_between_retries=1,
+def stubbornly(
+    retries: Optional[int] = None,
+    delay_s: Optional[Union[float, int]] = None,
     exceptions: Optional[tuple] = None,
-    **kwargs,
-) -> subprocess.CompletedProcess:
+    **retry_kds,
+):
     """
-    Run a command using subprocess.run with retry logic.
+    Retry a command for a while, using tenacity
 
-    Parameters:
-    - command (list): The command to be executed, as a list of strings.
-    - max_retries (int): Maximum number of retries in case of failure.
-    - delay_between_retries (int): Delay in seconds between retries.
-    - exceptions (tuple(Exception)): Excepections that should be retried. Retry all if None or empty (default)
-    - **kwargs: Additional keyword arguments to be passed to subprocess.run.
+    By default, retry immediately and forever until no exceptions occur.
 
-    Returns:
-    - subprocess.CompletedProcess: CompletedProcess object representing the result of the command.
+    Some commands need to execute until they pass some condition
+    > stubbornly(*retry_args).until(*some_condition).exec(*some_command)
+
+    Some commands need to execute until they complete
+    > stubbornly(*retry_args).exec(*some_command)
+
+    : param    retries              int: convenience param to use stop=retry.stop_after_attempt(<int>)
+    : param    delay_s        float|int: convenience param to use wait=retry.wait_fixed(delay_s)
+    : param exceptions Tuple[Exception]: convenience param to use retry=retry.retry_if_exception_type(exceptions)
+    : param retry_kds               Map: direct interface to all tenacity arguments for retrying
     """
-    for attempt in range(1, max_retries + 1):
-        try:
-            result = run(command, **kwargs)
-            return result
-        except Exception as e:
-            if exceptions is None or len(exceptions) == 0 or isinstance(e, exceptions):
-                LOG.info(f"Attempt {attempt}/{max_retries} failed. Error: {e}")
-                if attempt < max_retries:
-                    LOG.info(f"Retrying in {delay_between_retries} seconds...")
-                    time.sleep(delay_between_retries)
-                else:
-                    # If all attempts fail, raise the last error
-                    raise e
 
+    def _before_sleep(retry_state: RetryCallState):
+        attempt = retry_state.attempt_number
+        tries = f"/{retries}" if retries is not None else ""
+        LOG.info(
+            f"Attempt {attempt}{tries} failed. Error: {retry_state.outcome.exception()}"
+        )
+        LOG.info(f"Retrying in {delay_s} seconds...")
 
-# TODO: Consider how to handle more advanced retry logic
-def retry_until_condition(
-    h: harness.Harness,
-    instance_id,
-    command,
-    condition: Callable[[subprocess.CompletedProcess], bool] = None,
-    max_retries=15,
-    delay_between_retries=5,
-    exceptions: Optional[tuple] = None,
-    **kwargs,
-) -> subprocess.CompletedProcess:
-    for attempt in range(1, max_retries + 1):
-        try:
-            p = h.exec(instance_id, command, capture_output=True, **kwargs)
-            if condition is not None:
-                assert condition(p), "Failed to meet condition."
-            return p
-        except Exception as e:
-            if (
-                exceptions is None
-                or len(exceptions) == 0
-                or isinstance(e, exceptions)
-                or isinstance(e, AssertionError)
-            ):
-                LOG.info(f"Attempt {attempt}/{max_retries} failed. Error: {e}")
-                if isinstance(e, subprocess.CalledProcessError):
-                    LOG.error(f"  rc={e.returncode}")
-                    LOG.error(f"  stdout={e.stdout.decode()}")
-                    LOG.error(f"  stderr={e.stderr.decode()}")
-                if attempt < max_retries:
-                    LOG.info(f"Retrying in {delay_between_retries} seconds...")
-                    time.sleep(delay_between_retries)
-                else:
-                    # If all attempts fail, raise the last error
-                    raise e
+    _waits = wait_fixed(delay_s) if delay_s is not None else wait_fixed(0)
+    _stops = stop_after_attempt(retries) if retries is not None else stop_never
+    _exceptions = exceptions or (Exception,)  # default to retry on all exceptions
+
+    _retry_args = dict(
+        wait=_waits,
+        stop=_stops,
+        retry=retry_if_exception_type(_exceptions),
+        before_sleep=_before_sleep,
+    )
+    # Permit any tenacity retry overrides from these ^defaults
+    _retry_args.update(retry_kds)
+
+    class Retriable:
+        def __init__(self) -> None:
+            self.condition = None
+            self.run = subprocess.run
+
+        @retry(**_retry_args)
+        def exec(
+            self,
+            command_args: List[str],
+            **command_kwds,
+        ):
+            """
+            Execute a command against a harness or locally with subprocess to be retried.
+
+            :param  List[str]        command_args: The command to be executed, as a str or list of str
+            :param Map[str,str]      command_kwds: Additional keyword arguments to be passed to exec
+            """
+
+            try:
+                resp = self.run(command_args, **command_kwds)
+            except subprocess.CalledProcessError as e:
+                LOG.error(f"  rc={e.returncode}")
+                LOG.error(f"  stdout={e.stdout.decode()}")
+                LOG.error(f"  stderr={e.stderr.decode()}")
+                raise
+            if self.condition:
+                assert self.condition(resp), "Failed to meet condition"
+            return resp
+
+        def on(self, harness: harness.Harness, instance_id: str) -> "Retriable":
+            """
+            Target the command at some other instance.
+
+            :param Harness  harness: test Harness object, to run the command on
+            :param str      instance: Instance id in the test harness.
+            """
+            self.run = partial(harness.exec, instance_id, capture_output=True)
+            return self
+
+        def until(
+            self, condition: Callable[[subprocess.CompletedProcess], bool] = None
+        ) -> "Retriable":
+            """
+            Test the output of the executed command against an expected response
+
+            :param Callable condition: a callable which returns a truth about the command output
+            """
+            self.condition = condition
+            return self
+
+    return Retriable()
 
 
 def setup_dns(h: harness.Harness, instance_id: str):
     LOG.info("Waiting for dns to be enabled...")
-    retry_until_condition(
-        h,
-        instance_id,
-        ["k8s", "enable", "dns", "--cluster-domain=foo.local"],
-        condition=lambda p: p.returncode == 0,
+    stubbornly(retries=15, delay_s=5).on(h, instance_id).exec(
+        ["k8s", "enable", "dns", "--cluster-domain=foo.local"]
     )
     LOG.info("DNS enabled.")
 
     LOG.info("Waiting for CoreDNS pod to show up...")
-    retry_until_condition(
-        h,
-        instance_id,
-        ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
-        condition=lambda p: "coredns" in p.stdout.decode(),
-    )
+    stubbornly(retries=15, delay_s=5).on(h, instance_id).until(
+        lambda p: "coredns" in p.stdout.decode()
+    ).exec(["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"])
     LOG.info("CoreDNS pod showed up.")
 
-    retry_until_condition(
-        h,
-        instance_id,
+    stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
         [
             "k8s",
             "kubectl",
@@ -127,9 +153,7 @@ def setup_dns(h: harness.Harness, instance_id: str):
             "app.kubernetes.io/name=coredns",
             "--timeout",
             "180s",
-        ],
-        max_retries=3,
-        delay_between_retries=1,
+        ]
     )
 
 
@@ -138,26 +162,20 @@ def setup_network(h: harness.Harness, instance_id: str):
     h.exec(instance_id, ["/snap/k8s/current/k8s/network-requirements.sh"])
 
     LOG.info("Waiting for network to be enabled...")
-    retry_until_condition(
-        h,
-        instance_id,
-        ["k8s", "enable", "network"],
-        condition=lambda p: p.returncode == 0,
+    stubbornly(retries=15, delay_s=5).on(h, instance_id).exec(
+        ["k8s", "enable", "network"]
     )
     LOG.info("Network enabled.")
 
     LOG.info("Waiting for cilium pods to show up...")
-    retry_until_condition(
-        h,
-        instance_id,
+    stubbornly(retries=15, delay_s=5).on(h, instance_id).until(
+        lambda p: "cilium" in p.stdout.decode()
+    ).exec(
         ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
-        condition=lambda p: "cilium" in p.stdout.decode(),
     )
     LOG.info("Cilium pods showed up.")
 
-    retry_until_condition(
-        h,
-        instance_id,
+    stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
         [
             "k8s",
             "kubectl",
@@ -171,13 +189,9 @@ def setup_network(h: harness.Harness, instance_id: str):
             "--timeout",
             "180s",
         ],
-        max_retries=3,
-        delay_between_retries=1,
     )
 
-    retry_until_condition(
-        h,
-        instance_id,
+    stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
         [
             "k8s",
             "kubectl",
@@ -190,9 +204,7 @@ def setup_network(h: harness.Harness, instance_id: str):
             "k8s-app=cilium",
             "--timeout",
             "180s",
-        ],
-        max_retries=3,
-        delay_between_retries=1,
+        ]
     )
 
 
@@ -207,19 +219,16 @@ def setup_k8s_snap(h: harness.Harness, instance_id: str, snap_path: Path):
 
 
 # Validates that the K8s node is in Ready state.
-def wait_until_k8s_ready(h: harness.Harness, instances: Union[str, List[str]]):
-    if isinstance(instances, str):
-        instances = [instances]
-
+def wait_until_k8s_ready(h: harness.Harness, instances: List[str]):
     for instance in instances:
         hostname = (
             h.exec(instance, ["hostname"], capture_output=True).stdout.decode().strip()
         )
-        result = retry_until_condition(
-            h,
-            instance,
-            ["k8s", "kubectl", "get", "node", hostname, "--no-headers"],
-            condition=lambda p: "Ready" in p.stdout.decode(),
+        result = (
+            stubbornly(retries=15, delay_s=5)
+            .on(h, instance)
+            .until(lambda p: " Ready" in p.stdout.decode())
+            .exec(["k8s", "kubectl", "get", "node", hostname, "--no-headers"])
         )
     LOG.info("Kubelet registered successfully!")
     LOG.info("%s", result.stdout.decode())

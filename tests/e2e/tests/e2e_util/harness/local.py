@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Canonical, Ltd.
+# Copyright 2024 Canonical, Ltd.
 #
 
 import logging

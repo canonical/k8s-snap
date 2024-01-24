@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Canonical, Ltd.
+# Copyright 2024 Canonical, Ltd.
 #
 import logging
 from pathlib import Path
@@ -23,6 +23,6 @@ def test_smoke(h: harness.Harness, tmp_path: Path):
     h.exec(instance_id, ["k8s", "bootstrap"])
     util.setup_network(h, instance_id)
 
-    util.wait_until_k8s_ready(h, instance_id)
+    util.wait_until_k8s_ready(h, [instance_id])
 
     h.cleanup()

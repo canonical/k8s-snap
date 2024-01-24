@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Canonical, Ltd.
+# Copyright 2024 Canonical, Ltd.
 #
 import json
 import logging
@@ -76,9 +76,7 @@ def test_network(h: harness.Harness, tmp_path: Path):
         input=Path(manifest).read_bytes(),
     )
 
-    util.retry_until_condition(
-        h,
-        instance_id,
+    util.stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
         [
             "k8s",
             "kubectl",
@@ -89,9 +87,7 @@ def test_network(h: harness.Harness, tmp_path: Path):
             "app=nginx",
             "--timeout",
             "180s",
-        ],
-        max_retries=3,
-        delay_between_retries=1,
+        ]
     )
 
     p = h.exec(
