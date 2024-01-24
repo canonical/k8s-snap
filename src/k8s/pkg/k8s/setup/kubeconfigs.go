@@ -14,7 +14,7 @@ import (
 )
 
 // InitKubeconfigs generates the kubeconfig files that services use to communicate with the apiserver.
-func InitKubeconfigs(ctx context.Context, state *state.State, ca *cert.CertKeyPair, hostOverwrite *string, portOverwrite *string) error {
+func InitKubeconfigs(ctx context.Context, state *state.State, ca *cert.CertKeyPair, hostOverwrite *string, portOverwrite *int) error {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return fmt.Errorf("failed to get hostname: %w", err)
@@ -70,7 +70,7 @@ func InitKubeconfigs(ctx context.Context, state *state.State, ca *cert.CertKeyPa
 }
 
 // renderKubeconfig creates a kubeconfig file with the given token and CA data.
-func renderKubeconfig(snap snap.Snap, token string, caCertPem []byte, path string, hostOverwrite *string, portOverwrite *string) error {
+func renderKubeconfig(snap snap.Snap, token string, caCertPem []byte, path string, hostOverwrite *string, portOverwrite *int) error {
 	port := apiServerPort(snap, portOverwrite)
 	return utils.TemplateAndSave(snap.Path("k8s/config/kubeconfig-with-token.tmpl"),
 		struct {
@@ -95,9 +95,9 @@ func apiServerHost(hostOverwrite *string) string {
 	return "127.0.0.1"
 }
 
-func apiServerPort(s snap.Snap, portOverwrite *string) string {
+func apiServerPort(s snap.Snap, portOverwrite *int) string {
 	if portOverwrite != nil {
-		return *portOverwrite
+		return fmt.Sprintf("%d", *portOverwrite)
 	} else {
 		return snap.GetServiceArgument(s, "kube-apiserver", "--secure-port")
 	}
