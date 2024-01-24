@@ -29,8 +29,11 @@ jobs:
 
       - name: check diff
         run: |
-          if ! git diff; then
+          if ! [ -z "$(git diff)" ]; then
             echo "Detected changes that have not been committed to the repository"
+            echo "Please run 'cd src/k8s && make go.fmt'"
+            echo "git diff:"
+            git diff
             exit 1
           fi
 
