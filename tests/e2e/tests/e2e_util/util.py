@@ -101,6 +101,7 @@ def stubbornly(
                 raise
             if self.condition:
                 assert self.condition(resp), "Failed to meet condition"
+            return resp
 
         def on(self, harness: harness.Harness, instance_id: str) -> "Retriable":
             """
