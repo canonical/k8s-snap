@@ -52,6 +52,8 @@ var (
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}
 
+			// TODO: (with flag) wait until the node has joined the cluster (e.g. node appears on Kubernetes)
+
 			fmt.Println("Joined the cluster.")
 			return nil
 		},
