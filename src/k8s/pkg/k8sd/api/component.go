@@ -40,6 +40,11 @@ var k8sdIngressComponent = rest.Endpoint{
 	Put:  rest.EndpointAction{Handler: ingressComponentPut, AllowUntrusted: false},
 }
 
+var k8sdGatewayComponent = rest.Endpoint{
+	Path: "k8sd/components/gateway",
+	Put:  rest.EndpointAction{Handler: gatewayComponentPut, AllowUntrusted: false},
+}
+
 func componentsGet(s *state.State, r *http.Request) response.Response {
 	snap := snap.SnapFromContext(s.Context)
 
@@ -146,4 +151,26 @@ func ingressComponentPut(s *state.State, r *http.Request) response.Response {
 	}
 
 	return response.SyncResponse(true, &api.UpdateIngressComponentResponse{})
+}
+
+func gatewayComponentPut(s *state.State, r *http.Request) response.Response {
+	var req api.UpdateGatewayComponentRequest
+
+	snap := snap.SnapFromContext(s.Context)
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
+	}
+
+	if req.Status == api.ComponentEnable {
+		err = component.EnableGatewayComponent(snap)
+	} else {
+		err = component.DisableGatewayComponent(snap)
+	}
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to %s %s: %w", req.Status, "gateway", err))
+	}
+
+	return response.SyncResponse(true, &api.UpdateGatewayComponentResponse{})
 }
