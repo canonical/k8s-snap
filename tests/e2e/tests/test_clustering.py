@@ -12,7 +12,9 @@ LOG = logging.getLogger(__name__)
 
 
 # Create <num_instances> instances and setup the k8s snap in each.
-def setup_k8s_instances(h: harness.Harness, snap_path: str, num_instances: int) -> List[str]:
+def setup_k8s_instances(
+    h: harness.Harness, snap_path: str, num_instances: int
+) -> List[str]:
     instances = []
 
     for _ in range(num_instances):
