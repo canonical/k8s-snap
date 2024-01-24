@@ -123,21 +123,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to initialize containerd: %w", err)
 	}
 
-	// TODO: Cleanup once the cluster config is fully fetched from the database and not from the RPC endpoint above.
-	var ca, caKey string
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-		config, err := database.GetClusterConfig(ctx, tx)
-		if err != nil {
-			return fmt.Errorf("failed to get CA and key from database: %w", err)
-		}
-		ca = config.Certificates.CertificateAuthorityCert
-		caKey = config.Certificates.CertificateAuthorityKey
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to perform CA transaction request: %w", err)
-	}
-
-	if err := cert.StoreCertKeyPair(ca, caKey, path.Join(cert.KubePkiPath, "ca.crt"), path.Join(cert.KubePkiPath, "ca.key")); err != nil {
+	if err := cert.StoreCertKeyPair(clusterConfig.Certificates.CertificateAuthorityCert, clusterConfig.Certificates.CertificateAuthorityKey, path.Join(cert.KubePkiPath, "ca.crt"), path.Join(cert.KubePkiPath, "ca.key")); err != nil {
 		return fmt.Errorf("failed to store CA certificate: %w", err)
 	}
 
