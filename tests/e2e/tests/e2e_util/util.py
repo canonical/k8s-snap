@@ -219,10 +219,7 @@ def setup_k8s_snap(h: harness.Harness, instance_id: str, snap_path: Path):
 
 
 # Validates that the K8s node is in Ready state.
-def wait_until_k8s_ready(h: harness.Harness, instances: Union[str, List[str]]):
-    if isinstance(instances, str):
-        instances = [instances]
-
+def wait_until_k8s_ready(h: harness.Harness, instances: List[str]):
     for instance in instances:
         hostname = (
             h.exec(instance, ["hostname"], capture_output=True).stdout.decode().strip()
@@ -230,7 +227,7 @@ def wait_until_k8s_ready(h: harness.Harness, instances: Union[str, List[str]]):
         result = (
             stubbornly(retries=15, delay_s=5)
             .on(h, instance)
-            .until(lambda p: "Ready" in p.stdout.decode())
+            .until(lambda p: " Ready" in p.stdout.decode())
             .exec(["k8s", "kubectl", "get", "node", hostname, "--no-headers"])
         )
     LOG.info("Kubelet registered successfully!")
