@@ -1,81 +1,52 @@
 package types
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 )
 
-// WorkerNodeToken encodes information required to join a cluster as a worker node.
-// WorkerNodeToken encodes fields with single-letter short names to be short.
-type WorkerNodeToken struct {
-	CA             string   `json:"a,omitempty"`
-	APIServers     []string `json:"b"`
-	KubeletToken   string   `json:"c"`
-	KubeProxyToken string   `json:"d"`
-	ClusterCIDR    string   `json:"e"`
-	ClusterDNS     string   `json:"f,omitempty"`
-	ClusterDomain  string   `json:"g,omitempty"`
-	CloudProvider  string   `json:"h,omitempty"`
+// InternalWorkerNodeInfo encodes information required to join a cluster as a worker node.
+// InternalWorkerNodeInfo encodes fields with single-letter short names to be short.
+type InternalWorkerNodeInfo struct {
+	Token         string   `json:"token"`
+	JoinAddresses []string `json:"join_addresses"`
 }
 
-// workerNodeSerializeMagicString is used to validate serialized worker node tokens.
-const workerNodeSerializeMagicString = "M!"
+// internalWorkerNodeInfoSerializeMagicString is used to validate serialized worker node tokens.
+const internalWorkerNodeInfoSerializeMagicString = "m!!"
 
 var encoding = base64.RawStdEncoding
 
-type serializableWorkerNodeToken struct {
-	WorkerNodeToken
+type serializableWorkerNodeInfo struct {
+	InternalWorkerNodeInfo
 	Magic string `json:"_"`
 }
 
 // Encode a worker node token to a base64-encoded string.
-func (t *WorkerNodeToken) Encode() (string, error) {
-	var buf bytes.Buffer
-	b, err := json.Marshal(serializableWorkerNodeToken{WorkerNodeToken: *t, Magic: workerNodeSerializeMagicString})
+func (t *InternalWorkerNodeInfo) Encode() (string, error) {
+	b, err := json.Marshal(serializableWorkerNodeInfo{InternalWorkerNodeInfo: *t, Magic: internalWorkerNodeInfoSerializeMagicString})
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal token: %w", err)
 	}
-	encoder, err := gzip.NewWriterLevel(&buf, gzip.BestCompression)
-	if err != nil {
-		return "", fmt.Errorf("failed to initialize encoder: %w", err)
-	}
-	if _, err := encoder.Write(b); err != nil {
-		return "", fmt.Errorf("failed to serialize token: %w", err)
-	}
-	if err := encoder.Close(); err != nil {
-		return "", fmt.Errorf("failed to serialize token: %w", err)
-	}
-	return encoding.EncodeToString(buf.Bytes()), nil
+	return encoding.EncodeToString(b), nil
 }
 
 // Decode parses the base64-encoded string into the token.
 // Decode returns an error if the token is not valid.
-func (t *WorkerNodeToken) Decode(encoded string) error {
+func (t *InternalWorkerNodeInfo) Decode(encoded string) error {
 	raw, err := encoding.DecodeString(encoded)
 	if err != nil {
 		return fmt.Errorf("failed to deserialize token: %w", err)
 	}
-	decoder, err := gzip.NewReader(bytes.NewBuffer(raw))
-	if err != nil {
-		return fmt.Errorf("failed to initialize decoder: %w", err)
-	}
-	b, err := io.ReadAll(decoder)
-	if err != nil {
-		return fmt.Errorf("failed to deserialize token: %w", err)
-	}
-
-	var st serializableWorkerNodeToken
-	if err := json.Unmarshal([]byte(b), &st); err != nil {
+	var st serializableWorkerNodeInfo
+	if err := json.Unmarshal(raw, &st); err != nil {
 		return fmt.Errorf("failed to unmarshal token: %w", err)
 	}
-	if st.Magic != workerNodeSerializeMagicString {
-		return fmt.Errorf("worker node token magic string mismatch")
+	if st.Magic != internalWorkerNodeInfoSerializeMagicString {
+		return fmt.Errorf("magic string mismatch")
 	}
 
-	*t = st.WorkerNodeToken
+	*t = st.InternalWorkerNodeInfo
 	return nil
 }

@@ -16,13 +16,69 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-var k8sdWorkerToken = rest.Endpoint{
-	Path: "k8sd/worker/token",
-	Post: rest.EndpointAction{Handler: k8sdWorkerTokenPost},
-}
+var (
+	k8sdWorkerToken = rest.Endpoint{
+		Path: "k8sd/worker/token",
+		Post: rest.EndpointAction{Handler: k8sdWorkerTokenPost},
+	}
+	k8sdWorkerInfo = rest.Endpoint{
+		Path: "k8sd/worker/info",
+		Post: rest.EndpointAction{Handler: k8sdWorkerInfoPost, AllowUntrusted: true},
+	}
+)
 
 func k8sdWorkerTokenPost(s *state.State, r *http.Request) response.Response {
-	req := apiv1.WorkerNodeJoinRequest{}
+	var token string
+	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		token, err = database.GetOrCreateWorkerNodeToken(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to create worker node token: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return response.InternalError(fmt.Errorf("database transaction failed: %w", err))
+	}
+
+	remoteAddresses := s.Remotes().Addresses()
+	addresses := make([]string, 0, len(remoteAddresses))
+	for _, addrPort := range remoteAddresses {
+		addresses = append(addresses, addrPort.String())
+	}
+
+	info := &types.InternalWorkerNodeInfo{
+		Token:         token,
+		JoinAddresses: addresses,
+	}
+	token, err := info.Encode()
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to encode join token: %w", err))
+	}
+
+	return response.SyncResponse(true, &apiv1.WorkerNodeTokenResponse{EncodedToken: token})
+}
+
+func k8sdWorkerInfoPost(s *state.State, r *http.Request) response.Response {
+	token := r.Header.Get("k8sd-token")
+	if token == "" {
+		return response.Unauthorized(fmt.Errorf("invalid token"))
+	}
+	var tokenIsValid bool
+	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		tokenIsValid, err = database.CheckWorkerNodeToken(ctx, tx, token)
+		if err != nil {
+			return fmt.Errorf("failed to check worker node token: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return response.InternalError(fmt.Errorf("check token database transaction failed: %w", err))
+	}
+	if !tokenIsValid {
+		return response.Unauthorized(fmt.Errorf("invalid token"))
+	}
+
+	req := apiv1.WorkerNodeInfoRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -40,7 +96,7 @@ func k8sdWorkerTokenPost(s *state.State, r *http.Request) response.Response {
 		}
 		return nil
 	}); err != nil {
-		return response.InternalError(fmt.Errorf("database transaction failed: %w", err))
+		return response.InternalError(fmt.Errorf("get cluster config database transaction failed: %w", err))
 	}
 
 	client, err := k8s.NewClient()
@@ -73,11 +129,17 @@ func k8sdWorkerTokenPost(s *state.State, r *http.Request) response.Response {
 			*i.token = t
 			return nil
 		}); err != nil {
-			return response.InternalError(fmt.Errorf("transaction failed: %w", err))
+			return response.InternalError(fmt.Errorf("create token transaction failed: %w", err))
 		}
 	}
 
-	token := &types.WorkerNodeToken{
+	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+		return database.AddWorkerNode(ctx, tx, nodeName)
+	}); err != nil {
+		return response.InternalError(fmt.Errorf("add worker node transaction failed: %w", err))
+	}
+
+	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
 		CA:             clusterConfig.Certificates.CACert,
 		APIServers:     servers,
 		ClusterCIDR:    clusterConfig.Cluster.CIDR,
@@ -86,13 +148,5 @@ func k8sdWorkerTokenPost(s *state.State, r *http.Request) response.Response {
 		ClusterDomain:  clusterConfig.Kubelet.ClusterDomain,
 		ClusterDNS:     clusterConfig.Kubelet.ClusterDNS,
 		CloudProvider:  clusterConfig.Kubelet.CloudProvider,
-	}
-	encoded, err := token.Encode()
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to encode worker token: %w", err))
-	}
-
-	return response.SyncResponse(true, &apiv1.WorkerNodeJoinResponse{
-		EncodedToken: encoded,
 	})
 }

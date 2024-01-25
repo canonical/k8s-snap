@@ -17,8 +17,8 @@ func (c *Client) CreateJoinToken(ctx context.Context, name string, worker bool) 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
-	request := apiv1.WorkerNodeJoinRequest{Hostname: name}
-	response := apiv1.WorkerNodeJoinResponse{}
+	request := apiv1.WorkerNodeTokenRequest{}
+	response := apiv1.WorkerNodeTokenResponse{}
 
 	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "worker", "token"), request, &response)
 	if err != nil {

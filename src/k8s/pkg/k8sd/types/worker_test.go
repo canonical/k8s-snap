@@ -8,15 +8,9 @@ import (
 )
 
 func TestWorkerTokenEncode(t *testing.T) {
-	token := &types.WorkerNodeToken{
-		CA:             "CA DATA",
-		APIServers:     []string{"1.1.1.1:6443"},
-		ClusterCIDR:    "10.1.0.0/16",
-		KubeletToken:   "token1",
-		KubeProxyToken: "token2",
-		ClusterDomain:  "cluster.local",
-		ClusterDNS:     "10.152.183.10/24",
-		CloudProvider:  "external",
+	token := &types.InternalWorkerNodeInfo{
+		Token:         "token1",
+		JoinAddresses: []string{"addr1:1010", "addr2:1212"},
 	}
 
 	g := NewWithT(t)
@@ -24,7 +18,7 @@ func TestWorkerTokenEncode(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(s).ToNot(BeEmpty())
 
-	decoded := &types.WorkerNodeToken{}
+	decoded := &types.InternalWorkerNodeInfo{}
 	err = decoded.Decode(s)
 	g.Expect(err).To(BeNil())
 
