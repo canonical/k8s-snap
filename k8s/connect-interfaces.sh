@@ -29,5 +29,5 @@ declare -a INTERFACES=(
 )
 
 for if in "${INTERFACES[@]}"; do
-  bash -x -c "snap connect 'k8s:${if}'"
+  bash -c "snap connect 'k8s:${if}'"
 done
