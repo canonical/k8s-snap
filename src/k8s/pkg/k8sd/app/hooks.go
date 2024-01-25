@@ -80,6 +80,9 @@ func onBootstrap(s *state.State, initConfig map[string]string) error {
 				AuthorizationMode: "Node,RBAC",
 				SecurePort:        6443,
 			},
+			Kubelet: database.ClusterConfigKubelet{
+				ClusterDomain: "cluster.local",
+			},
 		})
 	})
 
