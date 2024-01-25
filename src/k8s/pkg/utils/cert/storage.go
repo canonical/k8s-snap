@@ -39,17 +39,24 @@ func WriteCertKeyPairToK8sd(ctx context.Context, state *state.State, certName st
 
 	logrus.WithField("cert_length", len(string(cert))).WithField("key_length", len(string(key))).Debugf("Writing %s cert and key to database", certName)
 	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		err = database.UpdateClusterConfig(ctx, tx, fmt.Sprintf("%s-crt", certName), string(cert))
-		if err != nil {
-			return fmt.Errorf("failed to write %s cert to database: %w", certName, err)
+		// TODO: this is a hack until we completely replace WriteCertKeyPairToK8sd()
+		var clusterConfig database.ClusterConfig
+		switch certName {
+		case "certificates-ca":
+			clusterConfig.Certificates.CACert = string(cert)
+			clusterConfig.Certificates.CAKey = string(key)
+		case "certificates-k8s-dqlite":
+			clusterConfig.Certificates.K8sDqliteCert = string(cert)
+			clusterConfig.Certificates.K8sDqliteKey = string(key)
+		default:
+			panic("only 'certificates-ca' or 'certificate-k8s-dqlite' is allowed")
 		}
-		err = database.UpdateClusterConfig(ctx, tx, fmt.Sprintf("%s-key", certName), string(key))
-		if err != nil {
-			return fmt.Errorf("failed to write %s key to database: %w", certName, err)
+		if err := database.SetClusterConfig(ctx, tx, clusterConfig); err != nil {
+			return fmt.Errorf("failed to set cluster config: %w", err)
 		}
 		return nil
 	}); err != nil {
-		return fmt.Errorf("failed to perform %s certificate transaction write request: %w", certName, err)
+		return fmt.Errorf("failed to write certificate %s to database: %w", certName, err)
 	}
 	return nil
 }

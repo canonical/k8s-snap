@@ -15,8 +15,8 @@ func TestClusterConfig(t *testing.T) {
 			g := NewWithT(t)
 			expectedClusterConfig := database.ClusterConfig{
 				Certificates: database.ClusterConfigCertificates{
-					CertificateAuthorityCert: "CA CERT DATA",
-					CertificateAuthorityKey:  "CA KEY DATA",
+					CACert: "CA CERT DATA",
+					CAKey:  "CA KEY DATA",
 				},
 			}
 
@@ -38,19 +38,65 @@ func TestClusterConfig(t *testing.T) {
 			g.Expect(err).To(BeNil())
 		})
 
-		t.Run("Update", func(t *testing.T) {
+		t.Run("CannotUpdateCA", func(t *testing.T) {
+			// TODO(neoaggelos): extend this test for all fields that cannot be updated
 			g := NewWithT(t)
 			expectedClusterConfig := database.ClusterConfig{
 				Certificates: database.ClusterConfigCertificates{
-					CertificateAuthorityCert: "CA CERT UPDATED DATA",
-					CertificateAuthorityKey:  "CA KEY DATA",
+					CACert: "CA CERT DATA",
+					CAKey:  "CA KEY DATA",
 				},
 			}
 
 			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				err := database.SetClusterConfig(context.Background(), tx, database.ClusterConfig{
 					Certificates: database.ClusterConfigCertificates{
-						CertificateAuthorityCert: "CA CERT UPDATED DATA",
+						CACert: "CA CERT NEW DATA",
+					},
+				})
+				g.Expect(err).To(HaveOccurred())
+				return err
+			})
+			g.Expect(err).To(HaveOccurred())
+
+			err = d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+				clusterConfig, err := database.GetClusterConfig(ctx, tx)
+				g.Expect(err).To(BeNil())
+				g.Expect(clusterConfig).To(Equal(expectedClusterConfig))
+				return nil
+			})
+			g.Expect(err).To(BeNil())
+		})
+
+		t.Run("Update", func(t *testing.T) {
+			// TODO(neoaggelos): extend this test for all fields that can be updated
+			g := NewWithT(t)
+			expectedClusterConfig := database.ClusterConfig{
+				Certificates: database.ClusterConfigCertificates{
+					CACert:        "CA CERT DATA",
+					CAKey:         "CA KEY DATA",
+					K8sDqliteCert: "CERT DATA",
+					K8sDqliteKey:  "KEY DATA",
+				},
+				Kubelet: database.ClusterConfigKubelet{
+					ClusterDNS: "10.152.183.10",
+				},
+				APIServer: database.ClusterConfigAPIServer{
+					ServiceAccountKey: "SA KEY DATA",
+				},
+			}
+
+			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+				err := database.SetClusterConfig(context.Background(), tx, database.ClusterConfig{
+					Kubelet: database.ClusterConfigKubelet{
+						ClusterDNS: "10.152.183.10",
+					},
+					Certificates: database.ClusterConfigCertificates{
+						K8sDqliteCert: "CERT DATA",
+						K8sDqliteKey:  "KEY DATA",
+					},
+					APIServer: database.ClusterConfigAPIServer{
+						ServiceAccountKey: "SA KEY DATA",
 					},
 				})
 				g.Expect(err).To(BeNil())

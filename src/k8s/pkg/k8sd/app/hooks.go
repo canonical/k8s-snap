@@ -77,8 +77,8 @@ func onBootstrap(s *state.State, initConfig map[string]string) error {
 				CIDR: "10.1.0.0/16",
 			},
 			APIServer: database.ClusterConfigAPIServer{
-				RBAC:       "true",
-				SecurePort: "6443",
+				AuthorizationMode: "Node,RBAC",
+				SecurePort:        6443,
 			},
 		})
 	})
@@ -110,7 +110,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 
 	if err := setup.InitServiceArgs(snap, map[string]map[string]string{
 		"kube-apiserver": {
-			"--secure-port": clusterConfig.APIServer.SecurePort,
+			"--secure-port": fmt.Sprintf("%d", clusterConfig.APIServer.SecurePort),
 		},
 		"kube-proxy": {
 			"--cluster-cidr": clusterConfig.Cluster.CIDR,
@@ -123,7 +123,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to initialize containerd: %w", err)
 	}
 
-	if err := cert.StoreCertKeyPair(clusterConfig.Certificates.CertificateAuthorityCert, clusterConfig.Certificates.CertificateAuthorityKey, path.Join(cert.KubePkiPath, "ca.crt"), path.Join(cert.KubePkiPath, "ca.key")); err != nil {
+	if err := cert.StoreCertKeyPair(clusterConfig.Certificates.CACert, clusterConfig.Certificates.CAKey, path.Join(cert.KubePkiPath, "ca.crt"), path.Join(cert.KubePkiPath, "ca.key")); err != nil {
 		return fmt.Errorf("failed to store CA certificate: %w", err)
 	}
 
