@@ -159,7 +159,11 @@ def setup_dns(h: harness.Harness, instance_id: str):
 
 def setup_network(h: harness.Harness, instance_id: str):
     time.sleep(30)
-    h.exec(instance_id, ["/snap/k8s/current/k8s/network-requirements.sh"])
+    h.exec(
+        instance_id,
+        ["/snap/k8s/current/k8s/network-requirements.sh"],
+        stdout=subprocess.DEVNULL,
+    )
 
     LOG.info("Waiting for network to be enabled...")
     stubbornly(retries=15, delay_s=5).on(h, instance_id).exec(
