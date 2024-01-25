@@ -13,6 +13,10 @@ type Snap struct {
 	WriteServiceArgumentsCalled bool
 
 	ServiceArguments map[string]string
+
+	PathPrefix       string
+	DataPathPrefix   string
+	CommonPathPrefix string
 }
 
 func (s *Snap) StartService(_ context.Context, service string) error {
@@ -46,13 +50,13 @@ func (s *Snap) WriteServiceArguments(service string, b []byte) error {
 }
 
 func (s *Snap) Path(parts ...string) string {
-	return filepath.Join(parts...)
+	return filepath.Join(append([]string{s.PathPrefix}, parts...)...)
 }
 
 func (s *Snap) DataPath(parts ...string) string {
-	return filepath.Join(parts...)
+	return filepath.Join(append([]string{s.DataPathPrefix}, parts...)...)
 }
 
 func (s *Snap) CommonPath(parts ...string) string {
-	return filepath.Join(parts...)
+	return filepath.Join(append([]string{s.CommonPathPrefix}, parts...)...)
 }
