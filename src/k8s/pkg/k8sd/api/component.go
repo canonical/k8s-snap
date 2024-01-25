@@ -69,18 +69,24 @@ func dnsComponentPut(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	if req.Status == api.ComponentEnable {
+	switch req.Status {
+	case api.ComponentEnable:
 		err = component.EnableDNSComponent(
 			snap,
 			req.Config.ClusterDomain,
 			req.Config.ServiceIP,
 			req.Config.UpstreamNameservers,
 		)
-	} else {
+		if err != nil {
+			return response.SmartError(fmt.Errorf("failed to enable dns: %w", err))
+		}
+	case api.ComponentDisable:
 		err = component.DisableDNSComponent(snap)
-	}
-	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to %s %s: %w", req.Status, "dns", err))
+		if err != nil {
+			return response.SmartError(fmt.Errorf("failed to disable dns: %w", err))
+		}
+	default:
+		return response.SmartError(fmt.Errorf("invalid component status %s", req.Status))
 	}
 
 	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
@@ -95,12 +101,22 @@ func networkComponentPut(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	if req.Status == api.ComponentEnable {
+	switch req.Status {
+	case api.ComponentEnable:
 		err = component.EnableNetworkComponent(snap)
-	} else {
+		if err != nil {
+			return response.SmartError(fmt.Errorf("failed to enable network: %w", err))
+		}
+	case api.ComponentDisable:
 		err = component.DisableNetworkComponent(snap)
+		if err != nil {
+			return response.SmartError(fmt.Errorf("failed to disable network: %w", err))
+		}
+	default:
+		return response.SmartError(fmt.Errorf("invalid component status %s", req.Status))
 	}
-	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
+
+	return response.SyncResponse(true, &api.UpdateNetworkComponentResponse{})
 }
 
 func storageComponentPut(s *state.State, r *http.Request) response.Response {
@@ -112,12 +128,22 @@ func storageComponentPut(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	if req.Status == api.ComponentEnable {
+	switch req.Status {
+	case api.ComponentEnable:
 		err = component.EnableStorageComponent(snap)
-	} else {
+		if err != nil {
+			return response.SmartError(fmt.Errorf("failed to enable storage: %w", err))
+		}
+	case api.ComponentDisable:
 		err = component.DisableStorageComponent(snap)
+		if err != nil {
+			return response.SmartError(fmt.Errorf("failed to disable storage: %w", err))
+		}
+	default:
+		return response.SmartError(fmt.Errorf("invalid component status %s", req.Status))
 	}
-	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
+
+	return response.SyncResponse(true, &api.UpdateStorageComponentResponse{})
 }
 
 func ingressComponentPut(s *state.State, r *http.Request) response.Response {
@@ -139,13 +165,11 @@ func ingressComponentPut(s *state.State, r *http.Request) response.Response {
 		if err != nil {
 			return response.SmartError(fmt.Errorf("failed to enable ingress: %w", err))
 		}
-		break
 	case api.ComponentDisable:
 		err = component.DisableIngressComponent(snap)
 		if err != nil {
 			return response.SmartError(fmt.Errorf("failed to disable ingress: %w", err))
 		}
-		break
 	default:
 		return response.SmartError(fmt.Errorf("invalid component status %s", req.Status))
 	}
@@ -163,13 +187,19 @@ func gatewayComponentPut(s *state.State, r *http.Request) response.Response {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	if req.Status == api.ComponentEnable {
+	switch req.Status {
+	case api.ComponentEnable:
 		err = component.EnableGatewayComponent(snap)
-	} else {
+		if err != nil {
+			return response.SmartError(fmt.Errorf("failed to enable gateway: %w", err))
+		}
+	case api.ComponentDisable:
 		err = component.DisableGatewayComponent(snap)
-	}
-	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to %s %s: %w", req.Status, "gateway", err))
+		if err != nil {
+			return response.SmartError(fmt.Errorf("failed to disable gateway: %w", err))
+		}
+	default:
+		return response.SmartError(fmt.Errorf("invalid component status %s", req.Status))
 	}
 
 	return response.SyncResponse(true, &api.UpdateGatewayComponentResponse{})
