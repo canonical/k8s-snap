@@ -25,4 +25,5 @@ func init() {
 	enableCmd.AddCommand(enableNetworkCmd)
 	enableCmd.AddCommand(enableStorageCmd)
 	enableCmd.AddCommand(enableIngressCmd)
+	enableCmd.AddCommand(enableGatewayCmd)
 }

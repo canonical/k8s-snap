@@ -43,6 +43,11 @@ type IngressComponentConfig struct {
 	EnableProxyProtocol bool   `json:"enableProxyProtocol,omitempty"`
 }
 
+// UpdateGatewayComponentRequest is used to update the Storage gateway state.
+type UpdateGatewayComponentRequest struct {
+	Status ComponentStatus `json:"status"`
+}
+
 // UpdateDNSComponentResponse is the response for "PUT 1.0/k8sd/components/dns".
 type UpdateDNSComponentResponse struct{}
 
@@ -54,6 +59,9 @@ type UpdateStorageComponentResponse struct{}
 
 // UpdateIngressComponentResponse is the response for "PUT 1.0/k8sd/components/ingress".
 type UpdateIngressComponentResponse struct{}
+
+// UpdateGatewayComponentResponse is the response for "PUT 1.0/k8sd/components/gateway".
+type UpdateGatewayComponentResponse struct{}
 
 // Component holds information about a k8s component.
 type Component struct {

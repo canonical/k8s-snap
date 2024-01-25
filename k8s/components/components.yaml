@@ -12,3 +12,7 @@ storage:
   namespace: "kube-system"
 ingress:
   parent: "network"
+gateway:
+  release: "ck-gateway"
+  chart: "gateway-api-0.7.1.tgz"
+  namespace: "kube-system"

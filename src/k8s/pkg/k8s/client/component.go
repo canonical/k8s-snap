@@ -70,3 +70,15 @@ func (c *Client) UpdateIngressComponent(ctx context.Context, request api.UpdateI
 	}
 	return nil
 }
+
+func (c *Client) UpdateGatewayComponent(ctx context.Context, request api.UpdateGatewayComponentRequest) error {
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	var response api.UpdateGatewayComponentResponse
+	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "gateway"), request, &response)
+	if err != nil {
+		return fmt.Errorf("failed to enable gateway component: %w", err)
+	}
+	return nil
+}
