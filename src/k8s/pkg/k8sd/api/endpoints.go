@@ -10,6 +10,7 @@ var Endpoints = []rest.Endpoint{
 	k8sdDNSComponent,
 	k8sdNetworkComponent,
 	k8sdStorageComponent,
+	k8sdIngressComponent,
 	k8sdComponents,
 	k8sdConfig,
 

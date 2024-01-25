@@ -221,6 +221,7 @@ apps:
       - network-control
       - mount-observe
       - kubernetes-support
+      - cilium-module-load
       - opengl
       - cifs-mount
       - fuse-support
@@ -388,6 +389,18 @@ plugs:
   docker-unprivileged:
     interface: docker-support
     privileged-containers: false
+  # Cilium Ingress requires and loads iptable_raw and xt_socket modules
+  # If these modules are not loaded, ingress responses return 503 Service Unavailable
+  # since datapath L7 redirection does not work correctly.
+  # https://github.com/cilium/cilium/blob/1ab043d546e52fb2428300e6c6ea35fa3bd7c711/install/kubernetes/cilium/values.yaml#L792-L796
+  # https://github.com/cilium/cilium/issues/25021#issuecomment-1699969830
+  cilium-module-load:
+    interface: kernel-module-load
+    modules:
+    - name: iptable_raw
+      load: "on-boot"
+    - name: xt_socket
+      load: "on-boot"
 
 hooks:
   remove:

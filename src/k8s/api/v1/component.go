@@ -31,6 +31,18 @@ type UpdateStorageComponentRequest struct {
 	Status ComponentStatus `json:"status"`
 }
 
+// UpdateIngressComponentRequest is used to update the Ingress component state.
+type UpdateIngressComponentRequest struct {
+	Status ComponentStatus        `json:"status"`
+	Config IngressComponentConfig `json:"config,omitempty"`
+}
+
+// IngressComponentConfig holds the configuration values for the Ingress component.
+type IngressComponentConfig struct {
+	DefaultTLSSecret    string `json:"defaultTLSSecret,omitempty"`
+	EnableProxyProtocol bool   `json:"enableProxyProtocol,omitempty"`
+}
+
 // UpdateDNSComponentResponse is the response for "PUT 1.0/k8sd/components/dns".
 type UpdateDNSComponentResponse struct{}
 
@@ -39,6 +51,9 @@ type UpdateNetworkComponentResponse struct{}
 
 // UpdateStorageComponentResponse is the response for "PUT 1.0/k8sd/components/storage".
 type UpdateStorageComponentResponse struct{}
+
+// UpdateIngressComponentResponse is the response for "PUT 1.0/k8sd/components/ingress".
+type UpdateIngressComponentResponse struct{}
 
 // Component holds information about a k8s component.
 type Component struct {

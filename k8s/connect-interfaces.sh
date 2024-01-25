@@ -17,6 +17,7 @@ declare -a INTERFACES=(
   firewall-control
   process-control
   kernel-module-observe
+  cilium-module-load
   mount-observe
   hardware-observe
   system-observe
