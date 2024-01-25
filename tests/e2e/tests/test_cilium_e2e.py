@@ -31,51 +31,16 @@ def test_cilium_e2e(h: harness.Harness, tmp_path: Path):
     util.setup_k8s_snap(h, instance_id, snap_path)
     h.exec(instance_id, ["k8s", "bootstrap"])
     util.setup_network(h, instance_id)
+    util.setup_dns(h, instance_id)
 
     h.exec(instance_id, ["bash", "-c", "mkdir -p ~/.kube"])
     h.exec(instance_id, ["bash", "-c", "k8s config > ~/.kube/config"])
-
-    # TODO(neoaggelos): this is temporary until "k8s enable dns" is ready
-    h.exec(
-        instance_id,
-        [
-            "k8s",
-            "helm",
-            "install",
-            "coredns",
-            "coredns",
-            "-n",
-            "kube-system",
-            "--repo",
-            "https://coredns.github.io/helm",
-            "--set",
-            "service.clusterIP=10.152.183.10",
-        ],
-    )
-    h.exec(
-        instance_id,
-        [
-            "bash",
-            "-c",
-            "echo --cluster-dns=10.152.183.10 >> /var/snap/k8s/current/args/kubelet",
-        ],
-    )
-    h.exec(
-        instance_id,
-        [
-            "bash",
-            "-c",
-            "echo --cluster-domain=cluster.local >> /var/snap/k8s/current/args/kubelet",
-        ],
-    )
-    h.exec(instance_id, ["snap", "restart", "k8s.kubelet"])
 
     # Download cilium-cli
     h.exec(instance_id, ["curl", "-L", CILIUM_CLI_TAR_GZ, "-o", "cilium.tar.gz"])
     h.exec(instance_id, ["tar", "xvzf", "cilium.tar.gz"])
     h.exec(instance_id, ["./cilium", "version", "--client"])
 
-    # TODO(neoaggelos): replace with "k8s status --wait-ready"
     util.stubbornly(retries=15, delay_s=5).on(h, instance_id).until(
         lambda p: "OK" == p.stdout.decode().strip()
     ).exec(
