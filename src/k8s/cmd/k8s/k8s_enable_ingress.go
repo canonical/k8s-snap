@@ -8,13 +8,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var enableIngressCmdConfig struct {
+var enableIngressCmdOpts struct {
 	DefaultTLSSecret    string
 	EnableProxyProtocol bool
 }
 var enableIngressCmd = &cobra.Command{
 	Use:   "ingress",
-	Short: "Enable the Ingress component in the cluster.",
+	Short: "Enable the Ingress component in the cluster",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
 			StateDir: clusterCmdOpts.stateDir,
@@ -28,8 +28,8 @@ var enableIngressCmd = &cobra.Command{
 		request := api.UpdateIngressComponentRequest{
 			Status: api.ComponentEnable,
 			Config: api.IngressComponentConfig{
-				DefaultTLSSecret:    enableIngressCmdConfig.DefaultTLSSecret,
-				EnableProxyProtocol: enableIngressCmdConfig.EnableProxyProtocol,
+				DefaultTLSSecret:    enableIngressCmdOpts.DefaultTLSSecret,
+				EnableProxyProtocol: enableIngressCmdOpts.EnableProxyProtocol,
 			},
 		}
 
@@ -44,6 +44,6 @@ var enableIngressCmd = &cobra.Command{
 }
 
 func init() {
-	enableIngressCmd.Flags().StringVar(&enableIngressCmdConfig.DefaultTLSSecret, "default-tls-secret", "", "Name of the TLS Secret in the kube-system namespace that will be used as the default Ingress certificate")
-	enableIngressCmd.Flags().BoolVar(&enableIngressCmdConfig.EnableProxyProtocol, "enable-proxy-protocol", false, "If set, proxy protocol will be enabled for the Ingress")
+	enableIngressCmd.Flags().StringVar(&enableIngressCmdOpts.DefaultTLSSecret, "default-tls-secret", "", "Name of the TLS Secret in the kube-system namespace that will be used as the default Ingress certificate")
+	enableIngressCmd.Flags().BoolVar(&enableIngressCmdOpts.EnableProxyProtocol, "enable-proxy-protocol", false, "If set, proxy protocol will be enabled for the Ingress")
 }
