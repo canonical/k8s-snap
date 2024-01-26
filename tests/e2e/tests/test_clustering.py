@@ -27,7 +27,7 @@ def setup_k8s_instances(
 
 # Create a token to join a node to an existing cluster
 def add_node(
-    h: harness.Harness, cluster_node: str, joining_node: str, args: List[str]
+    h: harness.Harness, cluster_node: str, joining_node: str, *args: List[str]
 ) -> str:
     out = h.exec(
         cluster_node,
@@ -74,7 +74,7 @@ def test_worker_nodes(h: harness.Harness, tmp_path: Path):
     h.exec(cluster_node, ["k8s", "bootstrap"])
     util.setup_network(h, cluster_node)
 
-    token = add_node(h, cluster_node, joining_node, ["--worker"])
+    token = add_node(h, cluster_node, joining_node, "--worker")
     join_cluster(h, joining_node, token)
 
     util.wait_until_k8s_ready(h, cluster_node, instances)
