@@ -145,7 +145,7 @@ func TestSerializeArgumentFile(t *testing.T) {
 		},
 		{
 			name:            "withBoolFlag",
-			expectedContent: "--key1\n--key2=value2\n",
+			expectedContent: "--key1=\n--key2=value2\n",
 			args: map[string]string{
 				"--key1": "",
 				"--key2": "value2",
