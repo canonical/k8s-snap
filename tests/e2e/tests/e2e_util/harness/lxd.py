@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 
 from e2e_util import config
-from e2e_util.harness import Harness, HarnessError
+from e2e_util.harness import Harness, HarnessError, Instance
 from e2e_util.util import run, stubbornly
 
 LOG = logging.getLogger(__name__)
@@ -16,6 +16,8 @@ LOG = logging.getLogger(__name__)
 
 class LXDHarness(Harness):
     """A Harness that creates an LXD container for each instance."""
+
+    name = "lxd"
 
     def next_id(self) -> int:
         self._next_id += 1
@@ -56,7 +58,7 @@ class LXDHarness(Harness):
             "Configured LXD substrate (profile %s, image %s)", self.profile, self.image
         )
 
-    def new_instance(self) -> str:
+    def new_instance(self) -> Instance:
         instance_id = f"k8s-e2e-{os.urandom(3).hex()}-{self.next_id()}"
 
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
@@ -79,7 +81,7 @@ class LXDHarness(Harness):
         self.instances.add(instance_id)
 
         self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
-        return instance_id
+        return Instance(self, instance_id)
 
     def send_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:

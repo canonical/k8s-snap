@@ -5,6 +5,7 @@ import json
 import logging
 import subprocess
 from pathlib import Path
+from typing import List
 
 import pytest
 from e2e_util import config, harness, util
@@ -21,33 +22,20 @@ def check_pvc_bound(p: subprocess.CompletedProcess) -> bool:
     return False
 
 
-def test_storage(h: harness.Harness, tmp_path: Path):
+def test_storage(instances: List[harness.Instance]):
     if not config.SNAP:
         pytest.fail("Set TEST_SNAP to the path where the snap is")
 
-    snap_path = (tmp_path / "k8s.snap").as_posix()
-
-    LOG.info("Create instance")
-    instance_id = h.new_instance()
-
-    util.setup_k8s_snap(h, instance_id, snap_path)
-    h.exec(instance_id, ["k8s", "bootstrap"])
-    util.setup_network(h, instance_id)
-
-    out = h.exec(
-        instance_id,
-        ["k8s", "enable", "storage"],
-        capture_output=True,
-    )
-    assert out.returncode == 0
+    instance = instances[0]
+    instance.exec(["k8s", "enable", "storage"])
 
     LOG.info("Waiting for storage provisioner pod to show up...")
-    util.stubbornly(retries=15, delay_s=5).on(h, instance_id).until(
+    util.stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "ck-storage" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"])
     LOG.info("Storage provisioner pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
+    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -64,19 +52,18 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     )
 
     manifest = MANIFESTS_DIR / "storage-test.yaml"
-    h.exec(
-        instance_id,
+    instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
     LOG.info("Waiting for storage writer pod to show up...")
-    util.stubbornly(retries=3, delay_s=10).on(h, instance_id).until(
+    util.stubbornly(retries=3, delay_s=10).on(instance).until(
         lambda p: "storage-writer-pod" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Storage writer pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
+    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -91,18 +78,18 @@ def test_storage(h: harness.Harness, tmp_path: Path):
     )
 
     LOG.info("Waiting for storage to get provisioned...")
-    util.stubbornly(retries=3, delay_s=1).on(h, instance_id).until(
-        check_pvc_bound
-    ).exec(["k8s", "kubectl", "get", "pvc", "-o", "json"])
+    util.stubbornly(retries=3, delay_s=1).on(instance).until(check_pvc_bound).exec(
+        ["k8s", "kubectl", "get", "pvc", "-o", "json"]
+    )
     LOG.info("Storage got provisioned and pvc is bound.")
 
     LOG.info("Waiting for storage reader pod to show up...")
-    util.stubbornly(retries=3, delay_s=10).on(h, instance_id).until(
+    util.stubbornly(retries=3, delay_s=10).on(instance).until(
         lambda p: "storage-reader-pod" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Storage reader pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
+    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -116,10 +103,8 @@ def test_storage(h: harness.Harness, tmp_path: Path):
         ]
     )
 
-    util.stubbornly(retries=5, delay_s=10).on(h, instance_id).until(
+    util.stubbornly(retries=5, delay_s=10).on(instance).until(
         lambda p: "LOREM IPSUM" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "logs", "storage-reader-pod"])
 
     LOG.info("Data can be read between pods.")
-
-    h.cleanup()
