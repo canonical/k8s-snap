@@ -26,10 +26,12 @@ def setup_k8s_instances(
 
 
 # Create a token to join a node to an existing cluster
-def add_node(h: harness.Harness, cluster_node: str, joining_node: str) -> str:
+def add_node(
+    h: harness.Harness, cluster_node: str, joining_node: str, args: List[str]
+) -> str:
     out = h.exec(
         cluster_node,
-        ["k8s", "add-node", joining_node],
+        ["k8s", "add-node", joining_node, *args],
         capture_output=True,
     )
     return out.stdout.decode().strip()
@@ -55,6 +57,26 @@ def test_clustering(h: harness.Harness, tmp_path: Path):
     token = add_node(h, cluster_node, joining_node)
     join_cluster(h, joining_node, token)
 
-    util.wait_until_k8s_ready(h, instances)
+    util.wait_until_k8s_ready(h, cluster_node, instances)
+
+    h.cleanup()
+
+
+def test_worker_nodes(h: harness.Harness, tmp_path: Path):
+    if not config.SNAP:
+        pytest.fail("Set TEST_SNAP to the path where the snap is")
+
+    snap_path = (tmp_path / "k8s.snap").as_posix()
+    instances = setup_k8s_instances(h, snap_path, num_instances=2)
+    cluster_node = instances[0]
+    joining_node = instances[1]
+
+    h.exec(cluster_node, ["k8s", "bootstrap"])
+    util.setup_network(h, cluster_node)
+
+    token = add_node(h, cluster_node, joining_node, ["--worker"])
+    join_cluster(h, joining_node, token)
+
+    util.wait_until_k8s_ready(h, cluster_node, instances)
 
     h.cleanup()
