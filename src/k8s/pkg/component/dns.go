@@ -58,7 +58,6 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 		},
 	}
 
-	// TODO: Store the serviceIP value in the cluster database
 	if serviceIP != "" {
 		service := values["service"].(map[string]any)
 		service["clusterIP"] = serviceIP
@@ -82,6 +81,7 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 		return fmt.Errorf("failed to get dns service: %w", err)
 	}
 
+	// TODO: Use database.SetClusterConfig() to store ClusterDNS and ClusterDomain
 	kubeletArgs := []map[string]string{
 		{"--cluster-dns": dnsIP},
 		{"--cluster-domain": clusterDomain},
