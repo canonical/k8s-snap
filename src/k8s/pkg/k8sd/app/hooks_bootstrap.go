@@ -51,6 +51,7 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	}
 
 	type wrappedResponse struct {
+		Error    string                       `json:"error"`
 		Metadata apiv1.WorkerNodeInfoResponse `json:"metadata"`
 	}
 
@@ -69,9 +70,13 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	if err != nil {
 		return fmt.Errorf("failed to POST %s: %w", httpRequest.URL.String(), err)
 	}
+	defer httpResponse.Body.Close()
 	var wrappedResp wrappedResponse
 	if err := json.NewDecoder(httpResponse.Body).Decode(&wrappedResp); err != nil {
 		return fmt.Errorf("failed to parse HTTP response: %w", err)
+	}
+	if httpResponse.StatusCode != 200 {
+		return fmt.Errorf("HTTP request for worker node info failed: %s", wrappedResp.Error)
 	}
 	response := wrappedResp.Metadata
 
