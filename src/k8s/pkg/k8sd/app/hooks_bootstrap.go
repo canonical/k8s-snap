@@ -87,6 +87,9 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	if err := setup.InitContainerd(snap.Path("k8s/config/containerd/config.toml"), snap.Path("opt/cni/bin/")); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
+	if err := setup.InitContainerdArgs(snap, nil, nil); err != nil {
+		return fmt.Errorf("failed to configure containerd arguments: %w", err)
+	}
 	if err := setup.WriteCA(snap, response.CA); err != nil {
 		return fmt.Errorf("failed to write CA certificate: %w", err)
 	}

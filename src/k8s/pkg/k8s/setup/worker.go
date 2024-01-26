@@ -72,3 +72,8 @@ func InitAPIServerProxy(snap snap.Snap, servers []string) error {
 
 	return initServiceArgs(snap, "k8s-apiserver-proxy", nil, nil)
 }
+
+// InitContainerdArgs configures kube-proxy on the node.
+func InitContainerdArgs(snap snap.Snap, extraArgs map[string]string, deleteArgs []string) error {
+	return initServiceArgs(snap, "containerd", extraArgs, deleteArgs)
+}
