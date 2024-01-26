@@ -213,7 +213,7 @@ apps:
     # https://forum.snapcraft.io/t/process-lifecycle-on-snap-refresh/140/37
     stop-mode: sigterm
     restart-condition: always
-    start-timeout: 3s
+    start-timeout: 5m
     plugs:
       - network-bind
       - docker-privileged
