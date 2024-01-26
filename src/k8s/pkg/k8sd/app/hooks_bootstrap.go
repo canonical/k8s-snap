@@ -50,6 +50,10 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		},
 	}
 
+	type wrappedResponse struct {
+		Metadata apiv1.WorkerNodeInfoResponse `json:"metadata"`
+	}
+
 	requestBody, err := json.Marshal(apiv1.WorkerNodeInfoRequest{Hostname: s.Name()})
 	if err != nil {
 		return fmt.Errorf("failed to prepare worker info request: %w", err)
@@ -65,10 +69,11 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	if err != nil {
 		return fmt.Errorf("failed to POST %s: %w", httpRequest.URL.String(), err)
 	}
-	var response apiv1.WorkerNodeInfoResponse
-	if err := json.NewDecoder(httpResponse.Body).Decode(&response); err != nil {
+	var wrappedResp wrappedResponse
+	if err := json.NewDecoder(httpResponse.Body).Decode(&wrappedResp); err != nil {
 		return fmt.Errorf("failed to parse HTTP response: %w", err)
 	}
+	response := wrappedResp.Metadata
 
 	snap := snap.SnapFromContext(s.Context)
 	if err := setup.InitFolders(snap.DataPath("args")); err != nil {
