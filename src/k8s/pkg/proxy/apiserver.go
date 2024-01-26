@@ -64,6 +64,7 @@ func (p *APIServerProxy) watchForNewEndpoints(ctx context.Context, cancel func()
 		case <-p.RefreshCh:
 		}
 
+		// TODO: use k8s.GetKubernetesEndpoints instead
 		newEndpoints, err := getKubernetesEndpoints(ctx, p.KubeconfigFile)
 		switch {
 		case err != nil:
@@ -77,7 +78,7 @@ func (p *APIServerProxy) watchForNewEndpoints(ctx context.Context, cancel func()
 		}
 		log.Println("updating endpoints")
 
-		if err := writeEndpointsConfig(newEndpoints, p.EndpointsConfigFile); err != nil {
+		if err := WriteEndpointsConfig(newEndpoints, p.EndpointsConfigFile); err != nil {
 			log.Printf("failed to update configuration file with new endpoints: %s", err)
 			continue
 		}

@@ -46,7 +46,7 @@ func k8sdWorkerTokenPost(s *state.State, r *http.Request) response.Response {
 		addresses = append(addresses, addrPort.String())
 	}
 
-	info := &types.InternalWorkerNodeInfo{
+	info := &types.InternalWorkerNodeToken{
 		Token:         token,
 		JoinAddresses: addresses,
 	}
