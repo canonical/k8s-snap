@@ -40,6 +40,8 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		return fmt.Errorf("empty list of control plane addresses")
 	}
 
+	// TODO(neoaggelos): figure out how to use the microcluster client instead
+
 	// create an HTTP client that ignores https
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,

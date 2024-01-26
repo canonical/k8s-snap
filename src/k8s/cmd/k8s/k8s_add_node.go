@@ -43,5 +43,4 @@ func init() {
 	addNodeCmd.Flags().BoolVar(&addNodeCmdOpts.worker, "worker", false, "generate a token for a worker node")
 
 	rootCmd.AddCommand(addNodeCmd)
-
 }
