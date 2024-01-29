@@ -78,7 +78,7 @@ def instances(
         util.setup_k8s_snap(instance, snap_path)
 
     first_node, *_ = instances
-    first_node[0].exec(["k8s", "bootstrap"])
+    first_node.exec(["k8s", "bootstrap"])
     util.setup_network(first_node)
 
     yield instances
