@@ -63,8 +63,8 @@ def instances(
     if not config.SNAP:
         pytest.fail("Set TEST_SNAP to the path where the snap is")
 
-    if not node_count:
-        pytest.xfail("Test requested 0 instances, skip this test.")
+    if node_count <= 0:
+        pytest.xfail("Test requested 0 or fewer instances, skip this test.")
 
     snap_path = (tmp_path / "k8s.snap").as_posix()
 
