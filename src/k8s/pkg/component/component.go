@@ -90,6 +90,17 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 		return fmt.Errorf("invalid component %s", name)
 	}
 
+	actionConfig := new(action.Configuration)
+	err := actionConfig.Init(
+		h.settings.RESTClientGetter(),
+		h.settings.Namespace(),
+		os.Getenv("HELM_DRIVER"),
+		logAdapter,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to initialize component manager configuration: %w", err)
+	}
+
 	install := action.NewInstall(h.actionConfig)
 	install.ReleaseName = component.ReleaseName
 	install.Namespace = component.Namespace
@@ -159,6 +170,17 @@ func (h *helmClient) List() ([]Component, error) {
 
 // Disable disables a specified component.
 func (h *helmClient) Disable(name string) error {
+	actionConfig := new(action.Configuration)
+	err := actionConfig.Init(
+		h.settings.RESTClientGetter(),
+		h.settings.Namespace(),
+		os.Getenv("HELM_DRIVER"),
+		logAdapter,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to initialize component manager configuration: %w", err)
+	}
+
 	uninstall := action.NewUninstall(h.actionConfig)
 	component, ok := h.config[name]
 	if !ok {
@@ -183,6 +205,17 @@ func (h *helmClient) Disable(name string) error {
 
 // Refresh refreshes a specified component.
 func (h *helmClient) Refresh(name string, values map[string]any) error {
+	actionConfig := new(action.Configuration)
+	err := actionConfig.Init(
+		h.settings.RESTClientGetter(),
+		h.settings.Namespace(),
+		os.Getenv("HELM_DRIVER"),
+		logAdapter,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to initialize component manager configuration: %w", err)
+	}
+
 	component, ok := h.config[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
