@@ -7,7 +7,6 @@ import (
 )
 
 // InternalWorkerNodeToken encodes information required to join a cluster as a worker node.
-// InternalWorkerNodeToken encodes fields with single-letter short names to be short.
 type InternalWorkerNodeToken struct {
 	Token         string   `json:"token"`
 	JoinAddresses []string `json:"join_addresses"`
