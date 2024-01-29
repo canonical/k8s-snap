@@ -3,7 +3,7 @@
 #
 import logging
 from pathlib import Path
-from typing import List
+from typing import Generator, List
 
 import pytest
 from e2e_util import config, harness, util
@@ -55,7 +55,7 @@ def node_count(request) -> int:
 @pytest.fixture(scope="function")
 def instances(
     h: harness.Harness, node_count: int, tmp_path: Path
-) -> List[harness.Instance]:
+) -> Generator[List[harness.Instance], None, None]:
     """Construct instances for a cluster.
 
     Bootstrap and setup networking on the first instance.

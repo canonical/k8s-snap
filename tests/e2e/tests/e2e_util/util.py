@@ -208,13 +208,13 @@ def setup_network(instance: harness.Instance):
 
 
 # Installs and setups the k8s snap on the given instance and connects the interfaces.
-def setup_k8s_snap(i: harness.Instance, snap_path: Path):
+def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
     LOG.info("Install snap")
-    i.send_file(config.SNAP, snap_path)
-    i.exec(["snap", "install", snap_path, "--dangerous"])
+    instance.send_file(config.SNAP, snap_path)
+    instance.exec(["snap", "install", snap_path, "--dangerous"])
 
     LOG.info("Initialize Kubernetes")
-    i.exec(["/snap/k8s/current/k8s/connect-interfaces.sh"])
+    instance.exec(["/snap/k8s/current/k8s/connect-interfaces.sh"])
 
 
 # Validates that the K8s node is in Ready state.
