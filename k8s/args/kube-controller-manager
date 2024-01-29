@@ -3,7 +3,7 @@
 --root-ca-file=/etc/kubernetes/pki/ca.crt
 --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt
 --cluster-signing-key-file=/etc/kubernetes/pki/ca.key
---use-service-account-credentials
+--use-service-account-credentials=true
 --leader-elect-lease-duration=30s
 --leader-elect-renew-deadline=15s
 --profiling=false

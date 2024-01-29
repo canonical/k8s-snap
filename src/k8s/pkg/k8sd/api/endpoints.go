@@ -17,4 +17,7 @@ var Endpoints = []rest.Endpoint{
 
 	kubernetesAuthTokens,
 	kubernetesAuthWebhook,
+
+	k8sdWorkerToken,
+	k8sdWorkerInfo,
 }

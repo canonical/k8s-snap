@@ -7,28 +7,28 @@ import (
 	"sort"
 )
 
-// configuration is the format of the apiserver proxy endpoints config file.
-type configuration struct {
+// Configuration is the format of the apiserver proxy endpoints config file.
+type Configuration struct {
 	Endpoints []string `json:"endpoints"`
 }
 
-func loadEndpointsConfig(file string) (configuration, error) {
+func loadEndpointsConfig(file string) (Configuration, error) {
 	b, err := os.ReadFile(file)
 	if err != nil {
-		return configuration{}, fmt.Errorf("failed to read file: %w", err)
+		return Configuration{}, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	var cfg configuration
+	var cfg Configuration
 	if err := json.Unmarshal(b, &cfg); err != nil {
-		return configuration{}, fmt.Errorf("failed to parse config file %s: %w", file, err)
+		return Configuration{}, fmt.Errorf("failed to parse config file %s: %w", file, err)
 	}
 	sort.Strings(cfg.Endpoints)
 
 	return cfg, nil
 }
 
-func writeEndpointsConfig(endpoints []string, file string) error {
-	b, err := json.Marshal(configuration{Endpoints: endpoints})
+func WriteEndpointsConfig(endpoints []string, file string) error {
+	b, err := json.Marshal(Configuration{Endpoints: endpoints})
 	if err != nil {
 		return fmt.Errorf("failed to marshal configuration: %w", err)
 	}

@@ -106,13 +106,7 @@ func SerializeArgumentFile(arguments map[string]string, path string) error {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		value := arguments[k]
-		if value == "" {
-			// support for boolean flags, e.g. "--allow-feature"
-			file.WriteString(fmt.Sprintf("%s\n", k))
-		} else {
-			file.WriteString(fmt.Sprintf("%s=%s\n", k, value))
-		}
+		file.WriteString(fmt.Sprintf("%s=%s\n", k, arguments[k]))
 	}
 
 	return nil

@@ -8,6 +8,9 @@ import (
 )
 
 var (
+	addNodeCmdOpts struct {
+		worker bool
+	}
 	addNodeCmd = &cobra.Command{
 		Use:   "add-node <name>",
 		Short: "Create a connection token for a node to join the cluster",
@@ -24,9 +27,8 @@ var (
 				return fmt.Errorf("failed to create client: %w", err)
 			}
 
-			// Create a token that will be used by the joining
-			// node to join the cluster.
-			token, err := c.CreateJoinToken(cmd.Context(), name)
+			// Create a token that will be used by the joining node to join the cluster.
+			token, err := c.CreateJoinToken(cmd.Context(), name, addNodeCmdOpts.worker)
 			if err != nil {
 				return fmt.Errorf("failed to retrieve token: %w", err)
 			}
@@ -38,5 +40,7 @@ var (
 )
 
 func init() {
+	addNodeCmd.Flags().BoolVar(&addNodeCmdOpts.worker, "worker", false, "generate a token for a worker node")
+
 	rootCmd.AddCommand(addNodeCmd)
 }
