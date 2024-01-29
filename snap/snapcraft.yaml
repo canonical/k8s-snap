@@ -56,7 +56,7 @@ parts:
       mkdir -p "${INSTALL}"
 
       for binary in k8s k8sd k8s-dqlite k8s-apiserver-proxy dqlite; do
-        cp "bin/static/${binary}" "${INSTALL}/${binary}"
+        cp -P "bin/static/${binary}" "${INSTALL}/${binary}"
       done
 
   cni:
