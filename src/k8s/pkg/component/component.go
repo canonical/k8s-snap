@@ -62,25 +62,28 @@ func NewManager(snap snap.Snap) (*helmClient, error) {
 	config := make(map[string]componentDefinition)
 	err = viper.Unmarshal(&config)
 
-	settings := cli.New()
-	settings.KubeConfig = "/etc/kubernetes/admin.conf"
-	actionConfig := new(action.Configuration)
-	err = actionConfig.Init(
-		settings.RESTClientGetter(),
-		settings.Namespace(),
+	return &helmClient{
+		config:       config,
+		settings:     nil,
+		actionConfig: nil,
+		snap:         snap,
+	}, nil
+}
+
+func (h *helmClient) initializeHelmClientConfig() error {
+	h.settings = cli.New()
+	h.settings.KubeConfig = "/etc/kubernetes/admin.conf"
+	h.actionConfig = new(action.Configuration)
+	err := h.actionConfig.Init(
+		h.settings.RESTClientGetter(),
+		h.settings.Namespace(),
 		os.Getenv("HELM_DRIVER"),
 		logAdapter,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize component manager configuration: %w", err)
+		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
-
-	return &helmClient{
-		config:       config,
-		settings:     settings,
-		actionConfig: actionConfig,
-		snap:         snap,
-	}, nil
+	return nil
 }
 
 // Enable enables a specified component.
@@ -90,15 +93,8 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 		return fmt.Errorf("invalid component %s", name)
 	}
 
-	actionConfig := new(action.Configuration)
-	err := actionConfig.Init(
-		h.settings.RESTClientGetter(),
-		h.settings.Namespace(),
-		os.Getenv("HELM_DRIVER"),
-		logAdapter,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to initialize component manager configuration: %w", err)
+	if err := h.initializeHelmClientConfig(); err != nil {
+		return fmt.Errorf("failed to set action: %w", err)
 	}
 
 	install := action.NewInstall(h.actionConfig)
@@ -170,15 +166,8 @@ func (h *helmClient) List() ([]Component, error) {
 
 // Disable disables a specified component.
 func (h *helmClient) Disable(name string) error {
-	actionConfig := new(action.Configuration)
-	err := actionConfig.Init(
-		h.settings.RESTClientGetter(),
-		h.settings.Namespace(),
-		os.Getenv("HELM_DRIVER"),
-		logAdapter,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to initialize component manager configuration: %w", err)
+	if err := h.initializeHelmClientConfig(); err != nil {
+		return fmt.Errorf("failed to set action: %w", err)
 	}
 
 	uninstall := action.NewUninstall(h.actionConfig)
@@ -205,15 +194,8 @@ func (h *helmClient) Disable(name string) error {
 
 // Refresh refreshes a specified component.
 func (h *helmClient) Refresh(name string, values map[string]any) error {
-	actionConfig := new(action.Configuration)
-	err := actionConfig.Init(
-		h.settings.RESTClientGetter(),
-		h.settings.Namespace(),
-		os.Getenv("HELM_DRIVER"),
-		logAdapter,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to initialize component manager configuration: %w", err)
+	if err := h.initializeHelmClientConfig(); err != nil {
+		return fmt.Errorf("failed to set action: %w", err)
 	}
 
 	component, ok := h.config[name]
