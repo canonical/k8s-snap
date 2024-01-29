@@ -23,6 +23,8 @@ var (
 	}
 	k8sdWorkerInfo = rest.Endpoint{
 		Path: "k8sd/worker/info",
+		// This endpoint is used by worker nodes that are not part of the microcluster.
+		// We authenticate by passing a token through an HTTP header instead.
 		Post: rest.EndpointAction{Handler: k8sdWorkerInfoPost, AllowUntrusted: true},
 	}
 )
@@ -59,6 +61,7 @@ func k8sdWorkerTokenPost(s *state.State, r *http.Request) response.Response {
 }
 
 func k8sdWorkerInfoPost(s *state.State, r *http.Request) response.Response {
+	// TODO: move authentication through the HTTP token to an AccessHandler for the endpoint.
 	token := r.Header.Get("k8sd-token")
 	if token == "" {
 		return response.Unauthorized(fmt.Errorf("invalid token"))
