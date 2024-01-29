@@ -23,7 +23,7 @@ var (
 	}
 )
 
-// CheckWorkerNodeToken returns true if the specified can be used to join worker nodes on the cluster.
+// CheckWorkerNodeToken returns true if the specified token can be used to join worker nodes on the cluster.
 func CheckWorkerNodeToken(ctx context.Context, tx *sql.Tx, token string) (bool, error) {
 	selectTxStmt, err := cluster.Stmt(tx, workerStmts["select-token"])
 	if err != nil {
