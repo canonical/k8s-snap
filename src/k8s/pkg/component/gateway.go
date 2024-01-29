@@ -22,10 +22,10 @@ func EnableGatewayComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to enable gateway component: %w", err)
 	}
 
-	manager, err = NewManager(s)
-	if err != nil {
-		return fmt.Errorf("failed to get component manager: %w", err)
-	}
+	// manager, err = NewManager(s)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to get component manager: %w", err)
+	// }
 
 	networkValues := map[string]any{
 		"gatewayAPI": map[string]any{
