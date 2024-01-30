@@ -13,22 +13,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/state"
-)
-
-var (
-	kubernetesAuthTokens = rest.Endpoint{
-		Name: "KubernetesAuthTokens",
-		Path: "kubernetes/auth/tokens",
-		Get:  rest.EndpointAction{Handler: getKubernetesAuthToken, AllowUntrusted: true},
-		Post: rest.EndpointAction{Handler: postKubernetesAuthToken},
-	}
-	kubernetesAuthWebhook = rest.Endpoint{
-		Name: "KubernetesAuthWebhook",
-		Path: "kubernetes/auth/webhook",
-		Post: rest.EndpointAction{Handler: kubernetesAuthTokenReviewWebhook, AllowUntrusted: true},
-	}
 )
 
 func getKubernetesAuthToken(state *state.State, r *http.Request) response.Response {
@@ -61,9 +46,9 @@ func postKubernetesAuthToken(state *state.State, r *http.Request) response.Respo
 	return response.SyncResponse(true, apiv1.CreateKubernetesAuthTokenResponse{Token: token})
 }
 
-// kubernetesAuthTokenReviewWebhook is used by kube-apiserver to handle TokenReview objects.
+// postKubernetesAuthWebhook is used by kube-apiserver to handle TokenReview objects.
 // Note that we do not use the normal response.SyncResponse here, because it breaks the response format that kube-apiserver expects.
-func kubernetesAuthTokenReviewWebhook(state *state.State, r *http.Request) response.Response {
+func postKubernetesAuthWebhook(state *state.State, r *http.Request) response.Response {
 	review := apiv1.TokenReview{
 		APIVersion: "authentication.k8s.io/v1",
 		Kind:       "TokenReview",
