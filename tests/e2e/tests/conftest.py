@@ -11,6 +11,19 @@ from e2e_util import config, harness, util
 LOG = logging.getLogger(__name__)
 
 
+def _harness_clean(h: harness.Harness):
+    "Clean up created instances within the test harness."
+
+    if config.SKIP_CLEANUP:
+        LOG.warning(
+            "Skipping harness cleanup. "
+            "It is your job now to clean up cloud resources"
+        )
+    else:
+        LOG.debug("Cleanup")
+        h.cleanup()
+
+
 @pytest.fixture(scope="session")
 def h() -> harness.Harness:
     LOG.debug("Create harness for %s", config.SUBSTRATE)
@@ -29,11 +42,7 @@ def h() -> harness.Harness:
 
     yield h
 
-    if config.SKIP_CLEANUP:
-        return
-
-    LOG.debug("Cleanup")
-    h.cleanup()
+    _harness_clean(h)
 
 
 def pytest_configure(config):
@@ -82,3 +91,5 @@ def instances(
     util.setup_network(first_node)
 
     yield instances
+
+    _harness_clean(h)
