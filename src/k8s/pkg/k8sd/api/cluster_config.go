@@ -15,7 +15,7 @@ func getKubeconfig(s *state.State, r *http.Request) response.Response {
 	//       when the config can be altered via request parameters.
 	config, err := os.ReadFile("/etc/kubernetes/admin.conf")
 	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to read admin kubeconfig: %w", err))
+		return response.InternalError(fmt.Errorf("failed to read admin kubeconfig: %w", err))
 	}
 
 	result := apiv1.GetKubeConfigResponse{
