@@ -1,7 +1,9 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/spf13/cobra"
@@ -9,7 +11,8 @@ import (
 
 var (
 	removeNodeCmdOpts struct {
-		force bool
+		force   bool
+		timeout time.Duration
 	}
 
 	removeNodeCmd = &cobra.Command{
@@ -27,7 +30,16 @@ var (
 				return fmt.Errorf("failed to create cluster client: %w", err)
 			}
 
-			err = client.RemoveNode(cmd.Context(), name, removeNodeCmdOpts.force)
+			// TODO: Apply this check for all command where a timeout is required, do not repeat in each command.
+			const minTimeout = 3 * time.Second
+			if removeNodeCmdOpts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", removeNodeCmdOpts.timeout, minTimeout, minTimeout)
+				removeNodeCmdOpts.timeout = minTimeout
+			}
+
+			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), removeNodeCmdOpts.timeout)
+			defer cancel()
+			err = client.RemoveNode(timeoutCtx, name, removeNodeCmdOpts.force)
 			if err != nil {
 				return fmt.Errorf("failed to remove node from cluster: %w", err)
 			}
@@ -39,6 +51,7 @@ var (
 
 func init() {
 	removeNodeCmd.Flags().BoolVar(&removeNodeCmdOpts.force, "force", false, "Forcibly remove the cluster member")
+	removeNodeCmd.PersistentFlags().DurationVar(&removeNodeCmdOpts.timeout, "timeout", 180*time.Second, "The max time to wait for the node to be removed.")
 
 	rootCmd.AddCommand(removeNodeCmd)
 }

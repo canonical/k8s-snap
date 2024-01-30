@@ -60,7 +60,7 @@ func (a *App) Run(customHooks *config.Hooks) error {
 	hooks := &config.Hooks{
 		OnBootstrap: onBootstrap,
 		PostJoin:    onPostJoin,
-		PostRemove:  onPostRemove,
+		PreRemove:   onPreRemove,
 	}
 	if customHooks != nil {
 		if customHooks.OnBootstrap != nil {
@@ -69,8 +69,8 @@ func (a *App) Run(customHooks *config.Hooks) error {
 		if customHooks.PostJoin != nil {
 			hooks.PostJoin = customHooks.PostJoin
 		}
-		if customHooks.PostRemove != nil {
-			hooks.PostRemove = customHooks.PostRemove
+		if customHooks.PreRemove != nil {
+			hooks.PreRemove = customHooks.PreRemove
 		}
 	}
 	err := a.MicroCluster.Start(api.Endpoints, database.SchemaExtensions, hooks)

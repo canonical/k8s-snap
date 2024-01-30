@@ -10,14 +10,11 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
+	"github.com/canonical/k8s/pkg/utils/dqlite"
 	"github.com/canonical/microcluster/state"
 	"gopkg.in/yaml.v2"
-)
-
-var (
-	// TODO(bschimke): add the port as a configuration option to k8sd so that this can be determined dynamically.
-	k8sDqliteDefaultPort = 9000
 )
 
 // JoinK8sDqliteCluster joins a node to an existing k8s-dqlite cluster. It:
@@ -55,9 +52,26 @@ func JoinK8sDqliteCluster(ctx context.Context, state *state.State, snap snap.Sna
 	return nil
 }
 
+func LeaveK8sDqliteCluster(ctx context.Context, snap snap.Snap, hostname string) error {
+	// TODO: Get dqlite port from config
+	address := fmt.Sprintf("%s:%d", hostname, dqlite.K8sDqliteDefaultPort)
+
+	members, err := dqlite.GetK8sDqliteClusterMembers(ctx, snap)
+	if err != nil {
+		return fmt.Errorf("failed to get cluster members: %w", err)
+	}
+
+	// TODO: handle case where node is leader but there are successors (e.g. use client.Transfer)
+	if err := dqlite.IsLeaderWithoutSuccessor(ctx, members, address); err != nil {
+		return fmt.Errorf("failed to leave cluster: %w", err)
+	}
+
+	return utils.RunCommand(ctx, snap.Path("k8s/wrappers/commands/dqlite"), "k8s", fmt.Sprintf(".remove %s", address))
+}
+
 // clusterInit represents the yaml file structure of the dqlite `init.yaml` file.
 type clusterInit struct {
-	ID      string   `yaml:"ID,omitempty"`
+	ID      uint64   `yaml:"ID,omitempty"`
 	Address string   `yaml:"Address,omitempty"`
 	Role    int      `yaml:"Role,omitempty"`
 	Cluster []string `yaml:"Cluster,omitempty"`
@@ -71,7 +85,7 @@ func createClusterInitFile(knownHost string) error {
 	// TODO: do not reuse voter information from the k8sd token but encode the real k8s-dqlite
 	// member data into a new token.
 	initData := clusterInit{
-		Cluster: []string{fmt.Sprintf("%s:%d", knownHost, k8sDqliteDefaultPort)},
+		Cluster: []string{fmt.Sprintf("%s:%d", knownHost, dqlite.K8sDqliteDefaultPort)},
 	}
 
 	marshaled, err := yaml.Marshal(&initData)

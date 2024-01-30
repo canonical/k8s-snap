@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"net"
 	"path"
 
@@ -89,7 +90,16 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	return nil
 }
 
-func onPostRemove(s *state.State, force bool) error {
-	// TODO: the current node has left the cluster, stop services and reset configs
+func onPreRemove(s *state.State, force bool) error {
+	snap := snap.SnapFromContext(s.Context)
+
+	// Remove k8s dqlite node from cluster.
+	// Fails if the k8s-dqlite cluster would not have a leader afterwards.
+	log.Println("Leave k8s-dqlite cluster")
+	err := setup.LeaveK8sDqliteCluster(s.Context, snap, s.Address().Hostname())
+	if err != nil {
+		return fmt.Errorf("failed to leave k8s-dqlite cluster: %w", err)
+	}
+
 	return nil
 }
