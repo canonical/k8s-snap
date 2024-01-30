@@ -94,7 +94,7 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 	}
 
 	if err := h.initializeHelmClientConfig(); err != nil {
-		return fmt.Errorf("failed to set action: %w", err)
+		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
 
 	install := action.NewInstall(h.actionConfig)
@@ -167,7 +167,7 @@ func (h *helmClient) List() ([]Component, error) {
 // Disable disables a specified component.
 func (h *helmClient) Disable(name string) error {
 	if err := h.initializeHelmClientConfig(); err != nil {
-		return fmt.Errorf("failed to set action: %w", err)
+		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
 
 	uninstall := action.NewUninstall(h.actionConfig)
@@ -195,7 +195,7 @@ func (h *helmClient) Disable(name string) error {
 // Refresh refreshes a specified component.
 func (h *helmClient) Refresh(name string, values map[string]any) error {
 	if err := h.initializeHelmClientConfig(); err != nil {
-		return fmt.Errorf("failed to set action: %w", err)
+		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
 
 	component, ok := h.config[name]
