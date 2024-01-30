@@ -81,7 +81,7 @@ func (h *helmClient) initializeHelmClientConfig() error {
 		logAdapter,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
+		return err
 	}
 	return nil
 }
