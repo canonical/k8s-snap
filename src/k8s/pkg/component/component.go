@@ -77,7 +77,7 @@ func (h *helmClient) initializeHelmClientConfig() (*action.Configuration, error)
 		logAdapter,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize action config: %w", err)
 	}
 	return actionConfig, nil
 }
