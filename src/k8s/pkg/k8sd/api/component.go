@@ -11,41 +11,10 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/state"
 )
 
-var k8sdComponents = rest.Endpoint{
-	Path: "k8sd/components",
-	Get:  rest.EndpointAction{Handler: componentsGet, AllowUntrusted: false},
-}
-
-var k8sdDNSComponent = rest.Endpoint{
-	Path: "k8sd/components/dns",
-	Put:  rest.EndpointAction{Handler: dnsComponentPut, AllowUntrusted: false},
-}
-
-var k8sdNetworkComponent = rest.Endpoint{
-	Path: "k8sd/components/network",
-	Put:  rest.EndpointAction{Handler: networkComponentPut, AllowUntrusted: false},
-}
-
-var k8sdStorageComponent = rest.Endpoint{
-	Path: "k8sd/components/storage",
-	Put:  rest.EndpointAction{Handler: storageComponentPut, AllowUntrusted: false},
-}
-
-var k8sdIngressComponent = rest.Endpoint{
-	Path: "k8sd/components/ingress",
-	Put:  rest.EndpointAction{Handler: ingressComponentPut, AllowUntrusted: false},
-}
-
-var k8sdGatewayComponent = rest.Endpoint{
-	Path: "k8sd/components/gateway",
-	Put:  rest.EndpointAction{Handler: gatewayComponentPut, AllowUntrusted: false},
-}
-
-func componentsGet(s *state.State, r *http.Request) response.Response {
+func getComponents(s *state.State, r *http.Request) response.Response {
 	snap := snap.SnapFromContext(s.Context)
 
 	components, err := impl.GetComponents(snap)
@@ -60,7 +29,7 @@ func componentsGet(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &result)
 }
 
-func dnsComponentPut(s *state.State, r *http.Request) response.Response {
+func putDNSComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateDNSComponentRequest
 	snap := snap.SnapFromContext(s.Context)
 
@@ -92,7 +61,7 @@ func dnsComponentPut(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &api.UpdateDNSComponentResponse{})
 }
 
-func networkComponentPut(s *state.State, r *http.Request) response.Response {
+func putNetworkComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateNetworkComponentRequest
 	snap := snap.SnapFromContext(s.Context)
 
@@ -119,7 +88,7 @@ func networkComponentPut(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &api.UpdateNetworkComponentResponse{})
 }
 
-func storageComponentPut(s *state.State, r *http.Request) response.Response {
+func putStorageComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateStorageComponentRequest
 	snap := snap.SnapFromContext(s.Context)
 
@@ -146,7 +115,7 @@ func storageComponentPut(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &api.UpdateStorageComponentResponse{})
 }
 
-func ingressComponentPut(s *state.State, r *http.Request) response.Response {
+func putIngressComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateIngressComponentRequest
 	snap := snap.SnapFromContext(s.Context)
 
@@ -177,7 +146,7 @@ func ingressComponentPut(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &api.UpdateIngressComponentResponse{})
 }
 
-func gatewayComponentPut(s *state.State, r *http.Request) response.Response {
+func putGatewayComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateGatewayComponentRequest
 
 	snap := snap.SnapFromContext(s.Context)

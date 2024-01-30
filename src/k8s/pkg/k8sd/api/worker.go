@@ -12,24 +12,10 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/rest"
 	"github.com/canonical/microcluster/state"
 )
 
-var (
-	k8sdWorkerToken = rest.Endpoint{
-		Path: "k8sd/worker/token",
-		Post: rest.EndpointAction{Handler: k8sdWorkerTokenPost},
-	}
-	k8sdWorkerInfo = rest.Endpoint{
-		Path: "k8sd/worker/info",
-		// This endpoint is used by worker nodes that are not part of the microcluster.
-		// We authenticate by passing a token through an HTTP header instead.
-		Post: rest.EndpointAction{Handler: k8sdWorkerInfoPost, AllowUntrusted: true},
-	}
-)
-
-func k8sdWorkerTokenPost(s *state.State, r *http.Request) response.Response {
+func postWorkerToken(s *state.State, r *http.Request) response.Response {
 	var token string
 	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
@@ -60,7 +46,7 @@ func k8sdWorkerTokenPost(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &apiv1.WorkerNodeTokenResponse{EncodedToken: token})
 }
 
-func k8sdWorkerInfoPost(s *state.State, r *http.Request) response.Response {
+func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	// TODO: move authentication through the HTTP token to an AccessHandler for the endpoint.
 	token := r.Header.Get("k8sd-token")
 	if token == "" {
