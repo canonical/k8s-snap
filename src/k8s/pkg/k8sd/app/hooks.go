@@ -9,7 +9,7 @@ import (
 	"path"
 
 	"github.com/canonical/k8s/pkg/k8s/setup"
-	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/cert"
 	"github.com/canonical/microcluster/state"
@@ -20,10 +20,10 @@ import (
 func onPostJoin(s *state.State, initConfig map[string]string) error {
 	snap := snap.SnapFromContext(s.Context)
 
-	var clusterConfig database.ClusterConfig
+	var clusterConfig clusterconfigs.ClusterConfig
 	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		clusterConfig, err = database.GetClusterConfig(ctx, tx)
+		clusterConfig, err = clusterconfigs.GetClusterConfig(ctx, tx)
 		return err
 	}); err != nil {
 		return fmt.Errorf("failed to retrieve the cluster configuration from the database: %w", err)

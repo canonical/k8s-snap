@@ -13,13 +13,13 @@ import (
 
 var (
 	workerStmts = map[string]int{
-		"insert-node": mustPrepareStatement("worker-nodes", "insert.sql"),
-		"select-node": mustPrepareStatement("worker-nodes", "select.sql"),
-		"delete-node": mustPrepareStatement("worker-nodes", "delete.sql"),
+		"insert-node": MustPrepareStatement("worker-nodes", "insert.sql"),
+		"select-node": MustPrepareStatement("worker-nodes", "select.sql"),
+		"delete-node": MustPrepareStatement("worker-nodes", "delete.sql"),
 
-		"insert-token": mustPrepareStatement("cluster-configs", "insert-worker-token.sql"),
-		"select-token": mustPrepareStatement("cluster-configs", "select-worker-token.sql"),
-		"delete-token": mustPrepareStatement("cluster-configs", "delete-worker-token.sql"),
+		"insert-token": MustPrepareStatement("cluster-configs", "insert-worker-token.sql"),
+		"select-token": MustPrepareStatement("cluster-configs", "select-worker-token.sql"),
+		"delete-token": MustPrepareStatement("cluster-configs", "delete-worker-token.sql"),
 	}
 )
 

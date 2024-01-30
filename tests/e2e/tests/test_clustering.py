@@ -60,6 +60,9 @@ def test_clustering(h: harness.Harness, tmp_path: Path):
     util.wait_until_k8s_ready(h, cluster_node, instances)
 
     # TODO: Remove if --wait-ready for `join-cluster` is implemented.
-    h.exec(cluster_node, ["k8s", "remove-node", util.hostname(h, joining_node)])
+    hostname = util.hostname(h, joining_node)
+    util.stubbornly(retries=5, delay_s=3).on(h, cluster_node).exec(
+        ["k8s", "remove-node", hostname]
+    )
 
     h.cleanup()

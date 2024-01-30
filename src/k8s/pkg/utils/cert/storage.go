@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
 	"github.com/canonical/microcluster/state"
 	"github.com/sirupsen/logrus"
 )
@@ -40,7 +40,7 @@ func WriteCertKeyPairToK8sd(ctx context.Context, state *state.State, certName st
 	logrus.WithField("cert_length", len(string(cert))).WithField("key_length", len(string(key))).Debugf("Writing %s cert and key to database", certName)
 	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		// TODO: this is a hack until we completely replace WriteCertKeyPairToK8sd()
-		var clusterConfig database.ClusterConfig
+		var clusterConfig clusterconfigs.ClusterConfig
 		switch certName {
 		case "certificates-ca":
 			clusterConfig.Certificates.CACert = string(cert)
@@ -51,7 +51,7 @@ func WriteCertKeyPairToK8sd(ctx context.Context, state *state.State, certName st
 		default:
 			panic("only 'certificates-ca' or 'certificate-k8s-dqlite' is allowed")
 		}
-		if err := database.SetClusterConfig(ctx, tx, clusterConfig); err != nil {
+		if err := clusterconfigs.SetClusterConfig(ctx, tx, clusterConfig); err != nil {
 			return fmt.Errorf("failed to set cluster config: %w", err)
 		}
 		return nil

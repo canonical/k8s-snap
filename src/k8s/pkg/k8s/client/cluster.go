@@ -14,7 +14,7 @@ import (
 )
 
 // Bootstrap bootstraps the k8s cluster
-func (c *Client) Bootstrap(ctx context.Context) (apiv1.ClusterMember, error) {
+func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.ClusterMember, error) {
 	// Get system hostname.
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -24,10 +24,21 @@ func (c *Client) Bootstrap(ctx context.Context) (apiv1.ClusterMember, error) {
 	// Get system addrPort.
 	addrPort := util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), config.DefaultPort)
 
-	if err := c.m.Ready(30); err != nil {
+	timeToWait := 30
+	// If a context timeout is set, use this instead.
+	deadline, set := ctx.Deadline()
+	if set {
+		timeToWait = int(deadline.Sub(time.Now()).Seconds())
+	}
+
+	if err := c.m.Ready(timeToWait); err != nil {
 		return apiv1.ClusterMember{}, fmt.Errorf("cluster did not come up in time: %w", err)
 	}
-	if err := c.m.NewCluster(hostname, addrPort, nil, time.Second*30); err != nil {
+	config, err := bootstrapConfig.ToMap()
+	if err != nil {
+		return apiv1.ClusterMember{}, fmt.Errorf("failed to convert bootstrap config to map: %w", err)
+	}
+	if err := c.m.NewCluster(hostname, addrPort, config, time.Second*30); err != nil {
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
 	}
 

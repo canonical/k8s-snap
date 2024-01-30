@@ -39,7 +39,8 @@ func schemaApplyMigration(migrationPath ...string) schema.Update {
 	}
 }
 
-func mustPrepareStatement(queryPath ...string) int {
+// MustPrepareStatement reads and registers a SQL query.
+func MustPrepareStatement(queryPath ...string) int {
 	path := filepath.Join(append([]string{"sql", "queries"}, queryPath...)...)
 	b, err := sqlQueries.ReadFile(path)
 	if err != nil {

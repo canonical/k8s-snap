@@ -8,7 +8,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
@@ -26,7 +26,7 @@ func JoinK8sDqliteCluster(ctx context.Context, state *state.State, snap snap.Sna
 	// TODO: Cleanup once the cluster config is fully fetched from the database and not from the RPC endpoint above.
 	var crt, key string
 	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		config, err := database.GetClusterConfig(ctx, tx)
+		config, err := clusterconfigs.GetClusterConfig(ctx, tx)
 		if err != nil {
 			return fmt.Errorf("failed to get k8s-dqlite cert and key from database: %w", err)
 		}
