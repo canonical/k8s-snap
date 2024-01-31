@@ -12,6 +12,29 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 )
 
+type HelmConfigInitializer interface {
+	// Initializes a fresh Helm Configuration
+	InitializeHelmClientConfig() (*action.Configuration, error)
+}
+
+type HelmClientIntitializer struct{}
+
+func (r *HelmClientIntitializer) InitializeHelmClientConfig() (*action.Configuration, error) {
+	settings := cli.New()
+	settings.KubeConfig = "/etc/kubernetes/admin.conf"
+	actionConfig := new(action.Configuration)
+	err := actionConfig.Init(
+		settings.RESTClientGetter(),
+		settings.Namespace(),
+		os.Getenv("HELM_DRIVER"),
+		logAdapter,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize action config: %w", err)
+	}
+	return actionConfig, nil
+}
+
 // ComponentManager defines an interface for managing k8s components.
 type ComponentManager interface {
 	// Enable enables a k8s component, optionally specifying custom configuration options.
@@ -34,8 +57,9 @@ type componentDefinition struct {
 
 // helmClient implements the ComponentManager interface
 type helmClient struct {
-	config map[string]componentDefinition
-	snap   snap.Snap
+	config      map[string]componentDefinition
+	snap        snap.Snap
+	initializer HelmConfigInitializer
 }
 
 // Component defines the name and status of a k8s Component.
@@ -49,7 +73,11 @@ func logAdapter(format string, v ...any) {
 }
 
 // NewManager creates a new Component manager instance.
-func NewManager(snap snap.Snap) (*helmClient, error) {
+func NewManager(snap snap.Snap, initializer HelmConfigInitializer) (*helmClient, error) {
+	if initializer == nil {
+		initializer = &HelmClientIntitializer{}
+	}
+
 	viper.SetConfigName("components")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(snap.Path("k8s/components"))
@@ -61,25 +89,10 @@ func NewManager(snap snap.Snap) (*helmClient, error) {
 	err = viper.Unmarshal(&config)
 
 	return &helmClient{
-		config: config,
-		snap:   snap,
+		config:      config,
+		snap:        snap,
+		initializer: initializer,
 	}, nil
-}
-
-func (h *helmClient) initializeHelmClientConfig() (*action.Configuration, error) {
-	settings := cli.New()
-	settings.KubeConfig = "/etc/kubernetes/admin.conf"
-	actionConfig := new(action.Configuration)
-	err := actionConfig.Init(
-		settings.RESTClientGetter(),
-		settings.Namespace(),
-		os.Getenv("HELM_DRIVER"),
-		logAdapter,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize action config: %w", err)
-	}
-	return actionConfig, nil
 }
 
 // Enable enables a specified component.
@@ -89,7 +102,7 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 		return fmt.Errorf("invalid component %s", name)
 	}
 
-	actionConfig, err := h.initializeHelmClientConfig()
+	actionConfig, err := h.initializer.InitializeHelmClientConfig()
 	if err != nil {
 		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
@@ -120,7 +133,7 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 
 // isComponentEnabled checks if a component is enabled.
 func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
-	actionConfig, err := h.initializeHelmClientConfig()
+	actionConfig, err := h.initializer.InitializeHelmClientConfig()
 	if err != nil {
 		return false, fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
@@ -142,7 +155,7 @@ func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
 
 // List lists the status of each k8s component.
 func (h *helmClient) List() ([]Component, error) {
-	actionConfig, err := h.initializeHelmClientConfig()
+	actionConfig, err := h.initializer.InitializeHelmClientConfig()
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
@@ -173,7 +186,7 @@ func (h *helmClient) List() ([]Component, error) {
 
 // Disable disables a specified component.
 func (h *helmClient) Disable(name string) error {
-	actionConfig, err := h.initializeHelmClientConfig()
+	actionConfig, err := h.initializer.InitializeHelmClientConfig()
 	if err != nil {
 		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
@@ -202,7 +215,7 @@ func (h *helmClient) Disable(name string) error {
 
 // Refresh refreshes a specified component.
 func (h *helmClient) Refresh(name string, values map[string]any) error {
-	actionConfig, err := h.initializeHelmClientConfig()
+	actionConfig, err := h.initializer.InitializeHelmClientConfig()
 	if err != nil {
 		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
