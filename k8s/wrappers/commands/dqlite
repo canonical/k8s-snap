@@ -2,8 +2,4 @@
 
 . "$SNAP/k8s/lib.sh"
 
-k8s::common::setup_env
-
-K8S_DQLITE_DIR="${SNAP_COMMON}/var/lib/k8s-dqlite"
-
-${SNAP}/bin/dqlite -s file://"${K8S_DQLITE_DIR}"/cluster.yaml -c "${K8S_DQLITE_DIR}"/cluster.crt -k "${K8S_DQLITE_DIR}"/cluster.key  "${@}"
+k8s::cmd::dqlite "${@}"

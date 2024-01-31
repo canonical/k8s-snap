@@ -114,6 +114,16 @@ k8s::cmd::snapctl() {
   snapctl "${@}"
 }
 
+# Run a dqlite CLI command against the k8s-dqlite cluster
+# Example: 'k8s::cmd::dqlite k8s .cluster'
+# Example: 'k8s::cmd::dqlite k8s .cluster'
+k8s::cmd::dqlite() {
+  k8s::common::setup_env
+
+  K8S_DQLITE_DIR="/var/lib/k8s-dqlite"
+  "${SNAP}/bin/dqlite" -s "file://${K8S_DQLITE_DIR}/cluster.yaml" -c "${K8S_DQLITE_DIR}/cluster.crt" -k "${K8S_DQLITE_DIR}/cluster.key" "${@}"
+}
+
 # Get the local node hostname, in lowercase
 # Example: 'hostname="$(k8s::cmd::hostname)"'
 k8s::cmd::hostname() {
