@@ -12,29 +12,6 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 )
 
-type HelmConfigInitializer interface {
-	// Initializes a fresh Helm Configuration
-	InitializeHelmClientConfig() (*action.Configuration, error)
-}
-
-type HelmClientIntitializer struct{}
-
-func (r *HelmClientIntitializer) InitializeHelmClientConfig() (*action.Configuration, error) {
-	settings := cli.New()
-	settings.KubeConfig = "/etc/kubernetes/admin.conf"
-	actionConfig := new(action.Configuration)
-	err := actionConfig.Init(
-		settings.RESTClientGetter(),
-		settings.Namespace(),
-		os.Getenv("HELM_DRIVER"),
-		logAdapter,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize action config: %w", err)
-	}
-	return actionConfig, nil
-}
-
 // ComponentManager defines an interface for managing k8s components.
 type ComponentManager interface {
 	// Enable enables a k8s component, optionally specifying custom configuration options.
@@ -46,6 +23,15 @@ type ComponentManager interface {
 	// Refresh updates a k8s component.
 	Refresh(name string) error
 }
+
+// HelmConfigInitializer defines an interface for initializing a Helm Configuration, allowing a Mock implementation
+type HelmConfigInitializer interface {
+	// Initializes a fresh Helm Configuration
+	InitializeHelmClientConfig() (*action.Configuration, error)
+}
+
+// HelmClientIntitializer implements the HelmConfigInitializer interface
+type HelmClientIntitializer struct{}
 
 // componentDefinition defines each component metadata.
 type componentDefinition struct {
@@ -66,6 +52,25 @@ type helmClient struct {
 type Component struct {
 	Name   string
 	Status bool
+}
+
+// InitializeHelmClientConfig initializes a Helm Configuration, ensures the use of a fresh configuration
+func (r *HelmClientIntitializer) InitializeHelmClientConfig() (*action.Configuration, error) {
+	settings := cli.New()
+	settings.KubeConfig = "/etc/kubernetes/admin.conf"
+
+	actionConfig := new(action.Configuration)
+	err := actionConfig.Init(
+		settings.RESTClientGetter(),
+		settings.Namespace(),
+		os.Getenv("HELM_DRIVER"),
+		logAdapter,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize action config: %w", err)
+	}
+	return actionConfig, nil
 }
 
 func logAdapter(format string, v ...any) {
@@ -119,10 +124,12 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 	if isEnabled {
 		return nil
 	}
+
 	chart, err := loader.Load(h.snap.Path("k8s/components/charts", component.Chart))
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
+
 	_, err = install.Run(chart, values)
 	if err != nil {
 		return fmt.Errorf("failed to enable component '%s': %w", name, err)
@@ -205,6 +212,7 @@ func (h *helmClient) Disable(name string) error {
 	if !isEnabled {
 		return nil
 	}
+
 	_, err = uninstall.Run(component.ReleaseName)
 	if err != nil {
 		return fmt.Errorf("failed to uninstall component '%s': %w", name, err)
