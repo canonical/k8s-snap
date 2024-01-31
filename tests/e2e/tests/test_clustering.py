@@ -36,12 +36,6 @@ def test_clustering(instances: List[harness.Instance]):
 
     util.wait_until_k8s_ready(cluster_node, instances)
 
-    # TODO: Remove if --wait-ready for `join-cluster` is implemented.
-    hostname = util.hostname(joining_node)
-    util.stubbornly(retries=5, delay_s=3).on(cluster_node).exec(
-        ["k8s", "remove-node", hostname]
-    )
-
 
 @pytest.mark.node_count(2)
 def test_worker_nodes(instances: List[harness.Instance]):
