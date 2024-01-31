@@ -1,13 +1,14 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import json
 import logging
 import shlex
 import subprocess
 from pathlib import Path
 
 from e2e_util import config
-from e2e_util.harness import Harness, HarnessError
+from e2e_util.harness import Harness, HarnessError, Instance
 from e2e_util.util import run
 
 LOG = logging.getLogger(__name__)
@@ -15,6 +16,8 @@ LOG = logging.getLogger(__name__)
 
 class JujuHarness(Harness):
     """A Harness that creates an Juju machine for each instance."""
+
+    name = "juju"
 
     def __init__(self):
         super(JujuHarness, self).__init__()
@@ -50,13 +53,13 @@ class JujuHarness(Harness):
                 self.constraints,
             )
 
-    def new_instance(self) -> str:
+    def new_instance(self) -> Instance:
         for instance_id in self.existing_machines:
             if not self.existing_machines[instance_id]:
                 LOG.debug("Reusing existing machine %s", instance_id)
                 self.existing_machines[instance_id] = True
                 self.instances.add(instance_id)
-                return instance_id
+                return Instance(self, instance_id)
 
         LOG.debug("Creating instance with constraints %s", self.constraints)
         try:
@@ -85,7 +88,7 @@ class JujuHarness(Harness):
         self.instances.add(instance_id)
 
         self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
-        return instance_id
+        return Instance(self, instance_id)
 
     def send_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
@@ -126,7 +129,12 @@ class JujuHarness(Harness):
             raise HarnessError(f"unknown instance {instance_id}")
 
         LOG.debug("Execute command %s in instance %s", command, instance_id)
-        return run(
+        capture_output = kwargs.pop("capture_output", False)
+        check = kwargs.pop("check", True)
+        stdout = kwargs.pop("stdout", None)
+        stderr = kwargs.pop("stderr", None)
+        input = f" <<EOF\n{b.decode()}\nEOF" if (b := kwargs.pop("input", None)) else ""
+        s_result = run(
             [
                 "juju",
                 "exec",
@@ -134,15 +142,43 @@ class JujuHarness(Harness):
                 self.model,
                 "--machine",
                 instance_id,
+                "--format",
+                "json",
+                "--wait",
+                "30m",
                 "--",
                 "sudo",
                 "-E",
                 "bash",
                 "-c",
-                shlex.join(command),
+                shlex.join(command) + input,
             ],
+            capture_output=True,
+            check=False,
             **kwargs,
         )
+        if check:
+            s_result.check_returncode()
+        juju_response = json.loads(s_result.stdout.decode())
+        results = juju_response[instance_id]["results"]
+        stdout = (
+            b.encode()
+            if (b := results.get("stdout"))
+            and (capture_output or stdout == subprocess.PIPE)
+            else None
+        )
+        stderr = (
+            b.encode()
+            if (b := results.get("stderr"))
+            and (capture_output or stderr != subprocess.DEVNULL)
+            else None
+        )
+        completed = subprocess.CompletedProcess(
+            command, results["return-code"], stdout, stderr
+        )
+        if check:
+            completed.check_returncode()
+        return completed
 
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:

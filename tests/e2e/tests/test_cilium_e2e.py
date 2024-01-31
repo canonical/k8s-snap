@@ -3,7 +3,7 @@
 #
 import logging
 import platform
-from pathlib import Path
+from typing import List
 
 import pytest
 from e2e_util import config, harness, util
@@ -19,30 +19,23 @@ CILIUM_CLI_TAR_GZ = f"https://github.com/cilium/cilium-cli/releases/download/{CI
 @pytest.mark.skipif(
     ARCH not in CILIUM_CLI_ARCH_MAP, reason=f"Platform {ARCH} not supported"
 )
-def test_cilium_e2e(h: harness.Harness, tmp_path: Path):
-    if not config.SNAP:
-        pytest.fail("Set TEST_SNAP to the path where the snap is")
+def test_cilium_e2e(instances: List[harness.Instance]):
+    instance = instances[0]
+    instance.exec(["bash", "-c", "mkdir -p ~/.kube"])
+    instance.exec(["bash", "-c", "k8s config > ~/.kube/config"])
 
-    snap_path = (tmp_path / "k8s.snap").as_posix()
-
-    LOG.info("Create instance")
-    instance_id = h.new_instance()
-
-    util.setup_k8s_snap(h, instance_id, snap_path)
-    h.exec(instance_id, ["k8s", "bootstrap"])
-    util.setup_network(h, instance_id)
-    util.setup_dns(h, instance_id)
-
-    h.exec(instance_id, ["bash", "-c", "mkdir -p ~/.kube"])
-    h.exec(instance_id, ["bash", "-c", "k8s config > ~/.kube/config"])
+    util.setup_dns(instance)
+    instance.exec(["bash", "-c", "mkdir -p ~/.kube"])
+    instance.exec(["bash", "-c", "k8s config > ~/.kube/config"])
 
     # Download cilium-cli
-    h.exec(instance_id, ["curl", "-L", CILIUM_CLI_TAR_GZ, "-o", "cilium.tar.gz"])
-    h.exec(instance_id, ["tar", "xvzf", "cilium.tar.gz"])
-    h.exec(instance_id, ["./cilium", "version", "--client"])
+    instance.exec(["curl", "-L", CILIUM_CLI_TAR_GZ, "-o", "cilium.tar.gz"])
+    instance.exec(["tar", "xvzf", "cilium.tar.gz"])
+    instance.exec(["./cilium", "version", "--client"])
 
-    util.stubbornly(retries=15, delay_s=5).on(h, instance_id).until(
-        lambda p: "OK" == p.stdout.decode().strip()
+    # TODO(neoaggelos): replace with "k8s status --wait-ready"
+    util.stubbornly(retries=20, delay_s=5).on(instance).until(
+        lambda p: p.stdout.decode().strip() == "OK"
     ).exec(
         [
             "k8s",
@@ -78,6 +71,4 @@ def test_cilium_e2e(h: harness.Harness, tmp_path: Path):
         # }
         e2e_args.extend(["--test", "!no-unexpected-packet-drops"])
 
-    h.exec(instance_id, ["./cilium", "connectivity", "test", *e2e_args])
-
-    h.cleanup()
+    instance.exec(["./cilium", "connectivity", "test", *e2e_args])

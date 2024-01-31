@@ -4,29 +4,18 @@
 import json
 import logging
 from pathlib import Path
+from typing import List
 
-import pytest
-from e2e_util import config, harness, util
+from e2e_util import harness, util
 from e2e_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
 
 
-def test_network(h: harness.Harness, tmp_path: Path):
-    if not config.SNAP:
-        pytest.fail("Set TEST_SNAP to the path where the snap is")
+def test_network(instances: List[harness.Instance]):
+    instance = instances[0]
 
-    snap_path = (tmp_path / "k8s.snap").as_posix()
-
-    LOG.info("Create instance")
-    instance_id = h.new_instance()
-
-    util.setup_k8s_snap(h, instance_id, snap_path)
-    h.exec(instance_id, ["k8s", "bootstrap"])
-    util.setup_network(h, instance_id)
-
-    p = h.exec(
-        instance_id,
+    p = instance.exec(
         [
             "k8s",
             "kubectl",
@@ -47,8 +36,7 @@ def test_network(h: harness.Harness, tmp_path: Path):
 
     cilium_pod = out["items"][0]
 
-    p = h.exec(
-        instance_id,
+    p = instance.exec(
         [
             "k8s",
             "kubectl",
@@ -70,13 +58,12 @@ def test_network(h: harness.Harness, tmp_path: Path):
     assert p.stdout.decode().strip() == "OK"
 
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
-    p = h.exec(
-        instance_id,
+    p = instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
-    util.stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
+    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -90,8 +77,7 @@ def test_network(h: harness.Harness, tmp_path: Path):
         ]
     )
 
-    p = h.exec(
-        instance_id,
+    p = instance.exec(
         [
             "k8s",
             "kubectl",
@@ -112,5 +98,3 @@ def test_network(h: harness.Harness, tmp_path: Path):
         capture_output=True,
     )
     assert "nginx" in p.stdout.decode().strip()
-
-    h.cleanup()

@@ -140,32 +140,19 @@ A typical end to end test for feature `<feature>` should look like this:
 ```python
 # tests/e2e/tests/test_<feature>.py
 #
-# Copyright 2023 Canonical, Ltd.
+# Copyright 2024 Canonical, Ltd.
 #
 import logging
-import subprocess
-import time
-from pathlib import Path
 
-import pytest
-from e2e_util import config, harness
+from e2e_util import harness, util
 
 LOG = logging.getLogger(__name__)
+FEATURE_NODE_COUNT = 3  # number of machines necessary for the test
 
 
-def test_feature(h: harness.Harness, tmp_path: Path):
-    if not config.SNAP:
-        pytest.fail("Set TEST_SNAP to the path where the snap is")
-
-    snap_path = (tmp_path / "k8s.snap").as_posix()
-
-    LOG.info("Create instance")
-    instance_id = h.new_instance()
-
-    LOG.info("Install snap")
-    h.send_file(instance_id, config.SNAP, snap_path)
-    h.exec(instance_id, ["snap", "install", snap_path, "--dangerous"])
-
-    LOG.info("Test something")
-    # h.exec(...)
+@pytest.mark.node_count(FEATURE_NODE_COUNT)
+def test_feature(instances: List[harness.Instance]):
+    # The cluster is bootstrapped, with only networking setup.
+    first_node, *others_nodes = instances
+    first_node.exec(["k8s", "something"])
 ```

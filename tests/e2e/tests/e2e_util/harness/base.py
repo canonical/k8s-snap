@@ -2,6 +2,7 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import subprocess
+from functools import partial
 
 
 class HarnessError(Exception):
@@ -10,15 +11,40 @@ class HarnessError(Exception):
     pass
 
 
+class Instance:
+    """Reference to a harness and a given instance id.
+
+    Provides convenience methods for an instance to call its harness' methods
+    """
+
+    def __init__(self, h: "Harness", id: str) -> None:
+        self._h = h
+        self._id = id
+
+        self.send_file = partial(h.send_file, id)
+        self.pull_file = partial(h.pull_file, id)
+        self.exec = partial(h.exec, id)
+        self.delete_instance = partial(h.delete_instance, id)
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    def __str__(self) -> str:
+        return f"{self._h.name}:{self.id}"
+
+
 class Harness:
     """Abstract how e2e tests can start and manage multiple machines. This allows
     writing e2e tests that can run on the local machine, LXD, or Multipass with minimum
     effort.
     """
 
-    def new_instance(self) -> str:
-        """Creates a new instance on the infrastructure and returns an ID that
-        can be used to interact with it.
+    name: str
+
+    def new_instance(self) -> Instance:
+        """Creates a new instance on the infrastructure and returns an object
+        which can be used to interact with it.
 
         If the operation fails, a HarnessError is raised.
         """

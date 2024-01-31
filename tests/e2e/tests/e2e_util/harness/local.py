@@ -9,7 +9,7 @@ import socket
 import subprocess
 from pathlib import Path
 
-from e2e_util.harness import Harness, HarnessError
+from e2e_util.harness import Harness, HarnessError, Instance
 from e2e_util.util import run
 
 LOG = logging.getLogger(__name__)
@@ -18,6 +18,8 @@ LOG = logging.getLogger(__name__)
 class LocalHarness(Harness):
     """A Harness that uses the local machine. Asking for more than 1 instance will fail."""
 
+    name = "local"
+
     def __init__(self):
         super(LocalHarness, self).__init__()
         self.initialized = False
@@ -25,7 +27,7 @@ class LocalHarness(Harness):
 
         LOG.debug("Configured local substrate")
 
-    def new_instance(self) -> str:
+    def new_instance(self) -> Instance:
         if self.initialized:
             raise HarnessError("local substrate only supports up to one instance")
 
@@ -36,7 +38,7 @@ class LocalHarness(Harness):
         except subprocess.CalledProcessError as e:
             raise HarnessError("failed to wait for snapd seed") from e
 
-        return self.hostname
+        return Instance(self, self.hostname)
 
     def send_file(self, _: str, source: str, destination: str):
         if not self.initialized:

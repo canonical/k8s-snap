@@ -50,7 +50,7 @@ def stubbornly(
     : param    retries              int: convenience param to use stop=retry.stop_after_attempt(<int>)
     : param    delay_s        float|int: convenience param to use wait=retry.wait_fixed(delay_s)
     : param exceptions Tuple[Exception]: convenience param to use retry=retry.retry_if_exception_type(exceptions)
-    : param retry_kds               Map: direct interface to all tenacity arguments for retrying
+    : param retry_kds           Mapping: direct interface to all tenacity arguments for retrying
     """
 
     def _before_sleep(retry_state: RetryCallState):
@@ -76,8 +76,8 @@ def stubbornly(
 
     class Retriable:
         def __init__(self) -> None:
-            self.condition = None
-            self.run = subprocess.run
+            self._condition = None
+            self._run = subprocess.run
 
         @retry(**_retry_args)
         def exec(
@@ -89,28 +89,27 @@ def stubbornly(
             Execute a command against a harness or locally with subprocess to be retried.
 
             :param  List[str]        command_args: The command to be executed, as a str or list of str
-            :param Map[str,str]      command_kwds: Additional keyword arguments to be passed to exec
+            :param Mapping[str,str]      command_kwds: Additional keyword arguments to be passed to exec
             """
 
             try:
-                resp = self.run(command_args, **command_kwds)
+                resp = self._run(command_args, **command_kwds)
             except subprocess.CalledProcessError as e:
-                LOG.error(f"  rc={e.returncode}")
-                LOG.error(f"  stdout={e.stdout.decode()}")
-                LOG.error(f"  stderr={e.stderr.decode()}")
+                LOG.warning(f"  rc={e.returncode}")
+                LOG.warning(f"  stdout={e.stdout.decode()}")
+                LOG.warning(f"  stderr={e.stderr.decode()}")
                 raise
-            if self.condition:
-                assert self.condition(resp), "Failed to meet condition"
+            if self._condition:
+                assert self._condition(resp), "Failed to meet condition"
             return resp
 
-        def on(self, harness: harness.Harness, instance_id: str) -> "Retriable":
+        def on(self, instance: harness.Instance) -> "Retriable":
             """
-            Target the command at some other instance.
+            Target the command at some instance.
 
-            :param Harness  harness: test Harness object, to run the command on
-            :param str      instance: Instance id in the test harness.
+            :param instance Instance: Instance on a test harness.
             """
-            self.run = partial(harness.exec, instance_id, capture_output=True)
+            self._run = partial(instance.exec, capture_output=True)
             return self
 
         def until(
@@ -121,26 +120,26 @@ def stubbornly(
 
             :param Callable condition: a callable which returns a truth about the command output
             """
-            self.condition = condition
+            self._condition = condition
             return self
 
     return Retriable()
 
 
-def setup_dns(h: harness.Harness, instance_id: str):
+def setup_dns(instance: harness.Instance):
     LOG.info("Waiting for dns to be enabled...")
-    stubbornly(retries=15, delay_s=5).on(h, instance_id).exec(
+    stubbornly(retries=15, delay_s=5).on(instance).exec(
         ["k8s", "enable", "dns", "--cluster-domain=foo.local"]
     )
     LOG.info("DNS enabled.")
 
     LOG.info("Waiting for CoreDNS pod to show up...")
-    stubbornly(retries=15, delay_s=5).on(h, instance_id).until(
+    stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "coredns" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"])
     LOG.info("CoreDNS pod showed up.")
 
-    stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
+    stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -157,29 +156,25 @@ def setup_dns(h: harness.Harness, instance_id: str):
     )
 
 
-def setup_network(h: harness.Harness, instance_id: str):
+def setup_network(instance: harness.Instance):
     time.sleep(30)
-    h.exec(
-        instance_id,
-        ["/snap/k8s/current/k8s/network-requirements.sh"],
-        stdout=subprocess.DEVNULL,
+    instance.exec(
+        ["/snap/k8s/current/k8s/network-requirements.sh"], stdout=subprocess.DEVNULL
     )
 
     LOG.info("Waiting for network to be enabled...")
-    stubbornly(retries=15, delay_s=5).on(h, instance_id).exec(
-        ["k8s", "enable", "network"]
-    )
+    stubbornly(retries=15, delay_s=5).on(instance).exec(["k8s", "enable", "network"])
     LOG.info("Network enabled.")
 
     LOG.info("Waiting for cilium pods to show up...")
-    stubbornly(retries=15, delay_s=5).on(h, instance_id).until(
+    stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "cilium" in p.stdout.decode()
     ).exec(
         ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
     )
     LOG.info("Cilium pods showed up.")
 
-    stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
+    stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -195,7 +190,7 @@ def setup_network(h: harness.Harness, instance_id: str):
         ],
     )
 
-    stubbornly(retries=3, delay_s=1).on(h, instance_id).exec(
+    stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -213,22 +208,24 @@ def setup_network(h: harness.Harness, instance_id: str):
 
 
 # Installs and setups the k8s snap on the given instance and connects the interfaces.
-def setup_k8s_snap(h: harness.Harness, instance_id: str, snap_path: Path):
+def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
     LOG.info("Install snap")
-    h.send_file(instance_id, config.SNAP, snap_path)
-    h.exec(instance_id, ["snap", "install", snap_path, "--dangerous"])
+    instance.send_file(config.SNAP, snap_path)
+    instance.exec(["snap", "install", snap_path, "--dangerous"])
 
     LOG.info("Initialize Kubernetes")
-    h.exec(instance_id, ["/snap/k8s/current/k8s/connect-interfaces.sh"])
+    instance.exec(["/snap/k8s/current/k8s/connect-interfaces.sh"])
 
 
 # Validates that the K8s node is in Ready state.
-def wait_until_k8s_ready(h: harness.Harness, control_node: str, instances: List[str]):
+def wait_until_k8s_ready(
+    control_node: harness.Instance, instances: List[harness.Instance]
+):
     for instance in instances:
-        host = hostname(h, instance)
+        host = hostname(instance)
         result = (
             stubbornly(retries=15, delay_s=5)
-            .on(h, control_node)
+            .on(control_node)
             .until(lambda p: " Ready" in p.stdout.decode())
             .exec(["k8s", "kubectl", "get", "node", host, "--no-headers"])
         )
@@ -236,8 +233,7 @@ def wait_until_k8s_ready(h: harness.Harness, control_node: str, instances: List[
     LOG.info("%s", result.stdout.decode())
 
 
-# Returns the hostname for the given instance.
-def hostname(h: harness.Harness, instance_id: str) -> str:
-    return (
-        h.exec(instance_id, ["hostname"], capture_output=True).stdout.decode().strip()
-    )
+def hostname(instance: harness.Instance) -> str:
+    """Return the hostname for a given instance."""
+    resp = instance.exec(["hostname"], capture_output=True)
+    return resp.stdout.decode().strip()
