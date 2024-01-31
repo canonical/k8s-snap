@@ -102,7 +102,7 @@ type snapcraftYml struct {
 
 func (s *snap) IsStrict() bool {
 	var meta snapcraftYml
-	contents, err := os.ReadFile(s.Path("meta", "snapcraft.yaml"))
+	contents, err := os.ReadFile(s.Path("meta", "snap.yaml"))
 	if err != nil {
 		return false
 	}
