@@ -46,9 +46,6 @@ func EnableNetworkComponent(s snap.Snap) error {
 			"confPath": "/etc/cni/net.d",
 			"binPath":  "/opt/cni/bin",
 		},
-		"daemon": map[string]any{
-			"runPath": s.CommonPath("var", "run", "cilium"),
-		},
 		"operator": map[string]any{
 			"replicas": 1,
 		},

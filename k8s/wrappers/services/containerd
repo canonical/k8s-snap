@@ -13,6 +13,4 @@ k8s::common::is_strict && apparmor_parser -r "$SNAP/k8s/profiles/containerd"
 # Ensure the containerd runtime directory is a tmpfs
 k8s::containerd::ensure_tmpfs_state_dir
 
-export CILIUM_SOCK="${SNAP_COMMON}/var/run/cilium/cilium.sock"
-
 k8s::common::execute_service containerd
