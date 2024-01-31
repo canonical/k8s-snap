@@ -5,7 +5,7 @@ from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
 
-STRICT = "confinement: strict" in (DIR / ".." / "snap" / "snapcraft.yaml").read_text()
+PATCH_DIRS = ["patches", "strict-patches"]
 
 
 class Version:
@@ -73,12 +73,8 @@ def get_patches_for(component: str, version_string: str) -> list:
     component_version = Version(version_string)
     component_dir = DIR / "components" / component
 
-    patch_directories = ["patches"]
-    if STRICT:
-        patch_directories += ["strict-patches"]
-
     patches = []
-    for patch_dir_name in patch_directories:
+    for patch_dir_name in PATCH_DIRS:
         patches_dir = component_dir / patch_dir_name
         if not patches_dir.is_dir():
             continue
