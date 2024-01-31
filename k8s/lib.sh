@@ -31,6 +31,18 @@ k8s::common::setup_env() {
   _K8S_ENV_SETUP_ONCE="1"
 }
 
+# Check if k8s is installed as a strictly confined snap
+# Example: 'k8s::common::is_strict && echo running under strict confinement'
+k8s::common::is_strict() {
+  k8s::common::setup_env
+
+  if cat "${SNAP}/meta/snap.yaml" | grep -q 'confinement: strict'; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # Cleanup configuration left by the network component
 #   - Iptables Rules
 #   - Network Interfaces
@@ -367,4 +379,26 @@ k8s::init() {
   k8s::init::kubernetes
   k8s::init::kubeconfigs
   k8s::init::permissions
+}
+
+# Ensure /var/lib/kubelet is a shared mount
+# Example: 'k8s::common::is_strict && k8s::kubelet::ensure_shared_root_dir'
+k8s::kubelet::ensure_shared_root_dir() {
+  k8s::common::setup_env
+
+  if ! findmnt -o PROPAGATION /var/lib/kubelet -n | grep -q shared; then
+    echo "Ensure /var/lib/kubelet mount propagation is rshared"
+    mount -o remount --make-rshared "$SNAP_COMMON/var/lib/kubelet" /var/lib/kubelet
+  fi
+}
+
+# Ensure /var/lib/run/containerd is a tmpfs mount
+k8s::containerd::ensure_tmpfs_state_dir() {
+  k8s::common::setup_env
+
+  if ! findmnt -o FSTYPE /var/lib/run/containerd -n | grep -q tmpfs; then
+    echo "Ensure /var/lib/run/containerd tmpfs found"
+    mkdir /var/lib/run/containerd -p
+    mount -t tmpfs tmpfs /var/lib/run/containerd
+  fi
 }

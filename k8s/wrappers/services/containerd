@@ -8,7 +8,10 @@ k8s::common::setup_env
 mkdir -p "${XDG_RUNTIME_DIR}"
 
 # Apply the containerd profile
-apparmor_parser -r "$SNAP/k8s/profiles/containerd"
+k8s::common::is_strict && apparmor_parser -r "$SNAP/k8s/profiles/containerd"
+
+# Ensure the containerd runtime directory is a tmpfs
+k8s::containerd::ensure_tmpfs_state_dir
 
 export CILIUM_SOCK="${SNAP_COMMON}/var/run/cilium/cilium.sock"
 
