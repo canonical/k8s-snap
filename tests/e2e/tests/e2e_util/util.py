@@ -95,9 +95,9 @@ def stubbornly(
             try:
                 resp = self._run(command_args, **command_kwds)
             except subprocess.CalledProcessError as e:
-                LOG.error(f"  rc={e.returncode}")
-                LOG.error(f"  stdout={e.stdout.decode()}")
-                LOG.error(f"  stderr={e.stderr.decode()}")
+                LOG.warning(f"  rc={e.returncode}")
+                LOG.warning(f"  stdout={e.stdout.decode()}")
+                LOG.warning(f"  stderr={e.stderr.decode()}")
                 raise
             if self._condition:
                 assert self._condition(resp), "Failed to meet condition"
