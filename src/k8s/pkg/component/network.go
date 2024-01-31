@@ -15,16 +15,6 @@ func EnableNetworkComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	bpfMnt, err := utils.GetMountPath("bpf")
-	if err != nil {
-		return fmt.Errorf("failed to get bpf mount path: %w", err)
-	}
-
-	cgrMnt, err := utils.GetMountPath("cgroup2")
-	if err != nil {
-		return fmt.Errorf("failed to get cgroup2 mount path: %w", err)
-	}
-
 	// TODO: the cluster cidr should be configurable through a common interface
 	clusterCIDRStr := snap.GetServiceArgument(s, "kube-proxy", "--cluster-cidr")
 	clusterCIDRs := strings.Split(clusterCIDRStr, ",")
@@ -71,21 +61,35 @@ func EnableNetworkComponent(s snap.Snap) error {
 		"nodePort": map[string]any{
 			"enabled": true,
 		},
-		"bpf": map[string]any{
+
+		"l2announcements": map[string]any{
+			"enabled": true,
+		},
+	}
+
+	if s.IsStrict() {
+		bpfMnt, err := utils.GetMountPath("bpf")
+		if err != nil {
+			return fmt.Errorf("failed to get bpf mount path: %w", err)
+		}
+
+		cgrMnt, err := utils.GetMountPath("cgroup2")
+		if err != nil {
+			return fmt.Errorf("failed to get cgroup2 mount path: %w", err)
+		}
+
+		values["bpf"] = map[string]any{
 			"autoMount": map[string]any{
 				"enabled": false,
 			},
 			"root": bpfMnt,
-		},
-		"cgroup": map[string]any{
+		}
+		values["cgroup"] = map[string]any{
 			"autoMount": map[string]any{
 				"enabled": false,
 			},
 			"hostRoot": cgrMnt,
-		},
-		"l2announcements": map[string]any{
-			"enabled": true,
-		},
+		}
 	}
 
 	err = manager.Enable("network", values)
