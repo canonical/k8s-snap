@@ -45,22 +45,22 @@ def test_clustering(h: harness.Harness, tmp_path: Path):
         pytest.fail("Set TEST_SNAP to the path where the snap is")
 
     snap_path = (tmp_path / "k8s.snap").as_posix()
-    instances = setup_k8s_instances(h, snap_path, num_instances=2)
+    instances = setup_k8s_instances(h, snap_path, num_instances=3)
     cluster_node = instances[0]
-    joining_node = instances[1]
 
     h.exec(cluster_node, ["k8s", "bootstrap"])
     util.setup_network(h, cluster_node)
 
     h.exec(cluster_node, ["k8s", "kubectl", "get", "nodes", "-A"])
 
-    token = add_node(h, cluster_node, joining_node)
-    join_cluster(h, joining_node, token)
+    for node in (instances[1], instances[2]):
+        token = add_node(h, cluster_node, node)
+        join_cluster(h, node, token)
 
     util.wait_until_k8s_ready(h, cluster_node, instances)
 
     # TODO: Remove if --wait-ready for `join-cluster` is implemented.
-    hostname = util.hostname(h, joining_node)
+    hostname = util.hostname(h, instances[1])
     util.stubbornly(retries=5, delay_s=3).on(h, cluster_node).exec(
         ["k8s", "remove-node", hostname]
     )
