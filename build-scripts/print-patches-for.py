@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
 from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
+
+STRICT = "confinement: strict" in (DIR / ".." / "snap" / "snapcraft.yaml").read_text()
 
 
 class Version:
@@ -72,22 +73,33 @@ def get_patches_for(component: str, version_string: str) -> list:
     component_version = Version(version_string)
     component_dir = DIR / "components" / component
 
-    patches_dir = component_dir / "patches"
-    if not patches_dir.is_dir():
-        return []
+    patch_directories = ["patches"]
+    if STRICT:
+        patch_directories += ["strict-patches"]
 
-    candidates = [
-        Version(path.name)
-        for path in sorted(
-            patches_dir.iterdir(), reverse=True
-        )  # sort by reverse to handle exact matches
-        if path.is_dir()
-    ]
-    patch_version = find_suitable_patch_version(candidates, component_version)
-    if patch_version is None:
-        return []
+    patches = []
+    for patch_dir_name in patch_directories:
+        patches_dir = component_dir / patch_dir_name
+        if not patches_dir.is_dir():
+            continue
 
-    return [p.resolve().as_posix() for p in (patches_dir / patch_version).iterdir()]
+        candidates = [
+            Version(path.name)
+            for path in sorted(
+                patches_dir.iterdir(), reverse=True
+            )  # sort by reverse to handle exact matches
+            if path.is_dir()
+        ]
+        patch_version = find_suitable_patch_version(candidates, component_version)
+        if patch_version is not None:
+            patches.extend(
+                [
+                    p.resolve().as_posix()
+                    for p in (patches_dir / patch_version).iterdir()
+                ]
+            )
+
+    return patches
 
 
 def main():
