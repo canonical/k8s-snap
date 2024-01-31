@@ -34,10 +34,8 @@ type componentDefinition struct {
 
 // helmClient implements the ComponentManager interface
 type helmClient struct {
-	config       map[string]componentDefinition
-	settings     *cli.EnvSettings
-	actionConfig *action.Configuration
-	snap         snap.Snap
+	config map[string]componentDefinition
+	snap   snap.Snap
 }
 
 // Component defines the name and status of a k8s Component.
@@ -62,25 +60,26 @@ func NewManager(snap snap.Snap) (*helmClient, error) {
 	config := make(map[string]componentDefinition)
 	err = viper.Unmarshal(&config)
 
+	return &helmClient{
+		config: config,
+		snap:   snap,
+	}, nil
+}
+
+func (h *helmClient) initializeHelmClientConfig() (*action.Configuration, error) {
 	settings := cli.New()
 	settings.KubeConfig = "/etc/kubernetes/admin.conf"
 	actionConfig := new(action.Configuration)
-	err = actionConfig.Init(
+	err := actionConfig.Init(
 		settings.RESTClientGetter(),
 		settings.Namespace(),
 		os.Getenv("HELM_DRIVER"),
 		logAdapter,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize component manager configuration: %w", err)
+		return nil, fmt.Errorf("failed to initialize action config: %w", err)
 	}
-
-	return &helmClient{
-		config:       config,
-		settings:     settings,
-		actionConfig: actionConfig,
-		snap:         snap,
-	}, nil
+	return actionConfig, nil
 }
 
 // Enable enables a specified component.
@@ -90,7 +89,12 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 		return fmt.Errorf("invalid component %s", name)
 	}
 
-	install := action.NewInstall(h.actionConfig)
+	actionConfig, err := h.initializeHelmClientConfig()
+	if err != nil {
+		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
+	}
+
+	install := action.NewInstall(actionConfig)
 	install.ReleaseName = component.ReleaseName
 	install.Namespace = component.Namespace
 
@@ -116,7 +120,12 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 
 // isComponentEnabled checks if a component is enabled.
 func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
-	list := action.NewList(h.actionConfig)
+	actionConfig, err := h.initializeHelmClientConfig()
+	if err != nil {
+		return false, fmt.Errorf("failed to initialize Helm client configuration: %w", err)
+	}
+
+	list := action.NewList(actionConfig)
 	releases, err := list.Run()
 	if err != nil {
 		return false, err
@@ -133,7 +142,12 @@ func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
 
 // List lists the status of each k8s component.
 func (h *helmClient) List() ([]Component, error) {
-	list := action.NewList(h.actionConfig)
+	actionConfig, err := h.initializeHelmClientConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Helm client configuration: %w", err)
+	}
+
+	list := action.NewList(actionConfig)
 	releases, err := list.Run()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list components: %w", err)
@@ -159,7 +173,12 @@ func (h *helmClient) List() ([]Component, error) {
 
 // Disable disables a specified component.
 func (h *helmClient) Disable(name string) error {
-	uninstall := action.NewUninstall(h.actionConfig)
+	actionConfig, err := h.initializeHelmClientConfig()
+	if err != nil {
+		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
+	}
+
+	uninstall := action.NewUninstall(actionConfig)
 	component, ok := h.config[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
@@ -183,12 +202,17 @@ func (h *helmClient) Disable(name string) error {
 
 // Refresh refreshes a specified component.
 func (h *helmClient) Refresh(name string, values map[string]any) error {
+	actionConfig, err := h.initializeHelmClientConfig()
+	if err != nil {
+		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
+	}
+
 	component, ok := h.config[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
 	}
 
-	upgrade := action.NewUpgrade(h.actionConfig)
+	upgrade := action.NewUpgrade(actionConfig)
 	upgrade.Namespace = component.Namespace
 	upgrade.ReuseValues = true
 
