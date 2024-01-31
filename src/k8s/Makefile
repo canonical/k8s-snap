@@ -6,23 +6,23 @@ go.fmt:
 	go fmt ./...
 
 go.vet:
-	CGO_LDFLAGS_ALLOW=-Wl,-z,now go vet ./...
+	go vet ./...
 
 go.unit:
-	CGO_LDFLAGS_ALLOW=-Wl,-z,now go test -v ./pkg/... -tags=libsqlite3
+	go test -v ./pkg/... -tags=libsqlite3
 
 ## k8s-dqlite tests
 go.k8s-dqlite.test:
-	CGO_LDFLAGS_ALLOW=-Wl,-z,now go test -tags=libsqlite3 -v ./test/k8s-dqlite
+	go test -tags=libsqlite3 -v ./test/k8s-dqlite
 
 go.k8s-dqlite.test.dqlite:
-	CGO_LDFLAGS_ALLOW=-Wl,-z,now go test -tags=dqlite,libsqlite3 -v ./test/k8s-dqlite
+	go test -tags=dqlite,libsqlite3 -v ./test/k8s-dqlite
 
 go.k8s-dqlite.bench:
-	CGO_LDFLAGS_ALLOW=-Wl,-z,now go test -tags=libsqlite3 -v ./test/k8s-dqlite -run "^$$" -bench "Benchmark" -benchmem
+	go test -tags=libsqlite3 -v ./test/k8s-dqlite -run "^$$" -bench "Benchmark" -benchmem
 
 go.k8s-dqlite.bench.dqlite:
-	CGO_LDFLAGS_ALLOW=-Wl,-z,now go test -tags=dqlite,libsqlite3 -v ./test/k8s-dqlite -run "^$$" -bench "Benchmark" -benchmem
+	go test -tags=dqlite,libsqlite3 -v ./test/k8s-dqlite -run "^$$" -bench "Benchmark" -benchmem
 
 ## Static Builds
 static: bin/static/k8s bin/static/k8sd bin/static/k8s-dqlite bin/static/k8s-apiserver-proxy bin/static/dqlite
@@ -36,7 +36,6 @@ bin/static/k8s: deps/static/lib/libdqlite.a $(GO_SOURCES)
 		PATH="${PATH}:${PWD}/deps/static/musl/bin" \
 		CGO_CFLAGS="-I${PWD}/deps/static/include" \
 		CGO_LDFLAGS="-L${PWD}/deps/static/lib -luv -lraft -ldqlite -llz4 -lsqlite3" \
-		CGO_LDFLAGS_ALLOW="-Wl,-z,now" \
 		CC="musl-gcc" \
 		go build \
 			-tags=dqlite,libsqlite3 \
@@ -61,7 +60,6 @@ bin/static/dqlite: deps/static/lib/libdqlite.a
 		PATH="${PATH}:${PWD}/deps/static/musl/bin" \
 		CGO_CFLAGS="-I${PWD}/deps/static/include" \
 		CGO_LDFLAGS="-L${PWD}/deps/static/lib -luv -lraft -ldqlite -llz4 -lsqlite3" \
-		CGO_LDFLAGS_ALLOW="-Wl,-z,now" \
 		CC="musl-gcc" \
 		go build \
 			-tags=dqlite,libsqlite3 \
@@ -84,7 +82,6 @@ bin/dynamic/k8s: deps/dynamic/lib/libdqlite.so
 	env \
 		CGO_CFLAGS="-I${PWD}/deps/dynamic/include" \
 		CGO_LDFLAGS="-L${PWD}/deps/dynamic/lib -lraft -luv -llz4 -lsqlite3" \
-		CGO_LDFLAGS_ALLOW="-Wl,-z,now" \
 		go build \
 			-tags=dqlite,libsqlite3 \
 			-o bin/dynamic/k8s \
@@ -107,7 +104,6 @@ bin/dynamic/dqlite: deps/dynamic/lib/libdqlite.so
 	cd build/go-dqlite && env \
 		CGO_CFLAGS="-I${PWD}/deps/dynamic/include" \
 		CGO_LDFLAGS="-L${PWD}/deps/dynamic/lib -luv -lraft -ldqlite -llz4 -lsqlite3" \
-		CGO_LDFLAGS_ALLOW="-Wl,-z,now" \
 		go build \
 			-tags=dqlite,libsqlite3 \
 			-ldflags '-s -w' \
