@@ -114,6 +114,14 @@ k8s::cmd::snapctl() {
   snapctl "${@}"
 }
 
+# Run k8s CLI
+# Example: 'k8s::cmd::k8s status'
+k8s::cmd::k8s() {
+  k8s::common::setup_env
+
+  "${SNAP}/bin/k8s" "${@}"
+}
+
 # Run a dqlite CLI command against the k8s-dqlite cluster
 # Example: 'k8s::cmd::dqlite k8s .cluster'
 # Example: 'k8s::cmd::dqlite k8s .cluster'
