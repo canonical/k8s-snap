@@ -78,20 +78,28 @@ func logAdapter(format string, v ...any) {
 }
 
 // NewManager creates a new Component manager instance.
-func NewManager(snap snap.Snap, initializer HelmConfigInitializer) (*helmClient, error) {
-	if initializer == nil {
+func NewManager(snap snap.Snap, initializers ...HelmConfigInitializer) (*helmClient, error) {
+	var initializer HelmConfigInitializer
+
+	if len(initializers) > 0 {
+		initializer = initializers[0]
+	} else {
+		// If no initializer provided, use a default one
 		initializer = &HelmClientIntitializer{}
 	}
 
 	viper.SetConfigName("components")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(snap.Path("k8s/components"))
-	err := viper.ReadInConfig()
-	if err != nil {
+
+	if err := viper.ReadInConfig(); err != nil {
 		return nil, err
 	}
+
 	config := make(map[string]componentDefinition)
-	err = viper.Unmarshal(&config)
+	if err := viper.Unmarshal(&config); err != nil {
+		return nil, err
+	}
 
 	return &helmClient{
 		config:      config,
