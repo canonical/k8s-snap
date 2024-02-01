@@ -8,10 +8,18 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/config"
-	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/canonical/lxd/shared/api"
 )
+
+// IsBootstrapped checks if the cluster is already up and initialized.
+func (c *Client) IsBootstrapped(ctx context.Context) bool {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	_, err := c.ClusterStatus(timeoutCtx, false)
+	return err == nil
+}
 
 // Bootstrap bootstraps the k8s cluster
 func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.ClusterMember, error) {
@@ -39,6 +47,8 @@ func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapC
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to convert bootstrap config to map: %w", err)
 	}
 	if err := c.m.NewCluster(hostname, addrPort, config, time.Second*30); err != nil {
+		// TODO: Remove once microcluster supports automatic cleanup.
+		c.CleanupNode(ctx, hostname)
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
 	}
 
@@ -52,7 +62,7 @@ func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapC
 // ClusterStatus returns the current status of the cluster.
 func (c *Client) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error) {
 	var response apiv1.GetClusterStatusResponse
-	err := utils.WaitUntilReady(ctx, func() (bool, error) {
+	err := control.WaitUntilReady(ctx, func() (bool, error) {
 		err := c.mc.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster"), nil, &response)
 		if err != nil {
 			return false, err

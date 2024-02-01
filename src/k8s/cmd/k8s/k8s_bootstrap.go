@@ -31,6 +31,10 @@ var (
 				return fmt.Errorf("failed to create client: %w", err)
 			}
 
+			if c.IsBootstrapped(cmd.Context()) {
+				return fmt.Errorf("Node is already bootstrapped.")
+			}
+
 			config := apiv1.BootstrapConfig{}
 			if bootstrapCmdOpts.interactive {
 				config = getConfigInteractively(cmd.Context())

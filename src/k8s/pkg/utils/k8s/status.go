@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/control"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // WaitApiServerReady waits until the kube-apiserver becomes available.
 func WaitApiServerReady(ctx context.Context, client *k8sClient) error {
-	return utils.WaitUntilReady(ctx, func() (bool, error) {
+	return control.WaitUntilReady(ctx, func() (bool, error) {
 		_, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 		// We want to retry if an error occurs (=API server not ready)
 		// returning the error would abort, thus checking for nil

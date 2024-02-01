@@ -1,8 +1,10 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/k8s/client"
@@ -14,6 +16,7 @@ var (
 	joinNodeCmdOpts struct {
 		name    string
 		address string
+		timeout time.Duration
 	}
 
 	joinNodeCmd = &cobra.Command{
@@ -38,7 +41,7 @@ var (
 				)
 			}
 
-			client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
+			c, err := client.NewClient(cmd.Context(), client.ClusterOpts{
 				StateDir: clusterCmdOpts.stateDir,
 				Verbose:  rootCmdOpts.logVerbose,
 				Debug:    rootCmdOpts.logDebug,
@@ -47,12 +50,22 @@ var (
 				return fmt.Errorf("failed to create cluster client: %w", err)
 			}
 
-			err = client.JoinNode(cmd.Context(), joinNodeCmdOpts.name, joinNodeCmdOpts.address, token)
+			if c.IsBootstrapped(cmd.Context()) {
+				return fmt.Errorf("A k8s cluster is already running on this node.")
+			}
+			const minTimeout = 3
+			if joinNodeCmdOpts.timeout < minTimeout*time.Second {
+				cmd.PrintErrf("Timeout %v is less than minimum of %ds. Using the minimum %ds instead.\n", joinNodeCmdOpts.timeout, minTimeout, minTimeout)
+				joinNodeCmdOpts.timeout = minTimeout * time.Second
+			}
+
+			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), joinNodeCmdOpts.timeout)
+			defer cancel()
+
+			err = c.JoinNode(timeoutCtx, joinNodeCmdOpts.name, joinNodeCmdOpts.address, token)
 			if err != nil {
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}
-
-			// TODO: (with flag) wait until the node has joined the cluster (e.g. node appears on Kubernetes)
 
 			fmt.Println("Joined the cluster.")
 			return nil
@@ -63,6 +76,7 @@ var (
 func init() {
 	joinNodeCmd.Flags().StringVar(&joinNodeCmdOpts.name, "name", "", "The name of the joining node. defaults to hostname")
 	joinNodeCmd.Flags().StringVar(&joinNodeCmdOpts.address, "address", "", "The address (IP:Port) on which the nodes REST API should be available")
+	joinNodeCmd.Flags().DurationVar(&joinNodeCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for the node to be ready.")
 
 	rootCmd.AddCommand(joinNodeCmd)
 }

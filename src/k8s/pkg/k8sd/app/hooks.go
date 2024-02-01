@@ -44,7 +44,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to setup service arguments: %w", err)
 	}
 
-	if err := setup.InitContainerd(snap.Path("k8s/config/containerd/config.toml"), snap.Path("opt/cni/bin/")); err != nil {
+	if err := setup.InitContainerd(snap); err != nil {
 		return fmt.Errorf("failed to initialize containerd: %w", err)
 	}
 

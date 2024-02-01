@@ -1,6 +1,7 @@
 package snap
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -8,6 +9,39 @@ import (
 
 	"github.com/canonical/k8s/pkg/utils"
 )
+
+var (
+	// WorkerServices contains all k8s services that run on a worker node except of k8sd.
+	WorkerServices = []string{"containerd", "k8s-apiserver-proxy", "kubelet", "kube-proxy"}
+	// ControlPlaneServices contains all k8s services that run on a control plane except of k8sd.
+	ControlPlaneServices = []string{
+		"containerd", "k8s-dqlite", "kube-apiserver",
+		"kube-controller-manager", "kube-proxy",
+		"kube-scheduler", "kubelet", "k8s-apiserver-proxy",
+	}
+)
+
+// StartServices starts a list of services.
+// StartServices will return on the first failing service.
+func StartServices(ctx context.Context, snap Snap, services []string) error {
+	for _, service := range services {
+		if err := snap.StartService(ctx, service); err != nil {
+			return fmt.Errorf("failed to start service %s: %w", service, err)
+		}
+	}
+	return nil
+}
+
+// StopServices stops a list of services.
+// StopServices will return on the first failing service.
+func StopServices(ctx context.Context, snap Snap, services []string) error {
+	for _, service := range services {
+		if err := snap.StopService(ctx, service); err != nil {
+			return fmt.Errorf("failed to start service %s: %w", service, err)
+		}
+	}
+	return nil
+}
 
 // GetServiceArgument retrieves the value of a specific argument from the $SNAP_DATA/args/$service file.
 // The argument name should include preceding dashes (e.g. "--secure-port").
