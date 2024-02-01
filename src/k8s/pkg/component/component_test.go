@@ -45,52 +45,6 @@ func actionConfigFixture(t *testing.T) *action.Configuration {
 	}
 }
 
-var manifestWithHook = `kind: ConfigMap
-metadata:
-  name: test-cm
-  annotations:
-    "helm.sh/hook": post-install,pre-delete,post-upgrade
-data:
-  name: value`
-
-var manifestWithTestHook = `kind: Pod
-  metadata:
-	name: finding-nemo,
-	annotations:
-	  "helm.sh/hook": test
-  spec:
-	containers:
-	- name: nemo-test
-	  image: fake-image
-	  cmd: fake-command
-  `
-
-var rbacManifests = `apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: schedule-agents
-rules:
-- apiGroups: [""]
-  resources: ["pods", "pods/exec", "pods/log"]
-  verbs: ["*"]
-
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: schedule-agents
-  namespace: {{ default .Release.Namespace}}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: schedule-agents
-subjects:
-- kind: ServiceAccount
-  name: schedule-agents
-  namespace: {{ .Release.Namespace }}
-`
-
 type chartOptions struct {
 	*chart.Chart
 }
@@ -100,16 +54,10 @@ type chartOption func(*chartOptions)
 func buildChart(opts ...chartOption) *chart.Chart {
 	c := &chartOptions{
 		Chart: &chart.Chart{
-			// TODO: This should be more complete.
 			Metadata: &chart.Metadata{
 				APIVersion: "v1",
 				Name:       "hello",
 				Version:    "0.1.0",
-			},
-			// This adds a basic template and hooks.
-			Templates: []*chart.File{
-				{Name: "templates/hello", Data: []byte("hello: world")},
-				{Name: "templates/hooks", Data: []byte(manifestWithHook)},
 			},
 		},
 	}
@@ -119,103 +67,6 @@ func buildChart(opts ...chartOption) *chart.Chart {
 	}
 
 	return c.Chart
-}
-
-func withName(name string) chartOption {
-	return func(opts *chartOptions) {
-		opts.Metadata.Name = name
-	}
-}
-
-func withSampleValues() chartOption {
-	values := map[string]interface{}{
-		"someKey": "someValue",
-		"nestedKey": map[string]interface{}{
-			"simpleKey": "simpleValue",
-			"anotherNestedKey": map[string]interface{}{
-				"yetAnotherNestedKey": map[string]interface{}{
-					"youReadyForAnotherNestedKey": "No",
-				},
-			},
-		},
-	}
-	return func(opts *chartOptions) {
-		opts.Values = values
-	}
-}
-
-func withValues(values map[string]interface{}) chartOption {
-	return func(opts *chartOptions) {
-		opts.Values = values
-	}
-}
-
-func withNotes(notes string) chartOption {
-	return func(opts *chartOptions) {
-		opts.Templates = append(opts.Templates, &chart.File{
-			Name: "templates/NOTES.txt",
-			Data: []byte(notes),
-		})
-	}
-}
-
-func withDependency(dependencyOpts ...chartOption) chartOption {
-	return func(opts *chartOptions) {
-		opts.AddDependency(buildChart(dependencyOpts...))
-	}
-}
-
-func withMetadataDependency(dependency chart.Dependency) chartOption {
-	return func(opts *chartOptions) {
-		opts.Metadata.Dependencies = append(opts.Metadata.Dependencies, &dependency)
-	}
-}
-
-func withSampleTemplates() chartOption {
-	return func(opts *chartOptions) {
-		sampleTemplates := []*chart.File{
-			// This adds basic templates and partials.
-			{Name: "templates/goodbye", Data: []byte("goodbye: world")},
-			{Name: "templates/empty", Data: []byte("")},
-			{Name: "templates/with-partials", Data: []byte(`hello: {{ template "_planet" . }}`)},
-			{Name: "templates/partials/_planet", Data: []byte(`{{define "_planet"}}Earth{{end}}`)},
-		}
-		opts.Templates = append(opts.Templates, sampleTemplates...)
-	}
-}
-
-func withSampleIncludingIncorrectTemplates() chartOption {
-	return func(opts *chartOptions) {
-		sampleTemplates := []*chart.File{
-			// This adds basic templates and partials.
-			{Name: "templates/goodbye", Data: []byte("goodbye: world")},
-			{Name: "templates/empty", Data: []byte("")},
-			{Name: "templates/incorrect", Data: []byte("{{ .Values.bad.doh }}")},
-			{Name: "templates/with-partials", Data: []byte(`hello: {{ template "_planet" . }}`)},
-			{Name: "templates/partials/_planet", Data: []byte(`{{define "_planet"}}Earth{{end}}`)},
-		}
-		opts.Templates = append(opts.Templates, sampleTemplates...)
-	}
-}
-
-func withMultipleManifestTemplate() chartOption {
-	return func(opts *chartOptions) {
-		sampleTemplates := []*chart.File{
-			{Name: "templates/rbac", Data: []byte(rbacManifests)},
-		}
-		opts.Templates = append(opts.Templates, sampleTemplates...)
-	}
-}
-
-func withKube(version string) chartOption {
-	return func(opts *chartOptions) {
-		opts.Metadata.KubeVersion = version
-	}
-}
-
-// releaseStub creates a release stub, complete with the chartStub as its chart.
-func releaseStub() *release.Release {
-	return namedReleaseStub("whiskas", release.StatusDeployed)
 }
 
 func namedReleaseStub(name string, status release.Status) *release.Release {
@@ -228,30 +79,8 @@ func namedReleaseStub(name string, status release.Status) *release.Release {
 			Status:        status,
 			Description:   "Named Release Stub",
 		},
-		Chart:   buildChart(withSampleTemplates()),
 		Config:  map[string]interface{}{"name": "value"},
 		Version: 1,
-		Hooks: []*release.Hook{
-			{
-				Name:     "test-cm",
-				Kind:     "ConfigMap",
-				Path:     "test-cm",
-				Manifest: manifestWithHook,
-				Events: []release.HookEvent{
-					release.HookPostInstall,
-					release.HookPreDelete,
-				},
-			},
-			{
-				Name:     "finding-nemo",
-				Kind:     "Pod",
-				Path:     "finding-nemo",
-				Manifest: manifestWithTestHook,
-				Events: []release.HookEvent{
-					release.HookTest,
-				},
-			},
-		},
 	}
 }
 
@@ -266,20 +95,11 @@ func (r *MockHelmClientInitializer) InitializeHelmClientConfig() (*action.Config
 
 func makeMeSomeReleases(store *storage.Storage, t *testing.T) {
 	t.Helper()
-	one := releaseStub()
-	one.Name = "one"
-	one.Namespace = "default"
-	one.Version = 1
-	two := releaseStub()
-	two.Name = "two"
-	two.Namespace = "default"
-	two.Version = 2
-	three := releaseStub()
-	three.Name = "three"
-	three.Namespace = "default"
-	three.Version = 3
+	relStub1 := namedReleaseStub("whiskas-1", release.StatusDeployed)
+	relStub2 := namedReleaseStub("whiskas-2", release.StatusDeployed)
+	relStub3 := namedReleaseStub("whiskas-3", release.StatusDeployed)
 
-	for _, rel := range []*release.Release{one, two, three} {
+	for _, rel := range []*release.Release{relStub1, relStub2, relStub3} {
 		if err := store.Create(rel); err != nil {
 			t.Fatal(err)
 		}
@@ -294,21 +114,21 @@ var componentsNone = ``
 
 var components = `
 one:
-  release: "whiskas"
+  release: "whiskas-1"
   chart: "chunky-tuna-1.14.1.tgz"
   namespace: "default"
 two:
-  release: "whiskas"
+  release: "whiskas-2"
   chart: "tuna-1.29.0.tgz"
   namespace: "default"
 three:
-  release: "whiskas"
+  release: "whiskas-3"
   chart: "chunky-1.29.0.tgz"
   namespace: "default"
 `
 
 func createTemporaryTestDirectory(t *testing.T) string {
-	// Create a temporary test directory
+	// Create a temporary test directory to mock the snap
 	// <tempDir>
 	// └── k8s/components
 	// 	├── charts
@@ -357,6 +177,7 @@ func createNewManager(t *testing.T, components string) (*helmClient, string, *ac
 	snap := &mock.Snap{
 		PathPrefix: tempDir,
 	}
+
 	//Create a mock ComponentManager with the mock HelmClient
 	mockComponentManager, err := NewManager(snap, mockClient)
 	if err != nil {
@@ -415,10 +236,9 @@ func TestList(t *testing.T) {
 
 	assert.NotNil(t, components)
 	assert.Equal(t, 3, len(components))
-	// assert.Equal(t, "one", components[0].Name)
-	// assert.Equal(t, "two", components[1].Name)
-	// assert.Equal(t, "three", components[2].Name)
-	// assert.True(t, components[0].Status)
-	// assert.True(t, components[1].Status)
-	// assert.True(t, components[2].Status)
+
+	assert.Contains(t, components, Component{Name: "one", Status: true})
+	assert.Contains(t, components, Component{Name: "two", Status: true})
+	assert.Contains(t, components, Component{Name: "three", Status: true})
+
 }
