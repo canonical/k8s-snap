@@ -177,21 +177,25 @@ func (h *helmClient) List() ([]Component, error) {
 
 	list := action.NewList(actionConfig)
 	releases, err := list.Run()
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to list components: %w", err)
 	}
 
-	allComponents := make([]Component, len(h.config))
+	allComponents := make([]Component, 0)
 	componentsMap := make(map[string]int)
+
+	// Loop through components and populate allComponents and componentsMap
 	for name, component := range h.config {
 		index := len(componentsMap)
-		allComponents[index] = Component{Name: name}
+
+		allComponents = append(allComponents, Component{Name: name})
 		componentsMap[component.ReleaseName] = index
 	}
 
+	// Loop through releases and update statuses in allComponents
 	for _, release := range releases {
-		index, ok := componentsMap[release.Name]
-		if ok {
+		if index, ok := componentsMap[release.Name]; ok {
 			allComponents[index].Status = true
 		}
 	}
