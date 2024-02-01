@@ -3,7 +3,6 @@ package component
 import (
 	"flag"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -155,7 +154,7 @@ func createTemporaryTestDirectory(t *testing.T) string {
 
 func addConfigToTestDir(t *testing.T, path string, data string) {
 	// Create a file and add some configs
-	err := ioutil.WriteFile(path, []byte(data), 0644)
+	err := os.WriteFile(path, []byte(data), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +188,7 @@ func createNewManager(t *testing.T, components string) (*helmClient, string, *ac
 	return mockComponentManager, tempDir, mockActionConfig
 }
 
-func TestNewManager(t *testing.T) {
+func TestNewManagerWithValidConfig(t *testing.T) {
 	// Create a mock actionConfig for testing
 	mockHelmClient, tempDir, mockActionConfig := createNewManager(t, components)
 	defer os.RemoveAll(tempDir)
@@ -202,7 +201,7 @@ func TestNewManager(t *testing.T) {
 	assert.DirExists(t, tempDir)
 }
 
-func TestListEmpty(t *testing.T) {
+func TestListEmptyComponents(t *testing.T) {
 	// Create a mock ComponentManager with no components
 	mockHelmClient, tempDir, _ := createNewManager(t, componentsNone)
 	defer os.RemoveAll(tempDir)
@@ -218,7 +217,7 @@ func TestListEmpty(t *testing.T) {
 	}
 }
 
-func TestList(t *testing.T) {
+func TestListComponentsWithReleases(t *testing.T) {
 	// Create a mock ComponentManager with the mock HelmClient
 	// This mock uses components.yaml for the snap mock components
 
