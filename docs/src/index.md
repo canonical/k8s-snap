@@ -8,12 +8,14 @@ a scaleable cluster suitable for all use cases.
 
 
 ```{toctree} 
-:maxdepth: 2
+:glob:
+:hidden:
 
-howto/index.md
-explanation/index.md
-contributing.md
-about/license
+Home <self>
+tutorial/index
+howto/index
+explanation/index
+reference/index
 ```
 
 ---
@@ -46,7 +48,7 @@ about/license
 
 ```{grid-item-card} [Explanation](explanation/index)
 
-**Discussion and clarification** of key topics, for example, {ref}`Security <security>`
+**Discussion and clarification** of key topics`
 ```
 
 ````
@@ -61,19 +63,9 @@ The Canonical K8s project is sponsored by [Canonical Ltd](https://www.canonical.
 - [Code of Conduct](https://ubuntu.com/community/ethos/code-of-conduct)
 - [Contribute to the project](/howto/contributing)
 - [Releases](./reference/releases)
-- [Get support](./howto/support)
+- [Get support](/howto/support)
 - [Discuss on Matrix](https://matrix.xxxxx.com) 
 - [Ask and answer questions on Discourse](https://discourse.xxxxxxxxx.com/)
 
-```{filtered-toctree}
-:hidden:
-:titlesonly:
-
-:diataxis:self
-:diataxis:tutorial/index
-:diataxis:howto/index
-:diataxis:explanation/index
-:diataxis:reference/index
-```
 
 [logo]: https://assets.ubuntu.com/v1/843c77b6-juju-at-a-glace.svg
