@@ -7,6 +7,15 @@ a scaleable cluster suitable for all use cases.
 ![Illustration depicting working on components and clouds][logo]
 
 
+```{toctree} 
+:maxdepth: 2
+
+howto/index.md
+explanation/index.md
+contributing.md
+about/license
+```
+
 ---
 
 ## In this documentation
@@ -42,27 +51,6 @@ a scaleable cluster suitable for all use cases.
 
 ````
 
-
-```{filtered-toctree}
-:titlesonly:
-:maxdepth: 1
-
-:topical:self
-:topical:getting_started
-:topical:Server and client <operation>
-:topical:security
-:topical:instances
-:topical:images
-:topical:storage
-:topical:networks
-:topical:projects
-:topical:clustering
-:topical:production-setup
-:topical:migration
-:topical:restapi_landing
-:topical:Internals & debugging <internals>
-:topical:external_resources
-```
 
 ---
 
