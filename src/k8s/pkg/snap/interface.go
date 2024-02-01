@@ -4,6 +4,8 @@ import "context"
 
 // Snap is how k8s interacts with the snap.
 type Snap interface {
+	// IsStrict returns true if the snap is installed with strict confinement.
+	IsStrict() bool
 	// ReadServiceArguments reads the arguments file for a particular service.
 	ReadServiceArguments(serviceName string) (string, error)
 	// WriteServiceArguments updates the arguments file a particular service.

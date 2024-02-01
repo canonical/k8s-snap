@@ -31,6 +31,18 @@ k8s::common::setup_env() {
   _K8S_ENV_SETUP_ONCE="1"
 }
 
+# Check if k8s is installed as a strictly confined snap
+# Example: 'k8s::common::is_strict && echo running under strict confinement'
+k8s::common::is_strict() {
+  k8s::common::setup_env
+
+  if cat "${SNAP}/meta/snap.yaml" | grep -q 'confinement: strict'; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # Cleanup configuration left by the network component
 #   - Iptables Rules
 #   - Network Interfaces
@@ -100,6 +112,24 @@ k8s::cmd::kubectl() {
 # Example: 'k8s::cmd::snapctl start kube-apiserver'
 k8s::cmd::snapctl() {
   snapctl "${@}"
+}
+
+# Run k8s CLI
+# Example: 'k8s::cmd::k8s status'
+k8s::cmd::k8s() {
+  k8s::common::setup_env
+
+  "${SNAP}/bin/k8s" "${@}"
+}
+
+# Run a dqlite CLI command against the k8s-dqlite cluster
+# Example: 'k8s::cmd::dqlite k8s .cluster'
+# Example: 'k8s::cmd::dqlite k8s .cluster'
+k8s::cmd::dqlite() {
+  k8s::common::setup_env
+
+  K8S_DQLITE_DIR="/var/lib/k8s-dqlite"
+  "${SNAP}/bin/dqlite" -s "file://${K8S_DQLITE_DIR}/cluster.yaml" -c "${K8S_DQLITE_DIR}/cluster.crt" -k "${K8S_DQLITE_DIR}/cluster.key" "${@}"
 }
 
 # Get the local node hostname, in lowercase
@@ -367,4 +397,26 @@ k8s::init() {
   k8s::init::kubernetes
   k8s::init::kubeconfigs
   k8s::init::permissions
+}
+
+# Ensure /var/lib/kubelet is a shared mount
+# Example: 'k8s::common::is_strict && k8s::kubelet::ensure_shared_root_dir'
+k8s::kubelet::ensure_shared_root_dir() {
+  k8s::common::setup_env
+
+  if ! findmnt -o PROPAGATION /var/lib/kubelet -n | grep -q shared; then
+    echo "Ensure /var/lib/kubelet mount propagation is rshared"
+    mount -o remount --make-rshared "$SNAP_COMMON/var/lib/kubelet" /var/lib/kubelet
+  fi
+}
+
+# Ensure /var/lib/run/containerd is a tmpfs mount
+k8s::containerd::ensure_tmpfs_state_dir() {
+  k8s::common::setup_env
+
+  if ! findmnt -o FSTYPE /var/lib/run/containerd -n | grep -q tmpfs; then
+    echo "Ensure /var/lib/run/containerd tmpfs found"
+    mkdir /var/lib/run/containerd -p
+    mount -t tmpfs tmpfs /var/lib/run/containerd
+  fi
 }

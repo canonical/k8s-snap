@@ -21,6 +21,10 @@ var (
 			if os.Getenv("KUBECONFIG") == "" {
 				os.Setenv("KUBECONFIG", "/etc/kubernetes/admin.conf")
 			}
+			// Set a default editor that comes with the snap so that 'kubectl edit' works
+			if os.Getenv("EDITOR") == "" {
+				os.Setenv("EDITOR", "nano")
+			}
 			path, err := exec.LookPath("kubectl")
 			if err != nil {
 				return fmt.Errorf("kubectl not found")

@@ -8,7 +8,7 @@
 --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
 --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
 --secure-port=6443
---etcd-servers="unix://${SNAP_COMMON}/var/lib/k8s-dqlite/k8s-dqlite.sock"
+--etcd-servers="unix:///var/lib/k8s-dqlite/k8s-dqlite.sock"
 --allow-privileged=true
 --service-account-issuer='https://kubernetes.default.svc'
 --service-account-signing-key-file=/etc/kubernetes/pki/serviceaccount.key

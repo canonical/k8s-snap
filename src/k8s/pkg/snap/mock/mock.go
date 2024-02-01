@@ -7,6 +7,7 @@ import (
 
 // Snap is a generic mock for the snap.Snap interface.
 type Snap struct {
+	Strict                 bool
 	StartServiceCalledWith []string
 	StopServiceCalledWith  []string
 
@@ -59,4 +60,8 @@ func (s *Snap) DataPath(parts ...string) string {
 
 func (s *Snap) CommonPath(parts ...string) string {
 	return filepath.Join(append([]string{s.CommonPathPrefix}, parts...)...)
+}
+
+func (s *Snap) IsStrict() bool {
+	return s.Strict
 }

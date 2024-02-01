@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/canonical/k8s/pkg/utils"
+	"gopkg.in/yaml.v2"
 )
 
 // snap implements the Snap interface.
@@ -93,4 +94,20 @@ func serviceName(serviceName string) string {
 		return serviceName
 	}
 	return fmt.Sprintf("k8s.%s", serviceName)
+}
+
+type snapcraftYml struct {
+	Confinement string `yaml:"confinement"`
+}
+
+func (s *snap) IsStrict() bool {
+	var meta snapcraftYml
+	contents, err := os.ReadFile(s.Path("meta", "snap.yaml"))
+	if err != nil {
+		return false
+	}
+	if err := yaml.Unmarshal([]byte(contents), &meta); err != nil {
+		return false
+	}
+	return meta.Confinement == "strict"
 }
