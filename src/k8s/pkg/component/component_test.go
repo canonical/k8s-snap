@@ -215,7 +215,7 @@ func withKube(version string) chartOption {
 
 // releaseStub creates a release stub, complete with the chartStub as its chart.
 func releaseStub() *release.Release {
-	return namedReleaseStub("angry-panda", release.StatusDeployed)
+	return namedReleaseStub("whiskas", release.StatusDeployed)
 }
 
 func namedReleaseStub(name string, status release.Status) *release.Release {
@@ -290,15 +290,21 @@ func makeMeSomeReleases(store *storage.Storage, t *testing.T) {
 	assert.Len(t, all, 3, "sanity test: three items added")
 }
 
+var componentsNone = ``
+
 var components = `
-network:
-  release: "ck-network"
-  chart: "cilium-1.14.1.tgz"
-  namespace: "kube-system"
-dns:
-  release: "ck-dns"
-  chart: "coredns-1.29.0.tgz"
-  namespace: "kube-system"
+one:
+  release: "whiskas"
+  chart: "chunky-tuna-1.14.1.tgz"
+  namespace: "default"
+two:
+  release: "whiskas"
+  chart: "tuna-1.29.0.tgz"
+  namespace: "default"
+three:
+  release: "whiskas"
+  chart: "chunky-1.29.0.tgz"
+  namespace: "default"
 `
 
 func createTemporaryTestDirectory(t *testing.T) string {
@@ -335,22 +341,21 @@ func addConfigToTestDir(t *testing.T, path string, data string) {
 	}
 }
 
-func TestNewManager(t *testing.T) {
+func createNewManager(t *testing.T, components string) (*helmClient, string, *action.Configuration) {
 	// Create a mock actionConfig for testing
 	mockActionConfig := actionConfigFixture(t)
 	// Create a mock HelmClient with the desired behavior for testing
 	mockClient := &MockHelmClientInitializer{actionConfig: mockActionConfig}
 
-	// create test directory
+	// create test directory to use for the snap mock
 	tempDir := createTemporaryTestDirectory(t)
-	defer os.RemoveAll(tempDir)
 
 	// Create a file and add some configs
 	addConfigToTestDir(t, filepath.Join(tempDir, "k8s", "components", "components.yaml"), components)
 
 	// Create mock snap
 	snap := &mock.Snap{
-		PathPrefix: tempDir, //make a test dir?
+		PathPrefix: tempDir,
 	}
 	//Create a mock ComponentManager with the mock HelmClient
 	mockComponentManager, err := NewManager(snap, mockClient)
@@ -360,18 +365,26 @@ func TestNewManager(t *testing.T) {
 
 	assert.NotNil(t, mockComponentManager)
 	assert.IsType(t, &helmClient{}, mockComponentManager)
+	return mockComponentManager, tempDir, mockActionConfig
+}
+
+func TestNewManager(t *testing.T) {
+	// Create a mock actionConfig for testing
+	mockHelmClient, tempDir, mockActionConfig := createNewManager(t, components)
+	defer os.RemoveAll(tempDir)
+
+	assert.NotNil(t, mockHelmClient)
+	assert.IsType(t, &helmClient{}, mockHelmClient)
+	assert.IsType(t, &MockHelmClientInitializer{}, mockHelmClient.initializer)
+	assert.IsType(t, &mock.Snap{}, mockHelmClient.snap)
+	assert.IsType(t, &action.Configuration{}, mockActionConfig)
+	assert.DirExists(t, tempDir)
 }
 
 func TestListEmpty(t *testing.T) {
-	// Create a mock actionConfig for testing
-	mockActionConfig := actionConfigFixture(t)
-	// Create a mock HelmClient with the desired behavior for testing
-	mockClient := &MockHelmClientInitializer{actionConfig: mockActionConfig}
-
-	//Create a mock ComponentManager with the mock HelmClient
-	mockHelmClient := &helmClient{
-		initializer: mockClient,
-	}
+	// Create a mock ComponentManager with no components
+	mockHelmClient, tempDir, _ := createNewManager(t, componentsNone)
+	defer os.RemoveAll(tempDir)
 
 	// Call the List function with the mock HelmClient
 	components, err := mockHelmClient.List()
@@ -385,15 +398,11 @@ func TestListEmpty(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	// Create a mock actionConfig for testing
-	mockActionConfig := actionConfigFixture(t)
-	// Create a mock HelmClient with the desired behavior for testing
-	mockClient := &MockHelmClientInitializer{actionConfig: mockActionConfig}
+	// Create a mock ComponentManager with the mock HelmClient
+	// This mock uses components.yaml for the snap mock components
 
-	//Create a mock ComponentManager with the mock HelmClient
-	mockHelmClient := &helmClient{
-		initializer: mockClient,
-	}
+	mockHelmClient, tempDir, mockActionConfig := createNewManager(t, components)
+	defer os.RemoveAll(tempDir)
 
 	// Create releases in the mock actionConfig
 	makeMeSomeReleases(mockActionConfig.Releases, t)
@@ -405,4 +414,11 @@ func TestList(t *testing.T) {
 	}
 
 	assert.NotNil(t, components)
+	assert.Equal(t, 3, len(components))
+	// assert.Equal(t, "one", components[0].Name)
+	// assert.Equal(t, "two", components[1].Name)
+	// assert.Equal(t, "three", components[2].Name)
+	// assert.True(t, components[0].Status)
+	// assert.True(t, components[1].Status)
+	// assert.True(t, components[2].Status)
 }
