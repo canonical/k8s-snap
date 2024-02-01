@@ -2,7 +2,7 @@ name: Security scan
 
 on:
   schedule:
-    - cron: '18 14 * * 2'
+    - cron: '0 10 * * *'
 
 jobs:
   scan:
