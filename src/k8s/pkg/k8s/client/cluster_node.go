@@ -82,7 +82,6 @@ func (c *Client) WaitForDqliteNodeToBeReady(ctx context.Context, nodeName string
 // CleanupNode resets the nodes configuration and cluster state.
 // The cleanup will happen on a best-effort base. Any error that occurs will be ignored.
 func (c *Client) CleanupNode(ctx context.Context, nodeName string) {
-	sn := snap.NewDefaultSnap()
 
 	// For self-removal, microcluster expects the dqlite node to not be in pending state.
 	c.WaitForDqliteNodeToBeReady(ctx, nodeName)
@@ -95,5 +94,5 @@ func (c *Client) CleanupNode(ctx context.Context, nodeName string) {
 	// joining another cluster.
 	c.ResetNode(ctx, nodeName, true)
 
-	snap.StopServices(ctx, sn, snap.ControlPlaneServices)
+	snap.StopControlPlaneServices(ctx, snap.NewDefaultSnap())
 }

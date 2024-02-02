@@ -53,10 +53,10 @@ var (
 			if c.IsBootstrapped(cmd.Context()) {
 				return fmt.Errorf("A k8s cluster is already running on this node.")
 			}
-			const minTimeout = 3
-			if joinNodeCmdOpts.timeout < minTimeout*time.Second {
-				cmd.PrintErrf("Timeout %v is less than minimum of %ds. Using the minimum %ds instead.\n", joinNodeCmdOpts.timeout, minTimeout, minTimeout)
-				joinNodeCmdOpts.timeout = minTimeout * time.Second
+			const minTimeout = 3 * time.Second
+			if joinNodeCmdOpts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", joinNodeCmdOpts.timeout, minTimeout, minTimeout)
+				joinNodeCmdOpts.timeout = minTimeout
 			}
 
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), joinNodeCmdOpts.timeout)

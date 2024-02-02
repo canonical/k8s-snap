@@ -21,10 +21,10 @@ var (
 	}
 )
 
-// StartServices starts a list of services.
-// StartServices will return on the first failing service.
-func StartServices(ctx context.Context, snap Snap, services []string) error {
-	for _, service := range services {
+// StartWorkerServices starts the worker services.
+// StartWorkerServices will return on the first failing service.
+func StartWorkerServices(ctx context.Context, snap Snap) error {
+	for _, service := range WorkerServices {
 		if err := snap.StartService(ctx, service); err != nil {
 			return fmt.Errorf("failed to start service %s: %w", service, err)
 		}
@@ -32,12 +32,34 @@ func StartServices(ctx context.Context, snap Snap, services []string) error {
 	return nil
 }
 
-// StopServices stops a list of services.
-// StopServices will return on the first failing service.
-func StopServices(ctx context.Context, snap Snap, services []string) error {
-	for _, service := range services {
-		if err := snap.StopService(ctx, service); err != nil {
+// StartControlPlaneServices starts the control plane services.
+// StartControlPlaneServices will return on the first failing service.
+func StartControlPlaneServices(ctx context.Context, snap Snap) error {
+	for _, service := range ControlPlaneServices {
+		if err := snap.StartService(ctx, service); err != nil {
 			return fmt.Errorf("failed to start service %s: %w", service, err)
+		}
+	}
+	return nil
+}
+
+// StopWorkerServices stors the worker services.
+// StopWorkerServices will return on the first failing service.
+func StopWorkerServices(ctx context.Context, snap Snap) error {
+	for _, service := range WorkerServices {
+		if err := snap.StopService(ctx, service); err != nil {
+			return fmt.Errorf("failed to stop service %s: %w", service, err)
+		}
+	}
+	return nil
+}
+
+// StopControlPlaneServices stops the control plane services.
+// StopControlPlaneServices will return on the first failing service.
+func StopControlPlaneServices(ctx context.Context, snap Snap) error {
+	for _, service := range ControlPlaneServices {
+		if err := snap.StopService(ctx, service); err != nil {
+			return fmt.Errorf("failed to stop service %s: %w", service, err)
 		}
 	}
 	return nil
