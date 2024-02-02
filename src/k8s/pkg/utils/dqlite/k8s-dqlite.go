@@ -8,11 +8,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-var (
-	// TODO(bschimke): add the port as a configuration option to k8sd so that this can be determined dynamically.
-	K8sDqliteDefaultPort = 9000
-)
-
 // GetK8sDqliteClusterMembers queries the local k8s-dqlite datastore for its members.
 //
 // TODO:

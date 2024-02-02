@@ -22,7 +22,6 @@ func (b *BootstrapConfig) SetDefaults() {
 }
 
 // ToMap marshals the BootstrapConfig into yaml and map it to "bootstrapConfig".
-// TODO: should we move those helpers to utils?
 func (b *BootstrapConfig) ToMap() (map[string]string, error) {
 	config := map[string]any{
 		"components":   b.Components,

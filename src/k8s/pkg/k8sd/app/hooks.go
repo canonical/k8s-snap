@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"net"
 	"path"
 
 	"github.com/canonical/k8s/pkg/k8s/setup"
@@ -48,15 +47,18 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to initialize containerd: %w", err)
 	}
 
-	if err := cert.StoreCertKeyPair(clusterConfig.Certificates.CACert, clusterConfig.Certificates.CAKey, path.Join(cert.KubePkiPath, "ca.crt"), path.Join(cert.KubePkiPath, "ca.key")); err != nil {
-		return fmt.Errorf("failed to store CA certificate: %w", err)
+	caKeyPair, err := cert.NewCertKeyPairFromPEM([]byte(clusterConfig.Certificates.CACert), []byte(clusterConfig.Certificates.CAKey))
+	if err != nil {
+		return fmt.Errorf("failed to create CA from pem: %w", err)
 	}
 
-	// Use the CA from the cluster to sign the certificates
-	caKeyPair, err := cert.LoadCertKeyPair(path.Join(cert.KubePkiPath, "ca.key"), path.Join(cert.KubePkiPath, "ca.crt"))
-	if err != nil {
-		return fmt.Errorf("failed to read CA: %w", err)
+	if err := caKeyPair.SaveCertificate(path.Join(cert.KubePkiPath, "ca.crt")); err != nil {
+		return fmt.Errorf("failed to write CA cert: %w", err)
 	}
+	if err := caKeyPair.SavePrivateKey(path.Join(cert.KubePkiPath, "ca.key")); err != nil {
+		return fmt.Errorf("failed to write CA key: %w", err)
+	}
+
 	certMan, err := setup.InitCertificates(caKeyPair)
 	if err != nil {
 		return fmt.Errorf("failed to setup certificates: %w", err)
@@ -73,14 +75,8 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	if err := setup.InitPermissions(s.Context, snap); err != nil {
 		return fmt.Errorf("failed to setup permissions: %w", err)
 	}
-	leader, err := s.Leader()
-	if err != nil {
-		return fmt.Errorf("failed to get dqlite leader: %w", err)
-	}
 
-	// TODO(neoaggelos): k8s-dqlite cluster host and port must come from the cluster config.
-	host, _, _ := net.SplitHostPort(leader.URL().URL.Host)
-	if err := setup.JoinK8sDqliteCluster(s.Context, s, snap, host); err != nil {
+	if err := setup.JoinK8sDqliteCluster(s.Context, s, snap); err != nil {
 		return fmt.Errorf("failed to join k8s-dqlite nodes: %w", err)
 	}
 
@@ -96,10 +92,12 @@ func onPreRemove(s *state.State, force bool) error {
 	// Remove k8s dqlite node from cluster.
 	// Fails if the k8s-dqlite cluster would not have a leader afterwards.
 	log.Println("Leave k8s-dqlite cluster")
-	err := setup.LeaveK8sDqliteCluster(s.Context, snap, s.Address().Hostname())
+	err := setup.LeaveK8sDqliteCluster(s.Context, snap, s)
 	if err != nil {
 		return fmt.Errorf("failed to leave k8s-dqlite cluster: %w", err)
 	}
+
+	// TODO: Remove node from kubernetes
 
 	return nil
 }
