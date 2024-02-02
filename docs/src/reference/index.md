@@ -10,5 +10,6 @@ Overview <self>
 
 ```{toctree}
 :glob:
-/reference/*
+:titlesonly:
+/reference/releases
 ```
