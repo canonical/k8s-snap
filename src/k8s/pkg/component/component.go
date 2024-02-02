@@ -3,6 +3,7 @@ package component
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/sirupsen/logrus"
@@ -77,8 +78,8 @@ func logAdapter(format string, v ...any) {
 	logrus.Debugf(format, v...)
 }
 
-// NewManager creates a new Component manager instance.
-func NewManager(snap snap.Snap, initializers ...HelmConfigInitializer) (*helmClient, error) {
+// NewHelmClient creates a new Component manager instance.
+func NewHelmClient(snap snap.Snap, initializers ...HelmConfigInitializer) (*helmClient, error) {
 	var initializer HelmConfigInitializer
 
 	if len(initializers) > 0 {
@@ -182,7 +183,7 @@ func (h *helmClient) List() ([]Component, error) {
 		return nil, fmt.Errorf("failed to list components: %w", err)
 	}
 
-	allComponents := make([]Component, 0)
+	allComponents := make([]Component, 0, len(h.config))
 	componentsMap := make(map[string]int)
 
 	// Loop through components and populate allComponents and componentsMap
@@ -199,6 +200,10 @@ func (h *helmClient) List() ([]Component, error) {
 			allComponents[index].Status = true
 		}
 	}
+
+	sort.Slice(allComponents, func(i, j int) bool {
+		return allComponents[i].Name < allComponents[j].Name
+	})
 
 	return allComponents, nil
 }
