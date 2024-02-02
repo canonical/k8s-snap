@@ -10,7 +10,7 @@ import (
 )
 
 func EnableGatewayComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
@@ -55,7 +55,7 @@ func EnableGatewayComponent(s snap.Snap) error {
 }
 
 func DisableGatewayComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}

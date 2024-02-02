@@ -7,7 +7,7 @@ import (
 )
 
 func EnableStorageComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
@@ -22,7 +22,7 @@ func EnableStorageComponent(s snap.Snap) error {
 }
 
 func DisableStorageComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}

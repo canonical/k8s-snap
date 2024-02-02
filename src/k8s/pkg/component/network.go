@@ -10,7 +10,7 @@ import (
 )
 
 func EnableNetworkComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
@@ -97,7 +97,7 @@ func EnableNetworkComponent(s snap.Snap) error {
 }
 
 func DisableNetworkComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}

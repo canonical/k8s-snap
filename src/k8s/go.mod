@@ -16,7 +16,6 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.0
-	github.com/stretchr/testify v1.8.4
 	go.etcd.io/etcd/api/v3 v3.5.10
 	go.etcd.io/etcd/client/pkg/v3 v3.5.10
 	go.etcd.io/etcd/client/v3 v3.5.10
@@ -157,6 +156,7 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20220101234140-673ab2c3ae75 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect

@@ -1,14 +1,13 @@
 package component
 
 import (
-	"flag"
 	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/snap/mock"
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/gomega"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chartutil"
@@ -19,8 +18,6 @@ import (
 	"helm.sh/helm/v3/pkg/storage/driver"
 	"helm.sh/helm/v3/pkg/time"
 )
-
-var verbose = flag.Bool("test.log", false, "enable test logging")
 
 func actionConfigFixture(t *testing.T) *action.Configuration {
 	t.Helper()
@@ -35,12 +32,6 @@ func actionConfigFixture(t *testing.T) *action.Configuration {
 		KubeClient:     &kubefake.FailingKubeClient{PrintingKubeClient: kubefake.PrintingKubeClient{Out: io.Discard}},
 		Capabilities:   chartutil.DefaultCapabilities,
 		RegistryClient: registryClient,
-		Log: func(format string, v ...interface{}) {
-			t.Helper()
-			if *verbose {
-				t.Logf(format, v...)
-			}
-		},
 	}
 }
 
@@ -92,7 +83,7 @@ func (r *MockHelmClientInitializer) InitializeHelmClientConfig() (*action.Config
 	return r.actionConfig, nil
 }
 
-func makeMeSomeReleases(store *storage.Storage, t *testing.T) {
+func mustMakeMeSomeReleases(store *storage.Storage, t *testing.T) (all []*release.Release) {
 	t.Helper()
 	relStub1 := namedReleaseStub("whiskas-1", release.StatusDeployed)
 	relStub2 := namedReleaseStub("whiskas-2", release.StatusDeployed)
@@ -105,8 +96,11 @@ func makeMeSomeReleases(store *storage.Storage, t *testing.T) {
 	}
 
 	all, err := store.ListReleases()
-	assert.NoError(t, err)
-	assert.Len(t, all, 3, "sanity test: three items added")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return all
 }
 
 var componentsNone = ``
@@ -126,25 +120,16 @@ three:
   namespace: "default"
 `
 
-func createTemporaryTestDirectory(t *testing.T) string {
+func mustCreateTemporaryTestDirectory(t *testing.T) string {
 	// Create a temporary test directory to mock the snap
 	// <tempDir>
 	// └── k8s/components
 	// 	├── charts
 	// 	└── component.yaml
-	tempDir, err := os.MkdirTemp("", "test")
-	if err != nil {
-		t.Fatal(err)
-	}
+	tempDir := t.TempDir()
 
-	k8sComponentsDir := filepath.Join(tempDir, "k8s", "components")
-	err = os.MkdirAll(k8sComponentsDir, 0777)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	k8sComponentsChartsDir := filepath.Join(k8sComponentsDir, "charts")
-	err = os.MkdirAll(k8sComponentsChartsDir, 0777)
+	k8sComponentsDir := filepath.Join(tempDir, "k8s", "components", "charts")
+	err := os.MkdirAll(k8sComponentsDir, 0777)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,7 +137,7 @@ func createTemporaryTestDirectory(t *testing.T) string {
 	return tempDir
 }
 
-func addConfigToTestDir(t *testing.T, path string, data string) {
+func mustAddConfigToTestDir(t *testing.T, path string, data string) {
 	// Create a file and add some configs
 	err := os.WriteFile(path, []byte(data), 0644)
 	if err != nil {
@@ -160,17 +145,17 @@ func addConfigToTestDir(t *testing.T, path string, data string) {
 	}
 }
 
-func createNewManager(t *testing.T, components string) (*helmClient, string, *action.Configuration) {
+func mustCreateNewHelmClient(t *testing.T, components string) (*helmClient, string, *action.Configuration) {
 	// Create a mock actionConfig for testing
 	mockActionConfig := actionConfigFixture(t)
 	// Create a mock HelmClient with the desired behavior for testing
 	mockClient := &MockHelmClientInitializer{actionConfig: mockActionConfig}
 
 	// create test directory to use for the snap mock
-	tempDir := createTemporaryTestDirectory(t)
+	tempDir := mustCreateTemporaryTestDirectory(t)
 
 	// Create a file and add some configs
-	addConfigToTestDir(t, filepath.Join(tempDir, "k8s", "components", "components.yaml"), components)
+	mustAddConfigToTestDir(t, filepath.Join(tempDir, "k8s", "components", "components.yaml"), components)
 
 	// Create mock snap
 	snap := &mock.Snap{
@@ -178,66 +163,62 @@ func createNewManager(t *testing.T, components string) (*helmClient, string, *ac
 	}
 
 	//Create a mock ComponentManager with the mock HelmClient
-	mockComponentManager, err := NewManager(snap, mockClient)
+	mockHelmCLient, err := NewHelmClient(snap, mockClient)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.NotNil(t, mockComponentManager)
-	assert.IsType(t, &helmClient{}, mockComponentManager)
-	return mockComponentManager, tempDir, mockActionConfig
+	return mockHelmCLient, tempDir, mockActionConfig
 }
 
-func TestNewManagerWithValidConfig(t *testing.T) {
+func TestNewHelmClientWithValidConfig(t *testing.T) {
+	g := NewWithT(t)
 	// Create a mock actionConfig for testing
-	mockHelmClient, tempDir, mockActionConfig := createNewManager(t, components)
+	mockHelmClient, tempDir, mockActionConfig := mustCreateNewHelmClient(t, components)
 	defer os.RemoveAll(tempDir)
 
-	assert.NotNil(t, mockHelmClient)
-	assert.IsType(t, &helmClient{}, mockHelmClient)
-	assert.IsType(t, &MockHelmClientInitializer{}, mockHelmClient.initializer)
-	assert.IsType(t, &mock.Snap{}, mockHelmClient.snap)
-	assert.IsType(t, &action.Configuration{}, mockActionConfig)
-	assert.DirExists(t, tempDir)
+	g.Expect(mockHelmClient).ToNot(BeNil())
+	g.Expect(mockHelmClient).To(BeAssignableToTypeOf(&helmClient{}))
+
+	g.Expect(mockHelmClient.initializer).To(BeAssignableToTypeOf(&MockHelmClientInitializer{}))
+	g.Expect(mockHelmClient.snap).To(BeAssignableToTypeOf(&mock.Snap{}))
+	g.Expect(mockHelmClient.config).To(HaveLen(3))
+	g.Expect(mockActionConfig).ToNot(BeNil())
+	g.Expect(tempDir).To(BeADirectory())
 }
 
 func TestListEmptyComponents(t *testing.T) {
+	g := NewWithT(t)
 	// Create a mock ComponentManager with no components
-	mockHelmClient, tempDir, _ := createNewManager(t, componentsNone)
+	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, componentsNone)
 	defer os.RemoveAll(tempDir)
 
 	// Call the List function with the mock HelmClient
 	components, err := mockHelmClient.List()
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	if len(components) != 0 {
-		t.Errorf("Expected 0 components, got %d", len(components))
-	}
+	g.Expect(err).To(BeNil())
+	g.Expect(components).To(HaveLen(0))
 }
 
 func TestListComponentsWithReleases(t *testing.T) {
+	g := NewWithT(t)
 	// Create a mock ComponentManager with the mock HelmClient
 	// This mock uses components.yaml for the snap mock components
 
-	mockHelmClient, tempDir, mockActionConfig := createNewManager(t, components)
+	mockHelmClient, tempDir, mockActionConfig := mustCreateNewHelmClient(t, components)
 	defer os.RemoveAll(tempDir)
 
 	// Create releases in the mock actionConfig
-	makeMeSomeReleases(mockActionConfig.Releases, t)
+	releases := mustMakeMeSomeReleases(mockActionConfig.Releases, t)
+	g.Expect(releases).To(HaveLen(3))
 
 	// Call the List function with the mock HelmClient
 	components, err := mockHelmClient.List()
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	assert.NotNil(t, components)
-	assert.Equal(t, 3, len(components))
+	g.Expect(err).To(BeNil())
+	g.Expect(components).To(HaveLen(3))
 
-	assert.Contains(t, components, Component{Name: "one", Status: true})
-	assert.Contains(t, components, Component{Name: "two", Status: true})
-	assert.Contains(t, components, Component{Name: "three", Status: true})
-
+	g.Expect(components[0]).To(Equal(Component{Name: "one", Status: true}))
+	g.Expect(components[2]).To(Equal(Component{Name: "two", Status: true}))
+	g.Expect(components[1]).To(Equal(Component{Name: "three", Status: true}))
 }
