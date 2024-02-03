@@ -1,6 +1,9 @@
 package k8s
 
 import (
+	"fmt"
+
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -11,8 +14,18 @@ var (
 	}
 
 	rootCmd = &cobra.Command{
-		Use:          "k8s",
-		Short:        "Canonical Kubernetes CLI",
+		Use:   "k8s",
+		Short: "Canonical Kubernetes CLI",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			withRoot, err := utils.RunsWithRootPrivilege(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("failed to check if command runs as root: %w", err)
+			}
+			if !withRoot {
+				return fmt.Errorf("k8s CLI needs to run with root priviledge.")
+			}
+			return nil
+		},
 		SilenceUsage: true,
 	}
 )

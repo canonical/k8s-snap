@@ -31,10 +31,10 @@ var (
 				return fmt.Errorf("failed to create client: %w", err)
 			}
 
-			const minTimeout = 3
-			if statusCmdOpts.timeout < minTimeout*time.Second {
-				cmd.PrintErrf("Timeout %v is less than minimum of %ds. Using the minimum %ds instead.\n", statusCmdOpts.timeout, minTimeout, minTimeout)
-				statusCmdOpts.timeout = minTimeout * time.Second
+			const minTimeout = 3 * time.Second
+			if statusCmdOpts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", statusCmdOpts.timeout, minTimeout, minTimeout)
+				statusCmdOpts.timeout = minTimeout
 			}
 
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), statusCmdOpts.timeout)

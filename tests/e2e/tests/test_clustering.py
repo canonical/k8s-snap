@@ -36,6 +36,8 @@ def test_clustering(instances: List[harness.Instance]):
 
     util.wait_until_k8s_ready(cluster_node, instances)
 
+    cluster_node.exec(["k8s", "remove-node", joining_node.id])
+
 
 @pytest.mark.node_count(2)
 def test_worker_nodes(instances: List[harness.Instance]):

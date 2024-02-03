@@ -33,6 +33,11 @@ func NewSnap(snapDir, snapDataDir, snapCommonDir string, options ...func(s *snap
 	return s
 }
 
+// NewDefaultSnap returns a snap configured with the default snap environment.
+func NewDefaultSnap() Snap {
+	return NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_DATA"), os.Getenv("SNAP_COMMON"))
+}
+
 type snapContextKey struct{}
 
 // SnapFromContext extracts the snap instance from the provided context.

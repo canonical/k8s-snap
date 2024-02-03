@@ -1,6 +1,7 @@
 package snap
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -8,6 +9,61 @@ import (
 
 	"github.com/canonical/k8s/pkg/utils"
 )
+
+var (
+	// WorkerServices contains all k8s services that run on a worker node except of k8sd.
+	WorkerServices = []string{"containerd", "k8s-apiserver-proxy", "kubelet", "kube-proxy"}
+	// ControlPlaneServices contains all k8s services that run on a control plane except of k8sd.
+	ControlPlaneServices = []string{
+		"containerd", "k8s-dqlite", "kube-apiserver",
+		"kube-controller-manager", "kube-proxy",
+		"kube-scheduler", "kubelet", "k8s-apiserver-proxy",
+	}
+)
+
+// StartWorkerServices starts the worker services.
+// StartWorkerServices will return on the first failing service.
+func StartWorkerServices(ctx context.Context, snap Snap) error {
+	for _, service := range WorkerServices {
+		if err := snap.StartService(ctx, service); err != nil {
+			return fmt.Errorf("failed to start service %s: %w", service, err)
+		}
+	}
+	return nil
+}
+
+// StartControlPlaneServices starts the control plane services.
+// StartControlPlaneServices will return on the first failing service.
+func StartControlPlaneServices(ctx context.Context, snap Snap) error {
+	for _, service := range ControlPlaneServices {
+		if err := snap.StartService(ctx, service); err != nil {
+			return fmt.Errorf("failed to start service %s: %w", service, err)
+		}
+	}
+	return nil
+}
+
+// StopWorkerServices stors the worker services.
+// StopWorkerServices will return on the first failing service.
+func StopWorkerServices(ctx context.Context, snap Snap) error {
+	for _, service := range WorkerServices {
+		if err := snap.StopService(ctx, service); err != nil {
+			return fmt.Errorf("failed to stop service %s: %w", service, err)
+		}
+	}
+	return nil
+}
+
+// StopControlPlaneServices stops the control plane services.
+// StopControlPlaneServices will return on the first failing service.
+func StopControlPlaneServices(ctx context.Context, snap Snap) error {
+	for _, service := range ControlPlaneServices {
+		if err := snap.StopService(ctx, service); err != nil {
+			return fmt.Errorf("failed to stop service %s: %w", service, err)
+		}
+	}
+	return nil
+}
 
 // GetServiceArgument retrieves the value of a specific argument from the $SNAP_DATA/args/$service file.
 // The argument name should include preceding dashes (e.g. "--secure-port").

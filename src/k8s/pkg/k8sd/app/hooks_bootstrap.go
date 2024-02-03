@@ -32,7 +32,7 @@ func onBootstrap(s *state.State, initConfig map[string]string) error {
 	return onBootstrapControlPlane(s, initConfig)
 }
 
-func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
+func onBootstrapWorkerNode(state *state.State, encodedToken string) error {
 	token := &types.InternalWorkerNodeToken{}
 	if err := token.Decode(encodedToken); err != nil {
 		return fmt.Errorf("failed to parse worker token: %w", err)
@@ -59,7 +59,7 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		Metadata apiv1.WorkerNodeInfoResponse `json:"metadata"`
 	}
 
-	requestBody, err := json.Marshal(apiv1.WorkerNodeInfoRequest{Hostname: s.Name()})
+	requestBody, err := json.Marshal(apiv1.WorkerNodeInfoRequest{Hostname: state.Name()})
 	if err != nil {
 		return fmt.Errorf("failed to prepare worker info request: %w", err)
 	}
@@ -84,54 +84,52 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	}
 	response := wrappedResp.Metadata
 
-	snap := snap.SnapFromContext(s.Context)
-	if err := setup.InitFolders(snap.DataPath("args")); err != nil {
+	s := snap.SnapFromContext(state.Context)
+	if err := setup.InitFolders(s.DataPath("args")); err != nil {
 		return fmt.Errorf("failed to setup folders: %w", err)
 	}
-	if err := setup.InitContainerd(snap.Path("k8s/config/containerd/config.toml"), snap.Path("opt/cni/bin/")); err != nil {
+	if err := setup.InitContainerd(s); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.InitContainerdArgs(snap, nil, nil); err != nil {
+	if err := setup.InitContainerdArgs(s, nil, nil); err != nil {
 		return fmt.Errorf("failed to configure containerd arguments: %w", err)
 	}
-	if err := setup.WriteCA(snap, response.CA); err != nil {
+	if err := setup.WriteCA(s, response.CA); err != nil {
 		return fmt.Errorf("failed to write CA certificate: %w", err)
 	}
 
 	kubeletArgs := map[string]string{
-		"--hostname-override": s.Name(),
+		"--hostname-override": state.Name(),
 		"--cluster-dns":       response.ClusterDNS,
 		"--cluster-domain":    response.ClusterDomain,
 		"--cloud-provider":    response.CloudProvider,
 	}
-	if err := setup.InitKubeletArgs(snap, kubeletArgs, nil); err != nil {
+	if err := setup.InitKubeletArgs(s, kubeletArgs, nil); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.RenderKubeletKubeconfig(snap, response.KubeletToken, response.CA); err != nil {
+	if err := setup.RenderKubeletKubeconfig(s, response.KubeletToken, response.CA); err != nil {
 		return fmt.Errorf("failed to render kubelet kubeconfig: %w", err)
 	}
 
 	proxyArgs := map[string]string{
-		"--hostname-override": s.Name(),
+		"--hostname-override": state.Name(),
 		"--cluster-cidr":      response.ClusterCIDR,
 	}
-	if err := setup.InitKubeProxyArgs(snap, proxyArgs, nil); err != nil {
+	if err := setup.InitKubeProxyArgs(s, proxyArgs, nil); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
-	if err := setup.RenderKubeProxyKubeconfig(snap, response.KubeProxyToken, response.CA); err != nil {
+	if err := setup.RenderKubeProxyKubeconfig(s, response.KubeProxyToken, response.CA); err != nil {
 		return fmt.Errorf("failed to render kube-proxy kubeconfig: %w", err)
 	}
 
-	if err := setup.InitAPIServerProxy(snap, response.APIServers); err != nil {
+	if err := setup.InitAPIServerProxy(s, response.APIServers); err != nil {
 		return fmt.Errorf("failed to configure k8s-apiserver-proxy: %w", err)
 	}
 
 	// TODO: mark node as worker
 
-	for _, service := range []string{"containerd", "k8s-apiserver-proxy", "kubelet", "kube-proxy"} {
-		if err := snap.StartService(s.Context, fmt.Sprintf("k8s.%s", service)); err != nil {
-			return fmt.Errorf("failed to start service %s: %w", service, err)
-		}
+	if err := snap.StartWorkerServices(state.Context, s); err != nil {
+		return fmt.Errorf("failed to start services: %w", err)
 	}
 
 	return nil
@@ -150,8 +148,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to setup service arguments: %w", err)
 	}
 
-	err = setup.InitContainerd(snap.Path("k8s/config/containerd/config.toml"), snap.Path("opt/cni/bin/"))
-	if err != nil {
+	if err := setup.InitContainerd(snap); err != nil {
 		return fmt.Errorf("failed to initialize containerd: %w", err)
 	}
 

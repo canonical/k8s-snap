@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/database"
@@ -31,11 +30,7 @@ type App struct {
 
 // New initializes a new microcluster instance from configuration.
 func New(ctx context.Context, cfg Config) (*App, error) {
-	snapCtx := snap.ContextWithSnap(ctx, snap.NewSnap(
-		os.Getenv("SNAP"),
-		os.Getenv("SNAP_DATA"),
-		os.Getenv("SNAP_COMMON"),
-	))
+	snapCtx := snap.ContextWithSnap(ctx, snap.NewDefaultSnap())
 
 	cluster, err := microcluster.App(snapCtx, microcluster.Args{
 		Verbose:    cfg.Verbose,
