@@ -35,7 +35,7 @@ func (c *Client) JoinNode(ctx context.Context, name string, address string, toke
 			// For that:
 			//  - we need an endpoint on the control-plane with which workers can remove themselves.
 			//  - we need unique worker tokens (right now, all workers share the same one) so that
-			//    each worker kann only remove itself and not other workers.
+			//    each worker can only remove itself and not other workers.
 			return fmt.Errorf("failed to join k8sd cluster as worker: %w", err)
 		}
 	} else {

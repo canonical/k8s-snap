@@ -32,7 +32,7 @@ var (
 			}
 
 			if c.IsBootstrapped(cmd.Context()) {
-				return fmt.Errorf("Node is already bootstrapped.")
+				return fmt.Errorf("k8s cluster already bootstrapped")
 			}
 
 			config := apiv1.BootstrapConfig{}
