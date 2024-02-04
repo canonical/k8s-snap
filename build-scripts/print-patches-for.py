@@ -5,7 +5,7 @@ from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
 
-PATCH_DIRS = ["patches"]
+PATCH_DIRS = ["patches", "strict-patches"]
 
 
 class Version:
