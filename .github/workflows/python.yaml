@@ -2,7 +2,7 @@ name: Python
 
 on:
   push:
-    branches: [main]
+    branches: [main, autoupdate/strict]
   pull_request:
     branches: [main]
 

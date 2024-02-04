@@ -5,12 +5,9 @@
 k8s::common::setup_env
 
 # Ensure XDG_RUNTIME_DIR exists, needed by runc for 'kubectl exec' to work
-mkdir -p "${XDG_RUNTIME_DIR}"
+[ ! -z "${XDG_RUNTIME_DIR:=}" ] && mkdir -p "${XDG_RUNTIME_DIR}"
 
 # Apply the containerd profile
 k8s::common::is_strict && apparmor_parser -r "$SNAP/k8s/profiles/containerd"
-
-# Ensure the containerd runtime directory is a tmpfs
-k8s::containerd::ensure_tmpfs_state_dir
 
 k8s::common::execute_service containerd

@@ -81,18 +81,6 @@ k8s::cmd::openssl() {
     "${SNAP}/usr/bin/openssl" "${@}"
 }
 
-# Run a dqlite command against the local dqlite instance
-# Example: 'k8s::cmd::dqlite k8s .help'
-k8s::cmd::dqlite() {
-  k8s::common::setup_env
-
-  "${SNAP}/bin/dqlite" \
-    --cert /var/lib/k8s-dqlite/cluster.crt \
-    --key /var/lib/k8s-dqlite/cluster.key \
-    --servers file:///var/lib/k8s-dqlite/cluster.yaml \
-    "${@}"
-}
-
 # Run a ctr command against the local containerd socket
 # Example: 'k8s::cmd::ctr image ls -q'
 k8s::cmd::ctr() {
@@ -123,12 +111,11 @@ k8s::cmd::k8s() {
 }
 
 # Run a dqlite CLI command against the k8s-dqlite cluster
-# Example: 'k8s::cmd::dqlite k8s .cluster'
-# Example: 'k8s::cmd::dqlite k8s .cluster'
+# Example: 'k8s::cmd::dqlite k8s .help'
 k8s::cmd::dqlite() {
   k8s::common::setup_env
 
-  K8S_DQLITE_DIR="/var/lib/k8s-dqlite"
+  K8S_DQLITE_DIR="${SNAP_COMMON}/var/lib/k8s-dqlite"
   "${SNAP}/bin/dqlite" -s "file://${K8S_DQLITE_DIR}/cluster.yaml" -c "${K8S_DQLITE_DIR}/cluster.crt" -k "${K8S_DQLITE_DIR}/cluster.key" "${@}"
 }
 
@@ -273,7 +260,7 @@ k8s::init::containerd() {
 
   mkdir -p "$SNAP_DATA/args"
   cp "$SNAP/k8s/args/containerd" "$SNAP_DATA/args/containerd"
-  cp "$SNAP/k8s/config/containerd/config.toml" /etc/containerd/config.toml
+  cp "$SNAP/k8s/config/containerd/config.toml" "$SNAP_COMMON/etc/containerd/config.toml"
   cp "$SNAP/opt/cni/bin/"* /opt/cni/bin/
 }
 
@@ -407,16 +394,5 @@ k8s::kubelet::ensure_shared_root_dir() {
   if ! findmnt -o PROPAGATION /var/lib/kubelet -n | grep -q shared; then
     echo "Ensure /var/lib/kubelet mount propagation is rshared"
     mount -o remount --make-rshared "$SNAP_COMMON/var/lib/kubelet" /var/lib/kubelet
-  fi
-}
-
-# Ensure /var/lib/run/containerd is a tmpfs mount
-k8s::containerd::ensure_tmpfs_state_dir() {
-  k8s::common::setup_env
-
-  if ! findmnt -o FSTYPE /var/lib/run/containerd -n | grep -q tmpfs; then
-    echo "Ensure /var/lib/run/containerd tmpfs found"
-    mkdir /var/lib/run/containerd -p
-    mount -t tmpfs tmpfs /var/lib/run/containerd
   fi
 }

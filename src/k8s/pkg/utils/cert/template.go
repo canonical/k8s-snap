@@ -7,6 +7,7 @@ import (
 	"crypto/x509/pkix"
 	"fmt"
 	"net"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -104,13 +105,15 @@ func (ctpl *CertificateTemplate) SignAndSave(selfSign bool, ca *CertKeyPair) (*C
 		return nil, fmt.Errorf("failed to sign certificate: %w", err)
 	}
 
-	ckp.SavePrivateKey(filepath.Join(ctpl.certFolder, fmt.Sprintf("%s.key", ctpl.certName)))
-	if err != nil {
+	if err := os.MkdirAll(ctpl.certFolder, 0700); err != nil {
+		return nil, fmt.Errorf("failed to create dir: %w", err)
+	}
+
+	if err := ckp.SavePrivateKey(filepath.Join(ctpl.certFolder, fmt.Sprintf("%s.key", ctpl.certName))); err != nil {
 		return nil, fmt.Errorf("failed to save private key: %w", err)
 	}
 
-	ckp.SaveCertificate(filepath.Join(ctpl.certFolder, fmt.Sprintf("%s.crt", ctpl.certName)))
-	if err != nil {
+	if err := ckp.SaveCertificate(filepath.Join(ctpl.certFolder, fmt.Sprintf("%s.crt", ctpl.certName))); err != nil {
 		return nil, fmt.Errorf("failed to save certificate: %w", err)
 	}
 

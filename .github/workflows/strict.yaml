@@ -1,0 +1,21 @@
+name: Auto-update strict branch
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  update:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+      - name: Apply strict patch
+        run: |
+          git checkout -b autoupdate/strict
+          git config --global user.email k8s-bot@canonical.com
+          git config --global user.name k8s-bot
+          git am ./build-scripts/patches/strict/*.patch
+      - name: Push to autoupdate/strict branch
+        run: |
+          git push origin --force autoupdate/strict

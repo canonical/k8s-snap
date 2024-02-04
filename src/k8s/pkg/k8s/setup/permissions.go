@@ -14,10 +14,9 @@ func InitPermissions(ctx context.Context, snap snap.Snap) error {
 	err := utils.RunCommand(ctx,
 		"chmod", "go-rxw", "-R",
 		snap.DataPath("args"),
-		snap.CommonPath("opt"),
 		snap.CommonPath("etc"),
 		snap.CommonPath("var/lib"),
-		snap.CommonPath("var/log"),
+		"/opt/cni/bin",
 	)
 	if err != nil {
 		return fmt.Errorf("failed to change folder permissions: %w", err)

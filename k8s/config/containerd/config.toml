@@ -1,6 +1,7 @@
 version = 2
 oom_score = 0
-imports = ["/etc/containerd/conf.d/*.toml"]
+
+imports = ["/var/snap/k8s/common/etc/containerd/conf.d/*.toml"]
 
 [grpc]
   uid = 0
@@ -42,4 +43,4 @@ imports = ["/etc/containerd/conf.d/*.toml"]
     conf_dir = "/etc/cni/net.d"
 
   [plugins."io.containerd.grpc.v1.cri".registry]
-    config_path = "/etc/containerd/certs.d"
+    config_path = "/var/snap/k8s/common/etc/containerd/certs.d"

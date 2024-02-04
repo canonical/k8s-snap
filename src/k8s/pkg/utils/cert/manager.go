@@ -210,7 +210,7 @@ func (cm *CertificateManager) generateK8sDqlite() error {
 		[]net.IP{net.IPv4(127, 0, 0, 1)},
 		time.Now().AddDate(10, 0, 0),
 		2048,
-		K8sDqlitePkiPath,
+		filepath.Join("/var/snap/k8s/common", K8sDqlitePkiPath), // TODO: this must be set from the snap
 		"cluster",
 	)
 	if err != nil {

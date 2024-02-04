@@ -15,9 +15,7 @@ import (
 
 // IsBootstrapped checks if the cluster is already up and initialized.
 func (c *Client) IsBootstrapped(ctx context.Context) bool {
-	timeoutCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-	defer cancel()
-	_, err := c.ClusterStatus(timeoutCtx, false)
+	_, err := c.m.Status()
 	return err == nil
 }
 
@@ -47,7 +45,7 @@ func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapC
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to convert bootstrap config to map: %w", err)
 	}
 	if err := c.m.NewCluster(hostname, addrPort, config, time.Second*30); err != nil {
-		// TODO: Remove once microcluster supports automatic cleanup.
+		// TODO(neoaggelos): print message that bootstrap failed, and that we are cleaning up
 		c.CleanupNode(ctx, hostname)
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
 	}

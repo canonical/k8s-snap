@@ -19,5 +19,13 @@ func InitFolders(argsDir string) error {
 		return fmt.Errorf("failed to create pki directory: %w", err)
 	}
 
+	if err := os.MkdirAll("/opt/cni/bin", 0700); err != nil {
+		return fmt.Errorf("failed to create cni bin dir: %w", err)
+	}
+
+	// TODO(neoaggelos): don't use a hardcoded path here
+	if err := os.MkdirAll("/var/snap/k8s/common/etc/containerd", 0700); err != nil {
+		return fmt.Errorf("failed to create cni bin dir: %w", err)
+	}
 	return nil
 }

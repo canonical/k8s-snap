@@ -174,7 +174,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 
 	// TODO(neoaggelos): these should be done with "database.SetClusterConfig()" at the end of the bootstrap
 	err = cert.WriteCertKeyPairToK8sd(s.Context, s, "certificates-k8s-dqlite",
-		path.Join(cert.K8sDqlitePkiPath, "cluster.crt"), path.Join(cert.K8sDqlitePkiPath, "cluster.key"))
+		snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.crt"), snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.key"))
 	if err != nil {
 		return fmt.Errorf("failed to write k8s-dqlite cert to k8sd: %w", err)
 	}
