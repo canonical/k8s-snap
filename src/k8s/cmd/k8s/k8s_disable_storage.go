@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var enableStorageCmd = &cobra.Command{
+var disableStorageCmd = &cobra.Command{
 	Use:   "storage",
-	Short: "Enable the Storage component in the cluster.",
+	Short: "Disable the Network component in the cluster.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
 			StateDir: clusterCmdOpts.stateDir,
@@ -22,14 +22,14 @@ var enableStorageCmd = &cobra.Command{
 		}
 
 		request := api.UpdateStorageComponentRequest{
-			Status: api.ComponentEnable,
+			Status: api.ComponentDisable,
 		}
 
 		if err := client.UpdateStorageComponent(cmd.Context(), request); err != nil {
-			return fmt.Errorf("failed to enable Storage component: %w", err)
+			return fmt.Errorf("failed to disable Storage component: %w", err)
 		}
 
-		cmd.Println("Component 'Storage' enabled")
+		cmd.Println("Component 'Storage' disabled")
 		return nil
 	},
 }

@@ -33,8 +33,7 @@ var enableIngressCmd = &cobra.Command{
 			},
 		}
 
-		err = client.UpdateIngressComponent(cmd.Context(), request)
-		if err != nil {
+		if err := client.UpdateIngressComponent(cmd.Context(), request); err != nil {
 			return fmt.Errorf("failed to enable Ingress component: %w", err)
 		}
 

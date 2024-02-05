@@ -147,3 +147,40 @@ func putGatewayComponent(s *state.State, r *http.Request) response.Response {
 
 	return response.SyncResponse(true, &api.UpdateGatewayComponentResponse{})
 }
+
+func putLoadBalancerComponent(s *state.State, r *http.Request) response.Response {
+	var req api.UpdateLoadBalancerComponentRequest
+	snap := snap.SnapFromContext(s.Context)
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
+	}
+
+	switch req.Status {
+	case api.ComponentEnable:
+		err = component.EnableLoadBalancerComponent(
+			snap,
+			req.Config.CIDRs,
+			req.Config.L2Enabled,
+			req.Config.L2Interfaces,
+			req.Config.BGPEnabled,
+			req.Config.BGPLocalASN,
+			req.Config.BGPPeerAddress,
+			req.Config.BGPPeerASN,
+			req.Config.BGPPeerPort,
+		)
+		if err != nil {
+			return response.SmartError(fmt.Errorf("failed to enable loadbalancer: %w", err))
+		}
+	case api.ComponentDisable:
+		err = component.DisableLoadBalancerComponent(snap)
+		if err != nil {
+			return response.SmartError(fmt.Errorf("failed to disable loadbalancer: %w", err))
+		}
+	default:
+		return response.SmartError(fmt.Errorf("invalid component status %s", req.Status))
+	}
+
+	return response.SyncResponse(true, &api.UpdateLoadBalancerComponentResponse{})
+}

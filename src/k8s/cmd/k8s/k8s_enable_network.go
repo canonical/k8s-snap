@@ -25,8 +25,7 @@ var enableNetworkCmd = &cobra.Command{
 			Status: api.ComponentEnable,
 		}
 
-		err = client.UpdateNetworkComponent(cmd.Context(), request)
-		if err != nil {
+		if err := client.UpdateNetworkComponent(cmd.Context(), request); err != nil {
 			return fmt.Errorf("failed to enable Network component: %w", err)
 		}
 

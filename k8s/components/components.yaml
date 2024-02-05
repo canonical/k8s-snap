@@ -16,3 +16,7 @@ gateway:
   release: "ck-gateway"
   chart: "gateway-api-0.7.1.tgz"
   namespace: "kube-system"
+loadbalancer:
+  release: "ck-loadbalancer"
+  chart: "ck-loadbalancer"
+  namespace: "kube-system"

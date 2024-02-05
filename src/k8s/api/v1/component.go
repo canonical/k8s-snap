@@ -48,6 +48,24 @@ type UpdateGatewayComponentRequest struct {
 	Status ComponentStatus `json:"status"`
 }
 
+// UpdateLoadBalancerComponentRequest is used to update the LoadBalancer component state.
+type UpdateLoadBalancerComponentRequest struct {
+	Status ComponentStatus             `json:"status"`
+	Config LoadBalancerComponentConfig `json:"config,omitempty"`
+}
+
+// LoadBalancerComponentConfig holds the configuration values for the LoadBalancer component.
+type LoadBalancerComponentConfig struct {
+	CIDRs          []string `json:"cidrs,omitempty"`
+	L2Enabled      bool     `json:"l2Enabled,omitempty"`
+	L2Interfaces   []string `json:"l2Interfaces,omitempty"`
+	BGPEnabled     bool     `json:"bgpEnabled,omitempty"`
+	BGPLocalASN    int      `json:"bgpLocalAsn,omitempty"`
+	BGPPeerAddress string   `json:"bgpPeerAddress,omitempty"`
+	BGPPeerASN     int      `json:"bgpPeerAsn,omitempty"`
+	BGPPeerPort    int      `json:"bgpPeerPort,omitempty"`
+}
+
 // UpdateDNSComponentResponse is the response for "PUT 1.0/k8sd/components/dns".
 type UpdateDNSComponentResponse struct{}
 
@@ -62,6 +80,9 @@ type UpdateIngressComponentResponse struct{}
 
 // UpdateGatewayComponentResponse is the response for "PUT 1.0/k8sd/components/gateway".
 type UpdateGatewayComponentResponse struct{}
+
+// UpdateLoadBalancerComponentResponse is the response for "PUT 1.0/k8sd/components/loadbalancer".
+type UpdateLoadBalancerComponentResponse struct{}
 
 // Component holds information about a k8s component.
 type Component struct {

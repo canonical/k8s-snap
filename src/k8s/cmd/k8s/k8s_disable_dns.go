@@ -25,8 +25,7 @@ var disableDNSCmd = &cobra.Command{
 			Status: api.ComponentDisable,
 		}
 
-		err = client.UpdateDNSComponent(cmd.Context(), request)
-		if err != nil {
+		if err := client.UpdateDNSComponent(cmd.Context(), request); err != nil {
 			return fmt.Errorf("failed to disable DNS component: %w", err)
 		}
 

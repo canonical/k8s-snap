@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var enableStorageCmd = &cobra.Command{
-	Use:   "storage",
-	Short: "Enable the Storage component in the cluster.",
+var disableIngressCmd = &cobra.Command{
+	Use:   "ingress",
+	Short: "Disable the Ingress component in the cluster.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
 			StateDir: clusterCmdOpts.stateDir,
@@ -21,15 +21,15 @@ var enableStorageCmd = &cobra.Command{
 			return fmt.Errorf("failed to create client: %w", err)
 		}
 
-		request := api.UpdateStorageComponentRequest{
-			Status: api.ComponentEnable,
+		request := api.UpdateIngressComponentRequest{
+			Status: api.ComponentDisable,
 		}
 
-		if err := client.UpdateStorageComponent(cmd.Context(), request); err != nil {
-			return fmt.Errorf("failed to enable Storage component: %w", err)
+		if err := client.UpdateIngressComponent(cmd.Context(), request); err != nil {
+			return fmt.Errorf("failed to disable Ingress component: %w", err)
 		}
 
-		cmd.Println("Component 'Storage' enabled")
+		cmd.Println("Component 'Ingress' disabled")
 		return nil
 	},
 }
