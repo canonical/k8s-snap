@@ -20,9 +20,9 @@ func (c *Client) CreateJoinToken(ctx context.Context, name string, worker bool) 
 	request := apiv1.WorkerNodeTokenRequest{}
 	response := apiv1.WorkerNodeTokenResponse{}
 
-	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "worker", "token"), request, &response)
+	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "worker", "tokens"), request, &response)
 	if err != nil {
-		return "", fmt.Errorf("failed to query endpoint POST /k8sd/worker/token: %w", err)
+		return "", fmt.Errorf("failed to query endpoint POST /k8sd/worker/tokens: %w", err)
 	}
 	return response.EncodedToken, nil
 }
