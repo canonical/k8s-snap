@@ -1,4 +1,6 @@
 --kubeconfig=/etc/kubernetes/controller-manager.conf
+--authorization-kubeconfig=/etc/kubernetes/controller-manager.conf
+--authentication-kubeconfig=/etc/kubernetes/controller-manager.conf
 --service-account-private-key-file=/etc/kubernetes/pki/serviceaccount.key
 --root-ca-file=/etc/kubernetes/pki/ca.crt
 --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt
