@@ -14,8 +14,8 @@ type ComponentManager interface {
 	Refresh(name string) error
 }
 
-// HelmConfigInitializer defines an interface for initializing a Helm Configuration, allowing a Mock implementation
-type HelmConfigInitializer interface {
+// HelmConfigProvider defines an interface for initializing a Helm Configuration, allowing a Mock implementation
+type HelmConfigProvider interface {
 	// Initializes a fresh Helm Configuration
 	New() (*action.Configuration, error)
 }

@@ -13,8 +13,8 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 )
 
-// HelmClientInitializer implements the HelmConfigInitializer interface
-type HelmClientInitializer struct{}
+// defaultHelmConfigProvider implements the HelmConfigInitializer interface
+type defaultHelmConfigProvider struct{}
 
 // componentDefinition defines each component metadata.
 type componentDefinition struct {
@@ -28,7 +28,7 @@ type componentDefinition struct {
 type helmClient struct {
 	config      map[string]componentDefinition
 	snap        snap.Snap
-	initializer HelmConfigInitializer
+	initializer HelmConfigProvider
 }
 
 // Component defines the name and status of a k8s Component.
@@ -38,7 +38,7 @@ type Component struct {
 }
 
 // InitializeHelmClientConfig initializes a Helm Configuration, ensures the use of a fresh configuration
-func (r *HelmClientInitializer) New() (*action.Configuration, error) {
+func (r *defaultHelmConfigProvider) New() (*action.Configuration, error) {
 	settings := cli.New()
 	settings.KubeConfig = "/etc/kubernetes/admin.conf"
 
@@ -61,10 +61,10 @@ func logAdapter(format string, v ...any) {
 }
 
 // NewHelmClient creates a new Component manager instance.
-func NewHelmClient(snap snap.Snap, initializer HelmConfigInitializer) (*helmClient, error) {
+func NewHelmClient(snap snap.Snap, initializer HelmConfigProvider) (*helmClient, error) {
 	if initializer == nil {
 		// If no initializer provided, use a default one
-		initializer = &HelmClientInitializer{}
+		initializer = &defaultHelmConfigProvider{}
 	}
 
 	viper.SetConfigName("components")

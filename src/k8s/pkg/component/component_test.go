@@ -141,7 +141,7 @@ func mustCreateNewHelmClient(t *testing.T, components string) (*helmClient, stri
 	// Create a mock actionConfig for testing
 	mockActionConfig := actionConfigFixture(t)
 	// Create a mock HelmClient with the desired behavior for testing
-	mockClient := &componentmock.HelmClientInitializer{ActionConfig: mockActionConfig}
+	mockClient := &componentmock.MockHelmConfigProvider{ActionConfig: mockActionConfig}
 
 	// create test directory to use for the snap mock
 	tempDir := mustCreateTemporaryTestDirectory(t)
