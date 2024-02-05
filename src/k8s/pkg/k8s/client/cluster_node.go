@@ -40,6 +40,7 @@ func (c *Client) JoinNode(ctx context.Context, name string, address string, toke
 		}
 	} else {
 		if err := c.joinControlPlaneNode(ctx, name, address, token); err != nil {
+			// TODO(neoaggelos): print message that join failed, and that we are cleaning up
 			c.CleanupNode(ctx, name)
 			return fmt.Errorf("failed to join k8sd cluster as control plane: %w", err)
 		}

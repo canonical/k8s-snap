@@ -4,7 +4,6 @@
 import logging
 import shlex
 import subprocess
-import time
 from functools import partial
 from pathlib import Path
 from typing import Callable, List, Optional, Union
@@ -157,11 +156,6 @@ def setup_dns(instance: harness.Instance):
 
 
 def setup_network(instance: harness.Instance):
-    time.sleep(30)
-    instance.exec(
-        ["/snap/k8s/current/k8s/network-requirements.sh"], stdout=subprocess.DEVNULL
-    )
-
     LOG.info("Waiting for network to be enabled...")
     stubbornly(retries=15, delay_s=5).on(instance).exec(["k8s", "enable", "network"])
     LOG.info("Network enabled.")
@@ -209,12 +203,12 @@ def setup_network(instance: harness.Instance):
 
 # Installs and setups the k8s snap on the given instance and connects the interfaces.
 def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
-    LOG.info("Install snap")
+    LOG.info("Install k8s snap")
     instance.send_file(config.SNAP, snap_path)
-    instance.exec(["snap", "install", snap_path, "--dangerous"])
+    instance.exec(["snap", "install", snap_path, "--classic", "--dangerous"])
 
-    LOG.info("Initialize Kubernetes")
-    instance.exec(["/snap/k8s/current/k8s/connect-interfaces.sh"])
+    LOG.info("Ensure k8s interfaces and network requirements")
+    instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
 
 
 # Validates that the K8s node is in Ready state.

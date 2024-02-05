@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
@@ -37,7 +36,7 @@ func JoinK8sDqliteCluster(ctx context.Context, state *state.State, snap snap.Sna
 		return fmt.Errorf("failed to perform k8s-dqlite transaction request: %w", err)
 	}
 
-	if err := cert.StoreCertKeyPair(crt, key, path.Join(cert.K8sDqlitePkiPath, "cluster.crt"), path.Join(cert.K8sDqlitePkiPath, "cluster.key")); err != nil {
+	if err := cert.StoreCertKeyPair(crt, key, snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.crt"), snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.key")); err != nil {
 		return fmt.Errorf("failed to update k8s-dqlite cluster certificate: %w", err)
 	}
 
@@ -93,7 +92,7 @@ func createClusterInitFile(knownHost string) error {
 		return fmt.Errorf("failed to marshal cluster init data: %w", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(cert.K8sDqlitePkiPath, "init.yaml"), []byte(marshaled), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join("/var/snap/k8s/common", cert.K8sDqlitePkiPath, "init.yaml"), []byte(marshaled), 0644); err != nil {
 		return fmt.Errorf("failed to write init.yaml to %s: %w", cert.K8sDqlitePkiPath, err)
 	}
 	return nil

@@ -1,8 +1,8 @@
-name: End to End Tests
+name: End to End Tests (Strict)
 
 on:
   push:
-    branches: [main, autoupdate/strict]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -22,21 +22,27 @@ jobs:
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
+      - name: Apply strict patch
+        run: |
+          git checkout -b autoupdate/strict
+          git config --global user.email k8s-bot@canonical.com
+          git config --global user.name k8s-bot
+          git am ./build-scripts/patches/strict/*.patch
       - name: Build snap
         run: |
           sg lxd -c 'snapcraft --use-lxd'
-          mv k8s_*.snap k8s.snap
+          mv k8s_*.snap k8s-strict.snap
       - name: Uploading snap
         uses: actions/upload-artifact@v3
         with:
-          name: k8s.snap
-          path: k8s.snap
+          name: k8s-strict.snap
+          path: k8s-strict.snap
 
   test-e2e:
     name: Test ${{ matrix.os }}
     strategy:
       matrix:
-        os: ["ubuntu:20.04", "ubuntu:22.04"]
+        os: ["ubuntu:20.04"]
     runs-on: ubuntu-20.04
     needs: build
 
@@ -58,11 +64,11 @@ jobs:
       - name: Download snap
         uses: actions/download-artifact@v3.0.2
         with:
-          name: k8s.snap
+          name: k8s-strict.snap
           path: build
       - name: Run end to end tests
         run: |
-          export TEST_SNAP="$PWD/build/k8s.snap"
+          export TEST_SNAP="$PWD/build/k8s-strict.snap"
           export TEST_SUBSTRATE=lxd
           export TEST_LXD_IMAGE=${{ matrix.os }}
           cd tests/e2e && sg lxd -c 'tox -e e2e'

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
 	"github.com/canonical/microcluster/state"
@@ -14,6 +15,12 @@ import (
 // StoreCertKeyPair read the certificate & key from the k8sd database and writes
 // them to the specified path on disk.
 func StoreCertKeyPair(cert string, key string, certPath string, keyPath string) error {
+	if err := os.MkdirAll(filepath.Base(certPath), 0700); err != nil {
+		return fmt.Errorf("failed to ensure directory for cert: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Base(keyPath), 0700); err != nil {
+		return fmt.Errorf("failed to ensure directory for key: %w", err)
+	}
 	logrus.WithField("cert_length", len(string(cert))).WithField("key_length", len(string(key))).Debug("Writing k8s-dqlite cert and key to disk")
 	if err := os.WriteFile(certPath, []byte(cert), 0644); err != nil {
 		return fmt.Errorf("failed to write cert to %s: %w", certPath, err)

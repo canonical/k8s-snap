@@ -15,12 +15,12 @@ func InitContainerd(snap snap.Snap) error {
 		return fmt.Errorf("failed to copy containerd config: %w", err)
 	}
 
-	err = utils.CopyDirectory(snap.Path("opt/cni/bin/"), snap.CommonPath("opt/cni/bin/"))
+	err = utils.CopyDirectory(snap.Path("opt/cni/bin/"), "/opt/cni/bin/")
 	if err != nil {
 		return fmt.Errorf("failed to copy cni/bin: %w", err)
 	}
 
-	err = utils.ChmodRecursive(snap.CommonPath("opt/cni/bin/"), 0700)
+	err = utils.ChmodRecursive("/opt/cni/bin/", 0700)
 	if err != nil {
 		return fmt.Errorf("failed to adjust permissions of /opt/cni/bin: %w", err)
 	}
