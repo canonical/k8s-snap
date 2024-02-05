@@ -11,7 +11,7 @@ import (
 )
 
 func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNameservers []string) error {
-	manager, err := NewHelmClient(s)
+	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
@@ -106,7 +106,7 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 }
 
 func DisableDNSComponent(s snap.Snap) error {
-	manager, err := NewHelmClient(s)
+	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}

@@ -10,7 +10,7 @@ import (
 
 // GetComponent returns the current status of the k8s components.
 func GetComponents(snap snap.Snap) ([]api.Component, error) {
-	manager, err := component.NewHelmClient(snap)
+	manager, err := component.NewHelmClient(snap, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get component manager: %w", err)
 	}

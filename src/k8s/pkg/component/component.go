@@ -61,12 +61,8 @@ func logAdapter(format string, v ...any) {
 }
 
 // NewHelmClient creates a new Component manager instance.
-func NewHelmClient(snap snap.Snap, initializers ...HelmConfigInitializer) (*helmClient, error) {
-	var initializer HelmConfigInitializer
-
-	if len(initializers) > 0 {
-		initializer = initializers[0]
-	} else {
+func NewHelmClient(snap snap.Snap, initializer HelmConfigInitializer) (*helmClient, error) {
+	if initializer == nil {
 		// If no initializer provided, use a default one
 		initializer = &HelmClientIntitializer{}
 	}
