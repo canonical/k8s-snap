@@ -10,7 +10,7 @@ import (
 )
 
 func EnableIngressComponent(s snap.Snap, defaultTLSSecret string, enableProxyProtocol bool) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
@@ -52,7 +52,7 @@ func EnableIngressComponent(s snap.Snap, defaultTLSSecret string, enableProxyPro
 }
 
 func DisableIngressComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
