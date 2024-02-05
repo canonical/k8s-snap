@@ -17,6 +17,8 @@ func InitPermissions(ctx context.Context, snap snap.Snap) error {
 		snap.CommonPath("etc"),
 		snap.CommonPath("var/lib"),
 		"/opt/cni/bin",
+		"/etc/kubernetes",
+		"/etc/cni/net.d",
 	)
 	if err != nil {
 		return fmt.Errorf("failed to change folder permissions: %w", err)
