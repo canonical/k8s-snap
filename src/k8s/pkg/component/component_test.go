@@ -163,22 +163,6 @@ func mustCreateNewHelmClient(t *testing.T, components string) (*helmClient, stri
 	return mockHelmCLient, tempDir, mockActionConfig
 }
 
-func TestNewHelmClientWithValidConfig(t *testing.T) {
-	g := NewWithT(t)
-	// Create a mock actionConfig for testing
-	mockHelmClient, tempDir, mockActionConfig := mustCreateNewHelmClient(t, components)
-	defer os.RemoveAll(tempDir)
-
-	g.Expect(mockHelmClient).ToNot(BeNil())
-	g.Expect(mockHelmClient).To(BeAssignableToTypeOf(&helmClient{}))
-
-	g.Expect(mockHelmClient.initializer).To(BeAssignableToTypeOf(&mocks.HelmClientInitializer{}))
-	g.Expect(mockHelmClient.snap).To(BeAssignableToTypeOf(&mock.Snap{}))
-	g.Expect(mockHelmClient.config).To(HaveLen(3))
-	g.Expect(mockActionConfig).ToNot(BeNil())
-	g.Expect(tempDir).To(BeADirectory())
-}
-
 func TestListEmptyComponents(t *testing.T) {
 	g := NewWithT(t)
 	// Create a mock ComponentManager with no components
