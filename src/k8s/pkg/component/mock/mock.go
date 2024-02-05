@@ -7,6 +7,6 @@ type HelmClientInitializer struct {
 	ActionConfig *action.Configuration
 }
 
-func (r *HelmClientInitializer) InitializeHelmClientConfig() (*action.Configuration, error) {
+func (r *HelmClientInitializer) New() (*action.Configuration, error) {
 	return r.ActionConfig, nil
 }

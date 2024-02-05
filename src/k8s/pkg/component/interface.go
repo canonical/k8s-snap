@@ -17,5 +17,5 @@ type ComponentManager interface {
 // HelmConfigInitializer defines an interface for initializing a Helm Configuration, allowing a Mock implementation
 type HelmConfigInitializer interface {
 	// Initializes a fresh Helm Configuration
-	InitializeHelmClientConfig() (*action.Configuration, error)
+	New() (*action.Configuration, error)
 }
