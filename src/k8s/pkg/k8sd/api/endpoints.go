@@ -15,7 +15,7 @@ var Endpoints = []rest.Endpoint{
 	// Worker nodes
 	{
 		Name: "WorkerToken",
-		Path: "k8sd/worker/token",
+		Path: "k8sd/worker/tokens",
 		Post: rest.EndpointAction{Handler: postWorkerToken},
 	},
 	{
