@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	mocks "github.com/canonical/k8s/pkg/component/mock"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	. "github.com/onsi/gomega"
 	"helm.sh/helm/v3/pkg/action"
@@ -74,15 +75,6 @@ func namedReleaseStub(name string, status release.Status) *release.Release {
 	}
 }
 
-// "Mock" Initializer
-type MockHelmClientInitializer struct {
-	actionConfig *action.Configuration
-}
-
-func (r *MockHelmClientInitializer) InitializeHelmClientConfig() (*action.Configuration, error) {
-	return r.actionConfig, nil
-}
-
 func mustMakeMeSomeReleases(store *storage.Storage, t *testing.T) (all []*release.Release) {
 	t.Helper()
 	relStub1 := namedReleaseStub("whiskas-1", release.StatusDeployed)
@@ -149,7 +141,7 @@ func mustCreateNewHelmClient(t *testing.T, components string) (*helmClient, stri
 	// Create a mock actionConfig for testing
 	mockActionConfig := actionConfigFixture(t)
 	// Create a mock HelmClient with the desired behavior for testing
-	mockClient := &MockHelmClientInitializer{actionConfig: mockActionConfig}
+	mockClient := &mocks.HelmClientInitializer{ActionConfig: mockActionConfig}
 
 	// create test directory to use for the snap mock
 	tempDir := mustCreateTemporaryTestDirectory(t)
@@ -180,7 +172,7 @@ func TestNewHelmClientWithValidConfig(t *testing.T) {
 	g.Expect(mockHelmClient).ToNot(BeNil())
 	g.Expect(mockHelmClient).To(BeAssignableToTypeOf(&helmClient{}))
 
-	g.Expect(mockHelmClient.initializer).To(BeAssignableToTypeOf(&MockHelmClientInitializer{}))
+	g.Expect(mockHelmClient.initializer).To(BeAssignableToTypeOf(&mocks.HelmClientInitializer{}))
 	g.Expect(mockHelmClient.snap).To(BeAssignableToTypeOf(&mock.Snap{}))
 	g.Expect(mockHelmClient.config).To(HaveLen(3))
 	g.Expect(mockActionConfig).ToNot(BeNil())
@@ -202,9 +194,9 @@ func TestListEmptyComponents(t *testing.T) {
 
 func TestListComponentsWithReleases(t *testing.T) {
 	g := NewWithT(t)
+
 	// Create a mock ComponentManager with the mock HelmClient
 	// This mock uses components.yaml for the snap mock components
-
 	mockHelmClient, tempDir, mockActionConfig := mustCreateNewHelmClient(t, components)
 	defer os.RemoveAll(tempDir)
 
