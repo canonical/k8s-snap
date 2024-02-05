@@ -63,6 +63,7 @@ func Merge(existing ClusterConfig, new ClusterConfig) (ClusterConfig, error) {
 		allowChange bool
 	}{
 		{name: "secure port", val: &config.APIServer.SecurePort, old: existing.APIServer.SecurePort, new: new.APIServer.SecurePort},
+		{name: "k8s-dqlite port", val: &config.K8sDqlite.Port, old: existing.K8sDqlite.Port, new: new.K8sDqlite.Port},
 	} {
 		*i.val, err = mergeValue(i.old, i.new, i.allowChange)
 		if err != nil {

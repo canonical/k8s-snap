@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -60,6 +61,39 @@ func NewCertKeyPair(cert *x509.Certificate, privateKey *rsa.PrivateKey) (*CertKe
 		return nil, err
 	}
 	ckp.KeyPem = keyOut.Bytes()
+
+	return ckp, nil
+}
+
+// NewCertKeyPairFromPEM returns a new pair from provided PEM-encoded certificate and private key.
+func NewCertKeyPairFromPEM(certPEM []byte, keyPem []byte) (*CertKeyPair, error) {
+	// Decode certificate from PEM
+	certBlock, _ := pem.Decode(certPEM)
+	if certBlock == nil {
+		return nil, errors.New("failed to decode certificate PEM")
+	}
+	cert, err := x509.ParseCertificate(certBlock.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse certificate: %w", err)
+	}
+
+	// Decode private key from PEM
+	keyBlock, _ := pem.Decode(keyPem)
+	if keyBlock == nil {
+		return nil, errors.New("failed to decode private key PEM")
+	}
+	key, err := x509.ParsePKCS1PrivateKey(keyBlock.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse private key: %w", err)
+	}
+
+	// Create CertKeyPair
+	ckp := &CertKeyPair{
+		Cert:    cert,
+		Key:     key,
+		KeyPem:  keyPem,
+		CertPem: certPEM,
+	}
 
 	return ckp, nil
 }

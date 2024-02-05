@@ -172,27 +172,26 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to setup permissions: %w", err)
 	}
 
-	// TODO(neoaggelos): these should be done with "database.SetClusterConfig()" at the end of the bootstrap
-	err = cert.WriteCertKeyPairToK8sd(s.Context, s, "certificates-k8s-dqlite",
-		snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.crt"), snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.key"))
-	if err != nil {
-		return fmt.Errorf("failed to write k8s-dqlite cert to k8sd: %w", err)
-	}
-	err = cert.WriteCertKeyPairToK8sd(s.Context, s, "certificates-ca",
-		path.Join(cert.KubePkiPath, "ca.crt"), path.Join(cert.KubePkiPath, "ca.key"))
-	if err != nil {
-		return fmt.Errorf("failed to write CA to k8sd: %w", err)
-	}
-
-	// TODO(neoaggelos): configure k8s-dqlite init.yaml file, as it is currently only left to guess for defaults
-	//                   - see "k8s::init::k8s_dqlite" in k8s/lib.sh for details.
-	//                   - do not bind on 127.0.0.1, use configuration option or fallback to default address like microcluster.
-
 	clusterConfig := clusterconfigs.Default()
 	bootstrapConfig, err := apiv1.BootstrapConfigFromMap(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
 	}
+
+	// Set k8s-dqlite configuration
+	k8sDqliteCertPair, err := cert.LoadCertKeyPair(snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.key"), snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.crt"))
+	if err != nil {
+		return fmt.Errorf("failed to load k8s-dqlite cert-key pair: %w", err)
+	}
+	clusterConfig.Certificates.K8sDqliteCert = string(k8sDqliteCertPair.CertPem)
+	clusterConfig.Certificates.K8sDqliteKey = string(k8sDqliteCertPair.KeyPem)
+
+	caPair, err := cert.LoadCertKeyPair(path.Join(cert.KubePkiPath, "ca.key"), path.Join(cert.KubePkiPath, "ca.crt"))
+	if err != nil {
+		return fmt.Errorf("failed to load k8s-dqlite cert-key pair: %w", err)
+	}
+	clusterConfig.Certificates.CACert = string(caPair.CertPem)
+	clusterConfig.Certificates.CAKey = string(caPair.KeyPem)
 
 	clusterConfig, err = clusterconfigs.Merge(clusterConfig, utils.ConvertBootstrapToClusterConfig(bootstrapConfig))
 	if err != nil {
@@ -203,6 +202,13 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 		return clusterconfigs.SetClusterConfig(ctx, tx, clusterConfig)
 	})
+
+	k8sDqliteInit := setup.K8sDqliteInit{
+		Address: fmt.Sprintf("%s:%d", s.Address().Hostname(), clusterConfig.K8sDqlite.Port),
+	}
+	if err := setup.WriteClusterInitFile(k8sDqliteInit); err != nil {
+		return fmt.Errorf("failed to write cluster init file: %w", err)
+	}
 
 	err = snap.StartService(s.Context, "k8s")
 	if err != nil {

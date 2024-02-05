@@ -2,12 +2,10 @@ package setup
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
@@ -18,29 +16,47 @@ import (
 
 // JoinK8sDqliteCluster joins a node to an existing k8s-dqlite cluster. It:
 //
-//   - retrieves k8s-dqlite certificates from cluster node (k8sd is already joined at this point so we can access the certificates)
+//   - retrieves k8s-dqlite certificates and address from cluster node (k8sd is already joined at this point so we can access the certificates)
 //   - stores new certificates in k8s-dqlite cluster directory
 //   - writes k8s-dqlite init file with the cluster node information
-func JoinK8sDqliteCluster(ctx context.Context, state *state.State, snap snap.Snap, knownHost string) error {
-	// TODO: Cleanup once the cluster config is fully fetched from the database and not from the RPC endpoint above.
-	var crt, key string
-	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		config, err := clusterconfigs.GetClusterConfig(ctx, tx)
-		if err != nil {
-			return fmt.Errorf("failed to get k8s-dqlite cert and key from database: %w", err)
-		}
-		crt = config.Certificates.K8sDqliteCert
-		key = config.Certificates.K8sDqliteKey
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to perform k8s-dqlite transaction request: %w", err)
+//   - starts k8s-dqlite
+func JoinK8sDqliteCluster(ctx context.Context, state *state.State, snap snap.Snap) error {
+	clusterConfig, err := utils.GetClusterConfig(ctx, state)
+	if err != nil {
+		return fmt.Errorf("failed to get cluster config: %w", err)
 	}
 
-	if err := cert.StoreCertKeyPair(crt, key, snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.crt"), snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.key")); err != nil {
-		return fmt.Errorf("failed to update k8s-dqlite cluster certificate: %w", err)
+	k8sDqliteCertPair, err := cert.NewCertKeyPairFromPEM([]byte(clusterConfig.Certificates.K8sDqliteCert), []byte(clusterConfig.Certificates.K8sDqliteKey))
+	if err != nil {
+		return fmt.Errorf("failed to create k8s-dqlite cert from pem: %w", err)
 	}
 
-	if err := createClusterInitFile(knownHost); err != nil {
+	if err := k8sDqliteCertPair.SaveCertificate(snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.crt")); err != nil {
+		return fmt.Errorf("failed to write k8s-dqlite cert: %w", err)
+	}
+	if err := k8sDqliteCertPair.SavePrivateKey(snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.key")); err != nil {
+		return fmt.Errorf("failed to write k8s-dqlite key: %w", err)
+	}
+
+	leader, err := state.Leader()
+	if err != nil {
+		return fmt.Errorf("failed to get dqlite leader: %w", err)
+	}
+
+	members, err := leader.GetClusterMembers(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get dqlite members: %w", err)
+	}
+	clusterAddrs := make([]string, len(members))
+
+	for _, member := range members {
+		clusterAddrs = append(clusterAddrs, fmt.Sprintf("%s:%d", member.Address.Addr(), clusterConfig.K8sDqlite.Port))
+	}
+
+	initFile := K8sDqliteInit{
+		Cluster: clusterAddrs,
+	}
+	if err := WriteClusterInitFile(initFile); err != nil {
 		return fmt.Errorf("failed to update cluster info.yaml file: %w", err)
 	}
 
@@ -51,9 +67,13 @@ func JoinK8sDqliteCluster(ctx context.Context, state *state.State, snap snap.Sna
 	return nil
 }
 
-func LeaveK8sDqliteCluster(ctx context.Context, snap snap.Snap, hostname string) error {
-	// TODO: Get dqlite port from config
-	address := fmt.Sprintf("%s:%d", hostname, dqlite.K8sDqliteDefaultPort)
+func LeaveK8sDqliteCluster(ctx context.Context, snap snap.Snap, state *state.State) error {
+	clusterConfig, err := utils.GetClusterConfig(ctx, state)
+	if err != nil {
+		return fmt.Errorf("failed to get cluster config: %w", err)
+	}
+
+	address := fmt.Sprintf("%s:%d", state.Address().Hostname(), clusterConfig.K8sDqlite.Port)
 
 	members, err := dqlite.GetK8sDqliteClusterMembers(ctx, snap)
 	if err != nil {
@@ -68,26 +88,19 @@ func LeaveK8sDqliteCluster(ctx context.Context, snap snap.Snap, hostname string)
 	return utils.RunCommand(ctx, snap.Path("k8s/wrappers/commands/dqlite"), "k8s", fmt.Sprintf(".remove %s", address))
 }
 
-// clusterInit represents the yaml file structure of the dqlite `init.yaml` file.
-type clusterInit struct {
+// K8sDqliteInit represents the yaml file structure of the dqlite `init.yaml` file.
+type K8sDqliteInit struct {
 	ID      uint64   `yaml:"ID,omitempty"`
 	Address string   `yaml:"Address,omitempty"`
 	Role    int      `yaml:"Role,omitempty"`
 	Cluster []string `yaml:"Cluster,omitempty"`
 }
 
-// createClusterInitFile writes an `init.yaml` file to the k8s-dqlite directory
+// WriteClusterInitFile writes an `init.yaml` file to the k8s-dqlite directory
 // that contains the informations to join an existing cluster (e.g. members addresses)
 // and is picked up by k8s-dqlite on startup.
-func createClusterInitFile(knownHost string) error {
-	// Assumes that all cluster members use the same port for k8s-dqlite
-	// TODO: do not reuse voter information from the k8sd token but encode the real k8s-dqlite
-	// member data into a new token.
-	initData := clusterInit{
-		Cluster: []string{fmt.Sprintf("%s:%d", knownHost, dqlite.K8sDqliteDefaultPort)},
-	}
-
-	marshaled, err := yaml.Marshal(&initData)
+func WriteClusterInitFile(init K8sDqliteInit) error {
+	marshaled, err := yaml.Marshal(&init)
 	if err != nil {
 		return fmt.Errorf("failed to marshal cluster init data: %w", err)
 	}

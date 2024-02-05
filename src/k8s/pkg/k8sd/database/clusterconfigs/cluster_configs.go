@@ -16,6 +16,7 @@ type ClusterConfig struct {
 	Cluster      Cluster      `yaml:"cluster"`
 	Certificates Certificates `yaml:"certificates"`
 	Kubelet      Kubelet      `yaml:"kubelet"`
+	K8sDqlite    K8sDqlite    `yaml:"k8s-dqlite"`
 	APIServer    APIServer    `yaml:"apiserver"`
 }
 
@@ -51,6 +52,10 @@ type APIServer struct {
 	DatastoreClientKey  string `yaml:"datastore-client-key,omitempty"`
 }
 
+type K8sDqlite struct {
+	Port int `yaml:"port,omitempty"`
+}
+
 func Default() ClusterConfig {
 	return ClusterConfig{
 		Cluster: Cluster{
@@ -59,6 +64,9 @@ func Default() ClusterConfig {
 		APIServer: APIServer{
 			SecurePort:        6443,
 			AuthorizationMode: "Node,RBAC",
+		},
+		K8sDqlite: K8sDqlite{
+			Port: 9000,
 		},
 	}
 }
