@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	mocks "github.com/canonical/k8s/pkg/component/mock"
-	"github.com/canonical/k8s/pkg/snap/mock"
+	componentmock "github.com/canonical/k8s/pkg/component/mock"
+	snapmock "github.com/canonical/k8s/pkg/snap/mock"
 	. "github.com/onsi/gomega"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -141,7 +141,7 @@ func mustCreateNewHelmClient(t *testing.T, components string) (*helmClient, stri
 	// Create a mock actionConfig for testing
 	mockActionConfig := actionConfigFixture(t)
 	// Create a mock HelmClient with the desired behavior for testing
-	mockClient := &mocks.HelmClientInitializer{ActionConfig: mockActionConfig}
+	mockClient := &componentmock.HelmClientInitializer{ActionConfig: mockActionConfig}
 
 	// create test directory to use for the snap mock
 	tempDir := mustCreateTemporaryTestDirectory(t)
@@ -150,7 +150,7 @@ func mustCreateNewHelmClient(t *testing.T, components string) (*helmClient, stri
 	mustAddConfigToTestDir(t, filepath.Join(tempDir, "k8s", "components", "components.yaml"), components)
 
 	// Create mock snap
-	snap := &mock.Snap{
+	snap := &snapmock.Snap{
 		PathPrefix: tempDir,
 	}
 
