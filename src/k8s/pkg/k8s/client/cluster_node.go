@@ -17,15 +17,16 @@ func (c *Client) JoinNode(ctx context.Context, name string, address string, toke
 	}
 
 	request := apiv1.JoinNodeRequest{
+		Name:    name,
 		Address: address,
 		Token:   token,
 	}
 	var response apiv1.JoinNodeResponse
-	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", name), request, &response)
+	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, &response)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "failed to join node. Cleaning up now")
+		fmt.Fprintln(os.Stderr, "failed to join node - cleaning up now")
 		c.CleanupNode(ctx, name)
-		return fmt.Errorf("failed to query endpoint POST /k8sd/cluster/%s: %w", name, err)
+		return fmt.Errorf("failed to query endpoint POST /k8sd/cluster/join: %w", err)
 	}
 
 	c.WaitForDqliteNodeToBeReady(ctx, name)

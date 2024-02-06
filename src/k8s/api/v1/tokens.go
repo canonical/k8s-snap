@@ -1,6 +1,6 @@
 package v1
 
-// WorkerNodeTokenRequest is used to request a token for joining a node to the cluster.
+// TokenRequest is used to request a token for joining a node to the cluster.
 type TokenRequest struct {
 	// If true, a token for joining a worker node is created.
 	// If false, a token for joining a control plane node is created.

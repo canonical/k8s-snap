@@ -2,6 +2,7 @@ package v1
 
 // JoinNodeRequest is used to request to add a node to the cluster.
 type JoinNodeRequest struct {
+	Name    string `json:"name"`
 	Address string `json:"address"`
 	Token   string `json:"token"`
 }
