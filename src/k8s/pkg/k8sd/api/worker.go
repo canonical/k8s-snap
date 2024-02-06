@@ -9,8 +9,8 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
-	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
@@ -77,16 +77,9 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 		return response.BadRequest(fmt.Errorf("node name cannot be empty"))
 	}
 
-	var clusterConfig clusterconfigs.ClusterConfig
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-		var err error
-		clusterConfig, err = clusterconfigs.GetClusterConfig(ctx, tx)
-		if err != nil {
-			return fmt.Errorf("failed to retrieve cluster configuration: %w", err)
-		}
-		return nil
-	}); err != nil {
-		return response.InternalError(fmt.Errorf("get cluster config database transaction failed: %w", err))
+	clusterConfig, err := utils.GetClusterConfig(s.Context, s)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
 	client, err := k8s.NewClient()

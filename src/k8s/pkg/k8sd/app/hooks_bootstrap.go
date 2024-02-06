@@ -13,10 +13,9 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/setup"
-	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
+	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
@@ -172,7 +171,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to setup permissions: %w", err)
 	}
 
-	clusterConfig := clusterconfigs.Default()
+	clusterConfig := types.DefaultClusterConfig()
 	bootstrapConfig, err := apiv1.BootstrapConfigFromMap(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
@@ -193,14 +192,14 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	clusterConfig.Certificates.CACert = string(caPair.CertPem)
 	clusterConfig.Certificates.CAKey = string(caPair.KeyPem)
 
-	clusterConfig, err = clusterconfigs.Merge(clusterConfig, utils.ConvertBootstrapToClusterConfig(bootstrapConfig))
+	clusterConfig, err = types.MergeClusterConfig(clusterConfig, types.ClusterConfigFromBootstrapConfig(bootstrapConfig))
 	if err != nil {
 		return fmt.Errorf("failed to merge cluster config with bootstrap config: %w", err)
 	}
 
 	// TODO(neoaggelos): first generate config then reconcile state
 	s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-		return clusterconfigs.SetClusterConfig(ctx, tx, clusterConfig)
+		return database.SetClusterConfig(ctx, tx, clusterConfig)
 	})
 
 	k8sDqliteInit := setup.K8sDqliteInit{

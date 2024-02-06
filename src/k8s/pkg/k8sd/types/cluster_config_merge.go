@@ -1,4 +1,4 @@
-package clusterconfigs
+package types
 
 import "fmt"
 
@@ -7,16 +7,16 @@ func mergeValue[T comparable](old T, new T, allowChange bool) (T, error) {
 	if old != zeroValue && new != zeroValue && new != old && !allowChange {
 		return zeroValue, fmt.Errorf("value has changed")
 	}
-	if old == zeroValue {
+	if new != zeroValue {
 		return new, nil
 	}
 	return old, nil
 }
 
-// Merge applies updates from non-empty values of the new ClusterConfig to an existing one.
-// Merge will return an error if we try to update a config that must not be updated. once such an operation is implemented in the future, we can allow the change here.
-// Merge will create a new ClusterConfig object to avoid mutating the existing config objects.
-func Merge(existing ClusterConfig, new ClusterConfig) (ClusterConfig, error) {
+// MergeClusterConfig applies updates from non-empty values of the new ClusterConfig to an existing one.
+// MergeClusterConfig will return an error if we try to update a config that must not be updated. once such an operation is implemented in the future, we can allow the change here.
+// MergeClusterConfig will create a new ClusterConfig object to avoid mutating the existing config objects.
+func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfig, error) {
 	var (
 		config ClusterConfig
 		err    error
@@ -40,7 +40,7 @@ func Merge(existing ClusterConfig, new ClusterConfig) (ClusterConfig, error) {
 		{name: "authorization-mode", val: &config.APIServer.AuthorizationMode, old: existing.APIServer.AuthorizationMode, new: new.APIServer.AuthorizationMode, allowChange: true},
 		{name: "service account key", val: &config.APIServer.ServiceAccountKey, old: existing.APIServer.ServiceAccountKey, new: new.APIServer.ServiceAccountKey},
 		{name: "cluster cidr", val: &config.Cluster.CIDR, old: existing.Cluster.CIDR, new: new.Cluster.CIDR},
-		{name: "datastore", val: &config.APIServer.Datastore, old: existing.APIServer.Datastore, new: new.APIServer.Datastore, allowChange: true},
+		{name: "datastore", val: &config.APIServer.Datastore, old: existing.APIServer.Datastore, new: new.APIServer.Datastore},
 		{name: "datastore url", val: &config.APIServer.DatastoreURL, old: existing.APIServer.DatastoreURL, new: new.APIServer.DatastoreURL, allowChange: true},
 		{name: "datastore ca", val: &config.APIServer.DatastoreCA, old: existing.APIServer.DatastoreCA, new: new.APIServer.DatastoreCA, allowChange: true},
 		{name: "datastore client certificate", val: &config.APIServer.DatastoreClientCert, old: existing.APIServer.DatastoreClientCert, new: new.APIServer.DatastoreClientCert, allowChange: true},
