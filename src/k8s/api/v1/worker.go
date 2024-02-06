@@ -1,15 +1,5 @@
 package v1
 
-// WorkerNodeTokenRequest is used to request a token for joining the cluster as a worker node.
-type WorkerNodeTokenRequest struct{}
-
-// WorkerNodeTokenResponse is used to return a token for joining worker nodes in the cluster.
-type WorkerNodeTokenResponse struct {
-	// We want to be able to quickly find the worker tokens in the code, but have the same
-	// JSON response for control-plane and worker nodes, thus the discrepancy in naming.
-	EncodedToken string `json:"token"`
-}
-
 // WorkerNodeInfoRequest is used by a worker node to retrieve the required credentials
 // to join a cluster.
 type WorkerNodeInfoRequest struct {
