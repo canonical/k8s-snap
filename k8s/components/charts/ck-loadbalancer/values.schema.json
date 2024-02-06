@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema#",
+  "type": "object",
+  "properties": {
+    "l2": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "interfaces": {
+          "type": [ "array", "null" ],
+          "items": [
+            {
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    "ipPool": {
+      "type": "object",
+      "properties": {
+        "cidrs": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "cidr": {
+                  "type": "string"
+                }
+              },
+              "required": ["cidr"]
+            }
+          ]
+        }
+      },
+      "required": ["cidrs"]
+    },
+    "bgp": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "localASN": {
+          "type": "integer"
+        },
+        "neighbors": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "peerAddress": {
+                  "type": "string"
+                },
+                "peerASN": {
+                  "type": "integer"
+                },
+                "peerPort": {
+                  "type": "integer"
+                }
+              },
+              "required": ["peerAddress", "peerASN", "peerPort"]
+            }
+          ]
+        }
+      },
+      "required": ["localASN", "neighbors"]
+    }
+  },
+  "required": ["l2", "ipPool", "bgp"]
+}

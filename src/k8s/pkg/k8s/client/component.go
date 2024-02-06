@@ -82,3 +82,14 @@ func (c *Client) UpdateGatewayComponent(ctx context.Context, request api.UpdateG
 	}
 	return nil
 }
+
+func (c *Client) UpdateLoadBalancerComponent(ctx context.Context, request api.UpdateLoadBalancerComponentRequest) error {
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	var response api.UpdateLoadBalancerComponentResponse
+	if err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "loadbalancer"), request, &response); err != nil {
+		return fmt.Errorf("failed to enable loadbalancer component: %w", err)
+	}
+	return nil
+}

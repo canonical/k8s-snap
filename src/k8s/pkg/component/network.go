@@ -58,10 +58,6 @@ func EnableNetworkComponent(s snap.Snap) error {
 		"nodePort": map[string]any{
 			"enabled": true,
 		},
-
-		"l2announcements": map[string]any{
-			"enabled": true,
-		},
 	}
 
 	if s.IsStrict() {

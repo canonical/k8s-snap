@@ -1,0 +1,18 @@
+{{- if .Values.bgp.enabled }}
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumBGPPeeringPolicy
+metadata:
+  name: {{ include "ck-loadbalancer.fullname" . }}
+  labels:
+    {{- include "ck-loadbalancer.labels" . | nindent 4 }}
+spec:
+ virtualRouters:
+ - localASN: {{ .Values.bgp.localASN }}
+   serviceSelector:
+    matchExpressions:
+    - {key: somekey, operator: NotIn, values: ['never-used-value']}
+  {{- with .Values.bgp.neighbors }}
+   neighbors:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end}}

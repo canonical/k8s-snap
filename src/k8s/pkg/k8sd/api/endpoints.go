@@ -71,6 +71,11 @@ var Endpoints = []rest.Endpoint{
 		Path: "k8sd/components/gateway",
 		Put:  rest.EndpointAction{Handler: putGatewayComponent},
 	},
+	{
+		Name: "LoadBalancerComponent",
+		Path: "k8sd/components/loadbalancer",
+		Put:  rest.EndpointAction{Handler: putLoadBalancerComponent},
+	},
 	// Kubernetes auth tokens and token review webhook for kube-apiserver
 	{
 		Name: "KubernetesAuthTokens",

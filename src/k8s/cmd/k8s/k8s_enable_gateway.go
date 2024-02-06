@@ -25,8 +25,7 @@ var enableGatewayCmd = &cobra.Command{
 			Status: api.ComponentEnable,
 		}
 
-		err = client.UpdateGatewayComponent(cmd.Context(), request)
-		if err != nil {
+		if err := client.UpdateGatewayComponent(cmd.Context(), request); err != nil {
 			return fmt.Errorf("failed to enable Storage component: %w", err)
 		}
 

@@ -35,8 +35,7 @@ var enableDNSCmd = &cobra.Command{
 			},
 		}
 
-		err = client.UpdateDNSComponent(cmd.Context(), request)
-		if err != nil {
+		if err := client.UpdateDNSComponent(cmd.Context(), request); err != nil {
 			return fmt.Errorf("failed to enable DNS component: %w", err)
 		}
 

@@ -19,4 +19,8 @@ func init() {
 	rootCmd.AddCommand(disableCmd)
 	disableCmd.AddCommand(disableDNSCmd)
 	disableCmd.AddCommand(disableNetworkCmd)
+	disableCmd.AddCommand(disableStorageCmd)
+	disableCmd.AddCommand(disableIngressCmd)
+	disableCmd.AddCommand(disableGatewayCmd)
+	disableCmd.AddCommand(disableLoadBalancerCmd)
 }
