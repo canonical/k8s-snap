@@ -152,14 +152,13 @@ func putLoadBalancerComponent(s *state.State, r *http.Request) response.Response
 	var req api.UpdateLoadBalancerComponentRequest
 	snap := snap.SnapFromContext(s.Context)
 
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
 	}
 
 	switch req.Status {
 	case api.ComponentEnable:
-		err = component.EnableLoadBalancerComponent(
+		if err := component.EnableLoadBalancerComponent(
 			snap,
 			req.Config.CIDRs,
 			req.Config.L2Enabled,
@@ -169,13 +168,11 @@ func putLoadBalancerComponent(s *state.State, r *http.Request) response.Response
 			req.Config.BGPPeerAddress,
 			req.Config.BGPPeerASN,
 			req.Config.BGPPeerPort,
-		)
-		if err != nil {
+		); err != nil {
 			return response.SmartError(fmt.Errorf("failed to enable loadbalancer: %w", err))
 		}
 	case api.ComponentDisable:
-		err = component.DisableLoadBalancerComponent(snap)
-		if err != nil {
+		if err := component.DisableLoadBalancerComponent(snap); err != nil {
 			return response.SmartError(fmt.Errorf("failed to disable loadbalancer: %w", err))
 		}
 	default:

@@ -88,8 +88,7 @@ func (c *Client) UpdateLoadBalancerComponent(ctx context.Context, request api.Up
 	defer cancel()
 
 	var response api.UpdateLoadBalancerComponentResponse
-	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "loadbalancer"), request, &response)
-	if err != nil {
+	if err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "loadbalancer"), request, &response); err != nil {
 		return fmt.Errorf("failed to enable loadbalancer component: %w", err)
 	}
 	return nil
