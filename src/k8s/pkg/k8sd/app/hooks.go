@@ -1,15 +1,13 @@
 package app
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"path"
 
 	"github.com/canonical/k8s/pkg/k8s/setup"
-	"github.com/canonical/k8s/pkg/k8sd/database/clusterconfigs"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
 	"github.com/canonical/microcluster/state"
 )
@@ -19,13 +17,9 @@ import (
 func onPostJoin(s *state.State, initConfig map[string]string) error {
 	snap := snap.SnapFromContext(s.Context)
 
-	var clusterConfig clusterconfigs.ClusterConfig
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-		var err error
-		clusterConfig, err = clusterconfigs.GetClusterConfig(ctx, tx)
-		return err
-	}); err != nil {
-		return fmt.Errorf("failed to retrieve the cluster configuration from the database: %w", err)
+	clusterConfig, err := utils.GetClusterConfig(s.Context, s)
+	if err != nil {
+		return fmt.Errorf("failed to get cluster config: %w", err)
 	}
 
 	if err := setup.InitFolders(snap.DataPath("args")); err != nil {

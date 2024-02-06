@@ -1,4 +1,4 @@
-package clusterconfigs
+package types
 
 import "fmt"
 
@@ -13,10 +13,10 @@ func mergeValue[T comparable](old T, new T, allowChange bool) (T, error) {
 	return old, nil
 }
 
-// Merge applies updates from non-empty values of the new ClusterConfig to an existing one.
-// Merge will return an error if we try to update a config that must not be updated. once such an operation is implemented in the future, we can allow the change here.
-// Merge will create a new ClusterConfig object to avoid mutating the existing config objects.
-func Merge(existing ClusterConfig, new ClusterConfig) (ClusterConfig, error) {
+// MergeClusterConfig applies updates from non-empty values of the new ClusterConfig to an existing one.
+// MergeClusterConfig will return an error if we try to update a config that must not be updated. once such an operation is implemented in the future, we can allow the change here.
+// MergeClusterConfig will create a new ClusterConfig object to avoid mutating the existing config objects.
+func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfig, error) {
 	var (
 		config ClusterConfig
 		err    error
