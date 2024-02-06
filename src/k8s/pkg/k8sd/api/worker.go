@@ -9,43 +9,11 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
-	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
-
-func postWorkerToken(s *state.State, r *http.Request) response.Response {
-	var token string
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-		var err error
-		token, err = database.GetOrCreateWorkerNodeToken(ctx, tx)
-		if err != nil {
-			return fmt.Errorf("failed to create worker node token: %w", err)
-		}
-		return nil
-	}); err != nil {
-		return response.InternalError(fmt.Errorf("database transaction failed: %w", err))
-	}
-
-	remoteAddresses := s.Remotes().Addresses()
-	addresses := make([]string, 0, len(remoteAddresses))
-	for _, addrPort := range remoteAddresses {
-		addresses = append(addresses, addrPort.String())
-	}
-
-	info := &types.InternalWorkerNodeToken{
-		Token:         token,
-		JoinAddresses: addresses,
-	}
-	token, err := info.Encode()
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to encode join token: %w", err))
-	}
-
-	return response.SyncResponse(true, &apiv1.WorkerNodeTokenResponse{EncodedToken: token})
-}
 
 func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	// TODO: move authentication through the HTTP token to an AccessHandler for the endpoint.

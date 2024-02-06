@@ -3,47 +3,29 @@ package client
 import (
 	"context"
 	"fmt"
-	"time"
+	"os"
 
-	"github.com/canonical/k8s/pkg/k8sd/types"
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
+	"github.com/canonical/lxd/shared/api"
 )
-
-func (c *Client) joinWorkerNode(ctx context.Context, name, address, token string) error {
-	return c.m.NewCluster(name, address, map[string]string{"workerToken": token}, time.Second*180)
-}
-
-func (c *Client) joinControlPlaneNode(ctx context.Context, name, address, token string) error {
-	return c.m.JoinCluster(name, address, token, nil, time.Second*180)
-}
 
 func (c *Client) JoinNode(ctx context.Context, name string, address string, token string) error {
 	if err := c.m.Ready(30); err != nil {
 		return fmt.Errorf("cluster did not come up in time: %w", err)
 	}
 
-	// differentiate between control plane and worker node tokens
-	info := &types.InternalWorkerNodeToken{}
-	if info.Decode(token) == nil {
-		// valid worker node token
-		if err := c.joinWorkerNode(ctx, name, address, token); err != nil {
-
-			// TODO: Handle worker node specific cleanup.
-			// If the node setup unrecoverably fails after the worker has
-			// registered itself to the cluster, the worker needs to remove itself again.
-			// For that:
-			//  - we need an endpoint on the control-plane with which workers can remove themselves.
-			//  - we need unique worker tokens (right now, all workers share the same one) so that
-			//    each worker can only remove itself and not other workers.
-			return fmt.Errorf("failed to join k8sd cluster as worker: %w", err)
-		}
-	} else {
-		if err := c.joinControlPlaneNode(ctx, name, address, token); err != nil {
-			// TODO(neoaggelos): print message that join failed, and that we are cleaning up
-			c.CleanupNode(ctx, name)
-			return fmt.Errorf("failed to join k8sd cluster as control plane: %w", err)
-		}
+	request := apiv1.JoinNodeRequest{
+		Address: address,
+		Token:   token,
+	}
+	var response apiv1.JoinNodeResponse
+	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", name), request, &response)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "failed to join node. Cleaning up now")
+		c.CleanupNode(ctx, name)
+		return fmt.Errorf("failed to query endpoint POST /k8sd/cluster/%s: %w", name, err)
 	}
 
 	c.WaitForDqliteNodeToBeReady(ctx, name)

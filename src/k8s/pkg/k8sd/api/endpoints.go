@@ -12,12 +12,22 @@ var Endpoints = []rest.Endpoint{
 		Path: "k8sd/cluster",
 		Get:  rest.EndpointAction{Handler: getClusterStatus},
 	},
-	// Worker nodes
+	// Clustering
+	// Unified token endpoint for both, control-plane and worker-node.
 	{
-		Name: "WorkerToken",
-		Path: "k8sd/worker/tokens",
-		Post: rest.EndpointAction{Handler: postWorkerToken},
+		Name: "Tokens",
+		Path: "k8sd/tokens",
+		Post: rest.EndpointAction{Handler: postTokens},
 	},
+	{
+		Name: "JoinNode",
+		Path: "k8sd/cluster/{node}",
+		Post: rest.EndpointAction{Handler: postClusterNode},
+		// Joining a node is a bootstrapping action which needs to be
+		// available before k8sd is initialized.
+		AllowedBeforeInit: true,
+	},
+	// Worker nodes
 	{
 		Name: "WorkerInfo",
 		Path: "k8sd/worker/info",

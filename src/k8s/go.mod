@@ -8,6 +8,7 @@ require (
 	github.com/canonical/lxd v0.0.0-20231002162033-38796399c135
 	github.com/canonical/microcluster v0.0.0-20240122235408-1525f8ea8d7a
 	github.com/docker/docker v24.0.7+incompatible
+	github.com/gorilla/mux v1.8.0
 	github.com/mattn/go-sqlite3 v1.14.18
 	github.com/moby/sys/mountinfo v0.6.2
 	github.com/onsi/gomega v1.30.0
@@ -84,7 +85,6 @@ require (
 	github.com/google/renameio v1.0.1 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.4.0 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
