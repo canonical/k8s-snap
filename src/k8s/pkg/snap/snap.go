@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
 
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	"gopkg.in/yaml.v2"
 )
@@ -29,11 +30,11 @@ func NewSnap(snapDir, snapCommonDir string) *snap {
 }
 
 func (s *snap) path(parts ...string) string {
-	return filepath.Join(append([]string{s.snapDir}, parts...)...)
+	return path.Join(append([]string{s.snapDir}, parts...)...)
 }
 
 func (s *snap) commonPath(parts ...string) string {
-	return filepath.Join(append([]string{s.snapCommonDir}, parts...)...)
+	return path.Join(append([]string{s.snapCommonDir}, parts...)...)
 }
 
 // serviceName infers the name of the snapctl daemon from the service name.
@@ -85,15 +86,15 @@ func (s *snap) GID() int {
 }
 
 func (s *snap) ContainerdConfigDir() string {
-	return filepath.Join(s.snapCommonDir, "etc", "containerd")
+	return path.Join(s.snapCommonDir, "etc", "containerd")
 }
 
 func (s *snap) ContainerdRootDir() string {
-	return filepath.Join(s.snapCommonDir, "var", "lib", "containerd")
+	return path.Join(s.snapCommonDir, "var", "lib", "containerd")
 }
 
 func (s *snap) ContainerdSocketDir() string {
-	return filepath.Join(s.snapCommonDir, "run")
+	return path.Join(s.snapCommonDir, "run")
 }
 
 func (s *snap) ContainerdStateDir() string {
@@ -109,7 +110,7 @@ func (s *snap) CNIBinDir() string {
 }
 
 func (s *snap) CNIPluginsBinary() string {
-	return filepath.Join(s.snapDir, "bin", "cni")
+	return path.Join(s.snapDir, "bin", "cni")
 }
 
 func (s *snap) CNIPlugins() []string {
@@ -146,27 +147,60 @@ func (s *snap) KubeletRootDir() string {
 }
 
 func (s *snap) K8sdStateDir() string {
-	return filepath.Join(s.snapCommonDir, "var", "lib", "k8sd", "state")
+	return path.Join(s.snapCommonDir, "var", "lib", "k8sd", "state")
 }
 
 func (s *snap) K8sDqliteStateDir() string {
-	return filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite")
+	return path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite")
 }
 
 func (s *snap) ServiceArgumentsDir() string {
-	return filepath.Join(s.snapCommonDir, "args")
+	return path.Join(s.snapCommonDir, "args")
 }
 
 func (s *snap) ServiceExtraConfigDir() string {
-	return filepath.Join(s.snapCommonDir, "args", "conf.d")
+	return path.Join(s.snapCommonDir, "args", "conf.d")
 }
 
 func (s *snap) ContainerdExtraConfigDir() string {
-	return filepath.Join(s.snapCommonDir, "etc", "containerd", "conf.d")
+	return path.Join(s.snapCommonDir, "etc", "containerd", "conf.d")
 }
 
 func (s *snap) ContainerdRegistryConfigDir() string {
-	return filepath.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
+	return path.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
+}
+
+func (s *snap) Components() map[string]types.Component {
+	return map[string]types.Component{
+		"network": {
+			ReleaseName:  "ck-network",
+			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "cilium-1.14.1.tgz"),
+			Namespace:    "kube-system",
+		},
+		"dns": {
+			ReleaseName:  "ck-dns",
+			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "coredns-1.29.0.tgz"),
+			Namespace:    "kube-system",
+		},
+		"storage": {
+			ReleaseName:  "ck-storage",
+			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "hostpath-provisioner-0.1.0.tgz"),
+			Namespace:    "kube-system",
+		},
+		"ingress": {
+			DependsOn: "network",
+		},
+		"gateway": {
+			ReleaseName:  "ck-gateway",
+			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "gateway-api-0.7.1.tgz"),
+			Namespace:    "kube-system",
+		},
+		"loadbalancer": {
+			ReleaseName:  "ck-loadbalancer",
+			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "ck-loadbalancer"),
+			Namespace:    "kube-system",
+		},
+	}
 }
 
 var _ Snap = &snap{}

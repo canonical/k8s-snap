@@ -5,9 +5,9 @@ import (
 	"os"
 	"sort"
 
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/cli"
@@ -16,18 +16,9 @@ import (
 // defaultHelmConfigProvider implements the HelmConfigInitializer interface
 type defaultHelmConfigProvider struct{}
 
-// componentDefinition defines each component metadata.
-type componentDefinition struct {
-	ParentComponent string `mapstructure:"parent"`
-	ReleaseName     string `mapstructure:"release"`
-	Chart           string `mapstructure:"chart"`
-	Namespace       string `mapstructure:"namespace"`
-}
-
 // helmClient implements the ComponentManager interface
 type helmClient struct {
-	config      map[string]componentDefinition
-	snap        snap.Snap
+	components  map[string]types.Component
 	initializer HelmConfigProvider
 }
 
@@ -67,29 +58,15 @@ func NewHelmClient(snap snap.Snap, initializer HelmConfigProvider) (*helmClient,
 		initializer = &defaultHelmConfigProvider{}
 	}
 
-	viper.SetConfigName("components")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(snap.Path("k8s/components"))
-
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
-	}
-
-	config := make(map[string]componentDefinition)
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, err
-	}
-
 	return &helmClient{
-		config:      config,
-		snap:        snap,
+		components:  snap.Components(),
 		initializer: initializer,
 	}, nil
 }
 
 // Enable enables a specified component.
 func (h *helmClient) Enable(name string, values map[string]any) error {
-	component, ok := h.config[name]
+	component, ok := h.components[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
 	}
@@ -112,7 +89,7 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 		return nil
 	}
 
-	chart, err := loader.Load(h.snap.Path("k8s/components/charts", component.Chart))
+	chart, err := loader.Load(component.ManifestPath)
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
@@ -161,11 +138,11 @@ func (h *helmClient) List() ([]Component, error) {
 		return nil, fmt.Errorf("failed to list components: %w", err)
 	}
 
-	allComponents := make([]Component, 0, len(h.config))
+	allComponents := make([]Component, 0, len(h.components))
 	componentsMap := make(map[string]int)
 
 	// Loop through components and populate allComponents and componentsMap
-	for name, component := range h.config {
+	for name, component := range h.components {
 		index := len(componentsMap)
 
 		allComponents = append(allComponents, Component{Name: name})
@@ -194,7 +171,7 @@ func (h *helmClient) Disable(name string) error {
 	}
 
 	uninstall := action.NewUninstall(actionConfig)
-	component, ok := h.config[name]
+	component, ok := h.components[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
 	}
@@ -223,7 +200,7 @@ func (h *helmClient) Refresh(name string, values map[string]any) error {
 		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
 
-	component, ok := h.config[name]
+	component, ok := h.components[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
 	}
@@ -232,7 +209,7 @@ func (h *helmClient) Refresh(name string, values map[string]any) error {
 	upgrade.Namespace = component.Namespace
 	upgrade.ReuseValues = true
 
-	chart, err := loader.Load(h.snap.Path("k8s/components/charts", component.Chart))
+	chart, err := loader.Load(component.ManifestPath)
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}

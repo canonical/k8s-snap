@@ -1,6 +1,10 @@
 package snap
 
-import "context"
+import (
+	"context"
+
+	"github.com/canonical/k8s/pkg/k8sd/types"
+)
 
 // Snap abstracts file system paths and interacting with the k8s services.
 type Snap interface {
@@ -33,4 +37,6 @@ type Snap interface {
 
 	ServiceArgumentsDir() string   // /var/snap/k8s/common/args
 	ServiceExtraConfigDir() string // /var/snap/k8s/common/args/conf.d
+
+	Components() map[string]types.Component // available components
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	componentmock "github.com/canonical/k8s/pkg/component/mock"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
 	. "github.com/onsi/gomega"
 	"helm.sh/helm/v3/pkg/action"
@@ -97,21 +98,6 @@ func mustMakeMeSomeReleases(store *storage.Storage, t *testing.T) (all []*releas
 
 var componentsNone = ``
 
-var components = `
-one:
-  release: "whiskas-1"
-  chart: "chunky-tuna-1.14.1.tgz"
-  namespace: "default"
-two:
-  release: "whiskas-2"
-  chart: "tuna-1.29.0.tgz"
-  namespace: "default"
-three:
-  release: "whiskas-3"
-  chart: "chunky-1.29.0.tgz"
-  namespace: "default"
-`
-
 func mustCreateTemporaryTestDirectory(t *testing.T) string {
 	// Create a temporary test directory to mock the snap
 	// <tempDir>
@@ -137,7 +123,7 @@ func mustAddConfigToTestDir(t *testing.T, path string, data string) {
 	}
 }
 
-func mustCreateNewHelmClient(t *testing.T, components string) (*helmClient, string, *action.Configuration) {
+func mustCreateNewHelmClient(t *testing.T, components map[string]types.Component) (*helmClient, string, *action.Configuration) {
 	// Create a mock actionConfig for testing
 	mockActionConfig := actionConfigFixture(t)
 	// Create a mock HelmClient with the desired behavior for testing
@@ -146,12 +132,11 @@ func mustCreateNewHelmClient(t *testing.T, components string) (*helmClient, stri
 	// create test directory to use for the snap mock
 	tempDir := mustCreateTemporaryTestDirectory(t)
 
-	// Create a file and add some configs
-	mustAddConfigToTestDir(t, filepath.Join(tempDir, "k8s", "components", "components.yaml"), components)
-
 	// Create mock snap
 	snap := &snapmock.Snap{
-		PathPrefix: tempDir,
+		Mock: snapmock.Mock{
+			Components: components,
+		},
 	}
 
 	//Create a mock ComponentManager with the mock HelmClient
@@ -166,7 +151,7 @@ func mustCreateNewHelmClient(t *testing.T, components string) (*helmClient, stri
 func TestListEmptyComponents(t *testing.T) {
 	g := NewWithT(t)
 	// Create a mock ComponentManager with no components
-	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, componentsNone)
+	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, nil)
 	defer os.RemoveAll(tempDir)
 
 	// Call the List function with the mock HelmClient
@@ -181,7 +166,24 @@ func TestListComponentsWithReleases(t *testing.T) {
 
 	// Create a mock ComponentManager with the mock HelmClient
 	// This mock uses components.yaml for the snap mock components
-	mockHelmClient, tempDir, mockActionConfig := mustCreateNewHelmClient(t, components)
+	mockHelmClient, tempDir, mockActionConfig := mustCreateNewHelmClient(t, map[string]types.Component{
+		"one": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-1.14.1.tgz",
+		},
+		"two": {
+			ReleaseName:  "whiskas-2",
+			Namespace:    "default",
+			ManifestPath: "tuna-1.29.0.tgz",
+		},
+		"three": {
+			ReleaseName:  "whiskas-3",
+			Namespace:    "default",
+			ManifestPath: "chunky-1.29.0.tgz",
+		},
+	})
+
 	defer os.RemoveAll(tempDir)
 
 	// Create releases in the mock actionConfig
@@ -192,9 +194,9 @@ func TestListComponentsWithReleases(t *testing.T) {
 	components, err := mockHelmClient.List()
 
 	g.Expect(err).To(BeNil())
-	g.Expect(components).To(HaveLen(3))
-
-	g.Expect(components[0]).To(Equal(Component{Name: "one", Status: true}))
-	g.Expect(components[2]).To(Equal(Component{Name: "two", Status: true}))
-	g.Expect(components[1]).To(Equal(Component{Name: "three", Status: true}))
+	g.Expect(components).To(Equal([]Component{
+		{Name: "one", Status: true},
+		{Name: "three", Status: true},
+		{Name: "two", Status: true},
+	}))
 }

@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
 
@@ -27,6 +28,7 @@ type Mock struct {
 	K8sDqliteStateDir           string
 	ServiceArgumentsDir         string
 	ServiceExtraConfigDir       string
+	Components                  map[string]types.Component
 }
 
 // Snap is a mock implementation for snap.Snap.
@@ -125,6 +127,9 @@ func (s *Snap) ServiceArgumentsDir() string {
 }
 func (s *Snap) ServiceExtraConfigDir() string {
 	return s.Mock.ServiceExtraConfigDir
+}
+func (s *Snap) Components() map[string]types.Component {
+	return s.Mock.Components
 }
 
 var _ snap.Snap = &Snap{}
