@@ -25,7 +25,7 @@ func KubeControllerManager(snap snap.Snap) error {
 	// enable cluster-signing if certificates are available
 	if _, err := os.Stat(path.Join(snap.KubernetesPKIDir(), "ca.key")); err == nil {
 		args["--cluster-signing-cert-file"] = path.Join(snap.KubernetesPKIDir(), "ca.crt")
-		args["--cluster-signing-cert-key"] = path.Join(snap.KubernetesPKIDir(), "ca.key")
+		args["--cluster-signing-key-file"] = path.Join(snap.KubernetesPKIDir(), "ca.key")
 	}
 	if _, err := snaputil.UpdateServiceArguments(snap, "kube-controller-manager", args, nil); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
