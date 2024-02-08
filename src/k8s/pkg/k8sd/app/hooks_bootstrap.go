@@ -17,6 +17,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -136,13 +137,18 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	}
 	certificates := pki.NewControlPlanePKI(s.Name(), nil, []net.IP{nodeIP}, 10, true)
 
-	for action, f := range map[string]func() error{
-		"initialize cluster certificates": func() error { return certificates.CompleteCertificates() },
-		"create cluster directories":      func() error { return setup.EnsureAllDirectories(snap) },
-		"write cluster certificates":      func() error { return setup.EnsureControlPlanePKI(snap, certificates) },
+	type step struct {
+		name string
+		f    func() error
+	}
+
+	for _, step := range []step{
+		{"initialize cluster certificates", func() error { return certificates.CompleteCertificates() }},
+		{"create cluster directories", func() error { return setup.EnsureAllDirectories(snap) }},
+		{"write cluster certificates", func() error { return setup.EnsureControlPlanePKI(snap, certificates) }},
 	} {
-		if err := f(); err != nil {
-			return fmt.Errorf("failed to %s: %w", action, err)
+		if err := step.f(); err != nil {
+			return fmt.Errorf("failed to %s: %w", step.name, err)
 		}
 	}
 
@@ -177,37 +183,37 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		}
 	}
 
-	for action, f := range map[string]func() error{
-		"configure containerd": func() error { return setup.Containerd(snap) },
-		"configure k8s-dqlite": func() error {
+	for _, step := range []step{
+		{"configure containerd", func() error { return setup.Containerd(snap) }},
+		{"configure k8s-dqlite", func() error {
 			return setup.K8sDqlite(snap, fmt.Sprintf("%s:%d", nodeIP.String(), cfg.K8sDqlite.Port), nil)
-		},
-		"configure kubelet": func() error {
+		}},
+		{"configure kubelet", func() error {
 			return setup.Kubelet(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider)
-		},
-		"configure kube-proxy":              func() error { return setup.KubeProxy(snap, s.Name(), cfg.Network.PodCIDR) },
-		"configure kube-controller-manager": func() error { return setup.KubeControllerManager(snap) },
-		"configure kube-scheduler":          func() error { return setup.KubeScheduler(snap) },
-		"configure kube-apiserver": func() error {
+		}},
+		{"configure kube-proxy", func() error { return setup.KubeProxy(snap, s.Name(), cfg.Network.PodCIDR) }},
+		{"configure kube-controller-manager", func() error { return setup.KubeControllerManager(snap) }},
+		{"configure kube-scheduler", func() error { return setup.KubeScheduler(snap) }},
+		{"configure kube-apiserver", func() error {
 			return setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.AuthorizationMode)
-		},
-		"start control plane services": func() error { return snaputil.StartControlPlaneServices(s.Context, snap) },
+		}},
+		{"start control plane services", func() error { return snaputil.StartControlPlaneServices(s.Context, snap) }},
 	} {
-		if err := f(); err != nil {
-			return fmt.Errorf("failed to %s: %w", action, err)
+		if err := step.f(); err != nil {
+			return fmt.Errorf("failed to %s: %w", step.name, err)
 		}
 	}
 
-	// k8sClient, err := k8s.NewClient(snap)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to create k8s client: %w", err)
-	// }
+	k8sClient, err := k8s.NewClient(snap)
+	if err != nil {
+		return fmt.Errorf("failed to create k8s client: %w", err)
+	}
 
-	// // The apiserver needs to be ready to start components.
-	// err = k8s.WaitApiServerReady(s.Context, k8sClient)
-	// if err != nil {
-	// 	return fmt.Errorf("k8s api server did not become ready in time: %w", err)
-	// }
+	// The apiserver needs to be ready to start components.
+	err = k8s.WaitApiServerReady(s.Context, k8sClient)
+	if err != nil {
+		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
+	}
 
 	return nil
 }
