@@ -250,8 +250,8 @@ k8s::init::k8s_dqlite() {
 k8s::init::k8sd() {
   k8s::common::setup_env
 
-  mkdir -p "$SNAP_DATA/args"
-  cp "$SNAP/k8s/args/k8sd" "$SNAP_DATA/args/k8sd"
+  mkdir -p "$SNAP_COMMON/args"
+  cp "$SNAP/k8s/args/k8sd" "$SNAP_COMMON/args/k8sd"
 }
 
 # Initialize containerd for the local node
