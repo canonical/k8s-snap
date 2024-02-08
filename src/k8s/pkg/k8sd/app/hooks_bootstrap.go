@@ -2,7 +2,9 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -12,6 +14,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
+	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -202,6 +205,15 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		if err := step.f(); err != nil {
 			return fmt.Errorf("failed to %s: %w", step.name, err)
 		}
+	}
+
+	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+		if err := database.SetClusterConfig(ctx, tx, cfg); err != nil {
+			return fmt.Errorf("failed to write cluster configuration: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
 	}
 
 	k8sClient, err := k8s.NewClient(snap)
