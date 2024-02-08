@@ -44,37 +44,37 @@ var Endpoints = []rest.Endpoint{
 	{
 		Name: "Components",
 		Path: "k8sd/components",
-		Get:  rest.EndpointAction{Handler: getComponents},
+		Get:  rest.EndpointAction{Handler: getComponents, AccessHandler: WorkerRestricted},
 	},
 	{
 		Name: "DNSComponent",
 		Path: "k8sd/components/dns",
-		Put:  rest.EndpointAction{Handler: putDNSComponent},
+		Put:  rest.EndpointAction{Handler: putDNSComponent, AccessHandler: WorkerRestricted},
 	},
 	{
 		Name: "NetworkComponent",
 		Path: "k8sd/components/network",
-		Put:  rest.EndpointAction{Handler: putNetworkComponent},
+		Put:  rest.EndpointAction{Handler: putNetworkComponent, AccessHandler: WorkerRestricted},
 	},
 	{
 		Name: "StorageComponent",
 		Path: "k8sd/components/storage",
-		Put:  rest.EndpointAction{Handler: putStorageComponent},
+		Put:  rest.EndpointAction{Handler: putStorageComponent, AccessHandler: WorkerRestricted},
 	},
 	{
 		Name: "IngressComponent",
 		Path: "k8sd/components/ingress",
-		Put:  rest.EndpointAction{Handler: putIngressComponent},
+		Put:  rest.EndpointAction{Handler: putIngressComponent, AccessHandler: WorkerRestricted},
 	},
 	{
 		Name: "GatewayComponent",
 		Path: "k8sd/components/gateway",
-		Put:  rest.EndpointAction{Handler: putGatewayComponent},
+		Put:  rest.EndpointAction{Handler: putGatewayComponent, AccessHandler: WorkerRestricted},
 	},
 	{
 		Name: "LoadBalancerComponent",
 		Path: "k8sd/components/loadbalancer",
-		Put:  rest.EndpointAction{Handler: putLoadBalancerComponent},
+		Put:  rest.EndpointAction{Handler: putLoadBalancerComponent, AccessHandler: WorkerRestricted},
 	},
 	// Kubernetes auth tokens and token review webhook for kube-apiserver
 	{

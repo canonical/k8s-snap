@@ -14,6 +14,11 @@ func InitFolders(argsDir string) error {
 		return fmt.Errorf("failed to create arguments directory: %w", err)
 	}
 
+	err = os.MkdirAll("/var/snap/k8s/common/lock", os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to create lock directory: %w", err)
+	}
+
 	err = os.MkdirAll(cert.KubePkiPath, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed to create pki directory: %w", err)
