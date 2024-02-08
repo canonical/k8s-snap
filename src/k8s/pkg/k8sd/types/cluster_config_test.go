@@ -17,8 +17,8 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 	}
 
 	expectedConfig := types.ClusterConfig{
-		Cluster: types.Cluster{
-			CIDR: "10.1.0.0/16",
+		Network: types.Network{
+			PodCIDR: "10.1.0.0/16",
 		},
 	}
 
@@ -67,13 +67,14 @@ func TestMergeClusterConfig(t *testing.T) {
 		generateMergeClusterConfigTestCases("CAKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.CAKey = v.(string) }),
 		generateMergeClusterConfigTestCases("K8sDqliteCert", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.K8sDqliteCert = v.(string) }),
 		generateMergeClusterConfigTestCases("K8sDqliteKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.K8sDqliteKey = v.(string) }),
-		generateMergeClusterConfigTestCases("APIServerToKubeletCert", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.APIServerToKubeletCert = v.(string) }),
-		generateMergeClusterConfigTestCases("APIServerToKubeletKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.APIServerToKubeletKey = v.(string) }),
+		generateMergeClusterConfigTestCases("APIServerKubeletClientCert", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.APIServerKubeletClientCert = v.(string) }),
+		generateMergeClusterConfigTestCases("APIServerKubeletClientKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.APIServerKubeletClientKey = v.(string) }),
 		generateMergeClusterConfigTestCases("FrontProxyCACert", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.FrontProxyCACert = v.(string) }),
 		generateMergeClusterConfigTestCases("FrontProxyCAKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.FrontProxyCAKey = v.(string) }),
 		generateMergeClusterConfigTestCases("AuthorizationMode", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.APIServer.AuthorizationMode = v.(string) }),
 		generateMergeClusterConfigTestCases("ServiceAccountKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.APIServer.ServiceAccountKey = v.(string) }),
-		generateMergeClusterConfigTestCases("ClusterCIDR", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Cluster.CIDR = v.(string) }),
+		generateMergeClusterConfigTestCases("PodCIDR", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Network.PodCIDR = v.(string) }),
+		generateMergeClusterConfigTestCases("ServiceCIDR", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Network.ServiceCIDR = v.(string) }),
 		generateMergeClusterConfigTestCases("Datastore", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.APIServer.Datastore = v.(string) }),
 		generateMergeClusterConfigTestCases("DatastoreURL", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.APIServer.DatastoreURL = v.(string) }),
 		generateMergeClusterConfigTestCases("DatastoreCA", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.APIServer.DatastoreCA = v.(string) }),

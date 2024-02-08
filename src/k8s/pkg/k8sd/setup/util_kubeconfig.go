@@ -29,8 +29,8 @@ func renderKubeconfig(writer io.Writer, token string, url string, caPEM string) 
 	return nil
 }
 
-// writeKubeconfigToFile writes a kubeconfig file to disk.
-func writeKubeconfigToFile(path string, token string, url string, caPEM string) error {
+// Kubeconfig writes a kubeconfig file to disk.
+func Kubeconfig(path string, token string, url string, caPEM string) error {
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)

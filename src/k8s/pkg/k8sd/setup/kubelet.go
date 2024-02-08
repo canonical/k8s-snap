@@ -2,7 +2,7 @@ package setup
 
 import (
 	"fmt"
-	"os"
+	"net"
 	"path"
 
 	"github.com/canonical/k8s/pkg/snap"
@@ -10,18 +10,8 @@ import (
 )
 
 // Kubelet configures kubelet on the local node.
-func Kubelet(snap snap.Snap, caPEM string, hostname string, crtPEM string, keyPEM string, token string, clusterDNS string, clusterDomain string, cloudProvider string) error {
-	if err := writeKubeconfigToFile(path.Join(snap.KubernetesConfigDir(), "kubelet.conf"), token, "127.0.0.1:6443", caPEM); err != nil {
-		return fmt.Errorf("failed to write kubelet.conf: %w", err)
-	}
-	// TODO(neoaggelos): figure out who writes certificates to disk
-	if err := os.WriteFile(path.Join(snap.KubernetesPKIDir(), "kubelet.crt"), []byte(crtPEM), 0600); err != nil {
-		return fmt.Errorf("failed to write kubelet.crt: %w", err)
-	}
-	if err := os.WriteFile(path.Join(snap.KubernetesPKIDir(), "kubelet.key"), []byte(keyPEM), 0600); err != nil {
-		return fmt.Errorf("failed to write kubelet.key: %w", err)
-	}
-	if _, err := snaputil.UpdateServiceArguments(snap, "kubelet", map[string]string{
+func Kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string) error {
+	args := map[string]string{
 		"--kubeconfig":                   path.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
 		"--client-ca-file":               path.Join(snap.KubernetesPKIDir(), "ca.crt"),
 		"--cert-dir":                     snap.KubernetesConfigDir(),
@@ -39,7 +29,11 @@ func Kubelet(snap snap.Snap, caPEM string, hostname string, crtPEM string, keyPE
 		"--cluster-domain":               clusterDomain,
 		"--cluster-dns":                  clusterDNS,
 		"--cloud-provider":               cloudProvider,
-	}, nil); err != nil {
+	}
+	if nodeIP != nil {
+		args["--node-ip"] = nodeIP.String()
+	}
+	if _, err := snaputil.UpdateServiceArguments(snap, "kubelet", args, nil); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
 	}
 	return nil

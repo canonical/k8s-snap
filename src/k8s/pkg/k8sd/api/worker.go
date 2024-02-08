@@ -93,7 +93,7 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
 		CA:             clusterConfig.Certificates.CACert,
 		APIServers:     servers,
-		ClusterCIDR:    clusterConfig.Cluster.CIDR,
+		ClusterCIDR:    clusterConfig.Network.PodCIDR,
 		KubeletToken:   kubeletToken,
 		KubeProxyToken: proxyToken,
 		ClusterDomain:  clusterConfig.Kubelet.ClusterDomain,

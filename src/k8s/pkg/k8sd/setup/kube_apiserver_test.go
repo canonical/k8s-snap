@@ -28,7 +28,7 @@ func TestKubeAPIServer(t *testing.T) {
 	}
 
 	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
-	g.Expect(setup.KubeAPIServer(s, "CA PEM", "CERT", "KEY", "CLIENT CERT", "CLIENT KEY", "10.152.0.0/16", "https://10.0.0.1:6400/1.0/kubernetes/auth/webhook", false, "k8s-dqlite", "Node,RBAC")).To(BeNil())
+	g.Expect(setup.KubeAPIServer(s, "10.152.0.0/16", "https://10.0.0.1:6400/1.0/kubernetes/auth/webhook", false, "k8s-dqlite", "Node,RBAC")).To(BeNil())
 
 	// t.Run("Config", func(t *testing.T) {
 	// 	g := NewWithT(t)

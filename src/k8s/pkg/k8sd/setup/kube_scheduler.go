@@ -9,10 +9,7 @@ import (
 )
 
 // KubeScheduler configures kube-scheduler on the local node.
-func KubeScheduler(snap snap.Snap, caPEM string, haveCAKey bool, token string) error {
-	if err := writeKubeconfigToFile(path.Join(snap.KubernetesConfigDir(), "scheduler.conf"), token, "127.0.0.1:6443", caPEM); err != nil {
-		return fmt.Errorf("failed to write scheduler.conf: %w", err)
-	}
+func KubeScheduler(snap snap.Snap) error {
 	if _, err := snaputil.UpdateServiceArguments(snap, "kube-controller-manager", map[string]string{
 		"--kubeconfig":                  path.Join(snap.KubernetesConfigDir(), "controller.conf"),
 		"--authorization-kubeconfig":    path.Join(snap.KubernetesConfigDir(), "controller.conf"),

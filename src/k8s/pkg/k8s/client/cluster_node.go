@@ -6,7 +6,6 @@ import (
 	"os"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/lxd/shared/api"
 )
@@ -78,5 +77,6 @@ func (c *Client) CleanupNode(ctx context.Context, nodeName string) {
 	// joining another cluster.
 	c.ResetNode(ctx, nodeName, true)
 
-	snap.StopControlPlaneServices(ctx, snap.NewDefaultSnap())
+	// TODO(neoaggelos): reenable after we know how to pass a snap here
+	// snap.StopControlPlaneServices(ctx, snap.NewDefaultSnap())
 }

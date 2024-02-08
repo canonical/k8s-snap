@@ -2,6 +2,7 @@ package setup
 
 import (
 	"fmt"
+	"os"
 	"path"
 
 	"github.com/canonical/k8s/pkg/snap"
@@ -9,10 +10,7 @@ import (
 )
 
 // KubeControllerManager configures kube-controller-manager on the local node.
-func KubeControllerManager(snap snap.Snap, caPEM string, haveCAKey bool, token string) error {
-	if err := writeKubeconfigToFile(path.Join(snap.KubernetesConfigDir(), "controller.conf"), token, "127.0.0.1:6443", caPEM); err != nil {
-		return fmt.Errorf("failed to write controller.conf: %w", err)
-	}
+func KubeControllerManager(snap snap.Snap) error {
 	args := map[string]string{
 		"--kubeconfig":                       path.Join(snap.KubernetesConfigDir(), "controller.conf"),
 		"--authorization-kubeconfig":         path.Join(snap.KubernetesConfigDir(), "controller.conf"),
@@ -24,7 +22,8 @@ func KubeControllerManager(snap snap.Snap, caPEM string, haveCAKey bool, token s
 		"--leader-elect-lease-duration":      "30s",
 		"--leader-elect-renew-deadline":      "15s",
 	}
-	if haveCAKey {
+	// enable cluster-signing if certificates are available
+	if _, err := os.Stat(path.Join(snap.KubernetesPKIDir(), "ca.key")); err == nil {
 		args["--cluster-signing-cert-file"] = path.Join(snap.KubernetesPKIDir(), "ca.crt")
 		args["--cluster-signing-cert-key"] = path.Join(snap.KubernetesPKIDir(), "ca.key")
 	}

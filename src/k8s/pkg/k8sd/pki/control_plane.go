@@ -6,12 +6,13 @@ import (
 	"net"
 )
 
-// ControlPlaneCertificates is a list of all certificates we require for a control plane node.
-type ControlPlaneCertificates struct {
-	hostname string   // node name
-	ipSANs   []net.IP // IP SANs for generated certificates
-	dnsSANs  []string // DNS SANs for the certificates below
-	years    int      // how many years the generated certificates will be valid for
+// ControlPlanePKI is a list of all certificates we require for a control plane node.
+type ControlPlanePKI struct {
+	allowSelfSignedCA bool     // create self-signed CA certificates if missing
+	hostname          string   // node name
+	ipSANs            []net.IP // IP SANs for generated certificates
+	dnsSANs           []string // DNS SANs for the certificates below
+	years             int      // how many years the generated certificates will be valid for
 
 	CACert, CAKey                             string // CN=kubernetes-ca (self-signed)
 	FrontProxyCACert, FrontProxyCAKey         string // CN=kubernetes-front-proxy-ca (self-signed)
@@ -31,21 +32,22 @@ type ControlPlaneCertificates struct {
 	KubeletCert, KubeletKey string
 }
 
-func NewControlPlaneCertificates(hostname string, dnsSANs []string, ipSANs []net.IP, years int) *ControlPlaneCertificates {
+func NewControlPlanePKI(hostname string, dnsSANs []string, ipSANs []net.IP, years int, allowSelfSignedCA bool) *ControlPlanePKI {
 	if years == 0 {
 		years = 1
 	}
 
-	return &ControlPlaneCertificates{
-		hostname: hostname,
-		years:    years,
-		ipSANs:   ipSANs,
-		dnsSANs:  dnsSANs,
+	return &ControlPlanePKI{
+		allowSelfSignedCA: allowSelfSignedCA,
+		hostname:          hostname,
+		years:             years,
+		ipSANs:            ipSANs,
+		dnsSANs:           dnsSANs,
 	}
 }
 
 // CompleteCertificates generates missing or unset certificates. If only a certificate is set and not a key, we assume that the cluster is using managed certificates.
-func (c *ControlPlaneCertificates) CompleteCertificates() error {
+func (c *ControlPlanePKI) CompleteCertificates() error {
 	// Fail hard if keys of self-signed certificates are set without the respective certificates
 	switch {
 	case c.CACert == "" && c.CAKey != "":
@@ -60,6 +62,9 @@ func (c *ControlPlaneCertificates) CompleteCertificates() error {
 
 	// Generate self-signed CA (if not set already)
 	if c.CACert == "" && c.CAKey == "" {
+		if !c.allowSelfSignedCA {
+			return fmt.Errorf("kubernetes CA not specified and generating self-signed CA not allowed")
+		}
 		cert, key, err := generateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, c.years, 2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate kubernetes CA: %w", err)
@@ -75,6 +80,9 @@ func (c *ControlPlaneCertificates) CompleteCertificates() error {
 
 	// Generate self-signed CA for front-proxy (if not set already)
 	if c.FrontProxyCACert == "" && c.FrontProxyCAKey == "" {
+		if !c.allowSelfSignedCA {
+			return fmt.Errorf("front-proxy CA not specified and generating self-signed CA not allowed")
+		}
 		cert, key, err := generateSelfSignedCA(pkix.Name{CommonName: "front-proxy-ca"}, c.years, 2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate front-proxy CA: %w", err)
@@ -108,6 +116,10 @@ func (c *ControlPlaneCertificates) CompleteCertificates() error {
 
 	// Generate k8s-dqlite client certificate (if missing)
 	if c.K8sDqliteCert == "" && c.K8sDqliteKey == "" {
+		if !c.allowSelfSignedCA {
+			return fmt.Errorf("k8s-dqlite certificate not specified and generating self-signed certificates is not allowed")
+		}
+
 		template, err := generateCertificate(pkix.Name{CommonName: "k8s"}, c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
 		if err != nil {
 			return fmt.Errorf("failed to generate k8s-dqlite certificate: %w", err)

@@ -16,21 +16,7 @@ type apiserverAuthTokenWebhookTemplateConfig struct {
 }
 
 // KubeAPIServer configures kube-apiserver on the local node.
-func KubeAPIServer(snap snap.Snap, caPEM string, crtPEM string, keyPEM string, kubeletClientCertPEM string, kubeletClientKeyPEM string, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore string, authorizationMode string) error {
-	// TODO(neoaggelos): figure out who writes certificates to disk
-	if err := os.WriteFile(path.Join(snap.KubernetesPKIDir(), "apiserver.crt"), []byte(crtPEM), 0600); err != nil {
-		return fmt.Errorf("failed to write apiserver.crt: %w", err)
-	}
-	if err := os.WriteFile(path.Join(snap.KubernetesPKIDir(), "apiserver.key"), []byte(keyPEM), 0600); err != nil {
-		return fmt.Errorf("failed to write apiserver.key: %w", err)
-	}
-	if err := os.WriteFile(path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"), []byte(kubeletClientCertPEM), 0600); err != nil {
-		return fmt.Errorf("failed to write apiserver-kubelet-client.crt: %w", err)
-	}
-	if err := os.WriteFile(path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"), []byte(kubeletClientKeyPEM), 0600); err != nil {
-		return fmt.Errorf("failed to write apiserver-kubelet-client.key: %w", err)
-	}
-
+func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore string, authorizationMode string) error {
 	authTokenWebhookConfigFile := path.Join(snap.ServiceExtraConfigDir(), "auth-token-webhook.conf")
 	authTokenWebhookFile, err := os.OpenFile(authTokenWebhookConfigFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
