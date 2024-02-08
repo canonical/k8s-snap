@@ -62,7 +62,7 @@ var (
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), joinNodeCmdOpts.timeout)
 			defer cancel()
 
-			err = c.JoinNode(timeoutCtx, joinNodeCmdOpts.name, joinNodeCmdOpts.address, token)
+			err = c.JoinCluster(timeoutCtx, joinNodeCmdOpts.name, joinNodeCmdOpts.address, token)
 			if err != nil {
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}

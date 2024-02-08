@@ -14,7 +14,7 @@ import (
 )
 
 func postClusterJoin(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
-	req := apiv1.JoinNodeRequest{}
+	req := apiv1.JoinClusterRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -32,5 +32,5 @@ func postClusterJoin(m *microcluster.MicroCluster, s *state.State, r *http.Reque
 		}
 	}
 
-	return response.SyncResponse(true, &apiv1.JoinNodeResponse{})
+	return response.SyncResponse(true, &apiv1.JoinClusterResponse{})
 }
