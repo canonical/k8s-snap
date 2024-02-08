@@ -151,7 +151,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 		template, err := generateCertificate(
 			pkix.Name{CommonName: fmt.Sprintf("system:node:%s", c.hostname), Organization: []string{"system:nodes"}},
-			c.years, false, c.dnsSANs, append(c.ipSANs, net.IP{127, 0, 0, 1}),
+			c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to generate kubelet certificate: %w", err)
