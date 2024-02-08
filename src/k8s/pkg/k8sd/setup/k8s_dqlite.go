@@ -25,7 +25,7 @@ func K8sDqlite(snap snap.Snap, address string, cluster []string) error {
 		return fmt.Errorf("failed to write init.yaml: %w", err)
 	}
 
-	if _, err := snaputil.UpdateServiceArguments(snap, "containerd", map[string]string{
+	if _, err := snaputil.UpdateServiceArguments(snap, "k8s-dqlite", map[string]string{
 		"--storage-dir": snap.K8sDqliteStateDir(),
 		"--listen":      fmt.Sprintf("unix://%s", path.Join(snap.K8sDqliteStateDir(), "k8s-dqlite.sock")),
 	}, nil); err != nil {
