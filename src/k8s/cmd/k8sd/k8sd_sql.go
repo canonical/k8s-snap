@@ -2,8 +2,10 @@ package k8sd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/canonical/k8s/pkg/k8sd/app"
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/spf13/cobra"
 )
 
@@ -13,14 +15,15 @@ var (
 		Short:  "Execute an SQL query against the daemon",
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			if len(args) != 1 {
 				return fmt.Errorf("invalid query")
 			}
+			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
 			cluster, err := app.New(cmd.Context(), app.Config{
 				Debug:    rootCmdOpts.logDebug,
 				Verbose:  rootCmdOpts.logVerbose,
 				StateDir: rootCmdOpts.stateDir,
+				Snap:     snap,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create k8sd app: %w", err)
