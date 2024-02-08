@@ -56,6 +56,7 @@ func (a *App) Run(customHooks *config.Hooks) error {
 		OnBootstrap: onBootstrap,
 		PostJoin:    onPostJoin,
 		PreRemove:   onPreRemove,
+		OnNewMember: onNewMember,
 	}
 	if customHooks != nil {
 		if customHooks.OnBootstrap != nil {

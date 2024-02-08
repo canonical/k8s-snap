@@ -83,15 +83,39 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 func onPreRemove(s *state.State, force bool) error {
 	snap := snap.SnapFromContext(s.Context)
 
+	isWorker, err := snap.IsWorker()
+	if err != nil {
+		return fmt.Errorf("failed to check if node is a worker: %w", err)
+	}
+
+	if isWorker {
+		return fmt.Errorf("can not run remove-node on workers")
+	}
+
 	// Remove k8s dqlite node from cluster.
 	// Fails if the k8s-dqlite cluster would not have a leader afterwards.
 	log.Println("Leave k8s-dqlite cluster")
-	err := setup.LeaveK8sDqliteCluster(s.Context, snap, s)
+	err = setup.LeaveK8sDqliteCluster(s.Context, snap, s)
 	if err != nil {
 		return fmt.Errorf("failed to leave k8s-dqlite cluster: %w", err)
 	}
 
 	// TODO: Remove node from kubernetes
+
+	return nil
+}
+
+func onNewMember(s *state.State) error {
+	snap := snap.SnapFromContext(s.Context)
+
+	isWorker, err := snap.IsWorker()
+	if err != nil {
+		return fmt.Errorf("failed to check if node is a worker: %w", err)
+	}
+
+	if isWorker {
+		return fmt.Errorf("can not run remove-node on workers")
+	}
 
 	return nil
 }

@@ -6,6 +6,8 @@ import "context"
 type Snap interface {
 	// IsStrict returns true if the snap is installed with strict confinement.
 	IsStrict() bool
+	// IsWorker returns true if the current node is a worker.
+	IsWorker() (bool, error)
 	// ReadServiceArguments reads the arguments file for a particular service.
 	ReadServiceArguments(serviceName string) (string, error)
 	// WriteServiceArguments updates the arguments file a particular service.

@@ -10,7 +10,7 @@ var Endpoints = []rest.Endpoint{
 	{
 		Name: "ClusterStatus",
 		Path: "k8sd/cluster",
-		Get:  rest.EndpointAction{Handler: getClusterStatus},
+		Get:  rest.EndpointAction{Handler: getClusterStatus, AccessHandler: WorkerRestricted},
 	},
 	// Clustering
 	// Unified token endpoint for both, control-plane and worker-node.

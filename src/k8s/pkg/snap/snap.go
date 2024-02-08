@@ -2,6 +2,7 @@ package snap
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -115,4 +116,14 @@ func (s *snap) IsStrict() bool {
 		return false
 	}
 	return meta.Confinement == "strict"
+}
+
+func (s *snap) IsWorker() (bool, error) {
+	_, err := os.Stat(s.CommonPath("lock/worker"))
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
 }

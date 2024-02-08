@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"path"
 	"time"
 
@@ -125,7 +126,11 @@ func onBootstrapWorkerNode(state *state.State, encodedToken string) error {
 		return fmt.Errorf("failed to configure k8s-apiserver-proxy: %w", err)
 	}
 
-	// TODO: mark node as worker
+	lock, err := os.Create(s.CommonPath("lock/worker"))
+	if err != nil {
+		return fmt.Errorf("failed to mark node as worker: %w", err)
+	}
+	lock.Close()
 
 	if err := snap.StartWorkerServices(state.Context, s); err != nil {
 		return fmt.Errorf("failed to start services: %w", err)
