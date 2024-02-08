@@ -6,6 +6,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/config"
 	"github.com/canonical/microcluster/microcluster"
 )
@@ -20,6 +21,8 @@ type Config struct {
 	ListenPort uint
 	// StateDir is the local directory to store the state of the node.
 	StateDir string
+	// Snap is the snap instance to use.
+	Snap snap.Snap
 }
 
 // App is the k8sd microcluster instance.
@@ -29,6 +32,11 @@ type App struct {
 
 // New initializes a new microcluster instance from configuration.
 func New(ctx context.Context, cfg Config) (*App, error) {
+	ctx = snap.ContextWithSnap(ctx, cfg.Snap)
+
+	if cfg.StateDir == "" {
+		cfg.StateDir = cfg.Snap.K8sdStateDir()
+	}
 	cluster, err := microcluster.App(ctx, microcluster.Args{
 		Verbose:    cfg.Verbose,
 		Debug:      cfg.Debug,

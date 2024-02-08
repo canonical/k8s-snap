@@ -68,7 +68,7 @@ func EnableLoadBalancerComponent(s snap.Snap, cidrs []string, l2Enabled bool, l2
 		return fmt.Errorf("failed to enable loadbalancer component: %w", err)
 	}
 
-	client, err := k8s.NewClient()
+	client, err := k8s.NewClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}

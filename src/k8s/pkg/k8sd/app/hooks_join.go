@@ -113,7 +113,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		}
 	}
 
-	k8sClient, err := k8s.NewClient()
+	k8sClient, err := k8s.NewClient(snap)
 	if err != nil {
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}

@@ -30,7 +30,7 @@ func EnableIngressComponent(s snap.Snap, defaultTLSSecret string, enableProxyPro
 		return fmt.Errorf("failed to enable ingress component: %w", err)
 	}
 
-	client, err := k8s.NewClient()
+	client, err := k8s.NewClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}

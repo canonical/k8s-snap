@@ -190,7 +190,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		"configure kube-controller-manager": func() error { return setup.KubeControllerManager(snap) },
 		"configure kube-scheduler":          func() error { return setup.KubeScheduler(snap) },
 		"configure kube-apiserver": func() error {
-			return setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0/kubernetes/auth/webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.AuthorizationMode)
+			return setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.AuthorizationMode)
 		},
 		"start control plane services": func() error { return snaputil.StartControlPlaneServices(s.Context, snap) },
 	} {
@@ -199,7 +199,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		}
 	}
 
-	k8sClient, err := k8s.NewClient()
+	k8sClient, err := k8s.NewClient(snap)
 	if err != nil {
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}
