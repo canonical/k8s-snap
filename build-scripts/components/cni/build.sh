@@ -2,7 +2,7 @@
 
 VERSION="${2}"
 
-INSTALL="${1}/opt/cni/bin"
+INSTALL="${1}/bin"
 mkdir -p "${INSTALL}"
 
 # these would very tedious to apply with a patch
