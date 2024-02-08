@@ -17,7 +17,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -199,16 +198,16 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		}
 	}
 
-	k8sClient, err := k8s.NewClient(snap)
-	if err != nil {
-		return fmt.Errorf("failed to create k8s client: %w", err)
-	}
+	// k8sClient, err := k8s.NewClient(snap)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to create k8s client: %w", err)
+	// }
 
-	// The apiserver needs to be ready to start components.
-	err = k8s.WaitApiServerReady(s.Context, k8sClient)
-	if err != nil {
-		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
-	}
+	// // The apiserver needs to be ready to start components.
+	// err = k8s.WaitApiServerReady(s.Context, k8sClient)
+	// if err != nil {
+	// 	return fmt.Errorf("k8s api server did not become ready in time: %w", err)
+	// }
 
 	return nil
 }
