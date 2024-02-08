@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"path"
 	"time"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/cert"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
@@ -126,11 +126,10 @@ func onBootstrapWorkerNode(state *state.State, encodedToken string) error {
 		return fmt.Errorf("failed to configure k8s-apiserver-proxy: %w", err)
 	}
 
-	lock, err := os.Create(s.CommonPath("lock/worker"))
-	if err != nil {
+	// TODO: remove the lock on cleanup
+	if err := snaputil.MarkAsWorker(s); err != nil {
 		return fmt.Errorf("failed to mark node as worker: %w", err)
 	}
-	lock.Close()
 
 	if err := snap.StartWorkerServices(state.Context, s); err != nil {
 		return fmt.Errorf("failed to start services: %w", err)
