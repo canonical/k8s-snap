@@ -90,7 +90,7 @@ func signCertificate(certificate *x509.Certificate, bits int, parent *x509.Certi
 		pub = &key.PublicKey
 	}
 
-	derBytes, err := x509.CreateCertificate(rand.Reader, certificate, parent, pub, priv)
+	derBytes, err := x509.CreateCertificate(rand.Reader, certificate, parent, &key.PublicKey, priv)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to sign certificate: %w", err)
 	}

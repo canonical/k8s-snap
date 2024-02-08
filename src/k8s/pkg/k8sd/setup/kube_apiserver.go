@@ -33,6 +33,7 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--service-cluster-ip-range":                 serviceCIDR,
 		"--authorization-mode":                       authorizationMode,
 		"--service-account-key-file":                 path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
+		"--service-account-signing-key-file":         path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
 		"--client-ca-file":                           path.Join(snap.KubernetesPKIDir(), "ca.crt"),
 		"--tls-cert-file":                            path.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
 		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
