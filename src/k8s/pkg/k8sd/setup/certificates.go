@@ -47,3 +47,30 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) er
 
 	return nil
 }
+
+func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) error {
+	toWrite := map[string]string{
+		path.Join(snap.KubernetesPKIDir(), "ca.crt"): certificates.CACert,
+	}
+
+	if certificates.KubeletCert != "" {
+		toWrite[path.Join(snap.KubernetesPKIDir(), "kubelet.crt")] = certificates.KubeletCert
+	}
+	if certificates.KubeletKey != "" {
+		toWrite[path.Join(snap.KubernetesPKIDir(), "kubelet.crt")] = certificates.KubeletKey
+	}
+
+	for fname, cert := range toWrite {
+		if err := os.WriteFile(fname, []byte(cert), 0600); err != nil {
+			return fmt.Errorf("failed to write %s: %w", path.Base(fname), err)
+		}
+		if err := os.Chown(fname, snap.UID(), snap.GID()); err != nil {
+			return fmt.Errorf("failed to chown %s: %w", fname, err)
+		}
+		if err := os.Chmod(fname, 0600); err != nil {
+			return fmt.Errorf("failed to chmod %s: %w", fname, err)
+		}
+	}
+
+	return nil
+}

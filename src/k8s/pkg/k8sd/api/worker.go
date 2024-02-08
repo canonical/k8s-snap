@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
@@ -44,10 +46,22 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	if nodeName == "" {
 		return response.BadRequest(fmt.Errorf("node name cannot be empty"))
 	}
+	nodeIP := net.ParseIP(req.Address)
+	if nodeIP == nil {
+		return response.BadRequest(fmt.Errorf("failed to parse node IP address %s", req.Address))
+	}
 
-	clusterConfig, err := utils.GetClusterConfig(s.Context, s)
+	cfg, err := utils.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
+	}
+
+	certificates := pki.NewControlPlanePKI("", nil, nil, 10, false)
+	certificates.CACert = cfg.Certificates.CACert
+	certificates.CAKey = cfg.Certificates.CAKey
+	workerCertificates, err := certificates.CompleteWorkerNodePKI(nodeName, nodeIP, 2048)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to generate worker PKI: %w", err))
 	}
 
 	client, err := k8s.NewClient()
@@ -91,13 +105,15 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	}
 
 	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
-		CA:             clusterConfig.Certificates.CACert,
+		CA:             cfg.Certificates.CACert,
 		APIServers:     servers,
-		ClusterCIDR:    clusterConfig.Network.PodCIDR,
+		PodCIDR:        cfg.Network.PodCIDR,
 		KubeletToken:   kubeletToken,
 		KubeProxyToken: proxyToken,
-		ClusterDomain:  clusterConfig.Kubelet.ClusterDomain,
-		ClusterDNS:     clusterConfig.Kubelet.ClusterDNS,
-		CloudProvider:  clusterConfig.Kubelet.CloudProvider,
+		ClusterDomain:  cfg.Kubelet.ClusterDomain,
+		ClusterDNS:     cfg.Kubelet.ClusterDNS,
+		CloudProvider:  cfg.Kubelet.CloudProvider,
+		KubeletCert:    workerCertificates.KubeletCert,
+		KubeletKey:     workerCertificates.KubeletKey,
 	})
 }

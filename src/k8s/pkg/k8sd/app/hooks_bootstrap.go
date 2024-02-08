@@ -31,7 +31,7 @@ func onBootstrap(s *state.State, initConfig map[string]string) error {
 	return onBootstrapControlPlane(s, initConfig)
 }
 
-func onBootstrapWorkerNode(state *state.State, encodedToken string) error {
+func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	token := &types.InternalWorkerNodeToken{}
 	if err := token.Decode(encodedToken); err != nil {
 		return fmt.Errorf("failed to parse worker token: %w", err)
@@ -39,6 +39,10 @@ func onBootstrapWorkerNode(state *state.State, encodedToken string) error {
 
 	if len(token.JoinAddresses) == 0 {
 		return fmt.Errorf("empty list of control plane addresses")
+	}
+	nodeIP := net.ParseIP(s.Address().Hostname())
+	if nodeIP == nil {
+		return fmt.Errorf("failed to parse node IP address %s", s.Address().Hostname())
 	}
 
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
@@ -58,7 +62,7 @@ func onBootstrapWorkerNode(state *state.State, encodedToken string) error {
 		Metadata apiv1.WorkerNodeInfoResponse `json:"metadata"`
 	}
 
-	requestBody, err := json.Marshal(apiv1.WorkerNodeInfoRequest{Hostname: state.Name()})
+	requestBody, err := json.Marshal(apiv1.WorkerNodeInfoRequest{Hostname: s.Name(), Address: nodeIP.String()})
 	if err != nil {
 		return fmt.Errorf("failed to prepare worker info request: %w", err)
 	}
@@ -83,69 +87,35 @@ func onBootstrapWorkerNode(state *state.State, encodedToken string) error {
 	}
 	response := wrappedResp.Metadata
 
-	snap := snap.SnapFromContext(state.Context)
+	snap := snap.SnapFromContext(s.Context)
 
-	certificates := pki.WorkerNodePKI{
-		CACert: response.CA,
+	certificates := &pki.WorkerNodePKI{
+		CACert:      response.CA,
 		KubeletCert: response.KubeletCert,
-		KubeletKey: response.KubeletKey,
+		KubeletKey:  response.KubeletKey,
 	}
 	for action, f := range map[string]func() error{
 		"ensure cluster certificates": func() error { return certificates.CompleteCertificates() },
-		"create cluster directories":      func() error { return setup.EnsureAllDirectories(snap) },
-		"write cluster certificates":      func() error { return setup.EnsureControlPlanePKI(snap, certificates) },
+		"create cluster directories":  func() error { return setup.EnsureAllDirectories(snap) },
+		"write cluster certificates":  func() error { return setup.EnsureWorkerPKI(snap, certificates) },
+		"generate kubelet kubeconfig": func() error {
+			return setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), "kubelet.conf"), response.KubeletToken, "127.0.0.1:6443", certificates.CACert)
+		},
+		"generate kube-proxy kubeconfig": func() error {
+			return setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), "proxy.conf"), response.KubeProxyToken, "127.0.0.1:6443", certificates.CACert)
+		},
+		"configure containerd": func() error { return setup.Containerd(snap) },
+		"configure kubelet": func() error {
+			return setup.Kubelet(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider)
+		},
+		"configure kube-proxy":          func() error { return setup.KubeProxy(snap, s.Name(), response.PodCIDR) },
+		"configure k8s-apiserver-proxy": func() error { return setup.K8sAPIServerProxy(snap, response.APIServers) },
+		"start worker node services":    func() error { return setup.KubeProxy(snap, s.Name(), response.PodCIDR) },
 	} {
 		if err := f(); err != nil {
 			return fmt.Errorf("failed to %s: %w", action, err)
 		}
 	}
-	if err := setup.EnsureAllDirectories(snap); err !=
-	// if err := old_setup.InitFolders(s.DataPath("args")); err != nil {
-	// 	return fmt.Errorf("failed to setup folders: %w", err)
-	// }
-	// if err := old_setup.InitContainerd(s); err != nil {
-	// 	return fmt.Errorf("failed to configure containerd: %w", err)
-	// }
-	// if err := old_setup.InitContainerdArgs(s, nil, nil); err != nil {
-	// 	return fmt.Errorf("failed to configure containerd arguments: %w", err)
-	// }
-	// if err := old_setup.WriteCA(s, response.CA); err != nil {
-	// 	return fmt.Errorf("failed to write CA certificate: %w", err)
-	// }
-
-	// kubeletArgs := map[string]string{
-	// 	"--hostname-override": state.Name(),
-	// 	"--cluster-dns":       response.ClusterDNS,
-	// 	"--cluster-domain":    response.ClusterDomain,
-	// 	"--cloud-provider":    response.CloudProvider,
-	// }
-	// if err := old_setup.InitKubeletArgs(s, kubeletArgs, nil); err != nil {
-	// 	return fmt.Errorf("failed to configure kubelet: %w", err)
-	// }
-	// if err := old_setup.RenderKubeletKubeconfig(s, response.KubeletToken, response.CA); err != nil {
-	// 	return fmt.Errorf("failed to render kubelet kubeconfig: %w", err)
-	// }
-
-	// proxyArgs := map[string]string{
-	// 	"--hostname-override": state.Name(),
-	// 	"--cluster-cidr":      response.ClusterCIDR,
-	// }
-	// if err := old_setup.InitKubeProxyArgs(s, proxyArgs, nil); err != nil {
-	// 	return fmt.Errorf("failed to configure kube-proxy: %w", err)
-	// }
-	// if err := old_setup.RenderKubeProxyKubeconfig(s, response.KubeProxyToken, response.CA); err != nil {
-	// 	return fmt.Errorf("failed to render kube-proxy kubeconfig: %w", err)
-	// }
-
-	// if err := old_setup.InitAPIServerProxy(s, response.APIServers); err != nil {
-	// 	return fmt.Errorf("failed to configure k8s-apiserver-proxy: %w", err)
-	// }
-
-	// // TODO: mark node as worker
-
-	// if err := snaputil.StartWorkerServices(state.Context, s); err != nil {
-	// 	return fmt.Errorf("failed to start services: %w", err)
-	// }
 
 	return nil
 }

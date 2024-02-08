@@ -9,8 +9,8 @@ import (
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 )
 
-// APIServerProxy prepares configuration for k8s-apiserver-proxy.
-func APIServerProxy(snap snap.Snap, servers []string) error {
+// K8sAPIServerProxy prepares configuration for k8s-apiserver-proxy.
+func K8sAPIServerProxy(snap snap.Snap, servers []string) error {
 	configFile := path.Join(snap.ServiceExtraConfigDir(), "k8s-apiserver-proxy.json")
 	if err := proxy.WriteEndpointsConfig(servers, configFile); err != nil {
 		return fmt.Errorf("failed to write proxy configuration file: %w", err)
