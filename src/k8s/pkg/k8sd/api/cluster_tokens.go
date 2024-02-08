@@ -15,29 +15,29 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func postTokens(s *state.State, r *http.Request) response.Response {
+func postClusterTokens(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
 	req := apiv1.TokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	var token string
-	var err error
+	var (
+		token string
+		err   error
+	)
 	if req.Worker {
-		token, err = createWorkerToken(s, r)
+		token, err = createWorkerToken(s)
 	} else {
-		token, err = createControlPlaneToken(s, r, req.Name)
+		token, err = m.NewJoinToken(req.Name)
 	}
-
 	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to create token: %w", err))
+		return response.InternalError(fmt.Errorf("failed to create token: %w", err))
 	}
 
 	return response.SyncResponse(true, &apiv1.TokensResponse{EncodedToken: token})
-
 }
 
-func createWorkerToken(s *state.State, r *http.Request) (string, error) {
+func createWorkerToken(s *state.State) (string, error) {
 	var token string
 	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
@@ -66,20 +66,4 @@ func createWorkerToken(s *state.State, r *http.Request) (string, error) {
 	}
 
 	return token, nil
-}
-
-func createControlPlaneToken(s *state.State, r *http.Request, name string) (string, error) {
-	m, err := microcluster.App(r.Context(), microcluster.Args{
-		StateDir: s.OS.StateDir,
-	})
-	if err != nil {
-		return "", fmt.Errorf("failed to get microcluster app: %w", err)
-	}
-
-	c, err := m.LocalClient()
-	if err != nil {
-		return "", fmt.Errorf("failed to get local microcluster client: %w", err)
-	}
-
-	return c.RequestToken(r.Context(), name)
 }

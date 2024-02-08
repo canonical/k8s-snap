@@ -16,7 +16,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func getKubernetesAuthToken(state *state.State, r *http.Request) response.Response {
+func getKubernetesAuthTokens(state *state.State, r *http.Request) response.Response {
 	token := r.Header.Get("token")
 
 	var username string
@@ -32,7 +32,7 @@ func getKubernetesAuthToken(state *state.State, r *http.Request) response.Respon
 	return response.SyncResponse(true, apiv1.CheckKubernetesAuthTokenResponse{Username: username, Groups: groups})
 }
 
-func postKubernetesAuthToken(state *state.State, r *http.Request) response.Response {
+func postKubernetesAuthTokens(state *state.State, r *http.Request) response.Response {
 	request := apiv1.CreateKubernetesAuthTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))

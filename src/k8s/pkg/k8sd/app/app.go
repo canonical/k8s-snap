@@ -68,7 +68,7 @@ func (a *App) Run(customHooks *config.Hooks) error {
 			hooks.PreRemove = customHooks.PreRemove
 		}
 	}
-	err := a.MicroCluster.Start(api.Endpoints, database.SchemaExtensions, hooks)
+	err := a.MicroCluster.Start(api.Endpoints(a.MicroCluster), database.SchemaExtensions, hooks)
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
 	}
