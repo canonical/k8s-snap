@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/snap"
@@ -98,6 +99,9 @@ func UpdateServiceArguments(snap snap.Snap, serviceName string, updateMap map[st
 			newArguments = append(newArguments, fmt.Sprintf("%s=%s", key, value))
 		}
 	}
+
+	// sort arguments so that output is consistent
+	sort.Strings(newArguments)
 
 	if err := os.WriteFile(argumentsFile, []byte(strings.Join(newArguments, "\n")+"\n"), 0600); err != nil {
 		return false, fmt.Errorf("failed to write arguments for service %s: %q", serviceName, err)
