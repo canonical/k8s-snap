@@ -7,6 +7,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8s/setup"
 	"github.com/canonical/k8s/pkg/snap"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/cert"
 	"github.com/canonical/microcluster/state"
@@ -83,7 +84,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 func onPreRemove(s *state.State, force bool) error {
 	snap := snap.SnapFromContext(s.Context)
 
-	isWorker, err := snap.IsWorker()
+	isWorker, err := snaputil.IsWorker(snap)
 	if err != nil {
 		return fmt.Errorf("failed to check if node is a worker: %w", err)
 	}
@@ -108,13 +109,13 @@ func onPreRemove(s *state.State, force bool) error {
 func onNewMember(s *state.State) error {
 	snap := snap.SnapFromContext(s.Context)
 
-	isWorker, err := snap.IsWorker()
+	isWorker, err := snaputil.IsWorker(snap)
 	if err != nil {
 		return fmt.Errorf("failed to check if node is a worker: %w", err)
 	}
 
 	if isWorker {
-		return fmt.Errorf("can not run remove-node on workers")
+		return fmt.Errorf("can not run add-node on workers")
 	}
 
 	return nil

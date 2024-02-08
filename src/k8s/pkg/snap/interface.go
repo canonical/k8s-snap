@@ -6,8 +6,6 @@ import "context"
 type Snap interface {
 	// IsStrict returns true if the snap is installed with strict confinement.
 	IsStrict() bool
-	// IsWorker returns true if the current node is a worker.
-	IsWorker() (bool, error)
 	// ReadServiceArguments reads the arguments file for a particular service.
 	ReadServiceArguments(serviceName string) (string, error)
 	// WriteServiceArguments updates the arguments file a particular service.
@@ -26,4 +24,6 @@ type Snap interface {
 	DataPath(parts ...string) string
 	// CommonPath concenates any passed path parts with the $SNAP_COMMON path
 	CommonPath(parts ...string) string
+	// WorkerNodeLockFile returns the path to the lockfile that marks a node as worker.
+	WorkerNodeLockFile() string
 }

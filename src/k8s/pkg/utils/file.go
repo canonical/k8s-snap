@@ -28,9 +28,14 @@ func TemplateAndSave(tmplFile string, data any, target string) error {
 }
 
 // FileExists returns true if the specified path exists.
-func FileExists(path string) bool {
-	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
+func FileExists(path ...string) (bool, error) {
+	if _, err := os.Stat(filepath.Join(path...)); err != nil {
+		if !os.IsNotExist(err) {
+			return false, fmt.Errorf("failed to stat: %w", err)
+		}
+		return false, nil
+	}
+	return true, nil
 }
 
 // ReadFile returns the file contents as a string.

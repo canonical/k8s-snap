@@ -17,7 +17,11 @@ func TestFileExists(t *testing.T) {
 		t.Fatal("Failed to create test file")
 	}
 
-	if !utils.FileExists(testFilePath) {
+	fileExists, err := utils.FileExists(testFilePath)
+	if err != nil {
+		t.Fatal("Failed to check if file exists")
+	}
+	if !fileExists {
 		t.Fatal("File should exist but it does not")
 	}
 
@@ -25,7 +29,11 @@ func TestFileExists(t *testing.T) {
 		t.Fatalf("Failed to delete test file: %s", err)
 	}
 
-	if utils.FileExists(testFilePath) {
+	fileExists, err = utils.FileExists(testFilePath)
+	if err != nil {
+		t.Fatal("Failed to check if file exists")
+	}
+	if fileExists {
 		t.Fatal("File should not exist but it does")
 	}
 }
