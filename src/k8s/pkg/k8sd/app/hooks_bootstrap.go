@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"path"
 	"time"
@@ -14,6 +15,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/setup"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/cert"
@@ -137,6 +139,27 @@ func onBootstrapWorkerNode(state *state.State, encodedToken string) error {
 func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error {
 	snap := snap.SnapFromContext(s.Context)
 
+	bootstrapConfig, err := apiv1.BootstrapConfigFromMap(initConfig)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
+	}
+	clusterConfig, err := types.MergeClusterConfig(types.DefaultClusterConfig(), types.ClusterConfigFromBootstrapConfig(bootstrapConfig))
+	if err != nil {
+		return fmt.Errorf("failed initialize cluster config from bootstrap config: %w", err)
+	}
+
+	nodeIP := net.ParseIP(s.Address().Hostname())
+	if nodeIP == nil {
+		return fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
+	}
+
+	certificates := pki.NewControlPlaneCertificates(s.Name(), nil, []net.IP{nodeIP}, 10)
+	if err := certificates.CompleteCertificates(); err != nil {
+		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+	}
+
+	certificates := pki.CompleteCertificates(clusterConfig)
+
 	err := setup.InitFolders(snap.DataPath("args"))
 	if err != nil {
 		return fmt.Errorf("failed to setup folders: %w", err)
@@ -171,12 +194,6 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to setup permissions: %w", err)
 	}
 
-	clusterConfig := types.DefaultClusterConfig()
-	bootstrapConfig, err := apiv1.BootstrapConfigFromMap(initConfig)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
-	}
-
 	// Set k8s-dqlite configuration
 	k8sDqliteCertPair, err := cert.LoadCertKeyPair(snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.key"), snap.CommonPath(cert.K8sDqlitePkiPath, "cluster.crt"))
 	if err != nil {
@@ -191,11 +208,6 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	}
 	clusterConfig.Certificates.CACert = string(caPair.CertPem)
 	clusterConfig.Certificates.CAKey = string(caPair.KeyPem)
-
-	clusterConfig, err = types.MergeClusterConfig(clusterConfig, types.ClusterConfigFromBootstrapConfig(bootstrapConfig))
-	if err != nil {
-		return fmt.Errorf("failed to merge cluster config with bootstrap config: %w", err)
-	}
 
 	// TODO(neoaggelos): first generate config then reconcile state
 	s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {

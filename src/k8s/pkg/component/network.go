@@ -60,7 +60,7 @@ func EnableNetworkComponent(s snap.Snap) error {
 		},
 	}
 
-	if s.IsStrict() {
+	if s.Strict() {
 		bpfMnt, err := utils.GetMountPath("bpf")
 		if err != nil {
 			return fmt.Errorf("failed to get bpf mount path: %w", err)

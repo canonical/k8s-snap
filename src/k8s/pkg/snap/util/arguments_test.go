@@ -1,96 +1,106 @@
-package snap_test
+package snaputil_test
 
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/snap/mock"
-
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	. "github.com/onsi/gomega"
 )
 
 func TestGetServiceArgument(t *testing.T) {
-	serviceOneArguments := `
---key=value
---key-with-space value2
-   --key-with-padding=value3
---multiple=keys --in-the-same-row=this-is-lost
-`
-	serviceTwoArguments := `
---key=value-of-service-two
-`
+	g := NewWithT(t)
+	dir := t.TempDir()
+
 	s := &mock.Snap{
-		ServiceArguments: map[string]string{
-			"service":  serviceOneArguments,
-			"service2": serviceTwoArguments,
+		Mock: mock.Mock{
+			ServiceArgumentsDir: dir,
 		},
 	}
-	if err := os.MkdirAll("testdata/args", 0755); err != nil {
-		t.Fatal("Failed to setup test directory")
+
+	for svc, args := range map[string]string{
+		"service": `
+--key=value
+--key-with-space value2
+  --key-with-padding=value3
+--multiple=keys --in-the-same-row=this-is-lost
+		`,
+		"service2": `
+--key=value-of-service-two
+`,
+	} {
+		g.Expect(os.WriteFile(filepath.Join(dir, svc), []byte(args), 0600)).To(BeNil())
 	}
+
 	for _, tc := range []struct {
-		service       string
-		key           string
-		expectedValue string
+		service     string
+		key         string
+		expectValue string
+		expectErr   bool
 	}{
-		{service: "service", key: "--key", expectedValue: "value"},
-		{service: "service2", key: "--key", expectedValue: "value-of-service-two"},
-		{service: "service", key: "--key-with-padding", expectedValue: "value3"},
-		{service: "service", key: "--key-with-space", expectedValue: "value2"},
-		{service: "service", key: "--missing", expectedValue: ""},
-		{service: "service3", key: "--missing-service", expectedValue: ""},
+		{service: "service", key: "--key", expectValue: "value"},
+		{service: "service2", key: "--key", expectValue: "value-of-service-two"},
+		{service: "service", key: "--key-with-padding", expectValue: "value3"},
+		{service: "service", key: "--key-with-space", expectValue: "value2"},
+		{service: "service", key: "--missing", expectValue: ""},
+		{service: "service3", key: "--missing-service", expectValue: "", expectErr: true},
 		// NOTE: the final test case documents that arguments in the same row will not be parsed properly.
 		// This is carried over from the original Python code, and probably needs fixing in the future.
-		{service: "service", key: "--in-the-same-row", expectedValue: ""},
+		{service: "service", key: "--in-the-same-row", expectValue: ""},
 	} {
 		t.Run(fmt.Sprintf("%s/%s", tc.service, tc.key), func(t *testing.T) {
 			g := NewWithT(t)
 
-			g.Expect(snap.GetServiceArgument(s, tc.service, tc.key)).To(Equal(tc.expectedValue))
+			value, err := snaputil.GetServiceArgument(s, tc.service, tc.key)
+			if tc.expectErr {
+				g.Expect(err).ToNot(BeNil())
+			} else {
+				g.Expect(err).To(BeNil())
+				g.Expect(value).To(Equal(tc.expectValue))
+			}
 		})
 	}
-}
-
-type mockSnapFileNotExist struct {
-	mock.Snap
-}
-
-func (s *mockSnapFileNotExist) ReadServiceArguments(serviceName string) (string, error) {
-	_, err := os.ReadFile("testdata/fileThatDoesNotExist")
-	return "", fmt.Errorf("wrapped not found error: %w", err)
 }
 
 func TestUpdateServiceArguments(t *testing.T) {
 	t.Run("HandleFileNotExist", func(t *testing.T) {
 		g := NewWithT(t)
-		s := &mockSnapFileNotExist{
-			Snap: mock.Snap{},
+		s := &mock.Snap{
+			Mock: mock.Mock{
+				ServiceArgumentsDir: t.TempDir(),
+			},
 		}
 
-		changed, err := snap.UpdateServiceArguments(s, "service", []map[string]string{{"--key": "value"}}, nil)
+		_, err := snaputil.GetServiceArgument(s, "service", "--key")
+		g.Expect(err).ToNot(BeNil())
+
+		changed, err := snaputil.UpdateServiceArguments(s, "service", map[string]string{"--key": "value"}, nil)
 		g.Expect(err).To(BeNil())
 		g.Expect(changed).To(BeTrue())
 
-		g.Expect(s.Snap.ServiceArguments["service"]).To(Equal("--key=value\n"))
+		value, err := snaputil.GetServiceArgument(s, "service", "--key")
+		g.Expect(err).To(BeNil())
+		g.Expect(value).To(Equal("value"))
 	})
 
-	initialArguments := `
---key=value
---other=other-value
---with-space value2
-`
+	initialArguments := map[string]string{
+		"--key":        "value",
+		"--other":      "other-value",
+		"--with-space": "value2",
+	}
 	for _, tc := range []struct {
 		name           string
-		update         []map[string]string
+		update         map[string]string
 		delete         []string
 		expectedValues map[string]string
 		expectedChange bool
 	}{
 		{
 			name:   "no-change",
-			update: []map[string]string{{"--key": "value"}},
+			update: map[string]string{"--key": "value"},
 			delete: []string{"--non-existent"},
 			expectedValues: map[string]string{
 				"--key":   "value",
@@ -100,7 +110,7 @@ func TestUpdateServiceArguments(t *testing.T) {
 		},
 		{
 			name:   "no-change-space",
-			update: []map[string]string{{"--with-space": "value2"}},
+			update: map[string]string{"--with-space": "value2"},
 			delete: []string{},
 			expectedValues: map[string]string{
 				"--with-space": "value2",
@@ -109,7 +119,7 @@ func TestUpdateServiceArguments(t *testing.T) {
 		},
 		{
 			name:   "simple-update",
-			update: []map[string]string{{"--key": "new-value"}},
+			update: map[string]string{"--key": "new-value"},
 			delete: []string{},
 			expectedValues: map[string]string{
 				"--key":   "new-value",
@@ -129,7 +139,7 @@ func TestUpdateServiceArguments(t *testing.T) {
 		},
 		{
 			name:   "update-many-delete-one",
-			update: []map[string]string{{"--key": "new-value"}, {"--other": "other-new-value"}},
+			update: map[string]string{"--key": "new-value", "--other": "other-new-value"},
 			delete: []string{"--with-space"},
 			expectedValues: map[string]string{
 				"--key":        "new-value",
@@ -140,7 +150,7 @@ func TestUpdateServiceArguments(t *testing.T) {
 		},
 		{
 			name:   "update-many-single-list",
-			update: []map[string]string{{"--key": "new-value", "--other": "other-new-value"}},
+			update: map[string]string{"--key": "new-value", "--other": "other-new-value"},
 			expectedValues: map[string]string{
 				"--key":   "new-value",
 				"--other": "other-new-value",
@@ -156,7 +166,7 @@ func TestUpdateServiceArguments(t *testing.T) {
 		},
 		{
 			name:   "new-opt",
-			update: []map[string]string{{"--new-opt": "opt-value"}},
+			update: map[string]string{"--new-opt": "opt-value"},
 			expectedValues: map[string]string{
 				"--new-opt": "opt-value",
 			},
@@ -165,24 +175,28 @@ func TestUpdateServiceArguments(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
+			dir := t.TempDir()
 
 			s := &mock.Snap{
-				ServiceArguments: map[string]string{
-					"service": initialArguments,
+				Mock: mock.Mock{
+					ServiceArgumentsDir: dir,
 				},
 			}
+			changed, err := snaputil.UpdateServiceArguments(s, "service", initialArguments, nil)
+			g.Expect(err).To(BeNil())
+			g.Expect(changed).To(BeTrue())
 
-			changed, err := snap.UpdateServiceArguments(s, "service", tc.update, tc.delete)
+			changed, err = snaputil.UpdateServiceArguments(s, "service", tc.update, tc.delete)
 			g.Expect(err).To(BeNil())
 			g.Expect(changed).To(Equal(tc.expectedChange))
 
 			for key, expectedValue := range tc.expectedValues {
-				g.Expect(snap.GetServiceArgument(s, "service", key)).To(Equal(expectedValue))
+				g.Expect(snaputil.GetServiceArgument(s, "service", key)).To(Equal(expectedValue))
 			}
 
 			t.Run("Reapply", func(t *testing.T) {
 				g := NewWithT(t)
-				changed, err := snap.UpdateServiceArguments(s, "service", tc.update, tc.delete)
+				changed, err := snaputil.UpdateServiceArguments(s, "service", tc.update, tc.delete)
 				g.Expect(err).To(BeNil())
 				g.Expect(changed).To(BeFalse())
 			})
