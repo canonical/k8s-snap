@@ -10,7 +10,7 @@ import (
 
 // KubeScheduler configures kube-scheduler on the local node.
 func KubeScheduler(snap snap.Snap) error {
-	if _, err := snaputil.UpdateServiceArguments(snap, "kube-controller-manager", map[string]string{
+	if _, err := snaputil.UpdateServiceArguments(snap, "kube-scheduler", map[string]string{
 		"--kubeconfig":                  path.Join(snap.KubernetesConfigDir(), "controller.conf"),
 		"--authorization-kubeconfig":    path.Join(snap.KubernetesConfigDir(), "controller.conf"),
 		"--authentication-kubeconfig":   path.Join(snap.KubernetesConfigDir(), "controller.conf"),
