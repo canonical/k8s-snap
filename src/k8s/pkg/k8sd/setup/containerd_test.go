@@ -60,7 +60,7 @@ func TestContainerd(t *testing.T) {
 		switch stat := info.Sys().(type) {
 		case *syscall.Stat_t:
 			g.Expect(stat.Uid).To(Equal(uint32(os.Getuid())))
-			g.Expect(stat.Gid).To(Equal(uint32(os.Getuid())))
+			g.Expect(stat.Gid).To(Equal(uint32(os.Getgid())))
 		default:
 			g.Fail("failed to stat config.toml")
 		}
@@ -81,7 +81,7 @@ func TestContainerd(t *testing.T) {
 		switch stat := info.Sys().(type) {
 		case *syscall.Stat_t:
 			g.Expect(stat.Uid).To(Equal(uint32(os.Getuid())))
-			g.Expect(stat.Gid).To(Equal(uint32(os.Getuid())))
+			g.Expect(stat.Gid).To(Equal(uint32(os.Getgid())))
 		default:
 			g.Fail("failed to stat installed cni")
 		}
