@@ -16,13 +16,13 @@ Initialize Kubernetes on your host system with default configurations using:
 sudo k8s bootstrap
 ```
 This command initializes your cluster and configures your host system as a Kubernetes node.
-### 2. Check K8s Status
+### 3. Check K8s Status
 To confirm the installation was successful and your node is ready you may run:
 ```
 sudo k8s status
 ```
 You should see `k8s is ready` in the command output. You may have to wait a moment for things to settle down.
-### 3. Access Kubernetes
+### 4. Access Kubernetes
 Canonical K8s bundles its own version of `kubectl` for accessing Kubernetes. Use it to run commands to monitor and control your Kubernetes. For example, to view your node:
 ```
 sudo k8s kubectl get nodes
@@ -32,7 +32,7 @@ sudo k8s kubectl get nodes
 sudo k8s kubectl get services
 ```
 
-### 3. Deploy an app
+### 5. Deploy an app
 Kubernetes is meant for deploying apps and services. You can use the kubectl command to do that as with any Kuberenetes. 
 
 Let's deploy a demo nginx server:
@@ -44,7 +44,7 @@ You can check the status of your pods by running:
 sudo k8s kubectl get pods
 ```
 This command shows all pods in the default namespace. It may take a moment for the pod to be ready and running.
-### 4. Enable Components
+### 6. Enable Components
 With Canonical Kubernetes, you can enable and disable core components such as DNS, gateway, ingress, network, and storage. For an overview of components, visit:[Components Overview](https://change-me.com)
 
 DNS resolution is fundamental for communication between pods within the cluster and is essential for any Kubernetes deployment. To enable DNS resolution, run:
@@ -63,7 +63,7 @@ You will observe three pods running:
 - `coredns`: Provides DNS resolution services
 - `cilium-operator`: Manages the lifecycle of the Cilium networking solution.
 - `cilium` Represents the Cilium networking agent.
-### 5. Configure a component
+### 7. Configure a component
 ???
 ## Next Steps
 Link to further topics (networking, command ref, ingress etc)
