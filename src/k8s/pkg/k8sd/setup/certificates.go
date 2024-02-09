@@ -57,7 +57,7 @@ func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) error {
 		toWrite[path.Join(snap.KubernetesPKIDir(), "kubelet.crt")] = certificates.KubeletCert
 	}
 	if certificates.KubeletKey != "" {
-		toWrite[path.Join(snap.KubernetesPKIDir(), "kubelet.crt")] = certificates.KubeletKey
+		toWrite[path.Join(snap.KubernetesPKIDir(), "kubelet.key")] = certificates.KubeletKey
 	}
 
 	for fname, cert := range toWrite {
