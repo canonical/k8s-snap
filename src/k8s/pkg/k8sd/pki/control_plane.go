@@ -135,6 +135,10 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 	// Generate service account key (if missing)
 	if c.ServiceAccountKey == "" {
+		if !c.allowSelfSignedCA {
+			return fmt.Errorf("service account signing key not specified and generating new key is not allowed")
+		}
+
 		key, err := generateKey(2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate service account key: %w", err)

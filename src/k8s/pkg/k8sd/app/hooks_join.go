@@ -30,6 +30,13 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	if nodeIP == nil {
 		return fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
 	}
+
+	// Create directories
+	if err := setup.EnsureAllDirectories(snap); err != nil {
+		return fmt.Errorf("failed to create directories: %w", err)
+	}
+
+	// Certificates
 	certificates := pki.NewControlPlanePKI(s.Name(), nil, []net.IP{nodeIP}, 10, false)
 
 	// load existing certificates, then generate certificates for the node
@@ -43,14 +50,11 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	certificates.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
 	certificates.ServiceAccountKey = cfg.APIServer.ServiceAccountKey
 
-	for action, f := range map[string]func() error{
-		"initialize cluster certificates": func() error { return certificates.CompleteCertificates() },
-		"create cluster directories":      func() error { return setup.EnsureAllDirectories(snap) },
-		"write cluster certificates":      func() error { return setup.EnsureControlPlanePKI(snap, certificates) },
-	} {
-		if err := f(); err != nil {
-			return fmt.Errorf("failed to %s: %w", action, err)
-		}
+	if err := certificates.CompleteCertificates(); err != nil {
+		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+	}
+	if err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
+		return fmt.Errorf("failed to write cluster certificates: %w", err)
 	}
 
 	// Generate kubeconfigs
@@ -74,8 +78,9 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		}
 	}
 
-	// join k8s-dqlite
-	if cfg.APIServer.Datastore == "k8s-dqlite" {
+	// Configure datastore
+	switch cfg.APIServer.Datastore {
+	case "k8s-dqlite":
 		leader, err := s.Leader()
 		if err != nil {
 			return fmt.Errorf("failed to get dqlite leader: %w", err)
@@ -93,32 +98,41 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		if err := setup.K8sDqlite(snap, address, cluster); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
+	default:
+		return fmt.Errorf("unknown datastore %q, must be k8s-dqlite", cfg.APIServer.Datastore)
 	}
 
-	for action, f := range map[string]func() error{
-		"configure containerd": func() error { return setup.Containerd(snap) },
-		"configure kubelet": func() error {
-			return setup.Kubelet(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider)
-		},
-		"configure kube-proxy":              func() error { return setup.KubeProxy(snap, s.Name(), cfg.Network.PodCIDR) },
-		"configure kube-controller-manager": func() error { return setup.KubeControllerManager(snap) },
-		"configure kube-scheduler":          func() error { return setup.KubeScheduler(snap) },
-		"configure kube-apiserver": func() error {
-			return setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0/kubernetes/auth/webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.AuthorizationMode)
-		},
-		"start control plane services": func() error { return snaputil.StartControlPlaneServices(s.Context, snap) },
-	} {
-		if err := f(); err != nil {
-			return fmt.Errorf("failed to %s: %w", action, err)
-		}
+	// Configure services
+	if err := setup.Containerd(snap); err != nil {
+		return fmt.Errorf("failed to configure containerd: %w", err)
+	}
+	if err := setup.Kubelet(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider); err != nil {
+		return fmt.Errorf("failed to configure kubelet: %w", err)
+	}
+	if err := setup.KubeProxy(snap, s.Name(), cfg.Network.PodCIDR); err != nil {
+		return fmt.Errorf("failed to configure kube-proxy: %w", err)
+	}
+	if err := setup.KubeControllerManager(snap); err != nil {
+		return fmt.Errorf("failed to configure kube-controller-manager: %w", err)
+	}
+	if err := setup.KubeScheduler(snap); err != nil {
+		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
+	}
+	if err := setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.AuthorizationMode); err != nil {
+		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 
+	// Start services
+	if err := snaputil.StartControlPlaneServices(s.Context, snap); err != nil {
+		return fmt.Errorf("failed to start control plane services: %w", err)
+	}
+
+	// Wait for API server to come up
 	k8sClient, err := k8s.NewClient(snap)
 	if err != nil {
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}
 
-	// The apiserver needs to be ready to start components.
 	err = k8s.WaitApiServerReady(s.Context, k8sClient)
 	if err != nil {
 		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
