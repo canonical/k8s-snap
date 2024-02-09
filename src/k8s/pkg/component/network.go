@@ -15,6 +15,11 @@ func EnableNetworkComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
+	componentConfig, ok := manager.Config["network"]
+	if !ok {
+		return fmt.Errorf("can't get component config for network")
+	}
+
 	// TODO: the cluster cidr should be configurable through a common interface
 	clusterCIDRStr := snap.GetServiceArgument(s, "kube-proxy", "--cluster-cidr")
 	clusterCIDRs := strings.Split(clusterCIDRStr, ",")
@@ -58,6 +63,25 @@ func EnableNetworkComponent(s snap.Snap) error {
 		"nodePort": map[string]any{
 			"enabled": true,
 		},
+	}
+
+	agentImage, ok := componentConfig.Images["cilium-agent"]
+	if ok {
+		values["image"] = map[string]any{
+			"repository": agentImage.Repository,
+			"tag":        agentImage.Tag,
+			"useDigest":  false,
+		}
+	}
+
+	operatorImage, ok := componentConfig.Images["cilium-operator"]
+	if ok {
+		operatorValues := values["operator"].(map[string]any)
+		operatorValues["image"] = map[string]any{
+			"repository": operatorImage.Repository,
+			"tag":        operatorImage.Tag,
+			"useDigest":  false,
+		}
 	}
 
 	if s.IsStrict() {

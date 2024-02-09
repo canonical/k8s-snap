@@ -16,6 +16,11 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
+	componentConfig, ok := manager.Config["dns"]
+	if !ok {
+		return fmt.Errorf("can't get component config for dns")
+	}
+
 	upstreamNameserver := "/etc/resolv.conf"
 	if clusterDomain == "" {
 		clusterDomain = "cluster.local"
@@ -56,6 +61,14 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 				},
 			},
 		},
+	}
+
+	image, ok := componentConfig.Images["coredns"]
+	if ok {
+		values["image"] = map[string]any{
+			"repository": image.Repository,
+			"tag":        image.Tag,
+		}
 	}
 
 	if serviceIP != "" {

@@ -16,17 +16,23 @@ import (
 // defaultHelmConfigProvider implements the HelmConfigInitializer interface
 type defaultHelmConfigProvider struct{}
 
+type imageDefinition struct {
+	Repository string `mapstructure:"repository"`
+	Tag        string `mapstructure:"tag"`
+}
+
 // componentDefinition defines each component metadata.
 type componentDefinition struct {
-	ParentComponent string `mapstructure:"parent"`
-	ReleaseName     string `mapstructure:"release"`
-	Chart           string `mapstructure:"chart"`
-	Namespace       string `mapstructure:"namespace"`
+	ParentComponent string                     `mapstructure:"parent"`
+	ReleaseName     string                     `mapstructure:"release"`
+	Chart           string                     `mapstructure:"chart"`
+	Namespace       string                     `mapstructure:"namespace"`
+	Images          map[string]imageDefinition `mapstructure:"images"`
 }
 
 // helmClient implements the ComponentManager interface
 type helmClient struct {
-	config      map[string]componentDefinition
+	Config      map[string]componentDefinition
 	snap        snap.Snap
 	initializer HelmConfigProvider
 }
@@ -81,7 +87,7 @@ func NewHelmClient(snap snap.Snap, initializer HelmConfigProvider) (*helmClient,
 	}
 
 	return &helmClient{
-		config:      config,
+		Config:      config,
 		snap:        snap,
 		initializer: initializer,
 	}, nil
@@ -89,7 +95,7 @@ func NewHelmClient(snap snap.Snap, initializer HelmConfigProvider) (*helmClient,
 
 // Enable enables a specified component.
 func (h *helmClient) Enable(name string, values map[string]any) error {
-	component, ok := h.config[name]
+	component, ok := h.Config[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
 	}
@@ -161,11 +167,11 @@ func (h *helmClient) List() ([]Component, error) {
 		return nil, fmt.Errorf("failed to list components: %w", err)
 	}
 
-	allComponents := make([]Component, 0, len(h.config))
+	allComponents := make([]Component, 0, len(h.Config))
 	componentsMap := make(map[string]int)
 
 	// Loop through components and populate allComponents and componentsMap
-	for name, component := range h.config {
+	for name, component := range h.Config {
 		index := len(componentsMap)
 
 		allComponents = append(allComponents, Component{Name: name})
@@ -194,7 +200,7 @@ func (h *helmClient) Disable(name string) error {
 	}
 
 	uninstall := action.NewUninstall(actionConfig)
-	component, ok := h.config[name]
+	component, ok := h.Config[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
 	}
@@ -223,7 +229,7 @@ func (h *helmClient) Refresh(name string, values map[string]any) error {
 		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
 
-	component, ok := h.config[name]
+	component, ok := h.Config[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
 	}
