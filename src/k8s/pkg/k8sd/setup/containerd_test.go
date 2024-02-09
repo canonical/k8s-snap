@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestInitContainerd(t *testing.T) {
+func TestContainerd(t *testing.T) {
 	g := NewWithT(t)
 
 	dir := t.TempDir()
