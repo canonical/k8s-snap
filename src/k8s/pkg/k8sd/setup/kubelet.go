@@ -14,7 +14,7 @@ func Kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 	args := map[string]string{
 		"--kubeconfig":                   path.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
 		"--client-ca-file":               path.Join(snap.KubernetesPKIDir(), "ca.crt"),
-		"--cert-dir":                     snap.KubernetesConfigDir(),
+		"--cert-dir":                     snap.KubernetesPKIDir(),
 		"--root-dir":                     snap.KubeletRootDir(),
 		"--hostname-override":            hostname,
 		"--anonymous-auth":               "false",
