@@ -49,6 +49,7 @@ Confirm that Canonical Kubernetes has transitioned to the `k8s is ready` state b
 ```
 sudo k8s status
 ```
+Note: To disable a component execute `sudo k8s disable <component>`
 
 ### 5. Access Kubernetes
 Canonical K8s bundles its own version of `kubectl` for accessing Kubernetes. Use it to run commands to monitor and control your Kubernetes. For example, to view your node:
