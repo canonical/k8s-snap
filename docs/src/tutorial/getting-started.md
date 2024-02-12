@@ -185,7 +185,7 @@ To uninstall the Canonical Kubernetes snap, execute:
 sudo snap remove k8s
 ```
 
-This command removes the k8s snap and automatically creates a snapshot of all data for future restoration.
+This command removes the `k8s` snap and automatically creates a snapshot of all data for future restoration.
 
 If you wish to remove the snap without saving a snapshot of its data, add `--purge` to the command:
 
@@ -195,6 +195,7 @@ sudo snap remove k8s --purge
 This option ensures complete removal of the snap and its associated data.
 
 ## Next Steps
+
 - Keep mastering Canonical Kubernetes with kubectl: [How to use kubectl](#TODO)
 - Explore Kubernetes commands with our [Command Reference Guide](#TODO)
 - Bootstrap K8s with your custom configurations [Bootstrap K8s](#TODO)
