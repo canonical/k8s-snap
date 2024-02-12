@@ -178,6 +178,22 @@ sudo k8s disable storage
 
 Note: To disable any component, execute  `sudo k8s disable <component>`.
 
+### 10. Remove Canonical Kubernetes (Optional)
+To uninstall the Canonical Kubernetes snap, execute:
+
+```
+sudo snap remove k8s
+```
+
+This command removes the k8s snap and automatically creates a snapshot of all data for future restoration.
+
+If you wish to remove the snap without saving a snapshot of its data, add --purge to the command:
+
+```
+sudo snap remove k8s --purge
+```
+This option ensures complete removal of the snap and its associated data.
+
 ## Next Steps
 - Explore Kubernetes commands with our [Command Reference Guide](#TODO)
 - Bootstrap K8s with your custom configurations [Bootstrap K8s](#TODO)
