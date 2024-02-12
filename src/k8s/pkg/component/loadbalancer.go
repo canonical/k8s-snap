@@ -3,13 +3,12 @@ package component
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
-func EnableLoadBalancerComponent(s snap.Snap, cidrs []string, l2Enabled bool, l2Interfaces []string, bgpEnabled bool, bgpLocalASN int, bgpPeerAddress string, bgpPeerASN int, bgpPeerPort int) error {
+func EnableLoadBalancerComponent(s snap.Snap, cidrs []string, l2Enabled bool, l2Interfaces []string, bgpEnabled bool, bgpLocalASN int, bgpPeerAddress string, bgpPeerASN int, bgpPeerPort int, ctx context.Context) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -72,9 +71,6 @@ func EnableLoadBalancerComponent(s snap.Snap, cidrs []string, l2Enabled bool, l2
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	if err := k8s.RestartDeployment(ctx, client, "cilium-operator", "kube-system"); err != nil {
 		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)

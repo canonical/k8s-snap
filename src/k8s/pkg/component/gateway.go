@@ -3,13 +3,12 @@ package component
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
-func EnableGatewayComponent(s snap.Snap) error {
+func EnableGatewayComponent(s snap.Snap, ctx context.Context) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -37,9 +36,6 @@ func EnableGatewayComponent(s snap.Snap) error {
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	err = k8s.RestartDeployment(ctx, client, "cilium-operator", "kube-system")
 	if err != nil {

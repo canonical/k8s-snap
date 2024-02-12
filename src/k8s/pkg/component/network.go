@@ -1,6 +1,7 @@
 package component
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strings"
@@ -9,7 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-func EnableNetworkComponent(s snap.Snap) error {
+func EnableNetworkComponent(s snap.Snap, ctx context.Context) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)

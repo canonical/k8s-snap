@@ -10,7 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
-func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNameservers []string) error {
+func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNameservers []string, ctx context.Context) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -73,9 +73,6 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	dnsIP, err := k8s.GetServiceClusterIP(ctx, client, "coredns", "kube-system")
 	if err != nil {
 		return fmt.Errorf("failed to get dns service: %w", err)
@@ -93,9 +90,6 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 	}
 
 	if changed {
-		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
 		err = s.RestartService(ctx, "kubelet")
 		if err != nil {
 			return fmt.Errorf("failed to restart service 'kubelet': %w", err)

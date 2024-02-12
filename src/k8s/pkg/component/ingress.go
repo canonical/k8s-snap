@@ -3,13 +3,12 @@ package component
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
-func EnableIngressComponent(s snap.Snap, defaultTLSSecret string, enableProxyProtocol bool) error {
+func EnableIngressComponent(s snap.Snap, defaultTLSSecret string, enableProxyProtocol bool, ctx context.Context) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -34,9 +33,6 @@ func EnableIngressComponent(s snap.Snap, defaultTLSSecret string, enableProxyPro
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	err = k8s.RestartDeployment(ctx, client, "cilium-operator", "kube-system")
 	if err != nil {
