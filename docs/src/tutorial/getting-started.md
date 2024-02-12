@@ -154,7 +154,7 @@ You should see `storage enabled` in the command output.
 
 Let's create a persistent volume:
 ```
-kubectl apply -f https://k8s.io/examples/pods/storage/pv-volume.yaml
+sudo k8s kubectl apply -f https://k8s.io/examples/pods/storage/pv-volume.yaml
 ```
 This command deploys a pod based on the YAML configuration of a 
 persistent volume with a capacity of 10G.
