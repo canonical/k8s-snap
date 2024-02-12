@@ -4,11 +4,13 @@ network:
   namespace: "kube-system"
 dns:
   release: "ck-dns"
-  chart: "coredns-1.29.0.tgz"
+  # TODO: [KU-373] We should fork the coredns chart for args changes
+  # and try to push it upstream
+  chart: "coredns-1.29.0"
   namespace: "kube-system"
 storage:
   release: "ck-storage"
-  chart: "hostpath-provisioner-0.1.0.tgz"
+  chart: "rawfile-csi-0.8.0.tgz"
   namespace: "kube-system"
 ingress:
   parent: "network"

@@ -29,9 +29,12 @@ type Component struct {
 }
 
 // InitializeHelmClientConfig initializes a Helm Configuration, ensures the use of a fresh configuration
-func (r *defaultHelmConfigProvider) New() (*action.Configuration, error) {
+func (r *defaultHelmConfigProvider) New(namespace string) (*action.Configuration, error) {
 	settings := cli.New()
 	settings.KubeConfig = "/etc/kubernetes/admin.conf"
+	if namespace != "" {
+		settings.SetNamespace(namespace)
+	}
 
 	actionConfig := new(action.Configuration)
 	err := actionConfig.Init(
@@ -71,7 +74,7 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 		return fmt.Errorf("invalid component %s", name)
 	}
 
-	actionConfig, err := h.initializer.New()
+	actionConfig, err := h.initializer.New(component.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
@@ -104,7 +107,7 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 
 // isComponentEnabled checks if a component is enabled.
 func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
-	actionConfig, err := h.initializer.New()
+	actionConfig, err := h.initializer.New(namespace)
 	if err != nil {
 		return false, fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
@@ -126,7 +129,7 @@ func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
 
 // List lists the status of each k8s component.
 func (h *helmClient) List() ([]Component, error) {
-	actionConfig, err := h.initializer.New()
+	actionConfig, err := h.initializer.New("")
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
@@ -165,15 +168,14 @@ func (h *helmClient) List() ([]Component, error) {
 
 // Disable disables a specified component.
 func (h *helmClient) Disable(name string) error {
-	actionConfig, err := h.initializer.New()
-	if err != nil {
-		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
-	}
-
-	uninstall := action.NewUninstall(actionConfig)
 	component, ok := h.components[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
+	}
+
+	actionConfig, err := h.initializer.New(component.Namespace)
+	if err != nil {
+		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
 
 	isEnabled, err := h.isComponentEnabled(component.ReleaseName, component.Namespace)
@@ -185,6 +187,7 @@ func (h *helmClient) Disable(name string) error {
 		return nil
 	}
 
+	uninstall := action.NewUninstall(actionConfig)
 	_, err = uninstall.Run(component.ReleaseName)
 	if err != nil {
 		return fmt.Errorf("failed to uninstall component '%s': %w", name, err)
@@ -195,14 +198,14 @@ func (h *helmClient) Disable(name string) error {
 
 // Refresh refreshes a specified component.
 func (h *helmClient) Refresh(name string, values map[string]any) error {
-	actionConfig, err := h.initializer.New()
-	if err != nil {
-		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
-	}
-
 	component, ok := h.components[name]
 	if !ok {
 		return fmt.Errorf("invalid component %s", name)
+	}
+
+	actionConfig, err := h.initializer.New(component.Namespace)
+	if err != nil {
+		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
 
 	upgrade := action.NewUpgrade(actionConfig)

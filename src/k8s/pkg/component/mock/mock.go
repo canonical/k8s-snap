@@ -7,6 +7,6 @@ type MockHelmConfigProvider struct {
 	ActionConfig *action.Configuration
 }
 
-func (r *MockHelmConfigProvider) New() (*action.Configuration, error) {
+func (r *MockHelmConfigProvider) New(namespace string) (*action.Configuration, error) {
 	return r.ActionConfig, nil
 }

@@ -29,6 +29,10 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 	}
 
 	values := map[string]any{
+		"image": map[string]any{
+			"repository": dnsImageRepository,
+			"tag":        dnsImageTag,
+		},
 		"service": map[string]any{
 			"name": "coredns",
 		},
