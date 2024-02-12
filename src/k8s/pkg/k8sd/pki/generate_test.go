@@ -22,7 +22,7 @@ func Test_generateSelfSignedCA(t *testing.T) {
 		g.Expect(k).ToNot(BeNil())
 	})
 
-	t.Run("LoadKeyOnly", func(t *testing.T) {
+	t.Run("LoadCertOnly", func(t *testing.T) {
 		cert, key, err := loadCertificate(cert, "")
 		g.Expect(err).To(BeNil())
 		g.Expect(cert).ToNot(BeNil())

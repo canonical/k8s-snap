@@ -29,5 +29,6 @@ func LeaveK8sDqliteCluster(ctx context.Context, snap snap.Snap, state *state.Sta
 		return fmt.Errorf("failed to leave cluster: %w", err)
 	}
 
+	// TODO: do not use the dqlite shell to remove the node.
 	return utils.RunCommand(ctx, "/snap/k8s/current/k8s/wrappers/commands/dqlite", "k8s", fmt.Sprintf(".remove %s", address))
 }
