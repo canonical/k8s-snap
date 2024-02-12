@@ -9,7 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
-func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNameservers []string, ctx context.Context) error {
+func EnableDNSComponent(ctx context.Context, s snap.Snap, clusterDomain, serviceIP string, upstreamNameservers []string) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -98,7 +98,7 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 	return nil
 }
 
-func DisableDNSComponent(s snap.Snap, ctx context.Context) error {
+func DisableDNSComponent(ctx context.Context, s snap.Snap) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)

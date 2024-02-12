@@ -38,11 +38,11 @@ func putDNSComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		if err := component.EnableDNSComponent(snap, req.Config.ClusterDomain, req.Config.ServiceIP, req.Config.UpstreamNameservers, s.Context); err != nil {
+		if err := component.EnableDNSComponent(s.Context, snap, req.Config.ClusterDomain, req.Config.ServiceIP, req.Config.UpstreamNameservers); err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable dns: %w", err))
 		}
 	case api.ComponentDisable:
-		if err := component.DisableDNSComponent(snap, s.Context); err != nil {
+		if err := component.DisableDNSComponent(s.Context, snap); err != nil {
 			return response.InternalError(fmt.Errorf("failed to disable dns: %w", err))
 		}
 	default:
@@ -62,7 +62,7 @@ func putNetworkComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		if err := component.EnableNetworkComponent(snap, s.Context); err != nil {
+		if err := component.EnableNetworkComponent(s.Context, snap); err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable network: %w", err))
 		}
 	case api.ComponentDisable:
@@ -86,7 +86,7 @@ func putStorageComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		if err := component.EnableStorageComponent(snap, s.Context); err != nil {
+		if err := component.EnableStorageComponent(s.Context, snap); err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable storage: %w", err))
 		}
 	case api.ComponentDisable:
@@ -110,7 +110,7 @@ func putIngressComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		if err := component.EnableIngressComponent(snap, req.Config.DefaultTLSSecret, req.Config.EnableProxyProtocol, s.Context); err != nil {
+		if err := component.EnableIngressComponent(s.Context, snap, req.Config.DefaultTLSSecret, req.Config.EnableProxyProtocol); err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable ingress: %w", err))
 		}
 	case api.ComponentDisable:
@@ -134,7 +134,7 @@ func putGatewayComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		if err := component.EnableGatewayComponent(snap, s.Context); err != nil {
+		if err := component.EnableGatewayComponent(s.Context, snap); err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable gateway API: %w", err))
 		}
 	case api.ComponentDisable:
@@ -159,6 +159,7 @@ func putLoadBalancerComponent(s *state.State, r *http.Request) response.Response
 	switch req.Status {
 	case api.ComponentEnable:
 		if err := component.EnableLoadBalancerComponent(
+			s.Context,
 			snap,
 			req.Config.CIDRs,
 			req.Config.L2Enabled,
@@ -168,7 +169,6 @@ func putLoadBalancerComponent(s *state.State, r *http.Request) response.Response
 			req.Config.BGPPeerAddress,
 			req.Config.BGPPeerASN,
 			req.Config.BGPPeerPort,
-			s.Context,
 		); err != nil {
 			return response.SmartError(fmt.Errorf("failed to enable loadbalancer: %w", err))
 		}
