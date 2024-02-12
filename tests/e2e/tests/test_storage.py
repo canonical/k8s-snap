@@ -4,8 +4,8 @@
 import json
 import logging
 import subprocess
-from pathlib import Path
 import time
+from pathlib import Path
 from typing import List
 
 import pytest
