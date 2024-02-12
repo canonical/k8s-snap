@@ -15,7 +15,7 @@ import (
 func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus, error) {
 	snap := snap.SnapFromContext(s.Context)
 
-	k8sClient, err := k8s.NewClient()
+	k8sClient, err := k8s.NewClient(snap)
 	if err != nil {
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to create k8s client: %w", err)
 	}

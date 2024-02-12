@@ -2,7 +2,8 @@ package k8s
 
 import (
 	"os"
-	"path"
+
+	"github.com/canonical/k8s/pkg/snap"
 )
 
 var (
@@ -12,7 +13,7 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.stateDir, "state-dir", path.Join(os.Getenv("SNAP_COMMON"), "/var/lib/k8sd/state"), "Directory with the dqlite datastore")
+	rootCmd.PersistentFlags().StringVar(&clusterCmdOpts.stateDir, "state-dir", snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON")).K8sdStateDir(), "Directory with the dqlite datastore")
 
 	// By default, the state dir is set to a fixed directory in the snap.
 	// This shouldn't be overwritten by the user.

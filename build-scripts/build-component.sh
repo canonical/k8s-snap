@@ -20,7 +20,7 @@ COMPONENT_BUILD_DIRECTORY="${BUILD_DIRECTORY}/${COMPONENT_NAME}"
 # cleanup git repository if we cannot git checkout to the build tag
 if [ -d "${COMPONENT_BUILD_DIRECTORY}" ]; then
   cd "${COMPONENT_BUILD_DIRECTORY}"
-  if ! git checkout "${GIT_TAG}"; then
+  if ! git reset --hard "${GIT_TAG}"; then
     cd "${BUILD_DIRECTORY}"
     rm -rf "${COMPONENT_BUILD_DIRECTORY}"
   fi

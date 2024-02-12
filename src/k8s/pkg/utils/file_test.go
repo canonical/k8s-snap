@@ -1,7 +1,6 @@
 package utils_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,42 +8,6 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
-
-func TestFileExists(t *testing.T) {
-	testFilePath := fmt.Sprintf("%s/myfile", t.TempDir())
-	_, err := os.Create(testFilePath)
-	if err != nil {
-		t.Fatal("Failed to create test file")
-	}
-
-	if !utils.FileExists(testFilePath) {
-		t.Fatal("File should exist but it does not")
-	}
-
-	if err := os.Remove(testFilePath); err != nil {
-		t.Fatalf("Failed to delete test file: %s", err)
-	}
-
-	if utils.FileExists(testFilePath) {
-		t.Fatal("File should not exist but it does")
-	}
-}
-
-func TestReadFile(t *testing.T) {
-	testFilePath := fmt.Sprintf("%s/test-read-file", t.TempDir())
-	if err := os.WriteFile(testFilePath, []byte(`my text`), 0644); err != nil {
-		t.Fatal("Failed to create test file")
-	}
-
-	contents, err := utils.ReadFile(testFilePath)
-	if err != nil {
-		t.Fatalf("Failed to read test file: %s", err)
-	}
-	if contents != "my text" {
-		t.Fatalf("Test file should contain 'my test' but it contained '%s'", contents)
-	}
-	os.Remove(testFilePath)
-}
 
 func TestParseArgumentLine(t *testing.T) {
 	for _, tc := range []struct {

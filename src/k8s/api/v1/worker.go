@@ -5,6 +5,8 @@ package v1
 type WorkerNodeInfoRequest struct {
 	// Hostname is the name of the worker node.
 	Hostname string `json:"hostname"`
+	// Address is the address of the worker node.
+	Address string `json:"address"`
 }
 
 // WorkerNodeInfoResponse is used to return a worker node token.
@@ -17,12 +19,16 @@ type WorkerNodeInfoResponse struct {
 	KubeletToken string `json:"kubeletToken"`
 	// KubeProxyToken is the token to use for kube-proxy.
 	KubeProxyToken string `json:"kubeProxyToken"`
-	// ClusterCIDR is the configured cluster CIDR.
-	ClusterCIDR string `json:"clusterCIDR"`
+	// PodCIDR is the configured CIDR for pods in the cluster.
+	PodCIDR string `json:"podCIDR"`
 	// ClusterDNS is the DNS server address of the cluster.
 	ClusterDNS string `json:"clusterDNS,omitempty"`
 	// ClusterDomain is the DNS domain of the cluster.
 	ClusterDomain string `json:"clusterDomain,omitempty"`
 	// CloudProvider is the cloud provider used in the cluster.
 	CloudProvider string `json:"cloudProvider,omitempty"`
+	// KubeletCert is the certificate to use for kubelet TLS. It will be empty if the cluster is not using self-signed certificates.
+	KubeletCert string `json:"kubeletCrt,omitempty"`
+	// KubeletKey is the private key to use for kubelet TLS. It will be empty if the cluster is not using self-signed certificates.
+	KubeletKey string `json:"kubeletKey,omitempty"`
 }

@@ -2,7 +2,9 @@ package k8s
 
 import (
 	"fmt"
+	"path"
 
+	"github.com/canonical/k8s/pkg/snap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -18,8 +20,8 @@ type k8sClient struct {
 // There is no way for the user to overwrite this kubeconfig.
 // We might need to add this functionality similar to `k8s kubectl`.
 // However, simply querying the KUBECONFIG env will not work for remote clients.
-func NewClient() (*k8sClient, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", "/etc/kubernetes/admin.conf")
+func NewClient(snap snap.Snap) (*k8sClient, error) {
+	config, err := clientcmd.BuildConfigFromFlags("", path.Join(snap.KubernetesConfigDir(), "admin.conf"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create k8s kubeconfig: %w", err)
 	}

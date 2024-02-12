@@ -9,15 +9,13 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-func EnableNetworkComponent(s snap.Snap) error {
+func EnableNetworkComponent(s snap.Snap, podCIDR string) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	// TODO: the cluster cidr should be configurable through a common interface
-	clusterCIDRStr := snap.GetServiceArgument(s, "kube-proxy", "--cluster-cidr")
-	clusterCIDRs := strings.Split(clusterCIDRStr, ",")
+	clusterCIDRs := strings.Split(podCIDR, ",")
 	if v := len(clusterCIDRs); v != 1 && v != 2 {
 		return fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", clusterCIDRs)
 	}
@@ -70,7 +68,7 @@ func EnableNetworkComponent(s snap.Snap) error {
 		},
 	}
 
-	if s.IsStrict() {
+	if s.Strict() {
 		bpfMnt, err := utils.GetMountPath("bpf")
 		if err != nil {
 			return fmt.Errorf("failed to get bpf mount path: %w", err)
