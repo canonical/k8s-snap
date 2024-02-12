@@ -10,157 +10,26 @@ automate deploying, scaling, and managing containerized applications.
 
 Before you begin, make sure you have the following:
 
-- Snapd is running (`sudo systemctl status snapd`)
-- Canonical K8s is installed (`which k8s`)
-- Access to the kubeconfig file for your Kubernetes cluster
+- A bootstrapped Canonical K8s cluster (See [insert link]...)
 
 ## Table of Contents
 
-1. [Bootstrap a Cluster](#bootstrap-a-cluster)
-1. [Checking Cluster Information](#checking-cluster-information)
-1. [Managing Resources](#managing-resources)
-1. [Pod Operations](#pod-operations)
-1. [Service Operations](#service-operations)
-1. [ConfigMap and Secret Operations](#configmap-and-secret-operations)
-1. [Scaling](#scaling)
-1. [Port Forwarding](#port-forwarding)
-1. [Rolling Updates](#rolling-updates)
-1. [Namespace Operations](#namespace-operations)
-1. [Applying Labels](#applying-labels)
-1. [Viewing and Editing Resources](#viewing-and-editing-resources)
-1. [Accessing Kubernetes Dashboard](#accessing-kubernetes-dashboard)
+1. [The Kubectl Command](#check-kubernetes-version)
 
-## Bootstrap a Cluster
+## The Kubectl Command
 
-`$ sudo k8s bootstrap`
+This commands interacts with the Kubernetes API server (kube-apiserver) and is the most commonly used command when working with Kubernetes, so let's take some time to familiarize ourselves with it.
 
-`$ sudo k8s status`
+It's syntax is as follows:
 
-```sh
-❯ sudo k8s status
-k8s is not ready.
-high-availability: no
-
-control-plane nodes:
-  dev: 192.168.0.159
-
-components:
-  dns        disabled
-  gateway    disabled
-  ingress    disabled
-  loadbalancer disabled
-  network    disabled
-  storage    disabled
+```
+kubectl [command] [TYPE] [NAME] [flags]
 ```
 
-## Checking Cluster Information
+- `command` is one of the commands defined [upstream](https://kubernetes.io/docs/reference/kubectl/generated/) like `get`, `delete` and `apply`.
+- `TYPE` is the Kubernetes API resource type you want to interact with (Use `sudo k8s kubectl api-resources` to see all the available resources).
+- `NAME` is the name of the instance of a resource you want to interact with, like the name of a pod. If it's omitted kube-apiserver will return all instances of that resource type.
 
-The output of `k8s status` indicates that we have one node running. We can also
-check this information with `kubectl`.
 
-`$ sudo k8s kubectl get nodes`
-
-## Add a node to your cluster
-
-Let's get ready to run some workloads in our cluster. The first step is to add
-a new node to the cluster. For this, we'll use `multipass`.
-
-`$ sudo snap install multipass`
-
-Create a VM called `expert-elf`
-
-```sh
-$ multipass shell expert-elf
-ubuntu@expert-elf:~$
-```
-
-Install Canonical K8s inside the VM:
-
-```sh
-ubuntu@expert-elf:~$ sudo snap install --classic --edge k8s k8s (edge) v1.29.1
-from Konstantinos Tsakalozos (kjackal) installed
-```
-
-Now, on your host machine, run the `add-node` command:
-
-```sh
-❯ sudo k8s add-node expert-elf
-eyJuYW1lIjoiZXhwZXJ0LWVsZiIsInNlY3JldCI6IjhlNzY4ZDkxYzRjZmY3MjZjZDdmMmNjODdkNGQ
-5OWEzNjkwMmJhZDcwZDBhN2NiMGEzYmEyODJmNjRlMjk0ZGEiLCJmaW5nZXJwcmludCI6IjE3ZDZkNT
-E2NmFkODhhNGY0YjdkMGE5OTMyYzFlYmIzM2U3NGUyN2IwZmU1YWUxOWEwYmY3MzY5ZWJkMTQ3ZTYiL
-CJqb2luX2FkZHJlc3NlcyI6WyIxOTIuMTY4LjAuMTU5OjY0MDAiXX0=
-```
-
-View cluster information You can view more information about the control plane
-node by using `kubectl describe`.
-
-`$ sudo k8s kubectl describe node dev`
-
-## Managing Resources
-
-- Creating resources from YAML files
-
-Create a NGINX deployment.
-
-`$ sudo k8s kubectl create deployment --image nginx:latest nginx`
-
-- Viewing resources
-- Describing resources
-- Deleting resources
-
-## Pod Operations
-
-- Viewing pods
-- Describing pods
-- Getting logs from pods
-- Executing commands in pods
-
-## Service Operations
-
-- Viewing services
-- Describing services
-
-## ConfigMap and Secret Operations
-
-- Viewing ConfigMaps
-- Viewing Secrets
-
-## Scaling
-
-- Scaling a deployment
-
-## Port Forwarding
-
-- Forwarding local ports to pods
-
-## Rolling Updates
-
-- Updating a deployment
-
-## Namespace Operations
-
-- Viewing namespaces
-- Creating namespaces
-- Switching namespaces
-
-## Applying Labels
-
-- Applying labels to resources
-
-## Viewing and Editing Resources
-
-- Editing resources
-
-## Accessing Kubernetes Dashboard
-
-- Accessing the Kubernetes dashboard
-
-## Conclusion
-
-This guide covers basic operations with Kubernetes using kubectl. With these
-commands, you can manage and interact with your Kubernetes cluster effectively.
-
-## Additional Resources
-
-- [Kubernetes Documentation](https://kubernetes.io/docs/)
-- [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
+## References
+[https://kubernetes.io/docs/reference/kubectl/](https://kubernetes.io/docs/reference/kubectl/)
