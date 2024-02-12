@@ -4,7 +4,6 @@
 import json
 import logging
 import subprocess
-import time
 from pathlib import Path
 from typing import List
 
@@ -84,7 +83,9 @@ def test_storage(instances: List[harness.Instance]):
     )
     LOG.info("Storage got provisioned and pvc is bound.")
 
-    time.sleep(3)
+    util.stubbornly(retries=5, delay_s=10).on(instance).until(
+        lambda p: "LOREM IPSUM" in p.stdout.decode()
+    ).exec(["k8s", "kubectl", "logs", "storage-writer-pod"])
 
     util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [

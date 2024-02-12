@@ -21,7 +21,7 @@ spec:
     - name: storage-writer-container
       image: busybox
       command:
-        ["/bin/sh", "-c", "while true; do echo LOREM IPSUM $(date) >> /mnt/dates; sleep 2; done"]
+        ["/bin/sh", "-c", "while true; do echo LOREM IPSUM $(date) | tee -a /mnt/dates; sleep 2; done"]
       volumeMounts:
         - name: storage-volume
           mountPath: "/mnt"

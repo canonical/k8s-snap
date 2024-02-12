@@ -31,6 +31,9 @@ func EnableStorageComponent(s snap.Snap) error {
 				"repository": storageImageRepository,
 				"tag":        storageImageTag,
 			},
+			"storage": map[string]any{
+				"path": "/var/snap/k8s/common/rawfile-storage",
+			},
 		},
 	}
 
