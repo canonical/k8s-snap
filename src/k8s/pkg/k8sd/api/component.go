@@ -42,7 +42,7 @@ func putDNSComponent(s *state.State, r *http.Request) response.Response {
 			return response.InternalError(fmt.Errorf("failed to enable dns: %w", err))
 		}
 	case api.ComponentDisable:
-		if err := component.DisableDNSComponent(snap); err != nil {
+		if err := component.DisableDNSComponent(snap, s.Context); err != nil {
 			return response.InternalError(fmt.Errorf("failed to disable dns: %w", err))
 		}
 	default:

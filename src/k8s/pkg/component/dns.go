@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/k8s"
@@ -99,7 +98,7 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 	return nil
 }
 
-func DisableDNSComponent(s snap.Snap) error {
+func DisableDNSComponent(s snap.Snap, ctx context.Context) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -122,9 +121,6 @@ func DisableDNSComponent(s snap.Snap) error {
 	}
 
 	if changed {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
 		err = s.RestartService(ctx, "kubelet")
 		if err != nil {
 			return fmt.Errorf("failed to restart service 'kubelet': %w", err)
