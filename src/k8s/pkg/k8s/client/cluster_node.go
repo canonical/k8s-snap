@@ -6,6 +6,8 @@ import (
 	"os"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/snap"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/lxd/shared/api"
 )
@@ -23,9 +25,9 @@ func (c *Client) JoinCluster(ctx context.Context, name string, address string, t
 	var response apiv1.JoinClusterResponse
 	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, &response)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "failed to join node - cleaning up now")
-		c.CleanupNode(ctx, name)
-		return fmt.Errorf("failed to query endpoint POST /k8sd/cluster/join: %w", err)
+		fmt.Fprintln(os.Stderr, "Failed with error:", err)
+
+		c.CleanupNode(ctx, c.opts.Snap, name)
 	}
 
 	c.WaitForDqliteNodeToBeReady(ctx, name)
@@ -64,7 +66,7 @@ func (c *Client) WaitForDqliteNodeToBeReady(ctx context.Context, nodeName string
 
 // CleanupNode resets the nodes configuration and cluster state.
 // The cleanup will happen on a best-effort base. Any error that occurs will be ignored.
-func (c *Client) CleanupNode(ctx context.Context, nodeName string) {
+func (c *Client) CleanupNode(ctx context.Context, snap snap.Snap, nodeName string) {
 
 	// For self-removal, microcluster expects the dqlite node to not be in pending state.
 	c.WaitForDqliteNodeToBeReady(ctx, nodeName)
@@ -78,5 +80,5 @@ func (c *Client) CleanupNode(ctx context.Context, nodeName string) {
 	c.ResetNode(ctx, nodeName, true)
 
 	// TODO(neoaggelos): reenable after we know how to pass a snap here
-	// snap.StopControlPlaneServices(ctx, snap.NewDefaultSnap())
+	snaputil.StopControlPlaneServices(ctx, snap)
 }

@@ -48,3 +48,14 @@ func StartControlPlaneServices(ctx context.Context, snap snap.Snap) error {
 	}
 	return nil
 }
+
+// StopControlPlaneServices stops the control plane services.
+// StopControlPlaneServices will return on the first failing service.
+func StopControlPlaneServices(ctx context.Context, snap snap.Snap) error {
+	for _, service := range controlPlaneServices {
+		if err := snap.StopService(ctx, service); err != nil {
+			return fmt.Errorf("failed to start service %s: %w", service, err)
+		}
+	}
+	return nil
+}
