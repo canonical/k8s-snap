@@ -77,14 +77,18 @@ ubuntu@expert-elf:~$
 Install Canonical K8s inside the VM:
 
 ```sh
-ubuntu@expert-elf:~$ sudo snap install --classic --edge k8s k8s (edge) v1.29.1 from Konstantinos Tsakalozos (kjackal) installed
+ubuntu@expert-elf:~$ sudo snap install --classic --edge k8s k8s (edge) v1.29.1
+from Konstantinos Tsakalozos (kjackal) installed
 ```
 
 Now, on your host machine, run the `add-node` command:
 
 ```sh
 ❯ sudo k8s add-node expert-elf
-eyJuYW1lIjoiZXhwZXJ0LWVsZiIsInNlY3JldCI6IjhlNzY4ZDkxYzRjZmY3MjZjZDdmMmNjODdkNGQ5OWEzNjkwMmJhZDcwZDBhN2NiMGEzYmEyODJmNjRlMjk0ZGEiLCJmaW5nZXJwcmludCI6IjE3ZDZkNTE2NmFkODhhNGY0YjdkMGE5OTMyYzFlYmIzM2U3NGUyN2IwZmU1YWUxOWEwYmY3MzY5ZWJkMTQ3ZTYiLCJqb2luX2FkZHJlc3NlcyI6WyIxOTIuMTY4LjAuMTU5OjY0MDAiXX0=
+eyJuYW1lIjoiZXhwZXJ0LWVsZiIsInNlY3JldCI6IjhlNzY4ZDkxYzRjZmY3MjZjZDdmMmNjODdkNGQ
+5OWEzNjkwMmJhZDcwZDBhN2NiMGEzYmEyODJmNjRlMjk0ZGEiLCJmaW5nZXJwcmludCI6IjE3ZDZkNT
+E2NmFkODhhNGY0YjdkMGE5OTMyYzFlYmIzM2U3NGUyN2IwZmU1YWUxOWEwYmY3MzY5ZWJkMTQ3ZTYiL
+CJqb2luX2FkZHJlc3NlcyI6WyIxOTIuMTY4LjAuMTU5OjY0MDAiXX0=
 ```
 
 View cluster information You can view more information about the control plane
