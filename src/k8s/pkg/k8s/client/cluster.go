@@ -46,8 +46,8 @@ func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapC
 	}
 	if err := c.m.NewCluster(hostname, addrPort, config, time.Second*30); err != nil {
 		// TODO(neoaggelos): print message that bootstrap failed, and that we are cleaning up
-		fmt.Println("Cleaning up, error was", err)
-		c.CleanupNode(ctx, hostname)
+		fmt.Fprintln(os.Stderr, "Failed with error:", err)
+		c.CleanupNode(ctx, c.opts.Snap, hostname)
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
 	}
 
