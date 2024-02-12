@@ -178,13 +178,14 @@ func (s *snap) Components() map[string]types.Component {
 			Namespace:    "kube-system",
 		},
 		"dns": {
-			ReleaseName:  "ck-dns",
-			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "coredns-1.29.0.tgz"),
+			ReleaseName: "ck-dns",
+			// TODO: fork coredns helm chart so that we can set custom args needed for the rock
+			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "coredns-1.29.0"),
 			Namespace:    "kube-system",
 		},
 		"storage": {
 			ReleaseName:  "ck-storage",
-			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "hostpath-provisioner-0.1.0.tgz"),
+			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "rawfile-csi-0.8.0.tgz"),
 			Namespace:    "kube-system",
 		},
 		"ingress": {
