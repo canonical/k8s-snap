@@ -17,5 +17,5 @@ type ComponentManager interface {
 // HelmConfigProvider defines an interface for initializing a Helm Configuration, allowing a Mock implementation
 type HelmConfigProvider interface {
 	// Initializes a fresh Helm Configuration
-	New() (*action.Configuration, error)
+	New(namespace string) (*action.Configuration, error)
 }
