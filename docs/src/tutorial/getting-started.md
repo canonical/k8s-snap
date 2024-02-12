@@ -195,6 +195,7 @@ sudo snap remove k8s --purge
 This option ensures complete removal of the snap and its associated data.
 
 ## Next Steps
+- Keep mastering Canonical Kubernetes with kubectl: [How to use kubectl](#TODO)
 - Explore Kubernetes commands with our [Command Reference Guide](#TODO)
 - Bootstrap K8s with your custom configurations [Bootstrap K8s](#TODO)
 - Learn how to set up a multi-node environment [Setting up a K8s cluster](#TODO)
