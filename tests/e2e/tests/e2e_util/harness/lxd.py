@@ -97,13 +97,18 @@ class LXDHarness(Harness):
             self.exec(
                 instance_id,
                 ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
+                capture_output=True,
             )
             run(
                 ["lxc", "file", "push", source, f"{instance_id}{destination}"],
-                stdout=subprocess.DEVNULL,
+                capture_output=True,
             )
         except subprocess.CalledProcessError as e:
-            raise HarnessError("lxc file push command failed") from e
+            LOG.error("command {e.cmd} failed")
+            LOG.error(f"  {e.returncode=}")
+            LOG.error(f"  {e.stdout.decode()=}")
+            LOG.error(f"  {e.stderr.decode()=}")
+            raise HarnessError("failed to push file") from e
 
     def pull_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
