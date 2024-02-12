@@ -187,7 +187,7 @@ sudo snap remove k8s
 
 This command removes the k8s snap and automatically creates a snapshot of all data for future restoration.
 
-If you wish to remove the snap without saving a snapshot of its data, add --purge to the command:
+If you wish to remove the snap without saving a snapshot of its data, add `--purge` to the command:
 
 ```
 sudo snap remove k8s --purge
