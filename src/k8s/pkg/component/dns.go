@@ -8,7 +8,6 @@ import (
 
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
 // EnableDNSComponent enables DNS on the cluster.
@@ -70,12 +69,11 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 		service["clusterIP"] = serviceIP
 	}
 
-	err = manager.Enable("dns", values)
-	if err != nil {
+	if err := manager.Enable("dns", values); err != nil {
 		return "", "", fmt.Errorf("failed to enable dns component: %w", err)
 	}
 
-	client, err := k8s.NewClient(s)
+	client, err := s.KubernetesClient()
 	if err != nil {
 		return "", "", fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
@@ -83,7 +81,7 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	dnsIP, err := k8s.GetServiceClusterIP(ctx, client, "coredns", "kube-system")
+	dnsIP, err := client.GetServiceClusterIP(ctx, "coredns", "kube-system")
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get dns service: %w", err)
 	}
@@ -100,8 +98,7 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		err = s.RestartService(ctx, "kubelet")
-		if err != nil {
+		if err := s.RestartService(ctx, "kubelet"); err != nil {
 			return "", "", fmt.Errorf("failed to restart kubelet to apply new dns configuration: %w", err)
 		}
 	}
@@ -114,8 +111,7 @@ func DisableDNSComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	err = manager.Disable("dns")
-	if err != nil {
+	if err := manager.Disable("dns"); err != nil {
 		return fmt.Errorf("failed to disable dns component: %w", err)
 	}
 
@@ -128,8 +124,7 @@ func DisableDNSComponent(s snap.Snap) error {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		err = s.RestartService(ctx, "kubelet")
-		if err != nil {
+		if err := s.RestartService(ctx, "kubelet"); err != nil {
 			return fmt.Errorf("failed to restart service 'kubelet': %w", err)
 		}
 	}

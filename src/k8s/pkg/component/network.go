@@ -93,8 +93,7 @@ func EnableNetworkComponent(s snap.Snap, podCIDR string) error {
 		}
 	}
 
-	err = manager.Enable("network", values)
-	if err != nil {
+	if err := manager.Enable("network", values); err != nil {
 		return fmt.Errorf("failed to enable network component: %w", err)
 	}
 
@@ -107,8 +106,7 @@ func DisableNetworkComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	err = manager.Disable("network")
-	if err != nil {
+	if err := manager.Disable("network"); err != nil {
 		return fmt.Errorf("failed to disable network component: %w", err)
 	}
 

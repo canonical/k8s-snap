@@ -37,8 +37,7 @@ func EnableStorageComponent(s snap.Snap) error {
 		},
 	}
 
-	err = manager.Enable("storage", values)
-	if err != nil {
+	if err := manager.Enable("storage", values); err != nil {
 		return fmt.Errorf("failed to enable storage component: %w", err)
 	}
 
@@ -51,8 +50,7 @@ func DisableStorageComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	err = manager.Disable("storage")
-	if err != nil {
+	if err := manager.Disable("storage"); err != nil {
 		return fmt.Errorf("failed to disable storage component: %w", err)
 	}
 

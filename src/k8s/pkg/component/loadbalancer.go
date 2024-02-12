@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
 func EnableLoadBalancerComponent(s snap.Snap, cidrs []string, l2Enabled bool, l2Interfaces []string, bgpEnabled bool, bgpLocalASN int, bgpPeerAddress string, bgpPeerASN int, bgpPeerPort int) error {
@@ -68,7 +67,7 @@ func EnableLoadBalancerComponent(s snap.Snap, cidrs []string, l2Enabled bool, l2
 		return fmt.Errorf("failed to enable loadbalancer component: %w", err)
 	}
 
-	client, err := k8s.NewClient(s)
+	client, err := s.KubernetesClient()
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
@@ -76,12 +75,11 @@ func EnableLoadBalancerComponent(s snap.Snap, cidrs []string, l2Enabled bool, l2
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := k8s.RestartDeployment(ctx, client, "cilium-operator", "kube-system"); err != nil {
+	if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
 		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 	}
-
-	if err := k8s.RestartDaemonset(ctx, client, "cilium", "kube-system"); err != nil {
-		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+	if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
+		return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 	}
 
 	return nil
