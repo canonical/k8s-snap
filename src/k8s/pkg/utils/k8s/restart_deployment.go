@@ -9,13 +9,10 @@ import (
 )
 
 // RestartDeployment updates the restartedAt field to trigger a rollout restart for the given Deployment.
-func RestartDeployment(ctx context.Context, client *k8sClient, name, namespace string) error {
-	if namespace == "" {
-		namespace = "default"
-	}
-	deployment, err := client.AppsV1().Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
+func (c *Client) RestartDeployment(ctx context.Context, name, namespace string) error {
+	deployment, err := c.AppsV1().Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("Failed to get deployment %s in %s: %w", name, namespace, err)
+		return fmt.Errorf("failed to get deployment %s in namespace %s: %w", name, namespace, err)
 	}
 
 	if deployment.Spec.Template.ObjectMeta.Annotations == nil {
@@ -23,9 +20,9 @@ func RestartDeployment(ctx context.Context, client *k8sClient, name, namespace s
 	}
 	deployment.Spec.Template.ObjectMeta.Annotations["kubectl.kubernetes.io/restartedAt"] = time.Now().Format(time.RFC3339)
 
-	_, err = client.AppsV1().Deployments(namespace).Update(ctx, deployment, metav1.UpdateOptions{})
+	_, err = c.AppsV1().Deployments(namespace).Update(ctx, deployment, metav1.UpdateOptions{})
 	if err != nil {
-		return fmt.Errorf("Failed to rollout restart deployment %s in %s: %w", name, namespace, err)
+		return fmt.Errorf("failed to set restartedAt annotation for deployment %s in namespace %s: %w", name, namespace, err)
 	}
 	return nil
 }

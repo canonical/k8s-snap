@@ -8,13 +8,8 @@ import (
 )
 
 // GetServiceClusterIP retrieves the ClusterIP from a Kubernetes service.
-// An empty namespace will default to "default".
-func GetServiceClusterIP(ctx context.Context, client *k8sClient, name, namespace string) (string, error) {
-	if namespace == "" {
-		namespace = "default"
-	}
-
-	svc, err := client.CoreV1().Services(namespace).Get(ctx, name, metav1.GetOptions{})
+func (c *Client) GetServiceClusterIP(ctx context.Context, name, namespace string) (string, error) {
+	svc, err := c.CoreV1().Services(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("failed to get service '%s' in namespace '%s': %w", name, namespace, err)
 	}
