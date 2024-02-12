@@ -11,17 +11,17 @@ import (
 	"github.com/canonical/lxd/shared/api"
 )
 
-func (c *Client) JoinNode(ctx context.Context, name string, address string, token string) error {
+func (c *Client) JoinCluster(ctx context.Context, name string, address string, token string) error {
 	if err := c.m.Ready(30); err != nil {
 		return fmt.Errorf("cluster did not come up in time: %w", err)
 	}
 
-	request := apiv1.JoinNodeRequest{
+	request := apiv1.JoinClusterRequest{
 		Name:    name,
 		Address: address,
 		Token:   token,
 	}
-	var response apiv1.JoinNodeResponse
+	var response apiv1.JoinClusterResponse
 	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, &response)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "failed to join node - cleaning up now")
