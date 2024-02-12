@@ -83,9 +83,7 @@ sudo k8s status
 Note: To disable a component execute `sudo k8s disable <component>`
 
 ### 5. Access Kubernetes
-
-Canonical Kubernetes bundles its own version of `kubectl` for managing workloads.
-Use it to monitor and control your Kubernetes. For example, to view your node:
+The standard tool for deploying and managing workloads on Kuberenetes is [kubectl](https://kubernetes.io/docs/reference/kubectl/). For convenience, Canonical Kubernetes bundles a version of kubectl for you to use with no extra setup or configuration. For example, to view your node you can run the command:
 
 ```
 sudo k8s kubectl get nodes
@@ -107,6 +105,7 @@ Let's deploy a demo NGINX server:
 ```
 sudo k8s kubectl create deployment nginx --image=nginx
 ```
+This command launches a [pod](https://kubernetes.io/docs/concepts/workloads/pods/), the smallest deployable unit in Kubernetes, running the nginx application within a container.
 
 You can check the status of your pods by running:
 
@@ -116,6 +115,19 @@ sudo k8s kubectl get pods
 
 This command shows all pods in the default namespace. It may take a moment for
 the pod to be ready and running.
+
+### 7. Remove an app
+To remove the NGINX workload, execute the following command:
+```
+sudo k8s kubectl delete deployment nginx --image=nginx
+
+```
+
+To verify that the pod has been removed, you can check the status of pods by running:
+
+```
+sudo k8s kubectl get pods
+```
 
 ## Next Steps
 
