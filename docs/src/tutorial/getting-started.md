@@ -11,7 +11,7 @@
 
 Install the Canonical Kubernetes snap with:
 ```
-sudo snap install k8s --classic
+sudo snap install --edge k8s --classic
 ```
 
 ### 2. Bootstrap a Kubernetes Cluster
@@ -36,7 +36,7 @@ To confirm the installation was successful and your node is ready you
 should run:
 
 ```
-sudo k8s status --wait-ready
+sudo k8s status
 ```
 
 You should see `k8s is not ready` in the command output. This will
@@ -77,7 +77,7 @@ You will observe three pods running:
 Confirm that Canonical Kubernetes has transitioned to the `k8s is ready` state by running:
 
 ```
-sudo k8s status
+sudo k8s status --wait-ready
 ```
 
 Note: To disable a component execute `sudo k8s disable <component>`
@@ -126,7 +126,7 @@ It may take a moment for the pod to be ready and running.
 ### 7. Remove an app
 To remove the NGINX workload, execute the following command:
 ```
-sudo k8s kubectl delete deployment nginx --image=nginx
+sudo k8s kubectl delete deployment nginx
 
 ```
 
