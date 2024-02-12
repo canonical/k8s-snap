@@ -9,6 +9,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 	"gopkg.in/yaml.v2"
 )
 
@@ -202,6 +203,14 @@ func (s *snap) Components() map[string]types.Component {
 			Namespace:    "kube-system",
 		},
 	}
+}
+
+func (s *snap) KubernetesClient() (*k8s.Client, error) {
+	client, err := k8s.NewClientFromKubeconfig("/etc/kubernetes/admin.conf")
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve admin kubernetes client: %w", err)
+	}
+	return client, nil
 }
 
 var _ Snap = &snap{}
