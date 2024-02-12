@@ -155,7 +155,12 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	if nodeIP == nil {
 		return fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
 	}
-	certificates := pki.NewControlPlanePKI(s.Name(), nil, []net.IP{nodeIP}, 10, true)
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
+		Hostname:          s.Name(),
+		IPSANs:            []net.IP{nodeIP},
+		Years:             10,
+		AllowSelfSignedCA: true,
+	})
 
 	// Create directories
 	if err := setup.EnsureAllDirectories(snap); err != nil {

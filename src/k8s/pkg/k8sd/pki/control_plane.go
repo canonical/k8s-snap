@@ -32,17 +32,25 @@ type ControlPlanePKI struct {
 	KubeletCert, KubeletKey string
 }
 
-func NewControlPlanePKI(hostname string, dnsSANs []string, ipSANs []net.IP, years int, allowSelfSignedCA bool) *ControlPlanePKI {
-	if years == 0 {
-		years = 1
+type ControlPlanePKIOpts struct {
+	Hostname          string
+	DNSSANs           []string
+	IPSANs            []net.IP
+	Years             int
+	AllowSelfSignedCA bool
+}
+
+func NewControlPlanePKI(opts ControlPlanePKIOpts) *ControlPlanePKI {
+	if opts.Years == 0 {
+		opts.Years = 1
 	}
 
 	return &ControlPlanePKI{
-		allowSelfSignedCA: allowSelfSignedCA,
-		hostname:          hostname,
-		years:             years,
-		ipSANs:            ipSANs,
-		dnsSANs:           dnsSANs,
+		allowSelfSignedCA: opts.AllowSelfSignedCA,
+		hostname:          opts.Hostname,
+		years:             opts.Years,
+		ipSANs:            opts.IPSANs,
+		dnsSANs:           opts.DNSSANs,
 	}
 }
 

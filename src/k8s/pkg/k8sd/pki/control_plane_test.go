@@ -8,7 +8,11 @@ import (
 )
 
 func TestControlPlaneCertificates(t *testing.T) {
-	c := pki.NewControlPlanePKI("h1", nil, nil, 10, true)
+	c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
+		Hostname:          "h1",
+		Years:             10,
+		AllowSelfSignedCA: true,
+	})
 
 	g := NewWithT(t)
 
@@ -16,7 +20,10 @@ func TestControlPlaneCertificates(t *testing.T) {
 	g.Expect(c.CompleteCertificates()).To(BeNil())
 
 	t.Run("MissingCAKey", func(t *testing.T) {
-		c := pki.NewControlPlanePKI("h1", nil, nil, 10, true)
+		c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
+			Hostname: "h1",
+			Years:    10,
+		})
 		c.CACert = `
 -----BEGIN CERTIFICATE-----
 MIIDtTCCAp2gAwIBAgIQOPOTOjxvIVlC5ev8EzrnITANBgkqhkiG9w0BAQsFADAY

@@ -57,7 +57,7 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
-	certificates := pki.NewControlPlanePKI("", nil, nil, 10, false)
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Years: 10})
 	certificates.CACert = cfg.Certificates.CACert
 	certificates.CAKey = cfg.Certificates.CAKey
 	workerCertificates, err := certificates.CompleteWorkerNodePKI(nodeName, nodeIP, 2048)

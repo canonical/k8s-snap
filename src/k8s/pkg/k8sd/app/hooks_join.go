@@ -37,7 +37,11 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Certificates
-	certificates := pki.NewControlPlanePKI(s.Name(), nil, []net.IP{nodeIP}, 10, false)
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
+		Hostname: s.Name(),
+		IPSANs:   []net.IP{nodeIP},
+		Years:    10,
+	})
 
 	// load existing certificates, then generate certificates for the node
 	certificates.CACert = cfg.Certificates.CACert
