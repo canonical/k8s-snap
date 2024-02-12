@@ -71,7 +71,7 @@ sudo k8s kubectl get pods -n kube-system
 
 You will observe three pods running:
 - **coredns**: Provides DNS resolution services.
-- **network-operator**: Manages the lifecycle of the Cilium networking solution.
+- **network-operator**: Manages the lifecycle of the networking solution.
 - **networking agent**: Facilitates network management.
 
 Confirm that Canonical Kubernetes has transitioned to the `k8s is ready` state by running:
