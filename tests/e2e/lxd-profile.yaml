@@ -116,3 +116,243 @@ devices:
     minor: "16"
     path: /dev/loop16
     type: unix-block
+  dev-loop17:
+    major: "7"
+    minor: "17"
+    path: /dev/loop17
+    type: unix-block
+  dev-loop18:
+    major: "7"
+    minor: "18"
+    path: /dev/loop18
+    type: unix-block
+  dev-loop19:
+    major: "7"
+    minor: "19"
+    path: /dev/loop19
+    type: unix-block
+  dev-loop20:
+    major: "7"
+    minor: "20"
+    path: /dev/loop20
+    type: unix-block
+  dev-loop21:
+    major: "7"
+    minor: "21"
+    path: /dev/loop21
+    type: unix-block
+  dev-loop22:
+    major: "7"
+    minor: "22"
+    path: /dev/loop22
+    type: unix-block
+  dev-loop23:
+    major: "7"
+    minor: "23"
+    path: /dev/loop23
+    type: unix-block
+  dev-loop24:
+    major: "7"
+    minor: "24"
+    path: /dev/loop24
+    type: unix-block
+  dev-loop25:
+    major: "7"
+    minor: "25"
+    path: /dev/loop25
+    type: unix-block
+  dev-loop26:
+    major: "7"
+    minor: "26"
+    path: /dev/loop26
+    type: unix-block
+  dev-loop27:
+    major: "7"
+    minor: "27"
+    path: /dev/loop27
+    type: unix-block
+  dev-loop28:
+    major: "7"
+    minor: "28"
+    path: /dev/loop28
+    type: unix-block
+  dev-loop29:
+    major: "7"
+    minor: "29"
+    path: /dev/loop29
+    type: unix-block
+  dev-loop30:
+    major: "7"
+    minor: "30"
+    path: /dev/loop30
+    type: unix-block
+  dev-loop31:
+    major: "7"
+    minor: "31"
+    path: /dev/loop31
+    type: unix-block
+  dev-loop32:
+    major: "7"
+    minor: "32"
+    path: /dev/loop32
+    type: unix-block
+  dev-loop33:
+    major: "7"
+    minor: "33"
+    path: /dev/loop33
+    type: unix-block
+  dev-loop34:
+    major: "7"
+    minor: "34"
+    path: /dev/loop34
+    type: unix-block
+  dev-loop35:
+    major: "7"
+    minor: "35"
+    path: /dev/loop35
+    type: unix-block
+  dev-loop36:
+    major: "7"
+    minor: "36"
+    path: /dev/loop36
+    type: unix-block
+  dev-loop37:
+    major: "7"
+    minor: "37"
+    path: /dev/loop37
+    type: unix-block
+  dev-loop38:
+    major: "7"
+    minor: "38"
+    path: /dev/loop38
+    type: unix-block
+  dev-loop39:
+    major: "7"
+    minor: "39"
+    path: /dev/loop39
+    type: unix-block
+  dev-loop40:
+    major: "7"
+    minor: "40"
+    path: /dev/loop40
+    type: unix-block
+  dev-loop41:
+    major: "7"
+    minor: "41"
+    path: /dev/loop41
+    type: unix-block
+  dev-loop42:
+    major: "7"
+    minor: "42"
+    path: /dev/loop42
+    type: unix-block
+  dev-loop43:
+    major: "7"
+    minor: "43"
+    path: /dev/loop43
+    type: unix-block
+  dev-loop44:
+    major: "7"
+    minor: "44"
+    path: /dev/loop44
+    type: unix-block
+  dev-loop45:
+    major: "7"
+    minor: "45"
+    path: /dev/loop45
+    type: unix-block
+  dev-loop46:
+    major: "7"
+    minor: "46"
+    path: /dev/loop46
+    type: unix-block
+  dev-loop47:
+    major: "7"
+    minor: "47"
+    path: /dev/loop47
+    type: unix-block
+  dev-loop48:
+    major: "7"
+    minor: "48"
+    path: /dev/loop48
+    type: unix-block
+  dev-loop49:
+    major: "7"
+    minor: "49"
+    path: /dev/loop49
+    type: unix-block
+  dev-loop50:
+    major: "7"
+    minor: "50"
+    path: /dev/loop50
+    type: unix-block
+  dev-loop51:
+    major: "7"
+    minor: "51"
+    path: /dev/loop51
+    type: unix-block
+  dev-loop52:
+    major: "7"
+    minor: "52"
+    path: /dev/loop52
+    type: unix-block
+  dev-loop53:
+    major: "7"
+    minor: "53"
+    path: /dev/loop53
+    type: unix-block
+  dev-loop54:
+    major: "7"
+    minor: "54"
+    path: /dev/loop54
+    type: unix-block
+  dev-loop55:
+    major: "7"
+    minor: "55"
+    path: /dev/loop55
+    type: unix-block
+  dev-loop56:
+    major: "7"
+    minor: "56"
+    path: /dev/loop56
+    type: unix-block
+  dev-loop57:
+    major: "7"
+    minor: "57"
+    path: /dev/loop57
+    type: unix-block
+  dev-loop58:
+    major: "7"
+    minor: "58"
+    path: /dev/loop58
+    type: unix-block
+  dev-loop59:
+    major: "7"
+    minor: "59"
+    path: /dev/loop59
+    type: unix-block
+  dev-loop60:
+    major: "7"
+    minor: "60"
+    path: /dev/loop60
+    type: unix-block
+  dev-loop61:
+    major: "7"
+    minor: "61"
+    path: /dev/loop61
+    type: unix-block
+  dev-loop62:
+    major: "7"
+    minor: "62"
+    path: /dev/loop62
+    type: unix-block
+  dev-loop63:
+    major: "7"
+    minor: "63"
+    path: /dev/loop63
+    type: unix-block
+  dev-loop64:
+    major: "7"
+    minor: "64"
+    path: /dev/loop64
+    type: unix-block

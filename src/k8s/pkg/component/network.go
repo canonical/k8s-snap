@@ -39,6 +39,11 @@ func EnableNetworkComponent(s snap.Snap) error {
 	}
 
 	values := map[string]any{
+		"image": map[string]any{
+			"repository": ciliumAgentImageRepository,
+			"tag":        ciliumAgentImageTag,
+			"useDigest":  false,
+		},
 		"socketLB": map[string]any{
 			"enabled": true,
 		},
@@ -48,6 +53,11 @@ func EnableNetworkComponent(s snap.Snap) error {
 		},
 		"operator": map[string]any{
 			"replicas": 1,
+			"image": map[string]any{
+				"repository": ciliumOperatorImageRepository,
+				"tag":        ciliumOperatorImageTag,
+				"useDigest":  false,
+			},
 		},
 		"ipam": map[string]any{
 			"operator": map[string]any{

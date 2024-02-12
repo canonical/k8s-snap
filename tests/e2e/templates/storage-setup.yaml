@@ -1,0 +1,32 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: myclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: storage-writer-pod
+  labels:
+    k8s-app: storage-writer-pod
+spec:
+  containers:
+    - name: storage-writer-container
+      image: busybox
+      command:
+        ["/bin/sh", "-c", "while true; do echo LOREM IPSUM $(date) >> /mnt/dates; sleep 2; done"]
+      volumeMounts:
+        - name: storage-volume
+          mountPath: "/mnt"
+  restartPolicy: "Never"
+  volumes:
+    - name: storage-volume
+      persistentVolumeClaim:
+        claimName: myclaim

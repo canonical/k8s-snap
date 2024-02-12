@@ -5,6 +5,7 @@ import json
 import logging
 import subprocess
 from pathlib import Path
+import time
 from typing import List
 
 import pytest
@@ -51,7 +52,7 @@ def test_storage(instances: List[harness.Instance]):
         ]
     )
 
-    manifest = MANIFESTS_DIR / "storage-test.yaml"
+    manifest = MANIFESTS_DIR / "storage-setup.yaml"
     instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
@@ -82,6 +83,26 @@ def test_storage(instances: List[harness.Instance]):
         ["k8s", "kubectl", "get", "pvc", "-o", "json"]
     )
     LOG.info("Storage got provisioned and pvc is bound.")
+
+    time.sleep(3)
+
+    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+        [
+            "k8s",
+            "kubectl",
+            "delete",
+            "pod",
+            "-l",
+            "k8s-app=storage-writer-pod",
+            "--force",
+        ]
+    )
+
+    manifest = MANIFESTS_DIR / "storage-test.yaml"
+    instance.exec(
+        ["k8s", "kubectl", "apply", "-f", "-"],
+        input=Path(manifest).read_bytes(),
+    )
 
     LOG.info("Waiting for storage reader pod to show up...")
     util.stubbornly(retries=3, delay_s=10).on(instance).until(

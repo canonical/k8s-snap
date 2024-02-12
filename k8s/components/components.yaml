@@ -4,11 +4,11 @@ network:
   namespace: "kube-system"
 dns:
   release: "ck-dns"
-  chart: "coredns-1.29.0.tgz"
+  chart: "coredns-1.29.0"
   namespace: "kube-system"
 storage:
   release: "ck-storage"
-  chart: "hostpath-provisioner-0.1.0.tgz"
+  chart: "rawfile-csi-0.8.0.tgz"
   namespace: "kube-system"
 ingress:
   parent: "network"
