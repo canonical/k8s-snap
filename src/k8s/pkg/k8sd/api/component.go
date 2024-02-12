@@ -49,7 +49,7 @@ func putDNSComponent(s *state.State, r *http.Request) response.Response {
 		}
 
 		if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-			if err := database.SetClusterConfig(context.Background(), tx, types.ClusterConfig{
+			if err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
 				Kubelet: types.Kubelet{
 					ClusterDNS:    dnsIP,
 					ClusterDomain: clusterDomain,
