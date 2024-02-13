@@ -152,22 +152,31 @@ sudo k8s status
 ```
 You should see `storage enabled` in the command output.
 
-Let's create a persistent volume:
+Let's create a pod with a persistent volume claim:
+
 ```
-sudo k8s kubectl apply -f https://k8s.io/examples/pods/storage/pv-volume.yaml
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/e2e/templates/storage-setup.yaml
 ```
 This command deploys a pod based on the YAML configuration of a 
-persistent volume with a capacity of 10G.
+storage writer pod and a persistent volume claim with a capacity of 1G.
 
 To confirm that the persistent volume is up and running:
+
 ```
-sudo k8s kubectl get pv task-pv-volume
+sudo k8s kubectl get pv
+```
+
+Let's inspect the storage-writer-pod:
+
+```
+sudo k8s kubectl describe pod storage-writer-pod
 ```
 
 ### 9. Disable Components (Storage)
-Begin by removing the persistent volume:
+Begin by removing the pod along with the persistent volume claim:
+
 ```
-sudo k8s kubectl delete pv task-pv-volume
+sudo k8s kubectl delete -f https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/e2e/templates/storage-setup.yaml
 ```
 
 Next, disable the storage component:
