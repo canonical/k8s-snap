@@ -10,11 +10,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
-	"helm.sh/helm/v3/pkg/cli"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 // defaultHelmConfigProvider implements the HelmConfigInitializer interface
-type defaultHelmConfigProvider struct{}
+type defaultHelmConfigProvider struct {
+	restClientGetter func(namespace string) genericclioptions.RESTClientGetter
+}
 
 // helmClient implements the ComponentManager interface
 type helmClient struct {
@@ -30,21 +32,8 @@ type Component struct {
 
 // InitializeHelmClientConfig initializes a Helm Configuration, ensures the use of a fresh configuration
 func (r *defaultHelmConfigProvider) New(namespace string) (*action.Configuration, error) {
-	settings := cli.New()
-	settings.KubeConfig = "/etc/kubernetes/admin.conf"
-	if namespace != "" {
-		settings.SetNamespace(namespace)
-	}
-
 	actionConfig := new(action.Configuration)
-	err := actionConfig.Init(
-		settings.RESTClientGetter(),
-		settings.Namespace(),
-		os.Getenv("HELM_DRIVER"),
-		logAdapter,
-	)
-
-	if err != nil {
+	if err := actionConfig.Init(r.restClientGetter(namespace), namespace, os.Getenv("HELM_DRIVER"), logAdapter); err != nil {
 		return nil, fmt.Errorf("failed to initialize action config: %w", err)
 	}
 	return actionConfig, nil
@@ -57,8 +46,7 @@ func logAdapter(format string, v ...any) {
 // NewHelmClient creates a new Component manager instance.
 func NewHelmClient(snap snap.Snap, initializer HelmConfigProvider) (*helmClient, error) {
 	if initializer == nil {
-		// If no initializer provided, use a default one
-		initializer = &defaultHelmConfigProvider{}
+		initializer = &defaultHelmConfigProvider{restClientGetter: snap.KubernetesRESTClientGetter}
 	}
 
 	return &helmClient{

@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	"gopkg.in/yaml.v2"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 // snap implements the Snap interface.
@@ -202,6 +203,16 @@ func (s *snap) Components() map[string]types.Component {
 			Namespace:    "kube-system",
 		},
 	}
+}
+
+func (s *snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
+	flags := &genericclioptions.ConfigFlags{
+		KubeConfig: &[]string{"/etc/kubernetes/admin.conf"}[0],
+	}
+	if namespace != "" {
+		flags.Namespace = &namespace
+	}
+	return flags
 }
 
 var _ Snap = &snap{}

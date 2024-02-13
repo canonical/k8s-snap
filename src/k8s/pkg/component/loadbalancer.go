@@ -76,12 +76,11 @@ func EnableLoadBalancerComponent(s snap.Snap, cidrs []string, l2Enabled bool, l2
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := k8s.RestartDeployment(ctx, client, "cilium-operator", "kube-system"); err != nil {
+	if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
 		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 	}
-
-	if err := k8s.RestartDaemonset(ctx, client, "cilium", "kube-system"); err != nil {
-		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+	if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
+		return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 	}
 
 	return nil

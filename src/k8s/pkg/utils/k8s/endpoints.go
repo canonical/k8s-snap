@@ -10,8 +10,8 @@ import (
 
 // GetKubeAPIServerEndpoints retrieves the known kube-apiserver endpoints of the cluster.
 // GetKubeAPIServerEndpoints returns an error if the list of endpoints is empty.
-func GetKubeAPIServerEndpoints(ctx context.Context, client *k8sClient) ([]string, error) {
-	endpoint, err := client.CoreV1().Endpoints("default").Get(ctx, "kubernetes", metav1.GetOptions{})
+func (c *Client) GetKubeAPIServerEndpoints(ctx context.Context) ([]string, error) {
+	endpoint, err := c.CoreV1().Endpoints("default").Get(ctx, "kubernetes", metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get endpoints for kubernetes service: %w", err)
 	}

@@ -17,8 +17,7 @@ func EnableGatewayComponent(s snap.Snap) error {
 
 	var values map[string]any = nil
 
-	err = manager.Enable("gateway", values)
-	if err != nil {
+	if err := manager.Enable("gateway", values); err != nil {
 		return fmt.Errorf("failed to enable gateway component: %w", err)
 	}
 
@@ -28,8 +27,7 @@ func EnableGatewayComponent(s snap.Snap) error {
 		},
 	}
 
-	err = manager.Refresh("network", networkValues)
-	if err != nil {
+	if err = manager.Refresh("network", networkValues); err != nil {
 		return fmt.Errorf("failed to enable gateway component: %w", err)
 	}
 
@@ -41,14 +39,12 @@ func EnableGatewayComponent(s snap.Snap) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err = k8s.RestartDeployment(ctx, client, "cilium-operator", "kube-system")
-	if err != nil {
+	if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
 		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 	}
 
-	err = k8s.RestartDaemonset(ctx, client, "cilium", "kube-system")
-	if err != nil {
-		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+	if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
+		return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 	}
 
 	return nil
@@ -66,13 +62,11 @@ func DisableGatewayComponent(s snap.Snap) error {
 		},
 	}
 
-	err = manager.Refresh("network", networkValues)
-	if err != nil {
+	if err := manager.Refresh("network", networkValues); err != nil {
 		return fmt.Errorf("failed to disable gateway component: %w", err)
 	}
 
-	err = manager.Disable("gateway")
-	if err != nil {
+	if err := manager.Disable("gateway"); err != nil {
 		return fmt.Errorf("failed to disable gateway component: %w", err)
 	}
 

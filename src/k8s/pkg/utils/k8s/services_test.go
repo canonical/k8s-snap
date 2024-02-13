@@ -53,9 +53,9 @@ func TestGetServiceClusterIP(t *testing.T) {
 			g := NewWithT(t)
 
 			clientset := fake.NewSimpleClientset(tt.serviceObjects...)
-			k8sClient := &k8sClient{Interface: clientset}
+			client := &Client{Interface: clientset}
 
-			ip, err := GetServiceClusterIP(context.Background(), k8sClient, tt.serviceName, tt.namespace)
+			ip, err := client.GetServiceClusterIP(context.Background(), tt.serviceName, tt.namespace)
 
 			if tt.expectError {
 				g.Expect(err).To(HaveOccurred())

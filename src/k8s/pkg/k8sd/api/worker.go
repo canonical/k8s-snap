@@ -70,7 +70,7 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
 	}
-	servers, err := k8s.GetKubeAPIServerEndpoints(s.Context, client)
+	servers, err := client.GetKubeAPIServerEndpoints(s.Context)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve list of known kube-apiserver endpoints: %w", err))
 	}
