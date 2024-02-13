@@ -163,7 +163,7 @@ storage writer pod and a persistent volume claim with a capacity of 1G.
 To confirm that the persistent volume is up and running:
 
 ```
-sudo k8s kubectl get pv
+sudo k8s kubectl get pvc myclaim
 ```
 
 Let's inspect the storage-writer-pod:
@@ -176,7 +176,8 @@ sudo k8s kubectl describe pod storage-writer-pod
 Begin by removing the pod along with the persistent volume claim:
 
 ```
-sudo k8s kubectl delete -f https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/e2e/templates/storage-setup.yaml
+sudo k8s kubectl delete pvc myclaim
+sudo k8s kubectl delete pod storage-writer-pod
 ```
 
 Next, disable the storage component:
