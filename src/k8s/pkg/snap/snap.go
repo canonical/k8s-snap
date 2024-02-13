@@ -205,10 +205,14 @@ func (s *snap) Components() map[string]types.Component {
 	}
 }
 
-func (s *snap) KubernetesRESTClientGetter() genericclioptions.RESTClientGetter {
-	return &genericclioptions.ConfigFlags{
+func (s *snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
+	flags := &genericclioptions.ConfigFlags{
 		KubeConfig: &[]string{"/etc/kubernetes/admin.conf"}[0],
 	}
+	if namespace != "" {
+		flags.Namespace = &namespace
+	}
+	return flags
 }
 
 var _ Snap = &snap{}

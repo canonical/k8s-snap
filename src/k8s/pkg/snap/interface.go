@@ -41,5 +41,5 @@ type Snap interface {
 
 	Components() map[string]types.Component // available components
 
-	KubernetesRESTClientGetter() genericclioptions.RESTClientGetter // admin kubernetes client
+	KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter // admin kubernetes client
 }

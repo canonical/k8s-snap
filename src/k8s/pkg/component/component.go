@@ -15,7 +15,7 @@ import (
 
 // defaultHelmConfigProvider implements the HelmConfigInitializer interface
 type defaultHelmConfigProvider struct {
-	restClientGetter func() genericclioptions.RESTClientGetter
+	restClientGetter func(namespace string) genericclioptions.RESTClientGetter
 }
 
 // helmClient implements the ComponentManager interface
@@ -33,7 +33,7 @@ type Component struct {
 // InitializeHelmClientConfig initializes a Helm Configuration, ensures the use of a fresh configuration
 func (r *defaultHelmConfigProvider) New(namespace string) (*action.Configuration, error) {
 	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(r.restClientGetter(), namespace, os.Getenv("HELM_DRIVER"), logAdapter); err != nil {
+	if err := actionConfig.Init(r.restClientGetter(namespace), namespace, os.Getenv("HELM_DRIVER"), logAdapter); err != nil {
 		return nil, fmt.Errorf("failed to initialize action config: %w", err)
 	}
 	return actionConfig, nil
@@ -46,7 +46,6 @@ func logAdapter(format string, v ...any) {
 // NewHelmClient creates a new Component manager instance.
 func NewHelmClient(snap snap.Snap, initializer HelmConfigProvider) (*helmClient, error) {
 	if initializer == nil {
-		// If no initializer provided, use a default one
 		initializer = &defaultHelmConfigProvider{restClientGetter: snap.KubernetesRESTClientGetter}
 	}
 

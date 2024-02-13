@@ -13,7 +13,7 @@ type Client struct {
 }
 
 func NewClient(snap snap.Snap) (*Client, error) {
-	config, err := snap.KubernetesRESTClientGetter().ToRESTConfig()
+	config, err := snap.KubernetesRESTClientGetter("").ToRESTConfig()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build Kubernetes REST config: %w", err)
 	}

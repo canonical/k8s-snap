@@ -133,7 +133,7 @@ func (s *Snap) ServiceExtraConfigDir() string {
 func (s *Snap) Components() map[string]types.Component {
 	return s.Mock.Components
 }
-func (s *Snap) KubernetesRESTClientGetter() genericclioptions.RESTClientGetter {
+func (s *Snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
 	return s.Mock.KubernetesRESTClientGetter
 }
 
