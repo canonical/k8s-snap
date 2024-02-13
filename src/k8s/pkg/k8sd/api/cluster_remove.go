@@ -44,12 +44,12 @@ func postClusterRemove(m *microcluster.MicroCluster, s *state.State, r *http.Req
 	}
 	if isWorker {
 		// For worker nodes, we need to manually cleanup the kubernetes node and db entry.
-		client, err := k8s.NewClient(snap)
+		c, err := k8s.NewClient(snap)
 		if err != nil {
 			return response.SmartError(fmt.Errorf("failed to create k8s client: %w", err))
 		}
 
-		if err := k8s.GracefullyDeleteNode(s.Context, client, req.Name); err != nil {
+		if err := c.GracefullyDeleteNode(s.Context, req.Name); err != nil {
 			return response.SmartError(fmt.Errorf("failed to remove k8s node %q: %w", req.Name, err))
 		}
 

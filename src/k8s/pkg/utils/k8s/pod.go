@@ -8,8 +8,8 @@ import (
 )
 
 // EvictPod evicts a pod from a namespace.
-func EvictPod(ctx context.Context, client *k8sClient, namespace string, name string) error {
-	return client.PolicyV1().Evictions(namespace).Evict(ctx, &policy.Eviction{
+func (c *Client) EvictPod(ctx context.Context, namespace string, name string) error {
+	return c.PolicyV1().Evictions(namespace).Evict(ctx, &policy.Eviction{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,

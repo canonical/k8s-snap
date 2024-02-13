@@ -15,7 +15,7 @@ func TestEvictPod(t *testing.T) {
 
 	t.Run("pod eviction is successful", func(t *testing.T) {
 		clientset := fake.NewSimpleClientset()
-		k8sClient := &k8sClient{Interface: clientset}
+		client := &Client{Interface: clientset}
 
 		pod := &v1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
@@ -24,18 +24,18 @@ func TestEvictPod(t *testing.T) {
 			},
 		}
 
-		_, err := k8sClient.CoreV1().Pods("test-namespace").Create(context.Background(), pod, metav1.CreateOptions{})
+		_, err := client.CoreV1().Pods("test-namespace").Create(context.Background(), pod, metav1.CreateOptions{})
 		g.Expect(err).To(gomega.BeNil())
 
-		err = EvictPod(context.Background(), k8sClient, "test-namespace", "test-pod")
+		err = client.EvictPod(context.Background(), "test-namespace", "test-pod")
 		g.Expect(err).To(gomega.BeNil())
 	})
 
 	t.Run("pod does not exist", func(t *testing.T) {
 		clientset := fake.NewSimpleClientset()
-		k8sClient := &k8sClient{Interface: clientset}
+		client := &Client{Interface: clientset}
 
-		err := EvictPod(context.Background(), k8sClient, "nonexistent-namespace", "nonexistent-pod")
+		err := client.EvictPod(context.Background(), "nonexistent-namespace", "nonexistent-pod")
 		g.Expect(err).To(gomega.MatchError("pods \"nonexistent-pod\" not found"))
 	})
 }
