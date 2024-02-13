@@ -1,32 +1,18 @@
-# Guide to Basic Operations with Kubernetes using kubectl
+# Basic operations with Kubernetes using kubectl
 
-## Introduction
-
-This guide will walk you through performing basic operations on a Kubernetes
-cluster using kubectl. Kubernetes is an open-source platform designed to
-automate deploying, scaling, and managing containerized applications.
-
-## Prerequisites
+### 1. What you will need
 
 Before you begin, make sure you have the following:
 
 - A bootstrapped Canonical K8s cluster (See [insert link]...)
 
-## Table of Contents
-
-1. [The Kubectl Command](#check-kubernetes-version)
-2. [How To Use Kubectl](#how-to-use-kubectl)
-3. [Configuration](#formatting-output)
-4. [Viewing objects](#viewing-default-configrau)
-5. [Creating objects](#creating-objects)
-
-## The Kubectl Command
+### 2. The Kubectl Command
 
 This commands interacts with the Kubernetes API server (kube-apiserver) and is the most commonly used command when working with Kubernetes, so let's take some time to familiarize ourselves with it.
 
 The `kubectl` command included with Canonical K8s is built from the original upstream source into the `k8s` snap you have installed.
 
-## How To Use Kubectl
+### 3. How To Use Kubectl
 
 You can access kubectl with the following command:
 
@@ -36,11 +22,11 @@ sudo k8s kubectl
 
 Note: Only control plane nodes can use the `kubectl` command. Worker nodes do not have access to this command.
 
-## Configuration
+### 4. Configuration
 
 In Canonical K8s, the `kubeconfig` file that is being read to display the configuration when you run `kubectl config view` lives at `/snap/k8s/current/k8s/config/kubeconfig`. You can change this by setting a `KUBECONFIG` environment variable or passing the `--kubeconfig` flag to a command.
 
-## Viewing objects
+### 5. Viewing objects
 
 Let's review what was created in the Getting Started guide.
 
@@ -60,7 +46,7 @@ The `kubernetes` service in the `default` namespace is where the Kubernetes API 
 
 The `hubble-peer` service in the `kube-system` namespace is created by Canonical K8s (an opinionated K8s distribution) to ...
 
-## Creating and Managing Objects
+### 6. Creating and Managing Objects
 
 Let's create a deployment using this command:
 
@@ -83,6 +69,33 @@ Let's delete those 3 pods to demonstrate a deployment's ability to ensure the de
 Run `sudo k8s kubectl delete pods -l app=nginx`
 
 If you open another terminal while the above command is executing, you'll notice the original 3 pods will have a status of `Terminating` and 3 new pods will have a status of `ContainerCreating`.
+
+### 7. Remove Canonical Kubernetes (Optional)
+
+To uninstall the Canonical Kubernetes snap, execute:
+
+```
+sudo snap remove k8s
+```
+
+This command removes the `k8s` snap and automatically creates a snapshot of all data for future restoration.
+
+If you wish to remove the snap without saving a snapshot of its data, add `--purge` to the command:
+
+```
+sudo snap remove k8s --purge
+```
+This option ensures complete removal of the snap and its associated data.
+
+## Next Steps
+
+- Keep mastering Canonical Kubernetes with kubectl: [How to use kubectl](#TODO)
+- Explore Kubernetes commands with our [Command Reference Guide](#TODO)
+- Bootstrap K8s with your custom configurations [Bootstrap K8s](#TODO)
+- Learn how to set up a multi-node environment [Setting up a K8s cluster](#TODO)
+- Configure storage options [Storage](#TODO)
+- Master Kubernetes networking concepts: [Networking](#TODO)
+- Discover how to enable and configure Ingress resources [Ingress](#TODO)
 
 ## References
 [https://kubernetes.io/docs/reference/kubectl/](https://kubernetes.io/docs/reference/kubectl/)
