@@ -4,7 +4,7 @@
 - A bootstrapped cluster using Canonical K8s (See (getting-started.md)[Getting Started]
 - The `dns` and `network` components enabled on your cluster.
 
-### Verify the Status Of Your Cluster
+### 1. Verify the Status Of Your Cluster
 
 Verify the status of your cluster with:
 
@@ -14,7 +14,7 @@ sudo k8s status
 
 Make sure you can see `k8s is ready.` in the output of the command.
 
-### Start a Multipass VM
+### 2. Start a Multipass VM
 
 Our second node will live on a Multipass VM. Let's launch it:
 
@@ -24,7 +24,7 @@ multipass launch --name expert-elf
 
 **Note**: This step can take a few minutes. It's normal and expected.
 
-### Generate a worker node token from the control plane node
+### 3. Generate a worker node token from the control plane node
 
 In the shell connected to your control plane node, run the following command to get a token that'll be used by the other node to join the cluster.
 
@@ -38,7 +38,7 @@ sudo k8s add-node expert-elf [--worker]
 
 A base64 string should be printed to your terminal. Copy it.
 
-### Join the cluster from the other node
+### 4. Join the cluster from the other node
 
 Open a shell to the worker node:
 
@@ -70,7 +70,8 @@ You should see that you've successfully added a worker or control plane node to 
 
 Congratulations!
 
-### 10. Remove Canonical Kubernetes (Optional)
+### 5. Remove Canonical Kubernetes (Optional)
+
 To uninstall the Canonical Kubernetes snap, execute:
 
 ```
