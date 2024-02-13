@@ -26,17 +26,19 @@ multipass launch --name expert-elf
 
 ### Generate a worker node token from the control plane node
 
-In the shell connected to your control plane node, run the following command to get a token that'll be used by the worker node to join the cluster.
+In the shell connected to your control plane node, run the following command to get a token that'll be used by the other node to join the cluster.
+
+**If you want to create a worker node, append the `--worker` argument.**
 
 ```
-sudo k8s add-node expert-elf
+sudo k8s add-node expert-elf [--worker]
 ```
 
 **Note**: It's best to give the new node the same name as the hostname of the worker node.
 
 A base64 string should be printed to your terminal. Copy it.
 
-### Join the cluster from the worker node
+### Join the cluster from the other node
 
 Open a shell to the worker node:
 
@@ -50,7 +52,7 @@ The VM doesn't come with the `k8s` snap, so let's install it.
 sudo snap install --edge --classic k8s
 ```
 
-From the worker node machine, use the `join-cluster` command.
+From the worker node machine, use the `join-cluster` command and pass the token as the last argument.
 
 ```
 sudo k8s kubectl join-cluster eyJu...XX0=
@@ -64,7 +66,7 @@ Disconnect from the VM and run the `status` command on your control plane node:
 sudo k8s status
 ```
 
-
+You should see that you've successfully added a worker or control plane node to your cluster.
 
 Congratulations!
 
