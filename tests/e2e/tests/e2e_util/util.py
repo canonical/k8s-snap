@@ -1,12 +1,13 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import json
 import logging
 import shlex
 import subprocess
 from functools import partial
 from pathlib import Path
-from typing import Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 from e2e_util import config, harness
 from tenacity import (
@@ -231,3 +232,30 @@ def hostname(instance: harness.Instance) -> str:
     """Return the hostname for a given instance."""
     resp = instance.exec(["hostname"], capture_output=True)
     return resp.stdout.decode().strip()
+
+
+def ready_nodes(control_node: harness.Instance) -> List[Any]:
+    """Get a list of the ready nodes.
+
+    Args:
+        control_node: instance on which to execute check
+
+    Returns:
+        list of nodes
+    """
+    result = control_node.exec(
+        "k8s kubectl get nodes -o json".split(" "), capture_output=True
+    )
+    assert result.returncode == 0, "Failed to get nodes with kubectl"
+    node_list = json.loads(result.stdout.decode())
+    assert node_list["kind"] == "List", "Should have found a list of nodes"
+    nodes = [
+        node
+        for node in node_list["items"]
+        if all(
+            condition["status"] == "False"
+            for condition in node["status"]["conditions"]
+            if condition["type"] != "Ready"
+        )
+    ]
+    return nodes

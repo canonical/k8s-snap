@@ -110,7 +110,7 @@ func ListWorkerNodes(ctx context.Context, tx *sql.Tx) ([]string, error) {
 	return nodes, nil
 }
 
-// DeleteWorkerNode deletes a new worker node from the database.
+// DeleteWorkerNode deletes a worker node from the database.
 func DeleteWorkerNode(ctx context.Context, tx *sql.Tx, name string) error {
 	deleteTxStmt, err := cluster.Stmt(tx, workerStmts["delete-node"])
 	if err != nil {

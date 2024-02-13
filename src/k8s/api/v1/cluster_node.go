@@ -7,5 +7,8 @@ type JoinClusterRequest struct {
 	Token   string `json:"token"`
 }
 
-// JoinClusterResponse is the response from "POST 1.0/k8sd/cluster/{node}"
-type JoinClusterResponse struct{}
+// RemoveNodeRequest is used to request to remove a node from the cluster.
+type RemoveNodeRequest struct {
+	Name  string `json:"name"`
+	Force bool   `json:"force"`
+}

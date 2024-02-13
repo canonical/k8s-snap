@@ -35,8 +35,15 @@ def test_clustering(instances: List[harness.Instance]):
     join_cluster(joining_node, token)
 
     util.wait_until_k8s_ready(cluster_node, instances)
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "node should have joined cluster"
 
     cluster_node.exec(["k8s", "remove-node", joining_node.id])
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 1, "node should have been removed from cluster"
+    assert (
+        nodes[0]["metadata"]["name"] == cluster_node.id
+    ), f"only {cluster_node.id} should be left in cluster"
 
 
 @pytest.mark.node_count(2)
@@ -48,3 +55,12 @@ def test_worker_nodes(instances: List[harness.Instance]):
     join_cluster(joining_node, token)
 
     util.wait_until_k8s_ready(cluster_node, instances)
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "worker should have joined cluster"
+
+    cluster_node.exec(["k8s", "remove-node", joining_node.id])
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 1, "worker should have been removed from cluster"
+    assert (
+        nodes[0]["metadata"]["name"] == cluster_node.id
+    ), f"only {cluster_node.id} should be left in cluster"

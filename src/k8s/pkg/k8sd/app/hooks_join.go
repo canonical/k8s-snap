@@ -155,7 +155,14 @@ func onPreRemove(s *state.State, force bool) error {
 		return fmt.Errorf("failed to leave k8s-dqlite cluster: %w", err)
 	}
 
-	// TODO: Remove node from kubernetes
+	client, err := k8s.NewClient(snap)
+	if err != nil {
+		return fmt.Errorf("failed to create k8s client: %w", err)
+	}
+
+	if err := k8s.GracefullyDeleteNode(s.Context, client, s.Name()); err != nil {
+		return fmt.Errorf("failed to remove k8s node %q: %w", s.Name(), err)
+	}
 
 	return nil
 }

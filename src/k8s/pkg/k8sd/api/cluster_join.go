@@ -32,5 +32,5 @@ func postClusterJoin(m *microcluster.MicroCluster, s *state.State, r *http.Reque
 		}
 	}
 
-	return response.SyncResponse(true, &apiv1.JoinClusterResponse{})
+	return response.SyncResponse(true, nil)
 }

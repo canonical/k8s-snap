@@ -44,7 +44,7 @@ func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapC
 	if err != nil {
 		return apiv1.ClusterMember{}, fmt.Errorf("failed to convert bootstrap config to map: %w", err)
 	}
-	if err := c.m.NewCluster(hostname, addrPort, config, time.Second*30); err != nil {
+	if err := c.m.NewCluster(hostname, addrPort, config, time.Duration(timeToWait)*time.Second); err != nil {
 		// TODO(neoaggelos): print message that bootstrap failed, and that we are cleaning up
 		fmt.Fprintln(os.Stderr, "Failed with error:", err)
 		c.CleanupNode(ctx, c.opts.Snap, hostname)
