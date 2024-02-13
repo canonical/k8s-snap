@@ -18,6 +18,7 @@ Before you begin, make sure you have the following:
 2. [How To Use Kubectl](#how-to-use-kubectl)
 3. [Configuration](#formatting-output)
 4. [Viewing objects](#viewing-default-configrau)
+5. [Creating objects](#creating-objects)
 
 ## The Kubectl Command
 
@@ -59,6 +60,29 @@ The `kubernetes` service in the `default` namespace is where the Kubernetes API 
 
 The `hubble-peer` service in the `kube-system` namespace is created by Canonical K8s (an opinionated K8s distribution) to ...
 
+## Creating and Managing Objects
+
+Let's create a deployment using this command:
+
+```
+sudo k8s kubectl create deployment nginx --image=nginx:latest
+```
+
+Notice how `sudo k8s kubectl get pods` shows you one NGINX pod.
+
+Let's now scale this deployment, which means increasing the number of pods it manages.
+
+```
+sudo k8s kubectl scale deployment nginx --replicas=3
+```
+
+Run `sudo k8s kubectl get pods` again and notice that you have 3 NGINX pods.
+
+Let's delete those 3 pods to demonstrate a deployment's ability to ensure the declared state of the cluster is maintained.
+
+Run `sudo k8s kubectl delete pods -l app=nginx`
+
+If you open another terminal while the above command is executing, you'll notice the original 3 pods will have a status of `Terminating` and 3 new pods will have a status of `ContainerCreating`.
 
 ## References
 [https://kubernetes.io/docs/reference/kubectl/](https://kubernetes.io/docs/reference/kubectl/)
