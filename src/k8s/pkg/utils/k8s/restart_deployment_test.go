@@ -25,7 +25,7 @@ func TestRestartDeployment(t *testing.T) {
 		{
 			name: "deployment",
 			objects: []runtime.Object{
-				&appsv1.DaemonSet{
+				&appsv1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test",
 						Namespace: "namespace",
@@ -62,7 +62,7 @@ func TestRestartDeployment(t *testing.T) {
 			clientset := fake.NewSimpleClientset(tc.objects...)
 			client := &Client{Interface: clientset}
 
-			err := client.RestartDaemonset(context.Background(), "test", "namespace")
+			err := client.RestartDeployment(context.Background(), "test", "namespace")
 			if tc.expectError {
 				g.Expect(err).To(HaveOccurred())
 			} else {
