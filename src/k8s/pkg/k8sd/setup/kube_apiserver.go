@@ -44,6 +44,7 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--allow-privileged":                         "true",
 		"--service-account-issuer":                   "https://kubernetes.default.svc",
 		"--authentication-token-webhook-config-file": authTokenWebhookConfigFile,
+		"--enable-admission-plugins":                 "NodeRestriction",
 		"--kubelet-preferred-address-types":          "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP",
 		"--kubelet-certificate-authority":            path.Join(snap.KubernetesPKIDir(), "ca.crt"),
 	}
