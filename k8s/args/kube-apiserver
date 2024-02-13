@@ -23,7 +23,7 @@
 --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt
 --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key
 #~Enable the aggregation layer
-#--enable-admission-plugins=EventRateLimit
+--enable-admission-plugins=NodeRestriction
 #--admission-control-config-file=${SNAP_DATA}/args/admission-control-config-file.yaml
 --kubelet-certificate-authority=/etc/kubernetes/pki/ca.crt
 --kubelet-preferred-address-types=InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP
