@@ -9,8 +9,10 @@ import (
 func TestBootstrapConfigFromMap(t *testing.T) {
 	g := NewWithT(t)
 	// Create a new BootstrapConfig with default values
-	bc := &BootstrapConfig{}
-	bc.SetDefaults()
+	bc := &BootstrapConfig{
+		Components:  []string{"dns", "network", "storage"},
+		ClusterCIDR: "10.1.0.0/16",
+	}
 
 	// Convert the BootstrapConfig to a map
 	m, err := bc.ToMap()
