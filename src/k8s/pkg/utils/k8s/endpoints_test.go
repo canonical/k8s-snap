@@ -102,9 +102,9 @@ func TestGetKubeAPIServerEndpoints(t *testing.T) {
 			g := NewWithT(t)
 
 			clientset := fake.NewSimpleClientset(tc.objects...)
-			k8sClient := &k8sClient{Interface: clientset}
+			client := &Client{Interface: clientset}
 
-			servers, err := GetKubeAPIServerEndpoints(context.Background(), k8sClient)
+			servers, err := client.GetKubeAPIServerEndpoints(context.Background())
 			if tc.expectError {
 				g.Expect(err).To(HaveOccurred())
 				g.Expect(servers).To(BeEmpty())

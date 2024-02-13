@@ -5,26 +5,27 @@ import apiv1 "github.com/canonical/k8s/api/v1"
 // ClusterConfig is the control plane configuration format of the k8s cluster.
 // ClusterConfig should attempt to use structured fields wherever possible.
 type ClusterConfig struct {
-	Cluster      Cluster      `yaml:"cluster"`
+	Network      Network      `yaml:"network"`
 	Certificates Certificates `yaml:"certificates"`
 	Kubelet      Kubelet      `yaml:"kubelet"`
 	K8sDqlite    K8sDqlite    `yaml:"k8s-dqlite"`
 	APIServer    APIServer    `yaml:"apiserver"`
 }
 
-type Cluster struct {
-	CIDR string `yaml:"cidr,omitempty"`
+type Network struct {
+	PodCIDR     string `yaml:"pod-cidr,omitempty"`
+	ServiceCIDR string `yaml:"svc-cidr,omitempty"`
 }
 
 type Certificates struct {
-	CACert                 string `yaml:"ca-crt,omitempty"`
-	CAKey                  string `yaml:"ca-key,omitempty"`
-	APIServerToKubeletCert string `yaml:"apiserver-to-kubelet-crt,omitempty"`
-	APIServerToKubeletKey  string `yaml:"apiserver-to-kubelet-key,omitempty"`
-	K8sDqliteCert          string `yaml:"k8s-dqlite-crt,omitempty"`
-	K8sDqliteKey           string `yaml:"k8s-dqlite-key,omitempty"`
-	FrontProxyCACert       string `yaml:"front-proxy-ca-crt,omitempty"`
-	FrontProxyCAKey        string `yaml:"front-proxy-ca-key,omitempty"`
+	CACert                     string `yaml:"ca-crt,omitempty"`
+	CAKey                      string `yaml:"ca-key,omitempty"`
+	APIServerKubeletClientCert string `yaml:"apiserver-kubelet-client-crt,omitempty"`
+	APIServerKubeletClientKey  string `yaml:"apiserver-kubelet-client-key,omitempty"`
+	K8sDqliteCert              string `yaml:"k8s-dqlite-crt,omitempty"`
+	K8sDqliteKey               string `yaml:"k8s-dqlite-key,omitempty"`
+	FrontProxyCACert           string `yaml:"front-proxy-ca-crt,omitempty"`
+	FrontProxyCAKey            string `yaml:"front-proxy-ca-key,omitempty"`
 }
 
 type Kubelet struct {
@@ -50,10 +51,12 @@ type K8sDqlite struct {
 
 func DefaultClusterConfig() ClusterConfig {
 	return ClusterConfig{
-		Cluster: Cluster{
-			CIDR: "10.1.0.0/16",
+		Network: Network{
+			PodCIDR:     "10.1.0.0/16",
+			ServiceCIDR: "10.152.183.0/24",
 		},
 		APIServer: APIServer{
+			Datastore:         "k8s-dqlite",
 			SecurePort:        6443,
 			AuthorizationMode: "Node,RBAC",
 		},
@@ -67,8 +70,8 @@ func DefaultClusterConfig() ClusterConfig {
 // and maps them to a ClusterConfig.
 func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
 	return ClusterConfig{
-		Cluster: Cluster{
-			CIDR: b.ClusterCIDR,
+		Network: Network{
+			PodCIDR: b.ClusterCIDR,
 		},
 	}
 }

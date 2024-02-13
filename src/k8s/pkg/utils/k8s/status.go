@@ -10,9 +10,11 @@ import (
 )
 
 // WaitApiServerReady waits until the kube-apiserver becomes available.
-func WaitApiServerReady(ctx context.Context, client *k8sClient) error {
+func (c *Client) WaitApiServerReady(ctx context.Context) error {
 	return control.WaitUntilReady(ctx, func() (bool, error) {
-		_, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+		// TODO: use the /readyz endpoint instead
+
+		_, err := c.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 		// We want to retry if an error occurs (=API server not ready)
 		// returning the error would abort, thus checking for nil
 		return err == nil, nil
@@ -21,18 +23,17 @@ func WaitApiServerReady(ctx context.Context, client *k8sClient) error {
 
 // ClusterReady checks the status of all nodes in the Kubernetes cluster.
 // If at least one node is in READY state it will return true.
-func ClusterReady(ctx context.Context, client *k8sClient) (bool, error) {
-	nodes, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+func (c *Client) ClusterReady(ctx context.Context) (bool, error) {
+	nodes, err := c.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return false, fmt.Errorf("failed to get cluster nodes: %v", err)
+		return false, fmt.Errorf("failed to list nodes: %v", err)
 	}
 
 	for _, node := range nodes.Items {
 		for _, condition := range node.Status.Conditions {
-			if condition.Type == "Ready" {
+			if condition.Type == v1.NodeReady {
 				if condition.Status == v1.ConditionTrue {
 					// At least one node is ready.
-					// That's enough for the cluster to operate.
 					return true, nil
 				}
 			}

@@ -5,10 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/pki"
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
@@ -44,17 +47,30 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	if nodeName == "" {
 		return response.BadRequest(fmt.Errorf("node name cannot be empty"))
 	}
+	nodeIP := net.ParseIP(req.Address)
+	if nodeIP == nil {
+		return response.BadRequest(fmt.Errorf("failed to parse node IP address %s", req.Address))
+	}
 
-	clusterConfig, err := utils.GetClusterConfig(s.Context, s)
+	cfg, err := utils.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
-	client, err := k8s.NewClient()
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Years: 10})
+	certificates.CACert = cfg.Certificates.CACert
+	certificates.CAKey = cfg.Certificates.CAKey
+	workerCertificates, err := certificates.CompleteWorkerNodePKI(nodeName, nodeIP, 2048)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to generate worker PKI: %w", err))
+	}
+
+	snap := snap.SnapFromContext(s.Context)
+	client, err := k8s.NewClient(snap)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
 	}
-	servers, err := k8s.GetKubeAPIServerEndpoints(s.Context, client)
+	servers, err := client.GetKubeAPIServerEndpoints(s.Context)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve list of known kube-apiserver endpoints: %w", err))
 	}
@@ -91,13 +107,15 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	}
 
 	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
-		CA:             clusterConfig.Certificates.CACert,
+		CA:             cfg.Certificates.CACert,
 		APIServers:     servers,
-		ClusterCIDR:    clusterConfig.Cluster.CIDR,
+		PodCIDR:        cfg.Network.PodCIDR,
 		KubeletToken:   kubeletToken,
 		KubeProxyToken: proxyToken,
-		ClusterDomain:  clusterConfig.Kubelet.ClusterDomain,
-		ClusterDNS:     clusterConfig.Kubelet.ClusterDNS,
-		CloudProvider:  clusterConfig.Kubelet.CloudProvider,
+		ClusterDomain:  cfg.Kubelet.ClusterDomain,
+		ClusterDNS:     cfg.Kubelet.ClusterDNS,
+		CloudProvider:  cfg.Kubelet.CloudProvider,
+		KubeletCert:    workerCertificates.KubeletCert,
+		KubeletKey:     workerCertificates.KubeletKey,
 	})
 }

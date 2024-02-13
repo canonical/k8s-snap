@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,7 +11,10 @@ import (
 
 	"github.com/canonical/k8s/pkg/component"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
+	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
@@ -38,9 +43,25 @@ func putDNSComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		if err := component.EnableDNSComponent(s.Context, snap, req.Config.ClusterDomain, req.Config.ServiceIP, req.Config.UpstreamNameservers); err != nil {
+		dnsIP, clusterDomain, err := component.EnableDNSComponent(s.Context, snap, req.Config.ClusterDomain, req.Config.ServiceIP, req.Config.UpstreamNameservers)
+		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable dns: %w", err))
 		}
+
+		if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+			if err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
+				Kubelet: types.Kubelet{
+					ClusterDNS:    dnsIP,
+					ClusterDomain: clusterDomain,
+				},
+			}); err != nil {
+				return fmt.Errorf("failed to update cluster configuration for dns=%s domain=%s: %w", dnsIP, clusterDomain, err)
+			}
+			return nil
+		}); err != nil {
+			return response.InternalError(fmt.Errorf("database transaction to update cluster configuration failed: %w", err))
+		}
+
 	case api.ComponentDisable:
 		if err := component.DisableDNSComponent(s.Context, snap); err != nil {
 			return response.InternalError(fmt.Errorf("failed to disable dns: %w", err))
@@ -62,7 +83,11 @@ func putNetworkComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		if err := component.EnableNetworkComponent(s.Context, snap); err != nil {
+		cfg, err := utils.GetClusterConfig(s.Context, s)
+		if err != nil {
+			return response.InternalError(fmt.Errorf("failed to retrieve pod cidr: %w", err))
+		}
+		if err := component.EnableNetworkComponent(s.Context, snap, cfg.Network.PodCIDR); err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable network: %w", err))
 		}
 	case api.ComponentDisable:

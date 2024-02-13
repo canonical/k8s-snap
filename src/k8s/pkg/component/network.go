@@ -10,15 +10,13 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-func EnableNetworkComponent(ctx context.Context, s snap.Snap) error {
+func EnableNetworkComponent(ctx context.Context, s snap.Snap, podCIDR string) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	// TODO: the cluster cidr should be configurable through a common interface
-	clusterCIDRStr := snap.GetServiceArgument(s, "kube-proxy", "--cluster-cidr")
-	clusterCIDRs := strings.Split(clusterCIDRStr, ",")
+	clusterCIDRs := strings.Split(podCIDR, ",")
 	if v := len(clusterCIDRs); v != 1 && v != 2 {
 		return fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", clusterCIDRs)
 	}
@@ -40,6 +38,11 @@ func EnableNetworkComponent(ctx context.Context, s snap.Snap) error {
 	}
 
 	values := map[string]any{
+		"image": map[string]any{
+			"repository": ciliumAgentImageRepository,
+			"tag":        ciliumAgentImageTag,
+			"useDigest":  false,
+		},
 		"socketLB": map[string]any{
 			"enabled": true,
 		},
@@ -49,6 +52,11 @@ func EnableNetworkComponent(ctx context.Context, s snap.Snap) error {
 		},
 		"operator": map[string]any{
 			"replicas": 1,
+			"image": map[string]any{
+				"repository": ciliumOperatorImageRepository,
+				"tag":        ciliumOperatorImageTag,
+				"useDigest":  false,
+			},
 		},
 		"ipam": map[string]any{
 			"operator": map[string]any{
@@ -61,7 +69,7 @@ func EnableNetworkComponent(ctx context.Context, s snap.Snap) error {
 		},
 	}
 
-	if s.IsStrict() {
+	if s.Strict() {
 		bpfMnt, err := utils.GetMountPath("bpf")
 		if err != nil {
 			return fmt.Errorf("failed to get bpf mount path: %w", err)
@@ -86,8 +94,7 @@ func EnableNetworkComponent(ctx context.Context, s snap.Snap) error {
 		}
 	}
 
-	err = manager.Enable("network", values)
-	if err != nil {
+	if err := manager.Enable("network", values); err != nil {
 		return fmt.Errorf("failed to enable network component: %w", err)
 	}
 
@@ -100,8 +107,7 @@ func DisableNetworkComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	err = manager.Disable("network")
-	if err != nil {
+	if err := manager.Disable("network"); err != nil {
 		return fmt.Errorf("failed to disable network component: %w", err)
 	}
 

@@ -9,13 +9,13 @@ import (
 )
 
 // RestartDaemonset updates the restartedAt field to trigger a rollout restart for the given DaemonSet.
-func RestartDaemonset(ctx context.Context, client *k8sClient, name, namespace string) error {
+func (c *Client) RestartDaemonset(ctx context.Context, name, namespace string) error {
 	if namespace == "" {
 		namespace = "default"
 	}
-	daemonset, err := client.AppsV1().DaemonSets(namespace).Get(ctx, name, metav1.GetOptions{})
+	daemonset, err := c.AppsV1().DaemonSets(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("Failed to get daemonset %s in %s: %w", name, namespace, err)
+		return fmt.Errorf("failed to get daemonset %s in namespace %s: %w", name, namespace, err)
 	}
 
 	if daemonset.Spec.Template.ObjectMeta.Annotations == nil {
@@ -23,9 +23,9 @@ func RestartDaemonset(ctx context.Context, client *k8sClient, name, namespace st
 	}
 	daemonset.Spec.Template.ObjectMeta.Annotations["kubectl.kubernetes.io/restartedAt"] = time.Now().Format(time.RFC3339)
 
-	_, err = client.AppsV1().DaemonSets(namespace).Update(ctx, daemonset, metav1.UpdateOptions{})
+	_, err = c.AppsV1().DaemonSets(namespace).Update(ctx, daemonset, metav1.UpdateOptions{})
 	if err != nil {
-		return fmt.Errorf("Failed to rollout restart daemonset %s in %s: %w", name, namespace, err)
+		return fmt.Errorf("failed to set restartedAt annotation for daemonset %s in namespace %s: %w", name, namespace, err)
 	}
 	return nil
 }
