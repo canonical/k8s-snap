@@ -253,13 +253,12 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	}
 
 	// Wait for API server to come up
-	k8sClient, err := k8s.NewClient(snap)
+	client, err := k8s.NewClient(snap)
 	if err != nil {
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}
 
-	err = k8s.WaitApiServerReady(s.Context, k8sClient)
-	if err != nil {
+	if err := client.WaitApiServerReady(s.Context); err != nil {
 		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
 	}
 

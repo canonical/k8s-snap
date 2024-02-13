@@ -3,8 +3,8 @@ package k8s
 import (
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/snap"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 // Client is a wrapper around the kubernetes.Interface.
@@ -12,8 +12,8 @@ type Client struct {
 	kubernetes.Interface
 }
 
-func NewClientFromKubeconfig(kubeconfigPath string) (*Client, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+func NewClient(snap snap.Snap) (*Client, error) {
+	config, err := snap.KubernetesRESTClientGetter().ToRESTConfig()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build Kubernetes REST config: %w", err)
 	}

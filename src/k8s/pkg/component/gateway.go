@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
 func EnableGatewayComponent(s snap.Snap) error {
@@ -30,7 +31,7 @@ func EnableGatewayComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to enable gateway component: %w", err)
 	}
 
-	client, err := s.KubernetesClient()
+	client, err := k8s.NewClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}

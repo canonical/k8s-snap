@@ -8,6 +8,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
 // EnableDNSComponent enables DNS on the cluster.
@@ -73,7 +74,7 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 		return "", "", fmt.Errorf("failed to enable dns component: %w", err)
 	}
 
-	client, err := s.KubernetesClient()
+	client, err := k8s.NewClient(s)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to create kubernetes client: %w", err)
 	}

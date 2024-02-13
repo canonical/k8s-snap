@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/utils/k8s"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 // Snap abstracts file system paths and interacting with the k8s services.
@@ -41,5 +41,5 @@ type Snap interface {
 
 	Components() map[string]types.Component // available components
 
-	KubernetesClient() (*k8s.Client, error) // admin kubernetes client
+	KubernetesRESTClientGetter() genericclioptions.RESTClientGetter // admin kubernetes client
 }
