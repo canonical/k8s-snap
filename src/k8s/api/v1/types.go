@@ -10,9 +10,9 @@ import (
 
 type BootstrapConfig struct {
 	// Components are the components that should be enabled on bootstrap.
-	Components []string
+	Components []string `yaml:"components"`
 	// ClusterCIDR is the CIDR of the cluster.
-	ClusterCIDR string
+	ClusterCIDR string `yaml:"cluster-cidr"`
 }
 
 // SetDefaults sets the fields to default values.
@@ -23,16 +23,13 @@ func (b *BootstrapConfig) SetDefaults() {
 
 // ToMap marshals the BootstrapConfig into yaml and map it to "bootstrapConfig".
 func (b *BootstrapConfig) ToMap() (map[string]string, error) {
-	config := map[string]any{
-		"components":   b.Components,
-		"cluster-cidr": b.ClusterCIDR,
-	}
-	c, err := yaml.Marshal(config)
+	config, err := yaml.Marshal(b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal config map: %w", err)
 	}
+
 	return map[string]string{
-		"bootstrapConfig": string(c),
+		"bootstrapConfig": string(config),
 	}, nil
 }
 
