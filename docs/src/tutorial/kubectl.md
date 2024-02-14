@@ -45,7 +45,7 @@ components:
 sudo k8s kubectl get pods -o wide -n kube-system
 ```
 
-You should be seeing Cilium pods.
+You should be seeing the `network-operator`, `networking-agent` and `coredns` pods.
 
 ```
 sudo k8s kubectl get services --all-namespace
