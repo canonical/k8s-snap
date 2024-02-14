@@ -83,8 +83,7 @@ Execute `sudo k8s kubectl get pods` again and notice that you have 3 NGINX
 pods.
 
 Let's delete those 3 pods to demonstrate a deployment's ability to ensure the 
-declared state of the cluster is maintained. The following command deletes all 
-pods in the cluster that are labeled with `app=nginx`.
+declared state of the cluster is maintained. 
 
 First, open a new terminal so you can watch the changes as they happen. Run 
 this command in a new terminal:
@@ -98,6 +97,8 @@ Now, go back to your original terminal and run:
 ```
 sudo k8s kubectl delete pods -l app=nginx
 ```
+
+The above command deletes all pods in the cluster that are labeled with `app=nginx`.
 
 You'll notice the original 3 pods will have a status of `Terminating` and 3 
 new pods will have a status of `ContainerCreating`.
