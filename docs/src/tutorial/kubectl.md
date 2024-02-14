@@ -50,8 +50,7 @@ components:
 sudo k8s kubectl get pods -o wide -n kube-system
 ```
 
-You should be seeing the `network-operator`, `networking-agent` and `coredns`
-pods.
+You should be seeing the network operator, networking agent and coredns pods.
 
 > **Note**: If you see an error message here, it is likely that you forgot to
 > bootstrap your cluster.
