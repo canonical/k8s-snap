@@ -20,7 +20,7 @@ import (
 )
 
 func getComponents(s *state.State, r *http.Request) response.Response {
-	snap := snap.SnapFromContext(s.Context)
+	snap := snap.SnapFromContext(r.Context())
 
 	components, err := impl.GetComponents(snap)
 	if err != nil {
@@ -35,7 +35,7 @@ func getComponents(s *state.State, r *http.Request) response.Response {
 
 func putDNSComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateDNSComponentRequest
-	snap := snap.SnapFromContext(s.Context)
+	snap := snap.SnapFromContext(r.Context())
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -63,7 +63,7 @@ func putDNSComponent(s *state.State, r *http.Request) response.Response {
 		}
 
 	case api.ComponentDisable:
-		if err := component.DisableDNSComponent(s.Context, snap); err != nil {
+		if err := component.DisableDNSComponent(r.Context(), snap); err != nil {
 			return response.InternalError(fmt.Errorf("failed to disable dns: %w", err))
 		}
 	default:
@@ -75,7 +75,7 @@ func putDNSComponent(s *state.State, r *http.Request) response.Response {
 
 func putNetworkComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateNetworkComponentRequest
-	snap := snap.SnapFromContext(s.Context)
+	snap := snap.SnapFromContext(r.Context())
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -83,11 +83,11 @@ func putNetworkComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		cfg, err := utils.GetClusterConfig(s.Context, s)
+		cfg, err := utils.GetClusterConfig(r.Context(), s)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to retrieve pod cidr: %w", err))
 		}
-		if err := component.EnableNetworkComponent(s.Context, snap, cfg.Network.PodCIDR); err != nil {
+		if err := component.EnableNetworkComponent(r.Context(), snap, cfg.Network.PodCIDR); err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable network: %w", err))
 		}
 	case api.ComponentDisable:
@@ -103,7 +103,7 @@ func putNetworkComponent(s *state.State, r *http.Request) response.Response {
 
 func putStorageComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateStorageComponentRequest
-	snap := snap.SnapFromContext(s.Context)
+	snap := snap.SnapFromContext(r.Context())
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -111,7 +111,7 @@ func putStorageComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		if err := component.EnableStorageComponent(s.Context, snap); err != nil {
+		if err := component.EnableStorageComponent(r.Context(), snap); err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable storage: %w", err))
 		}
 	case api.ComponentDisable:
@@ -127,7 +127,7 @@ func putStorageComponent(s *state.State, r *http.Request) response.Response {
 
 func putIngressComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateIngressComponentRequest
-	snap := snap.SnapFromContext(s.Context)
+	snap := snap.SnapFromContext(r.Context())
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -135,7 +135,7 @@ func putIngressComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		if err := component.EnableIngressComponent(s.Context, snap, req.Config.DefaultTLSSecret, req.Config.EnableProxyProtocol); err != nil {
+		if err := component.EnableIngressComponent(r.Context(), snap, req.Config.DefaultTLSSecret, req.Config.EnableProxyProtocol); err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable ingress: %w", err))
 		}
 	case api.ComponentDisable:
@@ -151,7 +151,7 @@ func putIngressComponent(s *state.State, r *http.Request) response.Response {
 
 func putGatewayComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateGatewayComponentRequest
-	snap := snap.SnapFromContext(s.Context)
+	snap := snap.SnapFromContext(r.Context())
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -159,7 +159,7 @@ func putGatewayComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		if err := component.EnableGatewayComponent(s.Context, snap); err != nil {
+		if err := component.EnableGatewayComponent(r.Context(), snap); err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable gateway API: %w", err))
 		}
 	case api.ComponentDisable:
@@ -175,7 +175,7 @@ func putGatewayComponent(s *state.State, r *http.Request) response.Response {
 
 func putLoadBalancerComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateLoadBalancerComponentRequest
-	snap := snap.SnapFromContext(s.Context)
+	snap := snap.SnapFromContext(r.Context())
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
@@ -184,7 +184,7 @@ func putLoadBalancerComponent(s *state.State, r *http.Request) response.Response
 	switch req.Status {
 	case api.ComponentEnable:
 		if err := component.EnableLoadBalancerComponent(
-			s.Context,
+			r.Context(),
 			snap,
 			req.Config.CIDRs,
 			req.Config.L2Enabled,
