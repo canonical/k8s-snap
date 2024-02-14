@@ -17,7 +17,7 @@ func (c *Client) GenerateAuthToken(ctx context.Context, username string, groups 
 	request := apiv1.CreateKubernetesAuthTokenRequest{Username: username, Groups: groups}
 	response := apiv1.CreateKubernetesAuthTokenResponse{}
 
-	err := c.mc.Query(queryCtx, "POST", api.NewURL().Path("kubernetes", "auth", "tokens"), request, &response)
+	err := c.Query(queryCtx, "POST", api.NewURL().Path("kubernetes", "auth", "tokens"), request, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
 		return "", fmt.Errorf("failed to query endpoint POST /kubernetes/auth/tokens on %q: %w", clientURL.String(), err)

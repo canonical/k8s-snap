@@ -23,7 +23,7 @@ func (c *Client) JoinCluster(ctx context.Context, name string, address string, t
 		Token:   token,
 	}
 	var response apiv1.JoinClusterResponse
-	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, &response)
+	err := c.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, &response)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed with error:", err)
 

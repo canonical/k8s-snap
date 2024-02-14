@@ -15,7 +15,7 @@ func (c *Client) CreateJoinToken(ctx context.Context, name string, worker bool) 
 	}
 	response := apiv1.TokensResponse{}
 
-	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "tokens"), request, &response)
+	err := c.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "tokens"), request, &response)
 	if err != nil {
 		return "", fmt.Errorf("failed to query endpoint POST /k8sd/cluster/tokens: %w", err)
 	}

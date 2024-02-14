@@ -15,7 +15,7 @@ func (c *Client) ListComponents(ctx context.Context) ([]api.Component, error) {
 	defer cancel()
 
 	var response api.GetComponentsResponse
-	err := c.mc.Query(queryCtx, "GET", lxdApi.NewURL().Path("k8sd", "components"), nil, &response)
+	err := c.Query(queryCtx, "GET", lxdApi.NewURL().Path("k8sd", "components"), nil, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
 		return nil, fmt.Errorf("failed to query endpoint GET /k8sd/components on %q: %w", clientURL.String(), err)
@@ -28,7 +28,7 @@ func (c *Client) UpdateDNSComponent(ctx context.Context, request api.UpdateDNSCo
 	defer cancel()
 
 	var response api.UpdateDNSComponentResponse
-	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "dns"), request, &response)
+	err := c.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "dns"), request, &response)
 	if err != nil {
 		return fmt.Errorf("failed to enable dns component: %w", err)
 	}
@@ -40,7 +40,7 @@ func (c *Client) UpdateNetworkComponent(ctx context.Context, request api.UpdateN
 	defer cancel()
 
 	var response api.UpdateNetworkComponentResponse
-	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "network"), request, &response)
+	err := c.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "network"), request, &response)
 	if err != nil {
 		return fmt.Errorf("failed to enable network component: %w", err)
 	}
@@ -52,7 +52,7 @@ func (c *Client) UpdateStorageComponent(ctx context.Context, request api.UpdateS
 	defer cancel()
 
 	var response api.UpdateStorageComponentResponse
-	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "storage"), request, &response)
+	err := c.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "storage"), request, &response)
 	if err != nil {
 		return fmt.Errorf("failed to enable storage component: %w", err)
 	}
@@ -64,7 +64,7 @@ func (c *Client) UpdateIngressComponent(ctx context.Context, request api.UpdateI
 	defer cancel()
 
 	var response api.UpdateIngressComponentResponse
-	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "ingress"), request, &response)
+	err := c.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "ingress"), request, &response)
 	if err != nil {
 		return fmt.Errorf("failed to enable ingress component: %w", err)
 	}
@@ -76,7 +76,7 @@ func (c *Client) UpdateGatewayComponent(ctx context.Context, request api.UpdateG
 	defer cancel()
 
 	var response api.UpdateGatewayComponentResponse
-	err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "gateway"), request, &response)
+	err := c.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "gateway"), request, &response)
 	if err != nil {
 		return fmt.Errorf("failed to enable gateway component: %w", err)
 	}
@@ -88,7 +88,7 @@ func (c *Client) UpdateLoadBalancerComponent(ctx context.Context, request api.Up
 	defer cancel()
 
 	var response api.UpdateLoadBalancerComponentResponse
-	if err := c.mc.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "loadbalancer"), request, &response); err != nil {
+	if err := c.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "loadbalancer"), request, &response); err != nil {
 		return fmt.Errorf("failed to enable loadbalancer component: %w", err)
 	}
 	return nil

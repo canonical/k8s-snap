@@ -2,10 +2,13 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
+	v1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/lxd/shared/api"
 	"github.com/canonical/microcluster/client"
 	"github.com/canonical/microcluster/microcluster"
 )
@@ -61,4 +64,22 @@ func NewClient(ctx context.Context, opts ClusterOpts) (*Client, error) {
 		m:    m,
 		mc:   microClient,
 	}, nil
+}
+
+func (c *Client) Query(ctx context.Context, method string, path *api.URL, in any, out any) error {
+	if err := c.mc.Query(ctx, method, path, in, out); err != nil {
+		return resolveError(err)
+	}
+	return nil
+}
+
+func resolveError(err error) error {
+	for _, errorType := range v1.Errors {
+		if errors.Is(errorType, err) {
+			return errorType
+		}
+	}
+	// We should probably use a generic "Unknown error" message here to not expose too much of the k8sd internals.
+	// However, in this state of development it makes sense to get the whole stacktrace.
+	return err
 }

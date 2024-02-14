@@ -62,7 +62,7 @@ func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapC
 func (c *Client) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error) {
 	var response apiv1.GetClusterStatusResponse
 	err := control.WaitUntilReady(ctx, func() (bool, error) {
-		err := c.mc.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster"), nil, &response)
+		err := c.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster"), nil, &response)
 		if err != nil {
 			return false, err
 		}
@@ -77,7 +77,7 @@ func (c *Client) KubeConfig(ctx context.Context) (string, error) {
 	defer cancel()
 
 	var response apiv1.GetKubeConfigResponse
-	err := c.mc.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "kubeconfig"), nil, &response)
+	err := c.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "kubeconfig"), nil, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
 		return "", fmt.Errorf("failed to query endpoint GET /k8sd/kubeconfig on %q: %w", clientURL.String(), err)

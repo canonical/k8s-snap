@@ -3,6 +3,7 @@ package k8s
 import (
 	"fmt"
 
+	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -13,6 +14,8 @@ var (
 		logVerbose bool
 	}
 
+	ew = errors.ErrorWrapper{}
+
 	rootCmd = &cobra.Command{
 		Use:   "k8s",
 		Short: "Canonical Kubernetes CLI",
@@ -22,11 +25,13 @@ var (
 				return fmt.Errorf("failed to check if command runs as root: %w", err)
 			}
 			if !withRoot {
-				return fmt.Errorf("k8s CLI needs to run with root priviledge.")
+				return fmt.Errorf("You do not have enough permissions. Please run the command with sudo.")
 			}
 			return nil
 		},
-		SilenceUsage: true,
+		PersistentPostRunE: ew.TransformToHumanError(),
+		SilenceUsage:       true,
+		SilenceErrors:      true,
 	}
 )
 

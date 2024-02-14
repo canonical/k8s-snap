@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/spf13/cobra"
 )
@@ -17,11 +18,17 @@ var (
 		interactive bool
 	}
 
+	bootstrapCmdErrorMsgs = map[error]string{
+		errors.ErrAlreadyBootstrapped: "K8s cluster already bootstrapped.",
+	}
+
 	boostrapCmd = &cobra.Command{
 		Use:   "bootstrap",
 		Short: "Bootstrap a k8s cluster on this node.",
 		Long:  "Initialize the necessary folders, permissions, service arguments, certificates and start up the Kubernetes services.",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: ew.Run(func(cmd *cobra.Command, args []string) (err error) {
+			ew.CustomErrorMsgs = bootstrapCmdErrorMsgs
+
 			c, err := client.NewClient(cmd.Context(), client.ClusterOpts{
 				StateDir: clusterCmdOpts.stateDir,
 				Verbose:  rootCmdOpts.logVerbose,
@@ -49,7 +56,7 @@ var (
 
 			fmt.Printf("Bootstrapped k8s cluster on %q (%s).\n", cluster.Name, cluster.Address)
 			return nil
-		},
+		}),
 	}
 )
 

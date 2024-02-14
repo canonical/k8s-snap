@@ -21,7 +21,7 @@ var (
 		Use:    "status",
 		Short:  "Retrieve the current status of the cluster",
 		Hidden: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: ew.Run(func(cmd *cobra.Command, args []string) error {
 			c, err := client.NewClient(cmd.Context(), client.ClusterOpts{
 				StateDir: clusterCmdOpts.stateDir,
 				Verbose:  rootCmdOpts.logVerbose,
@@ -49,7 +49,7 @@ var (
 				return fmt.Errorf("failed to create formatter: %w", err)
 			}
 			return f.Print(clusterStatus)
-		},
+		}),
 	}
 )
 
