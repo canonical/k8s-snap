@@ -4,7 +4,8 @@
 
 Before you begin, make sure you have the following:
 
-- A bootstrapped Canonical Kubernetes cluster (See [insert link]...)
+- A bootstrapped Canonical Kubernetes cluster
+(See [Getting Started](https://github.com/canonical/k8s-snap/blob/main/docs/src/tutorial/getting-started.md))
 
 ### 1. The Kubectl Command
 
