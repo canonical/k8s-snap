@@ -1,6 +1,7 @@
 # Adding and Removing Nodes
 
 ## What you will need
+- Multipass (See [Multipass Installation](https://multipass.run/install))
 - A bootstrapped cluster using Canonical K8s (See (getting-started.md)[Getting Started]
 - The `dns` and `network` components enabled on your cluster.
 
@@ -16,27 +17,34 @@ Make sure you can see `k8s is ready.` in the output of the command.
 
 ### 2. Start a Multipass VM
 
-Our second node will live on a Multipass VM. Let's launch it:
+Our second node will live on Ubuntu 22.04 on a UMultipass VM. Let's launch it:
 
 ```
 multipass launch --name expert-elf
 ```
 
-**Note**: This step can take a few minutes. It's normal and expected.
+> **Note**: This step can take a few minutes. It's normal and expected.
 
 ### 3. Generate a worker node token from the control plane node
 
-In the shell connected to your control plane node, run the following command to get a token that'll be used by the other node to join the cluster.
+> **Note:** Make sure your cluster is bootstrapped. See [Getting Started](getting-started.md) for instructions.
 
-**If you want to create a worker node, append the `--worker` argument.**
+Canonical Kubernetes allows you to create two types of nodes: control plane 
+and worker nodes. In this example, we'll be creating a worker node.
+
+Let's get the token that will allow our worker node to join our cluster.
+
+Run this command from your control plane node:
 
 ```
-sudo k8s add-node expert-elf [--worker]
+sudo k8s add-node expert-elf --worker
 ```
 
-**Note**: It's best to give the new node the same name as the hostname of the worker node.
+**Note**: It's best to give the new node the same name as the hostname of the 
+worker node (in this case the VM).
 
-A base64 string should be printed to your terminal. Copy it.
+A base64 string should be printed to your terminal. Keep it close as you 
+will need it in a few steps.
 
 ### 4. Join the cluster from the other node
 
@@ -52,10 +60,11 @@ The VM doesn't come with the `k8s` snap, so let's install it.
 sudo snap install --edge --classic k8s
 ```
 
-From the worker node machine, use the `join-cluster` command and pass the token as the last argument.
+From the worker node machine, use the `join-cluster` command and pass your 
+token from step 3 as the last argument.
 
 ```
-sudo k8s kubectl join-cluster eyJu...XX0=
+sudo k8s join-cluster eyJu...XX0=
 ```
 
 After a couple of seconds, you should see: `Joined the cluster.`
@@ -70,7 +79,16 @@ You should see that you've successfully added a worker or control plane node to 
 
 Congratulations!
 
-### 5. Remove Canonical Kubernetes (Optional)
+### 5. Delete the expert-elf VM (Optional)
+
+Two commands are needed to delete the expert-elf VM from your system:
+
+```
+multipass remove expert-elf
+multipass purge
+```
+
+### 6. Remove Canonical Kubernetes (Optional)
 
 To uninstall the Canonical Kubernetes snap, execute:
 
