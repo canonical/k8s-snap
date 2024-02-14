@@ -43,12 +43,12 @@ func putDNSComponent(s *state.State, r *http.Request) response.Response {
 
 	switch req.Status {
 	case api.ComponentEnable:
-		dnsIP, clusterDomain, err := component.EnableDNSComponent(s.Context, snap, req.Config.ClusterDomain, req.Config.ServiceIP, req.Config.UpstreamNameservers)
+		dnsIP, clusterDomain, err := component.EnableDNSComponent(r.Context(), snap, req.Config.ClusterDomain, req.Config.ServiceIP, req.Config.UpstreamNameservers)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to enable dns: %w", err))
 		}
 
-		if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+		if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 			if err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
 				Kubelet: types.Kubelet{
 					ClusterDNS:    dnsIP,
