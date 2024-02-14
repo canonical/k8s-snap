@@ -9,5 +9,25 @@ Overview <self>
 
 ```{toctree}
 :glob:
-/howto/*
+/howto/contribute
+/howto/support
 ```
+
+
+Our Reference section is for when you need to check specific details or information
+such as the command reference or release notes
+
+Alternatively, the [Tutorials section] contains step-by-step tutorials to help
+guide you through exploring and using Canonical Kubernetes.
+
+For a better understanding of how Canonical Kubernetes works and related topics
+such as security, our [Explanation section] helps you to expand your knowledge
+and get the most out of Kubernetes.
+
+Finally, our [Reference section] is for when you need to check specific details
+or information such as the command reference or release notes.
+
+<!--LINKS -->
+[Tutorials section]: ../tutorial/index
+[Explanation section]: ../explanation/index
+[Reference section]: ../reference/index
