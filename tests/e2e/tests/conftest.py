@@ -25,7 +25,7 @@ def _harness_clean(h: harness.Harness):
 
 
 @pytest.fixture(scope="session")
-def h() -> harness.Harness:
+def h() -> Generator[harness.Harness, None, None]:
     LOG.debug("Create harness for %s", config.SUBSTRATE)
     if config.SUBSTRATE == "local":
         h = harness.LocalHarness()

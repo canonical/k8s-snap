@@ -192,7 +192,7 @@ class JujuHarness(Harness):
             # Remove the machine
             LOG.debug("Removing machine %s", instance_id)
             try:
-                run(["juju", "remove-machine", instance_id, "--force"])
+                run(["juju", "remove-machine", instance_id, "--force", "--no-prompt"])
             except subprocess.CalledProcessError as e:
                 raise HarnessError(f"failed to delete instance {instance_id}") from e
 

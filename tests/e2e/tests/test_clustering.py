@@ -72,3 +72,25 @@ def test_worker_nodes(instances: List[harness.Instance]):
     assert (
         nodes[0]["metadata"]["name"] == cluster_node.id
     ), f"only {cluster_node.id} should be left in cluster"
+
+
+@pytest.mark.node_count(4)
+def test_control_plane_replacement(instances: List[harness.Instance]):
+    cp_1, cp_2, w_1, cp_r = instances
+
+    # Add a Control-Plane
+    token = add_node(cp_1, cp_2)
+    join_cluster(cp_2, token)
+     # Add a Worker
+    token = add_node(cp_1, w_1, "--worker")
+    join_cluster(w_1, token)
+
+    util.wait_until_k8s_ready(cp_1, [cp_1, cp_2, w_1])
+
+    # Remove a Control-Plane
+    cp_1.delete_instance()
+    util.wait_until_k8s_ready(cp_2, [cp_2, w_1])
+
+    token = add_node(cp_2, cp_r)
+    join_cluster(cp_r, token)
+    util.wait_until_k8s_ready(cp_2, [cp_2, cp_r, w_1])
