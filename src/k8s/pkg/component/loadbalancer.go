@@ -9,7 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
-func EnableLoadBalancerComponent(s snap.Snap, cidrs []string, l2Enabled bool, l2Interfaces []string, bgpEnabled bool, bgpLocalASN int, bgpPeerAddress string, bgpPeerASN int, bgpPeerPort int) error {
+func EnableLoadBalancerComponent(ctx context.Context, s snap.Snap, cidrs []string, l2Enabled bool, l2Interfaces []string, bgpEnabled bool, bgpLocalASN int, bgpPeerAddress string, bgpPeerASN int, bgpPeerPort int) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)

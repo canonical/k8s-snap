@@ -9,7 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
-func EnableGatewayComponent(s snap.Snap) error {
+func EnableGatewayComponent(ctx context.Context, s snap.Snap) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)

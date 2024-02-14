@@ -1,12 +1,13 @@
 package component
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-func EnableStorageComponent(s snap.Snap) error {
+func EnableStorageComponent(ctx context.Context, s snap.Snap) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)

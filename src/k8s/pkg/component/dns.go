@@ -13,7 +13,7 @@ import (
 
 // EnableDNSComponent enables DNS on the cluster.
 // On success, it returns the IP of the DNS service and the cluster domain.
-func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNameservers []string) (string, string, error) {
+func EnableDNSComponent(ctx context.Context, s snap.Snap, clusterDomain, serviceIP string, upstreamNameservers []string) (string, string, error) {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get component manager: %w", err)
@@ -106,7 +106,7 @@ func EnableDNSComponent(s snap.Snap, clusterDomain, serviceIP string, upstreamNa
 	return dnsIP, clusterDomain, nil
 }
 
-func DisableDNSComponent(s snap.Snap) error {
+func DisableDNSComponent(ctx context.Context, s snap.Snap) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
