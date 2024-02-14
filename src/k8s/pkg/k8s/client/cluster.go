@@ -14,13 +14,13 @@ import (
 )
 
 // IsBootstrapped checks if the cluster is already up and initialized.
-func (c *Client) IsBootstrapped(ctx context.Context) bool {
+func (c *k8sdClient) IsBootstrapped(ctx context.Context) bool {
 	_, err := c.m.Status()
 	return err == nil
 }
 
 // Bootstrap bootstraps the k8s cluster
-func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.ClusterMember, error) {
+func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.ClusterMember, error) {
 	// Get system hostname.
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -59,10 +59,10 @@ func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapC
 }
 
 // ClusterStatus returns the current status of the cluster.
-func (c *Client) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error) {
+func (c *k8sdClient) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error) {
 	var response apiv1.GetClusterStatusResponse
 	err := control.WaitUntilReady(ctx, func() (bool, error) {
-		err := c.mc.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster"), nil, &response)
+		err := c.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster"), nil, &response)
 		if err != nil {
 			return false, err
 		}
@@ -72,12 +72,12 @@ func (c *Client) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.Clust
 }
 
 // KubeConfig returns admin kubeconfig to connect to the cluster.
-func (c *Client) KubeConfig(ctx context.Context) (string, error) {
+func (c *k8sdClient) KubeConfig(ctx context.Context) (string, error) {
 	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
 	var response apiv1.GetKubeConfigResponse
-	err := c.mc.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "kubeconfig"), nil, &response)
+	err := c.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "kubeconfig"), nil, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
 		return "", fmt.Errorf("failed to query endpoint GET /k8sd/kubeconfig on %q: %w", clientURL.String(), err)

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/lxd/shared/api"
 	"github.com/canonical/microcluster/client"
 	"github.com/canonical/microcluster/microcluster"
 )
@@ -22,8 +23,8 @@ type ClusterOpts struct {
 	StateDir string
 }
 
-// Client interacts with the k8s REST-API via unix-socket or HTTPS
-type Client struct {
+// k8sdClient interacts with the k8s REST-API via unix-socket or HTTPS
+type k8sdClient struct {
 	opts ClusterOpts
 	m    *microcluster.MicroCluster
 	mc   *client.Client
@@ -33,14 +34,13 @@ type Client struct {
 // NewClient returns a client to interact with the k8s REST-API
 // On a cluster node it will return a client connected to the unix-socket
 // elsewhere it returns a HTTPS client that expects the certificates to be located at ClusterOpts.StateDir
-func NewClient(ctx context.Context, opts ClusterOpts) (*Client, error) {
+func NewClient(ctx context.Context, opts ClusterOpts) (*k8sdClient, error) {
 	// TODO: pass snap through opts instead, do not create here.
 	if opts.Snap == nil {
 		opts.Snap = snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
 	}
-	stateDir := opts.StateDir
-	if stateDir == "" {
-		stateDir = opts.Snap.K8sdStateDir()
+	if opts.StateDir == "" {
+		opts.StateDir = opts.Snap.K8sdStateDir()
 	}
 	m, err := microcluster.App(ctx, microcluster.Args{
 		Debug:    opts.Debug,
@@ -56,9 +56,16 @@ func NewClient(ctx context.Context, opts ClusterOpts) (*Client, error) {
 		return nil, fmt.Errorf("cannot create local client: %w", err)
 	}
 
-	return &Client{
+	return &k8sdClient{
 		opts: opts,
 		m:    m,
 		mc:   microClient,
 	}, nil
+}
+
+func (c *k8sdClient) Query(ctx context.Context, method string, path *api.URL, in any, out any) error {
+	if err := c.mc.Query(ctx, method, path, in, out); err != nil {
+		return err
+	}
+	return nil
 }
