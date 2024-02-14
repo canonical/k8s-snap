@@ -4,33 +4,35 @@
 
 Before you begin, make sure you have the following:
 
-- A bootstrapped Canonical K8s cluster (See [insert link]...)
+- A bootstrapped Canonical Kubernetes cluster (See [insert link]...)
 
 ### 1. The Kubectl Command
 
-This commands interacts with the Kubernetes API server (kube-apiserver) and is the most commonly used command when working with Kubernetes, so let's take some time to familiarize ourselves with it.
+The kubectl communicates with the [Kubernetes API server](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/).
 
-The `kubectl` command included with Canonical K8s is built from the original upstream source into the `k8s` snap you have installed.
+The `kubectl` command included with Canonical Kubernetes is built from the original upstream source into the `k8s` snap you have installed.
 
 ### 2. How To Use Kubectl
 
-You can access kubectl with the following command:
+To access kubectl, run the following command:
 
 ```
-sudo k8s kubectl
+sudo k8s kubectl <command>
 ```
 
 Note: Only control plane nodes can use the `kubectl` command. Worker nodes do not have access to this command.
 
 ### 3. Configuration
 
-In Canonical K8s, the `kubeconfig` file that is being read to display the configuration when you run `kubectl config view` lives at `/snap/k8s/current/k8s/config/kubeconfig`. You can change this by setting a `KUBECONFIG` environment variable or passing the `--kubeconfig` flag to a command.
+In Canonical Kubernetes, the `kubeconfig` file that is being read to display the configuration when you run `kubectl config view` lives at `/snap/k8s/current/k8s/config/kubeconfig`. You can change this by setting a `KUBECONFIG` environment variable or passing the `--kubeconfig` flag to a command.
+
+To find out more, you can visit [the official kubeconfig documentation](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/)
 
 ### 4. Viewing objects
 
 Let's review what was created in the Getting Started guide.
 
-Let's see what pods were created when we enabled the `network` and `dns` components.
+To see what pods were created when we enabled the `network` and `dns` components:
 
 ```
 sudo k8s kubectl get pods -o wide -n kube-system
@@ -39,16 +41,16 @@ sudo k8s kubectl get pods -o wide -n kube-system
 You should be seeing Cilium pods.
 
 ```
-sudo k8s kubectl get svc -A
+sudo k8s kubectl get services --all-namespace
 ```
 
 The `kubernetes` service in the `default` namespace is where the Kubernetes API server resides, and it's the endpoint with which other nodes in your cluster will communicate.
 
-The `hubble-peer` service in the `kube-system` namespace is created by Canonical K8s (an opinionated K8s distribution) to ...
+The `hubble-peer` service in the `kube-system` namespace is created by Canonical Kubernetes (an opinionated Kubernetes distribution) to ...
 
 ### 5. Creating and Managing Objects
 
-Let's create a deployment using this command:
+Let's deploy an NGINX server using this command:
 
 ```
 sudo k8s kubectl create deployment nginx --image=nginx:latest
@@ -62,13 +64,23 @@ Let's now scale this deployment, which means increasing the number of pods it ma
 sudo k8s kubectl scale deployment nginx --replicas=3
 ```
 
-Run `sudo k8s kubectl get pods` again and notice that you have 3 NGINX pods.
+Execute `sudo k8s kubectl get pods` again and notice that you have 3 NGINX pods.
 
-Let's delete those 3 pods to demonstrate a deployment's ability to ensure the declared state of the cluster is maintained.
+Let's delete those 3 pods to demonstrate a deployment's ability to ensure the declared state of the cluster is maintained. The following command deletes all pods in the cluster that are labeled with `app=nginx`.
 
-Run `sudo k8s kubectl delete pods -l app=nginx`
+First, open a new terminal so you can watch the changes as they happen. Run this command in a new terminal:
 
-If you open another terminal while the above command is executing, you'll notice the original 3 pods will have a status of `Terminating` and 3 new pods will have a status of `ContainerCreating`.
+```
+sudo k8s kubectl get pods --all-namespace --watch
+```
+
+Now, go back to your original terminal and run:
+
+```
+sudo k8s kubectl delete pods -l app=nginx
+```
+
+You'll notice the original 3 pods will have a status of `Terminating` and 3 new pods will have a status of `ContainerCreating`.
 
 ### 6. Remove Canonical Kubernetes (Optional)
 
@@ -89,10 +101,9 @@ This option ensures complete removal of the snap and its associated data.
 
 ## Next Steps
 
-- Keep mastering Canonical Kubernetes with kubectl: [How to use kubectl](#TODO)
 - Explore Kubernetes commands with our [Command Reference Guide](#TODO)
-- Bootstrap K8s with your custom configurations [Bootstrap K8s](#TODO)
-- Learn how to set up a multi-node environment [Setting up a K8s cluster](#TODO)
+- Bootstrap Kubernetes with your custom configurations [Bootstrap Kubernetes](#TODO)
+- Learn how to set up a multi-node environment [Setting up a Kubernetes cluster](#TODO)
 - Configure storage options [Storage](#TODO)
 - Master Kubernetes networking concepts: [Networking](#TODO)
 - Discover how to enable and configure Ingress resources [Ingress](#TODO)
