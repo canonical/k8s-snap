@@ -9,14 +9,14 @@ Before you begin, make sure you have the following:
 
 ### 1. The Kubectl Command
 
-The kubectl communicates with the [Kubernetes API server](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/).
+The `kubectl` command communicates with the [Kubernetes API server](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/).
 
 The `kubectl` command included with Canonical Kubernetes is built from the 
 original upstream source into the `k8s` snap you have installed.
 
 ### 2. How To Use Kubectl
 
-To access kubectl, run the following command:
+To access `kubectl`, run the following command:
 
 ```
 sudo k8s kubectl <command>
