@@ -20,7 +20,7 @@ import (
 )
 
 func getComponents(s *state.State, r *http.Request) response.Response {
-	snap := snap.SnapFromContext(r.Context())
+	snap := snap.SnapFromContext(s.Context)
 
 	components, err := impl.GetComponents(snap)
 	if err != nil {
@@ -35,7 +35,7 @@ func getComponents(s *state.State, r *http.Request) response.Response {
 
 func putDNSComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateDNSComponentRequest
-	snap := snap.SnapFromContext(r.Context())
+	snap := snap.SnapFromContext(s.Context)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -75,7 +75,7 @@ func putDNSComponent(s *state.State, r *http.Request) response.Response {
 
 func putNetworkComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateNetworkComponentRequest
-	snap := snap.SnapFromContext(r.Context())
+	snap := snap.SnapFromContext(s.Context)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -103,7 +103,7 @@ func putNetworkComponent(s *state.State, r *http.Request) response.Response {
 
 func putStorageComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateStorageComponentRequest
-	snap := snap.SnapFromContext(r.Context())
+	snap := snap.SnapFromContext(s.Context)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -127,7 +127,7 @@ func putStorageComponent(s *state.State, r *http.Request) response.Response {
 
 func putIngressComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateIngressComponentRequest
-	snap := snap.SnapFromContext(r.Context())
+	snap := snap.SnapFromContext(s.Context)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -151,7 +151,7 @@ func putIngressComponent(s *state.State, r *http.Request) response.Response {
 
 func putGatewayComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateGatewayComponentRequest
-	snap := snap.SnapFromContext(r.Context())
+	snap := snap.SnapFromContext(s.Context)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -175,7 +175,7 @@ func putGatewayComponent(s *state.State, r *http.Request) response.Response {
 
 func putLoadBalancerComponent(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateLoadBalancerComponentRequest
-	snap := snap.SnapFromContext(r.Context())
+	snap := snap.SnapFromContext(s.Context)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.SmartError(fmt.Errorf("failed to decode request: %w", err))
