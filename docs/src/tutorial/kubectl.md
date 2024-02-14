@@ -6,6 +6,7 @@ Before you begin, make sure you have the following:
 
 - A bootstrapped Canonical Kubernetes cluster (See
   [Getting Started](https://github.com/canonical/k8s-snap/blob/main/docs/src/tutorial/getting-started.md))
+- You are using the built-in `kubectl` command from the snap.
 
 ### 1. The Kubectl Command
 
@@ -23,8 +24,8 @@ To access `kubectl`, run the following command:
 sudo k8s kubectl <command>
 ```
 
-Note: Only control plane nodes can use the `kubectl` command. Worker nodes do
-not have access to this command.
+> **Note**: Only control plane nodes can use the `kubectl` command. Worker
+> nodes do not have access to this command.
 
 ### 3. Configuration
 
@@ -39,7 +40,8 @@ To find out more, you can visit
 
 ### 4. Viewing objects
 
-Let's review what was created in the Getting Started guide.
+Let's review what was created in the [Getting Started](getting-started.md)
+guide.
 
 To see what pods were created when we enabled the `network` and `dns`
 components:
@@ -51,8 +53,8 @@ sudo k8s kubectl get pods -o wide -n kube-system
 You should be seeing the `network-operator`, `networking-agent` and `coredns`
 pods.
 
-**Note**: If you see an error message here, it is likely that you forgot to
-bootstrap your cluster.
+> **Note**: If you see an error message here, it is likely that you forgot to
+> bootstrap your cluster.
 
 ```sh
 sudo k8s kubectl get services --all-namespace
@@ -108,37 +110,8 @@ The above command deletes all pods in the cluster that are labeled with
 You'll notice the original 3 pods will have a status of `Terminating` and 3 new
 pods will have a status of `ContainerCreating`.
 
-### 6. Remove Canonical Kubernetes (Optional)
-
-To uninstall the Canonical Kubernetes snap, execute:
-
-```sh
-sudo snap remove k8s
-```
-
-This command removes the `k8s` snap and automatically creates a snapshot of all
-data for future restoration.
-
-If you wish to remove the snap without saving a snapshot of its data, add
-`--purge` to the command:
-
-```sh
-sudo snap remove k8s --purge
-```
-
-This option ensures complete removal of the snap and its associated data.
-
-## Next Steps
+## Further information
 
 - Explore Kubernetes commands with our [Command Reference Guide](#TODO)
-- Bootstrap Kubernetes with your custom configurations
-  [Bootstrap Kubernetes](#TODO)
-- Learn how to set up a multi-node environment
-  [Setting up a Kubernetes cluster](#TODO)
-- Configure storage options [Storage](#TODO)
-- Master Kubernetes networking concepts: [Networking](#TODO)
-- Discover how to enable and configure Ingress resources [Ingress](#TODO)
-
-## References
-
-[https://kubernetes.io/docs/reference/kubectl/](https://kubernetes.io/docs/reference/kubectl/)
+- See the official kubectl reference
+  [https://kubernetes.io/docs/reference/kubectl/](https://kubernetes.io/docs/reference/kubectl/)
