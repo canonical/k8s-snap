@@ -28,8 +28,7 @@ not have access to this command.
 ### 3. Configuration
 
 In Canonical Kubernetes, the `kubeconfig` file that is being read to display 
-the configuration when you run `kubectl config view` lives at `/snap/k8s
-current/k8s/config/kubeconfig`. You can change this by setting a `KUBECONFIG` 
+the configuration when you run `kubectl config view` lives at `/snap/k8scurrent/k8s/config/kubeconfig`. You can change this by setting a `KUBECONFIG` 
 environment variable or passing the `--kubeconfig` flag to a command.
 
 To find out more, you can visit 
@@ -48,6 +47,9 @@ sudo k8s kubectl get pods -o wide -n kube-system
 
 You should be seeing the `network-operator`, `networking-agent` and `coredns` pods.
 
+**Note**: If you see an error message here, it is likely that you forgot to 
+bootstrap your cluster.
+
 ```
 sudo k8s kubectl get services --all-namespace
 ```
@@ -55,8 +57,6 @@ sudo k8s kubectl get services --all-namespace
 The `kubernetes` service in the `default` namespace is where the Kubernetes 
 API server resides, and it's the endpoint with which other nodes in your 
 cluster will communicate.
-
-The `hubble-peer` service in the `kube-system` namespace is created by Canonical Kubernetes (an opinionated Kubernetes distribution) to ...
 
 ### 5. Creating and Managing Objects
 
