@@ -65,7 +65,11 @@ Let's deploy an NGINX server using this command:
 sudo k8s kubectl create deployment nginx --image=nginx:latest
 ```
 
-Notice how `sudo k8s kubectl get pods` shows you one NGINX pod.
+To observe the NGINX pod running in the default namespace:
+
+```
+sudo k8s kubectl get pods
+```
 
 Let's now scale this deployment, which means increasing the number of pods it 
 manages.
