@@ -89,4 +89,6 @@ func (c *Client) CleanupNode(ctx context.Context, snap snap.Snap, nodeName strin
 
 	// TODO(neoaggelos): reenable after we know how to pass a snap here
 	snaputil.StopControlPlaneServices(ctx, snap)
+
+	snaputil.MarkAsWorkerNode(snap, false)
 }

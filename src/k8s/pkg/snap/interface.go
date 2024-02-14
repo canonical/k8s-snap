@@ -39,6 +39,8 @@ type Snap interface {
 	ServiceArgumentsDir() string   // /var/snap/k8s/common/args
 	ServiceExtraConfigDir() string // /var/snap/k8s/common/args/conf.d
 
+	LockFilesDir() string // /var/snap/k8s/common/lock
+
 	Components() map[string]types.Component // available components
 
 	KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter // admin kubernetes client

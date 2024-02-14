@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -115,4 +116,14 @@ func GetMountPath(fsType string) (string, error) {
 	}
 
 	return mounts[0].Mountpoint, nil
+}
+
+func FileExists(path ...string) (bool, error) {
+	if _, err := os.Stat(filepath.Join(path...)); err != nil {
+		if !os.IsNotExist(err) {
+			return false, fmt.Errorf("failed to stat: %w", err)
+		}
+		return false, nil
+	}
+	return true, nil
 }

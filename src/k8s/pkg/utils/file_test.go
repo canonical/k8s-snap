@@ -1,6 +1,7 @@
 package utils_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -137,5 +138,33 @@ func TestSerializeArgumentFile(t *testing.T) {
 
 			g.Expect(string(content)).To(Equal(tc.expectedContent))
 		})
+	}
+}
+
+func TestFileExists(t *testing.T) {
+	testFilePath := fmt.Sprintf("%s/myfile", t.TempDir())
+	_, err := os.Create(testFilePath)
+	if err != nil {
+		t.Fatal("Failed to create test file")
+	}
+
+	fileExists, err := utils.FileExists(testFilePath)
+	if err != nil {
+		t.Fatal("Failed to check if file exists")
+	}
+	if !fileExists {
+		t.Fatal("File should exist but it does not")
+	}
+
+	if err := os.Remove(testFilePath); err != nil {
+		t.Fatalf("Failed to delete test file: %s", err)
+	}
+
+	fileExists, err = utils.FileExists(testFilePath)
+	if err != nil {
+		t.Fatal("Failed to check if file exists")
+	}
+	if fileExists {
+		t.Fatal("File should not exist but it does")
 	}
 }
