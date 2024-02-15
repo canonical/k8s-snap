@@ -1,5 +1,9 @@
 # Basic operations with Kubernetes using kubectl
 
+Kubernetes provides a command line tool for communicating with a Kubernetes cluster's control plane,
+using the Kubernetes API. This guide outlines how some of the everyday operations of your 
+Charmed Kubernetes cluster can be managed with this tool. 
+
 ## What you will need
 
 Before you begin, make sure you have the following:
