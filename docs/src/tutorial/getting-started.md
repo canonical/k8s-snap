@@ -72,7 +72,7 @@ sudo k8s kubectl get pods -n kube-system
 You will observe three pods running:
 - **coredns**: Provides DNS resolution services.
 - **network-operator**: Manages the lifecycle of the networking solution.
-- **networking agent**: Facilitates network management.
+- **network**: Facilitates network management.
 
 Confirm that Canonical Kubernetes has transitioned to the `k8s is ready` state by running:
 
@@ -152,10 +152,11 @@ sudo k8s status
 ```
 You should see `storage enabled` in the command output.
 
-Let's create a pod with a persistent volume claim:
+Let's create a `PersistentVolumeClaim` and use it in a `Pod`. 
+For example, we can deploy the following manifest:
 
 ```
-sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/e2e/templates/storage-setup.yaml
+sudo k8s kubectl apply -f ../../manifests/tutorial-pod-with-pvc.yaml
 ```
 This command deploys a pod based on the YAML configuration of a 
 storage writer pod and a persistent volume claim with a capacity of 1G.
@@ -166,7 +167,7 @@ To confirm that the persistent volume is up and running:
 sudo k8s kubectl get pvc myclaim
 ```
 
-Let's inspect the storage-writer-pod:
+You can inspect the storage-writer-pod with:
 
 ```
 sudo k8s kubectl describe pod storage-writer-pod
