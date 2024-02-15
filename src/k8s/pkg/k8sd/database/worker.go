@@ -90,18 +90,20 @@ func AddWorkerNode(ctx context.Context, tx *sql.Tx, name string) error {
 }
 
 // CheckWorkerExists returns true if a worker node entry for this name exists.
-func CheckWorkerExists(ctx context.Context, tx *sql.Tx, name string) (bool, error) {
+func CheckWorkerExists(ctx context.Context, tx *sql.Tx, name string) (exists bool, err error) {
 	selectTxStmt, err := cluster.Stmt(tx, workerStmts["select-by-name"])
 	if err != nil {
 		return false, fmt.Errorf("failed to prepare select statement: %w", err)
 	}
-	_, err = selectTxStmt.QueryContext(ctx)
-	if err != nil {
+
+	row := selectTxStmt.QueryRowContext(ctx, name)
+	if err := row.Scan(new(string)); err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
 		return false, fmt.Errorf("select worker node %q query failed: %w", name, err)
 	}
+
 	return true, nil
 }
 
