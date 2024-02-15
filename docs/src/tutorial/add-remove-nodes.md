@@ -19,7 +19,7 @@ In this article, "**control plane**" refers to the Multipass VM that operates th
 
 ### 1. Create both VMs
 
-The first step is to create the VMs.
+The first step is creating the VMs.
 
 ```sh
 multipass launch 22.04 --name control-plane
@@ -31,7 +31,7 @@ multipass launch 22.04 --name worker
 
 This step can take a few minutes as Multipass creates the new virtual machines. It's normal and expected.
 
-On both VMs, run the following command to install Canonical Kubernetes:
+Install Canonical Kubernetes on both VMs with the following command:
 
 ```sh
 sudo snap install --classic --edge k8s
@@ -39,13 +39,13 @@ sudo snap install --classic --edge k8s
 
 ### 2. Bootstrap your control plane node
 
-Let's bootstrap our control plane node:
+Bootstrap the control plane node:
 
 ```sh
 sudo k8s bootstrap
 ```
 
-Next, enable two components that are needed for communication between nodes.
+Then, enable two components necessary for nodes' communication.
 
 ```sh
 sudo k8s enable dns
@@ -53,41 +53,40 @@ sudo k8s enable network
 ```
 
 Canonical Kubernetes allows you to create two types of nodes: control plane and
-worker nodes. In this example, we'll be creating a worker node.
+worker nodes. In this example, we're creating a worker node.
 
-Create the token that will be used by the worker node to join the cluster.
+Create the token for the worker node to join the cluster.
 
 ```sh
 sudo k8s add-node worker --worker
 ```
 
-A base64 token should be printed to your terminal. Keep it close as you will
-need it for the next step.
+A base64 token will be printed to your terminal. Keep it handy as you will need it for the next step.
 
-> **Note**: It's best to give the new node the same name as the hostname of the
-> worker node (in this case the VM's hostname is worker).
+> **Note**: It's advisable to name the new node after the hostname of the
+> worker node (in this case, the VM's hostname is worker).
 
 ### 3. Join the cluster on the worker node
 
-Run the following command to join the worker node to the cluster:
+To join the worker node to the cluster, run:
 
 ```sh
 sudo k8s join-cluster <token>
 ```
 
-After a couple of seconds, you should see: `Joined the cluster.`
+After a few seconds, you should see: `Joined the cluster.`
 
 ### 4. View the status of your cluster
 
-Let's see what we've achieved during this tutorial.
+To see what we've accomplished in this tutorial:
 
-If you created a control plane node, you can check that it joined successfully by running:
+If you created a control plane node, check that it joined successfully:
 
 ```sh
 sudo k8s status
 ```
 
-If you created a worker node, you can check with this command:
+If you created a worker node, verify with this command:
 
 ```sh
 sudo k8s kubectl get nodes
@@ -100,7 +99,7 @@ Congratulations!
 
 ### 4. Delete the VMs (Optional)
 
-Two commands are needed to delete the expert-elf VM from your system:
+To delete the VMs from your system, two commands are needed:
 
 ```sh
 multipass remove control-plane
