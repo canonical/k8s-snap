@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"os"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/snap"
@@ -23,7 +24,7 @@ func (c *Client) JoinCluster(ctx context.Context, name string, address string, t
 	}
 	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, nil)
 	if err != nil {
-		fmt.Println("Cleaning up, error was", err)
+		fmt.Fprintln(os.Stderr, "Cleaning up, error was", err)
 		c.CleanupNode(ctx, c.opts.Snap, name)
 		return fmt.Errorf("failed to query endpoint POST /k8sd/cluster/join: %w", err)
 	}

@@ -13,9 +13,10 @@ import (
 
 var (
 	workerStmts = map[string]int{
-		"insert-node": MustPrepareStatement("worker-nodes", "insert.sql"),
-		"select-node": MustPrepareStatement("worker-nodes", "select.sql"),
-		"delete-node": MustPrepareStatement("worker-nodes", "delete.sql"),
+		"insert-node":    MustPrepareStatement("worker-nodes", "insert.sql"),
+		"select-node":    MustPrepareStatement("worker-nodes", "select.sql"),
+		"select-by-name": MustPrepareStatement("worker-nodes", "select-by-name.sql"),
+		"delete-node":    MustPrepareStatement("worker-nodes", "delete.sql"),
 
 		"insert-token": MustPrepareStatement("cluster-configs", "insert-worker-token.sql"),
 		"select-token": MustPrepareStatement("cluster-configs", "select-worker-token.sql"),
@@ -86,6 +87,22 @@ func AddWorkerNode(ctx context.Context, tx *sql.Tx, name string) error {
 		return fmt.Errorf("insert worker node query failed: %w", err)
 	}
 	return nil
+}
+
+// CheckWorkerExists returns true if a worker node entry for this name exists.
+func CheckWorkerExists(ctx context.Context, tx *sql.Tx, name string) (bool, error) {
+	selectTxStmt, err := cluster.Stmt(tx, workerStmts["select-by-name"])
+	if err != nil {
+		return false, fmt.Errorf("failed to prepare select statement: %w", err)
+	}
+	_, err = selectTxStmt.QueryContext(ctx)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, fmt.Errorf("select worker node %q query failed: %w", name, err)
+	}
+	return true, nil
 }
 
 // ListWorkerNodes lists the known worker nodes on the database.

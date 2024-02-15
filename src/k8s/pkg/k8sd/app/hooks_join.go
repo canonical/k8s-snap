@@ -160,7 +160,7 @@ func onPreRemove(s *state.State, force bool) error {
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}
 
-	if err := c.GracefullyDeleteNode(s.Context, s.Name()); err != nil {
+	if err := c.DeleteNode(s.Context, s.Name()); err != nil {
 		return fmt.Errorf("failed to remove k8s node %q: %w", s.Name(), err)
 	}
 

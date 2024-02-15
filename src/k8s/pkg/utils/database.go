@@ -28,6 +28,24 @@ func GetClusterConfig(ctx context.Context, state *state.State) (types.ClusterCon
 	return clusterConfig, nil
 }
 
+// CheckWorkerExists is a convenience wrapper around the database call to check if a worker node entry exists.
+func CheckWorkerExists(ctx context.Context, state *state.State, name string) (bool, error) {
+	var exists bool
+	var err error
+
+	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		exists, err = database.CheckWorkerExists(ctx, tx, name)
+		if err != nil {
+			return fmt.Errorf("failed to get worker node from database: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return false, fmt.Errorf("failed to perform check worker node transaction request: %w", err)
+	}
+
+	return exists, nil
+}
+
 // GetWorkerNodes is a convenience wrapper around the database call to get the worker node names.
 func GetWorkerNodes(ctx context.Context, state *state.State) ([]string, error) {
 	var workerNodes []string

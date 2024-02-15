@@ -24,42 +24,42 @@ func postClusterRemove(m *microcluster.MicroCluster, s *state.State, r *http.Req
 
 	isControlPlane, err := utils.IsControlPlaneNode(r.Context(), s, req.Name)
 	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to check if node is control-plane: %w", err))
+		return response.InternalError(fmt.Errorf("failed to check if node is control-plane: %w", err))
 	}
 	if isControlPlane {
 		// Remove control plane via microcluster API.
 		// The postRemove hook will take care of cleaning up kubernetes.
 		c, err := m.LocalClient()
 		if err != nil {
-			return response.SmartError(fmt.Errorf("failed to create local client: %w", err))
+			return response.InternalError(fmt.Errorf("failed to create local client: %w", err))
 		}
 		if err := c.DeleteClusterMember(r.Context(), req.Name, req.Force); err != nil {
-			return response.SmartError(fmt.Errorf("failed to delete cluster member %s: %w", req.Name, err))
+			return response.InternalError(fmt.Errorf("failed to delete cluster member %s: %w", req.Name, err))
 		}
 	}
 
 	isWorker, err := utils.IsWorkerNode(r.Context(), s, req.Name)
 	if err != nil {
-		return response.SmartError(fmt.Errorf("failed to check if node is control-plane: %w", err))
+		return response.InternalError(fmt.Errorf("failed to check if node is control-plane: %w", err))
 	}
 	if isWorker {
 		// For worker nodes, we need to manually cleanup the kubernetes node and db entry.
 		c, err := k8s.NewClient(snap)
 		if err != nil {
-			return response.SmartError(fmt.Errorf("failed to create k8s client: %w", err))
+			return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
 		}
 
-		if err := c.GracefullyDeleteNode(s.Context, req.Name); err != nil {
-			return response.SmartError(fmt.Errorf("failed to remove k8s node %q: %w", req.Name, err))
+		if err := c.DeleteNode(s.Context, req.Name); err != nil {
+			return response.InternalError(fmt.Errorf("failed to remove k8s node %q: %w", req.Name, err))
 		}
 
 		if err := utils.DeleteWorkerNodeEntry(r.Context(), s, req.Name); err != nil {
-			return response.SmartError(fmt.Errorf("failed to remove worker entry %q: %w", req.Name, err))
+			return response.InternalError(fmt.Errorf("failed to remove worker entry %q: %w", req.Name, err))
 		}
 	}
 
 	if !isWorker && !isControlPlane {
-		return response.SmartError(fmt.Errorf("Node %q is not part of the cluster", req.Name))
+		return response.InternalError(fmt.Errorf("Node %q is not part of the cluster", req.Name))
 	}
 	return response.SyncResponse(true, nil)
 }
