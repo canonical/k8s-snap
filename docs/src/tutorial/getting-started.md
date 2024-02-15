@@ -70,9 +70,9 @@ sudo k8s kubectl get pods -n kube-system
 ```
 
 You will observe three pods running:
-- **coredns**: Provides DNS resolution services.
-- **network-operator**: Manages the lifecycle of the networking solution.
-- **network**: Facilitates network management.
+- **Coredns**: Provides DNS resolution services.
+- **Network operator**: Manages the lifecycle of the networking solution.
+- **Network agent**: Facilitates network management.
 
 Confirm that Canonical Kubernetes has transitioned to the `k8s is ready` state by running:
 
@@ -156,7 +156,7 @@ Let's create a `PersistentVolumeClaim` and use it in a `Pod`.
 For example, we can deploy the following manifest:
 
 ```
-sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/assets/tutorial-pod-with-pvc.yaml
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/tutorial-pod-with-pvc.yaml
 ```
 This command deploys a pod based on the YAML configuration of a 
 storage writer pod and a persistent volume claim with a capacity of 1G.
