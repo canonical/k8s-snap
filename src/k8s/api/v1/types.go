@@ -33,6 +33,11 @@ func (b *BootstrapConfig) ToMap() (map[string]string, error) {
 	}, nil
 }
 
+func (b *BootstrapConfig) IsValidCIDR() bool {
+	_, _, err := net.ParseCIDR(b.ClusterCIDR)
+	return err == nil
+}
+
 // BootstrapConfigFromMap converts a string map to a BootstrapConfig struct.
 func BootstrapConfigFromMap(m map[string]string) (*BootstrapConfig, error) {
 	config := &BootstrapConfig{}

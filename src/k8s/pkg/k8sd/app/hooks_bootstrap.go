@@ -147,7 +147,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
 	}
-	cfg, err := types.MergeClusterConfig(types.DefaultClusterConfig(), types.ClusterConfigFromBootstrapConfig(bootstrapConfig))
+	cfg, err := types.SetClusterConfigDefaults(bootstrapConfig)
 	if err != nil {
 		return fmt.Errorf("failed initialize cluster config from bootstrap config: %w", err)
 	}

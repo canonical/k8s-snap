@@ -9,20 +9,44 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestClusterConfigFromBootstrapConfig(t *testing.T) {
+func TestSetClusterConfigDefaults(t *testing.T) {
 	g := NewWithT(t)
 	bootstrapConfig := apiv1.BootstrapConfig{
-		ClusterCIDR: "10.1.0.0/16",
+		ClusterCIDR: "10.100.0.0/16",
 		Components:  []string{"dns", "network"},
 	}
 
 	expectedConfig := types.ClusterConfig{
 		Network: types.Network{
-			PodCIDR: "10.1.0.0/16",
+			PodCIDR:     "10.100.0.0/16", // not default pod CIDR
+			ServiceCIDR: "10.152.183.0/24",
+		},
+		APIServer: types.APIServer{
+			Datastore:         "k8s-dqlite",
+			SecurePort:        6443,
+			AuthorizationMode: "Node,RBAC",
+		},
+		K8sDqlite: types.K8sDqlite{
+			Port: 9000,
 		},
 	}
 
-	g.Expect(types.ClusterConfigFromBootstrapConfig(&bootstrapConfig)).To(Equal(expectedConfig))
+	conf, err := types.SetClusterConfigDefaults(&bootstrapConfig)
+
+	g.Expect(err).To(BeNil())
+	g.Expect(conf).To(Equal(expectedConfig))
+
+	// Test invalid cluster CIDR
+	invalidBootstrapConfig := apiv1.BootstrapConfig{
+		ClusterCIDR: "Bananas.0.0/16",
+		Components:  []string{"dns", "network"},
+	}
+
+	conf, err = types.SetClusterConfigDefaults(&invalidBootstrapConfig)
+	fmt.Println(err)
+	g.Expect(err).ToNot(BeNil())
+	g.Expect(conf).To(Equal(types.ClusterConfig{}))
+
 }
 
 type mergeClusterConfigTestCase struct {

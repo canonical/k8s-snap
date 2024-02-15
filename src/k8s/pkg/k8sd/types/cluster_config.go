@@ -1,6 +1,10 @@
 package types
 
-import apiv1 "github.com/canonical/k8s/api/v1"
+import (
+	"fmt"
+
+	apiv1 "github.com/canonical/k8s/api/v1"
+)
 
 // ClusterConfig is the control plane configuration format of the k8s cluster.
 // ClusterConfig should attempt to use structured fields wherever possible.
@@ -49,24 +53,7 @@ type K8sDqlite struct {
 	Port int `yaml:"port,omitempty"`
 }
 
-func DefaultClusterConfig() ClusterConfig {
-	return ClusterConfig{
-		Network: Network{
-			PodCIDR:     "10.1.0.0/16",
-			ServiceCIDR: "10.152.183.0/24",
-		},
-		APIServer: APIServer{
-			Datastore:         "k8s-dqlite",
-			SecurePort:        6443,
-			AuthorizationMode: "Node,RBAC",
-		},
-		K8sDqlite: K8sDqlite{
-			Port: 9000,
-		},
-	}
-}
-
-func (c *ClusterConfig) SetClusterConfigDefaults(b *apiv1.BootstrapConfig) ClusterConfig {
+func SetClusterConfigDefaults(b *apiv1.BootstrapConfig) (ClusterConfig, error) {
 	config := ClusterConfig{
 		Network: Network{
 			PodCIDR:     "10.1.0.0/16",
@@ -82,22 +69,12 @@ func (c *ClusterConfig) SetClusterConfigDefaults(b *apiv1.BootstrapConfig) Clust
 		},
 	}
 
-	// Override with the values from the BootstrapConfig
-	// TODO validate the values from the BootstrapConfig
-
-	if b != nil && b.ClusterCIDR != "" {
+	// Override with the values from the BootstrapConfig if they are valid.
+	if b.IsValidCIDR() {
 		config.Network.PodCIDR = b.ClusterCIDR
+	} else {
+		return ClusterConfig{}, fmt.Errorf("invalid cluster CIDR: %s", b.ClusterCIDR)
 	}
-	return config
+	return config, nil
 
-}
-
-// ClusterConfigFromBootstrapConfig extracts the cluster config parts from the BootstrapConfig
-// and maps them to a ClusterConfig.
-func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
-	return ClusterConfig{
-		Network: Network{
-			PodCIDR: b.ClusterCIDR,
-		},
-	}
 }
