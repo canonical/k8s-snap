@@ -22,12 +22,11 @@ func (c *Client) JoinCluster(ctx context.Context, name string, address string, t
 		Address: address,
 		Token:   token,
 	}
-	var response apiv1.JoinClusterResponse
-	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, &response)
+	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, nil)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed with error:", err)
-
+		fmt.Fprintln(os.Stderr, "Cleaning up, error was", err)
 		c.CleanupNode(ctx, c.opts.Snap, name)
+		return fmt.Errorf("failed to query endpoint POST /k8sd/cluster/join: %w", err)
 	}
 
 	c.WaitForDqliteNodeToBeReady(ctx, name)
@@ -35,7 +34,16 @@ func (c *Client) JoinCluster(ctx context.Context, name string, address string, t
 }
 
 func (c *Client) RemoveNode(ctx context.Context, name string, force bool) error {
-	return c.mc.DeleteClusterMember(ctx, name, force)
+	request := apiv1.RemoveNodeRequest{
+		Name:  name,
+		Force: force,
+	}
+	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "remove"), request, nil)
+	if err != nil {
+		return fmt.Errorf("failed to query endpoint DELETE /k8sd/cluster/remove: %w", err)
+	}
+
+	return nil
 }
 
 func (c *Client) ResetNode(ctx context.Context, name string, force bool) error {

@@ -29,6 +29,11 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 			// Joining a node is a bootstrapping action which needs to be available before k8sd is initialized.
 			AllowedBeforeInit: true,
 		},
+		{
+			Name: "ClusterRemove",
+			Path: "k8sd/cluster/remove",
+			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterRemove)},
+		},
 		// Worker nodes
 		{
 			Name: "WorkerInfo",

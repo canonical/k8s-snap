@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8s/client"
@@ -15,6 +16,7 @@ import (
 var (
 	bootstrapCmdOpts struct {
 		interactive bool
+		timeout     time.Duration
 	}
 
 	boostrapCmd = &cobra.Command{
@@ -33,6 +35,12 @@ var (
 
 			if c.IsBootstrapped(cmd.Context()) {
 				return fmt.Errorf("k8s cluster already bootstrapped")
+			}
+
+			const minTimeout = 3 * time.Second
+			if bootstrapCmdOpts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", bootstrapCmdOpts.timeout, minTimeout, minTimeout)
+				bootstrapCmdOpts.timeout = minTimeout
 			}
 
 			config := apiv1.BootstrapConfig{}
@@ -57,6 +65,7 @@ func init() {
 	rootCmd.AddCommand(boostrapCmd)
 	boostrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false,
 		"Interactively configure the most important cluster options.")
+	boostrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for k8s to bootstrap.")
 }
 
 func getConfigInteractively(ctx context.Context) apiv1.BootstrapConfig {

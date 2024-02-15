@@ -20,10 +20,11 @@ var (
 			}
 			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
 			cluster, err := app.New(cmd.Context(), app.Config{
-				Debug:    rootCmdOpts.logDebug,
-				Verbose:  rootCmdOpts.logVerbose,
-				StateDir: rootCmdOpts.stateDir,
-				Snap:     snap,
+				Debug:      rootCmdOpts.logDebug,
+				Verbose:    rootCmdOpts.logVerbose,
+				StateDir:   rootCmdOpts.stateDir,
+				ListenPort: rootCmdOpts.port,
+				Snap:       snap,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create k8sd app: %w", err)
