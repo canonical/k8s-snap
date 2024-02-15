@@ -22,9 +22,9 @@ Bootstrap a Kubernetes cluster with default configuration using:
 sudo k8s bootstrap
 ```
 
-This command initialises your cluster and configures your host system 
+This command initialises your cluster and configures your host system
 as a Kubernetes node.
-For custom configurations, you can explore additional options using: 
+For custom configurations, you can explore additional options using:
 
 ```
 sudo k8s bootstrap --help
@@ -84,9 +84,9 @@ Note: To disable a component execute `sudo k8s disable <component>`
 
 ### 5. Access Kubernetes
 The standard tool for deploying and managing workloads on Kuberenetes
-is [kubectl](https://kubernetes.io/docs/reference/kubectl/). 
-For convenience, Canonical Kubernetes bundles a version of 
-kubectl for you to use with no extra setup or configuration. 
+is [kubectl](https://kubernetes.io/docs/reference/kubectl/).
+For convenience, Canonical Kubernetes bundles a version of
+kubectl for you to use with no extra setup or configuration.
 For example, to view your node you can run the command:
 
 ```
@@ -101,9 +101,9 @@ sudo k8s kubectl get services
 
 ### 6. Deploy an app
 
-Kubernetes is meant for deploying apps and services. 
+Kubernetes is meant for deploying apps and services.
 You can use the `kubectl`
-command to do that as with any Kubernetes. 
+command to do that as with any Kubernetes.
 
 Let's deploy a demo NGINX server:
 
@@ -120,7 +120,7 @@ You can check the status of your pods by running:
 sudo k8s kubectl get pods
 ```
 
-This command shows all pods in the default namespace. 
+This command shows all pods in the default namespace.
 It may take a moment for the pod to be ready and running.
 
 ### 7. Remove an app
@@ -136,10 +136,10 @@ To verify that the pod has been removed, you can check the status of pods by run
 sudo k8s kubectl get pods
 ```
 ### 8. Enable Components (Storage)
-In scenarios where you need to preserve application data beyond the 
+In scenarios where you need to preserve application data beyond the
 lifecycle of the pod, Kubernetes provides persistent volumes.
 
-With Canonical Kubernetes, you can enable storage to configure 
+With Canonical Kubernetes, you can enable storage to configure
 your storage solutions:
 
 ```
@@ -152,13 +152,13 @@ sudo k8s status
 ```
 You should see `storage enabled` in the command output.
 
-Let's create a `PersistentVolumeClaim` and use it in a `Pod`. 
+Let's create a `PersistentVolumeClaim` and use it in a `Pod`.
 For example, we can deploy the following manifest:
 
 ```
-sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/assets/tutorial-pod-with-pvc.yaml
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/tutorial-pod-with-pvc.yaml
 ```
-This command deploys a pod based on the YAML configuration of a 
+This command deploys a pod based on the YAML configuration of a
 storage writer pod and a persistent volume claim with a capacity of 1G.
 
 To confirm that the persistent volume is up and running:
