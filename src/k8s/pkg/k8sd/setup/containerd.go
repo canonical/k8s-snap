@@ -59,8 +59,24 @@ func Containerd(snap snap.Snap) error {
 	if err := os.Chown(cniBinary, snap.UID(), snap.GID()); err != nil {
 		return fmt.Errorf("failed to chown cni plugin binary: %w", err)
 	}
+
+	// for each of the CNI plugins, ensure they are a symlink to the "cni" binary
 	for _, plugin := range snap.CNIPlugins() {
-		if err := os.Symlink("cni", path.Join(snap.CNIBinDir(), plugin)); err != nil {
+		pluginInstallPath := path.Join(snap.CNIBinDir(), plugin)
+
+		// if the destination file is already a symlink to "cni", we don't have to do anything
+		// if not, then attempt to remove the existing file
+		if link, err := os.Readlink(pluginInstallPath); err == nil {
+			if link == "cni" {
+				continue
+			}
+			if err := os.Remove(pluginInstallPath); err != nil {
+				return fmt.Errorf("failed to remove already existing file %s: %w", pluginInstallPath, err)
+			}
+		}
+
+		// add plugin as a symlink for the "cni" binary
+		if err := os.Symlink("cni", pluginInstallPath); err != nil {
 			return fmt.Errorf("failed to symlink cni plugin %s: %w", plugin, err)
 		}
 	}
