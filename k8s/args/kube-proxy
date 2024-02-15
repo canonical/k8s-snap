@@ -1,4 +1,0 @@
---kubeconfig=/etc/kubernetes/proxy.conf
---cluster-cidr=10.1.0.0/16
---healthz-bind-address=127.0.0.1
---profiling=false

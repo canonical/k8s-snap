@@ -1,2 +1,0 @@
---listen=127.0.0.1:6443
---kubeconfig=/etc/kubernetes/kubelet.conf

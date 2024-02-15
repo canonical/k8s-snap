@@ -1,4 +1,0 @@
---config=${SNAP_COMMON}/etc/containerd/config.toml
---address=${SNAP_COMMON}/run/containerd.sock
---root=${SNAP_COMMON}/var/lib/containerd
---state=/run/containerd
