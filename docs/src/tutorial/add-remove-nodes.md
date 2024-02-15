@@ -12,7 +12,7 @@ complexities of a full-scale, production setup.
 ## What you will need
 
 - Multipass (See [Multipass Installation][Multipass Installation])
-- A bootstrapped cluster using Canonical K8s (See the [Getting
+- A bootstrapped cluster using Canonical Kubernetes (See the [Getting
   Started][Getting Started] tutorial)
 - The `dns` and `network` components enabled on your cluster.
 
@@ -106,13 +106,11 @@ multipass purge
   kubectl][Kubectl]
 - Explore Kubernetes commands with our [Command Reference
   Guide][Command Reference]
-- Bootstrap K8s with your custom configurations [Bootstrap K8s][Bootstrap K8s]
+- Bootstrap Kubernetes with your custom configurations [Bootstrap K8s][Bootstrap K8s]
 - Learn how to set up a multi-node environment [Setting up a K8s
   cluster][Setting up K8s]
 - Configure storage options [Storage][Storage]
 - Master Kubernetes networking concepts [Networking][Networking]
-- Discover how to enable and configure Ingress resources again
-  [Ingress][Ingress]
 
 <!-- LINKS -->
 
