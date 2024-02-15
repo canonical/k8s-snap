@@ -66,8 +66,8 @@ func Containerd(snap snap.Snap) error {
 
 		// if the destination file is already a symlink to "cni", we don't have to do anything
 		// if not, then attempt to remove the existing file
-		if link, err := os.Readlink(pluginInstallPath); err == nil {
-			if link == "cni" {
+		if _, err := os.Stat(pluginInstallPath); err == nil {
+			if link, err := os.Readlink(pluginInstallPath); err == nil && link == "cni" {
 				continue
 			}
 			if err := os.Remove(pluginInstallPath); err != nil {
