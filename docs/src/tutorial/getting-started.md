@@ -156,7 +156,7 @@ Let's create a `PersistentVolumeClaim` and use it in a `Pod`.
 For example, we can deploy the following manifest:
 
 ```
-sudo k8s kubectl apply -f ../../manifests/tutorial-pod-with-pvc.yaml
+sudo k8s kubectl apply -f [tutorial-pod-with-pvc.yaml](../../manifests/tutorial-pod-with-pvc.yaml)
 ```
 This command deploys a pod based on the YAML configuration of a 
 storage writer pod and a persistent volume claim with a capacity of 1G.
