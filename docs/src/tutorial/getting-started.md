@@ -72,7 +72,7 @@ sudo k8s kubectl get pods -n kube-system
 You will observe three pods running:
 - **coredns**: Provides DNS resolution services.
 - **network-operator**: Manages the lifecycle of the networking solution.
-- **networking agent**: Facilitates network management.
+- **network**: Facilitates network management.
 
 Confirm that Canonical Kubernetes has transitioned to the `k8s is ready` state by running:
 
@@ -152,22 +152,33 @@ sudo k8s status
 ```
 You should see `storage enabled` in the command output.
 
-Let's create a persistent volume:
+Let's create a `PersistentVolumeClaim` and use it in a `Pod`. 
+For example, we can deploy the following manifest:
+
 ```
-sudo k8s kubectl apply -f https://k8s.io/examples/pods/storage/pv-volume.yaml
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/assets/tutorial-pod-with-pvc.yaml
 ```
 This command deploys a pod based on the YAML configuration of a 
-persistent volume with a capacity of 10G.
+storage writer pod and a persistent volume claim with a capacity of 1G.
 
 To confirm that the persistent volume is up and running:
+
 ```
-sudo k8s kubectl get pv task-pv-volume
+sudo k8s kubectl get pvc myclaim
+```
+
+You can inspect the storage-writer-pod with:
+
+```
+sudo k8s kubectl describe pod storage-writer-pod
 ```
 
 ### 9. Disable Components (Storage)
-Begin by removing the persistent volume:
+Begin by removing the pod along with the persistent volume claim:
+
 ```
-sudo k8s kubectl delete pv task-pv-volume
+sudo k8s kubectl delete pvc myclaim
+sudo k8s kubectl delete pod storage-writer-pod
 ```
 
 Next, disable the storage component:
