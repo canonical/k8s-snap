@@ -10,7 +10,7 @@ BUILD_DIR="$(realpath "${BUILD_DIR}")"
 INSTALL_DIR="$(realpath "${INSTALL_DIR}")"
 
 # dependencies
-sudo apt install -y build-essential automake libtool gettext autopoint tclsh tcl libsqlite3-dev pkg-config libsqlite3-dev git curl > /dev/null
+sudo apt install -y build-essential automake libtool gettext autopoint tclsh tcl libsqlite3-dev pkg-config libsqlite3-dev git > /dev/null
 
 # build libtirpc
 if [ ! -f "${BUILD_DIR}/libtirpc/src/libtirpc.la" ]; then

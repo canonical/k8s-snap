@@ -18,7 +18,7 @@ if [ "${MACHINE_TYPE}" = "ppc64le" ]; then
 fi
 
 # dependencies
-sudo apt install -y build-essential automake libtool gettext autopoint tclsh tcl libsqlite3-dev pkg-config libsqlite3-dev git curl > /dev/null
+sudo apt install -y build-essential automake libtool gettext autopoint tclsh tcl libsqlite3-dev pkg-config libsqlite3-dev git > /dev/null
 
 # build musl
 if [ ! -f "${INSTALL_DIR}/musl/bin/musl-gcc" ]; then
@@ -32,10 +32,10 @@ if [ ! -f "${INSTALL_DIR}/musl/bin/musl-gcc" ]; then
     make -j install > /dev/null || true
 
     # missing musl header files
-    ln -s /usr/include/${MACHINE_TYPE}-linux-gnu/asm "${INSTALL_DIR}/musl/include/asm" || true
+    ln -s "/usr/include/${MACHINE_TYPE}-linux-gnu/sys/queue.h" "${INSTALL_DIR}/musl/include/sys/queue.h" || true
+    ln -s "/usr/include/${MACHINE_TYPE}-linux-gnu/asm" "${INSTALL_DIR}/musl/include/asm" || true
     ln -s /usr/include/asm-generic "${INSTALL_DIR}/musl/include/asm-generic" || true
     ln -s /usr/include/linux "${INSTALL_DIR}/musl/include/linux" || true
-    curl -k --silent https://dev.midipix.org/compat/musl-compat/raw/main/f/include/sys/queue.h -o "${INSTALL_DIR}/musl/include/sys/queue.h"
   )
 fi
 
