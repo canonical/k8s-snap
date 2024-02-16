@@ -1,6 +1,12 @@
 package types
 
-import apiv1 "github.com/canonical/k8s/api/v1"
+import (
+	"fmt"
+	"net"
+	"strings"
+
+	apiv1 "github.com/canonical/k8s/api/v1"
+)
 
 // ClusterConfig is the control plane configuration format of the k8s cluster.
 // ClusterConfig should attempt to use structured fields wherever possible.
@@ -49,20 +55,40 @@ type K8sDqlite struct {
 	Port int `yaml:"port,omitempty"`
 }
 
-func DefaultClusterConfig() ClusterConfig {
-	return ClusterConfig{
-		Network: Network{
-			PodCIDR:     "10.1.0.0/16",
-			ServiceCIDR: "10.152.183.0/24",
-		},
-		APIServer: APIServer{
-			Datastore:         "k8s-dqlite",
-			SecurePort:        6443,
-			AuthorizationMode: "Node,RBAC",
-		},
-		K8sDqlite: K8sDqlite{
-			Port: 9000,
-		},
+func (c *ClusterConfig) Validate() error {
+	clusterCIDRs := strings.Split(c.Network.PodCIDR, ",")
+	if len(clusterCIDRs) != 1 && len(clusterCIDRs) != 2 {
+		return fmt.Errorf("invalid number of cluster CIDRs: %d", len(clusterCIDRs))
+	}
+
+	for _, cidr := range clusterCIDRs {
+		_, _, err := net.ParseCIDR(cidr)
+		if err != nil {
+			return fmt.Errorf("invalid CIDR: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (c *ClusterConfig) SetDefaults() {
+	if c.Network.PodCIDR == "" {
+		c.Network.PodCIDR = "10.1.0.0/16"
+	}
+	if c.Network.ServiceCIDR == "" {
+		c.Network.ServiceCIDR = "10.152.183.0/24"
+	}
+	if c.APIServer.Datastore == "" {
+		c.APIServer.Datastore = "k8s-dqlite"
+	}
+	if c.APIServer.SecurePort == 0 {
+		c.APIServer.SecurePort = 6443
+	}
+	if c.APIServer.AuthorizationMode == "" {
+		c.APIServer.AuthorizationMode = "Node,RBAC"
+	}
+	if c.K8sDqlite.Port == 0 {
+		c.K8sDqlite.Port = 9000
 	}
 }
 

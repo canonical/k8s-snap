@@ -25,6 +25,52 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 	g.Expect(types.ClusterConfigFromBootstrapConfig(&bootstrapConfig)).To(Equal(expectedConfig))
 }
 
+func TestValidateCIDR(t *testing.T) {
+	g := NewWithT(t)
+	// Create a new BootstrapConfig with default values
+	validConfig := types.ClusterConfig{
+		Network: types.Network{
+			PodCIDR: "10.1.0.0/16,2001:0db8::/32",
+		},
+	}
+
+	err := validConfig.Validate()
+	g.Expect(err).To(BeNil())
+
+	// Create a new BootstrapConfig with invalid CIDR
+	invalidConfig := types.ClusterConfig{
+		Network: types.Network{
+			PodCIDR: "bananas",
+		},
+	}
+	err = invalidConfig.Validate()
+	g.Expect(err).ToNot(BeNil())
+}
+
+func TestSetDefaults(t *testing.T) {
+	g := NewWithT(t)
+	clusterConfig := types.ClusterConfig{}
+
+	// Set defaults
+	expectedConfig := types.ClusterConfig{
+		Network: types.Network{
+			PodCIDR:     "10.1.0.0/16",
+			ServiceCIDR: "10.152.183.0/24",
+		},
+		APIServer: types.APIServer{
+			Datastore:         "k8s-dqlite",
+			SecurePort:        6443,
+			AuthorizationMode: "Node,RBAC",
+		},
+		K8sDqlite: types.K8sDqlite{
+			Port: 9000,
+		},
+	}
+
+	clusterConfig.SetDefaults()
+	g.Expect(clusterConfig).To(Equal(expectedConfig))
+}
+
 type mergeClusterConfigTestCase struct {
 	name         string
 	old          types.ClusterConfig
