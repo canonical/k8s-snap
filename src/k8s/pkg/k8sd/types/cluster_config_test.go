@@ -30,7 +30,7 @@ func TestValidateCIDR(t *testing.T) {
 	// Create a new BootstrapConfig with default values
 	validConfig := types.ClusterConfig{
 		Network: types.Network{
-			PodCIDR: "10.1.0.0/16, 2001:0db8::/32",
+			PodCIDR: "10.1.0.0/16,2001:0db8::/32",
 		},
 	}
 

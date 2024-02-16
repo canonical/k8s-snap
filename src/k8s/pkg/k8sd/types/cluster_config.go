@@ -56,7 +56,7 @@ type K8sDqlite struct {
 }
 
 func (c *ClusterConfig) Validate() error {
-	clusterCIDRs := strings.Split(c.Network.PodCIDR, ", ")
+	clusterCIDRs := strings.Split(c.Network.PodCIDR, ",")
 	if len(clusterCIDRs) != 1 && len(clusterCIDRs) != 2 {
 		return fmt.Errorf("invalid number of cluster CIDRs: %d", len(clusterCIDRs))
 	}
@@ -75,11 +75,21 @@ func (c *ClusterConfig) SetDefaults() {
 	if c.Network.PodCIDR == "" {
 		c.Network.PodCIDR = "10.1.0.0/16"
 	}
-	c.Network.ServiceCIDR = "10.152.183.0/24"
-	c.APIServer.Datastore = "k8s-dqlite"
-	c.APIServer.SecurePort = 6443
-	c.APIServer.AuthorizationMode = "Node,RBAC"
-	c.K8sDqlite.Port = 9000
+	if c.Network.ServiceCIDR == "" {
+		c.Network.ServiceCIDR = "10.152.183.0/24"
+	}
+	if c.APIServer.Datastore == "" {
+		c.APIServer.Datastore = "k8s-dqlite"
+	}
+	if c.APIServer.SecurePort == 0 {
+		c.APIServer.SecurePort = 6443
+	}
+	if c.APIServer.AuthorizationMode == "" {
+		c.APIServer.AuthorizationMode = "Node,RBAC"
+	}
+	if c.K8sDqlite.Port == 0 {
+		c.K8sDqlite.Port = 9000
+	}
 }
 
 // ClusterConfigFromBootstrapConfig extracts the cluster config parts from the BootstrapConfig
