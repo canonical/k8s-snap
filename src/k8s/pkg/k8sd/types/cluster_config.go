@@ -1,6 +1,12 @@
 package types
 
-import apiv1 "github.com/canonical/k8s/api/v1"
+import (
+	"fmt"
+	"net"
+	"strings"
+
+	apiv1 "github.com/canonical/k8s/api/v1"
+)
 
 // ClusterConfig is the control plane configuration format of the k8s cluster.
 // ClusterConfig should attempt to use structured fields wherever possible.
@@ -47,6 +53,22 @@ type APIServer struct {
 
 type K8sDqlite struct {
 	Port int `yaml:"port,omitempty"`
+}
+
+func (c *ClusterConfig) Validate() error {
+	clusterCIDRs := strings.Split(c.Network.PodCIDR, ", ")
+	if len(clusterCIDRs) != 1 && len(clusterCIDRs) != 2 {
+		return fmt.Errorf("invalid number of cluster CIDRs: %d", len(clusterCIDRs))
+	}
+
+	for _, cidr := range clusterCIDRs {
+		_, _, err := net.ParseCIDR(cidr)
+		if err != nil {
+			return fmt.Errorf("invalid CIDR: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func (c *ClusterConfig) SetDefaults() {

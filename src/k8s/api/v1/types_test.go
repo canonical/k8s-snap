@@ -27,22 +27,3 @@ func TestBootstrapConfigFromMap(t *testing.T) {
 	g.Expect(bcyaml).To(Equal(bc)) // Note the *bc here to compare values, not pointers
 
 }
-
-func TestValidateCIDR(t *testing.T) {
-	g := NewWithT(t)
-	// Create a new BootstrapConfig with default values
-	bc := &BootstrapConfig{
-		Components:  []string{"dns", "network", "storage"},
-		ClusterCIDR: "10.1.0.0/16, 2001:db8:3333:4444:5555:6666:7777:8888",
-	}
-	err := bc.Valid()
-	g.Expect(err).To(BeNil())
-
-	// Create a new BootstrapConfig with invalid CIDR
-	bc = &BootstrapConfig{
-		Components:  []string{"dns", "network", "storage"},
-		ClusterCIDR: "bananas",
-	}
-	err = bc.Valid()
-	g.Expect(err).ToNot(BeNil())
-}

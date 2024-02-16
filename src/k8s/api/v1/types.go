@@ -33,22 +33,6 @@ func (b *BootstrapConfig) ToMap() (map[string]string, error) {
 	}, nil
 }
 
-func (b *BootstrapConfig) Valid() error {
-	clusterCIDRs := strings.Split(b.ClusterCIDR, ",")
-	if len(clusterCIDRs) != 1 && len(clusterCIDRs) != 2 {
-		return fmt.Errorf("invalid number of cluster CIDRs: %d", len(clusterCIDRs))
-	}
-
-	for _, cidr := range clusterCIDRs {
-		_, _, err := net.ParseCIDR(cidr)
-		if err != nil {
-			return fmt.Errorf("invalid CIDR: %w", err)
-		}
-	}
-
-	return nil
-}
-
 // BootstrapConfigFromMap converts a string map to a BootstrapConfig struct.
 func BootstrapConfigFromMap(m map[string]string) (*BootstrapConfig, error) {
 	config := &BootstrapConfig{}

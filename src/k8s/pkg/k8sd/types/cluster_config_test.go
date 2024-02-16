@@ -25,6 +25,28 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 	g.Expect(types.ClusterConfigFromBootstrapConfig(&bootstrapConfig)).To(Equal(expectedConfig))
 }
 
+func TestValidateCIDR(t *testing.T) {
+	g := NewWithT(t)
+	// Create a new BootstrapConfig with default values
+	validConfig := types.ClusterConfig{
+		Network: types.Network{
+			PodCIDR: "10.1.0.0/16, 2001:0db8::/32",
+		},
+	}
+
+	err := validConfig.Validate()
+	g.Expect(err).To(BeNil())
+
+	// Create a new BootstrapConfig with invalid CIDR
+	invalidConfig := types.ClusterConfig{
+		Network: types.Network{
+			PodCIDR: "bananas",
+		},
+	}
+	err = invalidConfig.Validate()
+	g.Expect(err).ToNot(BeNil())
+}
+
 func TestSetDefaults(t *testing.T) {
 	g := NewWithT(t)
 	clusterConfig := types.ClusterConfig{

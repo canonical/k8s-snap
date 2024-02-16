@@ -150,6 +150,9 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 
 	cfg := types.ClusterConfigFromBootstrapConfig(bootstrapConfig)
 	cfg.SetDefaults()
+	if err := cfg.Validate(); err != nil {
+		return fmt.Errorf("invalid cluster configuration: %w", err)
+	}
 
 	nodeIP := net.ParseIP(s.Address().Hostname())
 	if nodeIP == nil {
