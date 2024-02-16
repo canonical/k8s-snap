@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/database"
@@ -22,6 +21,8 @@ type Config struct {
 	ListenPort uint
 	// StateDir is the local directory to store the state of the node.
 	StateDir string
+	// Snap is the snap instance to use.
+	Snap snap.Snap
 }
 
 // App is the k8sd microcluster instance.
@@ -31,13 +32,12 @@ type App struct {
 
 // New initializes a new microcluster instance from configuration.
 func New(ctx context.Context, cfg Config) (*App, error) {
-	snapCtx := snap.ContextWithSnap(ctx, snap.NewSnap(
-		os.Getenv("SNAP"),
-		os.Getenv("SNAP_DATA"),
-		os.Getenv("SNAP_COMMON"),
-	))
+	ctx = snap.ContextWithSnap(ctx, cfg.Snap)
 
-	cluster, err := microcluster.App(snapCtx, microcluster.Args{
+	if cfg.StateDir == "" {
+		cfg.StateDir = cfg.Snap.K8sdStateDir()
+	}
+	cluster, err := microcluster.App(ctx, microcluster.Args{
 		Verbose:    cfg.Verbose,
 		Debug:      cfg.Debug,
 		ListenPort: fmt.Sprintf("%d", cfg.ListenPort),
@@ -73,7 +73,7 @@ func (a *App) Run(customHooks *config.Hooks) error {
 			hooks.PreRemove = customHooks.PreRemove
 		}
 	}
-	err := a.MicroCluster.Start(api.Endpoints, database.SchemaExtensions, hooks)
+	err := a.MicroCluster.Start(api.Endpoints(a.MicroCluster), database.SchemaExtensions, hooks)
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
 	}

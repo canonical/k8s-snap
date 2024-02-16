@@ -9,8 +9,8 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
-func EnableIngressComponent(s snap.Snap, defaultTLSSecret string, enableProxyProtocol bool) error {
-	manager, err := NewManager(s)
+func EnableIngressComponent(ctx context.Context, s snap.Snap, defaultTLSSecret string, enableProxyProtocol bool) error {
+	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
@@ -25,12 +25,11 @@ func EnableIngressComponent(s snap.Snap, defaultTLSSecret string, enableProxyPro
 		},
 	}
 
-	err = manager.Refresh("network", values)
-	if err != nil {
+	if err := manager.Refresh("network", values); err != nil {
 		return fmt.Errorf("failed to enable ingress component: %w", err)
 	}
 
-	client, err := k8s.NewClient()
+	client, err := k8s.NewClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
@@ -38,21 +37,18 @@ func EnableIngressComponent(s snap.Snap, defaultTLSSecret string, enableProxyPro
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err = k8s.RestartDeployment(ctx, client, "cilium-operator", "kube-system")
-	if err != nil {
+	if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
 		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 	}
-
-	err = k8s.RestartDaemonset(ctx, client, "cilium", "kube-system")
-	if err != nil {
-		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+	if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
+		return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 	}
 
 	return nil
 }
 
 func DisableIngressComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
@@ -65,8 +61,7 @@ func DisableIngressComponent(s snap.Snap) error {
 			"enableProxyProtocol":    false,
 		},
 	}
-	err = manager.Refresh("network", values)
-	if err != nil {
+	if err := manager.Refresh("network", values); err != nil {
 		return fmt.Errorf("failed to disable ingress component: %w", err)
 	}
 

@@ -2,6 +2,4 @@
 
 . "$SNAP/k8s/lib.sh"
 
-k8s::common::setup_env
-
-${SNAP}/bin/k8s $@
+k8s::cmd::k8s "${@}"

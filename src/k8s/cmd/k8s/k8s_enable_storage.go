@@ -25,8 +25,7 @@ var enableStorageCmd = &cobra.Command{
 			Status: api.ComponentEnable,
 		}
 
-		err = client.UpdateStorageComponent(cmd.Context(), request)
-		if err != nil {
+		if err := client.UpdateStorageComponent(cmd.Context(), request); err != nil {
 			return fmt.Errorf("failed to enable Storage component: %w", err)
 		}
 

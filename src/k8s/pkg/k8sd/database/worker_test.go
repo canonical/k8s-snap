@@ -63,6 +63,10 @@ func TestWorkerNodes(t *testing.T) {
 				nodes, err := database.ListWorkerNodes(ctx, tx)
 				g.Expect(err).To(BeNil())
 				g.Expect(nodes).To(ConsistOf("w1"))
+
+				exists, err := database.CheckWorkerExists(ctx, tx, "w1")
+				g.Expect(err).To(BeNil())
+				g.Expect(exists).To(BeTrue())
 			})
 
 			t.Run("AddTwo", func(t *testing.T) {
@@ -74,6 +78,14 @@ func TestWorkerNodes(t *testing.T) {
 				nodes, err := database.ListWorkerNodes(ctx, tx)
 				g.Expect(err).To(BeNil())
 				g.Expect(nodes).To(ConsistOf("w1", "w2"))
+
+				exists, err := database.CheckWorkerExists(ctx, tx, "w1")
+				g.Expect(err).To(BeNil())
+				g.Expect(exists).To(BeTrue())
+
+				exists, err = database.CheckWorkerExists(ctx, tx, "w2")
+				g.Expect(err).To(BeNil())
+				g.Expect(exists).To(BeTrue())
 			})
 
 			t.Run("AddDuplicateFails", func(t *testing.T) {
@@ -96,6 +108,14 @@ func TestWorkerNodes(t *testing.T) {
 				nodes, err := database.ListWorkerNodes(ctx, tx)
 				g.Expect(err).To(BeNil())
 				g.Expect(nodes).To(ConsistOf("w2"))
+
+				exists, err := database.CheckWorkerExists(ctx, tx, "w1")
+				g.Expect(err).To(BeNil())
+				g.Expect(exists).To(BeFalse())
+
+				exists, err = database.CheckWorkerExists(ctx, tx, "w2")
+				g.Expect(err).To(BeNil())
+				g.Expect(exists).To(BeTrue())
 			})
 
 			t.Run("ReuseName", func(t *testing.T) {
@@ -107,6 +127,14 @@ func TestWorkerNodes(t *testing.T) {
 				nodes, err := database.ListWorkerNodes(ctx, tx)
 				g.Expect(err).To(BeNil())
 				g.Expect(nodes).To(ConsistOf("w1", "w2"))
+
+				exists, err := database.CheckWorkerExists(ctx, tx, "w1")
+				g.Expect(err).To(BeNil())
+				g.Expect(exists).To(BeTrue())
+
+				exists, err = database.CheckWorkerExists(ctx, tx, "w2")
+				g.Expect(err).To(BeNil())
+				g.Expect(exists).To(BeTrue())
 			})
 			return nil
 		})

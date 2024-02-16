@@ -1,6 +1,7 @@
 package component
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strings"
@@ -9,25 +10,13 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-func EnableNetworkComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+func EnableNetworkComponent(ctx context.Context, s snap.Snap, podCIDR string) error {
+	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	bpfMnt, err := utils.GetMountPath("bpf")
-	if err != nil {
-		return fmt.Errorf("failed to get bpf mount path: %w", err)
-	}
-
-	cgrMnt, err := utils.GetMountPath("cgroup2")
-	if err != nil {
-		return fmt.Errorf("failed to get cgroup2 mount path: %w", err)
-	}
-
-	// TODO: the cluster cidr should be configurable through a common interface
-	clusterCIDRStr := snap.GetServiceArgument(s, "kube-proxy", "--cluster-cidr")
-	clusterCIDRs := strings.Split(clusterCIDRStr, ",")
+	clusterCIDRs := strings.Split(podCIDR, ",")
 	if v := len(clusterCIDRs); v != 1 && v != 2 {
 		return fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", clusterCIDRs)
 	}
@@ -49,6 +38,11 @@ func EnableNetworkComponent(s snap.Snap) error {
 	}
 
 	values := map[string]any{
+		"image": map[string]any{
+			"repository": ciliumAgentImageRepository,
+			"tag":        ciliumAgentImageTag,
+			"useDigest":  false,
+		},
 		"socketLB": map[string]any{
 			"enabled": true,
 		},
@@ -56,11 +50,13 @@ func EnableNetworkComponent(s snap.Snap) error {
 			"confPath": "/etc/cni/net.d",
 			"binPath":  "/opt/cni/bin",
 		},
-		"daemon": map[string]any{
-			"runPath": s.CommonPath("var", "run", "cilium"),
-		},
 		"operator": map[string]any{
 			"replicas": 1,
+			"image": map[string]any{
+				"repository": ciliumOperatorImageRepository,
+				"tag":        ciliumOperatorImageTag,
+				"useDigest":  false,
+			},
 		},
 		"ipam": map[string]any{
 			"operator": map[string]any{
@@ -71,25 +67,34 @@ func EnableNetworkComponent(s snap.Snap) error {
 		"nodePort": map[string]any{
 			"enabled": true,
 		},
-		"bpf": map[string]any{
+	}
+
+	if s.Strict() {
+		bpfMnt, err := utils.GetMountPath("bpf")
+		if err != nil {
+			return fmt.Errorf("failed to get bpf mount path: %w", err)
+		}
+
+		cgrMnt, err := utils.GetMountPath("cgroup2")
+		if err != nil {
+			return fmt.Errorf("failed to get cgroup2 mount path: %w", err)
+		}
+
+		values["bpf"] = map[string]any{
 			"autoMount": map[string]any{
 				"enabled": false,
 			},
 			"root": bpfMnt,
-		},
-		"cgroup": map[string]any{
+		}
+		values["cgroup"] = map[string]any{
 			"autoMount": map[string]any{
 				"enabled": false,
 			},
 			"hostRoot": cgrMnt,
-		},
-		"l2announcements": map[string]any{
-			"enabled": true,
-		},
+		}
 	}
 
-	err = manager.Enable("network", values)
-	if err != nil {
+	if err := manager.Enable("network", values); err != nil {
 		return fmt.Errorf("failed to enable network component: %w", err)
 	}
 
@@ -97,13 +102,12 @@ func EnableNetworkComponent(s snap.Snap) error {
 }
 
 func DisableNetworkComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	err = manager.Disable("network")
-	if err != nil {
+	if err := manager.Disable("network"); err != nil {
 		return fmt.Errorf("failed to disable network component: %w", err)
 	}
 

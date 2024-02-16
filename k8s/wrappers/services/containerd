@@ -5,11 +5,9 @@
 k8s::common::setup_env
 
 # Ensure XDG_RUNTIME_DIR exists, needed by runc for 'kubectl exec' to work
-mkdir -p "${XDG_RUNTIME_DIR}"
+[ ! -z "${XDG_RUNTIME_DIR:=}" ] && mkdir -p "${XDG_RUNTIME_DIR}"
 
 # Apply the containerd profile
-apparmor_parser -r "$SNAP/k8s/profiles/containerd"
-
-export CILIUM_SOCK="${SNAP_COMMON}/var/run/cilium/cilium.sock"
+k8s::common::is_strict && apparmor_parser -r "$SNAP/k8s/profiles/containerd"
 
 k8s::common::execute_service containerd

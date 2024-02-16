@@ -12,3 +12,12 @@ k8s_*.txt
 /src/k8s/k8s
 /src/k8s/k8sd
 /src/k8s/k8s-dqlite
+
+# ignore docs ephemerals
+
+/docs/_build
+/docs/tools/.sphinx/venv/
+/docs/tools/.sphinx/warnings.txt
+/docs/tools/.sphinx/.wordlist.dic
+/docs/tools/.sphinx/.doctrees/
+/docs/tools/.sphinx/node_modules

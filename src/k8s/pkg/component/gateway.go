@@ -9,16 +9,15 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
-func EnableGatewayComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+func EnableGatewayComponent(ctx context.Context, s snap.Snap) error {
+	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
 	var values map[string]any = nil
 
-	err = manager.Enable("gateway", values)
-	if err != nil {
+	if err := manager.Enable("gateway", values); err != nil {
 		return fmt.Errorf("failed to enable gateway component: %w", err)
 	}
 
@@ -28,12 +27,11 @@ func EnableGatewayComponent(s snap.Snap) error {
 		},
 	}
 
-	err = manager.Refresh("network", networkValues)
-	if err != nil {
+	if err = manager.Refresh("network", networkValues); err != nil {
 		return fmt.Errorf("failed to enable gateway component: %w", err)
 	}
 
-	client, err := k8s.NewClient()
+	client, err := k8s.NewClient(s)
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
@@ -41,21 +39,19 @@ func EnableGatewayComponent(s snap.Snap) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err = k8s.RestartDeployment(ctx, client, "cilium-operator", "kube-system")
-	if err != nil {
+	if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
 		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 	}
 
-	err = k8s.RestartDaemonset(ctx, client, "cilium", "kube-system")
-	if err != nil {
-		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+	if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
+		return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 	}
 
 	return nil
 }
 
 func DisableGatewayComponent(s snap.Snap) error {
-	manager, err := NewManager(s)
+	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
@@ -66,13 +62,11 @@ func DisableGatewayComponent(s snap.Snap) error {
 		},
 	}
 
-	err = manager.Refresh("network", networkValues)
-	if err != nil {
+	if err := manager.Refresh("network", networkValues); err != nil {
 		return fmt.Errorf("failed to disable gateway component: %w", err)
 	}
 
-	err = manager.Disable("gateway")
-	if err != nil {
+	if err := manager.Disable("gateway"); err != nil {
 		return fmt.Errorf("failed to disable gateway component: %w", err)
 	}
 

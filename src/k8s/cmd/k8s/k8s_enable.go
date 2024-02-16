@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	componentList = []string{"network", "dns", "gateway", "ingress", "rbac", "storage"}
+	componentList = []string{"network", "dns", "gateway", "ingress", "rbac", "storage", "loadbalancer"}
 
 	enableCmd = &cobra.Command{
 		Use:       "enable <component>",
@@ -26,4 +26,5 @@ func init() {
 	enableCmd.AddCommand(enableStorageCmd)
 	enableCmd.AddCommand(enableIngressCmd)
 	enableCmd.AddCommand(enableGatewayCmd)
+	enableCmd.AddCommand(enableLoadBalancerCmd)
 }

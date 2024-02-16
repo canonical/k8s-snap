@@ -3,14 +3,10 @@ package dqlite
 import (
 	"context"
 	"fmt"
+	"path"
 
 	"github.com/canonical/go-dqlite/client"
 	"github.com/canonical/k8s/pkg/snap"
-)
-
-var (
-	// TODO(bschimke): add the port as a configuration option to k8sd so that this can be determined dynamically.
-	K8sDqliteDefaultPort = 9000
 )
 
 // GetK8sDqliteClusterMembers queries the local k8s-dqlite datastore for its members.
@@ -19,7 +15,7 @@ var (
 // This should be done by using the go-dqlite client implementation.
 // However, when I tried to use it the client connects, but returns an empty cluster member list.
 func GetK8sDqliteClusterMembers(ctx context.Context, snap snap.Snap) ([]NodeInfo, error) {
-	c, err := client.DefaultNodeStore(snap.CommonPath("/var/lib/k8s-dqlite/cluster.yaml"))
+	c, err := client.DefaultNodeStore(path.Join(snap.K8sDqliteStateDir(), "cluster.yaml"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get k8s-dqlite datastore: %w", err)
 	}

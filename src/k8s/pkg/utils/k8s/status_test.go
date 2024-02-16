@@ -89,9 +89,9 @@ func TestClusterReady(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewWithT(t)
 			clientset := fake.NewSimpleClientset(tt.nodes...)
-			k8sClient := &k8sClient{Interface: clientset}
+			client := &Client{Interface: clientset}
 
-			ready, err := ClusterReady(context.Background(), k8sClient)
+			ready, err := client.ClusterReady(context.Background())
 
 			g.Expect(err).To(BeNil())
 			g.Expect(ready).To(Equal(tt.expectedReady))

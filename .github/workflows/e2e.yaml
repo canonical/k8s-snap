@@ -2,7 +2,7 @@ name: End to End Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, autoupdate/strict]
   pull_request:
     branches: [main]
 

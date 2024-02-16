@@ -1,2 +1,2 @@
 --port=6400
---state-dir=/var/lib/k8sd/state
+--state-dir=${SNAP_COMMON}/var/lib/k8sd/state

@@ -25,8 +25,7 @@ var disableNetworkCmd = &cobra.Command{
 			Status: api.ComponentDisable,
 		}
 
-		err = client.UpdateNetworkComponent(cmd.Context(), request)
-		if err != nil {
+		if err := client.UpdateNetworkComponent(cmd.Context(), request); err != nil {
 			return fmt.Errorf("failed to disable Network component: %w", err)
 		}
 
