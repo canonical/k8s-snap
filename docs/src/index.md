@@ -10,6 +10,7 @@ a scaleable cluster suitable for all use cases.
 ```{toctree} 
 :hidden:
 :titlesonly:
+:glob:
 Home <self>
 tutorial/index
 howto/index
