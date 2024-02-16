@@ -49,24 +49,12 @@ func TestValidateCIDR(t *testing.T) {
 
 func TestSetDefaults(t *testing.T) {
 	g := NewWithT(t)
-	clusterConfig := types.ClusterConfig{
-		Network: types.Network{
-			PodCIDR:     "", // not default pod CIDR
-			ServiceCIDR: "10.152.183.0/24",
-		},
-		APIServer: types.APIServer{
-			Datastore:         "k8s-dqlite",
-			SecurePort:        6443,
-			AuthorizationMode: "Node,RBAC",
-		},
-		K8sDqlite: types.K8sDqlite{
-			Port: 9000,
-		},
-	}
+	clusterConfig := types.ClusterConfig{}
 
+	// Set defaults
 	expectedConfig := types.ClusterConfig{
 		Network: types.Network{
-			PodCIDR:     "10.1.0.0/16", // not default pod CIDR
+			PodCIDR:     "10.1.0.0/16",
 			ServiceCIDR: "10.152.183.0/24",
 		},
 		APIServer: types.APIServer{
