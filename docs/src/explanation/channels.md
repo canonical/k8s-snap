@@ -2,7 +2,7 @@
 
 Canonical Kubernetes uses the concept of `channels` to make sure you always get
 the version of Kubernetes you are expecting, and that future upgrades can be
-handled without minimum, if any, disruption.
+handled with minimum, if any, disruption.
 
 ## Choosing the right channel
 
@@ -40,40 +40,54 @@ sudo snap info k8s
 
 ## Updates and switching channels
 
-Updates for upstream patch releases will happen automatically by default. For example, if you have selected the channel `1.30/stable`, your snap will refresh itself on the usual snap [refresh schedule]. These updates should not effect the operation of Canonical Kubernetes.
+Updates for upstream patch releases will happen automatically by default. For
+example, if you have selected the channel `1.30/stable`, your snap will refresh
+itself on the usual snap [refresh schedule]. These updates should not effect
+the operation of Canonical Kubernetes.
 
-## FAQ: Which channel is right for me?
+To change the channel of an already installed snap, the `refresh` command can
+be used:
 
+```bash
+sudo snap refresh k8s --channel=<new-channel>
+```
 
-I want to always be on the latest release matching a specific upstream K8s release (reccommended).
-– Use --channel=<release>/stable, eg --channel=1.25/stable.
+```{warning}
+Changing the channel of an installed snap could result in loss of service. Please
+check any release notes or upgrade guides first!
+```
 
-I want to test-drive a pre-stable release.
+## FAQ 
 
-– Use --channel=<next_release>/edge for alpha releases.
+If you aren't familiar with the concept of channels, here are the answers to
+some frequently asked questions.
 
-– Use --channel=<next_release>/beta for beta releases.
+### Which channel is right for me?
 
-– Use --channel=<next_release>/candidate for candidate releases.
+Choosing the most appropriate channel for your needs depends on a number of
+factors. We can give some general guidance for the following cases:
 
-I am waiting for a bug fix on MicroK8s:
+- **I want to always be on the latest stable version matching a specific upstream K8s
+release (recommended).** 
 
-– Use --channel=<release>/edge.
+Specify the release, for example: `--channel=1.25/stable`.
 
-I am waiting for a bug fix on upstream Kubernetes:
+- **I want to test-drive a pre-stable release**
 
-– Use --channel=<release>/candidate.
+Use `--channel=<next_release>/edge` for alpha releases.
 
+Use `--channel=<next_release>/beta` for beta releases.
 
-Changing channels
-It is possible to change the snap channel using the refresh command. E.g. to transition to the latest alpha:
+Use `--channel=<next_release>/candidate` for candidate releases.
 
-sudo snap refresh microk8s --channel=latest/edge
-Changing the refresh schedule
-By default, snaps are set to check for updates and automatically refresh to the
-latest version (for your selected channel) four times per day. For deployments where this behavior is undesirable you are given the option to postpone, schedule or even block automatic updates. The snap refreshes page outlines how to configure these options.
+- **I am waiting to test a bug fix on Canonical Kubernetes**
+
+Use `--channel=<release>/edge`.
+
+- **I am waiting for a bug fix from upstream Kubernetes**
+
+Use `--channel=<release>/candidate`.
 
 <!-- LINKS -->
 
 [Snapcraft documentation]: https://snapcraft.io/docs/channels
-[refresh schedule]: 
