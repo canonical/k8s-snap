@@ -53,22 +53,11 @@ func (c *ClusterConfig) SetDefaults() {
 	if c.Network.PodCIDR == "" {
 		c.Network.PodCIDR = "10.1.0.0/16"
 	}
-}
-
-func DefaultClusterConfig() ClusterConfig {
-	return ClusterConfig{
-		Network: Network{
-			ServiceCIDR: "10.152.183.0/24",
-		},
-		APIServer: APIServer{
-			Datastore:         "k8s-dqlite",
-			SecurePort:        6443,
-			AuthorizationMode: "Node,RBAC",
-		},
-		K8sDqlite: K8sDqlite{
-			Port: 9000,
-		},
-	}
+	c.Network.ServiceCIDR = "10.152.183.0/24"
+	c.APIServer.Datastore = "k8s-dqlite"
+	c.APIServer.SecurePort = 6443
+	c.APIServer.AuthorizationMode = "Node,RBAC"
+	c.K8sDqlite.Port = 9000
 }
 
 // ClusterConfigFromBootstrapConfig extracts the cluster config parts from the BootstrapConfig

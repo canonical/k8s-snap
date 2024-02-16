@@ -42,8 +42,8 @@ var (
 				config.SetDefaults()
 			}
 
-			if !config.IsValidCIDR() {
-				return fmt.Errorf("invalid cluster CIDR: %s", config.ClusterCIDR)
+			if err := config.Valid(); err != nil {
+				return fmt.Errorf("invalid cluster CIDR: %w", err)
 			}
 
 			cluster, err := c.Bootstrap(cmd.Context(), config)
