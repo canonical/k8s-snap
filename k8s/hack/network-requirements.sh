@@ -35,3 +35,7 @@ sudo sysctl --system
 sudo sed -i -e 's/\/run\/netns\/ r/\/run\/netns\/ rk/g' /var/lib/snapd/apparmor/profiles/snap.k8s.containerd
 sudo sed -i -e 's/userns,/userns rwk,/g' /var/lib/snapd/apparmor/profiles/snap.k8s.containerd # Tempfix
 sudo apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap.k8s.containerd
+
+# TODO: Remove after https://bugs.launchpad.net/snapd/+bug/2053271
+sudo sed -i -e '/mountinfo/aowner @{PROC}\/@{pid}\/task\/@{tid}\/mountinfo r,' /var/lib/snapd/apparmor/profiles/snap.k8s.k8sd
+sudo apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap.k8s.k8sd
