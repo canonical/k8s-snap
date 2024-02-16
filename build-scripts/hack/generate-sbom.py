@@ -27,7 +27,7 @@ LOG = logging.getLogger(__name__)
 
 DIR = Path(__file__).absolute().parent
 
-SNAPCRAFT_YAML = yaml.safe_load(Path(DIR / "../snap/snapcraft.yaml").read_text())
+SNAPCRAFT_YAML = yaml.safe_load(Path(DIR / "../../snap/snapcraft.yaml").read_text())
 
 # FIXME: This information should not be hardcoded here
 CILIUM_ROCK_REPO = "https://github.com/canonical/cilium-rocks"
@@ -40,7 +40,7 @@ RAWFILE_LOCALPV_REPO = "https://github.com/canonical/rawfile-localpv"
 RAWFILE_LOCALPV_TAG = "rockcraft"
 SNAPCRAFT_C_COMPONENTS = ["libmnl", "libnftnl", "iptables"]
 SNAPCRAFT_GO_COMPONENTS = ["runc", "containerd", "cni", "helm", "kubernetes"]
-K8S_DIR = DIR / "../src/k8s"
+K8S_DIR = DIR / "../../src/k8s"
 
 
 @contextlib.contextmanager
