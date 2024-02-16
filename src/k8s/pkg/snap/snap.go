@@ -163,6 +163,10 @@ func (s *snap) ServiceExtraConfigDir() string {
 	return path.Join(s.snapCommonDir, "args", "conf.d")
 }
 
+func (s *snap) LockFilesDir() string {
+	return path.Join(s.snapCommonDir, "lock")
+}
+
 func (s *snap) ContainerdExtraConfigDir() string {
 	return path.Join(s.snapCommonDir, "etc", "containerd", "conf.d")
 }

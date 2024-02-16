@@ -1,6 +1,7 @@
 package utils_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -138,4 +139,23 @@ func TestSerializeArgumentFile(t *testing.T) {
 			g.Expect(string(content)).To(Equal(tc.expectedContent))
 		})
 	}
+}
+
+func TestFileExists(t *testing.T) {
+	g := NewWithT(t)
+
+	testFilePath := fmt.Sprintf("%s/myfile", t.TempDir())
+	_, err := os.Create(testFilePath)
+	g.Expect(err).To(BeNil())
+
+	fileExists, err := utils.FileExists(testFilePath)
+	g.Expect(err).To(BeNil())
+	g.Expect(fileExists).To(BeTrue())
+
+	err = os.Remove(testFilePath)
+	g.Expect(err).To(BeNil())
+
+	fileExists, err = utils.FileExists(testFilePath)
+	g.Expect(err).To(BeNil())
+	g.Expect(fileExists).To(BeFalse())
 }

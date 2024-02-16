@@ -13,14 +13,14 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		{
 			Name: "ClusterStatus",
 			Path: "k8sd/cluster",
-			Get:  rest.EndpointAction{Handler: getClusterStatus},
+			Get:  rest.EndpointAction{Handler: getClusterStatus, AccessHandler: RestrictWorkers},
 		},
 		// Clustering
 		// Unified token endpoint for both, control-plane and worker-node.
 		{
 			Name: "ClusterTokens",
 			Path: "k8sd/cluster/tokens",
-			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterTokens)},
+			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterTokens), AccessHandler: RestrictWorkers},
 		},
 		{
 			Name: "ClusterJoin",
@@ -32,7 +32,7 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		{
 			Name: "ClusterRemove",
 			Path: "k8sd/cluster/remove",
-			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterRemove)},
+			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterRemove), AccessHandler: RestrictWorkers},
 		},
 		// Worker nodes
 		{
@@ -46,43 +46,43 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		{
 			Name: "Kubeconfig",
 			Path: "k8sd/kubeconfig",
-			Get:  rest.EndpointAction{Handler: getKubeconfig},
+			Get:  rest.EndpointAction{Handler: getKubeconfig, AccessHandler: RestrictWorkers},
 		},
 		// Cluster components
 		{
 			Name: "Components",
 			Path: "k8sd/components",
-			Get:  rest.EndpointAction{Handler: getComponents},
+			Get:  rest.EndpointAction{Handler: getComponents, AccessHandler: RestrictWorkers},
 		},
 		{
 			Name: "DNSComponent",
 			Path: "k8sd/components/dns",
-			Put:  rest.EndpointAction{Handler: putDNSComponent},
+			Put:  rest.EndpointAction{Handler: putDNSComponent, AccessHandler: RestrictWorkers},
 		},
 		{
 			Name: "NetworkComponent",
 			Path: "k8sd/components/network",
-			Put:  rest.EndpointAction{Handler: putNetworkComponent},
+			Put:  rest.EndpointAction{Handler: putNetworkComponent, AccessHandler: RestrictWorkers},
 		},
 		{
 			Name: "StorageComponent",
 			Path: "k8sd/components/storage",
-			Put:  rest.EndpointAction{Handler: putStorageComponent},
+			Put:  rest.EndpointAction{Handler: putStorageComponent, AccessHandler: RestrictWorkers},
 		},
 		{
 			Name: "IngressComponent",
 			Path: "k8sd/components/ingress",
-			Put:  rest.EndpointAction{Handler: putIngressComponent},
+			Put:  rest.EndpointAction{Handler: putIngressComponent, AccessHandler: RestrictWorkers},
 		},
 		{
 			Name: "GatewayComponent",
 			Path: "k8sd/components/gateway",
-			Put:  rest.EndpointAction{Handler: putGatewayComponent},
+			Put:  rest.EndpointAction{Handler: putGatewayComponent, AccessHandler: RestrictWorkers},
 		},
 		{
 			Name: "LoadBalancerComponent",
 			Path: "k8sd/components/loadbalancer",
-			Put:  rest.EndpointAction{Handler: putLoadBalancerComponent},
+			Put:  rest.EndpointAction{Handler: putLoadBalancerComponent, AccessHandler: RestrictWorkers},
 		},
 		// Kubernetes auth tokens and token review webhook for kube-apiserver
 		{

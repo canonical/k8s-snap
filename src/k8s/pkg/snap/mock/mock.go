@@ -29,6 +29,7 @@ type Mock struct {
 	K8sDqliteStateDir           string
 	ServiceArgumentsDir         string
 	ServiceExtraConfigDir       string
+	LockFilesDir                string
 	Components                  map[string]types.Component
 	KubernetesRESTClientGetter  genericclioptions.RESTClientGetter
 }
@@ -129,6 +130,9 @@ func (s *Snap) ServiceArgumentsDir() string {
 }
 func (s *Snap) ServiceExtraConfigDir() string {
 	return s.Mock.ServiceExtraConfigDir
+}
+func (s *Snap) LockFilesDir() string {
+	return s.Mock.LockFilesDir
 }
 func (s *Snap) Components() map[string]types.Component {
 	return s.Mock.Components
