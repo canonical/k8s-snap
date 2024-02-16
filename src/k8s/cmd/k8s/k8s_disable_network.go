@@ -4,32 +4,28 @@ import (
 	"fmt"
 
 	api "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/k8s/client"
+	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/spf13/cobra"
 )
 
-var disableNetworkCmd = &cobra.Command{
-	Use:   "network",
-	Short: "Disable the Network component in the cluster.",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-			StateDir: clusterCmdOpts.stateDir,
-			Verbose:  rootCmdOpts.logVerbose,
-			Debug:    rootCmdOpts.logDebug,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to create client: %w", err)
-		}
+func newDisableNetworkCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:               "network",
+		Short:             "Disable the Network component in the cluster.",
+		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			defer errors.Transform(&err, nil)
 
-		request := api.UpdateNetworkComponentRequest{
-			Status: api.ComponentDisable,
-		}
+			request := api.UpdateNetworkComponentRequest{
+				Status: api.ComponentDisable,
+			}
 
-		if err := client.UpdateNetworkComponent(cmd.Context(), request); err != nil {
-			return fmt.Errorf("failed to disable Network component: %w", err)
-		}
+			if err := k8sdClient.UpdateNetworkComponent(cmd.Context(), request); err != nil {
+				return fmt.Errorf("failed to disable Network component: %w", err)
+			}
 
-		cmd.Println("Component 'Network' disabled")
-		return nil
-	},
+			cmd.Println("Component 'Network' disabled")
+			return nil
+		},
+	}
 }

@@ -3,6 +3,7 @@ package k8s
 import (
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -11,9 +12,13 @@ var (
 	rootCmdOpts struct {
 		logDebug   bool
 		logVerbose bool
+		stateDir   string
 	}
+	k8sdClient client.Client
+)
 
-	rootCmd = &cobra.Command{
+func NewRootCmd() *cobra.Command {
+	rootCmd := &cobra.Command{
 		Use:   "k8s",
 		Short: "Canonical Kubernetes CLI",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -22,15 +27,42 @@ var (
 				return fmt.Errorf("failed to check if command runs as root: %w", err)
 			}
 			if !withRoot {
-				return fmt.Errorf("k8s CLI needs to run with root priviledge.")
+				return fmt.Errorf("You do not have enough permissions. Please run the command with sudo.")
 			}
 			return nil
 		},
-		SilenceUsage: true,
+		SilenceUsage:  true,
+		SilenceErrors: true,
 	}
-)
 
-func init() {
+	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
+
+	// By default, the state dir is set to a fixed directory in the snap.
+	// This shouldn't be overwritten by the user.
+	rootCmd.PersistentFlags().MarkHidden("state-dir")
+
+	// General
+	rootCmd.AddCommand(newStatusCmd())
+
+	// Clustering
+	rootCmd.AddCommand(newBootstrapCmd())
+	rootCmd.AddCommand(newAddNodeCmd())
+	rootCmd.AddCommand(newJoinNodeCmd())
+	rootCmd.AddCommand(newRemoveNodeCmd())
+
+	// Components
+	rootCmd.AddCommand(newEnableCmd())
+	rootCmd.AddCommand(newDisableCmd())
+
+	// internal
+	rootCmd.AddCommand(newGenerateAuthTokenCmd())
+	rootCmd.AddCommand(newKubeConfigCmd())
+
+	// Those commands replace the executable - no need for error wrapping.
+	rootCmd.AddCommand(newHelmCmd())
+	rootCmd.AddCommand(newKubectlCmd())
+
+	return rootCmd
 }

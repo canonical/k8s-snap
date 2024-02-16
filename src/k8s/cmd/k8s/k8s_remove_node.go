@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/canonical/k8s/pkg/k8s/client"
+	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -14,21 +14,24 @@ var (
 		force   bool
 		timeout time.Duration
 	}
+)
 
-	removeNodeCmd = &cobra.Command{
-		Use:   "remove-node <name>",
-		Short: "Remove a node from the cluster",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			name := args[0]
-			client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				StateDir: clusterCmdOpts.stateDir,
-				Verbose:  rootCmdOpts.logVerbose,
-				Debug:    rootCmdOpts.logDebug,
-			})
-			if err != nil {
-				return fmt.Errorf("failed to create cluster client: %w", err)
+func newRemoveNodeCmd() *cobra.Command {
+	removeNodeCmd := &cobra.Command{
+		Use:               "remove-node <name>",
+		Short:             "Remove a node from the cluster",
+		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			if len(args) > 1 {
+				return fmt.Errorf("Too many arguments. Please, only provide the name of the node to remove.")
 			}
+			if len(args) < 1 {
+				return fmt.Errorf("Not enough arguments. Please, provide the name of the node to remove.")
+			}
+
+			defer errors.Transform(&err, nil)
+
+			name := args[0]
 
 			// TODO: Apply this check for all command where a timeout is required, do not repeat in each command.
 			const minTimeout = 3 * time.Second
@@ -39,19 +42,15 @@ var (
 
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), removeNodeCmdOpts.timeout)
 			defer cancel()
-			err = client.RemoveNode(timeoutCtx, name, removeNodeCmdOpts.force)
-			if err != nil {
+			if err := k8sdClient.RemoveNode(timeoutCtx, name, removeNodeCmdOpts.force); err != nil {
 				return fmt.Errorf("failed to remove node from cluster: %w", err)
 			}
 			fmt.Printf("Removed %s from cluster.\n", name)
 			return nil
 		},
 	}
-)
-
-func init() {
 	removeNodeCmd.Flags().BoolVar(&removeNodeCmdOpts.force, "force", false, "Forcibly remove the cluster member")
 	removeNodeCmd.PersistentFlags().DurationVar(&removeNodeCmdOpts.timeout, "timeout", 180*time.Second, "The max time to wait for the node to be removed.")
-
-	rootCmd.AddCommand(removeNodeCmd)
+	removeNodeCmd.FlagErrorFunc()
+	return removeNodeCmd
 }

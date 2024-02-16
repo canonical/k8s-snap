@@ -1,11 +1,14 @@
 package k8s
 
-import "os"
+import (
+	"fmt"
+	"os"
+)
 
 func Main() {
-	if rootCmd.Execute() != nil {
-		// TODO: We need to define actionable error message in the future
-		// That tell the user what went wrong on a high-level and - if possible - how it can be fixed.
+	rootCmd := NewRootCmd()
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(rootCmd.ErrOrStderr(), err)
 		os.Exit(1)
 	}
 }

@@ -4,32 +4,28 @@ import (
 	"fmt"
 
 	api "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/k8s/client"
+	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/spf13/cobra"
 )
 
-var disableStorageCmd = &cobra.Command{
-	Use:   "storage",
-	Short: "Disable the Network component in the cluster.",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		client, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-			StateDir: clusterCmdOpts.stateDir,
-			Verbose:  rootCmdOpts.logVerbose,
-			Debug:    rootCmdOpts.logDebug,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to create client: %w", err)
-		}
+func newDisableStorageCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:               "storage",
+		Short:             "Disable the Network component in the cluster.",
+		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			defer errors.Transform(&err, nil)
 
-		request := api.UpdateStorageComponentRequest{
-			Status: api.ComponentDisable,
-		}
+			request := api.UpdateStorageComponentRequest{
+				Status: api.ComponentDisable,
+			}
 
-		if err := client.UpdateStorageComponent(cmd.Context(), request); err != nil {
-			return fmt.Errorf("failed to disable Storage component: %w", err)
-		}
+			if err := k8sdClient.UpdateStorageComponent(cmd.Context(), request); err != nil {
+				return fmt.Errorf("failed to disable Storage component: %w", err)
+			}
 
-		cmd.Println("Component 'Storage' disabled")
-		return nil
-	},
+			cmd.Println("Component 'Storage' disabled")
+			return nil
+		},
+	}
 }

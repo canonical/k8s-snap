@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	kubectlCmd = &cobra.Command{
+func newKubectlCmd() *cobra.Command {
+	return &cobra.Command{
 		Use:   "kubectl",
 		Short: "Integrated Kubernetes CLI",
 		// All commands should be passed to kubectl
@@ -54,8 +54,4 @@ var (
 			return syscall.Exec(path, command, os.Environ())
 		},
 	}
-)
-
-func init() {
-	rootCmd.AddCommand(kubectlCmd)
 }

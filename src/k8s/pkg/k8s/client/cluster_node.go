@@ -12,7 +12,7 @@ import (
 	"github.com/canonical/lxd/shared/api"
 )
 
-func (c *Client) JoinCluster(ctx context.Context, name string, address string, token string) error {
+func (c *k8sdClient) JoinCluster(ctx context.Context, name string, address string, token string) error {
 	if err := c.m.Ready(30); err != nil {
 		return fmt.Errorf("cluster did not come up in time: %w", err)
 	}
@@ -22,7 +22,7 @@ func (c *Client) JoinCluster(ctx context.Context, name string, address string, t
 		Address: address,
 		Token:   token,
 	}
-	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, nil)
+	err := c.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, nil)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Cleaning up, error was", err)
 		c.CleanupNode(ctx, c.opts.Snap, name)
@@ -33,12 +33,12 @@ func (c *Client) JoinCluster(ctx context.Context, name string, address string, t
 	return nil
 }
 
-func (c *Client) RemoveNode(ctx context.Context, name string, force bool) error {
+func (c *k8sdClient) RemoveNode(ctx context.Context, name string, force bool) error {
 	request := apiv1.RemoveNodeRequest{
 		Name:  name,
 		Force: force,
 	}
-	err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "remove"), request, nil)
+	err := c.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "remove"), request, nil)
 	if err != nil {
 		return fmt.Errorf("failed to query endpoint DELETE /k8sd/cluster/remove: %w", err)
 	}
@@ -46,14 +46,14 @@ func (c *Client) RemoveNode(ctx context.Context, name string, force bool) error 
 	return nil
 }
 
-func (c *Client) ResetNode(ctx context.Context, name string, force bool) error {
+func (c *k8sdClient) ResetNode(ctx context.Context, name string, force bool) error {
 	return c.mc.ResetClusterMember(ctx, name, force)
 }
 
 // WaitForDqliteNodeToBeReady waits until the underlying dqlite node of the microcluster is not in PENDING state.
 // While microcluster checkReady will validate that the nodes API server is ready, it will not check if the
 // dqlite node is properly setup yet.
-func (c *Client) WaitForDqliteNodeToBeReady(ctx context.Context, nodeName string) error {
+func (c *k8sdClient) WaitForDqliteNodeToBeReady(ctx context.Context, nodeName string) error {
 	return control.WaitUntilReady(ctx, func() (bool, error) {
 		clusterStatus, err := c.ClusterStatus(ctx, false)
 		if err != nil {
@@ -74,7 +74,7 @@ func (c *Client) WaitForDqliteNodeToBeReady(ctx context.Context, nodeName string
 
 // CleanupNode resets the nodes configuration and cluster state.
 // The cleanup will happen on a best-effort base. Any error that occurs will be ignored.
-func (c *Client) CleanupNode(ctx context.Context, snap snap.Snap, nodeName string) {
+func (c *k8sdClient) CleanupNode(ctx context.Context, snap snap.Snap, nodeName string) {
 
 	// For self-removal, microcluster expects the dqlite node to not be in pending state.
 	c.WaitForDqliteNodeToBeReady(ctx, nodeName)

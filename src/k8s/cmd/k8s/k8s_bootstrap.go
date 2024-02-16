@@ -9,7 +9,8 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/k8s/client"
+	v1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -19,22 +20,23 @@ var (
 		timeout     time.Duration
 	}
 
-	boostrapCmd = &cobra.Command{
-		Use:   "bootstrap",
-		Short: "Bootstrap a k8s cluster on this node.",
-		Long:  "Initialize the necessary folders, permissions, service arguments, certificates and start up the Kubernetes services.",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			c, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				StateDir: clusterCmdOpts.stateDir,
-				Verbose:  rootCmdOpts.logVerbose,
-				Debug:    rootCmdOpts.logDebug,
-			})
-			if err != nil {
-				return fmt.Errorf("failed to create client: %w", err)
-			}
+	bootstrapCmdErrorMsgs = map[error]string{
+		apiv1.ErrUnknown:             "An unknown error occured while bootstrapping the cluster:\n",
+		apiv1.ErrAlreadyBootstrapped: "K8s cluster already bootstrapped.",
+	}
+)
 
-			if c.IsBootstrapped(cmd.Context()) {
-				return fmt.Errorf("k8s cluster already bootstrapped")
+func newBootstrapCmd() *cobra.Command {
+	bootstrapCmd := &cobra.Command{
+		Use:               "bootstrap",
+		Short:             "Bootstrap a k8s cluster on this node.",
+		Long:              "Initialize the necessary folders, permissions, service arguments, certificates and start up the Kubernetes services.",
+		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			defer errors.Transform(&err, bootstrapCmdErrorMsgs)
+
+			if k8sdClient.IsBootstrapped(cmd.Context()) {
+				return v1.ErrAlreadyBootstrapped
 			}
 
 			const minTimeout = 3 * time.Second
@@ -50,29 +52,29 @@ var (
 				config.SetDefaults()
 			}
 
-			cluster, err := c.Bootstrap(cmd.Context(), config)
+			fmt.Println("Bootstrapping the cluster. This may take some seconds...")
+			cluster, err := k8sdClient.Bootstrap(cmd.Context(), config)
 			if err != nil {
-				return fmt.Errorf("failed to initialize k8s cluster: %w", err)
+				return fmt.Errorf("failed to bootstrap cluster: %w", err)
 			}
 
 			fmt.Printf("Bootstrapped k8s cluster on %q (%s).\n", cluster.Name, cluster.Address)
 			return nil
 		},
 	}
-)
 
-func init() {
-	rootCmd.AddCommand(boostrapCmd)
-	boostrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false,
+	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false,
 		"Interactively configure the most important cluster options.")
-	boostrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for k8s to bootstrap.")
+	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for k8s to bootstrap.")
+
+	return bootstrapCmd
 }
 
 func getConfigInteractively(ctx context.Context) apiv1.BootstrapConfig {
 	config := apiv1.BootstrapConfig{}
 	config.SetDefaults()
 
-	components := askQuestion("Which components would you like to enable?", componentList, strings.Join(config.Components, ", "))
+	components := askQuestion("Which components would you like to enable?", []string{}, strings.Join(config.Components, ", "))
 	// TODO: Validate components
 	config.Components = strings.Split(strings.ReplaceAll(components, " ", ""), ",")
 

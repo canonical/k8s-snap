@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	helmCmd = &cobra.Command{
+func newHelmCmd() *cobra.Command {
+	return &cobra.Command{
 		Use:                "helm",
 		Hidden:             true,
 		DisableFlagParsing: true,
@@ -48,8 +48,4 @@ var (
 			return syscall.Exec(path, command, os.Environ())
 		},
 	}
-)
-
-func init() {
-	rootCmd.AddCommand(helmCmd)
 }

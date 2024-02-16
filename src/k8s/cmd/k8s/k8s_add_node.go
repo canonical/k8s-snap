@@ -3,7 +3,8 @@ package k8s
 import (
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/k8s/client"
+	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -11,36 +12,40 @@ var (
 	addNodeCmdOpts struct {
 		worker bool
 	}
-	addNodeCmd = &cobra.Command{
-		Use:   "add-node <name>",
-		Short: "Create a connection token for a node to join the cluster",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			name := args[0]
+	addNodeCmdErrorMsgs = map[error]string{
+		apiv1.ErrTokenAlreadyCreated: "A token for this node was already created and the node did not join.",
+	}
+)
 
-			c, err := client.NewClient(cmd.Context(), client.ClusterOpts{
-				StateDir: clusterCmdOpts.stateDir,
-				Verbose:  rootCmdOpts.logVerbose,
-				Debug:    rootCmdOpts.logDebug,
-			})
-			if err != nil {
-				return fmt.Errorf("failed to create client: %w", err)
+func newAddNodeCmd() *cobra.Command {
+	addNodeCmd := &cobra.Command{
+		Use:               "add-node <name>",
+		Short:             "Create a connection token for a node to join the cluster",
+		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			if len(args) > 1 {
+				return fmt.Errorf("Too many arguments. Please, only provide the node name to add.")
+			}
+			if len(args) < 1 {
+				return fmt.Errorf("Not enough arguments. Please, provide the node name to add.")
 			}
 
+			defer errors.Transform(&err, addNodeCmdErrorMsgs)
+			name := args[0]
+
 			// Create a token that will be used by the joining node to join the cluster.
-			token, err := c.CreateJoinToken(cmd.Context(), name, addNodeCmdOpts.worker)
+			token, err := k8sdClient.CreateJoinToken(cmd.Context(), name, addNodeCmdOpts.worker)
 			if err != nil {
 				return fmt.Errorf("failed to retrieve token: %w", err)
 			}
 
+			// TODO: Print guidance on what to do with the token.
+			//       This requires a --format flag first as we still need some machine readable output for the integration tests.
 			fmt.Println(token)
 			return nil
 		},
 	}
-)
 
-func init() {
 	addNodeCmd.Flags().BoolVar(&addNodeCmdOpts.worker, "worker", false, "generate a token for a worker node")
-
-	rootCmd.AddCommand(addNodeCmd)
+	return addNodeCmd
 }
