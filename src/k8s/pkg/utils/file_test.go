@@ -142,29 +142,20 @@ func TestSerializeArgumentFile(t *testing.T) {
 }
 
 func TestFileExists(t *testing.T) {
+	g := NewWithT(t)
+
 	testFilePath := fmt.Sprintf("%s/myfile", t.TempDir())
 	_, err := os.Create(testFilePath)
-	if err != nil {
-		t.Fatal("Failed to create test file")
-	}
+	g.Expect(err).To(BeNil())
 
 	fileExists, err := utils.FileExists(testFilePath)
-	if err != nil {
-		t.Fatal("Failed to check if file exists")
-	}
-	if !fileExists {
-		t.Fatal("File should exist but it does not")
-	}
+	g.Expect(err).To(BeNil())
+	g.Expect(fileExists).To(BeTrue())
 
-	if err := os.Remove(testFilePath); err != nil {
-		t.Fatalf("Failed to delete test file: %s", err)
-	}
+	err = os.Remove(testFilePath)
+	g.Expect(err).To(BeNil())
 
 	fileExists, err = utils.FileExists(testFilePath)
-	if err != nil {
-		t.Fatal("Failed to check if file exists")
-	}
-	if fileExists {
-		t.Fatal("File should not exist but it does")
-	}
+	g.Expect(err).To(BeNil())
+	g.Expect(fileExists).To(BeFalse())
 }
