@@ -11,7 +11,7 @@ func TestBootstrapConfigFromMap(t *testing.T) {
 	// Create a new BootstrapConfig with default values
 	bc := &BootstrapConfig{
 		Components:  []string{"dns", "network", "storage"},
-		ClusterCIDR: "10.1.0.0/16",
+		ClusterCIDR: "10.1.0.0/16s, 2001:db8:3333:4444:5555:6666:7777:8888",
 	}
 
 	// Convert the BootstrapConfig to a map
@@ -26,4 +26,21 @@ func TestBootstrapConfigFromMap(t *testing.T) {
 	// Compare the unmarshaled BootstrapConfig with the original one
 	g.Expect(bcyaml).To(Equal(bc)) // Note the *bc here to compare values, not pointers
 
+}
+
+func TestValidateCIDR(t *testing.T) {
+	g := NewWithT(t)
+	// Create a new BootstrapConfig with default values
+	bc := &BootstrapConfig{
+		Components:  []string{"dns", "network", "storage"},
+		ClusterCIDR: "10.1.0.0/16, 2001:db8:3333:4444:5555:6666:7777:8888",
+	}
+	g.Expect(bc.IsValidCIDR()).To(BeTrue())
+
+	// Create a new BootstrapConfig with invalid CIDR
+	bc = &BootstrapConfig{
+		Components:  []string{"dns", "network", "storage"},
+		ClusterCIDR: "bananas",
+	}
+	g.Expect(bc.IsValidCIDR()).To(BeFalse())
 }

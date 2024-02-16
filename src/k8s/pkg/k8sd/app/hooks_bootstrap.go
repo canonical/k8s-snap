@@ -147,10 +147,13 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
 	}
-	cfg, err := types.SetClusterConfigDefaults(bootstrapConfig)
+
+	cfg, err := types.MergeClusterConfig(types.DefaultClusterConfig(), types.ClusterConfigFromBootstrapConfig(bootstrapConfig))
 	if err != nil {
 		return fmt.Errorf("failed initialize cluster config from bootstrap config: %w", err)
 	}
+	cfg.SetDefaults()
+
 	nodeIP := net.ParseIP(s.Address().Hostname())
 	if nodeIP == nil {
 		return fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())

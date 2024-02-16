@@ -42,6 +42,10 @@ var (
 				config.SetDefaults()
 			}
 
+			if !config.IsValidCIDR() {
+				return fmt.Errorf("invalid cluster CIDR: %s", config.ClusterCIDR)
+			}
+
 			cluster, err := c.Bootstrap(cmd.Context(), config)
 			if err != nil {
 				return fmt.Errorf("failed to initialize k8s cluster: %w", err)
