@@ -17,7 +17,7 @@ closely follow the upstream releases and usually follow within 24 hours.
 
 The 'risk level' component of the channel is one of the following:
 
-- **`stable`**: Matches upstream stable releases. 
+- **`stable`**: Matches upstream stable releases
 - **`candidate`**: Tracks upstream release candidate
 - **`beta`**: Tracks upstream beta releases - expect bugs
 - **`edge`**: Experimental release including upstream alpha releases
