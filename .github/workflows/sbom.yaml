@@ -24,8 +24,9 @@ jobs:
       - name: Build SBOM
         run: |
           ./build-scripts/hack/generate-sbom.py sbom.tar.gz
+          tar xvzf sbom.tar.gz
       - name: Upload SBOM
         uses: actions/upload-artifact@v3
         with:
-          name: sbom.tar.gz
-          path: sbom.tar.gz
+          name: sbom
+          path: sbom
