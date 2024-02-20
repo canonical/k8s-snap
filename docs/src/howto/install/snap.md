@@ -16,7 +16,7 @@ This guide assumes the following:
   memory.
 
 ```{note}
-If you cannot meet these requirements, please see the [Installing][installing] page for alternative options.
+If you cannot meet these requirements, please see the [Installing] page for alternative options.
 ```
 
 ## Check available channels (optional)
@@ -63,7 +63,7 @@ This command will wait until the cluster indicates it is ready and then display 
 
 <!-- LINKS -->
 
-[installing]: ./index
+[Installing]: ./index
 [channels page]: ../../explanation/channels
 [snap]: https://snapcraft.io/docs
 [snapd support]: https://snapcraft.io/docs/installing-snapd
