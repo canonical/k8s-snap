@@ -70,7 +70,7 @@ factors. We can give some general guidance for the following cases:
 - **I want to always be on the latest stable version matching a specific upstream K8s
 release (recommended).** 
 
-Specify the release, for example: `--channel=1.25/stable`.
+Specify the release, for example: `--channel=1.30/stable`.
 
 - **I want to test-drive a pre-stable release**
 
