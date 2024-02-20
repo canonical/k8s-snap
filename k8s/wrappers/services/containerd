@@ -7,7 +7,18 @@ k8s::common::setup_env
 # Ensure XDG_RUNTIME_DIR exists, needed by runc for 'kubectl exec' to work
 [ ! -z "${XDG_RUNTIME_DIR:=}" ] && mkdir -p "${XDG_RUNTIME_DIR}"
 
-# Apply the containerd profile
-k8s::common::is_strict && apparmor_parser -r "$SNAP/k8s/profiles/containerd"
+# Apply apparmor profile for "cri-containerd.apparmor.d"
+if ! apparmor_parser -r "$SNAP/k8s/profiles/containerd"; then
+  echo "
+
+WARNING: Failed to configure the 'cri-containerd.apparmor.d' AppArmor profile.
+
+This might affect container shim management (e.g. pods failing to delete).
+You can try to apply the profile manually by running:
+
+    apparmor_parser -r '${SNAP}/k8s/profiles/containerd'
+
+"
+fi
 
 k8s::common::execute_service containerd

@@ -59,6 +59,7 @@ func NewRootCmd() *cobra.Command {
 	// internal
 	rootCmd.AddCommand(newGenerateAuthTokenCmd())
 	rootCmd.AddCommand(newKubeConfigCmd())
+	rootCmd.AddCommand(xPrintShimPidsCmd)
 
 	// Those commands replace the executable - no need for error wrapping.
 	rootCmd.AddCommand(newHelmCmd())
