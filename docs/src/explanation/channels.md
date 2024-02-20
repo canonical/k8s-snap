@@ -12,7 +12,7 @@ the **track** and the **risk level**.
 
 The track will match the minor version of upstream Kubernetes. For example,
 specifying the `1.30` track will match upstream releases of the same minor
-version ("1.30.0", "1.30.1", "1.30.x" etc.). Releases of Charmed Kubernetes
+version ("1.30.0", "1.30.1", "1.30.x" etc.). Releases of Canonical Kubernetes
 closely follow the upstream releases and usually follow within 24 hours.
 
 The 'risk level' component of the channel is one of the following:
