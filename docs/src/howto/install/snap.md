@@ -12,7 +12,7 @@ This guide assumes the following:
 - You have root or sudo access to the machine
 - You have an internet connection
 - The target machine has sufficient memory and disk space. To accommodate
-  workloads, we recommend a system with at least 20G of disk space and 4G of
+  workloads, we recommend a system with ***at least*** 20G of disk space and 4G of
   memory.
 
 ```{note}
