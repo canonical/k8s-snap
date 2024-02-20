@@ -35,7 +35,7 @@ For all snaps, you can find out what channels are available by running the
 `info` command, For example:
 
 ```bash
-sudo snap info k8s
+snap info k8s
 ```
 
 ## Updates and switching channels
