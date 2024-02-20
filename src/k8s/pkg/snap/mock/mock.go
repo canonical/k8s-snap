@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 
+	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -32,6 +33,7 @@ type Mock struct {
 	LockFilesDir                string
 	Components                  map[string]types.Component
 	KubernetesRESTClientGetter  genericclioptions.RESTClientGetter
+	K8sDqliteClient             *dqlite.Client
 }
 
 // Snap is a mock implementation for snap.Snap.
@@ -139,6 +141,9 @@ func (s *Snap) Components() map[string]types.Component {
 }
 func (s *Snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
 	return s.Mock.KubernetesRESTClientGetter
+}
+func (s *Snap) K8sDqliteClient(context.Context) (*dqlite.Client, error) {
+	return s.Mock.K8sDqliteClient, nil
 }
 
 var _ snap.Snap = &Snap{}
