@@ -306,9 +306,9 @@ def generate_sbom(output):
     rock_cilium(manifest, extra_files)
     rock_coredns(manifest, extra_files)
     rock_rawfile_localpv(manifest, extra_files)
+    rock_metrics_server(manifest, extra_files)
 
     # TODO(neoaggelos): enable these after we build metrics-server and CSI rocks
-    # rock_metrics_server(manifest, extra_files)
     # rock_csi(manifest, extra_files)
 
     files = {"manifest.json": json.dumps(manifest, indent=4), **extra_files}
