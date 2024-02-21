@@ -54,6 +54,11 @@ type UpdateLoadBalancerComponentRequest struct {
 	Config LoadBalancerComponentConfig `json:"config,omitempty"`
 }
 
+// UpdateMetricsServerComponentRequest is used to update the Metrics-Server component state.
+type UpdateMetricsServerComponentRequest struct {
+	Status ComponentStatus `json:"status"`
+}
+
 // LoadBalancerComponentConfig holds the configuration values for the LoadBalancer component.
 type LoadBalancerComponentConfig struct {
 	CIDRs          []string `json:"cidrs,omitempty"`
@@ -83,6 +88,9 @@ type UpdateGatewayComponentResponse struct{}
 
 // UpdateLoadBalancerComponentResponse is the response for "PUT 1.0/k8sd/components/loadbalancer".
 type UpdateLoadBalancerComponentResponse struct{}
+
+// UpdateMetricsServerComponentResponse is the response for "PUT 1.0/k8sd/components/metrics-server".
+type UpdateMetricsServerComponentResponse struct{}
 
 // Component holds information about a k8s component.
 type Component struct {

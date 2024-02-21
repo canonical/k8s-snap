@@ -33,5 +33,6 @@ func newDisableCmd() *cobra.Command {
 	disableCmd.AddCommand(newDisableIngressCmd())
 	disableCmd.AddCommand(newDisableGatewayCmd())
 	disableCmd.AddCommand(newDisableLoadBalancerCmd())
+	disableCmd.AddCommand(newDisableMetricsServerCmd())
 	return disableCmd
 }

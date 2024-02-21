@@ -84,6 +84,11 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 			Path: "k8sd/components/loadbalancer",
 			Put:  rest.EndpointAction{Handler: putLoadBalancerComponent, AccessHandler: RestrictWorkers},
 		},
+		{
+			Name: "MetricsServerComponent",
+			Path: "k8sd/components/metrics-server",
+			Put:  rest.EndpointAction{Handler: putMetricsServerComponent, AccessHandler: RestrictWorkers},
+		},
 		// Kubernetes auth tokens and token review webhook for kube-apiserver
 		{
 			Name: "KubernetesAuthTokens",

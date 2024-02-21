@@ -207,3 +207,27 @@ func putLoadBalancerComponent(s *state.State, r *http.Request) response.Response
 
 	return response.SyncResponse(true, &api.UpdateLoadBalancerComponentResponse{})
 }
+
+func putMetricsServerComponent(s *state.State, r *http.Request) response.Response {
+	var req api.UpdateStorageComponentRequest
+	snap := snap.SnapFromContext(s.Context)
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
+	}
+
+	switch req.Status {
+	case api.ComponentEnable:
+		if err := component.EnableMetricsServerComponent(r.Context(), snap); err != nil {
+			return response.InternalError(fmt.Errorf("failed to enable metrics-server: %w", err))
+		}
+	case api.ComponentDisable:
+		if err := component.DisableMetricsServerComponent(snap); err != nil {
+			return response.InternalError(fmt.Errorf("failed to disable metrics-server: %w", err))
+		}
+	default:
+		return response.BadRequest(fmt.Errorf("invalid component status %s", req.Status))
+	}
+
+	return response.SyncResponse(true, &api.UpdateMetricsServerComponentResponse{})
+}
