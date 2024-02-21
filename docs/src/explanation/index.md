@@ -11,7 +11,9 @@ Overview <self>
 
 ```{toctree}
 :glob:
+:titlesonly:
 /explanation/about
+/explanation/channels
 ```
 
 If you are just getting started, the [Tutorials section] contains
