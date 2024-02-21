@@ -13,7 +13,6 @@ func EnableMetricsServerComponent(ctx context.Context, s snap.Snap) error {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	// var values map[string]any = nil
 	values := map[string]any{
 		"image": map[string]any{
 			"repository": metricsServerImageRepository,
