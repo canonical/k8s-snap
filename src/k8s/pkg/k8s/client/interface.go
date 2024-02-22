@@ -42,4 +42,6 @@ type Client interface {
 	UpdateNetworkComponent(ctx context.Context, request api.UpdateNetworkComponentRequest) error
 	// UpdateStorageComponent updates the Storage component in the cluster.
 	UpdateStorageComponent(ctx context.Context, request api.UpdateStorageComponentRequest) error
+	// UpdateMetricsServerComponent updates the Storage component in the cluster.
+	UpdateMetricsServerComponent(ctx context.Context, request api.UpdateMetricsServerComponentRequest) error
 }

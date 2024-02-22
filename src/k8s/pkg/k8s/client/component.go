@@ -93,3 +93,15 @@ func (c *k8sdClient) UpdateLoadBalancerComponent(ctx context.Context, request ap
 	}
 	return nil
 }
+
+func (c *k8sdClient) UpdateMetricsServerComponent(ctx context.Context, request api.UpdateMetricsServerComponentRequest) error {
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	var response api.UpdateMetricsServerComponentResponse
+	err := c.Query(queryCtx, "PUT", lxdApi.NewURL().Path("k8sd", "components", "metrics-server"), request, &response)
+	if err != nil {
+		return fmt.Errorf("failed to enable metrics-server component: %w", err)
+	}
+	return nil
+}
