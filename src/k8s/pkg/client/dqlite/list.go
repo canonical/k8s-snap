@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Client) ListMembers(ctx context.Context) ([]NodeInfo, error) {
-	client, err := c.interfaceGetter(ctx)
+	client, err := c.clientGetter(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create dqlite client: %w", err)
 	}

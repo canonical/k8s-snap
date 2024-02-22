@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error {
-	client, err := c.interfaceGetter(ctx)
+	client, err := c.clientGetter(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create dqlite client: %w", err)
 	}
