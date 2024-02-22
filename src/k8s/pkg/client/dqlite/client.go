@@ -21,9 +21,9 @@ type ClientOpts struct {
 }
 
 type Client struct {
-	// interfaceGetter dynamically creates a dqlite interface for use by the client. This is
-	// because the dqlite client must dynamically connect to the leader node of the cluster.
-	interfaceGetter func(context.Context) (Interface, error)
+	// clientGetter dynamically creates a dqlite client. This is because the dqlite client
+	// must dynamically connect to the leader node of the cluster.
+	clientGetter func(context.Context) (*client.Client, error)
 }
 
 // NewClient creates a new client connected to the leader of the dqlite cluster.
@@ -46,7 +46,7 @@ func NewClient(ctx context.Context, opts ClientOpts) (*Client, error) {
 	}
 
 	return &Client{
-		interfaceGetter: func(ctx context.Context) (Interface, error) {
+		clientGetter: func(ctx context.Context) (*client.Client, error) {
 			store, err := client.NewYamlNodeStore(opts.ClusterYAML)
 			if err != nil {
 				return nil, fmt.Errorf("failed to open node store from %q: %w", opts.ClusterYAML, err)
