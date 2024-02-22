@@ -207,7 +207,7 @@ func (s *snap) Components() map[string]types.Component {
 			Namespace:    "kube-system",
 		},
 		"metrics-server": {
-			ReleaseName:  "ck-metrics-server",
+			ReleaseName:  "metrics-server",
 			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "metrics-server-3.12.0.tgz"),
 			Namespace:    "kube-system",
 		},
