@@ -2,11 +2,9 @@ package app
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"path"
 
-	old_setup "github.com/canonical/k8s/pkg/k8s/setup"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -147,17 +145,29 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 func onPreRemove(s *state.State, force bool) error {
 	snap := snap.SnapFromContext(s.Context)
 
-	// Remove k8s dqlite node from cluster.
-	// Fails if the k8s-dqlite cluster would not have a leader afterwards.
-	log.Println("Leave k8s-dqlite cluster")
-	err := old_setup.LeaveK8sDqliteCluster(s.Context, snap, s)
+	cfg, err := utils.GetClusterConfig(s.Context, s)
 	if err != nil {
-		return fmt.Errorf("failed to leave k8s-dqlite cluster: %w", err)
+		return fmt.Errorf("failed to retrieve k8sd cluster config: %w", err)
+	}
+
+	// configure datastore
+	switch cfg.APIServer.Datastore {
+	case "k8s-dqlite":
+		client, err := snap.K8sDqliteClient(s.Context)
+		if err != nil {
+			return fmt.Errorf("failed to create k8s-dqlite client: %w", err)
+		}
+
+		nodeAddress := net.JoinHostPort(s.Address().Hostname(), fmt.Sprintf("%d", cfg.K8sDqlite.Port))
+		if err := client.RemoveNodeByAddress(s.Context, nodeAddress); err != nil {
+			return fmt.Errorf("failed to remove node with address %s from k8s-dqlite cluster: %w", nodeAddress, err)
+		}
+	default:
 	}
 
 	c, err := k8s.NewClient(snap)
 	if err != nil {
-		return fmt.Errorf("failed to create k8s client: %w", err)
+		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
 	if err := c.DeleteNode(s.Context, s.Name()); err != nil {

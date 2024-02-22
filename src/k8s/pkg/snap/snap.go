@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	"gopkg.in/yaml.v2"
@@ -217,6 +218,18 @@ func (s *snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RE
 		flags.Namespace = &namespace
 	}
 	return flags
+}
+
+func (s *snap) K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) {
+	client, err := dqlite.NewClient(ctx, dqlite.ClientOpts{
+		ClusterYAML: path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.yaml"),
+		ClusterCert: path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.crt"),
+		ClusterKey:  path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.key"),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create default k8s-dqlite client: %w", err)
+	}
+	return client, nil
 }
 
 var _ Snap = &snap{}

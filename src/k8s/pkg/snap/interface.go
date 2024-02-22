@@ -3,6 +3,7 @@ package snap
 import (
 	"context"
 
+	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
@@ -44,4 +45,6 @@ type Snap interface {
 	Components() map[string]types.Component // available components
 
 	KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter // admin kubernetes client
+
+	K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) // go-dqlite client for k8s-dqlite
 }
