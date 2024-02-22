@@ -89,10 +89,10 @@ func TestContainerd(t *testing.T) {
 
 	t.Run("Args", func(t *testing.T) {
 		for key, expectedVal := range map[string]string{
-			"--config":  path.Join(dir, "containerd", "config.toml"),
-			"--state":   path.Join(dir, "containerd-state"),
-			"--root":    path.Join(dir, "containerd-root"),
 			"--address": path.Join(dir, "containerd-run", "containerd.sock"),
+			"--config":  path.Join(dir, "containerd", "config.toml"),
+			"--root":    path.Join(dir, "containerd-root"),
+			"--state":   path.Join(dir, "containerd-state"),
 		} {
 			t.Run(key, func(t *testing.T) {
 				g := NewWithT(t)

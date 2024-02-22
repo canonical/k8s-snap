@@ -11,19 +11,19 @@ import (
 
 func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) error {
 	toWrite := map[string]string{
+		path.Join(snap.K8sDqliteStateDir(), "cluster.crt"):                 certificates.K8sDqliteCert,
+		path.Join(snap.K8sDqliteStateDir(), "cluster.key"):                 certificates.K8sDqliteKey,
+		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"): certificates.APIServerKubeletClientCert,
+		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"): certificates.APIServerKubeletClientKey,
+		path.Join(snap.KubernetesPKIDir(), "apiserver.crt"):                certificates.APIServerCert,
+		path.Join(snap.KubernetesPKIDir(), "apiserver.key"):                certificates.APIServerKey,
 		path.Join(snap.KubernetesPKIDir(), "ca.crt"):                       certificates.CACert,
 		path.Join(snap.KubernetesPKIDir(), "front-proxy-ca.crt"):           certificates.FrontProxyCACert,
 		path.Join(snap.KubernetesPKIDir(), "front-proxy-client.crt"):       certificates.FrontProxyClientCert,
 		path.Join(snap.KubernetesPKIDir(), "front-proxy-client.key"):       certificates.FrontProxyClientKey,
-		path.Join(snap.KubernetesPKIDir(), "apiserver.crt"):                certificates.APIServerCert,
-		path.Join(snap.KubernetesPKIDir(), "apiserver.key"):                certificates.APIServerKey,
-		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"): certificates.APIServerKubeletClientCert,
-		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"): certificates.APIServerKubeletClientKey,
 		path.Join(snap.KubernetesPKIDir(), "kubelet.crt"):                  certificates.KubeletCert,
 		path.Join(snap.KubernetesPKIDir(), "kubelet.key"):                  certificates.KubeletKey,
 		path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"):           certificates.ServiceAccountKey,
-		path.Join(snap.K8sDqliteStateDir(), "cluster.crt"):                 certificates.K8sDqliteCert,
-		path.Join(snap.K8sDqliteStateDir(), "cluster.key"):                 certificates.K8sDqliteKey,
 	}
 
 	if certificates.CAKey != "" {
