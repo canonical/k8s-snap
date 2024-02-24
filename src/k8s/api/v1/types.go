@@ -19,11 +19,9 @@ type BootstrapConfig struct {
 
 // SetDefaults sets the fields to default values.
 func (b *BootstrapConfig) SetDefaults() {
-	defaultRBAC := true
-
 	b.Components = []string{"dns", "network"}
 	b.ClusterCIDR = "10.1.0.0/16"
-	b.EnableRBAC = &defaultRBAC
+	b.EnableRBAC = &[]bool{true}[0]
 }
 
 // ToMap marshals the BootstrapConfig into yaml and map it to "bootstrapConfig".

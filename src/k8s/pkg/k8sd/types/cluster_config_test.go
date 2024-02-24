@@ -14,9 +14,13 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 	bootstrapConfig := apiv1.BootstrapConfig{
 		ClusterCIDR: "10.1.0.0/16",
 		Components:  []string{"dns", "network"},
+		EnableRBAC:  &[]bool{true}[0],
 	}
 
 	expectedConfig := types.ClusterConfig{
+		APIServer: types.APIServer{
+			AuthorizationMode: "Node,RBAC",
+		},
 		Network: types.Network{
 			PodCIDR: "10.1.0.0/16",
 		},
