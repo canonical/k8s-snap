@@ -97,7 +97,7 @@ func (c *ClusterConfig) SetDefaults() {
 func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
 	authzMode := "Node,RBAC"
 	// Only disable rbac if explicitly set to false during bootstrap
-	if !(*b.EnableRBAC) {
+	if v := b.EnableRBAC; v != nil && !*v {
 		authzMode = "AlwaysAllow"
 	}
 

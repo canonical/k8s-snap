@@ -51,6 +51,34 @@ func TestValidateCIDR(t *testing.T) {
 	g.Expect(err).ToNot(BeNil())
 }
 
+func TestUnsetRBAC(t *testing.T) {
+	g := NewWithT(t)
+	// Ensure unset rbac yields rbac authz
+	bootstrapConfig := apiv1.BootstrapConfig{
+		EnableRBAC: nil,
+	}
+	expectedConfig := types.ClusterConfig{
+		APIServer: types.APIServer{
+			AuthorizationMode: "Node,RBAC",
+		},
+	}
+	g.Expect(types.ClusterConfigFromBootstrapConfig(&bootstrapConfig)).To(Equal(expectedConfig))
+}
+
+func TestFalseRBAC(t *testing.T) {
+	g := NewWithT(t)
+	// Ensure false rbac yields open authz
+	bootstrapConfig := apiv1.BootstrapConfig{
+		EnableRBAC: &[]bool{false}[0],
+	}
+	expectedConfig := types.ClusterConfig{
+		APIServer: types.APIServer{
+			AuthorizationMode: "AlwaysAllow",
+		},
+	}
+	g.Expect(types.ClusterConfigFromBootstrapConfig(&bootstrapConfig)).To(Equal(expectedConfig))
+}
+
 func TestSetDefaults(t *testing.T) {
 	g := NewWithT(t)
 	clusterConfig := types.ClusterConfig{}
