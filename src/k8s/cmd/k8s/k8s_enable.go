@@ -19,13 +19,13 @@ func newEnableCmd() *cobra.Command {
 		Long:  fmt.Sprintf("Enable one of the specific components: %s.", strings.Join(componentList, ", ")),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 1 {
-				return fmt.Errorf("Too many arguments. Please, only provide the name of the component that should be enabled.")
+				return fmt.Errorf("too many arguments: provide only the name of the component that should be enabled")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("Not enough arguments. Please, provide the name of the component that should be enabled.")
+				return fmt.Errorf("missing argument: provide the name of the component that should be enabled")
 			}
 			if !slices.Contains(componentList, args[0]) {
-				return fmt.Errorf("Unknown component %q. Needs to be one of: %s", args[0], strings.Join(componentList, ", "))
+				return fmt.Errorf("unknown component %q; needs to be one of: %s", args[0], strings.Join(componentList, ", "))
 			}
 			return nil
 		},

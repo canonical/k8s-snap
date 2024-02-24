@@ -24,10 +24,10 @@ func newAddNodeCmd() *cobra.Command {
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
-				return fmt.Errorf("Too many arguments. Please, only provide the node name to add.")
+				return fmt.Errorf("too many arguments: provide only the node name to add")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("Not enough arguments. Please, provide the node name to add.")
+				return fmt.Errorf("missing argument: provide the node name to add")
 			}
 
 			defer errors.Transform(&err, addNodeCmdErrorMsgs)

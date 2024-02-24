@@ -27,7 +27,7 @@ func NewRootCmd() *cobra.Command {
 				return fmt.Errorf("failed to check if command runs as root: %w", err)
 			}
 			if !withRoot {
-				return fmt.Errorf("You do not have enough permissions. Please run the command with sudo.")
+				return fmt.Errorf("insufficient permissions: run the command with sudo")
 			}
 			return nil
 		},

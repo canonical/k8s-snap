@@ -36,10 +36,10 @@ func newJoinNodeCmd() *cobra.Command {
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
-				return fmt.Errorf("Too many arguments. Please, only provide the token that was generated with `sudo k8s add-node <node-name>`.")
+				return fmt.Errorf("too many arguments: provide only the token that was generated with `sudo k8s add-node <node-name>`")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("Not enough arguments. Please, provide the token that was generated with `sudo k8s add-node <node-name>`.")
+				return fmt.Errorf("missing argument: provide the token that was generated with `sudo k8s add-node <node-name>`")
 			}
 
 			defer errors.Transform(&err, joinNodeCmdErrorMsgs)
