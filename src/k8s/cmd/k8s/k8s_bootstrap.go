@@ -52,13 +52,13 @@ func newBootstrapCmd() *cobra.Command {
 				config.SetDefaults()
 			}
 
-			fmt.Println("Bootstrapping the cluster. This may take some seconds...")
+			fmt.Println("Bootstrapping the cluster. This may take some time, please wait.")
 			cluster, err := k8sdClient.Bootstrap(cmd.Context(), config)
 			if err != nil {
 				return fmt.Errorf("failed to bootstrap cluster: %w", err)
 			}
 
-			fmt.Printf("Bootstrapped k8s cluster on %q (%s).\n", cluster.Name, cluster.Address)
+			fmt.Printf("Cluster services have started on %q.\nPlease allow some time for initial Kubernetes node registration.\n", cluster.Name)
 			return nil
 		},
 	}

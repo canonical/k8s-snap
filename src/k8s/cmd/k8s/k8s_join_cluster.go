@@ -73,12 +73,12 @@ func newJoinNodeCmd() *cobra.Command {
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), joinNodeCmdOpts.timeout)
 			defer cancel()
 
-			fmt.Println("Joining the cluster. This may take some seconds...")
+			fmt.Println("Joining the cluster. This may take some time, please wait.")
 			if err := k8sdClient.JoinCluster(timeoutCtx, joinNodeCmdOpts.name, joinNodeCmdOpts.address, token); err != nil {
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}
 
-			fmt.Println("Joined the cluster.")
+			fmt.Printf("Joined the cluster as %q.\nPlease allow some time for Kubernetes node registration.\n", joinNodeCmdOpts.name)
 			return nil
 		},
 	}
