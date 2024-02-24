@@ -95,7 +95,16 @@ func (c *ClusterConfig) SetDefaults() {
 // ClusterConfigFromBootstrapConfig extracts the cluster config parts from the BootstrapConfig
 // and maps them to a ClusterConfig.
 func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
+	authzMode := "Node,RBAC"
+	// Only disable rbac if explicitly set to false during bootstrap
+	if !(*b.EnableRBAC) {
+		authzMode = "AlwaysAllow"
+	}
+
 	return ClusterConfig{
+		APIServer: APIServer{
+			AuthorizationMode: authzMode,
+		},
 		Network: Network{
 			PodCIDR: b.ClusterCIDR,
 		},
