@@ -49,9 +49,9 @@ Installing the snap sets up all the parts required to run Kubernetes. The next s
 sudo k8s bootstrap
 ```
 
-This command will output a message confirming the services have been started.
+This command will output a message confirming local cluster services have been started.
 
-## Confirm the services are running
+## Confirm the cluster is ready
 
 It is recommended to ensure that the cluster initialises properly and is running with no issues. Run the command:
 
