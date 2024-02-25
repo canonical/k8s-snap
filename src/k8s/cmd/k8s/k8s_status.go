@@ -29,11 +29,11 @@ func newStatusCmd() *cobra.Command {
 			defer errors.Transform(&err, nil)
 
 			// fail fast if we're not bootstrapped
-			if ! k8sdClient.IsBootstrapped(cmd.Context()) {
+			if !k8sdClient.IsBootstrapped(cmd.Context()) {
 				return v1.ErrNotBootstrapped
 			}
 			// fail fast if we're not explicitly waiting and we can't get kube-apiserver endpoints
-			if ! statusCmdOpts.waitReady {
+			if !statusCmdOpts.waitReady {
 				if ready := k8sdClient.IsKubernetesAPIServerReady(cmd.Context()); !ready {
 					return fmt.Errorf("failed to get kube-apiserver endpoints; cluster status is unavailable")
 				}
