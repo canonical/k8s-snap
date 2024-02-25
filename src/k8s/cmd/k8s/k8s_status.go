@@ -27,6 +27,13 @@ func newStatusCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 
+			// if we're not explicitly waiting, fail fast when kube-apiserver is down
+			if ! statusCmdOpts.waitReady {
+				if ready := k8sdClient.IsKubernetesAPIServerReady(cmd.Context()); !ready {
+					return fmt.Errorf("failed connecting to kube-apiserver; cluster status is unavailable")
+				}
+			}
+
 			const minTimeout = 3 * time.Second
 			if statusCmdOpts.timeout < minTimeout {
 				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", statusCmdOpts.timeout, minTimeout, minTimeout)

@@ -9,6 +9,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/utils/control"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/canonical/lxd/shared/api"
 )
@@ -83,4 +84,19 @@ func (c *k8sdClient) KubeConfig(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("failed to query endpoint GET /k8sd/kubeconfig on %q: %w", clientURL.String(), err)
 	}
 	return response.KubeConfig, nil
+}
+
+// IsKubernetesAPIServerReady checks if kube-apiserver is reachable.
+func (c *k8sdClient) IsKubernetesAPIServerReady(ctx context.Context) bool {
+	kc, err := k8s.NewClient(c.opts.Snap)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "failed to create Kubernetes client:", err)
+		return false
+	}
+	_, err = kc.GetKubeAPIServerEndpoints(ctx)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "failed to get Kubernetes endpoints:", err)
+		return false
+	}
+	return err == nil
 }

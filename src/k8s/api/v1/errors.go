@@ -21,5 +21,8 @@ var ErrTimeout = errors.New("context deadline exceeded")
 // ErrConnectionFailed indicates that a connection to the k8sd daemon could not be established.
 var ErrConnectionFailed = errors.New("dial unix")
 
+// ErrAPIServerFailed indicates that a connection to the kube-apiserver could not be established.
+var ErrAPIServerFailed = errors.New("failed connecting to kube-apiserver")
+
 // ErrUnknown indicates that the server returns an unknown error.
 var ErrUnknown = errors.New("unknown error")
