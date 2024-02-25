@@ -13,6 +13,9 @@ LOG = logging.getLogger(__name__)
 
 def test_ingress(instances: List[harness.Instance]):
     instance = instances[0]
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
+
     instance.exec(["k8s", "enable", "ingress"])
 
     util.stubbornly(retries=5, delay_s=2).on(instance).until(

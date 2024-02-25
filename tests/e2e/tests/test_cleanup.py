@@ -13,7 +13,8 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.node_count(1)
 def test_node_cleanup(instances: List[harness.Instance]):
     instance = instances[0]
-    util.setup_dns(instance)
+    util.wait_for_dns(instance)
+    util.wait_for_network(instance)
 
     LOG.info("Uninstall k8s...")
     instance.exec(["snap", "remove", "k8s", "--purge"])

@@ -15,6 +15,8 @@ def test_metrics_server(instances: List[harness.Instance]):
         pytest.fail("Set TEST_SNAP to the path where the snap is")
 
     instance = instances[0]
+    util.wait_for_dns(instance)
+    util.wait_for_network(instance)
     instance.exec(["k8s", "enable", "metrics-server"])
 
     LOG.info("Waiting for metrics-server pod to show up...")

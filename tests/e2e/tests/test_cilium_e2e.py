@@ -24,35 +24,15 @@ def test_cilium_e2e(instances: List[harness.Instance]):
     instance.exec(["bash", "-c", "mkdir -p ~/.kube"])
     instance.exec(["bash", "-c", "k8s config > ~/.kube/config"])
 
-    util.setup_dns(instance)
-    instance.exec(["bash", "-c", "mkdir -p ~/.kube"])
-    instance.exec(["bash", "-c", "k8s config > ~/.kube/config"])
-
     # Download cilium-cli
     instance.exec(["curl", "-L", CILIUM_CLI_TAR_GZ, "-o", "cilium.tar.gz"])
     instance.exec(["tar", "xvzf", "cilium.tar.gz"])
     instance.exec(["./cilium", "version", "--client"])
 
-    # TODO(neoaggelos): replace with "k8s status --wait-ready"
-    util.stubbornly(retries=20, delay_s=5).on(instance).until(
-        lambda p: p.stdout.decode().strip() == "OK"
-    ).exec(
-        [
-            "k8s",
-            "kubectl",
-            "exec",
-            "-it",
-            "ds/cilium",
-            "-n",
-            "kube-system",
-            "-c",
-            "cilium-agent",
-            "--",
-            "cilium",
-            "status",
-            "--brief",
-        ]
-    )
+    instance.exec(["k8s", "status", "--wait-ready"])
+
+    util.wait_for_dns(instance)
+    util.wait_for_network(instance)
 
     # Run cilium e2e tests
     e2e_args = []
