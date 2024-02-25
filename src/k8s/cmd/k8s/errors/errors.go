@@ -9,10 +9,10 @@ import (
 )
 
 var genericErrorMsgs = map[error]string{
-	v1.ErrNotBootstrapped: fmt.Sprintln("The cluster has not been initialized yet. Please call:\n\n    sudo k8s bootstrap"),
+	v1.ErrNotBootstrapped: "The cluster has not been initialized yet. Please call:\n\n sudo k8s bootstrap",
 	v1.ErrConnectionFailed: "Unable to connect to the cluster. Verify k8s services are running:\n\n sudo snap services k8s\n\n" +
 		"and see logs for more details:\n\n sudo journalctl -n 300 -u snap.k8s.k8sd\n\n",
-	v1.ErrAPIServerFailed: "Unable to connect to the Kubernetes API server. Verify k8s services are running:\n\n sudo snap services k8s\n\n" +
+	v1.ErrAPIServerFailed: "Unable to get Kubernetes API server endpoints. Verify k8s services are running:\n\n sudo snap services k8s\n\n" +
 		"and see logs for more details:\n\n sudo journalctl -n 300 -u snap.k8s.kube-apiserver\n\n",
 	v1.ErrTimeout: "Command timed out. See logs for more details:\n\n" +
 		" sudo journalctl -n 300 -u snap.k8s.k8sd\n\n" +
