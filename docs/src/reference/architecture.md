@@ -35,7 +35,7 @@ The `k8s` snap distribution includes the following:
 - **Kubectl**: through which users and other systems interact with Kubernetes and drive the cluster operations.
 - **K8s upstream services**: These are Kubernetes binaries built from upstream and shipped in the snap.
 - **Components** are the workloads and features we deem important to be available to our users and therefore are shipped in the snap and are enabled, configured and disabled in a guided way.
-- State is backed up by **dqlite** by default, which keeps that state of the Kubernetes cluster as well as the the state we maintain for the needs of the cluster operations.
+- State is backed up by **dqlite** by default, which keeps that state of the Kubernetes cluster as well as the state we maintain for the needs of the cluster operations. The cluster state may optionally be stored in a different, external datastore.
 - **Runtime**: `containerd` and `runc` are the shipped container runtimes.
 - **K8sd**: which implements the operations logic and exposes that functionality via CLIs and REST APIs.
 
@@ -63,7 +63,7 @@ This functionality is exposed via the following interfaces:
 
 - The **CLI**: The CLI is available to only the root user on the K8s snap and all CLI commands are mapped to respective REST calls.
 
-- The **REST API**: apart from serving the CLI, is also used by the charm that has to programmatically drive the Kubernetes cluster. 
+- The **API**: The JSON RPC API serves the CLI and is also used by the charm to programmatically drive the Kubernetes cluster. 
 
 
 
