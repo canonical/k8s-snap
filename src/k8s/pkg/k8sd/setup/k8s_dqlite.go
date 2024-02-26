@@ -26,8 +26,8 @@ func K8sDqlite(snap snap.Snap, address string, cluster []string) error {
 	}
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "k8s-dqlite", map[string]string{
-		"--storage-dir": snap.K8sDqliteStateDir(),
 		"--listen":      fmt.Sprintf("unix://%s", path.Join(snap.K8sDqliteStateDir(), "k8s-dqlite.sock")),
+		"--storage-dir": snap.K8sDqliteStateDir(),
 	}, nil); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}

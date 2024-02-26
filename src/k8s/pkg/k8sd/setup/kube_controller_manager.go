@@ -12,15 +12,15 @@ import (
 // KubeControllerManager configures kube-controller-manager on the local node.
 func KubeControllerManager(snap snap.Snap) error {
 	args := map[string]string{
-		"--kubeconfig":                       path.Join(snap.KubernetesConfigDir(), "controller.conf"),
-		"--authorization-kubeconfig":         path.Join(snap.KubernetesConfigDir(), "controller.conf"),
 		"--authentication-kubeconfig":        path.Join(snap.KubernetesConfigDir(), "controller.conf"),
-		"--service-account-private-key-file": path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
-		"--root-ca-file":                     path.Join(snap.KubernetesPKIDir(), "ca.crt"),
-		"--use-service-account-credentials":  "true",
-		"--profiling":                        "false",
+		"--authorization-kubeconfig":         path.Join(snap.KubernetesConfigDir(), "controller.conf"),
+		"--kubeconfig":                       path.Join(snap.KubernetesConfigDir(), "controller.conf"),
 		"--leader-elect-lease-duration":      "30s",
 		"--leader-elect-renew-deadline":      "15s",
+		"--profiling":                        "false",
+		"--root-ca-file":                     path.Join(snap.KubernetesPKIDir(), "ca.crt"),
+		"--service-account-private-key-file": path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
+		"--use-service-account-credentials":  "true",
 	}
 	// enable cluster-signing if certificates are available
 	if _, err := os.Stat(path.Join(snap.KubernetesPKIDir(), "ca.key")); err == nil {

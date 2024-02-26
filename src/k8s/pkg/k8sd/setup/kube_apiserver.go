@@ -4,16 +4,43 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 )
 
-var apiserverAuthTokenWebhookTemplate = mustTemplate("apiserver", "auth-token-webhook.conf")
-
 type apiserverAuthTokenWebhookTemplateConfig struct {
 	URL string
 }
+
+var (
+	apiserverAuthTokenWebhookTemplate = mustTemplate("apiserver", "auth-token-webhook.conf")
+
+	apiserverTLSCipherSuites = []string{
+		"TLS_AES_128_GCM_SHA256",
+		"TLS_AES_256_GCM_SHA384",
+		"TLS_CHACHA20_POLY1305_SHA256",
+		"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+		"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+		"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+		"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256",
+		"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
+		"TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA",
+		"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+		"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+		"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+		"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+		"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
+		"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
+		"TLS_RSA_WITH_3DES_EDE_CBC_SHA",
+		"TLS_RSA_WITH_AES_128_CBC_SHA",
+		"TLS_RSA_WITH_AES_128_GCM_SHA256",
+		"TLS_RSA_WITH_AES_256_CBC_SHA",
+		"TLS_RSA_WITH_AES_256_GCM_SHA384",
+	}
+)
 
 // KubeAPIServer configures kube-apiserver on the local node.
 func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore string, authorizationMode string) error {
@@ -30,23 +57,23 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 	defer authTokenWebhookFile.Close()
 
 	args := map[string]string{
-		"--service-cluster-ip-range":                 serviceCIDR,
+		"--allow-privileged":                         "true",
+		"--authentication-token-webhook-config-file": authTokenWebhookConfigFile,
 		"--authorization-mode":                       authorizationMode,
-		"--service-account-key-file":                 path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
-		"--service-account-signing-key-file":         path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
 		"--client-ca-file":                           path.Join(snap.KubernetesPKIDir(), "ca.crt"),
-		"--tls-cert-file":                            path.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
-		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
-		"--tls-cipher-suites":                        "TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_3DES_EDE_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384",
+		"--enable-admission-plugins":                 "NodeRestriction",
+		"--kubelet-certificate-authority":            path.Join(snap.KubernetesPKIDir(), "ca.crt"),
 		"--kubelet-client-certificate":               path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"),
 		"--kubelet-client-key":                       path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"),
-		"--secure-port":                              "6443",
-		"--allow-privileged":                         "true",
-		"--service-account-issuer":                   "https://kubernetes.default.svc",
-		"--authentication-token-webhook-config-file": authTokenWebhookConfigFile,
-		"--enable-admission-plugins":                 "NodeRestriction",
 		"--kubelet-preferred-address-types":          "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP",
-		"--kubelet-certificate-authority":            path.Join(snap.KubernetesPKIDir(), "ca.crt"),
+		"--secure-port":                              "6443",
+		"--service-account-issuer":                   "https://kubernetes.default.svc",
+		"--service-account-key-file":                 path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
+		"--service-account-signing-key-file":         path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
+		"--service-cluster-ip-range":                 serviceCIDR,
+		"--tls-cert-file":                            path.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
+		"--tls-cipher-suites":                        strings.Join(apiserverTLSCipherSuites, ","),
+		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
 	}
 
 	switch datastore {

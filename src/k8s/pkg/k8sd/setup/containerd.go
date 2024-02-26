@@ -41,8 +41,8 @@ func Containerd(snap snap.Snap) error {
 	}
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "containerd", map[string]string{
-		"--config":  path.Join(snap.ContainerdConfigDir(), "config.toml"),
 		"--address": path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
+		"--config":  path.Join(snap.ContainerdConfigDir(), "config.toml"),
 		"--root":    snap.ContainerdRootDir(),
 		"--state":   snap.ContainerdStateDir(),
 	}, nil); err != nil {
