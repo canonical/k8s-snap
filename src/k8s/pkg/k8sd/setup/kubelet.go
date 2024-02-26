@@ -22,11 +22,11 @@ var kubeletTLSCipherSuites = []string{
 }
 
 var kubeletControlPlaneLabels = []string{
-	"node-role.kubernetes.io/control-plane=control-plane",
+	"node-role.kubernetes.io/control-plane=",
 }
 
 var kubeletWorkerLabels = []string{
-	"node-role.kubernetes.io/worker=worker",
+	"node-role.kubernetes.io/worker=",
 }
 
 // KubeletControlPlane configures kubelet on a control plane node.
