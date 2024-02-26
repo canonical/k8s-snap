@@ -71,6 +71,21 @@ k8s::remove::network() {
   done
 }
 
+# [DANGER] Cleanup containers and runtime state. Note that the order of operations below is crucial.
+k8s::remove::containers() {
+  k8s::common::setup_env
+
+  # kill all container shims and pause processes
+  k8s::cmd::k8s x-print-shim-pids | xargs -r -t kill -SIGKILL
+
+  # delete cni network namespaces
+  ip netns list | cut -f1 -d' ' | grep -- "^cni-" | xargs -n1 -r -t ip netns delete
+
+  # unmount volumes
+  cat /proc/mounts | grep /run/containerd/io.containerd. | cut -f2 -d' ' | xargs -r -t umount
+  cat /proc/mounts | grep /var/lib/kubelet/pods | cut -f2 -d' ' | xargs -r -t umount
+}
+
 # Run a ctr command against the local containerd socket
 # Example: 'k8s::cmd::ctr image ls -q'
 k8s::cmd::ctr() {
@@ -84,12 +99,6 @@ k8s::cmd::ctr() {
 # Example: 'k8s::cmd::kubectl get pod,node -A'
 k8s::cmd::kubectl() {
   env KUBECONFIG="${KUBECONFIG:-/etc/kubernetes/admin.conf}" "${SNAP}/bin/kubectl" "${@}"
-}
-
-# Run snapctl
-# Example: 'k8s::cmd::snapctl start kube-apiserver'
-k8s::cmd::snapctl() {
-  snapctl "${@}"
 }
 
 # Run k8s CLI

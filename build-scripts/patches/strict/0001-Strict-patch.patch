@@ -1,4 +1,4 @@
-From 326a0d16dd7dd51742cc30eeba1cfca03af8f16b Mon Sep 17 00:00:00 2001
+From 37c1acf06d05404d89f42202aa19e18871495822 Mon Sep 17 00:00:00 2001
 From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
 Date: Sun, 4 Feb 2024 17:39:41 +0200
 Subject: [PATCH] Strict patch
@@ -6,8 +6,8 @@ Subject: [PATCH] Strict patch
 ---
  build-scripts/print-patches-for.py |   2 +-
  k8s/hack/init.sh                   |   6 +-
- snap/snapcraft.yaml                | 168 ++++++++++++++++++++++++++++-
- 3 files changed, 173 insertions(+), 3 deletions(-)
+ snap/snapcraft.yaml                | 169 ++++++++++++++++++++++++++++-
+ 3 files changed, 174 insertions(+), 3 deletions(-)
 
 diff --git a/build-scripts/print-patches-for.py b/build-scripts/print-patches-for.py
 index 2c65083..13ea57c 100755
@@ -36,7 +36,7 @@ index a0b57c7..1507db4 100755
 +"${DIR}/connect-interfaces.sh"
 +"${DIR}/network-requirements.sh"
 diff --git a/snap/snapcraft.yaml b/snap/snapcraft.yaml
-index 2d157e2..0a1309d 100644
+index 2d157e2..ceb9e33 100644
 --- a/snap/snapcraft.yaml
 +++ b/snap/snapcraft.yaml
 @@ -7,7 +7,7 @@ description: |-
@@ -69,7 +69,7 @@ index 2d157e2..0a1309d 100644
    containerd:
      command: k8s/wrappers/services/containerd
      daemon: notify
-@@ -200,35 +214,187 @@ apps:
+@@ -200,35 +214,188 @@ apps:
      stop-mode: sigterm
      restart-condition: always
      start-timeout: 5m
@@ -255,7 +255,8 @@ index 2d157e2..0a1309d 100644
 +    plugs:
 +      - network
 +      - network-bind
++      - process-control
 +      - network-control
 +      - firewall-control
 --
-2.34.1
+2.25.1
