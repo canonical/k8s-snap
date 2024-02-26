@@ -25,6 +25,9 @@ def add_node(
 def join_cluster(instance, token):
     instance.exec(["k8s", "join-cluster", token])
 
+def reboot(instance):
+    instance.exec(["reboot"])
+
 
 @pytest.mark.node_count(2)
 def test_clustering(instances: List[harness.Instance]):
@@ -64,3 +67,20 @@ def test_worker_nodes(instances: List[harness.Instance]):
     assert (
         nodes[0]["metadata"]["name"] == cluster_node.id
     ), f"only {cluster_node.id} should be left in cluster"
+
+
+@pytest.mark.node_count(1)
+def test_instance_reboot_service_restart(instances: List[harness.Instance]):
+    instance = instances[0]
+
+    # Reboot the instance
+    instance.reboot()
+
+    # Wait until snap.k8s.kubelet service starts after the reboot
+    util.stubbornly(retries=60, delay_s=5).on(lambda: instance.exec(
+        ["systemctl", "is-active", "snap.k8s.kubelet"], capture_output=True
+    )).until(lambda output: output.stdout.decode().strip() == "active")
+
+    # Assert that the service is active after the retries
+    service_status = instance.exec(["systemctl", "is-active", "snap.k8s.kubelet"], capture_output=True).stdout.decode().strip()
+    assert service_status == "active", "snap.k8s.kubelet service did not start successfully"

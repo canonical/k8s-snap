@@ -50,12 +50,12 @@ func serviceName(serviceName string) string {
 
 // StartService starts a k8s service. The name can be either prefixed or not.
 func (s *snap) StartService(ctx context.Context, name string) error {
-	return utils.RunCommand(ctx, "snapctl", "start", serviceName(name))
+	return utils.RunCommand(ctx, "snapctl", "start", "--enable", serviceName(name))
 }
 
 // StopService stops a k8s service. The name can be either prefixed or not.
 func (s *snap) StopService(ctx context.Context, name string) error {
-	return utils.RunCommand(ctx, "snapctl", "stop", serviceName(name))
+	return utils.RunCommand(ctx, "snapctl", "stop", "--disable", serviceName(name))
 }
 
 // RestartService restarts a k8s service. The name can be either prefixed or not.

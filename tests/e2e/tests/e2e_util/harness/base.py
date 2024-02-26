@@ -25,6 +25,7 @@ class Instance:
         self.pull_file = partial(h.pull_file, id)
         self.exec = partial(h.exec, id)
         self.delete_instance = partial(h.delete_instance, id)
+        self.reboot = partial(h.delete_instance, id)
 
     @property
     def id(self) -> str:
@@ -100,6 +101,13 @@ class Harness:
     def cleanup(self):
         """Delete any leftover resources after the tests are done, e.g. delete any
         instances that might still be running.
+
+        If the operation fails, a HarnessError is raised.
+        """
+        raise NotImplementedError
+
+    def reboot(self):
+        """Reboot the instance.
 
         If the operation fails, a HarnessError is raised.
         """

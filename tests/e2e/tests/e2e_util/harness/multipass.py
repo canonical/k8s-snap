@@ -132,3 +132,14 @@ class MultipassHarness(Harness):
     def cleanup(self):
         for instance_id in self.instances.copy():
             self.delete_instance(instance_id)
+
+    def reboot(self, instance_id: str):
+        if instance_id not in self.instances:
+            raise HarnessError(f"unknown instance {instance_id}")
+        
+        try:
+            run(["multipass", "restart", "--force", instance_id])
+        except subprocess.CalledProcessError as e:
+            raise HarnessError(f"failed to reboot instance {instance_id}") from e
+
+        time.sleep(30)
