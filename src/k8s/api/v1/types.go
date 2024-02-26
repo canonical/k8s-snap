@@ -15,7 +15,7 @@ type BootstrapConfig struct {
 	ClusterCIDR string `yaml:"cluster-cidr"`
 	// EnableRBAC determines if RBAC will be enabled; *bool to know true/false/unset.
 	EnableRBAC    *bool `yaml:"enable-rbac"`
-	K8sDqlitePort int   `yaml:"k8s-dqliteport"`
+	K8sDqlitePort int   `yaml:"k8s-dqlite-port"`
 }
 
 // SetDefaults sets the fields to default values.
