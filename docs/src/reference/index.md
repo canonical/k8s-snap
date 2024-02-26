@@ -11,6 +11,7 @@ Overview <self>
 ```{toctree}
 :glob:
 :titlesonly:
+/reference/architecture
 /reference/releases
 ```
 
