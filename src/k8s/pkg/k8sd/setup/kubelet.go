@@ -21,8 +21,26 @@ var kubeletTLSCipherSuites = []string{
 	"TLS_RSA_WITH_AES_256_GCM_SHA384",
 }
 
-// Kubelet configures kubelet on the local node.
-func Kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string) error {
+var kubeletControlPlaneLabels = []string{
+	"node-role.kubernetes.io/control-plane=",
+}
+
+var kubeletWorkerLabels = []string{
+	"node-role.kubernetes.io/worker=",
+}
+
+// KubeletControlPlane configures kubelet on a control plane node.
+func KubeletControlPlane(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string) error {
+	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, nil, append(kubeletControlPlaneLabels, kubeletWorkerLabels...))
+}
+
+// KubeletWorker configures kubelet on a worker node.
+func KubeletWorker(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string) error {
+	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, nil, kubeletWorkerLabels)
+}
+
+// kubelet configures kubelet on the local node.
+func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, taints []string, labels []string) error {
 	args := map[string]string{
 		"--anonymous-auth":               "false",
 		"--authentication-token-webhook": "true",
@@ -34,7 +52,9 @@ func Kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 		"--fail-swap-on":                 "false",
 		"--hostname-override":            hostname,
 		"--kubeconfig":                   path.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
+		"--node-labels":                  strings.Join(labels, ","),
 		"--read-only-port":               "0",
+		"--register-with-taints":         strings.Join(taints, ","),
 		"--root-dir":                     snap.KubeletRootDir(),
 		"--serialize-image-pulls":        "false",
 		"--tls-cipher-suites":            strings.Join(kubeletTLSCipherSuites, ","),

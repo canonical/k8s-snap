@@ -122,7 +122,7 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	if err := setup.Containerd(snap); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.Kubelet(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider); err != nil {
+	if err := setup.KubeletWorker(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
 	if err := setup.KubeProxy(snap, s.Name(), response.PodCIDR); err != nil {
@@ -229,7 +229,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	if err := setup.Containerd(snap); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.Kubelet(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider); err != nil {
+	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
 	if err := setup.KubeProxy(snap, s.Name(), cfg.Network.PodCIDR); err != nil {
