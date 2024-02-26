@@ -12,6 +12,7 @@ Overview <self>
 :glob:
 :titlesonly:
 /reference/releases
+/reference/community
 ```
 
 Alternatively, the [Tutorials section] contains step-by-step tutorials to help
