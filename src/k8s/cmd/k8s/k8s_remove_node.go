@@ -23,10 +23,10 @@ func newRemoveNodeCmd() *cobra.Command {
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
-				return fmt.Errorf("Too many arguments. Please, only provide the name of the node to remove.")
+				return fmt.Errorf("too many arguments: provide only the name of the node to remove")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("Not enough arguments. Please, provide the name of the node to remove.")
+				return fmt.Errorf("missing argument: provide the name of the node to remove")
 			}
 
 			defer errors.Transform(&err, nil)

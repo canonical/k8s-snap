@@ -36,10 +36,10 @@ func newJoinNodeCmd() *cobra.Command {
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
-				return fmt.Errorf("Too many arguments. Please, only provide the token that was generated with `sudo k8s add-node <node-name>`.")
+				return fmt.Errorf("too many arguments: provide only the token that was generated with `sudo k8s add-node <node-name>`")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("Not enough arguments. Please, provide the token that was generated with `sudo k8s add-node <node-name>`.")
+				return fmt.Errorf("missing argument: provide the token that was generated with `sudo k8s add-node <node-name>`")
 			}
 
 			defer errors.Transform(&err, joinNodeCmdErrorMsgs)
@@ -73,12 +73,12 @@ func newJoinNodeCmd() *cobra.Command {
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), joinNodeCmdOpts.timeout)
 			defer cancel()
 
-			fmt.Println("Joining the cluster. This may take some seconds...")
+			fmt.Println("Joining the cluster. This may take some time, please wait.")
 			if err := k8sdClient.JoinCluster(timeoutCtx, joinNodeCmdOpts.name, joinNodeCmdOpts.address, token); err != nil {
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}
 
-			fmt.Println("Joined the cluster.")
+			fmt.Printf("Joined the cluster as %q.\nPlease allow some time for Kubernetes node registration.\n", joinNodeCmdOpts.name)
 			return nil
 		},
 	}
