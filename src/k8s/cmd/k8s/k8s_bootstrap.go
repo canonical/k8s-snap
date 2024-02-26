@@ -11,6 +11,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	v1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -79,6 +80,9 @@ func getConfigInteractively(ctx context.Context) apiv1.BootstrapConfig {
 	config.Components = strings.Split(strings.ReplaceAll(components, " ", ""), ",")
 
 	config.ClusterCIDR = askQuestion("Please set the Cluster CIDR?", nil, config.ClusterCIDR)
+
+	rbac := askBool("Enable Role Based Access Control (RBAC)?", []string{"yes", "no"}, "yes")
+	*config.EnableRBAC = rbac
 	return config
 }
 
@@ -106,4 +110,19 @@ func askQuestion(question string, options []string, defaultVal string) string {
 		return defaultVal
 	}
 	return s
+}
+
+// askBool asks a question and expect a yes/no answer.
+func askBool(question string, options []string, defaultVal string) bool {
+	for {
+		answer := askQuestion(question, options, defaultVal)
+
+		if utils.ValueInSlice(strings.ToLower(answer), []string{"yes", "y"}) {
+			return true
+		} else if utils.ValueInSlice(strings.ToLower(answer), []string{"no", "n"}) {
+			return false
+		}
+
+		fmt.Fprintf(os.Stderr, "Invalid input, try again.\n\n")
+	}
 }

@@ -14,9 +14,13 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 	bootstrapConfig := apiv1.BootstrapConfig{
 		ClusterCIDR: "10.1.0.0/16",
 		Components:  []string{"dns", "network"},
+		EnableRBAC:  &[]bool{true}[0],
 	}
 
 	expectedConfig := types.ClusterConfig{
+		APIServer: types.APIServer{
+			AuthorizationMode: "Node,RBAC",
+		},
 		Network: types.Network{
 			PodCIDR: "10.1.0.0/16",
 		},
@@ -45,6 +49,34 @@ func TestValidateCIDR(t *testing.T) {
 	}
 	err = invalidConfig.Validate()
 	g.Expect(err).ToNot(BeNil())
+}
+
+func TestUnsetRBAC(t *testing.T) {
+	g := NewWithT(t)
+	// Ensure unset rbac yields rbac authz
+	bootstrapConfig := apiv1.BootstrapConfig{
+		EnableRBAC: nil,
+	}
+	expectedConfig := types.ClusterConfig{
+		APIServer: types.APIServer{
+			AuthorizationMode: "Node,RBAC",
+		},
+	}
+	g.Expect(types.ClusterConfigFromBootstrapConfig(&bootstrapConfig)).To(Equal(expectedConfig))
+}
+
+func TestFalseRBAC(t *testing.T) {
+	g := NewWithT(t)
+	// Ensure false rbac yields open authz
+	bootstrapConfig := apiv1.BootstrapConfig{
+		EnableRBAC: &[]bool{false}[0],
+	}
+	expectedConfig := types.ClusterConfig{
+		APIServer: types.APIServer{
+			AuthorizationMode: "AlwaysAllow",
+		},
+	}
+	g.Expect(types.ClusterConfigFromBootstrapConfig(&bootstrapConfig)).To(Equal(expectedConfig))
 }
 
 func TestSetDefaults(t *testing.T) {
