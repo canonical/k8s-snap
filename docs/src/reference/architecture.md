@@ -18,7 +18,7 @@ Two actors interact with the kubernetes snap:
 There are non-human users of the k8s snap. In this case that is the [K8s charm]. The K8s charm needs to drive the Kubernetes cluster and to orchestrate the multi-node clustering operations.
 
 A set of external systems need to be easily integrated with our k8s distribution. We have identified the following:
- - **Load-balancer**: Although the k8s snap distribution comes with a load-balancer we expect the end customer environment to have a load-balancer and thus we need to integrate with it.
+ - **Loadbalancer**: Although the k8s snap distribution comes with a loadbalancer we expect the end customer environment to have a loadbalancer and thus we need to integrate with it.
 - **Storage**: Kubernetes typically expects storage to be external to the cluster. The k8s snap comes with a local storage option but we still need to offer proper integration with any storage solution.
 - **Identity management**: Out of the box the k8s snap offers credentials for an admin user. The admin user can complete the integration with any identity management system available or do user management manually.
 - **External datastore**: By default, Kubernetes uses etcd to keep track of state. Our k8s snap comes with `dqlite` as its datastore. We should however be able to use any end client owned datastore installation. That should include an external `postgresql` or `etcd`.
@@ -32,7 +32,7 @@ Looking more closely at what is conatined within the K8s snap istelf:
 
 The k8s snap distribution includes the following:
 
-- **Kubectl**: through which users and other systems interact with  Kubernetes and drive the cluster operations.
+- **Kubectl**: through which users and other systems interact with Kubernetes and drive the cluster operations.
 - **K8s upstream services**: These are Kubernetes binaries built from upstream and shipped in the snap.
 - **Components** are the workloads and features we deem important to be available to our users and therefore are shipped in the snap and are enabled, configured and disabled in a guided way.
 - State is backed up by **dqlite** by default, which keeps that state of the Kubernetes cluster as well as the the state we maintain for the needs of the cluster operations.
