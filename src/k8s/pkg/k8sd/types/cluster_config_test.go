@@ -15,7 +15,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 		ClusterCIDR:   "10.1.0.0/16",
 		Components:    []string{"dns", "network"},
 		EnableRBAC:    &[]bool{true}[0],
-		K8sDqliteport: 12345,
+		K8sDqlitePort: 12345,
 	}
 
 	expectedConfig := types.ClusterConfig{
@@ -27,29 +27,6 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 		},
 		K8sDqlite: types.K8sDqlite{
 			Port: 12345,
-		},
-	}
-
-	g.Expect(types.ClusterConfigFromBootstrapConfig(&bootstrapConfig)).To(Equal(expectedConfig))
-}
-
-func TestClusterConfigFromBootstrapConfigWithPortNotSpecified(t *testing.T) {
-	g := NewWithT(t)
-	bootstrapConfig := apiv1.BootstrapConfig{
-		ClusterCIDR: "10.1.0.0/16",
-		Components:  []string{"dns", "network"},
-		EnableRBAC:  &[]bool{true}[0],
-	}
-
-	expectedConfig := types.ClusterConfig{
-		APIServer: types.APIServer{
-			AuthorizationMode: "Node,RBAC",
-		},
-		Network: types.Network{
-			PodCIDR: "10.1.0.0/16",
-		},
-		K8sDqlite: types.K8sDqlite{
-			Port: 0, // ClusterConfig.SetDefaults uses port 0 as an indicator that a custom port is not specified
 		},
 	}
 

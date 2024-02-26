@@ -15,7 +15,7 @@ type BootstrapConfig struct {
 	ClusterCIDR string `yaml:"cluster-cidr"`
 	// EnableRBAC determines if RBAC will be enabled; *bool to know true/false/unset.
 	EnableRBAC    *bool `yaml:"enable-rbac"`
-	K8sDqliteport int   `yaml:"k8s-dqliteport"`
+	K8sDqlitePort int   `yaml:"k8s-dqliteport"`
 }
 
 // SetDefaults sets the fields to default values.
@@ -23,7 +23,7 @@ func (b *BootstrapConfig) SetDefaults() {
 	b.Components = []string{"dns", "network"}
 	b.ClusterCIDR = "10.1.0.0/16"
 	b.EnableRBAC = &[]bool{true}[0]
-	b.K8sDqliteport = 9000
+	b.K8sDqlitePort = 9000
 }
 
 // ToMap marshals the BootstrapConfig into yaml and map it to "bootstrapConfig".

@@ -13,7 +13,7 @@ func TestBootstrapConfigFromMap(t *testing.T) {
 		ClusterCIDR:   "10.1.0.0/16",
 		Components:    []string{"dns", "network", "storage"},
 		EnableRBAC:    &[]bool{true}[0],
-		K8sDqliteport: 9000,
+		K8sDqlitePort: 9000,
 	}
 
 	// Convert the BootstrapConfig to a map
