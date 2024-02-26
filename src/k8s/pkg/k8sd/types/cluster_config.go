@@ -108,5 +108,8 @@ func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
 		Network: Network{
 			PodCIDR: b.ClusterCIDR,
 		},
+		K8sDqlite: K8sDqlite{
+			Port: b.K8sDqliteport,
+		},
 	}
 }

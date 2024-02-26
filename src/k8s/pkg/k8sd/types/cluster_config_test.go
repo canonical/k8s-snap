@@ -12,9 +12,10 @@ import (
 func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 	g := NewWithT(t)
 	bootstrapConfig := apiv1.BootstrapConfig{
-		ClusterCIDR: "10.1.0.0/16",
-		Components:  []string{"dns", "network"},
-		EnableRBAC:  &[]bool{true}[0],
+		ClusterCIDR:   "10.1.0.0/16",
+		Components:    []string{"dns", "network"},
+		EnableRBAC:    &[]bool{true}[0],
+		K8sDqliteport: 12345,
 	}
 
 	expectedConfig := types.ClusterConfig{
@@ -23,6 +24,9 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 		},
 		Network: types.Network{
 			PodCIDR: "10.1.0.0/16",
+		},
+		K8sDqlite: types.K8sDqlite{
+			Port: 12345,
 		},
 	}
 
