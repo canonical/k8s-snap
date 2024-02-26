@@ -33,6 +33,29 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 	g.Expect(types.ClusterConfigFromBootstrapConfig(&bootstrapConfig)).To(Equal(expectedConfig))
 }
 
+func TestClusterConfigFromBootstrapConfigWithPortNotSpecified(t *testing.T) {
+	g := NewWithT(t)
+	bootstrapConfig := apiv1.BootstrapConfig{
+		ClusterCIDR: "10.1.0.0/16",
+		Components:  []string{"dns", "network"},
+		EnableRBAC:  &[]bool{true}[0],
+	}
+
+	expectedConfig := types.ClusterConfig{
+		APIServer: types.APIServer{
+			AuthorizationMode: "Node,RBAC",
+		},
+		Network: types.Network{
+			PodCIDR: "10.1.0.0/16",
+		},
+		K8sDqlite: types.K8sDqlite{
+			Port: 0, // ClusterConfig.SetDefaults uses port 0 as an indicator that a custom port is not specified
+		},
+	}
+
+	g.Expect(types.ClusterConfigFromBootstrapConfig(&bootstrapConfig)).To(Equal(expectedConfig))
+}
+
 func TestValidateCIDR(t *testing.T) {
 	g := NewWithT(t)
 	// Create a new BootstrapConfig with default values
