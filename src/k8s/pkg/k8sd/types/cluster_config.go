@@ -114,6 +114,8 @@ func (c *ClusterConfig) Validate() error {
 		}
 	}
 
+	// TODO: validate ServiceCIDR
+
 	return nil
 }
 
@@ -171,6 +173,7 @@ func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
 		},
 		Network: Network{
 			PodCIDR: b.ClusterCIDR,
+			ServiceCIDR: b.ServiceCIDR,
 		},
 		K8sDqlite: K8sDqlite{
 			Port: b.K8sDqlitePort,
