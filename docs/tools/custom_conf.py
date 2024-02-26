@@ -105,7 +105,7 @@ html_context = {
 
 # If your project is on documentation.ubuntu.com, specify the project
 # slug (for example, "lxd") here.
-slug = "k8s"
+slug = "canonical-kubernetes"
 
 ############################################################
 ### Redirects
@@ -140,7 +140,7 @@ custom_linkcheck_anchors_ignore_for_url = [
 ## Use them to extend the default functionality.
 
 # Add extensions
-custom_extensions = []
+custom_extensions = ['sphinxcontrib.kroki',  ]
 
 # Add MyST extensions
 custom_myst_extensions = []

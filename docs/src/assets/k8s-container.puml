@@ -1,0 +1,41 @@
+@startuml
+set separator none
+title K8s Snap Container View
+
+top to bottom direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+
+Person(K8sAdmin, "K8s Admin", $descr="Responsible for the K8s cluster, has elevated permissions", $tags="", $link="")
+Person(K8sUser, "K8s User", $descr="Interacts with the workloads hosted in K8s", $tags="", $link="")
+System(K8scharm, "K8s charm", $descr="Orchestrating the lifecycle management of K8s", $tags="", $link="")
+System(LoadBalancer, "Load Balancer", $descr="External LB, offered by the substrate (cloud)", $tags="", $link="")
+System(Externaldatastore, "External datastore", $descr="postgress or etcd", $tags="", $link="")
+
+System_Boundary("K8sSnapDistribution_boundary", "K8s Snap Distribution", $tags="") {
+  Container(K8sSnapDistribution.KubernetesServices, "Kubernetes Services", $techn="", $descr="API server, kubelet, kube-proxy, scheduler, kube-controller", $tags="", $link="")
+  Container(K8sSnapDistribution.Runtime, "Runtime", $techn="", $descr="Containerd and runc", $tags="", $link="")
+  Container(K8sSnapDistribution.Components, "Components", $techn="", $descr="Core components for the k8s distribution", $tags="", $link="")
+  Container(K8sSnapDistribution.K8sd, "K8sd", $techn="", $descr="Daemon implementing the functionality available in the k8s snap", $tags="", $link="")
+  Container(K8sSnapDistribution.State, "State", $techn="", $descr="Datastores holding the cluster state", $tags="", $link="")
+  Container(K8sSnapDistribution.Kubectl, "Kubectl", $techn="", $descr="kubectl client for accessing the cluster", $tags="", $link="")
+}
+
+Rel(K8sAdmin, K8sSnapDistribution.K8sd, "Creates and administers the cluster", $techn="", $tags="", $link="")
+Rel(K8sAdmin, K8sSnapDistribution.Kubectl, "Uses to manage the cluster", $techn="", $tags="", $link="")
+Rel(K8sUser, K8sSnapDistribution.Components, "Interacts with workloads hosted in K8s", $techn="", $tags="", $link="")
+Rel(K8scharm, K8sSnapDistribution.K8sd, "Orchestrates the lifecycle management of K8s", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.State, Externaldatastore, "May be replaced by", $techn="Any", $tags="", $link="")
+Rel(K8sSnapDistribution.Components, LoadBalancer, "May be replaced by", $techn="Any", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.Components, "Handles", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.KubernetesServices, "Configures", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.Components, K8sSnapDistribution.KubernetesServices, "Keeps state in", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.KubernetesServices, K8sSnapDistribution.State, "Uses by default", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.State, "Keeps state in", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.Kubectl, K8sSnapDistribution.KubernetesServices, "Interacts", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.Runtime, "Configures", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+@enduml
