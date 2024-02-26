@@ -17,8 +17,8 @@ Two actors interact with the Kubernetes snap:
 
 There are non-human users of the K8s snap, for example the [`k8s-operator charm`][K8s charm]. The K8s charm needs to drive the Kubernetes cluster and to orchestrate the multi-node clustering operations.
 
-A set of external systems need to be easily integrated with our k8s distribution. We have identified the following:
- - **Loadbalancer**: Although the k8s snap distribution comes with a loadbalancer we expect the end customer environment to have a loadbalancer and thus we need to integrate with it.
+A set of external systems need to be easily integrated with our K8s distribution. We have identified the following:
+ - **Loadbalancer**: Although the K8s snap distribution comes with a loadbalancer we expect the end customer environment to have a loadbalancer and thus we need to integrate with it.
 - **Storage**: Kubernetes typically expects storage to be external to the cluster. The K8s snap comes with a local storage option but we still need to offer proper integration with any storage solution.
 - **Identity management**: Out of the box the K8s snap offers credentials for an admin user. The admin user can complete the integration with any identity management system available or do user management manually.
 - **External datastore**: By default, Kubernetes uses etcd to keep track of state. Our K8s snap comes with `dqlite` as its datastore. We should however be able to use any end client owned datastore installation. That should include an external `postgresql` or `etcd`.
@@ -30,7 +30,7 @@ Looking more closely at what is conatined within the K8s snap istelf:
 ```{kroki} ../assets/k8s-container.puml
 ```
 
-The k8s snap distribution includes the following:
+The `k8s` snap distribution includes the following:
 
 - **Kubectl**: through which users and other systems interact with Kubernetes and drive the cluster operations.
 - **K8s upstream services**: These are Kubernetes binaries built from upstream and shipped in the snap.
