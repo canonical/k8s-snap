@@ -77,7 +77,7 @@ def stubbornly(
     class Retriable:
         def __init__(self) -> None:
             self._condition = None
-            self._run = subprocess.run
+            self._run = partial(run, capture_output=True)
 
         @retry(**_retry_args)
         def exec(
