@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	v1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/spf13/cobra"
@@ -26,6 +27,17 @@ func newStatusCmd() *cobra.Command {
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
+
+			// fail fast if we're not bootstrapped
+			if !k8sdClient.IsBootstrapped(cmd.Context()) {
+				return v1.ErrNotBootstrapped
+			}
+			// fail fast if we're not explicitly waiting and we can't get kube-apiserver endpoints
+			if !statusCmdOpts.waitReady {
+				if ready := k8sdClient.IsKubernetesAPIServerReady(cmd.Context()); !ready {
+					return fmt.Errorf("failed to get kube-apiserver endpoints; cluster status is unavailable")
+				}
+			}
 
 			const minTimeout = 3 * time.Second
 			if statusCmdOpts.timeout < minTimeout {
