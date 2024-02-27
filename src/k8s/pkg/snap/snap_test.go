@@ -1,17 +1,37 @@
-package snap_test
+package snap
 
 import (
 	"context"
 	"log"
 	"strings"
 	"testing"
-
-	"github.com/canonical/k8s/pkg/snap"
 )
+
+func TestServiceName(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"With k8s. prefix", "k8s.test-service", "k8s.test-service"},
+		{"Without prefix", "api", "k8s.api"},
+		{"Just k8s", "k8s", "k8s"},
+		{"Empty string", "", "k8s."},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := serviceName(tc.input)
+			if got != tc.expected {
+				t.Errorf("serviceName(%q) = %q, want %q", tc.input, got, tc.expected)
+			}
+		})
+	}
+}
 
 func TestServiceStartStop(t *testing.T) {
 	mockRunner := &MockRunner{}
-	s := snap.NewSnap("testdir", "testdir", "testdir", snap.WithCommandRunner(mockRunner.Run))
+	s := NewSnap("testdir", "testdir", "testdir", WithCommandRunner(mockRunner.Run))
 
 	tests := []struct {
 		name            string
