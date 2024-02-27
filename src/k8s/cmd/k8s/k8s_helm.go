@@ -17,7 +17,7 @@ func newHelmCmd() *cobra.Command {
 		Hidden:             true,
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"), os.Getenv("SNAP_DATA"))
+			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
 
 			isWorker, err := snaputil.IsWorker(snap)
 			if err != nil {

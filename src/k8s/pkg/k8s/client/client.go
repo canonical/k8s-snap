@@ -37,7 +37,7 @@ type k8sdClient struct {
 func NewClient(ctx context.Context, opts ClusterOpts) (*k8sdClient, error) {
 	// TODO: pass snap through opts instead, do not create here.
 	if opts.Snap == nil {
-		opts.Snap = snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"), os.Getenv("SNAP_DATA"))
+		opts.Snap = snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
 	}
 	if opts.StateDir == "" {
 		opts.StateDir = opts.Snap.K8sdStateDir()

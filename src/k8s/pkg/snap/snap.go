@@ -18,17 +18,15 @@ import (
 type snap struct {
 	snapDir       string
 	snapCommonDir string
-	snapDataDir   string
 	runCommand    func(ctx context.Context, command ...string) error
 }
 
 // NewSnap creates a new interface with the K8s snap.
 // NewSnap accepts the $SNAP, $SNAP_DATA and $SNAP_COMMON, directories, and a number of options.
-func NewSnap(snapDir, snapCommonDir string, snapDataDir string, options ...func(s *snap)) *snap {
+func NewSnap(snapDir, snapCommonDir string, options ...func(s *snap)) *snap {
 	s := &snap{
 		snapDir:       snapDir,
 		snapCommonDir: snapCommonDir,
-		snapDataDir:   snapDataDir,
 		runCommand:    utils.RunCommand,
 	}
 
