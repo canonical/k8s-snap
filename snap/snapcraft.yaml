@@ -46,16 +46,40 @@ parts:
       - rsync
       - tcl
 
-  k8s-binaries:
+  dqlite:
     after: [build-deps]
+    plugin: nil
+    source: src/k8s/hack
+    override-prime: ""
+    override-build: |
+      DQLITE_STAGING_DIR="${SNAPCRAFT_STAGE}/static-dqlite-deps"
+      if [ -d "${DQLITE_STAGING_DIR}" ]; then
+        rm -rf "${DQLITE_STAGING_DIR}"
+      fi
+      mkdir "${DQLITE_STAGING_DIR}"
+      cp -rv * "${DQLITE_STAGING_DIR}"
+
+      # Build dqlite libraries on the staging area
+      "${DQLITE_STAGING_DIR}/static-dqlite.sh"
+
+  k8s-dqlite:
+    after: [dqlite]
+    plugin: nil
+    source: build-scripts
+    override-build: ./build-component k8s-dqlite
+
+  k8s-binaries:
+    after: [dqlite]
     source: src/k8s
     plugin: nil
     override-build: |
-      make static -j
       INSTALL="${SNAPCRAFT_PART_INSTALL}/bin"
       mkdir -p "${INSTALL}"
 
-      for binary in k8s k8sd k8s-dqlite k8s-apiserver-proxy dqlite; do
+      export DQLITE_BUILD_SCRIPTS_DIR="${SNAPCRAFT_STAGE}/static-dqlite-deps"
+      make static -j
+
+      for binary in k8s k8sd k8s-apiserver-proxy; do
         cp -P "bin/static/${binary}" "${INSTALL}/${binary}"
       done
 
