@@ -25,3 +25,20 @@ func (c *k8sdClient) GenerateAuthToken(ctx context.Context, username string, gro
 
 	return response.Token, nil
 }
+
+// RevokeAuthToken calls "DELETE 1.0/kubernetes/auth/tokens".
+func (c *k8sdClient) RevokeAuthToken(ctx context.Context, token string) (string, error) {
+	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	request := apiv1.RevokeKubernetesAuthTokenRequest{Token: token}
+	response := apiv1.RevokeKubernetesAuthTokenResponse{}
+
+	err := c.Query(queryCtx, "DELETE", api.NewURL().Path("kubernetes", "auth", "tokens"), request, &response)
+	if err != nil {
+		clientURL := c.mc.URL()
+		return "", fmt.Errorf("failed to query endpoint DELETE /kubernetes/auth/tokens on %q: %w", clientURL.String(), err)
+	}
+
+	return response.Token, nil
+}

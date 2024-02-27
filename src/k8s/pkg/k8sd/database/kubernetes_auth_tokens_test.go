@@ -86,7 +86,8 @@ func TestKubernetesAuthTokens(t *testing.T) {
 		t.Run("DeleteToken", func(t *testing.T) {
 			g := NewWithT(t)
 			err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-				err := database.DeleteToken(ctx, tx, token2)
+				token, err := database.DeleteToken(ctx, tx, token2)
+				g.Expect(token).To(Equal(token2))
 				g.Expect(err).To(BeNil())
 
 				username, groups, err := database.CheckToken(ctx, tx, token2)
