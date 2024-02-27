@@ -92,6 +92,17 @@ func EnableNetworkComponent(ctx context.Context, s snap.Snap, podCIDR string) er
 			},
 			"hostRoot": cgrMnt,
 		}
+	} else {
+		p, err := utils.GetMountPropagation("/sys")
+		if err != nil {
+			return fmt.Errorf("failed to get mount propagation for %s: %w", p, err)
+		}
+		if p == "private" {
+			if s.OnLXD(ctx) {
+				return fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
+			}
+			return fmt.Errorf("/sys is not a shared mount")
+		}
 	}
 
 	if err := manager.Enable("network", values); err != nil {

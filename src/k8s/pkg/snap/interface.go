@@ -10,9 +10,11 @@ import (
 
 // Snap abstracts file system paths and interacting with the k8s services.
 type Snap interface {
-	Strict() bool // Strict returns true if the snap is installed with strict confinement.
-	UID() int     // UID is the user ID to set on config files.
-	GID() int     // GID is the group ID to set on config files.
+	Strict() bool               // Strict returns true if the snap is installed with strict confinement.
+	OnLXD(context.Context) bool // OnLXD returns true if the host runs on LXD.
+
+	UID() int // UID is the user ID to set on config files.
+	GID() int // GID is the group ID to set on config files.
 
 	StartService(ctx context.Context, serviceName string) error   // snapctl start $service
 	StopService(ctx context.Context, serviceName string) error    // snapctl stop $service

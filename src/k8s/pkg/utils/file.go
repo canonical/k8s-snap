@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -104,20 +105,6 @@ func CopyFile(srcFile, dstFile string) error {
 
 	return nil
 }
-
-// GetMountPath returns the first mountpath for a given filesystem type.
-func GetMountPath(fsType string) (string, error) {
-	mounts, err := mountinfo.GetMounts(mountinfo.FSTypeFilter(fsType))
-	if err != nil {
-		return "", fmt.Errorf("failed to find the mount info for %s: %w", fsType, err)
-	}
-	if len(mounts) == 0 {
-		return "", fmt.Errorf("could not find any %s filesystem mount", fsType)
-	}
-
-	return mounts[0].Mountpoint, nil
-}
-
 func FileExists(path ...string) (bool, error) {
 	if _, err := os.Stat(filepath.Join(path...)); err != nil {
 		if !os.IsNotExist(err) {
@@ -137,4 +124,39 @@ func ValueInSlice[T comparable](key T, list []T) bool {
 	}
 
 	return false
+}
+
+var ErrUnknownMount = errors.New("mount is unknown")
+
+// GetMountPath returns the first mountpath for a given filesystem type.
+// GetMountPath returns ErrUnkownMount if the mount path does not exist.
+func GetMountPath(fsType string) (string, error) {
+	mounts, err := mountinfo.GetMounts(mountinfo.FSTypeFilter(fsType))
+	if err != nil {
+		return "", fmt.Errorf("failed to find the mount info for %s: %w", fsType, err)
+	}
+	if len(mounts) == 0 {
+		return "", ErrUnknownMount
+	}
+
+	return mounts[0].Mountpoint, nil
+}
+
+// GetMountPropagation returns the propagation type (shared or private)
+// GetMountPropagation returns ErrUnkownMount if the mount path does not exist.
+func GetMountPropagation(path string) (string, error) {
+	mounts, err := mountinfo.GetMounts(mountinfo.SingleEntryFilter(path))
+	if err != nil {
+		return "", fmt.Errorf("failed to get mounts: %w", err)
+	}
+
+	if len(mounts) == 0 {
+		return "", ErrUnknownMount
+	}
+
+	mount := mounts[0]
+	if strings.Contains(mount.Optional, "shared") {
+		return "shared", nil
+	}
+	return "private", nil
 }
