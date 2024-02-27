@@ -18,7 +18,7 @@ func newKubectlCmd() *cobra.Command {
 		// All commands should be passed to kubectl
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
+			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"), os.Getenv("SNAP_DATA"))
 
 			isWorker, err := snaputil.IsWorker(snap)
 			if err != nil {

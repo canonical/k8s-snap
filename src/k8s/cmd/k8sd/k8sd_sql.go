@@ -18,7 +18,7 @@ var (
 			if len(args) != 1 {
 				return fmt.Errorf("invalid query")
 			}
-			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
+			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"), os.Getenv("SNAP_DATA"))
 			cluster, err := app.New(cmd.Context(), app.Config{
 				Debug:      rootCmdOpts.logDebug,
 				Verbose:    rootCmdOpts.logVerbose,

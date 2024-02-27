@@ -22,7 +22,7 @@ var (
 		Use:   "k8sd",
 		Short: "Canonical Kubernetes orchestrator and clustering daemon",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
+			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"), os.Getenv("SNAP_DATA"))
 			app, err := app.New(cmd.Context(), app.Config{
 				Debug:      rootCmdOpts.logDebug,
 				Verbose:    rootCmdOpts.logVerbose,
