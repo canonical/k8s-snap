@@ -80,9 +80,9 @@
     </div>
     {% endif %}
 
-    {% if mattermost %}
-    <div class="ask-mattermost">
-      <a class="muted-link" href="{{ mattermost }}">Ask a question on Mattermost</a>
+    {% if matrix %}
+    <div class="ask-matrix">
+      <a class="muted-link" href="{{ matrix }}">Ask a question on Matrix</a>
     </div>
     {% endif %}
 
@@ -95,7 +95,7 @@
     {% endif %}
 
     <div class="edit-github">
-      <a class="muted-link" href="{{ github_url }}/edit/{{ github_version }}{{ github_folder }}{{ pagename }}{{ page_source_suffix }}">Edit this page on GitHub</a>
+      <a class="muted-link" href="{{ github_url }}/edit/{{ github_version }}{{ github_folder }}src/{{ pagename }}{{ page_source_suffix }}">Edit this page on GitHub</a>
     </div>
     {% endif %}
 

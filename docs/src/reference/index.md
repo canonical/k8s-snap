@@ -15,6 +15,7 @@ Overview <self>
 /reference/releases
 /reference/community
 ```
+## Other documentation types
 
 Alternatively, the [Tutorials section] contains step-by-step tutorials to help
 guide you through exploring and using Canonical Kubernetes.

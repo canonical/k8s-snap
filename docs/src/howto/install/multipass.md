@@ -1,1 +1,1 @@
-# Installing with Multipass
+# Install with Multipass (Ubuntu/Mac/Windows)
