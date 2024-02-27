@@ -10,6 +10,8 @@ Overview <self>
 
 ```{toctree}
 :glob:
+:titlesonly:
+
 install/index
 /howto/contribute
 /howto/support
