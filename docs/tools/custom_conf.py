@@ -19,7 +19,7 @@ import datetime
 ############################################################
 
 # Product name
-project = 'Canonical K8s'
+project = 'Canonical Kubernetes'
 author = 'Canonical Group Ltd'
 
 # The title you want to display for the documentation in the sidebar.
@@ -47,7 +47,7 @@ copyright = '%s, %s' % (datetime.date.today().year, author)
 ## when linking to the documentation from another website (see https://ogp.me/)
 # The URL where the documentation will be hosted (leave empty if you
 # don't know yet)
-ogp_site_url = 'https://canonical-starter-pack.readthedocs-hosted.com/'
+ogp_site_url = 'https://documentation.ubuntu.com/canonical-kubernetes'
 # The documentation website name (usually the same as the product name)
 ogp_site_name = project
 # The URL of an image or logo that is used in the preview
@@ -75,11 +75,11 @@ html_context = {
     # Change to the discourse instance you want to be able to link to
     # using the :discourse: metadata at the top of a file
     # (use an empty value if you don't want to link)
-    'discourse': 'https://discourse.ubuntu.com',
+    'discourse': ' https://discourse.ubuntu.com/c/kubernetes/180',
 
     # Change to the Mattermost channel you want to link to
     # (use an empty value if you don't want to link)
-    'mattermost': 'https://chat.canonical.com/canonical/channels/documentation',
+    'matrix': 'https://matrix.to/#/#k8s:ubuntu.com',
 
     # Change to the GitHub URL for your project
     'github_url': 'https://github.com/canonical/k8s-snap',

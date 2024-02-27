@@ -14,7 +14,8 @@ window.onload = function() {
     link.href = (
         github_url
         + "/issues/new?"
-        + "title=docs%3A+TYPE+YOUR+QUESTION+HERE"
+        + "title=Docs:+ADD+YOUR+TITLE"
+        + "&labels=documentation"
         + "&body=*Please describe the question or issue you're facing with "
         + `"${document.title}"`
         + ".*"
