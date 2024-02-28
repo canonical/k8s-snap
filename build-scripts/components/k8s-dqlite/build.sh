@@ -1,6 +1,5 @@
 #!/bin/bash
 
-VERSION="${2}"
 INSTALL="${1}/bin"
 
 ## Use built dqlite dependencies (if any)
