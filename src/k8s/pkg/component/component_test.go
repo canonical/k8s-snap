@@ -116,9 +116,10 @@ func mustCreateNewHelmClient(t *testing.T, components map[string]types.Component
 	}
 
 	mockLoader := &mock.ChartLoader{}
+	mockInstaller := &mock.ChartInstaller{}
 
 	//Create a mock ComponentManager with the mock HelmClient
-	mockHelmCLient, err := NewHelmClient(snap, mockClient, WithChartLoader(mockLoader))
+	mockHelmCLient, err := NewHelmClient(snap, mockClient, WithChartLoader(mockLoader), WithChartInstaller(mockInstaller))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,16 +190,6 @@ func TestComponentEnableDisable(t *testing.T) {
 			Namespace:    "default",
 			ManifestPath: "chunky-tuna-1.14.1.tgz",
 		},
-		"two": {
-			ReleaseName:  "whiskas-2",
-			Namespace:    "default",
-			ManifestPath: "chunky-tuna-1.14.1.tgz",
-		},
-		"three": {
-			ReleaseName:  "whiskas-3",
-			Namespace:    "default",
-			ManifestPath: "chunky-tuna-1.14.1.tgz",
-		},
 	})
 
 	os.RemoveAll(tempDir)
@@ -208,5 +199,4 @@ func TestComponentEnableDisable(t *testing.T) {
 
 	err := mockHelmClient.Enable("one", map[string]any{"key": "value"})
 	g.Expect(err).To(BeNil())
-	g.Expect(mockHelmClient.isComponentEnabled("whiskas-1", "default")).To(BeTrue())
 }

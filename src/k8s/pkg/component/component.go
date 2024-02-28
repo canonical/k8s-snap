@@ -11,6 +11,7 @@ import (
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
+	"helm.sh/helm/v3/pkg/release"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -21,9 +22,15 @@ type defaultHelmConfigProvider struct {
 
 // helmClient implements the ComponentManager interface
 type helmClient struct {
-	components  map[string]types.Component
-	initializer HelmConfigProvider
-	chartLoader ChartLoader
+	components     map[string]types.Component
+	initializer    HelmConfigProvider
+	chartLoader    ChartLoader
+	chartInstaller ChartInstaller
+	releaseLister  HelmReleaseLister
+}
+
+type ChartLoader interface {
+	Load(path string) (*chart.Chart, error)
 }
 
 type DefaultChartLoader struct{}
@@ -32,14 +39,44 @@ func (d *DefaultChartLoader) Load(path string) (*chart.Chart, error) {
 	return loader.Load(path)
 }
 
+type ChartInstaller interface {
+	NewInstall(actionConfig *action.Configuration) *action.Install
+	Run(install *action.Install, chart *chart.Chart, values map[string]any) error
+}
+
+type DefaultChartInstaller struct{}
+
+func (d *DefaultChartInstaller) NewInstall(actionConfig *action.Configuration) *action.Install {
+	return action.NewInstall(actionConfig)
+}
+
+func (d *DefaultChartInstaller) Run(install *action.Install, chart *chart.Chart, values map[string]any) error {
+	_, err := install.Run(chart, values)
+	return err
+}
+
+type HelmReleaseLister interface {
+	ListReleases(namespace string) ([]*release.Release, error)
+}
+
+type HelmActionLister struct {
+	initializer HelmConfigProvider
+}
+
+func (hal *HelmActionLister) ListReleases(namespace string) ([]*release.Release, error) {
+	actionConfig, err := hal.initializer.New(namespace)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Helm client configuration: %w", err)
+	}
+
+	list := action.NewList(actionConfig)
+	return list.Run()
+}
+
 // Component defines the name and status of a k8s Component.
 type Component struct {
 	Name   string
 	Status bool
-}
-
-type ChartLoader interface {
-	Load(path string) (*chart.Chart, error)
 }
 
 // InitializeHelmClientConfig initializes a Helm Configuration, ensures the use of a fresh configuration
@@ -57,10 +94,23 @@ func logAdapter(format string, v ...any) {
 
 type HelmClientOption func(*helmClient)
 
-// WithChartLoader allows setting a custom chart loader
+// WithChartLoader allows setting a custom chart loader to allow mocking
 func WithChartLoader(cl ChartLoader) HelmClientOption {
 	return func(hc *helmClient) {
 		hc.chartLoader = cl
+	}
+}
+
+// WithChartLoader allows setting a custom chart installer to allow mocking
+func WithChartInstaller(ci ChartInstaller) HelmClientOption {
+	return func(hc *helmClient) {
+		hc.chartInstaller = ci
+	}
+}
+
+func WithReleaseLister(rl HelmReleaseLister) HelmClientOption {
+	return func(hc *helmClient) {
+		hc.releaseLister = rl
 	}
 }
 
@@ -70,13 +120,17 @@ func NewHelmClient(snap snap.Snap, initializer HelmConfigProvider, opts ...HelmC
 		initializer = &defaultHelmConfigProvider{restClientGetter: snap.KubernetesRESTClientGetter}
 	}
 	hc := &helmClient{
-		components:  snap.Components(),
-		initializer: initializer,
-		chartLoader: &DefaultChartLoader{}, // Default chart loader
+		components:     snap.Components(),
+		initializer:    initializer,
+		chartLoader:    &DefaultChartLoader{},    // Default chart loader from Helm dependency
+		chartInstaller: &DefaultChartInstaller{}, // Default chart installer from Helm dependency
+		releaseLister:  &HelmActionLister{initializer: initializer},
 	}
+
 	for _, opt := range opts {
 		opt(hc)
 	}
+
 	return hc, nil
 }
 
@@ -92,7 +146,7 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 		return fmt.Errorf("failed to initialize Helm client configuration: %w", err)
 	}
 
-	install := action.NewInstall(actionConfig)
+	install := h.chartInstaller.NewInstall(actionConfig)
 	install.ReleaseName = component.ReleaseName
 	install.Namespace = component.Namespace
 
@@ -110,7 +164,7 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
 
-	_, err = install.Run(chart, values)
+	err = h.chartInstaller.Run(install, chart, values)
 	if err != nil {
 		return fmt.Errorf("failed to enable component '%s': %w", name, err)
 	}
@@ -118,15 +172,8 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 	return nil
 }
 
-// isComponentEnabled checks if a component is enabled.
 func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
-	actionConfig, err := h.initializer.New(namespace)
-	if err != nil {
-		return false, fmt.Errorf("failed to initialize Helm client configuration: %w", err)
-	}
-
-	list := action.NewList(actionConfig)
-	releases, err := list.Run()
+	releases, err := h.releaseLister.ListReleases(namespace)
 	if err != nil {
 		return false, err
 	}
