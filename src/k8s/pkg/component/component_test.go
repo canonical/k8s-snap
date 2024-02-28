@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/canonical/k8s/pkg/component/mock"
 	componentmock "github.com/canonical/k8s/pkg/component/mock"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
 	. "github.com/onsi/gomega"
 	"helm.sh/helm/v3/pkg/action"
-	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chartutil"
 	kubefake "helm.sh/helm/v3/pkg/kube/fake"
 	"helm.sh/helm/v3/pkg/registry"
@@ -35,30 +35,6 @@ func actionConfigFixture(t *testing.T) *action.Configuration {
 		Capabilities:   chartutil.DefaultCapabilities,
 		RegistryClient: registryClient,
 	}
-}
-
-type chartOptions struct {
-	*chart.Chart
-}
-
-type chartOption func(*chartOptions)
-
-func buildChart(opts ...chartOption) *chart.Chart {
-	c := &chartOptions{
-		Chart: &chart.Chart{
-			Metadata: &chart.Metadata{
-				APIVersion: "v1",
-				Name:       "hello",
-				Version:    "0.1.0",
-			},
-		},
-	}
-
-	for _, opt := range opts {
-		opt(c)
-	}
-
-	return c.Chart
 }
 
 func namedReleaseStub(name string, status release.Status) *release.Release {
@@ -139,8 +115,10 @@ func mustCreateNewHelmClient(t *testing.T, components map[string]types.Component
 		},
 	}
 
+	mockLoader := &mock.ChartLoader{}
+
 	//Create a mock ComponentManager with the mock HelmClient
-	mockHelmCLient, err := NewHelmClient(snap, mockClient)
+	mockHelmCLient, err := NewHelmClient(snap, mockClient, WithChartLoader(mockLoader))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,4 +177,36 @@ func TestListComponentsWithReleases(t *testing.T) {
 		{Name: "three", Status: true},
 		{Name: "two", Status: true},
 	}))
+}
+
+func TestComponentEnableDisable(t *testing.T) {
+	g := NewWithT(t)
+
+	// Setup the mock environment
+	mockHelmClient, tempDir, mockActionConfig := mustCreateNewHelmClient(t, map[string]types.Component{
+		"one": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-1.14.1.tgz",
+		},
+		"two": {
+			ReleaseName:  "whiskas-2",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-1.14.1.tgz",
+		},
+		"three": {
+			ReleaseName:  "whiskas-3",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-1.14.1.tgz",
+		},
+	})
+
+	os.RemoveAll(tempDir)
+
+	releases := mustMakeMeSomeReleases(mockActionConfig.Releases, t)
+	g.Expect(releases).To(HaveLen(3))
+
+	err := mockHelmClient.Enable("one", map[string]any{"key": "value"})
+	g.Expect(err).To(BeNil())
+	g.Expect(mockHelmClient.isComponentEnabled("whiskas-1", "default")).To(BeTrue())
 }

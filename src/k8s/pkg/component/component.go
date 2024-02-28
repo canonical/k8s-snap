@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/sirupsen/logrus"
 	"helm.sh/helm/v3/pkg/action"
+	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
@@ -22,12 +23,23 @@ type defaultHelmConfigProvider struct {
 type helmClient struct {
 	components  map[string]types.Component
 	initializer HelmConfigProvider
+	chartLoader ChartLoader
+}
+
+type DefaultChartLoader struct{}
+
+func (d *DefaultChartLoader) Load(path string) (*chart.Chart, error) {
+	return loader.Load(path)
 }
 
 // Component defines the name and status of a k8s Component.
 type Component struct {
 	Name   string
 	Status bool
+}
+
+type ChartLoader interface {
+	Load(path string) (*chart.Chart, error)
 }
 
 // InitializeHelmClientConfig initializes a Helm Configuration, ensures the use of a fresh configuration
@@ -43,16 +55,29 @@ func logAdapter(format string, v ...any) {
 	logrus.Debugf(format, v...)
 }
 
+type HelmClientOption func(*helmClient)
+
+// WithChartLoader allows setting a custom chart loader
+func WithChartLoader(cl ChartLoader) HelmClientOption {
+	return func(hc *helmClient) {
+		hc.chartLoader = cl
+	}
+}
+
 // NewHelmClient creates a new Component manager instance.
-func NewHelmClient(snap snap.Snap, initializer HelmConfigProvider) (*helmClient, error) {
+func NewHelmClient(snap snap.Snap, initializer HelmConfigProvider, opts ...HelmClientOption) (*helmClient, error) {
 	if initializer == nil {
 		initializer = &defaultHelmConfigProvider{restClientGetter: snap.KubernetesRESTClientGetter}
 	}
-
-	return &helmClient{
+	hc := &helmClient{
 		components:  snap.Components(),
 		initializer: initializer,
-	}, nil
+		chartLoader: &DefaultChartLoader{}, // Default chart loader
+	}
+	for _, opt := range opts {
+		opt(hc)
+	}
+	return hc, nil
 }
 
 // Enable enables a specified component.
@@ -80,7 +105,7 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 		return nil
 	}
 
-	chart, err := loader.Load(component.ManifestPath)
+	chart, err := h.chartLoader.Load(component.ManifestPath)
 	if err != nil {
 		return fmt.Errorf("failed to load component manifest: %w", err)
 	}
