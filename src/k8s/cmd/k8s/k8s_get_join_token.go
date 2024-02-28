@@ -9,32 +9,32 @@ import (
 )
 
 var (
-	addNodeCmdOpts struct {
+	getJoinTokenCmdOpts struct {
 		worker bool
 	}
-	addNodeCmdErrorMsgs = map[error]string{
+	getJoinTokenCmdErrorMsgs = map[error]string{
 		apiv1.ErrTokenAlreadyCreated: "A token for this node was already created and the node did not join.",
 	}
 )
 
-func newAddNodeCmd() *cobra.Command {
-	addNodeCmd := &cobra.Command{
-		Use:               "add-node <name>",
+func newGetJoinTokenCmd() *cobra.Command {
+	getJoinTokenCmd := &cobra.Command{
+		Use:               "get-join-token <name>",
 		Short:             "Create a connection token for a node to join the cluster",
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: provide only the node name to add")
+				return fmt.Errorf("too many arguments: only provide the node name for 'get-join-token'")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the node name to add")
+				return fmt.Errorf("missing argument: please provide the node name for 'get-join-token'")
 			}
 
-			defer errors.Transform(&err, addNodeCmdErrorMsgs)
+			defer errors.Transform(&err, getJoinTokenCmdErrorMsgs)
 			name := args[0]
 
 			// Create a token that will be used by the joining node to join the cluster.
-			token, err := k8sdClient.CreateJoinToken(cmd.Context(), name, addNodeCmdOpts.worker)
+			token, err := k8sdClient.CreateJoinToken(cmd.Context(), name, getJoinTokenCmdOpts.worker)
 			if err != nil {
 				return fmt.Errorf("failed to retrieve token: %w", err)
 			}
@@ -46,6 +46,6 @@ func newAddNodeCmd() *cobra.Command {
 		},
 	}
 
-	addNodeCmd.Flags().BoolVar(&addNodeCmdOpts.worker, "worker", false, "generate a token for a worker node")
-	return addNodeCmd
+	getJoinTokenCmd.Flags().BoolVar(&getJoinTokenCmdOpts.worker, "worker", false, "generate a token for a worker node")
+	return getJoinTokenCmd
 }

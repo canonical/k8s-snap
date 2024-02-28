@@ -24,7 +24,7 @@ var (
 		apiv1.ErrAlreadyBootstrapped: "A bootstrap node cannot join a cluster as it is already in a cluster. " +
 			"Consider reinstalling the k8s snap and then join it.",
 		apiv1.ErrInvalidJoinToken: "The provided token is not valid. " +
-			"Make sure that the name provided in `k8s add-node` matches the hostname of the " +
+			"Make sure that the name provided in `k8s get-join-token` matches the hostname of the " +
 			"joining node or asign another name with the `--name` flag",
 	}
 )
@@ -36,10 +36,10 @@ func newJoinNodeCmd() *cobra.Command {
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: provide only the token that was generated with `sudo k8s add-node <node-name>`")
+				return fmt.Errorf("too many arguments: provide only the token that was generated with `sudo k8s get-join-token <node-name>`")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the token that was generated with `sudo k8s add-node <node-name>`")
+				return fmt.Errorf("missing argument: provide the token that was generated with `sudo k8s get-join-token <node-name>`")
 			}
 
 			defer errors.Transform(&err, joinNodeCmdErrorMsgs)
