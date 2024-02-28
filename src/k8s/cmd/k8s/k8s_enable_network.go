@@ -10,9 +10,9 @@ import (
 
 func newEnableNetworkCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:               "network",
-		Short:             "Enable the Network component in the cluster.",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "network",
+		Short:   "Enable the Network component in the cluster.",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 

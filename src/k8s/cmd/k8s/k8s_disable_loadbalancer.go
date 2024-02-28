@@ -10,9 +10,9 @@ import (
 
 func newDisableLoadBalancerCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:               "loadbalancer",
-		Short:             "Disable the LoadBalancer component in the cluster.",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "loadbalancer",
+		Short:   "Disable the LoadBalancer component in the cluster.",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 

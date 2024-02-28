@@ -10,9 +10,9 @@ import (
 
 func newDisableIngressCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:               "ingress",
-		Short:             "Disable the Ingress component in the cluster.",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "ingress",
+		Short:   "Disable the Ingress component in the cluster.",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 

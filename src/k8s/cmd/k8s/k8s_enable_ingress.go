@@ -15,9 +15,9 @@ var enableIngressCmdOpts struct {
 
 func newEnableIngressCmd() *cobra.Command {
 	enableIngressCmd := &cobra.Command{
-		Use:               "ingress",
-		Short:             "Enable the Ingress component in the cluster",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "ingress",
+		Short:   "Enable the Ingress component in the cluster",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 

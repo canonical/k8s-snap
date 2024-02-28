@@ -10,9 +10,9 @@ import (
 
 func newEnableGatewayCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:               "gateway",
-		Short:             "Enable the Gateway component in the cluster.",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "gateway",
+		Short:   "Enable the Gateway component in the cluster.",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 
