@@ -1,7 +1,8 @@
 # How to use default DNS
 
 Canonical Kubernetes includes a default DNS (Domain Name System) essential for internal communication within your cluster. 
-When enabled, the DNS facilitates service discovery by assigning each service a DNS name. When disabled, you can integrate a custom dns solution into your cluster.
+When enabled, the DNS facilitates service discovery by assigning each service a DNS name. 
+When disabled, you can integrate a custom dns solution into your cluster.
 
 
 ## What you'll need
@@ -47,7 +48,7 @@ Or for disabling:
 ```bash
 sudo k8s help disable
 ```
-To continue with the `Configuring DNS` section, enable dns again.
+To continue with the `Configure DNS` section, enable dns again.
 
 ## Configure DNS
 Discover your configuration options by running:
