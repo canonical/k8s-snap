@@ -24,8 +24,11 @@ func GetOrCreateAuthToken(ctx context.Context, state *state.State, username stri
 
 func RevokeAuthToken(ctx context.Context, state *state.State, token string) error {
 	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		_, err := database.DeleteToken(ctx, tx, token)
-		return err
+		err := database.DeleteToken(ctx, tx, token)
+		if err != nil {
+			return fmt.Errorf("database operation failed: %w", err)
+		}
+		return nil
 	}); err != nil {
 		return fmt.Errorf("database transaction failed: %w", err)
 	}
