@@ -3,9 +3,9 @@ package snap
 import (
 	"context"
 	"fmt"
-	"log"
-	"strings"
 	"testing"
+
+	. "github.com/canonical/k8s/pkg/snap/mock/runner"
 
 	. "github.com/onsi/gomega"
 )
@@ -86,22 +86,4 @@ func TestServices(t *testing.T) {
 			g.Expect(err).NotTo(BeNil())
 		})
 	})
-}
-
-// MockRunner is a mock implementation of CommandRunner.
-type MockRunner struct {
-	CalledWithCtx     context.Context
-	CalledWithCommand []string
-	Err               error
-	Log               bool
-}
-
-// Run is a mock implementation of CommandRunner.
-func (m *MockRunner) Run(ctx context.Context, command ...string) error {
-	if m.Log {
-		log.Printf("mock execute %#v", command)
-	}
-	m.CalledWithCommand = append(m.CalledWithCommand, strings.Join(command, " "))
-	m.CalledWithCtx = ctx
-	return m.Err
 }

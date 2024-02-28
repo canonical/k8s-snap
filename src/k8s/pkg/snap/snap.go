@@ -22,7 +22,7 @@ type snap struct {
 }
 
 // NewSnap creates a new interface with the K8s snap.
-// NewSnap accepts the $SNAP, $SNAP_DATA and $SNAP_COMMON, directories, and a number of options.
+// NewSnap accepts the $SNAP, $SNAP_COMMON, directories, and a number of options.
 func NewSnap(snapDir, snapCommonDir string, options ...func(s *snap)) *snap {
 	s := &snap{
 		snapDir:       snapDir,
