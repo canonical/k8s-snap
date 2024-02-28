@@ -31,7 +31,7 @@ var (
 
 func newJoinClusterCmd() *cobra.Command {
 	joinNodeCmd := &cobra.Command{
-		Use:               "join-cluster <join token>",
+		Use:               "join-cluster <join_token>",
 		Short:             "Join a cluster",
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
