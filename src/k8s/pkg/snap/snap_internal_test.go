@@ -1,6 +1,10 @@
 package snap
 
-import "testing"
+import (
+	"testing"
+
+	. "github.com/onsi/gomega"
+)
 
 func TestServiceName(t *testing.T) {
 	tests := []struct {
@@ -16,10 +20,9 @@ func TestServiceName(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
 			got := serviceName(tc.input)
-			if got != tc.expected {
-				t.Errorf("serviceName(%q) = %q, want %q", tc.input, got, tc.expected)
-			}
+			g.Expect(got).To(Equal(tc.expected))
 		})
 	}
 }
