@@ -76,14 +76,14 @@ k8s::remove::containers() {
   k8s::common::setup_env
 
   # kill all container shims and pause processes
-  k8s::cmd::k8s x-print-shim-pids | xargs -r -t kill -SIGKILL
+  k8s::cmd::k8s x-print-shim-pids | xargs -r -t kill -SIGKILL || true
 
   # delete cni network namespaces
-  ip netns list | cut -f1 -d' ' | grep -- "^cni-" | xargs -n1 -r -t ip netns delete
+  ip netns list | cut -f1 -d' ' | grep -- "^cni-" | xargs -n1 -r -t ip netns delete || true
 
   # unmount volumes
-  cat /proc/mounts | grep /run/containerd/io.containerd. | cut -f2 -d' ' | xargs -r -t umount
-  cat /proc/mounts | grep /var/lib/kubelet/pods | cut -f2 -d' ' | xargs -r -t umount
+  cat /proc/mounts | grep /run/containerd/io.containerd. | cut -f2 -d' ' | xargs -r -t umount || true
+  cat /proc/mounts | grep /var/lib/kubelet/pods | cut -f2 -d' ' | xargs -r -t umount || true
 }
 
 # Run a ctr command against the local containerd socket
