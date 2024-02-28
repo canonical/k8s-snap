@@ -61,15 +61,15 @@ You should see three options:
 
 Set a new DNS server IP for forwarding known entries:
 ```bash
-sudo k8s set dns --upstream-dns=<new-ip>
+sudo k8s set dns upstream-dns=<new-ip>
 ```
 Change the cluster domain name:
 ```bash
-sudo k8s set dns --cluster-domain=<new-domain-name>
+sudo k8s set dns cluster-domain=<new-domain-name>
 ```
 Assign a new cluster IP to the DNS service.
 ```bash
-sudo k8s set dns --dns-ip=<new-cluster-ip>
+sudo k8s set dns dns-ip=<new-cluster-ip>
 ```
 Replace `<new-ip>`, `<new-domain-name>`, and `<new-cluster-ip>` with the desired values for your DNS configuration.
 
