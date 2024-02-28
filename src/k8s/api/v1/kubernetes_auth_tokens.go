@@ -16,11 +16,6 @@ type RevokeKubernetesAuthTokenRequest struct {
 	Token string `json:"token"`
 }
 
-// CreateKubernetesAuthTokenResponse is the response for "DELETE 1.0/kubernetes/auth/tokens".
-type RevokeKubernetesAuthTokenResponse struct {
-	Token string `json:"token"`
-}
-
 // CheckKubernetesAuthTokenResponse is the response for "GET 1.0/kubernetes/auth/tokens".
 type CheckKubernetesAuthTokenResponse struct {
 	Username string   `json:"username"`

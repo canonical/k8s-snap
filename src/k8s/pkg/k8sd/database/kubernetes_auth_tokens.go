@@ -127,17 +127,17 @@ func DeleteTokenOf(ctx context.Context, tx *sql.Tx, username string, groups []st
 
 // DeleteToken deletes the specified token (if any).
 // DeleteToken returns nil if the token is not valid.
-func DeleteToken(ctx context.Context, tx *sql.Tx, token string) (string, error) {
+func DeleteToken(ctx context.Context, tx *sql.Tx, token string) error {
 	if token == "" {
-		return "", fmt.Errorf("token cannot be empty")
+		return fmt.Errorf("token cannot be empty")
 	}
 
 	deleteTxStmt, err := cluster.Stmt(tx, k8sdTokensStmts["delete-by-token"])
 	if err != nil {
-		return "", fmt.Errorf("failed to prepare delete statement: %w", err)
+		return fmt.Errorf("failed to prepare delete statement: %w", err)
 	}
 	if _, err := deleteTxStmt.ExecContext(ctx, token); err != nil {
-		return "", fmt.Errorf("delete token query failed: %w", err)
+		return fmt.Errorf("delete token query failed: %w", err)
 	}
-	return token, nil
+	return nil
 }

@@ -52,12 +52,12 @@ func deleteKubernetesAuthTokens(state *state.State, r *http.Request) response.Re
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	token, err := impl.RevokeAuthToken(r.Context(), state, request.Token)
+	err := impl.RevokeAuthToken(r.Context(), state, request.Token)
 	if err != nil {
 		return response.InternalError(err)
 	}
 
-	return response.SyncResponse(true, apiv1.CreateKubernetesAuthTokenResponse{Token: token})
+	return response.SyncResponse(true, nil)
 }
 
 // postKubernetesAuthWebhook is used by kube-apiserver to handle TokenReview objects.
