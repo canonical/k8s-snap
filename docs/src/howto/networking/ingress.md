@@ -20,35 +20,18 @@ sudo k8s status
 
 The default state for the cluster is `ingress disabled`.
 
-## Enable or disable Ingress
+## Enable Ingress
 To enable Ingress, run:
 
 ```bash
 sudo k8s enable ingress
 ```
 
-To revoke this action use `disable`:
-
-``` {warning} Disabling Ingress may impact external access to services within your cluster. Ensure that you have alternative configurations in place before disabling Ingress.
-```
-
-```bash
-sudo k8s disable ingress
-```
-
-For more information on these two commands, execute:
+For more information on the command, execute:
 
 ```bash
 sudo k8s help enable
 ```
-
-Or for disabling:
-
-```bash
-sudo k8s help disable
-```
-
-To continue with the `Configure Ingress` section enable ingress again.
 
 ## Configure Ingress
 Discover your configuration options by running:
@@ -88,8 +71,22 @@ sudo k8s set ingress --enable-proxy-protocol=<new-enable-proxy-protocol>
 
 Adjust the value of `<new-enable-proxy-protocol>` with your proxy protocol requirements.
 
+## Disable Ingress
+You can `disable` the built-in ingress:
+
+``` {warning} Disabling Ingress may impact external access to services within your cluster. Ensure that you have alternative configurations in place before disabling Ingress.
+```
+
+```bash
+sudo k8s disable ingress
+```
+
+For more information on this command, run:
+
+```bash
+sudo k8s help disable
+```
 
 <!-- LINKS -->
 
 [getting-started-guide]: ../../../tutorial/getting-started
-
