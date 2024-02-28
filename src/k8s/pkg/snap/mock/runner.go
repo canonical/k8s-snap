@@ -1,4 +1,4 @@
-package runner
+package mock
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 )
 
 // MockRunner is a mock implementation of CommandRunner.
-type MockRunner struct {
+type Runner struct {
 	CalledWithCtx     context.Context
 	CalledWithCommand []string
 	Err               error
@@ -15,7 +15,7 @@ type MockRunner struct {
 }
 
 // Run is a mock implementation of CommandRunner.
-func (m *MockRunner) Run(ctx context.Context, command ...string) error {
+func (m *Runner) Run(ctx context.Context, command ...string) error {
 	if m.Log {
 		log.Printf("mock execute %#v", command)
 	}
