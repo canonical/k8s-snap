@@ -1,3 +1,5 @@
 /deps/
 /build/
 /bin/
+/hack/.build
+/hack/.deps
