@@ -22,8 +22,8 @@ def get_join_token(
 
 
 # Join an existing cluster.
-def join_cluster(instance, token):
-    instance.exec(["k8s", "join-cluster", token])
+def join_cluster(instance, join_token):
+    instance.exec(["k8s", "join-cluster", join_token])
 
 
 @pytest.mark.node_count(2)
@@ -31,8 +31,8 @@ def test_clustering(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_node = instances[1]
 
-    token = get_join_token(cluster_node, joining_node)
-    join_cluster(joining_node, token)
+    join_token = get_join_token(cluster_node, joining_node)
+    join_cluster(joining_node, join_token)
 
     util.wait_until_k8s_ready(cluster_node, instances)
     nodes = util.ready_nodes(cluster_node)

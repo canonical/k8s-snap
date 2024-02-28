@@ -15,48 +15,48 @@ import (
 )
 
 var (
-	joinNodeCmdOpts struct {
+	joinClusterCmdOpts struct {
 		name    string
 		address string
 		timeout time.Duration
 	}
-	joinNodeCmdErrorMsgs = map[error]string{
+	joinClusterCmdErrorMsgs = map[error]string{
 		apiv1.ErrAlreadyBootstrapped: "A bootstrap node cannot join a cluster as it is already in a cluster. " +
 			"Consider reinstalling the k8s snap and then join it.",
-		apiv1.ErrInvalidJoinToken: "The provided token is not valid. " +
+		apiv1.ErrInvalidJoinToken: "The provided join token is not valid. " +
 			"Make sure that the name provided in `k8s get-join-token` matches the hostname of the " +
 			"joining node or asign another name with the `--name` flag",
 	}
 )
 
-func newJoinNodeCmd() *cobra.Command {
+func newJoinClusterCmd() *cobra.Command {
 	joinNodeCmd := &cobra.Command{
-		Use:               "join-cluster <token>",
+		Use:               "join-cluster <join token>",
 		Short:             "Join a cluster",
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: provide only the token that was generated with `sudo k8s get-join-token <node-name>`")
+				return fmt.Errorf("too many arguments: provide only the join token that was generated with `sudo k8s get-join-token <node-name>`")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the token that was generated with `sudo k8s get-join-token <node-name>`")
+				return fmt.Errorf("missing argument: provide the join token that was generated with `sudo k8s get-join-token <node-name>`")
 			}
 
-			defer errors.Transform(&err, joinNodeCmdErrorMsgs)
+			defer errors.Transform(&err, joinClusterCmdErrorMsgs)
 
-			token := args[0]
+			joinToken := args[0]
 
 			// Use hostname as default node name
-			if joinNodeCmdOpts.name == "" {
+			if joinClusterCmdOpts.name == "" {
 				hostname, err := os.Hostname()
 				if err != nil {
 					return fmt.Errorf("--name is not set and failed to get hostname: %w", err)
 				}
-				joinNodeCmdOpts.name = hostname
+				joinClusterCmdOpts.name = hostname
 			}
 
-			if joinNodeCmdOpts.address == "" {
-				joinNodeCmdOpts.address = util.CanonicalNetworkAddress(
+			if joinClusterCmdOpts.address == "" {
+				joinClusterCmdOpts.address = util.CanonicalNetworkAddress(
 					util.NetworkInterfaceAddress(), config.DefaultPort,
 				)
 			}
@@ -65,25 +65,25 @@ func newJoinNodeCmd() *cobra.Command {
 				return v1.ErrAlreadyBootstrapped
 			}
 			const minTimeout = 3 * time.Second
-			if joinNodeCmdOpts.timeout < minTimeout {
-				cmd.PrintErrf("Timeout %v is less than minimum of %v, using the minimum %v instead.\n", joinNodeCmdOpts.timeout, minTimeout, minTimeout)
-				joinNodeCmdOpts.timeout = minTimeout
+			if joinClusterCmdOpts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v, using the minimum %v instead.\n", joinClusterCmdOpts.timeout, minTimeout, minTimeout)
+				joinClusterCmdOpts.timeout = minTimeout
 			}
 
-			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), joinNodeCmdOpts.timeout)
+			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), joinClusterCmdOpts.timeout)
 			defer cancel()
 
 			fmt.Println("Joining the cluster. This may take some time, please wait.")
-			if err := k8sdClient.JoinCluster(timeoutCtx, joinNodeCmdOpts.name, joinNodeCmdOpts.address, token); err != nil {
+			if err := k8sdClient.JoinCluster(timeoutCtx, joinClusterCmdOpts.name, joinClusterCmdOpts.address, joinToken); err != nil {
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}
 
-			fmt.Printf("Joined the cluster as %q.\nPlease allow some time for Kubernetes node registration.\n", joinNodeCmdOpts.name)
+			fmt.Printf("Joined the cluster as %q.\nPlease allow some time for Kubernetes node registration.\n", joinClusterCmdOpts.name)
 			return nil
 		},
 	}
-	joinNodeCmd.Flags().StringVar(&joinNodeCmdOpts.name, "name", "", "The name of the joining node. defaults to hostname")
-	joinNodeCmd.Flags().StringVar(&joinNodeCmdOpts.address, "address", "", "The address (IP:Port) on which the nodes REST API should be available")
-	joinNodeCmd.Flags().DurationVar(&joinNodeCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for the node to be ready.")
+	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.name, "name", "", "The name of the joining node. defaults to hostname")
+	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.address, "address", "", "The address (IP:Port) on which the nodes REST API should be available")
+	joinNodeCmd.Flags().DurationVar(&joinClusterCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for the node to be ready.")
 	return joinNodeCmd
 }

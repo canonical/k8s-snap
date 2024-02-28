@@ -20,7 +20,7 @@ var (
 func newGetJoinTokenCmd() *cobra.Command {
 	getJoinTokenCmd := &cobra.Command{
 		Use:               "get-join-token <name>",
-		Short:             "Create a connection token for a node to join the cluster",
+		Short:             "Create a join token for a node to join the cluster",
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
@@ -33,19 +33,19 @@ func newGetJoinTokenCmd() *cobra.Command {
 			defer errors.Transform(&err, getJoinTokenCmdErrorMsgs)
 			name := args[0]
 
-			// Create a token that will be used by the joining node to join the cluster.
-			token, err := k8sdClient.CreateJoinToken(cmd.Context(), name, getJoinTokenCmdOpts.worker)
+			// Create a joinToken that will be used by the joining node to join the cluster.
+			joinToken, err := k8sdClient.CreateJoinToken(cmd.Context(), name, getJoinTokenCmdOpts.worker)
 			if err != nil {
-				return fmt.Errorf("failed to retrieve token: %w", err)
+				return fmt.Errorf("failed to retrieve join token: %w", err)
 			}
 
 			// TODO: Print guidance on what to do with the token.
 			//       This requires a --format flag first as we still need some machine readable output for the integration tests.
-			fmt.Println(token)
+			fmt.Println(joinToken)
 			return nil
 		},
 	}
 
-	getJoinTokenCmd.Flags().BoolVar(&getJoinTokenCmdOpts.worker, "worker", false, "generate a token for a worker node")
+	getJoinTokenCmd.Flags().BoolVar(&getJoinTokenCmdOpts.worker, "worker", false, "generate a join token for a worker node")
 	return getJoinTokenCmd
 }
