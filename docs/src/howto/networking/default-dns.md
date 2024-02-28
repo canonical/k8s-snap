@@ -1,25 +1,19 @@
 # How to use default DNS
 
 Canonical Kubernetes includes a default DNS (Domain Name System) essential for internal communication within your cluster. 
-When enabled, the DNS facilitates service discovery
-by assigning each service a DNS name. 
+When enabled, the DNS facilitates service discovery by assigning each service a DNS name. When disabled, you can integrate a custom dns solution into your cluster.
+
 
 ## What you'll need
 
 This guide assumes the following:
 
-- You are installing on Ubuntu 22.04 or later, **or** another OS which supports
-  snap packages (see [snapd support])
 - You have root or sudo access to the machine
-- You have an internet connection
-- The target machine has sufficient memory and disk space. To accommodate
-  workloads, we recommend a system with ***at least*** 20G of disk space and 4G of
-  memory.
-- You have Canonical Kubernetes installed and a bootstraped cluster. (See: [getting-started-guide](#TODO))
+- You have a bootstraped Canonical Kubernetes cluster (see the [getting-started-guide]).
 
-## Is DNS enabled?
+## Check DNS status
 
-Find out wether you have enabled DNS with the following command:
+Find out whether DNS is enabled or disabled with the following command:
 
 ```bash
 sudo k8s status
@@ -27,15 +21,16 @@ sudo k8s status
 
 The default state for the cluster is `dns enabled`.
 
-## Enabling and disabling DNS
+## Enable or disable DNS
 To enable DNS, run:
 
 ```bash
 sudo k8s enable dns
 ```
-
 Canonical Kubernetes also allows you to disable the built-in DNS, 
 if you desire a custom solution:
+
+``` {warning} Do not disable DNS unless you have a replacement configured. Disabling DNS will disrupt internal cluster communication. Ensure a suitable custom DNS solution is in place before disabling. You can re-enable dns at any point, and your cluster will return to normal functionality.```
 
 ```bash
 sudo k8s disable dns
@@ -52,9 +47,9 @@ Or for disabling:
 ```bash
 sudo k8s help disable
 ```
-To continue with the `Configuring DNS` section enable dns again.
+To continue with the `Configuring DNS` section, enable dns again.
 
-## Configuring DNS
+## Configure DNS
 Discover your configuration options by running:
 ```bash
 sudo k8s set dns –help
@@ -81,6 +76,5 @@ Replace `<new-ip>`, `<new-domain-name>`, and `<new-cluster-ip>` with the desired
 
 <!-- LINKS -->
 
-[Component Upgrades]: #TODO
-[getting-started-guide]: (#TODO)
+[getting-started-guide]: ../../../tutorial/getting-started
 
