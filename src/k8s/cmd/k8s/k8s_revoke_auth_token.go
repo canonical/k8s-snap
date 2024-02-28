@@ -22,8 +22,7 @@ func newRevokeAuthTokenCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 
-			err = k8sdClient.RevokeAuthToken(cmd.Context(), revokeAuthTokenCmdOpts.token)
-			if err != nil {
+			if err := k8sdClient.RevokeAuthToken(cmd.Context(), revokeAuthTokenCmdOpts.token); err != nil {
 				return fmt.Errorf("could not revoke auth token: %w", err)
 			}
 
