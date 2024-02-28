@@ -52,7 +52,7 @@ Note: remember to use `sudo k8s kubectl` (See: [kubectl-guide](#TODO)).
 
 Tell Ingress to use your new Ingress certificate:
 ```bash
-sudo k8s set ingress --default-tls-secret=<new-default-tls-secret>
+sudo k8s set ingress.default-tls-secret=<new-default-tls-secret>
 ```
 
 Replace `<new-default-tls-secret>` with the desired value for your Ingress configuration.
@@ -66,7 +66,7 @@ Consult the official kubernetes documentation on [proxy-protocol](https://kubern
 Use the following command to enable the proxy protocol:
 
 ```bash
-sudo k8s set ingress --enable-proxy-protocol=<new-enable-proxy-protocol>
+sudo k8s set ingress.enable-proxy-protocol=<new-enable-proxy-protocol>
 ```
 
 Adjust the value of `<new-enable-proxy-protocol>` with your proxy protocol requirements.
