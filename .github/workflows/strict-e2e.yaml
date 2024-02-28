@@ -33,7 +33,7 @@ jobs:
           sg lxd -c 'snapcraft --use-lxd'
           mv k8s_*.snap k8s-strict.snap
       - name: Uploading snap
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: k8s-strict.snap
           path: k8s-strict.snap
@@ -50,7 +50,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
       - name: Install tox
@@ -62,7 +62,7 @@ jobs:
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
       - name: Download snap
-        uses: actions/download-artifact@v3.0.2
+        uses: actions/download-artifact@v4
         with:
           name: k8s-strict.snap
           path: build
