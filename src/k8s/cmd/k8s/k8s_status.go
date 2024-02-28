@@ -21,10 +21,10 @@ var (
 
 func newStatusCmd() *cobra.Command {
 	statusCmd := &cobra.Command{
-		Use:               "status",
-		Short:             "Retrieve the current status of the cluster",
-		Hidden:            true,
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "status",
+		Short:   "Retrieve the current status of the cluster",
+		Hidden:  true,
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 
