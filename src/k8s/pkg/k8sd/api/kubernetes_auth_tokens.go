@@ -54,6 +54,7 @@ func deleteKubernetesAuthTokens(state *state.State, r *http.Request) response.Re
 
 	err := impl.RevokeAuthToken(r.Context(), state, request.Token)
 	if err != nil {
+		err = fmt.Errorf("failed to revoke auth token: %w", err)
 		return response.InternalError(err)
 	}
 
