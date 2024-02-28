@@ -29,9 +29,9 @@ bin/static/k8sd: bin/static/k8s
 	cd bin/static && ln -sf k8s k8sd
 
 ## Dynamic Builds
-dynamic: bin/dynamic/lib/libdqlite.so bin/dynamic/k8s bin/dynamic/k8sd bin/dynamic/k8s-apiserver-proxy
+dynamic: bin/dynamic/k8s bin/dynamic/k8sd bin/dynamic/k8s-apiserver-proxy
 
-bin/dynamic/lib/libdqlite.so: deps/dynamic/lib/libdqlite.so
+bin/dynamic/lib/libdqlite.so:
 	mkdir -p bin/dynamic/lib
 	$(DQLITE_BUILD_SCRIPTS_DIR)/dynamic-dqlite.sh
 	cp $(DQLITE_BUILD_SCRIPTS_DIR)/.deps/dynamic/lib/*.so* bin/dynamic/lib
