@@ -19,7 +19,7 @@ While the storage option comes with sensible defaults, you can customize it to m
 sudo k8s get storage
 ```
 
-> **Note**: For an explanation of each configuration option, refer to the [reference](todo) section. 
+> **Note**: For an explanation of each configuration option, refer to the [reference](#TODO) section. 
 
 You can modify the configuration using the `set` command. For example, to change the local storage path:
 
