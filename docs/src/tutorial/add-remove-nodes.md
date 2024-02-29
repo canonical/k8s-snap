@@ -63,8 +63,9 @@ sudo k8s add-node worker --worker
 
 A base64 token will be printed to your terminal. Keep it handy as you will need it for the next step.
 
-> **Note**: It's advisable to name the new node after the hostname of the
-> worker node (in this case, the VM's hostname is worker).
+```{note} It's advisable to name the new node after the hostname of the
+   worker node (in this case, the VM's hostname is worker).
+```
 
 ### 3. Join the cluster on the worker node
 
@@ -114,9 +115,6 @@ multipass purge
   kubectl][Kubectl]
 - Explore Kubernetes commands with our [Command Reference
   Guide][Command Reference]
-- Bootstrap Kubernetes with your custom configurations [Bootstrap K8s][Bootstrap K8s]
-- Learn how to set up a multi-node environment [Setting up a K8s
-  cluster][Setting up K8s]
 - Configure storage options [Storage][Storage]
 - Master Kubernetes networking concepts [Networking][Networking]
 
@@ -124,10 +122,8 @@ multipass purge
 
 [Getting started]: getting-started.md
 [Multipass Installation]: https://multipass.run/install
-[Ingress]: #TODO
-[Kubectl]: #TODO
-[Command Reference]: #TODO
-[Bootstrap K8s]: #TODO
-[Setting up K8s]: #TODO
-[Storage]: #TODO
-[Networking]: #TODO
+[Ingress]: ../howto/networking/default-ingress.md
+[Kubectl]: ./kubectl
+[Command Reference]: ../reference/commands
+[Storage]: ../howto/storage
+[Networking]: ../howto/networking/index.md
