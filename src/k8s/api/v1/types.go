@@ -80,9 +80,9 @@ func (c ClusterStatus) String() string {
 	result := strings.Builder{}
 
 	if c.Ready {
-		result.WriteString("k8s is ready.")
+		result.WriteString("status: ready.")
 	} else {
-		result.WriteString("k8s is not ready.")
+		result.WriteString("status: not ready.")
 	}
 	result.WriteString("\n")
 
