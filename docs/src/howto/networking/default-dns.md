@@ -2,7 +2,7 @@
 
 Canonical Kubernetes includes a default DNS (Domain Name System) essential for internal communication within your cluster. 
 When enabled, the DNS facilitates service discovery by assigning each service a DNS name. 
-When disabled, you can integrate a custom dns solution into your cluster.
+When disabled, you can integrate a custom DNS solution into your cluster.
 
 
 ## What you'll need
