@@ -10,7 +10,7 @@ When disabled, you can integrate a custom DNS solution into your cluster.
 This guide assumes the following:
 
 - You have root or sudo access to the machine.
-- You have a bootstraped Canonical Kubernetes cluster (see the [Getting Started] guide).
+- You have a bootstraped Canonical Kubernetes cluster (see the [Getting Started][getting-started-guide] guide).
 
 ## Check DNS status
 
@@ -78,5 +78,4 @@ sudo k8s help disable
 
 <!-- LINKS -->
 
-[Getting Started]: ../../../tutorial/getting-started
-
+[getting-started-guide]: ../../../tutorial/getting-started
