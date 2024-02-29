@@ -86,7 +86,7 @@ func (s *snap) Strict() bool {
 }
 
 func (s *snap) OnLXD(ctx context.Context) bool {
-	return utils.RunCommand(ctx, "grep", "-qa", "container=lxc", "/proc/1/environ") == nil
+	return s.runCommand(ctx, "grep", "-qa", "container=lxc", "/proc/1/environ") == nil
 }
 
 func (s *snap) UID() int {
