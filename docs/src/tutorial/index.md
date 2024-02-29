@@ -11,8 +11,13 @@ Overview <self>
 ```{toctree}
 :glob:
 :titlesonly:
-/tutorial/*
+getting-started
+kubectl
+add-remove-nodes
 ```
+
+---
+## Other documentation types
 
 If you have a specific goal our [How-to guides] have more in-depth detail than
 tutorials and can be applied to a broader set of applications. They’ll help you

@@ -13,11 +13,10 @@ Overview <self>
 :titlesonly:
 
 install/index
+networking/index
 /howto/storage
 /howto/contribute
 /howto/support
-/howto/networking/default-dns
-/howto/networking/ingress
 ```
 
 
