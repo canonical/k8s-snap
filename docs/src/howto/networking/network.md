@@ -47,7 +47,7 @@ sudo k8s set network –-help
 
 Let's look at the detailed status of the network as reported by Cilium.
 
-First, find the nmae of the Cilium pod:
+First, find the name of the Cilium pod:
 
 ```sh
 sudo k8s kubectl get pod -n kube-system -l k8s-app=cilium
@@ -65,8 +65,9 @@ You should see a wide range of metrics and configuration values for your cluster
 
 You can `disable` the built-in network:
 
-``` {warning} If you have custom rules in place, disabling Network may impact external access to services within your cluster.
-    Ensure that you have alternative configurations in place before disabling Network.
+``` {warning}
+If you have custom rules in place, disabling Network may impact external access to services within your cluster.
+Ensure that you have alternative configurations in place before disabling Network.
 ```
 
 ```bash
