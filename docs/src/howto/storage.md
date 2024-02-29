@@ -13,7 +13,7 @@ sudo k8s enable storage
 ```
 
 ## Configure Storage
-While the storage option comes with sensible defaults, you can customize it to meet your requirements. Obtain the current configuration by running:
+While the storage option comes with sensible defaults, you can customise it to meet your requirements. Obtain the current configuration by running:
 
 ```sh
 sudo k8s get storage
