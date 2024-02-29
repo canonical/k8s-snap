@@ -15,6 +15,7 @@ Overview <self>
 install/index
 /howto/contribute
 /howto/support
+/howto/networking/ingress
 ```
 
 
