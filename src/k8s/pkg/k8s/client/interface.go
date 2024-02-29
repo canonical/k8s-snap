@@ -11,7 +11,7 @@ import (
 // Client defines the interface for interacting with a k8s cluster.
 type Client interface {
 	// Bootstrap initializes a new cluster member using the provided bootstrap configuration.
-	Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.ClusterMember, error)
+	Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error)
 	// IsKubernetesAPIServerReady checks if kube-apiserver is reachable.
 	IsKubernetesAPIServerReady(ctx context.Context) bool
 	// IsBootstrapped checks whether the current node is already bootstrapped.
@@ -20,6 +20,8 @@ type Client interface {
 	CleanupNode(ctx context.Context, snap snap.Snap, nodeName string)
 	// ClusterStatus retrieves the current status of the Kubernetes cluster.
 	ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error)
+	// NodeStatus retrieves the current status of the local node.
+	NodeStatus(ctx context.Context) (apiv1.NodeStatus, error)
 	// CreateJoinToken generates a token for a new node to join the cluster.
 	CreateJoinToken(ctx context.Context, name string, worker bool) (string, error)
 	// GenerateAuthToken generates an authentication token for a specific user with given groups.

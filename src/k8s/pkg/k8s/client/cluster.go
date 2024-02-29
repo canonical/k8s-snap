@@ -21,11 +21,11 @@ func (c *k8sdClient) IsBootstrapped(ctx context.Context) bool {
 }
 
 // Bootstrap bootstraps the k8s cluster
-func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.ClusterMember, error) {
+func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error) {
 	// Get system hostname.
 	hostname, err := os.Hostname()
 	if err != nil {
-		return apiv1.ClusterMember{}, fmt.Errorf("failed to retrieve system hostname: %w", err)
+		return apiv1.NodeStatus{}, fmt.Errorf("failed to retrieve system hostname: %w", err)
 	}
 
 	// Get system addrPort.
@@ -39,21 +39,21 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.Bootst
 	}
 
 	if err := c.m.Ready(timeToWait); err != nil {
-		return apiv1.ClusterMember{}, fmt.Errorf("cluster did not come up in time: %w", err)
+		return apiv1.NodeStatus{}, fmt.Errorf("cluster did not come up in time: %w", err)
 	}
 	config, err := bootstrapConfig.ToMap()
 	if err != nil {
-		return apiv1.ClusterMember{}, fmt.Errorf("failed to convert bootstrap config to map: %w", err)
+		return apiv1.NodeStatus{}, fmt.Errorf("failed to convert bootstrap config to map: %w", err)
 	}
 	if err := c.m.NewCluster(hostname, addrPort, config, time.Duration(timeToWait)*time.Second); err != nil {
 		// TODO(neoaggelos): print message that bootstrap failed, and that we are cleaning up
 		fmt.Fprintln(os.Stderr, "Failed with error:", err)
 		c.CleanupNode(ctx, c.opts.Snap, hostname)
-		return apiv1.ClusterMember{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
+		return apiv1.NodeStatus{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
 	}
 
 	// TODO(neoaggelos): retrieve hostname and address from the cluster, do not guess
-	return apiv1.ClusterMember{
+	return apiv1.NodeStatus{
 		Name:    hostname,
 		Address: util.NetworkInterfaceAddress(),
 	}, nil
