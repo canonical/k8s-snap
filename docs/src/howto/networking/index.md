@@ -5,7 +5,8 @@
 Networking <self>
 ```
 
-Networking is a core part of a working Kubernetes cluster. These topics cover how to configure and use key capabilities of Canonical Kubernetes
+Networking is a core part of a working Kubernetes cluster. These topics cover
+how to configure and use key capabilities of Canonical Kubernetes.
 
 
 ```{toctree}
