@@ -21,19 +21,19 @@ In this article, "**control plane**" refers to the Multipass VM that operates th
 
 The first step is creating the VMs.
 
-```sh
-multipass launch 22.04 --name control-plane
+```bash
+multipass launch 22.04 --name control-plane -m 4G -d 8G
 ```
 
-```sh
-multipass launch 22.04 --name worker
+```bash
+multipass launch 22.04 --name worker -m 4G -c 4 -d 8G
 ```
 
 This step can take a few minutes as Multipass creates the new virtual machines. It's normal and expected.
 
 Install Canonical Kubernetes on both VMs with the following command:
 
-```sh
+```bash
 sudo snap install --classic --edge k8s
 ```
 
@@ -41,15 +41,8 @@ sudo snap install --classic --edge k8s
 
 Bootstrap the control plane node:
 
-```sh
+```bash
 sudo k8s bootstrap
-```
-
-Then, enable two components necessary for nodes' communication.
-
-```sh
-sudo k8s enable dns
-sudo k8s enable network
 ```
 
 Canonical Kubernetes allows you to create two types of nodes: control plane and
@@ -57,7 +50,7 @@ worker nodes. In this example, we're creating a worker node.
 
 Create the token for the worker node to join the cluster.
 
-```sh
+```bash
 sudo k8s add-node worker --worker
 ```
 
@@ -71,7 +64,7 @@ A base64 token will be printed to your terminal. Keep it handy as you will need 
 
 To join the worker node to the cluster, run:
 
-```sh
+```bash
 sudo k8s join-cluster <token>
 ```
 
@@ -83,13 +76,13 @@ To see what we've accomplished in this tutorial:
 
 If you created a control plane node, check that it joined successfully:
 
-```sh
+```bash
 sudo k8s status
 ```
 
 If you created a worker node, verify with this command:
 
-```sh
+```bash
 sudo k8s kubectl get nodes
 ```
 
@@ -102,7 +95,7 @@ Congratulations!
 
 To delete the VMs from your system, two commands are needed:
 
-```sh
+```bash
 multipass remove control-plane
 multipass remove worker
 multipass purge

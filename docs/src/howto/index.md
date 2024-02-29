@@ -32,7 +32,7 @@ Alternatively, the [Tutorials section] contains step-by-step tutorials to help
 guide you through exploring and using Canonical Kubernetes.
 
 For a better understanding of how Canonical Kubernetes works and related topics
-such as security, our [Explanation section] helps you to expand your knowledge
+such as security, our [Explanation section] helps you expand your knowledge
 and get the most out of Kubernetes.
 
 Finally, our [Reference section] is for when you need to check specific details

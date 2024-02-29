@@ -2,14 +2,14 @@
 
 Kubernetes provides a command line tool for communicating with a Kubernetes cluster's control plane,
 using the Kubernetes API. This guide outlines how some of the everyday operations of your 
-Charmed Kubernetes cluster can be managed with this tool. 
+Kubernetes cluster can be managed with this tool.
 
 ## What you will need
 
 Before you begin, make sure you have the following:
 
 - A bootstrapped Canonical Kubernetes cluster (See
-  [Getting Started](https://github.com/canonical/k8s-snap/blob/main/docs/src/tutorial/getting-started.md))
+  [Getting Started](getting-started.md))
 - You are using the built-in `kubectl` command from the snap.
 
 ### 1. The Kubectl Command
@@ -24,7 +24,7 @@ original upstream source into the `k8s` snap you have installed.
 
 To access `kubectl`, run the following command:
 
-```sh
+```bash
 sudo k8s kubectl <command>
 ```
 
@@ -35,7 +35,7 @@ sudo k8s kubectl <command>
 
 In Canonical Kubernetes, the `kubeconfig` file that is being read to display
 the configuration when you run `kubectl config view` lives at
-`/snap/k8scurrent/k8s/config/kubeconfig`. You can change this by setting a
+`/etc/kubernetes/admin.conf`. You can change this by setting a
 `KUBECONFIG` environment variable or passing the `--kubeconfig` flag to a
 command.
 
@@ -50,7 +50,7 @@ guide.
 To see what pods were created when we enabled the `network` and `dns`
 components:
 
-```sh
+```bash
 sudo k8s kubectl get pods -o wide -n kube-system
 ```
 
@@ -59,7 +59,7 @@ You should be seeing the network operator, networking agent and coredns pods.
 > **Note**: If you see an error message here, it is likely that you forgot to
 > bootstrap your cluster.
 
-```sh
+```bash
 sudo k8s kubectl get services --all-namespace
 ```
 
@@ -71,20 +71,20 @@ will communicate.
 
 Let's deploy an NGINX server using this command:
 
-```sh
+```bash
 sudo k8s kubectl create deployment nginx --image=nginx:latest
 ```
 
 To observe the NGINX pod running in the default namespace:
 
-```sh
+```bash
 sudo k8s kubectl get pods
 ```
 
 Let's now scale this deployment, which means increasing the number of pods it
 manages.
 
-```sh
+```bash
 sudo k8s kubectl scale deployment nginx --replicas=3
 ```
 
@@ -97,13 +97,13 @@ declared state of the cluster is maintained.
 First, open a new terminal so you can watch the changes as they happen. Run
 this command in a new terminal:
 
-```sh
+```bash
 sudo k8s kubectl get pods --all-namespace --watch
 ```
 
 Now, go back to your original terminal and run:
 
-```sh
+```bash
 sudo k8s kubectl delete pods -l app=nginx
 ```
 

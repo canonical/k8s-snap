@@ -10,31 +10,26 @@ top to bottom direction
 !include <C4/C4_Component>
 
 Person(K8sAdmin, "K8s Admin", $descr="Responsible for the K8s cluster, has elevated permissions", $tags="", $link="")
-System(K8scharm, "K8s charm", $descr="Orchestrating the lifecycle management of K8s", $tags="", $link="")
 Container(K8sSnapDistribution.Runtime, "Runtime", $techn="", $descr="Containerd and runc", $tags="", $link="")
-Container(K8sSnapDistribution.Components, "Components", $techn="", $descr="Core components for the k8s distribution", $tags="", $link="")
+System(CharmK8s, "Charm K8s", $descr="Orchestrating the lifecycle management of K8s", $tags="", $link="")
 Container(K8sSnapDistribution.State, "State", $techn="", $descr="Datastores holding the cluster state", $tags="", $link="")
 Container(K8sSnapDistribution.KubernetesServices, "Kubernetes Services", $techn="", $descr="API server, kubelet, kube-proxy, scheduler, kube-controller", $tags="", $link="")
 
 Container_Boundary("K8sSnapDistribution.K8sd_boundary", "K8sd", $tags="") {
-  Component(K8sSnapDistribution.K8sd.CLI, "CLI", $techn="CLI", $descr="The CLI offered", $tags="", $link="")
-  Component(K8sSnapDistribution.K8sd.RESTAPI, "REST API", $techn="REST", $descr="The REST interface offered", $tags="", $link="")
-  Component(K8sSnapDistribution.K8sd.Clustermanagement, "Cluster management", $techn="", $descr="Management of the cluster with the help of MicroCluster", $tags="", $link="")
-  Component(K8sSnapDistribution.K8sd.Componentmanagement, "Component management", $techn="", $descr="Management of the CNI, DNS, storage, ingress, metrics", $tags="", $link="")
+  Component(K8sSnapDistribution.K8sd.CLI, "CLI", $techn="CLI", $descr="The CLI the offered", $tags="", $link="")
+  Component(K8sSnapDistribution.K8sd.APIviaHTTP, "API via HTTP", $techn="REST", $descr="The API interface offered", $tags="", $link="")
+  Component(K8sSnapDistribution.K8sd.CLustermanagement, "CLuster management", $techn="", $descr="Management of the cluster with the help of MicroCluster", $tags="", $link="")
 }
 
-Rel(K8sAdmin, K8sSnapDistribution.K8sd.CLI, "Sets up and configures the cluster", $techn="", $tags="", $link="")
-Rel(K8scharm, K8sSnapDistribution.K8sd.RESTAPI, "Orchestrates the lifecycle management of K8s", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd.Componentmanagement, K8sSnapDistribution.Components, "Handles", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd.Clustermanagement, K8sSnapDistribution.KubernetesServices, "Configures", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.Components, K8sSnapDistribution.KubernetesServices, "Keeps state in", $techn="", $tags="", $link="")
+Rel(K8sAdmin, K8sSnapDistribution.K8sd.CLI, "Sets up and configured the cluster", $techn="", $tags="", $link="")
+Rel(CharmK8s, K8sSnapDistribution.K8sd.APIviaHTTP, "Orchestrates the lifecycle management of K8s", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd.CLustermanagement, K8sSnapDistribution.KubernetesServices, "Configures", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.KubernetesServices, K8sSnapDistribution.State, "Uses by default", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd.Clustermanagement, K8sSnapDistribution.State, "Keeps state in", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd.RESTAPI, K8sSnapDistribution.KubernetesServices, "Configures", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd.RESTAPI, K8sSnapDistribution.Runtime, "Configures", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd.RESTAPI, K8sSnapDistribution.K8sd.Componentmanagement, "Uses", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd.RESTAPI, K8sSnapDistribution.K8sd.Clustermanagement, "Uses", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd.CLI, K8sSnapDistribution.K8sd.RESTAPI, "CLI is based on the API primitives", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd.CLustermanagement, K8sSnapDistribution.State, "Keeps state in", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd.APIviaHTTP, K8sSnapDistribution.KubernetesServices, "Configures", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd.APIviaHTTP, K8sSnapDistribution.Runtime, "Configures", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd.APIviaHTTP, K8sSnapDistribution.K8sd.CLustermanagement, "Uses", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd.CLI, K8sSnapDistribution.K8sd.APIviaHTTP, "CLI is based on the API primitives", $techn="", $tags="", $link="")
 
 SHOW_LEGEND(true)
 @enduml

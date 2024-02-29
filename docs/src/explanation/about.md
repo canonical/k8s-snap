@@ -24,7 +24,7 @@ In addition to the upstream Kubernetes services, Canonical Kubernetes also inclu
 - an ingress provider
 - a load-balancer
 - a gateway API controller
-- a metrics server provided by the [Canonical Observability Stack(COS)][COS]
+- a metrics server
 
 ## Where can I install it?
 
@@ -35,7 +35,7 @@ the snap is also available.
 
 ## Can I use it to make a cluster?
 
-Yes. Canonical Kubernetes is designed to be emminently scalable. You can start
+Yes. Canonical Kubernetes is designed to be eminently scalable. You can start
 with a single node and add more as and when the need arises. Scale up or down
 at any time. Systems with more than three nodes will automatically become
 Highly Available.
@@ -44,7 +44,7 @@ Highly Available.
 
 Each and every user will be supported by the community. For a more detailed
 look at what that entails, please see our [Community page]. If you need a
-greater level of support, Cannonical provides [Ubuntu Pro], a comprehensive
+greater level of support, Canonical provides [Ubuntu Pro], a comprehensive
 subscription for your open-source software stack. For more support options,
 visit the [Ubuntu support] page.
 
