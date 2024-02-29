@@ -10,9 +10,9 @@ import (
 
 func newDisableDNSCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:               "dns",
-		Short:             "Disable the DNS component in the cluster.",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "dns",
+		Short:   "Disable the DNS component in the cluster.",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 

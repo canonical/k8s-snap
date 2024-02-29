@@ -39,7 +39,7 @@ METRICS_SERVER_ROCK_TAG = "main"
 RAWFILE_LOCALPV_REPO = "https://github.com/canonical/rawfile-localpv"
 RAWFILE_LOCALPV_TAG = "main"
 SNAPCRAFT_C_COMPONENTS = ["libmnl", "libnftnl", "iptables"]
-SNAPCRAFT_GO_COMPONENTS = ["runc", "containerd", "cni", "helm", "kubernetes"]
+SNAPCRAFT_GO_COMPONENTS = ["runc", "containerd", "cni", "helm", "kubernetes", "k8s-dqlite"]
 K8S_DIR = DIR / "../../src/k8s"
 
 
@@ -129,12 +129,12 @@ def k8s_snap_go_components(manifest, extra_files):
 
 
 def k8s_snap_c_dqlite_components(manifest, extra_files):
-    LOG.info("Generating SBOM info for k8s-snap dqlite components")
+    LOG.info("Generating SBOM info for dqlite components")
 
     repos = {}
     tags = {}
     # attempt to parse repos and tags from dqlite_version.sh
-    for line in (K8S_DIR / "cmd/k8s-dqlite/dqlite_version.sh").read_text().split():
+    for line in (K8S_DIR / "hack/env.sh").read_text().split():
         # parse(REPO_DQLITE="https://github.com/ref") ==> repos["dqlite"] = "https://github.com/ref"
         if line.startswith("REPO_"):
             key, value = line.split("=")

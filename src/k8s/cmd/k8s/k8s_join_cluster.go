@@ -31,9 +31,9 @@ var (
 
 func newJoinNodeCmd() *cobra.Command {
 	joinNodeCmd := &cobra.Command{
-		Use:               "join-cluster <token>",
-		Short:             "Join a cluster",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "join-cluster <token>",
+		Short:   "Join a cluster",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
 				return fmt.Errorf("too many arguments: provide only the token that was generated with `sudo k8s add-node <node-name>`")

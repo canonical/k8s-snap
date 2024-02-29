@@ -17,10 +17,10 @@ var (
 
 func newGenerateAuthTokenCmd() *cobra.Command {
 	generateAuthTokenCmd := &cobra.Command{
-		Use:               "generate-auth-token --username <user> [--groups <group1>,<group2>]",
-		Short:             "Generate an auth token for Kubernetes",
-		Hidden:            true,
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "generate-auth-token --username <user> [--groups <group1>,<group2>]",
+		Short:   "Generate an auth token for Kubernetes",
+		Hidden:  true,
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 

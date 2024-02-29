@@ -16,6 +16,7 @@ install/index
 /howto/contribute
 /howto/support
 /howto/networking/default-dns
+/howto/networking/ingress
 ```
 
 
