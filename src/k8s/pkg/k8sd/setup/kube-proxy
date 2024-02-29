@@ -1,0 +1,6 @@
+--cluster-cidr=10.1.0.0/16
+--conntrack-max-per-core=0
+--healthz-bind-address=127.0.0.1
+--hostname-override=myhostname
+--kubeconfig=/tmp/TestKubeProxy185807947/001/kubernetes/proxy.conf
+--profiling=false
