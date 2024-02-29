@@ -1,4 +1,4 @@
-# Use default storage in Canonical Kubernetes
+# How to use default storage
 
 Canonical Kubernetes offers a local storage option to quickly set up and run a
 cluster, especially for single-node support. This guide walks you through
@@ -10,10 +10,11 @@ This guide assumes the following:
 
 - You have root or sudo access to the machine
 - You have a bootstraped Canonical Kubernetes cluster (see the
-  [getting-started-guide]).
+  [getting-started-guide])
 
 
 ## Enable Storage
+
 When bootstrapping the snap, the storage functionality is not enabled by
 default. To enable it, execute the following command:
 
@@ -22,6 +23,7 @@ sudo k8s enable storage
 ```
 
 ## Configure Storage
+
 While the storage option comes with sensible defaults, you can customise it to
 meet your requirements. Obtain the current configuration by running:
 
@@ -48,6 +50,7 @@ The storage functionality provides the following configuration options:
   one.
 
 ## Disable Storage
+
 The local storage option is suitable for single-node clusters and development
 environments, but it has inherent limitations. For a production environment you
 typically want a more sophisticated storage solution. To disable the storage
