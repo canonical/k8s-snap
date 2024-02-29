@@ -18,14 +18,20 @@ import (
 type snap struct {
 	snapDir       string
 	snapCommonDir string
+	runCommand    func(ctx context.Context, command ...string) error
 }
 
 // NewSnap creates a new interface with the K8s snap.
-// NewSnap accepts the $SNAP and $SNAP_COMMON directories
-func NewSnap(snapDir, snapCommonDir string) *snap {
+// NewSnap accepts the $SNAP, $SNAP_COMMON, directories, and a number of options.
+func NewSnap(snapDir, snapCommonDir string, options ...func(s *snap)) *snap {
 	s := &snap{
 		snapDir:       snapDir,
 		snapCommonDir: snapCommonDir,
+		runCommand:    utils.RunCommand,
+	}
+
+	for _, option := range options {
+		option(s) // Apply each passed option to the snap instance
 	}
 
 	return s
@@ -50,17 +56,17 @@ func serviceName(serviceName string) string {
 
 // StartService starts a k8s service. The name can be either prefixed or not.
 func (s *snap) StartService(ctx context.Context, name string) error {
-	return utils.RunCommand(ctx, "snapctl", "start", serviceName(name))
+	return s.runCommand(ctx, "snapctl", "start", "--enable", serviceName(name))
 }
 
 // StopService stops a k8s service. The name can be either prefixed or not.
 func (s *snap) StopService(ctx context.Context, name string) error {
-	return utils.RunCommand(ctx, "snapctl", "stop", serviceName(name))
+	return s.runCommand(ctx, "snapctl", "stop", "--disable", serviceName(name))
 }
 
 // RestartService restarts a k8s service. The name can be either prefixed or not.
 func (s *snap) RestartService(ctx context.Context, name string) error {
-	return utils.RunCommand(ctx, "snapctl", "restart", serviceName(name))
+	return s.runCommand(ctx, "snapctl", "restart", serviceName(name))
 }
 
 type snapcraftYml struct {
