@@ -91,10 +91,11 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		},
 		// Kubernetes auth tokens and token review webhook for kube-apiserver
 		{
-			Name: "KubernetesAuthTokens",
-			Path: "kubernetes/auth/tokens",
-			Get:  rest.EndpointAction{Handler: getKubernetesAuthTokens, AllowUntrusted: true},
-			Post: rest.EndpointAction{Handler: postKubernetesAuthTokens},
+			Name:   "KubernetesAuthTokens",
+			Path:   "kubernetes/auth/tokens",
+			Get:    rest.EndpointAction{Handler: getKubernetesAuthTokens, AllowUntrusted: true},
+			Post:   rest.EndpointAction{Handler: postKubernetesAuthTokens},
+			Delete: rest.EndpointAction{Handler: deleteKubernetesAuthTokens},
 		},
 		{
 			Name: "KubernetesAuthWebhook",

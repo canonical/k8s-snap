@@ -21,9 +21,9 @@ var enableLoadBalancerCmdOpts struct {
 
 func newEnableLoadBalancerCmd() *cobra.Command {
 	enableLoadBalancerCmd := &cobra.Command{
-		Use:               "loadbalancer",
-		Short:             "Enable the LoadBalancer component in the cluster",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "loadbalancer",
+		Short:   "Enable the LoadBalancer component in the cluster",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 

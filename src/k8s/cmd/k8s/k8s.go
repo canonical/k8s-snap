@@ -58,6 +58,7 @@ func NewRootCmd() *cobra.Command {
 
 	// internal
 	rootCmd.AddCommand(newGenerateAuthTokenCmd())
+	rootCmd.AddCommand(newRevokeAuthTokenCmd())
 	rootCmd.AddCommand(newKubeConfigCmd())
 	rootCmd.AddCommand(xPrintShimPidsCmd)
 

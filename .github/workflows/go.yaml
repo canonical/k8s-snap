@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: "1.21"
 
@@ -37,12 +37,6 @@ jobs:
             exit 1
           fi
 
-      - name: install dqlite
-        run: |
-          sudo add-apt-repository ppa:dqlite/dev
-          sudo apt update
-          sudo apt install -y libdqlite-dev
-
       - name: go vet
         working-directory: src/k8s
         run: make go.vet
@@ -51,64 +45,16 @@ jobs:
         working-directory: src/k8s
         run: make go.unit
 
-  test-k8s-sqlite:
-    name: k8s-dqlite integration tests (sqlite)
+  test-binary:
+    name: Binaries
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4
 
       - name: Install Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.21"
-
-      - name: go mod download
-        working-directory: src/k8s
-        run: go mod download
-
-      - name: go test
-        working-directory: src/k8s
-        run: make go.k8s-dqlite.test
-
-  test-k8s-dqlite:
-    name: k8s-dqlite integration tests (dqlite)
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4.1.0
-
-      - name: Install Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.21"
-
-      - name: go mod download
-        working-directory: src/k8s
-        run: go mod download
-
-      - name: install dqlite
-        run: |
-          sudo add-apt-repository ppa:dqlite/dev
-          sudo apt update
-          sudo apt install -y libdqlite-dev
-
-      - name: go test
-        working-directory: src/k8s
-        run: make go.k8s-dqlite.test.dqlite
-
-  test-static:
-    name: Build k8s-dqlite
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4.1.0
-
-      - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: "1.21"
 
@@ -124,8 +70,6 @@ jobs:
           ./bin/static/k8s --help
           ./bin/static/k8sd --help
           ./bin/static/k8s-apiserver-proxy --help
-          ./bin/static/k8s-dqlite --help
-          ./bin/static/dqlite --help
 
       - name: Build shared binaries
         working-directory: src/k8s
@@ -136,5 +80,3 @@ jobs:
           ./bin/dynamic/k8s --help
           ./bin/dynamic/k8sd --help
           ./bin/dynamic/k8s-apiserver-proxy --help
-          ./bin/dynamic/k8s-dqlite --help
-          ./bin/dynamic/dqlite --help

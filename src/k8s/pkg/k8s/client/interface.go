@@ -24,6 +24,8 @@ type Client interface {
 	CreateJoinToken(ctx context.Context, name string, worker bool) (string, error)
 	// GenerateAuthToken generates an authentication token for a specific user with given groups.
 	GenerateAuthToken(ctx context.Context, username string, groups []string) (string, error)
+	// RevokeAuthToken revokes an authentication token given a token.
+	RevokeAuthToken(ctx context.Context, token string) error
 	// JoinCluster adds a new node to the cluster using the provided parameters.
 	JoinCluster(ctx context.Context, name string, address string, token string) error
 	// KubeConfig retrieves the Kubernetes configuration for the current node.

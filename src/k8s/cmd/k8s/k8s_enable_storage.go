@@ -10,9 +10,9 @@ import (
 
 func newEnableStorageCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:               "storage",
-		Short:             "Enable the Storage component in the cluster.",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "storage",
+		Short:   "Enable the Storage component in the cluster.",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 

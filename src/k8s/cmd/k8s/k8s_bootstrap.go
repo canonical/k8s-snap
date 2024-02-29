@@ -29,10 +29,10 @@ var (
 
 func newBootstrapCmd() *cobra.Command {
 	bootstrapCmd := &cobra.Command{
-		Use:               "bootstrap",
-		Short:             "Bootstrap a k8s cluster on this node.",
-		Long:              "Initialize the necessary folders, permissions, service arguments, certificates and start up the Kubernetes services.",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "bootstrap",
+		Short:   "Bootstrap a k8s cluster on this node.",
+		Long:    "Initialize the necessary folders, permissions, service arguments, certificates and start up the Kubernetes services.",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, bootstrapCmdErrorMsgs)
 

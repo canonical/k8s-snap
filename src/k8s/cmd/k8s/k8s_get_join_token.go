@@ -19,9 +19,9 @@ var (
 
 func newGetJoinTokenCmd() *cobra.Command {
 	getJoinTokenCmd := &cobra.Command{
-		Use:               "get-join-token <name>",
-		Short:             "Create a join token for a node to join the cluster",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
+		Use:     "get-join-token <name>",
+		Short:   "Create a join token for a node to join the cluster",
+		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
 				return fmt.Errorf("too many arguments: only provide the node name for 'get-join-token'")
