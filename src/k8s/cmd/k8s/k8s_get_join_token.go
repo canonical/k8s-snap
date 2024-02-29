@@ -19,7 +19,7 @@ var (
 
 func newGetJoinTokenCmd() *cobra.Command {
 	getJoinTokenCmd := &cobra.Command{
-		Use:     "get-join-token <name>",
+		Use:     "get-join-token <node_name>",
 		Short:   "Create a join token for a node to join the cluster",
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
