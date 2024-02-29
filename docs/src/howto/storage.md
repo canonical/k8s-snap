@@ -3,7 +3,13 @@
 Canonical Kubernetes offers a local storage option to quickly set up and run a cluster, especially for single-node support. This guide walks you through enabling and configuring this feature.
 
 Before you start, ensure you have a bootstrapped Canonical Kubernetes cluster ready.
-Check out the [Getting Started](https://github.com/canonical/k8s-snap/blob/main/docs/src/tutorial/getting-started.md) guide to learn how to do this.
+## What you'll need
+
+This guide assumes the following:
+
+- You have root or sudo access to the machine
+- You have a bootstraped Canonical Kubernetes cluster (see the [getting-started-guide]).
+
 
 ## Enable Storage
 When bootstrapping the snap, the storage functionality is not enabled by default. To enable it, execute the following command:
