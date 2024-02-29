@@ -64,7 +64,7 @@ Replace `<new-ip>`, `<new-domain-name>`, and `<new-cluster-ip>` with the desired
 Canonical Kubernetes also allows you to disable the built-in DNS, 
 if you desire a custom solution:
 
-``` {warning} Do not disable DNS unless you have a replacement configured. Disabling DNS will disrupt internal cluster communication. Ensure a suitable custom DNS solution is in place before disabling. You can re-enable dns at any point, and your cluster will return to normal functionality.```
+``` {warning} Do not disable DNS unless you have a replacement configured. Disabling DNS will disrupt internal cluster communication. Ensure a suitable custom DNS solution is in place before disabling. You can re-enable DNS at any point, and your cluster will return to normal functionality.```
 
 ```bash
 sudo k8s disable dns
