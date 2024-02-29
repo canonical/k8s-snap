@@ -12,6 +12,7 @@ LOG = logging.getLogger(__name__)
 def test_dns(instances: List[harness.Instance]):
     instance = instances[0]
     util.wait_for_dns(instance)
+    util.wait_for_network(instance)
 
     instance.exec(
         [
