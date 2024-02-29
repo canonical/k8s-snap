@@ -61,6 +61,12 @@ func buildChart(opts ...chartOption) *chart.Chart {
 	return c.Chart
 }
 
+func withName(name string) chartOption {
+	return func(opts *chartOptions) {
+		opts.Metadata.Name = name
+	}
+}
+
 func namedReleaseStub(name string, status release.Status) *release.Release {
 	now := time.Now()
 	return &release.Release{
@@ -121,6 +127,16 @@ func mustAddConfigToTestDir(t *testing.T, path string, data string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func mustAddChartToTestDir(t *testing.T, path string, chart *chart.Chart) string {
+	// Create a chart and add it to the test directory as a gzip archive
+	k8sComponentsDir := filepath.Join(path, "k8s", "components", "charts")
+	chartPath, err := chartutil.Save(chart, k8sComponentsDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return chartPath
 }
 
 func mustCreateNewHelmClient(t *testing.T, components map[string]types.Component) (*helmClient, string, *action.Configuration) {
@@ -199,4 +215,43 @@ func TestListComponentsWithReleases(t *testing.T) {
 		{Name: "three", Status: true},
 		{Name: "two", Status: true},
 	}))
+}
+
+func TestEnableComponent(t *testing.T) {
+	g := NewWithT(t)
+
+	mockHelmClient, tempDir, mockActionConfig := mustCreateNewHelmClient(t, map[string]types.Component{
+		"one": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-0.1.0.tgz",
+		},
+	})
+
+	g.Expect(mockHelmClient).ToNot(BeNil())
+	g.Expect(tempDir).ToNot(BeNil())
+	g.Expect(mockActionConfig).ToNot(BeNil())
+
+	chart := buildChart(withName("chunky-tuna"))
+	chartPath := mustAddChartToTestDir(t, tempDir, chart)
+	g.Expect(chartPath).ToNot(BeNil())
+
+	component, exists := mockHelmClient.components["one"]
+	g.Expect(exists).To(BeTrue(), "Component 'one' should exist")
+
+	// ManifestPath is set to the full path that includes the temp. test directory
+	component.ManifestPath = chartPath
+	mockHelmClient.components["one"] = component
+
+	// Assert component is initially disabled
+	g.Expect(mockHelmClient.isComponentEnabled("whiskas-1", "default")).To(BeFalse())
+
+	// Enable the component and assert it is enabled
+	err := mockHelmClient.Enable("one", map[string]interface{}{"name": "value"})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(mockHelmClient.isComponentEnabled("whiskas-1", "default")).To(BeTrue())
+
+	components, err := mockHelmClient.List()
+	g.Expect(err).To(BeNil())
+	g.Expect(components).To(Equal([]Component{{Name: "one", Status: true}}))
 }
