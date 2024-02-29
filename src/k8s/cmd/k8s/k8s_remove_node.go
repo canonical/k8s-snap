@@ -18,7 +18,7 @@ var (
 
 func newRemoveNodeCmd() *cobra.Command {
 	removeNodeCmd := &cobra.Command{
-		Use:               "remove-node <name>",
+		Use:               "remove-node <node_name>",
 		Short:             "Remove a node from the cluster",
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
