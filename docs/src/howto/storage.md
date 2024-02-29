@@ -5,7 +5,7 @@ Canonical Kubernetes offers a local storage option to quickly set up and run a c
 Before you start, ensure you have a bootstrapped Canonical Kubernetes cluster ready.
 Check out the [Getting Started](https://github.com/canonical/k8s-snap/blob/main/docs/src/tutorial/getting-started.md) guide to learn how to do this.
 
-### 1. Enable Storage
+## Enable Storage
 When bootstrapping the snap, the storage functionality is not enabled by default. To enable it, execute the following command:
 
 ```sh
