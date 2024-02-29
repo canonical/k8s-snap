@@ -10,18 +10,10 @@ config:
   security.nesting: "true"
   security.privileged: "true"
 devices:
-  aadisable:
-    path: /sys/module/nf_conntrack/parameters/hashsize
-    source: /sys/module/nf_conntrack/parameters/hashsize
-    type: disk
   aadisable2:
     path: /dev/kmsg
     source: /dev/kmsg
     type: unix-char
-  aadisable4:
-    path: /proc/sys/net/netfilter/nf_conntrack_max
-    source: /proc/sys/net/netfilter/nf_conntrack_max
-    type: disk
   dev-loop-control:
     major: "10"
     minor: "237"
