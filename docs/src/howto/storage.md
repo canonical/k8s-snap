@@ -1,4 +1,4 @@
-# Using Default Storage in Canonical Kubernetes
+# Use default storage in Canonical Kubernetes
 
 Canonical Kubernetes offers a local storage option to quickly set up and run a cluster, especially for single-node support. This guide walks you through enabling and configuring this feature.
 
