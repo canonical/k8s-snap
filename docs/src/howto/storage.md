@@ -27,7 +27,7 @@ You can modify the configuration using the `set` command. For example, to change
 sudo k8s set storage.local-path=/path/to/new/folder
 ```
 
-### 3. Disable Storage
+## Disable Storage
 The local storage option is suitable for single-node clusters and development environments, but it has inherent limitations. 
 To disable the storage functionality, run:
 
