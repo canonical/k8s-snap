@@ -37,11 +37,7 @@ sudo k8s help enable
 
 ## Configure Network
 
-Discover your configuration options by running:
-
-```bash
-sudo k8s set network –-help
-```
+It is not possible to reconfigure the network on a running cluster as this will lead to unreachable pods/services and nodes. Any configuration options the CNI needs to be aware of (e.g. pod and service CIDR, IPv6 support) are set during the cluster bootstrap (“k8s bootstrap” command).
 
 ### Check Network details
 
@@ -66,7 +62,7 @@ You should see a wide range of metrics and configuration values for your cluster
 You can `disable` the built-in network:
 
 ``` {warning}
-If you have custom rules in place, disabling Network may impact external access to services within your cluster.
+If you have an active cluster, disabling Network may impact external access to services within your cluster.
 Ensure that you have alternative configurations in place before disabling Network.
 ```
 
