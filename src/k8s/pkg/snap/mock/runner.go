@@ -6,7 +6,6 @@ import (
 	"strings"
 )
 
-// MockRunner is a mock implementation of CommandRunner.
 type Runner struct {
 	CalledWithCtx     context.Context
 	CalledWithCommand []string

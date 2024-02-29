@@ -12,10 +12,10 @@ func TestServiceName(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"With k8s. prefix", "k8s.test-service", "k8s.test-service"},
-		{"Without prefix", "api", "k8s.api"},
-		{"Just k8s", "k8s", "k8s"},
-		{"Empty string", "", "k8s."},
+		{"WithPrefix", "k8s.test-service", "k8s.test-service"},
+		{"NoPrefix", "api", "k8s.api"},
+		{"K8s", "k8s", "k8s"},
+		{"EmptyString", "", "k8s."},
 	}
 
 	for _, tc := range tests {
