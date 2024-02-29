@@ -1,6 +1,6 @@
 # Roadmap
 
-The Canonical Kubernetes team  recognises the value of having a public roadmap,
+The Canonical Kubernetes team recognises the value of having a public roadmap,
 letting everyone know the headline features we are working on and the future
 direction and priorities of the project.
 
