@@ -20,7 +20,7 @@ type BootstrapConfig struct {
 
 // SetDefaults sets the fields to default values.
 func (b *BootstrapConfig) SetDefaults() {
-	b.Components = []string{"dns", "network"}
+	b.Components = []string{"dns", "metrics-server", "network"}
 	b.ClusterCIDR = "10.1.0.0/16"
 	b.EnableRBAC = &[]bool{true}[0]
 	b.K8sDqlitePort = 9000

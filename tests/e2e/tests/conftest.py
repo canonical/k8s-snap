@@ -88,7 +88,6 @@ def instances(
 
     first_node, *_ = instances
     first_node.exec(["k8s", "bootstrap"])
-    util.setup_network(first_node)
 
     yield instances
 

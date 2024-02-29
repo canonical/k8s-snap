@@ -73,13 +73,13 @@ func EnableLoadBalancerComponent(ctx context.Context, s snap.Snap, cidrs []strin
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
+	if err := client.RestartDeployment(timeoutCtx, "cilium-operator", "kube-system"); err != nil {
 		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 	}
-	if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
+	if err := client.RestartDaemonset(timeoutCtx, "cilium", "kube-system"); err != nil {
 		return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 	}
 
