@@ -27,7 +27,8 @@ It is a good idea to check the available channels before installing the snap. Ru
 snap info k8s
 ```
 
-...which will output a list of currently available channels. See the [channels page] for an explanation of the different types of channel.
+...which will output a list of currently available channels. See the [channels
+page] for an explanation of the different types of channel.
 
 ## Install the snap
 
@@ -43,7 +44,8 @@ In the pre-release phase, `latest/edge` is the only channel available.
 
 ## Bootstrap the cluster
 
-Installing the snap sets up all the parts required to run Kubernetes. The next step is to `bootstrap` the cluster to activate the services:
+Installing the snap sets up all the parts required to run Kubernetes. The next
+step is to `bootstrap` the cluster to activate the services:
 
 ```bash
 sudo k8s bootstrap
@@ -53,13 +55,16 @@ This command will output a message confirming local cluster services have been s
 
 ## Confirm the cluster is ready
 
-It is recommended to ensure that the cluster initialises properly and is running with no issues. Run the command:
+It is recommended to ensure that the cluster initialises properly and is
+running with no issues. Run the command:
 
 ```bash
 sudo k8s status --wait-ready
 ```
 
-This command will wait until the cluster indicates it is ready and then display the current status. The command will time-out if the cluster does not reach a ready state.
+This command will wait until the cluster indicates it is ready and then display
+the current status. The command will time-out if the cluster does not reach a
+ready state.
 
 <!-- LINKS -->
 

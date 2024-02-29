@@ -19,6 +19,8 @@ networking/index
 /howto/support
 ```
 
+---
+## Other documentation types
 
 Our Reference section is for when you need to check specific details or information
 such as the command reference or release notes
