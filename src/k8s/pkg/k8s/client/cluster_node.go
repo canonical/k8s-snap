@@ -38,9 +38,9 @@ func (c *k8sdClient) RemoveNode(ctx context.Context, name string, force bool) er
 		Name:  name,
 		Force: force,
 	}
-	err := c.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "remove"), request, nil)
+	err := c.Query(ctx, "DELETE", api.NewURL().Path("k8sd", "cluster", "node"), request, nil)
 	if err != nil {
-		return fmt.Errorf("failed to query endpoint DELETE /k8sd/cluster/remove: %w", err)
+		return fmt.Errorf("failed to query endpoint DELETE /k8sd/cluster/node: %w", err)
 	}
 
 	return nil
