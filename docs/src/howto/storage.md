@@ -12,7 +12,7 @@ When bootstrapping the snap, the storage functionality is not enabled by default
 sudo k8s enable storage
 ```
 
-### 2. Configure Storage
+## Configure Storage
 While the storage option comes with sensible defaults, you can customize it to meet your requirements. Obtain the current configuration by running:
 
 ```sh
