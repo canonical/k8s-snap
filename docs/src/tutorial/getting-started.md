@@ -83,6 +83,7 @@ sudo k8s status --wait-ready
 Note: To disable a component execute `sudo k8s disable <component>`
 
 ### 5. Access Kubernetes
+
 The standard tool for deploying and managing workloads on Kuberenetes
 is [kubectl](https://kubernetes.io/docs/reference/kubectl/). 
 For convenience, Canonical Kubernetes bundles a version of 
@@ -124,6 +125,7 @@ This command shows all pods in the default namespace.
 It may take a moment for the pod to be ready and running.
 
 ### 7. Remove an app
+
 To remove the NGINX workload, execute the following command:
 ```
 sudo k8s kubectl delete deployment nginx
@@ -136,6 +138,7 @@ To verify that the pod has been removed, you can check the status of pods by run
 sudo k8s kubectl get pods
 ```
 ### 8. Enable Components (Storage)
+
 In scenarios where you need to preserve application data beyond the 
 lifecycle of the pod, Kubernetes provides persistent volumes.
 
@@ -174,6 +177,7 @@ sudo k8s kubectl describe pod storage-writer-pod
 ```
 
 ### 9. Disable Components (Storage)
+
 Begin by removing the pod along with the persistent volume claim:
 
 ```
@@ -190,6 +194,7 @@ sudo k8s disable storage
 Note: To disable any component, execute  `sudo k8s disable <component>`.
 
 ### 10. Remove Canonical Kubernetes (Optional)
+
 To uninstall the Canonical Kubernetes snap, execute:
 
 ```
@@ -207,10 +212,18 @@ This option ensures complete removal of the snap and its associated data.
 
 ## Next Steps
 
-- Keep mastering Canonical Kubernetes with kubectl: [How to use kubectl](#TODO)
-- Explore Kubernetes commands with our [Command Reference Guide](#TODO)
-- Bootstrap K8s with your custom configurations [Bootstrap K8s](#TODO)
-- Learn how to set up a multi-node environment [Setting up a K8s cluster](#TODO)
-- Configure storage options [Storage](#TODO)
-- Master Kubernetes networking concepts: [Networking](#TODO)
-- Discover how to enable and configure Ingress resources [Ingress](#TODO)
+- Keep mastering Canonical Kubernetes with kubectl: [How to use kubectl]
+- Explore Kubernetes commands with our [Command Reference Guide]
+- Learn how to set up a multi-node environment [Setting up a K8s cluster]
+- Configure storage options [Storage]
+- Master Kubernetes networking concepts: [Networking]
+- Discover how to enable and configure Ingress resources [Ingress]
+
+<!-- LINKS -->
+
+[How to use kubectl]: ./kubectl
+[Command Reference Guide]: ../reference/commands
+[Setting up a K8s cluster]: ./add-remove-nodes
+[Storage]: ../howto/storage
+[Networking]: ../howto/networking/index.md
+[Ingress]: ../howto/networking/default-ingress.md
