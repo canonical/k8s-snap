@@ -55,11 +55,13 @@ func TestParseArgumentFile(t *testing.T) {
 	}{
 		{
 			name:    "normal",
-			content: "--key1=value1\n--key2=value2   \n--key3 value3",
+			content: "--key1=value1\n--key2=value2   \n--key3 value3\n--key4=control-plane=,worker=\n--key5 control-plane=",
 			expectedArgs: map[string]string{
 				"--key1": "value1",
 				"--key2": "value2",
 				"--key3": "value3",
+				"--key4": "control-plane=,worker=",
+				"--key5": "control-plane=",
 			},
 		},
 		{
