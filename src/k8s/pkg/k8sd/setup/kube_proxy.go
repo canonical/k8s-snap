@@ -3,6 +3,7 @@ package setup
 import (
 	"context"
 	"fmt"
+	"log"
 	"path"
 
 	"github.com/canonical/k8s/pkg/snap"
@@ -21,7 +22,7 @@ func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR str
 
 	onLXD, err := snap.OnLXD(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if on lxd: %w", err)
+		log.Printf("failed to check if on lxd: %v", err)
 	}
 	if onLXD {
 		// A container cannot set this sysctl config in LXD. So, we disable it by setting it to "0".

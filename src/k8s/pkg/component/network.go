@@ -3,6 +3,7 @@ package component
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 
@@ -100,7 +101,7 @@ func EnableNetworkComponent(ctx context.Context, s snap.Snap, podCIDR string) er
 		if p == "private" {
 			onLXD, err := s.OnLXD(ctx)
 			if err != nil {
-				return fmt.Errorf("failed to check if on lxd: %w", err)
+				log.Printf("failed to check if on lxd: %v", err)
 			}
 			if onLXD {
 				return fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
