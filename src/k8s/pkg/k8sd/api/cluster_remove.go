@@ -14,7 +14,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func postClusterRemove(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
+func postClusterRemoveNode(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
 	snap := snap.SnapFromContext(s.Context)
 
 	req := apiv1.RemoveNodeRequest{}
