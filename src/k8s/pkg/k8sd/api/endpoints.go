@@ -25,9 +25,9 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		// Clustering
 		// Unified token endpoint for both, control-plane and worker-node.
 		{
-			Name: "ClusterTokens",
+			Name: "ClusterJoinTokens",
 			Path: "k8sd/cluster/tokens",
-			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterTokens), AccessHandler: RestrictWorkers},
+			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterJoinTokens), AccessHandler: RestrictWorkers},
 		},
 		{
 			Name: "ClusterJoin",
@@ -36,6 +36,7 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 			// Joining a node is a bootstrapping action which needs to be available before k8sd is initialized.
 			AllowedBeforeInit: true,
 		},
+		// Cluster removal (control-plane and worker nodes)
 		{
 			Name: "ClusterRemove",
 			Path: "k8sd/cluster/remove",

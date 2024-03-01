@@ -48,8 +48,8 @@ func NewRootCmd() *cobra.Command {
 
 	// Clustering
 	rootCmd.AddCommand(newBootstrapCmd())
-	rootCmd.AddCommand(newAddNodeCmd())
-	rootCmd.AddCommand(newJoinNodeCmd())
+	rootCmd.AddCommand(newGetJoinTokenCmd())
+	rootCmd.AddCommand(newJoinClusterCmd())
 	rootCmd.AddCommand(newRemoveNodeCmd())
 
 	// Components

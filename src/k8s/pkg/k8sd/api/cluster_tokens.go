@@ -15,7 +15,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func postClusterTokens(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
+func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
 	req := apiv1.TokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
