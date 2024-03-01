@@ -15,7 +15,7 @@ func newSetCmd() *cobra.Command {
 		Use:               "set <functionality.key=value>...",
 		Short:             "Set functionality configuration",
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
-		Args:              cobra.ExactArgs(1),
+		Args:              cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 
@@ -43,21 +43,21 @@ func newSetCmd() *cobra.Command {
 						config.DNS = &api.DNSConfig{}
 					}
 					if err := setStringSliceArgument(value, &config.DNS.UpstreamNameservers); err != nil {
-						return fmt.Errorf("invalid boolean value for dns.upstream-nameservers: %w", err)
+						return fmt.Errorf("invalid string slice value for dns.upstream-nameservers: %w", err)
 					}
 				case "dns.cluster-domain":
 					if config.DNS == nil {
 						config.DNS = &api.DNSConfig{}
 					}
 					if err := setStringArgument(value, &config.DNS.ClusterDomain); err != nil {
-						return fmt.Errorf("invalid boolean value for dns.cluster-domain: %w", err)
+						return fmt.Errorf("invalid string value for dns.cluster-domain: %w", err)
 					}
 				case "dns.service-ip":
 					if config.DNS == nil {
 						config.DNS = &api.DNSConfig{}
 					}
 					if err := setStringArgument(value, &config.DNS.ServiceIP); err != nil {
-						return fmt.Errorf("invalid boolean value for dns.service-ip: %w", err)
+						return fmt.Errorf("invalid string value for dns.service-ip: %w", err)
 					}
 				case "gateway.enabled":
 					if config.Gateway == nil {
@@ -78,7 +78,7 @@ func newSetCmd() *cobra.Command {
 						config.Ingress = &api.IngressConfig{}
 					}
 					if err := setStringArgument(value, &config.Ingress.DefaultTLSSecret); err != nil {
-						return fmt.Errorf("invalid boolean value for ingress.default-tls-secret: %w", err)
+						return fmt.Errorf("invalid string value for ingress.default-tls-secret: %w", err)
 					}
 				case "ingress.enable-proxy-protocol":
 					if config.Ingress == nil {
@@ -99,14 +99,14 @@ func newSetCmd() *cobra.Command {
 						config.LocalStorage = &api.LocalStorageConfig{}
 					}
 					if err := setStringArgument(value, &config.LocalStorage.LocalPath); err != nil {
-						return fmt.Errorf("invalid boolean value for local-storage.local-path: %w", err)
+						return fmt.Errorf("invalid string value for local-storage.local-path: %w", err)
 					}
 				case "local-storage.reclaim-policy":
 					if config.LocalStorage == nil {
 						config.LocalStorage = &api.LocalStorageConfig{}
 					}
 					if err := setStringArgument(value, &config.LocalStorage.ReclaimPolicy); err != nil {
-						return fmt.Errorf("invalid boolean value for local-storage.reclaim-policy: %w", err)
+						return fmt.Errorf("invalid string value for local-storage.reclaim-policy: %w", err)
 					}
 				case "local-storage.set-default":
 					if config.LocalStorage == nil {
@@ -127,7 +127,7 @@ func newSetCmd() *cobra.Command {
 						config.LoadBalancer = &api.LoadBalancerConfig{}
 					}
 					if err := setStringSliceArgument(value, &config.LoadBalancer.CIDRs); err != nil {
-						return fmt.Errorf("invalid boolean value for load-balancer.cidrs: %w", err)
+						return fmt.Errorf("invalid string slice value for load-balancer.cidrs: %w", err)
 					}
 				case "load-balancer.l2-mode":
 					if config.LoadBalancer == nil {
@@ -141,7 +141,7 @@ func newSetCmd() *cobra.Command {
 						config.LoadBalancer = &api.LoadBalancerConfig{}
 					}
 					if err := setStringSliceArgument(value, &config.LoadBalancer.L2Interfaces); err != nil {
-						return fmt.Errorf("invalid boolean value for load-balancer.l2-interfaces: %w", err)
+						return fmt.Errorf("invalid string slice value for load-balancer.l2-interfaces: %w", err)
 					}
 				case "load-balancer.bgp-mode":
 					if config.LoadBalancer == nil {
@@ -155,28 +155,28 @@ func newSetCmd() *cobra.Command {
 						config.LoadBalancer = &api.LoadBalancerConfig{}
 					}
 					if err := setIntArgument(value, &config.LoadBalancer.BGPLocalASN); err != nil {
-						return fmt.Errorf("invalid boolean value for load-balancer.bgp-local-asn: %w", err)
+						return fmt.Errorf("invalid integer value for load-balancer.bgp-local-asn: %w", err)
 					}
 				case "load-balancer.bgp-peer-address":
 					if config.LoadBalancer == nil {
 						config.LoadBalancer = &api.LoadBalancerConfig{}
 					}
 					if err := setStringArgument(value, &config.LoadBalancer.BGPPeerAddress); err != nil {
-						return fmt.Errorf("invalid boolean value for load-balancer.bgp-peer-address: %w", err)
+						return fmt.Errorf("invalid string value for load-balancer.bgp-peer-address: %w", err)
 					}
 				case "load-balancer.bgp-peer-port":
 					if config.LoadBalancer == nil {
 						config.LoadBalancer = &api.LoadBalancerConfig{}
 					}
 					if err := setIntArgument(value, &config.LoadBalancer.BGPPeerPort); err != nil {
-						return fmt.Errorf("invalid boolean value for load-balancer.bgp-peer-port: %w", err)
+						return fmt.Errorf("invalid integer value for load-balancer.bgp-peer-port: %w", err)
 					}
 				case "load-balancer.bgp-peer-asn":
 					if config.LoadBalancer == nil {
 						config.LoadBalancer = &api.LoadBalancerConfig{}
 					}
 					if err := setIntArgument(value, &config.LoadBalancer.BGPPeerASN); err != nil {
-						return fmt.Errorf("invalid boolean value for load-balancer.bgp-peer-asn: %w", err)
+						return fmt.Errorf("invalid integer value for load-balancer.bgp-peer-asn: %w", err)
 					}
 				case "metrics-server.enabled":
 					if config.MetricsServer == nil {
