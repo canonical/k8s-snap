@@ -18,6 +18,8 @@ import (
 func ParseArgumentLine(line string) (key string, value string) {
 	line = strings.TrimSpace(line) // Trim leading and trailing white spaces
 
+	// parse "--argument value", "--argument=value", "--argument=value=,othervalue=" variants
+
 	// Find the index of the first occurrence of "=" and space
 	indexEqual := strings.Index(line, "=")
 	indexSpace := strings.Index(line, " ")
