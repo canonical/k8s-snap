@@ -40,13 +40,13 @@ func Kubeconfig(path string, token string, url string, caPEM string) error {
 	return renderKubeconfig(file, token, url, caPEM)
 }
 
-// ClientKubeconfig provides a kubeconfig suitable for client manipulations.
-func ClientKubeconfig(token string, url string, caPEM string) ([]byte, error) {
+// KubeconfigString provides a stringified kubeconfig.
+func KubeconfigString(token string, url string, caPEM string) (string, error) {
 	var cfg bytes.Buffer
 
 	// TODO(kwm): template hard codes scheme. sanitize url so we don't get http://http://server:port.
 	if err := renderKubeconfig(&cfg, token, url, caPEM); err != nil {
-		return nil, err
+		return "", err
 	}
-	return cfg.Bytes(), nil
+	return cfg.String(), nil
 }

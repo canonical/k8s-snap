@@ -11,7 +11,6 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func getKubeconfig(s *state.State, r *http.Request) response.Response {
@@ -35,26 +34,12 @@ func getKubeconfig(s *state.State, r *http.Request) response.Response {
 		return response.InternalError(fmt.Errorf("failed to get admin token: %w", err))
 	}
 
-	// Convert rendered kubeconfig bytes into yaml with help from clientcmd
-	kubeconfig, err := setup.ClientKubeconfig(token, server, ca)
+	kubeconfig, err := setup.KubeconfigString(token, server, ca)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get kubeconfig: %w", err))
 	}
-	clientConfig, err := clientcmd.NewClientConfigFromBytes(kubeconfig)
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to create ClientConfig: %w", err))
-	}
-	rawConfig, err := clientConfig.RawConfig()
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to create RawConfig: %w", err))
-	}
-	yamlConfig, err := clientcmd.Write(rawConfig)
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to serialize modified kubeconfig: %w", err))
-	}
-
 	result := apiv1.GetKubeConfigResponse{
-		KubeConfig: string(yamlConfig),
+		KubeConfig: kubeconfig,
 	}
 	return response.SyncResponse(true, &result)
 }
