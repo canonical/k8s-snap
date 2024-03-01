@@ -10,7 +10,7 @@ import (
 // Client is a mock implementation for k8s Client.
 type Client struct {
 	BootstrapCalledWith    apiv1.BootstrapConfig
-	BootstrapClusterMember apiv1.ClusterMember
+	BootstrapClusterMember apiv1.NodeStatus
 	BootstrapErr           error
 	IsBootstrappedReturn   bool
 	CleanupNodeCalledWith  struct {
@@ -77,7 +77,7 @@ type Client struct {
 	UpdateStorageComponentErr error
 }
 
-func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.ClusterMember, error) {
+func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error) {
 	c.BootstrapCalledWith = bootstrapConfig
 	return c.BootstrapClusterMember, c.BootstrapErr
 }

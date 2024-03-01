@@ -62,7 +62,7 @@ func (c *k8sdClient) WaitForDqliteNodeToBeReady(ctx context.Context, nodeName st
 
 		for _, member := range clusterStatus.Members {
 			if member.Name == nodeName {
-				if member.Role == "PENDING" {
+				if member.DatastoreRole == apiv1.DatastoreRolePending {
 					return false, nil
 				}
 				return true, nil

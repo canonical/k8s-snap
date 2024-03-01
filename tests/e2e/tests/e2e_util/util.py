@@ -224,6 +224,11 @@ def hostname(instance: harness.Instance) -> str:
     return resp.stdout.decode().strip()
 
 
+def get_local_node_status(instance: harness.Instance) -> str:
+    resp = instance.exec(["k8s", "local-node-status"], capture_output=True)
+    return resp.stdout.decode().strip()
+
+
 def ready_nodes(control_node: harness.Instance) -> List[Any]:
     """Get a list of the ready nodes.
 
