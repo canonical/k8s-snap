@@ -22,13 +22,8 @@ k8s-dqlite-port: 12379`
 
 var yamlConfigIncomplete = `
 cluster-cidr: "10.244.0.0/16"
-enable-rbac: true`
-
-var yamlConfigInvalidYaml = `
-components:
-strawberries
-  - apples
-  - oranges`
+enable-rbac: true
+bananas: 5`
 
 func mustCreateTemporaryTestDirectory(t *testing.T) string {
 	// Create a temporary test directory to mock the snap
@@ -115,11 +110,11 @@ func TestGetConfigYaml(t *testing.T) {
 		configPath := tempDir + "/init.yaml"
 
 		// Add the invalid yaml to the test directory
-		mustAddConfigToTestDir(t, tempDir, yamlConfigInvalidYaml)
+		mustAddConfigToTestDir(t, tempDir, "this is not valid yaml")
 
 		// Get the config from the test directory
 		_, err := getConfigFromYaml(configPath)
-		g.Expect(err).NotTo(BeNil())
+		g.Expect(err.Error()).To(ContainSubstring("failed to parse YAML config file"))
 	})
 
 }
