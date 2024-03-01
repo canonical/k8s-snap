@@ -19,8 +19,8 @@ def get_join_token(
         ["k8s", "get-join-token", joining_node.id, "--output-format", "json", *args],
         capture_output=True,
     )
-    result = out.stdout.decode().strip()
-    return json.loads(result)["join-token"]
+    result = json.loads(out.stdout.decode())
+    return result["join-token"]
 
 
 # Join an existing cluster.
