@@ -82,12 +82,12 @@ func newBootstrapCmd() *cobra.Command {
 	return bootstrapCmd
 }
 
-func getConfigFromYaml(initFile string) (apiv1.BootstrapConfig, error) {
+func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
 	config := apiv1.BootstrapConfig{}
 	config.SetDefaults()
 
 	// Read the yaml file
-	yamlContent, err := os.ReadFile(initFile)
+	yamlContent, err := os.ReadFile(filePath)
 	if err != nil {
 		return config, fmt.Errorf("failed to read bootstrap init YAML file: %w", err)
 	}
