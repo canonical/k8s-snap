@@ -33,7 +33,7 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		{
 			Name: "ClusterRemove",
 			Path: "k8sd/cluster/remove",
-			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterRemoveNode), AccessHandler: RestrictWorkers},
+			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterRemove), AccessHandler: RestrictWorkers},
 		},
 		// Worker nodes
 		{

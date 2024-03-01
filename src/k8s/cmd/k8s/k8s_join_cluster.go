@@ -25,7 +25,7 @@ var (
 			"Consider reinstalling the k8s snap and then join it.",
 		apiv1.ErrInvalidJoinToken: "The provided join token is not valid. " +
 			"Make sure that the name provided in `k8s get-join-token` matches the hostname of the " +
-			"joining node or asign another name with the `--name` flag",
+			"joining node or assign another name with the `--name` flag",
 	}
 )
 
