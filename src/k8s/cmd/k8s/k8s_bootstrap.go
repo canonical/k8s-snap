@@ -54,13 +54,10 @@ func newBootstrapCmd() *cobra.Command {
 				return fmt.Errorf("failed to bootstrap cluster: cannot use both --interactive and --config flags at the same time")
 			}
 
-			// If interactive is set, ask the user for input.
-			// Else If config is set, read the config from the file.
-			// Else, set the default values.
 			if bootstrapCmdOpts.interactive {
 				bootstrapConfig = getConfigInteractively(cmd.Context())
 			} else if bootstrapCmdOpts.config != "" {
-				bootstrapConfig, err = getConfigYaml(bootstrapCmdOpts.config)
+				bootstrapConfig, err = getConfigFromYaml(bootstrapCmdOpts.config)
 				if err != nil {
 					return fmt.Errorf("failed to bootstrap cluster: %w", err)
 				}
@@ -85,19 +82,7 @@ func newBootstrapCmd() *cobra.Command {
 	return bootstrapCmd
 }
 
-func getConfigYaml(initFile string) (apiv1.BootstrapConfig, error) {
-	// Example YAML:
-	// 	components:
-	//   - network
-	//   - dns
-	//   - gateway
-	//   - ingress
-	//   - storage
-	//   - metrics-server
-	// cluster-cidr: "10.244.0.0/16"
-	// enable-rbac: true
-	// k8s-dqlite-port: 12379
-
+func getConfigFromYaml(initFile string) (apiv1.BootstrapConfig, error) {
 	config := apiv1.BootstrapConfig{}
 	config.SetDefaults()
 
