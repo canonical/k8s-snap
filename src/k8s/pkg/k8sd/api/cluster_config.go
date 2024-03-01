@@ -14,7 +14,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
@@ -116,93 +115,9 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 }
 
 func getClusterConfig(s *state.State, r *http.Request) response.Response {
-	cfg, err := utils.GetClusterConfig(r.Context(), s)
+	userFacing, err := utils.GetUserFacingClusterConfig(r.Context(), s)
 	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
-	}
-
-	userFacing := api.UserFacingClusterConfig{
-		Network: &api.NetworkConfig{
-			Enabled: vals.Pointer(true),
-		},
-		DNS: &api.DNSConfig{
-			Enabled:             vals.Pointer(true),
-			UpstreamNameservers: cfg.DNS.UpstreamNameservers,
-			ServiceIP:           cfg.Kubelet.ClusterDNS,
-			ClusterDomain:       cfg.Kubelet.ClusterDomain,
-		},
-		Ingress: &api.IngressConfig{
-			Enabled:             vals.Pointer(false),
-			DefaultTLSSecret:    cfg.Ingress.DefaultTLSSecret,
-			EnableProxyProtocol: vals.Pointer(false),
-		},
-		LoadBalancer: &api.LoadBalancerConfig{
-			Enabled:        vals.Pointer(false),
-			CIDRs:          cfg.LoadBalancer.CIDRs,
-			L2Enabled:      vals.Pointer(false),
-			L2Interfaces:   cfg.LoadBalancer.L2Interfaces,
-			BGPEnabled:     vals.Pointer(false),
-			BGPLocalASN:    cfg.LoadBalancer.BGPLocalASN,
-			BGPPeerAddress: cfg.LoadBalancer.BGPPeerAddress,
-			BGPPeerASN:     cfg.LoadBalancer.BGPPeerASN,
-			BGPPeerPort:    cfg.LoadBalancer.BGPPeerPort,
-		},
-		LocalStorage: &api.LocalStorageConfig{
-			Enabled:       vals.Pointer(false),
-			LocalPath:     cfg.LocalStorage.LocalPath,
-			ReclaimPolicy: cfg.LocalStorage.ReclaimPolicy,
-			SetDefault:    vals.Pointer(true),
-		},
-		Gateway: &api.GatewayConfig{
-			Enabled: vals.Pointer(false),
-		},
-		MetricsServer: &api.MetricsServerConfig{
-			Enabled: vals.Pointer(false),
-		},
-	}
-
-	if cfg.Network.Enabled != nil {
-		userFacing.Network.Enabled = cfg.Network.Enabled
-	}
-
-	if cfg.DNS.Enabled != nil {
-		userFacing.DNS.Enabled = cfg.DNS.Enabled
-	}
-
-	if cfg.Ingress.Enabled != nil {
-		userFacing.Ingress.Enabled = cfg.Ingress.Enabled
-	}
-
-	if cfg.LoadBalancer.Enabled != nil {
-		userFacing.LoadBalancer.Enabled = cfg.LoadBalancer.Enabled
-	}
-
-	if cfg.LocalStorage.Enabled != nil {
-		userFacing.LocalStorage.Enabled = cfg.LocalStorage.Enabled
-	}
-
-	if cfg.Gateway.Enabled != nil {
-		userFacing.Gateway.Enabled = cfg.Gateway.Enabled
-	}
-
-	if cfg.MetricsServer.Enabled != nil {
-		userFacing.MetricsServer.Enabled = cfg.MetricsServer.Enabled
-	}
-
-	if cfg.Ingress.EnableProxyProtocol != nil {
-		userFacing.Ingress.EnableProxyProtocol = cfg.Ingress.EnableProxyProtocol
-	}
-
-	if cfg.LoadBalancer.L2Enabled != nil {
-		userFacing.LoadBalancer.L2Enabled = cfg.LoadBalancer.L2Enabled
-	}
-
-	if cfg.LoadBalancer.BGPEnabled != nil {
-		userFacing.LoadBalancer.BGPEnabled = cfg.LoadBalancer.BGPEnabled
-	}
-
-	if cfg.LocalStorage.SetDefault != nil {
-		userFacing.LocalStorage.SetDefault = cfg.LocalStorage.SetDefault
+		return response.InternalError(fmt.Errorf("failed to get user-facing cluster config: %w", err))
 	}
 
 	result := api.GetClusterConfigResponse{

@@ -36,15 +36,15 @@ func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus,
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster members: %w", err)
 	}
 
-	components, err := GetComponents(snap)
+	config, err := utils.GetUserFacingClusterConfig(ctx, s)
 	if err != nil {
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster components: %w", err)
+		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get user-facing cluster config: %w", err)
 	}
 
 	return apiv1.ClusterStatus{
-		Ready:      ready,
-		Members:    members,
-		Components: components,
+		Ready:   ready,
+		Members: members,
+		Config:  config,
 	}, nil
 }
 
