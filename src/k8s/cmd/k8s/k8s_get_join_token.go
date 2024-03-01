@@ -5,17 +5,27 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
+	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/spf13/cobra"
 )
 
 var (
 	getJoinTokenCmdOpts struct {
-		worker bool
+		worker       bool
+		outputFormat string
 	}
 	getJoinTokenCmdErrorMsgs = map[error]string{
 		apiv1.ErrTokenAlreadyCreated: "A token for this node was already created and the node did not join.",
 	}
 )
+
+type GetJoinTokenResult struct {
+	JoinToken string `json:"join-token" yaml:"join-token"`
+}
+
+func (g GetJoinTokenResult) String() string {
+	return fmt.Sprintf("On the node you want to join call:\n\n  sudo k8s join-cluster %s\n\n", g.JoinToken)
+}
 
 func newGetJoinTokenCmd() *cobra.Command {
 	getJoinTokenCmd := &cobra.Command{
@@ -39,13 +49,18 @@ func newGetJoinTokenCmd() *cobra.Command {
 				return fmt.Errorf("failed to retrieve join token: %w", err)
 			}
 
-			// TODO: Print guidance on what to do with the token.
-			//       This requires a --format flag first as we still need some machine readable output for the integration tests.
-			fmt.Println(joinToken)
-			return nil
+			result := GetJoinTokenResult{
+				JoinToken: joinToken,
+			}
+			f, err := formatter.New(getJoinTokenCmdOpts.outputFormat, cmd.OutOrStdout())
+			if err != nil {
+				return fmt.Errorf("failed to create formatter: %w", err)
+			}
+			return f.Print(result)
 		},
 	}
 
-	getJoinTokenCmd.Flags().BoolVar(&getJoinTokenCmdOpts.worker, "worker", false, "generate a join token for a worker node")
+	getJoinTokenCmd.PersistentFlags().StringVarP(&getJoinTokenCmdOpts.outputFormat, "output-format", "o", "plain", "Specify in which format the output should be printed. One of plain, json or yaml")
+	getJoinTokenCmd.PersistentFlags().BoolVar(&getJoinTokenCmdOpts.worker, "worker", false, "generate a join token for a worker node")
 	return getJoinTokenCmd
 }
