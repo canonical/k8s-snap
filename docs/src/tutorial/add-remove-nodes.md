@@ -50,7 +50,7 @@ worker nodes. In this example, we're creating a worker node.
 
 Create the token for the worker node to join the cluster.
 
-```sh
+```bash
 sudo k8s get-join-token worker --worker
 ```
 
@@ -64,7 +64,7 @@ A base64 token will be printed to your terminal. Keep it handy as you will need 
 
 To join the worker node to the cluster, run:
 
-```sh
+```bash
 sudo k8s join-cluster <join-token>
 ```
 
