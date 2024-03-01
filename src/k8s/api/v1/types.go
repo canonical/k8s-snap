@@ -73,22 +73,22 @@ const (
 type NodeStatus struct {
 	// Name is the name for this cluster member that was when joining the cluster.
 	// This is typically the hostname of the node.
-	Name string `mapstructure:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 	// Address is the IP address of the node.
-	Address string `mapstructure:"address,omitempty"`
+	Address string `json:"address,omitempty"`
 	// ClusterRole is the role that the node has within the k8s cluster.
-	ClusterRole ClusterRole `mapstructure:"cluster-role,omitempty"`
+	ClusterRole ClusterRole `json:"cluster-role,omitempty"`
 	// DatastoreRole is the role that the node has within the datastore cluster.
 	// Only applicable for control-plane nodes, empty for workers.
-	DatastoreRole DatastoreRole `mapstructure:"datastore-role,omitempty"`
+	DatastoreRole DatastoreRole `json:"datastore-role,omitempty"`
 }
 
 // ClusterStatus holds information about the cluster, e.g. its current members
 type ClusterStatus struct {
 	// Ready is true if at least one node in the cluster is in READY state.
-	Ready      bool         `mapstructure:"ready,omitempty"`
-	Members    []NodeStatus `mapstructure:"members,omitempty"`
-	Components []Component  `mapstructure:"components,omitempty"`
+	Ready      bool         `json:"ready,omitempty"`
+	Members    []NodeStatus `json:"members,omitempty"`
+	Components []Component  `json:"components,omitempty"`
 }
 
 // HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
