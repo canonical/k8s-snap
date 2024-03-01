@@ -19,7 +19,11 @@ func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR str
 		"--profiling":            "false",
 	}
 
-	if snap.OnLXD(ctx) {
+	onLXD, err := snap.OnLXD(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if on lxd: %w", err)
+	}
+	if onLXD {
 		// A container cannot set this sysctl config in LXD. So, we disable it by setting it to "0".
 		// See: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/
 		serviceArgs["--conntrack-max-per-core"] = "0"

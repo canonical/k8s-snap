@@ -98,7 +98,11 @@ func EnableNetworkComponent(ctx context.Context, s snap.Snap, podCIDR string) er
 			return fmt.Errorf("failed to get mount propagation for %s: %w", p, err)
 		}
 		if p == "private" {
-			if s.OnLXD(ctx) {
+			onLXD, err := s.OnLXD(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to check if on lxd: %w", err)
+			}
+			if onLXD {
 				return fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
 			}
 			return fmt.Errorf("/sys is not a shared mount")

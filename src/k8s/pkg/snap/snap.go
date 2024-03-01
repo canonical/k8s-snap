@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/moby/sys/mountinfo"
 	"gopkg.in/yaml.v2"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
@@ -85,8 +86,12 @@ func (s *snap) Strict() bool {
 	return meta.Confinement == "strict"
 }
 
-func (s *snap) OnLXD(ctx context.Context) bool {
-	return s.runCommand(ctx, "grep", "-qa", "container=lxc", "/proc/1/environ") == nil
+func (s *snap) OnLXD(ctx context.Context) (bool, error) {
+	mounts, err := mountinfo.GetMounts(mountinfo.FSTypeFilter("fuse.lxcfs"))
+	if err != nil {
+		return false, fmt.Errorf("failed to check for lxcfs mounts: %w", err)
+	}
+	return len(mounts) > 0, nil
 }
 
 func (s *snap) UID() int {
