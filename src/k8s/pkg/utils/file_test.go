@@ -16,15 +16,24 @@ func TestParseArgumentLine(t *testing.T) {
 		line, key, value string
 	}{
 		{line: "--key=value", key: "--key", value: "value"},
+		{line: "--key= value", key: "--key", value: "value"},
 		{line: "--key=value   ", key: "--key", value: "value"},
 		{line: "--key value", key: "--key", value: "value"},
 		{line: "--key value     ", key: "--key", value: "value"},
 		{line: "--key value value", key: "--key", value: "value value"},
 		{line: "--key=value value", key: "--key", value: "value value"},
+		{line: "--key==", key: "--key", value: "="},
+		{line: "--key= =", key: "--key", value: "="},
+		{line: "--key test-value=", key: "--key", value: "test-value="},
+		{line: "--key=test-value=", key: "--key", value: "test-value="},
+		{line: "--key=test-value=,testing=", key: "--key", value: "test-value=,testing="},
+		{line: "--key test-value=,testing=", key: "--key", value: "test-value=,testing="},
 		{line: "--key", key: "--key", value: ""},
 		{line: "--key    ", key: "--key", value: ""},
 		{line: "--key=", key: "--key", value: ""},
 		{line: "--key=    ", key: "--key", value: ""},
+		{line: "--key    =", key: "--key", value: "="},
+		{line: "--key    = a value=", key: "--key", value: "= a value="},
 	} {
 		t.Run(tc.line, func(t *testing.T) {
 			key, value := utils.ParseArgumentLine(tc.line)
