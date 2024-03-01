@@ -7,12 +7,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"path"
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/component"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
@@ -268,6 +270,60 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 
 	if err := client.WaitApiServerReady(s.Context); err != nil {
 		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
+	}
+
+	for _, name := range bootstrapConfig.Components {
+		// TODO: This somewhat duplicates the logic in `component.go`
+		switch name {
+		case "network":
+			if err := component.EnableNetworkComponent(s.Context, snap, cfg.Network.PodCIDR); err != nil {
+				return fmt.Errorf("failed to enable network: %w", err)
+			}
+		case "dns":
+			dnsIP, clusterDomain, err := component.EnableDNSComponent(s.Context, snap, "", "", nil)
+			if err != nil {
+				return fmt.Errorf("failed to enable dns: %w", err)
+			}
+			if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+				if err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
+					Kubelet: types.Kubelet{
+						ClusterDNS:    dnsIP,
+						ClusterDomain: clusterDomain,
+					},
+				}); err != nil {
+					return fmt.Errorf("failed to update cluster configuration for dns=%s domain=%s: %w", dnsIP, clusterDomain, err)
+				}
+				return nil
+			}); err != nil {
+				return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
+			}
+
+		case "storage":
+			if err := component.EnableStorageComponent(s.Context, snap); err != nil {
+				return fmt.Errorf("failed to enable storage: %w", err)
+			}
+
+		case "ingress":
+			if err := component.EnableIngressComponent(s.Context, snap, "", false); err != nil {
+				return fmt.Errorf("failed to enable ingress: %w", err)
+			}
+
+		case "gateway":
+			if err := component.EnableGatewayComponent(s.Context, snap); err != nil {
+				return fmt.Errorf("failed to enable gateway: %w", err)
+			}
+
+		case "metrics-server":
+			if err := component.EnableMetricsServerComponent(s.Context, snap); err != nil {
+				return fmt.Errorf("failed to enable metrics-server: %w", err)
+			}
+
+		case "loadbalancer":
+			log.Println("Skipping loadbalancer as it needs to be enabled (and configured) manually")
+
+		default:
+			log.Printf("Skipping unknown component: %s\n", name)
+		}
 	}
 
 	return nil

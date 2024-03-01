@@ -1,6 +1,6 @@
 @startuml
 set separator none
-title Canonical Kubernetes system context
+title System Landscape
 
 top to bottom direction
 
@@ -8,19 +8,19 @@ top to bottom direction
 !include <C4/C4_Context>
 
 Person(K8sAdmin, "K8s Admin", $descr="Responsible for the K8s cluster, has elevated permissions", $tags="", $link="")
-Person(K8sUser, "K8s User", $descr="Interacts with the workloads hosted in K8s", $tags="", $link="")
-System(K8scharm, "K8s charm", $descr="Orchestrating the lifecycle management of K8s", $tags="", $link="")
+Person(K8sUser, "K8s User", $descr="Interact with the workloads hosted in K8s", $tags="", $link="")
+System(CharmK8s, "Charm K8s", $descr="Orchestrating the lifecycle management of K8s", $tags="", $link="")
 System(LoadBalancer, "Load Balancer", $descr="External LB, offered by the substrate (cloud)", $tags="", $link="")
 System(Storage, "Storage", $descr="External storage, offered by the substrate (cloud)", $tags="", $link="")
 System(Identitymanagementsystem, "Identity management system", $descr="External identity system, offered by the substrate (cloud)", $tags="", $link="")
 System(Externaldatastore, "External datastore", $descr="postgress or etcd", $tags="", $link="")
 System(K8sSnapDistribution, "K8s Snap Distribution", $descr="The Kubernetes distribution in a snap", $tags="", $link="")
 
-Rel(K8sAdmin, K8sSnapDistribution, "Administers the cluster", $techn="", $tags="", $link="")
+Rel(K8sAdmin, K8sSnapDistribution, "Sets up and configured the cluster", $techn="", $tags="", $link="")
 Rel(K8sUser, K8sSnapDistribution, "Interacts with workloads hosted in K8s", $techn="", $tags="", $link="")
-Rel(K8scharm, K8sSnapDistribution, "Orchestrates the lifecycle management of K8s", $techn="", $tags="", $link="")
+Rel(CharmK8s, K8sSnapDistribution, "Orchestrates the lifecycle management of K8s", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution, Storage, "Hosted workloads use storage", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution, Identitymanagementsystem, "User's identity is retrieved", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution, Identitymanagementsystem, "Users identity is retrieved", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution, Externaldatastore, "May be replaced by", $techn="Any", $tags="", $link="")
 Rel(K8sSnapDistribution, LoadBalancer, "May be replaced by", $techn="Any", $tags="", $link="")
 

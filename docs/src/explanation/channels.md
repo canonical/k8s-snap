@@ -10,7 +10,7 @@ When installing or updating Canonical Kubernetes you can (and should in most
 cases) specify a channel. The channel specified is made up of two components;
 the **track** and the **risk level**. 
 
-The track will match the minor version of upstream Kubernetes. For example,
+The track matches the minor version of upstream Kubernetes. For example,
 specifying the `1.30` track will match upstream releases of the same minor
 version ("1.30.0", "1.30.1", "1.30.x" etc.). Releases of Canonical Kubernetes
 closely follow the upstream releases and usually follow within 24 hours.
@@ -18,14 +18,14 @@ closely follow the upstream releases and usually follow within 24 hours.
 The 'risk level' component of the channel is one of the following:
 
 - **`stable`**: Matches upstream stable releases
-- **`candidate`**: Tracks upstream release candidate
-- **`beta`**: Tracks upstream beta releases - expect bugs
+- **`candidate`**: Holds the release candidates of the snap
+- **`beta`**: Tracks the beta releases - expect bugs
 - **`edge`**: Experimental release including upstream alpha releases
 
-Note that for each track, not all risk levels are guranteed to be available.
-For example, there may be a new upstream version in devlopment which only has
+Note that for each track, not all risk levels are guaranteed to be available.
+For example, there may be a new upstream version in development which only has
 an `edge` level. For a mature release, there may no longer be any `beta` or
-`edge`. In these cases, if you specify a risk level which has no releases for
+`candidate`. In these cases, if you specify a risk level which has no releases for
 that track the snap system will choose the closest available release with a
 lower risk level. Whatever risk level specified is the **maximum** risk level
 of the snap that will be installed - if you choose `candidate` you will never
@@ -42,8 +42,10 @@ snap info k8s
 
 Updates for upstream patch releases will happen automatically by default. For
 example, if you have selected the channel `1.30/stable`, your snap will refresh
-itself on the usual snap [refresh schedule]. These updates should not effect
-the operation of Canonical Kubernetes.
+itself regularly keeping your cluster up-to-date with the latest patches.
+For deployments where this behavior is undesirable you are given the option to
+postpone, schedule or even block automatic updates.
+The [Snap refreshes documentation] page outlines how to configure these options.
 
 To change the channel of an already installed snap, the `refresh` command can
 be used:
@@ -91,3 +93,4 @@ Use `--channel=<release>/candidate`.
 <!-- LINKS -->
 
 [Snapcraft documentation]: https://snapcraft.io/docs/channels
+[Snap refreshes documentation]: https://microk8s.io/docs/snap-refreshes

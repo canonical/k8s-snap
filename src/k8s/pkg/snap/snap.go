@@ -85,6 +85,10 @@ func (s *snap) Strict() bool {
 	return meta.Confinement == "strict"
 }
 
+func (s *snap) OnLXD(ctx context.Context) bool {
+	return s.runCommand(ctx, "grep", "-qa", "container=lxc", "/proc/1/environ") == nil
+}
+
 func (s *snap) UID() int {
 	return 0
 }

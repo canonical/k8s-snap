@@ -5,11 +5,11 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	v1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
@@ -25,6 +25,7 @@ var (
 		apiv1.ErrUnknown:             "An unknown error occured while bootstrapping the cluster:\n",
 		apiv1.ErrAlreadyBootstrapped: "K8s cluster already bootstrapped.",
 	}
+	bootstrappableComponents = []string{"network", "dns", "gateway", "ingress", "storage", "metrics-server"}
 )
 
 func newBootstrapCmd() *cobra.Command {
@@ -37,7 +38,7 @@ func newBootstrapCmd() *cobra.Command {
 			defer errors.Transform(&err, bootstrapCmdErrorMsgs)
 
 			if k8sdClient.IsBootstrapped(cmd.Context()) {
-				return v1.ErrAlreadyBootstrapped
+				return apiv1.ErrAlreadyBootstrapped
 			}
 
 			const minTimeout = 3 * time.Second
@@ -64,8 +65,7 @@ func newBootstrapCmd() *cobra.Command {
 		},
 	}
 
-	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false,
-		"Interactively configure the most important cluster options.")
+	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false, "Interactively configure the most important cluster options.")
 	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for k8s to bootstrap.")
 
 	return bootstrapCmd
@@ -75,47 +75,78 @@ func getConfigInteractively(ctx context.Context) apiv1.BootstrapConfig {
 	config := apiv1.BootstrapConfig{}
 	config.SetDefaults()
 
-	components := askQuestion("Which components would you like to enable?", []string{}, strings.Join(config.Components, ", "))
-	// TODO: Validate components
-	config.Components = strings.Split(strings.ReplaceAll(components, " ", ""), ",")
+	components := askQuestion(
+		"Which components would you like to enable?",
+		bootstrappableComponents,
+		strings.Join(config.Components, ", "),
+		map[string]string{"loadbalancer": "The \"loadbalancer\" component requires manual configuration and needs to be enabled after bootstrapping the cluster."},
+	)
+	config.Components = strings.Split(components, ",")
 
-	config.ClusterCIDR = askQuestion("Please set the Cluster CIDR?", nil, config.ClusterCIDR)
+	config.ClusterCIDR = askQuestion("Please set the Cluster CIDR:", nil, config.ClusterCIDR, nil)
 
 	rbac := askBool("Enable Role Based Access Control (RBAC)?", []string{"yes", "no"}, "yes")
 	*config.EnableRBAC = rbac
 	return config
 }
 
-func askQuestion(question string, options []string, defaultVal string) string {
-	if options != nil {
-		question = fmt.Sprintf("%s (%s)", question, strings.Join(options, ", "))
-	}
-	if defaultVal != "" {
-		question = fmt.Sprintf("%s [%s]:", question, defaultVal)
-	}
-	question = fmt.Sprintf("%s ", question)
-
-	var s string
-	r := bufio.NewReader(os.Stdin)
+// askQuestion will ask the user for input.
+// askQuestion will keep asking if the input is not valid.
+// askQuestion will remove all whitespaces and capitalization of the input.
+// customErr can be used to provide extra error messages for specific non-valid inputs.
+func askQuestion(question string, options []string, defaultVal string, customErr map[string]string) string {
 	for {
-		fmt.Fprint(os.Stdout, question)
-		s, _ = r.ReadString('\n')
-		if s != "" {
-			break
+		q := question
+		if options != nil {
+			q = fmt.Sprintf("%s (%s)", q, strings.Join(options, ", "))
 		}
-	}
-	s = strings.TrimSpace(s)
+		if defaultVal != "" {
+			q = fmt.Sprintf("%s [%s]:", q, defaultVal)
+		}
+		q = fmt.Sprintf("%s ", q)
 
-	if s == "" {
-		return defaultVal
+		var s string
+		r := bufio.NewReader(os.Stdin)
+		for {
+			fmt.Fprint(os.Stdout, q)
+			s, _ = r.ReadString('\n')
+			if s != "" {
+				break
+			}
+		}
+		s = strings.ReplaceAll(strings.ToLower(s), " ", "")
+
+		if s == "" {
+			return defaultVal
+		}
+
+		// Check if the input is valid
+		if options != nil || len(options) > 0 {
+			valid := true
+			sSlice := strings.Split(s, ",")
+
+			for _, element := range sSlice {
+				if !slices.Contains(options, element) {
+					if msg, ok := customErr[element]; ok {
+						fmt.Fprintf(os.Stdout, "  %s\n", msg)
+					} else {
+						fmt.Fprintf(os.Stdout, "  %q is not a valid option.\n", element)
+					}
+					valid = false
+				}
+			}
+			if !valid {
+				continue
+			}
+		}
+		return s
 	}
-	return s
 }
 
 // askBool asks a question and expect a yes/no answer.
 func askBool(question string, options []string, defaultVal string) bool {
 	for {
-		answer := askQuestion(question, options, defaultVal)
+		answer := askQuestion(question, options, defaultVal, nil)
 
 		if utils.ValueInSlice(strings.ToLower(answer), []string{"yes", "y"}) {
 			return true

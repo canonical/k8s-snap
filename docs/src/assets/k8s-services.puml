@@ -9,29 +9,42 @@ top to bottom direction
 !include <C4/C4_Container>
 !include <C4/C4_Component>
 
-Container(K8sSnapDistribution.K8sd, "K8sd", $techn="", $descr="Daemon implementing the functionality available in the k8s snap", $tags="", $link="")
-Container(K8sSnapDistribution.Components, "Components", $techn="", $descr="Core components for the k8s distribution", $tags="", $link="")
-Container(K8sSnapDistribution.Kubectl, "Kubectl", $techn="", $descr="kubectl client for accessing the cluster", $tags="", $link="")
+Container(K8sSnapDistribution.K8sd, "K8sd", $techn="", $descr="Deamon implementing the functionality available in the k8s snap", $tags="", $link="")
 Container(K8sSnapDistribution.State, "State", $techn="", $descr="Datastores holding the cluster state", $tags="", $link="")
+Person(K8sUser, "K8s User", $descr="Interact with the workloads hosted in K8s", $tags="", $link="")
+System(LoadBalancer, "Load Balancer", $descr="External LB, offered by the substrate (cloud)", $tags="", $link="")
+Container(K8sSnapDistribution.Kubectl, "Kubectl", $techn="", $descr="kubectl client for accessing the cluster", $tags="", $link="")
 
 Container_Boundary("K8sSnapDistribution.KubernetesServices_boundary", "Kubernetes Services", $tags="") {
-  Component(K8sSnapDistribution.KubernetesServices.systemddaemons, "systemd daemons", $techn="", $descr="Daemons running the k8s services", $tags="", $link="")
+  Component(K8sSnapDistribution.KubernetesServices.systemddaemons, "systemd daemons", $techn="", $descr="Daemons holding the k8s services", $tags="", $link="")
   Component(K8sSnapDistribution.KubernetesServices.APIserver, "API server", $techn="", $descr="", $tags="", $link="")
   Component(K8sSnapDistribution.KubernetesServices.kubelet, "kubelet", $techn="", $descr="", $tags="", $link="")
   Component(K8sSnapDistribution.KubernetesServices.kubeproxy, "kube-proxy", $techn="", $descr="", $tags="", $link="")
   Component(K8sSnapDistribution.KubernetesServices.scheduler, "scheduler", $techn="", $descr="", $tags="", $link="")
   Component(K8sSnapDistribution.KubernetesServices.kubecontroller, "kube-controller", $techn="", $descr="", $tags="", $link="")
+  Component(K8sSnapDistribution.KubernetesServices.NetworkCNI, "Network CNI", $techn="", $descr="The network implementation of K8s (from Cilium)", $tags="", $link="")
+  Component(K8sSnapDistribution.KubernetesServices.Localstorageprovider, "Local storage provider", $techn="", $descr="Simple storage for workloads", $tags="", $link="")
+  Component(K8sSnapDistribution.KubernetesServices.Ingress, "Ingress", $techn="", $descr="Ingress for workloads (from Cilium)", $tags="", $link="")
+  Component(K8sSnapDistribution.KubernetesServices.Gateway, "Gateway", $techn="", $descr="Gateway API for workloads (from Cilium)", $tags="", $link="")
+  Component(K8sSnapDistribution.KubernetesServices.DNS, "DNS", $techn="", $descr="Internal DNS", $tags="", $link="")
+  Component(K8sSnapDistribution.KubernetesServices.Metricsserver, "Metrics server", $techn="", $descr="Keep track of cluster metrics", $tags="", $link="")
+  Component(K8sSnapDistribution.KubernetesServices.Loadbalancer, "Load-balancer", $techn="", $descr="The load balancer (from Cilium)", $tags="", $link="")
 }
 
-Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.Components, "Handles", $techn="", $tags="", $link="")
+Rel(K8sUser, K8sSnapDistribution.KubernetesServices.Loadbalancer, "Interacts with workloads hosted in K8s", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.KubernetesServices.Loadbalancer, LoadBalancer, "May be replaced by", $techn="Any", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.KubernetesServices.systemddaemons, "Configures", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.KubernetesServices.systemddaemons, K8sSnapDistribution.KubernetesServices.APIserver, "Is a service", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.KubernetesServices.systemddaemons, K8sSnapDistribution.KubernetesServices.kubelet, "Is a service", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.KubernetesServices.systemddaemons, K8sSnapDistribution.KubernetesServices.kubeproxy, "Is a service", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.KubernetesServices.systemddaemons, K8sSnapDistribution.KubernetesServices.kubecontroller, "Is a service", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.KubernetesServices.systemddaemons, K8sSnapDistribution.KubernetesServices.scheduler, "Is a service", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.Components, K8sSnapDistribution.KubernetesServices.APIserver, "Keeps state in", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.KubernetesServices.NetworkCNI, K8sSnapDistribution.KubernetesServices.APIserver, "Keeps state in", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.KubernetesServices.DNS, K8sSnapDistribution.KubernetesServices.APIserver, "Keeps state in", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.KubernetesServices.APIserver, K8sSnapDistribution.State, "Uses by default", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.KubernetesServices.NetworkCNI, K8sSnapDistribution.KubernetesServices.Ingress, "May provide", $techn="HTTP/HTTPS", $tags="", $link="")
+Rel(K8sSnapDistribution.KubernetesServices.NetworkCNI, K8sSnapDistribution.KubernetesServices.Gateway, "May provide", $techn="HTTP/HTTPS", $tags="", $link="")
+Rel(K8sSnapDistribution.KubernetesServices.NetworkCNI, K8sSnapDistribution.KubernetesServices.Loadbalancer, "May provide", $techn="HTTP/HTTPS", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.State, "Keeps state in", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.Kubectl, K8sSnapDistribution.KubernetesServices.APIserver, "Interacts", $techn="", $tags="", $link="")
 

@@ -126,13 +126,33 @@ def stubbornly(
     return Retriable()
 
 
-def setup_dns(instance: harness.Instance):
-    LOG.info("Waiting for dns to be enabled...")
-    stubbornly(retries=15, delay_s=5).on(instance).exec(
-        ["k8s", "enable", "dns", "--cluster-domain=foo.local"]
-    )
-    LOG.info("DNS enabled.")
+# Installs and setups the k8s snap on the given instance and connects the interfaces.
+def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
+    LOG.info("Install k8s snap")
+    instance.send_file(config.SNAP, snap_path)
+    instance.exec(["snap", "install", snap_path, "--classic", "--dangerous"])
 
+    LOG.info("Ensure k8s interfaces and network requirements")
+    instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
+
+
+# Validates that the K8s node is in Ready state.
+def wait_until_k8s_ready(
+    control_node: harness.Instance, instances: List[harness.Instance]
+):
+    for instance in instances:
+        host = hostname(instance)
+        result = (
+            stubbornly(retries=15, delay_s=5)
+            .on(control_node)
+            .until(lambda p: " Ready" in p.stdout.decode())
+            .exec(["k8s", "kubectl", "get", "node", host, "--no-headers"])
+        )
+    LOG.info("Kubelet registered successfully!")
+    LOG.info("%s", result.stdout.decode())
+
+
+def wait_for_dns(instance: harness.Instance):
     LOG.info("Waiting for CoreDNS pod to show up...")
     stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "coredns" in p.stdout.decode()
@@ -156,11 +176,7 @@ def setup_dns(instance: harness.Instance):
     )
 
 
-def setup_network(instance: harness.Instance):
-    LOG.info("Waiting for network to be enabled...")
-    stubbornly(retries=15, delay_s=5).on(instance).exec(["k8s", "enable", "network"])
-    LOG.info("Network enabled.")
-
+def wait_for_network(instance: harness.Instance):
     LOG.info("Waiting for cilium pods to show up...")
     stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "cilium" in p.stdout.decode()
@@ -202,35 +218,14 @@ def setup_network(instance: harness.Instance):
     )
 
 
-# Installs and setups the k8s snap on the given instance and connects the interfaces.
-def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
-    LOG.info("Install k8s snap")
-    instance.send_file(config.SNAP, snap_path)
-    instance.exec(["snap", "install", snap_path, "--classic", "--dangerous"])
-
-    LOG.info("Ensure k8s interfaces and network requirements")
-    instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
-
-
-# Validates that the K8s node is in Ready state.
-def wait_until_k8s_ready(
-    control_node: harness.Instance, instances: List[harness.Instance]
-):
-    for instance in instances:
-        host = hostname(instance)
-        result = (
-            stubbornly(retries=15, delay_s=5)
-            .on(control_node)
-            .until(lambda p: " Ready" in p.stdout.decode())
-            .exec(["k8s", "kubectl", "get", "node", host, "--no-headers"])
-        )
-    LOG.info("Kubelet registered successfully!")
-    LOG.info("%s", result.stdout.decode())
-
-
 def hostname(instance: harness.Instance) -> str:
     """Return the hostname for a given instance."""
     resp = instance.exec(["hostname"], capture_output=True)
+    return resp.stdout.decode().strip()
+
+
+def get_local_node_status(instance: harness.Instance) -> str:
+    resp = instance.exec(["k8s", "local-node-status"], capture_output=True)
     return resp.stdout.decode().strip()
 
 

@@ -11,7 +11,8 @@ LOG = logging.getLogger(__name__)
 
 def test_dns(instances: List[harness.Instance]):
     instance = instances[0]
-    util.setup_dns(instance)
+    util.wait_for_dns(instance)
+    util.wait_for_network(instance)
 
     instance.exec(
         [
@@ -46,7 +47,7 @@ def test_dns(instances: List[harness.Instance]):
         capture_output=True,
     )
 
-    assert "10.152.183.1 kubernetes.default.svc.foo.local" in result.stdout.decode()
+    assert "10.152.183.1 kubernetes.default.svc.cluster.local" in result.stdout.decode()
 
     result = instance.exec(
         ["k8s", "kubectl", "exec", "busybox", "--", "nslookup", "canonical.com"],
