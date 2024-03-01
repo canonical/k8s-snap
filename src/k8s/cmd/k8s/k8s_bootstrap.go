@@ -13,11 +13,13 @@ import (
 	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 var (
 	bootstrapCmdOpts struct {
 		interactive bool
+		config      string // yaml config filename
 		timeout     time.Duration
 	}
 
@@ -47,15 +49,27 @@ func newBootstrapCmd() *cobra.Command {
 				bootstrapCmdOpts.timeout = minTimeout
 			}
 
-			config := apiv1.BootstrapConfig{}
+			bootstrapConfig := apiv1.BootstrapConfig{}
+			if bootstrapCmdOpts.interactive && bootstrapCmdOpts.config != "" {
+				return fmt.Errorf("failed to bootstrap cluster: cannot use both --interactive and --config flags at the same time")
+			}
+
+			// If interactive is set, ask the user for input.
+			// Else If config is set, read the config from the file.
+			// Else, set the default values.
 			if bootstrapCmdOpts.interactive {
-				config = getConfigInteractively(cmd.Context())
+				bootstrapConfig = getConfigInteractively(cmd.Context())
+			} else if bootstrapCmdOpts.config != "" {
+				bootstrapConfig, err = getConfigYaml(bootstrapCmdOpts.config)
+				if err != nil {
+					return fmt.Errorf("failed to bootstrap cluster: %w", err)
+				}
 			} else {
-				config.SetDefaults()
+				bootstrapConfig.SetDefaults()
 			}
 
 			fmt.Println("Bootstrapping the cluster. This may take some time, please wait.")
-			cluster, err := k8sdClient.Bootstrap(cmd.Context(), config)
+			cluster, err := k8sdClient.Bootstrap(cmd.Context(), bootstrapConfig)
 			if err != nil {
 				return fmt.Errorf("failed to bootstrap cluster: %w", err)
 			}
@@ -69,6 +83,36 @@ func newBootstrapCmd() *cobra.Command {
 	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for k8s to bootstrap.")
 
 	return bootstrapCmd
+}
+
+func getConfigYaml(initFile string) (apiv1.BootstrapConfig, error) {
+	// Example YAML:
+	// 	components:
+	//   - network
+	//   - dns
+	//   - gateway
+	//   - ingress
+	//   - storage
+	//   - metrics-server
+	// cluster-cidr: "10.244.0.0/16"
+	// enable-rbac: true
+	// k8s-dqlite-port: 12379
+
+	config := apiv1.BootstrapConfig{}
+	config.SetDefaults()
+
+	// Read the yaml file
+	yamlContent, err := os.ReadFile(initFile)
+	if err != nil {
+		return config, fmt.Errorf("failed to read bootstrap init YAML file: %w", err)
+	}
+	// Parse the yaml file
+	err = yaml.Unmarshal(yamlContent, &config)
+	if err != nil {
+		return config, fmt.Errorf("failed to parse YAML config file: %w", err)
+	}
+
+	return config, nil
 }
 
 func getConfigInteractively(ctx context.Context) apiv1.BootstrapConfig {
