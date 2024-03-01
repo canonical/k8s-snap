@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -37,4 +38,15 @@ func Kubeconfig(path string, token string, url string, caPEM string) error {
 	}
 	defer file.Close()
 	return renderKubeconfig(file, token, url, caPEM)
+}
+
+// ClientKubeconfig provides a kubeconfig suitable for client manipulations.
+func ClientKubeconfig(token string, url string, caPEM string) ([]byte, error) {
+	var cfg bytes.Buffer
+
+	// TODO(kwm): template hard codes scheme. sanitize url so we don't get http://http://server:port.
+	if err := renderKubeconfig(&cfg, token, url, caPEM); err != nil {
+		return nil, err
+	}
+	return cfg.Bytes(), nil
 }
