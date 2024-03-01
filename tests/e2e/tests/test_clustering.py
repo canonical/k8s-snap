@@ -51,8 +51,8 @@ def test_worker_nodes(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_node = instances[1]
 
-    token = get_join_token(cluster_node, joining_node, "--worker")
-    join_cluster(joining_node, token)
+    join_token = get_join_token(cluster_node, joining_node, "--worker")
+    join_cluster(joining_node, join_token)
 
     util.wait_until_k8s_ready(cluster_node, instances)
     nodes = util.ready_nodes(cluster_node)

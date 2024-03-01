@@ -71,7 +71,7 @@ A base64 token will be printed to your terminal. Keep it handy as you will need 
 To join the worker node to the cluster, run:
 
 ```sh
-sudo k8s join-cluster <join_token>
+sudo k8s join-cluster <join-token>
 ```
 
 After a few seconds, you should see: `Joined the cluster.`
