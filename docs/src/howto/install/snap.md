@@ -39,7 +39,7 @@ sudo snap install k8s --classic --channel=latest/edge
 ```
 
 ```{note}
-In the pre-release phase, `latest/edge` is the only channel available. 
+The `latest/edge` channel is always under active development. This is where you will find the latest features but you may also experience instability.
 ```
 
 ## Bootstrap the cluster

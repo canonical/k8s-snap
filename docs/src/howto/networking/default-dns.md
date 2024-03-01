@@ -42,7 +42,7 @@ sudo k8s help enable
 
 Discover your configuration options by running:
 ```bash
-sudo k8s set dns –help
+sudo k8s set dns --help
 ```
 
 You should see three options:
@@ -76,10 +76,10 @@ desired values for your DNS configuration.
 Canonical Kubernetes also allows you to disable the built-in DNS, 
 if you desire a custom solution:
 
-``` {warning} Do not disable DNS unless you have a replacement configured.
-Disabling DNS will disrupt internal cluster communication. Ensure a suitable
+``` {warning} Disabling DNS will disrupt internal cluster communication. Ensure a suitable
 custom DNS solution is in place before disabling. You can re-enable DNS at any
 point, and your cluster will return to normal functionality.```
+```
 
 ```bash
 sudo k8s disable dns
