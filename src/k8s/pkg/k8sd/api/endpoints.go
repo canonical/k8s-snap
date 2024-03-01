@@ -19,7 +19,7 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		// Unified token endpoint for both, control-plane and worker-node.
 		{
 			Name: "ClusterJoinTokens",
-			Path: "k8sd/cluster/get-join-token",
+			Path: "k8sd/cluster/tokens",
 			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterJoinTokens), AccessHandler: RestrictWorkers},
 		},
 		{
