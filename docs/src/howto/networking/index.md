@@ -13,6 +13,7 @@ how to configure and use key capabilities of Canonical Kubernetes.
 :glob:
 :titlesonly:
 
+/howto/networking/default-network.md
 /howto/networking/default-dns.md
 /howto/networking/default-ingress.md
 ```
