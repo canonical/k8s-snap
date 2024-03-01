@@ -55,6 +55,8 @@ func NewRootCmd() *cobra.Command {
 	// Components
 	rootCmd.AddCommand(newEnableCmd())
 	rootCmd.AddCommand(newDisableCmd())
+	rootCmd.AddCommand(newSetCmd())
+	rootCmd.AddCommand(newGetCmd())
 
 	// internal
 	rootCmd.AddCommand(newGenerateAuthTokenCmd())

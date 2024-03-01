@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/k8s"
+	"github.com/canonical/k8s/pkg/utils/vals"
 )
 
-func EnableLoadBalancerComponent(ctx context.Context, s snap.Snap, cidrs []string, l2Enabled bool, l2Interfaces []string, bgpEnabled bool, bgpLocalASN int, bgpPeerAddress string, bgpPeerASN int, bgpPeerPort int) error {
+func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh bool, cidrs []string, l2Enabled bool, l2Interfaces []string, bgpEnabled bool, bgpLocalASN int, bgpPeerAddress string, bgpPeerASN int, bgpPeerPort int) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -34,7 +36,7 @@ func EnableLoadBalancerComponent(ctx context.Context, s snap.Snap, cidrs []strin
 	}
 
 	if err := manager.Refresh("network", networkValues); err != nil {
-		return fmt.Errorf("failed to enable ingress component: %w", err)
+		return fmt.Errorf("failed to enable load-balancer component: %w", err)
 	}
 
 	formattedCidrs := []map[string]any{}
@@ -64,8 +66,14 @@ func EnableLoadBalancerComponent(ctx context.Context, s snap.Snap, cidrs []strin
 		},
 	}
 
-	if err := manager.Enable("loadbalancer", values); err != nil {
-		return fmt.Errorf("failed to enable loadbalancer component: %w", err)
+	if isRefresh {
+		if err := manager.Refresh("load-balancer", values); err != nil {
+			return fmt.Errorf("failed to refresh load-balancer component: %w", err)
+		}
+	} else {
+		if err := manager.Enable("load-balancer", values); err != nil {
+			return fmt.Errorf("failed to enable load-balancer component: %w", err)
+		}
 	}
 
 	client, err := k8s.NewClient(s)
@@ -92,8 +100,8 @@ func DisableLoadBalancerComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	if err := manager.Disable("loadbalancer"); err != nil {
-		return fmt.Errorf("failed to disable loadbalancer component: %w", err)
+	if err := manager.Disable("load-balancer"); err != nil {
+		return fmt.Errorf("failed to disable load-balancer component: %w", err)
 	}
 
 	networkValues := map[string]any{
@@ -118,5 +126,40 @@ func DisableLoadBalancerComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to disable ingress component: %w", err)
 	}
 
+	return nil
+}
+
+func ReconcileLoadBalancerComponent(ctx context.Context, s snap.Snap, alreadyEnabled *bool, requestEnabled *bool, clusterConfig types.ClusterConfig) error {
+	var bgpEnabled, l2Enabled bool
+
+	if clusterConfig.LoadBalancer.BGPEnabled != nil {
+		bgpEnabled = *clusterConfig.LoadBalancer.BGPEnabled
+	}
+
+	if clusterConfig.LoadBalancer.L2Enabled != nil {
+		l2Enabled = *clusterConfig.LoadBalancer.L2Enabled
+	}
+
+	if vals.OptionalBool(requestEnabled, false) && vals.OptionalBool(alreadyEnabled, false) {
+		// If already enabled, and request does not contain `enabled` key
+		// or if already enabled and request contains `enabled=true`
+		err := UpdateLoadBalancerComponent(ctx, s, true, clusterConfig.LoadBalancer.CIDRs, l2Enabled, clusterConfig.LoadBalancer.L2Interfaces, bgpEnabled, clusterConfig.LoadBalancer.BGPLocalASN, clusterConfig.LoadBalancer.BGPPeerAddress, clusterConfig.LoadBalancer.BGPPeerASN, clusterConfig.LoadBalancer.BGPPeerPort)
+		if err != nil {
+			return fmt.Errorf("failed to refresh load-balancer: %w", err)
+		}
+		return nil
+	} else if vals.OptionalBool(requestEnabled, false) {
+		err := UpdateLoadBalancerComponent(ctx, s, false, clusterConfig.LoadBalancer.CIDRs, l2Enabled, clusterConfig.LoadBalancer.L2Interfaces, bgpEnabled, clusterConfig.LoadBalancer.BGPLocalASN, clusterConfig.LoadBalancer.BGPPeerAddress, clusterConfig.LoadBalancer.BGPPeerASN, clusterConfig.LoadBalancer.BGPPeerPort)
+		if err != nil {
+			return fmt.Errorf("failed to enable load-balancer: %w", err)
+		}
+		return nil
+	} else if !vals.OptionalBool(requestEnabled, false) {
+		err := DisableLoadBalancerComponent(s)
+		if err != nil {
+			return fmt.Errorf("failed to disable load-balancer: %w", err)
+		}
+		return nil
+	}
 	return nil
 }

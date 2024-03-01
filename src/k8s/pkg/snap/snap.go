@@ -204,7 +204,7 @@ func (s *snap) Components() map[string]types.Component {
 			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "coredns-1.29.0"),
 			Namespace:    "kube-system",
 		},
-		"storage": {
+		"local-storage": {
 			ReleaseName:  "ck-storage",
 			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "rawfile-csi-0.8.0.tgz"),
 			Namespace:    "kube-system",
@@ -217,7 +217,7 @@ func (s *snap) Components() map[string]types.Component {
 			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "gateway-api-0.7.1.tgz"),
 			Namespace:    "kube-system",
 		},
-		"loadbalancer": {
+		"load-balancer": {
 			ReleaseName:  "ck-loadbalancer",
 			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "ck-loadbalancer"),
 			Namespace:    "kube-system",

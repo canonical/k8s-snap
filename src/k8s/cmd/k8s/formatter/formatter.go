@@ -33,7 +33,7 @@ type plainFormatter struct {
 }
 
 func (p plainFormatter) Print(data any) error {
-	_, err := fmt.Fprint(p.writer, data)
+	_, err := fmt.Fprint(p.writer, data, "\n")
 	return err
 }
 

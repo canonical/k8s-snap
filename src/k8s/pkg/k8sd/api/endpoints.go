@@ -57,44 +57,15 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		},
 		// Cluster components
 		{
+			Name: "ClusterConfig",
+			Path: "k8sd/cluster/config",
+			Put:  rest.EndpointAction{Handler: putClusterConfig, AccessHandler: RestrictWorkers},
+			Get:  rest.EndpointAction{Handler: getClusterConfig, AccessHandler: RestrictWorkers},
+		},
+		{
 			Name: "Components",
 			Path: "k8sd/components",
 			Get:  rest.EndpointAction{Handler: getComponents, AccessHandler: RestrictWorkers},
-		},
-		{
-			Name: "DNSComponent",
-			Path: "k8sd/components/dns",
-			Put:  rest.EndpointAction{Handler: putDNSComponent, AccessHandler: RestrictWorkers},
-		},
-		{
-			Name: "NetworkComponent",
-			Path: "k8sd/components/network",
-			Put:  rest.EndpointAction{Handler: putNetworkComponent, AccessHandler: RestrictWorkers},
-		},
-		{
-			Name: "StorageComponent",
-			Path: "k8sd/components/storage",
-			Put:  rest.EndpointAction{Handler: putStorageComponent, AccessHandler: RestrictWorkers},
-		},
-		{
-			Name: "IngressComponent",
-			Path: "k8sd/components/ingress",
-			Put:  rest.EndpointAction{Handler: putIngressComponent, AccessHandler: RestrictWorkers},
-		},
-		{
-			Name: "GatewayComponent",
-			Path: "k8sd/components/gateway",
-			Put:  rest.EndpointAction{Handler: putGatewayComponent, AccessHandler: RestrictWorkers},
-		},
-		{
-			Name: "LoadBalancerComponent",
-			Path: "k8sd/components/loadbalancer",
-			Put:  rest.EndpointAction{Handler: putLoadBalancerComponent, AccessHandler: RestrictWorkers},
-		},
-		{
-			Name: "MetricsServerComponent",
-			Path: "k8sd/components/metrics-server",
-			Put:  rest.EndpointAction{Handler: putMetricsServerComponent, AccessHandler: RestrictWorkers},
 		},
 		// Kubernetes auth tokens and token review webhook for kube-apiserver
 		{

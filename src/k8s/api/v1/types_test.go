@@ -3,6 +3,7 @@ package v1
 import (
 	"testing"
 
+	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -12,7 +13,7 @@ func TestBootstrapConfigFromMap(t *testing.T) {
 	bc := &BootstrapConfig{
 		ClusterCIDR:   "10.1.0.0/16",
 		Components:    []string{"dns", "network", "storage"},
-		EnableRBAC:    &[]bool{true}[0],
+		EnableRBAC:    vals.Pointer(true),
 		K8sDqlitePort: 9000,
 	}
 

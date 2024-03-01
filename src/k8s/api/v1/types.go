@@ -5,6 +5,7 @@ import (
 	"net"
 	"strings"
 
+	"github.com/canonical/k8s/pkg/utils/vals"
 	"gopkg.in/yaml.v2"
 )
 
@@ -22,7 +23,7 @@ type BootstrapConfig struct {
 func (b *BootstrapConfig) SetDefaults() {
 	b.Components = []string{"dns", "metrics-server", "network"}
 	b.ClusterCIDR = "10.1.0.0/16"
-	b.EnableRBAC = &[]bool{true}[0]
+	b.EnableRBAC = vals.Pointer(true)
 	b.K8sDqlitePort = 9000
 }
 

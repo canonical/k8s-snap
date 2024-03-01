@@ -6,6 +6,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -14,7 +15,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 	bootstrapConfig := apiv1.BootstrapConfig{
 		ClusterCIDR:   "10.1.0.0/16",
 		Components:    []string{"dns", "network"},
-		EnableRBAC:    &[]bool{true}[0],
+		EnableRBAC:    vals.Pointer(true),
 		K8sDqlitePort: 12345,
 	}
 
@@ -23,10 +24,14 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			AuthorizationMode: "Node,RBAC",
 		},
 		Network: types.Network{
+			Enabled: vals.Pointer(true),
 			PodCIDR: "10.1.0.0/16",
 		},
 		K8sDqlite: types.K8sDqlite{
 			Port: 12345,
+		},
+		DNS: types.DNS{
+			Enabled: vals.Pointer(true),
 		},
 	}
 
@@ -73,7 +78,7 @@ func TestFalseRBAC(t *testing.T) {
 	g := NewWithT(t)
 	// Ensure false rbac yields open authz
 	bootstrapConfig := apiv1.BootstrapConfig{
-		EnableRBAC: &[]bool{false}[0],
+		EnableRBAC: vals.Pointer(false),
 	}
 	expectedConfig := types.ClusterConfig{
 		APIServer: types.APIServer{
@@ -100,6 +105,20 @@ func TestSetDefaults(t *testing.T) {
 		},
 		K8sDqlite: types.K8sDqlite{
 			Port: 9000,
+		},
+		Kubelet: types.Kubelet{
+			ClusterDomain: "cluster.local",
+		},
+		DNS: types.DNS{
+			UpstreamNameservers: []string{"/etc/resolv.conf"},
+		},
+		LocalStorage: types.LocalStorage{
+			LocalPath:     "/var/snap/k8s/common/rawfile-storage",
+			ReclaimPolicy: "Delete",
+			SetDefault:    vals.Pointer(true),
+		},
+		LoadBalancer: types.LoadBalancer{
+			L2Enabled: vals.Pointer(true),
 		},
 	}
 

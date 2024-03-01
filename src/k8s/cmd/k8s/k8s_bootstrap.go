@@ -25,7 +25,7 @@ var (
 		apiv1.ErrUnknown:             "An unknown error occured while bootstrapping the cluster:\n",
 		apiv1.ErrAlreadyBootstrapped: "K8s cluster already bootstrapped.",
 	}
-	bootstrappableComponents = []string{"network", "dns", "gateway", "ingress", "storage", "metrics-server"}
+	bootstrappableComponents = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
 )
 
 func newBootstrapCmd() *cobra.Command {
@@ -79,7 +79,7 @@ func getConfigInteractively(ctx context.Context) apiv1.BootstrapConfig {
 		"Which components would you like to enable?",
 		bootstrappableComponents,
 		strings.Join(config.Components, ", "),
-		map[string]string{"loadbalancer": "The \"loadbalancer\" component requires manual configuration and needs to be enabled after bootstrapping the cluster."},
+		nil,
 	)
 	config.Components = strings.Split(components, ",")
 
