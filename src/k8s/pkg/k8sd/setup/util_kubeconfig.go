@@ -1,11 +1,13 @@
 package setup
 
 import (
-	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"os"
+
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 var (
@@ -30,6 +32,25 @@ func renderKubeconfig(writer io.Writer, token string, url string, caPEM string) 
 	return nil
 }
 
+// createConfig generates a Config suitable for our k8s environment.
+func createConfig(token string, url string, caPEM string) *clientcmdapi.Config {
+	config := clientcmdapi.NewConfig()
+	config.Clusters["k8s"] = &clientcmdapi.Cluster{
+		CertificateAuthorityData: []byte(caPEM),
+		Server:                   url,
+	}
+	config.AuthInfos["k8s-user"] = &clientcmdapi.AuthInfo{
+		Token: token,
+	}
+	config.Contexts["k8s"] = &clientcmdapi.Context{
+		Cluster:  "k8s",
+		AuthInfo: "k8s-user",
+	}
+	config.CurrentContext = "k8s"
+
+	return config
+}
+
 // Kubeconfig writes a kubeconfig file to disk.
 func Kubeconfig(path string, token string, url string, caPEM string) error {
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
@@ -42,11 +63,10 @@ func Kubeconfig(path string, token string, url string, caPEM string) error {
 
 // KubeconfigString provides a stringified kubeconfig.
 func KubeconfigString(token string, url string, caPEM string) (string, error) {
-	var cfg bytes.Buffer
-
-	// TODO(kwm): template hard codes scheme. sanitize url so we don't get http://http://server:port.
-	if err := renderKubeconfig(&cfg, token, url, caPEM); err != nil {
+	config := createConfig(token, url, caPEM)
+	kubeconfig, err := clientcmd.Write(*config)
+	if err != nil {
 		return "", err
 	}
-	return cfg.String(), nil
+	return string(kubeconfig), nil
 }
