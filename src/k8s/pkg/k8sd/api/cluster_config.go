@@ -138,6 +138,7 @@ func getClusterConfig(s *state.State, r *http.Request) response.Response {
 		},
 		LoadBalancer: &api.LoadBalancerConfig{
 			Enabled:        vals.Pointer(false),
+			CIDRs:          cfg.LoadBalancer.CIDRs,
 			L2Enabled:      vals.Pointer(false),
 			L2Interfaces:   cfg.LoadBalancer.L2Interfaces,
 			BGPEnabled:     vals.Pointer(false),
