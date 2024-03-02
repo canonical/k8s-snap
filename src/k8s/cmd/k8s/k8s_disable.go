@@ -14,8 +14,8 @@ import (
 func newDisableCmd() *cobra.Command {
 	disableCmd := &cobra.Command{
 		Use:     "disable <functionality>",
-		Short:   "Disable a specific functionality in the cluster",
-		Long:    fmt.Sprintf("Disable one of the specific functionalities: %s.", strings.Join(componentList, ",")),
+		Short:   "Disable core cluster functionalities",
+		Long:    fmt.Sprintf("Disable one of %s.", strings.Join(componentList, ",")),
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)

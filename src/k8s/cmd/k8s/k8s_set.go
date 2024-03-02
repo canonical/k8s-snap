@@ -14,8 +14,8 @@ import (
 
 func newSetCmd() *cobra.Command {
 	setCmd := &cobra.Command{
-		Use:     "set <functionality.key=value>...",
-		Short:   "Set functionality configuration",
+		Use:   "set <functionality.key=value> ...",
+		Short: "Set cluster configuration",
 		Long:    fmt.Sprintf("Configure one of %s.\nUse `k8s get` to explore configuration options.", strings.Join(componentList, ", ")),
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		Args:    cobra.ArbitraryArgs,

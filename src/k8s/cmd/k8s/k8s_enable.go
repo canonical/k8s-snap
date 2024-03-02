@@ -18,8 +18,8 @@ var (
 func newEnableCmd() *cobra.Command {
 	enableCmd := &cobra.Command{
 		Use:     "enable <functionality>",
-		Short:   "Enable a specific functionality in the cluster",
-		Long:    fmt.Sprintf("Enable one of the specific functionalities: %s.", strings.Join(componentList, ", ")),
+		Short:   "Enable core cluster functionalities",
+		Long:    fmt.Sprintf("Enable one of %s.", strings.Join(componentList, ", ")),
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
