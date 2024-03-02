@@ -36,18 +36,8 @@ type Client interface {
 	ListComponents(ctx context.Context) ([]api.Component, error)
 	// RemoveNode removes a node from the cluster.
 	RemoveNode(ctx context.Context, name string, force bool) error
-	// UpdateDNSComponent updates the DNS component in the cluster.
-	UpdateDNSComponent(ctx context.Context, request api.UpdateDNSComponentRequest) error
-	// UpdateGatewayComponent updates the Gateway component in the cluster.
-	UpdateGatewayComponent(ctx context.Context, request api.UpdateGatewayComponentRequest) error
-	// UpdateIngressComponent updates the Ingress component in the cluster.
-	UpdateIngressComponent(ctx context.Context, request api.UpdateIngressComponentRequest) error
-	// UpdateLoadBalancerComponent updates the Load Balancer component in the cluster.
-	UpdateLoadBalancerComponent(ctx context.Context, request api.UpdateLoadBalancerComponentRequest) error
-	// UpdateNetworkComponent updates the Network component in the cluster.
-	UpdateNetworkComponent(ctx context.Context, request api.UpdateNetworkComponentRequest) error
-	// UpdateStorageComponent updates the Storage component in the cluster.
-	UpdateStorageComponent(ctx context.Context, request api.UpdateStorageComponentRequest) error
-	// UpdateMetricsServerComponent updates the Storage component in the cluster.
-	UpdateMetricsServerComponent(ctx context.Context, request api.UpdateMetricsServerComponentRequest) error
+	// UpdateClusterConfig updates configuration of the cluster.
+	UpdateClusterConfig(ctx context.Context, request api.UpdateClusterConfigRequest) error
+	// GetClusterConfig retrieves configuration of the cluster.
+	GetClusterConfig(ctx context.Context, request api.GetClusterConfigRequest) (api.UserFacingClusterConfig, error)
 }

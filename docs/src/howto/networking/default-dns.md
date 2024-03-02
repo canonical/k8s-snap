@@ -46,14 +46,14 @@ sudo k8s set dns --help
 ```
 
 You should see three options:
-- `upstream-dns`: the dns server used to forward known entries
+- `upstream-nameservers`: dns servers used to forward known entries
 - `cluster-domain`: the cluster domain name
-- `dns-ip`: the cluster IP to be assigned to the DNS service
+- `service-ip`: the cluster IP to be assigned to the DNS service
 
 Set a new DNS server IP for forwarding known entries:
 
 ```bash
-sudo k8s set dns.upstream-dns=<new-ip>
+sudo k8s set dns.upstream-nameservers=<new-ips>
 ```
 
 Change the cluster domain name:
@@ -65,7 +65,7 @@ sudo k8s set dns.cluster-domain=<new-domain-name>
 Assign a new cluster IP to the DNS service:
 
 ```bash
-sudo k8s set dns.dns-ip=<new-cluster-ip>
+sudo k8s set dns.service-ip=<new-cluster-ip>
 ```
 
 Replace `<new-ip>`, `<new-domain-name>`, and `<new-cluster-ip>` with the
@@ -73,7 +73,7 @@ desired values for your DNS configuration.
 
 ## Disable DNS
 
-Canonical Kubernetes also allows you to disable the built-in DNS, 
+Canonical Kubernetes also allows you to disable the built-in DNS,
 if you desire a custom solution:
 
 ``` {warning} Disabling DNS will disrupt internal cluster communication. Ensure a suitable

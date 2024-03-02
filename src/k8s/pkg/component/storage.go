@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils/vals"
 )
 
-func EnableStorageComponent(ctx context.Context, s snap.Snap) error {
+func UpdateStorageComponent(ctx context.Context, s snap.Snap, isRefresh bool, localPath string, reclaimPolicy string, setDefault bool) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -15,7 +17,9 @@ func EnableStorageComponent(ctx context.Context, s snap.Snap) error {
 
 	values := map[string]any{
 		"storageClass": map[string]any{
-			"enabled": true,
+			"enabled":       true,
+			"isDefault":     setDefault,
+			"reclaimPolicy": reclaimPolicy,
 		},
 		"serviceMonitor": map[string]any{
 			"enabled": false,
@@ -33,13 +37,19 @@ func EnableStorageComponent(ctx context.Context, s snap.Snap) error {
 				"tag":        storageImageTag,
 			},
 			"storage": map[string]any{
-				"path": "/var/snap/k8s/common/rawfile-storage",
+				"path": localPath,
 			},
 		},
 	}
 
-	if err := manager.Enable("storage", values); err != nil {
-		return fmt.Errorf("failed to enable storage component: %w", err)
+	if isRefresh {
+		if err := manager.Refresh("local-storage", values); err != nil {
+			return fmt.Errorf("failed to enable local-storage component: %w", err)
+		}
+	} else {
+		if err := manager.Enable("local-storage", values); err != nil {
+			return fmt.Errorf("failed to enable local-storage component: %w", err)
+		}
 	}
 
 	return nil
@@ -51,9 +61,40 @@ func DisableStorageComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to get component manager: %w", err)
 	}
 
-	if err := manager.Disable("storage"); err != nil {
-		return fmt.Errorf("failed to disable storage component: %w", err)
+	if err := manager.Disable("local-storage"); err != nil {
+		return fmt.Errorf("failed to disable local-storage component: %w", err)
 	}
 
+	return nil
+}
+
+func ReconcileLocalStorageComponent(ctx context.Context, s snap.Snap, alreadyEnabled *bool, requestEnabled *bool, clusterConfig types.ClusterConfig) error {
+	var setDefault bool
+
+	if clusterConfig.LocalStorage.SetDefault != nil {
+		setDefault = *clusterConfig.LocalStorage.SetDefault
+	}
+
+	if vals.OptionalBool(requestEnabled, false) && vals.OptionalBool(alreadyEnabled, false) {
+		// If already enabled, and request does not contain `enabled` key
+		// or if already enabled and request contains `enabled=true`
+		err := UpdateStorageComponent(ctx, s, true, clusterConfig.LocalStorage.LocalPath, clusterConfig.LocalStorage.ReclaimPolicy, setDefault)
+		if err != nil {
+			return fmt.Errorf("failed to refresh local-storage: %w", err)
+		}
+		return nil
+	} else if vals.OptionalBool(requestEnabled, false) {
+		err := UpdateStorageComponent(ctx, s, false, clusterConfig.LocalStorage.LocalPath, clusterConfig.LocalStorage.ReclaimPolicy, setDefault)
+		if err != nil {
+			return fmt.Errorf("failed to enable local-storage: %w", err)
+		}
+		return nil
+	} else if !vals.OptionalBool(requestEnabled, false) {
+		err := DisableStorageComponent(s)
+		if err != nil {
+			return fmt.Errorf("failed to disable local-storage: %w", err)
+		}
+		return nil
+	}
 	return nil
 }

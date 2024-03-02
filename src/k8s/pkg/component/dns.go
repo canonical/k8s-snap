@@ -6,14 +6,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/k8s"
+	"github.com/canonical/k8s/pkg/utils/vals"
 )
 
-// EnableDNSComponent enables DNS on the cluster.
+// UpdateDNSComponent enables or refreshes DNS on the cluster.
 // On success, it returns the IP of the DNS service and the cluster domain.
-func EnableDNSComponent(ctx context.Context, s snap.Snap, clusterDomain, serviceIP string, upstreamNameservers []string) (string, string, error) {
+func UpdateDNSComponent(ctx context.Context, s snap.Snap, isRefresh bool, clusterDomain, serviceIP string, upstreamNameservers []string) (string, string, error) {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get component manager: %w", err)
@@ -70,8 +72,14 @@ func EnableDNSComponent(ctx context.Context, s snap.Snap, clusterDomain, service
 		service["clusterIP"] = serviceIP
 	}
 
-	if err := manager.Enable("dns", values); err != nil {
-		return "", "", fmt.Errorf("failed to enable dns component: %w", err)
+	if isRefresh {
+		if err := manager.Refresh("dns", values); err != nil {
+			return "", "", fmt.Errorf("failed to refresh dns component: %w", err)
+		}
+	} else {
+		if err := manager.Enable("dns", values); err != nil {
+			return "", "", fmt.Errorf("failed to enable dns component: %w", err)
+		}
 	}
 
 	client, err := k8s.NewClient(s)
@@ -79,14 +87,15 @@ func EnableDNSComponent(ctx context.Context, s snap.Snap, clusterDomain, service
 		return "", "", fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	dnsIP, err := client.GetServiceClusterIP(ctx, "coredns", "kube-system")
+	dnsIP, err := client.GetServiceClusterIP(timeoutCtx, "coredns", "kube-system")
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get dns service: %w", err)
 	}
 
+	// TODO: this should propagate to all nodes
 	changed, err := snaputil.UpdateServiceArguments(s, "kubelet", map[string]string{
 		"--cluster-dns":    dnsIP,
 		"--cluster-domain": clusterDomain,
@@ -96,10 +105,10 @@ func EnableDNSComponent(ctx context.Context, s snap.Snap, clusterDomain, service
 	}
 
 	if changed {
-		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+		timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
 
-		if err := s.RestartService(ctx, "kubelet"); err != nil {
+		if err := s.RestartService(timeoutCtx, "kubelet"); err != nil {
 			return "", "", fmt.Errorf("failed to restart kubelet to apply new dns configuration: %w", err)
 		}
 	}
@@ -116,19 +125,44 @@ func DisableDNSComponent(ctx context.Context, s snap.Snap) error {
 		return fmt.Errorf("failed to disable dns component: %w", err)
 	}
 
-	changed, err := snaputil.UpdateServiceArguments(s, "kubelet", map[string]string{"--cluster-domain": "cluster.local"}, nil)
+	changed, err := snaputil.UpdateServiceArguments(s, "kubelet", map[string]string{"--cluster-domain": "cluster.local"}, []string{"--cluster-dns"})
 	if err != nil {
 		return fmt.Errorf("failed to update kubelet arguments: %w", err)
 	}
 
 	if changed {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
 
-		if err := s.RestartService(ctx, "kubelet"); err != nil {
+		if err := s.RestartService(timeoutCtx, "kubelet"); err != nil {
 			return fmt.Errorf("failed to restart service 'kubelet': %w", err)
 		}
 	}
 
 	return nil
+}
+
+func ReconcileDNSComponent(ctx context.Context, s snap.Snap, alreadyEnabled *bool, requestEnabled *bool, clusterConfig types.ClusterConfig) (string, string, error) {
+	if vals.OptionalBool(requestEnabled, false) && vals.OptionalBool(alreadyEnabled, false) {
+		// If already enabled, and request does not contain `enabled` key
+		// or if already enabled and request contains `enabled=true`
+		dnsIP, clusterDomain, err := UpdateDNSComponent(ctx, s, true, clusterConfig.Kubelet.ClusterDomain, clusterConfig.Kubelet.ClusterDNS, clusterConfig.DNS.UpstreamNameservers)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to refresh dns: %w", err)
+		}
+		return dnsIP, clusterDomain, nil
+	} else if vals.OptionalBool(requestEnabled, false) {
+		dnsIP, clusterDomain, err := UpdateDNSComponent(ctx, s, false, clusterConfig.Kubelet.ClusterDomain, clusterConfig.Kubelet.ClusterDNS, clusterConfig.DNS.UpstreamNameservers)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to enable dns: %w", err)
+		}
+		return dnsIP, clusterDomain, nil
+	} else if !vals.OptionalBool(requestEnabled, false) {
+		err := DisableDNSComponent(ctx, s)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to disable dns: %w", err)
+		}
+		return "", "", nil
+	}
+	return "", "", nil
 }
