@@ -20,22 +20,16 @@ func ParseArgumentLine(line string) (key string, value string) {
 
 	// parse "--argument value", "--argument=value", "--argument=value=,othervalue=" variants
 
-	// Find the index of the first occurrence of "=" and space
-	indexEqual := strings.Index(line, "=")
-	indexSpace := strings.Index(line, " ")
-
-	// Determine the split index based on the first occurrence of "=" or space
 	splitIndex := -1
-	if indexEqual == -1 && indexSpace != -1 { // Space but no "="
-		splitIndex = indexSpace
-	} else if indexSpace == -1 && indexEqual != -1 { // "=" but no space
-		splitIndex = indexEqual
-	} else if indexSpace != -1 && indexEqual != -1 { // Both "=" and space
-		splitIndex = min(indexEqual, indexSpace)
+	for i, c := range line {
+		if c == ' ' || c == '=' {
+			splitIndex = i
+			break
+		}
 	}
 
 	if splitIndex == -1 {
-		// If neither "=" nor space is found, return the whole line as key
+		// If no space or equal sign is found, return the line as key
 		return line, ""
 	}
 
