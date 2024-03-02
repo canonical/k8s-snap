@@ -17,7 +17,7 @@ func TestKubeconfigString(t *testing.T) {
 clusters:
 - cluster:
     certificate-authority-data: %s
-    server: server
+    server: https://server
   name: k8s
 contexts:
 - context:

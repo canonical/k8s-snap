@@ -2,17 +2,25 @@ package setup
 
 import (
 	"fmt"
+	"strings"
 
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 // createConfig generates a Config suitable for our k8s environment.
-func createConfig(token string, url string, caPEM string) *clientcmdapi.Config {
+func createConfig(token string, server string, caPEM string) *clientcmdapi.Config {
 	config := clientcmdapi.NewConfig()
+
+	// Default to https:// prefix if no http-like scheme is present.
+	// Note: scheme-less host:port isn't a valid url, so no url.Parse here.
+	if !strings.HasPrefix(server, "http") {
+		server = fmt.Sprintf("https://%s", server)
+	}
+
 	config.Clusters["k8s"] = &clientcmdapi.Cluster{
 		CertificateAuthorityData: []byte(caPEM),
-		Server:                   fmt.Sprintf("https://%s", url),
+		Server:                   server,
 	}
 	config.AuthInfos["k8s-user"] = &clientcmdapi.AuthInfo{
 		Token: token,
