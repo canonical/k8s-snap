@@ -2,6 +2,9 @@ DQLITE_BUILD_SCRIPTS_DIR ?= $(shell pwd)/hack
 GO_SOURCES = $(shell find . -name '*.go')
 
 ## Development
+go.doc:
+	go run hack/gen_cmd_docs.go
+
 go.fmt:
 	go mod tidy
 	go fmt ./...
