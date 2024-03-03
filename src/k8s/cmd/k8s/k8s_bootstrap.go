@@ -86,7 +86,7 @@ func getConfigInteractively() apiv1.BootstrapConfig {
 	config.Components = strings.Split(components, ",")
 
 	config.ClusterCIDR = askQuestion("Please set the Cluster CIDR:", nil, config.ClusterCIDR, nil)
-
+	config.ServiceCIDR = askQuestion("Please set the Service CIDR:", nil, config.ServiceCIDR, nil)
 	rbac := askBool("Enable Role Based Access Control (RBAC)?", []string{"yes", "no"}, "yes")
 	*config.EnableRBAC = rbac
 	return config

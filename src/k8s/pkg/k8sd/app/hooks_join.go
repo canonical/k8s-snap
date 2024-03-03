@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"path"
+	"strings"
 
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
@@ -34,16 +35,18 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to create directories: %w", err)
 	}
 
-	// TODO: cfg.Network.ServiceCIDR may be "IPv4CIDR,IPv6CIDR". Handle accordingly by first splitting the CIDR
-	kubernetesServiceIP, err := utils.GetFirstIP(cfg.Network.ServiceCIDR)
+	// cfg.Network.ServiceCIDR may be "IPv4CIDR,IPv6CIDR".
+	// TODO: handle ip6 if we have an ip6 cidr
+	ip4ServiceCIDR := strings.Split(cfg.Network.ServiceCIDR, ",")[0]
+	ip4ServiceIP, err := utils.GetFirstIP(ip4ServiceCIDR)
 	if err != nil {
-		return fmt.Errorf("failed to resolve Kubernetes IP address from service CIDR %q: %w", cfg.Network.ServiceCIDR, err)
+		return fmt.Errorf("failed to resolve IPv4 service address from service CIDR %q: %w", ip4ServiceCIDR, err)
 	}
 
 	// Certificates
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname: s.Name(),
-		IPSANs:   []net.IP{nodeIP, kubernetesServiceIP},
+		IPSANs:   []net.IP{nodeIP, ip4ServiceIP},
 		Years:    10,
 	})
 

@@ -106,15 +106,17 @@ func (c *ClusterConfig) Validate() error {
 	if len(clusterCIDRs) != 1 && len(clusterCIDRs) != 2 {
 		return fmt.Errorf("invalid number of cluster CIDRs: %d", len(clusterCIDRs))
 	}
+	serviceCIDRs := strings.Split(c.Network.ServiceCIDR, ",")
+	if len(serviceCIDRs) != 1 && len(serviceCIDRs) != 2 {
+		return fmt.Errorf("invalid number of service CIDRs: %d", len(serviceCIDRs))
+	}
 
-	for _, cidr := range clusterCIDRs {
+	for _, cidr := range append(clusterCIDRs, serviceCIDRs...) {
 		_, _, err := net.ParseCIDR(cidr)
 		if err != nil {
 			return fmt.Errorf("invalid CIDR: %w", err)
 		}
 	}
-
-	// TODO: validate ServiceCIDR
 
 	return nil
 }
@@ -172,7 +174,7 @@ func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
 			AuthorizationMode: authzMode,
 		},
 		Network: Network{
-			PodCIDR: b.ClusterCIDR,
+			PodCIDR:     b.ClusterCIDR,
 			ServiceCIDR: b.ServiceCIDR,
 		},
 		K8sDqlite: K8sDqlite{

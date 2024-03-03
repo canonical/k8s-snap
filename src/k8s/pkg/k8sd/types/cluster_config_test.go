@@ -14,6 +14,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 	g := NewWithT(t)
 	bootstrapConfig := apiv1.BootstrapConfig{
 		ClusterCIDR:   "10.1.0.0/16",
+		ServiceCIDR:   "10.152.183.0/24",
 		Components:    []string{"dns", "network"},
 		EnableRBAC:    vals.Pointer(true),
 		K8sDqlitePort: 12345,
@@ -24,8 +25,9 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			AuthorizationMode: "Node,RBAC",
 		},
 		Network: types.Network{
-			Enabled: vals.Pointer(true),
-			PodCIDR: "10.1.0.0/16",
+			Enabled:     vals.Pointer(true),
+			PodCIDR:     "10.1.0.0/16",
+			ServiceCIDR: "10.152.183.0/24",
 		},
 		K8sDqlite: types.K8sDqlite{
 			Port: 12345,
@@ -43,7 +45,8 @@ func TestValidateCIDR(t *testing.T) {
 	// Create a new BootstrapConfig with default values
 	validConfig := types.ClusterConfig{
 		Network: types.Network{
-			PodCIDR: "10.1.0.0/16,2001:0db8::/32",
+			PodCIDR:     "10.1.0.0/16,2001:0db8::/32",
+			ServiceCIDR: "10.152.183.0/16",
 		},
 	}
 
@@ -53,7 +56,8 @@ func TestValidateCIDR(t *testing.T) {
 	// Create a new BootstrapConfig with invalid CIDR
 	invalidConfig := types.ClusterConfig{
 		Network: types.Network{
-			PodCIDR: "bananas",
+			PodCIDR:     "bananas",
+			ServiceCIDR: "are,delicous",
 		},
 	}
 	err = invalidConfig.Validate()
