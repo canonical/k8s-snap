@@ -90,5 +90,6 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.AddCommand(newHelmCmd())
 	rootCmd.AddCommand(newKubectlCmd())
 
+	rootCmd.DisableAutoGenTag = true
 	return rootCmd
 }

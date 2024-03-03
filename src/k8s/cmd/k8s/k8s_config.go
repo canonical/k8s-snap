@@ -26,7 +26,6 @@ func newKubeConfigCmd() *cobra.Command {
 	kubeConfigCmd := &cobra.Command{
 		Use:     "config",
 		Short:   "Generate a kubeconfig that can be used to access the Kubernetes cluster",
-		Hidden:  true,
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
