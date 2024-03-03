@@ -3,7 +3,7 @@ GO_SOURCES = $(shell find . -name '*.go')
 
 ## Development
 go.doc:
-	go run hack/gen_cmd_docs.go
+	go run -C hack ./gen_cmd_docs.go
 
 go.fmt:
 	go mod tidy

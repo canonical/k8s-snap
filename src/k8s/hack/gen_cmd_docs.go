@@ -10,7 +10,7 @@ import (
 func main() {
 	k8sCmd := k8s.NewRootCmd()
 
-	err := doc.GenMarkdownTree(k8sCmd, "../../docs/src/_parts/commands")
+	err := doc.GenMarkdownTree(k8sCmd, "../../../docs/src/_parts/commands")
 	if err != nil {
 		log.Fatal(err)
 	}
