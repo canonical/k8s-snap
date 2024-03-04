@@ -28,6 +28,7 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.Bootst
 	if err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to retrieve system hostname: %w", err)
 	}
+	// TODO: this should be done on the server side, but we cannot currently hijack the microcluster bootstrap endpoint.
 	hostname, err := utils.CleanHostname(rawHostname)
 	if err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("invalid hostname %q: %w", rawHostname, err)
