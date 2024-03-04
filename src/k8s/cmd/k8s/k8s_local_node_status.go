@@ -3,8 +3,15 @@ package k8s
 import (
 	"fmt"
 
+	v1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/spf13/cobra"
+)
+
+var (
+	localStatusCmdErrorMsgs = map[error]string{
+		v1.ErrUnknown: "An error occurred while retrieving the node's status:\n",
+	}
 )
 
 func newLocalNodeStatusCommand() *cobra.Command {
@@ -14,11 +21,11 @@ func newLocalNodeStatusCommand() *cobra.Command {
 		Hidden:  true,
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
+			defer errors.Transform(&err, localStatusCmdErrorMsgs)
 
 			clusterStatus, err := k8sdClient.NodeStatus(cmd.Context())
 			if err != nil {
-				return fmt.Errorf("failed to get cluster status: %w", err)
+				return fmt.Errorf("Failed to get cluster status: %w", err)
 			}
 
 			fmt.Println(clusterStatus)

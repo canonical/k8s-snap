@@ -12,7 +12,10 @@ import (
 )
 
 var (
-	componentList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
+	componentList      = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
+	enableCmdErrorMsgs = map[error]string{
+		api.ErrUnknown: "An error occurred while calling enable:\n",
+	}
 )
 
 func newEnableCmd() *cobra.Command {
@@ -22,16 +25,16 @@ func newEnableCmd() *cobra.Command {
 		Long:    fmt.Sprintf("Enable one of the specific functionalities: %s.", strings.Join(componentList, ", ")),
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
+			defer errors.Transform(&err, enableCmdErrorMsgs)
 
 			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: provide only the name of the functionality that should be enabled")
+				return fmt.Errorf("Too many arguments. Please enable one thing at a time.")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the name of the functionality that should be enabled")
+				return fmt.Errorf("Please provide the name of what need to be enabled.")
 			}
 			if !slices.Contains(componentList, args[0]) {
-				return fmt.Errorf("unknown functionality %q; needs to be one of: %s", args[0], strings.Join(componentList, ", "))
+				return fmt.Errorf("Cannot enable %q. Please select one of: %s", args[0], strings.Join(componentList, ", "))
 			}
 
 			config := api.UserFacingClusterConfig{}
@@ -71,7 +74,7 @@ func newEnableCmd() *cobra.Command {
 			}
 
 			if err := k8sdClient.UpdateClusterConfig(cmd.Context(), request); err != nil {
-				return fmt.Errorf("failed to update cluster configuration: %w", err)
+				return fmt.Errorf("Failed to update cluster configuration: %w", err)
 			}
 
 			return nil

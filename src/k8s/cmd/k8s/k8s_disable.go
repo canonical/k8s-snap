@@ -11,6 +11,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	disableCmdErrorMsgs = map[error]string{
+		api.ErrUnknown: "An error occurred while calling disable:\n",
+	}
+)
+
 func newDisableCmd() *cobra.Command {
 	disableCmd := &cobra.Command{
 		Use:     "disable <functionality>",
@@ -18,7 +24,7 @@ func newDisableCmd() *cobra.Command {
 		Long:    fmt.Sprintf("Disable one of the specific functionalities: %s.", strings.Join(componentList, ",")),
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
+			defer errors.Transform(&err, disableCmdErrorMsgs)
 
 			if len(args) > 1 {
 				return fmt.Errorf("too many arguments: provide only the name of the functionality that should be disabled")

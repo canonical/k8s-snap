@@ -22,12 +22,12 @@ func newKubectlCmd() *cobra.Command {
 
 			isWorker, err := snaputil.IsWorker(snap)
 			if err != nil {
-				return fmt.Errorf("failed to check if node is a worker: %w", err)
+				return fmt.Errorf("Could not check if node is a worker or not: %w", err)
 			}
 
 			if isWorker {
 				// TODO: convert to sentinel errors to work with human readability machinery #130
-				return fmt.Errorf("this action is restricted on workers")
+				return fmt.Errorf("This action is not available on workers.")
 			}
 
 			// Allow users to provide their own kubeconfig but

@@ -21,6 +21,7 @@ var (
 		timeout time.Duration
 	}
 	joinClusterCmdErrorMsgs = map[error]string{
+		apiv1.ErrUnknown: "An error occurred while joining the cluster:\n",
 		apiv1.ErrAlreadyBootstrapped: "A bootstrap node cannot join a cluster as it is already in a cluster. " +
 			"Consider reinstalling the k8s snap and then join it.",
 		apiv1.ErrInvalidJoinToken: "The provided join token is not valid. " +
@@ -36,10 +37,10 @@ func newJoinClusterCmd() *cobra.Command {
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: provide only the join token that was generated with `sudo k8s get-join-token <node-name>`")
+				return fmt.Errorf("Too many arguments. Please provide only the join token that was generated with `sudo k8s get-join-token <node-name>`")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the join token that was generated with `sudo k8s get-join-token <node-name>`")
+				return fmt.Errorf("Please provide the join token that was generated with `sudo k8s get-join-token <node-name>`")
 			}
 
 			defer errors.Transform(&err, joinClusterCmdErrorMsgs)
@@ -50,7 +51,7 @@ func newJoinClusterCmd() *cobra.Command {
 			if joinClusterCmdOpts.name == "" {
 				hostname, err := os.Hostname()
 				if err != nil {
-					return fmt.Errorf("--name is not set and failed to get hostname: %w", err)
+					return fmt.Errorf("Could not determine the node's hostname and '--name' is not set: %w", err)
 				}
 				joinClusterCmdOpts.name = hostname
 			}
@@ -75,7 +76,7 @@ func newJoinClusterCmd() *cobra.Command {
 
 			fmt.Println("Joining the cluster. This may take some time, please wait.")
 			if err := k8sdClient.JoinCluster(timeoutCtx, joinClusterCmdOpts.name, joinClusterCmdOpts.address, joinToken); err != nil {
-				return fmt.Errorf("failed to join cluster: %w", err)
+				return fmt.Errorf("Failed to join cluster: %w", err)
 			}
 
 			fmt.Printf("Joined the cluster as %q.\nPlease allow some time for Kubernetes node registration.\n", joinClusterCmdOpts.name)

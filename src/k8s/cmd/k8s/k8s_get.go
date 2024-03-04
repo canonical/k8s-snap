@@ -6,10 +6,15 @@ import (
 	"strings"
 
 	api "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/spf13/cobra"
 )
+
+var getCmdErrorMsgs = map[error]string{
+	apiv1.ErrUnknown: "An error occurred while retrieving the configuration:\n",
+}
 
 func newGetCmd() *cobra.Command {
 	getCmd := &cobra.Command{
@@ -18,7 +23,7 @@ func newGetCmd() *cobra.Command {
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
+			defer errors.Transform(&err, getCmdErrorMsgs)
 
 			field := args[0]
 
@@ -27,13 +32,13 @@ func newGetCmd() *cobra.Command {
 
 			clusterConfig, err := k8sdClient.GetClusterConfig(timeoutCtx, api.GetClusterConfigRequest{})
 			if err != nil {
-				return fmt.Errorf("failed to get cluster config: %w", err)
+				return fmt.Errorf("Failed to get cluster config: %w", err)
 			}
 
 			if !strings.Contains(field, ".") {
 				f, err := formatter.New("yaml", cmd.OutOrStdout())
 				if err != nil {
-					return fmt.Errorf("failed to create formatter: %w", err)
+					return fmt.Errorf("Failed to create output formatter: %w", err)
 				}
 				switch field {
 				case "network":
@@ -51,12 +56,12 @@ func newGetCmd() *cobra.Command {
 				case "metrics-server":
 					return f.Print(clusterConfig.MetricsServer)
 				default:
-					return fmt.Errorf("invalid argument: %s", field)
+					return fmt.Errorf("Invalid argument: %s", field)
 				}
 			} else {
 				f, err := formatter.New("plain", cmd.OutOrStdout())
 				if err != nil {
-					return fmt.Errorf("failed to create formatter: %w", err)
+					return fmt.Errorf("Failed to create output formatter: %w", err)
 				}
 
 				switch field {
@@ -107,7 +112,7 @@ func newGetCmd() *cobra.Command {
 				case "metrics-server.enabled":
 					return f.Print(*clusterConfig.MetricsServer.Enabled)
 				default:
-					return fmt.Errorf("invalid argument: %s", field)
+					return fmt.Errorf("Invalid argument: %s", field)
 				}
 			}
 		},

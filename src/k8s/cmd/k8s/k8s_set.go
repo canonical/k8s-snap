@@ -11,6 +11,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var setCmdErrorMsgs = map[error]string{
+	api.ErrUnknown: "An error occurred while setting the configuration:\n",
+}
+
 func newSetCmd() *cobra.Command {
 	setCmd := &cobra.Command{
 		Use:     "set <functionality.key=value>...",
@@ -18,14 +22,14 @@ func newSetCmd() *cobra.Command {
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		Args:    cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
+			defer errors.Transform(&err, setCmdErrorMsgs)
 
 			config := api.UserFacingClusterConfig{}
 
 			for _, arg := range args {
 				parts := strings.SplitN(arg, "=", 2)
 				if len(parts) != 2 {
-					return fmt.Errorf("option %q not in <key>=<value> format", arg)
+					return fmt.Errorf("Option %q not in <key>=<value> format", arg)
 				}
 				key := parts[0]
 				value := parts[1]
@@ -37,7 +41,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for network.enabled: %w", err)
+						return fmt.Errorf("Invalid boolean value for network.enabled: %w", err)
 					}
 					config.Network.Enabled = &v
 				case "dns.enabled":
@@ -46,7 +50,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for dns.enabled: %w", err)
+						return fmt.Errorf("Invalid boolean value for dns.enabled: %w", err)
 					}
 					config.DNS.Enabled = &v
 				case "dns.upstream-nameservers":
@@ -70,7 +74,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for gateway.enabled: %w", err)
+						return fmt.Errorf("Invalid boolean value for gateway.enabled: %w", err)
 					}
 					config.Gateway.Enabled = &v
 				case "ingress.enabled":
@@ -79,7 +83,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for ingress.enabled: %w", err)
+						return fmt.Errorf("Invalid boolean value for ingress.enabled: %w", err)
 					}
 					config.Ingress.Enabled = &v
 				case "ingress.default-tls-secret":
@@ -93,7 +97,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for ingress.enable-proxy-protocol: %w", err)
+						return fmt.Errorf("Invalid boolean value for ingress.enable-proxy-protocol: %w", err)
 					}
 					config.Ingress.EnableProxyProtocol = &v
 				case "local-storage.enabled":
@@ -102,7 +106,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for local-storage.enabled: %w", err)
+						return fmt.Errorf("Invalid boolean value for local-storage.enabled: %w", err)
 					}
 					config.LocalStorage.Enabled = &v
 				case "local-storage.local-path":
@@ -121,7 +125,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for local-storage.set-default: %w", err)
+						return fmt.Errorf("Invalid boolean value for local-storage.set-default: %w", err)
 					}
 					config.LocalStorage.SetDefault = &v
 				case "load-balancer.enabled":
@@ -130,7 +134,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for load-balancer.enabled: %w", err)
+						return fmt.Errorf("Invalid boolean value for load-balancer.enabled: %w", err)
 					}
 					config.LoadBalancer.Enabled = &v
 				case "load-balancer.cidrs":
@@ -144,7 +148,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for load-balancer.l2-mode: %w", err)
+						return fmt.Errorf("Invalid boolean value for load-balancer.l2-mode: %w", err)
 					}
 					config.LoadBalancer.L2Enabled = &v
 				case "load-balancer.l2-interfaces":
@@ -158,7 +162,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for load-balancer.bgp-mode: %w", err)
+						return fmt.Errorf("Invalid boolean value for load-balancer.bgp-mode: %w", err)
 					}
 					config.LoadBalancer.BGPEnabled = &v
 				case "load-balancer.bgp-local-asn":
@@ -167,7 +171,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.Atoi(value)
 					if err != nil {
-						return fmt.Errorf("invalid integer value for load-balancer.bgp-local-asn: %w", err)
+						return fmt.Errorf("Invalid integer value for load-balancer.bgp-local-asn: %w", err)
 					}
 					config.LoadBalancer.BGPLocalASN = v
 				case "load-balancer.bgp-peer-address":
@@ -181,7 +185,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.Atoi(value)
 					if err != nil {
-						return fmt.Errorf("invalid integer value for load-balancer.bgp-peer-port: %w", err)
+						return fmt.Errorf("Invalid integer value for load-balancer.bgp-peer-port: %w", err)
 					}
 					config.LoadBalancer.BGPPeerPort = v
 				case "load-balancer.bgp-peer-asn":
@@ -190,7 +194,7 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.Atoi(value)
 					if err != nil {
-						return fmt.Errorf("invalid integer value for load-balancer.bgp-peer-asn: %w", err)
+						return fmt.Errorf("Invalid integer value for load-balancer.bgp-peer-asn: %w", err)
 					}
 					config.LoadBalancer.BGPPeerASN = v
 				case "metrics-server.enabled":
@@ -199,11 +203,11 @@ func newSetCmd() *cobra.Command {
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
-						return fmt.Errorf("invalid boolean value for metrics-server.enabled: %w", err)
+						return fmt.Errorf("Invalid boolean value for metrics-server.enabled: %w", err)
 					}
 					config.MetricsServer.Enabled = &v
 				default:
-					return fmt.Errorf("invalid config key: %s", key)
+					return fmt.Errorf("Invalid config key: %s", key)
 				}
 			}
 
@@ -212,7 +216,7 @@ func newSetCmd() *cobra.Command {
 			}
 
 			if err := k8sdClient.UpdateClusterConfig(cmd.Context(), request); err != nil {
-				return fmt.Errorf("failed to update cluster configuration: %w", err)
+				return fmt.Errorf("Failed to update cluster configuration: %w", err)
 			}
 			return nil
 		},

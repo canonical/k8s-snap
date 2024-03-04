@@ -17,6 +17,9 @@ var (
 		timeout      time.Duration
 		waitReady    bool
 	}
+	statusCmdErrorMsgs = map[error]string{
+		v1.ErrUnknown: "An error occurred while retrieving the cluster status:\n",
+	}
 )
 
 func newStatusCmd() *cobra.Command {
@@ -26,7 +29,7 @@ func newStatusCmd() *cobra.Command {
 		Hidden:  true,
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
+			defer errors.Transform(&err, statusCmdErrorMsgs)
 
 			// fail fast if we're not bootstrapped
 			if !k8sdClient.IsBootstrapped(cmd.Context()) {
@@ -35,7 +38,7 @@ func newStatusCmd() *cobra.Command {
 			// fail fast if we're not explicitly waiting and we can't get kube-apiserver endpoints
 			if !statusCmdOpts.waitReady {
 				if ready := k8sdClient.IsKubernetesAPIServerReady(cmd.Context()); !ready {
-					return fmt.Errorf("failed to get kube-apiserver endpoints; cluster status is unavailable")
+					return fmt.Errorf("Failed to get kube-apiserver endpoints. Cluster status is unavailable.")
 				}
 			}
 
@@ -49,12 +52,12 @@ func newStatusCmd() *cobra.Command {
 			defer cancel()
 			clusterStatus, err := k8sdClient.ClusterStatus(timeoutCtx, statusCmdOpts.waitReady)
 			if err != nil {
-				return fmt.Errorf("failed to get cluster status: %w", err)
+				return fmt.Errorf("Failed to get cluster status: %w", err)
 			}
 
 			f, err := formatter.New(statusCmdOpts.outputFormat, cmd.OutOrStdout())
 			if err != nil {
-				return fmt.Errorf("failed to create formatter: %w", err)
+				return fmt.Errorf("Failed to create output formatter: %w", err)
 			}
 			return f.Print(clusterStatus)
 		},

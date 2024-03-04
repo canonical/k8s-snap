@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	api "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/spf13/cobra"
 )
@@ -13,6 +14,9 @@ var (
 	removeNodeCmdOpts struct {
 		force   bool
 		timeout time.Duration
+	}
+	removeCmdErrorMsgs = map[error]string{
+		api.ErrUnknown: "An error occurred while removing the node:\n",
 	}
 )
 
@@ -23,13 +27,13 @@ func newRemoveNodeCmd() *cobra.Command {
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: provide only the name of the node to remove")
+				return fmt.Errorf("Too many arguments. Please provide only the name of the node to remove.")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the name of the node to remove")
+				return fmt.Errorf("Please provide the name of the node to remove.")
 			}
 
-			defer errors.Transform(&err, nil)
+			defer errors.Transform(&err, removeCmdErrorMsgs)
 
 			name := args[0]
 
@@ -43,7 +47,7 @@ func newRemoveNodeCmd() *cobra.Command {
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), removeNodeCmdOpts.timeout)
 			defer cancel()
 			if err := k8sdClient.RemoveNode(timeoutCtx, name, removeNodeCmdOpts.force); err != nil {
-				return fmt.Errorf("failed to remove node from cluster: %w", err)
+				return fmt.Errorf("Failed to remove node from cluster: %w", err)
 			}
 			fmt.Printf("Removed %s from cluster.\n", name)
 			return nil

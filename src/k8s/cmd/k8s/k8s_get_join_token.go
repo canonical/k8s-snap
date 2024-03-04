@@ -15,6 +15,7 @@ var (
 		outputFormat string
 	}
 	getJoinTokenCmdErrorMsgs = map[error]string{
+		apiv1.ErrUnknown:             "An error occurred while creating the join token:\n",
 		apiv1.ErrTokenAlreadyCreated: "A token for this node was already created and the node did not join.",
 	}
 )
@@ -34,10 +35,10 @@ func newGetJoinTokenCmd() *cobra.Command {
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: only provide the node name for 'get-join-token'")
+				return fmt.Errorf("Too many arguments. Please provide only the node name for 'get-join-token'")
 			}
 			if len(args) < 1 {
-				return fmt.Errorf("missing argument: please provide the node name for 'get-join-token'")
+				return fmt.Errorf("Please provide the node name for 'get-join-token'")
 			}
 
 			defer errors.Transform(&err, getJoinTokenCmdErrorMsgs)
@@ -46,7 +47,7 @@ func newGetJoinTokenCmd() *cobra.Command {
 			// Create a joinToken that will be used by the joining node to join the cluster.
 			joinToken, err := k8sdClient.CreateJoinToken(cmd.Context(), name, getJoinTokenCmdOpts.worker)
 			if err != nil {
-				return fmt.Errorf("failed to retrieve join token: %w", err)
+				return fmt.Errorf("Failed to retrieve join token: %w", err)
 			}
 
 			result := GetJoinTokenResult{
@@ -54,7 +55,7 @@ func newGetJoinTokenCmd() *cobra.Command {
 			}
 			f, err := formatter.New(getJoinTokenCmdOpts.outputFormat, cmd.OutOrStdout())
 			if err != nil {
-				return fmt.Errorf("failed to create formatter: %w", err)
+				return fmt.Errorf("Failed to create output formatter: %w", err)
 			}
 			return f.Print(result)
 		},
