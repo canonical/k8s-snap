@@ -1,7 +1,6 @@
 package setup_test
 
 import (
-	"os"
 	"path"
 	"strings"
 	"testing"
@@ -11,42 +10,6 @@ import (
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	. "github.com/onsi/gomega"
 )
-
-// testFixture prepares and returns a test environment setup.
-func testFixture(t *testing.T) *mock.Snap {
-	g := NewWithT(t)
-	dir := t.TempDir()
-
-	// Ensure the mock CNI binary can be written.
-	err := os.WriteFile(path.Join(dir, "mockcni"), []byte("echo hi"), 0600)
-	g.Expect(err).To(BeNil())
-
-	s := &mock.Snap{
-		Mock: mock.Mock{
-			KubernetesPKIDir:            path.Join(dir, "pki"),
-			KubernetesConfigDir:         path.Join(dir, "k8s-config"),
-			KubeletRootDir:              path.Join(dir, "kubelet-root"),
-			ContainerdSocketDir:         path.Join(dir, "containerd-run"),
-			ServiceArgumentsDir:         path.Join(dir, "args"),
-			ContainerdConfigDir:         path.Join(dir, "containerd"),
-			ContainerdRootDir:           path.Join(dir, "containerd-root"),
-			ContainerdRegistryConfigDir: path.Join(dir, "containerd-registries"),
-			ContainerdStateDir:          path.Join(dir, "containerd-state"),
-			ContainerdExtraConfigDir:    path.Join(dir, "containerd-confd"),
-			CNIBinDir:                   path.Join(dir, "opt-cni-bin"),
-			CNIConfDir:                  path.Join(dir, "cni-netd"),
-			CNIPluginsBinary:            path.Join(dir, "mockcni"),
-			CNIPlugins:                  []string{"plugin1", "plugin2"},
-			UID:                         os.Getuid(),
-			GID:                         os.Getgid(),
-		},
-	}
-
-	// Ensure required directories are created and set up correctly.
-	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
-
-	return s
-}
 
 func TestKubelet(t *testing.T) {
 	g := NewWithT(t)
@@ -58,9 +21,12 @@ func TestKubelet(t *testing.T) {
 			KubernetesPKIDir:    path.Join(dir, "pki"),
 			KubernetesConfigDir: path.Join(dir, "k8s-config"),
 			KubeletRootDir:      path.Join(dir, "kubelet-root"),
+			ServiceArgumentsDir: path.Join(dir, "args"),
 			ContainerdSocketDir: path.Join(dir, "containerd-run"),
 		},
 	}
+
+	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
 
 	g.Expect(setup.KubeletControlPlane(s, "dev", nil, "10.152.1.1", "test-cluster.local", "")).To(BeNil())
 
