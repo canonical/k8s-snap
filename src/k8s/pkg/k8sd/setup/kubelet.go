@@ -29,21 +29,6 @@ var kubeletWorkerLabels = []string{
 	"node-role.kubernetes.io/worker=",
 }
 
-// GetKubeletTLSCipherSuites returns the kubelet TLS cipher suites.
-func GetKubeletTLSCipherSuites() []string {
-	return kubeletTLSCipherSuites
-}
-
-// GetKubeletControlPlaneLabels returns the kubelet control plane labels.
-func GetKubeletControlPlaneLabels() []string {
-	return kubeletControlPlaneLabels
-}
-
-// GetKubeletWorkerLabels returns the kubelet worker labels.
-func GetKubeletWorkerLabels() []string {
-	return kubeletWorkerLabels
-}
-
 // KubeletControlPlane configures kubelet on a control plane node.
 func KubeletControlPlane(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string) error {
 	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, nil, append(kubeletControlPlaneLabels, kubeletWorkerLabels...))
