@@ -13,14 +13,11 @@ import (
 
 func newGetCmd() *cobra.Command {
 	getCmd := &cobra.Command{
-		Use:     "get <functionality.key>",
-		Short:   "get functionality configuration",
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		Args:    cobra.ExactArgs(1),
+		Use:               "get <functionality.key>",
+		Short:             "get functionality configuration",
+		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
-
-			field := args[0]
 
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), statusCmdOpts.timeout)
 			defer cancel()
@@ -30,11 +27,18 @@ func newGetCmd() *cobra.Command {
 				return fmt.Errorf("failed to get cluster config: %w", err)
 			}
 
+			f, err := formatter.New("yaml", cmd.OutOrStdout())
+			if err != nil {
+				return fmt.Errorf("failed to create formatter: %w", err)
+			}
+
+			if len(args) == 0 {
+				// Print the full config if no functionality is set.
+				return f.Print(clusterConfig)
+			}
+
+			field := args[0]
 			if !strings.Contains(field, ".") {
-				f, err := formatter.New("yaml", cmd.OutOrStdout())
-				if err != nil {
-					return fmt.Errorf("failed to create formatter: %w", err)
-				}
 				switch field {
 				case "network":
 					return f.Print(clusterConfig.Network)

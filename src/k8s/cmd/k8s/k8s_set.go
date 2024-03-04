@@ -8,6 +8,7 @@ import (
 
 	api "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
+	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/spf13/cobra"
 )
 
@@ -15,6 +16,7 @@ func newSetCmd() *cobra.Command {
 	setCmd := &cobra.Command{
 		Use:     "set <functionality.key=value>...",
 		Short:   "Set functionality configuration",
+		Long:    fmt.Sprintf("Configure one of %s.\nUse `k8s get` to explore configuration options.", strings.Join(componentList, ", ")),
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		Args:    cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -205,6 +207,34 @@ func newSetCmd() *cobra.Command {
 				default:
 					return fmt.Errorf("invalid config key: %s", key)
 				}
+			}
+
+			// Fetching current config to check where an already enabled functionality is updated.
+			currentConfig, err := k8sdClient.GetClusterConfig(cmd.Context(), api.GetClusterConfigRequest{})
+			if err != nil {
+				return fmt.Errorf("failed to get current cluster config: %w", err)
+			}
+
+			if vals.OptionalBool(currentConfig.Network.Enabled, false) && config.Network != nil && config.Network.Enabled == nil {
+				fmt.Println("Reapplying configuration for network")
+			}
+			if vals.OptionalBool(currentConfig.DNS.Enabled, false) && config.DNS != nil && config.DNS.Enabled == nil {
+				fmt.Println("Reapplying configuration for dns")
+			}
+			if vals.OptionalBool(currentConfig.Gateway.Enabled, false) && config.Gateway != nil && config.Gateway.Enabled == nil {
+				fmt.Println("Reapplying configuration for gateway")
+			}
+			if vals.OptionalBool(currentConfig.Ingress.Enabled, false) && config.Ingress != nil && config.Ingress.Enabled == nil {
+				fmt.Println("Reapplying configuration for ingress")
+			}
+			if vals.OptionalBool(currentConfig.LocalStorage.Enabled, false) && config.LocalStorage != nil && config.LocalStorage.Enabled == nil {
+				fmt.Println("Reapplying configuration for local-storage")
+			}
+			if vals.OptionalBool(currentConfig.LoadBalancer.Enabled, false) && config.LoadBalancer != nil && config.LoadBalancer.Enabled == nil {
+				fmt.Println("Reapplying configuration for load-balancer")
+			}
+			if vals.OptionalBool(currentConfig.MetricsServer.Enabled, false) && config.MetricsServer != nil && config.MetricsServer.Enabled == nil {
+				fmt.Println("Reapplying configuration for metrics-server")
 			}
 
 			request := api.UpdateClusterConfigRequest{

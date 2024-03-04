@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"syscall"
 
+	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/spf13/cobra"
@@ -17,7 +19,10 @@ func newKubectlCmd() *cobra.Command {
 		Short: "Integrated Kubernetes CLI",
 		// All commands should be passed to kubectl
 		DisableFlagParsing: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE:            chainPreRunHooks(hookSetupClient),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			defer errors.Transform(&err, nil)
+
 			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
 
 			isWorker, err := snaputil.IsWorker(snap)
@@ -28,6 +33,10 @@ func newKubectlCmd() *cobra.Command {
 			if isWorker {
 				// TODO: convert to sentinel errors to work with human readability machinery #130
 				return fmt.Errorf("this action is restricted on workers")
+			}
+
+			if !k8sdClient.IsBootstrapped(cmd.Context()) {
+				return apiv1.ErrNotBootstrapped
 			}
 
 			// Allow users to provide their own kubeconfig but
