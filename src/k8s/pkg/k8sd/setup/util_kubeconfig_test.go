@@ -33,7 +33,8 @@ users:
     token: token
 `, ca)
 
-	actual, _ := setup.KubeconfigString("token", "server", "ca")
+	actual, err := setup.KubeconfigString("token", "server", "ca")
 
 	g.Expect(actual).To(Equal(expectedConfig))
+	g.Expect(err).To(BeNil())
 }

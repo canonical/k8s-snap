@@ -37,8 +37,7 @@ func createConfig(token string, server string, caPEM string) *clientcmdapi.Confi
 // Kubeconfig writes a kubeconfig file to disk.
 func Kubeconfig(path string, token string, url string, caPEM string) error {
 	config := createConfig(token, url, caPEM)
-	err := clientcmd.WriteToFile(*config, path)
-	if err != nil {
+	if err := clientcmd.WriteToFile(*config, path); err != nil {
 		return fmt.Errorf("failed to write kubeconfig: %w", err)
 	}
 	return nil
