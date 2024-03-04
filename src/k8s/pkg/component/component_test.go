@@ -221,8 +221,16 @@ func TestComponentsInitialState(t *testing.T) {
 	g := NewWithT(t)
 
 	mockHelmClient, _, _ := mustCreateNewHelmClient(t, map[string]types.Component{
-		"one": {ReleaseName: "whiskas-1", Namespace: "default", ManifestPath: "chunky-tuna-0.1.0.tgz"},
-		"two": {ReleaseName: "whiskas-2", Namespace: "default", ManifestPath: "slim-tuna-0.1.0.tgz"},
+		"one": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-0.1.0.tgz",
+		},
+		"two": {
+			ReleaseName:  "whiskas-2",
+			Namespace:    "default",
+			ManifestPath: "slim-tuna-0.1.0.tgz",
+		},
 	})
 
 	components, err := mockHelmClient.List()
@@ -232,36 +240,20 @@ func TestComponentsInitialState(t *testing.T) {
 	}
 }
 
-func TestEnableSingleComponent(t *testing.T) {
-	g := NewWithT(t)
-
-	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, map[string]types.Component{
-		"one": {ReleaseName: "whiskas-1", Namespace: "default", ManifestPath: "chunky-tuna-0.1.0.tgz"},
-	})
-
-	chart := buildChart(withName("chunky-tuna"))
-	chartPath := mustAddChartToTestDir(t, tempDir, chart)
-
-	component := mockHelmClient.components["one"]
-	component.ManifestPath = chartPath
-	mockHelmClient.components["one"] = component
-
-	err := mockHelmClient.Enable("one", map[string]interface{}{})
-	g.Expect(err).ShouldNot(HaveOccurred())
-
-	components, err := mockHelmClient.List()
-	g.Expect(err).ShouldNot(HaveOccurred())
-	g.Expect(components).To(ConsistOf(
-		Component{Name: "one", Status: true},
-	), "Expected one component to be enabled")
-}
-
 func TestEnableMultipleComponents(t *testing.T) {
 	g := NewWithT(t)
 
 	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, map[string]types.Component{
-		"one": {ReleaseName: "whiskas-1", Namespace: "default", ManifestPath: "chunky-tuna-0.1.0.tgz"},
-		"two": {ReleaseName: "whiskas-2", Namespace: "default", ManifestPath: "slim-tuna-0.1.0.tgz"},
+		"one": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-0.1.0.tgz",
+		},
+		"two": {
+			ReleaseName:  "whiskas-2",
+			Namespace:    "default",
+			ManifestPath: "slim-tuna-0.1.0.tgz",
+		},
 	})
 
 	for name, component := range mockHelmClient.components {
