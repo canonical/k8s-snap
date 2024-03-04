@@ -55,16 +55,16 @@ and 20G of disk space for each instance.
 Open a terminal (or Shell on Windows) and enter the following command:
 
 ```no-highlight
-multipass launch 22.04 --name k8s-node -m 4G -d 20G -c 2
+multipass launch 22.04 --name k8s-node --memory 4G --disk 20G --cpus 2
 ```
 
 This command specifies:
 
  - **22.04**: The Ubuntu image used as the basis for the instance 
  - **--name**: The name by which you will refer to the instance
- - **-m**: The memory to allocate
- - **-d**: The disk space to allocate
- - **-c**: The number of CPU cores to reserve for this instance
+ - **--memory**: The memory to allocate
+ - **--disk**: The disk space to allocate
+ - **--cpus**: The number of CPU cores to reserve for this instance
 
 For more details of creating instances with Multipass, please see the
 [Multipass documentation][multipass-options] about instance creation.
