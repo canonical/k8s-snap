@@ -7,8 +7,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	configCmdOpts struct {
+		server string
+	}
+)
+
 func newKubeConfigCmd() *cobra.Command {
-	return &cobra.Command{
+	kubeConfigCmd := &cobra.Command{
 		Use:     "config",
 		Short:   "Generate a kubeconfig that can be used to access the Kubernetes cluster",
 		Hidden:  true,
@@ -16,7 +22,7 @@ func newKubeConfigCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 
-			adminConfig, err := k8sdClient.KubeConfig(cmd.Context())
+			adminConfig, err := k8sdClient.KubeConfig(cmd.Context(), configCmdOpts.server)
 			if err != nil {
 				return fmt.Errorf("failed to get admin config: %w", err)
 			}
@@ -25,4 +31,6 @@ func newKubeConfigCmd() *cobra.Command {
 			return nil
 		},
 	}
+	kubeConfigCmd.PersistentFlags().StringVar(&configCmdOpts.server, "server", "", "custom cluster server address")
+	return kubeConfigCmd
 }

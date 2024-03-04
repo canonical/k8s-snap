@@ -77,12 +77,14 @@ func (c *k8sdClient) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.C
 }
 
 // KubeConfig returns admin kubeconfig to connect to the cluster.
-func (c *k8sdClient) KubeConfig(ctx context.Context) (string, error) {
+func (c *k8sdClient) KubeConfig(ctx context.Context, server string) (string, error) {
 	queryCtx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
-	var response apiv1.GetKubeConfigResponse
-	err := c.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "kubeconfig"), nil, &response)
+	request := apiv1.GetKubeConfigRequest{Server: server}
+	response := apiv1.GetKubeConfigResponse{}
+
+	err := c.Query(queryCtx, "GET", api.NewURL().Path("k8sd", "kubeconfig"), request, &response)
 	if err != nil {
 		clientURL := c.mc.URL()
 		return "", fmt.Errorf("failed to query endpoint GET /k8sd/kubeconfig on %q: %w", clientURL.String(), err)

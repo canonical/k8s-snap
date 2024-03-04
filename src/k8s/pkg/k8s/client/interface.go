@@ -31,7 +31,7 @@ type Client interface {
 	// JoinCluster adds a new node to the cluster using the provided parameters.
 	JoinCluster(ctx context.Context, name string, address string, token string) error
 	// KubeConfig retrieves the Kubernetes configuration for the current node.
-	KubeConfig(ctx context.Context) (string, error)
+	KubeConfig(ctx context.Context, server string) (string, error)
 	// ListComponents returns a list of components in the cluster.
 	ListComponents(ctx context.Context) ([]api.Component, error)
 	// RemoveNode removes a node from the cluster.
