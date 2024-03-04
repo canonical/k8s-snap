@@ -80,7 +80,7 @@ func newBootstrapCmd() *cobra.Command {
 
 	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false, "Interactively configure the most important cluster options.")
 	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for k8s to bootstrap.")
-	bootstrapCmd.PersistentFlags().StringVar(&bootstrapCmdOpts.configFile, "config", "init.yaml", "The path to the YAML file containing your custom cluster bootstrap configuration.")
+	bootstrapCmd.PersistentFlags().StringVar(&bootstrapCmdOpts.configFile, "config", "init.yaml", "Path to the YAML file containing your custom cluster bootstrap configuration.")
 	return bootstrapCmd
 }
 
@@ -88,12 +88,11 @@ func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
 	config := apiv1.BootstrapConfig{}
 	config.SetDefaults()
 
-	// Read the yaml file
 	yamlContent, err := os.ReadFile(filePath)
 	if err != nil {
 		return config, fmt.Errorf("failed to read YAML config file: %w", err)
 	}
-	// Parse the yaml file
+
 	err = yaml.Unmarshal(yamlContent, &config)
 	if err != nil {
 		return config, fmt.Errorf("failed to parse YAML config file: %w", err)
