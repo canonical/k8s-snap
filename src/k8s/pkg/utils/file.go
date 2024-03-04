@@ -16,20 +16,28 @@ import (
 // ParseArgumentLine parses a command-line argument from a single line.
 // The returned key includes any dash prefixes.
 func ParseArgumentLine(line string) (key string, value string) {
-	line = strings.TrimSpace(line)
+	line = strings.TrimSpace(line) // Trim leading and trailing white spaces
 
-	// parse "--argument value" and "--argument=value" variants
-	if parts := strings.Split(line, "="); len(parts) >= 2 {
-		key = parts[0]
-		value = parts[1]
-	} else if parts := strings.Split(line, " "); len(parts) >= 2 {
-		key = parts[0]
-		value = strings.Join(parts[1:], " ")
-	} else {
-		key = line
+	// parse "--argument value", "--argument=value", "--argument=value=,othervalue=" variants
+
+	splitIndex := -1
+	for i, c := range line {
+		if c == ' ' || c == '=' {
+			splitIndex = i
+			break
+		}
 	}
 
-	return
+	if splitIndex == -1 {
+		// If no space or equal sign is found, return the line as key
+		return line, ""
+	}
+
+	// Split the line into key and value based on the split index
+	key = line[:splitIndex]
+	value = strings.TrimSpace(line[splitIndex+1:]) // Remove any leading space in value
+
+	return key, value
 }
 
 // Reads an argument file and parses the lines to an <arg, value> map.
