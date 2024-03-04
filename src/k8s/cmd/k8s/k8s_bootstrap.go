@@ -19,7 +19,7 @@ import (
 var (
 	bootstrapCmdOpts struct {
 		interactive bool
-		config      string // yaml config filename
+		configFile  string
 		timeout     time.Duration
 	}
 
@@ -44,14 +44,14 @@ func newBootstrapCmd() *cobra.Command {
 			}
 
 			bootstrapConfig := apiv1.BootstrapConfig{}
-			if bootstrapCmdOpts.interactive && bootstrapCmdOpts.config != "" {
+			if bootstrapCmdOpts.interactive && bootstrapCmdOpts.configFile != "" {
 				return fmt.Errorf("failed to bootstrap cluster: cannot use both --interactive and --config flags at the same time")
 			}
 
 			if bootstrapCmdOpts.interactive {
 				bootstrapConfig = getConfigInteractively()
-			} else if bootstrapCmdOpts.config != "" {
-				bootstrapConfig, err = getConfigFromYaml(bootstrapCmdOpts.config)
+			} else if bootstrapCmdOpts.configFile != "" {
+				bootstrapConfig, err = getConfigFromYaml(bootstrapCmdOpts.configFile)
 				if err != nil {
 					return fmt.Errorf("failed to bootstrap cluster: %w", err)
 				}
@@ -80,7 +80,7 @@ func newBootstrapCmd() *cobra.Command {
 
 	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false, "Interactively configure the most important cluster options.")
 	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for k8s to bootstrap.")
-
+	bootstrapCmd.PersistentFlags().StringVar(&bootstrapCmdOpts.configFile, "config", "init.yaml", "The path to the YAML file containing your custom cluster bootstrap configuration.")
 	return bootstrapCmd
 }
 
