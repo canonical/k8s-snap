@@ -39,7 +39,7 @@ sudo k8s help enable
 Discover your configuration options by running:
 
 ```bash
-sudo k8s set ingress –help
+sudo k8s set ingress --help
 ```
 
 You should see three options:

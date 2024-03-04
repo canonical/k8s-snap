@@ -25,8 +25,8 @@ but we promise to respond within three working days.
 
 ## Found a bug?
 
-You can always track what is going on with development by tracking the
-developments on GitHub. This is also the best place to file a bug if you find
+You can always track what is going on with development by watching our GitHub
+repository. This is also the best place to file a bug if you find
 one, or of course you are also welcome to contribute to the code.
 
 **Our commitment to you** - we monitor the issues on GitHub regularly and we

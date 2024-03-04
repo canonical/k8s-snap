@@ -2,9 +2,9 @@ package v1
 
 import (
 	"fmt"
-	"net"
 	"strings"
 
+	"github.com/canonical/k8s/pkg/utils/vals"
 	"gopkg.in/yaml.v2"
 )
 
@@ -22,7 +22,7 @@ type BootstrapConfig struct {
 func (b *BootstrapConfig) SetDefaults() {
 	b.Components = []string{"dns", "metrics-server", "network"}
 	b.ClusterCIDR = "10.1.0.0/16"
-	b.EnableRBAC = &[]bool{true}[0]
+	b.EnableRBAC = vals.Pointer(true)
 	b.K8sDqlitePort = 9000
 }
 
@@ -48,41 +48,68 @@ func BootstrapConfigFromMap(m map[string]string) (*BootstrapConfig, error) {
 	return config, nil
 }
 
-// ClusterMember holds information about a node in the k8s cluster.
-type ClusterMember struct {
-	Name        string `mapstructure:"name,omitempty"`
-	Address     string `mapstructure:"address,omitempty"`
-	Role        string `mapstructure:"role,omitempty"`
-	Fingerprint string `mapstructure:"fingerprint,omitempty"`
-	Status      string `mapstructure:"status,omitempty"`
+type ClusterRole string
+
+const (
+	ClusterRoleControlPlane ClusterRole = "control-plane"
+	ClusterRoleWorker       ClusterRole = "worker"
+	// The role of a node is unknown if it has not yet joined a cluster,
+	// currently joining or is about to leave.
+	ClusterRoleUnknown ClusterRole = "unknown"
+)
+
+// DatastoreRole as provided by dqlite
+type DatastoreRole string
+
+const (
+	DatastoreRoleVoter   DatastoreRole = "voter"
+	DatastoreRoleStandBy DatastoreRole = "stand-by"
+	DatastoreRoleSpare   DatastoreRole = "spare"
+	DatastoreRolePending DatastoreRole = "PENDING"
+	DatastoreRoleUnknown DatastoreRole = "unknown"
+)
+
+// NodeStatus holds information about a node in the k8s cluster.
+type NodeStatus struct {
+	// Name is the name for this cluster member that was when joining the cluster.
+	// This is typically the hostname of the node.
+	Name string `json:"name,omitempty"`
+	// Address is the IP address of the node.
+	Address string `json:"address,omitempty"`
+	// ClusterRole is the role that the node has within the k8s cluster.
+	ClusterRole ClusterRole `json:"cluster-role,omitempty"`
+	// DatastoreRole is the role that the node has within the datastore cluster.
+	// Only applicable for control-plane nodes, empty for workers.
+	DatastoreRole DatastoreRole `json:"datastore-role,omitempty"`
 }
 
 // ClusterStatus holds information about the cluster, e.g. its current members
 type ClusterStatus struct {
 	// Ready is true if at least one node in the cluster is in READY state.
-	Ready      bool            `mapstructure:"ready,omitempty"`
-	Members    []ClusterMember `mapstructure:"members,omitempty"`
-	Components []Component     `mapstructure:"components,omitempty"`
+	Ready   bool                    `json:"ready,omitempty"`
+	Members []NodeStatus            `json:"members,omitempty"`
+	Config  UserFacingClusterConfig `json:"config,omitempty"`
 }
 
 // HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
 func (c ClusterStatus) HaClusterFormed() bool {
 	voters := 0
 	for _, member := range c.Members {
-		if member.Role == "voter" {
+		if member.DatastoreRole == DatastoreRoleVoter {
 			voters++
 		}
 	}
 	return voters > 2
 }
 
+// TODO: Print k8s version. However, multiple nodes can run different version, so we would need to query all nodes.
 func (c ClusterStatus) String() string {
 	result := strings.Builder{}
 
 	if c.Ready {
-		result.WriteString("k8s is ready.")
+		result.WriteString("status: ready")
 	} else {
-		result.WriteString("k8s is not ready.")
+		result.WriteString("status: not ready")
 	}
 	result.WriteString("\n")
 
@@ -92,20 +119,73 @@ func (c ClusterStatus) String() string {
 	} else {
 		result.WriteString("no")
 	}
-	result.WriteString("\n\n")
-	result.WriteString("control-plane nodes:\n")
-	for _, member := range c.Members {
-		// There is not much that we can do if the hostport is wrong.
-		// Thus, ignore the error and just display an empty IP field.
-		apiServerIp, _, _ := net.SplitHostPort(member.Address)
-		result.WriteString(fmt.Sprintf("  %s: %s\n", member.Name, apiServerIp))
+	result.WriteString("\n")
+	result.WriteString("datastore:\n")
+
+	voters := make([]NodeStatus, 0, len(c.Members))
+	standBys := make([]NodeStatus, 0, len(c.Members))
+	spares := make([]NodeStatus, 0, len(c.Members))
+	for _, node := range c.Members {
+		switch node.DatastoreRole {
+		case DatastoreRoleVoter:
+			voters = append(voters, node)
+		case DatastoreRoleStandBy:
+			standBys = append(standBys, node)
+		case DatastoreRoleSpare:
+			spares = append(spares, node)
+		}
+	}
+	if len(voters) > 0 {
+		result.WriteString(fmt.Sprintf("  voter-nodes:\n"))
+		for _, voter := range voters {
+			result.WriteString(fmt.Sprintf("    - %s\n", voter.Address))
+		}
+	} else {
+		result.WriteString(fmt.Sprintf("  voter-nodes: none\n"))
+	}
+	if len(standBys) > 0 {
+		result.WriteString(fmt.Sprintf("  standby-nodes:\n"))
+		for _, standBy := range standBys {
+			result.WriteString(fmt.Sprintf("    - %s\n", standBy.Address))
+		}
+	} else {
+		result.WriteString(fmt.Sprintf("  standby-nodes: none\n"))
+	}
+	if len(spares) > 0 {
+		result.WriteString(fmt.Sprintf("  spare-nodes:\n"))
+		for _, spare := range spares {
+			result.WriteString(fmt.Sprintf("    - %s\n", spare.Address))
+		}
+	} else {
+		result.WriteString(fmt.Sprintf("  spare-nodes: none\n"))
 	}
 	result.WriteString("\n")
 
-	result.WriteString("components:\n")
-	for _, component := range c.Components {
-		result.WriteString(fmt.Sprintf("  %-10s %s\n", component.Name, component.Status))
+	printedConfig := UserFacingClusterConfig{}
+	if c.Config.Network.Enabled != nil && *c.Config.Network.Enabled {
+		printedConfig.Network = c.Config.Network
 	}
+	if c.Config.DNS.Enabled != nil && *c.Config.DNS.Enabled {
+		printedConfig.DNS = c.Config.DNS
+	}
+	if c.Config.Ingress.Enabled != nil && *c.Config.Ingress.Enabled {
+		printedConfig.Ingress = c.Config.Ingress
+	}
+	if c.Config.LoadBalancer.Enabled != nil && *c.Config.LoadBalancer.Enabled {
+		printedConfig.LoadBalancer = c.Config.LoadBalancer
+	}
+	if c.Config.LocalStorage.Enabled != nil && *c.Config.LocalStorage.Enabled {
+		printedConfig.LocalStorage = c.Config.LocalStorage
+	}
+	if c.Config.Gateway.Enabled != nil && *c.Config.Gateway.Enabled {
+		printedConfig.Gateway = c.Config.Gateway
+	}
+	if c.Config.MetricsServer.Enabled != nil && *c.Config.MetricsServer.Enabled {
+		printedConfig.MetricsServer = c.Config.MetricsServer
+	}
+
+	b, _ := yaml.Marshal(printedConfig)
+	result.WriteString(string(b))
 
 	return result.String()
 }

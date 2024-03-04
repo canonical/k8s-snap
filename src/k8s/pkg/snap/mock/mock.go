@@ -12,6 +12,7 @@ import (
 type Mock struct {
 	Strict                      bool
 	OnLXD                       bool
+	OnLXDErr                    error
 	UID                         int
 	GID                         int
 	KubernetesConfigDir         string
@@ -77,8 +78,8 @@ func (s *Snap) RestartService(ctx context.Context, name string) error {
 func (s *Snap) Strict() bool {
 	return s.Mock.Strict
 }
-func (s *Snap) OnLXD(context.Context) bool {
-	return s.Mock.OnLXD
+func (s *Snap) OnLXD(context.Context) (bool, error) {
+	return s.Mock.OnLXD, s.Mock.OnLXDErr
 }
 func (s *Snap) UID() int {
 	return s.Mock.UID

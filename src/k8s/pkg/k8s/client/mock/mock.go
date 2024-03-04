@@ -10,7 +10,7 @@ import (
 // Client is a mock implementation for k8s Client.
 type Client struct {
 	BootstrapCalledWith    apiv1.BootstrapConfig
-	BootstrapClusterMember apiv1.ClusterMember
+	BootstrapClusterMember apiv1.NodeStatus
 	BootstrapErr           error
 	IsBootstrappedReturn   bool
 	CleanupNodeCalledWith  struct {
@@ -44,40 +44,11 @@ type Client struct {
 		Name  string
 		Force bool
 	}
-	RemoveNodeErr                error
-	UpdateDNSComponentCalledWith struct {
-		Ctx     context.Context
-		Request apiv1.UpdateDNSComponentRequest
-	}
-	UpdateDNSComponentErr            error
-	UpdateGatewayComponentCalledWith struct {
-		Ctx     context.Context
-		Request apiv1.UpdateGatewayComponentRequest
-	}
-	UpdateGatewayComponentErr        error
-	UpdateIngressComponentCalledWith struct {
-		Ctx     context.Context
-		Request apiv1.UpdateIngressComponentRequest
-	}
-	UpdateIngressComponentErr             error
-	UpdateLoadBalancerComponentCalledWith struct {
-		Ctx     context.Context
-		Request apiv1.UpdateLoadBalancerComponentRequest
-	}
-	UpdateLoadBalancerComponentErr   error
-	UpdateNetworkComponentCalledWith struct {
-		Ctx     context.Context
-		Request apiv1.UpdateNetworkComponentRequest
-	}
-	UpdateNetworkComponentErr        error
-	UpdateStorageComponentCalledWith struct {
-		Ctx     context.Context
-		Request apiv1.UpdateStorageComponentRequest
-	}
+	RemoveNodeErr             error
 	UpdateStorageComponentErr error
 }
 
-func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.ClusterMember, error) {
+func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error) {
 	c.BootstrapCalledWith = bootstrapConfig
 	return c.BootstrapClusterMember, c.BootstrapErr
 }
@@ -125,40 +96,4 @@ func (c *Client) RemoveNode(ctx context.Context, name string, force bool) error 
 	c.RemoveNodeCalledWith.Name = name
 	c.RemoveNodeCalledWith.Force = force
 	return c.RemoveNodeErr
-}
-
-func (c *Client) UpdateDNSComponent(ctx context.Context, request apiv1.UpdateDNSComponentRequest) error {
-	c.UpdateDNSComponentCalledWith.Ctx = ctx
-	c.UpdateDNSComponentCalledWith.Request = request
-	return c.UpdateDNSComponentErr
-}
-
-func (c *Client) UpdateGatewayComponent(ctx context.Context, request apiv1.UpdateGatewayComponentRequest) error {
-	c.UpdateGatewayComponentCalledWith.Ctx = ctx
-	c.UpdateGatewayComponentCalledWith.Request = request
-	return c.UpdateGatewayComponentErr
-}
-
-func (c *Client) UpdateIngressComponent(ctx context.Context, request apiv1.UpdateIngressComponentRequest) error {
-	c.UpdateIngressComponentCalledWith.Ctx = ctx
-	c.UpdateIngressComponentCalledWith.Request = request
-	return c.UpdateIngressComponentErr
-}
-
-func (c *Client) UpdateLoadBalancerComponent(ctx context.Context, request apiv1.UpdateLoadBalancerComponentRequest) error {
-	c.UpdateLoadBalancerComponentCalledWith.Ctx = ctx
-	c.UpdateLoadBalancerComponentCalledWith.Request = request
-	return c.UpdateLoadBalancerComponentErr
-}
-
-func (c *Client) UpdateNetworkComponent(ctx context.Context, request apiv1.UpdateNetworkComponentRequest) error {
-	c.UpdateNetworkComponentCalledWith.Ctx = ctx
-	c.UpdateNetworkComponentCalledWith.Request = request
-	return c.UpdateNetworkComponentErr
-}
-
-func (c *Client) UpdateStorageComponent(ctx context.Context, request apiv1.UpdateStorageComponentRequest) error {
-	c.UpdateStorageComponentCalledWith.Ctx = ctx
-	c.UpdateStorageComponentCalledWith.Request = request
-	return c.UpdateStorageComponentErr
 }

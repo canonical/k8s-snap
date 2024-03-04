@@ -1,8 +1,8 @@
 # Canonical Kubernetes documentation
 
 The Canonical K8s snap is a performant, lightweight, secure and opinionated distribution 
-of **Kubernetes** which includes all the components needed to create and manage
-a scaleable cluster suitable for all use cases.
+of **Kubernetes** which includes everything needed to create and manage
+a scalable cluster suitable for all use cases.
 
 ![Illustration depicting working on components and clouds][logo]
 

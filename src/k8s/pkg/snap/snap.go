@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/moby/sys/mountinfo"
 	"gopkg.in/yaml.v2"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
@@ -85,8 +86,12 @@ func (s *snap) Strict() bool {
 	return meta.Confinement == "strict"
 }
 
-func (s *snap) OnLXD(ctx context.Context) bool {
-	return s.runCommand(ctx, "grep", "-qa", "container=lxc", "/proc/1/environ") == nil
+func (s *snap) OnLXD(ctx context.Context) (bool, error) {
+	mounts, err := mountinfo.GetMounts(mountinfo.FSTypeFilter("fuse.lxcfs"))
+	if err != nil {
+		return false, fmt.Errorf("failed to check for lxcfs mounts: %w", err)
+	}
+	return len(mounts) > 0, nil
 }
 
 func (s *snap) UID() int {
@@ -199,7 +204,7 @@ func (s *snap) Components() map[string]types.Component {
 			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "coredns-1.29.0"),
 			Namespace:    "kube-system",
 		},
-		"storage": {
+		"local-storage": {
 			ReleaseName:  "ck-storage",
 			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "rawfile-csi-0.8.0.tgz"),
 			Namespace:    "kube-system",
@@ -212,7 +217,7 @@ func (s *snap) Components() map[string]types.Component {
 			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "gateway-api-0.7.1.tgz"),
 			Namespace:    "kube-system",
 		},
-		"loadbalancer": {
+		"load-balancer": {
 			ReleaseName:  "ck-loadbalancer",
 			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "ck-loadbalancer"),
 			Namespace:    "kube-system",

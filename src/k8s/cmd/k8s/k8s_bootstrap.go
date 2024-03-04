@@ -27,7 +27,7 @@ var (
 		apiv1.ErrUnknown:             "An unknown error occured while bootstrapping the cluster:\n",
 		apiv1.ErrAlreadyBootstrapped: "K8s cluster already bootstrapped.",
 	}
-	bootstrappableComponents = []string{"network", "dns", "gateway", "ingress", "storage", "metrics-server"}
+	bootstrappableComponents = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
 )
 
 func newBootstrapCmd() *cobra.Command {
@@ -43,19 +43,13 @@ func newBootstrapCmd() *cobra.Command {
 				return apiv1.ErrAlreadyBootstrapped
 			}
 
-			const minTimeout = 3 * time.Second
-			if bootstrapCmdOpts.timeout < minTimeout {
-				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", bootstrapCmdOpts.timeout, minTimeout, minTimeout)
-				bootstrapCmdOpts.timeout = minTimeout
-			}
-
 			bootstrapConfig := apiv1.BootstrapConfig{}
 			if bootstrapCmdOpts.interactive && bootstrapCmdOpts.config != "" {
 				return fmt.Errorf("failed to bootstrap cluster: cannot use both --interactive and --config flags at the same time")
 			}
 
 			if bootstrapCmdOpts.interactive {
-				bootstrapConfig = getConfigInteractively(cmd.Context())
+				bootstrapConfig = getConfigInteractively()
 			} else if bootstrapCmdOpts.config != "" {
 				bootstrapConfig, err = getConfigFromYaml(bootstrapCmdOpts.config)
 				if err != nil {
@@ -65,8 +59,16 @@ func newBootstrapCmd() *cobra.Command {
 				bootstrapConfig.SetDefaults()
 			}
 
+			const minTimeout = 3 * time.Second
+			if bootstrapCmdOpts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", bootstrapCmdOpts.timeout, minTimeout, minTimeout)
+				bootstrapCmdOpts.timeout = minTimeout
+			}
+			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), bootstrapCmdOpts.timeout)
+			defer cancel()
+
 			fmt.Println("Bootstrapping the cluster. This may take some time, please wait.")
-			cluster, err := k8sdClient.Bootstrap(cmd.Context(), bootstrapConfig)
+			cluster, err := k8sdClient.Bootstrap(timeoutCtx, bootstrapConfig)
 			if err != nil {
 				return fmt.Errorf("failed to bootstrap cluster: %w", err)
 			}
@@ -100,7 +102,7 @@ func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
 	return config, nil
 }
 
-func getConfigInteractively(ctx context.Context) apiv1.BootstrapConfig {
+func getConfigInteractively() apiv1.BootstrapConfig {
 	config := apiv1.BootstrapConfig{}
 	config.SetDefaults()
 
@@ -108,7 +110,7 @@ func getConfigInteractively(ctx context.Context) apiv1.BootstrapConfig {
 		"Which components would you like to enable?",
 		bootstrappableComponents,
 		strings.Join(config.Components, ", "),
-		map[string]string{"loadbalancer": "The \"loadbalancer\" component requires manual configuration and needs to be enabled after bootstrapping the cluster."},
+		nil,
 	)
 	config.Components = strings.Split(components, ",")
 

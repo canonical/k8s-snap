@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"path"
@@ -23,6 +22,7 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/k8s"
+	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -127,7 +127,7 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	if err := setup.KubeletWorker(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(snap, s.Name(), response.PodCIDR); err != nil {
+	if err := setup.KubeProxy(s.Context, snap, s.Name(), response.PodCIDR); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.K8sAPIServerProxy(snap, response.APIServers); err != nil {
@@ -234,7 +234,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(snap, s.Name(), cfg.Network.PodCIDR); err != nil {
+	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.PodCIDR); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap); err != nil {
@@ -272,57 +272,64 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
 	}
 
-	for _, name := range bootstrapConfig.Components {
-		// TODO: This somewhat duplicates the logic in `component.go`
-		switch name {
-		case "network":
-			if err := component.EnableNetworkComponent(s.Context, snap, cfg.Network.PodCIDR); err != nil {
-				return fmt.Errorf("failed to enable network: %w", err)
-			}
-		case "dns":
-			dnsIP, clusterDomain, err := component.EnableDNSComponent(s.Context, snap, "", "", nil)
-			if err != nil {
-				return fmt.Errorf("failed to enable dns: %w", err)
-			}
-			if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-				if err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
-					Kubelet: types.Kubelet{
-						ClusterDNS:    dnsIP,
-						ClusterDomain: clusterDomain,
-					},
-				}); err != nil {
-					return fmt.Errorf("failed to update cluster configuration for dns=%s domain=%s: %w", dnsIP, clusterDomain, err)
-				}
-				return nil
+	if cfg.Network.Enabled != nil {
+		err := component.ReconcileNetworkComponent(s.Context, snap, vals.Pointer(false), cfg.Network.Enabled, cfg)
+		if err != nil {
+			return fmt.Errorf("failed to reconcile network: %w", err)
+		}
+	}
+
+	if cfg.DNS.Enabled != nil {
+		dnsIP, _, err := component.ReconcileDNSComponent(s.Context, snap, vals.Pointer(false), cfg.DNS.Enabled, cfg)
+		if err != nil {
+			return fmt.Errorf("failed to reconcile dns: %w", err)
+		}
+		if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+			if err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
+				Kubelet: types.Kubelet{
+					ClusterDNS: dnsIP,
+				},
 			}); err != nil {
-				return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
+				return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)
 			}
+			return nil
+		}); err != nil {
+			return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
+		}
+	}
 
-		case "storage":
-			if err := component.EnableStorageComponent(s.Context, snap); err != nil {
-				return fmt.Errorf("failed to enable storage: %w", err)
-			}
+	if cfg.LocalStorage.Enabled != nil {
+		err := component.ReconcileLocalStorageComponent(s.Context, snap, vals.Pointer(false), cfg.LocalStorage.Enabled, cfg)
+		if err != nil {
+			return fmt.Errorf("failed to reconcile local-storage: %w", err)
+		}
+	}
 
-		case "ingress":
-			if err := component.EnableIngressComponent(s.Context, snap, "", false); err != nil {
-				return fmt.Errorf("failed to enable ingress: %w", err)
-			}
+	if cfg.Gateway.Enabled != nil {
+		err := component.ReconcileGatewayComponent(s.Context, snap, vals.Pointer(false), cfg.Gateway.Enabled, cfg)
+		if err != nil {
+			return fmt.Errorf("failed to reconcile gateway: %w", err)
+		}
+	}
 
-		case "gateway":
-			if err := component.EnableGatewayComponent(s.Context, snap); err != nil {
-				return fmt.Errorf("failed to enable gateway: %w", err)
-			}
+	if cfg.Ingress.Enabled != nil {
+		err := component.ReconcileIngressComponent(s.Context, snap, vals.Pointer(false), cfg.Ingress.Enabled, cfg)
+		if err != nil {
+			return fmt.Errorf("failed to reconcile ingress: %w", err)
+		}
+	}
 
-		case "metrics-server":
-			if err := component.EnableMetricsServerComponent(s.Context, snap); err != nil {
-				return fmt.Errorf("failed to enable metrics-server: %w", err)
-			}
+	if cfg.LoadBalancer.Enabled != nil {
+		err := component.ReconcileLoadBalancerComponent(s.Context, snap, vals.Pointer(false), cfg.LoadBalancer.Enabled, cfg)
+		if err != nil {
+			return fmt.Errorf("failed to reconcile load-balancer: %w", err)
+		}
+	}
 
-		case "loadbalancer":
-			log.Println("Skipping loadbalancer as it needs to be enabled (and configured) manually")
-
-		default:
-			log.Printf("Skipping unknown component: %s\n", name)
+	if cfg.MetricsServer.Enabled != nil {
+		err := component.ReconcileMetricsServerComponent(s.Context, snap, vals.Pointer(false), cfg.MetricsServer.Enabled, cfg)
+		if err != nil {
+			return fmt.Errorf("failed to reconcile metrics-server: %w", err)
 		}
 	}
 

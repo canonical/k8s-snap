@@ -11,7 +11,7 @@ import (
 // Client defines the interface for interacting with a k8s cluster.
 type Client interface {
 	// Bootstrap initializes a new cluster member using the provided bootstrap configuration.
-	Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.ClusterMember, error)
+	Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error)
 	// IsKubernetesAPIServerReady checks if kube-apiserver is reachable.
 	IsKubernetesAPIServerReady(ctx context.Context) bool
 	// IsBootstrapped checks whether the current node is already bootstrapped.
@@ -20,6 +20,8 @@ type Client interface {
 	CleanupNode(ctx context.Context, snap snap.Snap, nodeName string)
 	// ClusterStatus retrieves the current status of the Kubernetes cluster.
 	ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error)
+	// NodeStatus retrieves the current status of the local node.
+	NodeStatus(ctx context.Context) (apiv1.NodeStatus, error)
 	// CreateJoinToken generates a token for a new node to join the cluster.
 	CreateJoinToken(ctx context.Context, name string, worker bool) (string, error)
 	// GenerateAuthToken generates an authentication token for a specific user with given groups.
@@ -34,18 +36,8 @@ type Client interface {
 	ListComponents(ctx context.Context) ([]api.Component, error)
 	// RemoveNode removes a node from the cluster.
 	RemoveNode(ctx context.Context, name string, force bool) error
-	// UpdateDNSComponent updates the DNS component in the cluster.
-	UpdateDNSComponent(ctx context.Context, request api.UpdateDNSComponentRequest) error
-	// UpdateGatewayComponent updates the Gateway component in the cluster.
-	UpdateGatewayComponent(ctx context.Context, request api.UpdateGatewayComponentRequest) error
-	// UpdateIngressComponent updates the Ingress component in the cluster.
-	UpdateIngressComponent(ctx context.Context, request api.UpdateIngressComponentRequest) error
-	// UpdateLoadBalancerComponent updates the Load Balancer component in the cluster.
-	UpdateLoadBalancerComponent(ctx context.Context, request api.UpdateLoadBalancerComponentRequest) error
-	// UpdateNetworkComponent updates the Network component in the cluster.
-	UpdateNetworkComponent(ctx context.Context, request api.UpdateNetworkComponentRequest) error
-	// UpdateStorageComponent updates the Storage component in the cluster.
-	UpdateStorageComponent(ctx context.Context, request api.UpdateStorageComponentRequest) error
-	// UpdateMetricsServerComponent updates the Storage component in the cluster.
-	UpdateMetricsServerComponent(ctx context.Context, request api.UpdateMetricsServerComponentRequest) error
+	// UpdateClusterConfig updates configuration of the cluster.
+	UpdateClusterConfig(ctx context.Context, request api.UpdateClusterConfigRequest) error
+	// GetClusterConfig retrieves configuration of the cluster.
+	GetClusterConfig(ctx context.Context, request api.GetClusterConfigRequest) (api.UserFacingClusterConfig, error)
 }

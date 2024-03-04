@@ -48,18 +48,21 @@ func NewRootCmd() *cobra.Command {
 
 	// Clustering
 	rootCmd.AddCommand(newBootstrapCmd())
-	rootCmd.AddCommand(newAddNodeCmd())
-	rootCmd.AddCommand(newJoinNodeCmd())
+	rootCmd.AddCommand(newGetJoinTokenCmd())
+	rootCmd.AddCommand(newJoinClusterCmd())
 	rootCmd.AddCommand(newRemoveNodeCmd())
 
 	// Components
 	rootCmd.AddCommand(newEnableCmd())
 	rootCmd.AddCommand(newDisableCmd())
+	rootCmd.AddCommand(newSetCmd())
+	rootCmd.AddCommand(newGetCmd())
 
 	// internal
 	rootCmd.AddCommand(newGenerateAuthTokenCmd())
-	rootCmd.AddCommand(newRevokeAuthTokenCmd())
 	rootCmd.AddCommand(newKubeConfigCmd())
+	rootCmd.AddCommand(newLocalNodeStatusCommand())
+	rootCmd.AddCommand(newRevokeAuthTokenCmd())
 	rootCmd.AddCommand(xPrintShimPidsCmd)
 
 	// Those commands replace the executable - no need for error wrapping.
