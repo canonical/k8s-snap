@@ -149,7 +149,7 @@ func (c ClusterStatus) String() string {
 			result.WriteString(fmt.Sprintf("    - %s\n", standBy.Address))
 		}
 	} else {
-		result.WriteString(fmt.Sprintf("  standy-nodes: none\n"))
+		result.WriteString(fmt.Sprintf("  standby-nodes: none\n"))
 	}
 	if len(spares) > 0 {
 		result.WriteString(fmt.Sprintf("  spare-nodes:\n"))
