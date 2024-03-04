@@ -8,6 +8,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/config"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/util"
@@ -23,9 +24,13 @@ func (c *k8sdClient) IsBootstrapped(ctx context.Context) bool {
 // Bootstrap bootstraps the k8s cluster
 func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error) {
 	// Get system hostname.
-	hostname, err := os.Hostname()
+	rawHostname, err := os.Hostname()
 	if err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to retrieve system hostname: %w", err)
+	}
+	hostname, err := utils.CleanHostname(rawHostname)
+	if err != nil {
+		return apiv1.NodeStatus{}, fmt.Errorf("invalid hostname %q: %w", rawHostname, err)
 	}
 
 	// Get system addrPort.
