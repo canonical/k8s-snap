@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -25,26 +26,10 @@ cluster-cidr: "10.244.0.0/16"
 enable-rbac: true
 bananas: 5`
 
-func mustCreateTemporaryTestDirectory(t *testing.T) string {
-	// Create a temporary test directory to mock the snap
-	// <tempDir>
-	// 	└── init.yaml
+func mustAddConfigToTestDir(t *testing.T, configPath string, data string) {
 	t.Helper()
-
-	tempDir := t.TempDir()
-
-	err := os.MkdirAll(tempDir, 0777)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return tempDir
-}
-
-func mustAddConfigToTestDir(t *testing.T, path string, data string) {
-	t.Helper()
-	// Create the init botstrap config file
-	err := os.WriteFile(path+"/init.yaml", []byte(data), 0644)
+	// Create the cluster bootstrap config file
+	err := os.WriteFile(configPath, []byte(data), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,16 +39,16 @@ func TestGetConfigYaml(t *testing.T) {
 	t.Run("CompleteConfig", func(t *testing.T) {
 		g := NewWithT(t)
 
-		tempDir := mustCreateTemporaryTestDirectory(t)
-		configPath := tempDir + "/init.yaml"
+		tempDir := t.TempDir()
+		configPath := filepath.Join(tempDir, "init.yaml")
 
 		// Add the complete config to the test directory
-		mustAddConfigToTestDir(t, tempDir, yamlConfigComplete)
+		mustAddConfigToTestDir(t, configPath, yamlConfigComplete)
 
 		// Get the config from the test directory
 		bootstrapConfig, err := getConfigFromYaml(configPath)
 		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
+			t.Fatalf("failed to load bootstrap configuration file: %v", err)
 		}
 
 		// Check the config
@@ -80,16 +65,16 @@ func TestGetConfigYaml(t *testing.T) {
 		// test an incomplete config file, set defaults for unspecified fields
 		g := NewWithT(t)
 
-		tempDir := mustCreateTemporaryTestDirectory(t)
-		configPath := tempDir + "/init.yaml"
+		tempDir := t.TempDir()
+		configPath := filepath.Join(tempDir, "init.yaml")
 
-		// Add the incomplete config to the test directory
-		mustAddConfigToTestDir(t, tempDir, yamlConfigIncomplete)
+		// Add the complete config to the test directory
+		mustAddConfigToTestDir(t, configPath, yamlConfigIncomplete)
 
 		// Get the config from the test directory
 		bootstrapConfig, err := getConfigFromYaml(configPath)
 		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
+			t.Fatalf("failed to load bootstrap configuration file: %v", err)
 		}
 
 		// Check the config
@@ -106,11 +91,11 @@ func TestGetConfigYaml(t *testing.T) {
 		// test an invalid yaml file
 		g := NewWithT(t)
 
-		tempDir := mustCreateTemporaryTestDirectory(t)
-		configPath := tempDir + "/init.yaml"
+		tempDir := t.TempDir()
+		configPath := filepath.Join(tempDir, "init.yaml")
 
 		// Add the invalid yaml to the test directory
-		mustAddConfigToTestDir(t, tempDir, "this is not valid yaml")
+		mustAddConfigToTestDir(t, configPath, "this is not valid yaml")
 
 		// Get the config from the test directory
 		_, err := getConfigFromYaml(configPath)
