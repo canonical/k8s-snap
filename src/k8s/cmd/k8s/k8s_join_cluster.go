@@ -32,7 +32,7 @@ var (
 func newJoinClusterCmd() *cobra.Command {
 	joinNodeCmd := &cobra.Command{
 		Use:     "join-cluster <join-token>",
-		Short:   "Join a cluster",
+		Short:   "Join a cluster using the provided token",
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
@@ -82,8 +82,8 @@ func newJoinClusterCmd() *cobra.Command {
 			return nil
 		},
 	}
-	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.name, "name", "", "The name of the joining node. defaults to hostname")
-	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.address, "address", "", "The address (IP:Port) on which the nodes REST API should be available")
-	joinNodeCmd.Flags().DurationVar(&joinClusterCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for the node to be ready.")
+	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.name, "name", "", "the name of the joining node. defaults to hostname")
+	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.address, "address", "", "the address (IP:Port) on which the nodes REST API should be available")
+	joinNodeCmd.Flags().DurationVar(&joinClusterCmdOpts.timeout, "timeout", 90*time.Second, "the max time to wait for the node to be ready")
 	return joinNodeCmd
 }

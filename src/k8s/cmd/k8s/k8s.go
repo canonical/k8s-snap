@@ -35,13 +35,15 @@ func NewRootCmd() *cobra.Command {
 		SilenceErrors: true,
 	}
 
-	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
-	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
-	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
+	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "directory with the dqlite datastore")
+	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "show all debug messages")
+	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "show all information messages")
 
 	// By default, the state dir is set to a fixed directory in the snap.
 	// This shouldn't be overwritten by the user.
 	rootCmd.PersistentFlags().MarkHidden("state-dir")
+	rootCmd.PersistentFlags().MarkHidden("debug")
+	rootCmd.PersistentFlags().MarkHidden("verbose")
 
 	// General
 	rootCmd.AddCommand(newStatusCmd())

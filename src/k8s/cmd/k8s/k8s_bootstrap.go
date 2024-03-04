@@ -22,7 +22,7 @@ var (
 	}
 
 	bootstrapCmdErrorMsgs = map[error]string{
-		apiv1.ErrUnknown:             "An unknown error occured while bootstrapping the cluster:\n",
+		apiv1.ErrUnknown:             "An unknown error occurred while bootstrapping the cluster:\n",
 		apiv1.ErrAlreadyBootstrapped: "K8s cluster already bootstrapped.",
 	}
 	bootstrappableComponents = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
@@ -31,7 +31,7 @@ var (
 func newBootstrapCmd() *cobra.Command {
 	bootstrapCmd := &cobra.Command{
 		Use:     "bootstrap",
-		Short:   "Bootstrap a k8s cluster on this node.",
+		Short:   "Bootstrap a k8s cluster on this node",
 		Long:    "Initialize the necessary folders, permissions, service arguments, certificates and start up the Kubernetes services.",
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -67,8 +67,8 @@ func newBootstrapCmd() *cobra.Command {
 		},
 	}
 
-	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false, "Interactively configure the most important cluster options.")
-	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for k8s to bootstrap.")
+	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false, "interactively configure the most important cluster options")
+	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "the max time to wait for k8s to bootstrap")
 
 	return bootstrapCmd
 }
