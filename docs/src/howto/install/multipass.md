@@ -1,13 +1,13 @@
 # Install with Multipass (Ubuntu/Mac/Windows)
 
-**Multipass** (https://multipass.run/) is a simple way to run Ubuntu in a
-virtual machine, no matter what your undelying OS. It is the recommended way to
-run Canonical Kubernetes on Windows and macOS systems, and is equally useful
+**Multipass** <https://multipass.run/> is a simple way to run Ubuntu in a
+virtual machine, no matter what your underlying OS. It is the recommended way
+to run Canonical Kubernetes on Windows and macOS systems, and is equally useful
 for running multiple instances of the `k8s` snap on Ubuntu too.
 
-## Installing Multipass
+## Install Multipass
 
-Choose your OS for the install proceedure
+Choose your OS for the install procedure
 
 ````{tabs}
 
@@ -15,6 +15,10 @@ Choose your OS for the install proceedure
 
 Multipass is shipped as a snap for Ubuntu and other OSes which support the 
 [snap package system][snap-support].
+
+    sudo snap install multipass
+
+
 ```
 
 ```{group-tab} Windows
@@ -22,7 +26,7 @@ Multipass is shipped as a snap for Ubuntu and other OSes which support the
 Windows users should download and install the Multipass installer from the
 website. 
 
-The latest version is available here (https://multipass.run/download/windows),
+The latest version is available here <https://multipass.run/download/windows>,
 though you may wish to visit the [Multipass website][] for more details.
 
 
@@ -30,13 +34,88 @@ though you may wish to visit the [Multipass website][] for more details.
 
 ```{group-tab} macOS
 
-Content Tab 3
+Users running macOS should download and install the Multipass installer from the
+website. 
+
+The latest version is available here <https://multipass.run/download/macos>,
+though you may wish to visit the [Multipass website][] for more details, including
+an alternate install method using `brew`.
+
 ```
 
 ````
+
+## Create an instance
+
+The `k8s` snap will require a certain amount of resources, so the default
+settings for a Multipass VM aren't going to be suitable. Exactly what resources
+will be required depends on your use case. We recommend at least 4G of memory
+and 20G of disk space for each instance.
+
+Open a terminal (or Shell on Windows) and enter the following command:
+
+```no-highlight
+multipass launch 22.04 --name k8s-node -m 4G -d 20G -c 2
+```
+
+This command specifies:
+
+ - **22.04**: The Ubuntu image used as the basis for the instance 
+ - **--name**: The name by which you will refer to the instance
+ - **-m**: The memory to allocate
+ - **-d**: The disk space to allocate
+ - **-c**: The number of CPU cores to reserve for this instance
+
+For more details of creating instances with Multipass, please see the
+[Multipass documentation][multipass-options] about instance creation.
+
+## Access the created instance
+
+To access the image you just created, run:
+
+```no-highlight
+multipass shell k8s-node
+```
+
+This will immediately open a shell on the instance, so further commands you
+enter will be executed on the Ubuntu instance you created.
+
+You can now use this terminal to install the `k8s` snap, following the standard
+[install instructions][], or following along with the [Getting started][]
+tutorial if you are new to Canonical Kubernetes.
+
+To end the shell session on the instance, enter:
+
+```
+exit
+```
+
+...and you will be returned to the original terminal session.
+
+## Stop/Remove the instance
+
+The instance you created will keep running in the background until it is either
+stopped or the host computer is shut down. You can stop the running instance at
+any time by running:
+
+```no-highlight
+multipass stop k8s-node
+```
+
+And it can be permanently removed with:
+
+```no-highlight
+multipass delete k8s-node
+multipass purge
+```
+
 
 
 
 <!-- LINKS -->
 
-[snap-support]: https://snapcraft.io/docs/
+[snap-support]: https://snapcraft.io/docs/installing-snapd
+[multipass-options]: https://multipass.run/docs/get-started-with-multipass-linux#heading--create-a-customised-instance
+[install instructions]: ./snap
+[Getting started]: ../../tutorial/getting-started
+[Multipass website]: https://multipass.run/docs
