@@ -27,11 +27,15 @@ jobs:
         working-directory: src/k8s
         run: make go.fmt
 
+      - name: go doc
+        working-directory: src/k8s
+        run: make go.doc
+
       - name: check diff
         run: |
           if ! [ -z "$(git diff)" ]; then
             echo "Detected changes that have not been committed to the repository"
-            echo "Please run 'cd src/k8s && make go.fmt'"
+            echo "Please run 'cd src/k8s && make go.fmt go.doc'"
             echo "git diff:"
             git diff
             exit 1
