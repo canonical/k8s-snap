@@ -186,7 +186,6 @@ func (c ClusterStatus) String() string {
 
 	b, _ := yaml.Marshal(printedConfig)
 	result.WriteString(string(b))
-	result.WriteString("\n")
 
 	return result.String()
 }

@@ -24,45 +24,45 @@ type UserFacingClusterConfig struct {
 }
 
 type DNSConfig struct {
-	Enabled             *bool    `json:"enabled,omitempty" yaml:"enabled,omitempty"`
-	ClusterDomain       string   `json:"cluster-domain,omitempty" yaml:"cluster-domain,omitempty"`
-	ServiceIP           string   `json:"service-ip,omitempty" yaml:"service-ip,omitempty"`
-	UpstreamNameservers []string `json:"upstream-nameservers,omitempty" yaml:"upstream-nameservers,omitempty"`
+	Enabled             *bool    `json:"enabled,omitempty" yaml:"enabled"`
+	ClusterDomain       string   `json:"cluster-domain,omitempty" yaml:"cluster-domain"`
+	ServiceIP           string   `json:"service-ip,omitempty" yaml:"service-ip"`
+	UpstreamNameservers []string `json:"upstream-nameservers,omitempty" yaml:"upstream-nameservers"`
 }
 
 type IngressConfig struct {
-	Enabled             *bool  `json:"enabled,omitempty" yaml:"enabled,omitempty"`
-	DefaultTLSSecret    string `json:"default-tls-secret,omitempty" yaml:"default-tls-secret,omitempty"`
-	EnableProxyProtocol *bool  `json:"enable-proxy-protocol,omitempty" yaml:"enable-proxy-protocol,omitempty"`
+	Enabled             *bool  `json:"enabled,omitempty" yaml:"enabled"`
+	DefaultTLSSecret    string `json:"default-tls-secret,omitempty" yaml:"default-tls-secret"`
+	EnableProxyProtocol *bool  `json:"enable-proxy-protocol,omitempty" yaml:"enable-proxy-protocol"`
 }
 
 type LoadBalancerConfig struct {
-	Enabled        *bool    `json:"enabled,omitempty" yaml:"enabled,omitempty"`
-	CIDRs          []string `json:"cidrs,omitempty" yaml:"cidrs,omitempty"`
-	L2Enabled      *bool    `json:"l2-enabled,omitempty" yaml:"l2-enabled,omitempty"`
-	L2Interfaces   []string `json:"l2-interfaces,omitempty" yaml:"l2-interfaces,omitempty"`
-	BGPEnabled     *bool    `json:"bgp-enabled,omitempty" yaml:"bgp-enabled,omitempty"`
-	BGPLocalASN    int      `json:"bgp-local-asn,omitempty" yaml:"bgp-local-asn,omitempty"`
-	BGPPeerAddress string   `json:"bgp-peer-address,omitempty" yaml:"bgp-peer-address,omitempty"`
-	BGPPeerASN     int      `json:"bgp-peer-asn,omitempty" yaml:"bgp-peer-asn,omitempty"`
-	BGPPeerPort    int      `json:"bgp-peer-port,omitempty" yaml:"bgp-peer-port,omitempty"`
+	Enabled        *bool    `json:"enabled,omitempty" yaml:"enabled"`
+	CIDRs          []string `json:"cidrs,omitempty" yaml:"cidrs"`
+	L2Enabled      *bool    `json:"l2-enabled,omitempty" yaml:"l2-enabled"`
+	L2Interfaces   []string `json:"l2-interfaces,omitempty" yaml:"l2-interfaces"`
+	BGPEnabled     *bool    `json:"bgp-enabled,omitempty" yaml:"bgp-enabled"`
+	BGPLocalASN    int      `json:"bgp-local-asn,omitempty" yaml:"bgp-local-asn"`
+	BGPPeerAddress string   `json:"bgp-peer-address,omitempty" yaml:"bgp-peer-address"`
+	BGPPeerASN     int      `json:"bgp-peer-asn,omitempty" yaml:"bgp-peer-asn"`
+	BGPPeerPort    int      `json:"bgp-peer-port,omitempty" yaml:"bgp-peer-port"`
 }
 
 type LocalStorageConfig struct {
-	Enabled       *bool  `json:"enabled,omitempty" yaml:"enabled,omitempty"`
-	LocalPath     string `json:"local-path,omitempty" yaml:"local-path,omitempty"`
-	ReclaimPolicy string `json:"reclaim-policy,omitempty" yaml:"reclaim-policy,omitempty"`
-	SetDefault    *bool  `json:"set-default,omitempty" yaml:"set-default,omitempty"`
+	Enabled       *bool  `json:"enabled,omitempty" yaml:"enabled"`
+	LocalPath     string `json:"local-path,omitempty" yaml:"local-path"`
+	ReclaimPolicy string `json:"reclaim-policy,omitempty" yaml:"reclaim-policy"`
+	SetDefault    *bool  `json:"set-default,omitempty" yaml:"set-default"`
 }
 
 type NetworkConfig struct {
-	Enabled *bool `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Enabled *bool `json:"enabled,omitempty" yaml:"enabled"`
 }
 
 type GatewayConfig struct {
-	Enabled *bool `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Enabled *bool `json:"enabled,omitempty" yaml:"enabled"`
 }
 
 type MetricsServerConfig struct {
-	Enabled *bool `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Enabled *bool `json:"enabled,omitempty" yaml:"enabled"`
 }
