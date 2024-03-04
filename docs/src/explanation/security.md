@@ -20,7 +20,7 @@ space.
 ## Security of the OCI images
 
 **Canonical Kubernetes** relies on OCI standard images published as `rocks` to
-deliver the services which run and facilitate the opration of the Kubernetes
+deliver the services which run and facilitate the operation of the Kubernetes
 cluster. Many of the frequently used 'standard' OCI images have known security
 vulnerabilities, but the use of `Rockcraft` and `rocks` gives Canonical a way
 to maintain and patch images to remove vulnerabilities at their source, which
