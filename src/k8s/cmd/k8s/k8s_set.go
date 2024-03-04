@@ -16,6 +16,7 @@ func newSetCmd() *cobra.Command {
 	setCmd := &cobra.Command{
 		Use:     "set <functionality.key=value>...",
 		Short:   "Set functionality configuration",
+		Long:    fmt.Sprintf("Configure one of %s.\nUse `k8s get` to explore configuration options.", strings.Join(componentList, ", ")),
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		Args:    cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
