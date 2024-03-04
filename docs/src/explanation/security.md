@@ -20,13 +20,13 @@ space.
 ## Security of the OCI images
 
 **Canonical Kubernetes** relies on OCI standard images published as `rocks` to
-deliver the services which run and facilitate the operation of the Kubernetes
-cluster. Many of the frequently used 'standard' OCI images have known security
-vulnerabilities, but the use of `Rockcraft` and `rocks` gives Canonical a way
-to maintain and patch images to remove vulnerabilities at their source, which
-is fundamental to our commitment to a sustainable Long Term Support (LTS)
-release of Kubernetes. For more information on how these images are maintained
-and published, see the [Rockcraft documentation][rocks-security]. 
+deliver the services which run and facilitate the opration of the Kubernetes
+cluster. The use of Rockcraft and `rocks` gives Canonical a way to maintain and
+patch images to remove vulnerabilities at their source, which is fundamental to
+our commitment to a sustainable Long Term Support(LTS) release of Kubernetes
+and overcoming the issues of stale images with known vulnerabilities. For more
+information on how these images are maintained and published, see the
+[Rockcraft documentation][rocks-security]. 
 
 ## Kubernetes Security
 
@@ -44,11 +44,11 @@ have access to your cluster. Describing the security mechanisms of these clouds
 is out of the scope of this documentation, but you may find the following links
 useful.
 
--   Amazon Web Services -	<https://aws.amazon.com/security/>
--   Google Cloud Platform	- <https://cloud.google.com/security/>
--   Metal As A Service(MAAS) -  <https://maas.io/docs/snap/3.0/ui/hardening-your-maas-installation>
--   Microsoft Azure	- <https://docs.microsoft.com/en-us/azure/security/azure-security>
--   VMWare VSphere	- <https://www.vmware.com/security/hardening-guides.html>
+-  Amazon Web Services <https://aws.amazon.com/security/>
+-  Google Cloud Platform <https://cloud.google.com/security/>
+-  Metal As A Service(MAAS) <https://maas.io/docs/snap/3.0/ui/hardening-your-maas-installation>
+-  Microsoft Azure <https://docs.microsoft.com/en-us/azure/security/azure-security>
+-  VMWare VSphere <https://www.vmware.com/security/hardening-guides.html>
 
 ## Security Compliance
 
