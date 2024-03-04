@@ -1,22 +1,20 @@
 ## k8s set
 
-Set functionality configuration
+Set cluster configuration
+
+### Synopsis
+
+Configure one of network, dns, gateway, ingress, local-storage, load-balancer, metrics-server.
+Use `k8s get` to explore configuration options.
 
 ```
-k8s set <functionality.key=value>... [flags]
+k8s set <functionality.key=value> ... [flags]
 ```
 
 ### Options
 
 ```
   -h, --help   help for set
-```
-
-### Options inherited from parent commands
-
-```
-  -d, --debug     Show all debug messages
-  -v, --verbose   Show all information messages (default true)
 ```
 
 ### SEE ALSO

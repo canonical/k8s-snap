@@ -1,6 +1,10 @@
 ## k8s get
 
-get functionality configuration
+get cluster configuration
+
+### Synopsis
+
+Show configuration of one of network, dns, gateway, ingress, local-storage, load-balancer, metrics-server.
 
 ```
 k8s get <functionality.key> [flags]
@@ -10,13 +14,6 @@ k8s get <functionality.key> [flags]
 
 ```
   -h, --help   help for get
-```
-
-### Options inherited from parent commands
-
-```
-  -d, --debug     Show all debug messages
-  -v, --verbose   Show all information messages (default true)
 ```
 
 ### SEE ALSO

@@ -1,6 +1,6 @@
 ## k8s bootstrap
 
-Bootstrap a k8s cluster on this node.
+Bootstrap a k8s cluster on this node
 
 ### Synopsis
 
@@ -14,15 +14,8 @@ k8s bootstrap [flags]
 
 ```
   -h, --help               help for bootstrap
-      --interactive        Interactively configure the most important cluster options.
-      --timeout duration   The max time to wait for k8s to bootstrap. (default 1m30s)
-```
-
-### Options inherited from parent commands
-
-```
-  -d, --debug     Show all debug messages
-  -v, --verbose   Show all information messages (default true)
+      --interactive        interactively configure the most important cluster options
+      --timeout duration   the max time to wait for k8s to bootstrap (default 1m30s)
 ```
 
 ### SEE ALSO

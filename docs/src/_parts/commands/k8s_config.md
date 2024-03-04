@@ -9,14 +9,8 @@ k8s config [flags]
 ### Options
 
 ```
-  -h, --help   help for config
-```
-
-### Options inherited from parent commands
-
-```
-  -d, --debug     Show all debug messages
-  -v, --verbose   Show all information messages (default true)
+  -h, --help            help for config
+      --server string   custom cluster server address
 ```
 
 ### SEE ALSO

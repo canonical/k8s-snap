@@ -1,6 +1,6 @@
 ## k8s kubectl
 
-Integrated Kubernetes CLI
+Integrated Kubernetes kubectl client
 
 ```
 k8s kubectl [flags]
@@ -10,13 +10,6 @@ k8s kubectl [flags]
 
 ```
   -h, --help   help for kubectl
-```
-
-### Options inherited from parent commands
-
-```
-  -d, --debug     Show all debug messages
-  -v, --verbose   Show all information messages (default true)
 ```
 
 ### SEE ALSO
