@@ -34,7 +34,7 @@ The Kubernetes cluster deployed by Canonical Kubernetes can be secured using
 any of the methods and options described by the upstream
 [Kubernetes Security Documentation][].
 
-Canonical Kubernetes enables RBAC(Rules Based Access Control)by default.
+Canonical Kubernetes enables RBAC (Rules Based Access Control) by default.
 
 ## Cloud security
 
