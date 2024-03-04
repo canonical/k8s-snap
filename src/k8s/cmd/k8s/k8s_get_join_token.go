@@ -24,13 +24,13 @@ type GetJoinTokenResult struct {
 }
 
 func (g GetJoinTokenResult) String() string {
-	return fmt.Sprintf("On the node you want to join call:\n\n  sudo k8s join-cluster %s\n\n", g.JoinToken)
+	return fmt.Sprintf("On the node you want to join call:\n\n  sudo k8s join-cluster %s\n", g.JoinToken)
 }
 
 func newGetJoinTokenCmd() *cobra.Command {
 	getJoinTokenCmd := &cobra.Command{
 		Use:     "get-join-token <node-name>",
-		Short:   "Create a join token for a node to join the cluster",
+		Short:   "Create a token for a node to join the cluster",
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) > 1 {
@@ -60,7 +60,7 @@ func newGetJoinTokenCmd() *cobra.Command {
 		},
 	}
 
-	getJoinTokenCmd.PersistentFlags().StringVarP(&getJoinTokenCmdOpts.outputFormat, "output-format", "o", "plain", "Specify in which format the output should be printed. One of plain, json or yaml")
+	getJoinTokenCmd.PersistentFlags().StringVarP(&getJoinTokenCmdOpts.outputFormat, "output-format", "o", "plain", "set the output format to one of plain, json or yaml")
 	getJoinTokenCmd.PersistentFlags().BoolVar(&getJoinTokenCmdOpts.worker, "worker", false, "generate a join token for a worker node")
 	return getJoinTokenCmd
 }

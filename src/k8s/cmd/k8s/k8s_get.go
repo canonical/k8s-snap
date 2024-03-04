@@ -14,7 +14,8 @@ import (
 func newGetCmd() *cobra.Command {
 	getCmd := &cobra.Command{
 		Use:               "get <functionality.key>",
-		Short:             "get functionality configuration",
+		Short:             "get cluster configuration",
+		Long:              fmt.Sprintf("Show configuration of one of %s.", strings.Join(componentList, ", ")),
 		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
