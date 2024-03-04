@@ -41,21 +41,23 @@ func newBootstrapCmd() *cobra.Command {
 				return apiv1.ErrAlreadyBootstrapped
 			}
 
+			config := apiv1.BootstrapConfig{}
+			if bootstrapCmdOpts.interactive {
+				config = getConfigInteractively()
+			} else {
+				config.SetDefaults()
+			}
 			const minTimeout = 3 * time.Second
 			if bootstrapCmdOpts.timeout < minTimeout {
 				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", bootstrapCmdOpts.timeout, minTimeout, minTimeout)
 				bootstrapCmdOpts.timeout = minTimeout
 			}
 
-			config := apiv1.BootstrapConfig{}
-			if bootstrapCmdOpts.interactive {
-				config = getConfigInteractively(cmd.Context())
-			} else {
-				config.SetDefaults()
-			}
+			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), bootstrapCmdOpts.timeout)
+			defer cancel()
 
 			fmt.Println("Bootstrapping the cluster. This may take some time, please wait.")
-			cluster, err := k8sdClient.Bootstrap(cmd.Context(), config)
+			cluster, err := k8sdClient.Bootstrap(timeoutCtx, config)
 			if err != nil {
 				return fmt.Errorf("failed to bootstrap cluster: %w", err)
 			}
@@ -71,7 +73,7 @@ func newBootstrapCmd() *cobra.Command {
 	return bootstrapCmd
 }
 
-func getConfigInteractively(ctx context.Context) apiv1.BootstrapConfig {
+func getConfigInteractively() apiv1.BootstrapConfig {
 	config := apiv1.BootstrapConfig{}
 	config.SetDefaults()
 

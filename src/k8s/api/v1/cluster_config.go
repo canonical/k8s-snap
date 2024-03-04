@@ -14,13 +14,13 @@ type UpdateClusterConfigResponse struct {
 }
 
 type UserFacingClusterConfig struct {
-	Network       *NetworkConfig       `json:"network,omitempty" yaml:"network"`
-	DNS           *DNSConfig           `json:"dns,omitempty" yaml:"dns"`
-	Ingress       *IngressConfig       `json:"ingress,omitempty" yaml:"ingress"`
-	LoadBalancer  *LoadBalancerConfig  `json:"load-balancer,omitempty" yaml:"load-balancer"`
-	LocalStorage  *LocalStorageConfig  `json:"local-storage,omitempty" yaml:"local-storage"`
-	Gateway       *GatewayConfig       `json:"gateway,omitempty" yaml:"gateway"`
-	MetricsServer *MetricsServerConfig `json:"metrics-server,omitempty" yaml:"metrics-server"`
+	Network       *NetworkConfig       `json:"network,omitempty" yaml:"network,omitempty"`
+	DNS           *DNSConfig           `json:"dns,omitempty" yaml:"dns,omitempty"`
+	Ingress       *IngressConfig       `json:"ingress,omitempty" yaml:"ingress,omitempty"`
+	LoadBalancer  *LoadBalancerConfig  `json:"load-balancer,omitempty" yaml:"load-balancer,omitempty"`
+	LocalStorage  *LocalStorageConfig  `json:"local-storage,omitempty" yaml:"local-storage,omitempty"`
+	Gateway       *GatewayConfig       `json:"gateway,omitempty" yaml:"gateway,omitempty"`
+	MetricsServer *MetricsServerConfig `json:"metrics-server,omitempty" yaml:"metrics-server,omitempty"`
 }
 
 type DNSConfig struct {

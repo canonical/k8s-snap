@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"net"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/utils/vals"
@@ -87,9 +86,9 @@ type NodeStatus struct {
 // ClusterStatus holds information about the cluster, e.g. its current members
 type ClusterStatus struct {
 	// Ready is true if at least one node in the cluster is in READY state.
-	Ready      bool         `json:"ready,omitempty"`
-	Members    []NodeStatus `json:"members,omitempty"`
-	Components []Component  `json:"components,omitempty"`
+	Ready   bool                    `json:"ready,omitempty"`
+	Members []NodeStatus            `json:"members,omitempty"`
+	Config  UserFacingClusterConfig `json:"config,omitempty"`
 }
 
 // HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
@@ -103,13 +102,14 @@ func (c ClusterStatus) HaClusterFormed() bool {
 	return voters > 2
 }
 
+// TODO: Print k8s version. However, multiple nodes can run different version, so we would need to query all nodes.
 func (c ClusterStatus) String() string {
 	result := strings.Builder{}
 
 	if c.Ready {
-		result.WriteString("status: ready.")
+		result.WriteString("status: ready")
 	} else {
-		result.WriteString("status: not ready.")
+		result.WriteString("status: not ready")
 	}
 	result.WriteString("\n")
 
@@ -119,20 +119,73 @@ func (c ClusterStatus) String() string {
 	} else {
 		result.WriteString("no")
 	}
-	result.WriteString("\n\n")
-	result.WriteString("control-plane nodes:\n")
-	for _, member := range c.Members {
-		// There is not much that we can do if the hostport is wrong.
-		// Thus, ignore the error and just display an empty IP field.
-		apiServerIp, _, _ := net.SplitHostPort(member.Address)
-		result.WriteString(fmt.Sprintf("  %s: %s\n", member.Name, apiServerIp))
+	result.WriteString("\n")
+	result.WriteString("datastore:\n")
+
+	voters := make([]NodeStatus, 0, len(c.Members))
+	standBys := make([]NodeStatus, 0, len(c.Members))
+	spares := make([]NodeStatus, 0, len(c.Members))
+	for _, node := range c.Members {
+		switch node.DatastoreRole {
+		case DatastoreRoleVoter:
+			voters = append(voters, node)
+		case DatastoreRoleStandBy:
+			standBys = append(standBys, node)
+		case DatastoreRoleSpare:
+			spares = append(spares, node)
+		}
+	}
+	if len(voters) > 0 {
+		result.WriteString(fmt.Sprintf("  voter-nodes:\n"))
+		for _, voter := range voters {
+			result.WriteString(fmt.Sprintf("    - %s\n", voter.Address))
+		}
+	} else {
+		result.WriteString(fmt.Sprintf("  voter-nodes: none\n"))
+	}
+	if len(standBys) > 0 {
+		result.WriteString(fmt.Sprintf("  standby-nodes:\n"))
+		for _, standBy := range standBys {
+			result.WriteString(fmt.Sprintf("    - %s\n", standBy.Address))
+		}
+	} else {
+		result.WriteString(fmt.Sprintf("  standby-nodes: none\n"))
+	}
+	if len(spares) > 0 {
+		result.WriteString(fmt.Sprintf("  spare-nodes:\n"))
+		for _, spare := range spares {
+			result.WriteString(fmt.Sprintf("    - %s\n", spare.Address))
+		}
+	} else {
+		result.WriteString(fmt.Sprintf("  spare-nodes: none\n"))
 	}
 	result.WriteString("\n")
 
-	result.WriteString("components:\n")
-	for _, component := range c.Components {
-		result.WriteString(fmt.Sprintf("  %-10s %s\n", component.Name, component.Status))
+	printedConfig := UserFacingClusterConfig{}
+	if c.Config.Network.Enabled != nil && *c.Config.Network.Enabled {
+		printedConfig.Network = c.Config.Network
 	}
+	if c.Config.DNS.Enabled != nil && *c.Config.DNS.Enabled {
+		printedConfig.DNS = c.Config.DNS
+	}
+	if c.Config.Ingress.Enabled != nil && *c.Config.Ingress.Enabled {
+		printedConfig.Ingress = c.Config.Ingress
+	}
+	if c.Config.LoadBalancer.Enabled != nil && *c.Config.LoadBalancer.Enabled {
+		printedConfig.LoadBalancer = c.Config.LoadBalancer
+	}
+	if c.Config.LocalStorage.Enabled != nil && *c.Config.LocalStorage.Enabled {
+		printedConfig.LocalStorage = c.Config.LocalStorage
+	}
+	if c.Config.Gateway.Enabled != nil && *c.Config.Gateway.Enabled {
+		printedConfig.Gateway = c.Config.Gateway
+	}
+	if c.Config.MetricsServer.Enabled != nil && *c.Config.MetricsServer.Enabled {
+		printedConfig.MetricsServer = c.Config.MetricsServer
+	}
+
+	b, _ := yaml.Marshal(printedConfig)
+	result.WriteString(string(b))
 
 	return result.String()
 }
