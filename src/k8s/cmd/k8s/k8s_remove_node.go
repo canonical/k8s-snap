@@ -49,8 +49,8 @@ func newRemoveNodeCmd() *cobra.Command {
 			return nil
 		},
 	}
-	removeNodeCmd.Flags().BoolVar(&removeNodeCmdOpts.force, "force", false, "Forcibly remove the cluster member")
-	removeNodeCmd.PersistentFlags().DurationVar(&removeNodeCmdOpts.timeout, "timeout", 180*time.Second, "The max time to wait for the node to be removed.")
+	removeNodeCmd.Flags().BoolVar(&removeNodeCmdOpts.force, "force", false, "forcibly remove the cluster member")
+	removeNodeCmd.PersistentFlags().DurationVar(&removeNodeCmdOpts.timeout, "timeout", 180*time.Second, "the max time to wait for the node to be removed")
 	removeNodeCmd.FlagErrorFunc()
 	return removeNodeCmd
 }

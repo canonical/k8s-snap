@@ -10,6 +10,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/microcluster"
 	"github.com/canonical/microcluster/state"
@@ -21,14 +22,16 @@ func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	var (
-		token string
-		err   error
-	)
+	hostname, err := utils.CleanHostname(req.Name)
+	if err != nil {
+		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", req.Name, err))
+	}
+
+	var token string
 	if req.Worker {
 		token, err = createWorkerToken(s)
 	} else {
-		token, err = getOrCreateJoinTocken(m, req.Name)
+		token, err = getOrCreateJoinTocken(m, hostname)
 	}
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create token: %w", err))

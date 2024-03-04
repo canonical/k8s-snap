@@ -9,14 +9,14 @@ import (
 )
 
 var genericErrorMsgs = map[error]string{
-	v1.ErrNotBootstrapped: "The cluster has not been initialized yet. Please call:\n\n sudo k8s bootstrap",
-	v1.ErrConnectionFailed: "Unable to connect to the cluster. Verify k8s services are running:\n\n sudo snap services k8s\n\n" +
-		"and see logs for more details:\n\n sudo journalctl -n 300 -u snap.k8s.k8sd\n\n",
-	v1.ErrAPIServerFailed: "Unable to get Kubernetes API server endpoints. Verify k8s services are running:\n\n sudo snap services k8s\n\n" +
-		"and see logs for more details:\n\n sudo journalctl -n 300 -u snap.k8s.kube-apiserver\n\n",
+	v1.ErrNotBootstrapped: "The cluster has not been initialized yet. Please call:\n\n  sudo k8s bootstrap\n",
+	v1.ErrConnectionFailed: "Unable to connect to the cluster. Verify k8s services are running:\n\n  sudo snap services k8s\n" +
+		"and see logs for more details:\n\n  sudo journalctl -n 300 -u snap.k8s.k8sd\n",
+	v1.ErrAPIServerFailed: "Unable to get Kubernetes API server endpoints. Verify k8s services are running:\n\n  sudo snap services k8s\n\n" +
+		"and see logs for more details:\n\n  sudo journalctl -n 300 -u snap.k8s.kube-apiserver\n",
 	v1.ErrTimeout: "Command timed out. See logs for more details:\n\n" +
-		" sudo journalctl -n 300 -u snap.k8s.k8sd\n\n" +
-		"You may increase the timeout with `--timeout 3m`.",
+		"  sudo journalctl -n 300 -u snap.k8s.k8sd\n\n" +
+		"You may increase the timeout with `--timeout 3m`.\n",
 }
 
 // Transform checks if the error returned by the server contains a known error message
@@ -28,7 +28,7 @@ func Transform(err *error, extraErrorMessages map[error]string) {
 		return
 	}
 
-	// Unknown error occured. Append the full error message to the result.
+	// Unknown error occurred. Append the full error message to the result.
 	if strings.Contains(strings.ToLower((*err).Error()), strings.ToLower(v1.ErrUnknown.Error())) {
 		var prefix string
 		if msg, ok := extraErrorMessages[v1.ErrUnknown]; ok {

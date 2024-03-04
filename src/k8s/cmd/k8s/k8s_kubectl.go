@@ -16,7 +16,7 @@ import (
 func newKubectlCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "kubectl",
-		Short: "Integrated Kubernetes CLI",
+		Short: "Integrated Kubernetes kubectl client",
 		// All commands should be passed to kubectl
 		DisableFlagParsing: true,
 		PreRunE:            chainPreRunHooks(hookSetupClient),
