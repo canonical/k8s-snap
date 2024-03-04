@@ -48,7 +48,7 @@ func KubeconfigString(token string, url string, caPEM string) (string, error) {
 	config := createConfig(token, url, caPEM)
 	kubeconfig, err := clientcmd.Write(*config)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to encode kubeconfig yaml: %w", err)
 	}
 	return string(kubeconfig), nil
 }

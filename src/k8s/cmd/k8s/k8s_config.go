@@ -14,8 +14,8 @@ var (
 )
 
 func newKubeConfigCmd() *cobra.Command {
-	configCmd := &cobra.Command{
-		Use:     "config --server <server>",
+	kubeConfigCmd := &cobra.Command{
+		Use:     "config",
 		Short:   "Generate a kubeconfig that can be used to access the Kubernetes cluster",
 		Hidden:  true,
 		PreRunE: chainPreRunHooks(hookSetupClient),
@@ -31,6 +31,6 @@ func newKubeConfigCmd() *cobra.Command {
 			return nil
 		},
 	}
-	configCmd.PersistentFlags().StringVar(&configCmdOpts.server, "server", "", "Specify a custom cluster server address for the kubeconfig")
-	return configCmd
+	kubeConfigCmd.PersistentFlags().StringVar(&configCmdOpts.server, "server", "", "custom cluster server address")
+	return kubeConfigCmd
 }
