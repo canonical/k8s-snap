@@ -29,6 +29,21 @@ var kubeletWorkerLabels = []string{
 	"node-role.kubernetes.io/worker=",
 }
 
+// GetKubeletTLSCipherSuites returns the kubelet TLS cipher suites.
+func GetKubeletTLSCipherSuites() []string {
+	return kubeletTLSCipherSuites
+}
+
+// GetKubeletControlPlaneLabels returns the kubelet control plane labels.
+func GetKubeletControlPlaneLabels() []string {
+	return kubeletControlPlaneLabels
+}
+
+// GetKubeletWorkerLabels returns the kubelet worker labels.
+func GetKubeletWorkerLabels() []string {
+	return kubeletWorkerLabels
+}
+
 // KubeletControlPlane configures kubelet on a control plane node.
 func KubeletControlPlane(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string) error {
 	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, nil, append(kubeletControlPlaneLabels, kubeletWorkerLabels...))
@@ -52,7 +67,7 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 		"--fail-swap-on":                 "false",
 		"--hostname-override":            hostname,
 		"--kubeconfig":                   path.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
-		"--node-labels":                  strings.Join(labels, ","),
+		"--node-labels":                  strings.Join(append(kubeletControlPlaneLabels, kubeletWorkerLabels...), ","),
 		"--read-only-port":               "0",
 		"--register-with-taints":         strings.Join(taints, ","),
 		"--root-dir":                     snap.KubeletRootDir(),
@@ -74,5 +89,6 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 	if _, err := snaputil.UpdateServiceArguments(snap, "kubelet", args, nil); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
 	}
+
 	return nil
 }
