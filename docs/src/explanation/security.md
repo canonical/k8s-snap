@@ -24,7 +24,7 @@ deliver the services which run and facilitate the operation of the Kubernetes
 cluster. Many of the frequently used 'standard' OCI images have known security
 vulnerabilities, but the use of `Rockcraft` and `rocks` gives Canonical a way
 to maintain and patch images to remove vulnerabilities at their source, which
-is fundamental to our commitment to a sustainable Long Term Support(LTS)
+is fundamental to our commitment to a sustainable Long Term Support (LTS)
 release of Kubernetes. For more information on how these images are maintained
 and published, see the [Rockcraft documentation][rocks-security]. 
 
