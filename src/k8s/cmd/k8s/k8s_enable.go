@@ -35,7 +35,8 @@ func newEnableCmd() *cobra.Command {
 			}
 
 			config := api.UserFacingClusterConfig{}
-			switch args[0] {
+			functionality := args[0]
+			switch functionality {
 			case "network":
 				config.Network = &api.NetworkConfig{
 					Enabled: vals.Pointer(true),
@@ -70,9 +71,11 @@ func newEnableCmd() *cobra.Command {
 				Config: config,
 			}
 
+			fmt.Printf("Enabling %s. This may take some time, please wait.\n", functionality)
 			if err := k8sdClient.UpdateClusterConfig(cmd.Context(), request); err != nil {
 				return fmt.Errorf("failed to update cluster configuration: %w", err)
 			}
+			fmt.Printf("%s enabled.\n", functionality)
 
 			return nil
 		},
