@@ -18,8 +18,10 @@ func TestCleanHostname(t *testing.T) {
 		{hostname: "w1.test.domain", expectHostname: "w1.test.domain", expectValid: true},
 		{hostname: "w1-with-dash", expectHostname: "w1-with-dash", expectValid: true},
 		{hostname: "Capital", expectHostname: "capital", expectValid: true},
+		{hostname: "dash-end-"},
+		{hostname: "dot-end."},
 		{hostname: "w1-with_underscore"},
-		{hostname: "spaces  123"},
+		{hostname: "spaces 123"},
 		{hostname: "special!@*!^%#*&$"},
 	} {
 		t.Run(tc.hostname, func(t *testing.T) {
