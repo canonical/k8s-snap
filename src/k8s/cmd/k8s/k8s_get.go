@@ -13,10 +13,10 @@ import (
 
 func newGetCmd() *cobra.Command {
 	getCmd := &cobra.Command{
-		Use:               "get <functionality.key>",
-		Short:             "get functionality configuration",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
-		Args:              cobra.ExactArgs(1),
+		Use:     "get <functionality.key>",
+		Short:   "get functionality configuration",
+		PreRunE: chainPreRunHooks(hookSetupClient),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 

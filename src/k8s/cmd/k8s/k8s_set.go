@@ -13,10 +13,10 @@ import (
 
 func newSetCmd() *cobra.Command {
 	setCmd := &cobra.Command{
-		Use:               "set <functionality.key=value>...",
-		Short:             "Set functionality configuration",
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
-		Args:              cobra.ArbitraryArgs,
+		Use:     "set <functionality.key=value>...",
+		Short:   "Set functionality configuration",
+		PreRunE: chainPreRunHooks(hookSetupClient),
+		Args:    cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 
