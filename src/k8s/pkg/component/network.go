@@ -139,7 +139,7 @@ func DisableNetworkComponent(s snap.Snap) error {
 }
 
 func ReconcileNetworkComponent(ctx context.Context, s snap.Snap, alreadyEnabled *bool, requestEnabled *bool, clusterConfig types.ClusterConfig) error {
-	if vals.OptionalBool(requestEnabled, false) && vals.OptionalBool(alreadyEnabled, false) {
+	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
 		// If already enabled, and request does not contain `enabled` key
 		// or if already enabled and request contains `enabled=true`
 		err := UpdateNetworkComponent(ctx, s, true, clusterConfig.Network.PodCIDR)
