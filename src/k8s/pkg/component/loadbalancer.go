@@ -140,7 +140,7 @@ func ReconcileLoadBalancerComponent(ctx context.Context, s snap.Snap, alreadyEna
 		l2Enabled = *clusterConfig.LoadBalancer.L2Enabled
 	}
 
-	if vals.OptionalBool(requestEnabled, false) && vals.OptionalBool(alreadyEnabled, false) {
+	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
 		// If already enabled, and request does not contain `enabled` key
 		// or if already enabled and request contains `enabled=true`
 		err := UpdateLoadBalancerComponent(ctx, s, true, clusterConfig.LoadBalancer.CIDRs, l2Enabled, clusterConfig.LoadBalancer.L2Interfaces, bgpEnabled, clusterConfig.LoadBalancer.BGPLocalASN, clusterConfig.LoadBalancer.BGPPeerAddress, clusterConfig.LoadBalancer.BGPPeerASN, clusterConfig.LoadBalancer.BGPPeerPort)

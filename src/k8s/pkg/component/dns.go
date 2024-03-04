@@ -143,7 +143,7 @@ func DisableDNSComponent(ctx context.Context, s snap.Snap) error {
 }
 
 func ReconcileDNSComponent(ctx context.Context, s snap.Snap, alreadyEnabled *bool, requestEnabled *bool, clusterConfig types.ClusterConfig) (string, string, error) {
-	if vals.OptionalBool(requestEnabled, false) && vals.OptionalBool(alreadyEnabled, false) {
+	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
 		// If already enabled, and request does not contain `enabled` key
 		// or if already enabled and request contains `enabled=true`
 		dnsIP, clusterDomain, err := UpdateDNSComponent(ctx, s, true, clusterConfig.Kubelet.ClusterDomain, clusterConfig.Kubelet.ClusterDNS, clusterConfig.DNS.UpstreamNameservers)

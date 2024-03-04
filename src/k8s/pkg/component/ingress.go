@@ -77,7 +77,7 @@ func ReconcileIngressComponent(ctx context.Context, s snap.Snap, alreadyEnabled 
 		enableProxyProtocol = *clusterConfig.Ingress.EnableProxyProtocol
 	}
 
-	if vals.OptionalBool(requestEnabled, false) && vals.OptionalBool(alreadyEnabled, false) {
+	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
 		// If already enabled, and request does not contain `enabled` key
 		// or if already enabled and request contains `enabled=true`
 		err := UpdateIngressComponent(ctx, s, true, clusterConfig.Ingress.DefaultTLSSecret, enableProxyProtocol)
