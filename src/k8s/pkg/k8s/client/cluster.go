@@ -37,21 +37,19 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.Bootst
 	// Get system addrPort.
 	addrPort := util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), config.DefaultPort)
 
-	timeToWait := 30
-	// If a context timeout is set, use this instead.
-	deadline, set := ctx.Deadline()
-	if set {
-		timeToWait = int(deadline.Sub(time.Now()).Seconds())
+	timeout := 30 * time.Second
+	if deadline, set := ctx.Deadline(); set {
+		timeout = time.Until(deadline)
 	}
 
-	if err := c.m.Ready(timeToWait); err != nil {
+	if err := c.m.Ready(int(timeout / time.Second)); err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("cluster did not come up in time: %w", err)
 	}
 	config, err := bootstrapConfig.ToMap()
 	if err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to convert bootstrap config to map: %w", err)
 	}
-	if err := c.m.NewCluster(hostname, addrPort, config, time.Duration(timeToWait)*time.Second); err != nil {
+	if err := c.m.NewCluster(hostname, addrPort, config, timeout); err != nil {
 		// TODO(neoaggelos): print message that bootstrap failed, and that we are cleaning up
 		fmt.Fprintln(os.Stderr, "Failed with error:", err)
 		c.CleanupNode(ctx, c.opts.Snap, hostname)

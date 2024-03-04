@@ -25,15 +25,20 @@ func postClusterJoin(m *microcluster.MicroCluster, s *state.State, r *http.Reque
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", req.Name, err))
 	}
 
+	timeout := 30 * time.Second
+	if deadline, set := s.Context.Deadline(); set {
+		timeout = time.Until(deadline)
+	}
+
 	// differentiate between control plane and worker node tokens
 	info := &types.InternalWorkerNodeToken{}
 	if info.Decode(req.Token) == nil {
 		// valid worker node token
-		if err := m.NewCluster(hostname, req.Address, map[string]string{"workerToken": req.Token}, time.Second*180); err != nil {
+		if err := m.NewCluster(hostname, req.Address, map[string]string{"workerToken": req.Token}, timeout); err != nil {
 			return response.InternalError(fmt.Errorf("failed to join k8sd cluster as worker: %w", err))
 		}
 	} else {
-		if err := m.JoinCluster(hostname, req.Address, req.Token, nil, time.Second*180); err != nil {
+		if err := m.JoinCluster(hostname, req.Address, req.Token, nil, timeout); err != nil {
 			return response.InternalError(fmt.Errorf("failed to join k8sd cluster as control plane: %w", err))
 		}
 	}
