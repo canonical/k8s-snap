@@ -31,13 +31,12 @@ var kubeletTLSCipherSuites = []string{
 	"TLS_RSA_WITH_AES_256_GCM_SHA384",
 }
 
-func TestKubelet(t *testing.T) {
+func testFixture(t *testing.T) (s *mock.Snap, dir string) {
 	g := NewWithT(t)
 
-	dir := t.TempDir()
-	defer os.RemoveAll(dir)
+	dir = t.TempDir()
 
-	s := &mock.Snap{
+	s = &mock.Snap{
 		Mock: mock.Mock{
 			KubernetesPKIDir:    path.Join(dir, "pki"),
 			KubernetesConfigDir: path.Join(dir, "k8s-config"),
@@ -49,9 +48,21 @@ func TestKubelet(t *testing.T) {
 
 	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
 
+	return
+}
+
+func TestKubelet(t *testing.T) {
 	t.Run("Setup control plane with all possible arguments", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// Create a mock snap
+		s, dir := testFixture(t)
+		defer os.RemoveAll(dir)
+
+		// Call the kubelet control plane setup function
 		g.Expect(setup.KubeletControlPlane(s, "dev", net.IP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).To(BeNil())
 
+		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
 			key         string
 			expectedVal string
@@ -92,6 +103,13 @@ func TestKubelet(t *testing.T) {
 	})
 
 	t.Run("Setup control plane with all optional arguments missing", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// Create a mock snap
+		s, dir := testFixture(t)
+		defer os.RemoveAll(dir)
+
+		// Call the kubelet control plane setup function
 		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "")).To(BeNil())
 
 		tests := []struct {
