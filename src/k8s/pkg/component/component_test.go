@@ -34,6 +34,7 @@ func actionConfigFixture(t *testing.T) *action.Configuration {
 		KubeClient:     &kubefake.FailingKubeClient{PrintingKubeClient: kubefake.PrintingKubeClient{Out: io.Discard}},
 		Capabilities:   chartutil.DefaultCapabilities,
 		RegistryClient: registryClient,
+		Log:            logAdapter,
 	}
 }
 
@@ -233,10 +234,17 @@ func TestComponentsInitialState(t *testing.T) {
 		},
 	})
 
-	components, err := mockHelmClient.List()
-	g.Expect(err).ShouldNot(HaveOccurred())
-	for _, component := range components {
-		g.Expect(component.Status).To(BeFalse(), "Expected all components to be initially disabled")
+	var releases = []struct {
+		release   string
+		namespace string
+	}{
+		{"whiskas-1", "default"},
+		{"whiskas-2", "default"},
+	}
+	for _, tc := range releases {
+		t.Run(tc.release, func(t *testing.T) {
+			g.Expect(mockHelmClient.isComponentEnabled(tc.release, tc.namespace)).To(BeFalse(), "Expected all components to be initially disabled")
+		})
 	}
 }
 
@@ -266,10 +274,72 @@ func TestEnableMultipleComponents(t *testing.T) {
 		g.Expect(err).ShouldNot(HaveOccurred())
 	}
 
-	components, err := mockHelmClient.List()
-	g.Expect(err).ShouldNot(HaveOccurred())
-	g.Expect(components).To(ConsistOf(
-		Component{Name: "one", Status: true},
-		Component{Name: "two", Status: true},
-	), "Expected all components to be enabled")
+	// Reenable should not error
+	for name := range mockHelmClient.components {
+		err := mockHelmClient.Enable(name, map[string]interface{}{})
+		g.Expect(err).ShouldNot(HaveOccurred())
+	}
+
+	var releases = []struct {
+		release   string
+		namespace string
+	}{
+		{"whiskas-1", "default"},
+		{"whiskas-2", "default"},
+	}
+	for _, tc := range releases {
+		t.Run(tc.release, func(t *testing.T) {
+			g.Expect(mockHelmClient.isComponentEnabled(tc.release, tc.namespace)).To(BeTrue(), "Expected all components to enabled")
+		})
+	}
+}
+
+func TestDisableComponent(t *testing.T) {
+	g := NewWithT(t)
+
+	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, map[string]types.Component{
+		"one": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-0.1.0.tgz",
+		},
+		"two": {
+			ReleaseName:  "whiskas-2",
+			Namespace:    "default",
+			ManifestPath: "slim-tuna-0.1.0.tgz",
+		},
+	})
+
+	for name, component := range mockHelmClient.components {
+		chart := buildChart(withName(component.ReleaseName))
+		chartPath := mustAddChartToTestDir(t, tempDir, chart)
+		component.ManifestPath = chartPath
+		mockHelmClient.components[name] = component
+
+		err := mockHelmClient.Enable(name, map[string]interface{}{})
+		g.Expect(err).ShouldNot(HaveOccurred())
+	}
+
+	// Redisable should not error
+	for name := range mockHelmClient.components {
+		err := mockHelmClient.Disable(name)
+		g.Expect(err).ShouldNot(HaveOccurred())
+	}
+
+	var releases = []struct {
+		release   string
+		namespace string
+	}{
+		{"whiskas-1", "default"},
+		{"whiskas-2", "default"},
+	}
+	for _, tc := range releases {
+		t.Run(tc.release, func(t *testing.T) {
+			g.Expect(mockHelmClient.isComponentEnabled(tc.release, tc.namespace)).To(BeFalse(), "Expected all components to be disabled")
+		})
+	}
+
+	// Component does not exist at all
+	err := mockHelmClient.Disable("non-existent")
+	g.Expect(err).Should(HaveOccurred())
 }
