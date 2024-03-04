@@ -89,7 +89,7 @@ func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
 	// Read the yaml file
 	yamlContent, err := os.ReadFile(filePath)
 	if err != nil {
-		return config, fmt.Errorf("failed to read bootstrap init YAML file: %w", err)
+		return config, fmt.Errorf("failed to read YAML config file: %w", err)
 	}
 	// Parse the yaml file
 	err = yaml.Unmarshal(yamlContent, &config)
