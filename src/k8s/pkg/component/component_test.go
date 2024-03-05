@@ -292,6 +292,10 @@ func TestEnableMultipleComponents(t *testing.T) {
 			g.Expect(mockHelmClient.isComponentEnabled(tc.release, tc.namespace)).To(BeTrue(), "Expected all components to enabled")
 		})
 	}
+
+	// Component does not exist at all
+	err := mockHelmClient.Enable("non-existent", map[string]interface{}{})
+	g.Expect(err).Should(HaveOccurred())
 }
 
 func TestDisableComponent(t *testing.T) {
