@@ -80,7 +80,7 @@ def test_control_plane_replacement(instances: List[harness.Instance]):
 
     # Add a Control-Planes
     for inst in (cp2, cp3):
-        token = add_node(cp1, inst)
+        token = get_join_token(cp1, inst)
         join_cluster(inst, token)
 
     util.wait_until_k8s_ready(cp1, [cp1, cp2, cp3])
@@ -89,6 +89,6 @@ def test_control_plane_replacement(instances: List[harness.Instance]):
     cp1.delete_instance()
     util.wait_until_k8s_ready(cp2, [cp2, cp3])
 
-    token = add_node(cp2, cp_r)
+    token = get_join_token(cp2, cp_r)
     join_cluster(cp_r, token)
     util.wait_until_k8s_ready(cp2, [cp2, cp3, cp_r])
