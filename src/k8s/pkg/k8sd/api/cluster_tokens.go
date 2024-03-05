@@ -31,13 +31,35 @@ func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http
 	if req.Worker {
 		token, err = createWorkerToken(s)
 	} else {
-		token, err = m.NewJoinToken(hostname)
+		token, err = getOrCreateJoinToken(m, hostname)
 	}
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create token: %w", err))
 	}
 
 	return response.SyncResponse(true, &apiv1.TokensResponse{EncodedToken: token})
+}
+
+func getOrCreateJoinToken(m *microcluster.MicroCluster, tokenName string) (string, error) {
+	// grab token if it exists and return it
+	records, err := m.ListJoinTokens()
+	if err != nil {
+		fmt.Println("Failed to get existing tokens. Trying to create a new token.")
+	} else {
+		for _, record := range records {
+			if record.Name == tokenName {
+				return record.Token, nil
+			}
+		}
+		fmt.Println("No token exists yet. Creating a new token.")
+	}
+
+	// if token does not exist, create a new one
+	token, err := m.NewJoinToken(tokenName)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate a new microcluster join token: %w", err)
+	}
+	return token, nil
 }
 
 func createWorkerToken(s *state.State) (string, error) {
