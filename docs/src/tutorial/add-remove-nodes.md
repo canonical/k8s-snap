@@ -91,7 +91,24 @@ your cluster.
 
 Congratulations!
 
-### 4. Delete the VMs (Optional)
+### 4. Remove Nodes and delete the VMs (Optional)
+It is important to clean-up your nodes before tearing down the VMs.
+
+```{note}  Purging a VM does not remove the node from your cluster.
+```
+
+Keep in mind the consequences of removing nodes:
+
+```{warning} Do not remove the leader node. 
+If you have less than 3 nodes you will lose availability of your cluster.
+```
+
+To tear down the entire cluster, execute:
+
+```bash
+sudo k8s remove-node worker
+sudo k8s remove-node control-plane
+```
 
 To delete the VMs from your system, two commands are needed:
 
