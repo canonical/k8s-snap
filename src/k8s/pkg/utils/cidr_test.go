@@ -50,17 +50,18 @@ func TestGetKubernetesServiceIPsFromServiceCIDRs(t *testing.T) {
 		})
 	}
 
-	// Test invalid cidr length
-	cidr := "fd01::/64,fd02::/64,fd03::/64"
-	_, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(cidr)
+	// Test invalid cidrs
+	for _, tc := range []struct {
+		cidr string
+	}{
+		{cidr: "fd01::/64,fd02::/64,fd03::/64"},
+		{cidr: "bananas"},
+	} {
+		t.Run(tc.cidr, func(t *testing.T) {
+			g := NewWithT(t)
+			_, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(tc.cidr)
 
-	g := NewWithT(t)
-	g.Expect(err).ToNot(BeNil())
-
-	// Test invalid cidr
-	cidr = "bananas"
-	_, err = utils.GetKubernetesServiceIPsFromServiceCIDRs(cidr)
-
-	g = NewWithT(t)
-	g.Expect(err).ToNot(BeNil())
+			g.Expect(err).ToNot(BeNil())
+		})
+	}
 }
