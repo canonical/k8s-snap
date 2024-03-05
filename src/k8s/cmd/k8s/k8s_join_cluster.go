@@ -1,10 +1,8 @@
 package k8s
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	v1 "github.com/canonical/k8s/api/v1"
@@ -19,7 +17,6 @@ var (
 	joinClusterCmdOpts struct {
 		name    string
 		address string
-		timeout time.Duration
 	}
 	joinClusterCmdErrorMsgs = map[error]string{
 		apiv1.ErrAlreadyBootstrapped: "A bootstrap node cannot join a cluster as it is already in a cluster. " +
@@ -73,17 +70,9 @@ func newJoinClusterCmd() *cobra.Command {
 			if k8sdClient.IsBootstrapped(cmd.Context()) {
 				return v1.ErrAlreadyBootstrapped
 			}
-			const minTimeout = 3 * time.Second
-			if joinClusterCmdOpts.timeout < minTimeout {
-				cmd.PrintErrf("Timeout %v is less than minimum of %v, using the minimum %v instead.\n", joinClusterCmdOpts.timeout, minTimeout, minTimeout)
-				joinClusterCmdOpts.timeout = minTimeout
-			}
-
-			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), joinClusterCmdOpts.timeout)
-			defer cancel()
 
 			fmt.Fprintln(cmd.ErrOrStderr(), "Joining the cluster. This may take some time, please wait.")
-			if err := k8sdClient.JoinCluster(timeoutCtx, joinClusterCmdOpts.name, joinClusterCmdOpts.address, joinToken); err != nil {
+			if err := k8sdClient.JoinCluster(cmd.Context(), joinClusterCmdOpts.name, joinClusterCmdOpts.address, joinToken); err != nil {
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}
 
@@ -98,6 +87,5 @@ func newJoinClusterCmd() *cobra.Command {
 	}
 	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.name, "name", "", "the name of the joining node. defaults to hostname")
 	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.address, "address", "", "the address (IP:Port) on which the nodes REST API should be available")
-	joinNodeCmd.Flags().DurationVar(&joinClusterCmdOpts.timeout, "timeout", 90*time.Second, "the max time to wait for the node to be ready")
 	return joinNodeCmd
 }

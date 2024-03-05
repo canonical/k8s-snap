@@ -1,9 +1,7 @@
 package k8s
 
 import (
-	"context"
 	"fmt"
-	"time"
 
 	v1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
@@ -13,7 +11,6 @@ import (
 
 var (
 	statusCmdOpts struct {
-		timeout   time.Duration
 		waitReady bool
 	}
 )
@@ -38,15 +35,7 @@ func newStatusCmd() *cobra.Command {
 				}
 			}
 
-			const minTimeout = 3 * time.Second
-			if statusCmdOpts.timeout < minTimeout {
-				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", statusCmdOpts.timeout, minTimeout, minTimeout)
-				statusCmdOpts.timeout = minTimeout
-			}
-
-			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), statusCmdOpts.timeout)
-			defer cancel()
-			clusterStatus, err := k8sdClient.ClusterStatus(timeoutCtx, statusCmdOpts.waitReady)
+			clusterStatus, err := k8sdClient.ClusterStatus(cmd.Context(), statusCmdOpts.waitReady)
 			if err != nil {
 				return fmt.Errorf("failed to get cluster status: %w", err)
 			}
@@ -58,7 +47,6 @@ func newStatusCmd() *cobra.Command {
 			return f.Print(clusterStatus)
 		},
 	}
-	statusCmd.PersistentFlags().DurationVar(&statusCmdOpts.timeout, "timeout", 90*time.Second, "the max time to wait for the K8s API server to be ready")
 	statusCmd.PersistentFlags().BoolVar(&statusCmdOpts.waitReady, "wait-ready", false, "wait until at least one cluster node is ready")
 	return statusCmd
 }

@@ -1,7 +1,9 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/k8s/pkg/utils"
@@ -14,6 +16,7 @@ var (
 		logVerbose   bool
 		outputFormat string
 		stateDir     string
+		timeout      time.Duration
 	}
 	k8sdClient client.Client
 )
@@ -30,6 +33,20 @@ func NewRootCmd() *cobra.Command {
 			if !withRoot {
 				return fmt.Errorf("insufficient permissions: run the command with sudo")
 			}
+
+			const minTimeout = 3 * time.Second
+			if rootCmdOpts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", rootCmdOpts.timeout, minTimeout, minTimeout)
+				rootCmdOpts.timeout = minTimeout
+			}
+
+			timeoutCtx, cancel := context.WithTimeout(context.Background(), rootCmdOpts.timeout)
+			cobra.OnFinalize(func() {
+				// Use OnFinalize because PostRun is not executed on error.
+				cancel()
+			})
+
+			cmd.SetContext(timeoutCtx)
 			return nil
 		},
 		SilenceUsage:  true,
@@ -39,6 +56,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "show all debug messages")
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "show all information messages")
 	rootCmd.PersistentFlags().StringVarP(&rootCmdOpts.outputFormat, "output-format", "o", "plain", "set the output format to one of plain, json or yaml")
+	rootCmd.PersistentFlags().DurationVarP(&rootCmdOpts.timeout, "timeout", "t", 90*time.Second, "the max time to wait for the command to execute")
 
 	// By default, the state dir is set to a fixed directory in the snap.
 	// This shouldn't be overwritten by the user.

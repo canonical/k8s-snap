@@ -2,12 +2,10 @@ package k8s
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"slices"
 	"strings"
-	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
@@ -21,7 +19,6 @@ var (
 	bootstrapCmdOpts struct {
 		interactive bool
 		configFile  string
-		timeout     time.Duration
 	}
 
 	bootstrapCmdErrorMsgs = map[error]string{
@@ -68,16 +65,8 @@ func newBootstrapCmd() *cobra.Command {
 				bootstrapConfig.SetDefaults()
 			}
 
-			const minTimeout = 3 * time.Second
-			if bootstrapCmdOpts.timeout < minTimeout {
-				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", bootstrapCmdOpts.timeout, minTimeout, minTimeout)
-				bootstrapCmdOpts.timeout = minTimeout
-			}
-			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), bootstrapCmdOpts.timeout)
-			defer cancel()
-
 			fmt.Fprintln(cmd.ErrOrStderr(), "Bootstrapping the cluster. This may take some time, please wait.")
-			node, err := k8sdClient.Bootstrap(timeoutCtx, bootstrapConfig)
+			node, err := k8sdClient.Bootstrap(cmd.Context(), bootstrapConfig)
 			if err != nil {
 				return fmt.Errorf("failed to bootstrap cluster: %w", err)
 			}
@@ -93,7 +82,6 @@ func newBootstrapCmd() *cobra.Command {
 	}
 
 	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false, "interactively configure the most important cluster options")
-	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "the max time to wait for k8s to bootstrap")
 	bootstrapCmd.PersistentFlags().StringVar(&bootstrapCmdOpts.configFile, "config", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
 
 	return bootstrapCmd
