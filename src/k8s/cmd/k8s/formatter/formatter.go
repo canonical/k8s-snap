@@ -42,7 +42,9 @@ type jsonFormatter struct {
 }
 
 func (j jsonFormatter) Print(data any) error {
-	return json.NewEncoder(j.writer).Encode(data)
+	encoder := json.NewEncoder(j.writer)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(data)
 }
 
 type yamlFormatter struct {

@@ -7,6 +7,7 @@ import (
 
 	api "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
+	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/spf13/cobra"
 )
@@ -14,6 +15,14 @@ import (
 var (
 	componentList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
 )
+
+type EnableResult struct {
+	Functionality string `json:"functionality" yaml:"functionality"`
+}
+
+func (e EnableResult) String() string {
+	return fmt.Sprintf("%s enabled.\n", e.Functionality)
+}
 
 func newEnableCmd() *cobra.Command {
 	enableCmd := &cobra.Command{
@@ -71,13 +80,19 @@ func newEnableCmd() *cobra.Command {
 				Config: config,
 			}
 
-			fmt.Printf("Enabling %s. This may take some time, please wait.\n", functionality)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Enabling %s. This may take some time, please wait.\n", functionality)
 			if err := k8sdClient.UpdateClusterConfig(cmd.Context(), request); err != nil {
 				return fmt.Errorf("failed to update cluster configuration: %w", err)
 			}
-			fmt.Printf("%s enabled.\n", functionality)
 
-			return nil
+			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
+			if err != nil {
+				return fmt.Errorf("failed to create formatter: %w", err)
+			}
+			return f.Print(EnableResult{
+				Functionality: functionality,
+			})
+
 		},
 	}
 

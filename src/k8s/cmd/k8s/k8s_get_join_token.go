@@ -11,8 +11,7 @@ import (
 
 var (
 	getJoinTokenCmdOpts struct {
-		worker       bool
-		outputFormat string
+		worker bool
 	}
 	getJoinTokenCmdErrorMsgs = map[error]string{
 		apiv1.ErrTokenAlreadyCreated: "A token for this node was already created and the node did not join.",
@@ -52,7 +51,7 @@ func newGetJoinTokenCmd() *cobra.Command {
 			result := GetJoinTokenResult{
 				JoinToken: joinToken,
 			}
-			f, err := formatter.New(getJoinTokenCmdOpts.outputFormat, cmd.OutOrStdout())
+			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
 			if err != nil {
 				return fmt.Errorf("failed to create formatter: %w", err)
 			}
@@ -60,7 +59,6 @@ func newGetJoinTokenCmd() *cobra.Command {
 		},
 	}
 
-	getJoinTokenCmd.PersistentFlags().StringVarP(&getJoinTokenCmdOpts.outputFormat, "output-format", "o", "plain", "set the output format to one of plain, json or yaml")
 	getJoinTokenCmd.PersistentFlags().BoolVar(&getJoinTokenCmdOpts.worker, "worker", false, "generate a join token for a worker node")
 	return getJoinTokenCmd
 }

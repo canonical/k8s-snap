@@ -28,7 +28,13 @@ func newGetCmd() *cobra.Command {
 				return fmt.Errorf("failed to get cluster config: %w", err)
 			}
 
-			f, err := formatter.New("yaml", cmd.OutOrStdout())
+			// Use 'yaml' for 'plain' formatting.
+			// TODO: Consider table-based formatting for 'plain' format instead.
+			format := "yaml"
+			if rootCmdOpts.outputFormat == "json" {
+				format = "json"
+			}
+			f, err := formatter.New(format, cmd.OutOrStdout())
 			if err != nil {
 				return fmt.Errorf("failed to create formatter: %w", err)
 			}

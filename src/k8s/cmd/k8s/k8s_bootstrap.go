@@ -11,6 +11,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
+	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -29,6 +30,14 @@ var (
 	}
 	bootstrappableComponents = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
 )
+
+type BootstrapResult struct {
+	Node apiv1.NodeStatus `json:"node" yaml:"node"`
+}
+
+func (b BootstrapResult) String() string {
+	return fmt.Sprintf("Cluster services have started on %q.\nPlease allow some time for initial Kubernetes node registration.\n", b.Node.Name)
+}
 
 func newBootstrapCmd() *cobra.Command {
 	bootstrapCmd := &cobra.Command{
@@ -67,14 +76,19 @@ func newBootstrapCmd() *cobra.Command {
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), bootstrapCmdOpts.timeout)
 			defer cancel()
 
-			fmt.Println("Bootstrapping the cluster. This may take some time, please wait.")
-			cluster, err := k8sdClient.Bootstrap(timeoutCtx, bootstrapConfig)
+			fmt.Fprintln(cmd.ErrOrStderr(), "Bootstrapping the cluster. This may take some time, please wait.")
+			node, err := k8sdClient.Bootstrap(timeoutCtx, bootstrapConfig)
 			if err != nil {
 				return fmt.Errorf("failed to bootstrap cluster: %w", err)
 			}
 
-			fmt.Printf("Cluster services have started on %q.\nPlease allow some time for initial Kubernetes node registration.\n", cluster.Name)
-			return nil
+			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
+			if err != nil {
+				return fmt.Errorf("failed to create formatter: %w", err)
+			}
+			return f.Print(BootstrapResult{
+				Node: node,
+			})
 		},
 	}
 

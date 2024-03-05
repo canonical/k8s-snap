@@ -13,9 +13,8 @@ import (
 
 var (
 	statusCmdOpts struct {
-		outputFormat string
-		timeout      time.Duration
-		waitReady    bool
+		timeout   time.Duration
+		waitReady bool
 	}
 )
 
@@ -52,14 +51,13 @@ func newStatusCmd() *cobra.Command {
 				return fmt.Errorf("failed to get cluster status: %w", err)
 			}
 
-			f, err := formatter.New(statusCmdOpts.outputFormat, cmd.OutOrStdout())
+			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
 			if err != nil {
 				return fmt.Errorf("failed to create formatter: %w", err)
 			}
 			return f.Print(clusterStatus)
 		},
 	}
-	statusCmd.PersistentFlags().StringVar(&statusCmdOpts.outputFormat, "format", "plain", "specify in which format the output should be printed. One of plain, json or yaml")
 	statusCmd.PersistentFlags().DurationVar(&statusCmdOpts.timeout, "timeout", 90*time.Second, "the max time to wait for the K8s API server to be ready")
 	statusCmd.PersistentFlags().BoolVar(&statusCmdOpts.waitReady, "wait-ready", false, "wait until at least one cluster node is ready")
 	return statusCmd

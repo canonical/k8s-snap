@@ -10,9 +10,10 @@ import (
 
 var (
 	rootCmdOpts struct {
-		logDebug   bool
-		logVerbose bool
-		stateDir   string
+		logDebug     bool
+		logVerbose   bool
+		outputFormat string
+		stateDir     string
 	}
 	k8sdClient client.Client
 )
@@ -34,10 +35,10 @@ func NewRootCmd() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
-
 	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "directory with the dqlite datastore")
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "show all debug messages")
 	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "show all information messages")
+	rootCmd.PersistentFlags().StringVarP(&rootCmdOpts.outputFormat, "output-format", "o", "plain", "set the output format to one of plain, json or yaml")
 
 	// By default, the state dir is set to a fixed directory in the snap.
 	// This shouldn't be overwritten by the user.

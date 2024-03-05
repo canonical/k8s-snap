@@ -9,6 +9,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	v1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
+	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
@@ -28,6 +29,14 @@ var (
 			"joining node or assign another name with the `--name` flag",
 	}
 )
+
+type JoinClusterResult struct {
+	Name string `json:"name" yaml:"name"`
+}
+
+func (b JoinClusterResult) String() string {
+	return fmt.Sprintf("Cluster services have started on %q.\nPlease allow some time for initial Kubernetes node registration.\n", b.Name)
+}
 
 func newJoinClusterCmd() *cobra.Command {
 	joinNodeCmd := &cobra.Command{
@@ -73,13 +82,18 @@ func newJoinClusterCmd() *cobra.Command {
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), joinClusterCmdOpts.timeout)
 			defer cancel()
 
-			fmt.Println("Joining the cluster. This may take some time, please wait.")
+			fmt.Fprintln(cmd.ErrOrStderr(), "Joining the cluster. This may take some time, please wait.")
 			if err := k8sdClient.JoinCluster(timeoutCtx, joinClusterCmdOpts.name, joinClusterCmdOpts.address, joinToken); err != nil {
 				return fmt.Errorf("failed to join cluster: %w", err)
 			}
 
-			fmt.Printf("Joined the cluster as %q.\nPlease allow some time for Kubernetes node registration.\n", joinClusterCmdOpts.name)
-			return nil
+			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
+			if err != nil {
+				return fmt.Errorf("failed to create formatter: %w", err)
+			}
+			return f.Print(JoinClusterResult{
+				Name: joinClusterCmdOpts.name,
+			})
 		},
 	}
 	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.name, "name", "", "the name of the joining node. defaults to hostname")

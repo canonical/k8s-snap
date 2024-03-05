@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/cmd/k8s/errors"
+	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/spf13/cobra"
 )
 
@@ -15,6 +16,14 @@ var (
 		timeout time.Duration
 	}
 )
+
+type RemoveNodeResult struct {
+	Name string `json:"name" yaml:"name"`
+}
+
+func (r RemoveNodeResult) String() string {
+	return fmt.Sprintf("Removed %s from cluster.\n", r.Name)
+}
 
 func newRemoveNodeCmd() *cobra.Command {
 	removeNodeCmd := &cobra.Command{
@@ -42,11 +51,18 @@ func newRemoveNodeCmd() *cobra.Command {
 
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), removeNodeCmdOpts.timeout)
 			defer cancel()
+
+			fmt.Fprintf(cmd.ErrOrStderr(), "Removing %q from the cluster. This may take some time, please wait.", name)
 			if err := k8sdClient.RemoveNode(timeoutCtx, name, removeNodeCmdOpts.force); err != nil {
 				return fmt.Errorf("failed to remove node from cluster: %w", err)
 			}
-			fmt.Printf("Removed %s from cluster.\n", name)
-			return nil
+			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
+			if err != nil {
+				return fmt.Errorf("failed to create formatter: %w", err)
+			}
+			return f.Print(RemoveNodeResult{
+				Name: name,
+			})
 		},
 	}
 	removeNodeCmd.Flags().BoolVar(&removeNodeCmdOpts.force, "force", false, "forcibly remove the cluster member")
