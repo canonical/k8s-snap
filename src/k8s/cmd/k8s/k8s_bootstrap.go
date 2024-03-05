@@ -24,7 +24,7 @@ var (
 	}
 
 	bootstrapCmdErrorMsgs = map[error]string{
-		apiv1.ErrUnknown:             "An unknown error occured while bootstrapping the cluster:\n",
+		apiv1.ErrUnknown:             "An unknown error occurred while bootstrapping the cluster:\n",
 		apiv1.ErrAlreadyBootstrapped: "K8s cluster already bootstrapped.",
 	}
 	bootstrappableComponents = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
@@ -80,7 +80,7 @@ func newBootstrapCmd() *cobra.Command {
 
 	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false, "Interactively configure the most important cluster options.")
 	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for k8s to bootstrap.")
-	bootstrapCmd.PersistentFlags().StringVar(&bootstrapCmdOpts.configFile, "config", "init.yaml", "Path to the YAML file containing your custom cluster bootstrap configuration.")
+	bootstrapCmd.PersistentFlags().StringVar(&bootstrapCmdOpts.configFile, "config", "", "Path to the YAML file containing your custom cluster bootstrap configuration.")
 	return bootstrapCmd
 }
 
