@@ -13,11 +13,13 @@ import (
 	"github.com/canonical/k8s/cmd/k8s/errors"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 var (
 	bootstrapCmdOpts struct {
 		interactive bool
+		configFile  string
 		timeout     time.Duration
 	}
 
@@ -41,23 +43,32 @@ func newBootstrapCmd() *cobra.Command {
 				return apiv1.ErrAlreadyBootstrapped
 			}
 
-			config := apiv1.BootstrapConfig{}
-			if bootstrapCmdOpts.interactive {
-				config = getConfigInteractively()
-			} else {
-				config.SetDefaults()
+			bootstrapConfig := apiv1.BootstrapConfig{}
+			if bootstrapCmdOpts.interactive && bootstrapCmdOpts.configFile != "" {
+				return fmt.Errorf("failed to bootstrap cluster: cannot use both --interactive and --config flags at the same time")
 			}
+
+			if bootstrapCmdOpts.interactive {
+				bootstrapConfig = getConfigInteractively()
+			} else if bootstrapCmdOpts.configFile != "" {
+				bootstrapConfig, err = getConfigFromYaml(bootstrapCmdOpts.configFile)
+				if err != nil {
+					return fmt.Errorf("failed to bootstrap cluster: %w", err)
+				}
+			} else {
+				bootstrapConfig.SetDefaults()
+			}
+
 			const minTimeout = 3 * time.Second
 			if bootstrapCmdOpts.timeout < minTimeout {
 				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", bootstrapCmdOpts.timeout, minTimeout, minTimeout)
 				bootstrapCmdOpts.timeout = minTimeout
 			}
-
 			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), bootstrapCmdOpts.timeout)
 			defer cancel()
 
 			fmt.Println("Bootstrapping the cluster. This may take some time, please wait.")
-			cluster, err := k8sdClient.Bootstrap(timeoutCtx, config)
+			cluster, err := k8sdClient.Bootstrap(timeoutCtx, bootstrapConfig)
 			if err != nil {
 				return fmt.Errorf("failed to bootstrap cluster: %w", err)
 			}
@@ -69,8 +80,26 @@ func newBootstrapCmd() *cobra.Command {
 
 	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false, "interactively configure the most important cluster options")
 	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "the max time to wait for k8s to bootstrap")
+	bootstrapCmd.PersistentFlags().StringVar(&bootstrapCmdOpts.configFile, "config", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
 
 	return bootstrapCmd
+}
+
+func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
+	config := apiv1.BootstrapConfig{}
+	config.SetDefaults()
+
+	yamlContent, err := os.ReadFile(filePath)
+	if err != nil {
+		return config, fmt.Errorf("failed to read YAML config file: %w", err)
+	}
+
+	err = yaml.Unmarshal(yamlContent, &config)
+	if err != nil {
+		return config, fmt.Errorf("failed to parse YAML config file: %w", err)
+	}
+
+	return config, nil
 }
 
 func getConfigInteractively() apiv1.BootstrapConfig {
