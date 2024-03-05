@@ -83,7 +83,6 @@ func TestValidateCIDR(t *testing.T) {
 			})
 		}
 	})
-	}
 }
 
 func TestUnsetRBAC(t *testing.T) {
