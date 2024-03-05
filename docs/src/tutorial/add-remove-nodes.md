@@ -100,7 +100,7 @@ It is important to clean-up your nodes before tearing down the VMs.
 Keep in mind the consequences of removing nodes:
 
 ```{warning} Do not remove the leader node. 
-If you have less than 3 nodes you will lose availability of your cluster.
+If you have less than 3 nodes and you remove any node you will lose availability of your cluster.
 ```
 
 To tear down the entire cluster, execute:
