@@ -1,14 +1,13 @@
 # Install Canonical Kubernetes from a charm
 
-Canonical Kubernetes is packaged as a [charm], available from the 
-snap store for all supported platforms.
+Canonical Kubernetes is packaged as a [charm], available from charmhub for all supported platforms.
 
 ## What you'll need
 
 This guide assumes the following:
 
 - The rest of this page assumes you already have Juju installed and have added [credentials] for a cloud and bootstrapped a controller.
-- If you still need to do this, please take a look at the quickstart instructions, or, for custom clouds (OpenStack, MAAS), please consult the Juju documentation.
+- If you still need to do this, please take a look at the quickstart instructions, or, for custom clouds (OpenStack, MAAS), please consult the [Juju documentation][juju].
 
 ```{note}
 If you cannot meet these requirements, please see the [Installing] page for alternative options.
@@ -16,19 +15,19 @@ If you cannot meet these requirements, please see the [Installing] page for alte
 
 ## Check available channels (optional)
 
-It is a good idea to check the available channels before installing the snap. Run the command:
+It is a good idea to check the available channels before installing the charm. Run the command:
 
 ```bash
 juju info k8s
 juju info k8s-worker
 ```
 
-...which will output a list of currently available channels. See the [channels
-page] for an explanation of the different types of channel.
+...which will output a list of currently available channels. See the [channels page][channels] for an
+explanation of the different types of channel.
 
 ## Deploying the charm
 
-The charm can be installed with the juju command:
+The charm can be installed with the `juju` command:
 
 ```bash
 juju deploy k8s --channel=latest/edge
@@ -47,9 +46,9 @@ watch it progress using juju status
 juju status --watch 1s
 ```
 
-This command will output a message confirming the snap is install and the
+This command will output a message confirming the charm is deployed and the
 cluster is bootstrapped. It is recommended to ensure that the cluster initialises 
-properly and is running with no issues. Run the command:
+properly and is running with no issues.
 
 Once the unit is active/idle, You'll know the cluster is installed.
 
@@ -68,9 +67,9 @@ Use `juju status` to watch these units approach active/idle
 
 ## Adding Workers
 
-In many cases, one would wish for kubernetes worker only units in their cluster. 
+In many cases, it is desirable to have additional 'worker only' units in the cluster. 
 Rather than adding more control-plane units, we'll deploy the `k8s-worker` charm.
-After deploying them, integrate them with the control-plane units so they join 
+After deployment, integrate theese new nodes with control-plane units so they join 
 the cluster.
 
 ```bash
@@ -82,6 +81,7 @@ Use `juju status` to watch these units approach the active/idle state.
 
 <!-- LINKS -->
 
-[Installing]: ./index
-[channels page]: ../../explanation/channels
+[Installing]:    ./index
+[channels]:      ../../explanation/channels
 [credentials]:   https://juju.is/docs/juju/credentials
+[juju]:          https://juju.is/docs/juju/install-juju
