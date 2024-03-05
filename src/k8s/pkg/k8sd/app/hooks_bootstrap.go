@@ -21,6 +21,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/microcluster/state"
@@ -165,19 +166,26 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	if nodeIP == nil {
 		return fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
 	}
-	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
-		Hostname:          s.Name(),
-		IPSANs:            []net.IP{nodeIP},
-		Years:             10,
-		AllowSelfSignedCA: true,
-	})
 
 	// Create directories
 	if err := setup.EnsureAllDirectories(snap); err != nil {
 		return fmt.Errorf("failed to create directories: %w", err)
 	}
 
+	// cfg.Network.ServiceCIDR may be "IPv4CIDR[,IPv6CIDR]". get the first ip from CIDR(s).
+	serviceIPs, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(cfg.Network.ServiceCIDR)
+	if err != nil {
+		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.ServiceCIDR, err)
+	}
+
 	// Certificates
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
+		Hostname:          s.Name(),
+		IPSANs:            append([]net.IP{nodeIP}, serviceIPs...),
+		Years:             10,
+		AllowSelfSignedCA: true,
+	})
+
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
 	}

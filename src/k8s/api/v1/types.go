@@ -13,6 +13,8 @@ type BootstrapConfig struct {
 	Components []string `yaml:"components"`
 	// ClusterCIDR is the CIDR of the cluster.
 	ClusterCIDR string `yaml:"cluster-cidr"`
+	// ServiceCIDR is the CIDR of the cluster services.
+	ServiceCIDR string `yaml:"service-cidr"`
 	// EnableRBAC determines if RBAC will be enabled; *bool to know true/false/unset.
 	EnableRBAC    *bool `yaml:"enable-rbac"`
 	K8sDqlitePort int   `yaml:"k8s-dqlite-port"`
@@ -22,6 +24,7 @@ type BootstrapConfig struct {
 func (b *BootstrapConfig) SetDefaults() {
 	b.Components = []string{"dns", "metrics-server", "network"}
 	b.ClusterCIDR = "10.1.0.0/16"
+	b.ServiceCIDR = "10.152.183.0/24"
 	b.EnableRBAC = vals.Pointer(true)
 	b.K8sDqlitePort = 9000
 }
