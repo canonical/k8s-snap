@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -33,7 +34,7 @@ k8s-dqlite-port: 12379`,
 		expectedConfig: apiv1.BootstrapConfig{
 			Components:    []string{"network", "dns", "gateway", "ingress", "storage", "metrics-server"},
 			ClusterCIDR:   "10.244.0.0/16",
-			EnableRBAC:    &[]bool{true}[0],
+			EnableRBAC:    vals.Pointer(true),
 			K8sDqlitePort: 12379,
 		},
 	},
@@ -46,7 +47,7 @@ bananas: 5`,
 		expectedConfig: apiv1.BootstrapConfig{
 			Components:    []string{"dns", "metrics-server", "network"},
 			ClusterCIDR:   "10.244.0.0/16",
-			EnableRBAC:    &[]bool{true}[0],
+			EnableRBAC:    vals.Pointer(true),
 			K8sDqlitePort: 9000,
 		},
 	},
