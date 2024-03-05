@@ -1,7 +1,6 @@
 package k8s
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -20,15 +19,18 @@ func newGetCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 
-			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), statusCmdOpts.timeout)
-			defer cancel()
-
-			clusterConfig, err := k8sdClient.GetClusterConfig(timeoutCtx, api.GetClusterConfigRequest{})
+			clusterConfig, err := k8sdClient.GetClusterConfig(cmd.Context(), api.GetClusterConfigRequest{})
 			if err != nil {
 				return fmt.Errorf("failed to get cluster config: %w", err)
 			}
 
-			f, err := formatter.New("yaml", cmd.OutOrStdout())
+			// Use 'yaml' for 'plain' formatting.
+			// TODO: Consider table-based formatting for 'plain' format instead.
+			format := "yaml"
+			if rootCmdOpts.outputFormat == "json" {
+				format = "json"
+			}
+			f, err := formatter.New(format, cmd.OutOrStdout())
 			if err != nil {
 				return fmt.Errorf("failed to create formatter: %w", err)
 			}

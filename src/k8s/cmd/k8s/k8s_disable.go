@@ -7,9 +7,18 @@ import (
 
 	api "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
+	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/spf13/cobra"
 )
+
+type DisableResult struct {
+	Functionality string `json:"functionality" yaml:"functionality"`
+}
+
+func (d DisableResult) String() string {
+	return fmt.Sprintf("%s disabled.\n", d.Functionality)
+}
 
 func newDisableCmd() *cobra.Command {
 	disableCmd := &cobra.Command{
@@ -68,13 +77,18 @@ func newDisableCmd() *cobra.Command {
 				Config: config,
 			}
 
-			fmt.Printf("Disabling %s. This may take some time, please wait.\n", functionality)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Disabling %s. This may take some time, please wait.\n", functionality)
 			if err := k8sdClient.UpdateClusterConfig(cmd.Context(), request); err != nil {
 				return fmt.Errorf("failed to update cluster configuration: %w", err)
 			}
-			fmt.Printf("%s disabled.\n", functionality)
 
-			return nil
+			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
+			if err != nil {
+				return fmt.Errorf("failed to create formatter: %w", err)
+			}
+			return f.Print(DisableResult{
+				Functionality: functionality,
+			})
 		},
 	}
 

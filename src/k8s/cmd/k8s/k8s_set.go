@@ -6,11 +6,20 @@ import (
 	"strings"
 	"unicode"
 
-	api "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
+	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/spf13/cobra"
 )
+
+type SetResult struct {
+	ClusterConfig apiv1.UserFacingClusterConfig `json:"cluster-config" yaml:"cluster-config"`
+}
+
+func (s SetResult) String() string {
+	return "Configuration updated."
+}
 
 func newSetCmd() *cobra.Command {
 	setCmd := &cobra.Command{
@@ -22,7 +31,7 @@ func newSetCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
 
-			config := api.UserFacingClusterConfig{}
+			config := apiv1.UserFacingClusterConfig{}
 
 			for _, arg := range args {
 				parts := strings.SplitN(arg, "=", 2)
@@ -35,7 +44,7 @@ func newSetCmd() *cobra.Command {
 				switch key {
 				case "network.enabled":
 					if config.Network == nil {
-						config.Network = &api.NetworkConfig{}
+						config.Network = &apiv1.NetworkConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -44,7 +53,7 @@ func newSetCmd() *cobra.Command {
 					config.Network.Enabled = &v
 				case "dns.enabled":
 					if config.DNS == nil {
-						config.DNS = &api.DNSConfig{}
+						config.DNS = &apiv1.DNSConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -53,22 +62,22 @@ func newSetCmd() *cobra.Command {
 					config.DNS.Enabled = &v
 				case "dns.upstream-nameservers":
 					if config.DNS == nil {
-						config.DNS = &api.DNSConfig{}
+						config.DNS = &apiv1.DNSConfig{}
 					}
 					config.DNS.UpstreamNameservers = strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' })
 				case "dns.cluster-domain":
 					if config.DNS == nil {
-						config.DNS = &api.DNSConfig{}
+						config.DNS = &apiv1.DNSConfig{}
 					}
 					config.DNS.ClusterDomain = value
 				case "dns.service-ip":
 					if config.DNS == nil {
-						config.DNS = &api.DNSConfig{}
+						config.DNS = &apiv1.DNSConfig{}
 					}
 					config.DNS.ServiceIP = value
 				case "gateway.enabled":
 					if config.Gateway == nil {
-						config.Gateway = &api.GatewayConfig{}
+						config.Gateway = &apiv1.GatewayConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -77,7 +86,7 @@ func newSetCmd() *cobra.Command {
 					config.Gateway.Enabled = &v
 				case "ingress.enabled":
 					if config.Ingress == nil {
-						config.Ingress = &api.IngressConfig{}
+						config.Ingress = &apiv1.IngressConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -86,12 +95,12 @@ func newSetCmd() *cobra.Command {
 					config.Ingress.Enabled = &v
 				case "ingress.default-tls-secret":
 					if config.Ingress == nil {
-						config.Ingress = &api.IngressConfig{}
+						config.Ingress = &apiv1.IngressConfig{}
 					}
 					config.Ingress.DefaultTLSSecret = value
 				case "ingress.enable-proxy-protocol":
 					if config.Ingress == nil {
-						config.Ingress = &api.IngressConfig{}
+						config.Ingress = &apiv1.IngressConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -100,7 +109,7 @@ func newSetCmd() *cobra.Command {
 					config.Ingress.EnableProxyProtocol = &v
 				case "local-storage.enabled":
 					if config.LocalStorage == nil {
-						config.LocalStorage = &api.LocalStorageConfig{}
+						config.LocalStorage = &apiv1.LocalStorageConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -109,17 +118,17 @@ func newSetCmd() *cobra.Command {
 					config.LocalStorage.Enabled = &v
 				case "local-storage.local-path":
 					if config.LocalStorage == nil {
-						config.LocalStorage = &api.LocalStorageConfig{}
+						config.LocalStorage = &apiv1.LocalStorageConfig{}
 					}
 					config.LocalStorage.LocalPath = value
 				case "local-storage.reclaim-policy":
 					if config.LocalStorage == nil {
-						config.LocalStorage = &api.LocalStorageConfig{}
+						config.LocalStorage = &apiv1.LocalStorageConfig{}
 					}
 					config.LocalStorage.ReclaimPolicy = value
 				case "local-storage.set-default":
 					if config.LocalStorage == nil {
-						config.LocalStorage = &api.LocalStorageConfig{}
+						config.LocalStorage = &apiv1.LocalStorageConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -128,7 +137,7 @@ func newSetCmd() *cobra.Command {
 					config.LocalStorage.SetDefault = &v
 				case "load-balancer.enabled":
 					if config.LoadBalancer == nil {
-						config.LoadBalancer = &api.LoadBalancerConfig{}
+						config.LoadBalancer = &apiv1.LoadBalancerConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -137,12 +146,12 @@ func newSetCmd() *cobra.Command {
 					config.LoadBalancer.Enabled = &v
 				case "load-balancer.cidrs":
 					if config.LoadBalancer == nil {
-						config.LoadBalancer = &api.LoadBalancerConfig{}
+						config.LoadBalancer = &apiv1.LoadBalancerConfig{}
 					}
 					config.LoadBalancer.CIDRs = strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' })
 				case "load-balancer.l2-mode":
 					if config.LoadBalancer == nil {
-						config.LoadBalancer = &api.LoadBalancerConfig{}
+						config.LoadBalancer = &apiv1.LoadBalancerConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -151,12 +160,12 @@ func newSetCmd() *cobra.Command {
 					config.LoadBalancer.L2Enabled = &v
 				case "load-balancer.l2-interfaces":
 					if config.LoadBalancer == nil {
-						config.LoadBalancer = &api.LoadBalancerConfig{}
+						config.LoadBalancer = &apiv1.LoadBalancerConfig{}
 					}
 					config.LoadBalancer.L2Interfaces = strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' })
 				case "load-balancer.bgp-mode":
 					if config.LoadBalancer == nil {
-						config.LoadBalancer = &api.LoadBalancerConfig{}
+						config.LoadBalancer = &apiv1.LoadBalancerConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -165,7 +174,7 @@ func newSetCmd() *cobra.Command {
 					config.LoadBalancer.BGPEnabled = &v
 				case "load-balancer.bgp-local-asn":
 					if config.LoadBalancer == nil {
-						config.LoadBalancer = &api.LoadBalancerConfig{}
+						config.LoadBalancer = &apiv1.LoadBalancerConfig{}
 					}
 					v, err := strconv.Atoi(value)
 					if err != nil {
@@ -174,12 +183,12 @@ func newSetCmd() *cobra.Command {
 					config.LoadBalancer.BGPLocalASN = v
 				case "load-balancer.bgp-peer-address":
 					if config.LoadBalancer == nil {
-						config.LoadBalancer = &api.LoadBalancerConfig{}
+						config.LoadBalancer = &apiv1.LoadBalancerConfig{}
 					}
 					config.LoadBalancer.BGPPeerAddress = value
 				case "load-balancer.bgp-peer-port":
 					if config.LoadBalancer == nil {
-						config.LoadBalancer = &api.LoadBalancerConfig{}
+						config.LoadBalancer = &apiv1.LoadBalancerConfig{}
 					}
 					v, err := strconv.Atoi(value)
 					if err != nil {
@@ -188,7 +197,7 @@ func newSetCmd() *cobra.Command {
 					config.LoadBalancer.BGPPeerPort = v
 				case "load-balancer.bgp-peer-asn":
 					if config.LoadBalancer == nil {
-						config.LoadBalancer = &api.LoadBalancerConfig{}
+						config.LoadBalancer = &apiv1.LoadBalancerConfig{}
 					}
 					v, err := strconv.Atoi(value)
 					if err != nil {
@@ -197,7 +206,7 @@ func newSetCmd() *cobra.Command {
 					config.LoadBalancer.BGPPeerASN = v
 				case "metrics-server.enabled":
 					if config.MetricsServer == nil {
-						config.MetricsServer = &api.MetricsServerConfig{}
+						config.MetricsServer = &apiv1.MetricsServerConfig{}
 					}
 					v, err := strconv.ParseBool(value)
 					if err != nil {
@@ -210,41 +219,47 @@ func newSetCmd() *cobra.Command {
 			}
 
 			// Fetching current config to check where an already enabled functionality is updated.
-			currentConfig, err := k8sdClient.GetClusterConfig(cmd.Context(), api.GetClusterConfigRequest{})
+			currentConfig, err := k8sdClient.GetClusterConfig(cmd.Context(), apiv1.GetClusterConfigRequest{})
 			if err != nil {
 				return fmt.Errorf("failed to get current cluster config: %w", err)
 			}
 
 			if vals.OptionalBool(currentConfig.Network.Enabled, false) && config.Network != nil && config.Network.Enabled == nil {
-				fmt.Println("Reapplying configuration for network")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Reapplying configuration for network")
 			}
 			if vals.OptionalBool(currentConfig.DNS.Enabled, false) && config.DNS != nil && config.DNS.Enabled == nil {
-				fmt.Println("Reapplying configuration for dns")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Reapplying configuration for dns")
 			}
 			if vals.OptionalBool(currentConfig.Gateway.Enabled, false) && config.Gateway != nil && config.Gateway.Enabled == nil {
-				fmt.Println("Reapplying configuration for gateway")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Reapplying configuration for gateway")
 			}
 			if vals.OptionalBool(currentConfig.Ingress.Enabled, false) && config.Ingress != nil && config.Ingress.Enabled == nil {
-				fmt.Println("Reapplying configuration for ingress")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Reapplying configuration for ingress")
 			}
 			if vals.OptionalBool(currentConfig.LocalStorage.Enabled, false) && config.LocalStorage != nil && config.LocalStorage.Enabled == nil {
-				fmt.Println("Reapplying configuration for local-storage")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Reapplying configuration for local-storage")
 			}
 			if vals.OptionalBool(currentConfig.LoadBalancer.Enabled, false) && config.LoadBalancer != nil && config.LoadBalancer.Enabled == nil {
-				fmt.Println("Reapplying configuration for load-balancer")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Reapplying configuration for load-balancer")
 			}
 			if vals.OptionalBool(currentConfig.MetricsServer.Enabled, false) && config.MetricsServer != nil && config.MetricsServer.Enabled == nil {
-				fmt.Println("Reapplying configuration for metrics-server")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Reapplying configuration for metrics-server")
 			}
 
-			request := api.UpdateClusterConfigRequest{
+			request := apiv1.UpdateClusterConfigRequest{
 				Config: config,
 			}
 
 			if err := k8sdClient.UpdateClusterConfig(cmd.Context(), request); err != nil {
 				return fmt.Errorf("failed to update cluster configuration: %w", err)
 			}
-			return nil
+			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
+			if err != nil {
+				return fmt.Errorf("failed to create formatter: %w", err)
+			}
+			return f.Print(SetResult{
+				ClusterConfig: config,
+			})
 		},
 	}
 

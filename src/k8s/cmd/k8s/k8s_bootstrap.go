@@ -2,15 +2,14 @@ package k8s
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"slices"
 	"strings"
-	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s/errors"
+	"github.com/canonical/k8s/cmd/k8s/formatter"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -20,7 +19,6 @@ var (
 	bootstrapCmdOpts struct {
 		interactive bool
 		configFile  string
-		timeout     time.Duration
 	}
 
 	bootstrapCmdErrorMsgs = map[error]string{
@@ -29,6 +27,14 @@ var (
 	}
 	bootstrappableComponents = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
 )
+
+type BootstrapResult struct {
+	Node apiv1.NodeStatus `json:"node" yaml:"node"`
+}
+
+func (b BootstrapResult) String() string {
+	return fmt.Sprintf("Cluster services have started on %q.\nPlease allow some time for initial Kubernetes node registration.\n", b.Node.Name)
+}
 
 func newBootstrapCmd() *cobra.Command {
 	bootstrapCmd := &cobra.Command{
@@ -59,27 +65,23 @@ func newBootstrapCmd() *cobra.Command {
 				bootstrapConfig.SetDefaults()
 			}
 
-			const minTimeout = 3 * time.Second
-			if bootstrapCmdOpts.timeout < minTimeout {
-				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", bootstrapCmdOpts.timeout, minTimeout, minTimeout)
-				bootstrapCmdOpts.timeout = minTimeout
-			}
-			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), bootstrapCmdOpts.timeout)
-			defer cancel()
-
-			fmt.Println("Bootstrapping the cluster. This may take some time, please wait.")
-			cluster, err := k8sdClient.Bootstrap(timeoutCtx, bootstrapConfig)
+			fmt.Fprintln(cmd.ErrOrStderr(), "Bootstrapping the cluster. This may take some time, please wait.")
+			node, err := k8sdClient.Bootstrap(cmd.Context(), bootstrapConfig)
 			if err != nil {
 				return fmt.Errorf("failed to bootstrap cluster: %w", err)
 			}
 
-			fmt.Printf("Cluster services have started on %q.\nPlease allow some time for initial Kubernetes node registration.\n", cluster.Name)
-			return nil
+			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
+			if err != nil {
+				return fmt.Errorf("failed to create formatter: %w", err)
+			}
+			return f.Print(BootstrapResult{
+				Node: node,
+			})
 		},
 	}
 
 	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false, "interactively configure the most important cluster options")
-	bootstrapCmd.PersistentFlags().DurationVar(&bootstrapCmdOpts.timeout, "timeout", 90*time.Second, "the max time to wait for k8s to bootstrap")
 	bootstrapCmd.PersistentFlags().StringVar(&bootstrapCmdOpts.configFile, "config", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
 
 	return bootstrapCmd
