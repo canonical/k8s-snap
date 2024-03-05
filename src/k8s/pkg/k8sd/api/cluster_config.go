@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -25,81 +24,77 @@ import (
 func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig) error {
 	// If load-balancer, ingress or gateway gets enabled=true,
 	// the request should fail if network.enabled is not true
-	if !vals.OptionalBool(oldConfig.Ingress.Enabled, false) && vals.OptionalBool(newConfig.Ingress.Enabled, false) {
-		if !vals.OptionalBool(newConfig.Network.Enabled, false) {
-			return errors.New("network should be enabled before ingress can be enabled")
+	if !vals.OptionalBool(newConfig.Network.Enabled, false) {
+		if !vals.OptionalBool(oldConfig.Ingress.Enabled, false) && vals.OptionalBool(newConfig.Ingress.Enabled, false) {
+			return fmt.Errorf("ingress requires network to be enabled")
 		}
-	}
 
-	if !vals.OptionalBool(oldConfig.Gateway.Enabled, false) && vals.OptionalBool(newConfig.Gateway.Enabled, false) {
-		if !vals.OptionalBool(newConfig.Network.Enabled, false) {
-			return errors.New("network should be enabled before gateway can be enabled")
+		if !vals.OptionalBool(oldConfig.Gateway.Enabled, false) && vals.OptionalBool(newConfig.Gateway.Enabled, false) {
+			return fmt.Errorf("gateway requires network to be enabled")
 		}
-	}
 
-	if !vals.OptionalBool(oldConfig.LoadBalancer.Enabled, false) && vals.OptionalBool(newConfig.LoadBalancer.Enabled, false) {
-		if !vals.OptionalBool(newConfig.Network.Enabled, false) {
-			return errors.New("network should be enabled before load-balancer can be enabled")
+		if !vals.OptionalBool(oldConfig.LoadBalancer.Enabled, false) && vals.OptionalBool(newConfig.LoadBalancer.Enabled, false) {
+			return fmt.Errorf("load-balancer requires network to be enabled")
 		}
 	}
 
 	// dns.service-ip should be in IP format and in service CIDR
 	if newConfig.Kubelet.ClusterDNS != "" && net.ParseIP(newConfig.Kubelet.ClusterDNS) == nil {
-		return errors.New("dns.service-ip needs to be in valid IP format")
+		return fmt.Errorf("dns.service-ip needs to be in valid IP format")
 	}
 
 	// dns.service-ip is not changable if already dns.enabled=true.
 	if vals.OptionalBool(newConfig.DNS.Enabled, false) && vals.OptionalBool(oldConfig.DNS.Enabled, false) {
 		if newConfig.Kubelet.ClusterDNS != oldConfig.Kubelet.ClusterDNS {
-			return errors.New("dns.service-ip can not be changed after dns is enabled")
+			return fmt.Errorf("dns.service-ip can not be changed after dns is enabled")
 		}
 	}
 
 	// load-balancer.bgp-enabled=true should fail if any of the bgp config is empty
 	if vals.OptionalBool(newConfig.LoadBalancer.BGPEnabled, false) {
 		if newConfig.LoadBalancer.BGPLocalASN == 0 {
-			return errors.New("load-balancer.bgp-local-asn needs to be set before load-balancer.bgp-mode can be enabled")
+			return fmt.Errorf("load-balancer.bgp-local-asn needs to be set before load-balancer.bgp-mode can be enabled")
 		}
 		if newConfig.LoadBalancer.BGPPeerAddress == "" {
-			return errors.New("load-balancer.bgp-peer-address needs to be set before load-balancer.bgp-mode can be enabled")
+			return fmt.Errorf("load-balancer.bgp-peer-address needs to be set before load-balancer.bgp-mode can be enabled")
 		}
 		if newConfig.LoadBalancer.BGPPeerPort == 0 {
-			return errors.New("load-balancer.bgp-peer-port needs to be set before load-balancer.bgp-mode can be enabled")
+			return fmt.Errorf("load-balancer.bgp-peer-port needs to be set before load-balancer.bgp-mode can be enabled")
 		}
 		if newConfig.LoadBalancer.BGPPeerASN == 0 {
-			return errors.New("load-balancer.bgp-peer-asn needs to be set before load-balancer.bgp-mode can be enabled")
+			return fmt.Errorf("load-balancer.bgp-peer-asn needs to be set before load-balancer.bgp-mode can be enabled")
 		}
 	}
 
 	// local-storage.local-path should not be changable if local-storage.enabled=true
 	if vals.OptionalBool(newConfig.LocalStorage.Enabled, false) && vals.OptionalBool(oldConfig.LocalStorage.Enabled, false) {
 		if newConfig.LocalStorage.LocalPath != oldConfig.LocalStorage.LocalPath {
-			return errors.New("local-storage.local-path can not be changed after local-storage is enabled")
+			return fmt.Errorf("local-storage.local-path can not be changed after local-storage is enabled")
 		}
 	}
 
 	// local-storage.reclaim-policy should be one of 3 values
 	if !slices.Contains([]string{"Retain", "Recycle", "Delete"}, newConfig.LocalStorage.ReclaimPolicy) {
-		return errors.New("local-storage.reclaim-policy should be one of: Retain, Recycle, Delete")
+		return fmt.Errorf("local-storage.reclaim-policy must be one of: Retain, Recycle, Delete")
 	}
 
 	// local-storage.reclaim-policy should not be changable if local-storage.enabled=true
 	if vals.OptionalBool(newConfig.LocalStorage.Enabled, false) && vals.OptionalBool(oldConfig.LocalStorage.Enabled, false) {
 		if newConfig.LocalStorage.ReclaimPolicy != oldConfig.LocalStorage.ReclaimPolicy {
-			return errors.New("local-storage.reclaim-policy can not be changed after local-storage is enabled")
+			return fmt.Errorf("local-storage.reclaim-policy can not be changed after local-storage is enabled")
 		}
 	}
 
 	// network.enabled=false should not work before  load-balancer, ingress and gateway is disabled
 	if vals.OptionalBool(oldConfig.Network.Enabled, false) && !vals.OptionalBool(newConfig.Network.Enabled, false) {
 		if vals.OptionalBool(newConfig.Ingress.Enabled, false) {
-			return errors.New("ingress should be disabled before network can be disabled")
+			return fmt.Errorf("ingress should be disabled before network can be disabled")
 		}
 		if vals.OptionalBool(newConfig.Gateway.Enabled, false) {
-			return errors.New("gateway should be disabled before network can be disabled")
+			return fmt.Errorf("gateway should be disabled before network can be disabled")
 		}
 		if vals.OptionalBool(newConfig.LoadBalancer.Enabled, false) {
-			return errors.New("load-balancer should be disabled before network can be disabled")
+			return fmt.Errorf("load-balancer should be disabled before network can be disabled")
 		}
 	}
 
