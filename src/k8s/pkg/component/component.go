@@ -56,10 +56,10 @@ func NewHelmClient(snap snap.Snap, initializer HelmConfigProvider) (*helmClient,
 }
 
 // Enable enables a specified component.
-func (h *helmClient) Enable(name string, values map[string]any) error {
-	component, ok := h.components[name]
+func (h *helmClient) Enable(componentName string, values map[string]any) error {
+	component, ok := h.components[componentName]
 	if !ok {
-		return fmt.Errorf("invalid component %s", name)
+		return fmt.Errorf("invalid component %s", componentName)
 	}
 
 	actionConfig, err := h.initializer.New(component.Namespace)
@@ -87,14 +87,14 @@ func (h *helmClient) Enable(name string, values map[string]any) error {
 
 	_, err = install.Run(chart, values)
 	if err != nil {
-		return fmt.Errorf("failed to enable component '%s': %w", name, err)
+		return fmt.Errorf("failed to enable component '%s': %w", componentName, err)
 	}
 
 	return nil
 }
 
 // isComponentEnabled checks if a component is enabled.
-func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
+func (h *helmClient) isComponentEnabled(releaseName, namespace string) (bool, error) {
 	actionConfig, err := h.initializer.New(namespace)
 	if err != nil {
 		return false, fmt.Errorf("failed to initialize Helm client configuration: %w", err)
@@ -107,7 +107,7 @@ func (h *helmClient) isComponentEnabled(name, namespace string) (bool, error) {
 	}
 
 	for _, release := range releases {
-		if release.Name == name && release.Namespace == namespace {
+		if release.Name == releaseName && release.Namespace == namespace {
 			return true, nil
 		}
 	}
@@ -155,10 +155,10 @@ func (h *helmClient) List() ([]Component, error) {
 }
 
 // Disable disables a specified component.
-func (h *helmClient) Disable(name string) error {
-	component, ok := h.components[name]
+func (h *helmClient) Disable(componentName string) error {
+	component, ok := h.components[componentName]
 	if !ok {
-		return fmt.Errorf("invalid component %s", name)
+		return fmt.Errorf("invalid component %s", componentName)
 	}
 
 	actionConfig, err := h.initializer.New(component.Namespace)
@@ -178,17 +178,17 @@ func (h *helmClient) Disable(name string) error {
 	uninstall := action.NewUninstall(actionConfig)
 	_, err = uninstall.Run(component.ReleaseName)
 	if err != nil {
-		return fmt.Errorf("failed to uninstall component '%s': %w", name, err)
+		return fmt.Errorf("failed to uninstall component '%s': %w", componentName, err)
 	}
 
 	return nil
 }
 
 // Refresh refreshes a specified component.
-func (h *helmClient) Refresh(name string, values map[string]any) error {
-	component, ok := h.components[name]
+func (h *helmClient) Refresh(componentName string, values map[string]any) error {
+	component, ok := h.components[componentName]
 	if !ok {
-		return fmt.Errorf("invalid component %s", name)
+		return fmt.Errorf("invalid component %s", componentName)
 	}
 
 	actionConfig, err := h.initializer.New(component.Namespace)
@@ -207,7 +207,7 @@ func (h *helmClient) Refresh(name string, values map[string]any) error {
 
 	_, err = upgrade.Run(component.ReleaseName, chart, values)
 	if err != nil {
-		return fmt.Errorf("failed to upgrade component '%s': %w", name, err)
+		return fmt.Errorf("failed to upgrade component '%s': %w", componentName, err)
 	}
 	return nil
 }

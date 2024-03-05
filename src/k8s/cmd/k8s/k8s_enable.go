@@ -18,8 +18,8 @@ var (
 func newEnableCmd() *cobra.Command {
 	enableCmd := &cobra.Command{
 		Use:     "enable <functionality>",
-		Short:   "Enable a specific functionality in the cluster",
-		Long:    fmt.Sprintf("Enable one of the specific functionalities: %s.", strings.Join(componentList, ", ")),
+		Short:   "Enable core cluster functionalities",
+		Long:    fmt.Sprintf("Enable one of %s.", strings.Join(componentList, ", ")),
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
@@ -35,7 +35,8 @@ func newEnableCmd() *cobra.Command {
 			}
 
 			config := api.UserFacingClusterConfig{}
-			switch args[0] {
+			functionality := args[0]
+			switch functionality {
 			case "network":
 				config.Network = &api.NetworkConfig{
 					Enabled: vals.Pointer(true),
@@ -70,9 +71,11 @@ func newEnableCmd() *cobra.Command {
 				Config: config,
 			}
 
+			fmt.Printf("Enabling %s. This may take some time, please wait.\n", functionality)
 			if err := k8sdClient.UpdateClusterConfig(cmd.Context(), request); err != nil {
 				return fmt.Errorf("failed to update cluster configuration: %w", err)
 			}
+			fmt.Printf("%s enabled.\n", functionality)
 
 			return nil
 		},

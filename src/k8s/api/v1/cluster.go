@@ -9,7 +9,9 @@ type GetClusterStatusResponse struct {
 }
 
 // GetKubeConfigRequest is used to ask for the admin kubeconfig
-type GetKubeConfigRequest struct{}
+type GetKubeConfigRequest struct {
+	Server string `json:"server"`
+}
 
 // GetKubeConfigResponse is the response for "GET 1.0/k8sd/cluster/config".
 type GetKubeConfigResponse struct {

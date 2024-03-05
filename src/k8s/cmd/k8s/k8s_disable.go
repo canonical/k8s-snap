@@ -14,8 +14,8 @@ import (
 func newDisableCmd() *cobra.Command {
 	disableCmd := &cobra.Command{
 		Use:     "disable <functionality>",
-		Short:   "Disable a specific functionality in the cluster",
-		Long:    fmt.Sprintf("Disable one of the specific functionalities: %s.", strings.Join(componentList, ",")),
+		Short:   "Disable core cluster functionalities",
+		Long:    fmt.Sprintf("Disable one of %s.", strings.Join(componentList, ",")),
 		PreRunE: chainPreRunHooks(hookSetupClient),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer errors.Transform(&err, nil)
@@ -31,8 +31,8 @@ func newDisableCmd() *cobra.Command {
 			}
 
 			config := api.UserFacingClusterConfig{}
-
-			switch args[0] {
+			functionality := args[0]
+			switch functionality {
 			case "network":
 				config.Network = &api.NetworkConfig{
 					Enabled: vals.Pointer(false),
@@ -68,9 +68,11 @@ func newDisableCmd() *cobra.Command {
 				Config: config,
 			}
 
+			fmt.Printf("Disabling %s. This may take some time, please wait.\n", functionality)
 			if err := k8sdClient.UpdateClusterConfig(cmd.Context(), request); err != nil {
 				return fmt.Errorf("failed to update cluster configuration: %w", err)
 			}
+			fmt.Printf("%s disabled.\n", functionality)
 
 			return nil
 		},
