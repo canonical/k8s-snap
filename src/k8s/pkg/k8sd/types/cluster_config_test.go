@@ -52,31 +52,37 @@ func TestValidateCIDR(t *testing.T) {
 	err := validConfig.Validate()
 	g.Expect(err).To(BeNil())
 
-	// Test invalid cidrs
-	for _, tc := range []struct {
-		cidr string
-	}{
-		{cidr: "bananas"},
-		{cidr: "fd01::/64,fd02::/64,fd03::/64"},
-	} {
-		t.Run(tc.cidr, func(t *testing.T) {
-			g := NewWithT(t)
-			badPodCIDR := types.ClusterConfig{
-				Network: types.Network{
-					PodCIDR: tc.cidr,
-				},
-			}
-			err := badPodCIDR.Validate()
-			g.Expect(err).ToNot(BeNil())
-
-			badSvcCIDR := types.ClusterConfig{
-				Network: types.Network{
-					ServiceCIDR: tc.cidr,
-				},
-			}
-			err = badSvcCIDR.Validate()
-			g.Expect(err).ToNot(BeNil())
-		})
+	t.Run("InvalidCIDR", func(t *testing.T) {
+		for _, tc := range []struct {
+			cidr string
+		}{
+			{cidr: "bananas"},
+			{cidr: "fd01::/64,fd02::/64,fd03::/64"},
+		} {
+			t.Run(tc.cidr, func(t *testing.T) {
+				t.Run("Pod", func(t *testing.T) {
+					g := NewWithT(t)
+					config := types.ClusterConfig{
+						Network: types.Network{
+							PodCIDR: tc.cidr,
+						},
+					}
+					err := config.Validate()
+					g.Expect(err).ToNot(BeNil())
+				})
+				t.Run("Service", func(t *testing.T) {
+					g := NewWithT(t)
+					config := types.ClusterConfig{
+						Network: types.Network{
+							ServiceCIDR: tc.cidr,
+						},
+					}
+					err := config.Validate()
+					g.Expect(err).ToNot(BeNil())
+				})
+			})
+		}
+	})
 	}
 }
 
