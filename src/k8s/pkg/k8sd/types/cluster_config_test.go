@@ -49,15 +49,40 @@ func TestValidateCIDR(t *testing.T) {
 			ServiceCIDR: "10.152.183.0/16",
 		},
 	}
-
 	err := validConfig.Validate()
 	g.Expect(err).To(BeNil())
 
-	// Create a new BootstrapConfig with invalid CIDR
+	// Create a new BootstrapConfig with invalid PodCIDR
 	invalidConfig := types.ClusterConfig{
 		Network: types.Network{
-			PodCIDR:     "bananas",
-			ServiceCIDR: "are,delicous",
+			PodCIDR: "bananas",
+		},
+	}
+	err = invalidConfig.Validate()
+	g.Expect(err).ToNot(BeNil())
+
+	// Create a new BootstrapConfig with invalid length of PodCIDR
+	invalidConfig = types.ClusterConfig{
+		Network: types.Network{
+			PodCIDR: "10.152.181.0/16,10.152.182.0/16,10.152.183.0/16",
+		},
+	}
+	err = invalidConfig.Validate()
+	g.Expect(err).ToNot(BeNil())
+
+	// Create a new BootstrapConfig with invalid ServiceCIDR
+	invalidConfig = types.ClusterConfig{
+		Network: types.Network{
+			ServiceCIDR: "bananas",
+		},
+	}
+	err = invalidConfig.Validate()
+	g.Expect(err).ToNot(BeNil())
+
+	// Create a new BootstrapConfig with invalid length of ServiceCIDR
+	invalidConfig = types.ClusterConfig{
+		Network: types.Network{
+			ServiceCIDR: "10.152.181.0/16,10.152.182.0/16,10.152.183.0/16",
 		},
 	}
 	err = invalidConfig.Validate()

@@ -26,3 +26,41 @@ func TestGetFirstIP(t *testing.T) {
 		})
 	}
 }
+
+func TestGetKubernetesServiceIPsFromServiceCIDRs(t *testing.T) {
+	// Test valid subnet cidr strings
+	for _, tc := range []struct {
+		cidr string
+		ips  []string
+	}{
+		{cidr: "10.152.183.0/24", ips: []string{"10.152.183.1"}},
+		{cidr: "fd01::/64", ips: []string{"fd01::1"}},
+		{cidr: "10.152.183.0/24,fd01::/64", ips: []string{"10.152.183.1", "fd01::1"}},
+	} {
+		t.Run(tc.cidr, func(t *testing.T) {
+			g := NewWithT(t)
+			i, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(tc.cidr)
+			ips := make([]string, len(i))
+			for idx, v := range i {
+				ips[idx] = v.String()
+			}
+
+			g.Expect(err).To(BeNil())
+			g.Expect(ips).To(Equal(tc.ips))
+		})
+	}
+
+	// Test invalid cidr length
+	cidr := "fd01::/64,fd02::/64,fd03::/64"
+	_, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(cidr)
+
+	g := NewWithT(t)
+	g.Expect(err).ToNot(BeNil())
+
+	// Test invalid cidr
+	cidr = "bananas"
+	_, err = utils.GetKubernetesServiceIPsFromServiceCIDRs(cidr)
+
+	g = NewWithT(t)
+	g.Expect(err).ToNot(BeNil())
+}

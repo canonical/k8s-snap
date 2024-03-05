@@ -10,7 +10,6 @@ import (
 	"net"
 	"net/http"
 	"path"
-	"strings"
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -173,18 +172,16 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to create directories: %w", err)
 	}
 
-	// cfg.Network.ServiceCIDR may be "IPv4CIDR,IPv6CIDR".
-	// TODO: handle ip6 if we have an ip6 cidr
-	ip4ServiceCIDR := strings.Split(cfg.Network.ServiceCIDR, ",")[0]
-	ip4ServiceIP, err := utils.GetFirstIP(ip4ServiceCIDR)
+	// cfg.Network.ServiceCIDR may be "IPv4CIDR[,IPv6CIDR]". get the first ip from CIDR(s).
+	serviceIPs, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(cfg.Network.ServiceCIDR)
 	if err != nil {
-		return fmt.Errorf("failed to resolve IPv4 service address from service CIDR %q: %w", ip4ServiceCIDR, err)
+		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.ServiceCIDR, err)
 	}
 
 	// Certificates
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:          s.Name(),
-		IPSANs:            []net.IP{nodeIP, ip4ServiceIP},
+		IPSANs:            append([]net.IP{nodeIP}, serviceIPs...),
 		Years:             10,
 		AllowSelfSignedCA: true,
 	})
