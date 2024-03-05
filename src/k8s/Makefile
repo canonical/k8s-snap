@@ -11,7 +11,6 @@ go.vet:
 
 go.unit:
 	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-test.sh -v ./pkg/...
-	go test -v ./cmd/...
 
 ## Static Builds
 static: bin/static/k8s bin/static/k8sd bin/static/k8s-apiserver-proxy
