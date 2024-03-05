@@ -59,7 +59,7 @@ lxc exec k8s -- sudo snap install k8s --classic
 ```
 
 ## Access Canonical Kubernetes services within LXD
-Assuming you left the default bridged networking when you initially setup LXD,
+Assuming you left the [default bridged networking][default-bridged-networking] when you initially setup LXD,
 there is minimal effort required to access Canonical Kubernetes services inside
 the LXD container.
 
@@ -67,6 +67,12 @@ Simply note the `eth0` interface IP address from
 
 ```no-highlight
 lxc list k8s
+
++------+---------+----------------------+----------------------------------------------+-----------+-----------+
+| NAME |  STATE  |         IPV4         |                     IPV6                     |   TYPE    | SNAPSHOTS |
++------+---------+----------------------+----------------------------------------------+-----------+-----------+
+| k8s  | RUNNING | 10.122.174.30 (eth0) | fd42:80c6:c3e:445a:216:3eff:fe8d:add9 (eth0) | CONTAINER | 0         |
++------+---------+----------------------+----------------------------------------------+-----------+-----------+
 ```
 
 and use this to access services running inside the container.
@@ -111,7 +117,7 @@ NAME                                  DESIRED   CURRENT   READY   AGE
 replicaset.apps/microbot-6d97548556   1         1         1       21m
 ```
 
-As we can see, Microbot is running. Let’s expose it to the LXD container.
+Now that Microbot is up and running, let's make it accessible to the LXD container by using the `expose` command.
 
 ```no-highlight
 lxc exec k8s -- sudo k8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
@@ -130,7 +136,7 @@ With this, we can access Microbot from our host but using the container’s
 address that we noted earlier.
 
 ```no-highlight
-curl 10.245.108.37:32750
+curl 10.122.174.30:32750
 ```
 
 ## Stop/Remove the container
@@ -155,7 +161,7 @@ needed to start the container when the host boots.
 **linux.kernel_modules**: Comma separated list of kernel modules to load before
 starting the container
 
-**lxc.apparmor.profile=unconfined**: Disable AppArmor. Allow the container to
+**lxc.apparmor.profile=unconfined**: Disable [AppArmor]. Allow the container to
 talk to a bunch of subsystems of the host (e.g. `/sys`). By default AppArmor
 will block nested hosting of containers, however Kubernetes needs to host
 Containers. Containers need to be confined based on their profiles thus we rely
@@ -193,4 +199,6 @@ need to access for example storage devices (See comment in [6]).
 <!-- LINKS -->
 
 [LXD]: https://canonical.com/lxd
+[default-bridged-networking]: https://ubuntu.com/blog/lxd-networking-lxdbr0-explained
 [Microbot]: https://github.com/dontrebootme/docker-microbot
+[AppArmor]: https://apparmor.net/
