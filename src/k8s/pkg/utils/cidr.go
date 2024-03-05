@@ -31,7 +31,7 @@ func GetKubernetesServiceIPsFromServiceCIDRs(serviceCIDR string) ([]net.IP, erro
 	for _, cidr := range cidrs {
 		ip, err := GetFirstIP(cidr)
 		if err != nil {
-			return nil, fmt.Errorf("could not get IP from CIDR: %v", cidr)
+			return nil, fmt.Errorf("could not get IP from CIDR %q: %w", cidr, err)
 		}
 		firstIPs = append(firstIPs, ip)
 	}
