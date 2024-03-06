@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"slices"
 
 	api "github.com/canonical/k8s/api/v1"
 
@@ -40,7 +39,7 @@ func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig
 
 	// dns.service-ip should be in IP format and in service CIDR
 	if newConfig.Kubelet.ClusterDNS != "" && net.ParseIP(newConfig.Kubelet.ClusterDNS) == nil {
-		return fmt.Errorf("dns.service-ip needs to be in valid IP format")
+		return fmt.Errorf("dns.service-ip must be in valid IP format")
 	}
 
 	// dns.service-ip is not changable if already dns.enabled=true.
@@ -53,16 +52,16 @@ func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig
 	// load-balancer.bgp-enabled=true should fail if any of the bgp config is empty
 	if vals.OptionalBool(newConfig.LoadBalancer.BGPEnabled, false) {
 		if newConfig.LoadBalancer.BGPLocalASN == 0 {
-			return fmt.Errorf("load-balancer.bgp-local-asn needs to be set before load-balancer.bgp-mode can be enabled")
+			return fmt.Errorf("load-balancer.bgp-local-asn must be set when load-balancer.bgp-mode is enabled")
 		}
 		if newConfig.LoadBalancer.BGPPeerAddress == "" {
-			return fmt.Errorf("load-balancer.bgp-peer-address needs to be set before load-balancer.bgp-mode can be enabled")
+			return fmt.Errorf("load-balancer.bgp-peer-address must be set when load-balancer.bgp-mode is enabled")
 		}
 		if newConfig.LoadBalancer.BGPPeerPort == 0 {
-			return fmt.Errorf("load-balancer.bgp-peer-port needs to be set before load-balancer.bgp-mode can be enabled")
+			return fmt.Errorf("load-balancer.bgp-peer-port must be set when load-balancer.bgp-mode is enabled")
 		}
 		if newConfig.LoadBalancer.BGPPeerASN == 0 {
-			return fmt.Errorf("load-balancer.bgp-peer-asn needs to be set before load-balancer.bgp-mode can be enabled")
+			return fmt.Errorf("load-balancer.bgp-peer-asn must be set when load-balancer.bgp-mode is enabled")
 		}
 	}
 
@@ -74,7 +73,9 @@ func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig
 	}
 
 	// local-storage.reclaim-policy should be one of 3 values
-	if !slices.Contains([]string{"Retain", "Recycle", "Delete"}, newConfig.LocalStorage.ReclaimPolicy) {
+	switch newConfig.LocalStorage.ReclaimPolicy {
+	case "Retain", "Recycle", "Delete":
+	default:
 		return fmt.Errorf("local-storage.reclaim-policy must be one of: Retain, Recycle, Delete")
 	}
 
@@ -88,13 +89,13 @@ func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig
 	// network.enabled=false should not work before  load-balancer, ingress and gateway is disabled
 	if vals.OptionalBool(oldConfig.Network.Enabled, false) && !vals.OptionalBool(newConfig.Network.Enabled, false) {
 		if vals.OptionalBool(newConfig.Ingress.Enabled, false) {
-			return fmt.Errorf("ingress should be disabled before network can be disabled")
+			return fmt.Errorf("ingress must be disabled before network can be disabled")
 		}
 		if vals.OptionalBool(newConfig.Gateway.Enabled, false) {
-			return fmt.Errorf("gateway should be disabled before network can be disabled")
+			return fmt.Errorf("gateway must be disabled before network can be disabled")
 		}
 		if vals.OptionalBool(newConfig.LoadBalancer.Enabled, false) {
-			return fmt.Errorf("load-balancer should be disabled before network can be disabled")
+			return fmt.Errorf("load-balancer must be disabled before network can be disabled")
 		}
 	}
 
