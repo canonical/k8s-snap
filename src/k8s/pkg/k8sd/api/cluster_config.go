@@ -86,7 +86,7 @@ func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig
 		}
 	}
 
-	// network.enabled=false should not work before  load-balancer, ingress and gateway is disabled
+	// network.enabled=false should not work before load-balancer, ingress and gateway is disabled
 	if vals.OptionalBool(oldConfig.Network.Enabled, false) && !vals.OptionalBool(newConfig.Network.Enabled, false) {
 		if vals.OptionalBool(newConfig.Ingress.Enabled, false) {
 			return fmt.Errorf("ingress must be disabled before network can be disabled")
