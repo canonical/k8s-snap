@@ -15,26 +15,16 @@ import (
 
 var apiserverTLSCipherSuites = "TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_3DES_EDE_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384"
 
-func testApiServerFixture(t *testing.T) (s *mock.Snap, dir string) {
-	g := NewWithT(t)
-
-	dir = t.TempDir()
-
-	s = &mock.Snap{
-		Mock: mock.Mock{
-			UID:                   os.Getuid(),
-			GID:                   os.Getgid(),
-			KubernetesConfigDir:   path.Join(dir, "kubernetes"),
-			KubernetesPKIDir:      path.Join(dir, "kubernetes-pki"),
-			ServiceArgumentsDir:   path.Join(dir, "args"),
-			ServiceExtraConfigDir: path.Join(dir, "args/conf.d"),
-			K8sDqliteStateDir:     path.Join(dir, "k8s-dqlite"),
-		},
+func mustReturnMockForKubeAPIServer(s *mock.Snap, dir string) {
+	s.Mock = mock.Mock{
+		UID:                   os.Getuid(),
+		GID:                   os.Getgid(),
+		KubernetesConfigDir:   path.Join(dir, "kubernetes"),
+		KubernetesPKIDir:      path.Join(dir, "kubernetes-pki"),
+		ServiceArgumentsDir:   path.Join(dir, "args"),
+		ServiceExtraConfigDir: path.Join(dir, "args/conf.d"),
+		K8sDqliteStateDir:     path.Join(dir, "k8s-dqlite"),
 	}
-
-	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
-
-	return
 }
 
 func TestKubeAPIServer(t *testing.T) {
@@ -42,7 +32,7 @@ func TestKubeAPIServer(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := testApiServerFixture(t)
+		s, dir := mustSetupSnapAndDirectories(t, mustReturnMockForKubeAPIServer)
 		defer os.RemoveAll(dir)
 
 		// Call the KubeAPIServer setup function with mock arguments
@@ -93,11 +83,11 @@ func TestKubeAPIServer(t *testing.T) {
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
-	t.Run("Configure kube-apiserver with without proxy", func(t *testing.T) {
+	t.Run("Configure kube-apiserver without proxy", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := testApiServerFixture(t)
+		s, dir := mustSetupSnapAndDirectories(t, mustReturnMockForKubeAPIServer)
 		defer os.RemoveAll(dir)
 
 		// Call the KubeAPIServer setup function with mock arguments
@@ -145,11 +135,11 @@ func TestKubeAPIServer(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := testApiServerFixture(t)
+		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeAPIServer)
 
 		// Attempt to configure kube-apiserver with an unsupported datastore
 		err := setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "unsupported-datastore", "Node,RBAC")
 		g.Expect(err).ToNot(BeNil())
-		g.Expect(err.Error()).To(ContainSubstring("unsupported datastore"))
+		g.Expect(err).To(MatchError(ContainSubstring("unsupported datastore")))
 	})
 }
