@@ -26,10 +26,10 @@ func TestKubeScheduler(t *testing.T) {
 		// Create a mock snap
 		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeScheduler)
 
-		// Call the kubelet control plane setup function
+		// Call the kube scheduler setup function
 		g.Expect(setup.KubeScheduler(s)).To(BeNil())
 
-		// Ensure the kubelet arguments file has the expected arguments and values
+		// Ensure the kube scheduler arguments file has the expected arguments and values
 		tests := []struct {
 			key         string
 			expectedVal string
@@ -49,12 +49,12 @@ func TestKubeScheduler(t *testing.T) {
 			})
 		}
 
-		// Ensure the kubelet arguments file has exactly the expected number of arguments
+		// Ensure the kube scheduler arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-scheduler"))
 		g.Expect(err).To(BeNil())
 		g.Expect(len(args)).To(Equal(len(tests)))
 
-		t.Run("Error when service arguments dir is not writable", func(t *testing.T) {
+		t.Run("Error when service arguments dir does not exist", func(t *testing.T) {
 			os.RemoveAll(path.Join(s.Mock.ServiceArgumentsDir))
 			g.Expect(setup.KubeScheduler(s)).ToNot(Succeed())
 		})
