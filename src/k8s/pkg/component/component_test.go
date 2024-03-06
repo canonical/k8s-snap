@@ -275,10 +275,11 @@ func TestEnableMultipleComponents(t *testing.T) {
 	}
 
 	// Reenable should not error
-	for name := range mockHelmClient.components {
-		err := mockHelmClient.Enable(name, map[string]interface{}{})
-		g.Expect(err).ShouldNot(HaveOccurred())
-	}
+	t.Run("Reenable", func(t *testing.T) {
+		for name := range mockHelmClient.components {
+			g.Expect(mockHelmClient.Enable(name, map[string]any{})).Should(Succeed())
+		}
+	})
 
 	var releases = []struct {
 		release   string
@@ -325,10 +326,11 @@ func TestDisableComponent(t *testing.T) {
 	}
 
 	// Redisable should not error
-	for name := range mockHelmClient.components {
-		err := mockHelmClient.Disable(name)
-		g.Expect(err).ShouldNot(HaveOccurred())
-	}
+	t.Run("Redisable", func(t *testing.T) {
+		for name := range mockHelmClient.components {
+			g.Expect(mockHelmClient.Disable(name)).Should(Succeed())
+		}
+	})
 
 	var releases = []struct {
 		release   string
