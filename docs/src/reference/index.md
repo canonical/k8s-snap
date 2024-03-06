@@ -13,6 +13,7 @@ Overview <self>
 :titlesonly:
 
 /reference/releases
+/reference/commands
 /reference/community
 /reference/architecture
 /reference/roadmap

@@ -12,6 +12,9 @@ go.vet:
 go.unit:
 	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-test.sh -v ./pkg/... ./cmd/...
 
+go.doc: bin/static/k8s-generate-docs
+	bin/static/k8s-generate-docs --output-dir ../../docs/src/_parts/commands/
+
 ## Static Builds
 static: bin/static/k8s bin/static/k8sd bin/static/k8s-apiserver-proxy
 
@@ -27,6 +30,9 @@ bin/static/k8s-apiserver-proxy: bin/static/k8s
 
 bin/static/k8sd: bin/static/k8s
 	cd bin/static && ln -sf k8s k8sd
+
+bin/static/k8s-generate-docs: bin/static/k8s
+	cd bin/static && ln -sf k8s k8s-generate-docs
 
 ## Dynamic Builds
 dynamic: bin/dynamic/k8s bin/dynamic/k8sd bin/dynamic/k8s-apiserver-proxy
@@ -45,6 +51,9 @@ bin/dynamic/k8s-apiserver-proxy: bin/dynamic/k8s
 
 bin/dynamic/k8sd: bin/dynamic/k8s
 	cd bin/dynamic && ln -s k8s k8sd
+
+bin/dynamic/k8s-generate-docs: bin/dynamic/k8s
+	cd bin/dynamic && ln -sf k8s k8s-generate-docs
 
 ## Cleanup
 clean:
