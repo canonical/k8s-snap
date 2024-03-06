@@ -9,9 +9,15 @@ k8s remove-node <node-name> [flags]
 ### Options
 
 ```
-      --force              forcibly remove the cluster member
-  -h, --help               help for remove-node
-      --timeout duration   the max time to wait for the node to be removed (default 3m0s)
+      --force   forcibly remove the cluster member
+  -h, --help    help for remove-node
+```
+
+### Options inherited from parent commands
+
+```
+  -o, --output-format string   set the output format to one of plain, json or yaml (default "plain")
+  -t, --timeout duration       the max time to wait for the command to execute (default 1m30s)
 ```
 
 ### SEE ALSO

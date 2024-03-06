@@ -9,10 +9,15 @@ k8s status [flags]
 ### Options
 
 ```
-      --format string      specify in which format the output should be printed. One of plain, json or yaml (default "plain")
-  -h, --help               help for status
-      --timeout duration   the max time to wait for the K8s API server to be ready (default 1m30s)
-      --wait-ready         wait until at least one cluster node is ready
+  -h, --help         help for status
+      --wait-ready   wait until at least one cluster node is ready
+```
+
+### Options inherited from parent commands
+
+```
+  -o, --output-format string   set the output format to one of plain, json or yaml (default "plain")
+  -t, --timeout duration       the max time to wait for the command to execute (default 1m30s)
 ```
 
 ### SEE ALSO
