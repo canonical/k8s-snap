@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 
-	api "github.com/canonical/k8s/api/v1"
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/snap"
 )
@@ -33,11 +32,11 @@ type Client interface {
 	// KubeConfig retrieves the Kubernetes configuration for the current node.
 	KubeConfig(ctx context.Context, server string) (string, error)
 	// ListComponents returns a list of components in the cluster.
-	ListComponents(ctx context.Context) ([]api.Component, error)
+	ListComponents(ctx context.Context) ([]apiv1.Component, error)
 	// RemoveNode removes a node from the cluster.
 	RemoveNode(ctx context.Context, name string, force bool) error
 	// UpdateClusterConfig updates configuration of the cluster.
-	UpdateClusterConfig(ctx context.Context, request api.UpdateClusterConfigRequest) error
+	UpdateClusterConfig(ctx context.Context, request apiv1.UpdateClusterConfigRequest) error
 	// GetClusterConfig retrieves configuration of the cluster.
-	GetClusterConfig(ctx context.Context, request api.GetClusterConfigRequest) (api.UserFacingClusterConfig, error)
+	GetClusterConfig(ctx context.Context, request apiv1.GetClusterConfigRequest) (apiv1.UserFacingClusterConfig, error)
 }
