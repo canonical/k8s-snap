@@ -295,8 +295,9 @@ func TestEnableMultipleComponents(t *testing.T) {
 	}
 
 	// Component does not exist at all
-	err := mockHelmClient.Enable("non-existent", map[string]interface{}{})
-	g.Expect(err).Should(HaveOccurred())
+	t.Run("Enable non-existent component should error", func(t *testing.T) {
+		g.Expect(mockHelmClient.Enable("non-existent", map[string]any{})).ShouldNot(Succeed())
+	})
 }
 
 func TestDisableComponent(t *testing.T) {
@@ -346,6 +347,7 @@ func TestDisableComponent(t *testing.T) {
 	}
 
 	// Component does not exist at all
-	err := mockHelmClient.Disable("non-existent")
-	g.Expect(err).Should(HaveOccurred())
+	t.Run("Disable non-existent component should error", func(t *testing.T) {
+		g.Expect(mockHelmClient.Disable("non-existent")).ShouldNot(Succeed())
+	})
 }
