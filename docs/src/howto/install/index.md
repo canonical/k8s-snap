@@ -13,4 +13,5 @@ There's more than one way to install Canonical Kubernetes. You'll find links to 
 :titlesonly:
 /howto/install/snap
 /howto/install/multipass
+/howto/install/lxd
 ```
