@@ -20,24 +20,23 @@ var expectedWorkerLabels = "node-role.kubernetes.io/worker="
 
 var kubeletTLSCipherSuites = "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384"
 
-func testFixture(t *testing.T) (s *mock.Snap, dir string) {
+func mustSetupSnapAndDirectories(t *testing.T, createMock func(*mock.Snap, string)) (s *mock.Snap, dir string) {
 	g := NewWithT(t)
-
 	dir = t.TempDir()
+	s = &mock.Snap{}
+	createMock(s, dir)
+	g.Expect(setup.EnsureAllDirectories(s)).To(Succeed())
+	return s, dir
+}
 
-	s = &mock.Snap{
-		Mock: mock.Mock{
-			KubernetesPKIDir:    path.Join(dir, "pki"),
-			KubernetesConfigDir: path.Join(dir, "k8s-config"),
-			KubeletRootDir:      path.Join(dir, "kubelet-root"),
-			ServiceArgumentsDir: path.Join(dir, "args"),
-			ContainerdSocketDir: path.Join(dir, "containerd-run"),
-		},
+func mustReturnMockForKubelet(s *mock.Snap, dir string) {
+	s.Mock = mock.Mock{
+		KubernetesPKIDir:    path.Join(dir, "pki"),
+		KubernetesConfigDir: path.Join(dir, "k8s-config"),
+		KubeletRootDir:      path.Join(dir, "kubelet-root"),
+		ServiceArgumentsDir: path.Join(dir, "args"),
+		ContainerdSocketDir: path.Join(dir, "containerd-run"),
 	}
-
-	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
-
-	return
 }
 
 func TestKubelet(t *testing.T) {
@@ -45,8 +44,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := testFixture(t)
-		defer os.RemoveAll(dir)
+		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
 		// Call the kubelet control plane setup function
 		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).To(BeNil())
@@ -95,7 +93,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := testFixture(t)
+		s, dir := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 		defer os.RemoveAll(dir)
 
 		// Call the kubelet control plane setup function
@@ -140,7 +138,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := testFixture(t)
+		s, dir := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 		defer os.RemoveAll(dir)
 
 		// Call the kubelet worker setup function
@@ -190,7 +188,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := testFixture(t)
+		s, dir := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 		defer os.RemoveAll(dir)
 
 		// Call the kubelet worker setup function
