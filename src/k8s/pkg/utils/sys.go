@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 )
 
 // runCommand executes a command with a given context.
@@ -22,12 +21,4 @@ func RunCommand(ctx context.Context, command ...string) error {
 		return fmt.Errorf("command %v failed with exit code %d: %w", command, cmd.ProcessState.ExitCode(), err)
 	}
 	return nil
-}
-
-func RunsWithRootPrivilege(ctx context.Context) (bool, error) {
-	u, err := user.Current()
-	if err != nil {
-		return false, fmt.Errorf("failed to check current user: %w", err)
-	}
-	return u.Uid == "0", nil
 }

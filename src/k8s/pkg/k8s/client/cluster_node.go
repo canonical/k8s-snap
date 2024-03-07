@@ -24,6 +24,7 @@ func (c *k8sdClient) JoinCluster(ctx context.Context, name string, address strin
 	}
 	err := c.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, nil)
 	if err != nil {
+		// TODO(neoaggelos): only return error that join cluster failed
 		fmt.Fprintln(os.Stderr, "Cleaning up, error was", err)
 		c.CleanupNode(ctx, c.opts.Snap, name)
 		return fmt.Errorf("failed to query endpoint POST /k8sd/cluster/join: %w", err)

@@ -4,10 +4,10 @@ Disable core cluster functionalities
 
 ### Synopsis
 
-Disable one of network,dns,gateway,ingress,local-storage,load-balancer,metrics-server.
+Disable one of network, dns, gateway, ingress, local-storage, load-balancer, metrics-server.
 
 ```
-k8s disable <functionality> [flags]
+k8s disable <functionality> ... [flags]
 ```
 
 ### Options

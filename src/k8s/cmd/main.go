@@ -1,28 +1,39 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"path/filepath"
+	"os/signal"
+	"path"
+	"syscall"
 
 	"github.com/canonical/k8s/cmd/k8s"
 	k8s_apiserver_proxy "github.com/canonical/k8s/cmd/k8s-apiserver-proxy"
-	k8s_generate_docs "github.com/canonical/k8s/cmd/k8s-generate-docs"
 	"github.com/canonical/k8s/cmd/k8sd"
-	"github.com/docker/docker/pkg/reexec"
+	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/spf13/cobra"
 )
 
-func init() {
-	reexec.Register("k8s-apiserver-proxy", k8s_apiserver_proxy.Main)
-	reexec.Register("k8s-generate-docs", k8s_generate_docs.Main)
-	reexec.Register("k8s", k8s.Main)
-	reexec.Register("k8sd", k8sd.Main)
-}
-
 func main() {
-	os.Args[0] = filepath.Base(os.Args[0])
-	if reexec.Init() {
-		return
+	// execution environment
+	env := cmdutil.DefaultExecutionEnvironment()
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	// ensure hooks from all commands are executed
+	cobra.EnableTraverseRunHooks = true
+
+	// choose command based on the binary name
+	base := path.Base(os.Args[0])
+	switch base {
+	case "k8s-apiserver-proxy":
+		k8s_apiserver_proxy.NewRootCmd(env).ExecuteContext(ctx)
+	case "k8sd":
+		k8sd.NewRootCmd(env).ExecuteContext(ctx)
+	case "k8s":
+		k8s.NewRootCmd(env).ExecuteContext(ctx)
+	default:
+		panic(fmt.Errorf("invalid entrypoint name %q", base))
 	}
-	panic(fmt.Errorf("invalid entrypoint name %q", os.Args[0]))
 }

@@ -1,51 +1,57 @@
 package k8s
 
 import (
-	"fmt"
-
-	v1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/cmd/k8s/errors"
-	"github.com/canonical/k8s/cmd/k8s/formatter"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
-var (
-	statusCmdOpts struct {
+func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
 		waitReady bool
 	}
-)
-
-func newStatusCmd() *cobra.Command {
-	statusCmd := &cobra.Command{
-		Use:     "status",
-		Short:   "Retrieve the current status of the cluster",
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
-
-			// fail fast if we're not bootstrapped
-			if !k8sdClient.IsBootstrapped(cmd.Context()) {
-				return v1.ErrNotBootstrapped
+	cmd := &cobra.Command{
+		Use:    "status",
+		Short:  "Retrieve the current status of the cluster",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
+			client, err := env.Client(cmd.Context())
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
+
+			if !client.IsBootstrapped(cmd.Context()) {
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				env.Exit(1)
+				return
+			}
+
+			// TODO(neoaggelos): this must be done on the server side
 			// fail fast if we're not explicitly waiting and we can't get kube-apiserver endpoints
-			if !statusCmdOpts.waitReady {
-				if ready := k8sdClient.IsKubernetesAPIServerReady(cmd.Context()); !ready {
-					return fmt.Errorf("failed to get kube-apiserver endpoints; cluster status is unavailable")
+			if !opts.waitReady {
+				if !client.IsKubernetesAPIServerReady(cmd.Context()) {
+					cmd.PrintErrln("Error: There are no active kube-apiserver endpoints, cluster status is unavailable")
+					env.Exit(1)
+					return
 				}
 			}
 
-			clusterStatus, err := k8sdClient.ClusterStatus(cmd.Context(), statusCmdOpts.waitReady)
+			status, err := client.ClusterStatus(cmd.Context(), opts.waitReady)
 			if err != nil {
-				return fmt.Errorf("failed to get cluster status: %w", err)
+				cmd.PrintErrf("Error: Failed to retrieve the cluster status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
-			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
-			if err != nil {
-				return fmt.Errorf("failed to create formatter: %w", err)
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(status); err != nil {
+				cmd.PrintErrf("Error: Failed to print the cluster status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
-			return f.Print(clusterStatus)
 		},
 	}
-	statusCmd.PersistentFlags().BoolVar(&statusCmdOpts.waitReady, "wait-ready", false, "wait until at least one cluster node is ready")
-	return statusCmd
+
+	cmd.PersistentFlags().BoolVar(&opts.waitReady, "wait-ready", false, "wait until at least one cluster node is ready")
+	return cmd
 }

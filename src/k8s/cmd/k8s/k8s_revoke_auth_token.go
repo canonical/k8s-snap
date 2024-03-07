@@ -1,34 +1,35 @@
 package k8s
 
 import (
-	"fmt"
-
-	"github.com/canonical/k8s/cmd/k8s/errors"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
-var (
-	revokeAuthTokenCmdOpts struct {
+func newRevokeAuthTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
 		token string
 	}
-)
+	cmd := &cobra.Command{
+		Use:    "revoke-auth-token --token <token>",
+		Hidden: true,
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
 
-func newRevokeAuthTokenCmd() *cobra.Command {
-	revokeAuthTokenCmd := &cobra.Command{
-		Use:               "revoke-auth-token --token <token>",
-		Short:             "Revoke an auth token for Kubernetes",
-		Hidden:            true,
-		PersistentPreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
-
-			if err := k8sdClient.RevokeAuthToken(cmd.Context(), revokeAuthTokenCmdOpts.token); err != nil {
-				return fmt.Errorf("could not revoke auth token: %w", err)
+			client, err := env.Client(cmd.Context())
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
-			return nil
+			if err := client.RevokeAuthToken(cmd.Context(), opts.token); err != nil {
+				cmd.PrintErrf("Error: Failed to revoke the auth token.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			}
 		},
 	}
-	revokeAuthTokenCmd.Flags().StringVar(&revokeAuthTokenCmdOpts.token, "token", "", "Token")
-	return revokeAuthTokenCmd
+
+	cmd.Flags().StringVar(&opts.token, "token", "", "Token")
+	return cmd
 }

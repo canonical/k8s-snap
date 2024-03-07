@@ -1,10 +1,10 @@
 ## k8s bootstrap
 
-Bootstrap a k8s cluster on this node
+Bootstrap a new Kubernetes cluster
 
 ### Synopsis
 
-Initialize the necessary folders, permissions, service arguments, certificates and start up the Kubernetes services.
+Generate certificates, configure service arguments and start the Kubernetes services.
 
 ```
 k8s bootstrap [flags]

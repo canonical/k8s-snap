@@ -2,30 +2,18 @@ package k8s
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"slices"
 	"strings"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/cmd/k8s/errors"
-	"github.com/canonical/k8s/cmd/k8s/formatter"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-)
-
-var (
-	bootstrapCmdOpts struct {
-		interactive bool
-		configFile  string
-	}
-
-	bootstrapCmdErrorMsgs = map[error]string{
-		apiv1.ErrUnknown:             "An unknown error occurred while bootstrapping the cluster:\n",
-		apiv1.ErrAlreadyBootstrapped: "K8s cluster already bootstrapped.",
-	}
-	bootstrappableComponents = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
 )
 
 type BootstrapResult struct {
@@ -33,58 +21,75 @@ type BootstrapResult struct {
 }
 
 func (b BootstrapResult) String() string {
-	return fmt.Sprintf("Cluster services have started on %q.\nPlease allow some time for initial Kubernetes node registration.\n", b.Node.Name)
+	buf := &bytes.Buffer{}
+	buf.WriteString(fmt.Sprintf("Bootstrapped a new Kubernetes cluster with node address %q.\n", b.Node.Address))
+	buf.WriteString("The node will be 'Ready' to host workloads after the CNI is deployed successfully.\n")
+
+	return buf.String()
 }
 
-func newBootstrapCmd() *cobra.Command {
-	bootstrapCmd := &cobra.Command{
-		Use:     "bootstrap",
-		Short:   "Bootstrap a k8s cluster on this node",
-		Long:    "Initialize the necessary folders, permissions, service arguments, certificates and start up the Kubernetes services.",
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, bootstrapCmdErrorMsgs)
+func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		interactive bool
+		configFile  string
+	}
+	cmd := &cobra.Command{
+		Use:    "bootstrap",
+		Short:  "Bootstrap a new Kubernetes cluster",
+		Long:   "Generate certificates, configure service arguments and start the Kubernetes services.",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
+			if opts.interactive && opts.configFile != "" {
+				cmd.PrintErrln("Error: --interactive and --config flags cannot be set at the same time.")
+				env.Exit(1)
+				return
+			}
 
-			if k8sdClient.IsBootstrapped(cmd.Context()) {
-				return apiv1.ErrAlreadyBootstrapped
+			client, err := env.Client(cmd.Context())
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			}
+
+			if client.IsBootstrapped(cmd.Context()) {
+				cmd.PrintErrln("Error: The node is already part of a cluster")
+				env.Exit(1)
+				return
 			}
 
 			bootstrapConfig := apiv1.BootstrapConfig{}
-			if bootstrapCmdOpts.interactive && bootstrapCmdOpts.configFile != "" {
-				return fmt.Errorf("failed to bootstrap cluster: cannot use both --interactive and --config flags at the same time")
-			}
-
-			if bootstrapCmdOpts.interactive {
-				bootstrapConfig = getConfigInteractively()
-			} else if bootstrapCmdOpts.configFile != "" {
-				bootstrapConfig, err = getConfigFromYaml(bootstrapCmdOpts.configFile)
+			switch {
+			case opts.interactive:
+				bootstrapConfig = getConfigInteractively(env.Stdin, env.Stdout, env.Stderr)
+			case opts.configFile != "":
+				bootstrapConfig, err = getConfigFromYaml(opts.configFile)
 				if err != nil {
-					return fmt.Errorf("failed to bootstrap cluster: %w", err)
+					cmd.PrintErrf("Error: Failed to read bootstrap configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
+					env.Exit(1)
+					return
 				}
-			} else {
+			default:
 				bootstrapConfig.SetDefaults()
 			}
 
-			fmt.Fprintln(cmd.ErrOrStderr(), "Bootstrapping the cluster. This may take some time, please wait.")
-			node, err := k8sdClient.Bootstrap(cmd.Context(), bootstrapConfig)
+			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
+			node, err := client.Bootstrap(cmd.Context(), bootstrapConfig)
 			if err != nil {
-				return fmt.Errorf("failed to bootstrap cluster: %w", err)
+				cmd.PrintErrf("Error: Failed to bootstrap the cluster.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
-			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
-			if err != nil {
-				return fmt.Errorf("failed to create formatter: %w", err)
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(BootstrapResult{Node: node}); err != nil {
+				cmd.PrintErrf("WARNING: Failed to print the cluster bootstrap result.\n\nThe error was: %v\n", err)
 			}
-			return f.Print(BootstrapResult{
-				Node: node,
-			})
 		},
 	}
 
-	bootstrapCmd.PersistentFlags().BoolVar(&bootstrapCmdOpts.interactive, "interactive", false, "interactively configure the most important cluster options")
-	bootstrapCmd.PersistentFlags().StringVar(&bootstrapCmdOpts.configFile, "config", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
-
-	return bootstrapCmd
+	cmd.PersistentFlags().BoolVar(&opts.interactive, "interactive", false, "interactively configure the most important cluster options")
+	cmd.PersistentFlags().StringVar(&opts.configFile, "config", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
+	return cmd
 }
 
 func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
@@ -104,21 +109,22 @@ func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
 	return config, nil
 }
 
-func getConfigInteractively() apiv1.BootstrapConfig {
+func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer) apiv1.BootstrapConfig {
 	config := apiv1.BootstrapConfig{}
 	config.SetDefaults()
 
 	components := askQuestion(
+		stdin, stdout, stderr,
 		"Which components would you like to enable?",
-		bootstrappableComponents,
+		componentList,
 		strings.Join(config.Components, ", "),
 		nil,
 	)
 	config.Components = strings.Split(components, ",")
 
-	config.ClusterCIDR = askQuestion("Please set the Cluster CIDR:", nil, config.ClusterCIDR, nil)
-	config.ServiceCIDR = askQuestion("Please set the Service CIDR:", nil, config.ServiceCIDR, nil)
-	rbac := askBool("Enable Role Based Access Control (RBAC)?", []string{"yes", "no"}, "yes")
+	config.ClusterCIDR = askQuestion(stdin, stdout, stderr, "Please set the Cluster CIDR:", nil, config.ClusterCIDR, nil)
+	config.ServiceCIDR = askQuestion(stdin, stdout, stderr, "Please set the Service CIDR:", nil, config.ServiceCIDR, nil)
+	rbac := askBool(stdin, stdout, stderr, "Enable Role Based Access Control (RBAC)?", []string{"yes", "no"}, "yes")
 	*config.EnableRBAC = rbac
 	return config
 }
@@ -127,7 +133,7 @@ func getConfigInteractively() apiv1.BootstrapConfig {
 // askQuestion will keep asking if the input is not valid.
 // askQuestion will remove all whitespaces and capitalization of the input.
 // customErr can be used to provide extra error messages for specific non-valid inputs.
-func askQuestion(question string, options []string, defaultVal string, customErr map[string]string) string {
+func askQuestion(stdin io.Reader, stdout io.Writer, stderr io.Writer, question string, options []string, defaultVal string, customErr map[string]string) string {
 	for {
 		q := question
 		if options != nil {
@@ -139,9 +145,9 @@ func askQuestion(question string, options []string, defaultVal string, customErr
 		q = fmt.Sprintf("%s ", q)
 
 		var s string
-		r := bufio.NewReader(os.Stdin)
+		r := bufio.NewReader(stdin)
 		for {
-			fmt.Fprint(os.Stdout, q)
+			fmt.Fprint(stdout, q)
 			s, _ = r.ReadString('\n')
 			if s != "" {
 				break
@@ -161,9 +167,9 @@ func askQuestion(question string, options []string, defaultVal string, customErr
 			for _, element := range sSlice {
 				if !slices.Contains(options, element) {
 					if msg, ok := customErr[element]; ok {
-						fmt.Fprintf(os.Stdout, "  %s\n", msg)
+						fmt.Fprintf(stderr, "  %s\n", msg)
 					} else {
-						fmt.Fprintf(os.Stdout, "  %q is not a valid option.\n", element)
+						fmt.Fprintf(stderr, "  %q is not a valid option.\n", element)
 					}
 					valid = false
 				}
@@ -177,9 +183,9 @@ func askQuestion(question string, options []string, defaultVal string, customErr
 }
 
 // askBool asks a question and expect a yes/no answer.
-func askBool(question string, options []string, defaultVal string) bool {
+func askBool(stdin io.Reader, stdout io.Writer, stderr io.Writer, question string, options []string, defaultVal string) bool {
 	for {
-		answer := askQuestion(question, options, defaultVal, nil)
+		answer := askQuestion(stdin, stdout, stderr, question, options, defaultVal, nil)
 
 		if utils.ValueInSlice(strings.ToLower(answer), []string{"yes", "y"}) {
 			return true
@@ -187,6 +193,6 @@ func askBool(question string, options []string, defaultVal string) bool {
 			return false
 		}
 
-		fmt.Fprintf(os.Stderr, "Invalid input, try again.\n\n")
+		fmt.Fprintf(stderr, "Invalid input, try again.\n\n")
 	}
 }
