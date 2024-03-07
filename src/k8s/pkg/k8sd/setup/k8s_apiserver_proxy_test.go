@@ -46,7 +46,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 			})
 		}
 		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "k8s-apiserver-proxy"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
