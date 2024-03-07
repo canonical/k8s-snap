@@ -32,8 +32,7 @@ func TestKubeAPIServer(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := mustSetupSnapAndDirectories(t, mustReturnMockForKubeAPIServer)
-		defer os.RemoveAll(dir)
+		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeAPIServer)
 
 		// Call the KubeAPIServer setup function with mock arguments
 		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", true, "k8s-dqlite", "Node,RBAC")).To(BeNil())
@@ -71,6 +70,7 @@ func TestKubeAPIServer(t *testing.T) {
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kube-apiserver", tc.key)
 				g.Expect(err).To(BeNil())
 				g.Expect(val).To(Equal(tc.expectedVal))
@@ -87,8 +87,7 @@ func TestKubeAPIServer(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := mustSetupSnapAndDirectories(t, mustReturnMockForKubeAPIServer)
-		defer os.RemoveAll(dir)
+		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeAPIServer)
 
 		// Call the KubeAPIServer setup function with mock arguments
 		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "k8s-dqlite", "Node,RBAC")).To(BeNil())
@@ -119,6 +118,7 @@ func TestKubeAPIServer(t *testing.T) {
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kube-apiserver", tc.key)
 				g.Expect(err).To(BeNil())
 				g.Expect(val).To(Equal(tc.expectedVal))
