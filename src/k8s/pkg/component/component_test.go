@@ -173,7 +173,7 @@ func TestListEmptyComponents(t *testing.T) {
 	// Call the List function with the mock HelmClient
 	components, err := mockHelmClient.List()
 
-	g.Expect(err).To(BeNil())
+	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(components).To(HaveLen(0))
 }
 
@@ -293,7 +293,7 @@ func TestEnableMultipleComponents(t *testing.T) {
 	}
 
 	// Component does not exist at all
-	t.Run("Enable non-existent component should error", func(t *testing.T) {
+	t.Run("EnableNonExistent", func(t *testing.T) {
 		g.Expect(mockHelmClient.Enable("non-existent", map[string]any{})).ShouldNot(Succeed())
 	})
 }
@@ -346,7 +346,7 @@ func TestDisableComponent(t *testing.T) {
 	}
 
 	// Component does not exist at all
-	t.Run("Disable non-existent component should error", func(t *testing.T) {
+	t.Run("DisableNonExistent", func(t *testing.T) {
 		g := NewWithT(t)
 		g.Expect(mockHelmClient.Disable("non-existent")).ShouldNot(Succeed())
 	})
