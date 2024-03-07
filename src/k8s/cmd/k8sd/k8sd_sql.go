@@ -1,46 +1,36 @@
 package k8sd
 
 import (
-	"fmt"
-	"os"
-
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/k8sd/app"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/spf13/cobra"
 )
 
-var (
-	sqlCmd = &cobra.Command{
+func newSqlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	return &cobra.Command{
 		Use:    "sql <query>",
 		Short:  "Execute an SQL query against the daemon",
 		Hidden: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("invalid query")
-			}
-			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
+		Args:   cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
 			cluster, err := app.New(cmd.Context(), app.Config{
-				Debug:      rootCmdOpts.logDebug,
-				Verbose:    rootCmdOpts.logVerbose,
 				StateDir:   rootCmdOpts.stateDir,
 				ListenPort: rootCmdOpts.port,
-				Snap:       snap,
+				Snap:       env.Snap,
 			})
 			if err != nil {
-				return fmt.Errorf("failed to create k8sd app: %w", err)
+				cmd.PrintErrf("ERROR: Failed to initialize k8sd app.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
-			query := args[0]
-			_, batch, err := cluster.MicroCluster.SQL(query)
+			_, batch, err := cluster.MicroCluster.SQL(args[0])
 			if err != nil {
-				return fmt.Errorf("query failed: %w", err)
+				cmd.PrintErrf("ERROR: Failed to execute the SQL query.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
-			fmt.Println(batch.Results[0].Rows)
-			return nil
+			cmd.Println(batch.Results[0].Rows)
 		},
 	}
-)
-
-func init() {
-	rootCmd.AddCommand(sqlCmd)
 }
