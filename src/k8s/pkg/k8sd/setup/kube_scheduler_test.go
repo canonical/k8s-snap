@@ -55,10 +55,14 @@ func TestKubeScheduler(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 
-		t.Run("MissingArgsDir", func(t *testing.T) {
-			g := NewWithT(t)
-			os.RemoveAll(path.Join(s.Mock.ServiceArgumentsDir))
-			g.Expect(setup.KubeScheduler(s)).ToNot(Succeed())
-		})
+	})
+
+	t.Run("MissingArgsDir", func(t *testing.T) {
+		g := NewWithT(t)
+
+		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeScheduler)
+
+		os.RemoveAll(path.Join(s.Mock.ServiceArgumentsDir))
+		g.Expect(setup.KubeScheduler(s)).ToNot(Succeed())
 	})
 }
