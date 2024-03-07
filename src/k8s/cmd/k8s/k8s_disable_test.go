@@ -19,12 +19,15 @@ func TestDisableCmd(t *testing.T) {
 		name           string
 		funcs          []string
 		expectedCall   apiv1.UpdateClusterConfigRequest
-		expectedErrMsg string
+		expectedCode   int
+		expectedStdout string
+		expectedStderr string
 	}{
 		{
 			name:           "empty",
 			funcs:          []string{},
-			expectedErrMsg: "missing argument",
+			expectedStderr: "Error: requires at least 1 arg",
+			expectedCode:   1,
 		},
 		{
 			name:  "one",
@@ -34,6 +37,7 @@ func TestDisableCmd(t *testing.T) {
 					Gateway: &apiv1.GatewayConfig{Enabled: vals.Pointer(false)},
 				},
 			},
+			expectedStdout: "disabled",
 		},
 		{
 			name:  "multiple",
@@ -44,11 +48,13 @@ func TestDisableCmd(t *testing.T) {
 					LoadBalancer: &apiv1.LoadBalancerConfig{Enabled: vals.Pointer(false)},
 				},
 			},
+			expectedStdout: "disabled",
 		},
 		{
 			name:           "unknown",
 			funcs:          []string{"unknownFunc"},
-			expectedErrMsg: "unknown functionality",
+			expectedStderr: "Error: Cannot disable",
+			expectedCode:   1,
 		},
 	}
 
@@ -57,26 +63,30 @@ func TestDisableCmd(t *testing.T) {
 			g := NewWithT(t)
 
 			stdout := &bytes.Buffer{}
+			stderr := &bytes.Buffer{}
 			mockClient := &mock.Client{}
+			var returnCode int
 			env := cmdutil.ExecutionEnvironment{
 				Stdout: stdout,
+				Stderr: stderr,
 				Getuid: func() int { return 0 },
 				Client: func(ctx context.Context) (client.Client, error) {
 					return mockClient, nil
 				},
+				Exit: func(rc int) { returnCode = rc },
 			}
 			cmd := k8s.NewRootCmd(env)
 
 			cmd.SetArgs(append([]string{"disable"}, tt.funcs...))
-			err := cmd.Execute()
+			cmd.Execute()
 
-			if tt.expectedErrMsg == "" {
-				g.Expect(err).To(BeNil())
-				g.Expect(stdout.String()).To(ContainSubstring("disabled"))
-			} else {
-				g.Expect(err.Error()).To(ContainSubstring(tt.expectedErrMsg))
+			g.Expect(stdout.String()).To(ContainSubstring(tt.expectedStdout))
+			g.Expect(stderr.String()).To(ContainSubstring(tt.expectedStderr))
+			g.Expect(returnCode).To(Equal(tt.expectedCode))
+
+			if tt.expectedCode == 0 {
+				g.Expect(mockClient.UpdateClusterConfigCalledWith).To(Equal(tt.expectedCall))
 			}
-			g.Expect(mockClient.UpdateClusterConfigCalledWith).To(Equal(tt.expectedCall))
 		})
 	}
 }
