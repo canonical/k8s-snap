@@ -7,8 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var ()
-
 type RemoveNodeResult struct {
 	Name string `json:"name" yaml:"name"`
 }

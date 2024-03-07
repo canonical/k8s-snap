@@ -4,21 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
-)
-
-var (
-	joinClusterCmdErrorMsgs = map[error]string{
-		apiv1.ErrAlreadyBootstrapped: "A bootstrap node cannot join a cluster as it is already in a cluster. " +
-			"Consider reinstalling the k8s snap and then join it.",
-		apiv1.ErrInvalidJoinToken: "The provided join token is not valid. " +
-			"Make sure that the name provided in `k8s get-join-token` matches the hostname of the " +
-			"joining node or assign another name with the `--name` flag",
-	}
 )
 
 type JoinClusterResult struct {
