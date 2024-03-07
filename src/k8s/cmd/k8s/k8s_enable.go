@@ -6,14 +6,9 @@ import (
 	"strings"
 
 	api "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/cmd/k8s/errors"
-	"github.com/canonical/k8s/cmd/k8s/formatter"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/spf13/cobra"
-)
-
-var (
-	componentList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
 )
 
 type EnableResult struct {
@@ -24,24 +19,21 @@ func (e EnableResult) String() string {
 	return fmt.Sprintf("%s enabled.\n", strings.Join(e.Functionalities, ", "))
 }
 
-func newEnableCmd() *cobra.Command {
-	enableCmd := &cobra.Command{
-		Use:     "enable <functionality1> ...",
-		Short:   "Enable core cluster functionalities",
-		Long:    fmt.Sprintf("Enable one of %s.", strings.Join(componentList, ", ")),
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
-
-			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the names of the functionalites that should be enabled")
-			}
-
+func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:    "enable <functionality> ...",
+		Short:  "Enable core cluster functionalities",
+		Long:   fmt.Sprintf("Enable one of %s.", strings.Join(componentList, ", ")),
+		Args:   cobra.MinimumNArgs(1),
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
 			functionalities := args
 			for _, functionality := range functionalities {
 				if !slices.Contains(componentList, functionality) {
-					return fmt.Errorf("unknown functionality %q; needs to be one of: %s", args[0], strings.Join(componentList, ", "))
+					cmd.PrintErrf("ERROR: Cannot enable %q, must be one of: %s\n", functionality, strings.Join(componentList, ", "))
+					env.Exit(1)
+					return
 				}
 
 				switch functionality {
@@ -75,26 +67,29 @@ func newEnableCmd() *cobra.Command {
 					}
 				}
 			}
-
 			request := api.UpdateClusterConfigRequest{
 				Config: config,
 			}
 
-			fmt.Fprintf(cmd.ErrOrStderr(), "Enabling %s. This may take some time, please wait.\n", strings.Join(functionalities, ", "))
-			if err := k8sdClient.UpdateClusterConfig(cmd.Context(), request); err != nil {
-				return fmt.Errorf("failed to update cluster configuration: %w", err)
-			}
-
-			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
+			client, err := env.Client(cmd.Context())
 			if err != nil {
-				return fmt.Errorf("failed to create formatter: %w", err)
+				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
-			return f.Print(EnableResult{
-				Functionalities: functionalities,
-			})
 
+			cmd.PrintErrf("Enabling %s on the cluster. This may take a few seconds, please wait.\n", strings.Join(functionalities, ", "))
+			if err := client.UpdateClusterConfig(cmd.Context(), request); err != nil {
+				cmd.PrintErrf("ERROR: Failed to enable %s on the cluster.\n\nThe error was: %v\n", strings.Join(functionalities, ", "), err)
+				env.Exit(1)
+				return
+			}
+
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(EnableResult{Functionalities: functionalities}); err != nil {
+				cmd.PrintErrf("WARNING: Failed to print the enable result.\n\nThe error was: %v\n", err)
+			}
 		},
 	}
 
-	return enableCmd
+	return cmd
 }

@@ -1,28 +1,37 @@
 package k8s
 
 import (
-	"fmt"
-
-	"github.com/canonical/k8s/cmd/k8s/errors"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
-func newLocalNodeStatusCommand() *cobra.Command {
+func newLocalNodeStatusCommand(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	localNodeStatusCmd := &cobra.Command{
-		Use:     "local-node-status",
-		Short:   "Retrieve the current status of the local node",
-		Hidden:  true,
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
+		Use:    "local-node-status",
+		Short:  "Retrieve the current status of the local node",
+		Hidden: true,
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
 
-			clusterStatus, err := k8sdClient.NodeStatus(cmd.Context())
+			client, err := env.Client(cmd.Context())
 			if err != nil {
-				return fmt.Errorf("failed to get cluster status: %w", err)
+				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
-			fmt.Println(clusterStatus)
-			return nil
+			status, err := client.NodeStatus(cmd.Context())
+			if err != nil {
+				cmd.PrintErrf("ERROR: Failed to get the status of the local node.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			}
+
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(status); err != nil {
+				cmd.PrintErrf("ERROR: Failed to print the status of the local node.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			}
 		},
 	}
 	return localNodeStatusCmd

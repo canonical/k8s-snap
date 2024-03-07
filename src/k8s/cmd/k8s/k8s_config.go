@@ -1,49 +1,36 @@
 package k8s
 
 import (
-	"fmt"
-
-	"github.com/canonical/k8s/cmd/k8s/errors"
-	"github.com/canonical/k8s/cmd/k8s/formatter"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
-var (
-	configCmdOpts struct {
+func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
 		server string
 	}
-)
-
-type KubeConfigResult struct {
-	KubeConfig string `json:"kube-config" yaml:"kube-config"`
-}
-
-func (k KubeConfigResult) String() string {
-	return k.KubeConfig
-}
-
-func newKubeConfigCmd() *cobra.Command {
-	kubeConfigCmd := &cobra.Command{
-		Use:     "config",
-		Short:   "Generate a kubeconfig that can be used to access the Kubernetes cluster",
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
-
-			config, err := k8sdClient.KubeConfig(cmd.Context(), configCmdOpts.server)
+	cmd := &cobra.Command{
+		Use:    "config",
+		Short:  "Generate a kubeconfig that can be used to access the Kubernetes cluster",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
+			client, err := env.Client(cmd.Context())
 			if err != nil {
-				return fmt.Errorf("failed to get admin config: %w", err)
+				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
-			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
+			config, err := client.KubeConfig(cmd.Context(), opts.server)
 			if err != nil {
-				return fmt.Errorf("failed to create formatter: %w", err)
+				cmd.PrintErrf("ERROR: Failed to generate an admin kubeconfig for %q.\n\nThe error was: %v\n", opts.server, err)
+				env.Exit(1)
+				return
 			}
-			return f.Print(KubeConfigResult{
-				KubeConfig: config,
-			})
+
+			cmd.Println(config)
 		},
 	}
-	kubeConfigCmd.PersistentFlags().StringVar(&configCmdOpts.server, "server", "", "custom cluster server address")
-	return kubeConfigCmd
+	cmd.PersistentFlags().StringVar(&opts.server, "server", "", "custom cluster server address")
+	return cmd
 }

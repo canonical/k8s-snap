@@ -3,16 +3,11 @@ package k8s
 import (
 	"fmt"
 
-	"github.com/canonical/k8s/cmd/k8s/errors"
-	"github.com/canonical/k8s/cmd/k8s/formatter"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
-var (
-	removeNodeCmdOpts struct {
-		force bool
-	}
-)
+var ()
 
 type RemoveNodeResult struct {
 	Name string `json:"name" yaml:"name"`
@@ -22,37 +17,38 @@ func (r RemoveNodeResult) String() string {
 	return fmt.Sprintf("Removed %s from cluster.\n", r.Name)
 }
 
-func newRemoveNodeCmd() *cobra.Command {
-	removeNodeCmd := &cobra.Command{
-		Use:     "remove-node <node-name>",
-		Short:   "Remove a node from the cluster",
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: provide only the name of the node to remove")
+func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		force bool
+	}
+	cmd := &cobra.Command{
+		Use:    "remove-node <node-name>",
+		Short:  "Remove a node from the cluster",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Args:   cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			client, err := env.Client(cmd.Context())
+			if err != nil {
+				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
-			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the name of the node to remove")
-			}
-
-			defer errors.Transform(&err, nil)
 
 			name := args[0]
 
-			fmt.Fprintf(cmd.ErrOrStderr(), "Removing %q from the cluster. This may take some time, please wait.", name)
-			if err := k8sdClient.RemoveNode(cmd.Context(), name, removeNodeCmdOpts.force); err != nil {
-				return fmt.Errorf("failed to remove node from cluster: %w", err)
+			cmd.PrintErrf("Removing %q from the Kubernetes cluster. This may take a few seconds, please wait.\n", name)
+			if err := client.RemoveNode(cmd.Context(), name, opts.force); err != nil {
+				cmd.PrintErrf("ERROR: Failed to remove node %q from the cluster.\n\nThe error was: %v\n", name, err)
+				env.Exit(1)
+				return
 			}
-			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
-			if err != nil {
-				return fmt.Errorf("failed to create formatter: %w", err)
+
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(RemoveNodeResult{Name: name}); err != nil {
+				cmd.PrintErrf("WARNING: Failed to print remove node result.\n\nThe error was: %v\n", err)
 			}
-			return f.Print(RemoveNodeResult{
-				Name: name,
-			})
 		},
 	}
-	removeNodeCmd.Flags().BoolVar(&removeNodeCmdOpts.force, "force", false, "forcibly remove the cluster member")
-	removeNodeCmd.FlagErrorFunc()
-	return removeNodeCmd
+
+	cmd.Flags().BoolVar(&opts.force, "force", false, "forcibly remove the cluster member")
+	return cmd
 }

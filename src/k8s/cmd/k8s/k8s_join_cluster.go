@@ -5,19 +5,13 @@ import (
 	"os"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	v1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/cmd/k8s/errors"
-	"github.com/canonical/k8s/cmd/k8s/formatter"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
 )
 
 var (
-	joinClusterCmdOpts struct {
-		name    string
-		address string
-	}
 	joinClusterCmdErrorMsgs = map[error]string{
 		apiv1.ErrAlreadyBootstrapped: "A bootstrap node cannot join a cluster as it is already in a cluster. " +
 			"Consider reinstalling the k8s snap and then join it.",
@@ -35,57 +29,61 @@ func (b JoinClusterResult) String() string {
 	return fmt.Sprintf("Cluster services have started on %q.\nPlease allow some time for initial Kubernetes node registration.\n", b.Name)
 }
 
-func newJoinClusterCmd() *cobra.Command {
-	joinNodeCmd := &cobra.Command{
-		Use:     "join-cluster <join-token>",
-		Short:   "Join a cluster using the provided token",
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: provide only the join token that was generated with `sudo k8s get-join-token <node-name>`")
-			}
-			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the join token that was generated with `sudo k8s get-join-token <node-name>`")
-			}
-
-			defer errors.Transform(&err, joinClusterCmdErrorMsgs)
-
-			joinToken := args[0]
+func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		name    string
+		address string
+	}
+	cmd := &cobra.Command{
+		Use:    "join-cluster <join-token>",
+		Short:  "Join a cluster using the provided token",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Args:   cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			token := args[0]
 
 			// Use hostname as default node name
-			if joinClusterCmdOpts.name == "" {
+			if opts.name == "" {
+				// TODO(neoaggelos): use the encoded node name from the token, if available.
 				hostname, err := os.Hostname()
 				if err != nil {
-					return fmt.Errorf("--name is not set and failed to get hostname: %w", err)
+					cmd.PrintErrf("ERROR: --name is not set and could not determine the current node name.\n\nThe error was: %v\n", err)
+					env.Exit(1)
+					return
 				}
-				joinClusterCmdOpts.name = hostname
+				opts.name = hostname
 			}
 
-			if joinClusterCmdOpts.address == "" {
-				joinClusterCmdOpts.address = util.CanonicalNetworkAddress(
-					util.NetworkInterfaceAddress(), config.DefaultPort,
-				)
+			if opts.address == "" {
+				opts.address = util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), config.DefaultPort)
 			}
 
-			if k8sdClient.IsBootstrapped(cmd.Context()) {
-				return v1.ErrAlreadyBootstrapped
-			}
-
-			fmt.Fprintln(cmd.ErrOrStderr(), "Joining the cluster. This may take some time, please wait.")
-			if err := k8sdClient.JoinCluster(cmd.Context(), joinClusterCmdOpts.name, joinClusterCmdOpts.address, joinToken); err != nil {
-				return fmt.Errorf("failed to join cluster: %w", err)
-			}
-
-			f, err := formatter.New(rootCmdOpts.outputFormat, cmd.OutOrStdout())
+			client, err := env.Client(cmd.Context())
 			if err != nil {
-				return fmt.Errorf("failed to create formatter: %w", err)
+				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
-			return f.Print(JoinClusterResult{
-				Name: joinClusterCmdOpts.name,
-			})
+
+			if client.IsBootstrapped(cmd.Context()) {
+				cmd.PrintErrln("ERROR: The node is already part of a cluster")
+				env.Exit(1)
+				return
+			}
+
+			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
+			if err := client.JoinCluster(cmd.Context(), opts.name, opts.address, token); err != nil {
+				cmd.PrintErrln("ERROR: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			}
+
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(JoinClusterResult{Name: opts.name}); err != nil {
+				cmd.PrintErrf("WARNING: Failed to print the join cluster result.\n\nThe error was: %v\n", err)
+			}
 		},
 	}
-	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.name, "name", "", "the name of the joining node. defaults to hostname")
-	joinNodeCmd.Flags().StringVar(&joinClusterCmdOpts.address, "address", "", "the address (IP:Port) on which the nodes REST API should be available")
-	return joinNodeCmd
+	cmd.Flags().StringVar(&opts.name, "name", "", "the name of the joining node. defaults to hostname")
+	cmd.Flags().StringVar(&opts.address, "address", "", "the address (IP:Port) on which the nodes REST API should be available")
+	return cmd
 }

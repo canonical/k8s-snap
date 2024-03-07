@@ -2,94 +2,102 @@ package k8s
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"github.com/canonical/k8s/pkg/k8s/client"
-	"github.com/canonical/k8s/pkg/utils"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
 var (
-	rootCmdOpts struct {
-		logDebug     bool
-		logVerbose   bool
-		outputFormat string
-		stateDir     string
-		timeout      time.Duration
-	}
-	k8sdClient client.Client
+	componentList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
 )
 
-func NewRootCmd() *cobra.Command {
-	rootCmd := &cobra.Command{
+func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var (
+		opts struct {
+			logDebug     bool
+			logVerbose   bool
+			outputFormat string
+			stateDir     string
+			timeout      time.Duration
+		}
+	)
+	cmd := &cobra.Command{
 		Use:   "k8s",
 		Short: "Canonical Kubernetes CLI",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			withRoot, err := utils.RunsWithRootPrivilege(cmd.Context())
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			// set input/output streams
+			cmd.SetIn(env.Stdin)
+			cmd.SetOut(env.Stdout)
+			cmd.SetErr(env.Stderr)
+
+			// initialize context
+			ctx := cmd.Context()
+
+			// initialize formatter
+			var err error
+			formatter, err := cmdutil.NewFormatter(opts.outputFormat, cmd.OutOrStdout())
 			if err != nil {
-				return fmt.Errorf("failed to check if command runs as root: %w", err)
+				cmd.PrintErrf("ERROR: Unknown --output-format %q. It must be one of %q (default), %q or %q.", opts.outputFormat, "plain", "json", "yaml")
+				env.Exit(1)
+				return
 			}
-			if !withRoot {
-				return fmt.Errorf("insufficient permissions: run the command with sudo")
-			}
+			ctx = cmdutil.ContextWithFormatter(ctx, formatter)
 
+			// configure command context timeout
 			const minTimeout = 3 * time.Second
-			if rootCmdOpts.timeout < minTimeout {
-				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", rootCmdOpts.timeout, minTimeout, minTimeout)
-				rootCmdOpts.timeout = minTimeout
+			if opts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", opts.timeout, minTimeout, minTimeout)
+				opts.timeout = minTimeout
 			}
 
-			timeoutCtx, cancel := context.WithTimeout(context.Background(), rootCmdOpts.timeout)
-			cobra.OnFinalize(func() {
-				// Use OnFinalize because PostRun is not executed on error.
-				cancel()
-			})
+			ctx, cancel := context.WithTimeout(ctx, opts.timeout)
+			// Use OnFinalize because PostRun is not executed on error.
+			cobra.OnFinalize(cancel)
 
-			cmd.SetContext(timeoutCtx)
-			return nil
+			cmd.SetContext(ctx)
 		},
-		SilenceUsage:  true,
-		SilenceErrors: true,
 	}
-	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "directory with the dqlite datastore")
-	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "show all debug messages")
-	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "show all information messages")
-	rootCmd.PersistentFlags().StringVarP(&rootCmdOpts.outputFormat, "output-format", "o", "plain", "set the output format to one of plain, json or yaml")
-	rootCmd.PersistentFlags().DurationVarP(&rootCmdOpts.timeout, "timeout", "t", 90*time.Second, "the max time to wait for the command to execute")
+
+	cmd.PersistentFlags().StringVar(&opts.stateDir, "state-dir", "", "directory with the dqlite datastore")
+	cmd.PersistentFlags().BoolVarP(&opts.logDebug, "debug", "d", false, "show all debug messages")
+	cmd.PersistentFlags().BoolVarP(&opts.logVerbose, "verbose", "v", true, "show all information messages")
+	cmd.PersistentFlags().StringVarP(&opts.outputFormat, "output-format", "o", "plain", "set the output format to one of plain, json or yaml")
+	cmd.PersistentFlags().DurationVarP(&opts.timeout, "timeout", "t", 90*time.Second, "the max time to wait for the command to execute")
 
 	// By default, the state dir is set to a fixed directory in the snap.
 	// This shouldn't be overwritten by the user.
-	rootCmd.PersistentFlags().MarkHidden("state-dir")
-	rootCmd.PersistentFlags().MarkHidden("debug")
-	rootCmd.PersistentFlags().MarkHidden("verbose")
+	cmd.PersistentFlags().MarkHidden("state-dir")
+	cmd.PersistentFlags().MarkHidden("debug")
+	cmd.PersistentFlags().MarkHidden("verbose")
 
 	// General
-	rootCmd.AddCommand(newStatusCmd())
+	cmd.AddCommand(newStatusCmd(env))
 
 	// Clustering
-	rootCmd.AddCommand(newBootstrapCmd())
-	rootCmd.AddCommand(newGetJoinTokenCmd())
-	rootCmd.AddCommand(newJoinClusterCmd())
-	rootCmd.AddCommand(newRemoveNodeCmd())
+	cmd.AddCommand(newBootstrapCmd(env))
+	cmd.AddCommand(newGetJoinTokenCmd(env))
+	cmd.AddCommand(newJoinClusterCmd(env))
+	cmd.AddCommand(newRemoveNodeCmd(env))
 
 	// Components
-	rootCmd.AddCommand(newEnableCmd())
-	rootCmd.AddCommand(newDisableCmd())
-	rootCmd.AddCommand(newSetCmd())
-	rootCmd.AddCommand(newGetCmd())
+	cmd.AddCommand(newEnableCmd(env))
+	cmd.AddCommand(newDisableCmd(env))
+	cmd.AddCommand(newSetCmd(env))
+	cmd.AddCommand(newGetCmd(env))
 
 	// internal
-	rootCmd.AddCommand(newGenerateAuthTokenCmd())
-	rootCmd.AddCommand(newKubeConfigCmd())
-	rootCmd.AddCommand(newLocalNodeStatusCommand())
-	rootCmd.AddCommand(newRevokeAuthTokenCmd())
-	rootCmd.AddCommand(xPrintShimPidsCmd)
+	cmd.AddCommand(newGenerateAuthTokenCmd(env))
+	cmd.AddCommand(newKubeConfigCmd(env))
+	cmd.AddCommand(newLocalNodeStatusCommand(env))
+	cmd.AddCommand(newRevokeAuthTokenCmd(env))
+	cmd.AddCommand(newGenerateDocsCmd(env))
+	cmd.AddCommand(xPrintShimPidsCmd)
 
 	// Those commands replace the executable - no need for error wrapping.
-	rootCmd.AddCommand(newHelmCmd())
-	rootCmd.AddCommand(newKubectlCmd())
+	cmd.AddCommand(newHelmCmd(env))
+	cmd.AddCommand(newKubectlCmd(env))
 
-	rootCmd.DisableAutoGenTag = true
-	return rootCmd
+	cmd.DisableAutoGenTag = true
+	return cmd
 }
