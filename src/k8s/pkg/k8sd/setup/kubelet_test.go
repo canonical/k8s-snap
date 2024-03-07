@@ -2,7 +2,6 @@ package setup_test
 
 import (
 	"net"
-	"os"
 	"path"
 	"testing"
 
@@ -40,7 +39,7 @@ func mustReturnMockForKubelet(s *mock.Snap, dir string) {
 }
 
 func TestKubelet(t *testing.T) {
-	t.Run("Setup control plane with all possible arguments", func(t *testing.T) {
+	t.Run("ControlPlaneArgs", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
@@ -79,18 +78,18 @@ func TestKubelet(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kubelet", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).ToNot(HaveOccurred())
 				g.Expect(tc.expectedVal).To(Equal(val))
 			})
 		}
 
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
-	t.Run("Setup control plane with all optional arguments missing", func(t *testing.T) {
+	t.Run("ControlPlaneArgsNoOptional", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
@@ -124,18 +123,18 @@ func TestKubelet(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kubelet", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).ToNot(HaveOccurred())
 				g.Expect(tc.expectedVal).To(Equal(val))
 			})
 		}
 
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
-	t.Run("Setup worker with all possible arguments", func(t *testing.T) {
+	t.Run("WorkerArgs", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
@@ -174,18 +173,18 @@ func TestKubelet(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kubelet", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).ToNot(HaveOccurred())
 				g.Expect(tc.expectedVal).To(Equal(val))
 			})
 		}
 
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
-	t.Run("Setup worker with all optional arguments missing", func(t *testing.T) {
+	t.Run("WorkerArgsNoOptional", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
@@ -220,22 +219,27 @@ func TestKubelet(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kubelet", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).ToNot(HaveOccurred())
 				g.Expect(tc.expectedVal).To(Equal(val))
 			})
 		}
 
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
-	t.Run("Setup with missing service arguments file should fail", func(t *testing.T) {
+	t.Run("MissingServiceArgumentsDir", func(t *testing.T) {
 		g := NewWithT(t)
 		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
-		os.RemoveAll(path.Join(s.Mock.ServiceArgumentsDir))
-		g.Expect(setup.KubeControllerManager(s)).ToNot(Succeed())
+		s.Mock.ServiceArgumentsDir = "nonexistent"
+
+		g.Expect(setup.KubeletControlPlane(s, "", nil, "", "", "")).ToNot(Succeed())
+		g.Expect(setup.KubeletWorker(s, "", nil, "", "", "")).ToNot(Succeed())
+
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).ToNot(Succeed())
+		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).ToNot(Succeed())
 	})
 }
