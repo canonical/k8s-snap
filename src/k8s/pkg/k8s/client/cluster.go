@@ -50,7 +50,7 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.Bootst
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to convert bootstrap config to map: %w", err)
 	}
 	if err := c.m.NewCluster(hostname, addrPort, config, timeout); err != nil {
-		// TODO(neoaggelos): print message that bootstrap failed, and that we are cleaning up
+		// TODO(neoaggelos): only return error that bootstrap failed
 		fmt.Fprintln(os.Stderr, "Failed with error:", err)
 		c.CleanupNode(ctx, c.opts.Snap, hostname)
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
