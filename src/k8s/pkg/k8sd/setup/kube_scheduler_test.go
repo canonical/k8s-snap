@@ -20,7 +20,7 @@ func mustReturnMockForKubeScheduler(s *mock.Snap, dir string) {
 }
 
 func TestKubeScheduler(t *testing.T) {
-	t.Run("Setup kube scheduler", func(t *testing.T) {
+	t.Run("Args", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
@@ -45,17 +45,17 @@ func TestKubeScheduler(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kube-scheduler", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).ToNot(HaveOccurred())
 				g.Expect(tc.expectedVal).To(Equal(val))
 			})
 		}
 
 		// Ensure the kube scheduler arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-scheduler"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 
-		t.Run("Error when service arguments dir does not exist", func(t *testing.T) {
+		t.Run("MissingArgsDir", func(t *testing.T) {
 			g := NewWithT(t)
 			os.RemoveAll(path.Join(s.Mock.ServiceArgumentsDir))
 			g.Expect(setup.KubeScheduler(s)).ToNot(Succeed())
