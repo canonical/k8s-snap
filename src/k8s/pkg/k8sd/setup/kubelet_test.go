@@ -77,6 +77,7 @@ func TestKubelet(t *testing.T) {
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kubelet", tc.key)
 				g.Expect(err).To(BeNil())
 				g.Expect(tc.expectedVal).To(Equal(val))
@@ -93,8 +94,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
-		defer os.RemoveAll(dir)
+		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
 		// Call the kubelet control plane setup function
 		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "")).To(BeNil())
@@ -122,6 +122,7 @@ func TestKubelet(t *testing.T) {
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kubelet", tc.key)
 				g.Expect(err).To(BeNil())
 				g.Expect(tc.expectedVal).To(Equal(val))
@@ -138,8 +139,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
-		defer os.RemoveAll(dir)
+		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
 		// Call the kubelet worker setup function
 		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).To(BeNil())
@@ -172,6 +172,7 @@ func TestKubelet(t *testing.T) {
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kubelet", tc.key)
 				g.Expect(err).To(BeNil())
 				g.Expect(tc.expectedVal).To(Equal(val))
@@ -188,8 +189,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, dir := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
-		defer os.RemoveAll(dir)
+		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
 		// Call the kubelet worker setup function
 		g.Expect(setup.KubeletWorker(s, "dev", nil, "", "", "")).To(BeNil())
@@ -218,6 +218,7 @@ func TestKubelet(t *testing.T) {
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kubelet", tc.key)
 				g.Expect(err).To(BeNil())
 				g.Expect(tc.expectedVal).To(Equal(val))
@@ -231,6 +232,10 @@ func TestKubelet(t *testing.T) {
 	})
 
 	t.Run("Setup with missing service arguments file should fail", func(t *testing.T) {
+		g := NewWithT(t)
+		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
+		os.RemoveAll(path.Join(s.Mock.ServiceArgumentsDir))
+		g.Expect(setup.KubeControllerManager(s)).ToNot(Succeed())
 	})
 }
