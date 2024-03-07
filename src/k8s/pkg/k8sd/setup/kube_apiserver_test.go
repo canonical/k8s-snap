@@ -28,7 +28,7 @@ func mustReturnMockForKubeAPIServer(s *mock.Snap, dir string) {
 }
 
 func TestKubeAPIServer(t *testing.T) {
-	t.Run("Configure kube-apiserver with proxy", func(t *testing.T) {
+	t.Run("ArgsWithProxy", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
@@ -79,11 +79,11 @@ func TestKubeAPIServer(t *testing.T) {
 
 		// Ensure the kube-apiserver arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-apiserver"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
-	t.Run("Configure kube-apiserver without proxy", func(t *testing.T) {
+	t.Run("ArgsNoProxy", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
@@ -127,11 +127,11 @@ func TestKubeAPIServer(t *testing.T) {
 
 		// Ensure the kube-apiserver arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-apiserver"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
-	t.Run("Handle unsupported datastore", func(t *testing.T) {
+	t.Run("UnsupportedDatastore", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
@@ -139,7 +139,7 @@ func TestKubeAPIServer(t *testing.T) {
 
 		// Attempt to configure kube-apiserver with an unsupported datastore
 		err := setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "unsupported-datastore", "Node,RBAC")
-		g.Expect(err).ToNot(BeNil())
+		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(ContainSubstring("unsupported datastore")))
 	})
 }
