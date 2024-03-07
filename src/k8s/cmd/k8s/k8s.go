@@ -52,7 +52,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			ctx, cancel := context.WithTimeout(ctx, opts.timeout)
-			// Use OnFinalize because PostRun is not executed on error.
 			cobra.OnFinalize(cancel)
 
 			cmd.SetContext(ctx)

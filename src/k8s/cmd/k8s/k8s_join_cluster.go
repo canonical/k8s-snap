@@ -73,7 +73,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
 			if err := client.JoinCluster(cmd.Context(), opts.name, opts.address, token); err != nil {
-				cmd.PrintErrln("ERROR: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("ERROR: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

@@ -93,7 +93,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 	parts := strings.SplitN(arg, "=", 2)
 	if len(parts) != 2 {
-		return fmt.Errorf("option not in <key>=<value> format", arg)
+		return fmt.Errorf("option not in <key>=<value> format")
 	}
 	key := parts[0]
 	value := parts[1]
