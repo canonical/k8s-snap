@@ -52,6 +52,7 @@ func TestKubeControllerManager(t *testing.T) {
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kube-controller-manager", tc.key)
 				g.Expect(err).To(BeNil())
 				g.Expect(tc.expectedVal).To(Equal(val))
@@ -64,6 +65,7 @@ func TestKubeControllerManager(t *testing.T) {
 		g.Expect(len(args)).To(Equal(len(tests)))
 
 		t.Run("Error when service arguments dir does not exist", func(t *testing.T) {
+			g := NewWithT(t)
 			os.RemoveAll(path.Join(s.Mock.ServiceArgumentsDir))
 			g.Expect(setup.KubeControllerManager(s)).ToNot(Succeed())
 		})
@@ -93,6 +95,14 @@ func TestKubeControllerManager(t *testing.T) {
 			{key: "--service-account-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
 			{key: "--use-service-account-credentials", expectedVal: "true"},
 		}
+		for _, tc := range tests {
+			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
+				val, err := snaputil.GetServiceArgument(s, "kube-controller-manager", tc.key)
+				g.Expect(err).To(BeNil())
+				g.Expect(tc.expectedVal).To(Equal(val))
+			})
+		}
 
 		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
@@ -100,6 +110,7 @@ func TestKubeControllerManager(t *testing.T) {
 		g.Expect(len(args)).To(Equal(len(tests)))
 
 		t.Run("Error when service arguments dir does not exist", func(t *testing.T) {
+			g := NewWithT(t)
 			os.RemoveAll(path.Join(s.Mock.ServiceArgumentsDir))
 			g.Expect(setup.KubeControllerManager(s)).ToNot(Succeed())
 		})
