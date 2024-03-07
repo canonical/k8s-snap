@@ -1,6 +1,7 @@
-package formatter
+package cmdutil
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,7 +16,7 @@ type Formatter interface {
 
 // New creates a new formatter based on passed type
 // Can be "plain", "json", "yaml".
-func New(formatterType string, writer io.Writer) (Formatter, error) {
+func NewFormatter(formatterType string, writer io.Writer) (Formatter, error) {
 	switch formatterType {
 	case "plain":
 		return plainFormatter{writer: writer}, nil
@@ -53,4 +54,20 @@ type yamlFormatter struct {
 
 func (y yamlFormatter) Print(data any) error {
 	return yaml.NewEncoder(y.writer).Encode(data)
+}
+
+type formatterContextKey struct{}
+
+func ContextWithFormatter(ctx context.Context, formatter Formatter) context.Context {
+	return context.WithValue(ctx, formatterContextKey{}, formatter)
+}
+
+func FormatterFromContext(ctx context.Context) Formatter {
+	formatter, ok := ctx.Value(formatterContextKey{}).(Formatter)
+	if !ok {
+		// This should never happen as the main microcluster state context should contain the snap for k8sd.
+		// Thus, panic is fine here to avoid cumbersome and unnecessary error checks on client side.
+		panic("There is no formatter value in the given context. Make sure that the context is wrapped with cmdutil.ContextWithFormatter.")
+	}
+	return formatter
 }
