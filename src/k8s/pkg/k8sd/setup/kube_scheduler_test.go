@@ -43,6 +43,7 @@ func TestKubeScheduler(t *testing.T) {
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kube-scheduler", tc.key)
 				g.Expect(err).To(BeNil())
 				g.Expect(tc.expectedVal).To(Equal(val))
@@ -55,6 +56,7 @@ func TestKubeScheduler(t *testing.T) {
 		g.Expect(len(args)).To(Equal(len(tests)))
 
 		t.Run("Error when service arguments dir does not exist", func(t *testing.T) {
+			g := NewWithT(t)
 			os.RemoveAll(path.Join(s.Mock.ServiceArgumentsDir))
 			g.Expect(setup.KubeScheduler(s)).ToNot(Succeed())
 		})
