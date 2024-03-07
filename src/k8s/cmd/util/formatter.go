@@ -58,16 +58,17 @@ func (y yamlFormatter) Print(data any) error {
 
 type formatterContextKey struct{}
 
+// ContextWithFormatter wraps the given context with a Formatter.
 func ContextWithFormatter(ctx context.Context, formatter Formatter) context.Context {
 	return context.WithValue(ctx, formatterContextKey{}, formatter)
 }
 
+// FormatterFromContext retrieves a Formatter from the given context.
+// FormatterFromContext panics in case no formatter is set.
 func FormatterFromContext(ctx context.Context) Formatter {
 	formatter, ok := ctx.Value(formatterContextKey{}).(Formatter)
 	if !ok {
-		// This should never happen as the main microcluster state context should contain the snap for k8sd.
-		// Thus, panic is fine here to avoid cumbersome and unnecessary error checks on client side.
-		panic("There is no formatter value in the given context. Make sure that the context is wrapped with cmdutil.ContextWithFormatter.")
+		panic("There is no formatter value in the given context. Make sure that the context is wrapped with cmdutil.ContextWithFormatter().")
 	}
 	return formatter
 }
