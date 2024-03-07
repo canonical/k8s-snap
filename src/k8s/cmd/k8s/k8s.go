@@ -26,11 +26,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:   "k8s",
 		Short: "Canonical Kubernetes CLI",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			// set input/output streams
-			cmd.SetIn(env.Stdin)
-			cmd.SetOut(env.Stdout)
-			cmd.SetErr(env.Stderr)
-
 			// initialize context
 			ctx := cmd.Context()
 
@@ -57,6 +52,11 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.SetContext(ctx)
 		},
 	}
+
+	// set input/output streams
+	cmd.SetIn(env.Stdin)
+	cmd.SetOut(env.Stdout)
+	cmd.SetErr(env.Stderr)
 
 	cmd.PersistentFlags().StringVar(&opts.stateDir, "state-dir", "", "directory with the dqlite datastore")
 	cmd.PersistentFlags().BoolVarP(&opts.logDebug, "debug", "d", false, "show all debug messages")

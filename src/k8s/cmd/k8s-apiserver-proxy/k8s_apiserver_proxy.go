@@ -19,14 +19,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "k8s-apiserver-proxy",
 		Short: "Local API server proxy used in worker nodes. Forwards requests to active kube-apiserver instances",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// set input/output streams
-			cmd.SetIn(env.Stdin)
-			cmd.SetOut(env.Stdout)
-			cmd.SetErr(env.Stderr)
-
-			return nil
-		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var refreshCh <-chan time.Time
 			if opts.refreshEndpointsInterval == 0 {
@@ -53,6 +45,11 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 		},
 	}
+
+	// set input/output streams
+	cmd.SetIn(env.Stdin)
+	cmd.SetOut(env.Stdout)
+	cmd.SetErr(env.Stderr)
 
 	cmd.Flags().StringVar(&opts.listenAddress, "listen", ":6443", "listen address")
 	cmd.Flags().StringVar(&opts.endpointsConfigFile, "endpoints", "/etc/kubernetes/k8s-apiserver-proxy.json", "configuration file with known kube-apiserver endpoints")
