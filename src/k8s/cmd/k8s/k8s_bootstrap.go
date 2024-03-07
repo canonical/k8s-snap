@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"slices"
 	"strings"
@@ -60,7 +61,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			bootstrapConfig := apiv1.BootstrapConfig{}
 			switch {
 			case opts.interactive:
-				bootstrapConfig = getConfigInteractively()
+				bootstrapConfig = getConfigInteractively(env.Stdin, env.Stdout, env.Stderr)
 			case opts.configFile != "":
 				bootstrapConfig, err = getConfigFromYaml(opts.configFile)
 				if err != nil {
@@ -108,11 +109,12 @@ func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
 	return config, nil
 }
 
-func getConfigInteractively() apiv1.BootstrapConfig {
+func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer) apiv1.BootstrapConfig {
 	config := apiv1.BootstrapConfig{}
 	config.SetDefaults()
 
 	components := askQuestion(
+		stdin, stdout, stderr,
 		"Which components would you like to enable?",
 		componentList,
 		strings.Join(config.Components, ", "),
@@ -120,9 +122,9 @@ func getConfigInteractively() apiv1.BootstrapConfig {
 	)
 	config.Components = strings.Split(components, ",")
 
-	config.ClusterCIDR = askQuestion("Please set the Cluster CIDR:", nil, config.ClusterCIDR, nil)
-	config.ServiceCIDR = askQuestion("Please set the Service CIDR:", nil, config.ServiceCIDR, nil)
-	rbac := askBool("Enable Role Based Access Control (RBAC)?", []string{"yes", "no"}, "yes")
+	config.ClusterCIDR = askQuestion(stdin, stdout, stderr, "Please set the Cluster CIDR:", nil, config.ClusterCIDR, nil)
+	config.ServiceCIDR = askQuestion(stdin, stdout, stderr, "Please set the Service CIDR:", nil, config.ServiceCIDR, nil)
+	rbac := askBool(stdin, stdout, stderr, "Enable Role Based Access Control (RBAC)?", []string{"yes", "no"}, "yes")
 	*config.EnableRBAC = rbac
 	return config
 }
@@ -131,7 +133,7 @@ func getConfigInteractively() apiv1.BootstrapConfig {
 // askQuestion will keep asking if the input is not valid.
 // askQuestion will remove all whitespaces and capitalization of the input.
 // customErr can be used to provide extra error messages for specific non-valid inputs.
-func askQuestion(question string, options []string, defaultVal string, customErr map[string]string) string {
+func askQuestion(stdin io.Reader, stdout io.Writer, stderr io.Writer, question string, options []string, defaultVal string, customErr map[string]string) string {
 	for {
 		q := question
 		if options != nil {
@@ -143,9 +145,9 @@ func askQuestion(question string, options []string, defaultVal string, customErr
 		q = fmt.Sprintf("%s ", q)
 
 		var s string
-		r := bufio.NewReader(os.Stdin)
+		r := bufio.NewReader(stdin)
 		for {
-			fmt.Fprint(os.Stdout, q)
+			fmt.Fprint(stdout, q)
 			s, _ = r.ReadString('\n')
 			if s != "" {
 				break
@@ -165,9 +167,9 @@ func askQuestion(question string, options []string, defaultVal string, customErr
 			for _, element := range sSlice {
 				if !slices.Contains(options, element) {
 					if msg, ok := customErr[element]; ok {
-						fmt.Fprintf(os.Stdout, "  %s\n", msg)
+						fmt.Fprintf(stderr, "  %s\n", msg)
 					} else {
-						fmt.Fprintf(os.Stdout, "  %q is not a valid option.\n", element)
+						fmt.Fprintf(stderr, "  %q is not a valid option.\n", element)
 					}
 					valid = false
 				}
@@ -181,9 +183,9 @@ func askQuestion(question string, options []string, defaultVal string, customErr
 }
 
 // askBool asks a question and expect a yes/no answer.
-func askBool(question string, options []string, defaultVal string) bool {
+func askBool(stdin io.Reader, stdout io.Writer, stderr io.Writer, question string, options []string, defaultVal string) bool {
 	for {
-		answer := askQuestion(question, options, defaultVal, nil)
+		answer := askQuestion(stdin, stdout, stderr, question, options, defaultVal, nil)
 
 		if utils.ValueInSlice(strings.ToLower(answer), []string{"yes", "y"}) {
 			return true
@@ -191,6 +193,6 @@ func askBool(question string, options []string, defaultVal string) bool {
 			return false
 		}
 
-		fmt.Fprintf(os.Stderr, "Invalid input, try again.\n\n")
+		fmt.Fprintf(stderr, "Invalid input, try again.\n\n")
 	}
 }
