@@ -12,6 +12,7 @@ import (
 	k8s_apiserver_proxy "github.com/canonical/k8s/cmd/k8s-apiserver-proxy"
 	"github.com/canonical/k8s/cmd/k8sd"
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/spf13/cobra"
 )
 
 func main() {
@@ -19,6 +20,9 @@ func main() {
 	env := cmdutil.DefaultExecutionEnvironment()
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
+
+	// ensure hooks from all commands are executed
+	cobra.EnableTraverseRunHooks = true
 
 	// choose command based on the binary name
 	base := path.Base(os.Args[0])
