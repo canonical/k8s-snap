@@ -16,14 +16,14 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			config, err := client.KubeConfig(cmd.Context(), opts.server)
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to generate an admin kubeconfig for %q.\n\nThe error was: %v\n", opts.server, err)
+				cmd.PrintErrf("Error: Failed to generate an admin kubeconfig for %q.\n\nThe error was: %v\n", opts.server, err)
 				env.Exit(1)
 				return
 			}

@@ -32,13 +32,13 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			for _, arg := range args {
 				if err := updateConfig(&config, arg); err != nil {
-					cmd.PrintErrf("ERROR: Invalid option %q.\n\nThe error was: %v\n", arg, err)
+					cmd.PrintErrf("Error: Invalid option %q.\n\nThe error was: %v\n", arg, err)
 				}
 			}
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
@@ -46,7 +46,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			// Fetching current config to check where an already enabled functionality is updated.
 			currentConfig, err := client.GetClusterConfig(cmd.Context(), apiv1.GetClusterConfigRequest{})
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to retrieve the current cluster configuration.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to retrieve the current cluster configuration.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
@@ -78,7 +78,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			if err := client.UpdateClusterConfig(cmd.Context(), request); err != nil {
-				cmd.PrintErrf("ERROR: Failed to apply requested cluster configuration changes.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to apply requested cluster configuration changes.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

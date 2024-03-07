@@ -16,7 +16,7 @@ func newGenerateDocsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Short:  "Generate markdown documentation",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := doc.GenMarkdownTree(cmd.Parent(), opts.outputDir); err != nil {
-				cmd.PrintErrf("ERROR: Failed to generate markdown documentation for k8s command.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to generate markdown documentation for k8s command.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

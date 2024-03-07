@@ -31,7 +31,7 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			functionalities := args
 			for _, functionality := range functionalities {
 				if !slices.Contains(componentList, functionality) {
-					cmd.PrintErrf("ERROR: Cannot disable %q, must be one of: %s\n", functionality, strings.Join(componentList, ", "))
+					cmd.PrintErrf("Error: Cannot disable %q, must be one of: %s\n", functionality, strings.Join(componentList, ", "))
 					env.Exit(1)
 					return
 				}
@@ -73,14 +73,14 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			cmd.PrintErrf("Disabling %s from the cluster. This may take a few seconds, please wait.\n", strings.Join(functionalities, ", "))
 			if err := client.UpdateClusterConfig(cmd.Context(), request); err != nil {
-				cmd.PrintErrf("ERROR: Failed to disable %s from the cluster.\n\nThe error was: %v\n", strings.Join(functionalities, ", "), err)
+				cmd.PrintErrf("Error: Failed to disable %s from the cluster.\n\nThe error was: %v\n", strings.Join(functionalities, ", "), err)
 				env.Exit(1)
 				return
 			}
@@ -90,6 +90,9 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 		},
 	}
+
+	cmd.PersistentFlags().SetOutput(env.Stderr)
+	cmd.Flags().SetOutput(env.Stderr)
 
 	return cmd
 }

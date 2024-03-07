@@ -19,13 +19,13 @@ func newGenerateAuthTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 			token, err := client.GenerateAuthToken(cmd.Context(), opts.username, opts.groups)
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to generate the requested Kubernetes auth token.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to generate the requested Kubernetes auth token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

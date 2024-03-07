@@ -19,14 +19,14 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			config, err := client.GetClusterConfig(cmd.Context(), api.GetClusterConfigRequest{})
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to get the current cluster configuration.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to get the current cluster configuration.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
@@ -101,13 +101,13 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			case "metrics-server.enabled":
 				output = *config.MetricsServer.Enabled
 			default:
-				cmd.PrintErrf("ERROR: Unknown config key %q.\n", key)
+				cmd.PrintErrf("Error: Unknown config key %q.\n", key)
 				env.Exit(1)
 				return
 			}
 
 			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(output); err != nil {
-				cmd.PrintErrf("ERROR: Failed to print the value of %q.\n\nThe error was: %v\n", key, err)
+				cmd.PrintErrf("Error: Failed to print the value of %q.\n\nThe error was: %v\n", key, err)
 				env.Exit(1)
 				return
 			}

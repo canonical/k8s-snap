@@ -19,14 +19,14 @@ func newSqlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				Snap:       env.Snap,
 			})
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to initialize k8sd app.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to initialize k8sd app.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			_, batch, err := cluster.MicroCluster.SQL(args[0])
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to execute the SQL query.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to execute the SQL query.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

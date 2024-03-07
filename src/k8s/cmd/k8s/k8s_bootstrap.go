@@ -40,20 +40,20 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			if opts.interactive && opts.configFile != "" {
-				cmd.PrintErrln("ERROR: --interactive and --config flags cannot be set at the same time.")
+				cmd.PrintErrln("Error: --interactive and --config flags cannot be set at the same time.")
 				env.Exit(1)
 				return
 			}
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			if client.IsBootstrapped(cmd.Context()) {
-				cmd.PrintErrln("ERROR: The node is already part of a cluster")
+				cmd.PrintErrln("Error: The node is already part of a cluster")
 				env.Exit(1)
 				return
 			}
@@ -65,7 +65,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			case opts.configFile != "":
 				bootstrapConfig, err = getConfigFromYaml(opts.configFile)
 				if err != nil {
-					cmd.PrintErrf("ERROR: Failed to read bootstrap configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
+					cmd.PrintErrf("Error: Failed to read bootstrap configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
 					env.Exit(1)
 					return
 				}
@@ -76,7 +76,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
 			node, err := client.Bootstrap(cmd.Context(), bootstrapConfig)
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to bootstrap the cluster.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to bootstrap the cluster.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

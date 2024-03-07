@@ -17,13 +17,13 @@ func newRevokeAuthTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			if err := client.RevokeAuthToken(cmd.Context(), opts.token); err != nil {
-				cmd.PrintErrf("ERROR: Failed to revoke the auth token.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to revoke the auth token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

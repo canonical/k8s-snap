@@ -38,7 +38,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			var err error
 			formatter, err := cmdutil.NewFormatter(opts.outputFormat, cmd.OutOrStdout())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Unknown --output-format %q. It must be one of %q (default), %q or %q.", opts.outputFormat, "plain", "json", "yaml")
+				cmd.PrintErrf("Error: Unknown --output-format %q. It must be one of %q (default), %q or %q.", opts.outputFormat, "plain", "json", "yaml")
 				env.Exit(1)
 				return
 			}

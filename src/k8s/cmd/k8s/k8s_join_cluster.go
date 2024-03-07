@@ -36,7 +36,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				// TODO(neoaggelos): use the encoded node name from the token, if available.
 				hostname, err := os.Hostname()
 				if err != nil {
-					cmd.PrintErrf("ERROR: --name is not set and could not determine the current node name.\n\nThe error was: %v\n", err)
+					cmd.PrintErrf("Error: --name is not set and could not determine the current node name.\n\nThe error was: %v\n", err)
 					env.Exit(1)
 					return
 				}
@@ -49,20 +49,20 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			if client.IsBootstrapped(cmd.Context()) {
-				cmd.PrintErrln("ERROR: The node is already part of a cluster")
+				cmd.PrintErrln("Error: The node is already part of a cluster")
 				env.Exit(1)
 				return
 			}
 
 			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
 			if err := client.JoinCluster(cmd.Context(), opts.name, opts.address, token); err != nil {
-				cmd.PrintErrf("ERROR: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

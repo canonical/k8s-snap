@@ -33,13 +33,13 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				Snap:       env.Snap,
 			})
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to initialize k8sd: %v", err)
+				cmd.PrintErrf("Error: Failed to initialize k8sd: %v", err)
 				env.Exit(1)
 				return
 			}
 
 			if err := app.Run(nil); err != nil {
-				cmd.PrintErrf("ERROR: Failed to run k8sd: %v", err)
+				cmd.PrintErrf("Error: Failed to run k8sd: %v", err)
 				env.Exit(1)
 				return
 			}

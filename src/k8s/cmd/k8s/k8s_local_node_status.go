@@ -15,20 +15,20 @@ func newLocalNodeStatusCommand(env cmdutil.ExecutionEnvironment) *cobra.Command 
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			status, err := client.NodeStatus(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to get the status of the local node.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to get the status of the local node.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(status); err != nil {
-				cmd.PrintErrf("ERROR: Failed to print the status of the local node.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to print the status of the local node.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

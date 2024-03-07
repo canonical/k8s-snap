@@ -16,13 +16,13 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			if !client.IsBootstrapped(cmd.Context()) {
-				cmd.PrintErrln("ERROR: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
 				env.Exit(1)
 				return
 			}
@@ -31,7 +31,7 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			// fail fast if we're not explicitly waiting and we can't get kube-apiserver endpoints
 			if !opts.waitReady {
 				if !client.IsKubernetesAPIServerReady(cmd.Context()) {
-					cmd.PrintErrln("ERROR: There are no active kube-apiserver endpoints, cluster status is unavailable")
+					cmd.PrintErrln("Error: There are no active kube-apiserver endpoints, cluster status is unavailable")
 					env.Exit(1)
 					return
 				}
@@ -39,13 +39,13 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			status, err := client.ClusterStatus(cmd.Context(), opts.waitReady)
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to retrieve the cluster status.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to retrieve the cluster status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(status); err != nil {
-				cmd.PrintErrf("ERROR: Failed to print the cluster status.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to print the cluster status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

@@ -19,33 +19,33 @@ func newHelmCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			isWorker, err := snaputil.IsWorker(env.Snap)
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to check if this is worker-only node.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to check if this is worker-only node.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			if isWorker {
-				cmd.PrintErrln("ERROR: k8s helm commands are not allowed on worker nodes")
+				cmd.PrintErrln("Error: k8s helm commands are not allowed on worker nodes")
 				env.Exit(1)
 				return
 			}
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("ERROR: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
 			if !client.IsBootstrapped(cmd.Context()) {
-				cmd.PrintErrln("ERROR: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
 				env.Exit(1)
 				return
 			}
 
 			binary, err := exec.LookPath("helm")
 			if err != nil {
-				cmd.PrintErrln("ERROR: helm binary not found")
+				cmd.PrintErrln("Error: helm binary not found")
 				env.Exit(1)
 				return
 			}
