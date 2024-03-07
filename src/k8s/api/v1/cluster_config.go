@@ -1,5 +1,11 @@
 package v1
 
+import (
+	"fmt"
+
+	"gopkg.in/yaml.v2"
+)
+
 type GetClusterConfigRequest struct{}
 
 type GetClusterConfigResponse struct {
@@ -65,4 +71,68 @@ type GatewayConfig struct {
 
 type MetricsServerConfig struct {
 	Enabled *bool `json:"enabled,omitempty" yaml:"enabled"`
+}
+
+func (c UserFacingClusterConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
+}
+
+func (c NetworkConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
+}
+
+func (c DNSConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
+}
+
+func (c IngressConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
+}
+
+func (c LoadBalancerConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
+}
+
+func (c LocalStorageConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
+}
+
+func (c GatewayConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
+}
+
+func (c MetricsServerConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
 }
