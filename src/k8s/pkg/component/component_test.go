@@ -168,8 +168,7 @@ func mustCreateNewHelmClient(t *testing.T, components map[string]types.Component
 func TestListEmptyComponents(t *testing.T) {
 	g := NewWithT(t)
 	// Create a mock ComponentManager with no components
-	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, nil)
-	defer os.RemoveAll(tempDir)
+	mockHelmClient, _, _ := mustCreateNewHelmClient(t, nil)
 
 	// Call the List function with the mock HelmClient
 	components, err := mockHelmClient.List()
@@ -183,7 +182,7 @@ func TestListComponentsWithReleases(t *testing.T) {
 
 	// Create a mock ComponentManager with the mock HelmClient
 	// This mock uses components.yaml for the snap mock components
-	mockHelmClient, tempDir, mockActionConfig := mustCreateNewHelmClient(t, map[string]types.Component{
+	mockHelmClient, _, mockActionConfig := mustCreateNewHelmClient(t, map[string]types.Component{
 		"one": {
 			ReleaseName:  "whiskas-1",
 			Namespace:    "default",
@@ -200,8 +199,6 @@ func TestListComponentsWithReleases(t *testing.T) {
 			ManifestPath: "chunky-1.29.0.tgz",
 		},
 	})
-
-	defer os.RemoveAll(tempDir)
 
 	// Create releases in the mock actionConfig
 	releases := mustMakeMeSomeReleases(mockActionConfig.Releases, t)
@@ -290,6 +287,7 @@ func TestEnableMultipleComponents(t *testing.T) {
 	}
 	for _, tc := range releases {
 		t.Run(tc.release, func(t *testing.T) {
+			g := NewWithT(t)
 			g.Expect(mockHelmClient.isComponentEnabled(tc.release, tc.namespace)).To(BeTrue(), "Expected all components to enabled")
 		})
 	}
@@ -342,12 +340,14 @@ func TestDisableComponent(t *testing.T) {
 	}
 	for _, tc := range releases {
 		t.Run(tc.release, func(t *testing.T) {
+			g := NewWithT(t)
 			g.Expect(mockHelmClient.isComponentEnabled(tc.release, tc.namespace)).To(BeFalse(), "Expected all components to be disabled")
 		})
 	}
 
 	// Component does not exist at all
 	t.Run("Disable non-existent component should error", func(t *testing.T) {
+		g := NewWithT(t)
 		g.Expect(mockHelmClient.Disable("non-existent")).ShouldNot(Succeed())
 	})
 }
