@@ -7,7 +7,7 @@ Enable core cluster functionalities
 Enable one of network, dns, gateway, ingress, local-storage, load-balancer, metrics-server.
 
 ```
-k8s enable <functionality1> ... [flags]
+k8s enable <functionality> ... [flags]
 ```
 
 ### Options

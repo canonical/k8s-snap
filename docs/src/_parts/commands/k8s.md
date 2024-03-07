@@ -12,7 +12,8 @@ Canonical Kubernetes CLI
 
 ### SEE ALSO
 
-* [k8s bootstrap](k8s_bootstrap.md)	 - Bootstrap a k8s cluster on this node
+* [k8s bootstrap](k8s_bootstrap.md)	 - Bootstrap a new Kubernetes cluster
+* [k8s completion](k8s_completion.md)	 - Generate the autocompletion script for the specified shell
 * [k8s config](k8s_config.md)	 - Generate a kubeconfig that can be used to access the Kubernetes cluster
 * [k8s disable](k8s_disable.md)	 - Disable core cluster functionalities
 * [k8s enable](k8s_enable.md)	 - Enable core cluster functionalities
