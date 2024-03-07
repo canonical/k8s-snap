@@ -51,9 +51,11 @@ func newKubectlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			command := append([]string{"kubectl"}, args...)
-			environ := env.Environ
-			environ = cmdutil.EnvWithKeyIfMissing(environ, "KUBECONFIG", path.Join(env.Snap.KubernetesConfigDir(), "admin.conf"))
-			environ = cmdutil.EnvWithKeyIfMissing(environ, "EDITOR", "nano")
+			environ := cmdutil.EnvironWithDefaults(
+				env.Environ,
+				"KUBECONFIG", path.Join(env.Snap.KubernetesConfigDir(), "admin.conf"),
+				"EDITOR", "nano",
+			)
 			if err := syscall.Exec(binary, command, environ); err != nil {
 				cmd.PrintErrf("Failed to run %s.\n\nThe error was: %v\n", command, err)
 				env.Exit(1)

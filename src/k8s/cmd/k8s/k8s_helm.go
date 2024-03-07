@@ -51,7 +51,10 @@ func newHelmCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			command := append([]string{"helm"}, args...)
-			environ := cmdutil.EnvWithKeyIfMissing(env.Environ, "KUBECONFIG", path.Join(env.Snap.KubernetesConfigDir(), "admin.conf"))
+			environ := cmdutil.EnvironWithDefaults(
+				env.Environ,
+				"KUBECONFIG", path.Join(env.Snap.KubernetesConfigDir(), "admin.conf"),
+			)
 			if err := syscall.Exec(binary, command, environ); err != nil {
 				cmd.PrintErrf("Failed to run %s.\n\nThe error was: %v\n", command, err)
 				env.Exit(1)

@@ -55,13 +55,27 @@ func DefaultExecutionEnvironment() ExecutionEnvironment {
 	}
 }
 
-// EnvWithKeyIfMissing returns a copy of the environment and sets a key if it is not already set.
-func EnvWithKeyIfMissing(environ []string, key string, value string) []string {
-	for _, val := range environ {
-		parts := strings.SplitN(val, "=", 2)
-		if parts[0] == key && (len(parts) == 2 || parts[1] != "") {
-			return environ
-		}
+// EnvironWithDefaults returns a copy of the environment.
+// EnvironWithDefaults accepts optional key-value pairs to add to the environment (if they are not already set).
+func EnvironWithDefaults(environ []string, keyValues ...string) []string {
+	if len(keyValues)%2 == 1 {
+		panic(fmt.Errorf("key %s does not have a matching value", keyValues[len(keyValues)-1]))
 	}
-	return append(environ, fmt.Sprintf("%s=%s", key, value))
+
+nextKeyValue:
+	for i := 0; i < len(keyValues); i += 2 {
+		key := keyValues[i]
+		value := keyValues[i+1]
+
+		for _, val := range environ {
+			parts := strings.SplitN(val, "=", 2)
+			if parts[0] == key && (len(parts) == 2 || parts[1] != "") {
+				continue nextKeyValue
+			}
+		}
+
+		environ = append(environ, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	return environ
 }

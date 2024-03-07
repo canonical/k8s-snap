@@ -7,39 +7,41 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestEnvWithKeyIfMissing(t *testing.T) {
+func TestEnvironWithDefaults(t *testing.T) {
 	for _, tc := range []struct {
 		name        string
 		env         []string
-		key         string
-		val         string
+		defaults    []string
 		expectedEnv []string
 	}{
 		{
 			name:        "AddMissing",
-			env:         []string{"EXISTING=VAL"},
-			key:         "NEWKEY",
-			val:         "VALUE",
-			expectedEnv: []string{"EXISTING=VAL", "NEWKEY=VALUE"},
+			env:         []string{"KEY1=VAL1"},
+			defaults:    []string{"KEY2", "VAL2"},
+			expectedEnv: []string{"KEY1=VAL1", "KEY2=VAL2"},
 		},
 		{
 			name:        "KeepExisting",
-			env:         []string{"EXISTING=VAL", "NEWKEY=OLDVAL"},
-			key:         "NEWKEY",
-			val:         "VALUE",
-			expectedEnv: []string{"EXISTING=VAL", "NEWKEY=OLDVAL"},
+			env:         []string{"KEY1=VAL1", "KEY2=VAL1"},
+			defaults:    []string{"KEY2", "VAL2"},
+			expectedEnv: []string{"KEY1=VAL1", "KEY2=VAL1"},
 		},
 		{
 			name:        "KeepEmpty",
-			env:         []string{"EXISTING=VAL", "NEWKEY="},
-			key:         "NEWKEY",
-			val:         "VALUE",
-			expectedEnv: []string{"EXISTING=VAL", "NEWKEY="},
+			env:         []string{"KEY1=VAL1", "KEY2="},
+			defaults:    []string{"KEY2", "VAL2"},
+			expectedEnv: []string{"KEY1=VAL1", "KEY2="},
+		},
+		{
+			name:        "AddSome",
+			env:         []string{"KEY1=VAL1", "KEY3=VAL1"},
+			defaults:    []string{"KEY2", "VAL2", "KEY3", "VAL3"},
+			expectedEnv: []string{"KEY1=VAL1", "KEY3=VAL1", "KEY2=VAL2"},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
-			g.Expect(cmdutil.EnvWithKeyIfMissing(tc.env, tc.key, tc.val)).To(Equal(tc.expectedEnv))
+			g.Expect(cmdutil.EnvironWithDefaults(tc.env, tc.defaults...)).To(Equal(tc.expectedEnv))
 		})
 	}
 }
