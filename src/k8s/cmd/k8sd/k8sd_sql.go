@@ -11,7 +11,7 @@ func newSqlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:    "sql <query>",
 		Short:  "Execute an SQL query against the daemon",
 		Hidden: true,
-		Args:   cobra.ExactArgs(1),
+		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			cluster, err := app.New(cmd.Context(), app.Config{
 				StateDir:   rootCmdOpts.stateDir,

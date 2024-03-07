@@ -14,7 +14,7 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:    "get <functionality.key>",
 		Short:  "get cluster configuration",
 		Long:   fmt.Sprintf("Show configuration of one of %s.", strings.Join(componentList, ", ")),
-		Args:   cobra.MaximumNArgs(1),
+		Args:   cmdutil.MaximumNArgs(env, 1),
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())

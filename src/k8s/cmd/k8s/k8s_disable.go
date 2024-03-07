@@ -24,7 +24,7 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:    "disable <functionality> ...",
 		Short:  "Disable core cluster functionalities",
 		Long:   fmt.Sprintf("Disable one of %s.", strings.Join(componentList, ", ")),
-		Args:   cobra.MinimumNArgs(1),
+		Args:   cmdutil.MinimumNArgs(env, 1),
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}

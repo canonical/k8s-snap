@@ -23,7 +23,7 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:    "remove-node <node-name>",
 		Short:  "Remove a node from the cluster",
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
-		Args:   cobra.ExactArgs(1),
+		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {
