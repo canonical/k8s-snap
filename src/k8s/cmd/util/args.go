@@ -35,7 +35,7 @@ func MaximumNArgs(env ExecutionEnvironment, n int) func(cmd *cobra.Command, args
 // ExactArgs requires exactly N args to be passed.
 func ExactArgs(env ExecutionEnvironment, n int) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if len(args) > n {
+		if len(args) != n {
 			err := fmt.Errorf("accepts %d arg(s), received %d", n, len(args))
 			cmd.PrintErrf("Error: %v\n%s\n", err, cmd.UsageString())
 			env.Exit(1)
