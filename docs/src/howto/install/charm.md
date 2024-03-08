@@ -69,7 +69,7 @@ Use `juju status` to watch these units approach active/idle
 
 In many cases, it is desirable to have additional 'worker only' units in the cluster. 
 Rather than adding more control-plane units, we'll deploy the `k8s-worker` charm.
-After deployment, integrate theese new nodes with control-plane units so they join 
+After deployment, integrate these new nodes with control-plane units so they join 
 the cluster.
 
 ```bash
