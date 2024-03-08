@@ -11,7 +11,10 @@ There's more than one way to install Canonical Kubernetes. You'll find links to 
 ```{toctree}
 :glob:
 :titlesonly:
+
 /howto/install/snap
 /howto/install/multipass
 /howto/install/lxd
+/howto/install/charm
 ```
+
