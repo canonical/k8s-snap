@@ -103,6 +103,26 @@ func mustMakeMeSomeReleases(store *storage.Storage, t *testing.T) (all []*releas
 	return all
 }
 
+func mustMakeMeSomeComponents() map[string]types.Component {
+	return map[string]types.Component{
+		"one": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-1.14.1.tgz",
+		},
+		"two": {
+			ReleaseName:  "whiskas-2",
+			Namespace:    "default",
+			ManifestPath: "tuna-1.29.0.tgz",
+		},
+		"three": {
+			ReleaseName:  "whiskas-3",
+			Namespace:    "default",
+			ManifestPath: "chunky-1.29.0.tgz",
+		},
+	}
+}
+
 var componentsNone = ``
 
 func mustCreateTemporaryTestDirectory(t *testing.T) string {
@@ -182,23 +202,7 @@ func TestListComponentsWithReleases(t *testing.T) {
 
 	// Create a mock ComponentManager with the mock HelmClient
 	// This mock uses components.yaml for the snap mock components
-	mockHelmClient, _, mockActionConfig := mustCreateNewHelmClient(t, map[string]types.Component{
-		"one": {
-			ReleaseName:  "whiskas-1",
-			Namespace:    "default",
-			ManifestPath: "chunky-tuna-1.14.1.tgz",
-		},
-		"two": {
-			ReleaseName:  "whiskas-2",
-			Namespace:    "default",
-			ManifestPath: "tuna-1.29.0.tgz",
-		},
-		"three": {
-			ReleaseName:  "whiskas-3",
-			Namespace:    "default",
-			ManifestPath: "chunky-1.29.0.tgz",
-		},
-	})
+	mockHelmClient, _, mockActionConfig := mustCreateNewHelmClient(t, mustMakeMeSomeComponents())
 
 	// Create releases in the mock actionConfig
 	releases := mustMakeMeSomeReleases(mockActionConfig.Releases, t)
@@ -218,29 +222,13 @@ func TestListComponentsWithReleases(t *testing.T) {
 func TestComponentsInitialState(t *testing.T) {
 	g := NewWithT(t)
 
-	mockHelmClient, _, _ := mustCreateNewHelmClient(t, map[string]types.Component{
-		"one": {
-			ReleaseName:  "whiskas-1",
-			Namespace:    "default",
-			ManifestPath: "chunky-tuna-0.1.0.tgz",
-		},
-		"two": {
-			ReleaseName:  "whiskas-2",
-			Namespace:    "default",
-			ManifestPath: "slim-tuna-0.1.0.tgz",
-		},
-	})
+	components := mustMakeMeSomeComponents()
 
-	var releases = []struct {
-		release   string
-		namespace string
-	}{
-		{"whiskas-1", "default"},
-		{"whiskas-2", "default"},
-	}
-	for _, tc := range releases {
-		t.Run(tc.release, func(t *testing.T) {
-			g.Expect(mockHelmClient.isComponentEnabled(tc.release, tc.namespace)).To(BeFalse(), "Expected all components to be initially disabled")
+	mockHelmClient, _, _ := mustCreateNewHelmClient(t, components)
+
+	for _, component := range components {
+		t.Run(component.ReleaseName, func(t *testing.T) {
+			g.Expect(mockHelmClient.isComponentEnabled(component.ReleaseName, component.Namespace)).To(BeFalse(), "Expected all components to be initially disabled")
 		})
 	}
 }
@@ -248,18 +236,9 @@ func TestComponentsInitialState(t *testing.T) {
 func TestEnableMultipleComponents(t *testing.T) {
 	g := NewWithT(t)
 
-	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, map[string]types.Component{
-		"one": {
-			ReleaseName:  "whiskas-1",
-			Namespace:    "default",
-			ManifestPath: "chunky-tuna-0.1.0.tgz",
-		},
-		"two": {
-			ReleaseName:  "whiskas-2",
-			Namespace:    "default",
-			ManifestPath: "slim-tuna-0.1.0.tgz",
-		},
-	})
+	components := mustMakeMeSomeComponents()
+
+	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, components)
 
 	for name, component := range mockHelmClient.components {
 		chart := buildChart(withName(component.ReleaseName))
@@ -278,17 +257,10 @@ func TestEnableMultipleComponents(t *testing.T) {
 		}
 	})
 
-	var releases = []struct {
-		release   string
-		namespace string
-	}{
-		{"whiskas-1", "default"},
-		{"whiskas-2", "default"},
-	}
-	for _, tc := range releases {
-		t.Run(tc.release, func(t *testing.T) {
+	for _, component := range components {
+		t.Run(component.ReleaseName, func(t *testing.T) {
 			g := NewWithT(t)
-			g.Expect(mockHelmClient.isComponentEnabled(tc.release, tc.namespace)).To(BeTrue(), "Expected all components to enabled")
+			g.Expect(mockHelmClient.isComponentEnabled(component.ReleaseName, component.Namespace)).To(BeTrue(), "Expected all components to enabled")
 		})
 	}
 
@@ -301,18 +273,9 @@ func TestEnableMultipleComponents(t *testing.T) {
 func TestDisableComponent(t *testing.T) {
 	g := NewWithT(t)
 
-	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, map[string]types.Component{
-		"one": {
-			ReleaseName:  "whiskas-1",
-			Namespace:    "default",
-			ManifestPath: "chunky-tuna-0.1.0.tgz",
-		},
-		"two": {
-			ReleaseName:  "whiskas-2",
-			Namespace:    "default",
-			ManifestPath: "slim-tuna-0.1.0.tgz",
-		},
-	})
+	components := mustMakeMeSomeComponents()
+
+	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, components)
 
 	for name, component := range mockHelmClient.components {
 		chart := buildChart(withName(component.ReleaseName))
@@ -331,17 +294,10 @@ func TestDisableComponent(t *testing.T) {
 		}
 	})
 
-	var releases = []struct {
-		release   string
-		namespace string
-	}{
-		{"whiskas-1", "default"},
-		{"whiskas-2", "default"},
-	}
-	for _, tc := range releases {
-		t.Run(tc.release, func(t *testing.T) {
+	for _, component := range components {
+		t.Run(component.ReleaseName, func(t *testing.T) {
 			g := NewWithT(t)
-			g.Expect(mockHelmClient.isComponentEnabled(tc.release, tc.namespace)).To(BeFalse(), "Expected all components to be disabled")
+			g.Expect(mockHelmClient.isComponentEnabled(component.ReleaseName, component.ReleaseName)).To(BeFalse(), "Expected all components to be disabled")
 		})
 	}
 
