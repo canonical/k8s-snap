@@ -1,7 +1,6 @@
 package setup_test
 
 import (
-	"os"
 	"path"
 	"testing"
 
@@ -62,7 +61,8 @@ func TestKubeScheduler(t *testing.T) {
 
 		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeScheduler)
 
-		os.RemoveAll(path.Join(s.Mock.ServiceArgumentsDir))
+		s.Mock.ServiceArgumentsDir = "nonexistent"
+
 		g.Expect(setup.KubeScheduler(s)).ToNot(Succeed())
 	})
 }
