@@ -11,7 +11,8 @@ There's more than one way to install Canonical Kubernetes. You'll find links to 
 ```{toctree}
 :glob:
 :titlesonly:
-/howto/install/charm
+
 /howto/install/snap
 /howto/install/multipass
+/howto/install/charm
 ```
