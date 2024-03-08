@@ -24,14 +24,14 @@ func TestKubelet(t *testing.T) {
 		{
 			name: "Empty",
 			configmap: map[string]string{
-				"cluster-dns":    "",
-				"cluster-domain": "",
-				"cloud-provider": "",
+				"cluster-dns":          "",
+				"cluster-domain":       "",
+				"cloud-provider":       "",
 			},
 			kubelet: types.Kubelet{
-				ClusterDNS:    vals.Pointer(""),
-				ClusterDomain: vals.Pointer(""),
-				CloudProvider: vals.Pointer(""),
+				ClusterDNS:         vals.Pointer(""),
+				ClusterDomain:      vals.Pointer(""),
+				CloudProvider:      vals.Pointer(""),
 			},
 		},
 		{
@@ -57,14 +57,14 @@ func TestKubelet(t *testing.T) {
 		{
 			name: "All",
 			configmap: map[string]string{
-				"cluster-dns":    "1.1.1.1",
-				"cluster-domain": "cluster.local",
-				"cloud-provider": "external",
+				"cluster-dns":          "1.1.1.1",
+				"cluster-domain":       "cluster.local",
+				"cloud-provider":       "external",
 			},
 			kubelet: types.Kubelet{
-				ClusterDNS:    vals.Pointer("1.1.1.1"),
-				ClusterDomain: vals.Pointer("cluster.local"),
-				CloudProvider: vals.Pointer("external"),
+				ClusterDNS:         vals.Pointer("1.1.1.1"),
+				ClusterDomain:      vals.Pointer("cluster.local"),
+				CloudProvider:      vals.Pointer("external"),
 			},
 		},
 	} {
