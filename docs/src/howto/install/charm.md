@@ -40,7 +40,7 @@ The `latest/edge` channel is always under active development. This is where you 
 ## Bootstrap the cluster
 
 Installing the k8s charm sets up all the parts required to run Kubernetes. One may
-watch it progress using juju status
+watch it progress using juju status:
 
 ```bash
 juju status --watch 1s
