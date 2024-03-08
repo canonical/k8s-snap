@@ -7,11 +7,13 @@ import (
 	"net"
 	"strings"
 
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/vals"
 )
 
-func EnableNetworkComponent(ctx context.Context, s snap.Snap, podCIDR string) error {
+func UpdateNetworkComponent(ctx context.Context, s snap.Snap, isRefresh bool, podCIDR string) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -110,8 +112,14 @@ func EnableNetworkComponent(ctx context.Context, s snap.Snap, podCIDR string) er
 		}
 	}
 
-	if err := manager.Enable("network", values); err != nil {
-		return fmt.Errorf("failed to enable network component: %w", err)
+	if isRefresh {
+		if err := manager.Refresh("network", values); err != nil {
+			return fmt.Errorf("failed to refresh network component: %w", err)
+		}
+	} else {
+		if err := manager.Enable("network", values); err != nil {
+			return fmt.Errorf("failed to enable network component: %w", err)
+		}
 	}
 
 	return nil
@@ -127,5 +135,30 @@ func DisableNetworkComponent(s snap.Snap) error {
 		return fmt.Errorf("failed to disable network component: %w", err)
 	}
 
+	return nil
+}
+
+func ReconcileNetworkComponent(ctx context.Context, s snap.Snap, alreadyEnabled *bool, requestEnabled *bool, clusterConfig types.ClusterConfig) error {
+	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
+		// If already enabled, and request does not contain `enabled` key
+		// or if already enabled and request contains `enabled=true`
+		err := UpdateNetworkComponent(ctx, s, true, clusterConfig.Network.PodCIDR)
+		if err != nil {
+			return fmt.Errorf("failed to refresh network: %w", err)
+		}
+		return nil
+	} else if vals.OptionalBool(requestEnabled, false) {
+		err := UpdateNetworkComponent(ctx, s, false, clusterConfig.Network.PodCIDR)
+		if err != nil {
+			return fmt.Errorf("failed to enable network: %w", err)
+		}
+		return nil
+	} else if !vals.OptionalBool(requestEnabled, false) {
+		err := DisableNetworkComponent(s)
+		if err != nil {
+			return fmt.Errorf("failed to disable network: %w", err)
+		}
+		return nil
+	}
 	return nil
 }

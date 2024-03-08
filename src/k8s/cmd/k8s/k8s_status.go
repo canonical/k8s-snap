@@ -1,66 +1,57 @@
 package k8s
 
 import (
-	"context"
-	"fmt"
-	"time"
-
-	v1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/cmd/k8s/errors"
-	"github.com/canonical/k8s/cmd/k8s/formatter"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
-var (
-	statusCmdOpts struct {
-		outputFormat string
-		timeout      time.Duration
-		waitReady    bool
+func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		waitReady bool
 	}
-)
-
-func newStatusCmd() *cobra.Command {
-	statusCmd := &cobra.Command{
-		Use:     "status",
-		Short:   "Retrieve the current status of the cluster",
-		Hidden:  true,
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
-
-			// fail fast if we're not bootstrapped
-			if !k8sdClient.IsBootstrapped(cmd.Context()) {
-				return v1.ErrNotBootstrapped
+	cmd := &cobra.Command{
+		Use:    "status",
+		Short:  "Retrieve the current status of the cluster",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
+			client, err := env.Client(cmd.Context())
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
+
+			if !client.IsBootstrapped(cmd.Context()) {
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				env.Exit(1)
+				return
+			}
+
+			// TODO(neoaggelos): this must be done on the server side
 			// fail fast if we're not explicitly waiting and we can't get kube-apiserver endpoints
-			if !statusCmdOpts.waitReady {
-				if ready := k8sdClient.IsKubernetesAPIServerReady(cmd.Context()); !ready {
-					return fmt.Errorf("failed to get kube-apiserver endpoints; cluster status is unavailable")
+			if !opts.waitReady {
+				if !client.IsKubernetesAPIServerReady(cmd.Context()) {
+					cmd.PrintErrln("Error: There are no active kube-apiserver endpoints, cluster status is unavailable")
+					env.Exit(1)
+					return
 				}
 			}
 
-			const minTimeout = 3 * time.Second
-			if statusCmdOpts.timeout < minTimeout {
-				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", statusCmdOpts.timeout, minTimeout, minTimeout)
-				statusCmdOpts.timeout = minTimeout
+			status, err := client.ClusterStatus(cmd.Context(), opts.waitReady)
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to retrieve the cluster status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
-			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), statusCmdOpts.timeout)
-			defer cancel()
-			clusterStatus, err := k8sdClient.ClusterStatus(timeoutCtx, statusCmdOpts.waitReady)
-			if err != nil {
-				return fmt.Errorf("failed to get cluster status: %w", err)
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(status); err != nil {
+				cmd.PrintErrf("Error: Failed to print the cluster status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
-
-			f, err := formatter.New(statusCmdOpts.outputFormat, cmd.OutOrStdout())
-			if err != nil {
-				return fmt.Errorf("failed to create formatter: %w", err)
-			}
-			return f.Print(clusterStatus)
 		},
 	}
-	statusCmd.PersistentFlags().StringVar(&statusCmdOpts.outputFormat, "format", "plain", "Specify in which format the output should be printed. One of plain, json or yaml")
-	statusCmd.PersistentFlags().DurationVar(&statusCmdOpts.timeout, "timeout", 90*time.Second, "The max time to wait for the K8s API server to be ready.")
-	statusCmd.PersistentFlags().BoolVar(&statusCmdOpts.waitReady, "wait-ready", false, "If set, the command will block until at least one cluster node is ready.")
-	return statusCmd
+
+	cmd.PersistentFlags().BoolVar(&opts.waitReady, "wait-ready", false, "wait until at least one cluster node is ready")
+	return cmd
 }

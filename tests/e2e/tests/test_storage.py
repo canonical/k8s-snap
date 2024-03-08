@@ -27,7 +27,7 @@ def test_storage(instances: List[harness.Instance]):
         pytest.fail("Set TEST_SNAP to the path where the snap is")
 
     instance = instances[0]
-    instance.exec(["k8s", "enable", "storage"])
+    instance.exec(["k8s", "enable", "local-storage"])
 
     LOG.info("Waiting for storage provisioner pod to show up...")
     util.stubbornly(retries=15, delay_s=5).on(instance).until(

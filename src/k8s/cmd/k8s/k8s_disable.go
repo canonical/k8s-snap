@@ -5,34 +5,94 @@ import (
 	"slices"
 	"strings"
 
+	api "github.com/canonical/k8s/api/v1"
+	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/spf13/cobra"
 )
 
-func newDisableCmd() *cobra.Command {
-	disableCmd := &cobra.Command{
-		Use:   "disable <component>",
-		Short: "Disable a specific component in the cluster",
-		Long:  fmt.Sprintf("Disable one of the specific components: %s.", strings.Join(componentList, ",")),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: provide only the name of the component that should be disabled")
+type DisableResult struct {
+	Functionalities []string `json:"functionalities" yaml:"functionalities"`
+}
+
+func (d DisableResult) String() string {
+	return fmt.Sprintf("%s disabled.\n", strings.Join(d.Functionalities, ", "))
+}
+
+func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:    "disable <functionality> ...",
+		Short:  "Disable core cluster functionalities",
+		Long:   fmt.Sprintf("Disable one of %s.", strings.Join(componentList, ", ")),
+		Args:   cmdutil.MinimumNArgs(env, 1),
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
+			config := api.UserFacingClusterConfig{}
+			functionalities := args
+			for _, functionality := range functionalities {
+				if !slices.Contains(componentList, functionality) {
+					cmd.PrintErrf("Error: Cannot disable %q, must be one of: %s\n", functionality, strings.Join(componentList, ", "))
+					env.Exit(1)
+					return
+				}
+
+				switch functionality {
+				case "network":
+					config.Network = &api.NetworkConfig{
+						Enabled: vals.Pointer(false),
+					}
+				case "dns":
+					config.DNS = &api.DNSConfig{
+						Enabled: vals.Pointer(false),
+					}
+				case "gateway":
+					config.Gateway = &api.GatewayConfig{
+						Enabled: vals.Pointer(false),
+					}
+				case "ingress":
+					config.Ingress = &api.IngressConfig{
+						Enabled: vals.Pointer(false),
+					}
+				case "local-storage":
+					config.LocalStorage = &api.LocalStorageConfig{
+						Enabled: vals.Pointer(false),
+					}
+				case "load-balancer":
+					config.LoadBalancer = &api.LoadBalancerConfig{
+						Enabled: vals.Pointer(false),
+					}
+				case "metrics-server":
+					config.MetricsServer = &api.MetricsServerConfig{
+						Enabled: vals.Pointer(false),
+					}
+				}
 			}
-			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the name of the component that should be disabled")
+			request := api.UpdateClusterConfigRequest{
+				Config: config,
 			}
-			if !slices.Contains(componentList, args[0]) {
-				return fmt.Errorf("unknown component %q; needs to be one of: %s", args[0], strings.Join(componentList, ", "))
+
+			client, err := env.Client(cmd.Context())
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
-			return nil
+
+			cmd.PrintErrf("Disabling %s from the cluster. This may take a few seconds, please wait.\n", strings.Join(functionalities, ", "))
+			if err := client.UpdateClusterConfig(cmd.Context(), request); err != nil {
+				cmd.PrintErrf("Error: Failed to disable %s from the cluster.\n\nThe error was: %v\n", strings.Join(functionalities, ", "), err)
+				env.Exit(1)
+				return
+			}
+
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(DisableResult{Functionalities: functionalities}); err != nil {
+				cmd.PrintErrf("WARNING: Failed to print the disable result.\n\nThe error was: %v\n", err)
+			}
 		},
 	}
 
-	disableCmd.AddCommand(newDisableDNSCmd())
-	disableCmd.AddCommand(newDisableNetworkCmd())
-	disableCmd.AddCommand(newDisableStorageCmd())
-	disableCmd.AddCommand(newDisableIngressCmd())
-	disableCmd.AddCommand(newDisableGatewayCmd())
-	disableCmd.AddCommand(newDisableLoadBalancerCmd())
-	disableCmd.AddCommand(newDisableMetricsServerCmd())
-	return disableCmd
+	cmd.PersistentFlags().SetOutput(env.Stderr)
+	cmd.Flags().SetOutput(env.Stderr)
+
+	return cmd
 }

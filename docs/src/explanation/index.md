@@ -14,7 +14,12 @@ Overview <self>
 :titlesonly:
 /explanation/about
 /explanation/channels
+/explanation/security
 ```
+
+---
+
+## Other documentation types
 
 If you are just getting started, the [Tutorials section] contains
 step-by-step tutorials to help guide you through exploring and using

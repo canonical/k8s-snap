@@ -1,56 +1,52 @@
 package k8s
 
 import (
-	"context"
 	"fmt"
-	"time"
 
-	"github.com/canonical/k8s/cmd/k8s/errors"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
-var (
-	removeNodeCmdOpts struct {
-		force   bool
-		timeout time.Duration
+type RemoveNodeResult struct {
+	Name string `json:"name" yaml:"name"`
+}
+
+func (r RemoveNodeResult) String() string {
+	return fmt.Sprintf("Removed %s from cluster.\n", r.Name)
+}
+
+func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		force bool
 	}
-)
-
-func newRemoveNodeCmd() *cobra.Command {
-	removeNodeCmd := &cobra.Command{
-		Use:     "remove-node <node-name>",
-		Short:   "Remove a node from the cluster",
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: provide only the name of the node to remove")
+	cmd := &cobra.Command{
+		Use:    "remove-node <node-name>",
+		Short:  "Remove a node from the cluster",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Args:   cmdutil.ExactArgs(env, 1),
+		Run: func(cmd *cobra.Command, args []string) {
+			client, err := env.Client(cmd.Context())
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
-			if len(args) < 1 {
-				return fmt.Errorf("missing argument: provide the name of the node to remove")
-			}
-
-			defer errors.Transform(&err, nil)
 
 			name := args[0]
 
-			// TODO: Apply this check for all command where a timeout is required, do not repeat in each command.
-			const minTimeout = 3 * time.Second
-			if removeNodeCmdOpts.timeout < minTimeout {
-				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", removeNodeCmdOpts.timeout, minTimeout, minTimeout)
-				removeNodeCmdOpts.timeout = minTimeout
+			cmd.PrintErrf("Removing %q from the Kubernetes cluster. This may take a few seconds, please wait.\n", name)
+			if err := client.RemoveNode(cmd.Context(), name, opts.force); err != nil {
+				cmd.PrintErrf("Error: Failed to remove node %q from the cluster.\n\nThe error was: %v\n", name, err)
+				env.Exit(1)
+				return
 			}
 
-			timeoutCtx, cancel := context.WithTimeout(cmd.Context(), removeNodeCmdOpts.timeout)
-			defer cancel()
-			if err := k8sdClient.RemoveNode(timeoutCtx, name, removeNodeCmdOpts.force); err != nil {
-				return fmt.Errorf("failed to remove node from cluster: %w", err)
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(RemoveNodeResult{Name: name}); err != nil {
+				cmd.PrintErrf("WARNING: Failed to print remove node result.\n\nThe error was: %v\n", err)
 			}
-			fmt.Printf("Removed %s from cluster.\n", name)
-			return nil
 		},
 	}
-	removeNodeCmd.Flags().BoolVar(&removeNodeCmdOpts.force, "force", false, "Forcibly remove the cluster member")
-	removeNodeCmd.PersistentFlags().DurationVar(&removeNodeCmdOpts.timeout, "timeout", 180*time.Second, "The max time to wait for the node to be removed.")
-	removeNodeCmd.FlagErrorFunc()
-	return removeNodeCmd
+
+	cmd.Flags().BoolVar(&opts.force, "force", false, "forcibly remove the cluster member")
+	return cmd
 }

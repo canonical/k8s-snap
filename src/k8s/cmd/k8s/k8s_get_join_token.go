@@ -3,20 +3,8 @@ package k8s
 import (
 	"fmt"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/cmd/k8s/errors"
-	"github.com/canonical/k8s/cmd/k8s/formatter"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
-)
-
-var (
-	getJoinTokenCmdOpts struct {
-		worker       bool
-		outputFormat string
-	}
-	getJoinTokenCmdErrorMsgs = map[error]string{
-		apiv1.ErrTokenAlreadyCreated: "A token for this node was already created and the node did not join.",
-	}
 )
 
 type GetJoinTokenResult struct {
@@ -24,43 +12,43 @@ type GetJoinTokenResult struct {
 }
 
 func (g GetJoinTokenResult) String() string {
-	return fmt.Sprintf("On the node you want to join call:\n\n  sudo k8s join-cluster %s\n\n", g.JoinToken)
+	return fmt.Sprintf("On the node you want to join call:\n\n  sudo k8s join-cluster %s\n", g.JoinToken)
 }
 
-func newGetJoinTokenCmd() *cobra.Command {
-	getJoinTokenCmd := &cobra.Command{
-		Use:     "get-join-token <node-name>",
-		Short:   "Create a join token for a node to join the cluster",
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			if len(args) > 1 {
-				return fmt.Errorf("too many arguments: only provide the node name for 'get-join-token'")
-			}
-			if len(args) < 1 {
-				return fmt.Errorf("missing argument: please provide the node name for 'get-join-token'")
-			}
-
-			defer errors.Transform(&err, getJoinTokenCmdErrorMsgs)
+func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		worker bool
+	}
+	cmd := &cobra.Command{
+		Use:    "get-join-token <node-name>",
+		Short:  "Create a token for a node to join the cluster",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Args:   cmdutil.ExactArgs(env, 1),
+		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
 
-			// Create a joinToken that will be used by the joining node to join the cluster.
-			joinToken, err := k8sdClient.CreateJoinToken(cmd.Context(), name, getJoinTokenCmdOpts.worker)
+			client, err := env.Client(cmd.Context())
 			if err != nil {
-				return fmt.Errorf("failed to retrieve join token: %w", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
-			result := GetJoinTokenResult{
-				JoinToken: joinToken,
-			}
-			f, err := formatter.New(getJoinTokenCmdOpts.outputFormat, cmd.OutOrStdout())
+			token, err := client.CreateJoinToken(cmd.Context(), name, opts.worker)
 			if err != nil {
-				return fmt.Errorf("failed to create formatter: %w", err)
+				cmd.PrintErrf("Error: Could not generate a join token for %q.\n\nThe error was: %v\n", name, err)
+				env.Exit(1)
+				return
 			}
-			return f.Print(result)
+
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(GetJoinTokenResult{JoinToken: token}); err != nil {
+				cmd.PrintErrf("Error: Failed to print the join token.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			}
 		},
 	}
 
-	getJoinTokenCmd.PersistentFlags().StringVarP(&getJoinTokenCmdOpts.outputFormat, "output-format", "o", "plain", "Specify in which format the output should be printed. One of plain, json or yaml")
-	getJoinTokenCmd.PersistentFlags().BoolVar(&getJoinTokenCmdOpts.worker, "worker", false, "generate a join token for a worker node")
-	return getJoinTokenCmd
+	cmd.PersistentFlags().BoolVar(&opts.worker, "worker", false, "generate a join token for a worker node")
+	return cmd
 }

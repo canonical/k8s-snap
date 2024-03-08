@@ -1,39 +1,38 @@
 package k8s
 
 import (
-	"fmt"
-
-	"github.com/canonical/k8s/cmd/k8s/errors"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 
 	"github.com/spf13/cobra"
 )
 
-var (
-	generateAuthTokenCmdOpts struct {
+func newGenerateAuthTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
 		username string
 		groups   []string
 	}
-)
 
-func newGenerateAuthTokenCmd() *cobra.Command {
-	generateAuthTokenCmd := &cobra.Command{
-		Use:     "generate-auth-token --username <user> [--groups <group1>,<group2>]",
-		Short:   "Generate an auth token for Kubernetes",
-		Hidden:  true,
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
-
-			token, err := k8sdClient.GenerateAuthToken(cmd.Context(), generateAuthTokenCmdOpts.username, generateAuthTokenCmdOpts.groups)
+	cmd := &cobra.Command{
+		Use:    "generate-auth-token --username <user> [--groups <group1>,<group2>]",
+		Hidden: true,
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
+			client, err := env.Client(cmd.Context())
 			if err != nil {
-				return fmt.Errorf("could not generate auth token: %w", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
-			fmt.Println(token)
-
-			return nil
+			token, err := client.GenerateAuthToken(cmd.Context(), opts.username, opts.groups)
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to generate the requested Kubernetes auth token.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			}
+			cmd.Println(token)
 		},
 	}
-	generateAuthTokenCmd.Flags().StringVar(&generateAuthTokenCmdOpts.username, "username", "", "Username")
-	generateAuthTokenCmd.Flags().StringSliceVar(&generateAuthTokenCmdOpts.groups, "groups", nil, "Groups")
-	return generateAuthTokenCmd
+	cmd.Flags().StringVar(&opts.username, "username", "", "Username")
+	cmd.Flags().StringSliceVar(&opts.groups, "groups", nil, "Groups")
+	return cmd
 }

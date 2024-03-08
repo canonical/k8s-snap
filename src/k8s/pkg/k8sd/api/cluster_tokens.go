@@ -10,6 +10,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/microcluster"
 	"github.com/canonical/microcluster/state"
@@ -21,20 +22,44 @@ func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	var (
-		token string
-		err   error
-	)
+	hostname, err := utils.CleanHostname(req.Name)
+	if err != nil {
+		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", req.Name, err))
+	}
+
+	var token string
 	if req.Worker {
 		token, err = createWorkerToken(s)
 	} else {
-		token, err = m.NewJoinToken(req.Name)
+		token, err = getOrCreateJoinToken(m, hostname)
 	}
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create token: %w", err))
 	}
 
 	return response.SyncResponse(true, &apiv1.TokensResponse{EncodedToken: token})
+}
+
+func getOrCreateJoinToken(m *microcluster.MicroCluster, tokenName string) (string, error) {
+	// grab token if it exists and return it
+	records, err := m.ListJoinTokens()
+	if err != nil {
+		fmt.Println("Failed to get existing tokens. Trying to create a new token.")
+	} else {
+		for _, record := range records {
+			if record.Name == tokenName {
+				return record.Token, nil
+			}
+		}
+		fmt.Println("No token exists yet. Creating a new token.")
+	}
+
+	// if token does not exist, create a new one
+	token, err := m.NewJoinToken(tokenName)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate a new microcluster join token: %w", err)
+	}
+	return token, nil
 }
 
 func createWorkerToken(s *state.State) (string, error) {

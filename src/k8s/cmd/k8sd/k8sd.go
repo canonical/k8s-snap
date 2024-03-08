@@ -1,50 +1,55 @@
 package k8sd
 
 import (
-	"fmt"
-	"os"
-
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/k8sd/app"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/spf13/cobra"
 )
 
-var (
-	rootCmdOpts struct {
-		logDebug   bool
-		logVerbose bool
-		stateDir   string
-		port       uint
-	}
+var rootCmdOpts struct {
+	logDebug   bool
+	logVerbose bool
+	stateDir   string
+	port       uint
+}
 
-	rootCmd = &cobra.Command{
+func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "k8sd",
 		Short: "Canonical Kubernetes orchestrator and clustering daemon",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
+		Run: func(cmd *cobra.Command, args []string) {
 			app, err := app.New(cmd.Context(), app.Config{
 				Debug:      rootCmdOpts.logDebug,
 				Verbose:    rootCmdOpts.logVerbose,
 				StateDir:   rootCmdOpts.stateDir,
 				ListenPort: rootCmdOpts.port,
-				Snap:       snap,
+				Snap:       env.Snap,
 			})
 			if err != nil {
-				return fmt.Errorf("failed to initialize k8sd: %w", err)
+				cmd.PrintErrf("Error: Failed to initialize k8sd: %v", err)
+				env.Exit(1)
+				return
 			}
 
 			if err := app.Run(nil); err != nil {
-				return fmt.Errorf("failed to run k8sd: %w", err)
+				cmd.PrintErrf("Error: Failed to run k8sd: %v", err)
+				env.Exit(1)
+				return
 			}
-			return nil
 		},
 	}
-)
 
-func init() {
-	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
-	rootCmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
-	rootCmd.PersistentFlags().UintVar(&rootCmdOpts.port, "port", config.DefaultPort, "Port on which the REST API is exposed")
-	rootCmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
+	cmd.SetIn(env.Stdin)
+	cmd.SetOut(env.Stdout)
+	cmd.SetErr(env.Stderr)
+
+	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
+	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
+	cmd.PersistentFlags().UintVar(&rootCmdOpts.port, "port", config.DefaultPort, "Port on which the REST API is exposed")
+	cmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
+
+	cmd.AddCommand(newSqlCmd(env))
+
+	return cmd
 }

@@ -61,6 +61,12 @@ func buildChart(opts ...chartOption) *chart.Chart {
 	return c.Chart
 }
 
+func withName(name string) chartOption {
+	return func(opts *chartOptions) {
+		opts.Metadata.Name = name
+	}
+}
+
 func namedReleaseStub(name string, status release.Status) *release.Release {
 	now := time.Now()
 	return &release.Release{
@@ -121,6 +127,16 @@ func mustAddConfigToTestDir(t *testing.T, path string, data string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func mustAddChartToTestDir(t *testing.T, path string, chart *chart.Chart) string {
+	// Create a chart and add it to the test directory as a gzip archive
+	k8sComponentsDir := filepath.Join(path, "k8s", "components", "charts")
+	chartPath, err := chartutil.Save(chart, k8sComponentsDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return chartPath
 }
 
 func mustCreateNewHelmClient(t *testing.T, components map[string]types.Component) (*helmClient, string, *action.Configuration) {
@@ -199,4 +215,61 @@ func TestListComponentsWithReleases(t *testing.T) {
 		{Name: "three", Status: true},
 		{Name: "two", Status: true},
 	}))
+}
+
+func TestComponentsInitialState(t *testing.T) {
+	g := NewWithT(t)
+
+	mockHelmClient, _, _ := mustCreateNewHelmClient(t, map[string]types.Component{
+		"one": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-0.1.0.tgz",
+		},
+		"two": {
+			ReleaseName:  "whiskas-2",
+			Namespace:    "default",
+			ManifestPath: "slim-tuna-0.1.0.tgz",
+		},
+	})
+
+	components, err := mockHelmClient.List()
+	g.Expect(err).ShouldNot(HaveOccurred())
+	for _, component := range components {
+		g.Expect(component.Status).To(BeFalse(), "Expected all components to be initially disabled")
+	}
+}
+
+func TestEnableMultipleComponents(t *testing.T) {
+	g := NewWithT(t)
+
+	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, map[string]types.Component{
+		"one": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-0.1.0.tgz",
+		},
+		"two": {
+			ReleaseName:  "whiskas-2",
+			Namespace:    "default",
+			ManifestPath: "slim-tuna-0.1.0.tgz",
+		},
+	})
+
+	for name, component := range mockHelmClient.components {
+		chart := buildChart(withName(component.ReleaseName))
+		chartPath := mustAddChartToTestDir(t, tempDir, chart)
+		component.ManifestPath = chartPath
+		mockHelmClient.components[name] = component
+
+		err := mockHelmClient.Enable(name, map[string]interface{}{})
+		g.Expect(err).ShouldNot(HaveOccurred())
+	}
+
+	components, err := mockHelmClient.List()
+	g.Expect(err).ShouldNot(HaveOccurred())
+	g.Expect(components).To(ConsistOf(
+		Component{Name: "one", Status: true},
+		Component{Name: "two", Status: true},
+	), "Expected all components to be enabled")
 }

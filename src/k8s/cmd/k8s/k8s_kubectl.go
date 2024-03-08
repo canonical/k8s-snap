@@ -1,57 +1,66 @@
 package k8s
 
 import (
-	"fmt"
-	"os"
 	"os/exec"
+	"path"
 	"syscall"
 
-	"github.com/canonical/k8s/pkg/snap"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/spf13/cobra"
 )
 
-func newKubectlCmd() *cobra.Command {
+func newKubectlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	return &cobra.Command{
-		Use:   "kubectl",
-		Short: "Integrated Kubernetes CLI",
-		// All commands should be passed to kubectl
+		Use:                "kubectl",
+		Short:              "Integrated Kubernetes kubectl client",
 		DisableFlagParsing: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
-
-			isWorker, err := snaputil.IsWorker(snap)
+		PreRun:             chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
+			isWorker, err := snaputil.IsWorker(env.Snap)
 			if err != nil {
-				return fmt.Errorf("failed to check if node is a worker: %w", err)
+				cmd.PrintErrf("Error: Failed to check if this is worker-only node.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
 			if isWorker {
-				// TODO: convert to sentinel errors to work with human readability machinery #130
-				return fmt.Errorf("this action is restricted on workers")
+				cmd.PrintErrln("Error: k8s kubectl commands are not allowed on worker nodes")
+				env.Exit(1)
+				return
 			}
 
-			// Allow users to provide their own kubeconfig but
-			// fallback to the admin config if nothing is provided.
-			if os.Getenv("KUBECONFIG") == "" {
-				os.Setenv("KUBECONFIG", "/etc/kubernetes/admin.conf")
-			}
-			// Set a default editor that comes with the snap so that 'kubectl edit' works
-			if os.Getenv("EDITOR") == "" {
-				os.Setenv("EDITOR", "nano")
-			}
-			path, err := exec.LookPath("kubectl")
+			client, err := env.Client(cmd.Context())
 			if err != nil {
-				return fmt.Errorf("kubectl not found")
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
-			command := append(
-				[]string{"kubectl"},
-				args...,
+			if !client.IsBootstrapped(cmd.Context()) {
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				env.Exit(1)
+				return
+			}
+
+			binary, err := exec.LookPath("kubectl")
+			if err != nil {
+				cmd.PrintErrln("Error: kubectl binary not found")
+				env.Exit(1)
+				return
+			}
+
+			command := append([]string{"kubectl"}, args...)
+			environ := cmdutil.EnvironWithDefaults(
+				env.Environ,
+				"KUBECONFIG", path.Join(env.Snap.KubernetesConfigDir(), "admin.conf"),
+				"EDITOR", "nano",
 			)
-			// completly replace the executable with kubectl
-			// as we want to be as close as possible to a "real"
-			// kubectl invocation.
-			return syscall.Exec(path, command, os.Environ())
+			if err := syscall.Exec(binary, command, environ); err != nil {
+				cmd.PrintErrf("Failed to run %s.\n\nThe error was: %v\n", command, err)
+				env.Exit(1)
+				return
+			}
 		},
 	}
 }

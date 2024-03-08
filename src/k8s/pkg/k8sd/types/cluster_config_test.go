@@ -6,6 +6,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -13,8 +14,9 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 	g := NewWithT(t)
 	bootstrapConfig := apiv1.BootstrapConfig{
 		ClusterCIDR:   "10.1.0.0/16",
+		ServiceCIDR:   "10.152.183.0/24",
 		Components:    []string{"dns", "network"},
-		EnableRBAC:    &[]bool{true}[0],
+		EnableRBAC:    vals.Pointer(true),
 		K8sDqlitePort: 12345,
 	}
 
@@ -23,10 +25,15 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			AuthorizationMode: "Node,RBAC",
 		},
 		Network: types.Network{
-			PodCIDR: "10.1.0.0/16",
+			Enabled:     vals.Pointer(true),
+			PodCIDR:     "10.1.0.0/16",
+			ServiceCIDR: "10.152.183.0/24",
 		},
 		K8sDqlite: types.K8sDqlite{
 			Port: 12345,
+		},
+		DNS: types.DNS{
+			Enabled: vals.Pointer(true),
 		},
 	}
 
@@ -38,21 +45,44 @@ func TestValidateCIDR(t *testing.T) {
 	// Create a new BootstrapConfig with default values
 	validConfig := types.ClusterConfig{
 		Network: types.Network{
-			PodCIDR: "10.1.0.0/16,2001:0db8::/32",
+			PodCIDR:     "10.1.0.0/16,2001:0db8::/32",
+			ServiceCIDR: "10.152.183.0/16",
 		},
 	}
-
 	err := validConfig.Validate()
 	g.Expect(err).To(BeNil())
 
-	// Create a new BootstrapConfig with invalid CIDR
-	invalidConfig := types.ClusterConfig{
-		Network: types.Network{
-			PodCIDR: "bananas",
-		},
-	}
-	err = invalidConfig.Validate()
-	g.Expect(err).ToNot(BeNil())
+	t.Run("InvalidCIDR", func(t *testing.T) {
+		for _, tc := range []struct {
+			cidr string
+		}{
+			{cidr: "bananas"},
+			{cidr: "fd01::/64,fd02::/64,fd03::/64"},
+		} {
+			t.Run(tc.cidr, func(t *testing.T) {
+				t.Run("Pod", func(t *testing.T) {
+					g := NewWithT(t)
+					config := types.ClusterConfig{
+						Network: types.Network{
+							PodCIDR: tc.cidr,
+						},
+					}
+					err := config.Validate()
+					g.Expect(err).ToNot(BeNil())
+				})
+				t.Run("Service", func(t *testing.T) {
+					g := NewWithT(t)
+					config := types.ClusterConfig{
+						Network: types.Network{
+							ServiceCIDR: tc.cidr,
+						},
+					}
+					err := config.Validate()
+					g.Expect(err).ToNot(BeNil())
+				})
+			})
+		}
+	})
 }
 
 func TestUnsetRBAC(t *testing.T) {
@@ -73,7 +103,7 @@ func TestFalseRBAC(t *testing.T) {
 	g := NewWithT(t)
 	// Ensure false rbac yields open authz
 	bootstrapConfig := apiv1.BootstrapConfig{
-		EnableRBAC: &[]bool{false}[0],
+		EnableRBAC: vals.Pointer(false),
 	}
 	expectedConfig := types.ClusterConfig{
 		APIServer: types.APIServer{
@@ -100,6 +130,20 @@ func TestSetDefaults(t *testing.T) {
 		},
 		K8sDqlite: types.K8sDqlite{
 			Port: 9000,
+		},
+		Kubelet: types.Kubelet{
+			ClusterDomain: "cluster.local",
+		},
+		DNS: types.DNS{
+			UpstreamNameservers: []string{"/etc/resolv.conf"},
+		},
+		LocalStorage: types.LocalStorage{
+			LocalPath:     "/var/snap/k8s/common/rawfile-storage",
+			ReclaimPolicy: "Delete",
+			SetDefault:    vals.Pointer(true),
+		},
+		LoadBalancer: types.LoadBalancer{
+			L2Enabled: vals.Pointer(true),
 		},
 	}
 

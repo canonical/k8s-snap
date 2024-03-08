@@ -202,12 +202,11 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			return fmt.Errorf("using an external kubernetes CA without providing the apiserver certificate is not possible")
 		}
 
-		// TODO(neoaggelos): we also need to specify the kubernetes service IP here, not hardcode 10.152.183.1
 		template, err := generateCertificate(
 			pkix.Name{CommonName: "kube-apiserver"},
 			c.years,
 			false,
-			append(c.dnsSANs, "kubernetes", "kubernetes.default", "kubernetes.default.svc", "kubernetes.default.svc.cluster", "kubernetes.default.svc.cluster.local"), append(c.ipSANs, net.IP{10, 152, 183, 1}, net.IP{127, 0, 0, 1}))
+			append(c.dnsSANs, "kubernetes", "kubernetes.default", "kubernetes.default.svc", "kubernetes.default.svc.cluster", "kubernetes.default.svc.cluster.local"), append(c.ipSANs, net.IP{127, 0, 0, 1}))
 		if err != nil {
 			return fmt.Errorf("failed to generate apiserver certificate: %w", err)
 		}

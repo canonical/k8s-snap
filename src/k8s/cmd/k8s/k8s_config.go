@@ -1,28 +1,36 @@
 package k8s
 
 import (
-	"fmt"
-
-	"github.com/canonical/k8s/cmd/k8s/errors"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
-func newKubeConfigCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:     "config",
-		Short:   "Generate a kubeconfig that can be used to access the Kubernetes cluster",
-		Hidden:  true,
-		PreRunE: chainPreRunHooks(hookSetupClient),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			defer errors.Transform(&err, nil)
-
-			adminConfig, err := k8sdClient.KubeConfig(cmd.Context())
+func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		server string
+	}
+	cmd := &cobra.Command{
+		Use:    "config",
+		Short:  "Generate a kubeconfig that can be used to access the Kubernetes cluster",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Run: func(cmd *cobra.Command, args []string) {
+			client, err := env.Client(cmd.Context())
 			if err != nil {
-				return fmt.Errorf("failed to get admin config: %w", err)
+				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
-			fmt.Println(adminConfig)
-			return nil
+			config, err := client.KubeConfig(cmd.Context(), opts.server)
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to generate an admin kubeconfig for %q.\n\nThe error was: %v\n", opts.server, err)
+				env.Exit(1)
+				return
+			}
+
+			cmd.Println(config)
 		},
 	}
+	cmd.PersistentFlags().StringVar(&opts.server, "server", "", "custom cluster server address")
+	return cmd
 }

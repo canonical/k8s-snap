@@ -34,10 +34,16 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to create directories: %w", err)
 	}
 
+	// cfg.Network.ServiceCIDR may be "IPv4CIDR[,IPv6CIDR]". get the first ip from CIDR(s).
+	serviceIPs, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(cfg.Network.ServiceCIDR)
+	if err != nil {
+		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.ServiceCIDR, err)
+	}
+
 	// Certificates
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname: s.Name(),
-		IPSANs:   []net.IP{nodeIP},
+		IPSANs:   append([]net.IP{nodeIP}, serviceIPs...),
 		Years:    10,
 	})
 
