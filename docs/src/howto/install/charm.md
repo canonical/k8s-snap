@@ -54,7 +54,7 @@ Once the unit is active/idle, You'll know the cluster is installed.
 
 ## Expanding the cluster
 
-At this point, you should have 1 control-plane node.  To expand, add more units
+At this point, you should have one control-plane node. To expand your cluster, add more units
 with the following command
 
 ```bash
