@@ -111,7 +111,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Configure services
-	if err := setup.Containerd(snap); err != nil {
+	if err := setup.Containerd(snap, nil); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider); err != nil {

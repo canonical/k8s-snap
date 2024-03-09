@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	. "github.com/onsi/gomega"
@@ -40,7 +41,15 @@ func TestContainerd(t *testing.T) {
 	}
 
 	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
-	g.Expect(setup.Containerd(s)).To(BeNil())
+	g.Expect(setup.Containerd(s, []types.ContainerdRegistry{
+		{
+			Host:       "docker.io",
+			URLs:       []string{"https://registry-1.docker.io", "https://registry-2.docker.io"},
+			Username:   "username",
+			Password:   "pass",
+			SkipVerify: true,
+		},
+	})).To(BeNil())
 
 	t.Run("Config", func(t *testing.T) {
 		g := NewWithT(t)
@@ -102,5 +111,4 @@ func TestContainerd(t *testing.T) {
 			})
 		}
 	})
-
 }
