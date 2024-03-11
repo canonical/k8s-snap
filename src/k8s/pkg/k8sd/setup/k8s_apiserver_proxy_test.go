@@ -1,7 +1,6 @@
 package setup_test
 
 import (
-	"os"
 	"path"
 	"testing"
 
@@ -26,8 +25,6 @@ func TestK8sApiServerProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		g.Expect(setup.K8sAPIServerProxy(s, []string{}))
-
-		os.Create(path.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json"))
 
 		tests := []struct {
 			key         string
@@ -56,7 +53,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		s.Mock.ServiceExtraConfigDir = "nonexistent"
-		g.Expect(setup.K8sAPIServerProxy(s, []string{})).ToNot(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil)).ToNot(Succeed())
 	})
 
 	t.Run("MissingServiceArgumentsDir", func(t *testing.T) {
@@ -65,6 +62,6 @@ func TestK8sApiServerProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
-		g.Expect(setup.K8sAPIServerProxy(s, []string{})).ToNot(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil)).ToNot(Succeed())
 	})
 }
