@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func mustReturnMockForKubeControllerManager(s *mock.Snap, dir string) {
+func setKubeControllerManagerMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
 		ServiceArgumentsDir: path.Join(dir, "args"),
 		KubernetesConfigDir: path.Join(dir, "k8s-config"),
@@ -25,7 +25,7 @@ func TestKubeControllerManager(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeControllerManager)
+		s := mustSetupSnapAndDirectories(t, setKubeControllerManagerMock)
 
 		// Create ca.key so that cluster-signing-cert-file and cluster-signing-key-file are added to the arguments
 		os.Create(path.Join(s.Mock.KubernetesPKIDir, "ca.key"))
@@ -75,7 +75,7 @@ func TestKubeControllerManager(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeControllerManager)
+		s := mustSetupSnapAndDirectories(t, setKubeControllerManagerMock)
 
 		// Call the kube controller manager setup function
 		g.Expect(setup.KubeControllerManager(s)).To(BeNil())
