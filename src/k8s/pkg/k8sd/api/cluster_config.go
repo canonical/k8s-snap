@@ -49,7 +49,7 @@ func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig
 		}
 	}
 
-	// load-balancer.bgp-enabled=true should fail if any of the bgp config is empty
+	// load-balancer.bgp-mode=true should fail if any of the bgp config is empty
 	if vals.OptionalBool(newConfig.LoadBalancer.BGPEnabled, false) {
 		if newConfig.LoadBalancer.BGPLocalASN == 0 {
 			return fmt.Errorf("load-balancer.bgp-local-asn must be set when load-balancer.bgp-mode is enabled")

@@ -78,9 +78,9 @@ type Ingress struct {
 type LoadBalancer struct {
 	Enabled        *bool    `yaml:"enabled,omitempty"`
 	CIDRs          []string `yaml:"cidrs,omitempty"`
-	L2Enabled      *bool    `yaml:"l2-enabled,omitempty"`
+	L2Enabled      *bool    `yaml:"l2-mode,omitempty"`
 	L2Interfaces   []string `yaml:"l2-interfaces,omitempty"`
-	BGPEnabled     *bool    `yaml:"bgp-enabled,omitempty"`
+	BGPEnabled     *bool    `yaml:"bgp-mode,omitempty"`
 	BGPLocalASN    int      `yaml:"bgp-local-asn,omitempty"`
 	BGPPeerAddress string   `yaml:"bgp-peer-address,omitempty"`
 	BGPPeerASN     int      `yaml:"bgp-peer-asn,omitempty"`
