@@ -230,16 +230,21 @@ func TestKubelet(t *testing.T) {
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
-	t.Run("MissingServiceArgumentsDir", func(t *testing.T) {
+	t.Run("ControlPlaneNoArgsDir", func(t *testing.T) {
 		g := NewWithT(t)
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 
-		g.Expect(setup.KubeletControlPlane(s, "", nil, "", "", "")).ToNot(Succeed())
-		g.Expect(setup.KubeletWorker(s, "", nil, "", "", "")).ToNot(Succeed())
-
 		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).ToNot(Succeed())
+	})
+
+	t.Run("WorkerNoArgsDir", func(t *testing.T) {
+		g := NewWithT(t)
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
+
+		s.Mock.ServiceArgumentsDir = "nonexistent"
+
 		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).ToNot(Succeed())
 	})
 }
