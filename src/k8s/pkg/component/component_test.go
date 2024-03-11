@@ -34,6 +34,7 @@ func actionConfigFixture(t *testing.T) *action.Configuration {
 		KubeClient:     &kubefake.FailingKubeClient{PrintingKubeClient: kubefake.PrintingKubeClient{Out: io.Discard}},
 		Capabilities:   chartutil.DefaultCapabilities,
 		RegistryClient: registryClient,
+		Log:            logAdapter,
 	}
 }
 
@@ -102,6 +103,26 @@ func mustMakeMeSomeReleases(store *storage.Storage, t *testing.T) (all []*releas
 	return all
 }
 
+func mustMakeMeSomeComponents() map[string]types.Component {
+	return map[string]types.Component{
+		"one": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-1.14.1.tgz",
+		},
+		"two": {
+			ReleaseName:  "whiskas-2",
+			Namespace:    "default",
+			ManifestPath: "tuna-1.29.0.tgz",
+		},
+		"three": {
+			ReleaseName:  "whiskas-3",
+			Namespace:    "default",
+			ManifestPath: "chunky-1.29.0.tgz",
+		},
+	}
+}
+
 var componentsNone = ``
 
 func mustCreateTemporaryTestDirectory(t *testing.T) string {
@@ -167,13 +188,12 @@ func mustCreateNewHelmClient(t *testing.T, components map[string]types.Component
 func TestListEmptyComponents(t *testing.T) {
 	g := NewWithT(t)
 	// Create a mock ComponentManager with no components
-	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, nil)
-	defer os.RemoveAll(tempDir)
+	mockHelmClient, _, _ := mustCreateNewHelmClient(t, nil)
 
 	// Call the List function with the mock HelmClient
 	components, err := mockHelmClient.List()
 
-	g.Expect(err).To(BeNil())
+	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(components).To(HaveLen(0))
 }
 
@@ -182,25 +202,7 @@ func TestListComponentsWithReleases(t *testing.T) {
 
 	// Create a mock ComponentManager with the mock HelmClient
 	// This mock uses components.yaml for the snap mock components
-	mockHelmClient, tempDir, mockActionConfig := mustCreateNewHelmClient(t, map[string]types.Component{
-		"one": {
-			ReleaseName:  "whiskas-1",
-			Namespace:    "default",
-			ManifestPath: "chunky-tuna-1.14.1.tgz",
-		},
-		"two": {
-			ReleaseName:  "whiskas-2",
-			Namespace:    "default",
-			ManifestPath: "tuna-1.29.0.tgz",
-		},
-		"three": {
-			ReleaseName:  "whiskas-3",
-			Namespace:    "default",
-			ManifestPath: "chunky-1.29.0.tgz",
-		},
-	})
-
-	defer os.RemoveAll(tempDir)
+	mockHelmClient, _, mockActionConfig := mustCreateNewHelmClient(t, mustMakeMeSomeComponents())
 
 	// Create releases in the mock actionConfig
 	releases := mustMakeMeSomeReleases(mockActionConfig.Releases, t)
@@ -220,41 +222,23 @@ func TestListComponentsWithReleases(t *testing.T) {
 func TestComponentsInitialState(t *testing.T) {
 	g := NewWithT(t)
 
-	mockHelmClient, _, _ := mustCreateNewHelmClient(t, map[string]types.Component{
-		"one": {
-			ReleaseName:  "whiskas-1",
-			Namespace:    "default",
-			ManifestPath: "chunky-tuna-0.1.0.tgz",
-		},
-		"two": {
-			ReleaseName:  "whiskas-2",
-			Namespace:    "default",
-			ManifestPath: "slim-tuna-0.1.0.tgz",
-		},
-	})
+	components := mustMakeMeSomeComponents()
 
-	components, err := mockHelmClient.List()
-	g.Expect(err).ShouldNot(HaveOccurred())
+	mockHelmClient, _, _ := mustCreateNewHelmClient(t, components)
+
 	for _, component := range components {
-		g.Expect(component.Status).To(BeFalse(), "Expected all components to be initially disabled")
+		t.Run(component.ReleaseName, func(t *testing.T) {
+			g.Expect(mockHelmClient.isComponentEnabled(component.ReleaseName, component.Namespace)).To(BeFalse(), "Expected all components to be initially disabled")
+		})
 	}
 }
 
 func TestEnableMultipleComponents(t *testing.T) {
 	g := NewWithT(t)
 
-	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, map[string]types.Component{
-		"one": {
-			ReleaseName:  "whiskas-1",
-			Namespace:    "default",
-			ManifestPath: "chunky-tuna-0.1.0.tgz",
-		},
-		"two": {
-			ReleaseName:  "whiskas-2",
-			Namespace:    "default",
-			ManifestPath: "slim-tuna-0.1.0.tgz",
-		},
-	})
+	components := mustMakeMeSomeComponents()
+
+	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, components)
 
 	for name, component := range mockHelmClient.components {
 		chart := buildChart(withName(component.ReleaseName))
@@ -266,10 +250,60 @@ func TestEnableMultipleComponents(t *testing.T) {
 		g.Expect(err).ShouldNot(HaveOccurred())
 	}
 
-	components, err := mockHelmClient.List()
-	g.Expect(err).ShouldNot(HaveOccurred())
-	g.Expect(components).To(ConsistOf(
-		Component{Name: "one", Status: true},
-		Component{Name: "two", Status: true},
-	), "Expected all components to be enabled")
+	// Reenable should not error
+	t.Run("Reenable", func(t *testing.T) {
+		for name := range mockHelmClient.components {
+			g.Expect(mockHelmClient.Enable(name, map[string]any{})).Should(Succeed())
+		}
+	})
+
+	for _, component := range components {
+		t.Run(component.ReleaseName, func(t *testing.T) {
+			g := NewWithT(t)
+			g.Expect(mockHelmClient.isComponentEnabled(component.ReleaseName, component.Namespace)).To(BeTrue(), "Expected all components to enabled")
+		})
+	}
+
+	// Component does not exist at all
+	t.Run("EnableNonExistent", func(t *testing.T) {
+		g.Expect(mockHelmClient.Enable("non-existent", map[string]any{})).ShouldNot(Succeed())
+	})
+}
+
+func TestDisableComponent(t *testing.T) {
+	g := NewWithT(t)
+
+	components := mustMakeMeSomeComponents()
+
+	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, components)
+
+	for name, component := range mockHelmClient.components {
+		chart := buildChart(withName(component.ReleaseName))
+		chartPath := mustAddChartToTestDir(t, tempDir, chart)
+		component.ManifestPath = chartPath
+		mockHelmClient.components[name] = component
+
+		err := mockHelmClient.Enable(name, map[string]interface{}{})
+		g.Expect(err).ShouldNot(HaveOccurred())
+	}
+
+	// Redisable should not error
+	t.Run("Redisable", func(t *testing.T) {
+		for name := range mockHelmClient.components {
+			g.Expect(mockHelmClient.Disable(name)).Should(Succeed())
+		}
+	})
+
+	for _, component := range components {
+		t.Run(component.ReleaseName, func(t *testing.T) {
+			g := NewWithT(t)
+			g.Expect(mockHelmClient.isComponentEnabled(component.ReleaseName, component.ReleaseName)).To(BeFalse(), "Expected all components to be disabled")
+		})
+	}
+
+	// Component does not exist at all
+	t.Run("DisableNonExistent", func(t *testing.T) {
+		g := NewWithT(t)
+		g.Expect(mockHelmClient.Disable("non-existent")).ShouldNot(Succeed())
+	})
 }
