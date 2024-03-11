@@ -23,7 +23,7 @@ func TestKubeScheduler(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, setKubeSchedulerMock)
+		s := mustSetupSnapAndDirectories(t, setKubeSchedulerMock)
 
 		// Call the kube scheduler setup function
 		g.Expect(setup.KubeScheduler(s)).To(BeNil())
@@ -59,7 +59,7 @@ func TestKubeScheduler(t *testing.T) {
 	t.Run("MissingArgsDir", func(t *testing.T) {
 		g := NewWithT(t)
 
-		s, _ := mustSetupSnapAndDirectories(t, setKubeSchedulerMock)
+		s := mustSetupSnapAndDirectories(t, setKubeSchedulerMock)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 
