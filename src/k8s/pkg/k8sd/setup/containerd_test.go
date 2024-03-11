@@ -20,7 +20,7 @@ func TestContainerd(t *testing.T) {
 
 	dir := t.TempDir()
 
-	g.Expect(os.WriteFile(path.Join(dir, "mockcni"), []byte("echo hi"), 0600)).To(BeNil())
+	g.Expect(os.WriteFile(path.Join(dir, "mockcni"), []byte("echo hi"), 0600)).To(Succeed())
 
 	s := &mock.Snap{
 		Mock: mock.Mock{
@@ -53,7 +53,7 @@ func TestContainerd(t *testing.T) {
 			URLs:  []string{"https://ghcr.mirror.internal"},
 			Token: "token",
 		},
-	})).To(BeNil())
+	})).To(Succeed())
 
 	t.Run("Config", func(t *testing.T) {
 		g := NewWithT(t)

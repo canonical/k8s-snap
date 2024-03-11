@@ -64,7 +64,7 @@ type containerdHostsConfigHost struct {
 }
 
 func containerdAuthConfig(registries []types.ContainerdRegistry) containerdConfig {
-	authConfigs := make(map[string]containerdConfigPluginsCRIRegistryConfig)
+	authConfigs := make(map[string]containerdConfigPluginsCRIRegistryConfig, len(registries))
 	for _, registry := range registries {
 		if registry.Username != "" || registry.Password != "" || registry.Token != "" {
 			for _, url := range registry.URLs {
