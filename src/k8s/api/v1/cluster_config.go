@@ -45,9 +45,9 @@ type IngressConfig struct {
 type LoadBalancerConfig struct {
 	Enabled        *bool    `json:"enabled,omitempty" yaml:"enabled"`
 	CIDRs          []string `json:"cidrs,omitempty" yaml:"cidrs"`
-	L2Enabled      *bool    `json:"l2-enabled,omitempty" yaml:"l2-enabled"`
+	L2Enabled      *bool    `json:"l2-mode,omitempty" yaml:"l2-mode"`
 	L2Interfaces   []string `json:"l2-interfaces,omitempty" yaml:"l2-interfaces"`
-	BGPEnabled     *bool    `json:"bgp-enabled,omitempty" yaml:"bgp-enabled"`
+	BGPEnabled     *bool    `json:"bgp-mode,omitempty" yaml:"bgp-mode"`
 	BGPLocalASN    int      `json:"bgp-local-asn,omitempty" yaml:"bgp-local-asn"`
 	BGPPeerAddress string   `json:"bgp-peer-address,omitempty" yaml:"bgp-peer-address"`
 	BGPPeerASN     int      `json:"bgp-peer-asn,omitempty" yaml:"bgp-peer-asn"`
