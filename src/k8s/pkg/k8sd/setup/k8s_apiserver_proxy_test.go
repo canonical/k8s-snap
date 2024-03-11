@@ -1,10 +1,13 @@
 package setup_test
 
 import (
+	"encoding/json"
+	"os"
 	"path"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
+	"github.com/canonical/k8s/pkg/proxy"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
@@ -63,5 +66,26 @@ func TestK8sApiServerProxy(t *testing.T) {
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 		g.Expect(setup.K8sAPIServerProxy(s, nil)).ToNot(Succeed())
+	})
+
+	t.Run("JSONFileContent", func(t *testing.T) {
+		g := NewWithT(t)
+
+		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
+
+		endpoints := []string{"192.168.0.1", "192.168.0.2", "192.168.0.3"}
+		fileName := path.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json")
+
+		g.Expect(setup.K8sAPIServerProxy(s, endpoints)).To(Succeed())
+
+		b, err := os.ReadFile(fileName)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		var config proxy.Configuration
+		err = json.Unmarshal(b, &config)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		// Compare the expected endpoints with those in the file
+		g.Expect(config.Endpoints).To(Equal(endpoints))
 	})
 }
