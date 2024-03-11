@@ -15,7 +15,7 @@ import (
 
 var apiserverTLSCipherSuites = "TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_3DES_EDE_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384"
 
-func mustReturnMockForKubeAPIServer(s *mock.Snap, dir string) {
+func setKubeAPIServerMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
 		UID:                   os.Getuid(),
 		GID:                   os.Getgid(),
@@ -32,7 +32,7 @@ func TestKubeAPIServer(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeAPIServer)
+		s, _ := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Call the KubeAPIServer setup function with mock arguments
 		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", true, "k8s-dqlite", "Node,RBAC")).To(BeNil())
@@ -87,7 +87,7 @@ func TestKubeAPIServer(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeAPIServer)
+		s, _ := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Call the KubeAPIServer setup function with mock arguments
 		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "k8s-dqlite", "Node,RBAC")).To(BeNil())
@@ -135,7 +135,7 @@ func TestKubeAPIServer(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeAPIServer)
+		s, _ := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Attempt to configure kube-apiserver with an unsupported datastore
 		err := setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "unsupported-datastore", "Node,RBAC")
