@@ -64,7 +64,7 @@ func TestKubeControllerManager(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 
-		t.Run("Error when service arguments dir does not exist", func(t *testing.T) {
+		t.Run("MissingArgsDir", func(t *testing.T) {
 			g := NewWithT(t)
 			s.Mock.ServiceArgumentsDir = "nonexistent"
 			g.Expect(setup.KubeControllerManager(s)).ToNot(Succeed())
