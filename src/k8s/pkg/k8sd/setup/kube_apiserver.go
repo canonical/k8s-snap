@@ -14,6 +14,8 @@ type apiserverAuthTokenWebhookTemplateConfig struct {
 	URL string
 }
 
+var SupportedDatastores = []string{"k8s-dqlite", "external"}
+
 var (
 	apiserverAuthTokenWebhookTemplate = mustTemplate("apiserver", "auth-token-webhook.conf")
 
@@ -81,11 +83,17 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		args["--etcd-servers"] = fmt.Sprintf("unix://%s", path.Join(snap.K8sDqliteStateDir(), "k8s-dqlite.sock"))
 	case "external":
 		args["--etcd-servers"] = datastoreUrl
-		args["--etcd-cafile"] = path.Join(snap.EtcdPKIDir(), "ca.crt")
-		args["--etcd-certfile"] = path.Join(snap.EtcdPKIDir(), "client.crt")
-		args["--etcd-keyfile"] = path.Join(snap.EtcdPKIDir(), "client.key")
+		if _, err := os.Stat(path.Join(snap.EtcdPKIDir(), "ca.crt")); err == nil {
+			args["--etcd-cafile"] = path.Join(snap.EtcdPKIDir(), "ca.crt")
+		}
+		if _, err := os.Stat(path.Join(snap.EtcdPKIDir(), "client.crt")); err == nil {
+			args["--etcd-certfile"] = path.Join(snap.EtcdPKIDir(), "client.crt")
+		}
+		if _, err := os.Stat(path.Join(snap.EtcdPKIDir(), "client.key")); err == nil {
+			args["--etcd-keyfile"] = path.Join(snap.EtcdPKIDir(), "client.key")
+		}
 	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore, snap.SupportedDatastores())
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore, SupportedDatastores)
 	}
 
 	if enableFrontProxy {

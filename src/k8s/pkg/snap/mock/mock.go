@@ -29,7 +29,6 @@ type Mock struct {
 	ContainerdRootDir           string
 	ContainerdSocketDir         string
 	ContainerdStateDir          string
-	SupportedDatastores         []string
 	K8sdStateDir                string
 	K8sDqliteStateDir           string
 	ServiceArgumentsDir         string
@@ -130,9 +129,6 @@ func (s *Snap) CNIPluginsBinary() string {
 }
 func (s *Snap) CNIPlugins() []string {
 	return s.Mock.CNIPlugins
-}
-func (s *Snap) SupportedDatastores() []string {
-	return s.Mock.SupportedDatastores
 }
 func (s *Snap) K8sdStateDir() string {
 	return s.Mock.K8sdStateDir

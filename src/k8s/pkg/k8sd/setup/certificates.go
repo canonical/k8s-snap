@@ -17,6 +17,10 @@ func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePK
 	}
 
 	for fname, cert := range toWrite {
+		// Do not create files if contents are empty/certificates are not set
+		if cert == "" {
+			continue
+		}
 		if err := os.WriteFile(fname, []byte(cert), 0600); err != nil {
 			return fmt.Errorf("failed to write %s: %w", path.Base(fname), err)
 		}

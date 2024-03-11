@@ -65,7 +65,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 			return fmt.Errorf("failed to write cluster certificates: %w", err)
 		}
 	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, snap.SupportedDatastores())
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
 
 	// Certificates
@@ -133,7 +133,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
 	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, snap.SupportedDatastores())
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
 
 	// Configure services
@@ -165,7 +165,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		}
 	case "external":
 	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, snap.SupportedDatastores())
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
 
 	if err := snaputil.StartControlPlaneServices(s.Context, snap); err != nil {

@@ -167,10 +167,6 @@ func (s *snap) KubeletRootDir() string {
 	return "/var/lib/kubelet"
 }
 
-func (s *snap) SupportedDatastores() []string {
-	return []string{"k8s-dqlite", "external"}
-}
-
 func (s *snap) K8sdStateDir() string {
 	return path.Join(s.snapCommonDir, "var", "lib", "k8sd", "state")
 }

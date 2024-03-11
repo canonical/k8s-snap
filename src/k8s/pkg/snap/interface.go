@@ -37,8 +37,6 @@ type Snap interface {
 	ContainerdSocketDir() string         // /var/snap/k8s/common/run
 	ContainerdStateDir() string          // /run/containerd
 
-	SupportedDatastores() []string
-
 	K8sdStateDir() string      // /var/snap/k8s/common/var/lib/k8sd/state
 	K8sDqliteStateDir() string // /var/snap/k8s/common/var/lib/k8s-dqlite
 
