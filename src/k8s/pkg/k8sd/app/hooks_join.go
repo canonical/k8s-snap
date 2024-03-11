@@ -61,6 +61,9 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 			DatastoreClientCert: cfg.Certificates.DatastoreClientCert,
 			DatastoreClientKey:  cfg.Certificates.DatastoreClientKey,
 		}
+		if err := certificates.CheckCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+		}
 		if err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write cluster certificates: %w", err)
 		}

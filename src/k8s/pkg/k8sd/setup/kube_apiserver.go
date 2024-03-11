@@ -86,11 +86,9 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		if _, err := os.Stat(path.Join(snap.EtcdPKIDir(), "ca.crt")); err == nil {
 			args["--etcd-cafile"] = path.Join(snap.EtcdPKIDir(), "ca.crt")
 		}
-		if _, err := os.Stat(path.Join(snap.EtcdPKIDir(), "client.crt")); err == nil {
-			args["--etcd-certfile"] = path.Join(snap.EtcdPKIDir(), "client.crt")
-		}
 		if _, err := os.Stat(path.Join(snap.EtcdPKIDir(), "client.key")); err == nil {
 			args["--etcd-keyfile"] = path.Join(snap.EtcdPKIDir(), "client.key")
+			args["--etcd-certfile"] = path.Join(snap.EtcdPKIDir(), "client.crt")
 		}
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore, SupportedDatastores)
