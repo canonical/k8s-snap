@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func mustReturnMockForK8sDqlite(s *mock.Snap, dir string) {
+func setK8sDqliteMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
 		ServiceArgumentsDir: path.Join(dir, "args"),
 		K8sDqliteStateDir:   path.Join(dir, "k8s-dqlite"),
@@ -25,7 +25,7 @@ func TestK8sDqlite(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForK8sDqlite)
+		s := mustSetupSnapAndDirectories(t, setK8sDqliteMock)
 
 		// Call the K8sDqlite setup function with mock arguments
 		g.Expect(setup.K8sDqlite(s, "192.168.0.1:1234", []string{"192.168.0.1:1234"})).To(BeNil())
@@ -57,7 +57,7 @@ func TestK8sDqlite(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForK8sDqlite)
+		s := mustSetupSnapAndDirectories(t, setK8sDqliteMock)
 
 		expectedYaml := "Address: 192.168.0.1:1234\nCluster:\n- 192.168.0.1:1234\n- 192.168.0.2:1234\n- 192.168.0.3:1234\n"
 
@@ -77,7 +77,7 @@ func TestK8sDqlite(t *testing.T) {
 	t.Run("MissingStateDir", func(t *testing.T) {
 		g := NewWithT(t)
 
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForK8sDqlite)
+		s := mustSetupSnapAndDirectories(t, setK8sDqliteMock)
 
 		s.Mock.K8sDqliteStateDir = "nonexistent"
 
@@ -87,7 +87,7 @@ func TestK8sDqlite(t *testing.T) {
 	t.Run("MissingArgsDir", func(t *testing.T) {
 		g := NewWithT(t)
 
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForK8sDqlite)
+		s := mustSetupSnapAndDirectories(t, setK8sDqliteMock)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 
