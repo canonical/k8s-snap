@@ -114,6 +114,7 @@ type ContainerdRegistry struct {
 	Token        string   `yaml:"token,omitempty"`
 	OverridePath bool     `yaml:"overridePath,omitempty"`
 	SkipVerify   bool     `yaml:"skipVerify,omitempty"`
+	// TODO(neoaggelos): add option to configure certificates for containerd registries
 	// CA           string   `yaml:"ca,omitempty"`
 	// Cert         string   `yaml:"cert,omitempty"`
 	// Key          string   `yaml:"key,omitempty"`
