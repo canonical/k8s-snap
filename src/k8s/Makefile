@@ -10,7 +10,7 @@ go.vet:
 	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-vet.sh ./...
 
 go.unit:
-	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-test.sh -v ./pkg/... ./cmd/...
+	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-test.sh -v ./pkg/... ./cmd/... -coverprofile=coverage.txt --cover
 
 go.doc: bin/static/k8s
 	bin/static/k8s generate-docs --output-dir ../../docs/src/_parts/commands/
