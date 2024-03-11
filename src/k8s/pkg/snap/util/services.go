@@ -39,12 +39,8 @@ func StartWorkerServices(ctx context.Context, snap snap.Snap) error {
 
 // StartControlPlaneServices starts the control plane services.
 // StartControlPlaneServices will return on the first failing service.
-func StartControlPlaneServices(ctx context.Context, snap snap.Snap, datastore string) error {
-	var services []string
-	if datastore == "k8s-dqlite" {
-		services = append([]string{"k8s-dqlite"}, controlPlaneServices...)
-	}
-	for _, service := range services {
+func StartControlPlaneServices(ctx context.Context, snap snap.Snap) error {
+	for _, service := range controlPlaneServices {
 		if err := snap.StartService(ctx, service); err != nil {
 			return fmt.Errorf("failed to start service %s: %w", service, err)
 		}
@@ -52,15 +48,30 @@ func StartControlPlaneServices(ctx context.Context, snap snap.Snap, datastore st
 	return nil
 }
 
+// StartK8sDqliteServices starts the k8s-dqlite datastore service.
+func StartK8sDqliteServices(ctx context.Context, snap snap.Snap) error {
+	if err := snap.StartService(ctx, "k8s-dqlite"); err != nil {
+		return fmt.Errorf("failed to start service %s: %w", "k8s-dqlite", err)
+	}
+	return nil
+}
+
 // StopControlPlaneServices stops the control plane services.
 // StopControlPlaneServices will return on the first failing service.
 func StopControlPlaneServices(ctx context.Context, snap snap.Snap) error {
-	var services []string
-	services = append([]string{"k8s-dqlite"}, controlPlaneServices...)
-	for _, service := range services {
+	for _, service := range controlPlaneServices {
 		if err := snap.StopService(ctx, service); err != nil {
-			return fmt.Errorf("failed to start service %s: %w", service, err)
+			return fmt.Errorf("failed to stop service %s: %w", service, err)
 		}
+	}
+	return nil
+}
+
+// StopK8sDqliteServices stops the control plane services.
+// StopK8sDqliteServices will return on the first failing service.
+func StopK8sDqliteServices(ctx context.Context, snap snap.Snap) error {
+	if err := snap.StopService(ctx, "k8s-dqlite"); err != nil {
+		return fmt.Errorf("failed to stop service %s: %w", "k8s-dqlite", err)
 	}
 	return nil
 }

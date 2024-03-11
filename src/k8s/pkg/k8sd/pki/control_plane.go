@@ -8,7 +8,6 @@ import (
 
 // ControlPlanePKI is a list of all certificates we require for a control plane node.
 type ControlPlanePKI struct {
-	datastore         string
 	allowSelfSignedCA bool     // create self-signed CA certificates if missing
 	hostname          string   // node name
 	ipSANs            []net.IP // IP SANs for generated certificates
@@ -19,12 +18,6 @@ type ControlPlanePKI struct {
 	FrontProxyCACert, FrontProxyCAKey         string // CN=kubernetes-front-proxy-ca (self-signed)
 	FrontProxyClientCert, FrontProxyClientKey string // CN=front-proxy-client (signed by kubernetes-front-proxy-ca)
 	ServiceAccountKey                         string // private key used to sign service account tokens
-
-	// CN=k8s-dqlite, DNS=hostname, IP=127.0.0.1 (self-signed)
-	K8sDqliteCert, K8sDqliteKey string
-
-	// external-etcd
-	DatastoreCACert, DatastoreClientCert, DatastoreClientKey string
 
 	// CN=kube-apiserver, DNS=hostname,kubernetes.* IP=127.0.0.1,10.152.183.1,address (signed by kubernetes-ca)
 	APIServerCert, APIServerKey string
@@ -42,7 +35,6 @@ type ControlPlanePKIOpts struct {
 	IPSANs            []net.IP
 	Years             int
 	AllowSelfSignedCA bool
-	Datastore         string
 }
 
 func NewControlPlanePKI(opts ControlPlanePKIOpts) *ControlPlanePKI {
@@ -56,7 +48,6 @@ func NewControlPlanePKI(opts ControlPlanePKIOpts) *ControlPlanePKI {
 		years:             opts.Years,
 		ipSANs:            opts.IPSANs,
 		dnsSANs:           opts.DNSSANs,
-		datastore:         opts.Datastore,
 	}
 }
 
@@ -68,10 +59,6 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		return fmt.Errorf("kubernetes CA key is set without a certificate, fail to prevent causing issues")
 	case c.FrontProxyCACert == "" && c.FrontProxyCAKey != "":
 		return fmt.Errorf("front-proxy CA key is set without a certificate, fail to prevent causing issues")
-	case c.K8sDqliteCert == "" && c.K8sDqliteKey != "":
-		return fmt.Errorf("k8s-dqlite certificate key set without a certificate, fail to prevent further issues")
-	case c.K8sDqliteCert != "" && c.K8sDqliteKey == "":
-		return fmt.Errorf("k8s-dqlite certificate set without a key, fail to prevent further issues")
 	}
 
 	// Generate self-signed CA (if not set already)
@@ -126,25 +113,6 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 		c.FrontProxyClientCert = cert
 		c.FrontProxyClientKey = key
-	}
-
-	// Generate k8s-dqlite client certificate (if missing)
-	if c.datastore == "k8s-dqlite" && c.K8sDqliteCert == "" && c.K8sDqliteKey == "" {
-		if !c.allowSelfSignedCA {
-			return fmt.Errorf("k8s-dqlite certificate not specified and generating self-signed certificates is not allowed")
-		}
-
-		template, err := generateCertificate(pkix.Name{CommonName: "k8s"}, c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
-		if err != nil {
-			return fmt.Errorf("failed to generate k8s-dqlite certificate: %w", err)
-		}
-		cert, key, err := signCertificate(template, 2048, template, nil, nil)
-		if err != nil {
-			return fmt.Errorf("failed to self-sign k8s-dqlite certificate: %w", err)
-		}
-
-		c.K8sDqliteCert = cert
-		c.K8sDqliteKey = key
 	}
 
 	// Generate service account key (if missing)

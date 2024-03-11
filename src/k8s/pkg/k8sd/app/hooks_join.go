@@ -40,12 +40,39 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.ServiceCIDR, err)
 	}
 
+	switch cfg.APIServer.Datastore {
+	case "k8s-dqlite":
+		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
+			Hostname: s.Name(),
+			IPSANs:   append([]net.IP{nodeIP}, serviceIPs...),
+			Years:    10,
+		})
+		certificates.K8sDqliteCert = cfg.Certificates.K8sDqliteCert
+		certificates.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
+		if err := certificates.CompleteCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+		}
+		if err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
+			return fmt.Errorf("failed to write cluster certificates: %w", err)
+		}
+	case "external":
+		certificates := &pki.ExternalDatastorePKI{
+			DatastoreCACert:     cfg.Certificates.DatastoreCACert,
+			DatastoreClientCert: cfg.Certificates.DatastoreClientCert,
+			DatastoreClientKey:  cfg.Certificates.DatastoreClientKey,
+		}
+		if err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
+			return fmt.Errorf("failed to write cluster certificates: %w", err)
+		}
+	default:
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, snap.SupportedDatastores())
+	}
+
 	// Certificates
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
-		Hostname:  s.Name(),
-		IPSANs:    append([]net.IP{nodeIP}, serviceIPs...),
-		Years:     10,
-		Datastore: cfg.APIServer.Datastore,
+		Hostname: s.Name(),
+		IPSANs:   append([]net.IP{nodeIP}, serviceIPs...),
+		Years:    10,
 	})
 
 	// load existing certificates, then generate certificates for the node
@@ -57,22 +84,10 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	certificates.APIServerKubeletClientKey = cfg.Certificates.APIServerKubeletClientKey
 	certificates.ServiceAccountKey = cfg.APIServer.ServiceAccountKey
 
-	switch cfg.APIServer.Datastore {
-	case "k8s-dqlite":
-		certificates.K8sDqliteCert = cfg.Certificates.K8sDqliteCert
-		certificates.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
-	case "external-etcd":
-		certificates.DatastoreCACert = cfg.Certificates.DatastoreCACert
-		certificates.DatastoreClientCert = cfg.Certificates.DatastoreClientCert
-		certificates.DatastoreClientKey = cfg.Certificates.DatastoreClientKey
-	default:
-		return fmt.Errorf("unsupported datastore %q, must be one of 'k8s-dqlite, external-etcd'", cfg.APIServer.Datastore)
-	}
-
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
 	}
-	if err := setup.EnsureControlPlanePKI(snap, certificates, cfg.APIServer.Datastore); err != nil {
+	if err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write cluster certificates: %w", err)
 	}
 
@@ -118,7 +133,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
 	default:
-		return fmt.Errorf("unsupported datastore %q, must be one of 'k8s-dqlite, external-etcd'", cfg.APIServer.Datastore)
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, snap.SupportedDatastores())
 	}
 
 	// Configure services
@@ -138,21 +153,22 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
 
-	var datastoreUrl = cfg.APIServer.DatastoreURL
-	switch cfg.APIServer.Datastore {
-	case "k8s-dqlite":
-		datastoreUrl = fmt.Sprintf("unix://%s", path.Join(snap.K8sDqliteStateDir(), "k8s-dqlite.sock"))
-	case "external-etcd":
-	default:
-		return fmt.Errorf("unsupported datastore %s. must be one of 'k8s-dqlite, external-etcd'", cfg.APIServer.Datastore)
-	}
-
-	if err := setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, datastoreUrl, cfg.APIServer.AuthorizationMode); err != nil {
+	if err := setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.DatastoreURL, cfg.APIServer.AuthorizationMode); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 
 	// Start services
-	if err := snaputil.StartControlPlaneServices(s.Context, snap, cfg.APIServer.Datastore); err != nil {
+	switch cfg.APIServer.Datastore {
+	case "k8s-dqlite":
+		if err := snaputil.StartK8sDqliteServices(s.Context, snap); err != nil {
+			return fmt.Errorf("failed to start control plane services: %w", err)
+		}
+	case "external":
+	default:
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, snap.SupportedDatastores())
+	}
+
+	if err := snaputil.StartControlPlaneServices(s.Context, snap); err != nil {
 		return fmt.Errorf("failed to start control plane services: %w", err)
 	}
 

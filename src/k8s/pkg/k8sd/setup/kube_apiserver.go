@@ -74,19 +74,18 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--tls-cert-file":                            path.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
 		"--tls-cipher-suites":                        strings.Join(apiserverTLSCipherSuites, ","),
 		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
-		"--etcd-servers":                             datastoreUrl,
 	}
 
 	switch datastore {
 	case "k8s-dqlite":
 		args["--etcd-servers"] = fmt.Sprintf("unix://%s", path.Join(snap.K8sDqliteStateDir(), "k8s-dqlite.sock"))
-	case "external-etcd":
+	case "external":
 		args["--etcd-servers"] = datastoreUrl
 		args["--etcd-cafile"] = path.Join(snap.EtcdPKIDir(), "ca.crt")
 		args["--etcd-certfile"] = path.Join(snap.EtcdPKIDir(), "client.crt")
 		args["--etcd-keyfile"] = path.Join(snap.EtcdPKIDir(), "client.key")
 	default:
-		return fmt.Errorf("unsupported datastore %s. must be 'k8s-dqlite'", datastore)
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore, snap.SupportedDatastores())
 	}
 
 	if enableFrontProxy {

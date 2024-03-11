@@ -124,7 +124,6 @@ func TestSetDefaults(t *testing.T) {
 			ServiceCIDR: "10.152.183.0/24",
 		},
 		APIServer: types.APIServer{
-			Datastore:         "k8s-dqlite",
 			SecurePort:        6443,
 			AuthorizationMode: "Node,RBAC",
 		},
