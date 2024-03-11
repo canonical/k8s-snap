@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func mustReturnMockForKubeScheduler(s *mock.Snap, dir string) {
+func setKubeSchedulerMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
 		ServiceArgumentsDir: path.Join(dir, "args"),
 		KubernetesConfigDir: path.Join(dir, "k8s-config"),
@@ -23,7 +23,7 @@ func TestKubeScheduler(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeScheduler)
+		s, _ := mustSetupSnapAndDirectories(t, setKubeSchedulerMock)
 
 		// Call the kube scheduler setup function
 		g.Expect(setup.KubeScheduler(s)).To(BeNil())
@@ -59,7 +59,7 @@ func TestKubeScheduler(t *testing.T) {
 	t.Run("MissingArgsDir", func(t *testing.T) {
 		g := NewWithT(t)
 
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubeScheduler)
+		s, _ := mustSetupSnapAndDirectories(t, setKubeSchedulerMock)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 
