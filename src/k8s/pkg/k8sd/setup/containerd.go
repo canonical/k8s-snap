@@ -112,6 +112,7 @@ func containerdHostConfig(registry types.ContainerdRegistry) containerdHostsConf
 }
 
 // Containerd configures configuration and arguments for containerd on the local node.
+// Optionally, a number of registry mirrors and auths can be configured.
 func Containerd(snap snap.Snap, registries []types.ContainerdRegistry) error {
 	configToml, err := os.OpenFile(path.Join(snap.ContainerdConfigDir(), "config.toml"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {

@@ -27,7 +27,7 @@ func TestContainerd(t *testing.T) {
 			ContainerdConfigDir:         path.Join(dir, "containerd"),
 			ContainerdRootDir:           path.Join(dir, "containerd-root"),
 			ContainerdSocketDir:         path.Join(dir, "containerd-run"),
-			ContainerdRegistryConfigDir: path.Join(dir, "containerd-registries"),
+			ContainerdRegistryConfigDir: path.Join(dir, "containerd-hosts"),
 			ContainerdStateDir:          path.Join(dir, "containerd-state"),
 			ContainerdExtraConfigDir:    path.Join(dir, "containerd-confd"),
 			ServiceArgumentsDir:         path.Join(dir, "args"),
@@ -43,11 +43,10 @@ func TestContainerd(t *testing.T) {
 	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
 	g.Expect(setup.Containerd(s, []types.ContainerdRegistry{
 		{
-			Host:       "docker.io",
-			URLs:       []string{"https://registry-1.docker.io", "https://registry-2.docker.io"},
-			Username:   "username",
-			Password:   "pass",
-			SkipVerify: true,
+			Host:     "docker.io",
+			URLs:     []string{"https://registry-1.mirror.internal"},
+			Username: "username",
+			Password: "password",
 		},
 	})).To(BeNil())
 
@@ -59,7 +58,7 @@ func TestContainerd(t *testing.T) {
 			ContainSubstring(fmt.Sprintf(`imports = ["%s/*.toml"]`, path.Join(dir, "containerd-confd"))),
 			ContainSubstring(fmt.Sprintf(`conf_dir = "%s"`, path.Join(dir, "cni-netd"))),
 			ContainSubstring(fmt.Sprintf(`bin_dir = "%s"`, path.Join(dir, "opt-cni-bin"))),
-			ContainSubstring(fmt.Sprintf(`config_path = "%s"`, path.Join(dir, "containerd-registries"))),
+			ContainSubstring(fmt.Sprintf(`config_path = "%s"`, path.Join(dir, "containerd-hosts"))),
 		))
 
 		info, err := os.Stat(path.Join(dir, "containerd", "config.toml"))
@@ -110,5 +109,30 @@ func TestContainerd(t *testing.T) {
 				g.Expect(val).To(Equal(expectedVal))
 			})
 		}
+	})
+
+	t.Run("Registries", func(t *testing.T) {
+		t.Run("Mirrors", func(t *testing.T) {
+			g := NewWithT(t)
+
+			b, err := os.ReadFile(path.Join(dir, "containerd-hosts", "docker.io", "hosts.toml"))
+			g.Expect(err).To(BeNil())
+			g.Expect(string(b)).To(SatisfyAll(
+				ContainSubstring(`server = "https://registry-1.mirror.internal"`),
+				ContainSubstring(`[hosts."https://registry-1.mirror.internal"]`),
+			))
+		})
+
+		t.Run("Auth", func(t *testing.T) {
+			g := NewWithT(t)
+
+			b, err := os.ReadFile(path.Join(dir, "containerd-confd", "k8sd-auths.toml"))
+			g.Expect(err).To(BeNil())
+			g.Expect(string(b)).To(SatisfyAll(
+				ContainSubstring(`[plugins."io.containerd.grpc.v1.cri".registry.configs."https://registry-1.mirror.internal".auth]`),
+				ContainSubstring(`username = "username"`),
+				ContainSubstring(`password = "password"`),
+			))
+		})
 	})
 }
