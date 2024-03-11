@@ -184,12 +184,19 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		IPSANs:            append([]net.IP{nodeIP}, serviceIPs...),
 		Years:             10,
 		AllowSelfSignedCA: true,
+		Datastore:         cfg.APIServer.Datastore,
 	})
+
+	if cfg.APIServer.Datastore == "external-etcd" {
+		certificates.DatastoreCACert = cfg.Certificates.DatastoreCACert
+		certificates.DatastoreClientCert = cfg.Certificates.DatastoreClientCert
+		certificates.DatastoreClientKey = cfg.Certificates.DatastoreClientKey
+	}
 
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
 	}
-	if err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
+	if err := setup.EnsureControlPlanePKI(snap, certificates, cfg.APIServer.Datastore); err != nil {
 		return fmt.Errorf("failed to write cluster certificates: %w", err)
 	}
 
@@ -200,9 +207,12 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	cfg.Certificates.FrontProxyCAKey = certificates.FrontProxyCAKey
 	cfg.Certificates.APIServerKubeletClientCert = certificates.APIServerKubeletClientCert
 	cfg.Certificates.APIServerKubeletClientKey = certificates.APIServerKubeletClientKey
-	cfg.Certificates.K8sDqliteCert = certificates.K8sDqliteCert
-	cfg.Certificates.K8sDqliteKey = certificates.K8sDqliteKey
 	cfg.APIServer.ServiceAccountKey = certificates.ServiceAccountKey
+
+	if cfg.APIServer.Datastore == "k8s-dqlite" {
+		cfg.Certificates.K8sDqliteCert = certificates.K8sDqliteCert
+		cfg.Certificates.K8sDqliteKey = certificates.K8sDqliteKey
+	}
 
 	// Generate kubeconfigs
 	for _, kubeconfig := range []struct {
@@ -232,7 +242,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 			return fmt.Errorf("failed to configure k8s-dqlite: %w", err)
 		}
 	default:
-		return fmt.Errorf("unknown datastore %q, must be k8s-dqlite", cfg.APIServer.Datastore)
+		return fmt.Errorf("unsupported datastore %q, must be one of 'k8s-dqlite, external-etcd'", cfg.APIServer.Datastore)
 	}
 
 	// Configure services
@@ -251,7 +261,17 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	if err := setup.KubeScheduler(snap); err != nil {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
-	if err := setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.AuthorizationMode); err != nil {
+
+	var datastoreUrl = cfg.APIServer.DatastoreURL
+	switch cfg.APIServer.Datastore {
+	case "k8s-dqlite":
+		datastoreUrl = fmt.Sprintf("unix://%s", path.Join(snap.K8sDqliteStateDir(), "k8s-dqlite.sock"))
+	case "external-etcd":
+	default:
+		return fmt.Errorf("unsupported datastore %s. must be one of 'k8s-dqlite, external-etcd'", cfg.APIServer.Datastore)
+	}
+
+	if err := setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, datastoreUrl, cfg.APIServer.AuthorizationMode); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 
@@ -266,7 +286,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	}
 
 	// Start services
-	if err := snaputil.StartControlPlaneServices(s.Context, snap); err != nil {
+	if err := snaputil.StartControlPlaneServices(s.Context, snap, cfg.APIServer.Datastore); err != nil {
 		return fmt.Errorf("failed to start control plane services: %w", err)
 	}
 

@@ -9,10 +9,8 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) error {
+func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI, datastore string) error {
 	toWrite := map[string]string{
-		path.Join(snap.K8sDqliteStateDir(), "cluster.crt"):                 certificates.K8sDqliteCert,
-		path.Join(snap.K8sDqliteStateDir(), "cluster.key"):                 certificates.K8sDqliteKey,
 		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"): certificates.APIServerKubeletClientCert,
 		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"): certificates.APIServerKubeletClientKey,
 		path.Join(snap.KubernetesPKIDir(), "apiserver.crt"):                certificates.APIServerCert,
@@ -24,6 +22,18 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) er
 		path.Join(snap.KubernetesPKIDir(), "kubelet.crt"):                  certificates.KubeletCert,
 		path.Join(snap.KubernetesPKIDir(), "kubelet.key"):                  certificates.KubeletKey,
 		path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"):           certificates.ServiceAccountKey,
+	}
+
+	switch datastore {
+	case "k8s-dqlite":
+		toWrite[path.Join(snap.K8sDqliteStateDir(), "cluster.crt")] = certificates.K8sDqliteCert
+		toWrite[path.Join(snap.K8sDqliteStateDir(), "cluster.key")] = certificates.K8sDqliteKey
+	case "external-etcd":
+		toWrite[path.Join(snap.EtcdPKIDir(), "ca.crt")] = certificates.DatastoreCACert
+		toWrite[path.Join(snap.EtcdPKIDir(), "client.key")] = certificates.DatastoreClientCert
+		toWrite[path.Join(snap.EtcdPKIDir(), "client.crt")] = certificates.DatastoreClientKey
+	default:
+		return fmt.Errorf("unsupported datastore %q, must be one of 'k8s-dqlite, external-etcd'", datastore)
 	}
 
 	if certificates.CAKey != "" {

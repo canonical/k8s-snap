@@ -18,7 +18,6 @@ var (
 	// ControlPlaneServices contains all k8s services that run on a control plane except of k8sd.
 	controlPlaneServices = []string{
 		"containerd",
-		"k8s-dqlite",
 		"kube-apiserver",
 		"kube-controller-manager",
 		"kube-proxy",
@@ -40,8 +39,12 @@ func StartWorkerServices(ctx context.Context, snap snap.Snap) error {
 
 // StartControlPlaneServices starts the control plane services.
 // StartControlPlaneServices will return on the first failing service.
-func StartControlPlaneServices(ctx context.Context, snap snap.Snap) error {
-	for _, service := range controlPlaneServices {
+func StartControlPlaneServices(ctx context.Context, snap snap.Snap, datastore string) error {
+	var services []string
+	if datastore == "k8s-dqlite" {
+		services = append([]string{"k8s-dqlite"}, controlPlaneServices...)
+	}
+	for _, service := range services {
 		if err := snap.StartService(ctx, service); err != nil {
 			return fmt.Errorf("failed to start service %s: %w", service, err)
 		}
@@ -52,7 +55,9 @@ func StartControlPlaneServices(ctx context.Context, snap snap.Snap) error {
 // StopControlPlaneServices stops the control plane services.
 // StopControlPlaneServices will return on the first failing service.
 func StopControlPlaneServices(ctx context.Context, snap snap.Snap) error {
-	for _, service := range controlPlaneServices {
+	var services []string
+	services = append([]string{"k8s-dqlite"}, controlPlaneServices...)
+	for _, service := range services {
 		if err := snap.StopService(ctx, service); err != nil {
 			return fmt.Errorf("failed to start service %s: %w", service, err)
 		}

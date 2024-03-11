@@ -8,6 +8,7 @@ import (
 
 // ControlPlanePKI is a list of all certificates we require for a control plane node.
 type ControlPlanePKI struct {
+	datastore         string
 	allowSelfSignedCA bool     // create self-signed CA certificates if missing
 	hostname          string   // node name
 	ipSANs            []net.IP // IP SANs for generated certificates
@@ -21,6 +22,9 @@ type ControlPlanePKI struct {
 
 	// CN=k8s-dqlite, DNS=hostname, IP=127.0.0.1 (self-signed)
 	K8sDqliteCert, K8sDqliteKey string
+
+	// external-etcd
+	DatastoreCACert, DatastoreClientCert, DatastoreClientKey string
 
 	// CN=kube-apiserver, DNS=hostname,kubernetes.* IP=127.0.0.1,10.152.183.1,address (signed by kubernetes-ca)
 	APIServerCert, APIServerKey string
@@ -38,6 +42,7 @@ type ControlPlanePKIOpts struct {
 	IPSANs            []net.IP
 	Years             int
 	AllowSelfSignedCA bool
+	Datastore         string
 }
 
 func NewControlPlanePKI(opts ControlPlanePKIOpts) *ControlPlanePKI {
@@ -51,6 +56,7 @@ func NewControlPlanePKI(opts ControlPlanePKIOpts) *ControlPlanePKI {
 		years:             opts.Years,
 		ipSANs:            opts.IPSANs,
 		dnsSANs:           opts.DNSSANs,
+		datastore:         opts.Datastore,
 	}
 }
 
@@ -123,7 +129,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 	}
 
 	// Generate k8s-dqlite client certificate (if missing)
-	if c.K8sDqliteCert == "" && c.K8sDqliteKey == "" {
+	if c.datastore == "k8s-dqlite" && c.K8sDqliteCert == "" && c.K8sDqliteKey == "" {
 		if !c.allowSelfSignedCA {
 			return fmt.Errorf("k8s-dqlite certificate not specified and generating self-signed certificates is not allowed")
 		}

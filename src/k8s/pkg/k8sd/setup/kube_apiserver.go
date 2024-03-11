@@ -43,7 +43,7 @@ var (
 )
 
 // KubeAPIServer configures kube-apiserver on the local node.
-func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore string, authorizationMode string) error {
+func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore string, datastoreUrl string, authorizationMode string) error {
 	authTokenWebhookConfigFile := path.Join(snap.ServiceExtraConfigDir(), "auth-token-webhook.conf")
 	authTokenWebhookFile, err := os.OpenFile(authTokenWebhookConfigFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
@@ -74,11 +74,17 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--tls-cert-file":                            path.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
 		"--tls-cipher-suites":                        strings.Join(apiserverTLSCipherSuites, ","),
 		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
+		"--etcd-servers":                             datastoreUrl,
 	}
 
 	switch datastore {
 	case "k8s-dqlite":
 		args["--etcd-servers"] = fmt.Sprintf("unix://%s", path.Join(snap.K8sDqliteStateDir(), "k8s-dqlite.sock"))
+	case "external-etcd":
+		args["--etcd-servers"] = datastoreUrl
+		args["--etcd-cafile"] = path.Join(snap.EtcdPKIDir(), "ca.crt")
+		args["--etcd-certfile"] = path.Join(snap.EtcdPKIDir(), "client.crt")
+		args["--etcd-keyfile"] = path.Join(snap.EtcdPKIDir(), "client.key")
 	default:
 		return fmt.Errorf("unsupported datastore %s. must be 'k8s-dqlite'", datastore)
 	}
