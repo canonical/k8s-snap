@@ -23,6 +23,7 @@ type ClusterConfig struct {
 	LocalStorage  LocalStorage  `yaml:"local-storage"`
 	Gateway       Gateway       `yaml:"gateway"`
 	MetricsServer MetricsServer `yaml:"metrics-server"`
+	Containerd    Containerd    `yaml:"containerd"`
 }
 
 type Network struct {
@@ -99,6 +100,24 @@ type Gateway struct {
 
 type MetricsServer struct {
 	Enabled *bool `yaml:"enabled,omitempty"`
+}
+
+type Containerd struct {
+	Registries []ContainerdRegistry `yaml:"registries,omitempty"`
+}
+
+type ContainerdRegistry struct {
+	Host         string   `yaml:"host"`
+	URLs         []string `yaml:"urls"`
+	Username     string   `yaml:"username,omitempty"`
+	Password     string   `yaml:"password,omitempty"`
+	Token        string   `yaml:"token,omitempty"`
+	OverridePath bool     `yaml:"overridePath,omitempty"`
+	SkipVerify   bool     `yaml:"skipVerify,omitempty"`
+	// TODO(neoaggelos): add option to configure certificates for containerd registries
+	// CA           string   `yaml:"ca,omitempty"`
+	// Cert         string   `yaml:"cert,omitempty"`
+	// Key          string   `yaml:"key,omitempty"`
 }
 
 func (c *ClusterConfig) Validate() error {

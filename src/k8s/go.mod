@@ -8,6 +8,7 @@ require (
 	github.com/canonical/microcluster v0.0.0-20240122235408-1525f8ea8d7a
 	github.com/moby/sys/mountinfo v0.7.1
 	github.com/onsi/gomega v1.30.0
+	github.com/pelletier/go-toml v1.9.5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/net v0.21.0
