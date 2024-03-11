@@ -18,10 +18,10 @@ func MarkAsWorkerNode(snap snap.Snap, mark bool) error {
 
 	if mark {
 		lock, err := os.Create(fname)
-		defer lock.Close()
 		if err != nil {
 			return fmt.Errorf("failed to mark node as worker: %w", err)
 		}
+		defer lock.Close()
 		if err := os.Chown(fname, snap.UID(), snap.GID()); err != nil {
 			return fmt.Errorf("failed to chown %s: %w", fname, err)
 		}
