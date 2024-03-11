@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func mustReturnK8sApiServerMock(s *mock.Snap, dir string) {
+func setK8sApiServerMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
 		ServiceArgumentsDir:   path.Join(dir, "args"),
 		ServiceExtraConfigDir: path.Join(dir, "args/conf.d"),
@@ -23,7 +23,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 	t.Run("Args", func(t *testing.T) {
 		g := NewWithT(t)
 
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnK8sApiServerMock)
+		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		g.Expect(setup.K8sAPIServerProxy(s, []string{}))
 
@@ -53,7 +53,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 	t.Run("MissingExtraConfigDir", func(t *testing.T) {
 		g := NewWithT(t)
 
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnK8sApiServerMock)
+		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		s.Mock.ServiceExtraConfigDir = "nonexistent"
 		g.Expect(setup.K8sAPIServerProxy(s, []string{})).ToNot(Succeed())
@@ -62,7 +62,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 	t.Run("MissingServiceArgumentsDir", func(t *testing.T) {
 		g := NewWithT(t)
 
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnK8sApiServerMock)
+		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 		g.Expect(setup.K8sAPIServerProxy(s, []string{})).ToNot(Succeed())
