@@ -19,13 +19,13 @@ var expectedWorkerLabels = "node-role.kubernetes.io/worker="
 
 var kubeletTLSCipherSuites = "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384"
 
-func mustSetupSnapAndDirectories(t *testing.T, createMock func(*mock.Snap, string)) (s *mock.Snap, dir string) {
+func mustSetupSnapAndDirectories(t *testing.T, createMock func(*mock.Snap, string)) (s *mock.Snap) {
 	g := NewWithT(t)
-	dir = t.TempDir()
+	dir := t.TempDir()
 	s = &mock.Snap{}
 	createMock(s, dir)
 	g.Expect(setup.EnsureAllDirectories(s)).To(Succeed())
-	return s, dir
+	return s
 }
 
 func mustReturnMockForKubelet(s *mock.Snap, dir string) {
@@ -43,10 +43,10 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
+		s := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
 		// Call the kubelet control plane setup function
-		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).To(BeNil())
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -93,7 +93,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
+		s := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
 		// Call the kubelet control plane setup function
 		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "")).To(BeNil())
@@ -138,7 +138,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
+		s := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
 		// Call the kubelet worker setup function
 		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).To(BeNil())
@@ -188,7 +188,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
+		s := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
 		// Call the kubelet worker setup function
 		g.Expect(setup.KubeletWorker(s, "dev", nil, "", "", "")).To(BeNil())
@@ -232,7 +232,7 @@ func TestKubelet(t *testing.T) {
 
 	t.Run("MissingServiceArgumentsDir", func(t *testing.T) {
 		g := NewWithT(t)
-		s, _ := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
+		s := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 
