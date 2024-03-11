@@ -91,7 +91,7 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 			args["--etcd-certfile"] = path.Join(snap.EtcdPKIDir(), "client.crt")
 		}
 	default:
-		return fmt.Errorf("unsupported datastore %q. must be \"k8s-dqlite\"", datastore)
+		return fmt.Errorf("unsupported datastore %s. must be 'k8s-dqlite'", datastore)
 	}
 
 	if enableFrontProxy {
