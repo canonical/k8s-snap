@@ -32,7 +32,7 @@ func TestKubeAPIServer(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
+		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Call the KubeAPIServer setup function with mock arguments
 		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", true, "k8s-dqlite", "Node,RBAC")).To(BeNil())
@@ -87,7 +87,7 @@ func TestKubeAPIServer(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
+		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Call the KubeAPIServer setup function with mock arguments
 		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "k8s-dqlite", "Node,RBAC")).To(BeNil())
@@ -135,7 +135,7 @@ func TestKubeAPIServer(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s, _ := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
+		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Attempt to configure kube-apiserver with an unsupported datastore
 		err := setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "unsupported-datastore", "Node,RBAC")
