@@ -21,7 +21,7 @@ func setKubeControllerManagerMock(s *mock.Snap, dir string) {
 }
 
 func TestKubeControllerManager(t *testing.T) {
-	t.Run("ArgsWithClusterSigning", func(t *testing.T) {
+	t.Run("WithClusterSigning", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
@@ -71,7 +71,7 @@ func TestKubeControllerManager(t *testing.T) {
 		})
 	})
 
-	t.Run("ArgsNoClusterSigning", func(t *testing.T) {
+	t.Run("WithoutClusterSigning", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
