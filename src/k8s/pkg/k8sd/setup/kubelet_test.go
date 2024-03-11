@@ -28,7 +28,7 @@ func mustSetupSnapAndDirectories(t *testing.T, createMock func(*mock.Snap, strin
 	return s
 }
 
-func mustReturnMockForKubelet(s *mock.Snap, dir string) {
+func setKubeletMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
 		KubernetesPKIDir:    path.Join(dir, "pki"),
 		KubernetesConfigDir: path.Join(dir, "k8s-config"),
@@ -43,7 +43,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet control plane setup function
 		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).To(Succeed())
@@ -93,7 +93,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet control plane setup function
 		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "")).To(BeNil())
@@ -138,7 +138,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet worker setup function
 		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).To(BeNil())
@@ -188,7 +188,7 @@ func TestKubelet(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet worker setup function
 		g.Expect(setup.KubeletWorker(s, "dev", nil, "", "", "")).To(BeNil())
@@ -232,7 +232,7 @@ func TestKubelet(t *testing.T) {
 
 	t.Run("MissingServiceArgumentsDir", func(t *testing.T) {
 		g := NewWithT(t)
-		s := mustSetupSnapAndDirectories(t, mustReturnMockForKubelet)
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 
