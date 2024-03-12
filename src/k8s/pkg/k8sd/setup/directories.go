@@ -18,6 +18,7 @@ func EnsureAllDirectories(snap snap.Snap) error {
 		snap.K8sDqliteStateDir(),
 		snap.KubernetesConfigDir(),
 		snap.KubernetesPKIDir(),
+		snap.EtcdPKIDir(),
 		snap.LockFilesDir(),
 		snap.ServiceArgumentsDir(),
 		snap.ServiceExtraConfigDir(),

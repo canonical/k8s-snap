@@ -27,6 +27,7 @@ type Snap interface {
 
 	KubernetesConfigDir() string // /etc/kubernetes
 	KubernetesPKIDir() string    // /etc/kubernetes/pki
+	EtcdPKIDir() string          // /etc/kubernetes/pki/etcd
 	KubeletRootDir() string      // /var/lib/kubelet
 
 	ContainerdConfigDir() string         // /var/snap/k8s/common/etc/containerd
