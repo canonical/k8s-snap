@@ -235,7 +235,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
-    
+
 		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).ToNot(Succeed())
 	})
 
