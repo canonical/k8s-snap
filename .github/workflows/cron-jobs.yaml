@@ -38,7 +38,7 @@ jobs:
 
           # TICS requires us to have the test results in cobertura xml format under the
           # directory use below
-          hack/static-go-test.sh -v ./pkg/... -coverprofile=coverage.txt --cover 
+          make go.unit
           go install github.com/boumenot/gocover-cobertura@latest
           gocover-cobertura < coverage.txt > coverage.xml
           mkdir .coverage

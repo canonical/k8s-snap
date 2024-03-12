@@ -16,8 +16,13 @@ type BootstrapConfig struct {
 	// ServiceCIDR is the CIDR of the cluster services.
 	ServiceCIDR string `yaml:"service-cidr"`
 	// EnableRBAC determines if RBAC will be enabled; *bool to know true/false/unset.
-	EnableRBAC    *bool `yaml:"enable-rbac"`
-	K8sDqlitePort int   `yaml:"k8s-dqlite-port"`
+	EnableRBAC          *bool  `yaml:"enable-rbac"`
+	K8sDqlitePort       int    `yaml:"k8s-dqlite-port"`
+	Datastore           string `yaml:"datastore"`
+	DatastoreURL        string `yaml:"datastore-url,omitempty"`
+	DatastoreCACert     string `yaml:"datastore-ca-crt,omitempty"`
+	DatastoreClientCert string `yaml:"datastore-client-crt,omitempty"`
+	DatastoreClientKey  string `yaml:"datastore-client-key,omitempty"`
 }
 
 // SetDefaults sets the fields to default values.
@@ -27,6 +32,7 @@ func (b *BootstrapConfig) SetDefaults() {
 	b.ServiceCIDR = "10.152.183.0/24"
 	b.EnableRBAC = vals.Pointer(true)
 	b.K8sDqlitePort = 9000
+	b.Datastore = "k8s-dqlite"
 }
 
 // ToMap marshals the BootstrapConfig into yaml and map it to "bootstrapConfig".

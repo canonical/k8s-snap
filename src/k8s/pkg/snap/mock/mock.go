@@ -17,6 +17,7 @@ type Mock struct {
 	GID                         int
 	KubernetesConfigDir         string
 	KubernetesPKIDir            string
+	EtcdPKIDir                  string
 	KubeletRootDir              string
 	CNIConfDir                  string
 	CNIBinDir                   string
@@ -110,6 +111,9 @@ func (s *Snap) KubernetesConfigDir() string {
 }
 func (s *Snap) KubernetesPKIDir() string {
 	return s.Mock.KubernetesPKIDir
+}
+func (s *Snap) EtcdPKIDir() string {
+	return s.Mock.EtcdPKIDir
 }
 func (s *Snap) KubeletRootDir() string {
 	return s.Mock.KubeletRootDir

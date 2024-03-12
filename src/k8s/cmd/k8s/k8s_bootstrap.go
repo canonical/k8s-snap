@@ -153,7 +153,7 @@ func askQuestion(stdin io.Reader, stdout io.Writer, stderr io.Writer, question s
 				break
 			}
 		}
-		s = strings.ReplaceAll(strings.ToLower(s), " ", "")
+		s = strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(s), " ", ""), "\n", "")
 
 		if s == "" {
 			return defaultVal
