@@ -230,7 +230,7 @@ func TestKubelet(t *testing.T) {
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
-	t.Run("MissingServiceArgumentsDir", func(t *testing.T) {
+	t.Run("ControlPlaneNoArgsDir", func(t *testing.T) {
 		g := NewWithT(t)
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
