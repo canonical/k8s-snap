@@ -45,7 +45,6 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 	if err != nil {
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}
-	fmt.Println("Wait for network do come up...")
 	control.WaitUntilReady(ctx, func() (bool, error) {
 		resources, err := k8sClient.ListResourcesForGroupVersion("cilium.io/v2alpha1")
 		if err != nil {
