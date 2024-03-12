@@ -7,6 +7,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
 )
@@ -39,6 +40,35 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 		return fmt.Errorf("failed to enable load-balancer component: %w", err)
 	}
 
+	// Wait for cilium CRDs to be available.
+	k8sClient, err := k8s.NewClient(s)
+	if err != nil {
+		return fmt.Errorf("failed to create k8s client: %w", err)
+	}
+	fmt.Println("Wait for network do come up...")
+	control.WaitUntilReady(ctx, func() (bool, error) {
+		resources, err := k8sClient.ListResourcesForGroupVersion("cilium.io/v2alpha1")
+		if err != nil {
+			// This error is expected if the group version is not yet deployed.
+			return false, nil
+		}
+
+		requiredCRDs := map[string]struct{}{
+			"ciliuml2announcementpolicies": {},
+			"ciliumloadbalancerippools":    {},
+		}
+		if bgpEnabled {
+			requiredCRDs["ciliumbgppeeringpolicies"] = struct{}{}
+		}
+		requiredCount := len(requiredCRDs)
+		for _, resource := range resources.APIResources {
+			if _, ok := requiredCRDs[resource.Name]; ok {
+				requiredCount = requiredCount - 1
+			}
+		}
+		return requiredCount == 0, nil
+	})
+
 	formattedCidrs := []map[string]any{}
 
 	for _, cidr := range cidrs {
@@ -57,7 +87,7 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 			"enabled":  bgpEnabled,
 			"localASN": bgpLocalASN,
 			"neighbors": []map[string]any{
-				map[string]any{
+				{
 					"peerAddress": bgpPeerAddress,
 					"peerASN":     bgpPeerASN,
 					"peerPort":    bgpPeerPort,

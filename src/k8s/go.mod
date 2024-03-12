@@ -9,7 +9,6 @@ require (
 	github.com/moby/sys/mountinfo v0.7.1
 	github.com/onsi/gomega v1.30.0
 	github.com/pelletier/go-toml v1.9.5
-	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/net v0.21.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -135,6 +134,7 @@ require (
 	github.com/rubenv/sql-migrate v1.5.2 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
