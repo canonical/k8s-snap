@@ -9,10 +9,55 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
+func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePKI) error {
+	toWrite := map[string]string{
+		path.Join(snap.EtcdPKIDir(), "ca.crt"):     certificates.DatastoreCACert,
+		path.Join(snap.EtcdPKIDir(), "client.key"): certificates.DatastoreClientCert,
+		path.Join(snap.EtcdPKIDir(), "client.crt"): certificates.DatastoreClientKey,
+	}
+
+	for fname, cert := range toWrite {
+		// Do not create files if contents are empty/certificates are not set
+		if cert == "" {
+			continue
+		}
+		if err := os.WriteFile(fname, []byte(cert), 0600); err != nil {
+			return fmt.Errorf("failed to write %s: %w", path.Base(fname), err)
+		}
+		if err := os.Chown(fname, snap.UID(), snap.GID()); err != nil {
+			return fmt.Errorf("failed to chown %s: %w", fname, err)
+		}
+		if err := os.Chmod(fname, 0600); err != nil {
+			return fmt.Errorf("failed to chmod %s: %w", fname, err)
+		}
+	}
+
+	return nil
+}
+
+func EnsureK8sDqlitePKI(snap snap.Snap, certificates *pki.K8sDqlitePKI) error {
+	toWrite := map[string]string{
+		path.Join(snap.K8sDqliteStateDir(), "cluster.crt"): certificates.K8sDqliteCert,
+		path.Join(snap.K8sDqliteStateDir(), "cluster.key"): certificates.K8sDqliteKey,
+	}
+
+	for fname, cert := range toWrite {
+		if err := os.WriteFile(fname, []byte(cert), 0600); err != nil {
+			return fmt.Errorf("failed to write %s: %w", path.Base(fname), err)
+		}
+		if err := os.Chown(fname, snap.UID(), snap.GID()); err != nil {
+			return fmt.Errorf("failed to chown %s: %w", fname, err)
+		}
+		if err := os.Chmod(fname, 0600); err != nil {
+			return fmt.Errorf("failed to chmod %s: %w", fname, err)
+		}
+	}
+
+	return nil
+}
+
 func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) error {
 	toWrite := map[string]string{
-		path.Join(snap.K8sDqliteStateDir(), "cluster.crt"):                 certificates.K8sDqliteCert,
-		path.Join(snap.K8sDqliteStateDir(), "cluster.key"):                 certificates.K8sDqliteKey,
 		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"): certificates.APIServerKubeletClientCert,
 		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"): certificates.APIServerKubeletClientKey,
 		path.Join(snap.KubernetesPKIDir(), "apiserver.crt"):                certificates.APIServerCert,

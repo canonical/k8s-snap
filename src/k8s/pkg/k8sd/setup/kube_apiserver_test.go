@@ -1,6 +1,7 @@
 package setup_test
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"testing"
@@ -28,5 +29,5 @@ func TestKubeAPIServer(t *testing.T) {
 	}
 
 	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
-	g.Expect(setup.KubeAPIServer(s, "10.152.0.0/16", "https://10.0.0.1:6400/1.0/kubernetes/auth/webhook", false, "k8s-dqlite", "Node,RBAC")).To(BeNil())
+	g.Expect(setup.KubeAPIServer(s, "10.152.0.0/16", "https://10.0.0.1:6400/1.0/kubernetes/auth/webhook", false, "k8s-dqlite", fmt.Sprintf("unix://%s", path.Join(s.K8sDqliteStateDir(), "k8s-dqlite.sock")), "Node,RBAC")).To(BeNil())
 }

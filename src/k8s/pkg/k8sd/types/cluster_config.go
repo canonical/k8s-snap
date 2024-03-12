@@ -39,8 +39,13 @@ type Certificates struct {
 	APIServerKubeletClientKey  string `yaml:"apiserver-kubelet-client-key,omitempty"`
 	K8sDqliteCert              string `yaml:"k8s-dqlite-crt,omitempty"`
 	K8sDqliteKey               string `yaml:"k8s-dqlite-key,omitempty"`
-	FrontProxyCACert           string `yaml:"front-proxy-ca-crt,omitempty"`
-	FrontProxyCAKey            string `yaml:"front-proxy-ca-key,omitempty"`
+
+	DatastoreCACert     string `yaml:"datastore-ca-crt,omitempty"`
+	DatastoreClientCert string `yaml:"datastore-client-crt,omitempty"`
+	DatastoreClientKey  string `yaml:"datastore-client-key,omitempty"`
+
+	FrontProxyCACert string `yaml:"front-proxy-ca-crt,omitempty"`
+	FrontProxyCAKey  string `yaml:"front-proxy-ca-key,omitempty"`
 }
 
 type Kubelet struct {
@@ -50,14 +55,11 @@ type Kubelet struct {
 }
 
 type APIServer struct {
-	SecurePort          int    `yaml:"secure-port,omitempty"`
-	AuthorizationMode   string `yaml:"authorization-mode,omitempty"`
-	ServiceAccountKey   string `yaml:"service-account-key,omitempty"`
-	Datastore           string `yaml:"datastore,omitempty"`
-	DatastoreURL        string `yaml:"datastore-url,omitempty"`
-	DatastoreCA         string `yaml:"datastore-ca-crt,omitempty"`
-	DatastoreClientCert string `yaml:"datastore-client-crt,omitempty"`
-	DatastoreClientKey  string `yaml:"datastore-client-key,omitempty"`
+	SecurePort        int    `yaml:"secure-port,omitempty"`
+	AuthorizationMode string `yaml:"authorization-mode,omitempty"`
+	ServiceAccountKey string `yaml:"service-account-key,omitempty"`
+	Datastore         string `yaml:"datastore,omitempty"`
+	DatastoreURL      string `yaml:"datastore-url,omitempty"`
 }
 
 type K8sDqlite struct {
@@ -78,9 +80,9 @@ type Ingress struct {
 type LoadBalancer struct {
 	Enabled        *bool    `yaml:"enabled,omitempty"`
 	CIDRs          []string `yaml:"cidrs,omitempty"`
-	L2Enabled      *bool    `yaml:"l2-enabled,omitempty"`
+	L2Enabled      *bool    `yaml:"l2-mode,omitempty"`
 	L2Interfaces   []string `yaml:"l2-interfaces,omitempty"`
-	BGPEnabled     *bool    `yaml:"bgp-enabled,omitempty"`
+	BGPEnabled     *bool    `yaml:"bgp-mode,omitempty"`
 	BGPLocalASN    int      `yaml:"bgp-local-asn,omitempty"`
 	BGPPeerAddress string   `yaml:"bgp-peer-address,omitempty"`
 	BGPPeerASN     int      `yaml:"bgp-peer-asn,omitempty"`
@@ -147,9 +149,6 @@ func (c *ClusterConfig) SetDefaults() {
 	if c.Network.ServiceCIDR == "" {
 		c.Network.ServiceCIDR = "10.152.183.0/24"
 	}
-	if c.APIServer.Datastore == "" {
-		c.APIServer.Datastore = "k8s-dqlite"
-	}
 	if c.APIServer.SecurePort == 0 {
 		c.APIServer.SecurePort = 6443
 	}
@@ -189,8 +188,15 @@ func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
 	}
 
 	config := ClusterConfig{
+		Certificates: Certificates{
+			DatastoreCACert:     b.DatastoreCACert,
+			DatastoreClientCert: b.DatastoreClientCert,
+			DatastoreClientKey:  b.DatastoreClientKey,
+		},
 		APIServer: APIServer{
 			AuthorizationMode: authzMode,
+			Datastore:         b.Datastore,
+			DatastoreURL:      b.DatastoreURL,
 		},
 		Network: Network{
 			PodCIDR:     b.ClusterCIDR,

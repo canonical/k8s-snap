@@ -103,7 +103,7 @@ func mustMakeMeSomeReleases(store *storage.Storage, t *testing.T) (all []*releas
 	return all
 }
 
-func mustMakeMeSomeComponents() map[string]types.Component {
+func createComponentMap() map[string]types.Component {
 	return map[string]types.Component{
 		"one": {
 			ReleaseName:  "whiskas-1",
@@ -202,7 +202,7 @@ func TestListComponentsWithReleases(t *testing.T) {
 
 	// Create a mock ComponentManager with the mock HelmClient
 	// This mock uses components.yaml for the snap mock components
-	mockHelmClient, _, mockActionConfig := mustCreateNewHelmClient(t, mustMakeMeSomeComponents())
+	mockHelmClient, _, mockActionConfig := mustCreateNewHelmClient(t, createComponentMap())
 
 	// Create releases in the mock actionConfig
 	releases := mustMakeMeSomeReleases(mockActionConfig.Releases, t)
@@ -222,7 +222,7 @@ func TestListComponentsWithReleases(t *testing.T) {
 func TestComponentsInitialState(t *testing.T) {
 	g := NewWithT(t)
 
-	components := mustMakeMeSomeComponents()
+	components := createComponentMap()
 
 	mockHelmClient, _, _ := mustCreateNewHelmClient(t, components)
 
@@ -236,7 +236,7 @@ func TestComponentsInitialState(t *testing.T) {
 func TestEnableMultipleComponents(t *testing.T) {
 	g := NewWithT(t)
 
-	components := mustMakeMeSomeComponents()
+	components := createComponentMap()
 
 	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, components)
 
@@ -273,7 +273,7 @@ func TestEnableMultipleComponents(t *testing.T) {
 func TestDisableComponent(t *testing.T) {
 	g := NewWithT(t)
 
-	components := mustMakeMeSomeComponents()
+	components := createComponentMap()
 
 	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, components)
 

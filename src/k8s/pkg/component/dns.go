@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
@@ -87,10 +86,7 @@ func UpdateDNSComponent(ctx context.Context, s snap.Snap, isRefresh bool, cluste
 		return "", "", fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	dnsIP, err := client.GetServiceClusterIP(timeoutCtx, "coredns", "kube-system")
+	dnsIP, err := client.GetServiceClusterIP(ctx, "coredns", "kube-system")
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get dns service: %w", err)
 	}
@@ -105,10 +101,7 @@ func UpdateDNSComponent(ctx context.Context, s snap.Snap, isRefresh bool, cluste
 	}
 
 	if changed {
-		timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-		defer cancel()
-
-		if err := s.RestartService(timeoutCtx, "kubelet"); err != nil {
+		if err := s.RestartService(ctx, "kubelet"); err != nil {
 			return "", "", fmt.Errorf("failed to restart kubelet to apply new dns configuration: %w", err)
 		}
 	}
@@ -131,10 +124,7 @@ func DisableDNSComponent(ctx context.Context, s snap.Snap) error {
 	}
 
 	if changed {
-		timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-		defer cancel()
-
-		if err := s.RestartService(timeoutCtx, "kubelet"); err != nil {
+		if err := s.RestartService(ctx, "kubelet"); err != nil {
 			return fmt.Errorf("failed to restart service 'kubelet': %w", err)
 		}
 	}
