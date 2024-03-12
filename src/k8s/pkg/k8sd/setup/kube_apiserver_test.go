@@ -35,7 +35,7 @@ func TestKubeAPIServer(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Call the KubeAPIServer setup function with mock arguments
-		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", true, "k8s-dqlite", "Node,RBAC")).To(BeNil())
+		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", true, "k8s-dqlite", "datastoreurl", "Node,RBAC")).To(BeNil())
 
 		// Ensure the kube-apiserver arguments file has the expected arguments and values
 		tests := []struct {
@@ -90,7 +90,7 @@ func TestKubeAPIServer(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Call the KubeAPIServer setup function with mock arguments
-		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "k8s-dqlite", "Node,RBAC")).To(BeNil())
+		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "k8s-dqlite", "datastoreurl", "Node,RBAC")).To(BeNil())
 
 		// Ensure the kube-apiserver arguments file has the expected arguments and values
 		tests := []struct {
@@ -131,6 +131,19 @@ func TestKubeAPIServer(t *testing.T) {
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
 
+	t.Run("ArgsExternalDatastore", func(t *testing.T) {
+		g := NewWithT(t)
+
+		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
+
+		// Setup without proxy to simplify argument list
+		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "external", "datastoreurl", "Node,RBAC")).To(BeNil())
+
+		g.Expect(snaputil.GetServiceArgument(s, "kube-apiserver", "--etcd-servers")).To(Equal("datastoreurl"))
+		_, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-apiserver"))
+		g.Expect(err).ToNot(HaveOccurred())
+	})
+
 	t.Run("UnsupportedDatastore", func(t *testing.T) {
 		g := NewWithT(t)
 
@@ -138,7 +151,7 @@ func TestKubeAPIServer(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Attempt to configure kube-apiserver with an unsupported datastore
-		err := setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "unsupported-datastore", "Node,RBAC")
+		err := setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, "unsupported-datastore", "datastoreurl", "Node,RBAC")
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(ContainSubstring("unsupported datastore")))
 	})
