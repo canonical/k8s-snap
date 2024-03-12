@@ -203,6 +203,7 @@ parts:
       - cni
       - containerd
       - helm
+      - k8s-dqlite
       - kubernetes
       - runc
     plugin: nil
