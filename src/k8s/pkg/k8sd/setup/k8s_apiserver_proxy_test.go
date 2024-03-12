@@ -27,7 +27,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
-		g.Expect(setup.K8sAPIServerProxy(s, []string{}))
+		g.Expect(setup.K8sAPIServerProxy(s, nil)).To(Succeed())
 
 		tests := []struct {
 			key         string
