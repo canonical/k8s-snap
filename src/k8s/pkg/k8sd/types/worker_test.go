@@ -9,7 +9,7 @@ import (
 
 func TestWorkerTokenEncode(t *testing.T) {
 	token := &types.InternalWorkerNodeToken{
-		Token:         "token1",
+		Secret:        "mysecret",
 		JoinAddresses: []string{"addr1:1010", "addr2:1212"},
 	}
 
@@ -21,6 +21,5 @@ func TestWorkerTokenEncode(t *testing.T) {
 	decoded := &types.InternalWorkerNodeToken{}
 	err = decoded.Decode(s)
 	g.Expect(err).To(BeNil())
-
 	g.Expect(decoded).To(Equal(token))
 }

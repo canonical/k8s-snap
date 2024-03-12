@@ -46,9 +46,8 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		{
 			Name: "WorkerInfo",
 			Path: "k8sd/worker/info",
-			// This endpoint is used by worker nodes that are not part of the microcluster.
-			// We authenticate by passing a token through an HTTP header instead.
-			Post: rest.EndpointAction{Handler: postWorkerInfo, AllowUntrusted: true},
+			// AllowUntrusted disabled the microcluster authorization check. Authorization is done via custom token.
+			Post: rest.EndpointAction{Handler: postWorkerInfo, AllowUntrusted: true, AccessHandler: TokenAuthentication},
 		},
 		// Kubeconfig
 		{

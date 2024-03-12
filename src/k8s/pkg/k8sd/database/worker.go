@@ -24,27 +24,28 @@ var (
 	}
 )
 
-// CheckWorkerNodeToken returns true if the specified token can be used to join worker nodes on the cluster.
-func CheckWorkerNodeToken(ctx context.Context, tx *sql.Tx, token string) (bool, error) {
+// CheckWorkerNodeToken returns true if the specified token can be used to join the specified node on the cluster.
+func CheckWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string, token string) (bool, error) {
 	selectTxStmt, err := cluster.Stmt(tx, workerStmts["select-token"])
 	if err != nil {
 		return false, fmt.Errorf("failed to prepare select statement: %w", err)
 	}
 	var realToken string
-	if selectTxStmt.QueryRowContext(ctx).Scan(&realToken) == nil {
+	if selectTxStmt.QueryRowContext(ctx, nodeName).Scan(&realToken) == nil {
 		return subtle.ConstantTimeCompare([]byte(token), []byte(realToken)) == 1, nil
 	}
 	return false, nil
 }
 
-// GetOrCreateWorkerNodeToken returns a token that can be used to join worker nodes on the cluster.
-func GetOrCreateWorkerNodeToken(ctx context.Context, tx *sql.Tx) (string, error) {
+// GetOrCreateWorkerNodeToken returns a token that can be used to join a worker node on the cluster.
+// GetOrCreateWorkerNodeToken will return the existing token, if one already exists for the node.
+func GetOrCreateWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string) (string, error) {
 	selectTxStmt, err := cluster.Stmt(tx, workerStmts["select-token"])
 	if err != nil {
 		return "", fmt.Errorf("failed to prepare select statement: %w", err)
 	}
 	var token string
-	if selectTxStmt.QueryRowContext(ctx).Scan(&token) == nil {
+	if selectTxStmt.QueryRowContext(ctx, nodeName).Scan(&token) == nil {
 		return token, nil
 	}
 
@@ -59,19 +60,19 @@ func GetOrCreateWorkerNodeToken(ctx context.Context, tx *sql.Tx) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("failed to prepare insert statement: %w", err)
 	}
-	if _, err := insertTxStmt.ExecContext(ctx, token); err != nil {
+	if _, err := insertTxStmt.ExecContext(ctx, nodeName, token); err != nil {
 		return "", fmt.Errorf("insert token query failed: %w", err)
 	}
 	return token, nil
 }
 
 // DeleteWorkerNodeToken returns a token that can be used to join worker nodes on the cluster.
-func DeleteWorkerNodeToken(ctx context.Context, tx *sql.Tx) error {
+func DeleteWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string) error {
 	deleteTxStmt, err := cluster.Stmt(tx, workerStmts["delete-token"])
 	if err != nil {
 		return fmt.Errorf("failed to prepare delete statement: %w", err)
 	}
-	if _, err := deleteTxStmt.ExecContext(ctx); err != nil {
+	if _, err := deleteTxStmt.ExecContext(ctx, nodeName); err != nil {
 		return fmt.Errorf("delete token query failed: %w", err)
 	}
 	return nil

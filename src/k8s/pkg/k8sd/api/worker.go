@@ -19,34 +19,13 @@ import (
 )
 
 func postWorkerInfo(s *state.State, r *http.Request) response.Response {
-	// TODO: move authentication through the HTTP token to an AccessHandler for the endpoint.
-	token := r.Header.Get("k8sd-token")
-	if token == "" {
-		return response.Unauthorized(fmt.Errorf("invalid token"))
-	}
-	var tokenIsValid bool
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-		var err error
-		tokenIsValid, err = database.CheckWorkerNodeToken(ctx, tx, token)
-		if err != nil {
-			return fmt.Errorf("failed to check worker node token: %w", err)
-		}
-		return nil
-	}); err != nil {
-		return response.InternalError(fmt.Errorf("check token database transaction failed: %w", err))
-	}
-	if !tokenIsValid {
-		return response.Unauthorized(fmt.Errorf("invalid token"))
-	}
-
 	req := apiv1.WorkerNodeInfoRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
-	nodeName := req.Hostname
-	if nodeName == "" {
-		return response.BadRequest(fmt.Errorf("node name cannot be empty"))
-	}
+
+	// Existence of this header is already checked in the access handler.
+	workerName := r.Header.Get("worker-name")
 	nodeIP := net.ParseIP(req.Address)
 	if nodeIP == nil {
 		return response.BadRequest(fmt.Errorf("failed to parse node IP address %s", req.Address))
@@ -60,7 +39,7 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Years: 10})
 	certificates.CACert = cfg.Certificates.CACert
 	certificates.CAKey = cfg.Certificates.CAKey
-	workerCertificates, err := certificates.CompleteWorkerNodePKI(nodeName, nodeIP, 2048)
+	workerCertificates, err := certificates.CompleteWorkerNodePKI(workerName, nodeIP, 2048)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate worker PKI: %w", err))
 	}
@@ -85,13 +64,13 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 		username string
 		groups   []string
 	}{
-		{token: &kubeletToken, name: "kubelet", username: fmt.Sprintf("system:node:%s", nodeName), groups: []string{"system:nodes"}},
+		{token: &kubeletToken, name: "kubelet", username: fmt.Sprintf("system:node:%s", workerName), groups: []string{"system:nodes"}},
 		{token: &proxyToken, name: "kube-proxy", username: "system:kube-proxy"},
 	} {
 		if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 			t, err := database.GetOrCreateToken(ctx, tx, i.username, i.groups)
 			if err != nil {
-				return fmt.Errorf("failed to generate %s token for node %q: %w", i.name, nodeName, err)
+				return fmt.Errorf("failed to generate %s token for node %q: %w", i.name, workerName, err)
 			}
 			*i.token = t
 			return nil
@@ -101,9 +80,15 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	}
 
 	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-		return database.AddWorkerNode(ctx, tx, nodeName)
+		return database.AddWorkerNode(ctx, tx, workerName)
 	}); err != nil {
 		return response.InternalError(fmt.Errorf("add worker node transaction failed: %w", err))
+	}
+
+	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+		return database.DeleteWorkerNodeToken(ctx, tx, workerName)
+	}); err != nil {
+		return response.InternalError(fmt.Errorf("delete worker node token transaction failed: %w", err))
 	}
 
 	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
