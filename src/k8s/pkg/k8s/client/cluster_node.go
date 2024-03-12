@@ -90,6 +90,7 @@ func (c *k8sdClient) CleanupNode(ctx context.Context, snap snap.Snap, nodeName s
 
 	// TODO(neoaggelos): reenable after we know how to pass a snap here
 	snaputil.StopControlPlaneServices(ctx, snap)
+	snaputil.StopK8sDqliteServices(ctx, snap)
 
 	snaputil.MarkAsWorkerNode(snap, false)
 }

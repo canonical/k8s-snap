@@ -159,6 +159,10 @@ func (s *snap) KubernetesPKIDir() string {
 	return "/etc/kubernetes/pki"
 }
 
+func (s *snap) EtcdPKIDir() string {
+	return "/etc/kubernetes/pki/etcd"
+}
+
 func (s *snap) KubeletRootDir() string {
 	return "/var/lib/kubelet"
 }
