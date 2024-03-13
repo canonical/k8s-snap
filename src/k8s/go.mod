@@ -149,9 +149,11 @@ require (
 	go.opentelemetry.io/otel/trace v1.23.1 // indirect
 	go.starlark.net v0.0.0-20230912135651-745481cf39ed // indirect
 	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/telemetry v0.0.0-20240208230135-b75ee8823808 // indirect
 	golang.org/x/term v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
