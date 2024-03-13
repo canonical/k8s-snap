@@ -50,8 +50,6 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, hostname string, address str
 func (c *k8sdClient) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error) {
 	var response apiv1.GetClusterStatusResponse
 
-	// TODO(neoaggelos): this must be done on the server side
-	// fail fast if we're not explicitly waiting and we can't get kube-apiserver endpoints
 	if !waitReady && !c.IsKubernetesAPIServerReady(ctx) {
 		return apiv1.ClusterStatus{}, fmt.Errorf("there are no active kube-apiserver endpoints, cluster status is unavailable")
 	}
