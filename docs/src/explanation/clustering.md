@@ -54,6 +54,8 @@ Worker nodes are responsible for running the applications and workloads. Worker
 nodes, can interact with the `k8sd` API, gaining capabilities to manage its
 entire lifecycle. Their components include:
 
+- **Local API Server Proxy**: This component forwards requests to the control
+    plane nodes.
 - **Kubelet**: Communicates with the control plane node and manages the
     containers running on the machine according to the configurations provided
     by the user.
