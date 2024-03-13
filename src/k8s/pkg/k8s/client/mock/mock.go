@@ -41,8 +41,6 @@ type Client struct {
 	JoinClusterErr       error
 	KubeConfigReturn     string
 	KubeConfigErr        error
-	ListComponentsReturn []apiv1.Component
-	ListComponentsErr    error
 	RemoveNodeCalledWith struct {
 		Ctx   context.Context
 		Name  string
@@ -114,10 +112,6 @@ func (c *Client) RemoveNode(ctx context.Context, name string, force bool) error 
 	c.RemoveNodeCalledWith.Name = name
 	c.RemoveNodeCalledWith.Force = force
 	return c.RemoveNodeErr
-}
-
-func (c *Client) ListComponents(ctx context.Context) ([]apiv1.Component, error) {
-	return c.ListComponentsReturn, c.ListComponentsErr
 }
 
 func (c *Client) UpdateClusterConfig(ctx context.Context, request apiv1.UpdateClusterConfigRequest) error {
