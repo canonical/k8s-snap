@@ -13,8 +13,8 @@ LOG = logging.getLogger(__name__)
 
 def test_gateway(instances: List[harness.Instance]):
     instance = instances[0]
-    util.wait_for_dns(instance)
     util.wait_for_network(instance)
+    util.wait_for_dns(instance)
 
     instance.exec(["k8s", "enable", "gateway"])
 
