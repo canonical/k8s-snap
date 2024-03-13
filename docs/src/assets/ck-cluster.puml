@@ -1,0 +1,43 @@
+@startuml
+set separator none
+title Canonical Kubernetes Cluster
+
+'left to right direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+!include <C4/C4_Component>
+
+
+
+System_Boundary("K8sSnapDistribution.ControlPlane", "Control Plane", $tags="") {
+  Container(K8sSnapDistribution.ControlPlane.K8sSnap, "K8s Snap", $techn="Snap Package", $descr="", $tags="", $link=""){
+    Component(K8sSnapDistribution.ControlPlane.K8sSnap.K8sd, "K8sd", $techn="", $descr="K8sd Instance", $tags="", $link="")
+    Component(K8sSnapDistribution.ControlPlane.K8sSnap.Services, "Kubernetes Services", $techn="", $descr="kube-apiserver, kubelet, kube-proxy, kube-scheduler, kube-controller-manager, and container runtime.", $tags="", $link="")
+    Component(K8sSnapDistribution.ControlPlane.K8sSnap.State, "State", $techn="dqlite", $descr="Datastore holding the cluster state", $tags="", $link="")
+    Component(K8sSnapDistribution.ControlPlane.K8sSnap.DataStore, "Dqlite Datastore", $techn="dqlite", $descr="Datastores holding the Kubernetes state", $tags="", $link="")
+  }
+  Container(K8sSnapDistribution.ControlPlane.Pod, "Workloads", $techn="Pod", $descr="", $tags="", $link="")
+}
+
+System_Boundary("K8sSnapDistribution.Worker", "Worker", $tags="") {
+  Container(K8sSnapDistribution.Worker.K8sSnap, "K8s Snap", $techn="Snap Package", $descr="", $tags="", $link=""){
+    Component(K8sSnapDistribution.Worker.K8sSnap.K8sd, "K8sd", $techn="", $descr="K8sd Instance", $tags="", $link="")
+    Component(K8sSnapDistribution.Worker.K8sSnap.Services, "Kubernetes Services", $techn="", $descr="kubelet, kube-proxy, and container runtime.", $tags="", $link="")
+  }
+  Container(K8sSnapDistribution.Worker.Pod, "Workloads", $techn="Pod", $descr="", $tags="", $link="")
+}
+
+
+Rel(K8sSnapDistribution.ControlPlane.K8sSnap.K8sd, K8sSnapDistribution.ControlPlane.K8sSnap.Services, "Configures", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.ControlPlane.K8sSnap.K8sd, K8sSnapDistribution.ControlPlane.K8sSnap.State, "Keeps state in", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.ControlPlane.K8sSnap.Services, K8sSnapDistribution.ControlPlane.K8sSnap.DataStore, "Keeps state in", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.Worker.K8sSnap.K8sd, K8sSnapDistribution.Worker.K8sSnap.Services, "Configures", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.ControlPlane.K8sSnap.Services, K8sSnapDistribution.ControlPlane.Pod, "Manages", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.Worker.K8sSnap.K8sd, K8sSnapDistribution.ControlPlane.K8sSnap.K8sd, "Interacts with", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.Worker.K8sSnap.Services, K8sSnapDistribution.Worker.Pod, "Manages", $techn="", $tags="", $link="")
+
+
+SHOW_LEGEND(true)
+@enduml
