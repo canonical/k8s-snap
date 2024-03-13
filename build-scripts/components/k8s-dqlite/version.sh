@@ -1,3 +1,3 @@
 #!/bin/bash
 
-echo "bump-x-net-http2"
+echo "bump-etcd-server"
