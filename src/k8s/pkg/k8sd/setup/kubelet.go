@@ -68,7 +68,7 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 	if clusterDomain != "" {
 		args["--cluster-domain"] = clusterDomain
 	}
-	if nodeIP != nil {
+	if nodeIP != nil && !nodeIP.IsLoopback() {
 		args["--node-ip"] = nodeIP.String()
 	}
 	if _, err := snaputil.UpdateServiceArguments(snap, "kubelet", args, nil); err != nil {
