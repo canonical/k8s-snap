@@ -8,11 +8,12 @@ import (
 
 // ControlPlanePKI is a list of all certificates we require for a control plane node.
 type ControlPlanePKI struct {
-	allowSelfSignedCA bool     // create self-signed CA certificates if missing
-	hostname          string   // node name
-	ipSANs            []net.IP // IP SANs for generated certificates
-	dnsSANs           []string // DNS SANs for the certificates below
-	years             int      // how many years the generated certificates will be valid for
+	allowSelfSignedCA         bool     // create self-signed CA certificates if missing
+	includeMachineAddressSANs bool     // include any machine IP addresses as SANs for generated certificates
+	hostname                  string   // node name
+	ipSANs                    []net.IP // IP SANs for generated certificates
+	dnsSANs                   []string // DNS SANs for the certificates below
+	years                     int      // how many years the generated certificates will be valid for
 
 	CACert, CAKey                             string // CN=kubernetes-ca (self-signed)
 	FrontProxyCACert, FrontProxyCAKey         string // CN=kubernetes-front-proxy-ca (self-signed)
@@ -30,11 +31,12 @@ type ControlPlanePKI struct {
 }
 
 type ControlPlanePKIOpts struct {
-	Hostname          string
-	DNSSANs           []string
-	IPSANs            []net.IP
-	Years             int
-	AllowSelfSignedCA bool
+	Hostname                  string
+	DNSSANs                   []string
+	IPSANs                    []net.IP
+	Years                     int
+	AllowSelfSignedCA         bool
+	IncludeMachineAddressSANs bool
 }
 
 func NewControlPlanePKI(opts ControlPlanePKIOpts) *ControlPlanePKI {
@@ -43,11 +45,12 @@ func NewControlPlanePKI(opts ControlPlanePKIOpts) *ControlPlanePKI {
 	}
 
 	return &ControlPlanePKI{
-		allowSelfSignedCA: opts.AllowSelfSignedCA,
-		hostname:          opts.Hostname,
-		years:             opts.Years,
-		ipSANs:            opts.IPSANs,
-		dnsSANs:           opts.DNSSANs,
+		hostname:                  opts.Hostname,
+		years:                     opts.Years,
+		ipSANs:                    opts.IPSANs,
+		dnsSANs:                   opts.DNSSANs,
+		allowSelfSignedCA:         opts.AllowSelfSignedCA,
+		includeMachineAddressSANs: opts.IncludeMachineAddressSANs,
 	}
 }
 
@@ -59,6 +62,22 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		return fmt.Errorf("kubernetes CA key is set without a certificate, fail to prevent causing issues")
 	case c.FrontProxyCACert == "" && c.FrontProxyCAKey != "":
 		return fmt.Errorf("front-proxy CA key is set without a certificate, fail to prevent causing issues")
+	}
+
+	var machineIPs []net.IP
+	if c.includeMachineAddressSANs {
+		// Find machine IP addresses if needed
+		addresses, err := net.InterfaceAddrs()
+		if err != nil {
+			return fmt.Errorf("failed to retrieve machine addresses: %w", err)
+		}
+		for _, addr := range addresses {
+			if ip := net.ParseIP(addr.String()); ip != nil {
+				machineIPs = append(machineIPs, ip)
+			}
+		}
+	} else {
+		machineIPs = []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}
 	}
 
 	// Generate self-signed CA (if not set already)
@@ -137,7 +156,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 		template, err := generateCertificate(
 			pkix.Name{CommonName: fmt.Sprintf("system:node:%s", c.hostname), Organization: []string{"system:nodes"}},
-			c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}),
+			c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, machineIPs...),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to generate kubelet certificate: %w", err)
@@ -180,7 +199,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			pkix.Name{CommonName: "kube-apiserver"},
 			c.years,
 			false,
-			append(c.dnsSANs, "kubernetes", "kubernetes.default", "kubernetes.default.svc", "kubernetes.default.svc.cluster", "kubernetes.default.svc.cluster.local"), append(c.ipSANs, net.IP{127, 0, 0, 1}))
+			append(c.dnsSANs, "kubernetes", "kubernetes.default", "kubernetes.default.svc", "kubernetes.default.svc.cluster", "kubernetes.default.svc.cluster.local"), append(c.ipSANs, machineIPs...))
 		if err != nil {
 			return fmt.Errorf("failed to generate apiserver certificate: %w", err)
 		}

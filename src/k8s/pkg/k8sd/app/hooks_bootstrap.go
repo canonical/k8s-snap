@@ -213,10 +213,11 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 
 	// Certificates
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
-		Hostname:          s.Name(),
-		IPSANs:            append([]net.IP{nodeIP}, serviceIPs...),
-		Years:             10,
-		AllowSelfSignedCA: true,
+		Hostname:                  s.Name(),
+		IPSANs:                    append([]net.IP{nodeIP}, serviceIPs...),
+		Years:                     20,
+		AllowSelfSignedCA:         true,
+		IncludeMachineAddressSANs: true,
 	})
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
