@@ -44,8 +44,8 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	case "k8s-dqlite":
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname: s.Name(),
-			IPSANs:   append([]net.IP{nodeIP}, serviceIPs...),
-			Years:    10,
+			IPSANs:   []net.IP{{127, 0, 0, 1}},
+			Years:    20,
 		})
 		certificates.K8sDqliteCert = cfg.Certificates.K8sDqliteCert
 		certificates.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
