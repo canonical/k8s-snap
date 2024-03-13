@@ -59,7 +59,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 				opts.name, err = utils.CleanHostname(hostname)
 				if err != nil {
-					cmd.PrintErrf("Error: --name is not set and default hostname %q is not valid.\n\nThe error was: %v\n", err)
+					cmd.PrintErrf("Error: --name is not set and default hostname %q is not valid.\n\nThe error was: %v\n", hostname, err)
 				}
 			}
 
