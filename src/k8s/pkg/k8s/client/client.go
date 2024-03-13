@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/lxd/shared/api"
@@ -25,7 +24,6 @@ type ClusterOpts struct {
 
 // k8sdClient interacts with the k8s REST-API via unix-socket or HTTPS
 type k8sdClient struct {
-	opts ClusterOpts
 	m    *microcluster.MicroCluster
 	mc   *client.Client
 	snap snap.Snap
@@ -35,9 +33,8 @@ type k8sdClient struct {
 // On a cluster node it will return a client connected to the unix-socket
 // elsewhere it returns a HTTPS client that expects the certificates to be located at ClusterOpts.StateDir
 func NewClient(ctx context.Context, opts ClusterOpts) (*k8sdClient, error) {
-	// TODO: pass snap through opts instead, do not create here.
 	if opts.Snap == nil {
-		opts.Snap = snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
+		panic("opts.Snap not specified in NewClient()")
 	}
 	if opts.StateDir == "" {
 		opts.StateDir = opts.Snap.K8sdStateDir()
@@ -57,7 +54,7 @@ func NewClient(ctx context.Context, opts ClusterOpts) (*k8sdClient, error) {
 	}
 
 	return &k8sdClient{
-		opts: opts,
+		snap: opts.Snap,
 		m:    m,
 		mc:   microClient,
 	}, nil
