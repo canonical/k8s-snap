@@ -8,7 +8,12 @@ import (
 
 // Client is a mock implementation for k8s Client.
 type Client struct {
-	BootstrapCalledWith              apiv1.BootstrapConfig
+	BootstrapCalledWith struct {
+		Ctx             context.Context
+		Name            string
+		Address         string
+		BootstrapConfig apiv1.BootstrapConfig
+	}
 	BootstrapClusterMember           apiv1.NodeStatus
 	BootstrapErr                     error
 	IsBootstrappedReturn             bool
@@ -54,8 +59,11 @@ type Client struct {
 	UpdateClusterConfigErr        error
 }
 
-func (c *Client) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error) {
-	c.BootstrapCalledWith = bootstrapConfig
+func (c *Client) Bootstrap(ctx context.Context, name string, address string, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error) {
+	c.BootstrapCalledWith.Ctx = ctx
+	c.BootstrapCalledWith.Name = name
+	c.BootstrapCalledWith.Address = address
+	c.BootstrapCalledWith.BootstrapConfig = bootstrapConfig
 	return c.BootstrapClusterMember, c.BootstrapErr
 }
 

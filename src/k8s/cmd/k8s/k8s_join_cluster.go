@@ -72,7 +72,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().StringVar(&opts.name, "name", "", "the name of the joining node. defaults to hostname")
-	cmd.Flags().StringVar(&opts.address, "address", "", "the address (IP:Port) on which the nodes REST API should be available")
+	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
+	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
 	return cmd
 }

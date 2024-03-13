@@ -11,7 +11,9 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -32,6 +34,8 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
 		interactive bool
 		configFile  string
+		name        string
+		address     string
 	}
 	cmd := &cobra.Command{
 		Use:    "bootstrap",
@@ -43,6 +47,24 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				cmd.PrintErrln("Error: --interactive and --config flags cannot be set at the same time.")
 				env.Exit(1)
 				return
+			}
+
+			// Use hostname as default node name
+			if opts.name == "" {
+				hostname, err := os.Hostname()
+				if err != nil {
+					cmd.PrintErrf("Error: --name is not set and could not determine the current node name.\n\nThe error was: %v\n", err)
+					env.Exit(1)
+					return
+				}
+				opts.name, err = utils.CleanHostname(hostname)
+				if err != nil {
+					cmd.PrintErrf("Error: --name is not set and default hostname %q is not valid.\n\nThe error was: %v\n", hostname, err)
+				}
+			}
+
+			if opts.address == "" {
+				opts.address = util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), config.DefaultPort)
 			}
 
 			client, err := env.Client(cmd.Context())
@@ -74,7 +96,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
-			node, err := client.Bootstrap(cmd.Context(), bootstrapConfig)
+			node, err := client.Bootstrap(cmd.Context(), opts.name, opts.address, bootstrapConfig)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to bootstrap the cluster.\n\nThe error was: %v\n", err)
 				env.Exit(1)
@@ -89,6 +111,8 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 	cmd.PersistentFlags().BoolVar(&opts.interactive, "interactive", false, "interactively configure the most important cluster options")
 	cmd.PersistentFlags().StringVar(&opts.configFile, "config", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
+	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
+	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
 	return cmd
 }
 
