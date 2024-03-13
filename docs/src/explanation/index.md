@@ -14,6 +14,7 @@ Overview <self>
 :titlesonly:
 /explanation/about
 /explanation/channels
+/explanation/clustering
 /explanation/security
 ```
 
