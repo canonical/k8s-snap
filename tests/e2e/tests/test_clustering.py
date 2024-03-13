@@ -3,7 +3,6 @@
 #
 import json
 import logging
-import subprocess
 from typing import List
 
 import pytest
@@ -62,9 +61,9 @@ def test_worker_nodes(instances: List[harness.Instance]):
     join_token_2 = get_join_token(cluster_node, other_joining_node, "--worker")
 
     assert join_token != join_token_2
-    
+
     join_cluster(joining_node, join_token)
-    
+
     join_cluster(other_joining_node, join_token_2)
 
     util.wait_until_k8s_ready(cluster_node, instances)
