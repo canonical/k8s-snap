@@ -56,17 +56,12 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 			Path: "k8sd/kubeconfig",
 			Get:  rest.EndpointAction{Handler: getKubeconfig, AccessHandler: RestrictWorkers},
 		},
-		// Cluster components
+		// Get and modify the cluster configuration (e.g. to enable/disable functionalities)
 		{
 			Name: "ClusterConfig",
 			Path: "k8sd/cluster/config",
 			Put:  rest.EndpointAction{Handler: putClusterConfig, AccessHandler: RestrictWorkers},
 			Get:  rest.EndpointAction{Handler: getClusterConfig, AccessHandler: RestrictWorkers},
-		},
-		{
-			Name: "Components",
-			Path: "k8sd/components",
-			Get:  rest.EndpointAction{Handler: getComponents, AccessHandler: RestrictWorkers},
 		},
 		// Kubernetes auth tokens and token review webhook for kube-apiserver
 		{
