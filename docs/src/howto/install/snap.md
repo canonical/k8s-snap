@@ -23,7 +23,7 @@ If you cannot meet these requirements, please see the [Installing] page for alte
 
 It is a good idea to check the available channels before installing the snap. Run the command:
 
-```bash
+```
 snap info k8s
 ```
 
@@ -34,7 +34,7 @@ page] for an explanation of the different types of channel.
 
 The snap can be installed with the snap command:
 
-```bash
+```
 sudo snap install k8s --classic --channel=latest/edge
 ```
 
@@ -47,7 +47,7 @@ The `latest/edge` channel is always under active development. This is where you 
 Installing the snap sets up all the parts required to run Kubernetes. The next
 step is to `bootstrap` the cluster to activate the services:
 
-```bash
+```
 sudo k8s bootstrap
 ```
 
@@ -58,7 +58,7 @@ This command will output a message confirming local cluster services have been s
 It is recommended to ensure that the cluster initialises properly and is
 running with no issues. Run the command:
 
-```bash
+```
 sudo k8s status --wait-ready
 ```
 

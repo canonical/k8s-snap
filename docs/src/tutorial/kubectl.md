@@ -24,7 +24,7 @@ original upstream source into the `k8s` snap you have installed.
 
 To access `kubectl`, run the following command:
 
-```bash
+```
 sudo k8s kubectl <command>
 ```
 
@@ -50,7 +50,7 @@ guide.
 To see what pods were created when we enabled the `network` and `dns`
 components:
 
-```bash
+```
 sudo k8s kubectl get pods -o wide -n kube-system
 ```
 
@@ -59,7 +59,7 @@ You should be seeing the network operator, networking agent and coredns pods.
 > **Note**: If you see an error message here, it is likely that you forgot to
 > bootstrap your cluster.
 
-```bash
+```
 sudo k8s kubectl get services --all-namespace
 ```
 
@@ -71,20 +71,20 @@ will communicate.
 
 Let's deploy an NGINX server using this command:
 
-```bash
+```
 sudo k8s kubectl create deployment nginx --image=nginx:latest
 ```
 
 To observe the NGINX pod running in the default namespace:
 
-```bash
+```
 sudo k8s kubectl get pods
 ```
 
 Let's now scale this deployment, which means increasing the number of pods it
 manages.
 
-```bash
+```
 sudo k8s kubectl scale deployment nginx --replicas=3
 ```
 
@@ -97,13 +97,13 @@ declared state of the cluster is maintained.
 First, open a new terminal so you can watch the changes as they happen. Run
 this command in a new terminal:
 
-```bash
+```
 sudo k8s kubectl get pods --all-namespace --watch
 ```
 
 Now, go back to your original terminal and run:
 
-```bash
+```
 sudo k8s kubectl delete pods -l app=nginx
 ```
 

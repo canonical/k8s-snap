@@ -17,7 +17,7 @@ If you cannot meet these requirements, please see the [Installing] page for alte
 
 It is a good idea to check the available channels before installing the charm. Run the command:
 
-```bash
+```
 juju info k8s
 juju info k8s-worker
 ```
@@ -29,7 +29,7 @@ explanation of the different types of channel.
 
 The charm can be installed with the `juju` command:
 
-```bash
+```
 juju deploy k8s --channel=latest/edge
 ```
 
@@ -42,7 +42,7 @@ The `latest/edge` channel is always under active development. This is where you 
 Installing the k8s charm sets up all the parts required to run Kubernetes. One may
 watch it progress using juju status:
 
-```bash
+```
 juju status --watch 1s
 ```
 
@@ -57,7 +57,7 @@ Once the unit is active/idle, You'll know the cluster is installed.
 At this point, you should have one control-plane node. To expand your cluster, add more units
 with the following command
 
-```bash
+```
 juju add-unit k8s -n 2
 ```
 
@@ -72,7 +72,7 @@ Rather than adding more control-plane units, we'll deploy the `k8s-worker` charm
 After deployment, integrate these new nodes with control-plane units so they join 
 the cluster.
 
-```bash
+```
 juju deploy k8s-worker --channel=latest/edge -n 2
 juju integrate k8s k8s-worker:cluster
 ```

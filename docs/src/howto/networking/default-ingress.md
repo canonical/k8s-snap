@@ -14,7 +14,7 @@ This guide assumes the following:
 
 Find out whether Ingress is enabled or disabled with the following command:
 
-```bash
+```
 sudo k8s status
 ```
 
@@ -24,13 +24,13 @@ The default state for the cluster is `ingress disabled`.
 
 To enable Ingress, run:
 
-```bash
+```
 sudo k8s enable ingress
 ```
 
 For more information on the command, execute:
 
-```bash
+```
 sudo k8s help enable
 ```
 
@@ -38,7 +38,7 @@ sudo k8s help enable
 
 Discover your configuration options by running:
 
-```bash
+```
 sudo k8s set ingress --help
 ```
 
@@ -54,7 +54,7 @@ You can create a TLS secret by following the official [Kubernetes documentation]
 Note: remember to use `sudo k8s kubectl` (See the [kubectl-guide]).
 
 Tell Ingress to use your new Ingress certificate:
-```bash
+```
 sudo k8s set ingress.default-tls-secret=<new-default-tls-secret>
 ```
 
@@ -68,7 +68,7 @@ Consult the official [Kubernetes documentation on the proxy protocol][proxy-prot
 
 Use the following command to enable the proxy protocol:
 
-```bash
+```
 sudo k8s set ingress.enable-proxy-protocol=<new-enable-proxy-protocol>
 ```
 
@@ -82,13 +82,13 @@ You can `disable` the built-in ingress:
     Ensure that you have alternative configurations in place before disabling Ingress.
 ```
 
-```bash
+```
 sudo k8s disable ingress
 ```
 
 For more information on this command, run:
 
-```bash
+```
 sudo k8s help disable
 ```
 
