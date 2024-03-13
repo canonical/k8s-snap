@@ -26,7 +26,7 @@ networking/index
 ## Other documentation types
 
 Our Reference section is for when you need to check specific details or information
-such as the command reference or release notes
+such as the command reference or release notes.
 
 Alternatively, the [Tutorials section] contains step-by-step tutorials to help
 guide you through exploring and using Canonical Kubernetes.

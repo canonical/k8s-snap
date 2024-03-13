@@ -1,8 +1,13 @@
 # Canonical Kubernetes documentation
 
-The Canonical K8s snap is a performant, lightweight, secure and opinionated distribution 
-of **Kubernetes** which includes everything needed to create and manage
-a scalable cluster suitable for all use cases.
+The Canonical Kubernetes snap is a performant, lightweight, secure and
+opinionated distribution of **Kubernetes** which includes everything needed to
+create and manage a scalable cluster suitable for all use cases.
+
+You can find out more about Canonical Kubernetes on this [overview page] or 
+see a more detailed explanation in our [architecture documentation]. 
+
+
 
 ![Illustration depicting working on components and clouds][logo]
 
@@ -48,7 +53,7 @@ reference/index
 
 ```{grid-item-card} [Explanation](explanation/index)
 
-**Discussion and clarification** of key topics`
+**Discussion and clarification** of key topics
 ```
 
 ````
@@ -58,10 +63,22 @@ reference/index
 
 ## Project and community
 
-The Canonical K8s project is sponsored by [Canonical Ltd](https://www.canonical.com).
+Canonical Kubernetes is a member of the Ubuntu family. It's an open source project which welcomes community involvement, contributions, suggestions, fixes and constructive feedback.
 
-- [Code of Conduct](https://ubuntu.com/community/ethos/code-of-conduct)
+- Our [Code of Conduct]
+- Our [community]
+- How to [contribute]
+- Our development [roadmap]
 
-
+<!-- IMAGES -->
 
 [logo]: https://assets.ubuntu.com/v1/843c77b6-juju-at-a-glace.svg
+
+<!-- LINKS -->
+
+[Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
+[community]: ./reference/community
+[contribute]: ./howto/contribute
+[roadmap]: ./reference/roadmap
+[overview page]: ./explanation/about
+[architecture documentation]: ./reference/architecture
