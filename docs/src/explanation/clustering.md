@@ -32,10 +32,14 @@ streamlining the entire process for a more efficient operation.
 
 ## Integration into the Kubernetes Cluster Topology
 
+For Canonical Kubernetes, the detailed view of the two types of node is as 
+follows:
+
 ### Control Plane Node
 The control plane node orchestrates the cluster, making decisions about
 scheduling, deployment and management. With the addition of `k8sd`, the control
 plane node's components include:
+
 - **API Server (kube-apiserver)**: Acts as the front-end for the Kubernetes
     control plane. It exposes the Kubernetes API and is the central management
     entity through which all components and external users interact.
@@ -50,6 +54,7 @@ plane node's components include:
     managing the Kubernetes cluster.
 
 ### Worker Node
+
 Worker nodes are responsible for running the applications and workloads. Worker
 nodes, can interact with the `k8sd` API, gaining capabilities to manage its
 entire lifecycle. Their components include:
