@@ -77,6 +77,8 @@ def test_worker_nodes(instances: List[harness.Instance]):
     cluster_node.exec(["k8s", "remove-node", joining_node.id])
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "worker should have been removed from cluster"
-    assert (
-        nodes[0]["metadata"]["name"] == cluster_node.id
-    ), f"only {cluster_node.id} should be left in cluster"
+    assert cluster_node.id in [
+        node["metadata"]["name"] for node in nodes
+    ] and other_joining_node.id in [
+        node["metadata"]["name"] for node in nodes
+    ], f"only {cluster_node.id} should be left in cluster"
