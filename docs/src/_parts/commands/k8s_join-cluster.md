@@ -9,9 +9,9 @@ k8s join-cluster <join-token> [flags]
 ### Options
 
 ```
-      --address string   the address (IP:Port) on which the nodes REST API should be available
+      --address string   microcluster address, defaults to the node IP address
   -h, --help             help for join-cluster
-      --name string      the name of the joining node. defaults to hostname
+      --name string      node name, defaults to hostname
 ```
 
 ### Options inherited from parent commands

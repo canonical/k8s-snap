@@ -13,9 +13,11 @@ k8s bootstrap [flags]
 ### Options
 
 ```
-      --config string   path to the YAML file containing your custom cluster bootstrap configuration.
-  -h, --help            help for bootstrap
-      --interactive     interactively configure the most important cluster options
+      --address string   microcluster address, defaults to the node IP address
+      --config string    path to the YAML file containing your custom cluster bootstrap configuration.
+  -h, --help             help for bootstrap
+      --interactive      interactively configure the most important cluster options
+      --name string      node name, defaults to hostname
 ```
 
 ### Options inherited from parent commands
