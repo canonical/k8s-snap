@@ -66,13 +66,12 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 	var machineIPs []net.IP
 	if c.includeMachineAddressSANs {
-		// Find machine IP addresses if needed
 		addresses, err := net.InterfaceAddrs()
 		if err != nil {
 			return fmt.Errorf("failed to retrieve machine addresses: %w", err)
 		}
 		for _, addr := range addresses {
-			if ip := net.ParseIP(addr.String()); ip != nil {
+			if ip, _, err := net.ParseCIDR(addr.String()); err == nil && ip != nil {
 				machineIPs = append(machineIPs, ip)
 			}
 		}
