@@ -7,8 +7,6 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/config"
-	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/util"
@@ -22,21 +20,7 @@ func (c *k8sdClient) IsBootstrapped(ctx context.Context) bool {
 }
 
 // Bootstrap bootstraps the k8s cluster
-func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error) {
-	// Get system hostname.
-	rawHostname, err := os.Hostname()
-	if err != nil {
-		return apiv1.NodeStatus{}, fmt.Errorf("failed to retrieve system hostname: %w", err)
-	}
-	// TODO: this should be done on the server side, but we cannot currently hijack the microcluster bootstrap endpoint.
-	hostname, err := utils.CleanHostname(rawHostname)
-	if err != nil {
-		return apiv1.NodeStatus{}, fmt.Errorf("invalid hostname %q: %w", rawHostname, err)
-	}
-
-	// Get system addrPort.
-	addrPort := util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), config.DefaultPort)
-
+func (c *k8sdClient) Bootstrap(ctx context.Context, hostname string, address string, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error) {
 	timeout := 30 * time.Second
 	if deadline, set := ctx.Deadline(); set {
 		timeout = time.Until(deadline)
@@ -49,7 +33,7 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.Bootst
 	if err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to convert bootstrap config to map: %w", err)
 	}
-	if err := c.m.NewCluster(hostname, addrPort, config, timeout); err != nil {
+	if err := c.m.NewCluster(hostname, address, config, timeout); err != nil {
 		// TODO(neoaggelos): only return error that bootstrap failed
 		fmt.Fprintln(os.Stderr, "Failed with error:", err)
 		c.CleanupNode(ctx, hostname)
