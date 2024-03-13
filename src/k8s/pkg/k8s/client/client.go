@@ -33,7 +33,6 @@ type k8sdClient struct {
 // On a cluster node it will return a client connected to the unix-socket
 // elsewhere it returns a HTTPS client that expects the certificates to be located at ClusterOpts.StateDir
 func NewClient(ctx context.Context, opts ClusterOpts) (*k8sdClient, error) {
-	// TODO: pass snap through opts instead, do not create here.
 	if opts.Snap == nil {
 		panic("opts.Snap not specified in NewClient()")
 	}
