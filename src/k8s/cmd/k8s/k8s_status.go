@@ -27,16 +27,6 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			// TODO(neoaggelos): this must be done on the server side
-			// fail fast if we're not explicitly waiting and we can't get kube-apiserver endpoints
-			if !opts.waitReady {
-				if !client.IsKubernetesAPIServerReady(cmd.Context()) {
-					cmd.PrintErrln("Error: There are no active kube-apiserver endpoints, cluster status is unavailable")
-					env.Exit(1)
-					return
-				}
-			}
-
 			status, err := client.ClusterStatus(cmd.Context(), opts.waitReady)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to retrieve the cluster status.\n\nThe error was: %v\n", err)
