@@ -1,6 +1,7 @@
 # Updating Helm Charts
 
 ## Overview
+
 This section provides a guide on how to update the Helm charts for k8s components. Currently, the
 process is manual, but there are plans to automate it in the near future.
 

@@ -69,6 +69,6 @@ the guidelines for participation.
 [matrix]: https://matrix.to/#/#k8s:ubuntu.com
 [Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
 [bugs]: https://github.com/canonical/k8s-snap/issues
-[Contributing guide]: *TODO*
-[Developer guide]: *TODO*
+[Contributing guide]: ../howto/contribute
+[Developer guide]: ../howto/contribute
 [support]: https://ubuntu.com/support

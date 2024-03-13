@@ -115,6 +115,6 @@ pods will have a status of `ContainerCreating`.
 
 ## Further information
 
-- Explore Kubernetes commands with our [Command Reference Guide](#TODO)
+- Explore Kubernetes commands with our [Command Reference Guide](../reference/commands)
 - See the official `kubectl` reference
   [https://kubernetes.io/docs/reference/kubectl/](https://kubernetes.io/docs/reference/kubectl/)

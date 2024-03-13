@@ -1,10 +1,7 @@
 # How to contribute to Canonical Kubernetes
 
-% Include content from [../CONTRIBUTING.md](../CONTRIBUTING.md)
-```{include} ../CONTRIBUTING.md
-    :start-after: <!-- Include start contributing -->
-    :end-before: <!-- Include end contributing -->
-```
+Canonical Kubernetes is proudly open source, published under the GPLv3 license.
+We welcome and encourage contributions to the code and the documentation.
 
 ## Contribute to the code
 
@@ -15,13 +12,12 @@ you should first make sure you can build and test the snap locally.
 
 To build the snap locally, you will need the following:
 
- - The latest, snap-based version of LXD (see the [install guide here][install
+- The latest, snap-based version of LXD (see the [install guide here][install
    lxd])
- - The Snapcraft build tool, for building the snap (see the [Snapcraft
+- The Snapcraft build tool, for building the snap (see the [Snapcraft
    documentation][]).
 
-
-Clone the [github repository for the k8s snap][code repo] and then open a terminal in that
+Clone the [GitHub repository for the k8s snap][code repo] and then open a terminal in that
 directory. Run the command:
 
 ```
@@ -34,7 +30,7 @@ This will take some time as the build process fetches dependencies, stages the
 be fetched from the build environment and placed in the local project
 directory. Note that the LXD container used for building will be stopped, but
 not deleted. This is in case there were any errors or artefacts you may wish to
-inspect. 
+inspect.
 
 ### Install the snap
 
@@ -77,73 +73,68 @@ repository][code repo] and we will review it as soon as possible.
 
 ## Contribute to the documentation
 
-Our aim is to provide easy-to-understand documentation on all aspects of Canonical Kubernetes, so we greatly appreciate your feedback and contributions.
+Our aim is to provide easy-to-understand documentation on all aspects of
+Canonical Kubernetes, so we greatly appreciate your feedback and contributions.
 
-The source of the documentation and the system used to build it are included in the [main repository for the Canonical Kubernetes snap][code repo]. The method for contributing changes to the docs is similar to 
+The source of the documentation and the system used to build it are included in
+the [main repository for the Canonical Kubernetes snap][code repo].
 
-We want LXD to be as easy and straight-forward to use as possible.
-Therefore, we aim to provide documentation that contains the information that users need to work with LXD, that covers all common use cases, and that answers typical questions.
+### Documentation framework
 
-You can contribute to the documentation in various different ways.
-We appreciate your contributions!
+This documentation has adopted the Diátaxis framework. You can read more about
+it on the [Diátaxis website]. In essence though, this guides the way we
+categorise and write our documentation. You can see there are four main
+categories of documentation:
 
-Typical ways to contribute are:
+ - **Tutorials** for guided walkthroughs
+ - **How to** pages for specific tasks and goals
+ - **Explanation** pages which give background reasons and, well, explanations
+ - **Reference**, where you will find the commands, the roadmap, etc.
 
-- Add or update documentation for new features or feature improvements that you contribute to the code.
-  We'll review the documentation update and merge it together with your code.
-- Add or update documentation that clarifies any doubts you had when working with the product.
-  Such contributions can be done through a pull request or through a post in the [Tutorials](https://discourse.ubuntu.com/c/lxd/tutorials/146) section on the forum.
-  New tutorials will be considered for inclusion in the docs (through a link or by including the actual content).
-- To request a fix to the documentation, open a documentation issue on [GitHub](https://github.com/canonical/lxd/issues).
-  We'll evaluate the issue and update the documentation accordingly.
-- Post a question or a suggestion on the [forum](https://discourse.ubuntu.com/c/lxd/126).
-  We'll monitor the posts and, if needed, update the documentation accordingly.
-- Ask questions or provide suggestions in the `#lxd` channel on [IRC](https://web.libera.chat/#lxd).
-  Given the dynamic nature of IRC, we cannot guarantee answers or reactions to IRC posts, but we monitor the channel and try to improve our documentation based on the received feedback.
+Every page of documentation should fit into one of those categories. If it
+doesn't you may consider if it is actually two pages (e.g. a How to *and* and
+explanation).
 
-If images are added (`doc/images`), prioritize either SVG or PNG format and make sure to optimize PNG images for smaller size using a service like [TinyPNG](https://tinypng.com/) or similar.
+### Small changes
 
-% Include content from [README.md](README.md)
-```{include} README.md
-    :start-after: <!-- Include start docs -->
+If you are simply correcting a typo or updating a link, you can follow the
+'Edit this page on GitHub' link on any page and it will take you to the online
+editor to make your change. You will still need to raise a pull request and
+explain your change to get it reviewed.
+
+### Myst, Markdown and Sphinx
+
+We use the Sphinx documentation tools to actually build the documentation. You
+will find all the Sphinx tooling in the `docs/tools` directory.
+
+Although Sphinx is normally associated with the `ReSTructured text` format, we
+write all our documentation in Markdown to make it easier for humans to work
+with. There are a few extra things that come with this - certain features need
+to be specially marked up (e.g. admonitions) to be processed properly. There is
+a guide to using `Myst` (which is a Markdown extension for Sphinx) directives
+and formatting contained in the [_parts][] directory of the docs.
+
+### Local testing
+
+To test your changes locally, you can build a local version of the
+documentation. Open a terminal and go to the `/docs/tools` directory. From
+there you can run the command:
+
+```
+make run
 ```
 
-When you open a pull request, a preview of the documentation output is built automatically.
-To see the output, view the details for the `docs/readthedocs.com:canonical-lxd` check on the pull request.
-
-### Automatic documentation checks
-
-GitHub runs automatic checks on the documentation to verify the spelling, the validity of links, correct formatting of the Markdown files, and the use of inclusive language.
-
-You can (and should!) run these tests locally as well with the following commands:
-
-- Check the spelling: `make doc-spellcheck`
-- Check the validity of links: `make doc-linkcheck`
-- Check the Markdown formatting: `make doc-lint`
-- Check for inclusive language: `make doc-woke`
-
-### Document configuration options
-
-```{note}
-We are currently in the process of moving the documentation of configuration options to code comments.
-At the moment, not all configuration options follow this approach.
-```
-
-The documentation of configuration options is extracted from comments in the Go code.
-Look for comments that start with `lxdmeta:generate` in the code.
-
-When you add or change a configuration option, make sure to include the required documentation comment for it.
-See the [`lxd-metadata` README file](https://github.com/canonical/lxd/blob/main/lxd/lxd-metadata/README.md) for information about the format.
-
-Then run `make generate-config` to re-generate the `doc/config_options.txt` file.
-The updated file should be checked in.
-
-The documentation includes sections from the `doc/config_options.txt` to display a group of configuration options.
-For example, to include the core server options:
+This will create a local environment, install all the dependencies and build
+the docs. The output will then be served locally - check the output for the
+URL. Using the `run` option means that the docs will automatically be
+regenerated when you change any of the source files too (though remember to
+press `F5` in your browser to reload the page without caching)!
 
 
 <!-- LINKS -->
 
 [install lxd]: https://documentation.ubuntu.com/lxd/en/latest/tutorial/first_steps/
 [Snapcraft documentation]: https://snapcraft.io/docs/snapcraft-setup
-[code repo]: 
+[code repo]: https://github.com/canonical/k8s-snap
+[Diátaxis website]: https://diataxis.fr/
+[_parts]: https://github.com/canonical/k8s-snap/blob/main/docs/src/_parts/doc-cheat-sheet-myst.md
