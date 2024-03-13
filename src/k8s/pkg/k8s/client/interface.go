@@ -4,7 +4,6 @@ import (
 	"context"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 // Client defines the interface for interacting with a k8s cluster.
@@ -16,7 +15,7 @@ type Client interface {
 	// IsBootstrapped checks whether the current node is already bootstrapped.
 	IsBootstrapped(ctx context.Context) bool
 	// CleanupNode performs cleanup operations for a specific node in the cluster.
-	CleanupNode(ctx context.Context, snap snap.Snap, nodeName string)
+	CleanupNode(ctx context.Context, nodeName string)
 	// ClusterStatus retrieves the current status of the Kubernetes cluster.
 	ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error)
 	// NodeStatus retrieves the current status of the local node.

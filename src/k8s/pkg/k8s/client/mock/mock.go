@@ -4,7 +4,6 @@ import (
 	"context"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 // Client is a mock implementation for k8s Client.
@@ -16,7 +15,6 @@ type Client struct {
 	IsKubernetesAPIServerReadyReturn bool
 	CleanupNodeCalledWith            struct {
 		Ctx      context.Context
-		Snap     snap.Snap
 		NodeName string
 	}
 	ClusterStatusReturn   apiv1.ClusterStatus
@@ -71,9 +69,8 @@ func (c *Client) IsBootstrapped(ctx context.Context) bool {
 	return c.IsBootstrappedReturn
 }
 
-func (c *Client) CleanupNode(ctx context.Context, snap snap.Snap, nodeName string) {
+func (c *Client) CleanupNode(ctx context.Context, nodeName string) {
 	c.CleanupNodeCalledWith.Ctx = ctx
-	c.CleanupNodeCalledWith.Snap = snap
 	c.CleanupNodeCalledWith.NodeName = nodeName
 }
 

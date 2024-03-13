@@ -52,7 +52,7 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, bootstrapConfig apiv1.Bootst
 	if err := c.m.NewCluster(hostname, addrPort, config, timeout); err != nil {
 		// TODO(neoaggelos): only return error that bootstrap failed
 		fmt.Fprintln(os.Stderr, "Failed with error:", err)
-		c.CleanupNode(ctx, c.opts.Snap, hostname)
+		c.CleanupNode(ctx, hostname)
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
 	}
 
@@ -91,7 +91,7 @@ func (c *k8sdClient) KubeConfig(ctx context.Context, server string) (string, err
 
 // IsKubernetesAPIServerReady checks if kube-apiserver is reachable.
 func (c *k8sdClient) IsKubernetesAPIServerReady(ctx context.Context) bool {
-	kc, err := k8s.NewClient(c.opts.Snap)
+	kc, err := k8s.NewClient(c.snap)
 	if err != nil {
 		return false
 	}
