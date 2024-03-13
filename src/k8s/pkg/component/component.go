@@ -2,12 +2,12 @@ package component
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"sort"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/sirupsen/logrus"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -40,7 +40,7 @@ func (r *defaultHelmConfigProvider) New(namespace string) (*action.Configuration
 }
 
 func logAdapter(format string, v ...any) {
-	logrus.Debugf(format, v...)
+	log.Printf(format, v...)
 }
 
 // NewHelmClient creates a new Component manager instance.

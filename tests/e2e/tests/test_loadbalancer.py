@@ -61,8 +61,6 @@ def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
 @pytest.mark.node_count(2)
 def test_loadbalancer(instances: List[harness.Instance]):
     instance = instances[0]
-    util.wait_for_dns(instance)
-    util.wait_for_network(instance)
 
     tester_instance = instances[1]
 
