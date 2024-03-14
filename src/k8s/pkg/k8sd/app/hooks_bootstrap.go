@@ -177,9 +177,9 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.ServiceCIDR, err)
 	}
 
-	err = generateAndEnsureCertificates(snap, cfg, s.Name(), false)
+	err = generateAndEnsureCertificates(snap, cfg, s.Name(), true)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to generate and ensure certificates: %w", err)
 	}
 
 	// Certificates
@@ -208,6 +208,9 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 
 	// Generate kubeconfigs
 	err = generateKubeconfigs(snap, s, cfg)
+	if err != nil {
+		return err
+	}
 
 	// Configure datastore
 	switch cfg.APIServer.Datastore {
@@ -220,25 +223,9 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
 
-	// Configure services
-	if err := setup.Containerd(snap, nil); err != nil {
-		return fmt.Errorf("failed to configure containerd: %w", err)
-	}
-	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider); err != nil {
-		return fmt.Errorf("failed to configure kubelet: %w", err)
-	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.PodCIDR); err != nil {
-		return fmt.Errorf("failed to configure kube-proxy: %w", err)
-	}
-	if err := setup.KubeControllerManager(snap); err != nil {
-		return fmt.Errorf("failed to configure kube-controller-manager: %w", err)
-	}
-	if err := setup.KubeScheduler(snap); err != nil {
-		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
-	}
-
-	if err := setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.DatastoreURL, cfg.APIServer.AuthorizationMode); err != nil {
-		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
+	err = configureServicesControlPlane(snap, s, cfg, nodeIP)
+	if err != nil {
+		return fmt.Errorf("failed to configure services: %w", err)
 	}
 
 	// Write cluster configuration to dqlite
