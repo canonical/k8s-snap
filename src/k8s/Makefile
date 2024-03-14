@@ -14,12 +14,7 @@ go.unit:
 
 go.deadcode:
 	cd tools && go install golang.org/x/tools/cmd/deadcode
-	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-deadcode.sh ./cmd | tee out
-	diff --color out tools/expected_deadcode 
-
-go.deadcode.update:
-	cd tools && go install golang.org/x/tools/cmd/deadcode
-	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-deadcode.sh ./cmd | tee tools/expected_deadcode
+	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-deadcode.sh -test ./... | tee out && [ ! -s out ] 
 
 go.doc: bin/static/k8s
 	bin/static/k8s generate-docs --output-dir ../../docs/src/_parts/commands/

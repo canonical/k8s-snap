@@ -142,14 +142,6 @@ func mustCreateTemporaryTestDirectory(t *testing.T) string {
 	return tempDir
 }
 
-func mustAddConfigToTestDir(t *testing.T, path string, data string) {
-	// Create a file and add some configs
-	err := os.WriteFile(path, []byte(data), 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
 func mustAddChartToTestDir(t *testing.T, path string, chart *chart.Chart) string {
 	// Create a chart and add it to the test directory as a gzip archive
 	k8sComponentsDir := filepath.Join(path, "k8s", "components", "charts")
