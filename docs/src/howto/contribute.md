@@ -34,7 +34,7 @@ inspect.
 
 ### Install the snap
 
-The snap can then be installed locally by using the ‘–dangerous’ option. This
+The snap can then be installed locally by using the ‘--dangerous’ option. This
 is a safeguard to make sure the user is aware that the snap is not signed by
 the snap store, and is not confined:
 
