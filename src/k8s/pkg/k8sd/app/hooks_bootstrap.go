@@ -14,7 +14,6 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/component"
-	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -178,37 +177,9 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.ServiceCIDR, err)
 	}
 
-	switch cfg.APIServer.Datastore {
-	case "k8s-dqlite":
-		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
-			Hostname:          s.Name(),
-			IPSANs:            []net.IP{{127, 0, 0, 1}},
-			Years:             20,
-			AllowSelfSignedCA: true,
-		})
-		if err := certificates.CompleteCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
-		}
-		if err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
-			return fmt.Errorf("failed to write cluster certificates: %w", err)
-		}
-
-		cfg.Certificates.K8sDqliteCert = certificates.K8sDqliteCert
-		cfg.Certificates.K8sDqliteKey = certificates.K8sDqliteKey
-	case "external":
-		certificates := &pki.ExternalDatastorePKI{
-			DatastoreCACert:     cfg.Certificates.DatastoreCACert,
-			DatastoreClientCert: cfg.Certificates.DatastoreClientCert,
-			DatastoreClientKey:  cfg.Certificates.DatastoreClientKey,
-		}
-		if err := certificates.CheckCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
-		}
-		if err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
-			return fmt.Errorf("failed to write cluster certificates: %w", err)
-		}
-	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
+	err = generateAndEnsureCertificates(snap, cfg, s.Name(), false)
+	if err != nil {
+		return err
 	}
 
 	// Certificates
@@ -236,25 +207,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	cfg.APIServer.ServiceAccountKey = certificates.ServiceAccountKey
 
 	// Generate kubeconfigs
-	for _, kubeconfig := range []struct {
-		file     string
-		username string
-		groups   []string
-	}{
-		{file: "admin.conf", username: "kubernetes-admin", groups: []string{"system:masters"}},
-		{file: "controller.conf", username: "system:kube-controller-manager"},
-		{file: "proxy.conf", username: "system:kube-proxy"},
-		{file: "scheduler.conf", username: "system:kube-scheduler"},
-		{file: "kubelet.conf", username: fmt.Sprintf("system:node:%s", s.Name()), groups: []string{"system:nodes"}},
-	} {
-		token, err := impl.GetOrCreateAuthToken(s.Context, s, kubeconfig.username, kubeconfig.groups)
-		if err != nil {
-			return fmt.Errorf("failed to generate token for username=%s groups=%v: %w", kubeconfig.username, kubeconfig.groups, err)
-		}
-		if err := setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), kubeconfig.file), token, fmt.Sprintf("127.0.0.1:%d", cfg.APIServer.SecurePort), cfg.Certificates.CACert); err != nil {
-			return fmt.Errorf("failed to write kubeconfig %s: %w", kubeconfig.file, err)
-		}
-	}
+	err = generateKubeconfigs(snap, s, cfg)
 
 	// Configure datastore
 	switch cfg.APIServer.Datastore {
