@@ -47,7 +47,11 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 			Name: "WorkerInfo",
 			Path: "k8sd/worker/info",
 			// AllowUntrusted disabled the microcluster authorization check. Authorization is done via custom token.
-			Post: rest.EndpointAction{Handler: postWorkerInfo, AllowUntrusted: true, AccessHandler: TokenAuthentication},
+			Post: rest.EndpointAction{
+				Handler:        postWorkerInfo,
+				AllowUntrusted: true,
+				AccessHandler:  ValidateWorkerInfoAccessHandler("worker-name", "worker-token"),
+			},
 		},
 		// Kubeconfig
 		{

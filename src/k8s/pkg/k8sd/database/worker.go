@@ -31,7 +31,7 @@ func CheckWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string, toke
 		return false, fmt.Errorf("failed to prepare select statement: %w", err)
 	}
 	var realToken string
-	if selectTxStmt.QueryRowContext(ctx, nodeName).Scan(&realToken) == nil {
+	if selectTxStmt.QueryRowContext(ctx, fmt.Sprintf("worker-token::%s", nodeName)).Scan(&realToken) == nil {
 		return subtle.ConstantTimeCompare([]byte(token), []byte(realToken)) == 1, nil
 	}
 	return false, nil
@@ -45,7 +45,7 @@ func GetOrCreateWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string
 		return "", fmt.Errorf("failed to prepare select statement: %w", err)
 	}
 	var token string
-	if selectTxStmt.QueryRowContext(ctx, nodeName).Scan(&token) == nil {
+	if selectTxStmt.QueryRowContext(ctx, fmt.Sprintf("worker-token::%s", nodeName)).Scan(&token) == nil {
 		return token, nil
 	}
 
@@ -60,7 +60,7 @@ func GetOrCreateWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string
 	if err != nil {
 		return "", fmt.Errorf("failed to prepare insert statement: %w", err)
 	}
-	if _, err := insertTxStmt.ExecContext(ctx, nodeName, token); err != nil {
+	if _, err := insertTxStmt.ExecContext(ctx, fmt.Sprintf("worker-token::%s", nodeName), token); err != nil {
 		return "", fmt.Errorf("insert token query failed: %w", err)
 	}
 	return token, nil
@@ -72,7 +72,7 @@ func DeleteWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string) err
 	if err != nil {
 		return fmt.Errorf("failed to prepare delete statement: %w", err)
 	}
-	if _, err := deleteTxStmt.ExecContext(ctx, nodeName); err != nil {
+	if _, err := deleteTxStmt.ExecContext(ctx, fmt.Sprintf("worker-token::%s", nodeName)); err != nil {
 		return fmt.Errorf("delete token query failed: %w", err)
 	}
 	return nil

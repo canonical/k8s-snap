@@ -9,6 +9,7 @@ import (
 
 func TestWorkerTokenEncode(t *testing.T) {
 	token := &types.InternalWorkerNodeToken{
+		Token:         "token1",
 		Secret:        "mysecret",
 		JoinAddresses: []string{"addr1:1010", "addr2:1212"},
 	}

@@ -78,7 +78,7 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		return fmt.Errorf("failed to prepare HTTP request: %w", err)
 	}
 	httpRequest.Header.Add("worker-name", s.Name())
-	httpRequest.Header.Add("worker-secret", token.Secret)
+	httpRequest.Header.Add("worker-token", token.Secret)
 
 	httpResponse, err := httpClient.Do(httpRequest)
 	if err != nil {
