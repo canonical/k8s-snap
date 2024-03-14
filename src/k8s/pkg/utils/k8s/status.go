@@ -36,5 +36,5 @@ func (c *Client) HasReadyNodes(ctx context.Context) (bool, error) {
 		}
 	}
 
-	return false, nil // Cluster is not ready but has nodes
+	return false, nil // Cluster has no ready nodes
 }
