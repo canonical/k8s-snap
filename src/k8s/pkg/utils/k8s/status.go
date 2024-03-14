@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// WaitApiServerReady waits until the kube-apiserver becomes available.
 func (c *Client) WaitApiServerReady(ctx context.Context) error {
 	return control.WaitUntilReady(ctx, func() (bool, error) {
 		// TODO: use the /readyz endpoint instead
@@ -18,6 +19,8 @@ func (c *Client) WaitApiServerReady(ctx context.Context) error {
 	})
 }
 
+// HasReadyNodes checks the status of all nodes in the Kubernetes cluster.
+// Returns true if there is atleast one ready node, false otherwise.
 func (c *Client) HasReadyNodes(ctx context.Context) (bool, error) {
 	nodes, err := c.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 
@@ -36,5 +39,5 @@ func (c *Client) HasReadyNodes(ctx context.Context) (bool, error) {
 		}
 	}
 
-	return false, nil // Cluster has no ready nodes
+	return false, nil
 }
