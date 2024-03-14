@@ -183,8 +183,9 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	if err := client.WaitApiServerReady(s.Context); err != nil {
-		return fmt.Errorf("kube-apiserver did not become ready: %w", err)
+	_, err = client.IsClusterReady(s.Context)
+	if err != nil {
+		return fmt.Errorf("cluster is not ready: %w", err)
 	}
 
 	return nil

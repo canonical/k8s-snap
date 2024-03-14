@@ -91,7 +91,7 @@ func TestClusterReady(t *testing.T) {
 			clientset := fake.NewSimpleClientset(tt.nodes...)
 			client := &Client{Interface: clientset}
 
-			ready, err := client.ClusterReady(context.Background())
+			ready, err := client.IsClusterReady(context.Background())
 
 			g.Expect(err).To(BeNil())
 			g.Expect(ready).To(Equal(tt.expectedReady))
