@@ -15,6 +15,10 @@ func (c *Client) IsClusterReady(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("kube-apiserver not ready. failed to get nodes: %v", err)
 	}
 
+	if len(nodes.Items) == 0 {
+		return false, fmt.Errorf("cluster has no nodes")
+	}
+
 	for _, node := range nodes.Items {
 		for _, condition := range node.Status.Conditions {
 			if condition.Type == v1.NodeReady {
@@ -24,10 +28,6 @@ func (c *Client) IsClusterReady(ctx context.Context) (bool, error) {
 				}
 			}
 		}
-	}
-
-	if len(nodes.Items) == 0 {
-		return false, fmt.Errorf("cluster has no nodes")
 	}
 
 	return false, nil // Cluster is not ready but has nodes
