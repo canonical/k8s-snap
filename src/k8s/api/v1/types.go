@@ -27,7 +27,7 @@ type BootstrapConfig struct {
 
 // SetDefaults sets the fields to default values.
 func (b *BootstrapConfig) SetDefaults() {
-	b.Components = []string{"dns", "metrics-server", "network"}
+	b.Components = []string{"dns", "metrics-server", "network", "gateway"}
 	b.ClusterCIDR = "10.1.0.0/16"
 	b.ServiceCIDR = "10.152.183.0/24"
 	b.EnableRBAC = vals.Pointer(true)

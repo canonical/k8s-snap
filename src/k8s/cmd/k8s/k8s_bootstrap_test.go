@@ -48,7 +48,7 @@ cluster-cidr: "10.244.0.0/16"
 enable-rbac: true
 bananas: 5`,
 		expectedConfig: apiv1.BootstrapConfig{
-			Components:    []string{"dns", "metrics-server", "network"},
+			Components:    []string{"dns", "metrics-server", "network", "gateway"},
 			ClusterCIDR:   "10.244.0.0/16",
 			ServiceCIDR:   "10.152.183.0/24",
 			EnableRBAC:    vals.Pointer(true),
