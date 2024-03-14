@@ -12,8 +12,8 @@ import (
 func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePKI) error {
 	toWrite := map[string]string{
 		path.Join(snap.EtcdPKIDir(), "ca.crt"):     certificates.DatastoreCACert,
-		path.Join(snap.EtcdPKIDir(), "client.key"): certificates.DatastoreClientCert,
-		path.Join(snap.EtcdPKIDir(), "client.crt"): certificates.DatastoreClientKey,
+		path.Join(snap.EtcdPKIDir(), "client.key"): certificates.DatastoreClientKey,
+		path.Join(snap.EtcdPKIDir(), "client.crt"): certificates.DatastoreClientCert,
 	}
 
 	for fname, cert := range toWrite {
