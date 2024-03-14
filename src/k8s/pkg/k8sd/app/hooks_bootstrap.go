@@ -322,7 +322,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 
 	_, err = client.IsClusterReady(s.Context)
 	if err != nil {
-		return fmt.Errorf("failed to check if cluster is ready: %w", err)
+		return fmt.Errorf("cluster is not ready: %w", err)
 	}
 
 	if cfg.Network.Enabled != nil {
