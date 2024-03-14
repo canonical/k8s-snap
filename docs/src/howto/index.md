@@ -19,7 +19,6 @@ install/index
 networking/index
 /howto/storage
 /howto/contribute
-/howto/support
 ```
 
 ---
