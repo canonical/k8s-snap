@@ -10,6 +10,8 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -96,5 +98,34 @@ func configureServicesControlPlane(snap snap.Snap, s *state.State, cfg types.Clu
 	if err := setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.DatastoreURL, cfg.APIServer.AuthorizationMode); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
+	return nil
+}
+
+func startServicesControlPlane(snap snap.Snap, s *state.State, cfg types.ClusterConfig) error {
+	// Start services
+	switch cfg.APIServer.Datastore {
+	case "k8s-dqlite":
+		if err := snaputil.StartK8sDqliteServices(s.Context, snap); err != nil {
+			return fmt.Errorf("failed to start control plane services: %w", err)
+		}
+	case "external":
+	default:
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
+	}
+
+	if err := snaputil.StartControlPlaneServices(s.Context, snap); err != nil {
+		return fmt.Errorf("failed to start control plane services: %w", err)
+	}
+
+	// Wait for API server to come up
+	client, err := k8s.NewClient(snap)
+	if err != nil {
+		return fmt.Errorf("failed to create k8s client: %w", err)
+	}
+
+	if err := client.WaitApiServerReady(s.Context); err != nil {
+		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
+	}
+
 	return nil
 }
