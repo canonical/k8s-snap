@@ -18,7 +18,7 @@ This guide assumes the following:
 When bootstrapping the snap, the storage functionality is not enabled by
 default. To enable it, execute the following command:
 
-```bash
+```
 sudo k8s enable local-storage
 ```
 
@@ -27,14 +27,14 @@ sudo k8s enable local-storage
 While the storage option comes with sensible defaults, you can customise it to
 meet your requirements. Obtain the current configuration by running:
 
-```bash
+```
 sudo k8s get local-storage
 ```
 
 You can modify the configuration using the `set` command. For example, to
 change the local storage path:
 
-```bash
+```
 sudo k8s set local-storage.local-path=/path/to/new/folder
 ```
 
@@ -56,7 +56,7 @@ environments as it has no multi node data replication.
 For a production environment you may want a more sophisticated
 storage solution. To disable local-storage, run:
 
-```bash
+```
 sudo k8s disable local-storage
 ```
 

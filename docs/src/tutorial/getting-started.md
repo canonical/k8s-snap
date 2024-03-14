@@ -10,7 +10,7 @@
 ### 1. Install Canonical Kubernetes
 
 Install the Canonical Kubernetes snap with:
-```bash
+```
 sudo snap install k8s --edge --classic
 ```
 
@@ -18,7 +18,7 @@ sudo snap install k8s --edge --classic
 
 Bootstrap a Kubernetes cluster with default configuration using:
 
-```bash
+```
 sudo k8s bootstrap
 ```
 
@@ -26,7 +26,7 @@ This command initialises your cluster and configures your host system
 as a Kubernetes node.
 For custom configurations, you can explore additional options using: 
 
-```bash
+```
 sudo k8s bootstrap --help
 ```
 
@@ -35,14 +35,14 @@ sudo k8s bootstrap --help
 To confirm the installation was successful and your node is ready you
 should run:
 
-```bash
+```
 sudo k8s status
 ```
 
 Run the following command to list all the pods in the `kube-system`
 namespace:
 
-```bash
+```
 sudo k8s kubectl get pods -n kube-system
 ```
 
@@ -53,7 +53,7 @@ You will observe at least three pods running:
 
 Confirm that Canonical Kubernetes has transitioned to the `k8s is ready` state by running:
 
-```bash
+```
 sudo k8s status --wait-ready
 ```
 
@@ -65,13 +65,13 @@ For convenience, Canonical Kubernetes bundles a version of
 kubectl for you to use with no extra setup or configuration. 
 For example, to view your node you can run the command:
 
-```bash
+```
 sudo k8s kubectl get nodes
 ```
 
 …or to see the running services:
 
-```bash
+```
 sudo k8s kubectl get services
 ```
 
@@ -83,7 +83,7 @@ command to do that as with any Kubernetes.
 
 Let's deploy a demo NGINX server:
 
-```bash
+```
 sudo k8s kubectl create deployment nginx --image=nginx
 ```
 This command launches a [pod](https://kubernetes.io/docs/concepts/workloads/pods/),
@@ -92,7 +92,7 @@ running the nginx application within a container.
 
 You can check the status of your pods by running:
 
-```bash
+```
 sudo k8s kubectl get pods
 ```
 
@@ -103,14 +103,14 @@ It may take a moment for the pod to be ready and running.
 
 To remove the NGINX workload, execute the following command:
 
-```bash
+```
 sudo k8s kubectl delete deployment nginx
 
 ```
 
 To verify that the pod has been removed, you can check the status of pods by running:
 
-```bash
+```
 sudo k8s kubectl get pods
 ```
 
@@ -121,12 +121,12 @@ lifecycle of the pod, Kubernetes provides persistent volumes.
 With Canonical Kubernetes, you can enable local-storage to configure
 your storage solutions:
 
-```bash
+```
 sudo k8s enable local-storage
 ```
 
 To verify that the local-storage is enabled, execute:
-```bash
+```
 sudo k8s status
 ```
 You should see `local-storage enabled` in the command output.
@@ -134,7 +134,7 @@ You should see `local-storage enabled` in the command output.
 Let's create a `PersistentVolumeClaim` and use it in a `Pod`. 
 For example, we can deploy the following manifest:
 
-```bash
+```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/tutorial-pod-with-pvc.yaml
 ```
 This command deploys a pod based on the YAML configuration of a 
@@ -142,13 +142,13 @@ storage writer pod and a persistent volume claim with a capacity of 1G.
 
 To confirm that the persistent volume is up and running:
 
-```bash
+```
 sudo k8s kubectl get pvc myclaim
 ```
 
 You can inspect the storage-writer-pod with:
 
-```bash
+```
 sudo k8s kubectl describe pod storage-writer-pod
 ```
 
@@ -156,14 +156,14 @@ sudo k8s kubectl describe pod storage-writer-pod
 
 Begin by removing the pod along with the persistent volume claim:
 
-```bash
+```
 sudo k8s kubectl delete pvc myclaim
 sudo k8s kubectl delete pod storage-writer-pod
 ```
 
 Next, disable the local storage:
 
-```bash
+```
 sudo k8s disable local-storage
 ```
 
