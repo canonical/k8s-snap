@@ -1,7 +1,0 @@
-pkg/component/component.go:119:22: unreachable func: helmClient.List
-pkg/k8sd/database/worker.go:69:6: unreachable func: DeleteWorkerNodeToken
-pkg/k8sd/database/worker.go:111:6: unreachable func: ListWorkerNodes
-pkg/snap/options.go:8:6: unreachable func: WithCommandRunner
-pkg/snap/util/arguments.go:21:6: unreachable func: GetServiceArgument
-pkg/utils/file.go:44:6: unreachable func: ParseArgumentFile
-pkg/utils/file.go:74:6: unreachable func: SerializeArgumentFile

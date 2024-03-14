@@ -123,8 +123,6 @@ func createComponentMap() map[string]types.Component {
 	}
 }
 
-var componentsNone = ``
-
 func mustCreateTemporaryTestDirectory(t *testing.T) string {
 	// Create a temporary test directory to mock the snap
 	// <tempDir>
