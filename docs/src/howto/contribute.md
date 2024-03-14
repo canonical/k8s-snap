@@ -75,6 +75,7 @@ repository][code repo] and we will review it as soon as possible.
 
 Our aim is to provide easy-to-understand documentation on all aspects of
 Canonical Kubernetes, so we greatly appreciate your feedback and contributions.
+See our [community page][] for ways of getting in touch.
 
 The source of the documentation and the system used to build it are included in
 the [main repository for the Canonical Kubernetes snap][code repo].
@@ -138,3 +139,4 @@ press `F5` in your browser to reload the page without caching)!
 [code repo]: https://github.com/canonical/k8s-snap
 [Diátaxis website]: https://diataxis.fr/
 [_parts]: https://github.com/canonical/k8s-snap/blob/main/docs/src/_parts/doc-cheat-sheet-myst.md
+[community page]: ../reference/community
