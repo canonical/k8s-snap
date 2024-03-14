@@ -1,7 +1,8 @@
 # How to contribute to Canonical Kubernetes
 
 Canonical Kubernetes is proudly open source, published under the GPLv3 license.
-We welcome and encourage contributions to the code and the documentation.
+We welcome and encourage contributions to the code and the documentation. See
+the [community page][] for ways to get in touch and provide feedback.
 
 ## Contribute to the code
 
@@ -61,7 +62,7 @@ will be reused by subsequent build instructions. When you are satisfied it is
 no longer needed, this container can be removed:
 
 ```
-lxc delete snapcraft-microk8s
+lxc delete snapcraft-k8s
 ```
 
 ### Contribute changes
