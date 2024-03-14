@@ -320,9 +320,9 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}
 
-	_, err = client.IsClusterReady(s.Context)
+	err = client.WaitApiServerReady(s.Context)
 	if err != nil {
-		return fmt.Errorf("cluster is not ready: %w", err)
+		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
 	}
 
 	if cfg.Network.Enabled != nil {

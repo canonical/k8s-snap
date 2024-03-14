@@ -4,9 +4,21 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/utils/control"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+func (c *Client) WaitApiServerReady(ctx context.Context) error {
+	return control.WaitUntilReady(ctx, func() (bool, error) {
+		// TODO: use the /readyz endpoint instead
+
+		_, err := c.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+		// We want to retry if an error occurs (=API server not ready)
+		// returning the error would abort, thus checking for nil
+		return err == nil, nil
+	})
+}
 
 func (c *Client) IsClusterReady(ctx context.Context) (bool, error) {
 	nodes, err := c.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
