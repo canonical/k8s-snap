@@ -32,9 +32,9 @@ func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus,
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to create k8s client: %w", err)
 	}
 
-	ready, err := client.IsClusterReady(ctx)
+	ready, err := client.HasReadyNodes(ctx)
 	if err != nil {
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to check if cluster is ready: %w", err)
+		return apiv1.ClusterStatus{}, fmt.Errorf("failed to check if cluster has ready nodes: %w", err)
 	}
 
 	return apiv1.ClusterStatus{
