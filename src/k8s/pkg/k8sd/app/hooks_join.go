@@ -183,9 +183,8 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	err = client.WaitApiServerReady(s.Context)
-	if err != nil {
-		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
+	if err := client.WaitApiServerReady(s.Context); err != nil {
+		return fmt.Errorf("failed to wait for kube-apiserver to become ready: %w", err)
 	}
 
 	return nil

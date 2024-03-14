@@ -320,9 +320,8 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}
 
-	err = client.WaitApiServerReady(s.Context)
-	if err != nil {
-		return fmt.Errorf("k8s api server did not become ready in time: %w", err)
+	if client.WaitApiServerReady(s.Context); err != nil {
+		return fmt.Errorf("kube api-server did not become ready in time: %w", err)
 	}
 
 	if cfg.Network.Enabled != nil {
