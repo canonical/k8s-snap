@@ -13,7 +13,10 @@ go.unit:
 	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-test.sh -v ./pkg/... ./cmd/... ./api/... -coverprofile=coverage.txt --cover
 
 go.deadcode:
-	go run golang.org/x/tools/cmd/deadcode ./cmd | tee out && [ ! -s out ]
+	go run golang.org/x/tools/cmd/deadcode ./cmd | tee out && diff --color out tools/expected_deadcode 
+
+go.deadcode.update:
+	go run golang.org/x/tools/cmd/deadcode ./cmd | tee tools/expected_deadcode 
 
 go.doc: bin/static/k8s
 	bin/static/k8s generate-docs --output-dir ../../docs/src/_parts/commands/

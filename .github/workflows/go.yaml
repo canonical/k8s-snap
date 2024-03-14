@@ -47,7 +47,14 @@ jobs:
       
       - name: go deadcode
         working-directory: src/k8s
-        run: make go.deadcode
+        run: |
+          if ! "$(make go.deadcode > /dev/null)"; then
+            echo "\nDeadcode output changed. Please check the diff. "
+            echo "If the output only contains false positives,"
+            echo "run 'cd src/k8s && make go.deadcode.update'"
+            echo "Otherwise, remove the deadcode.\n"
+            make go.deadcode
+          fi
 
       - name: go test
         working-directory: src/k8s

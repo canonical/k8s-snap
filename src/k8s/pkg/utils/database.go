@@ -141,24 +141,6 @@ func CheckWorkerExists(ctx context.Context, state *state.State, name string) (bo
 	return exists, nil
 }
 
-// GetWorkerNodes is a convenience wrapper around the database call to get the worker node names.
-func GetWorkerNodes(ctx context.Context, state *state.State) ([]string, error) {
-	var workerNodes []string
-	var err error
-
-	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		workerNodes, err = database.ListWorkerNodes(ctx, tx)
-		if err != nil {
-			return fmt.Errorf("failed to list worker nodes from database: %w", err)
-		}
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("failed to perform list worker nodes transaction request: %w", err)
-	}
-
-	return workerNodes, nil
-}
-
 // DeleteWorkerNodeEntry is a convenience wrapper around the database call to delete the worker node entry.
 func DeleteWorkerNodeEntry(ctx context.Context, state *state.State, name string) error {
 	var err error

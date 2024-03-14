@@ -104,27 +104,6 @@ func GetOrCreateToken(ctx context.Context, tx *sql.Tx, username string, groups [
 	return token, nil
 }
 
-// DeleteTokenOf deletes the token of the specified user and groups (if any).
-// DeleteTokenOf returns nil if there is no token for the specified user and groups.
-func DeleteTokenOf(ctx context.Context, tx *sql.Tx, username string, groups []string) error {
-	if username == "" {
-		return fmt.Errorf("username cannot be empty")
-	}
-	groupsString, err := groupsToString(groups)
-	if err != nil {
-		return fmt.Errorf("invalid groups: %w", err)
-	}
-
-	deleteTxStmt, err := cluster.Stmt(tx, k8sdTokensStmts["delete-by-username"])
-	if err != nil {
-		return fmt.Errorf("failed to prepare delete statement: %w", err)
-	}
-	if _, err := deleteTxStmt.ExecContext(ctx, username, groupsString); err != nil {
-		return fmt.Errorf("delete token query failed: %w", err)
-	}
-	return nil
-}
-
 // DeleteToken deletes the specified token (if any).
 // DeleteToken returns nil if the token is not valid.
 func DeleteToken(ctx context.Context, tx *sql.Tx, token string) error {
