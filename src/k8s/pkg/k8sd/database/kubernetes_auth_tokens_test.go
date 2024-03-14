@@ -68,21 +68,6 @@ func TestKubernetesAuthTokens(t *testing.T) {
 			})
 		})
 
-		t.Run("DeleteTokenOf", func(t *testing.T) {
-			g := NewWithT(t)
-			err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-				err := database.DeleteTokenOf(ctx, tx, "user1", []string{"group1", "group2"})
-				g.Expect(err).To(BeNil())
-
-				username, groups, err := database.CheckToken(ctx, tx, token1)
-				g.Expect(err).ToNot(BeNil())
-				g.Expect(username).To(BeEmpty())
-				g.Expect(groups).To(BeEmpty())
-				return nil
-			})
-			g.Expect(err).To(BeNil())
-		})
-
 		t.Run("DeleteToken", func(t *testing.T) {
 			g := NewWithT(t)
 			err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
