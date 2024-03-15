@@ -38,12 +38,15 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// TODO check if join node gets selfsigned cert allowed
-	if err := setupDatastoreCertificates(snap, cfg, s.Name(), true); err != nil {
+	err, dqliteCert, _ := setupDatastoreCertificates(snap, cfg, s.Name(), false)
+	if err != nil {
 		return fmt.Errorf("failed to generate and ensure certificates: %w", err)
 	}
+	cfg.Certificates.K8sDqliteCert = dqliteCert.K8sDqliteCert
+	cfg.Certificates.K8sDqliteKey = dqliteCert.K8sDqliteKey
 
 	// Certificates
-	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
+	controlPlaneCert := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append([]net.IP{nodeIP}, serviceIPs...),
 		Years:                     20,
@@ -51,18 +54,18 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	})
 
 	// load existing certificates, then generate certificates for the node
-	certificates.CACert = cfg.Certificates.CACert
-	certificates.CAKey = cfg.Certificates.CAKey
-	certificates.FrontProxyCACert = cfg.Certificates.FrontProxyCACert
-	certificates.FrontProxyCAKey = cfg.Certificates.FrontProxyCAKey
-	certificates.APIServerKubeletClientCert = cfg.Certificates.APIServerKubeletClientCert
-	certificates.APIServerKubeletClientKey = cfg.Certificates.APIServerKubeletClientKey
-	certificates.ServiceAccountKey = cfg.APIServer.ServiceAccountKey
+	controlPlaneCert.CACert = cfg.Certificates.CACert
+	controlPlaneCert.CAKey = cfg.Certificates.CAKey
+	controlPlaneCert.FrontProxyCACert = cfg.Certificates.FrontProxyCACert
+	controlPlaneCert.FrontProxyCAKey = cfg.Certificates.FrontProxyCAKey
+	controlPlaneCert.APIServerKubeletClientCert = cfg.Certificates.APIServerKubeletClientCert
+	controlPlaneCert.APIServerKubeletClientKey = cfg.Certificates.APIServerKubeletClientKey
+	controlPlaneCert.ServiceAccountKey = cfg.APIServer.ServiceAccountKey
 
-	if err := certificates.CompleteCertificates(); err != nil {
+	if err := controlPlaneCert.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
 	}
-	if err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
+	if err := setup.EnsureControlPlanePKI(snap, controlPlaneCert); err != nil {
 		return fmt.Errorf("failed to write cluster certificates: %w", err)
 	}
 

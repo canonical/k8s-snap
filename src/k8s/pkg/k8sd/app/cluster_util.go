@@ -16,42 +16,40 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func setupDatastoreCertificates(snap snap.Snap, cfg types.ClusterConfig, nodeName string, allowSelfSignedCA bool) error {
+func setupDatastoreCertificates(snap snap.Snap, cfg types.ClusterConfig, nodeName string, allowSelfSignedCA bool) (error, *pki.K8sDqlitePKI, *pki.ExternalDatastorePKI) {
 	// Certificates
 	switch cfg.APIServer.Datastore {
 	case "k8s-dqlite":
-		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
+		dqliteCert := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname:          nodeName,
 			IPSANs:            []net.IP{{127, 0, 0, 1}},
 			Years:             20,
 			AllowSelfSignedCA: allowSelfSignedCA,
 		})
-		certificates.K8sDqliteCert = cfg.Certificates.K8sDqliteCert
-		certificates.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
-		if err := certificates.CompleteCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+
+		if err := dqliteCert.CompleteCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize cluster certificates: %w", err), nil, nil
 		}
-		if err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
-			return fmt.Errorf("failed to write cluster certificates: %w", err)
+		if err := setup.EnsureK8sDqlitePKI(snap, dqliteCert); err != nil {
+			return fmt.Errorf("failed to write cluster certificates: %w", err), nil, nil
 		}
+		return nil, dqliteCert, nil
 	case "external":
-		certificates := &pki.ExternalDatastorePKI{
+		externalDatastoreCert := &pki.ExternalDatastorePKI{
 			DatastoreCACert:     cfg.Certificates.DatastoreCACert,
 			DatastoreClientCert: cfg.Certificates.DatastoreClientCert,
 			DatastoreClientKey:  cfg.Certificates.DatastoreClientKey,
 		}
-		if err := certificates.CheckCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+		if err := externalDatastoreCert.CheckCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize cluster certificates: %w", err), nil, nil
 		}
-		if err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
-			return fmt.Errorf("failed to write cluster certificates: %w", err)
+		if err := setup.EnsureExtDatastorePKI(snap, externalDatastoreCert); err != nil {
+			return fmt.Errorf("failed to write cluster certificates: %w", err), nil, nil
 		}
+		return nil, nil, externalDatastoreCert
 	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores), nil
 	}
-
-	return nil
-
 }
 
 func setupKubeconfigs(s *state.State, kubeConfigDir string, securePort int, caCert string) error {
