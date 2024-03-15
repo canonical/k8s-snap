@@ -48,7 +48,7 @@ func setupDatastoreCertificates(snap snap.Snap, cfg types.ClusterConfig, nodeNam
 		}
 		return nil, nil, externalDatastoreCert
 	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores), nil
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores), nil, nil
 	}
 }
 
