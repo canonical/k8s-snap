@@ -157,20 +157,3 @@ func DeleteWorkerNodeEntry(ctx context.Context, state *state.State, name string)
 
 	return nil
 }
-
-// CheckWorkerNodeToken is a convenience wrapper around the database call to check if a worker token is valid.
-func CheckWorkerNodeToken(ctx context.Context, state *state.State, name string, token string) (bool, error) {
-	var exists bool
-	var err error
-	if err := state.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		exists, err = database.CheckWorkerNodeToken(ctx, tx, name, token)
-		if err != nil {
-			return fmt.Errorf("failed to get worker node token from database: %w", err)
-		}
-		return nil
-	}); err != nil {
-		return false, fmt.Errorf("failed to perform check worker node token transaction request: %w", err)
-	}
-
-	return exists, nil
-}
