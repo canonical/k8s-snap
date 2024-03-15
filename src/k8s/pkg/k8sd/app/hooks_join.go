@@ -131,6 +131,11 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to start services: %w", err)
 	}
 
+	// Wait until Kube-API server is ready
+	if err := waitReadyApiServer(s.Context, snap); err != nil {
+		return fmt.Errorf("failed to wait for Kube-API server: %w", err)
+	}
+
 	return nil
 }
 

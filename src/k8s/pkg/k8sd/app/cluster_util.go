@@ -78,6 +78,10 @@ func startControlPlaneServices(ctx context.Context, snap snap.Snap, datastore st
 	if err := snaputil.StartControlPlaneServices(ctx, snap); err != nil {
 		return fmt.Errorf("failed to start control plane services: %w", err)
 	}
+	return nil
+}
+
+func waitReadyApiServer(ctx context.Context, snap snap.Snap) error {
 
 	// Wait for API server to come up
 	client, err := k8s.NewClient(snap)
