@@ -185,28 +185,28 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	dqliteCert.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
 
 	// Certificates
-	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
+	controlPlaneCert := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append([]net.IP{nodeIP}, serviceIPs...),
 		Years:                     20,
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
 	})
-	if err := certificates.CompleteCertificates(); err != nil {
+	if err := controlPlaneCert.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
 	}
-	if err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
+	if err := setup.EnsureControlPlanePKI(snap, controlPlaneCert); err != nil {
 		return fmt.Errorf("failed to write cluster certificates: %w", err)
 	}
 
 	// Add certificates to the cluster config
-	cfg.Certificates.CACert = certificates.CACert
-	cfg.Certificates.CAKey = certificates.CAKey
-	cfg.Certificates.FrontProxyCACert = certificates.FrontProxyCACert
-	cfg.Certificates.FrontProxyCAKey = certificates.FrontProxyCAKey
-	cfg.Certificates.APIServerKubeletClientCert = certificates.APIServerKubeletClientCert
-	cfg.Certificates.APIServerKubeletClientKey = certificates.APIServerKubeletClientKey
-	cfg.APIServer.ServiceAccountKey = certificates.ServiceAccountKey
+	cfg.Certificates.CACert = controlPlaneCert.CACert
+	cfg.Certificates.CAKey = controlPlaneCert.CAKey
+	cfg.Certificates.FrontProxyCACert = controlPlaneCert.FrontProxyCACert
+	cfg.Certificates.FrontProxyCAKey = controlPlaneCert.FrontProxyCAKey
+	cfg.Certificates.APIServerKubeletClientCert = controlPlaneCert.APIServerKubeletClientCert
+	cfg.Certificates.APIServerKubeletClientKey = controlPlaneCert.APIServerKubeletClientKey
+	cfg.APIServer.ServiceAccountKey = controlPlaneCert.ServiceAccountKey
 
 	// Generate kubeconfigs
 	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.SecurePort, cfg.Certificates.CACert); err != nil {
