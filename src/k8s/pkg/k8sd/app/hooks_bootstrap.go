@@ -176,7 +176,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.ServiceCIDR, err)
 	}
 
-	err, dqliteCert, _ := setupDatastoreCertificates(snap, cfg, s.Name(), false)
+	err, dqliteCert, _ := setupDatastoreCertificates(snap, cfg, s.Name(), true)
 	if err != nil {
 		return fmt.Errorf("failed to generate and ensure certificates: %w", err)
 	}
