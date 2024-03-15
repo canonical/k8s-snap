@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/canonical/k8s/pkg/utils/control"
 	v1 "k8s.io/api/core/v1"
@@ -25,7 +26,7 @@ func (c *Client) HasReadyNodes(ctx context.Context) (bool, error) {
 	nodes, err := c.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to list nodes: %v", err)
 	}
 
 	for _, node := range nodes.Items {
