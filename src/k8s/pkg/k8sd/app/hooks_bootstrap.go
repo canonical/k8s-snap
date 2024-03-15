@@ -266,7 +266,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	}
 
 	// Start services
-	if err := startServicesControlPlane(s.Context, snap, cfg.APIServer.Datastore); err != nil {
+	if err := startControlPlaneServices(s.Context, snap, cfg.APIServer.Datastore); err != nil {
 		return fmt.Errorf("failed to start services: %w", err)
 	}
 

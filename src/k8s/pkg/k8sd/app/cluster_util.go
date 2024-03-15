@@ -63,7 +63,7 @@ func setupControlPlaneServices(snap snap.Snap, s *state.State, cfg types.Cluster
 	return nil
 }
 
-func startServicesControlPlane(ctx context.Context, snap snap.Snap, datastore string) error {
+func startControlPlaneServices(ctx context.Context, snap snap.Snap, datastore string) error {
 	// Start services
 	switch datastore {
 	case "k8s-dqlite":
