@@ -270,6 +270,11 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to start services: %w", err)
 	}
 
+	// Wait until Kube-API server is ready
+	if err := waitReadyApiServer(s.Context, snap); err != nil {
+		return fmt.Errorf("failed to wait for Kube-API server: %w", err)
+	}
+
 	if cfg.Network.Enabled != nil {
 		err := component.ReconcileNetworkComponent(s.Context, snap, vals.Pointer(false), cfg.Network.Enabled, cfg)
 		if err != nil {
