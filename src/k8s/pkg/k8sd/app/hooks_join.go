@@ -48,10 +48,10 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		dqliteCert.K8sDqliteCert = cfg.Certificates.K8sDqliteCert
 		dqliteCert.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
 		if err := dqliteCert.CompleteCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+			return fmt.Errorf("failed to initialize k8s-dqlite certificates: %w", err)
 		}
 		if err := setup.EnsureK8sDqlitePKI(snap, dqliteCert); err != nil {
-			return fmt.Errorf("failed to write cluster certificates: %w", err)
+			return fmt.Errorf("failed to write k8s-dqlite certificates: %w", err)
 		}
 	case "external":
 		externalDatastoreCert := &pki.ExternalDatastorePKI{
@@ -60,10 +60,10 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 			DatastoreClientKey:  cfg.Certificates.DatastoreClientKey,
 		}
 		if err := externalDatastoreCert.CheckCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+			return fmt.Errorf("failed to initialize external datastore certificates: %w", err)
 		}
 		if err := setup.EnsureExtDatastorePKI(snap, externalDatastoreCert); err != nil {
-			return fmt.Errorf("failed to write cluster certificates: %w", err)
+			return fmt.Errorf("failed to write external datastore certificates: %w", err)
 		}
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
@@ -87,10 +87,10 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	controlPlaneCert.ServiceAccountKey = cfg.APIServer.ServiceAccountKey
 
 	if err := controlPlaneCert.CompleteCertificates(); err != nil {
-		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
 	if err := setup.EnsureControlPlanePKI(snap, controlPlaneCert); err != nil {
-		return fmt.Errorf("failed to write cluster certificates: %w", err)
+		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
 
 	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.SecurePort, cfg.Certificates.CACert); err != nil {
