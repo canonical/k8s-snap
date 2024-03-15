@@ -27,6 +27,9 @@ func setupDatastoreCertificates(snap snap.Snap, cfg types.ClusterConfig, nodeNam
 			AllowSelfSignedCA: allowSelfSignedCA,
 		})
 
+		cfg.Certificates.K8sDqliteCert = dqliteCert.K8sDqliteCert
+		cfg.Certificates.K8sDqliteKey = dqliteCert.K8sDqliteKey
+
 		if err := dqliteCert.CompleteCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize cluster certificates: %w", err), nil, nil
 		}

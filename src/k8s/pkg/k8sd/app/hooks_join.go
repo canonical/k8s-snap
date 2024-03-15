@@ -38,12 +38,10 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// TODO check if join node gets selfsigned cert allowed
-	err, dqliteCert, _ := setupDatastoreCertificates(snap, cfg, s.Name(), false)
+	err, _, _ = setupDatastoreCertificates(snap, cfg, s.Name(), false)
 	if err != nil {
 		return fmt.Errorf("failed to generate and ensure certificates: %w", err)
 	}
-	cfg.Certificates.K8sDqliteCert = dqliteCert.K8sDqliteCert
-	cfg.Certificates.K8sDqliteKey = dqliteCert.K8sDqliteKey
 
 	// Certificates
 	controlPlaneCert := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
