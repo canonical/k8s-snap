@@ -47,7 +47,8 @@ type Snap interface {
 
 	Components() map[string]types.Component // available components
 
-	KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter // admin kubernetes client
+	KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter     // admin kubernetes client
+	KubernetesNodeRESTClientGetter(namespace string) genericclioptions.RESTClientGetter // node kubernetes client
 
 	K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) // go-dqlite client for k8s-dqlite
 }

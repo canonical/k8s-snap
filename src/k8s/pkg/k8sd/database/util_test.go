@@ -70,6 +70,9 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 				databaseCh <- s.Database
 				return nil
 			},
+			OnStart: func(s *state.State) error {
+				return nil
+			},
 		})
 	}()
 

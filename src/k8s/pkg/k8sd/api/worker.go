@@ -45,7 +45,7 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	}
 
 	snap := snap.SnapFromContext(s.Context)
-	client, err := k8s.NewClient(snap)
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
 	}

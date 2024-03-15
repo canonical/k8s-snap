@@ -84,7 +84,7 @@ func startControlPlaneServices(ctx context.Context, snap snap.Snap, datastore st
 func waitApiServerReady(ctx context.Context, snap snap.Snap) error {
 
 	// Wait for API server to come up
-	client, err := k8s.NewClient(snap)
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
