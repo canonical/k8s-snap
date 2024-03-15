@@ -7,7 +7,6 @@ import (
 	"path"
 
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
-	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
@@ -15,45 +14,6 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
 )
-
-func setupDatastoreCertificates(snap snap.Snap, cfg types.ClusterConfig, nodeName string, allowSelfSignedCA bool) (error, *pki.K8sDqlitePKI, *pki.ExternalDatastorePKI) {
-	// Certificates
-	switch cfg.APIServer.Datastore {
-	case "k8s-dqlite":
-		dqliteCert := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
-			Hostname:          nodeName,
-			IPSANs:            []net.IP{{127, 0, 0, 1}},
-			Years:             20,
-			AllowSelfSignedCA: allowSelfSignedCA,
-		})
-
-		cfg.Certificates.K8sDqliteCert = dqliteCert.K8sDqliteCert
-		cfg.Certificates.K8sDqliteKey = dqliteCert.K8sDqliteKey
-
-		if err := dqliteCert.CompleteCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize cluster certificates: %w", err), nil, nil
-		}
-		if err := setup.EnsureK8sDqlitePKI(snap, dqliteCert); err != nil {
-			return fmt.Errorf("failed to write cluster certificates: %w", err), nil, nil
-		}
-		return nil, dqliteCert, nil
-	case "external":
-		externalDatastoreCert := &pki.ExternalDatastorePKI{
-			DatastoreCACert:     cfg.Certificates.DatastoreCACert,
-			DatastoreClientCert: cfg.Certificates.DatastoreClientCert,
-			DatastoreClientKey:  cfg.Certificates.DatastoreClientKey,
-		}
-		if err := externalDatastoreCert.CheckCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize cluster certificates: %w", err), nil, nil
-		}
-		if err := setup.EnsureExtDatastorePKI(snap, externalDatastoreCert); err != nil {
-			return fmt.Errorf("failed to write cluster certificates: %w", err), nil, nil
-		}
-		return nil, nil, externalDatastoreCert
-	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores), nil, nil
-	}
-}
 
 func setupKubeconfigs(s *state.State, kubeConfigDir string, securePort int, caCert string) error {
 	// Generate kubeconfigs

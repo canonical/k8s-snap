@@ -176,13 +176,39 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.ServiceCIDR, err)
 	}
 
-	err, dqliteCert, _ := setupDatastoreCertificates(snap, cfg, s.Name(), true)
-	if err != nil {
-		return fmt.Errorf("failed to generate and ensure certificates: %w", err)
-	}
+	switch cfg.APIServer.Datastore {
+	case "k8s-dqlite":
+		dqliteCert := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
+			Hostname:          s.Name(),
+			IPSANs:            []net.IP{{127, 0, 0, 1}},
+			Years:             20,
+			AllowSelfSignedCA: true,
+		})
+		if err := dqliteCert.CompleteCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+		}
+		if err := setup.EnsureK8sDqlitePKI(snap, dqliteCert); err != nil {
+			return fmt.Errorf("failed to write cluster certificates: %w", err)
+		}
 
-	dqliteCert.K8sDqliteCert = cfg.Certificates.K8sDqliteCert
-	dqliteCert.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
+		cfg.Certificates.K8sDqliteCert = dqliteCert.K8sDqliteCert
+		cfg.Certificates.K8sDqliteKey = dqliteCert.K8sDqliteKey
+
+	case "external":
+		externalDatastoreCert := &pki.ExternalDatastorePKI{
+			DatastoreCACert:     cfg.Certificates.DatastoreCACert,
+			DatastoreClientCert: cfg.Certificates.DatastoreClientCert,
+			DatastoreClientKey:  cfg.Certificates.DatastoreClientKey,
+		}
+		if err := externalDatastoreCert.CheckCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+		}
+		if err := setup.EnsureExtDatastorePKI(snap, externalDatastoreCert); err != nil {
+			return fmt.Errorf("failed to write cluster certificates: %w", err)
+		}
+	default:
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
+	}
 
 	// Certificates
 	controlPlaneCert := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
