@@ -20,7 +20,7 @@ func (c *Client) WaitApiServerReady(ctx context.Context) error {
 }
 
 // HasReadyNodes checks the status of all nodes in the Kubernetes cluster.
-// Returns true if there is atleast one ready node, false otherwise.
+// HasReadyNodes returns true if there is at least one Ready node in the cluster, false otherwise.
 func (c *Client) HasReadyNodes(ctx context.Context) (bool, error) {
 	nodes, err := c.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 
