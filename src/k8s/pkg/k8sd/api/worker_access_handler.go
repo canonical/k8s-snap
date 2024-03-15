@@ -34,7 +34,7 @@ func ValidateWorkerInfoAccessHandler(nodeHeaderName string, tokenHeaderName stri
 	return func(s *state.State, r *http.Request) response.Response {
 		name := r.Header.Get(nodeHeaderName)
 		if name == "" {
-			return response.Unauthorized(fmt.Errorf("missing %q", nodeHeaderName))
+			return response.Unauthorized(fmt.Errorf("missing header %q", nodeHeaderName))
 		}
 		hostname, err := utils.CleanHostname(name)
 		if err != nil {
