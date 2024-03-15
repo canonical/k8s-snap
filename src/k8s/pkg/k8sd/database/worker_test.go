@@ -13,26 +13,39 @@ func TestWorkerNodeToken(t *testing.T) {
 	WithDB(t, func(ctx context.Context, db DB) {
 		g := NewWithT(t)
 		err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-			exists, err := database.CheckWorkerNodeToken(ctx, tx, "sometoken")
+			exists, err := database.CheckWorkerNodeToken(ctx, tx, "somenode", "sometoken")
 			g.Expect(err).To(BeNil())
 			g.Expect(exists).To(BeFalse())
 
-			token, err := database.GetOrCreateWorkerNodeToken(ctx, tx)
+			token, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "somenode")
 			g.Expect(err).To(BeNil())
 			g.Expect(token).To(HaveLen(48))
 
-			valid, err := database.CheckWorkerNodeToken(ctx, tx, token)
+			othertoken, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "someothernode")
+			g.Expect(err).To(BeNil())
+			g.Expect(othertoken).To(HaveLen(48))
+			g.Expect(othertoken).NotTo(Equal(token))
+
+			valid, err := database.CheckWorkerNodeToken(ctx, tx, "somenode", token)
 			g.Expect(err).To(BeNil())
 			g.Expect(valid).To(BeTrue())
 
-			err = database.DeleteWorkerNodeToken(ctx, tx)
-			g.Expect(err).To(BeNil())
-
-			valid, err = database.CheckWorkerNodeToken(ctx, tx, token)
+			valid, err = database.CheckWorkerNodeToken(ctx, tx, "someothernode", token)
 			g.Expect(err).To(BeNil())
 			g.Expect(valid).To(BeFalse())
 
-			newToken, err := database.GetOrCreateWorkerNodeToken(ctx, tx)
+			valid, err = database.CheckWorkerNodeToken(ctx, tx, "someothernode", othertoken)
+			g.Expect(err).To(BeNil())
+			g.Expect(valid).To(BeTrue())
+
+			err = database.DeleteWorkerNodeToken(ctx, tx, "somenode")
+			g.Expect(err).To(BeNil())
+
+			valid, err = database.CheckWorkerNodeToken(ctx, tx, "somenode", token)
+			g.Expect(err).To(BeNil())
+			g.Expect(valid).To(BeFalse())
+
+			newToken, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "somenode")
 			g.Expect(err).To(BeNil())
 			g.Expect(newToken).To(HaveLen(48))
 			g.Expect(newToken).ToNot(Equal(token))

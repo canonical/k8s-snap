@@ -3,4 +3,4 @@ SELECT
 FROM
     cluster_configs AS c
 WHERE
-    ( c.key = "worker-token" )
+    ( c.key = "worker-token::" || ? ) 

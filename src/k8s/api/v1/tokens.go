@@ -6,7 +6,6 @@ type TokenRequest struct {
 	// If false, a token for joining a control plane node is created.
 	Worker bool `json:"worker"`
 	// Name of the node that should join.
-	// Only required for control plane nodes as all workers share the same token.
 	Name string `json:"name"`
 }
 
