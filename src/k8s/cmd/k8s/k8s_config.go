@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
@@ -21,7 +22,7 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			config, err := client.KubeConfig(cmd.Context(), opts.server)
+			config, err := client.KubeConfig(cmd.Context(), apiv1.GetKubeConfigRequest{Server: opts.server})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to generate an admin kubeconfig for %q.\n\nThe error was: %v\n", opts.server, err)
 				env.Exit(1)

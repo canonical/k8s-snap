@@ -3,6 +3,7 @@ package k8s
 import (
 	"fmt"
 
+	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +35,7 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			token, err := client.CreateJoinToken(cmd.Context(), name, opts.worker)
+			token, err := client.GetJoinToken(cmd.Context(), apiv1.GetJoinTokenRequest{Name: name, Worker: opts.worker})
 			if err != nil {
 				cmd.PrintErrf("Error: Could not generate a join token for %q.\n\nThe error was: %v\n", name, err)
 				env.Exit(1)

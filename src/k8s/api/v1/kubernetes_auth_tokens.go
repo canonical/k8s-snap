@@ -1,7 +1,7 @@
 package v1
 
-// CreateKubernetesAuthTokenRequest is used to request a new Kubernetes auth token.
-type CreateKubernetesAuthTokenRequest struct {
+// GenerateKubernetesAuthTokenRequest is used to request a new Kubernetes auth token.
+type GenerateKubernetesAuthTokenRequest struct {
 	Username string   `json:"username"`
 	Groups   []string `json:"groups"`
 }

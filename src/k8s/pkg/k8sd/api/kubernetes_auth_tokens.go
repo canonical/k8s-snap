@@ -33,7 +33,7 @@ func getKubernetesAuthTokens(state *state.State, r *http.Request) response.Respo
 }
 
 func postKubernetesAuthTokens(state *state.State, r *http.Request) response.Response {
-	request := apiv1.CreateKubernetesAuthTokenRequest{}
+	request := apiv1.GenerateKubernetesAuthTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}

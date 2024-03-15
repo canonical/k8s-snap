@@ -17,7 +17,7 @@ import (
 )
 
 func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
-	req := apiv1.TokenRequest{}
+	req := apiv1.GetJoinTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -37,7 +37,7 @@ func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http
 		return response.InternalError(fmt.Errorf("failed to create token: %w", err))
 	}
 
-	return response.SyncResponse(true, &apiv1.TokensResponse{EncodedToken: token})
+	return response.SyncResponse(true, &apiv1.GetJoinTokenResponse{EncodedToken: token})
 }
 
 func getOrCreateJoinToken(m *microcluster.MicroCluster, tokenName string) (string, error) {

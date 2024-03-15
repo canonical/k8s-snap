@@ -44,13 +44,7 @@ func DefaultExecutionEnvironment() ExecutionEnvironment {
 		Getuid:  os.Getuid,
 		Snap:    snap,
 		Client: func(ctx context.Context) (client.Client, error) {
-			c, err := client.NewClient(ctx, client.ClusterOpts{
-				Snap: snap,
-			})
-			if err != nil {
-				return nil, fmt.Errorf("failed to create k8sd client: %w", err)
-			}
-			return c, nil
+			return client.NewClient(ctx, snap)
 		},
 	}
 }
