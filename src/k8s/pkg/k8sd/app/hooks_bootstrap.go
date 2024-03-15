@@ -143,11 +143,6 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		return fmt.Errorf("failed to start worker services: %w", err)
 	}
 
-	// Wait until Kube-API server is ready
-	if err := waitReadyApiServer(s.Context, snap); err != nil {
-		return fmt.Errorf("failed to wait for Kube-API server: %w", err)
-	}
-
 	return nil
 }
 
