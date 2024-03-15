@@ -16,8 +16,6 @@ def test_gateway(instances: List[harness.Instance]):
     util.wait_for_network(instance)
     util.wait_for_dns(instance)
 
-    instance.exec(["k8s", "enable", "gateway"])
-
     util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
