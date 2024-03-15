@@ -136,6 +136,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		if err := setup.K8sDqlite(snap, address, cluster); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
+	case "external":
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
@@ -209,6 +210,7 @@ func onPreRemove(s *state.State, force bool) error {
 		if err := client.RemoveNodeByAddress(s.Context, nodeAddress); err != nil {
 			return fmt.Errorf("failed to remove node with address %s from k8s-dqlite cluster: %w", nodeAddress, err)
 		}
+	case "external":
 	default:
 	}
 
