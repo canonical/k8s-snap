@@ -176,8 +176,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.ServiceCIDR, err)
 	}
 
-	err = generateAndEnsureCertificates(snap, cfg, s.Name(), true)
-	if err != nil {
+	if err := setupDatastoreCertificates(snap, cfg, s.Name(), true); err != nil {
 		return fmt.Errorf("failed to generate and ensure certificates: %w", err)
 	}
 
@@ -206,9 +205,8 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	cfg.APIServer.ServiceAccountKey = certificates.ServiceAccountKey
 
 	// Generate kubeconfigs
-	err = generateKubeconfigs(snap, s, cfg)
-	if err != nil {
-		return err
+	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.SecurePort, cfg.Certificates.CACert); err != nil {
+		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
 	// Configure datastore
@@ -222,8 +220,8 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
 
-	err = configureServicesControlPlane(snap, s, cfg, nodeIP)
-	if err != nil {
+	// Configure services
+	if err := setupControlPlaneServices(snap, s, cfg, nodeIP); err != nil {
 		return fmt.Errorf("failed to configure services: %w", err)
 	}
 
@@ -238,8 +236,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	}
 
 	// Start services
-	err = startServicesControlPlane(snap, s, cfg)
-	if err != nil {
+	if err := startServicesControlPlane(s.Context, snap, cfg.APIServer.Datastore); err != nil {
 		return fmt.Errorf("failed to start services: %w", err)
 	}
 
