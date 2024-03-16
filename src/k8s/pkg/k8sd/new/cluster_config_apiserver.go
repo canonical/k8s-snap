@@ -7,3 +7,4 @@ type APIServer struct {
 
 func (c APIServer) GetSecurePort() int           { return getField(c.SecurePort) }
 func (c APIServer) GetAuthorizationMode() string { return getField(c.AuthorizationMode) }
+func (c APIServer) Empty() bool                  { return c.SecurePort == nil && c.AuthorizationMode == nil }

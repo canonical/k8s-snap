@@ -53,15 +53,21 @@ type Features struct {
 }
 
 func (c NetworkFeature) GetEnabled() bool { return getField(c.Enabled) }
+func (c NetworkFeature) Empty() bool      { return c.Enabled == nil }
 
 func (c DNSFeature) GetEnabled() bool                 { return getField(c.Enabled) }
 func (c DNSFeature) GetUpstreamNameservers() []string { return getField(c.UpstreamNameservers) }
+func (c DNSFeature) Empty() bool                      { return c.Enabled == nil && c.UpstreamNameservers == nil }
 
 func (c IngressFeature) GetEnabled() bool             { return getField(c.Enabled) }
 func (c IngressFeature) GetDefaultTLSSecret() string  { return getField(c.DefaultTLSSecret) }
 func (c IngressFeature) GetEnableProxyProtocol() bool { return getField(c.EnableProxyProtocol) }
+func (c IngressFeature) Empty() bool {
+	return c.Enabled == nil && c.DefaultTLSSecret == nil && c.EnableProxyProtocol == nil
+}
 
 func (c GatewayFeature) GetEnabled() bool { return getField(c.Enabled) }
+func (c GatewayFeature) Empty() bool      { return c.Enabled == nil }
 
 func (c LoadBalancerFeature) GetEnabled() bool          { return getField(c.Enabled) }
 func (c LoadBalancerFeature) GetCIDRs() []string        { return getField(c.CIDRs) }
@@ -72,10 +78,21 @@ func (c LoadBalancerFeature) GetBGPLocalASN() int       { return getField(c.BGPL
 func (c LoadBalancerFeature) GetBGPPeerAddress() string { return getField(c.BGPPeerAddress) }
 func (c LoadBalancerFeature) GetBGPPeerASN() int        { return getField(c.BGPPeerASN) }
 func (c LoadBalancerFeature) GetBGPPeerPort() int       { return getField(c.BGPPeerPort) }
+func (c LoadBalancerFeature) Empty() bool {
+	return c.Enabled == nil && c.CIDRs == nil && c.L2Mode == nil && c.L2Interfaces == nil && c.BGPMode == nil && c.BGPLocalASN == nil && c.BGPPeerAddress == nil && c.BGPPeerASN == nil && c.BGPPeerPort == nil
+}
 
 func (c LocalStorageFeature) GetEnabled() bool         { return getField(c.Enabled) }
 func (c LocalStorageFeature) GetLocalPath() string     { return getField(c.LocalPath) }
 func (c LocalStorageFeature) GetReclaimPolicy() string { return getField(c.ReclaimPolicy) }
-func (c LocalStorageFeature) GetSetDefault() bool      { return getField(c.Enabled) }
+func (c LocalStorageFeature) GetSetDefault() bool      { return getField(c.SetDefault) }
+func (c LocalStorageFeature) Empty() bool {
+	return c.Enabled == nil && c.LocalPath == nil && c.ReclaimPolicy == nil && c.SetDefault == nil
+}
 
 func (c MetricsServerFeature) GetEnabled() bool { return getField(c.Enabled) }
+func (c MetricsServerFeature) Empty() bool      { return c.Enabled == nil }
+
+func (c Features) Empty() bool {
+	return c.Network.Empty() && c.DNS.Empty() && c.Ingress.Empty() && c.LoadBalancer.Empty() && c.LocalStorage.Empty() && c.MetricsServer.Empty() && c.Gateway.Empty()
+}

@@ -21,3 +21,6 @@ func (c Datastore) GetExternalURL() string        { return getField(c.ExternalUR
 func (c Datastore) GetExternalCACert() string     { return getField(c.ExternalCACert) }
 func (c Datastore) GetExternalClientCert() string { return getField(c.ExternalClientCert) }
 func (c Datastore) GetExternalClientKey() string  { return getField(c.ExternalClientKey) }
+func (c Datastore) Empty() bool {
+	return c.Type == nil && c.K8sDqlitePort == nil && c.K8sDqliteCert == nil && c.K8sDqliteKey == nil && c.ExternalURL == nil && c.ExternalCACert == nil && c.ExternalClientCert == nil && c.ExternalClientKey == nil
+}

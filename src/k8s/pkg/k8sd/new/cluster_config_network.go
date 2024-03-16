@@ -7,3 +7,4 @@ type Network struct {
 
 func (c Network) GetPodCIDR() string     { return getField(c.PodCIDR) }
 func (c Network) GetServiceCIDR() string { return getField(c.ServiceCIDR) }
+func (c Network) Empty() bool            { return c.PodCIDR == nil && c.ServiceCIDR == nil }

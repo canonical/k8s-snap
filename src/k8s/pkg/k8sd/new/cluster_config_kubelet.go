@@ -9,3 +9,6 @@ type Kubelet struct {
 func (c Kubelet) GetCloudProvider() string { return getField(c.CloudProvider) }
 func (c Kubelet) GetClusterDNS() string    { return getField(c.ClusterDNS) }
 func (c Kubelet) GetClusterDomain() string { return getField(c.ClusterDomain) }
+func (c Kubelet) Empty() bool {
+	return c.CloudProvider == nil && c.ClusterDNS == nil && c.ClusterDomain == nil
+}
