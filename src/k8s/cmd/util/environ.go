@@ -44,7 +44,7 @@ func DefaultExecutionEnvironment() ExecutionEnvironment {
 		Getuid:  os.Getuid,
 		Snap:    snap,
 		Client: func(ctx context.Context) (client.Client, error) {
-			return client.NewClient(ctx, snap)
+			return client.New(ctx, snap)
 		},
 	}
 }
