@@ -1,4 +1,4 @@
-package newtypes
+package types
 
 type APIServer struct {
 	SecurePort        *int    `json:"port,omitempty"`

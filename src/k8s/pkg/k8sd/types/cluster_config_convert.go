@@ -1,4 +1,4 @@
-package newtypes
+package types
 
 import (
 	apiv1 "github.com/canonical/k8s/api/v1"

@@ -1,4 +1,4 @@
-package newtypes
+package types
 
 type Network struct {
 	PodCIDR     *string `json:"pod-cidr,omitempty"`

@@ -1,9 +1,9 @@
-package newtypes_test
+package types_test
 
 import (
 	"testing"
 
-	newtypes "github.com/canonical/k8s/pkg/k8sd/new"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
@@ -23,8 +23,8 @@ func TestValidateCIDR(t *testing.T) {
 		t.Run(tc.cidr, func(t *testing.T) {
 			t.Run("Pod", func(t *testing.T) {
 				g := NewWithT(t)
-				config := newtypes.ClusterConfig{
-					Network: newtypes.Network{
+				config := types.ClusterConfig{
+					Network: types.Network{
 						PodCIDR:     vals.Pointer(tc.cidr),
 						ServiceCIDR: vals.Pointer("10.1.0.0/16"),
 					},
@@ -38,8 +38,8 @@ func TestValidateCIDR(t *testing.T) {
 			})
 			t.Run("Service", func(t *testing.T) {
 				g := NewWithT(t)
-				config := newtypes.ClusterConfig{
-					Network: newtypes.Network{
+				config := types.ClusterConfig{
+					Network: types.Network{
 						PodCIDR:     vals.Pointer("10.1.0.0/16"),
 						ServiceCIDR: vals.Pointer(tc.cidr),
 					},

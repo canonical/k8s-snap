@@ -1,10 +1,10 @@
-package newtypes_test
+package types_test
 
 import (
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	newtypes "github.com/canonical/k8s/pkg/k8sd/new"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
@@ -21,29 +21,29 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			K8sDqlitePort: 12345,
 		}
 
-		expectedConfig := newtypes.ClusterConfig{
-			APIServer: newtypes.APIServer{
+		expectedConfig := types.ClusterConfig{
+			APIServer: types.APIServer{
 				AuthorizationMode: vals.Pointer("Node,RBAC"),
 			},
-			Datastore: newtypes.Datastore{
+			Datastore: types.Datastore{
 				Type:          vals.Pointer("k8s-dqlite"),
 				K8sDqlitePort: vals.Pointer(12345),
 			},
-			Network: newtypes.Network{
+			Network: types.Network{
 				PodCIDR:     vals.Pointer("10.1.0.0/16"),
 				ServiceCIDR: vals.Pointer("10.152.183.0/24"),
 			},
-			Features: newtypes.Features{
-				Network: newtypes.NetworkFeature{
+			Features: types.Features{
+				Network: types.NetworkFeature{
 					Enabled: vals.Pointer(true),
 				},
-				DNS: newtypes.DNSFeature{
+				DNS: types.DNSFeature{
 					Enabled: vals.Pointer(true),
 				},
 			},
 		}
 
-		g.Expect(newtypes.ClusterConfigFromBootstrapConfig(bootstrapConfig)).To(Equal(expectedConfig))
+		g.Expect(types.ClusterConfigFromBootstrapConfig(bootstrapConfig)).To(Equal(expectedConfig))
 	})
 
 	t.Run("RBAC", func(t *testing.T) {
@@ -59,7 +59,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 
 			t.Run(tc.name, func(t *testing.T) {
 				g := NewWithT(t)
-				c := newtypes.ClusterConfigFromBootstrapConfig(&apiv1.BootstrapConfig{EnableRBAC: tc.enableRBAC})
+				c := types.ClusterConfigFromBootstrapConfig(&apiv1.BootstrapConfig{EnableRBAC: tc.enableRBAC})
 				g.Expect(c.APIServer.AuthorizationMode).To(Equal(tc.expectedAuthorizationMode))
 			})
 		}

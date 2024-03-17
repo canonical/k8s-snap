@@ -1,4 +1,4 @@
-package newtypes
+package types
 
 type ContainerdRegistry struct {
 	Host         string   `json:"host,omitempty"`

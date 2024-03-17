@@ -1,4 +1,4 @@
-package newtypes
+package types
 
 type NetworkFeature struct {
 	Enabled *bool `json:"enabled,omitempty"`

@@ -1,4 +1,4 @@
-package newtypes
+package types
 
 import (
 	"testing"

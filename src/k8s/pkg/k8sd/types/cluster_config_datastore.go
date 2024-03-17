@@ -1,4 +1,4 @@
-package newtypes
+package types
 
 type Datastore struct {
 	Type *string `json:"type,omitempty"`

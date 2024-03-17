@@ -1,4 +1,4 @@
-package newtypes
+package types
 
 type Certificates struct {
 	CACert                     *string `json:"ca-crt,omitempty"`

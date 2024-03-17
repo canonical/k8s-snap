@@ -1,4 +1,4 @@
-package newtypes
+package types
 
 type Kubelet struct {
 	CloudProvider *string `json:"cloud-provider,omitempty"`
