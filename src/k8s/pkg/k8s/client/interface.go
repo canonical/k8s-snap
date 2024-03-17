@@ -18,22 +18,24 @@ type Client interface {
 	CleanupNode(ctx context.Context, nodeName string)
 	// ClusterStatus retrieves the current status of the Kubernetes cluster.
 	ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error)
-	// NodeStatus retrieves the current status of the local node.
-	NodeStatus(ctx context.Context) (apiv1.NodeStatus, error)
-	// CreateJoinToken generates a token for a new node to join the cluster.
-	CreateJoinToken(ctx context.Context, name string, worker bool) (string, error)
+	// LocalNodeStatus retrieves the current status of the local node.
+	LocalNodeStatus(ctx context.Context) (apiv1.NodeStatus, error)
+	// GetJoinToken generates a token for a new node to join the cluster.
+	GetJoinToken(ctx context.Context, request apiv1.GetJoinTokenRequest) (string, error)
 	// GenerateAuthToken generates an authentication token for a specific user with given groups.
-	GenerateAuthToken(ctx context.Context, username string, groups []string) (string, error)
+	GenerateAuthToken(ctx context.Context, request apiv1.GenerateKubernetesAuthTokenRequest) (string, error)
 	// RevokeAuthToken revokes an authentication token given a token.
-	RevokeAuthToken(ctx context.Context, token string) error
+	RevokeAuthToken(ctx context.Context, request apiv1.RevokeKubernetesAuthTokenRequest) error
 	// JoinCluster adds a new node to the cluster using the provided parameters.
-	JoinCluster(ctx context.Context, name string, address string, token string) error
+	JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest) error
 	// KubeConfig retrieves the Kubernetes configuration for the current node.
-	KubeConfig(ctx context.Context, server string) (string, error)
+	KubeConfig(ctx context.Context, request apiv1.GetKubeConfigRequest) (string, error)
 	// RemoveNode removes a node from the cluster.
-	RemoveNode(ctx context.Context, name string, force bool) error
+	RemoveNode(ctx context.Context, request apiv1.RemoveNodeRequest) error
 	// UpdateClusterConfig updates configuration of the cluster.
 	UpdateClusterConfig(ctx context.Context, request apiv1.UpdateClusterConfigRequest) error
 	// GetClusterConfig retrieves configuration of the cluster.
 	GetClusterConfig(ctx context.Context, request apiv1.GetClusterConfigRequest) (apiv1.UserFacingClusterConfig, error)
 }
+
+var _ Client = &k8sdClient{}

@@ -9,7 +9,6 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/k8s"
-	"github.com/canonical/lxd/lxd/util"
 	"github.com/canonical/lxd/shared/api"
 )
 
@@ -27,7 +26,7 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, hostname string, address str
 	}
 
 	if err := c.m.Ready(int(timeout / time.Second)); err != nil {
-		return apiv1.NodeStatus{}, fmt.Errorf("cluster did not come up in time: %w", err)
+		return apiv1.NodeStatus{}, fmt.Errorf("k8sd API is not ready: %w", err)
 	}
 	config, err := bootstrapConfig.ToMap()
 	if err != nil {
@@ -43,7 +42,7 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, hostname string, address str
 	// TODO(neoaggelos): retrieve hostname and address from the cluster, do not guess
 	return apiv1.NodeStatus{
 		Name:    hostname,
-		Address: util.NetworkInterfaceAddress(),
+		Address: address,
 	}, nil
 }
 
@@ -51,9 +50,8 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, hostname string, address str
 func (c *k8sdClient) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error) {
 	var response apiv1.GetClusterStatusResponse
 	err := control.WaitUntilReady(ctx, func() (bool, error) {
-		err := c.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster"), nil, &response)
-		if err != nil {
-			return false, err
+		if err := c.mc.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster"), nil, &response); err != nil {
+			return false, fmt.Errorf("failed to GET /k8sd/cluster: %w", err)
 		}
 		return !waitReady || response.ClusterStatus.Ready, nil
 	})
@@ -61,14 +59,10 @@ func (c *k8sdClient) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.C
 }
 
 // KubeConfig returns admin kubeconfig to connect to the cluster.
-func (c *k8sdClient) KubeConfig(ctx context.Context, server string) (string, error) {
-	request := apiv1.GetKubeConfigRequest{Server: server}
+func (c *k8sdClient) KubeConfig(ctx context.Context, request apiv1.GetKubeConfigRequest) (string, error) {
 	response := apiv1.GetKubeConfigResponse{}
-
-	err := c.Query(ctx, "GET", api.NewURL().Path("k8sd", "kubeconfig"), request, &response)
-	if err != nil {
-		clientURL := c.mc.URL()
-		return "", fmt.Errorf("failed to query endpoint GET /k8sd/kubeconfig on %q: %w", clientURL.String(), err)
+	if err := c.mc.Query(ctx, "GET", api.NewURL().Path("k8sd", "kubeconfig"), request, &response); err != nil {
+		return "", fmt.Errorf("failed to GET /k8sd/kubeconfig: %w", err)
 	}
 	return response.KubeConfig, nil
 }
