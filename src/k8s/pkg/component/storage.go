@@ -9,7 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils/vals"
 )
 
-func UpdateStorageComponent(ctx context.Context, s snap.Snap, isRefresh bool, config types.LocalStorageFeature) error {
+func UpdateStorageComponent(ctx context.Context, s snap.Snap, isRefresh bool, config types.LocalStorage) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -72,13 +72,13 @@ func ReconcileLocalStorageComponent(ctx context.Context, s snap.Snap, alreadyEna
 	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
 		// If already enabled, and request does not contain `enabled` key
 		// or if already enabled and request contains `enabled=true`
-		err := UpdateStorageComponent(ctx, s, true, clusterConfig.Features.LocalStorage)
+		err := UpdateStorageComponent(ctx, s, true, clusterConfig.LocalStorage)
 		if err != nil {
 			return fmt.Errorf("failed to refresh local-storage: %w", err)
 		}
 		return nil
 	} else if vals.OptionalBool(requestEnabled, false) {
-		err := UpdateStorageComponent(ctx, s, false, clusterConfig.Features.LocalStorage)
+		err := UpdateStorageComponent(ctx, s, false, clusterConfig.LocalStorage)
 		if err != nil {
 			return fmt.Errorf("failed to enable local-storage: %w", err)
 		}

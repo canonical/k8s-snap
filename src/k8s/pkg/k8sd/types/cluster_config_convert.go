@@ -41,19 +41,19 @@ func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
 	for _, component := range b.Components {
 		switch component {
 		case "network":
-			config.Features.Network.Enabled = vals.Pointer(true)
+			config.Network.Enabled = vals.Pointer(true)
 		case "dns":
-			config.Features.DNS.Enabled = vals.Pointer(true)
+			config.DNS.Enabled = vals.Pointer(true)
 		case "local-storage":
-			config.Features.LocalStorage.Enabled = vals.Pointer(true)
+			config.LocalStorage.Enabled = vals.Pointer(true)
 		case "ingress":
-			config.Features.Ingress.Enabled = vals.Pointer(true)
+			config.Ingress.Enabled = vals.Pointer(true)
 		case "gateway":
-			config.Features.Gateway.Enabled = vals.Pointer(true)
+			config.Gateway.Enabled = vals.Pointer(true)
 		case "metrics-server":
-			config.Features.MetricsServer.Enabled = vals.Pointer(true)
+			config.MetricsServer.Enabled = vals.Pointer(true)
 		case "load-balancer":
-			config.Features.LoadBalancer.Enabled = vals.Pointer(true)
+			config.LoadBalancer.Enabled = vals.Pointer(true)
 		}
 	}
 
@@ -67,42 +67,40 @@ func ClusterConfigFromUserFacing(u *apiv1.UserFacingClusterConfig) ClusterConfig
 			ClusterDNS:    u.DNS.ServiceIP,
 			ClusterDomain: u.DNS.ClusterDomain,
 		},
-		Features: Features{
-			Network: NetworkFeature{
-				Enabled: u.Network.Enabled,
-			},
-			DNS: DNSFeature{
-				Enabled:             u.DNS.Enabled,
-				UpstreamNameservers: u.DNS.UpstreamNameservers,
-			},
-			Ingress: IngressFeature{
-				Enabled:             u.Ingress.Enabled,
-				DefaultTLSSecret:    u.Ingress.DefaultTLSSecret,
-				EnableProxyProtocol: u.Ingress.EnableProxyProtocol,
-			},
-			LoadBalancer: LoadBalancerFeature{
-				Enabled:        u.LoadBalancer.Enabled,
-				CIDRs:          u.LoadBalancer.CIDRs,
-				L2Mode:         u.LoadBalancer.L2Mode,
-				L2Interfaces:   u.LoadBalancer.L2Interfaces,
-				BGPMode:        u.LoadBalancer.BGPMode,
-				BGPLocalASN:    u.LoadBalancer.BGPLocalASN,
-				BGPPeerAddress: u.LoadBalancer.BGPPeerAddress,
-				BGPPeerASN:     u.LoadBalancer.BGPPeerASN,
-				BGPPeerPort:    u.LoadBalancer.BGPPeerPort,
-			},
-			LocalStorage: LocalStorageFeature{
-				Enabled:       u.LocalStorage.Enabled,
-				LocalPath:     u.LocalStorage.LocalPath,
-				ReclaimPolicy: u.LocalStorage.ReclaimPolicy,
-				SetDefault:    u.LocalStorage.SetDefault,
-			},
-			MetricsServer: MetricsServerFeature{
-				Enabled: u.MetricsServer.Enabled,
-			},
-			Gateway: GatewayFeature{
-				Enabled: u.Gateway.Enabled,
-			},
+		Network: Network{
+			Enabled: u.Network.Enabled,
+		},
+		DNS: DNS{
+			Enabled:             u.DNS.Enabled,
+			UpstreamNameservers: u.DNS.UpstreamNameservers,
+		},
+		Ingress: Ingress{
+			Enabled:             u.Ingress.Enabled,
+			DefaultTLSSecret:    u.Ingress.DefaultTLSSecret,
+			EnableProxyProtocol: u.Ingress.EnableProxyProtocol,
+		},
+		LoadBalancer: LoadBalancer{
+			Enabled:        u.LoadBalancer.Enabled,
+			CIDRs:          u.LoadBalancer.CIDRs,
+			L2Mode:         u.LoadBalancer.L2Mode,
+			L2Interfaces:   u.LoadBalancer.L2Interfaces,
+			BGPMode:        u.LoadBalancer.BGPMode,
+			BGPLocalASN:    u.LoadBalancer.BGPLocalASN,
+			BGPPeerAddress: u.LoadBalancer.BGPPeerAddress,
+			BGPPeerASN:     u.LoadBalancer.BGPPeerASN,
+			BGPPeerPort:    u.LoadBalancer.BGPPeerPort,
+		},
+		LocalStorage: LocalStorage{
+			Enabled:       u.LocalStorage.Enabled,
+			LocalPath:     u.LocalStorage.LocalPath,
+			ReclaimPolicy: u.LocalStorage.ReclaimPolicy,
+			SetDefault:    u.LocalStorage.SetDefault,
+		},
+		MetricsServer: MetricsServer{
+			Enabled: u.MetricsServer.Enabled,
+		},
+		Gateway: Gateway{
+			Enabled: u.Gateway.Enabled,
 		},
 	}
 }
@@ -111,41 +109,41 @@ func ClusterConfigFromUserFacing(u *apiv1.UserFacingClusterConfig) ClusterConfig
 func ClusterConfigToUserFacing(c ClusterConfig) apiv1.UserFacingClusterConfig {
 	return apiv1.UserFacingClusterConfig{
 		Network: apiv1.NetworkConfig{
-			Enabled: c.Features.Network.Enabled,
+			Enabled: c.Network.Enabled,
 		},
 		DNS: apiv1.DNSConfig{
-			Enabled:             c.Features.DNS.Enabled,
+			Enabled:             c.DNS.Enabled,
 			ClusterDomain:       c.Kubelet.ClusterDomain,
 			ServiceIP:           c.Kubelet.ClusterDNS,
-			UpstreamNameservers: c.Features.DNS.UpstreamNameservers,
+			UpstreamNameservers: c.DNS.UpstreamNameservers,
 		},
 		Ingress: apiv1.IngressConfig{
-			Enabled:             c.Features.Ingress.Enabled,
-			DefaultTLSSecret:    c.Features.Ingress.DefaultTLSSecret,
-			EnableProxyProtocol: c.Features.Ingress.EnableProxyProtocol,
+			Enabled:             c.Ingress.Enabled,
+			DefaultTLSSecret:    c.Ingress.DefaultTLSSecret,
+			EnableProxyProtocol: c.Ingress.EnableProxyProtocol,
 		},
 		LoadBalancer: apiv1.LoadBalancerConfig{
-			Enabled:        c.Features.LoadBalancer.Enabled,
-			CIDRs:          c.Features.LoadBalancer.CIDRs,
-			L2Mode:         c.Features.LoadBalancer.L2Mode,
-			L2Interfaces:   c.Features.LoadBalancer.L2Interfaces,
-			BGPMode:        c.Features.LoadBalancer.BGPMode,
-			BGPLocalASN:    c.Features.LoadBalancer.BGPLocalASN,
-			BGPPeerAddress: c.Features.LoadBalancer.BGPPeerAddress,
-			BGPPeerASN:     c.Features.LoadBalancer.BGPPeerASN,
-			BGPPeerPort:    c.Features.LoadBalancer.BGPPeerPort,
+			Enabled:        c.LoadBalancer.Enabled,
+			CIDRs:          c.LoadBalancer.CIDRs,
+			L2Mode:         c.LoadBalancer.L2Mode,
+			L2Interfaces:   c.LoadBalancer.L2Interfaces,
+			BGPMode:        c.LoadBalancer.BGPMode,
+			BGPLocalASN:    c.LoadBalancer.BGPLocalASN,
+			BGPPeerAddress: c.LoadBalancer.BGPPeerAddress,
+			BGPPeerASN:     c.LoadBalancer.BGPPeerASN,
+			BGPPeerPort:    c.LoadBalancer.BGPPeerPort,
 		},
 		LocalStorage: apiv1.LocalStorageConfig{
-			Enabled:       c.Features.LocalStorage.Enabled,
-			LocalPath:     c.Features.LocalStorage.LocalPath,
-			ReclaimPolicy: c.Features.LocalStorage.ReclaimPolicy,
-			SetDefault:    c.Features.LocalStorage.SetDefault,
+			Enabled:       c.LocalStorage.Enabled,
+			LocalPath:     c.LocalStorage.LocalPath,
+			ReclaimPolicy: c.LocalStorage.ReclaimPolicy,
+			SetDefault:    c.LocalStorage.SetDefault,
 		},
 		MetricsServer: apiv1.MetricsServerConfig{
-			Enabled: c.Features.MetricsServer.Enabled,
+			Enabled: c.MetricsServer.Enabled,
 		},
 		Gateway: apiv1.GatewayConfig{
-			Enabled: c.Features.Gateway.Enabled,
+			Enabled: c.Gateway.Enabled,
 		},
 	}
 }

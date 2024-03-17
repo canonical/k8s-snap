@@ -30,16 +30,12 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 				K8sDqlitePort: vals.Pointer(12345),
 			},
 			Network: types.Network{
+				Enabled:     vals.Pointer(true),
 				PodCIDR:     vals.Pointer("10.1.0.0/16"),
 				ServiceCIDR: vals.Pointer("10.152.183.0/24"),
 			},
-			Features: types.Features{
-				Network: types.NetworkFeature{
-					Enabled: vals.Pointer(true),
-				},
-				DNS: types.DNSFeature{
-					Enabled: vals.Pointer(true),
-				},
+			DNS: types.DNS{
+				Enabled: vals.Pointer(true),
 			},
 		}
 

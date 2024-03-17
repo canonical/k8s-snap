@@ -48,12 +48,12 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		{name: "kubelet cluster domain", val: &config.Kubelet.ClusterDomain, old: existing.Kubelet.ClusterDomain, new: new.Kubelet.ClusterDomain, allowChange: true},
 		{name: "kubelet cloud provider", val: &config.Kubelet.CloudProvider, old: existing.Kubelet.CloudProvider, new: new.Kubelet.CloudProvider, allowChange: true},
 		// ingress
-		{name: "ingress default TLS secret", val: &config.Features.Ingress.DefaultTLSSecret, old: existing.Features.Ingress.DefaultTLSSecret, new: new.Features.Ingress.DefaultTLSSecret, allowChange: true},
+		{name: "ingress default TLS secret", val: &config.Ingress.DefaultTLSSecret, old: existing.Ingress.DefaultTLSSecret, new: new.Ingress.DefaultTLSSecret, allowChange: true},
 		// load balancer
-		{name: "load balancer BGP peer address", val: &config.Features.LoadBalancer.BGPPeerAddress, old: existing.Features.LoadBalancer.BGPPeerAddress, new: new.Features.LoadBalancer.BGPPeerAddress, allowChange: true},
+		{name: "load balancer BGP peer address", val: &config.LoadBalancer.BGPPeerAddress, old: existing.LoadBalancer.BGPPeerAddress, new: new.LoadBalancer.BGPPeerAddress, allowChange: true},
 		// local storage
-		{name: "local storage path", val: &config.Features.LocalStorage.LocalPath, old: existing.Features.LocalStorage.LocalPath, new: new.Features.LocalStorage.LocalPath, allowChange: !existing.Features.LocalStorage.GetEnabled() || !new.Features.LocalStorage.GetEnabled()},
-		{name: "local storage reclaim policy", val: &config.Features.LocalStorage.ReclaimPolicy, old: existing.Features.LocalStorage.ReclaimPolicy, new: new.Features.LocalStorage.ReclaimPolicy, allowChange: !existing.Features.LocalStorage.GetEnabled() || !new.Features.LocalStorage.GetEnabled()},
+		{name: "local storage path", val: &config.LocalStorage.LocalPath, old: existing.LocalStorage.LocalPath, new: new.LocalStorage.LocalPath, allowChange: !existing.LocalStorage.GetEnabled() || !new.LocalStorage.GetEnabled()},
+		{name: "local storage reclaim policy", val: &config.LocalStorage.ReclaimPolicy, old: existing.LocalStorage.ReclaimPolicy, new: new.LocalStorage.ReclaimPolicy, allowChange: !existing.LocalStorage.GetEnabled() || !new.LocalStorage.GetEnabled()},
 	} {
 		if *i.val, err = mergeField(i.old, i.new, i.allowChange); err != nil {
 			return ClusterConfig{}, fmt.Errorf("prevented update of %s: %w", i.name, err)
@@ -68,9 +68,9 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		new         *[]string
 		allowChange bool
 	}{
-		{name: "DNS upstream nameservers", val: &config.Features.DNS.UpstreamNameservers, old: existing.Features.DNS.UpstreamNameservers, new: new.Features.DNS.UpstreamNameservers, allowChange: true},
-		{name: "load balancer CIDRs", val: &config.Features.LoadBalancer.CIDRs, old: existing.Features.LoadBalancer.CIDRs, new: new.Features.LoadBalancer.CIDRs, allowChange: true},
-		{name: "load balancer L2 interfaces", val: &config.Features.LoadBalancer.L2Interfaces, old: existing.Features.LoadBalancer.L2Interfaces, new: new.Features.LoadBalancer.L2Interfaces, allowChange: true},
+		{name: "DNS upstream nameservers", val: &config.DNS.UpstreamNameservers, old: existing.DNS.UpstreamNameservers, new: new.DNS.UpstreamNameservers, allowChange: true},
+		{name: "load balancer CIDRs", val: &config.LoadBalancer.CIDRs, old: existing.LoadBalancer.CIDRs, new: new.LoadBalancer.CIDRs, allowChange: true},
+		{name: "load balancer L2 interfaces", val: &config.LoadBalancer.L2Interfaces, old: existing.LoadBalancer.L2Interfaces, new: new.LoadBalancer.L2Interfaces, allowChange: true},
 	} {
 		if *i.val, err = mergeSliceField(i.old, i.new, i.allowChange); err != nil {
 			return ClusterConfig{}, fmt.Errorf("prevented update of %s: %w", i.name, err)
@@ -90,9 +90,9 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		// datastore
 		{name: "k8s-dqlite port", val: &config.Datastore.K8sDqlitePort, old: existing.Datastore.K8sDqlitePort, new: new.Datastore.K8sDqlitePort},
 		// load-balancer
-		{name: "load balancer BGP local ASN", val: &config.Features.LoadBalancer.BGPLocalASN, old: existing.Features.LoadBalancer.BGPLocalASN, new: new.Features.LoadBalancer.BGPLocalASN, allowChange: true},
-		{name: "load balancer BGP peer ASN", val: &config.Features.LoadBalancer.BGPPeerASN, old: existing.Features.LoadBalancer.BGPPeerASN, new: new.Features.LoadBalancer.BGPPeerASN, allowChange: true},
-		{name: "load balancer BGP peer port", val: &config.Features.LoadBalancer.BGPPeerPort, old: existing.Features.LoadBalancer.BGPPeerPort, new: new.Features.LoadBalancer.BGPPeerPort, allowChange: true},
+		{name: "load balancer BGP local ASN", val: &config.LoadBalancer.BGPLocalASN, old: existing.LoadBalancer.BGPLocalASN, new: new.LoadBalancer.BGPLocalASN, allowChange: true},
+		{name: "load balancer BGP peer ASN", val: &config.LoadBalancer.BGPPeerASN, old: existing.LoadBalancer.BGPPeerASN, new: new.LoadBalancer.BGPPeerASN, allowChange: true},
+		{name: "load balancer BGP peer port", val: &config.LoadBalancer.BGPPeerPort, old: existing.LoadBalancer.BGPPeerPort, new: new.LoadBalancer.BGPPeerPort, allowChange: true},
 	} {
 		if *i.val, err = mergeField(i.old, i.new, i.allowChange); err != nil {
 			return ClusterConfig{}, fmt.Errorf("prevented update of %s: %w", i.name, err)
@@ -108,23 +108,23 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		allowChange bool
 	}{
 		// network
-		{name: "network enabled", val: &config.Features.Network.Enabled, old: existing.Features.Network.Enabled, new: new.Features.Network.Enabled, allowChange: true},
+		{name: "network enabled", val: &config.Network.Enabled, old: existing.Network.Enabled, new: new.Network.Enabled, allowChange: true},
 		// DNS
-		{name: "DNS enabled", val: &config.Features.DNS.Enabled, old: existing.Features.DNS.Enabled, new: new.Features.DNS.Enabled, allowChange: true},
+		{name: "DNS enabled", val: &config.DNS.Enabled, old: existing.DNS.Enabled, new: new.DNS.Enabled, allowChange: true},
 		// gateway
-		{name: "gateway enabled", val: &config.Features.Gateway.Enabled, old: existing.Features.Gateway.Enabled, new: new.Features.Gateway.Enabled, allowChange: true},
+		{name: "gateway enabled", val: &config.Gateway.Enabled, old: existing.Gateway.Enabled, new: new.Gateway.Enabled, allowChange: true},
 		// ingress
-		{name: "ingress enabled", val: &config.Features.Ingress.Enabled, old: existing.Features.Ingress.Enabled, new: new.Features.Ingress.Enabled, allowChange: true},
-		{name: "ingress enable proxy protocol", val: &config.Features.Ingress.EnableProxyProtocol, old: existing.Features.Ingress.EnableProxyProtocol, new: new.Features.Ingress.EnableProxyProtocol, allowChange: true},
+		{name: "ingress enabled", val: &config.Ingress.Enabled, old: existing.Ingress.Enabled, new: new.Ingress.Enabled, allowChange: true},
+		{name: "ingress enable proxy protocol", val: &config.Ingress.EnableProxyProtocol, old: existing.Ingress.EnableProxyProtocol, new: new.Ingress.EnableProxyProtocol, allowChange: true},
 		// load-balancer
-		{name: "load balancer enabled", val: &config.Features.LoadBalancer.Enabled, old: existing.Features.LoadBalancer.Enabled, new: new.Features.LoadBalancer.Enabled, allowChange: true},
-		{name: "load balancer L2 mode", val: &config.Features.LoadBalancer.L2Mode, old: existing.Features.LoadBalancer.L2Mode, new: new.Features.LoadBalancer.L2Mode, allowChange: true},
-		{name: "load balancer BGP mode", val: &config.Features.LoadBalancer.BGPMode, old: existing.Features.LoadBalancer.BGPMode, new: new.Features.LoadBalancer.BGPMode, allowChange: true},
+		{name: "load balancer enabled", val: &config.LoadBalancer.Enabled, old: existing.LoadBalancer.Enabled, new: new.LoadBalancer.Enabled, allowChange: true},
+		{name: "load balancer L2 mode", val: &config.LoadBalancer.L2Mode, old: existing.LoadBalancer.L2Mode, new: new.LoadBalancer.L2Mode, allowChange: true},
+		{name: "load balancer BGP mode", val: &config.LoadBalancer.BGPMode, old: existing.LoadBalancer.BGPMode, new: new.LoadBalancer.BGPMode, allowChange: true},
 		// local-storage
-		{name: "local storage enabled", val: &config.Features.LocalStorage.Enabled, old: existing.Features.LocalStorage.Enabled, new: new.Features.LocalStorage.Enabled, allowChange: true},
-		{name: "local storage set default", val: &config.Features.LocalStorage.SetDefault, old: existing.Features.LocalStorage.SetDefault, new: new.Features.LocalStorage.SetDefault, allowChange: true},
+		{name: "local storage enabled", val: &config.LocalStorage.Enabled, old: existing.LocalStorage.Enabled, new: new.LocalStorage.Enabled, allowChange: true},
+		{name: "local storage set default", val: &config.LocalStorage.SetDefault, old: existing.LocalStorage.SetDefault, new: new.LocalStorage.SetDefault, allowChange: true},
 		// metrics-server
-		{name: "metrics server enabled", val: &config.Features.MetricsServer.Enabled, old: existing.Features.MetricsServer.Enabled, new: new.Features.MetricsServer.Enabled, allowChange: true},
+		{name: "metrics server enabled", val: &config.MetricsServer.Enabled, old: existing.MetricsServer.Enabled, new: new.MetricsServer.Enabled, allowChange: true},
 	} {
 		if *i.val, err = mergeField(i.old, i.new, i.allowChange); err != nil {
 			return ClusterConfig{}, fmt.Errorf("prevented update of %s: %w", i.name, err)
@@ -132,43 +132,43 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 	}
 
 	// post check: ensure network is enabled if any of ingress, gateway, load-balancer are enabled
-	if !config.Features.Network.GetEnabled() {
-		if config.Features.Gateway.GetEnabled() {
+	if !config.Network.GetEnabled() {
+		if config.Gateway.GetEnabled() {
 			return ClusterConfig{}, fmt.Errorf("gateway requires network to be enabled")
 		}
-		if config.Features.LoadBalancer.GetEnabled() {
+		if config.LoadBalancer.GetEnabled() {
 			return ClusterConfig{}, fmt.Errorf("load-balancer requires network to be enabled")
 		}
-		if config.Features.Ingress.GetEnabled() {
+		if config.Ingress.GetEnabled() {
 			return ClusterConfig{}, fmt.Errorf("ingress requires network to be enabled")
 		}
 	}
 
 	// post check: load-balancer BGP mode configuration
-	if config.Features.LoadBalancer.GetBGPMode() {
-		if config.Features.LoadBalancer.GetBGPLocalASN() == 0 {
+	if config.LoadBalancer.GetBGPMode() {
+		if config.LoadBalancer.GetBGPLocalASN() == 0 {
 			return ClusterConfig{}, fmt.Errorf("load-balancer.bgp-local-asn must be set when load-balancer.bgp-mode is enabled")
 		}
-		if config.Features.LoadBalancer.GetBGPPeerAddress() == "" {
+		if config.LoadBalancer.GetBGPPeerAddress() == "" {
 			return ClusterConfig{}, fmt.Errorf("load-balancer.bgp-peer-address must be set when load-balancer.bgp-mode is enabled")
 		}
-		if config.Features.LoadBalancer.GetBGPPeerPort() == 0 {
+		if config.LoadBalancer.GetBGPPeerPort() == 0 {
 			return ClusterConfig{}, fmt.Errorf("load-balancer.bgp-peer-port must be set when load-balancer.bgp-mode is enabled")
 		}
-		if config.Features.LoadBalancer.GetBGPPeerASN() == 0 {
+		if config.LoadBalancer.GetBGPPeerASN() == 0 {
 			return ClusterConfig{}, fmt.Errorf("load-balancer.bgp-peer-asn must be set when load-balancer.bgp-mode is enabled")
 		}
 	}
 
 	// post check: local-storage.reclaim-policy should be one of 3 values
-	switch config.Features.LocalStorage.GetReclaimPolicy() {
+	switch config.LocalStorage.GetReclaimPolicy() {
 	case "", "Retain", "Recycle", "Delete":
 	default:
 		return ClusterConfig{}, fmt.Errorf("local-storage.reclaim-policy must be one of: Retrain, Recycle, Delete")
 	}
 
 	// post check: local-storage.local-path must be set if enabled
-	if config.Features.LocalStorage.GetEnabled() && config.Features.LocalStorage.GetLocalPath() == "" {
+	if config.LocalStorage.GetEnabled() && config.LocalStorage.GetLocalPath() == "" {
 		return ClusterConfig{}, fmt.Errorf("local-storage.local-path must be set when local-storage is enabled")
 	}
 

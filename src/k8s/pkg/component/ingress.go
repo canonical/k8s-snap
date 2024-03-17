@@ -70,13 +70,13 @@ func ReconcileIngressComponent(ctx context.Context, s snap.Snap, alreadyEnabled 
 	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
 		// If already enabled, and request does not contain `enabled` key
 		// or if already enabled and request contains `enabled=true`
-		err := UpdateIngressComponent(ctx, s, true, clusterConfig.Features.Ingress.GetDefaultTLSSecret(), clusterConfig.Features.Ingress.GetEnableProxyProtocol())
+		err := UpdateIngressComponent(ctx, s, true, clusterConfig.Ingress.GetDefaultTLSSecret(), clusterConfig.Ingress.GetEnableProxyProtocol())
 		if err != nil {
 			return fmt.Errorf("failed to refresh ingress: %w", err)
 		}
 		return nil
 	} else if vals.OptionalBool(requestEnabled, false) {
-		err := UpdateIngressComponent(ctx, s, false, clusterConfig.Features.Ingress.GetDefaultTLSSecret(), clusterConfig.Features.Ingress.GetEnableProxyProtocol())
+		err := UpdateIngressComponent(ctx, s, false, clusterConfig.Ingress.GetDefaultTLSSecret(), clusterConfig.Ingress.GetEnableProxyProtocol())
 		if err != nil {
 			return fmt.Errorf("failed to enable ingress: %w", err)
 		}

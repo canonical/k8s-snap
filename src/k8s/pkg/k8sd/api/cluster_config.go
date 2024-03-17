@@ -46,14 +46,14 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 		return response.InternalError(fmt.Errorf("database transaction to update cluster configuration failed: %w", err))
 	}
 
-	if !requestedConfig.Features.Network.Empty() {
-		if err := component.ReconcileNetworkComponent(r.Context(), snap, oldConfig.Features.Network.Enabled, requestedConfig.Features.Network.Enabled, mergedConfig); err != nil {
+	if !requestedConfig.Network.Empty() {
+		if err := component.ReconcileNetworkComponent(r.Context(), snap, oldConfig.Network.Enabled, requestedConfig.Network.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile network: %w", err))
 		}
 	}
 
-	if !requestedConfig.Features.DNS.Empty() {
-		dnsIP, _, err := component.ReconcileDNSComponent(r.Context(), snap, oldConfig.Features.DNS.Enabled, requestedConfig.Features.DNS.Enabled, mergedConfig)
+	if !requestedConfig.DNS.Empty() {
+		dnsIP, _, err := component.ReconcileDNSComponent(r.Context(), snap, oldConfig.DNS.Enabled, requestedConfig.DNS.Enabled, mergedConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile dns: %w", err))
 		}
@@ -77,32 +77,32 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 		}
 	}
 
-	if !requestedConfig.Features.LocalStorage.Empty() {
-		if err := component.ReconcileLocalStorageComponent(r.Context(), snap, oldConfig.Features.LocalStorage.Enabled, requestedConfig.Features.LocalStorage.Enabled, mergedConfig); err != nil {
+	if !requestedConfig.LocalStorage.Empty() {
+		if err := component.ReconcileLocalStorageComponent(r.Context(), snap, oldConfig.LocalStorage.Enabled, requestedConfig.LocalStorage.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile local-storage: %w", err))
 		}
 	}
 
-	if !requestedConfig.Features.Gateway.Empty() {
-		if err := component.ReconcileGatewayComponent(r.Context(), snap, oldConfig.Features.Gateway.Enabled, requestedConfig.Features.Gateway.Enabled, mergedConfig); err != nil {
+	if !requestedConfig.Gateway.Empty() {
+		if err := component.ReconcileGatewayComponent(r.Context(), snap, oldConfig.Gateway.Enabled, requestedConfig.Gateway.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile gateway: %w", err))
 		}
 	}
 
-	if !requestedConfig.Features.Ingress.Empty() {
-		if err := component.ReconcileIngressComponent(r.Context(), snap, oldConfig.Features.Ingress.Enabled, requestedConfig.Features.Ingress.Enabled, mergedConfig); err != nil {
+	if !requestedConfig.Ingress.Empty() {
+		if err := component.ReconcileIngressComponent(r.Context(), snap, oldConfig.Ingress.Enabled, requestedConfig.Ingress.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile ingress: %w", err))
 		}
 	}
 
-	if !requestedConfig.Features.LoadBalancer.Empty() {
-		if err := component.ReconcileLoadBalancerComponent(r.Context(), snap, oldConfig.Features.LoadBalancer.Enabled, requestedConfig.Features.LoadBalancer.Enabled, mergedConfig); err != nil {
+	if !requestedConfig.LoadBalancer.Empty() {
+		if err := component.ReconcileLoadBalancerComponent(r.Context(), snap, oldConfig.LoadBalancer.Enabled, requestedConfig.LoadBalancer.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile load-balancer: %w", err))
 		}
 	}
 
-	if !requestedConfig.Features.MetricsServer.Empty() {
-		if err := component.ReconcileMetricsServerComponent(r.Context(), snap, oldConfig.Features.MetricsServer.Enabled, requestedConfig.Features.MetricsServer.Enabled, mergedConfig); err != nil {
+	if !requestedConfig.MetricsServer.Empty() {
+		if err := component.ReconcileMetricsServerComponent(r.Context(), snap, oldConfig.MetricsServer.Enabled, requestedConfig.MetricsServer.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile load-balancer: %w", err))
 		}
 	}

@@ -81,6 +81,8 @@ func TestMergeClusterConfig(t *testing.T) {
 		generateMergeClusterConfigTestCases("Datastore/ExternalCACert", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalCACert = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/ExternalClientCert", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalClientCert = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/ExternalClientKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalClientKey = vals.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Network/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.Network.Enabled = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("Network/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.Network.Enabled = vals.Pointer(v.(bool)) }),
 		generateMergeClusterConfigTestCases("Network/PodCIDR", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Network.PodCIDR = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Network/ServiceCIDR", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Network.ServiceCIDR = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("APIServer/SecurePort", false, 6443, 16443, func(c *types.ClusterConfig, v any) { c.APIServer.SecurePort = vals.Pointer(v.(int)) }),
@@ -88,99 +90,97 @@ func TestMergeClusterConfig(t *testing.T) {
 		generateMergeClusterConfigTestCases("Kubelet/CloudProvider", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Kubelet.CloudProvider = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Kubelet/ClusterDNS", true, "1.1.1.1", "2.2.2.2", func(c *types.ClusterConfig, v any) { c.Kubelet.ClusterDNS = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Kubelet/ClusterDomain", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Kubelet.ClusterDomain = vals.Pointer(v.(string)) }),
-		generateMergeClusterConfigTestCases("Features/Network/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.Features.Network.Enabled = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("Features/Network/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.Features.Network.Enabled = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("Features/DNS/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.Features.DNS.Enabled = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("Features/DNS/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.Features.DNS.Enabled = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("Features/DNS/UpstreamNameservers", true, []string{"c1"}, []string{"c2"}, func(c *types.ClusterConfig, v any) {
-			c.Features.DNS.UpstreamNameservers = vals.Pointer(v.([]string))
+		generateMergeClusterConfigTestCases("DNS/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.DNS.Enabled = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("DNS/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.DNS.Enabled = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("DNS/UpstreamNameservers", true, []string{"c1"}, []string{"c2"}, func(c *types.ClusterConfig, v any) {
+			c.DNS.UpstreamNameservers = vals.Pointer(v.([]string))
 		}),
-		generateMergeClusterConfigTestCases("Features/Ingress/Enable", true, false, true, func(c *types.ClusterConfig, v any) {
-			c.Features.Network.Enabled = vals.Pointer(true)
-			c.Features.Ingress.Enabled = vals.Pointer(v.(bool))
+		generateMergeClusterConfigTestCases("Ingress/Enable", true, false, true, func(c *types.ClusterConfig, v any) {
+			c.Network.Enabled = vals.Pointer(true)
+			c.Ingress.Enabled = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("Features/Ingress/Disable", true, true, false, func(c *types.ClusterConfig, v any) {
-			c.Features.Network.Enabled = vals.Pointer(true)
-			c.Features.Ingress.Enabled = vals.Pointer(v.(bool))
+		generateMergeClusterConfigTestCases("Ingress/Disable", true, true, false, func(c *types.ClusterConfig, v any) {
+			c.Network.Enabled = vals.Pointer(true)
+			c.Ingress.Enabled = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("Features/Ingress/DefaultTLSSecret", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Features.Ingress.DefaultTLSSecret = vals.Pointer(v.(string)) }),
-		generateMergeClusterConfigTestCases("Features/Ingress/EnableProxyProtocol/Enable", true, true, false, func(c *types.ClusterConfig, v any) {
-			c.Features.Ingress.EnableProxyProtocol = vals.Pointer(v.(bool))
+		generateMergeClusterConfigTestCases("Ingress/DefaultTLSSecret", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Ingress.DefaultTLSSecret = vals.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Ingress/EnableProxyProtocol/Enable", true, true, false, func(c *types.ClusterConfig, v any) {
+			c.Ingress.EnableProxyProtocol = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("Features/Ingress/EnableProxyProtocol/Disable", true, false, true, func(c *types.ClusterConfig, v any) {
-			c.Features.Ingress.EnableProxyProtocol = vals.Pointer(v.(bool))
+		generateMergeClusterConfigTestCases("Ingress/EnableProxyProtocol/Disable", true, false, true, func(c *types.ClusterConfig, v any) {
+			c.Ingress.EnableProxyProtocol = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("Features/Gateway/Enable", true, true, false, func(c *types.ClusterConfig, v any) {
-			c.Features.Network.Enabled = vals.Pointer(true)
-			c.Features.Gateway.Enabled = vals.Pointer(v.(bool))
+		generateMergeClusterConfigTestCases("Gateway/Enable", true, true, false, func(c *types.ClusterConfig, v any) {
+			c.Network.Enabled = vals.Pointer(true)
+			c.Gateway.Enabled = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("Features/Gateway/Disable", true, false, true, func(c *types.ClusterConfig, v any) {
-			c.Features.Network.Enabled = vals.Pointer(true)
-			c.Features.Gateway.Enabled = vals.Pointer(v.(bool))
+		generateMergeClusterConfigTestCases("Gateway/Disable", true, false, true, func(c *types.ClusterConfig, v any) {
+			c.Network.Enabled = vals.Pointer(true)
+			c.Gateway.Enabled = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/Enable", true, true, false, func(c *types.ClusterConfig, v any) {
-			c.Features.Network.Enabled = vals.Pointer(true)
-			c.Features.LoadBalancer.Enabled = vals.Pointer(v.(bool))
+		generateMergeClusterConfigTestCases("LoadBalancer/Enable", true, true, false, func(c *types.ClusterConfig, v any) {
+			c.Network.Enabled = vals.Pointer(true)
+			c.LoadBalancer.Enabled = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/Disable", true, false, true, func(c *types.ClusterConfig, v any) {
-			c.Features.Network.Enabled = vals.Pointer(true)
-			c.Features.LoadBalancer.Enabled = vals.Pointer(v.(bool))
+		generateMergeClusterConfigTestCases("LoadBalancer/Disable", true, false, true, func(c *types.ClusterConfig, v any) {
+			c.Network.Enabled = vals.Pointer(true)
+			c.LoadBalancer.Enabled = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/CIDRs", true, []string{"c1"}, []string{"c2"}, func(c *types.ClusterConfig, v any) {
-			c.Features.LoadBalancer.CIDRs = vals.Pointer(v.([]string))
+		generateMergeClusterConfigTestCases("LoadBalancer/CIDRs", true, []string{"c1"}, []string{"c2"}, func(c *types.ClusterConfig, v any) {
+			c.LoadBalancer.CIDRs = vals.Pointer(v.([]string))
 		}),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/L2Mode/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.Features.LoadBalancer.L2Mode = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/L2Mode/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.Features.LoadBalancer.L2Mode = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/L2Interfaces", true, []string{"c1"}, []string{"c2"}, func(c *types.ClusterConfig, v any) {
-			c.Features.LoadBalancer.L2Interfaces = vals.Pointer(v.([]string))
+		generateMergeClusterConfigTestCases("LoadBalancer/L2Mode/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.LoadBalancer.L2Mode = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("LoadBalancer/L2Mode/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.LoadBalancer.L2Mode = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("LoadBalancer/L2Interfaces", true, []string{"c1"}, []string{"c2"}, func(c *types.ClusterConfig, v any) {
+			c.LoadBalancer.L2Interfaces = vals.Pointer(v.([]string))
 		}),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/BGPMode/Enable", true, true, false, func(c *types.ClusterConfig, v any) {
-			c.Features.LoadBalancer.BGPMode = vals.Pointer(v.(bool))
-			c.Features.LoadBalancer.BGPLocalASN = vals.Pointer(100)
-			c.Features.LoadBalancer.BGPPeerAddress = vals.Pointer("10.10.0.0/16")
-			c.Features.LoadBalancer.BGPPeerASN = vals.Pointer(101)
-			c.Features.LoadBalancer.BGPPeerPort = vals.Pointer(10010)
+		generateMergeClusterConfigTestCases("LoadBalancer/BGPMode/Enable", true, true, false, func(c *types.ClusterConfig, v any) {
+			c.LoadBalancer.BGPMode = vals.Pointer(v.(bool))
+			c.LoadBalancer.BGPLocalASN = vals.Pointer(100)
+			c.LoadBalancer.BGPPeerAddress = vals.Pointer("10.10.0.0/16")
+			c.LoadBalancer.BGPPeerASN = vals.Pointer(101)
+			c.LoadBalancer.BGPPeerPort = vals.Pointer(10010)
 		}),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/BGPMode/Disable", true, false, true, func(c *types.ClusterConfig, v any) {
-			c.Features.LoadBalancer.BGPMode = vals.Pointer(v.(bool))
-			c.Features.LoadBalancer.BGPLocalASN = vals.Pointer(100)
-			c.Features.LoadBalancer.BGPPeerAddress = vals.Pointer("10.10.0.0/16")
-			c.Features.LoadBalancer.BGPPeerASN = vals.Pointer(101)
-			c.Features.LoadBalancer.BGPPeerPort = vals.Pointer(10010)
+		generateMergeClusterConfigTestCases("LoadBalancer/BGPMode/Disable", true, false, true, func(c *types.ClusterConfig, v any) {
+			c.LoadBalancer.BGPMode = vals.Pointer(v.(bool))
+			c.LoadBalancer.BGPLocalASN = vals.Pointer(100)
+			c.LoadBalancer.BGPPeerAddress = vals.Pointer("10.10.0.0/16")
+			c.LoadBalancer.BGPPeerASN = vals.Pointer(101)
+			c.LoadBalancer.BGPPeerPort = vals.Pointer(10010)
 		}),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/BGPLocalASN", true, 6443, 16443, func(c *types.ClusterConfig, v any) { c.Features.LoadBalancer.BGPLocalASN = vals.Pointer(v.(int)) }),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/BGPPeerAddress", true, "a1", "a2", func(c *types.ClusterConfig, v any) {
-			c.Features.LoadBalancer.BGPPeerAddress = vals.Pointer(v.(string))
+		generateMergeClusterConfigTestCases("LoadBalancer/BGPLocalASN", true, 6443, 16443, func(c *types.ClusterConfig, v any) { c.LoadBalancer.BGPLocalASN = vals.Pointer(v.(int)) }),
+		generateMergeClusterConfigTestCases("LoadBalancer/BGPPeerAddress", true, "a1", "a2", func(c *types.ClusterConfig, v any) {
+			c.LoadBalancer.BGPPeerAddress = vals.Pointer(v.(string))
 		}),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/BGPPeerASN", true, 6443, 16443, func(c *types.ClusterConfig, v any) { c.Features.LoadBalancer.BGPPeerASN = vals.Pointer(v.(int)) }),
-		generateMergeClusterConfigTestCases("Features/LoadBalancer/BGPPeerPort", true, 6443, 16443, func(c *types.ClusterConfig, v any) { c.Features.LoadBalancer.BGPPeerPort = vals.Pointer(v.(int)) }),
-		generateMergeClusterConfigTestCases("Features/LocalStorage/Enable", true, true, false, func(c *types.ClusterConfig, v any) {
-			c.Features.LocalStorage.LocalPath = vals.Pointer("path")
-			c.Features.LocalStorage.Enabled = vals.Pointer(v.(bool))
+		generateMergeClusterConfigTestCases("LoadBalancer/BGPPeerASN", true, 6443, 16443, func(c *types.ClusterConfig, v any) { c.LoadBalancer.BGPPeerASN = vals.Pointer(v.(int)) }),
+		generateMergeClusterConfigTestCases("LoadBalancer/BGPPeerPort", true, 6443, 16443, func(c *types.ClusterConfig, v any) { c.LoadBalancer.BGPPeerPort = vals.Pointer(v.(int)) }),
+		generateMergeClusterConfigTestCases("LocalStorage/Enable", true, true, false, func(c *types.ClusterConfig, v any) {
+			c.LocalStorage.LocalPath = vals.Pointer("path")
+			c.LocalStorage.Enabled = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("Features/LocalStorage/Disable", true, false, true, func(c *types.ClusterConfig, v any) {
-			c.Features.LocalStorage.LocalPath = vals.Pointer("path")
-			c.Features.LocalStorage.Enabled = vals.Pointer(v.(bool))
+		generateMergeClusterConfigTestCases("LocalStorage/Disable", true, false, true, func(c *types.ClusterConfig, v any) {
+			c.LocalStorage.LocalPath = vals.Pointer("path")
+			c.LocalStorage.Enabled = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("Features/LocalStorage/LocalPath/AllowChange", true, "a1", "a2", func(c *types.ClusterConfig, v any) {
-			c.Features.LocalStorage.LocalPath = vals.Pointer(v.(string))
+		generateMergeClusterConfigTestCases("LocalStorage/LocalPath/AllowChange", true, "a1", "a2", func(c *types.ClusterConfig, v any) {
+			c.LocalStorage.LocalPath = vals.Pointer(v.(string))
 		}),
-		generateMergeClusterConfigTestCases("Features/LocalStorage/LocalPath/PreventChange", false, "a1", "a2", func(c *types.ClusterConfig, v any) {
-			c.Features.LocalStorage.Enabled = vals.Pointer(true)
-			c.Features.LocalStorage.LocalPath = vals.Pointer(v.(string))
+		generateMergeClusterConfigTestCases("LocalStorage/LocalPath/PreventChange", false, "a1", "a2", func(c *types.ClusterConfig, v any) {
+			c.LocalStorage.Enabled = vals.Pointer(true)
+			c.LocalStorage.LocalPath = vals.Pointer(v.(string))
 		}),
-		generateMergeClusterConfigTestCases("Features/LocalStorage/ReclaimPolicy/AllowChange", true, "Retain", "Delete", func(c *types.ClusterConfig, v any) {
-			c.Features.LocalStorage.ReclaimPolicy = vals.Pointer(v.(string))
+		generateMergeClusterConfigTestCases("LocalStorage/ReclaimPolicy/AllowChange", true, "Retain", "Delete", func(c *types.ClusterConfig, v any) {
+			c.LocalStorage.ReclaimPolicy = vals.Pointer(v.(string))
 		}),
-		generateMergeClusterConfigTestCases("Features/LocalStorage/ReclaimPolicy/PreventChange", false, "Retain", "Delete", func(c *types.ClusterConfig, v any) {
-			c.Features.LocalStorage.Enabled = vals.Pointer(true)
-			c.Features.LocalStorage.LocalPath = vals.Pointer("path")
-			c.Features.LocalStorage.ReclaimPolicy = vals.Pointer(v.(string))
+		generateMergeClusterConfigTestCases("LocalStorage/ReclaimPolicy/PreventChange", false, "Retain", "Delete", func(c *types.ClusterConfig, v any) {
+			c.LocalStorage.Enabled = vals.Pointer(true)
+			c.LocalStorage.LocalPath = vals.Pointer("path")
+			c.LocalStorage.ReclaimPolicy = vals.Pointer(v.(string))
 		}),
-		generateMergeClusterConfigTestCases("Features/LocalStorage/SetDefault/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.Features.LocalStorage.SetDefault = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("Features/LocalStorage/SetDefault/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.Features.LocalStorage.SetDefault = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("Features/MetricsServer/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.Features.MetricsServer.Enabled = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("Features/MetricsServer/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.Features.MetricsServer.Enabled = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("LocalStorage/SetDefault/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.LocalStorage.SetDefault = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("LocalStorage/SetDefault/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.LocalStorage.SetDefault = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("MetricsServer/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.MetricsServer.Enabled = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("MetricsServer/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.MetricsServer.Enabled = vals.Pointer(v.(bool)) }),
 	} {
 		for _, tc := range tcs {
 			t.Run(tc.name, func(t *testing.T) {
@@ -209,61 +209,45 @@ func TestMergeClusterConfig_Scenarios(t *testing.T) {
 		{
 			name: "LoadBalancer/NeedNetwork",
 			old: types.ClusterConfig{
-				Features: types.Features{
-					Network:      types.NetworkFeature{Enabled: vals.Pointer(true)},
-					LoadBalancer: types.LoadBalancerFeature{Enabled: vals.Pointer(true)},
-				},
+				Network:      types.Network{Enabled: vals.Pointer(true)},
+				LoadBalancer: types.LoadBalancer{Enabled: vals.Pointer(true)},
 			},
 			new: types.ClusterConfig{
-				Features: types.Features{
-					Network: types.NetworkFeature{Enabled: vals.Pointer(false)},
-				},
+				Network: types.Network{Enabled: vals.Pointer(false)},
 			},
 			expectErr: true,
 		},
 		{
 			name: "LoadBalancer/DisableWithNetwork",
 			old: types.ClusterConfig{
-				Features: types.Features{
-					Network:      types.NetworkFeature{Enabled: vals.Pointer(true)},
-					LoadBalancer: types.LoadBalancerFeature{Enabled: vals.Pointer(true)},
-				},
+				Network:      types.Network{Enabled: vals.Pointer(true)},
+				LoadBalancer: types.LoadBalancer{Enabled: vals.Pointer(true)},
 			},
 			new: types.ClusterConfig{
-				Features: types.Features{
-					Network:      types.NetworkFeature{Enabled: vals.Pointer(false)},
-					LoadBalancer: types.LoadBalancerFeature{Enabled: vals.Pointer(false)},
-				},
+				Network:      types.Network{Enabled: vals.Pointer(false)},
+				LoadBalancer: types.LoadBalancer{Enabled: vals.Pointer(false)},
 			},
 			expectMerged: types.ClusterConfig{
-				Features: types.Features{
-					Network:      types.NetworkFeature{Enabled: vals.Pointer(false)},
-					LoadBalancer: types.LoadBalancerFeature{Enabled: vals.Pointer(false)},
-				},
+				Network:      types.Network{Enabled: vals.Pointer(false)},
+				LoadBalancer: types.LoadBalancer{Enabled: vals.Pointer(false)},
 			},
 		},
 		{
 			name: "LoadBalancer/MissingBGP",
 			old: types.ClusterConfig{
-				Features: types.Features{
-					Network:      types.NetworkFeature{Enabled: vals.Pointer(true)},
-					LoadBalancer: types.LoadBalancerFeature{Enabled: vals.Pointer(true)},
-				},
+				Network:      types.Network{Enabled: vals.Pointer(true)},
+				LoadBalancer: types.LoadBalancer{Enabled: vals.Pointer(true)},
 			},
 			new: types.ClusterConfig{
-				Features: types.Features{
-					LoadBalancer: types.LoadBalancerFeature{BGPMode: vals.Pointer(true)},
-				},
+				LoadBalancer: types.LoadBalancer{BGPMode: vals.Pointer(true)},
 			},
 			expectErr: true,
 		},
 		{
 			name: "LocalStorage/InvalidReclaimPolicy",
 			new: types.ClusterConfig{
-				Features: types.Features{
-					LocalStorage: types.LocalStorageFeature{
-						ReclaimPolicy: vals.Pointer("Invalid"),
-					},
+				LocalStorage: types.LocalStorage{
+					ReclaimPolicy: vals.Pointer("Invalid"),
 				},
 			},
 			expectErr: true,
@@ -271,64 +255,50 @@ func TestMergeClusterConfig_Scenarios(t *testing.T) {
 		{
 			name: "LocalStorage/EnableAndSetPath",
 			old: types.ClusterConfig{
-				Features: types.Features{
-					LocalStorage: types.LocalStorageFeature{
-						LocalPath: vals.Pointer("oldpath"),
-					},
+				LocalStorage: types.LocalStorage{
+					LocalPath: vals.Pointer("oldpath"),
 				},
 			},
 			new: types.ClusterConfig{
-				Features: types.Features{
-					LocalStorage: types.LocalStorageFeature{
-						Enabled:   vals.Pointer(true),
-						LocalPath: vals.Pointer("path"),
-					},
+				LocalStorage: types.LocalStorage{
+					Enabled:   vals.Pointer(true),
+					LocalPath: vals.Pointer("path"),
 				},
 			},
 			expectMerged: types.ClusterConfig{
-				Features: types.Features{
-					LocalStorage: types.LocalStorageFeature{
-						Enabled:   vals.Pointer(true),
-						LocalPath: vals.Pointer("path"),
-					},
+				LocalStorage: types.LocalStorage{
+					Enabled:   vals.Pointer(true),
+					LocalPath: vals.Pointer("path"),
 				},
 			},
 		},
 		{
 			name: "LocalStorage/EnableAndSetReclaimPolicy",
 			old: types.ClusterConfig{
-				Features: types.Features{
-					LocalStorage: types.LocalStorageFeature{
-						LocalPath:     vals.Pointer("path"),
-						ReclaimPolicy: vals.Pointer("Delete"),
-					},
+				LocalStorage: types.LocalStorage{
+					LocalPath:     vals.Pointer("path"),
+					ReclaimPolicy: vals.Pointer("Delete"),
 				},
 			},
 			new: types.ClusterConfig{
-				Features: types.Features{
-					LocalStorage: types.LocalStorageFeature{
-						Enabled:       vals.Pointer(true),
-						ReclaimPolicy: vals.Pointer("Retain"),
-					},
+				LocalStorage: types.LocalStorage{
+					Enabled:       vals.Pointer(true),
+					ReclaimPolicy: vals.Pointer("Retain"),
 				},
 			},
 			expectMerged: types.ClusterConfig{
-				Features: types.Features{
-					LocalStorage: types.LocalStorageFeature{
-						Enabled:       vals.Pointer(true),
-						LocalPath:     vals.Pointer("path"),
-						ReclaimPolicy: vals.Pointer("Retain"),
-					},
+				LocalStorage: types.LocalStorage{
+					Enabled:       vals.Pointer(true),
+					LocalPath:     vals.Pointer("path"),
+					ReclaimPolicy: vals.Pointer("Retain"),
 				},
 			},
 		},
 		{
 			name: "LocalStorage/RequirePath",
 			new: types.ClusterConfig{
-				Features: types.Features{
-					LocalStorage: types.LocalStorageFeature{
-						Enabled: vals.Pointer(true),
-					},
+				LocalStorage: types.LocalStorage{
+					Enabled: vals.Pointer(true),
 				},
 			},
 			expectErr: true,

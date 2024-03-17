@@ -11,7 +11,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils/vals"
 )
 
-func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh bool, config types.LoadBalancerFeature) error {
+func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh bool, config types.LoadBalancer) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -158,13 +158,13 @@ func ReconcileLoadBalancerComponent(ctx context.Context, s snap.Snap, alreadyEna
 	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
 		// If already enabled, and request does not contain `enabled` key
 		// or if already enabled and request contains `enabled=true`
-		err := UpdateLoadBalancerComponent(ctx, s, true, clusterConfig.Features.LoadBalancer)
+		err := UpdateLoadBalancerComponent(ctx, s, true, clusterConfig.LoadBalancer)
 		if err != nil {
 			return fmt.Errorf("failed to refresh load-balancer: %w", err)
 		}
 		return nil
 	} else if vals.OptionalBool(requestEnabled, false) {
-		err := UpdateLoadBalancerComponent(ctx, s, false, clusterConfig.Features.LoadBalancer)
+		err := UpdateLoadBalancerComponent(ctx, s, false, clusterConfig.LoadBalancer)
 		if err != nil {
 			return fmt.Errorf("failed to enable load-balancer: %w", err)
 		}

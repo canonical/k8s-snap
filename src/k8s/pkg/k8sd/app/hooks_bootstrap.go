@@ -326,13 +326,13 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 
 	// TODO(neoaggelos): the work below should be a POST /cluster/config
 
-	if cfg.Features.Network.GetEnabled() {
+	if cfg.Network.GetEnabled() {
 		if err := component.ReconcileNetworkComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
 			return fmt.Errorf("failed to reconcile network: %w", err)
 		}
 	}
 
-	if cfg.Features.DNS.GetEnabled() {
+	if cfg.DNS.GetEnabled() {
 		dnsIP, _, err := component.ReconcileDNSComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg)
 		if err != nil {
 			return fmt.Errorf("failed to reconcile dns: %w", err)
@@ -355,31 +355,31 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		}
 	}
 
-	if cfg.Features.LocalStorage.GetEnabled() {
+	if cfg.LocalStorage.GetEnabled() {
 		if err := component.ReconcileLocalStorageComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
 			return fmt.Errorf("failed to reconcile local-storage: %w", err)
 		}
 	}
 
-	if cfg.Features.Gateway.GetEnabled() {
+	if cfg.Gateway.GetEnabled() {
 		if err := component.ReconcileGatewayComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
 			return fmt.Errorf("failed to reconcile gateway: %w", err)
 		}
 	}
 
-	if cfg.Features.Ingress.GetEnabled() {
+	if cfg.Ingress.GetEnabled() {
 		if err := component.ReconcileIngressComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
 			return fmt.Errorf("failed to reconcile ingress: %w", err)
 		}
 	}
 
-	if cfg.Features.LoadBalancer.GetEnabled() {
+	if cfg.LoadBalancer.GetEnabled() {
 		if err := component.ReconcileLoadBalancerComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
 			return fmt.Errorf("failed to reconcile load-balancer: %w", err)
 		}
 	}
 
-	if cfg.Features.MetricsServer.GetEnabled() {
+	if cfg.MetricsServer.GetEnabled() {
 		if err := component.ReconcileMetricsServerComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
 			return fmt.Errorf("failed to reconcile metrics-server: %w", err)
 		}
