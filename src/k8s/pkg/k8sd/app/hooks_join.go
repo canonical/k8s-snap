@@ -40,29 +40,29 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	// Certificates
 	switch cfg.APIServer.Datastore {
 	case "k8s-dqlite":
-		dqliteCert := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
+		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname: s.Name(),
 			IPSANs:   []net.IP{{127, 0, 0, 1}},
 			Years:    20,
 		})
-		dqliteCert.K8sDqliteCert = cfg.Certificates.K8sDqliteCert
-		dqliteCert.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
-		if err := dqliteCert.CompleteCertificates(); err != nil {
+		certificates.K8sDqliteCert = cfg.Certificates.K8sDqliteCert
+		certificates.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
+		if err := certificates.CompleteCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize k8s-dqlite certificates: %w", err)
 		}
-		if err := setup.EnsureK8sDqlitePKI(snap, dqliteCert); err != nil {
+		if err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write k8s-dqlite certificates: %w", err)
 		}
 	case "external":
-		externalDatastoreCert := &pki.ExternalDatastorePKI{
+		certificates := &pki.ExternalDatastorePKI{
 			DatastoreCACert:     cfg.Certificates.DatastoreCACert,
 			DatastoreClientCert: cfg.Certificates.DatastoreClientCert,
 			DatastoreClientKey:  cfg.Certificates.DatastoreClientKey,
 		}
-		if err := externalDatastoreCert.CheckCertificates(); err != nil {
+		if err := certificates.CheckCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize external datastore certificates: %w", err)
 		}
-		if err := setup.EnsureExtDatastorePKI(snap, externalDatastoreCert); err != nil {
+		if err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write external datastore certificates: %w", err)
 		}
 	default:
@@ -70,7 +70,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Certificates
-	controlPlaneCert := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append([]net.IP{nodeIP}, serviceIPs...),
 		Years:                     20,
@@ -78,18 +78,18 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	})
 
 	// load existing certificates, then generate certificates for the node
-	controlPlaneCert.CACert = cfg.Certificates.CACert
-	controlPlaneCert.CAKey = cfg.Certificates.CAKey
-	controlPlaneCert.FrontProxyCACert = cfg.Certificates.FrontProxyCACert
-	controlPlaneCert.FrontProxyCAKey = cfg.Certificates.FrontProxyCAKey
-	controlPlaneCert.APIServerKubeletClientCert = cfg.Certificates.APIServerKubeletClientCert
-	controlPlaneCert.APIServerKubeletClientKey = cfg.Certificates.APIServerKubeletClientKey
-	controlPlaneCert.ServiceAccountKey = cfg.APIServer.ServiceAccountKey
+	certificates.CACert = cfg.Certificates.CACert
+	certificates.CAKey = cfg.Certificates.CAKey
+	certificates.FrontProxyCACert = cfg.Certificates.FrontProxyCACert
+	certificates.FrontProxyCAKey = cfg.Certificates.FrontProxyCAKey
+	certificates.APIServerKubeletClientCert = cfg.Certificates.APIServerKubeletClientCert
+	certificates.APIServerKubeletClientKey = cfg.Certificates.APIServerKubeletClientKey
+	certificates.ServiceAccountKey = cfg.APIServer.ServiceAccountKey
 
-	if err := controlPlaneCert.CompleteCertificates(); err != nil {
+	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
-	if err := setup.EnsureControlPlanePKI(snap, controlPlaneCert); err != nil {
+	if err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
 
@@ -133,7 +133,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 
 	// Wait until Kube-API server is ready
 	if err := waitReadyApiServer(s.Context, snap); err != nil {
-		return fmt.Errorf("failed to wait for Kube-API server: %w", err)
+		return fmt.Errorf("failed to wait for kube-apiserver: %w", err)
 	}
 
 	return nil
