@@ -11,7 +11,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils/vals"
 )
 
-func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh bool, cidrs []string, l2Enabled bool, l2Interfaces []string, bgpEnabled bool, bgpLocalASN int, bgpPeerAddress string, bgpPeerASN int, bgpPeerPort int) error {
+func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh bool, config types.LoadBalancerFeature) error {
 	manager, err := NewHelmClient(s, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get component manager: %w", err)
@@ -19,10 +19,10 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 
 	networkValues := map[string]any{
 		"l2announcements": map[string]any{
-			"enabled": l2Enabled,
+			"enabled": config.GetL2Mode(),
 		},
 		"bgpControlPlane": map[string]any{
-			"enabled": bgpEnabled,
+			"enabled": config.GetBGPMode(),
 		},
 		"externalIPs": map[string]any{
 			"enabled": true,
@@ -55,7 +55,7 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 			"ciliuml2announcementpolicies": {},
 			"ciliumloadbalancerippools":    {},
 		}
-		if bgpEnabled {
+		if config.GetBGPMode() {
 			requiredCRDs["ciliumbgppeeringpolicies"] = struct{}{}
 		}
 		requiredCount := len(requiredCRDs)
@@ -69,26 +69,26 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 
 	formattedCidrs := []map[string]any{}
 
-	for _, cidr := range cidrs {
+	for _, cidr := range config.GetCIDRs() {
 		formattedCidrs = append(formattedCidrs, map[string]any{"cidr": cidr})
 	}
 
 	values := map[string]any{
 		"l2": map[string]any{
-			"enabled":    l2Enabled,
-			"interfaces": l2Interfaces,
+			"enabled":    config.GetL2Mode(),
+			"interfaces": config.GetL2Interfaces(),
 		},
 		"ipPool": map[string]any{
 			"cidrs": formattedCidrs,
 		},
 		"bgp": map[string]any{
-			"enabled":  bgpEnabled,
-			"localASN": bgpLocalASN,
+			"enabled":  config.GetBGPMode(),
+			"localASN": config.GetBGPLocalASN(),
 			"neighbors": []map[string]any{
 				{
-					"peerAddress": bgpPeerAddress,
-					"peerASN":     bgpPeerASN,
-					"peerPort":    bgpPeerPort,
+					"peerAddress": config.GetBGPPeerAddress(),
+					"peerASN":     config.GetBGPPeerASN(),
+					"peerPort":    config.GetBGPPeerPort(),
 				},
 			},
 		},
@@ -155,26 +155,16 @@ func DisableLoadBalancerComponent(s snap.Snap) error {
 }
 
 func ReconcileLoadBalancerComponent(ctx context.Context, s snap.Snap, alreadyEnabled *bool, requestEnabled *bool, clusterConfig types.ClusterConfig) error {
-	var bgpEnabled, l2Enabled bool
-
-	if clusterConfig.LoadBalancer.BGPEnabled != nil {
-		bgpEnabled = *clusterConfig.LoadBalancer.BGPEnabled
-	}
-
-	if clusterConfig.LoadBalancer.L2Enabled != nil {
-		l2Enabled = *clusterConfig.LoadBalancer.L2Enabled
-	}
-
 	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
 		// If already enabled, and request does not contain `enabled` key
 		// or if already enabled and request contains `enabled=true`
-		err := UpdateLoadBalancerComponent(ctx, s, true, clusterConfig.LoadBalancer.CIDRs, l2Enabled, clusterConfig.LoadBalancer.L2Interfaces, bgpEnabled, clusterConfig.LoadBalancer.BGPLocalASN, clusterConfig.LoadBalancer.BGPPeerAddress, clusterConfig.LoadBalancer.BGPPeerASN, clusterConfig.LoadBalancer.BGPPeerPort)
+		err := UpdateLoadBalancerComponent(ctx, s, true, clusterConfig.Features.LoadBalancer)
 		if err != nil {
 			return fmt.Errorf("failed to refresh load-balancer: %w", err)
 		}
 		return nil
 	} else if vals.OptionalBool(requestEnabled, false) {
-		err := UpdateLoadBalancerComponent(ctx, s, false, clusterConfig.LoadBalancer.CIDRs, l2Enabled, clusterConfig.LoadBalancer.L2Interfaces, bgpEnabled, clusterConfig.LoadBalancer.BGPLocalASN, clusterConfig.LoadBalancer.BGPPeerAddress, clusterConfig.LoadBalancer.BGPPeerASN, clusterConfig.LoadBalancer.BGPPeerPort)
+		err := UpdateLoadBalancerComponent(ctx, s, false, clusterConfig.Features.LoadBalancer)
 		if err != nil {
 			return fmt.Errorf("failed to enable load-balancer: %w", err)
 		}
