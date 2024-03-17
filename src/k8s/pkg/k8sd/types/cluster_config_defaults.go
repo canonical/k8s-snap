@@ -53,14 +53,35 @@ func (c *ClusterConfig) SetDefaults() {
 	if c.Features.LoadBalancer.Enabled == nil {
 		c.Features.LoadBalancer.Enabled = vals.Pointer(false)
 	}
+	if c.Features.LoadBalancer.CIDRs == nil {
+		c.Features.LoadBalancer.CIDRs = vals.Pointer([]string{})
+	}
 	if c.Features.LoadBalancer.L2Mode == nil {
 		c.Features.LoadBalancer.L2Mode = vals.Pointer(false)
+	}
+	if c.Features.LoadBalancer.L2Interfaces == nil {
+		c.Features.LoadBalancer.L2Interfaces = vals.Pointer([]string{})
 	}
 	if c.Features.LoadBalancer.BGPMode == nil {
 		c.Features.LoadBalancer.BGPMode = vals.Pointer(false)
 	}
+	if c.Features.LoadBalancer.BGPLocalASN == nil {
+		c.Features.LoadBalancer.BGPLocalASN = vals.Pointer(0)
+	}
+	if c.Features.LoadBalancer.BGPPeerAddress == nil {
+		c.Features.LoadBalancer.BGPPeerAddress = vals.Pointer("")
+	}
+	if c.Features.LoadBalancer.BGPPeerASN == nil {
+		c.Features.LoadBalancer.BGPPeerASN = vals.Pointer(0)
+	}
+	if c.Features.LoadBalancer.BGPPeerPort == nil {
+		c.Features.LoadBalancer.BGPPeerPort = vals.Pointer(0)
+	}
 	if c.Features.Ingress.Enabled == nil {
 		c.Features.Ingress.Enabled = vals.Pointer(false)
+	}
+	if c.Features.Ingress.DefaultTLSSecret == nil {
+		c.Features.Ingress.DefaultTLSSecret = vals.Pointer("")
 	}
 	if c.Features.Ingress.EnableProxyProtocol == nil {
 		c.Features.Ingress.EnableProxyProtocol = vals.Pointer(false)

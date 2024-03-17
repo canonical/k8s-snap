@@ -44,9 +44,15 @@ func TestSetDefaults(t *testing.T) {
 				SetDefault:    vals.Pointer(true),
 			},
 			LoadBalancer: types.LoadBalancerFeature{
-				Enabled: vals.Pointer(false),
-				L2Mode:  vals.Pointer(false),
-				BGPMode: vals.Pointer(false),
+				Enabled:        vals.Pointer(false),
+				CIDRs:          vals.Pointer([]string{}),
+				L2Mode:         vals.Pointer(false),
+				L2Interfaces:   vals.Pointer([]string{}),
+				BGPMode:        vals.Pointer(false),
+				BGPLocalASN:    vals.Pointer(0),
+				BGPPeerAddress: vals.Pointer(""),
+				BGPPeerASN:     vals.Pointer(0),
+				BGPPeerPort:    vals.Pointer(0),
 			},
 			MetricsServer: types.MetricsServerFeature{
 				Enabled: vals.Pointer(false),
@@ -56,6 +62,7 @@ func TestSetDefaults(t *testing.T) {
 			},
 			Ingress: types.IngressFeature{
 				Enabled:             vals.Pointer(false),
+				DefaultTLSSecret:    vals.Pointer(""),
 				EnableProxyProtocol: vals.Pointer(false),
 			},
 		},
