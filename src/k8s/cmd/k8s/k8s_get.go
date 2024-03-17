@@ -55,51 +55,51 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			case "metrics-server":
 				output = config.MetricsServer
 			case "network.enabled":
-				output = config.Network.Enabled
+				output = *config.Network.Enabled
 			case "dns.enabled":
-				output = config.DNS.Enabled
+				output = *config.DNS.Enabled
 			case "dns.upstream-nameservers":
-				output = config.DNS.UpstreamNameservers
+				output = *config.DNS.UpstreamNameservers
 			case "dns.cluster-domain":
-				output = config.DNS.ClusterDomain
+				output = *config.DNS.ClusterDomain
 			case "dns.service-ip":
-				output = config.DNS.ServiceIP
+				output = *config.DNS.ServiceIP
 			case "gateway.enabled":
-				output = config.Gateway.Enabled
+				output = *config.Gateway.Enabled
 			case "ingress.enabled":
-				output = config.Ingress.Enabled
+				output = *config.Ingress.Enabled
 			case "ingress.default-tls-secret":
-				output = config.Ingress.DefaultTLSSecret
+				output = *config.Ingress.DefaultTLSSecret
 			case "ingress.enable-proxy-protocol":
-				output = config.Ingress.EnableProxyProtocol
+				output = *config.Ingress.EnableProxyProtocol
 			case "local-storage.enabled":
-				output = config.LocalStorage.Enabled
+				output = *config.LocalStorage.Enabled
 			case "local-storage.local-path":
-				output = config.LocalStorage.LocalPath
+				output = *config.LocalStorage.LocalPath
 			case "local-storage.reclaim-policy":
-				output = config.LocalStorage.ReclaimPolicy
+				output = *config.LocalStorage.ReclaimPolicy
 			case "local-storage.set-default":
-				output = config.LocalStorage.SetDefault
+				output = *config.LocalStorage.SetDefault
 			case "load-balancer.enabled":
-				output = config.LoadBalancer.Enabled
+				output = *config.LoadBalancer.Enabled
 			case "load-balancer.cidrs":
-				output = config.LoadBalancer.CIDRs
+				output = *config.LoadBalancer.CIDRs
 			case "load-balancer.l2-mode":
-				output = config.LoadBalancer.L2Mode
+				output = *config.LoadBalancer.L2Mode
 			case "load-balancer.l2-interfaces":
-				output = config.LoadBalancer.L2Interfaces
+				output = *config.LoadBalancer.L2Interfaces
 			case "load-balancer.bgp-mode":
-				output = config.LoadBalancer.BGPMode
+				output = *config.LoadBalancer.BGPMode
 			case "load-balancer.bgp-local-asn":
-				output = config.LoadBalancer.BGPLocalASN
+				output = *config.LoadBalancer.BGPLocalASN
 			case "load-balancer.bgp-peer-address":
-				output = config.LoadBalancer.BGPPeerAddress
+				output = *config.LoadBalancer.BGPPeerAddress
 			case "load-balancer.bgp-peer-port":
-				output = config.LoadBalancer.BGPPeerPort
+				output = *config.LoadBalancer.BGPPeerPort
 			case "load-balancer.bgp-peer-asn":
-				output = config.LoadBalancer.BGPPeerASN
+				output = *config.LoadBalancer.BGPPeerASN
 			case "metrics-server.enabled":
-				output = config.MetricsServer.Enabled
+				output = *config.MetricsServer.Enabled
 			default:
 				cmd.PrintErrf("Error: Unknown config key %q.\n", key)
 				env.Exit(1)
