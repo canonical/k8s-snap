@@ -34,7 +34,7 @@ func TestK8sEnableCmd(t *testing.T) {
 			funcs: []string{"gateway"},
 			expectedCall: apiv1.UpdateClusterConfigRequest{
 				Config: apiv1.UserFacingClusterConfig{
-					Gateway: &apiv1.GatewayConfig{Enabled: vals.Pointer(true)},
+					Gateway: apiv1.GatewayConfig{Enabled: vals.Pointer(true)},
 				},
 			},
 			expectedStdout: "enabled",
@@ -44,8 +44,8 @@ func TestK8sEnableCmd(t *testing.T) {
 			funcs: []string{"load-balancer", "gateway"},
 			expectedCall: apiv1.UpdateClusterConfigRequest{
 				Config: apiv1.UserFacingClusterConfig{
-					Gateway:      &apiv1.GatewayConfig{Enabled: vals.Pointer(true)},
-					LoadBalancer: &apiv1.LoadBalancerConfig{Enabled: vals.Pointer(true)},
+					Gateway:      apiv1.GatewayConfig{Enabled: vals.Pointer(true)},
+					LoadBalancer: apiv1.LoadBalancerConfig{Enabled: vals.Pointer(true)},
 				},
 			},
 			expectedStdout: "enabled",
