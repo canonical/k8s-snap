@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 
 	api "github.com/canonical/k8s/api/v1"
@@ -20,88 +19,6 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig) error {
-	// If load-balancer, ingress or gateway gets enabled=true,
-	// the request should fail if network.enabled is not true
-	if !vals.OptionalBool(newConfig.Network.Enabled, false) {
-		if !vals.OptionalBool(oldConfig.Ingress.Enabled, false) && vals.OptionalBool(newConfig.Ingress.Enabled, false) {
-			return fmt.Errorf("ingress requires network to be enabled")
-		}
-
-		if !vals.OptionalBool(oldConfig.Gateway.Enabled, false) && vals.OptionalBool(newConfig.Gateway.Enabled, false) {
-			return fmt.Errorf("gateway requires network to be enabled")
-		}
-
-		if !vals.OptionalBool(oldConfig.LoadBalancer.Enabled, false) && vals.OptionalBool(newConfig.LoadBalancer.Enabled, false) {
-			return fmt.Errorf("load-balancer requires network to be enabled")
-		}
-	}
-
-	// dns.service-ip should be in IP format and in service CIDR
-	if newConfig.Kubelet.ClusterDNS != "" && net.ParseIP(newConfig.Kubelet.ClusterDNS) == nil {
-		return fmt.Errorf("dns.service-ip must be in valid IP format")
-	}
-
-	// dns.service-ip is not changable if already dns.enabled=true.
-	if vals.OptionalBool(newConfig.DNS.Enabled, false) && vals.OptionalBool(oldConfig.DNS.Enabled, false) {
-		if newConfig.Kubelet.ClusterDNS != oldConfig.Kubelet.ClusterDNS {
-			return fmt.Errorf("dns.service-ip can not be changed after dns is enabled")
-		}
-	}
-
-	// load-balancer.bgp-mode=true should fail if any of the bgp config is empty
-	if vals.OptionalBool(newConfig.LoadBalancer.BGPEnabled, false) {
-		if newConfig.LoadBalancer.BGPLocalASN == 0 {
-			return fmt.Errorf("load-balancer.bgp-local-asn must be set when load-balancer.bgp-mode is enabled")
-		}
-		if newConfig.LoadBalancer.BGPPeerAddress == "" {
-			return fmt.Errorf("load-balancer.bgp-peer-address must be set when load-balancer.bgp-mode is enabled")
-		}
-		if newConfig.LoadBalancer.BGPPeerPort == 0 {
-			return fmt.Errorf("load-balancer.bgp-peer-port must be set when load-balancer.bgp-mode is enabled")
-		}
-		if newConfig.LoadBalancer.BGPPeerASN == 0 {
-			return fmt.Errorf("load-balancer.bgp-peer-asn must be set when load-balancer.bgp-mode is enabled")
-		}
-	}
-
-	// local-storage.local-path should not be changable if local-storage.enabled=true
-	if vals.OptionalBool(newConfig.LocalStorage.Enabled, false) && vals.OptionalBool(oldConfig.LocalStorage.Enabled, false) {
-		if newConfig.LocalStorage.LocalPath != oldConfig.LocalStorage.LocalPath {
-			return fmt.Errorf("local-storage.local-path can not be changed after local-storage is enabled")
-		}
-	}
-
-	// local-storage.reclaim-policy should be one of 3 values
-	switch newConfig.LocalStorage.ReclaimPolicy {
-	case "Retain", "Recycle", "Delete":
-	default:
-		return fmt.Errorf("local-storage.reclaim-policy must be one of: Retain, Recycle, Delete")
-	}
-
-	// local-storage.reclaim-policy should not be changable if local-storage.enabled=true
-	if vals.OptionalBool(newConfig.LocalStorage.Enabled, false) && vals.OptionalBool(oldConfig.LocalStorage.Enabled, false) {
-		if newConfig.LocalStorage.ReclaimPolicy != oldConfig.LocalStorage.ReclaimPolicy {
-			return fmt.Errorf("local-storage.reclaim-policy can not be changed after local-storage is enabled")
-		}
-	}
-
-	// network.enabled=false should not work before load-balancer, ingress and gateway is disabled
-	if vals.OptionalBool(oldConfig.Network.Enabled, false) && !vals.OptionalBool(newConfig.Network.Enabled, false) {
-		if vals.OptionalBool(newConfig.Ingress.Enabled, false) {
-			return fmt.Errorf("ingress must be disabled before network can be disabled")
-		}
-		if vals.OptionalBool(newConfig.Gateway.Enabled, false) {
-			return fmt.Errorf("gateway must be disabled before network can be disabled")
-		}
-		if vals.OptionalBool(newConfig.LoadBalancer.Enabled, false) {
-			return fmt.Errorf("load-balancer must be disabled before network can be disabled")
-		}
-	}
-
-	return nil
-}
-
 func putClusterConfig(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateClusterConfigRequest
 	snap := snap.SnapFromContext(s.Context)
@@ -110,31 +27,17 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	var oldConfig types.ClusterConfig
+	oldConfig, err := utils.GetClusterConfig(r.Context(), s)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
+	}
 
+	requestedConfig := types.ClusterConfigFromUserFacing(&req.Config)
+	var mergedConfig types.ClusterConfig
 	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		oldConfig, err = database.GetClusterConfig(ctx, tx)
+		mergedConfig, err = database.SetClusterConfig(ctx, tx, requestedConfig)
 		if err != nil {
-			return fmt.Errorf("failed to read old cluster configuration: %w", err)
-		}
-
-		return nil
-	}); err != nil {
-		return response.InternalError(fmt.Errorf("database transaction to read cluster configuration failed: %w", err))
-	}
-
-	newConfig, err := types.MergeClusterConfig(oldConfig, types.ClusterConfigFromUserFacing(&req.Config))
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to merge new cluster config: %w", err))
-	}
-
-	if err := validateConfig(oldConfig, newConfig); err != nil {
-		return response.InternalError(fmt.Errorf("config validation failed: %w", err))
-	}
-
-	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
-		if err := database.SetClusterConfig(ctx, tx, newConfig); err != nil {
 			return fmt.Errorf("failed to update cluster configuration: %w", err)
 		}
 
@@ -143,64 +46,64 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 		return response.InternalError(fmt.Errorf("database transaction to update cluster configuration failed: %w", err))
 	}
 
-	if req.Config.Network != nil {
-		err := component.ReconcileNetworkComponent(r.Context(), snap, oldConfig.Network.Enabled, req.Config.Network.Enabled, newConfig)
-		if err != nil {
+	if !requestedConfig.Features.Network.Empty() {
+		if err := component.ReconcileNetworkComponent(r.Context(), snap, oldConfig.Features.Network.Enabled, requestedConfig.Features.Network.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile network: %w", err))
 		}
 	}
 
-	if req.Config.DNS != nil {
-		dnsIP, _, err := component.ReconcileDNSComponent(r.Context(), snap, oldConfig.DNS.Enabled, req.Config.DNS.Enabled, newConfig)
+	if !requestedConfig.Features.DNS.Empty() {
+		dnsIP, _, err := component.ReconcileDNSComponent(r.Context(), snap, oldConfig.Features.DNS.Enabled, requestedConfig.Features.DNS.Enabled, mergedConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile dns: %w", err))
 		}
-		if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
-			if err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
-				Kubelet: types.Kubelet{
-					ClusterDNS: dnsIP,
-				},
+
+		// If DNS IP is not empty, update cluster configuration
+		if dnsIP != "" {
+			if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
+				var err error
+				mergedConfig, err = database.SetClusterConfig(ctx, tx, types.ClusterConfig{
+					Kubelet: types.Kubelet{
+						ClusterDNS: vals.Pointer(dnsIP),
+					},
+				})
+				if err != nil {
+					return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)
+				}
+				return nil
 			}); err != nil {
-				return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)
+				return response.InternalError(fmt.Errorf("database transaction to update cluster configuration failed: %w", err))
 			}
-			return nil
-		}); err != nil {
-			return response.InternalError(fmt.Errorf("database transaction to update cluster configuration failed: %w", err))
 		}
 	}
 
-	if req.Config.LocalStorage != nil {
-		err := component.ReconcileLocalStorageComponent(r.Context(), snap, oldConfig.LocalStorage.Enabled, req.Config.LocalStorage.Enabled, newConfig)
-		if err != nil {
+	if !requestedConfig.Features.LocalStorage.Empty() {
+		if err := component.ReconcileLocalStorageComponent(r.Context(), snap, oldConfig.Features.LocalStorage.Enabled, requestedConfig.Features.LocalStorage.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile local-storage: %w", err))
 		}
 	}
 
-	if req.Config.Gateway != nil {
-		err := component.ReconcileGatewayComponent(r.Context(), snap, oldConfig.Gateway.Enabled, req.Config.Gateway.Enabled, newConfig)
-		if err != nil {
+	if !requestedConfig.Features.Gateway.Empty() {
+		if err := component.ReconcileGatewayComponent(r.Context(), snap, oldConfig.Features.Gateway.Enabled, requestedConfig.Features.Gateway.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile gateway: %w", err))
 		}
 	}
 
-	if req.Config.Ingress != nil {
-		err := component.ReconcileIngressComponent(r.Context(), snap, oldConfig.Ingress.Enabled, req.Config.Ingress.Enabled, newConfig)
-		if err != nil {
+	if !requestedConfig.Features.Ingress.Empty() {
+		if err := component.ReconcileIngressComponent(r.Context(), snap, oldConfig.Features.Ingress.Enabled, requestedConfig.Features.Ingress.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile ingress: %w", err))
 		}
 	}
 
-	if req.Config.LoadBalancer != nil {
-		err := component.ReconcileLoadBalancerComponent(r.Context(), snap, oldConfig.LoadBalancer.Enabled, req.Config.LoadBalancer.Enabled, newConfig)
-		if err != nil {
+	if !requestedConfig.Features.LoadBalancer.Empty() {
+		if err := component.ReconcileLoadBalancerComponent(r.Context(), snap, oldConfig.Features.LoadBalancer.Enabled, requestedConfig.Features.LoadBalancer.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile load-balancer: %w", err))
 		}
 	}
 
-	if req.Config.MetricsServer != nil {
-		err := component.ReconcileMetricsServerComponent(r.Context(), snap, oldConfig.MetricsServer.Enabled, req.Config.MetricsServer.Enabled, newConfig)
-		if err != nil {
-			return response.InternalError(fmt.Errorf("failed to reconcile metrics-server: %w", err))
+	if !requestedConfig.Features.MetricsServer.Empty() {
+		if err := component.ReconcileMetricsServerComponent(r.Context(), snap, oldConfig.Features.MetricsServer.Enabled, requestedConfig.Features.MetricsServer.Enabled, mergedConfig); err != nil {
+			return response.InternalError(fmt.Errorf("failed to reconcile load-balancer: %w", err))
 		}
 	}
 
@@ -208,14 +111,13 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 }
 
 func getClusterConfig(s *state.State, r *http.Request) response.Response {
-	userFacing, err := utils.GetUserFacingClusterConfig(r.Context(), s)
+	config, err := utils.GetClusterConfig(r.Context(), s)
 	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to get user-facing cluster config: %w", err))
+		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
 	}
 
 	result := api.GetClusterConfigResponse{
-		Config: userFacing,
+		Config: types.ClusterConfigToUserFacing(config),
 	}
-
 	return response.SyncResponse(true, &result)
 }
