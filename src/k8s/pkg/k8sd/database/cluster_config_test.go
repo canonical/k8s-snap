@@ -7,6 +7,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -16,14 +17,14 @@ func TestClusterConfig(t *testing.T) {
 			g := NewWithT(t)
 			expectedClusterConfig := types.ClusterConfig{
 				Certificates: types.Certificates{
-					CACert: "CA CERT DATA",
-					CAKey:  "CA KEY DATA",
+					CACert: vals.Pointer("CA CERT DATA"),
+					CAKey:  vals.Pointer("CA KEY DATA"),
 				},
 			}
 
 			// Write some config to the database
 			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-				err := database.SetClusterConfig(context.Background(), tx, expectedClusterConfig)
+				_, err := database.SetClusterConfig(context.Background(), tx, expectedClusterConfig)
 				g.Expect(err).To(BeNil())
 				return nil
 			})
@@ -44,15 +45,15 @@ func TestClusterConfig(t *testing.T) {
 			g := NewWithT(t)
 			expectedClusterConfig := types.ClusterConfig{
 				Certificates: types.Certificates{
-					CACert: "CA CERT DATA",
-					CAKey:  "CA KEY DATA",
+					CACert: vals.Pointer("CA CERT DATA"),
+					CAKey:  vals.Pointer("CA KEY DATA"),
 				},
 			}
 
 			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-				err := database.SetClusterConfig(context.Background(), tx, types.ClusterConfig{
+				_, err := database.SetClusterConfig(context.Background(), tx, types.ClusterConfig{
 					Certificates: types.Certificates{
-						CACert: "CA CERT NEW DATA",
+						CACert: vals.Pointer("CA CERT NEW DATA"),
 					},
 				})
 				g.Expect(err).To(HaveOccurred())
@@ -73,32 +74,33 @@ func TestClusterConfig(t *testing.T) {
 			g := NewWithT(t)
 			expectedClusterConfig := types.ClusterConfig{
 				Certificates: types.Certificates{
-					CACert:        "CA CERT DATA",
-					CAKey:         "CA KEY DATA",
-					K8sDqliteCert: "CERT DATA",
-					K8sDqliteKey:  "KEY DATA",
+					CACert:            vals.Pointer("CA CERT DATA"),
+					CAKey:             vals.Pointer("CA KEY DATA"),
+					ServiceAccountKey: vals.Pointer("SA KEY DATA"),
+				},
+				Datastore: types.Datastore{
+					K8sDqliteCert: vals.Pointer("CERT DATA"),
+					K8sDqliteKey:  vals.Pointer("KEY DATA"),
 				},
 				Kubelet: types.Kubelet{
-					ClusterDNS: "10.152.183.10",
-				},
-				APIServer: types.APIServer{
-					ServiceAccountKey: "SA KEY DATA",
+					ClusterDNS: vals.Pointer("10.152.183.10"),
 				},
 			}
 
 			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-				err := database.SetClusterConfig(context.Background(), tx, types.ClusterConfig{
+				returnedConfig, err := database.SetClusterConfig(context.Background(), tx, types.ClusterConfig{
 					Kubelet: types.Kubelet{
-						ClusterDNS: "10.152.183.10",
+						ClusterDNS: vals.Pointer("10.152.183.10"),
+					},
+					Datastore: types.Datastore{
+						K8sDqliteCert: vals.Pointer("CERT DATA"),
+						K8sDqliteKey:  vals.Pointer("KEY DATA"),
 					},
 					Certificates: types.Certificates{
-						K8sDqliteCert: "CERT DATA",
-						K8sDqliteKey:  "KEY DATA",
-					},
-					APIServer: types.APIServer{
-						ServiceAccountKey: "SA KEY DATA",
+						ServiceAccountKey: vals.Pointer("SA KEY DATA"),
 					},
 				})
+				g.Expect(returnedConfig).To(Equal(expectedClusterConfig))
 				g.Expect(err).To(BeNil())
 				return nil
 			})
