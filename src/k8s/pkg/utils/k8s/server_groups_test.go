@@ -37,15 +37,15 @@ func TestListResourcesForGroupVersion(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			g := NewWithT(t)
 			clientset := fakeclientset.NewSimpleClientset()
 			fakeDiscovery, ok := clientset.Discovery().(*fakediscovery.FakeDiscovery)
 			g.Expect(ok).To(BeTrue())
 
-			if tc.expectedList != nil {
-				fakeDiscovery.Resources = []*v1.APIResourceList{tc.expectedList}
+			if tt.expectedList != nil {
+				fakeDiscovery.Resources = []*v1.APIResourceList{tt.expectedList}
 			}
 
 			// Create a new k8s client with the fake discovery client
@@ -54,13 +54,13 @@ func TestListResourcesForGroupVersion(t *testing.T) {
 			}
 
 			// Call the ListResourcesForGroupVersion method
-			resources, err := client.ListResourcesForGroupVersion(tc.groupVersion)
+			resources, err := client.ListResourcesForGroupVersion(tt.groupVersion)
 
-			if tc.expectedError {
+			if tt.expectedError {
 				g.Expect(err).To(HaveOccurred())
 			} else {
 				g.Expect(err).To(BeNil())
-				g.Expect(resources).To(Equal(tc.expectedList))
+				g.Expect(resources).To(Equal(tt.expectedList))
 			}
 		})
 	}
