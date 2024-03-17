@@ -44,8 +44,8 @@ func TestMarkAsWorkerNode(t *testing.T) {
 	mock := &mock.Snap{
 		Mock: mock.Mock{
 			LockFilesDir: lockFilesDir,
-			UID:          1000,
-			GID:          1000,
+			UID:          -1,
+			GID:          -1,
 		},
 	}
 
