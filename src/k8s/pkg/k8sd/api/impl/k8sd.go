@@ -6,6 +6,7 @@ import (
 	"log"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
@@ -36,15 +37,15 @@ func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus,
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster members: %w", err)
 	}
 
-	config, err := utils.GetUserFacingClusterConfig(ctx, s)
+	config, err := utils.GetClusterConfig(ctx, s)
 	if err != nil {
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get user-facing cluster config: %w", err)
+		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster config: %w", err)
 	}
 
 	return apiv1.ClusterStatus{
 		Ready:   ready,
 		Members: members,
-		Config:  config,
+		Config:  types.ClusterConfigToUserFacing(config),
 	}, nil
 }
 
