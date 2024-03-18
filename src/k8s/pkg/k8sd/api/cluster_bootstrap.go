@@ -16,11 +16,8 @@ import (
 )
 
 func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
-	// TODO: set bootstrap config defaults?
-	// bootstrapConfig := apiv1.BootstrapConfig{}
-	// bootstrapConfig.SetDefaults()
-
 	req := apiv1.ClusterBootstrapRequest{}
+	req.BootstrapConfig.SetDefaults()
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -51,10 +48,12 @@ func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.
 	// TODO Check if already Bootstrapped
 
 	// Bootstrap the cluster
-	address := util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), config.DefaultPort)
+	// TODO where do we grab the address from?
+	address := util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), req.BootstrapConfig.K8sDqlitePort)
 	if err := m.NewCluster(hostname, address, config, timeout); err != nil {
 		// TODO(neoaggelos): only return error that bootstrap failed
 		fmt.Fprintln(os.Stderr, "Failed with error:", err)
+
 		// c.CleanupNode(ctx, hostname)
 		return response.BadRequest(fmt.Errorf("failed to bootstrap new cluster: %w", err))
 	}
