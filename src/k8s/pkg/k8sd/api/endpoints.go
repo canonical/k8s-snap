@@ -15,6 +15,13 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 			Path: "k8sd/cluster",
 			Get:  rest.EndpointAction{Handler: getClusterStatus, AccessHandler: RestrictWorkers},
 		},
+		// Cluster Bootstrap
+		{
+			Name:              "ClusterBootstrap",
+			Path:              "k8sd/cluster",
+			Post:              rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterBootstrap)},
+			AllowedBeforeInit: true,
+		},
 		// Node
 		// Returns the status (e.g. current role) of the local node (control-plane, worker or unknown).
 		{
