@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -29,7 +28,6 @@ func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.
 	}
 
 	// Clean hostname
-	// TODO: Move this to the server side
 	hostname, err := utils.CleanHostname(s.Name())
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", s.Name(), err))
@@ -42,18 +40,20 @@ func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.
 	}
 
 	if err := m.Ready(int(timeout / time.Second)); err != nil {
-		return response.BadRequest(fmt.Errorf("cluster did not come up in time: %w", err))
+		return response.InternalError(fmt.Errorf("cluster did not come up in time: %w", err))
 	}
 
-	// TODO Check if already Bootstrapped
+	// Check if the cluster is already bootstrapped
+	// TODO Return 471 Already bootstrapped A cluster is already bootstrapped on this node.
+	_, err = m.Status()
+	if err == nil {
+		return response.BadRequest(fmt.Errorf("cluster is already bootstrapped"))
+	}
 
 	// Bootstrap the cluster
 	// TODO where do we grab the address from?
 	address := util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), req.BootstrapConfig.K8sDqlitePort)
 	if err := m.NewCluster(hostname, address, config, timeout); err != nil {
-		// TODO(neoaggelos): only return error that bootstrap failed
-		fmt.Fprintln(os.Stderr, "Failed with error:", err)
-
 		// c.CleanupNode(ctx, hostname)
 		return response.BadRequest(fmt.Errorf("failed to bootstrap new cluster: %w", err))
 	}
