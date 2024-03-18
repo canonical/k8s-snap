@@ -15,11 +15,10 @@ type Client struct {
 		Address         string
 		BootstrapConfig apiv1.BootstrapConfig
 	}
-	BootstrapClusterMember           apiv1.NodeStatus
-	BootstrapErr                     error
-	IsBootstrappedReturn             bool
-	IsKubernetesAPIServerReadyReturn bool
-	CleanupNodeCalledWith            struct {
+	BootstrapClusterMember apiv1.NodeStatus
+	BootstrapErr           error
+	IsBootstrappedReturn   bool
+	CleanupNodeCalledWith  struct {
 		Ctx      context.Context
 		NodeName string
 	}
@@ -60,10 +59,6 @@ func (c *Client) Bootstrap(ctx context.Context, name string, address string, boo
 	c.BootstrapCalledWith.Address = address
 	c.BootstrapCalledWith.BootstrapConfig = bootstrapConfig
 	return c.BootstrapClusterMember, c.BootstrapErr
-}
-
-func (c *Client) IsKubernetesAPIServerReady(ctx context.Context) bool {
-	return c.IsKubernetesAPIServerReadyReturn
 }
 
 func (c *Client) IsBootstrapped(ctx context.Context) bool {
