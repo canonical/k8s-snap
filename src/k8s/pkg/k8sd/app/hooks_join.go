@@ -184,7 +184,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	if err := client.WaitApiServerReady(s.Context); err != nil {
-		return fmt.Errorf("kube-apiserver did not become ready: %w", err)
+		return fmt.Errorf("failed to wait for kube-apiserver to become ready: %w", err)
 	}
 
 	return nil
