@@ -27,6 +27,10 @@ func TestKubelet(t *testing.T) {
 				"cluster-dns":          "",
 				"cluster-domain":       "",
 				"cloud-provider":       "",
+<<<<<<< HEAD
+=======
+				"control-plane-taints": "",
+>>>>>>> 7d5752a (Address review comments)
 			},
 			kubelet: types.Kubelet{
 				ClusterDNS:         vals.Pointer(""),

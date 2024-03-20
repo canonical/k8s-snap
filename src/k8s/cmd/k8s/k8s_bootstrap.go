@@ -189,7 +189,7 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 
 	// TODO: any other configs we care about in the interactive bootstrap?
 	taints := askQuestion(stdin, stdout, stderr, "Any taints on the control nodes?", nil, "", nil)
-	config.ControlPlaneTaints = strings.Split(taints, ",")
+	config.ControlPlaneTaints = strings.FieldsFunc(taints, func(c rune) bool { return c == ',' })
 	return config
 }
 
