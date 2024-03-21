@@ -15,8 +15,7 @@ type ControlPlanePKI struct {
 	hostname                  string   // node name
 	ipSANs                    []net.IP // IP SANs for generated certificates
 	dnsSANs                   []string // DNS SANs for the certificates below
-	extraSANs                 []string
-	years                     int // how many years the generated certificates will be valid for
+	years                     int      // how many years the generated certificates will be valid for
 
 	CACert, CAKey                             string // CN=kubernetes-ca (self-signed)
 	FrontProxyCACert, FrontProxyCAKey         string // CN=kubernetes-front-proxy-ca (self-signed)
