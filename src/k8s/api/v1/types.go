@@ -19,6 +19,7 @@ type BootstrapConfig struct {
 	EnableRBAC          *bool  `yaml:"enable-rbac"`
 	K8sDqlitePort       int    `yaml:"k8s-dqlite-port"`
 	Datastore           string `yaml:"datastore"`
+	ExtraSANs           string `yaml:"extrasans"`
 	DatastoreURL        string `yaml:"datastore-url,omitempty"`
 	DatastoreCACert     string `yaml:"datastore-ca-crt,omitempty"`
 	DatastoreClientCert string `yaml:"datastore-client-crt,omitempty"`
@@ -33,6 +34,7 @@ func (b *BootstrapConfig) SetDefaults() {
 	b.EnableRBAC = vals.Pointer(true)
 	b.K8sDqlitePort = 9000
 	b.Datastore = "k8s-dqlite"
+	b.ExtraSANs = ""
 }
 
 // ToMap marshals the BootstrapConfig into yaml and map it to "bootstrapConfig".

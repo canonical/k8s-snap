@@ -216,6 +216,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append([]net.IP{nodeIP}, serviceIPs...),
+		ExtraSANs:                 cfg.Certificates.ExtraSANs,
 		Years:                     20,
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,

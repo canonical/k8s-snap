@@ -4,6 +4,8 @@ import (
 	"crypto/x509/pkix"
 	"fmt"
 	"net"
+
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 // ControlPlanePKI is a list of all certificates we require for a control plane node.
@@ -13,7 +15,8 @@ type ControlPlanePKI struct {
 	hostname                  string   // node name
 	ipSANs                    []net.IP // IP SANs for generated certificates
 	dnsSANs                   []string // DNS SANs for the certificates below
-	years                     int      // how many years the generated certificates will be valid for
+	extraSANs                 []string
+	years                     int // how many years the generated certificates will be valid for
 
 	CACert, CAKey                             string // CN=kubernetes-ca (self-signed)
 	FrontProxyCACert, FrontProxyCAKey         string // CN=kubernetes-front-proxy-ca (self-signed)
@@ -34,6 +37,7 @@ type ControlPlanePKIOpts struct {
 	Hostname                  string
 	DNSSANs                   []string
 	IPSANs                    []net.IP
+	ExtraSANs                 string
 	Years                     int
 	AllowSelfSignedCA         bool
 	IncludeMachineAddressSANs bool
@@ -44,11 +48,14 @@ func NewControlPlanePKI(opts ControlPlanePKIOpts) *ControlPlanePKI {
 		opts.Years = 1
 	}
 
+	userDefinedSANs := utils.GetExtraSANsFromString(opts.ExtraSANs)
+	userDefinedIpSANs, userDefinedDnsSANs := utils.SeparateSANs(userDefinedSANs)
+
 	return &ControlPlanePKI{
 		hostname:                  opts.Hostname,
 		years:                     opts.Years,
-		ipSANs:                    opts.IPSANs,
-		dnsSANs:                   opts.DNSSANs,
+		ipSANs:                    append(opts.IPSANs, userDefinedIpSANs...),
+		dnsSANs:                   append(opts.DNSSANs, userDefinedDnsSANs...),
 		allowSelfSignedCA:         opts.AllowSelfSignedCA,
 		includeMachineAddressSANs: opts.IncludeMachineAddressSANs,
 	}

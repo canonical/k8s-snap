@@ -39,6 +39,7 @@ type Certificates struct {
 	APIServerKubeletClientKey  string `yaml:"apiserver-kubelet-client-key,omitempty"`
 	K8sDqliteCert              string `yaml:"k8s-dqlite-crt,omitempty"`
 	K8sDqliteKey               string `yaml:"k8s-dqlite-key,omitempty"`
+	ExtraSANs                  string `yaml:"extrasans,omitempty"`
 
 	DatastoreCACert     string `yaml:"datastore-ca-crt,omitempty"`
 	DatastoreClientCert string `yaml:"datastore-client-crt,omitempty"`
