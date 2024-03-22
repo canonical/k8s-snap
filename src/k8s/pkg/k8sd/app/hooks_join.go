@@ -71,10 +71,16 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
 
+	userDefinedIPSANs, userDefinedDNSSANs := utils.SeparateSANs(cfg.Certificates.ExtraSANs)
+
+	IPSANs := append([]net.IP{nodeIP}, serviceIPs...)
+	IPSANs = append(IPSANs, userDefinedIPSANs...)
+
 	// Certificates
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
-		IPSANs:                    append([]net.IP{nodeIP}, serviceIPs...),
+		IPSANs:                    IPSANs,
+		DNSSANs:                   userDefinedDNSSANs,
 		Years:                     20,
 		IncludeMachineAddressSANs: true,
 	})

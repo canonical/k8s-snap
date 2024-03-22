@@ -212,11 +212,16 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
 
+	userDefinedIPSANs, userDefinedDNSSANs := utils.SeparateSANs(bootstrapConfig.ExtraSANs)
+
+	IPSANs := append([]net.IP{nodeIP}, serviceIPs...)
+	IPSANs = append(IPSANs, userDefinedIPSANs...)
+
 	// Certificates
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
-		IPSANs:                    append([]net.IP{nodeIP}, serviceIPs...),
-		ExtraSANs:                 cfg.Certificates.ExtraSANs,
+		IPSANs:                    IPSANs,
+		DNSSANs:                   userDefinedDNSSANs,
 		Years:                     20,
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
@@ -236,6 +241,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	cfg.Certificates.APIServerKubeletClientCert = certificates.APIServerKubeletClientCert
 	cfg.Certificates.APIServerKubeletClientKey = certificates.APIServerKubeletClientKey
 	cfg.APIServer.ServiceAccountKey = certificates.ServiceAccountKey
+	cfg.Certificates.ExtraSANs = bootstrapConfig.ExtraSANs
 
 	// Generate kubeconfigs
 	for _, kubeconfig := range []struct {

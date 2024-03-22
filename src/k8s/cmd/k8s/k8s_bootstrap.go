@@ -150,10 +150,6 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 	config.ServiceCIDR = askQuestion(stdin, stdout, stderr, "Please set the Service CIDR:", nil, config.ServiceCIDR, nil)
 	rbac := askBool(stdin, stdout, stderr, "Enable Role Based Access Control (RBAC)?", []string{"yes", "no"}, "yes")
 	*config.EnableRBAC = rbac
-	extraSANs := askBool(stdin, stdout, stderr, "Set extra SANs for the certificates?", []string{"yes", "no"}, "no")
-	if extraSANs {
-		config.ExtraSANs = askQuestion(stdin, stdout, stderr, "Please set the Extra SANs:", nil, config.ExtraSANs, nil)
-	}
 	return config
 }
 

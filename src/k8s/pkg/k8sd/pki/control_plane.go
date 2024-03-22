@@ -4,8 +4,6 @@ import (
 	"crypto/x509/pkix"
 	"fmt"
 	"net"
-
-	"github.com/canonical/k8s/pkg/utils"
 )
 
 // ControlPlanePKI is a list of all certificates we require for a control plane node.
@@ -36,7 +34,6 @@ type ControlPlanePKIOpts struct {
 	Hostname                  string
 	DNSSANs                   []string
 	IPSANs                    []net.IP
-	ExtraSANs                 string
 	Years                     int
 	AllowSelfSignedCA         bool
 	IncludeMachineAddressSANs bool
@@ -47,14 +44,11 @@ func NewControlPlanePKI(opts ControlPlanePKIOpts) *ControlPlanePKI {
 		opts.Years = 1
 	}
 
-	userDefinedSANs := utils.GetExtraSANsFromString(opts.ExtraSANs)
-	userDefinedIpSANs, userDefinedDnsSANs := utils.SeparateSANs(userDefinedSANs)
-
 	return &ControlPlanePKI{
 		hostname:                  opts.Hostname,
 		years:                     opts.Years,
-		ipSANs:                    append(opts.IPSANs, userDefinedIpSANs...),
-		dnsSANs:                   append(opts.DNSSANs, userDefinedDnsSANs...),
+		ipSANs:                    opts.IPSANs,
+		dnsSANs:                   opts.DNSSANs,
 		allowSelfSignedCA:         opts.AllowSelfSignedCA,
 		includeMachineAddressSANs: opts.IncludeMachineAddressSANs,
 	}
