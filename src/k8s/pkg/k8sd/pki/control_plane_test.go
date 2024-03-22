@@ -35,7 +35,7 @@ func TestControlPlaneCertificates(t *testing.T) {
 		g.Expect(c.CompleteCertificates()).ToNot(BeNil())
 	})
 
-	t.Run("SANs", func(t *testing.T) {
+	t.Run("ApiServerCertSANs", func(t *testing.T) {
 		c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 			Hostname:          "h1",
 			Years:             10,
