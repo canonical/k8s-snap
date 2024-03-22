@@ -212,7 +212,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
 
-	userDefinedIPSANs, userDefinedDNSSANs := utils.SeparateSANs(bootstrapConfig.ExtraSANs)
+	userDefinedIPSANs, userDefinedDNSSANs := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
 
 	IPSANs := append([]net.IP{nodeIP}, serviceIPs...)
 	IPSANs = append(IPSANs, userDefinedIPSANs...)

@@ -8,11 +8,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestSeparateSANs(t *testing.T) {
+func TestSplitIPAndDNSSANs(t *testing.T) {
 	tests := []string{"192.168.0.1", "::1", "cluster.local", "kubernetes.svc.local", "", "2001:db8:0:1:1:1:1:1"}
 
 	g := NewWithT(t)
-	gotIPs, gotDNSs := utils.SeparateSANs(tests)
+	gotIPs, gotDNSs := utils.SplitIPAndDNSSANs(tests)
 
 	// Convert cert.IPAddresses to a slice of string representations
 	ips := make([]string, len(gotIPs))

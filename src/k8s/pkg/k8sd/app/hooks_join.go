@@ -71,7 +71,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
 
-	userDefinedIPSANs, userDefinedDNSSANs := utils.SeparateSANs(cfg.Certificates.ExtraSANs)
+	userDefinedIPSANs, userDefinedDNSSANs := utils.SplitIPAndDNSSANs(cfg.Certificates.ExtraSANs)
 
 	IPSANs := append([]net.IP{nodeIP}, serviceIPs...)
 	IPSANs = append(IPSANs, userDefinedIPSANs...)

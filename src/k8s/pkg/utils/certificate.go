@@ -4,7 +4,7 @@ import (
 	"net"
 )
 
-func SeparateSANs(extraSANs []string) ([]net.IP, []string) {
+func SplitIPAndDNSSANs(extraSANs []string) ([]net.IP, []string) {
 	var ipSANs []net.IP
 	var dnsSANs []string
 
