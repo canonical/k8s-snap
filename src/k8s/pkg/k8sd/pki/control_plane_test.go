@@ -35,12 +35,13 @@ func TestControlPlaneCertificates(t *testing.T) {
 		g.Expect(c.CompleteCertificates()).ToNot(BeNil())
 	})
 
-	t.Run("ExtraSANs", func(t *testing.T) {
+	t.Run("SANs", func(t *testing.T) {
 		c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 			Hostname:          "h1",
 			Years:             10,
 			AllowSelfSignedCA: true,
-			ExtraSANs:         "192.168.2.123,cluster.local",
+			IPSANs:            []net.IP{net.ParseIP("192.168.2.123")},
+			DNSSANs:           []string{"cluster.local"},
 		})
 
 		g := NewWithT(t)
@@ -54,26 +55,34 @@ func TestControlPlaneCertificates(t *testing.T) {
 
 		t.Run("IPAddresses", func(t *testing.T) {
 			g := NewWithT(t)
-			found := false
-			for _, ip := range cert.IPAddresses {
-				if ip.Equal(net.ParseIP("192.168.2.123")) {
-					found = true
-					break
-				}
+			expectedIPs := []string{"192.168.2.123", "127.0.0.1", "::1"}
+
+			// Convert cert.IPAddresses to a slice of string representations
+			actualIPs := make([]string, len(cert.IPAddresses))
+			for i, ip := range cert.IPAddresses {
+				actualIPs[i] = ip.String()
 			}
-			g.Expect(found).To(BeTrue())
+
+			for _, expectedIP := range expectedIPs {
+				t.Run(expectedIP, func(t *testing.T) {
+					g.Expect(actualIPs).To(ContainElement(expectedIP), "IP should be present: "+expectedIP)
+				})
+			}
+
+			g.Expect(cert.IPAddresses).To(HaveLen(len(expectedIPs)))
 		})
 
 		t.Run("DNSNames", func(t *testing.T) {
 			g := NewWithT(t)
-			found := false
-			for _, dns := range cert.DNSNames {
-				if dns == "cluster.local" {
-					found = true
-					break
-				}
+			expectedDNSNames := []string{"cluster.local", "kubernetes", "kubernetes.default", "kubernetes.default.svc", "kubernetes.default.svc.cluster", "kubernetes.default.svc.cluster.local"}
+
+			for _, expectedDNS := range expectedDNSNames {
+				t.Run(expectedDNS, func(t *testing.T) {
+					g.Expect(cert.DNSNames).To(ContainElement(expectedDNS), "DNS should be present: "+expectedDNS)
+				})
 			}
-			g.Expect(found).To(BeTrue())
+
+			g.Expect(cert.DNSNames).To(HaveLen(len(expectedDNSNames)))
 		})
 	})
 }
