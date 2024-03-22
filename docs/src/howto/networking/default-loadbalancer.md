@@ -2,7 +2,7 @@
 
 Canonical Kubernetes includes a default load-balancer. As this is not an
 essential service for all deployments, it is not enabled by default. This guide
-explains how to configure and enable the loadbalancer.
+explains how to configure and enable the load-balancer.
 
 ## What you'll need
 
