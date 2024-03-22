@@ -21,7 +21,7 @@ func TestSetDefaults(t *testing.T) {
 		EnableRBAC:    vals.Pointer(true),
 		K8sDqlitePort: 9000,
 		Datastore:     "k8s-dqlite",
-		ExtraSANs:     []string{},
+		ExtraSANs:     nil,
 	}
 
 	g.Expect(b).To(Equal(expected))
