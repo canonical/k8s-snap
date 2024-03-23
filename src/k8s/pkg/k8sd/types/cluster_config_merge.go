@@ -107,6 +107,7 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 
 		{name: "load-balancer.cidrs", val: &config.LoadBalancer.CIDRs, old: existing.LoadBalancer.CIDRs, new: new.LoadBalancer.CIDRs, allowChange: true},
 		{name: "load-balancer.l2-interfaces", val: &config.LoadBalancer.L2Interfaces, old: existing.LoadBalancer.L2Interfaces, new: new.LoadBalancer.L2Interfaces, allowChange: true},
+		{name: "register with taints", val: &config.Kubelet.ControlPlaneTaints, old: existing.Kubelet.ControlPlaneTaints, new: new.Kubelet.ControlPlaneTaints},
 	} {
 		*i.val, err = mergeSlice(i.old, i.new, i.allowChange)
 		if err != nil {

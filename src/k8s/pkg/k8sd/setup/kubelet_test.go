@@ -46,7 +46,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet control plane setup function
-		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).To(Succeed())
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -96,7 +96,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet control plane setup function
-		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "")).To(BeNil())
+		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "", nil)).To(BeNil())
 
 		tests := []struct {
 			key         string
@@ -236,7 +236,7 @@ func TestKubelet(t *testing.T) {
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 
-		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).ToNot(Succeed())
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil)).ToNot(Succeed())
 	})
 
 	t.Run("WorkerNoArgsDir", func(t *testing.T) {

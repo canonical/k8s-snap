@@ -28,17 +28,19 @@ components:
   - ingress
   - storage
   - metrics-server
+control-plane-taints: ["node-role.kubernetes.io/control-plane:NoSchedule"]
 cluster-cidr: "10.244.0.0/16"
 service-cidr: "10.152.100.0/24"
 enable-rbac: true
 k8s-dqlite-port: 12379`,
 		expectedConfig: apiv1.BootstrapConfig{
-			Components:    []string{"network", "dns", "gateway", "ingress", "storage", "metrics-server"},
-			ClusterCIDR:   "10.244.0.0/16",
-			ServiceCIDR:   "10.152.100.0/24",
-			EnableRBAC:    vals.Pointer(true),
-			K8sDqlitePort: 12379,
-			Datastore:     "k8s-dqlite",
+			Components:         []string{"network", "dns", "gateway", "ingress", "storage", "metrics-server"},
+			ControlPlaneTaints: []string{"node-role.kubernetes.io/control-plane:NoSchedule"},
+			ClusterCIDR:        "10.244.0.0/16",
+			ServiceCIDR:        "10.152.100.0/24",
+			EnableRBAC:         vals.Pointer(true),
+			K8sDqlitePort:      12379,
+			Datastore:          "k8s-dqlite",
 		},
 	},
 	{
@@ -48,12 +50,13 @@ cluster-cidr: "10.244.0.0/16"
 enable-rbac: true
 bananas: 5`,
 		expectedConfig: apiv1.BootstrapConfig{
-			Components:    []string{"dns", "metrics-server", "network", "gateway"},
-			ClusterCIDR:   "10.244.0.0/16",
-			ServiceCIDR:   "10.152.183.0/24",
-			EnableRBAC:    vals.Pointer(true),
-			K8sDqlitePort: 9000,
-			Datastore:     "k8s-dqlite",
+			Components:         []string{"dns", "metrics-server", "network", "gateway"},
+			ControlPlaneTaints: nil,
+			ClusterCIDR:        "10.244.0.0/16",
+			ServiceCIDR:        "10.152.183.0/24",
+			EnableRBAC:         vals.Pointer(true),
+			K8sDqlitePort:      9000,
+			Datastore:          "k8s-dqlite",
 		},
 	},
 	{
