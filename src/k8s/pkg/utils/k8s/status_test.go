@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestClusterReady(t *testing.T) {
+func TestClusterHasReadyNodes(t *testing.T) {
 	tests := []struct {
 		name          string
 		nodes         []runtime.Object
@@ -91,7 +91,7 @@ func TestClusterReady(t *testing.T) {
 			clientset := fake.NewSimpleClientset(tt.nodes...)
 			client := &Client{Interface: clientset}
 
-			ready, err := client.ClusterReady(context.Background())
+			ready, err := client.HasReadyNodes(context.Background())
 
 			g.Expect(err).To(BeNil())
 			g.Expect(ready).To(Equal(tt.expectedReady))

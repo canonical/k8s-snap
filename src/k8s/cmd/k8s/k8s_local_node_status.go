@@ -20,7 +20,7 @@ func newLocalNodeStatusCommand(env cmdutil.ExecutionEnvironment) *cobra.Command 
 				return
 			}
 
-			status, err := client.NodeStatus(cmd.Context())
+			status, err := client.LocalNodeStatus(cmd.Context())
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to get the status of the local node.\n\nThe error was: %v\n", err)
 				env.Exit(1)

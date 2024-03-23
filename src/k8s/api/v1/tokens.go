@@ -1,7 +1,7 @@
 package v1
 
-// TokenRequest is used to request a token for joining a node to the cluster.
-type TokenRequest struct {
+// GetJoinTokenRequest is used to request a token for joining a node to the cluster.
+type GetJoinTokenRequest struct {
 	// If true, a token for joining a worker node is created.
 	// If false, a token for joining a control plane node is created.
 	Worker bool `json:"worker"`
@@ -9,8 +9,8 @@ type TokenRequest struct {
 	Name string `json:"name"`
 }
 
-// TokensResponse is used to return a token for joining nodes in the cluster.
-type TokensResponse struct {
+// GetJoinTokenResponse is used to return a token for joining nodes in the cluster.
+type GetJoinTokenResponse struct {
 	// We want to be able to quickly find the tokens in the code, but have the same
 	// JSON response for control-plane and worker nodes, thus the discrepancy in naming.
 	EncodedToken string `json:"token"`
