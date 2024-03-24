@@ -74,7 +74,9 @@ def test_loadbalancer(instances: List[harness.Instance]):
         excluded_ips=[instance_default_ip, tester_instance_default_ip],
     )
 
-    instance.exec(["k8s", "set", f"load-balancer.cidrs={lb_cidr}"])
+    instance.exec(
+        ["k8s", "set", f"load-balancer.cidrs={lb_cidr}", "load-balancer.l2-mode=true"]
+    )
     instance.exec(["k8s", "enable", "load-balancer"])
 
     util.stubbornly(retries=3, delay_s=1).on(instance).exec(

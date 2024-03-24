@@ -35,20 +35,20 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// cfg.Network.ServiceCIDR may be "IPv4CIDR[,IPv6CIDR]". get the first ip from CIDR(s).
-	serviceIPs, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(cfg.Network.ServiceCIDR)
+	serviceIPs, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(cfg.Network.GetServiceCIDR())
 	if err != nil {
-		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.ServiceCIDR, err)
+		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.GetServiceCIDR(), err)
 	}
 
-	switch cfg.APIServer.Datastore {
+	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname: s.Name(),
 			IPSANs:   []net.IP{{127, 0, 0, 1}},
 			Years:    20,
 		})
-		certificates.K8sDqliteCert = cfg.Certificates.K8sDqliteCert
-		certificates.K8sDqliteKey = cfg.Certificates.K8sDqliteKey
+		certificates.K8sDqliteCert = cfg.Datastore.GetK8sDqliteCert()
+		certificates.K8sDqliteKey = cfg.Datastore.GetK8sDqliteKey()
 		if err := certificates.CompleteCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
 		}
@@ -57,9 +57,9 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		}
 	case "external":
 		certificates := &pki.ExternalDatastorePKI{
-			DatastoreCACert:     cfg.Certificates.DatastoreCACert,
-			DatastoreClientCert: cfg.Certificates.DatastoreClientCert,
-			DatastoreClientKey:  cfg.Certificates.DatastoreClientKey,
+			DatastoreCACert:     cfg.Datastore.GetExternalCACert(),
+			DatastoreClientCert: cfg.Datastore.GetExternalClientCert(),
+			DatastoreClientKey:  cfg.Datastore.GetExternalClientKey(),
 		}
 		if err := certificates.CheckCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
@@ -68,7 +68,7 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 			return fmt.Errorf("failed to write cluster certificates: %w", err)
 		}
 	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
 
 	// Certificates
@@ -80,13 +80,13 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	})
 
 	// load existing certificates, then generate certificates for the node
-	certificates.CACert = cfg.Certificates.CACert
-	certificates.CAKey = cfg.Certificates.CAKey
-	certificates.FrontProxyCACert = cfg.Certificates.FrontProxyCACert
-	certificates.FrontProxyCAKey = cfg.Certificates.FrontProxyCAKey
-	certificates.APIServerKubeletClientCert = cfg.Certificates.APIServerKubeletClientCert
-	certificates.APIServerKubeletClientKey = cfg.Certificates.APIServerKubeletClientKey
-	certificates.ServiceAccountKey = cfg.APIServer.ServiceAccountKey
+	certificates.CACert = cfg.Certificates.GetCACert()
+	certificates.CAKey = cfg.Certificates.GetCAKey()
+	certificates.FrontProxyCACert = cfg.Certificates.GetFrontProxyCACert()
+	certificates.FrontProxyCAKey = cfg.Certificates.GetFrontProxyCAKey()
+	certificates.APIServerKubeletClientCert = cfg.Certificates.GetAPIServerKubeletClientCert()
+	certificates.APIServerKubeletClientKey = cfg.Certificates.GetAPIServerKubeletClientKey()
+	certificates.ServiceAccountKey = cfg.Certificates.GetServiceAccountKey()
 
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
@@ -111,13 +111,13 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		if err != nil {
 			return fmt.Errorf("failed to generate token for username=%s groups=%v: %w", kubeconfig.username, kubeconfig.groups, err)
 		}
-		if err := setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), kubeconfig.file), token, fmt.Sprintf("127.0.0.1:%d", cfg.APIServer.SecurePort), cfg.Certificates.CACert); err != nil {
+		if err := setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), kubeconfig.file), token, fmt.Sprintf("127.0.0.1:%d", cfg.APIServer.GetSecurePort()), cfg.Certificates.GetCACert()); err != nil {
 			return fmt.Errorf("failed to write kubeconfig %s: %w", kubeconfig.file, err)
 		}
 	}
 
 	// Configure datastore
-	switch cfg.APIServer.Datastore {
+	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		leader, err := s.Leader()
 		if err != nil {
@@ -129,26 +129,26 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		}
 		cluster := make([]string, len(members))
 		for _, member := range members {
-			cluster = append(cluster, fmt.Sprintf("%s:%d", member.Address.Addr(), cfg.K8sDqlite.Port))
+			cluster = append(cluster, fmt.Sprintf("%s:%d", member.Address.Addr(), cfg.Datastore.GetK8sDqlitePort()))
 		}
 
-		address := fmt.Sprintf("%s:%d", nodeIP.String(), cfg.K8sDqlite.Port)
+		address := fmt.Sprintf("%s:%d", nodeIP.String(), cfg.Datastore.GetK8sDqlitePort())
 		if err := setup.K8sDqlite(snap, address, cluster); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
 	case "external":
 	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
 
 	// Configure services
 	if err := setup.Containerd(snap, nil); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider); err != nil {
+	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider()); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.PodCIDR); err != nil {
+	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.GetPodCIDR()); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap); err != nil {
@@ -158,19 +158,19 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
 
-	if err := setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.DatastoreURL, cfg.APIServer.AuthorizationMode); err != nil {
+	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore.GetType(), cfg.Datastore.GetExternalURL(), cfg.APIServer.GetAuthorizationMode()); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 
 	// Start services
-	switch cfg.APIServer.Datastore {
+	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		if err := snaputil.StartK8sDqliteServices(s.Context, snap); err != nil {
 			return fmt.Errorf("failed to start control plane services: %w", err)
 		}
 	case "external":
 	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
 
 	if err := snaputil.StartControlPlaneServices(s.Context, snap); err != nil {
@@ -199,14 +199,14 @@ func onPreRemove(s *state.State, force bool) error {
 	}
 
 	// configure datastore
-	switch cfg.APIServer.Datastore {
+	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		client, err := snap.K8sDqliteClient(s.Context)
 		if err != nil {
 			return fmt.Errorf("failed to create k8s-dqlite client: %w", err)
 		}
 
-		nodeAddress := net.JoinHostPort(s.Address().Hostname(), fmt.Sprintf("%d", cfg.K8sDqlite.Port))
+		nodeAddress := net.JoinHostPort(s.Address().Hostname(), fmt.Sprintf("%d", cfg.Datastore.GetK8sDqlitePort()))
 		if err := client.RemoveNodeByAddress(s.Context, nodeAddress); err != nil {
 			return fmt.Errorf("failed to remove node with address %s from k8s-dqlite cluster: %w", nodeAddress, err)
 		}

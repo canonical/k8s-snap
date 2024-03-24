@@ -38,31 +38,31 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 				switch functionality {
 				case "network":
-					config.Network = &api.NetworkConfig{
+					config.Network = api.NetworkConfig{
 						Enabled: vals.Pointer(true),
 					}
 				case "dns":
-					config.DNS = &api.DNSConfig{
+					config.DNS = api.DNSConfig{
 						Enabled: vals.Pointer(true),
 					}
 				case "gateway":
-					config.Gateway = &api.GatewayConfig{
+					config.Gateway = api.GatewayConfig{
 						Enabled: vals.Pointer(true),
 					}
 				case "ingress":
-					config.Ingress = &api.IngressConfig{
+					config.Ingress = api.IngressConfig{
 						Enabled: vals.Pointer(true),
 					}
 				case "local-storage":
-					config.LocalStorage = &api.LocalStorageConfig{
+					config.LocalStorage = api.LocalStorageConfig{
 						Enabled: vals.Pointer(true),
 					}
 				case "load-balancer":
-					config.LoadBalancer = &api.LoadBalancerConfig{
+					config.LoadBalancer = api.LoadBalancerConfig{
 						Enabled: vals.Pointer(true),
 					}
 				case "metrics-server":
-					config.MetricsServer = &api.MetricsServerConfig{
+					config.MetricsServer = api.MetricsServerConfig{
 						Enabled: vals.Pointer(true),
 					}
 				}
