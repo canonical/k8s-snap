@@ -49,7 +49,7 @@ sudo k8s set load-balancer.l2-mode=true
 Note that for the BGP mode, it is necessary to set ***all*** the values simultaneously. E.g.
 
 ```
-sudo k8s set load-balancer.bgp-mode=true load-balancer.bgp-local-asn=64512 load-balancer.bgp-peer-address=10.0.10.55/24 load-balancer.bgp-peer-port=7012 load-balancer.bgp-peer-asn=64512
+sudo k8s set load-balancer.bgp-mode=true load-balancer.bgp-local-asn=64512 load-balancer.bgp-peer-address=10.0.10.55/32 load-balancer.bgp-peer-asn=64512 load-balancer.bgp-peer-port=7012
 ```
 
 ## Enable the load-balancer
