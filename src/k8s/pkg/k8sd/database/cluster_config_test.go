@@ -21,6 +21,7 @@ func TestClusterConfig(t *testing.T) {
 					CAKey:  vals.Pointer("CA KEY DATA"),
 				},
 			}
+			expectedClusterConfig.SetDefaults()
 
 			// Write some config to the database
 			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
@@ -49,6 +50,7 @@ func TestClusterConfig(t *testing.T) {
 					CAKey:  vals.Pointer("CA KEY DATA"),
 				},
 			}
+			expectedClusterConfig.SetDefaults()
 
 			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				_, err := database.SetClusterConfig(context.Background(), tx, types.ClusterConfig{
@@ -86,6 +88,7 @@ func TestClusterConfig(t *testing.T) {
 					ClusterDNS: vals.Pointer("10.152.183.10"),
 				},
 			}
+			expectedClusterConfig.SetDefaults()
 
 			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				returnedConfig, err := database.SetClusterConfig(context.Background(), tx, types.ClusterConfig{

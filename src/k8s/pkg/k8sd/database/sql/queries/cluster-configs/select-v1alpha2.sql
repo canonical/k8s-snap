@@ -3,4 +3,4 @@ SELECT
 FROM
     cluster_configs AS c
 WHERE
-    c.key = "v1alpha1"
+    c.key = "v1alpha2"
