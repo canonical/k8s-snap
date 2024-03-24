@@ -12,7 +12,7 @@ management.
 A Kubernetes cluster consists of at least one control plane node and multiple
 worker nodes. Each node is a server (physical or virtual) that runs
 [Kubernetes components]. In Canonical Kubernetes, the components are bundled
-inside the `k8s-snap`. The cluster's topology divides reponsibilities between
+inside the `k8s-snap`. The cluster's topology divides responsibilities between
 the control plane node(s) and the worker nodes, ensuring efficient management
 and scheduling of workloads.
 
@@ -32,10 +32,11 @@ streamlining the entire process for a more efficient operation.
 
 ## Integration into the Kubernetes Cluster Topology
 
-For Canonical Kubernetes, the detailed view of the two types of node is as 
+For Canonical Kubernetes, the detailed view of the two types of node is as
 follows:
 
 ### Control Plane Node
+
 The control plane node orchestrates the cluster, making decisions about
 scheduling, deployment and management. With the addition of `k8sd`, the control
 plane node's components include:
@@ -48,7 +49,7 @@ plane node's components include:
 - **Controller Manager (kube-controller-manager)**: Runs controller processes
     that regulate the state of the cluster, ensuring the desired state matches
     the observed state.
-- **k8s-dqlite**: A fast, embedded, persistent in-memory key-value store with 
+- **k8s-dqlite**: A fast, embedded, persistent in-memory key-value store with
     Raft consensus used to store all cluster data.
 - **k8sd**: Implements and exposes the operations functionality needed for
     managing the Kubernetes cluster.
@@ -57,7 +58,7 @@ plane node's components include:
 
 Worker nodes are responsible for running the applications and workloads. Worker
 nodes, can interact with the `k8sd` API, gaining capabilities to manage its
-entire lifecycle. Their components include:
+entire life-cycle. Their components include:
 
 - **Local API Server Proxy**: This component forwards requests to the control
     plane nodes.
@@ -67,8 +68,6 @@ entire lifecycle. Their components include:
 - **Kube-Proxy (kube-proxy)**: Manages network communication within the cluster.
 - **Container Runtime**: The software responsible for running containers. In
     Canonical Kubernetes the runtime is `containerd`.
-
-
 
 <!-- LINKS -->
 

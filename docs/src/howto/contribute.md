@@ -18,8 +18,8 @@ To build the snap locally, you will need the following:
 - The Snapcraft build tool, for building the snap (see the [Snapcraft
    documentation][]).
 
-Clone the [GitHub repository for the k8s snap][code repo] and then open a terminal in that
-directory. Run the command:
+Clone the [GitHub repository for the k8s snap][code repo] and then open a
+terminal in that directory. Run the command:
 
 ```
 snapcraft --use-lxd
@@ -43,7 +43,8 @@ the snap store, and is not confined:
 sudo snap install k8s_v1.29.2_multi.snap --dangerous --classic
 ```
 
-```{note} You will not be able to install this snap if there is already a k8s snap installed on your system.
+```{note} You will not be able to install this snap if there is already a
+   k8s snap installed on your system.
 ```
 
 Once you have verified the current snap build works, it can be removed with:
@@ -71,7 +72,6 @@ We welcome any improvements and bug-fixes to the Canonical Kubernetes code.
 Once you have tested your changes, please make a pull request on the [code
 repository][code repo] and we will review it as soon as possible.
 
-
 ## Contribute to the documentation
 
 Our aim is to provide easy-to-understand documentation on all aspects of
@@ -88,13 +88,13 @@ it on the [Diátaxis website]. In essence though, this guides the way we
 categorise and write our documentation. You can see there are four main
 categories of documentation:
 
- - **Tutorials** for guided walkthroughs
- - **How to** pages for specific tasks and goals
- - **Explanation** pages which give background reasons and, well, explanations
- - **Reference**, where you will find the commands, the roadmap, etc.
+- **Tutorials** for guided walkthroughs
+- **How to** pages for specific tasks and goals
+- **Explanation** pages which give background reasons and, well, explanations
+- **Reference**, where you will find the commands, the roadmap, etc.
 
 Every page of documentation should fit into one of those categories. If it
-doesn't you may consider if it is actually two pages (e.g. a How to *and* and
+doesn't you may consider if it is actually two pages (e.g. a How to *and* an
 explanation).
 
 ### Small changes
@@ -131,7 +131,6 @@ the docs. The output will then be served locally - check the output for the
 URL. Using the `run` option means that the docs will automatically be
 regenerated when you change any of the source files too (though remember to
 press `F5` in your browser to reload the page without caching)!
-
 
 <!-- LINKS -->
 

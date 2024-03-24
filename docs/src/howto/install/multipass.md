@@ -60,11 +60,11 @@ multipass launch 22.04 --name k8s-node --memory 4G --disk 20G --cpus 2
 
 This command specifies:
 
- - **22.04**: The Ubuntu image used as the basis for the instance 
- - **--name**: The name by which you will refer to the instance
- - **--memory**: The memory to allocate
- - **--disk**: The disk space to allocate
- - **--cpus**: The number of CPU cores to reserve for this instance
+- **22.04**: The Ubuntu image used as the basis for the instance
+- **--name**: The name by which you will refer to the instance
+- **--memory**: The memory to allocate
+- **--disk**: The disk space to allocate
+- **--cpus**: The number of CPU cores to reserve for this instance
 
 For more details of creating instances with Multipass, please see the
 [Multipass documentation][multipass-options] about instance creation.
@@ -109,11 +109,8 @@ multipass delete k8s-node
 multipass purge
 ```
 
-
-
-
 <!-- LINKS -->
-
+<!-- markdownlint-disable MD053 -->
 [snap-support]: https://snapcraft.io/docs/installing-snapd
 [multipass-options]: https://multipass.run/docs/get-started-with-multipass-linux#heading--create-a-customised-instance
 [install instructions]: ./snap

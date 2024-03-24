@@ -1,4 +1,4 @@
-# Welcome to the Canonical Kubernetes community!
+# Welcome to the Canonical Kubernetes community
 
 This rapidly growing community is a diverse bunch of people - developers,
 Kubernetes admins, inventors, researchers, students… and we all share the joy
@@ -32,15 +32,14 @@ one, or of course you are also welcome to contribute to the code.
 **Our commitment to you** - we monitor the issues on GitHub regularly and we
 aim to triage all bug reports within three working days.
 
-
-## Contributing to the code? 
+## Contributing to the code?
 
 Canonical Kubernetes is proudly open source, published under the GPLv3 license.
 We welcome and encourage contributions to the code. Please see the [Developer
 guide] for more information on contributing.
 
 **Our commitment to you** - we closely follow activity on the source
-repository. We aim to respond to any PRs within three working days. 
+repository. We aim to respond to any PRs within three working days.
 
 ## Contributing to docs?
 
@@ -61,7 +60,6 @@ participating understands what the expectations and obligations are. The team
 adopts the [Ubuntu Code of Conduct
 2.0](https://ubuntu.com/community/ethos/code-of-conduct), and we use these as
 the guidelines for participation.
-
 
 <!-- LINKS -->
 

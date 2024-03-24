@@ -10,7 +10,7 @@ across their cluster.
 This guide assumes the following:
 
 - You have root or sudo access to the machine.
-- You have a bootstraped Canonical Kubernetes cluster (see the [Getting
+- You have a bootstrapped Canonical Kubernetes cluster (see the [Getting
   Started][getting-started-guide] guide).
 
 ## Check Network status

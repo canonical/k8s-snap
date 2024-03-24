@@ -1,7 +1,7 @@
 # What is Canonical Kubernetes?
 
-At its core, Canonical Kubernetes is a full implementation of
-upstream [Kubernetes] delivered in a compact, secure, reliable [snap] package. As the
+At its core, Canonical Kubernetes is a full implementation of upstream
+[Kubernetes] delivered in a compact, secure, reliable [snap] package. As the
 upstream Kubernetes services are not all that is required for a fully
 functional cluster, additional services and functionality are built in. You can
 deploy the snap and have a single-node cluster up and running in minutes.
@@ -52,13 +52,11 @@ visit the [Ubuntu support] page.
 
 - Try it now! Jump over to the [Getting started tutorial][tutorial]
 
-
 <!-- LINKS -->
 
 [Kubernetes]: https://kubernetes.io
 [snap]: https://snapcraft.io/docs
 [tutorial]: ../tutorial/getting-started
-[COS]: https://charmhub.io/topics/canonical-observability-stack
 [Juju]: https://juju.is
 [charm]: https://charmhub.io/k8s
 [snapd documentation]: https://snapcraft.io/docs/installing-snapd
