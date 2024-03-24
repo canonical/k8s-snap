@@ -33,7 +33,7 @@ This should output a list of values like this:
 
 - `cidrs` - a list containing [cidr] definitions of the pool of IP addresses to use
 - `l2-mode` - whether L2 mode (failover) is turned on
-- `l2-interfaces`  - optional list of interfaces to announce services over( defaults to all)
+- `l2-interfaces` - optional list of interfaces to announce services over (defaults to all)
 - `bgp-mode` - whether BGP mode is active.
 - `bgp-local-asn` - the local Autonomous System Number (ASN)
 - `bgp-peer-address` - the peer address
