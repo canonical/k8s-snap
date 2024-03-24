@@ -71,7 +71,7 @@ sudo k8s status
 The default load-balancer can be disabled again with:
 
 ```
-sudo k8s disable dns
+sudo k8s disable load-balancer
 ```
 
 
