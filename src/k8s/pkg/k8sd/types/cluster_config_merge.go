@@ -2,12 +2,12 @@ package types
 
 import (
 	"fmt"
-	"net"
 )
 
 // MergeClusterConfig applies updates from non-empty values of the new ClusterConfig to an existing one.
 // MergeClusterConfig will return an error if we try to update a config that must not be updated. once such an operation is implemented in the future, we can allow the change here.
 // MergeClusterConfig will create a new ClusterConfig object to avoid mutating the existing config objects.
+// MergeClusterConfig will check that the new ClusterConfig is valid, and returns an error otherwise.
 func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfig, error) {
 	var (
 		config ClusterConfig
@@ -131,54 +131,8 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		}
 	}
 
-	// post check: ensure network is enabled if any of ingress, gateway, load-balancer are enabled
-	if !config.Network.GetEnabled() {
-		if config.Gateway.GetEnabled() {
-			return ClusterConfig{}, fmt.Errorf("gateway requires network to be enabled")
-		}
-		if config.LoadBalancer.GetEnabled() {
-			return ClusterConfig{}, fmt.Errorf("load-balancer requires network to be enabled")
-		}
-		if config.Ingress.GetEnabled() {
-			return ClusterConfig{}, fmt.Errorf("ingress requires network to be enabled")
-		}
-	}
-
-	// post check: load-balancer BGP mode configuration
-	if config.LoadBalancer.GetBGPMode() {
-		if config.LoadBalancer.GetBGPLocalASN() == 0 {
-			return ClusterConfig{}, fmt.Errorf("load-balancer.bgp-local-asn must be set when load-balancer.bgp-mode is enabled")
-		}
-		if config.LoadBalancer.GetBGPPeerAddress() == "" {
-			return ClusterConfig{}, fmt.Errorf("load-balancer.bgp-peer-address must be set when load-balancer.bgp-mode is enabled")
-		}
-		if config.LoadBalancer.GetBGPPeerPort() == 0 {
-			return ClusterConfig{}, fmt.Errorf("load-balancer.bgp-peer-port must be set when load-balancer.bgp-mode is enabled")
-		}
-		if config.LoadBalancer.GetBGPPeerASN() == 0 {
-			return ClusterConfig{}, fmt.Errorf("load-balancer.bgp-peer-asn must be set when load-balancer.bgp-mode is enabled")
-		}
-	}
-
-	// post check: local-storage.reclaim-policy should be one of 3 values
-	switch config.LocalStorage.GetReclaimPolicy() {
-	case "", "Retain", "Recycle", "Delete":
-	default:
-		return ClusterConfig{}, fmt.Errorf("local-storage.reclaim-policy must be one of: Retrain, Recycle, Delete")
-	}
-
-	// post check: local-storage.local-path must be set if enabled
-	if config.LocalStorage.GetEnabled() && config.LocalStorage.GetLocalPath() == "" {
-		return ClusterConfig{}, fmt.Errorf("local-storage.local-path must be set when local-storage is enabled")
-	}
-
-	// post check: ensure cluster DNS is a valid IP address
-	if v := config.Kubelet.GetClusterDNS(); v != "" {
-		if net.ParseIP(v) == nil {
-			return ClusterConfig{}, fmt.Errorf("dns.service-ip must be a valid IP address")
-		}
-
-		// TODO: ensure dns.service-ip is part of new.Network.ServiceCIDR
+	if err := config.Validate(); err != nil {
+		return ClusterConfig{}, fmt.Errorf("updated cluster configuration is not valid: %w", err)
 	}
 
 	return config, nil

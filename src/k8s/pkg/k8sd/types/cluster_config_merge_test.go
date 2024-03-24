@@ -20,6 +20,13 @@ type mergeClusterConfigTestCase struct {
 func generateMergeClusterConfigTestCases[T any](field string, changeAllowed bool, val1 T, val2 T, update func(*types.ClusterConfig, any)) []mergeClusterConfigTestCase {
 	var cfgNil, cfgZero, cfgOne, cfgTwo types.ClusterConfig
 	var zero T
+
+	// defaults for validation
+	for _, cfg := range []*types.ClusterConfig{&cfgNil, &cfgZero, &cfgOne, &cfgTwo} {
+		cfg.Network.PodCIDR = vals.Pointer("10.1.0.0/16")
+		cfg.Network.ServiceCIDR = vals.Pointer("10.152.183.0/24")
+	}
+
 	update(&cfgZero, zero)
 	update(&cfgOne, val1)
 	update(&cfgTwo, val2)
@@ -83,8 +90,8 @@ func TestMergeClusterConfig(t *testing.T) {
 		generateMergeClusterConfigTestCases("Datastore/ExternalClientKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalClientKey = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Network/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.Network.Enabled = vals.Pointer(v.(bool)) }),
 		generateMergeClusterConfigTestCases("Network/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.Network.Enabled = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("Network/PodCIDR", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Network.PodCIDR = vals.Pointer(v.(string)) }),
-		generateMergeClusterConfigTestCases("Network/ServiceCIDR", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Network.ServiceCIDR = vals.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Network/PodCIDR", false, "10.1.0.0/16", "10.2.0.0/16", func(c *types.ClusterConfig, v any) { c.Network.PodCIDR = vals.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Network/ServiceCIDR", false, "10.152.183.0/24", "10.152.184.0/24", func(c *types.ClusterConfig, v any) { c.Network.ServiceCIDR = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("APIServer/SecurePort", false, 6443, 16443, func(c *types.ClusterConfig, v any) { c.APIServer.SecurePort = vals.Pointer(v.(int)) }),
 		generateMergeClusterConfigTestCases("APIServer/AuthorizationMode", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.APIServer.AuthorizationMode = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Kubelet/CloudProvider", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Kubelet.CloudProvider = vals.Pointer(v.(string)) }),
@@ -298,7 +305,8 @@ func TestMergeClusterConfig_Scenarios(t *testing.T) {
 			name: "LocalStorage/RequirePath",
 			new: types.ClusterConfig{
 				LocalStorage: types.LocalStorage{
-					Enabled: vals.Pointer(true),
+					Enabled:   vals.Pointer(true),
+					LocalPath: vals.Pointer(""),
 				},
 			},
 			expectErr: true,
@@ -306,6 +314,11 @@ func TestMergeClusterConfig_Scenarios(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
+
+			// defaults for validation
+			tc.old.SetDefaults()
+			tc.expectMerged.SetDefaults()
+
 			merged, err := types.MergeClusterConfig(tc.old, tc.new)
 			if tc.expectErr {
 				g.Expect(err).To(HaveOccurred())
