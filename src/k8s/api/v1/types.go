@@ -170,30 +170,7 @@ func (c ClusterStatus) String() string {
 	}
 	result.WriteString("\n")
 
-	printedConfig := UserFacingClusterConfig{}
-	if c.Config.Network.Enabled != nil && *c.Config.Network.Enabled {
-		printedConfig.Network = c.Config.Network
-	}
-	if c.Config.DNS.Enabled != nil && *c.Config.DNS.Enabled {
-		printedConfig.DNS = c.Config.DNS
-	}
-	if c.Config.Ingress.Enabled != nil && *c.Config.Ingress.Enabled {
-		printedConfig.Ingress = c.Config.Ingress
-	}
-	if c.Config.LoadBalancer.Enabled != nil && *c.Config.LoadBalancer.Enabled {
-		printedConfig.LoadBalancer = c.Config.LoadBalancer
-	}
-	if c.Config.LocalStorage.Enabled != nil && *c.Config.LocalStorage.Enabled {
-		printedConfig.LocalStorage = c.Config.LocalStorage
-	}
-	if c.Config.Gateway.Enabled != nil && *c.Config.Gateway.Enabled {
-		printedConfig.Gateway = c.Config.Gateway
-	}
-	if c.Config.MetricsServer.Enabled != nil && *c.Config.MetricsServer.Enabled {
-		printedConfig.MetricsServer = c.Config.MetricsServer
-	}
-
-	b, _ := yaml.Marshal(printedConfig)
+	b, _ := yaml.Marshal(c.Config)
 	result.WriteString(string(b))
 
 	return result.String()
