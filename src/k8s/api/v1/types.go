@@ -23,7 +23,7 @@ type BootstrapConfig struct {
 	DatastoreCACert     string   `yaml:"datastore-ca-crt,omitempty"`
 	DatastoreClientCert string   `yaml:"datastore-client-crt,omitempty"`
 	DatastoreClientKey  string   `yaml:"datastore-client-key,omitempty"`
-	ExtraSANs           []string `yaml:"extrasans"`
+	ExtraSANs           []string `yaml:"extrasans,omitempty"`
 }
 
 // SetDefaults sets the fields to default values.
