@@ -32,7 +32,7 @@ index a0b57c7..1507db4 100755
 -# no-op for classic confinement
 +DIR=`realpath $(dirname "${0}")`
 +
-+# Initialize node for e2e tests
++# Initialize node for integration tests
 +"${DIR}/connect-interfaces.sh"
 +"${DIR}/network-requirements.sh"
 diff --git a/snap/snapcraft.yaml b/snap/snapcraft.yaml

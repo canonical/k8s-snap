@@ -5,16 +5,37 @@ import logging
 from pathlib import Path
 from typing import List
 
-from e2e_util import harness, util
-from e2e_util.config import MANIFESTS_DIR
+from test_util import harness, util
+from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
 
 
-def test_gateway(instances: List[harness.Instance]):
+def test_ingress(instances: List[harness.Instance]):
     instance = instances[0]
     util.wait_for_network(instance)
     util.wait_for_dns(instance)
+
+    instance.exec(["k8s", "enable", "ingress"])
+
+    util.stubbornly(retries=5, delay_s=2).on(instance).until(
+        lambda p: "cilium-ingress" in p.stdout.decode()
+    ).exec(["k8s", "kubectl", "get", "service", "-n", "kube-system", "-o", "json"])
+
+    p = instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "service",
+            "-n",
+            "kube-system",
+            "cilium-ingress",
+            "-o=jsonpath='{.spec.ports[?(@.name==\"http\")].nodePort}'",
+        ],
+        capture_output=True,
+    )
+    ingress_http_port = p.stdout.decode().replace("'", "")
 
     util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
@@ -48,7 +69,7 @@ def test_gateway(instances: List[harness.Instance]):
         ]
     )
 
-    manifest = MANIFESTS_DIR / "gateway-test.yaml"
+    manifest = MANIFESTS_DIR / "ingress-test.yaml"
     instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
@@ -74,25 +95,8 @@ def test_gateway(instances: List[harness.Instance]):
         ]
     )
 
-    util.stubbornly(retries=5, delay_s=2).on(instance).until(
-        lambda p: "cilium-gateway-my-gateway" in p.stdout.decode()
-    ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
-
     p = instance.exec(
-        [
-            "k8s",
-            "kubectl",
-            "get",
-            "service",
-            "cilium-gateway-my-gateway",
-            "-o=jsonpath='{.spec.ports[?(@.name==\"port-80\")].nodePort}'",
-        ],
-        capture_output=True,
-    )
-    gateway_http_port = p.stdout.decode().replace("'", "")
-
-    p = instance.exec(
-        ["curl", f"localhost:{gateway_http_port}"],
+        ["curl", f"localhost:{ingress_http_port}", "-H", "Host: foo.bar.com"],
         capture_output=True,
     )
     assert "Welcome to nginx!" in p.stdout.decode()

@@ -6,7 +6,7 @@ import logging
 from typing import List
 
 import pytest
-from e2e_util import harness, util
+from test_util import harness, util
 
 LOG = logging.getLogger(__name__)
 

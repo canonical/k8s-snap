@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Generator, List
 
 import pytest
-from e2e_util import config, harness, util
+from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
 
