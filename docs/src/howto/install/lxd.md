@@ -24,13 +24,16 @@ lxc profile create k8s
 ```
 
 Once created, we’ll need to add the rules.
-Get our pre-defined profile rules from GitHub and save them as k8s.profile.
+Get our pre-defined profile rules from GitHub and save them as `k8s.profile`.
 
 <!-- markdownlint-disable -->
 ```
 wget https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/e2e/lxd-profile.yaml -O k8s.profile
 ```
 <!-- markdownlint-restore -->
+
+```{note} For an explanation of the settings in this file, [see below](explain-rules)
+```
 
 To pipe the content of the file into the k8s LXD profile, run:
 
@@ -52,16 +55,22 @@ We can now create the container that Canonical Kubernetes will run in.
 lxc launch -p default -p k8s ubuntu:22.04 k8s
 ```
 
-```{note} This command uses the `default` profile, for any existing system
-settings (networking, storage, etc.) before also applying the `k8s` profile -
-the order is important.
+This command uses the `default` profile created by LXD for any
+existing system settings (networking, storage, etc.), before
+also applying the `k8s` profile - the order is important.
 
 ## Install Canonical Kubernetes in an LXD container
 
 First, we’ll need to install Canonical Kubernetes within the container.
 
 ```
-lxc exec k8s -- sudo snap install k8s --classic
+lxc exec k8s -- sudo snap install k8s --classic --channel=latest/edge
+```
+
+```{note}
+Substitute your desired channel in the above command. Find the
+available channels with `snap info k8s` and see the [channels][]
+explanation page for more details on channels, tracks and versions.  
 ```
 
 ## Access Canonical Kubernetes services within LXD
@@ -71,18 +80,20 @@ networking][default-bridged-networking] when you initially setup LXD, there is
 minimal effort required to access Canonical Kubernetes services inside the LXD
 container.
 
-Simply note the `eth0` interface IP address from
+Simply note the `eth0` interface IP address from the command:
 
 <!-- markdownlint-disable -->
 ```
 lxc list k8s
-
+```
+```
 +------+---------+----------------------+----------------------------------------------+-----------+-----------+
 | NAME |  STATE  |         IPV4         |                     IPV6                     |   TYPE    | SNAPSHOTS |
 +------+---------+----------------------+----------------------------------------------+-----------+-----------+
 | k8s  | RUNNING | 10.122.174.30 (eth0) | fd42:80c6:c3e:445a:216:3eff:fe8d:add9 (eth0) | CONTAINER | 0         |
 +------+---------+----------------------+----------------------------------------------+-----------+-----------+
 ```
+
 <!-- markdownlint-restore -->
 
 and use this to access services running inside the container.
@@ -137,16 +148,22 @@ Now that Microbot is up and running, let's make it accessible to the LXD
 container by using the `expose` command.
 
 <!-- markdownlint-disable -->
+
 ```
 lxc exec k8s -- sudo k8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
 ```
+
 <!-- markdownlint-restore -->
 
-We can now get the assigned port. In this example, it’s `32750`.
+We can now get the assigned port. In this example, it’s `32750`:
 
 ```
 lxc exec k8s -- sudo k8s kubectl get service microbot-service
+```
 
+...returns output similar to:
+
+```
 NAME               TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
 microbot-service   NodePort   10.152.183.188   <none>        80:32750/TCP   27m
 ```
@@ -173,6 +190,8 @@ And it can be permanently removed with:
 ```
 lxc delete k8s
 ```
+
+(explain-rules)=
 
 ## Explanation of custom LXD rules
 
@@ -222,3 +241,4 @@ need to access for example storage devices (See comment in [^6]).
 [default-bridged-networking]: https://ubuntu.com/blog/lxd-networking-lxdbr0-explained
 [Microbot]: https://github.com/dontrebootme/docker-microbot
 [AppArmor]: https://apparmor.net/
+[channels]: ../../explanation/channels
