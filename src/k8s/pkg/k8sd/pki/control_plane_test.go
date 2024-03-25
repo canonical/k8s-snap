@@ -11,10 +11,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func mustReadTestData(filename string) string {
+func mustReadTestData(t *testing.T, filename string) string {
 	data, err := os.ReadFile("testdata/" + filename)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	return string(data)
 }
@@ -37,11 +37,10 @@ func TestControlPlaneCertificates(t *testing.T) {
 			Years:    10,
 		})
 
-		cert := mustReadTestData("ca.pem")
-		c.CACert = string(cert)
+		c.CACert = mustReadTestData(t, "ca.pem")
 
 		g := NewWithT(t)
-		g.Expect(c.CompleteCertificates()).ToNot(BeNil())
+		g.Expect(c.CompleteCertificates()).ToNot(Succeed())
 	})
 
 	t.Run("ApiServerCertSANs", func(t *testing.T) {
@@ -54,7 +53,7 @@ func TestControlPlaneCertificates(t *testing.T) {
 		})
 
 		g := NewWithT(t)
-		g.Expect(c.CompleteCertificates()).To(BeNil())
+		g.Expect(c.CompleteCertificates()).To(Succeed())
 
 		block, _ := pem.Decode([]byte(c.APIServerCert))
 		g.Expect(block).ToNot(BeNil())
@@ -72,26 +71,14 @@ func TestControlPlaneCertificates(t *testing.T) {
 				actualIPs[i] = ip.String()
 			}
 
-			for _, expectedIP := range expectedIPs {
-				t.Run(expectedIP, func(t *testing.T) {
-					g.Expect(actualIPs).To(ContainElement(expectedIP), "IP should be present: "+expectedIP)
-				})
-			}
-
-			g.Expect(cert.IPAddresses).To(HaveLen(len(expectedIPs)))
+			g.Expect(actualIPs).To(ConsistOf(expectedIPs))
 		})
 
 		t.Run("DNSNames", func(t *testing.T) {
 			g := NewWithT(t)
 			expectedDNSNames := []string{"cluster.local", "kubernetes", "kubernetes.default", "kubernetes.default.svc", "kubernetes.default.svc.cluster", "kubernetes.default.svc.cluster.local"}
 
-			for _, expectedDNS := range expectedDNSNames {
-				t.Run(expectedDNS, func(t *testing.T) {
-					g.Expect(cert.DNSNames).To(ContainElement(expectedDNS), "DNS should be present: "+expectedDNS)
-				})
-			}
-
-			g.Expect(cert.DNSNames).To(HaveLen(len(expectedDNSNames)))
+			g.Expect(cert.DNSNames).To(ConsistOf(expectedDNSNames))
 		})
 	})
 
@@ -105,7 +92,7 @@ func TestControlPlaneCertificates(t *testing.T) {
 		})
 
 		g := NewWithT(t)
-		g.Expect(c.CompleteCertificates()).To(BeNil())
+		g.Expect(c.CompleteCertificates()).To(Succeed())
 
 		block, _ := pem.Decode([]byte(c.KubeletCert))
 		g.Expect(block).ToNot(BeNil())
@@ -123,26 +110,14 @@ func TestControlPlaneCertificates(t *testing.T) {
 				actualIPs[i] = ip.String()
 			}
 
-			for _, expectedIP := range expectedIPs {
-				t.Run(expectedIP, func(t *testing.T) {
-					g.Expect(actualIPs).To(ContainElement(expectedIP), "IP should be present: "+expectedIP)
-				})
-			}
-
-			g.Expect(cert.IPAddresses).To(HaveLen(len(expectedIPs)))
+			g.Expect(actualIPs).To(ConsistOf(expectedIPs))
 		})
 
 		t.Run("DNSNames", func(t *testing.T) {
 			g := NewWithT(t)
 			expectedDNSNames := []string{"h1", "cluster.local"}
 
-			for _, expectedDNS := range expectedDNSNames {
-				t.Run(expectedDNS, func(t *testing.T) {
-					g.Expect(cert.DNSNames).To(ContainElement(expectedDNS), "DNS should be present: "+expectedDNS)
-				})
-			}
-
-			g.Expect(cert.DNSNames).To(HaveLen(len(expectedDNSNames)))
+			g.Expect(cert.DNSNames).To(ConsistOf(expectedDNSNames))
 		})
 	})
 }
