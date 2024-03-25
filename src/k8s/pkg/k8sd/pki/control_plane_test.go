@@ -2,18 +2,22 @@ package pki_test
 
 import (
 	"crypto/x509"
-	"embed"
 	"encoding/pem"
-	"io/fs"
 	"net"
+	"os"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	. "github.com/onsi/gomega"
 )
 
-//go:embed data
-var testCertificates embed.FS
+func mustReadTestData(filename string) string {
+	data, err := os.ReadFile("testdata/" + filename)
+	if err != nil {
+		panic(err)
+	}
+	return string(data)
+}
 
 func TestControlPlaneCertificates(t *testing.T) {
 	c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
@@ -33,8 +37,7 @@ func TestControlPlaneCertificates(t *testing.T) {
 			Years:    10,
 		})
 
-		cert, err := fs.ReadFile(testCertificates, "data/ca.pem")
-		g.Expect(err).To(BeNil())
+		cert := mustReadTestData("ca.pem")
 		c.CACert = string(cert)
 
 		g := NewWithT(t)

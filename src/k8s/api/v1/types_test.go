@@ -21,7 +21,6 @@ func TestSetDefaults(t *testing.T) {
 		EnableRBAC:    vals.Pointer(true),
 		K8sDqlitePort: 9000,
 		Datastore:     "k8s-dqlite",
-		ExtraSANs:     nil,
 	}
 
 	g.Expect(b).To(Equal(expected))
@@ -35,7 +34,6 @@ func TestBootstrapConfigFromMap(t *testing.T) {
 		Components:    []string{"dns", "network", "storage"},
 		EnableRBAC:    vals.Pointer(true),
 		K8sDqlitePort: 9000,
-		ExtraSANs:     []string{},
 	}
 
 	// Convert the BootstrapConfig to a map
