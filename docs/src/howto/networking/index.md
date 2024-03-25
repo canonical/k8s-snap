@@ -15,4 +15,5 @@ how to configure and use key capabilities of Canonical Kubernetes.
 /howto/networking/default-dns.md
 /howto/networking/default-network.md
 /howto/networking/default-ingress.md
+/howto/networking/default-loadbalancer.md
 ```
