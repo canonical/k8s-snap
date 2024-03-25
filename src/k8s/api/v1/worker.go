@@ -3,8 +3,6 @@ package v1
 // WorkerNodeInfoRequest is used by a worker node to retrieve the required credentials
 // to join a cluster.
 type WorkerNodeInfoRequest struct {
-	// Hostname is the name of the worker node.
-	Hostname string `json:"hostname"`
 	// Address is the address of the worker node.
 	Address string `json:"address"`
 }

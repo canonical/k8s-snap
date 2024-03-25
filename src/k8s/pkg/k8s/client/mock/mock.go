@@ -4,6 +4,7 @@ import (
 	"context"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/k8s/client"
 )
 
 // Client is a mock implementation for k8s Client.
@@ -14,41 +15,34 @@ type Client struct {
 		Address         string
 		BootstrapConfig apiv1.BootstrapConfig
 	}
-	BootstrapClusterMember           apiv1.NodeStatus
-	BootstrapErr                     error
-	IsBootstrappedReturn             bool
-	IsKubernetesAPIServerReadyReturn bool
-	CleanupNodeCalledWith            struct {
+	BootstrapClusterMember apiv1.NodeStatus
+	BootstrapErr           error
+	IsBootstrappedReturn   bool
+	CleanupNodeCalledWith  struct {
 		Ctx      context.Context
 		NodeName string
 	}
-	ClusterStatusReturn   apiv1.ClusterStatus
-	ClusterStatusErr      error
-	NodeStatusReturn      apiv1.NodeStatus
-	NodeStatusErr         error
-	CreateJoinTokenReturn struct {
+	ClusterStatusReturn    apiv1.ClusterStatus
+	ClusterStatusErr       error
+	NodeStatusReturn       apiv1.NodeStatus
+	NodeStatusErr          error
+	GetJoinTokenCalledWith apiv1.GetJoinTokenRequest
+	GetJoinTokenReturn     struct {
 		Token string
 		Err   error
 	}
-	GenerateAuthTokenReturn struct {
+	GenerateAuthTokenCalledWith apiv1.GenerateKubernetesAuthTokenRequest
+	GenerateAuthTokenReturn     struct {
 		Token string
 		Err   error
 	}
-	RevokeAuthTokenErr    error
-	JoinClusterCalledWith struct {
-		Ctx     context.Context
-		Name    string
-		Address string
-		Token   string
-	}
-	JoinClusterErr       error
-	KubeConfigReturn     string
-	KubeConfigErr        error
-	RemoveNodeCalledWith struct {
-		Ctx   context.Context
-		Name  string
-		Force bool
-	}
+	RevokeAuthTokenCalledWith  apiv1.RevokeKubernetesAuthTokenRequest
+	RevokeAuthTokenErr         error
+	JoinClusterCalledWith      apiv1.JoinClusterRequest
+	JoinClusterErr             error
+	KubeConfigReturn           string
+	KubeConfigErr              error
+	RemoveNodeCalledWith       apiv1.RemoveNodeRequest
 	RemoveNodeErr              error
 	GetClusterConfigCalledWith apiv1.GetClusterConfigRequest
 	GetClusterConfigReturn     struct {
@@ -67,10 +61,6 @@ func (c *Client) Bootstrap(ctx context.Context, name string, address string, boo
 	return c.BootstrapClusterMember, c.BootstrapErr
 }
 
-func (c *Client) IsKubernetesAPIServerReady(ctx context.Context) bool {
-	return c.IsKubernetesAPIServerReadyReturn
-}
-
 func (c *Client) IsBootstrapped(ctx context.Context) bool {
 	return c.IsBootstrappedReturn
 }
@@ -84,38 +74,36 @@ func (c *Client) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.Clust
 	return c.ClusterStatusReturn, c.ClusterStatusErr
 }
 
-func (c *Client) NodeStatus(ctx context.Context) (apiv1.NodeStatus, error) {
+func (c *Client) LocalNodeStatus(ctx context.Context) (apiv1.NodeStatus, error) {
 	return c.NodeStatusReturn, c.NodeStatusErr
 }
 
-func (c *Client) CreateJoinToken(ctx context.Context, name string, worker bool) (string, error) {
-	return c.CreateJoinTokenReturn.Token, c.CreateJoinTokenReturn.Err
+func (c *Client) GetJoinToken(ctx context.Context, request apiv1.GetJoinTokenRequest) (string, error) {
+	c.GetJoinTokenCalledWith = request
+	return c.GetJoinTokenReturn.Token, c.GetJoinTokenReturn.Err
 }
 
-func (c *Client) GenerateAuthToken(ctx context.Context, username string, groups []string) (string, error) {
+func (c *Client) GenerateAuthToken(ctx context.Context, request apiv1.GenerateKubernetesAuthTokenRequest) (string, error) {
+	c.GenerateAuthTokenCalledWith = request
 	return c.GenerateAuthTokenReturn.Token, c.GenerateAuthTokenReturn.Err
 }
 
-func (c *Client) RevokeAuthToken(ctx context.Context, token string) error {
+func (c *Client) RevokeAuthToken(ctx context.Context, request apiv1.RevokeKubernetesAuthTokenRequest) error {
+	c.RevokeAuthTokenCalledWith = request
 	return c.RevokeAuthTokenErr
 }
 
-func (c *Client) JoinCluster(ctx context.Context, name string, address string, token string) error {
-	c.JoinClusterCalledWith.Ctx = ctx
-	c.JoinClusterCalledWith.Name = name
-	c.JoinClusterCalledWith.Address = address
-	c.JoinClusterCalledWith.Token = token
+func (c *Client) JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest) error {
+	c.JoinClusterCalledWith = request
 	return c.JoinClusterErr
 }
 
-func (c *Client) KubeConfig(ctx context.Context, server string) (string, error) {
+func (c *Client) KubeConfig(ctx context.Context, request apiv1.GetKubeConfigRequest) (string, error) {
 	return c.KubeConfigReturn, c.KubeConfigErr
 }
 
-func (c *Client) RemoveNode(ctx context.Context, name string, force bool) error {
-	c.RemoveNodeCalledWith.Ctx = ctx
-	c.RemoveNodeCalledWith.Name = name
-	c.RemoveNodeCalledWith.Force = force
+func (c *Client) RemoveNode(ctx context.Context, request apiv1.RemoveNodeRequest) error {
+	c.RemoveNodeCalledWith = request
 	return c.RemoveNodeErr
 }
 
@@ -128,3 +116,5 @@ func (c *Client) GetClusterConfig(ctx context.Context, request apiv1.GetClusterC
 	c.GetClusterConfigCalledWith = request
 	return c.GetClusterConfigReturn.Config, c.GetClusterConfigReturn.Err
 }
+
+var _ client.Client = &Client{}

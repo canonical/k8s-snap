@@ -42,10 +42,6 @@ func (s *snap) path(parts ...string) string {
 	return path.Join(append([]string{s.snapDir}, parts...)...)
 }
 
-func (s *snap) commonPath(parts ...string) string {
-	return path.Join(append([]string{s.snapCommonDir}, parts...)...)
-}
-
 // serviceName infers the name of the snapctl daemon from the service name.
 // if the serviceName is the snap name `k8s` (=referes to all services) it will return it as is.
 func serviceName(serviceName string) string {

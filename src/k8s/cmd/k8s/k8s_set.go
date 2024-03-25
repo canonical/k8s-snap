@@ -33,6 +33,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			for _, arg := range args {
 				if err := updateConfig(&config, arg); err != nil {
 					cmd.PrintErrf("Error: Invalid option %q.\n\nThe error was: %v\n", arg, err)
+					env.Exit(1)
 				}
 			}
 

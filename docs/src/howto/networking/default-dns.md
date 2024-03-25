@@ -18,7 +18,7 @@ This guide assumes the following:
 
 Find out whether DNS is enabled or disabled with the following command:
 
-```bash
+```
 sudo k8s status
 ```
 
@@ -28,20 +28,20 @@ The default state for the cluster is `dns enabled`.
 
 To enable DNS, run:
 
-```bash
+```
 sudo k8s enable dns
 ```
 
 For more information on this command, run:
 
-```bash
+```
 sudo k8s help enable
 ```
 
 ## Configure DNS
 
 Discover your configuration options by running:
-```bash
+```
 sudo k8s set dns --help
 ```
 
@@ -52,19 +52,19 @@ You should see three options:
 
 Set a new DNS server IP for forwarding known entries:
 
-```bash
+```
 sudo k8s set dns.upstream-nameservers=<new-ips>
 ```
 
 Change the cluster domain name:
 
-```bash
+```
 sudo k8s set dns.cluster-domain=<new-domain-name>
 ```
 
 Assign a new cluster IP to the DNS service:
 
-```bash
+```
 sudo k8s set dns.service-ip=<new-cluster-ip>
 ```
 
@@ -81,13 +81,13 @@ custom DNS solution is in place before disabling. You can re-enable DNS at any
 point, and your cluster will return to normal functionality.```
 ```
 
-```bash
+```
 sudo k8s disable dns
 ```
 
 For more information on this command, execute:
 
-```bash
+```
 sudo k8s help disable
 ```
 

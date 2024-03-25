@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
@@ -11,43 +12,39 @@ import (
 	"github.com/canonical/lxd/shared/api"
 )
 
-func (c *k8sdClient) JoinCluster(ctx context.Context, name string, address string, token string) error {
-	if err := c.m.Ready(30); err != nil {
-		return fmt.Errorf("cluster did not come up in time: %w", err)
+func (c *k8sdClient) JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest) error {
+	timeout := 30 * time.Second
+	if deadline, set := ctx.Deadline(); set {
+		timeout = time.Until(deadline)
 	}
 
-	request := apiv1.JoinClusterRequest{
-		Name:    name,
-		Address: address,
-		Token:   token,
+	if err := c.m.Ready(int(timeout / time.Second)); err != nil {
+		return fmt.Errorf("k8sd API is not ready: %w", err)
 	}
-	err := c.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, nil)
-	if err != nil {
+
+	if err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, nil); err != nil {
 		// TODO(neoaggelos): only return error that join cluster failed
 		fmt.Fprintln(os.Stderr, "Cleaning up, error was", err)
-		c.CleanupNode(ctx, name)
-		return fmt.Errorf("failed to query endpoint POST /k8sd/cluster/join: %w", err)
+		c.CleanupNode(ctx, request.Name)
+		return fmt.Errorf("failed to POST /k8sd/cluster/join: %w", err)
 	}
 
-	c.WaitForDqliteNodeToBeReady(ctx, name)
+	c.WaitForDqliteNodeToBeReady(ctx, request.Name)
 	return nil
 }
 
-func (c *k8sdClient) RemoveNode(ctx context.Context, name string, force bool) error {
-	request := apiv1.RemoveNodeRequest{
-		Name:  name,
-		Force: force,
+func (c *k8sdClient) RemoveNode(ctx context.Context, request apiv1.RemoveNodeRequest) error {
+	if err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "remove"), request, nil); err != nil {
+		return fmt.Errorf("failed to DELETE /k8sd/cluster/remove: %w", err)
 	}
-	err := c.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "remove"), request, nil)
-	if err != nil {
-		return fmt.Errorf("failed to query endpoint DELETE /k8sd/cluster/remove: %w", err)
-	}
-
 	return nil
 }
 
 func (c *k8sdClient) ResetNode(ctx context.Context, name string, force bool) error {
-	return c.mc.ResetClusterMember(ctx, name, force)
+	if err := c.mc.ResetClusterMember(ctx, name, force); err != nil {
+		return fmt.Errorf("failed to ResetClusterMember: %w", err)
+	}
+	return nil
 }
 
 // WaitForDqliteNodeToBeReady waits until the underlying dqlite node of the microcluster is not in PENDING state.
@@ -57,7 +54,7 @@ func (c *k8sdClient) WaitForDqliteNodeToBeReady(ctx context.Context, nodeName st
 	return control.WaitUntilReady(ctx, func() (bool, error) {
 		clusterStatus, err := c.ClusterStatus(ctx, false)
 		if err != nil {
-			return false, fmt.Errorf("failed to get cluster status: %w", err)
+			return false, fmt.Errorf("failed to get the cluster status: %w", err)
 		}
 
 		for _, member := range clusterStatus.Members {
@@ -81,7 +78,7 @@ func (c *k8sdClient) CleanupNode(ctx context.Context, nodeName string) {
 
 	// Delete the node from the cluster.
 	// This will fail if this is the only member in the cluster.
-	c.RemoveNode(ctx, nodeName, false)
+	c.RemoveNode(ctx, apiv1.RemoveNodeRequest{Name: nodeName, Force: false})
 	// Reset the local state and daemon.
 	// This is required to reset a bootstrapped node before
 	// joining another cluster.

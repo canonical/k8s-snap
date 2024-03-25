@@ -45,6 +45,10 @@ jobs:
         working-directory: src/k8s
         run: make go.vet
 
+      - name: go deadcode
+        working-directory: src/k8s
+        run: make go.deadcode
+
       - name: go test
         working-directory: src/k8s
         run: |
@@ -71,6 +75,7 @@ jobs:
         with:
           recreate: true
           path: code-coverage-results.md
+        continue-on-error: true
 
   test-binary:
     name: Binaries

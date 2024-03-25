@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +23,7 @@ func newRevokeAuthTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := client.RevokeAuthToken(cmd.Context(), opts.token); err != nil {
+			if err := client.RevokeAuthToken(cmd.Context(), apiv1.RevokeKubernetesAuthTokenRequest{Token: opts.token}); err != nil {
 				cmd.PrintErrf("Error: Failed to revoke the auth token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return

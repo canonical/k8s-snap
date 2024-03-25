@@ -66,7 +66,7 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		Metadata apiv1.WorkerNodeInfoResponse `json:"metadata"`
 	}
 
-	requestBody, err := json.Marshal(apiv1.WorkerNodeInfoRequest{Hostname: s.Name(), Address: nodeIP.String()})
+	requestBody, err := json.Marshal(apiv1.WorkerNodeInfoRequest{Address: nodeIP.String()})
 	if err != nil {
 		return fmt.Errorf("failed to prepare worker info request: %w", err)
 	}
@@ -75,7 +75,8 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	if err != nil {
 		return fmt.Errorf("failed to prepare HTTP request: %w", err)
 	}
-	httpRequest.Header.Add("k8sd-token", token.Token)
+	httpRequest.Header.Add("worker-name", s.Name())
+	httpRequest.Header.Add("worker-token", token.Secret)
 
 	httpResponse, err := httpClient.Do(httpRequest)
 	if err != nil {
@@ -272,7 +273,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 
 	// Wait until Kube-API server is ready
 	if err := waitApiServerReady(s.Context, snap); err != nil {
-		return fmt.Errorf("failed to wait for kube-apiserver: %w", err)
+		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
 
 	if cfg.Network.Enabled != nil {

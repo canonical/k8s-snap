@@ -4,25 +4,23 @@ import (
 	"context"
 	"fmt"
 
-	api "github.com/canonical/k8s/api/v1"
-	lxdApi "github.com/canonical/lxd/shared/api"
+	apiv1 "github.com/canonical/k8s/api/v1"
+	api "github.com/canonical/lxd/shared/api"
 )
 
-func (c *k8sdClient) UpdateClusterConfig(ctx context.Context, request api.UpdateClusterConfigRequest) error {
-	var response api.UpdateClusterConfigResponse
-	err := c.Query(ctx, "PUT", lxdApi.NewURL().Path("k8sd", "cluster", "config"), request, &response)
-	if err != nil {
-		return fmt.Errorf("failed to update cluster configuration: %w", err)
+func (c *k8sdClient) UpdateClusterConfig(ctx context.Context, request apiv1.UpdateClusterConfigRequest) error {
+	var response apiv1.UpdateClusterConfigResponse
+	if err := c.mc.Query(ctx, "PUT", api.NewURL().Path("k8sd", "cluster", "config"), request, &response); err != nil {
+		return fmt.Errorf("failed to PUT /k8sd/cluster/config: %w", err)
 	}
 	return nil
 }
 
-func (c *k8sdClient) GetClusterConfig(ctx context.Context, request api.GetClusterConfigRequest) (api.UserFacingClusterConfig, error) {
-	var response api.GetClusterConfigResponse
+func (c *k8sdClient) GetClusterConfig(ctx context.Context, request apiv1.GetClusterConfigRequest) (apiv1.UserFacingClusterConfig, error) {
+	var response apiv1.GetClusterConfigResponse
 
-	err := c.Query(ctx, "GET", lxdApi.NewURL().Path("k8sd", "cluster", "config"), nil, &response)
-	if err != nil {
-		return api.UserFacingClusterConfig{}, err
+	if err := c.mc.Query(ctx, "GET", api.NewURL().Path("k8sd", "cluster", "config"), nil, &response); err != nil {
+		return apiv1.UserFacingClusterConfig{}, fmt.Errorf("failed to GET /k8sd/cluster/config: %w", err)
 	}
 
 	return response.Config, nil

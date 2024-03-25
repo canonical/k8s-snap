@@ -8,7 +8,11 @@ import (
 
 // InternalWorkerNodeToken encodes information required to join a cluster as a worker node.
 type InternalWorkerNodeToken struct {
-	Token         string   `json:"token"`
+	Token string `json:"token"`
+	// Secret is used to verify the join request.
+	// Secret is only valid for a specified worker that was specified upon creation.
+	Secret string `json:"secret"`
+	// JoinAddresses is a list of control-plane addresses that exist in the cluster.
 	JoinAddresses []string `json:"join_addresses"`
 }
 

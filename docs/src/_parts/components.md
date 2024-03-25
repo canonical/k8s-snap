@@ -1,6 +1,7 @@
 # Updating Helm Charts
 
 ## Overview
+
 This section provides a guide on how to update the Helm charts for k8s components. Currently, the
 process is manual, but there are plans to automate it in the near future.
 
@@ -12,7 +13,7 @@ To pull the new charts, follow these steps:
 - **Add the Helm Repository**: For the component you need to update (e.g., Cilium, CoreDNS), add the relevant Helm repository. 
 
 - **Pull the Chart**: Use the following command to pull the chart:
-    ```bash
+    ```
     helm pull [chart-name] --destination ./k8s/components/charts
     ```
     Replace `[chart-name]` with the name of your chart. This command saves the chart as a `.tgz` file in the `charts` folder.

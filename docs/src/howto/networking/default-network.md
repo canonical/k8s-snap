@@ -17,7 +17,7 @@ This guide assumes the following:
 
 Find out whether Network is enabled or disabled with the following command:
 
-```bash
+```
 sudo k8s status
 ```
 
@@ -27,13 +27,13 @@ The default state for the cluster is `network disabled`.
 
 To enable Network, run:
 
-```bash
+```
 sudo k8s enable network
 ```
 
 For more information on the command, execute:
 
-```bash
+```
 sudo k8s enable network --help
 ```
 
@@ -73,13 +73,13 @@ You can `disable` the built-in network:
    Ensure that you have alternative configurations in place before disabling Network.
 ```
 
-```bash
+```
 sudo k8s disable network
 ```
 
 For more information on this command, run:
 
-```bash
+```
 sudo k8s disable network --help
 ```
 

@@ -8,7 +8,7 @@ need for multiple physical hosts.
 
 You can install [LXD] via snaps:
 
-```no-highlight
+```
 sudo snap install lxd
 sudo lxd init
 ```
@@ -18,32 +18,32 @@ sudo lxd init
 Canonical Kubernetes requires some specific settings to work within LXD (these
 are explained in more detail below). These can be applied using a custom
 profile. The first step is to create a new profile:
-```no-highlight
+```
 lxc profile create k8s
 ```
 
 Once created, we’ll need to add the rules. 
 Get our pre-defined profile rules from github and save them as k8s.profile.
-```no-highlight
+```
 wget https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/e2e/lxd-profile.yaml -O k8s.profile
 ```
 
 To pipe the content of the file into the k8s LXD profile, run:
 
-```no-highlight
+```
 cat k8s.profile | lxc profile edit k8s
 ```
 
 Remove the copied content from your directory:
 
-```no-highlight
+```
 rm k8s.profile
 ```
 
 ## Start an LXD container for Canonical Kubernetes
 We can now create the container that Canonical Kubernetes will run in.
 
-```no-highlight
+```
 lxc launch -p default -p k8s ubuntu:22.04 k8s
 ```
 
@@ -54,7 +54,7 @@ the order is important.
 ## Install Canonical Kubernetes in an LXD container
 First, we’ll need to install Canonical Kubernetes within the container.
 
-```no-highlight
+```
 lxc exec k8s -- sudo snap install k8s --classic
 ```
 
@@ -65,7 +65,7 @@ the LXD container.
 
 Simply note the `eth0` interface IP address from
 
-```no-highlight
+```
 lxc list k8s
 
 +------+---------+----------------------+----------------------------------------------+-----------+-----------+
@@ -89,19 +89,19 @@ to expose. These steps can be applied to any other deployment.
 
 First, initialize the k8s cluster with 
 
-```no-highlight
+```
 lxc exec k8s -- sudo k8s bootstrap
 ```
 
 Now, let’s deploy Microbot (please note this image only works on `x86_64`).
 
-```no-highlight
+```
 lxc exec k8s -- sudo k8s kubectl create deployment microbot --image=dontrebootme/microbot:v1
 ```
 
 Then check that the deployment has come up.
 
-```no-highlight
+```
 lxc exec k8s -- sudo k8s kubectl get all
 
 NAME                            READY   STATUS    RESTARTS   AGE
@@ -119,13 +119,13 @@ replicaset.apps/microbot-6d97548556   1         1         1       21m
 
 Now that Microbot is up and running, let's make it accessible to the LXD container by using the `expose` command.
 
-```no-highlight
+```
 lxc exec k8s -- sudo k8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
 ```
 
 We can now get the assigned port. In this example, it’s `32750`.
 
-```no-highlight
+```
 lxc exec k8s -- sudo k8s kubectl get service microbot-service
 
 NAME               TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
@@ -135,7 +135,7 @@ microbot-service   NodePort   10.152.183.188   <none>        80:32750/TCP   27m
 With this, we can access Microbot from our host but using the container’s
 address that we noted earlier.
 
-```no-highlight
+```
 curl 10.122.174.30:32750
 ```
 
@@ -143,13 +143,13 @@ curl 10.122.174.30:32750
 
 The `k8s` container you created will keep running in the background until it is either stopped or the host computer is shut down. You can stop the running container at any time by running:
 
-```no-highlight
+```
 lxc stop k8s
 ```
 
 And it can be permanently removed with:
 
-```no-highlight
+```
 lxc delete k8s
 ```
 

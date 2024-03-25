@@ -17,7 +17,7 @@ import (
 )
 
 func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
-	req := apiv1.TokenRequest{}
+	req := apiv1.GetJoinTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -29,7 +29,7 @@ func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http
 
 	var token string
 	if req.Worker {
-		token, err = createWorkerToken(s)
+		token, err = getOrCreateWorkerToken(s, hostname)
 	} else {
 		token, err = getOrCreateJoinToken(m, hostname)
 	}
@@ -37,7 +37,7 @@ func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http
 		return response.InternalError(fmt.Errorf("failed to create token: %w", err))
 	}
 
-	return response.SyncResponse(true, &apiv1.TokensResponse{EncodedToken: token})
+	return response.SyncResponse(true, &apiv1.GetJoinTokenResponse{EncodedToken: token})
 }
 
 func getOrCreateJoinToken(m *microcluster.MicroCluster, tokenName string) (string, error) {
@@ -62,11 +62,11 @@ func getOrCreateJoinToken(m *microcluster.MicroCluster, tokenName string) (strin
 	return token, nil
 }
 
-func createWorkerToken(s *state.State) (string, error) {
+func getOrCreateWorkerToken(s *state.State, nodeName string) (string, error) {
 	var token string
 	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		token, err = database.GetOrCreateWorkerNodeToken(ctx, tx)
+		token, err = database.GetOrCreateWorkerNodeToken(ctx, tx, nodeName)
 		if err != nil {
 			return fmt.Errorf("failed to create worker node token: %w", err)
 		}
@@ -82,7 +82,7 @@ func createWorkerToken(s *state.State) (string, error) {
 	}
 
 	info := &types.InternalWorkerNodeToken{
-		Token:         token,
+		Secret:        token,
 		JoinAddresses: addresses,
 	}
 	token, err := info.Encode()

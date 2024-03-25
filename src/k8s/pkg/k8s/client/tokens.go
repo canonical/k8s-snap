@@ -8,16 +8,10 @@ import (
 	"github.com/canonical/lxd/shared/api"
 )
 
-func (c *k8sdClient) CreateJoinToken(ctx context.Context, name string, worker bool) (string, error) {
-	request := apiv1.TokenRequest{
-		Name:   name,
-		Worker: worker,
-	}
-	response := apiv1.TokensResponse{}
-
-	err := c.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "tokens"), request, &response)
-	if err != nil {
-		return "", fmt.Errorf("failed to query endpoint POST /k8sd/cluster/tokens: %w", err)
+func (c *k8sdClient) GetJoinToken(ctx context.Context, request apiv1.GetJoinTokenRequest) (string, error) {
+	response := apiv1.GetJoinTokenResponse{}
+	if err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "tokens"), request, &response); err != nil {
+		return "", fmt.Errorf("failed to POST /k8sd/cluster/tokens: %w", err)
 	}
 	return response.EncodedToken, nil
 }

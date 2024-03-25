@@ -9,27 +9,20 @@ import (
 )
 
 // GenerateAuthToken calls "POST 1.0/kubernetes/auth/tokens".
-func (c *k8sdClient) GenerateAuthToken(ctx context.Context, username string, groups []string) (string, error) {
-	request := apiv1.CreateKubernetesAuthTokenRequest{Username: username, Groups: groups}
+func (c *k8sdClient) GenerateAuthToken(ctx context.Context, request apiv1.GenerateKubernetesAuthTokenRequest) (string, error) {
 	response := apiv1.CreateKubernetesAuthTokenResponse{}
 
-	err := c.Query(ctx, "POST", api.NewURL().Path("kubernetes", "auth", "tokens"), request, &response)
-	if err != nil {
-		clientURL := c.mc.URL()
-		return "", fmt.Errorf("failed to query endpoint POST /kubernetes/auth/tokens on %q: %w", clientURL.String(), err)
+	if err := c.mc.Query(ctx, "POST", api.NewURL().Path("kubernetes", "auth", "tokens"), request, &response); err != nil {
+		return "", fmt.Errorf("failed to POST /kubernetes/auth/tokens: %w", err)
 	}
 
 	return response.Token, nil
 }
 
 // RevokeAuthToken calls "DELETE 1.0/kubernetes/auth/tokens".
-func (c *k8sdClient) RevokeAuthToken(ctx context.Context, token string) error {
-	request := apiv1.RevokeKubernetesAuthTokenRequest{Token: token}
-
-	err := c.Query(ctx, "DELETE", api.NewURL().Path("kubernetes", "auth", "tokens"), request, nil)
-	if err != nil {
-		clientURL := c.mc.URL()
-		return fmt.Errorf("failed to query endpoint DELETE /kubernetes/auth/tokens on %q: %w", clientURL.String(), err)
+func (c *k8sdClient) RevokeAuthToken(ctx context.Context, request apiv1.RevokeKubernetesAuthTokenRequest) error {
+	if err := c.mc.Query(ctx, "DELETE", api.NewURL().Path("kubernetes", "auth", "tokens"), request, nil); err != nil {
+		return fmt.Errorf("failed to DELETE /kubernetes/auth/tokens: %w", err)
 	}
 
 	return nil

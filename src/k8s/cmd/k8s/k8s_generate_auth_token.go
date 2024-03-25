@@ -1,8 +1,8 @@
 package k8s
 
 import (
+	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
-
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +23,8 @@ func newGenerateAuthTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				env.Exit(1)
 				return
 			}
-			token, err := client.GenerateAuthToken(cmd.Context(), opts.username, opts.groups)
+
+			token, err := client.GenerateAuthToken(cmd.Context(), apiv1.GenerateKubernetesAuthTokenRequest{Username: opts.username, Groups: opts.groups})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to generate the requested Kubernetes auth token.\n\nThe error was: %v\n", err)
 				env.Exit(1)

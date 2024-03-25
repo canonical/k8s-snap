@@ -9,6 +9,7 @@ import (
 	componentmock "github.com/canonical/k8s/pkg/component/mock"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
+	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -123,8 +124,6 @@ func createComponentMap() map[string]types.Component {
 	}
 }
 
-var componentsNone = ``
-
 func mustCreateTemporaryTestDirectory(t *testing.T) string {
 	// Create a temporary test directory to mock the snap
 	// <tempDir>
@@ -140,14 +139,6 @@ func mustCreateTemporaryTestDirectory(t *testing.T) string {
 	}
 
 	return tempDir
-}
-
-func mustAddConfigToTestDir(t *testing.T, path string, data string) {
-	// Create a file and add some configs
-	err := os.WriteFile(path, []byte(data), 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
 }
 
 func mustAddChartToTestDir(t *testing.T, path string, chart *chart.Chart) string {
@@ -305,5 +296,36 @@ func TestDisableComponent(t *testing.T) {
 	t.Run("DisableNonExistent", func(t *testing.T) {
 		g := NewWithT(t)
 		g.Expect(mockHelmClient.Disable("non-existent")).ShouldNot(Succeed())
+	})
+}
+
+func TestRefresh(t *testing.T) {
+	g := NewWithT(t)
+	components := map[string]types.Component{
+		"whiskas-1": {
+			ReleaseName:  "whiskas-1",
+			Namespace:    "default",
+			ManifestPath: "chunky-tuna-1.14.1.tgz",
+		},
+	}
+
+	mockHelmClient, tempDir, _ := mustCreateNewHelmClient(t, components)
+
+	for name, component := range mockHelmClient.components {
+		chart := buildChart(withName(component.ReleaseName))
+		chartPath := mustAddChartToTestDir(t, tempDir, chart)
+		component.ManifestPath = chartPath
+		mockHelmClient.components[name] = component
+		g.Expect(mockHelmClient.Enable(name, map[string]interface{}{})).To(Succeed())
+	}
+
+	t.Run("RefreshExisting", func(t *testing.T) {
+		g := NewWithT(t)
+		g.Expect(mockHelmClient.Refresh("whiskas-1", map[string]interface{}{})).To(gomega.Succeed())
+	})
+
+	t.Run("RefreshNonExisting", func(t *testing.T) {
+		g := NewWithT(t)
+		g.Expect(mockHelmClient.Refresh("non-existent", map[string]interface{}{})).ToNot(Succeed())
 	})
 }

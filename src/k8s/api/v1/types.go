@@ -27,7 +27,7 @@ type BootstrapConfig struct {
 
 // SetDefaults sets the fields to default values.
 func (b *BootstrapConfig) SetDefaults() {
-	b.Components = []string{"dns", "metrics-server", "network"}
+	b.Components = []string{"dns", "metrics-server", "network", "gateway"}
 	b.ClusterCIDR = "10.1.0.0/16"
 	b.ServiceCIDR = "10.152.183.0/24"
 	b.EnableRBAC = vals.Pointer(true)
@@ -145,56 +145,59 @@ func (c ClusterStatus) String() string {
 		}
 	}
 	if len(voters) > 0 {
-		result.WriteString(fmt.Sprintf("  voter-nodes:\n"))
+		result.WriteString("  voter-nodes:\n")
 		for _, voter := range voters {
 			result.WriteString(fmt.Sprintf("    - %s\n", voter.Address))
 		}
 	} else {
-		result.WriteString(fmt.Sprintf("  voter-nodes: none\n"))
+		result.WriteString("  voter-nodes: none\n")
 	}
 	if len(standBys) > 0 {
-		result.WriteString(fmt.Sprintf("  standby-nodes:\n"))
+		result.WriteString("  standby-nodes:\n")
 		for _, standBy := range standBys {
 			result.WriteString(fmt.Sprintf("    - %s\n", standBy.Address))
 		}
 	} else {
-		result.WriteString(fmt.Sprintf("  standby-nodes: none\n"))
+		result.WriteString("  standby-nodes: none\n")
 	}
 	if len(spares) > 0 {
-		result.WriteString(fmt.Sprintf("  spare-nodes:\n"))
+		result.WriteString("  spare-nodes:\n")
 		for _, spare := range spares {
 			result.WriteString(fmt.Sprintf("    - %s\n", spare.Address))
 		}
 	} else {
-		result.WriteString(fmt.Sprintf("  spare-nodes: none\n"))
+		result.WriteString("  spare-nodes: none\n")
 	}
-	result.WriteString("\n")
 
 	printedConfig := UserFacingClusterConfig{}
-	if c.Config.Network.Enabled != nil && *c.Config.Network.Enabled {
+	if c.Config.Network != nil && c.Config.Network.Enabled != nil && *c.Config.Network.Enabled {
 		printedConfig.Network = c.Config.Network
 	}
-	if c.Config.DNS.Enabled != nil && *c.Config.DNS.Enabled {
+	if c.Config.DNS != nil && c.Config.DNS.Enabled != nil && *c.Config.DNS.Enabled {
 		printedConfig.DNS = c.Config.DNS
 	}
-	if c.Config.Ingress.Enabled != nil && *c.Config.Ingress.Enabled {
+	if c.Config.Ingress != nil && c.Config.Ingress.Enabled != nil && *c.Config.Ingress.Enabled {
 		printedConfig.Ingress = c.Config.Ingress
 	}
-	if c.Config.LoadBalancer.Enabled != nil && *c.Config.LoadBalancer.Enabled {
+	if c.Config.LoadBalancer != nil && c.Config.LoadBalancer.Enabled != nil && *c.Config.LoadBalancer.Enabled {
 		printedConfig.LoadBalancer = c.Config.LoadBalancer
 	}
-	if c.Config.LocalStorage.Enabled != nil && *c.Config.LocalStorage.Enabled {
+	if c.Config.LocalStorage != nil && c.Config.LocalStorage.Enabled != nil && *c.Config.LocalStorage.Enabled {
 		printedConfig.LocalStorage = c.Config.LocalStorage
 	}
-	if c.Config.Gateway.Enabled != nil && *c.Config.Gateway.Enabled {
+	if c.Config.Gateway != nil && c.Config.Gateway.Enabled != nil && *c.Config.Gateway.Enabled {
 		printedConfig.Gateway = c.Config.Gateway
 	}
-	if c.Config.MetricsServer.Enabled != nil && *c.Config.MetricsServer.Enabled {
+	if c.Config.MetricsServer != nil && c.Config.MetricsServer.Enabled != nil && *c.Config.MetricsServer.Enabled {
 		printedConfig.MetricsServer = c.Config.MetricsServer
 	}
 
 	b, _ := yaml.Marshal(printedConfig)
-	result.WriteString(string(b))
+	// If no config is set the marshalling will return {}
+	if s := string(b); s != "{}\n" {
+		result.WriteString("\n")
+		result.WriteString(string(b))
+	}
 
 	return result.String()
 }

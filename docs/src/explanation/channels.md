@@ -34,7 +34,7 @@ get `edge` for example.
 For all snaps, you can find out what channels are available by running the
 `info` command, For example:
 
-```bash
+```
 snap info k8s
 ```
 
@@ -50,7 +50,7 @@ The [Snap refreshes documentation] page outlines how to configure these options.
 To change the channel of an already installed snap, the `refresh` command can
 be used:
 
-```bash
+```
 sudo snap refresh k8s --channel=<new-channel>
 ```
 

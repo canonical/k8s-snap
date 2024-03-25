@@ -54,7 +54,7 @@ and 20G of disk space for each instance.
 
 Open a terminal (or Shell on Windows) and enter the following command:
 
-```no-highlight
+```
 multipass launch 22.04 --name k8s-node --memory 4G --disk 20G --cpus 2
 ```
 
@@ -73,7 +73,7 @@ For more details of creating instances with Multipass, please see the
 
 To access the image you just created, run:
 
-```no-highlight
+```
 multipass shell k8s-node
 ```
 
@@ -98,13 +98,13 @@ The instance you created will keep running in the background until it is either
 stopped or the host computer is shut down. You can stop the running instance at
 any time by running:
 
-```no-highlight
+```
 multipass stop k8s-node
 ```
 
 And it can be permanently removed with:
 
-```no-highlight
+```
 multipass delete k8s-node
 multipass purge
 ```
