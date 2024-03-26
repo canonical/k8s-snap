@@ -20,9 +20,7 @@ func TestSplitIPAndDNSSANs(t *testing.T) {
 		ips[i] = ip.String()
 	}
 
-	g.Expect(len(ips)).To(Equal(3))
 	g.Expect(ips).To(ConsistOf("192.168.0.1", "::1", "2001:db8:0:1:1:1:1:1"))
 
-	g.Expect(len(gotDNSs)).To(Equal(2))
 	g.Expect(gotDNSs).To(ConsistOf("cluster.local", "kubernetes.svc.local"))
 }
