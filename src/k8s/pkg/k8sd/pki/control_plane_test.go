@@ -40,7 +40,7 @@ func TestControlPlaneCertificates(t *testing.T) {
 		c.CACert = mustReadTestData(t, "ca.pem")
 
 		g := NewWithT(t)
-		g.Expect(c.CompleteCertificates()).ToNot(BeNil())
+		g.Expect(c.CompleteCertificates()).ToNot(Succeed())
 	})
 
 	t.Run("ApiServerCertSANs", func(t *testing.T) {
