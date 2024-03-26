@@ -19,15 +19,6 @@ func mustReadTestData(t *testing.T, filename string) string {
 	return string(data)
 }
 
-// Convert list of IPs to a slice of string representations
-func ipsToStrings(ips []net.IP) []string {
-	s := make([]string, len(ips))
-	for i, ip := range ips {
-		s[i] = ip.String()
-	}
-	return s
-}
-
 func TestControlPlaneCertificates(t *testing.T) {
 	c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:          "h1",
@@ -49,7 +40,7 @@ func TestControlPlaneCertificates(t *testing.T) {
 		c.CACert = mustReadTestData(t, "ca.pem")
 
 		g := NewWithT(t)
-		g.Expect(c.CompleteCertificates()).ToNot(Succeed())
+		g.Expect(c.CompleteCertificates()).ToNot(BeNil())
 	})
 
 	t.Run("ApiServerCertSANs", func(t *testing.T) {
@@ -72,9 +63,9 @@ func TestControlPlaneCertificates(t *testing.T) {
 
 		t.Run("IPAddresses", func(t *testing.T) {
 			g := NewWithT(t)
-			expectedIPs := []string{"192.168.2.123", "127.0.0.1", "::1"}
+			expectedIPs := []net.IP{net.ParseIP("192.168.2.123").To4(), net.ParseIP("127.0.0.1").To4(), net.ParseIP("::1")}
 
-			g.Expect(ipsToStrings(cert.IPAddresses)).To(ConsistOf(expectedIPs))
+			g.Expect(cert.IPAddresses).To(ConsistOf(expectedIPs))
 		})
 
 		t.Run("DNSNames", func(t *testing.T) {
@@ -105,9 +96,9 @@ func TestControlPlaneCertificates(t *testing.T) {
 
 		t.Run("IPAddresses", func(t *testing.T) {
 			g := NewWithT(t)
-			expectedIPs := []string{"192.168.2.123", "127.0.0.1", "::1"}
+			expectedIPs := []net.IP{net.ParseIP("192.168.2.123").To4(), net.ParseIP("127.0.0.1").To4(), net.ParseIP("::1")}
 
-			g.Expect(ipsToStrings(cert.IPAddresses)).To(ConsistOf(expectedIPs))
+			g.Expect(cert.IPAddresses).To(ConsistOf(expectedIPs))
 		})
 
 		t.Run("DNSNames", func(t *testing.T) {
