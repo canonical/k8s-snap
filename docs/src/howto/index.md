@@ -18,6 +18,7 @@ Overview <self>
 install/index
 networking/index
 /howto/storage
+/howto/external-datastore
 /howto/contribute
 ```
 
