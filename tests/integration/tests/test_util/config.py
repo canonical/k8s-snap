@@ -8,10 +8,10 @@ DIR = Path(__file__).absolute().parent
 
 MANIFESTS_DIR = DIR / ".." / ".." / "templates"
 
-# SNAP is the absolute path to the snap against which we run the e2e tests.
+# SNAP is the absolute path to the snap against which we run the integration tests.
 SNAP = os.getenv("TEST_SNAP")
 
-# SUBSTRATE is the substrate to use for running the e2e tests.
+# SUBSTRATE is the substrate to use for running the integration tests.
 # One of 'local' (default), 'lxd', 'juju', or 'multipass'.
 SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "local"
 
@@ -20,7 +20,7 @@ SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "local"
 SKIP_CLEANUP = (os.getenv("TEST_SKIP_CLEANUP") or "") == "1"
 
 # LXD_PROFILE_NAME is the profile name to use for LXD containers.
-LXD_PROFILE_NAME = os.getenv("TEST_LXD_PROFILE_NAME") or "k8s-e2e"
+LXD_PROFILE_NAME = os.getenv("TEST_LXD_PROFILE_NAME") or "k8s-integration"
 
 # LXD_PROFILE is the profile to use for LXD containers.
 LXD_PROFILE = (

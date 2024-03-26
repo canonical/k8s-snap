@@ -31,8 +31,8 @@ jobs:
 
           set -x
           # Install python dependencies
-          pip install -r tests/e2e/requirements-test.txt
-          pip install -r tests/e2e/requirements-dev.txt
+          pip install -r tests/integration/requirements-test.txt
+          pip install -r tests/integration/requirements-dev.txt
 
           cd src/k8s
 

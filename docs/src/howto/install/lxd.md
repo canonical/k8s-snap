@@ -25,7 +25,7 @@ lxc profile create k8s
 Once created, we’ll need to add the rules. 
 Get our pre-defined profile rules from github and save them as k8s.profile.
 ```
-wget https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/e2e/lxd-profile.yaml -O k8s.profile
+wget https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/integration/lxd-profile.yaml -O k8s.profile
 ```
 
 To pipe the content of the file into the k8s LXD profile, run:
