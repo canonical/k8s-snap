@@ -1,8 +1,9 @@
 # Basic operations with Kubernetes using kubectl
 
-Kubernetes provides a command line tool for communicating with a Kubernetes cluster's control plane,
-using the Kubernetes API. This guide outlines how some of the everyday operations of your 
-Kubernetes cluster can be managed with this tool.
+Kubernetes provides a command line tool for communicating with a Kubernetes
+cluster's control plane, using the Kubernetes API. This guide outlines how some
+of the everyday operations of your Kubernetes cluster can be managed with this
+tool.
 
 ## What you will need
 
@@ -54,7 +55,7 @@ components:
 sudo k8s kubectl get pods -o wide -n kube-system
 ```
 
-You should be seeing the network operator, networking agent and coredns pods.
+You should be seeing the network operator, networking agent and CoreDNS pods.
 
 > **Note**: If you see an error message here, it is likely that you forgot to
 > bootstrap your cluster.
@@ -107,7 +108,7 @@ Now, go back to your original terminal and run:
 sudo k8s kubectl delete pods -l app=nginx
 ```
 
-The above command deletes all pods in the cluster that are labeled with
+The above command deletes all pods in the cluster that are labelled with
 `app=nginx`.
 
 You'll notice the original 3 pods will have a status of `Terminating` and 3 new

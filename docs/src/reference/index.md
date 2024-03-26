@@ -18,6 +18,7 @@ Overview <self>
 /reference/architecture
 /reference/roadmap
 ```
+
 ## Other documentation types
 
 Alternatively, the [Tutorials section] contains step-by-step tutorials to help

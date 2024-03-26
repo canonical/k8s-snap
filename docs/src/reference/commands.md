@@ -1,5 +1,7 @@
 # Command reference
 
+These are the commands provided by the k8s snap:
+
 ```{include} ../_parts/commands/k8s.md
    :end-before: '### SEE ALSO'
 ```

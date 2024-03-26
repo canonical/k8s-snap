@@ -9,9 +9,8 @@ enabling and configuring this feature.
 This guide assumes the following:
 
 - You have root or sudo access to the machine
-- You have a bootstraped Canonical Kubernetes cluster (see the
+- You have a bootstrapped Canonical Kubernetes cluster (see the
   [getting-started-guide])
-
 
 ## Enable Local Storage
 
@@ -44,17 +43,16 @@ The local-storage functionality provides the following configuration options:
 - `reclaim-policy`: set the reclaim policy of the persistent volumes
   provisioned. It should be one of "Retain", "Recycle", or "Delete".
 - `set-default`: set the local-storage storage class to be the default. If
-  this flag is not set and the cluster has already a default storage class it
+  this flag is not set and the cluster already has a default storage class it
   is not changed. If this flag is not set and the cluster does not have a
-  default class set then the class from the local-storage becomes the default
-  one.
+  default class set then the class from the local-storage becomes the default.
 
 ## Disable Local Storage
 
-The local storage option is suitable for single-node clusters and development
-environments as it has no multi node data replication.
-For a production environment you may want a more sophisticated
-storage solution. To disable local-storage, run:
+The local storage option is only suitable for single-node clusters and
+development environments as it has no multi node data replication. For a
+production environment you may want a more sophisticated storage solution. To
+disable local-storage, run:
 
 ```
 sudo k8s disable local-storage
@@ -62,7 +60,6 @@ sudo k8s disable local-storage
 
 Disabling storage only removes the CSI driver. The persistent volume claims
 will still be available and your data will remain on disk.
-
 
 <!-- LINKS -->
 [getting-started-guide]: ../tutorial/getting-started.md

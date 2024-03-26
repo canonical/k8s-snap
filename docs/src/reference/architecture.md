@@ -3,9 +3,9 @@
 A system architecture document is the starting point for many interested
 participants in a project, whether you intend contributing or simply want to
 understand how the software is structured. This documentation lays out the
-current design of Canonical Kubernetes, following the [C4 model]. 
+current design of Canonical Kubernetes, following the [C4 model].
 
-##  System context 
+## System context
 
 This overview of Canonical Kubernetes demonstrates the interactions of
 Kubernetes with users and with other systems.
@@ -33,7 +33,8 @@ orchestrate the multi-node clustering operations.
 
 A set of external systems need to be easily integrated with our K8s
 distribution. We have identified the following:
- - **Load Balancer**: Although the K8s snap distribution comes with a
+
+- **Load Balancer**: Although the K8s snap distribution comes with a
    load balancer we expect the end customer environment to have a load balancer
    and thus we need to integrate with it.
 - **Storage**: Kubernetes typically expects storage to be external to the
@@ -76,9 +77,9 @@ needed for managing the Kubernetes cluster.
 ```{kroki} ../assets/k8sd-component.puml
 ```
 
-At the core of the `k8sd` functionality we have the cluster
-manager that is responsible for configuring the services, workload and features we
-deem important for a Kubernetes cluster. Namely:
+At the core of the `k8sd` functionality we have the cluster manager that is
+responsible for configuring the services, workload and features we deem
+important for a Kubernetes cluster. Namely:
 
 - Kubernetes systemd services
 - DNS
@@ -99,7 +100,7 @@ This functionality is exposed via the following interfaces:
   all CLI commands are mapped to respective REST calls.
 
 - The **API**: The API over HTTP serves the CLI and is also used to
-  programmatically drive the Kubernetes cluster. 
+  programmatically drive the Kubernetes cluster.
 
 <!-- LINKS -->
 [C4 model]: https://c4model.com/
