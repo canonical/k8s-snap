@@ -14,7 +14,6 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/component"
-	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -22,7 +21,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/microcluster/state"
 )
@@ -108,10 +106,10 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		KubeletKey:  response.KubeletKey,
 	}
 	if err := certificates.CompleteCertificates(); err != nil {
-		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+		return fmt.Errorf("failed to initialize worker node certificates: %w", err)
 	}
 	if err := setup.EnsureWorkerPKI(snap, certificates); err != nil {
-		return fmt.Errorf("failed to write cluster certificates: %w", err)
+		return fmt.Errorf("failed to write worker node certificates: %w", err)
 	}
 
 	// Kubeconfigs
@@ -188,14 +186,15 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 			AllowSelfSignedCA: true,
 		})
 		if err := certificates.CompleteCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+			return fmt.Errorf("failed to initialize k8s-dqlite certificates: %w", err)
 		}
 		if err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
-			return fmt.Errorf("failed to write cluster certificates: %w", err)
+			return fmt.Errorf("failed to write k8s-dqlite certificates: %w", err)
 		}
 
 		cfg.Certificates.K8sDqliteCert = certificates.K8sDqliteCert
 		cfg.Certificates.K8sDqliteKey = certificates.K8sDqliteKey
+
 	case "external":
 		certificates := &pki.ExternalDatastorePKI{
 			DatastoreCACert:     cfg.Certificates.DatastoreCACert,
@@ -203,10 +202,10 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 			DatastoreClientKey:  cfg.Certificates.DatastoreClientKey,
 		}
 		if err := certificates.CheckCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+			return fmt.Errorf("failed to initialize external datastore certificates: %w", err)
 		}
 		if err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
-			return fmt.Errorf("failed to write cluster certificates: %w", err)
+			return fmt.Errorf("failed to write external datastore certificates: %w", err)
 		}
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
@@ -226,10 +225,10 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		IncludeMachineAddressSANs: true,
 	})
 	if err := certificates.CompleteCertificates(); err != nil {
-		return fmt.Errorf("failed to initialize cluster certificates: %w", err)
+		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
 	if err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
-		return fmt.Errorf("failed to write cluster certificates: %w", err)
+		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
 
 	// Add certificates to the cluster config
@@ -242,24 +241,8 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	cfg.APIServer.ServiceAccountKey = certificates.ServiceAccountKey
 
 	// Generate kubeconfigs
-	for _, kubeconfig := range []struct {
-		file     string
-		username string
-		groups   []string
-	}{
-		{file: "admin.conf", username: "kubernetes-admin", groups: []string{"system:masters"}},
-		{file: "controller.conf", username: "system:kube-controller-manager"},
-		{file: "proxy.conf", username: "system:kube-proxy"},
-		{file: "scheduler.conf", username: "system:kube-scheduler"},
-		{file: "kubelet.conf", username: fmt.Sprintf("system:node:%s", s.Name()), groups: []string{"system:nodes"}},
-	} {
-		token, err := impl.GetOrCreateAuthToken(s.Context, s, kubeconfig.username, kubeconfig.groups)
-		if err != nil {
-			return fmt.Errorf("failed to generate token for username=%s groups=%v: %w", kubeconfig.username, kubeconfig.groups, err)
-		}
-		if err := setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), kubeconfig.file), token, fmt.Sprintf("127.0.0.1:%d", cfg.APIServer.SecurePort), cfg.Certificates.CACert); err != nil {
-			return fmt.Errorf("failed to write kubeconfig %s: %w", kubeconfig.file, err)
-		}
+	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.SecurePort, cfg.Certificates.CACert); err != nil {
+		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
 	// Configure datastore
@@ -274,24 +257,8 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	}
 
 	// Configure services
-	if err := setup.Containerd(snap, nil); err != nil {
-		return fmt.Errorf("failed to configure containerd: %w", err)
-	}
-	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider); err != nil {
-		return fmt.Errorf("failed to configure kubelet: %w", err)
-	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.PodCIDR); err != nil {
-		return fmt.Errorf("failed to configure kube-proxy: %w", err)
-	}
-	if err := setup.KubeControllerManager(snap); err != nil {
-		return fmt.Errorf("failed to configure kube-controller-manager: %w", err)
-	}
-	if err := setup.KubeScheduler(snap); err != nil {
-		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
-	}
-
-	if err := setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.DatastoreURL, cfg.APIServer.AuthorizationMode); err != nil {
-		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
+	if err := setupControlPlaneServices(snap, s, cfg, nodeIP); err != nil {
+		return fmt.Errorf("failed to configure services: %w", err)
 	}
 
 	// Write cluster configuration to dqlite
@@ -305,27 +272,12 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 	}
 
 	// Start services
-	switch cfg.APIServer.Datastore {
-	case "k8s-dqlite":
-		if err := snaputil.StartK8sDqliteServices(s.Context, snap); err != nil {
-			return fmt.Errorf("failed to start control plane services: %w", err)
-		}
-	case "external":
-	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
+	if err := startControlPlaneServices(s.Context, snap, cfg.APIServer.Datastore); err != nil {
+		return fmt.Errorf("failed to start services: %w", err)
 	}
 
-	if err := snaputil.StartControlPlaneServices(s.Context, snap); err != nil {
-		return fmt.Errorf("failed to start control plane services: %w", err)
-	}
-
-	// Wait for API server to come up
-	client, err := k8s.NewClient(snap)
-	if err != nil {
-		return fmt.Errorf("failed to create k8s client: %w", err)
-	}
-
-	if err := client.WaitApiServerReady(s.Context); err != nil {
+	// Wait until Kube-API server is ready
+	if err := waitApiServerReady(s.Context, snap); err != nil {
 		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
 
