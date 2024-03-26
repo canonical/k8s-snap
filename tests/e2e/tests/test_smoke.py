@@ -15,7 +15,7 @@ def test_smoke(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(instance, instances)
 
     # Verify the functionality of the k8s config command during the smoke test.
-    # It would be excessive to deploy a cluster solely for this purpose.    
+    # It would be excessive to deploy a cluster solely for this purpose.
     result = instance.exec(
         "k8s config --server 192.168.210.41".split(), capture_output=True
     )
