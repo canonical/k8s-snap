@@ -49,6 +49,9 @@ func postWorkerInfo(s *state.State, r *http.Request) response.Response {
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
 	}
+	if err := client.WaitApiServerReady(s.Context); err != nil {
+		return response.InternalError(fmt.Errorf("kube-apiserver did not become ready in time: %w", err))
+	}
 	servers, err := client.GetKubeAPIServerEndpoints(s.Context)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve list of known kube-apiserver endpoints: %w", err))

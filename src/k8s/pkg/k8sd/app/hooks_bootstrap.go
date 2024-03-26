@@ -50,10 +50,13 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	}
 
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
-
+	timeout := 30 * time.Second
+	if deadline, set := s.Context.Deadline(); set {
+		timeout = time.Until(deadline)
+	}
 	// create an HTTP client that ignores https
 	httpClient := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: timeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
