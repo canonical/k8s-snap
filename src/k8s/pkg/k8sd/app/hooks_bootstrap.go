@@ -212,10 +212,15 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.APIServer.Datastore, setup.SupportedDatastores)
 	}
 
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
+
+	IPSANs := append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...)
+
 	// Certificates
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
-		IPSANs:                    append([]net.IP{nodeIP}, serviceIPs...),
+		IPSANs:                    IPSANs,
+		DNSSANs:                   extraNames,
 		Years:                     20,
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
