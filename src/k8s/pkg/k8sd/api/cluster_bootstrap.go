@@ -44,17 +44,15 @@ func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.
 	}
 
 	// Check if the cluster is already bootstrapped
-	// TODO Return 471 Already bootstrapped A cluster is already bootstrapped on this node.
 	_, err = m.Status()
 	if err == nil {
 		return response.BadRequest(fmt.Errorf("cluster is already bootstrapped"))
 	}
 
 	// Bootstrap the cluster
-	// TODO where do we grab the address from?
 	address := util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), req.BootstrapConfig.K8sDqlitePort)
 	if err := m.NewCluster(hostname, address, config, timeout); err != nil {
-		// c.CleanupNode(ctx, hostname)
+		// TODO move node cleanup here
 		return response.BadRequest(fmt.Errorf("failed to bootstrap new cluster: %w", err))
 	}
 
