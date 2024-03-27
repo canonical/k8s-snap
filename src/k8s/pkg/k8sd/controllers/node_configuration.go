@@ -15,30 +15,14 @@ import (
 )
 
 type NodeConfigurationController struct {
-	snap snap.Snap
+	snap            snap.Snap
+	createK8sClient func(ctx context.Context) *k8s.Client
 }
 
-func NewNodeConfigurationController(snap snap.Snap) *NodeConfigurationController {
+func NewNodeConfigurationController(snap snap.Snap, createK8sClient func(ctx context.Context) *k8s.Client) *NodeConfigurationController {
 	return &NodeConfigurationController{
-		snap: snap,
-	}
-}
-
-func (c *NodeConfigurationController) createK8sClient(ctx context.Context) *k8s.Client {
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-time.After(3 * time.Second):
-		default:
-		}
-
-		client, err := k8s.NewClient(c.snap.KubernetesNodeRESTClientGetter("kube-system"))
-		if err != nil {
-			// This fails when node is neither bootstrapped or joined
-			continue
-		}
-		return client
+		snap:            snap,
+		createK8sClient: createK8sClient,
 	}
 }
 

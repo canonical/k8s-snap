@@ -1,7 +1,9 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
@@ -22,4 +24,21 @@ func NewClient(restClientGetter genericclioptions.RESTClientGetter) (*Client, er
 		return nil, fmt.Errorf("failed to create Kubernetes clientset: %w", err)
 	}
 	return &Client{clientset}, nil
+}
+
+func RetryNewClient(ctx context.Context, restClientGetter genericclioptions.RESTClientGetter) *Client {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-time.After(3 * time.Second):
+		default:
+		}
+
+		client, err := NewClient(restClientGetter)
+		if err != nil {
+			continue
+		}
+		return client
+	}
 }
