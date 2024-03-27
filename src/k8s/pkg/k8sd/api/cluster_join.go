@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -25,10 +24,7 @@ func postClusterJoin(m *microcluster.MicroCluster, s *state.State, r *http.Reque
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", req.Name, err))
 	}
 
-	timeout := 30 * time.Second
-	if deadline, set := s.Context.Deadline(); set {
-		timeout = time.Until(deadline)
-	}
+	timeout := utils.TimeoutFromCtx(s.Context)
 
 	internalToken := types.InternalWorkerNodeToken{}
 	// Check if token is worker token

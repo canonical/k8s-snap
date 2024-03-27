@@ -6,6 +6,7 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/lxd/shared/api"
 )
@@ -18,10 +19,7 @@ func (c *k8sdClient) IsBootstrapped(ctx context.Context) bool {
 
 // Bootstrap bootstraps the k8s cluster
 func (c *k8sdClient) Bootstrap(ctx context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error) {
-	timeout := 30 * time.Second
-	if deadline, set := ctx.Deadline(); set {
-		timeout = time.Until(deadline)
-	}
+	timeout := utils.TimeoutFromCtx(ctx)
 
 	if err := c.m.Ready(int(timeout / time.Second)); err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("k8sd API is not ready: %w", err)
