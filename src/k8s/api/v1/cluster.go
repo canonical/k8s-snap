@@ -10,10 +10,9 @@ type GetClusterStatusResponse struct {
 
 // PostClusterBootstrapRequest is used to bootstrap the cluster.
 type PostClusterBootstrapRequest struct {
-	Bootstrap bool            `json:"bootstrap"`
-	Name      string          `json:"name"`
-	Address   string          `json:"address"`
-	Config    BootstrapConfig `json:"config"`
+	Name    string          `json:"name"`
+	Address string          `json:"address"`
+	Config  BootstrapConfig `json:"config"`
 }
 
 // GetKubeConfigRequest is used to ask for the admin kubeconfig
