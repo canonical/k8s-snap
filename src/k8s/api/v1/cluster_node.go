@@ -7,10 +7,6 @@ type JoinClusterRequest struct {
 	Token   string `json:"token"`
 }
 
-type ClusterBootstrapRequest struct {
-	BootstrapConfig BootstrapConfig `json:"BootstrapConfig"`
-}
-
 // RemoveNodeRequest is used to request to remove a node from the cluster.
 type RemoveNodeRequest struct {
 	Name  string `json:"name"`
