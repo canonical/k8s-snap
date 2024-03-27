@@ -33,16 +33,16 @@ func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", s.Name(), err))
 	}
 
-	// Set timeout
-	timeout := 30 * time.Second
-	if deadline, set := s.Context.Deadline(); set {
-		timeout = time.Until(deadline)
-	}
-
 	// Check if the cluster is already bootstrapped
 	_, err = m.Status()
 	if err == nil {
 		return response.BadRequest(fmt.Errorf("cluster is already bootstrapped"))
+	}
+
+	// Set timeout
+	timeout := 30 * time.Second
+	if deadline, set := s.Context.Deadline(); set {
+		timeout = time.Until(deadline)
 	}
 
 	// Bootstrap the cluster
