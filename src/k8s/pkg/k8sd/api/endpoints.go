@@ -9,16 +9,11 @@ import (
 // Endpoints returns the list of endpoints for a given microcluster app.
 func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 	return []rest.Endpoint{
-		// Cluster status
+		// Cluster status and bootstrap
 		{
-			Name: "ClusterStatus",
-			Path: "k8sd/cluster",
-			Get:  rest.EndpointAction{Handler: getClusterStatus, AccessHandler: RestrictWorkers},
-		},
-		// Cluster Bootstrap
-		{
-			Name:              "ClusterBootstrap",
+			Name:              "Cluster",
 			Path:              "k8sd/cluster",
+			Get:               rest.EndpointAction{Handler: getClusterStatus, AccessHandler: RestrictWorkers},
 			Post:              rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterBootstrap)},
 			AllowedBeforeInit: true,
 		},
