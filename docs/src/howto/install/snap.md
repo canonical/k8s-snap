@@ -1,6 +1,6 @@
 # Install Canonical Kubernetes from a snap
 
-Canonical Kubernetes is packaged as a [snap], available from the 
+Canonical Kubernetes is packaged as a [snap], available from the
 snap store for all supported platforms.
 
 ## What you'll need
@@ -16,12 +16,14 @@ This guide assumes the following:
   memory.
 
 ```{note}
-If you cannot meet these requirements, please see the [Installing] page for alternative options.
+If you cannot meet these requirements, please see the [Installing][] page for
+alternative options.
 ```
 
 ## Check available channels (optional)
 
-It is a good idea to check the available channels before installing the snap. Run the command:
+It is a good idea to check the available channels before installing the snap.
+Run the command:
 
 ```
 snap info k8s
@@ -39,7 +41,8 @@ sudo snap install k8s --classic --channel=latest/edge
 ```
 
 ```{note}
-The `latest/edge` channel is always under active development. This is where you will find the latest features but you may also experience instability.
+The `latest/edge` channel is always under active development. This is where you
+will find the latest features but you may also experience instability.
 ```
 
 ## Bootstrap the cluster

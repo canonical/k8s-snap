@@ -9,7 +9,6 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Union
 
-from e2e_util import config, harness
 from tenacity import (
     RetryCallState,
     retry,
@@ -18,6 +17,7 @@ from tenacity import (
     stop_never,
     wait_fixed,
 )
+from test_util import config, harness
 
 LOG = logging.getLogger(__name__)
 

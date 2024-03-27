@@ -1,4 +1,4 @@
-name: End to End Tests (Strict)
+name: Integration Tests (Strict)
 
 on:
   push:
@@ -38,7 +38,7 @@ jobs:
           name: k8s-strict.snap
           path: k8s-strict.snap
 
-  test-e2e:
+  test-integration:
     name: Test ${{ matrix.os }}
     strategy:
       matrix:
@@ -71,4 +71,4 @@ jobs:
           export TEST_SNAP="$PWD/build/k8s-strict.snap"
           export TEST_SUBSTRATE=lxd
           export TEST_LXD_IMAGE=${{ matrix.os }}
-          cd tests/e2e && sg lxd -c 'tox -e e2e'
+          cd tests/integration && sg lxd -c 'tox -e integration'

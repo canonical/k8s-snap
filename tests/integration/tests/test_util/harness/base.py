@@ -35,8 +35,8 @@ class Instance:
 
 
 class Harness:
-    """Abstract how e2e tests can start and manage multiple machines. This allows
-    writing e2e tests that can run on the local machine, LXD, or Multipass with minimum
+    """Abstract how integration tests can start and manage multiple machines. This allows
+    writing integration tests that can run on the local machine, LXD, or Multipass with minimum
     effort.
     """
 

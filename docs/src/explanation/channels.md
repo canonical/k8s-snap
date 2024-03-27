@@ -8,7 +8,7 @@ handled with minimum, if any, disruption.
 
 When installing or updating Canonical Kubernetes you can (and should in most
 cases) specify a channel. The channel specified is made up of two components;
-the **track** and the **risk level**. 
+the **track** and the **risk level**.
 
 The track matches the minor version of upstream Kubernetes. For example,
 specifying the `1.30` track will match upstream releases of the same minor
@@ -38,12 +38,14 @@ For all snaps, you can find out what channels are available by running the
 snap info k8s
 ```
 
+More information can be found in the [Snapcraft documentation][]
+
 ## Updates and switching channels
 
 Updates for upstream patch releases will happen automatically by default. For
 example, if you have selected the channel `1.30/stable`, your snap will refresh
 itself regularly keeping your cluster up-to-date with the latest patches.
-For deployments where this behavior is undesirable you are given the option to
+For deployments where this behaviour is undesirable you are given the option to
 postpone, schedule or even block automatic updates.
 The [Snap refreshes documentation] page outlines how to configure these options.
 
@@ -59,18 +61,13 @@ Changing the channel of an installed snap could result in loss of service. Pleas
 check any release notes or upgrade guides first!
 ```
 
-## FAQ 
-
-If you aren't familiar with the concept of channels, here are the answers to
-some frequently asked questions.
-
-### Which channel is right for me?
+## Which channel is right for me?
 
 Choosing the most appropriate channel for your needs depends on a number of
 factors. We can give some general guidance for the following cases:
 
-- **I want to always be on the latest stable version matching a specific upstream K8s
-release (recommended).** 
+- **I want to always be on the latest stable version matching a specific
+upstream K8s release (recommended).**
 
 Specify the release, for example: `--channel=1.30/stable`.
 

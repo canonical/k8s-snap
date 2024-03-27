@@ -4,7 +4,7 @@
 import logging
 from typing import List
 
-from e2e_util import harness, util
+from test_util import harness, util
 
 LOG = logging.getLogger(__name__)
 
