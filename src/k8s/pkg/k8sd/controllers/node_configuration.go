@@ -51,7 +51,7 @@ func (c *NodeConfigurationController) reconcile(ctx context.Context, snap snap.S
 		return fmt.Errorf("failed to decode node config: %w", err)
 	}
 
-	var kubeletUpdateMap map[string]string = make(map[string]string)
+	kubeletUpdateMap := make(map[string]string)
 	var kubeletDeleteList []string
 
 	if nodeConfig.ClusterDNS != "" {
