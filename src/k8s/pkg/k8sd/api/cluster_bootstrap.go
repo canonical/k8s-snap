@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils"
@@ -31,16 +30,6 @@ func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.
 	hostname, err := utils.CleanHostname(s.Name())
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", s.Name(), err))
-	}
-
-	// Set timeout
-	timeout := 30 * time.Second
-	if deadline, set := s.Context.Deadline(); set {
-		timeout = time.Until(deadline)
-	}
-
-	if err := m.Ready(int(timeout / time.Second)); err != nil {
-		return response.InternalError(fmt.Errorf("cluster did not come up in time: %w", err))
 	}
 
 	// Check if the cluster is already bootstrapped
