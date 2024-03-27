@@ -9,8 +9,8 @@ import (
 func onStart(s *state.State) error {
 	snap := snap.SnapFromContext(s.Context)
 
-	configController := controllers.NewNodeConfigurationController()
-	go configController.Run(s.Context, snap)
+	configController := controllers.NewNodeConfigurationController(snap)
+	go configController.Run(s.Context)
 
 	return nil
 }

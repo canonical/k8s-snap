@@ -15,13 +15,16 @@ import (
 )
 
 type NodeConfigurationController struct {
+	snap snap.Snap
 }
 
-func NewNodeConfigurationController() *NodeConfigurationController {
-	return &NodeConfigurationController{}
+func NewNodeConfigurationController(snap snap.Snap) *NodeConfigurationController {
+	return &NodeConfigurationController{
+		snap: snap,
+	}
 }
 
-func (c *NodeConfigurationController) Run(ctx context.Context, snap snap.Snap) error {
+func (c *NodeConfigurationController) createK8sClient(ctx context.Context) *k8s.Client {
 	for {
 		select {
 		case <-ctx.Done():
@@ -30,14 +33,26 @@ func (c *NodeConfigurationController) Run(ctx context.Context, snap snap.Snap) e
 		default:
 		}
 
-		client, err := k8s.NewClient(snap.KubernetesNodeRESTClientGetter("kube-system"))
+		client, err := k8s.NewClient(c.snap.KubernetesNodeRESTClientGetter("kube-system"))
 		if err != nil {
-			// This fails when the node is not bootstrapped or joined
-			log.Println(fmt.Errorf("failed to create kubernetes node client: %w", err))
+			// This fails when node is neither bootstrapped or joined
 			continue
 		}
+		return client
+	}
+}
 
-		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, snap, configMap) }); err != nil {
+func (c *NodeConfigurationController) Run(ctx context.Context) {
+	client := c.createK8sClient(ctx)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(3 * time.Second):
+		default:
+		}
+
+		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap) }); err != nil {
 			// This also can fail during bootstrapping/start up when api-server is not ready
 			// So the watch requests get connection refused replies
 			log.Println(fmt.Errorf("error while watching configmap: %w", err))
@@ -45,7 +60,7 @@ func (c *NodeConfigurationController) Run(ctx context.Context, snap snap.Snap) e
 	}
 }
 
-func (c *NodeConfigurationController) reconcile(ctx context.Context, snap snap.Snap, configMap *v1.ConfigMap) error {
+func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *v1.ConfigMap) error {
 	var nodeConfig types.NodeConfig
 	if err := mapstructure.Decode(configMap.Data, &nodeConfig); err != nil {
 		return fmt.Errorf("failed to decode node config: %w", err)
@@ -64,13 +79,13 @@ func (c *NodeConfigurationController) reconcile(ctx context.Context, snap snap.S
 		kubeletUpdateMap["--cluster-domain"] = nodeConfig.ClusterDomain
 	}
 
-	mustRestartKubelet, err := snaputil.UpdateServiceArguments(snap, "kubelet", kubeletUpdateMap, kubeletDeleteList)
+	mustRestartKubelet, err := snaputil.UpdateServiceArguments(c.snap, "kubelet", kubeletUpdateMap, kubeletDeleteList)
 	if err != nil {
 		return fmt.Errorf("failed to update kubelet arguments: %w", err)
 	}
 
 	if mustRestartKubelet {
-		if err := snap.RestartService(ctx, "kubelet"); err != nil {
+		if err := c.snap.RestartService(ctx, "kubelet"); err != nil {
 			return fmt.Errorf("failed to restart kubelet to apply node configuration: %w", err)
 		}
 	}
