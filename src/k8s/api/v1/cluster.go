@@ -8,7 +8,7 @@ type GetClusterStatusResponse struct {
 	ClusterStatus ClusterStatus `json:"status"`
 }
 
-// PostClusterBootstrapRequest is used to bootstrap the cluster.
+// PostClusterBootstrapRequest is used to bootstrap the cluster by using the endpoint "POST 1.0/k8sd/cluster".
 type PostClusterBootstrapRequest struct {
 	Name    string          `json:"name"`
 	Address string          `json:"address"`
