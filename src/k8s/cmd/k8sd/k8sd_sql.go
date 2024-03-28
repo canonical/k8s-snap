@@ -13,7 +13,7 @@ func newSqlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Hidden: true,
 		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
-			cluster, err := app.New(cmd.Context(), app.Config{
+			app, err := app.New(cmd.Context(), app.Config{
 				StateDir:   rootCmdOpts.stateDir,
 				ListenPort: rootCmdOpts.port,
 				Snap:       env.Snap,
@@ -24,7 +24,7 @@ func newSqlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			_, batch, err := cluster.MicroCluster.SQL(args[0])
+			_, batch, err := app.MicroCluster().SQL(args[0])
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to execute the SQL query.\n\nThe error was: %v\n", err)
 				env.Exit(1)
