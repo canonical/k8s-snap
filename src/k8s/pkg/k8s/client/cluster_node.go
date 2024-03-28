@@ -14,7 +14,7 @@ import (
 )
 
 func (c *k8sdClient) JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest) error {
-	timeout := utils.TimeoutFromCtx(ctx)
+	timeout := utils.TimeoutFromCtx(ctx, 30*time.Second)
 
 	if err := c.m.Ready(int(timeout / time.Second)); err != nil {
 		return fmt.Errorf("k8sd API is not ready: %w", err)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils"
@@ -39,7 +40,7 @@ func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.
 	}
 
 	// Set timeout
-	timeout := utils.TimeoutFromCtx(s.Context)
+	timeout := utils.TimeoutFromCtx(s.Context, 30*time.Second)
 
 	// Bootstrap the cluster
 	if err := m.NewCluster(hostname, req.Address, config, timeout); err != nil {

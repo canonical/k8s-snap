@@ -19,7 +19,7 @@ func (c *k8sdClient) IsBootstrapped(ctx context.Context) bool {
 
 // Bootstrap bootstraps the k8s cluster
 func (c *k8sdClient) Bootstrap(ctx context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error) {
-	timeout := utils.TimeoutFromCtx(ctx)
+	timeout := utils.TimeoutFromCtx(ctx, 30*time.Second)
 
 	if err := c.m.Ready(int(timeout / time.Second)); err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("k8sd API is not ready: %w", err)
@@ -27,6 +27,7 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, request apiv1.PostClusterBoo
 	response := apiv1.NodeStatus{}
 
 	if err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster"), request, &response); err != nil {
+
 		c.CleanupNode(ctx, request.Name)
 		return response, fmt.Errorf("failed to bootstrap new cluster using POST /k8sd/cluster: %w", err)
 	}
