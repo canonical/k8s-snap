@@ -21,8 +21,10 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/microcluster/state"
+	"github.com/mitchellh/mapstructure"
 )
 
 // onBootstrap is called after we bootstrap the first cluster node.
@@ -304,6 +306,23 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 			return nil
 		}); err != nil {
 			return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
+		}
+
+		var data map[string]string
+		if err := mapstructure.Decode(types.NodeConfig{
+			ClusterDNS:    dnsIP,
+			ClusterDomain: cfg.Kubelet.ClusterDomain,
+		}, &data); err != nil {
+			return fmt.Errorf("failed to encode node config: %w", err)
+		}
+
+		client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+		if err != nil {
+			return fmt.Errorf("failed to create kubernetes client: %w", err)
+		}
+
+		if _, err := client.UpdateConfigMap(s.Context, "kube-system", "k8sd-config", data); err != nil {
+			return fmt.Errorf("failed to update node configs: %w", err)
 		}
 	}
 

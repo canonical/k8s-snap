@@ -164,7 +164,7 @@ func onPreRemove(s *state.State, force bool) error {
 	default:
 	}
 
-	c, err := k8s.NewClient(snap)
+	c, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}

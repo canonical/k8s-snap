@@ -10,33 +10,34 @@ import (
 )
 
 type Mock struct {
-	Strict                      bool
-	OnLXD                       bool
-	OnLXDErr                    error
-	UID                         int
-	GID                         int
-	KubernetesConfigDir         string
-	KubernetesPKIDir            string
-	EtcdPKIDir                  string
-	KubeletRootDir              string
-	CNIConfDir                  string
-	CNIBinDir                   string
-	CNIPlugins                  []string
-	CNIPluginsBinary            string
-	ContainerdConfigDir         string
-	ContainerdExtraConfigDir    string
-	ContainerdRegistryConfigDir string
-	ContainerdRootDir           string
-	ContainerdSocketDir         string
-	ContainerdStateDir          string
-	K8sdStateDir                string
-	K8sDqliteStateDir           string
-	ServiceArgumentsDir         string
-	ServiceExtraConfigDir       string
-	LockFilesDir                string
-	Components                  map[string]types.Component
-	KubernetesRESTClientGetter  genericclioptions.RESTClientGetter
-	K8sDqliteClient             *dqlite.Client
+	Strict                         bool
+	OnLXD                          bool
+	OnLXDErr                       error
+	UID                            int
+	GID                            int
+	KubernetesConfigDir            string
+	KubernetesPKIDir               string
+	EtcdPKIDir                     string
+	KubeletRootDir                 string
+	CNIConfDir                     string
+	CNIBinDir                      string
+	CNIPlugins                     []string
+	CNIPluginsBinary               string
+	ContainerdConfigDir            string
+	ContainerdExtraConfigDir       string
+	ContainerdRegistryConfigDir    string
+	ContainerdRootDir              string
+	ContainerdSocketDir            string
+	ContainerdStateDir             string
+	K8sdStateDir                   string
+	K8sDqliteStateDir              string
+	ServiceArgumentsDir            string
+	ServiceExtraConfigDir          string
+	LockFilesDir                   string
+	Components                     map[string]types.Component
+	KubernetesRESTClientGetter     genericclioptions.RESTClientGetter
+	KubernetesNodeRESTClientGetter genericclioptions.RESTClientGetter
+	K8sDqliteClient                *dqlite.Client
 }
 
 // Snap is a mock implementation for snap.Snap.
@@ -150,6 +151,9 @@ func (s *Snap) Components() map[string]types.Component {
 }
 func (s *Snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
 	return s.Mock.KubernetesRESTClientGetter
+}
+func (s *Snap) KubernetesNodeRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
+	return s.Mock.KubernetesNodeRESTClientGetter
 }
 func (s *Snap) K8sDqliteClient(context.Context) (*dqlite.Client, error) {
 	return s.Mock.K8sDqliteClient, nil

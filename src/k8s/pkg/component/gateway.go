@@ -38,7 +38,7 @@ func UpdateGatewayComponent(ctx context.Context, s snap.Snap, isRefresh bool) er
 		return fmt.Errorf("failed to enable gateway component: %w", err)
 	}
 
-	client, err := k8s.NewClient(s)
+	client, err := k8s.NewClient(s.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}

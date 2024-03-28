@@ -81,7 +81,7 @@ func UpdateDNSComponent(ctx context.Context, s snap.Snap, isRefresh bool, cluste
 		}
 	}
 
-	client, err := k8s.NewClient(s)
+	client, err := k8s.NewClient(s.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return "", "", fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
