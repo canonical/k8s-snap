@@ -143,7 +143,7 @@ def wait_until_k8s_ready(
     for instance in instances:
         host = hostname(instance)
         result = (
-            stubbornly(retries=15, delay_s=5)
+            stubbornly(retries=30, delay_s=10)
             .on(control_node)
             .until(lambda p: " Ready" in p.stdout.decode())
             .exec(["k8s", "kubectl", "get", "node", host, "--no-headers"])
