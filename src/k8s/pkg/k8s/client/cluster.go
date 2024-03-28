@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/lxd/shared/api"
 )
@@ -18,31 +18,21 @@ func (c *k8sdClient) IsBootstrapped(ctx context.Context) bool {
 }
 
 // Bootstrap bootstraps the k8s cluster
-func (c *k8sdClient) Bootstrap(ctx context.Context, hostname string, address string, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error) {
-	timeout := 30 * time.Second
-	if deadline, set := ctx.Deadline(); set {
-		timeout = time.Until(deadline)
-	}
+func (c *k8sdClient) Bootstrap(ctx context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error) {
+	timeout := utils.TimeoutFromCtx(ctx, 30*time.Second)
 
 	if err := c.m.Ready(int(timeout / time.Second)); err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("k8sd API is not ready: %w", err)
 	}
-	config, err := bootstrapConfig.ToMap()
-	if err != nil {
-		return apiv1.NodeStatus{}, fmt.Errorf("failed to convert bootstrap config to map: %w", err)
-	}
-	if err := c.m.NewCluster(hostname, address, config, timeout); err != nil {
-		// TODO(neoaggelos): only return error that bootstrap failed
-		fmt.Fprintln(os.Stderr, "Failed with error:", err)
-		c.CleanupNode(ctx, hostname)
-		return apiv1.NodeStatus{}, fmt.Errorf("failed to bootstrap new cluster: %w", err)
+	response := apiv1.NodeStatus{}
+
+	if err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster"), request, &response); err != nil {
+
+		c.CleanupNode(ctx, request.Name)
+		return response, fmt.Errorf("failed to bootstrap new cluster using POST /k8sd/cluster: %w", err)
 	}
 
-	// TODO(neoaggelos): retrieve hostname and address from the cluster, do not guess
-	return apiv1.NodeStatus{
-		Name:    hostname,
-		Address: address,
-	}, nil
+	return response, nil
 }
 
 // ClusterStatus returns the current status of the cluster.

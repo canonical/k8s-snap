@@ -8,15 +8,13 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/lxd/shared/api"
 )
 
 func (c *k8sdClient) JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest) error {
-	timeout := 30 * time.Second
-	if deadline, set := ctx.Deadline(); set {
-		timeout = time.Until(deadline)
-	}
+	timeout := utils.TimeoutFromCtx(ctx, 30*time.Second)
 
 	if err := c.m.Ready(int(timeout / time.Second)); err != nil {
 		return fmt.Errorf("k8sd API is not ready: %w", err)
