@@ -1,7 +1,6 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
-import json
 import logging
 from typing import List
 
