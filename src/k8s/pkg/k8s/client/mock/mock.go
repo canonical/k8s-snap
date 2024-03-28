@@ -11,7 +11,7 @@ import (
 type Client struct {
 	BootstrapCalledWith struct {
 		Ctx     context.Context
-		request apiv1.PostClusterBootstrapRequest
+		Request apiv1.PostClusterBootstrapRequest
 	}
 	BootstrapClusterMember apiv1.NodeStatus
 	BootstrapErr           error
@@ -53,7 +53,7 @@ type Client struct {
 
 func (c *Client) Bootstrap(ctx context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error) {
 	c.BootstrapCalledWith.Ctx = ctx
-	c.BootstrapCalledWith.request = request
+	c.BootstrapCalledWith.Request = request
 	return c.BootstrapClusterMember, c.BootstrapErr
 }
 
