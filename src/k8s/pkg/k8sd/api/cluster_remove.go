@@ -6,17 +6,13 @@ import (
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/microcluster"
 	"github.com/canonical/microcluster/state"
 )
 
-func postClusterRemove(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
-	snap := snap.SnapFromContext(s.Context)
-
+func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.Response {
 	req := apiv1.RemoveNodeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
@@ -29,7 +25,7 @@ func postClusterRemove(m *microcluster.MicroCluster, s *state.State, r *http.Req
 	if isControlPlane {
 		// Remove control plane via microcluster API.
 		// The postRemove hook will take care of cleaning up kubernetes.
-		c, err := m.LocalClient()
+		c, err := e.provider.MicroCluster().LocalClient()
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to create local client: %w", err))
 		}
@@ -44,7 +40,7 @@ func postClusterRemove(m *microcluster.MicroCluster, s *state.State, r *http.Req
 	}
 	if isWorker {
 		// For worker nodes, we need to manually cleanup the kubernetes node and db entry.
-		c, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+		c, err := k8s.NewClient(e.provider.Snap().KubernetesRESTClientGetter(""))
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
 		}

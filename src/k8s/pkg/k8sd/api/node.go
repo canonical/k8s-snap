@@ -9,8 +9,8 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func getNodeStatus(s *state.State, r *http.Request) response.Response {
-	status, err := impl.GetLocalNodeStatus(r.Context(), s)
+func (e *Endpoints) getNodeStatus(s *state.State, r *http.Request) response.Response {
+	status, err := impl.GetLocalNodeStatus(r.Context(), s, e.provider.Snap())
 	if err != nil {
 		response.InternalError(err)
 	}

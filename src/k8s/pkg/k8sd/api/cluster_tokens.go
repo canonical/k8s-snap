@@ -16,7 +16,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postClusterJoinTokens(s *state.State, r *http.Request) response.Response {
 	req := apiv1.GetJoinTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
@@ -31,7 +31,7 @@ func postClusterJoinTokens(m *microcluster.MicroCluster, s *state.State, r *http
 	if req.Worker {
 		token, err = getOrCreateWorkerToken(s, hostname)
 	} else {
-		token, err = getOrCreateJoinToken(m, hostname)
+		token, err = getOrCreateJoinToken(e.provider.MicroCluster(), hostname)
 	}
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create token: %w", err))

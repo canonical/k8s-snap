@@ -16,12 +16,12 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func getKubernetesAuthTokens(state *state.State, r *http.Request) response.Response {
+func (e *Endpoints) getKubernetesAuthTokens(s *state.State, r *http.Request) response.Response {
 	token := r.Header.Get("token")
 
 	var username string
 	var groups []string
-	if err := state.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		username, groups, err = database.CheckToken(ctx, tx, token)
 		return err
@@ -32,13 +32,13 @@ func getKubernetesAuthTokens(state *state.State, r *http.Request) response.Respo
 	return response.SyncResponse(true, apiv1.CheckKubernetesAuthTokenResponse{Username: username, Groups: groups})
 }
 
-func postKubernetesAuthTokens(state *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postKubernetesAuthTokens(s *state.State, r *http.Request) response.Response {
 	request := apiv1.GenerateKubernetesAuthTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	token, err := impl.GetOrCreateAuthToken(r.Context(), state, request.Username, request.Groups)
+	token, err := impl.GetOrCreateAuthToken(r.Context(), s, request.Username, request.Groups)
 	if err != nil {
 		return response.InternalError(err)
 	}
@@ -46,13 +46,13 @@ func postKubernetesAuthTokens(state *state.State, r *http.Request) response.Resp
 	return response.SyncResponse(true, apiv1.CreateKubernetesAuthTokenResponse{Token: token})
 }
 
-func deleteKubernetesAuthTokens(state *state.State, r *http.Request) response.Response {
+func (e *Endpoints) deleteKubernetesAuthTokens(s *state.State, r *http.Request) response.Response {
 	request := apiv1.RevokeKubernetesAuthTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	err := impl.RevokeAuthToken(r.Context(), state, request.Token)
+	err := impl.RevokeAuthToken(r.Context(), s, request.Token)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to revoke auth token: %w", err))
 	}
@@ -62,7 +62,7 @@ func deleteKubernetesAuthTokens(state *state.State, r *http.Request) response.Re
 
 // postKubernetesAuthWebhook is used by kube-apiserver to handle TokenReview objects.
 // Note that we do not use the normal response.SyncResponse here, because it breaks the response format that kube-apiserver expects.
-func postKubernetesAuthWebhook(state *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postKubernetesAuthWebhook(s *state.State, r *http.Request) response.Response {
 	review := apiv1.TokenReview{
 		APIVersion: "authentication.k8s.io/v1",
 		Kind:       "TokenReview",
@@ -96,7 +96,7 @@ func postKubernetesAuthWebhook(state *state.State, r *http.Request) response.Res
 	// check token
 	var username string
 	var groups []string
-	if err := state.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		username, groups, err = database.CheckToken(ctx, tx, review.Spec.Token)
 		return err

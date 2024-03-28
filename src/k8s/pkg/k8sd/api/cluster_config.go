@@ -14,7 +14,6 @@ import (
 	"github.com/canonical/k8s/pkg/component"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
@@ -104,9 +103,8 @@ func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig
 	return nil
 }
 
-func putClusterConfig(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateClusterConfigRequest
-	snap := snap.SnapFromContext(s.Context)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -146,14 +144,14 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 	}
 
 	if req.Config.Network != nil {
-		err := component.ReconcileNetworkComponent(r.Context(), snap, oldConfig.Network.Enabled, req.Config.Network.Enabled, newConfig)
+		err := component.ReconcileNetworkComponent(r.Context(), e.provider.Snap(), oldConfig.Network.Enabled, req.Config.Network.Enabled, newConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile network: %w", err))
 		}
 	}
 
 	if req.Config.DNS != nil {
-		dnsIP, _, err := component.ReconcileDNSComponent(r.Context(), snap, oldConfig.DNS.Enabled, req.Config.DNS.Enabled, newConfig)
+		dnsIP, _, err := component.ReconcileDNSComponent(r.Context(), e.provider.Snap(), oldConfig.DNS.Enabled, req.Config.DNS.Enabled, newConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile dns: %w", err))
 		}
@@ -179,7 +177,7 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 			return response.InternalError(fmt.Errorf("failed to encode node config: %w", err))
 		}
 
-		client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+		client, err := k8s.NewClient(e.provider.Snap().KubernetesRESTClientGetter(""))
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
 		}
@@ -190,35 +188,35 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 	}
 
 	if req.Config.LocalStorage != nil {
-		err := component.ReconcileLocalStorageComponent(r.Context(), snap, oldConfig.LocalStorage.Enabled, req.Config.LocalStorage.Enabled, newConfig)
+		err := component.ReconcileLocalStorageComponent(r.Context(), e.provider.Snap(), oldConfig.LocalStorage.Enabled, req.Config.LocalStorage.Enabled, newConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile local-storage: %w", err))
 		}
 	}
 
 	if req.Config.Gateway != nil {
-		err := component.ReconcileGatewayComponent(r.Context(), snap, oldConfig.Gateway.Enabled, req.Config.Gateway.Enabled, newConfig)
+		err := component.ReconcileGatewayComponent(r.Context(), e.provider.Snap(), oldConfig.Gateway.Enabled, req.Config.Gateway.Enabled, newConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile gateway: %w", err))
 		}
 	}
 
 	if req.Config.Ingress != nil {
-		err := component.ReconcileIngressComponent(r.Context(), snap, oldConfig.Ingress.Enabled, req.Config.Ingress.Enabled, newConfig)
+		err := component.ReconcileIngressComponent(r.Context(), e.provider.Snap(), oldConfig.Ingress.Enabled, req.Config.Ingress.Enabled, newConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile ingress: %w", err))
 		}
 	}
 
 	if req.Config.LoadBalancer != nil {
-		err := component.ReconcileLoadBalancerComponent(r.Context(), snap, oldConfig.LoadBalancer.Enabled, req.Config.LoadBalancer.Enabled, newConfig)
+		err := component.ReconcileLoadBalancerComponent(r.Context(), e.provider.Snap(), oldConfig.LoadBalancer.Enabled, req.Config.LoadBalancer.Enabled, newConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile load-balancer: %w", err))
 		}
 	}
 
 	if req.Config.MetricsServer != nil {
-		err := component.ReconcileMetricsServerComponent(r.Context(), snap, oldConfig.MetricsServer.Enabled, req.Config.MetricsServer.Enabled, newConfig)
+		err := component.ReconcileMetricsServerComponent(r.Context(), e.provider.Snap(), oldConfig.MetricsServer.Enabled, req.Config.MetricsServer.Enabled, newConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile metrics-server: %w", err))
 		}
@@ -227,7 +225,7 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &api.UpdateClusterConfigResponse{})
 }
 
-func getClusterConfig(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) getClusterConfig(s *state.State, r *http.Request) response.Response {
 	userFacing, err := utils.GetUserFacingClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get user-facing cluster config: %w", err))
