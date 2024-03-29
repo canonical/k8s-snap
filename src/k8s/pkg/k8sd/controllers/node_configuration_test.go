@@ -94,7 +94,7 @@ func TestConfigPropagation(t *testing.T) {
 				},
 			},
 			expectedUpdates: map[string]string{
-				"--cluster-domain": "test-cluster2.local",
+				"--cluster-domain": "cluster.local",
 				"--cluster-dns":    "10.152.1.3",
 			},
 		},
