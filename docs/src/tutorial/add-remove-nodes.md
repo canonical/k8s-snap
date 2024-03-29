@@ -1,6 +1,6 @@
 # Adding and Removing Nodes
 
-Typical production clusters are hosted across multiple data centers and cloud
+Typical production clusters are hosted across multiple data centres and cloud
 environments, enabling them to leverage geographical distribution for improved
 availability and resilience.
 
@@ -11,7 +11,9 @@ complexities of a full-scale, production setup.
 
 ## Before starting
 
-In this article, "**control plane**" refers to the Multipass VM that operates the control plane, while "**worker**" denotes the Multipass VM running the worker node.
+In this article, "**control plane**" refers to the Multipass VM that operates
+the control plane, while "**worker**" denotes the Multipass VM running the
+worker node.
 
 ## What you will need
 
@@ -29,7 +31,18 @@ multipass launch 22.04 --name control-plane -m 4G -d 8G
 multipass launch 22.04 --name worker -m 4G -c 4 -d 8G
 ```
 
-This step can take a few minutes as Multipass creates the new virtual machines. It's normal and expected.
+This step can take a few minutes as Multipass creates the new virtual machines.
+It's normal and expected.
+
+Once the virtual machine has been created, you can run commands on it by
+opening a shell. For example:
+
+```
+multipass shell control-plane
+```
+
+This will behave as a local terminal session on the virtual machine, so you can
+run commands.
 
 Install Canonical Kubernetes on both VMs with the following command:
 
@@ -54,7 +67,8 @@ Create the token for the worker node to join the cluster.
 sudo k8s get-join-token worker --worker
 ```
 
-A base64 token will be printed to your terminal. Keep it handy as you will need it for the next step.
+A base64 token will be printed to your terminal. Keep it handy as you will need
+it for the next step.
 
 ```{note} It's advisable to name the new node after the hostname of the
    worker node (in this case, the VM's hostname is worker).
@@ -92,6 +106,7 @@ your cluster.
 Congratulations!
 
 ### 4. Remove Nodes and delete the VMs (Optional)
+
 It is important to clean-up your nodes before tearing down the VMs.
 
 ```{note}  Purging a VM does not remove the node from your cluster.
@@ -99,8 +114,9 @@ It is important to clean-up your nodes before tearing down the VMs.
 
 Keep in mind the consequences of removing nodes:
 
-```{warning} Do not remove the leader node. 
-If you have less than 3 nodes and you remove any node you will lose availability of your cluster.
+```{warning} Do not remove the leader node.
+If you have less than 3 nodes and you remove any node you will lose availability
+   of your cluster.
 ```
 
 To tear down the entire cluster, execute:

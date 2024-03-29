@@ -1,14 +1,16 @@
 # How to use default Ingress
 
-Canonical Kubernetes allows you to configure Ingress into your cluster.
-When enabled, it tells your cluster how external HTTP and HTTPS traffic should be routed to its services.
+Canonical Kubernetes allows you to configure Ingress into your cluster. When
+enabled, it tells your cluster how external HTTP and HTTPS traffic should be
+routed to its services.
 
 ## What you'll need
 
 This guide assumes the following:
 
 - You have root or sudo access to the machine
-- You have a bootstraped Canonical Kubernetes cluster (see the [Getting Started][getting-started-guide] guide).
+- You have a bootstrapped Canonical Kubernetes cluster (see the [Getting
+  Started][getting-started-guide] guide).
 
 ## Check Ingress status
 
@@ -39,13 +41,14 @@ sudo k8s help enable
 Discover your configuration options by running:
 
 ```
-sudo k8s set ingress --help
+sudo k8s get ingress 
 ```
 
 You should see three options:
 
-- `default-tls-secret`: Name of the TLS (Transport Layer Security) Secret in the kube-system namespace 
-  that will be used as the default Ingress certificate
+- `default-tls-secret`: Name of the TLS (Transport Layer Security) Secret in
+  the kube-system namespace that will be used as the default Ingress
+  certificate
 - `enable-proxy-protocol`: If set, proxy protocol will be enabled for the Ingress
 
 ### TLS Secret
@@ -54,6 +57,7 @@ You can create a TLS secret by following the official [Kubernetes documentation]
 Note: remember to use `sudo k8s kubectl` (See the [kubectl-guide]).
 
 Tell Ingress to use your new Ingress certificate:
+
 ```
 sudo k8s set ingress.default-tls-secret=<new-default-tls-secret>
 ```
@@ -62,7 +66,8 @@ Replace `<new-default-tls-secret>` with the desired value for your Ingress confi
 
 ### Proxy Protocol
 
-Enabling the proxy protocol allows passing client connection information to the backend service. 
+Enabling the proxy protocol allows passing client connection information to the
+backend service.
 
 Consult the official [Kubernetes documentation on the proxy protocol][proxy-protocol].
 
@@ -78,7 +83,8 @@ Adjust the value of `<new-enable-proxy-protocol>` with your proxy protocol requi
 
 You can `disable` the built-in ingress:
 
-``` {warning} Disabling Ingress may impact external access to services within your cluster.
+``` {warning} Disabling Ingress may impact external access to services within
+    your cluster.
     Ensure that you have alternative configurations in place before disabling Ingress.
 ```
 

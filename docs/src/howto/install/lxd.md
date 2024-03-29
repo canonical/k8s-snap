@@ -4,7 +4,7 @@ Canonical Kubernetes can also be installed inside an LXD container. This is a
 great way, for example, to test out clustered Canonical Kubernetes without the
 need for multiple physical hosts.
 
-## Installing LXD 
+## Installing LXD
 
 You can install [LXD] via snaps:
 
@@ -18,14 +18,21 @@ sudo lxd init
 Canonical Kubernetes requires some specific settings to work within LXD (these
 are explained in more detail below). These can be applied using a custom
 profile. The first step is to create a new profile:
+
 ```
 lxc profile create k8s
 ```
 
-Once created, we’ll need to add the rules. 
-Get our pre-defined profile rules from github and save them as k8s.profile.
+Once created, we’ll need to add the rules.
+Get our pre-defined profile rules from GitHub and save them as `k8s.profile`.
+
+<!-- markdownlint-disable -->
 ```
-wget https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/e2e/lxd-profile.yaml -O k8s.profile
+wget https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/integration/lxd-profile.yaml -O k8s.profile
+```
+<!-- markdownlint-restore -->
+
+```{note} For an explanation of the settings in this file, [see below](explain-rules)
 ```
 
 To pipe the content of the file into the k8s LXD profile, run:
@@ -41,39 +48,53 @@ rm k8s.profile
 ```
 
 ## Start an LXD container for Canonical Kubernetes
+
 We can now create the container that Canonical Kubernetes will run in.
 
 ```
 lxc launch -p default -p k8s ubuntu:22.04 k8s
 ```
 
-```{note} This command uses the `default` profile, for any existing system
-settings (networking, storage, etc.) before also applying the `k8s` profile -
-the order is important.
+This command uses the `default` profile created by LXD for any
+existing system settings (networking, storage, etc.), before
+also applying the `k8s` profile - the order is important.
 
 ## Install Canonical Kubernetes in an LXD container
+
 First, we’ll need to install Canonical Kubernetes within the container.
 
 ```
-lxc exec k8s -- sudo snap install k8s --classic
+lxc exec k8s -- sudo snap install k8s --classic --channel=latest/edge
+```
+
+```{note}
+Substitute your desired channel in the above command. Find the
+available channels with `snap info k8s` and see the [channels][]
+explanation page for more details on channels, tracks and versions.  
 ```
 
 ## Access Canonical Kubernetes services within LXD
-Assuming you left the [default bridged networking][default-bridged-networking] when you initially setup LXD,
-there is minimal effort required to access Canonical Kubernetes services inside
-the LXD container.
 
-Simply note the `eth0` interface IP address from
+Assuming you accepted the [default bridged
+networking][default-bridged-networking] when you initially setup LXD, there is
+minimal effort required to access Canonical Kubernetes services inside the LXD
+container.
 
+Simply note the `eth0` interface IP address from the command:
+
+<!-- markdownlint-disable -->
 ```
 lxc list k8s
-
+```
+```
 +------+---------+----------------------+----------------------------------------------+-----------+-----------+
 | NAME |  STATE  |         IPV4         |                     IPV6                     |   TYPE    | SNAPSHOTS |
 +------+---------+----------------------+----------------------------------------------+-----------+-----------+
 | k8s  | RUNNING | 10.122.174.30 (eth0) | fd42:80c6:c3e:445a:216:3eff:fe8d:add9 (eth0) | CONTAINER | 0         |
 +------+---------+----------------------+----------------------------------------------+-----------+-----------+
 ```
+
+<!-- markdownlint-restore -->
 
 and use this to access services running inside the container.
 
@@ -87,7 +108,7 @@ port assigned by Kubernetes.
 In this example, we will use [Microbot] as it provides a simple HTTP endpoint
 to expose. These steps can be applied to any other deployment.
 
-First, initialize the k8s cluster with 
+First, initialize the k8s cluster with
 
 ```
 lxc exec k8s -- sudo k8s bootstrap
@@ -103,7 +124,12 @@ Then check that the deployment has come up.
 
 ```
 lxc exec k8s -- sudo k8s kubectl get all
+```
 
+...should return output similar to:
+
+<!-- markdownlint-disable -->
+```
 NAME                            READY   STATUS    RESTARTS   AGE
 pod/microbot-6d97548556-hchb7   1/1     Running   0          21m
 
@@ -116,18 +142,28 @@ deployment.apps/microbot   1/1     1            1           21m
 NAME                                  DESIRED   CURRENT   READY   AGE
 replicaset.apps/microbot-6d97548556   1         1         1       21m
 ```
+<!-- markdownlint-restore -->
 
-Now that Microbot is up and running, let's make it accessible to the LXD container by using the `expose` command.
+Now that Microbot is up and running, let's make it accessible to the LXD
+container by using the `expose` command.
+
+<!-- markdownlint-disable -->
 
 ```
 lxc exec k8s -- sudo k8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
 ```
 
-We can now get the assigned port. In this example, it’s `32750`.
+<!-- markdownlint-restore -->
+
+We can now get the assigned port. In this example, it’s `32750`:
 
 ```
 lxc exec k8s -- sudo k8s kubectl get service microbot-service
+```
 
+...returns output similar to:
+
+```
 NAME               TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
 microbot-service   NodePort   10.152.183.188   <none>        80:32750/TCP   27m
 ```
@@ -141,7 +177,9 @@ curl 10.122.174.30:32750
 
 ## Stop/Remove the container
 
-The `k8s` container you created will keep running in the background until it is either stopped or the host computer is shut down. You can stop the running container at any time by running:
+The `k8s` container you created will keep running in the background until it is
+either stopped or the host computer is shut down. You can stop the running
+container at any time by running:
 
 ```
 lxc stop k8s
@@ -152,6 +190,8 @@ And it can be permanently removed with:
 ```
 lxc delete k8s
 ```
+
+(explain-rules)=
 
 ## Explanation of custom LXD rules
 
@@ -167,12 +207,12 @@ will block nested hosting of containers, however Kubernetes needs to host
 Containers. Containers need to be confined based on their profiles thus we rely
 on confining them and not the hosts. If you can account for the needs of the
 Containers you could tighten the AppArmor profile instead of disabling it
-completely, as suggested in [1].
+completely, as suggested in S.Graber's notes[^1].
 
-**lxc.cap.drop=**: Do not drop any capabilities [2]. For justification see
+**lxc.cap.drop=**: Do not drop any capabilities [^2]. For justification see
 above.
 
-**lxc.mount.auto=proc:rw sys:rw**: Mount proc and sys rw [3]. For privileged
+**lxc.mount.auto=proc:rw sys:rw**: Mount proc and sys rw [^3]. For privileged
 containers, lxc over-mounts part of /proc as read-only to avoid damage to the
 host. Kubernetes will complain with messages like `Failed to start
 ContainerManager open /proc/sys/kernel/panic: permission denied`
@@ -185,20 +225,20 @@ indicating permission for all devices. For justification see above.
 container.
 
 **security.privileged: “true”**: Runs the container in privileged mode, not
-using kernel namespaces [4, 5]. This is needed because hosted Containers may
-need to access for example storage devices (See comment in [6]).
-
-## Citations
-[1] Container nesting: https://stgraber.org/2012/05/04/lxc-in-ubuntu-12-04-lts/.
-[2] Capabilities https://stgraber.org/2014/01/01/lxc-1-0-security-features/.
-[3] Mount proc and sys in privileged containers: https://github.com/lxc/lxd/issues/3042.
-[4] Unprivileged containers: https://unix.stackexchange.com/questions/177030/what-is-an-unprivileged-lxc-container/177031#177031.
-[5] Privileged containers: http://blog.benoitblanchon.fr/lxc-unprivileged-container/.
-[6] Lxc Security https://wiki.ubuntu.com/LxcSecurity.
+using kernel namespaces [^4], [^5]. This is needed because hosted Containers may
+need to access for example storage devices (See comment in [^6]).
 
 <!-- LINKS -->
+<!-- markdownlint-disable MD034 -->
+[^1]: https://stgraber.org/2012/05/04/
+[^2]: https://stgraber.org/2014/01/01/lxc-1-0-security-features/
+[^3]: https://github.com/lxc/lxd/issues/3042
+[^4]: https://unix.stackexchange.com/questions/177030/what-is-an-unprivileged-lxc-container/177031#177031
+[^5]: http://blog.benoitblanchon.fr/lxc-unprivileged-container/
+[^6]: https://wiki.ubuntu.com/LxcSecurity
 
 [LXD]: https://canonical.com/lxd
 [default-bridged-networking]: https://ubuntu.com/blog/lxd-networking-lxdbr0-explained
 [Microbot]: https://github.com/dontrebootme/docker-microbot
 [AppArmor]: https://apparmor.net/
+[channels]: ../../explanation/channels

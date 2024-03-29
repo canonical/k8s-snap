@@ -9,9 +9,7 @@ import (
 // Client defines the interface for interacting with a k8s cluster.
 type Client interface {
 	// Bootstrap initializes a new cluster member using the provided bootstrap configuration.
-	Bootstrap(ctx context.Context, name string, address string, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error)
-	// IsKubernetesAPIServerReady checks if kube-apiserver is reachable.
-	IsKubernetesAPIServerReady(ctx context.Context) bool
+	Bootstrap(ctx context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error)
 	// IsBootstrapped checks whether the current node is already bootstrapped.
 	IsBootstrapped(ctx context.Context) bool
 	// CleanupNode performs cleanup operations for a specific node in the cluster.

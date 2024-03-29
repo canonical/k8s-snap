@@ -5,13 +5,12 @@ essential for internal cluster communication. When enabled, the DNS facilitates
 service discovery by assigning each service a DNS name. When disabled, you can
 integrate a custom DNS solution into your cluster.
 
-
 ## What you'll need
 
 This guide assumes the following:
 
 - You have root or sudo access to the machine.
-- You have a bootstraped Canonical Kubernetes cluster (see the [Getting
+- You have a bootstrapped Canonical Kubernetes cluster (see the [Getting
   Started][getting-started-guide] guide).
 
 ## Check DNS status
@@ -41,12 +40,14 @@ sudo k8s help enable
 ## Configure DNS
 
 Discover your configuration options by running:
+
 ```
-sudo k8s set dns --help
+sudo k8s get dns
 ```
 
 You should see three options:
-- `upstream-nameservers`: dns servers used to forward known entries
+
+- `upstream-nameservers`: DNS servers used to forward known entries
 - `cluster-domain`: the cluster domain name
 - `service-ip`: the cluster IP to be assigned to the DNS service
 
@@ -76,9 +77,9 @@ desired values for your DNS configuration.
 Canonical Kubernetes also allows you to disable the built-in DNS,
 if you desire a custom solution:
 
-``` {warning} Disabling DNS will disrupt internal cluster communication. Ensure a suitable
-custom DNS solution is in place before disabling. You can re-enable DNS at any
-point, and your cluster will return to normal functionality.```
+``` {warning} Disabling DNS will disrupt internal cluster communication. Ensure
+a suitable custom DNS solution is in place before disabling. You can re-enable
+DNS at any point, and your cluster will return to normal functionality.```
 ```
 
 ```

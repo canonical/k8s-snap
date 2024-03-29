@@ -10,16 +10,13 @@ import (
 // Client is a mock implementation for k8s Client.
 type Client struct {
 	BootstrapCalledWith struct {
-		Ctx             context.Context
-		Name            string
-		Address         string
-		BootstrapConfig apiv1.BootstrapConfig
+		Ctx     context.Context
+		Request apiv1.PostClusterBootstrapRequest
 	}
-	BootstrapClusterMember           apiv1.NodeStatus
-	BootstrapErr                     error
-	IsBootstrappedReturn             bool
-	IsKubernetesAPIServerReadyReturn bool
-	CleanupNodeCalledWith            struct {
+	BootstrapClusterMember apiv1.NodeStatus
+	BootstrapErr           error
+	IsBootstrappedReturn   bool
+	CleanupNodeCalledWith  struct {
 		Ctx      context.Context
 		NodeName string
 	}
@@ -54,16 +51,10 @@ type Client struct {
 	UpdateClusterConfigErr        error
 }
 
-func (c *Client) Bootstrap(ctx context.Context, name string, address string, bootstrapConfig apiv1.BootstrapConfig) (apiv1.NodeStatus, error) {
+func (c *Client) Bootstrap(ctx context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error) {
 	c.BootstrapCalledWith.Ctx = ctx
-	c.BootstrapCalledWith.Name = name
-	c.BootstrapCalledWith.Address = address
-	c.BootstrapCalledWith.BootstrapConfig = bootstrapConfig
+	c.BootstrapCalledWith.Request = request
 	return c.BootstrapClusterMember, c.BootstrapErr
-}
-
-func (c *Client) IsKubernetesAPIServerReady(ctx context.Context) bool {
-	return c.IsKubernetesAPIServerReadyReturn
 }
 
 func (c *Client) IsBootstrapped(ctx context.Context) bool {

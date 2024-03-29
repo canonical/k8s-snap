@@ -16,13 +16,14 @@ type BootstrapConfig struct {
 	// ServiceCIDR is the CIDR of the cluster services.
 	ServiceCIDR string `yaml:"service-cidr"`
 	// EnableRBAC determines if RBAC will be enabled; *bool to know true/false/unset.
-	EnableRBAC          *bool  `yaml:"enable-rbac"`
-	K8sDqlitePort       int    `yaml:"k8s-dqlite-port"`
-	Datastore           string `yaml:"datastore"`
-	DatastoreURL        string `yaml:"datastore-url,omitempty"`
-	DatastoreCACert     string `yaml:"datastore-ca-crt,omitempty"`
-	DatastoreClientCert string `yaml:"datastore-client-crt,omitempty"`
-	DatastoreClientKey  string `yaml:"datastore-client-key,omitempty"`
+	EnableRBAC          *bool    `yaml:"enable-rbac"`
+	K8sDqlitePort       int      `yaml:"k8s-dqlite-port"`
+	Datastore           string   `yaml:"datastore"`
+	DatastoreURL        string   `yaml:"datastore-url,omitempty"`
+	DatastoreCACert     string   `yaml:"datastore-ca-crt,omitempty"`
+	DatastoreClientCert string   `yaml:"datastore-client-crt,omitempty"`
+	DatastoreClientKey  string   `yaml:"datastore-client-key,omitempty"`
+	ExtraSANs           []string `yaml:"extrasans,omitempty"`
 }
 
 // SetDefaults sets the fields to default values.
@@ -145,30 +146,29 @@ func (c ClusterStatus) String() string {
 		}
 	}
 	if len(voters) > 0 {
-		result.WriteString(fmt.Sprintf("  voter-nodes:\n"))
+		result.WriteString("  voter-nodes:\n")
 		for _, voter := range voters {
 			result.WriteString(fmt.Sprintf("    - %s\n", voter.Address))
 		}
 	} else {
-		result.WriteString(fmt.Sprintf("  voter-nodes: none\n"))
+		result.WriteString("  voter-nodes: none\n")
 	}
 	if len(standBys) > 0 {
-		result.WriteString(fmt.Sprintf("  standby-nodes:\n"))
+		result.WriteString("  standby-nodes:\n")
 		for _, standBy := range standBys {
 			result.WriteString(fmt.Sprintf("    - %s\n", standBy.Address))
 		}
 	} else {
-		result.WriteString(fmt.Sprintf("  standby-nodes: none\n"))
+		result.WriteString("  standby-nodes: none\n")
 	}
 	if len(spares) > 0 {
-		result.WriteString(fmt.Sprintf("  spare-nodes:\n"))
+		result.WriteString("  spare-nodes:\n")
 		for _, spare := range spares {
 			result.WriteString(fmt.Sprintf("    - %s\n", spare.Address))
 		}
 	} else {
-		result.WriteString(fmt.Sprintf("  spare-nodes: none\n"))
+		result.WriteString("  spare-nodes: none\n")
 	}
-	result.WriteString("\n")
 
 	b, _ := yaml.Marshal(c.Config)
 	result.WriteString(string(b))

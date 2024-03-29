@@ -40,7 +40,7 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 	}
 
 	// Wait for cilium CRDs to be available.
-	k8sClient, err := k8s.NewClient(s)
+	k8sClient, err := k8s.NewClient(s.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}
@@ -104,7 +104,7 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 		}
 	}
 
-	client, err := k8s.NewClient(s)
+	client, err := k8s.NewClient(s.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}

@@ -22,6 +22,12 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
+			if !client.IsBootstrapped(cmd.Context()) {
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				env.Exit(1)
+				return
+			}
+
 			config, err := client.KubeConfig(cmd.Context(), apiv1.GetKubeConfigRequest{Server: opts.server})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to generate an admin kubeconfig for %q.\n\nThe error was: %v\n", opts.server, err)

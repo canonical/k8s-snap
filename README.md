@@ -1,5 +1,6 @@
 # Canonical Kubernetes Snap
-[![End to End Tests](https://github.com/canonical/k8s-snap/actions/workflows/e2e.yaml/badge.svg)](https://github.com/canonical/k8s-snap/actions/workflows/e2e.yaml)
+[![End to End Tests](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml/badge.svg)](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml)
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/k8s)
 
 **Canonical Kubernetes** is the fastest, easiest way to deploy a fully-conformant Kubernetes cluster. Harnessing pure upstream Kubernetes, this distribution adds the missing pieces (e.g. ingress, dns, networking) for a zero-ops experience.
 
@@ -10,7 +11,7 @@ For more information and instructions, please see the official documentation at:
 Install Canonical Kubernetes and initialise the cluster with:
 
 ```bash
-sudo snap install k8s --edge --classic
+sudo snap install k8s --channel=1.30-classic/beta --classic
 sudo k8s bootstrap
 ```
 
