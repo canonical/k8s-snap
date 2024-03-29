@@ -23,6 +23,10 @@ func TestWatchConfigMap(t *testing.T) {
 		configmap *corev1.ConfigMap
 	}{
 		{
+			name:      "pass nil object",
+			configmap: nil,
+		},
+		{
 			name: "example configmap with values",
 			configmap: &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-config", Namespace: "kube-system"},
@@ -40,10 +44,6 @@ func TestWatchConfigMap(t *testing.T) {
 				Data:       map[string]string{},
 			},
 		},
-		{
-			name:      "pass nil object",
-			configmap: nil,
-		},
 	}
 
 	clientset := fake.NewSimpleClientset()
@@ -52,10 +52,10 @@ func TestWatchConfigMap(t *testing.T) {
 
 	client := &Client{Interface: clientset}
 
-	var receivedMaps []*corev1.ConfigMap
+	doneCh := make(chan *corev1.ConfigMap)
 
 	go client.WatchConfigMap(ctx, "kube-system", "test-config", func(configMap *corev1.ConfigMap) error {
-		receivedMaps = append(receivedMaps, configMap)
+		doneCh <- configMap
 		if configMap == nil {
 			return fmt.Errorf("unexpected nil map test case error")
 		}
@@ -64,18 +64,22 @@ func TestWatchConfigMap(t *testing.T) {
 
 	defer watcher.Stop()
 
-	for i, tc := range tests {
+	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
 
 			watcher.Add(tc.configmap)
-			time.Sleep(100 * time.Millisecond)
-
-			if tc.configmap != nil {
-				g.Expect(receivedMaps[i].Data).To(Equal(tc.configmap.Data))
-				g.Expect(receivedMaps[i].Name).To(Equal(tc.configmap.Name))
-				g.Expect(receivedMaps[i].Namespace).To(Equal(tc.configmap.Namespace))
+			select {
+			case recv := <-doneCh:
+				if tc.configmap != nil {
+					g.Expect(recv.Data).To(Equal(tc.configmap.Data))
+					g.Expect(recv.Name).To(Equal(tc.configmap.Name))
+					g.Expect(recv.Namespace).To(Equal(tc.configmap.Namespace))
+				}
+			case <-time.After(time.Second):
+				t.Fatal("Timed out waiting for watch to complete")
 			}
+
 		})
 	}
 }

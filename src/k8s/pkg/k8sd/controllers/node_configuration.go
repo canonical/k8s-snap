@@ -10,7 +10,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/k8s"
-	"github.com/mitchellh/mapstructure"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -45,22 +44,21 @@ func (c *NodeConfigurationController) Run(ctx context.Context) {
 }
 
 func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *v1.ConfigMap) error {
-	var nodeConfig types.NodeConfig
-	if err := mapstructure.Decode(configMap.Data, &nodeConfig); err != nil {
-		return fmt.Errorf("failed to decode node config: %w", err)
-	}
+	nodeConfig := types.NodeConfigFromMap(configMap.Data)
 
 	kubeletUpdateMap := make(map[string]string)
 	var kubeletDeleteList []string
 
-	if nodeConfig.ClusterDNS != "" {
-		kubeletUpdateMap["--cluster-dns"] = nodeConfig.ClusterDNS
+	if nodeConfig.ClusterDNS != nil && *nodeConfig.ClusterDNS != "" {
+		kubeletUpdateMap["--cluster-dns"] = *nodeConfig.ClusterDNS
 	} else {
 		kubeletDeleteList = append(kubeletDeleteList, "--cluster-dns")
 	}
 
-	if nodeConfig.ClusterDomain != "" {
-		kubeletUpdateMap["--cluster-domain"] = nodeConfig.ClusterDomain
+	if nodeConfig.ClusterDomain != nil && *nodeConfig.ClusterDomain != "" {
+		kubeletUpdateMap["--cluster-domain"] = *nodeConfig.ClusterDomain
+	} else {
+		kubeletUpdateMap["--cluster-domain"] = "cluster.local"
 	}
 
 	mustRestartKubelet, err := snaputil.UpdateServiceArguments(c.snap, "kubelet", kubeletUpdateMap, kubeletDeleteList)

@@ -29,29 +29,12 @@ def test_config_propagation(instances: List[harness.Instance]):
     nodes = util.ready_nodes(initial_node)
     assert len(nodes) == 3, "all nodes should have joined cluster"
 
-    p = (
-        util.stubbornly(retries=5, delay_s=3)
-        .on(initial_node)
-        .until(lambda p: len(p.stdout.decode().replace("'", "")) > 0)
-        .exec(
-            [
-                "k8s",
-                "kubectl",
-                "get",
-                "service",
-                "coredns",
-                "-n",
-                "kube-system",
-                "-o=jsonpath='{.spec.clusterIP}'",
-            ],
-        )
-    )
-    service_ip = p.stdout.decode().replace("'", "")
+    initial_node.exec(["k8s", "set", "dns.cluster-domain=integration.local"])
 
     util.stubbornly(retries=5, delay_s=10).on(joining_cplane_node).until(
-        lambda p: f"--cluster-dns={service_ip}" in p.stdout.decode()
+        lambda p: f"--cluster-domain=integration.local" in p.stdout.decode()
     ).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
 
     util.stubbornly(retries=5, delay_s=10).on(joining_worker_node).until(
-        lambda p: f"--cluster-dns={service_ip}" in p.stdout.decode()
+        lambda p: f"--cluster-domain=integration.local" in p.stdout.decode()
     ).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
