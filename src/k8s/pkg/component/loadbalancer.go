@@ -109,11 +109,22 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
-		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+	if err := control.RetryFor(3, func() error {
+		if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
+			return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
-	if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
-		return fmt.Errorf("failed to restart cilium daemonset: %w", err)
+
+	if err := control.RetryFor(3, func() error {
+		if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
+			return fmt.Errorf("failed to restart cilium daemonset: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil

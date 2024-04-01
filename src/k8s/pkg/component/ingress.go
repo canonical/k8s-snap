@@ -6,6 +6,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
 )
@@ -35,11 +36,22 @@ func UpdateIngressComponent(ctx context.Context, s snap.Snap, isRefresh bool, de
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
-		return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+	if err := control.RetryFor(3, func() error {
+		if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
+			return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
-	if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
-		return fmt.Errorf("failed to restart cilium daemonset: %w", err)
+
+	if err := control.RetryFor(3, func() error {
+		if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
+			return fmt.Errorf("failed to restart cilium daemonset: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil
