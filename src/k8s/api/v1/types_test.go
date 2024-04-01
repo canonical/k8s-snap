@@ -114,8 +114,8 @@ func TestString(t *testing.T) {
 					{Name: "node3", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.3"},
 				},
 				Config: UserFacingClusterConfig{
-					Network: &NetworkConfig{Enabled: vals.Pointer(true)},
-					DNS:     &DNSConfig{Enabled: vals.Pointer(true)},
+					Network: NetworkConfig{Enabled: vals.Pointer(true)},
+					DNS:     DNSConfig{Enabled: vals.Pointer(true)},
 				},
 			},
 			expectedOutput: `status: ready
