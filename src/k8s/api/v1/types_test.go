@@ -97,8 +97,6 @@ func TestHaClusterFormed(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	g := NewGomegaWithT(t)
-
 	testCases := []struct {
 		name           string
 		clusterStatus  ClusterStatus
@@ -127,14 +125,10 @@ datastore:
     - 192.168.0.3
   standby-nodes: none
   spare-nodes: none
-
 network:
   enabled: true
 dns:
   enabled: true
-  cluster-domain: ""
-  service-ip: ""
-  upstream-nameservers: []
 `,
 		},
 		{
@@ -150,12 +144,14 @@ datastore:
   voter-nodes: none
   standby-nodes: none
   spare-nodes: none
+{}
 `,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
 			g.Expect(tc.clusterStatus.String()).To(Equal(tc.expectedOutput))
 		})
 	}
