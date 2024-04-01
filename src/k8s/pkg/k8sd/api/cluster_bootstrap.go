@@ -40,7 +40,7 @@ func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.
 	}
 
 	// Set timeout
-	timeout := utils.TimeoutFromCtx(r.Context(), 30*time.Second)
+	timeout := utils.TimeoutFromCtx(r.Context(), 45*time.Second)
 
 	// Bootstrap the cluster
 	if err := m.NewCluster(hostname, req.Address, config, timeout); err != nil {
