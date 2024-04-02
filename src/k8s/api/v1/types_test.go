@@ -144,7 +144,6 @@ datastore:
   voter-nodes: none
   standby-nodes: none
   spare-nodes: none
-{}
 `,
 		},
 	}

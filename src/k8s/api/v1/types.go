@@ -170,8 +170,10 @@ func (c ClusterStatus) String() string {
 		result.WriteString("  spare-nodes: none\n")
 	}
 
-	b, _ := yaml.Marshal(c.Config)
-	result.WriteString(string(b))
-
+	var emptyConfig UserFacingClusterConfig
+	if c.Config != emptyConfig {
+		b, _ := yaml.Marshal(c.Config)
+		result.WriteString(string(b))
+	}
 	return result.String()
 }
