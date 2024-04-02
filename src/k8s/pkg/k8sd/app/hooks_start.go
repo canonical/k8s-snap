@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/snap"
@@ -13,7 +14,19 @@ func onStart(s *state.State) error {
 	snap := snap.SnapFromContext(s.Context)
 
 	configController := controllers.NewNodeConfigurationController(snap, func(ctx context.Context) *k8s.Client {
-		return k8s.RetryNewClient(ctx, snap.KubernetesNodeRESTClientGetter("kube-system"))
+		for {
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-time.After(3 * time.Second):
+			}
+
+			client, err := k8s.NewClient(snap.KubernetesNodeRESTClientGetter("kube-system"))
+			if err != nil {
+				continue
+			}
+			return client
+		}
 	})
 	go configController.Run(s.Context)
 

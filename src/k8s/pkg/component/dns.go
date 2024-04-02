@@ -152,7 +152,7 @@ func ReconcileDNSComponent(ctx context.Context, s snap.Snap, alreadyEnabled *boo
 		if err != nil {
 			return "", "", fmt.Errorf("failed to disable dns: %w", err)
 		}
-		return "", "", nil
+		return clusterConfig.Kubelet.ClusterDNS, clusterConfig.Kubelet.ClusterDomain, nil
 	}
 	return "", "", nil
 }
