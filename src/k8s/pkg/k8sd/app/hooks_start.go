@@ -19,7 +19,6 @@ func onStart(s *state.State) error {
 			case <-ctx.Done():
 				return nil
 			case <-time.After(3 * time.Second):
-			default:
 			}
 
 			client, err := k8s.NewClient(snap.KubernetesNodeRESTClientGetter("kube-system"))
