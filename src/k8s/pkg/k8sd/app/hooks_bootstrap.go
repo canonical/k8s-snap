@@ -24,7 +24,6 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/microcluster/state"
-	"github.com/mitchellh/mapstructure"
 )
 
 // onBootstrap is called after we bootstrap the first cluster node.
@@ -290,8 +289,9 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		}
 	}
 
+	var dnsIP = cfg.Kubelet.ClusterDNS
 	if cfg.DNS.Enabled != nil {
-		dnsIP, _, err := component.ReconcileDNSComponent(s.Context, snap, vals.Pointer(false), cfg.DNS.Enabled, cfg)
+		dnsIP, _, err = component.ReconcileDNSComponent(s.Context, snap, vals.Pointer(false), cfg.DNS.Enabled, cfg)
 		if err != nil {
 			return fmt.Errorf("failed to reconcile dns: %w", err)
 		}
@@ -307,23 +307,20 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		}); err != nil {
 			return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
 		}
+	}
 
-		var data map[string]string
-		if err := mapstructure.Decode(types.NodeConfig{
-			ClusterDNS:    dnsIP,
-			ClusterDomain: cfg.Kubelet.ClusterDomain,
-		}, &data); err != nil {
-			return fmt.Errorf("failed to encode node config: %w", err)
-		}
+	cmData := types.MapFromNodeConfig(types.NodeConfig{
+		ClusterDNS:    &dnsIP,
+		ClusterDomain: &cfg.Kubelet.ClusterDomain,
+	})
 
-		client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
-		if err != nil {
-			return fmt.Errorf("failed to create kubernetes client: %w", err)
-		}
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	if err != nil {
+		return fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
 
-		if _, err := client.UpdateConfigMap(s.Context, "kube-system", "k8sd-config", data); err != nil {
-			return fmt.Errorf("failed to update node configs: %w", err)
-		}
+	if _, err := client.UpdateConfigMap(s.Context, "kube-system", "k8sd-config", cmData); err != nil {
+		return fmt.Errorf("failed to update node configs: %w", err)
 	}
 
 	if cfg.LocalStorage.Enabled != nil {
