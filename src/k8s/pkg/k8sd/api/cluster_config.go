@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	api "github.com/canonical/k8s/api/v1"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/canonical/k8s/pkg/component"
 	"github.com/canonical/k8s/pkg/k8sd/database"
@@ -76,23 +75,20 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 				return response.InternalError(fmt.Errorf("database transaction to update cluster configuration failed: %w", err))
 			}
 		}
+	}
 
-		var data map[string]string
-		if err := mapstructure.Decode(types.NodeConfig{
-			ClusterDNS:    mergedConfig.Kubelet.GetClusterDNS(),
-			ClusterDomain: mergedConfig.Kubelet.GetClusterDomain(),
-		}, &data); err != nil {
-			return response.InternalError(fmt.Errorf("failed to encode node config: %w", err))
-		}
+	cmData, err := mergedConfig.Kubelet.ToConfigMap()
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to format kubelet configmap data: %w", err))
+	}
 
-		client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
-		if err != nil {
-			return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
-		}
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
+	}
 
-		if _, err := client.UpdateConfigMap(r.Context(), "kube-system", "k8sd-config", data); err != nil {
-			return response.InternalError(fmt.Errorf("failed to update node config: %w", err))
-		}
+	if _, err := client.UpdateConfigMap(r.Context(), "kube-system", "k8sd-config", cmData); err != nil {
+		return response.InternalError(fmt.Errorf("failed to update node config: %w", err))
 	}
 
 	if !requestedConfig.LocalStorage.Empty() {

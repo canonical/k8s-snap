@@ -10,7 +10,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/k8s"
-	"github.com/mitchellh/mapstructure"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -33,7 +32,6 @@ func (c *NodeConfigurationController) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-time.After(3 * time.Second):
-		default:
 		}
 
 		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap) }); err != nil {
@@ -45,25 +43,31 @@ func (c *NodeConfigurationController) Run(ctx context.Context) {
 }
 
 func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *v1.ConfigMap) error {
-	var nodeConfig types.NodeConfig
-	if err := mapstructure.Decode(configMap.Data, &nodeConfig); err != nil {
-		return fmt.Errorf("failed to decode node config: %w", err)
+	config, err := types.KubeletFromConfigMap(configMap.Data)
+	if err != nil {
+		return fmt.Errorf("failed to parse configmap data to kubelet config: %w", err)
 	}
 
-	kubeletUpdateMap := make(map[string]string)
-	var kubeletDeleteList []string
+	updateArgs := make(map[string]string)
+	var deleteArgs []string
 
-	if nodeConfig.ClusterDNS != "" {
-		kubeletUpdateMap["--cluster-dns"] = nodeConfig.ClusterDNS
+	if config.ClusterDNS == nil {
+		deleteArgs = append(deleteArgs, "--cluster-dns")
 	} else {
-		kubeletDeleteList = append(kubeletDeleteList, "--cluster-dns")
+		updateArgs["--cluster-dns"] = config.GetClusterDNS()
+	}
+	if config.ClusterDomain == nil {
+		deleteArgs = append(deleteArgs, "--cluster-domain")
+	} else {
+		updateArgs["--cluster-domain"] = config.GetClusterDomain()
+	}
+	if config.CloudProvider == nil {
+		deleteArgs = append(deleteArgs, "--cloud-provider")
+	} else {
+		updateArgs["--cloud-provider"] = config.GetCloudProvider()
 	}
 
-	if nodeConfig.ClusterDomain != "" {
-		kubeletUpdateMap["--cluster-domain"] = nodeConfig.ClusterDomain
-	}
-
-	mustRestartKubelet, err := snaputil.UpdateServiceArguments(c.snap, "kubelet", kubeletUpdateMap, kubeletDeleteList)
+	mustRestartKubelet, err := snaputil.UpdateServiceArguments(c.snap, "kubelet", updateArgs, deleteArgs)
 	if err != nil {
 		return fmt.Errorf("failed to update kubelet arguments: %w", err)
 	}
