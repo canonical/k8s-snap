@@ -14,6 +14,8 @@ import (
 // onPostJoin is called when a control plane node joins the cluster.
 // onPostJoin retrieves the cluster config from the database and configures local services.
 func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
+	snap := a.Snap()
+
 	cfg, err := utils.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return fmt.Errorf("failed to get cluster config: %w", err)
@@ -24,7 +26,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Create directories
-	if err := setup.EnsureAllDirectories(a.Snap()); err != nil {
+	if err := setup.EnsureAllDirectories(snap); err != nil {
 		return fmt.Errorf("failed to create directories: %w", err)
 	}
 
@@ -47,7 +49,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		if err := certificates.CompleteCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize k8s-dqlite certificates: %w", err)
 		}
-		if err := setup.EnsureK8sDqlitePKI(a.Snap(), certificates); err != nil {
+		if err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write k8s-dqlite certificates: %w", err)
 		}
 	case "external":
@@ -59,7 +61,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		if err := certificates.CheckCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize external datastore certificates: %w", err)
 		}
-		if err := setup.EnsureExtDatastorePKI(a.Snap(), certificates); err != nil {
+		if err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write external datastore certificates: %w", err)
 		}
 	default:
@@ -86,11 +88,11 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
-	if err := setup.EnsureControlPlanePKI(a.Snap(), certificates); err != nil {
+	if err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
 
-	if err := setupKubeconfigs(s, a.Snap().KubernetesConfigDir(), cfg.APIServer.SecurePort, cfg.Certificates.CACert); err != nil {
+	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.SecurePort, cfg.Certificates.CACert); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
@@ -111,7 +113,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		}
 
 		address := fmt.Sprintf("%s:%d", nodeIP.String(), cfg.K8sDqlite.Port)
-		if err := setup.K8sDqlite(a.Snap(), address, cluster); err != nil {
+		if err := setup.K8sDqlite(snap, address, cluster); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
 	case "external":
@@ -120,17 +122,17 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Configure services
-	if err := setupControlPlaneServices(a.Snap(), s, cfg, nodeIP); err != nil {
+	if err := setupControlPlaneServices(snap, s, cfg, nodeIP); err != nil {
 		return fmt.Errorf("failed to configure services: %w", err)
 	}
 
 	// Start services
-	if err := startControlPlaneServices(s.Context, a.Snap(), cfg.APIServer.Datastore); err != nil {
+	if err := startControlPlaneServices(s.Context, snap, cfg.APIServer.Datastore); err != nil {
 		return fmt.Errorf("failed to start services: %w", err)
 	}
 
 	// Wait until Kube-API server is ready
-	if err := waitApiServerReady(s.Context, a.Snap()); err != nil {
+	if err := waitApiServerReady(s.Context, snap); err != nil {
 		return fmt.Errorf("failed to wait for kube-apiserver to become ready: %w", err)
 	}
 
@@ -138,6 +140,8 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 }
 
 func (a *App) onPreRemove(s *state.State, force bool) error {
+	snap := a.Snap()
+
 	cfg, err := utils.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve k8sd cluster config: %w", err)
@@ -146,7 +150,7 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 	// configure datastore
 	switch cfg.APIServer.Datastore {
 	case "k8s-dqlite":
-		client, err := a.Snap().K8sDqliteClient(s.Context)
+		client, err := snap.K8sDqliteClient(s.Context)
 		if err != nil {
 			return fmt.Errorf("failed to create k8s-dqlite client: %w", err)
 		}
@@ -159,7 +163,7 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 	default:
 	}
 
-	c, err := k8s.NewClient(a.Snap().KubernetesRESTClientGetter(""))
+	c, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}

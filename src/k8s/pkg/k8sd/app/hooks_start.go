@@ -10,7 +10,9 @@ import (
 )
 
 func (a *App) onStart(s *state.State) error {
-	configController := controllers.NewNodeConfigurationController(a.Snap(), func(ctx context.Context) *k8s.Client {
+	snap := a.Snap()
+
+	configController := controllers.NewNodeConfigurationController(snap, func(ctx context.Context) *k8s.Client {
 		for {
 			select {
 			case <-ctx.Done():
@@ -18,7 +20,7 @@ func (a *App) onStart(s *state.State) error {
 			case <-time.After(3 * time.Second):
 			}
 
-			client, err := k8s.NewClient(a.Snap().KubernetesNodeRESTClientGetter("kube-system"))
+			client, err := k8s.NewClient(snap.KubernetesNodeRESTClientGetter("kube-system"))
 			if err != nil {
 				continue
 			}
