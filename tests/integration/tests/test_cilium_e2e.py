@@ -34,9 +34,6 @@ def test_cilium_e2e(instances: List[harness.Instance]):
     util.wait_for_dns(instance)
     util.wait_for_network(instance)
 
-    # NOTE(neoaggelos): debugging
-    instance.exec(["k8s", "kubectl", "get", "pod,svc", "-A"])
-
     # Run cilium e2e tests
     e2e_args = []
     if config.SUBSTRATE == "lxd":

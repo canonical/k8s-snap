@@ -63,7 +63,6 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 		// If DNS IP is not empty, update cluster configuration
 		if dnsIP != "" {
 			if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
-				var err error
 				mergedConfig, err = database.SetClusterConfig(ctx, tx, types.ClusterConfig{
 					Kubelet: types.Kubelet{
 						ClusterDNS: vals.Pointer(dnsIP),

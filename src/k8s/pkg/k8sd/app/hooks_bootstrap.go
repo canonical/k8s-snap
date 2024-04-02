@@ -299,7 +299,7 @@ func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error
 		// If DNS IP is not empty, update cluster configuration
 		if dnsIP != "" {
 			if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-				if _, err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
+				if cfg, err = database.SetClusterConfig(ctx, tx, types.ClusterConfig{
 					Kubelet: types.Kubelet{
 						ClusterDNS: vals.Pointer(dnsIP),
 					},
