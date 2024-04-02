@@ -13,6 +13,8 @@ import (
 )
 
 func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.Response {
+	snap := e.provider.Snap()
+
 	members, err := impl.GetClusterMembers(s.Context, s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster members: %w", err))
@@ -23,7 +25,7 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to get user-facing cluster config: %w", err))
 	}
 
-	client, err := k8s.NewClient(e.provider.Snap().KubernetesRESTClientGetter(""))
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
 	}

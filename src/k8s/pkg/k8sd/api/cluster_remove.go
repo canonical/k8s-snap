@@ -13,6 +13,8 @@ import (
 )
 
 func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.Response {
+	snap := e.provider.Snap()
+
 	req := apiv1.RemoveNodeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
@@ -40,7 +42,7 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 	}
 	if isWorker {
 		// For worker nodes, we need to manually cleanup the kubernetes node and db entry.
-		c, err := k8s.NewClient(e.provider.Snap().KubernetesRESTClientGetter(""))
+		c, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
 		}

@@ -18,6 +18,8 @@ import (
 )
 
 func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Response {
+	snap := e.provider.Snap()
+
 	req := apiv1.WorkerNodeInfoRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
@@ -43,7 +45,7 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		return response.InternalError(fmt.Errorf("failed to generate worker PKI: %w", err))
 	}
 
-	client, err := k8s.NewClient(e.provider.Snap().KubernetesRESTClientGetter(""))
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
 	}

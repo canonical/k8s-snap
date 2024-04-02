@@ -10,7 +10,9 @@ import (
 )
 
 func (e *Endpoints) getNodeStatus(s *state.State, r *http.Request) response.Response {
-	status, err := impl.GetLocalNodeStatus(r.Context(), s, e.provider.Snap())
+	snap := e.provider.Snap()
+
+	status, err := impl.GetLocalNodeStatus(r.Context(), s, snap)
 	if err != nil {
 		response.InternalError(err)
 	}

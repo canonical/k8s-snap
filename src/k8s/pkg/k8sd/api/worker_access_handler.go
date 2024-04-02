@@ -14,7 +14,9 @@ import (
 )
 
 func (e *Endpoints) restrictWorkers(s *state.State, r *http.Request) response.Response {
-	isWorker, err := snaputil.IsWorker(e.provider.Snap())
+	snap := e.provider.Snap()
+
+	isWorker, err := snaputil.IsWorker(snap)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to check if node is a worker: %w", err))
 	}
