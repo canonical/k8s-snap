@@ -114,19 +114,49 @@ func TestString(t *testing.T) {
 					{Name: "node3", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.3"},
 				},
 				Config: UserFacingClusterConfig{
-					Network: &NetworkConfig{Enabled: vals.Pointer(true)},
-					DNS:     &DNSConfig{Enabled: vals.Pointer(true)},
+					Network:   &NetworkConfig{Enabled: vals.Pointer(true)},
+					DNS:       &DNSConfig{Enabled: vals.Pointer(true)},
+					APIServer: &APIServerConfig{Datastore: "k8s-dqlite", DatastoreURL: ""},
 				},
 			},
 			expectedOutput: `status: ready
 high-availability: yes
 datastore:
+  datastore: k8s-dqlite
   voter-nodes:
     - 192.168.0.1
     - 192.168.0.2
     - 192.168.0.3
   standby-nodes: none
   spare-nodes: none
+
+network:
+  enabled: true
+dns:
+  enabled: true
+  cluster-domain: ""
+  service-ip: ""
+  upstream-nameservers: []
+`,
+		},
+		{
+			name: "External Datastore",
+			clusterStatus: ClusterStatus{
+				Ready: true,
+				Members: []NodeStatus{
+					{Name: "node1", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.1"},
+				},
+				Config: UserFacingClusterConfig{
+					Network:   &NetworkConfig{Enabled: vals.Pointer(true)},
+					DNS:       &DNSConfig{Enabled: vals.Pointer(true)},
+					APIServer: &APIServerConfig{Datastore: "external", DatastoreURL: "I-am-a-postgres-url"},
+				},
+			},
+			expectedOutput: `status: ready
+high-availability: no
+datastore:
+  datastore: external
+  datastore-url: I-am-a-postgres-url
 
 network:
   enabled: true

@@ -112,26 +112,22 @@ func (c ClusterStatus) HaClusterFormed() bool {
 	return voters > 2
 }
 
-// TODO: Print k8s version. However, multiple nodes can run different version, so we would need to query all nodes.
-func (c ClusterStatus) String() string {
+func (c ClusterStatus) datastoreToString() string {
 	result := strings.Builder{}
 
-	if c.Ready {
-		result.WriteString("status: ready")
-	} else {
-		result.WriteString("status: not ready")
+	// Datastore
+	if c.Config.APIServer != nil && c.Config.APIServer.Datastore != "" {
+		result.WriteString(fmt.Sprintf("  datastore: %s\n", c.Config.APIServer.Datastore))
+		// Datastore URL for external only
+		if c.Config.APIServer.Datastore == "external" {
+			if c.Config.APIServer.DatastoreURL != "" {
+				result.WriteString(fmt.Sprintf("  datastore-url: %s\n", c.Config.APIServer.DatastoreURL))
+			}
+			return result.String()
+		}
 	}
-	result.WriteString("\n")
 
-	result.WriteString("high-availability: ")
-	if c.HaClusterFormed() {
-		result.WriteString("yes")
-	} else {
-		result.WriteString("no")
-	}
-	result.WriteString("\n")
-	result.WriteString("datastore:\n")
-
+	// Datastore roles for dqlite
 	voters := make([]NodeStatus, 0, len(c.Members))
 	standBys := make([]NodeStatus, 0, len(c.Members))
 	spares := make([]NodeStatus, 0, len(c.Members))
@@ -170,6 +166,35 @@ func (c ClusterStatus) String() string {
 		result.WriteString("  spare-nodes: none\n")
 	}
 
+	return result.String()
+}
+
+// TODO: Print k8s version. However, multiple nodes can run different version, so we would need to query all nodes.
+func (c ClusterStatus) String() string {
+	result := strings.Builder{}
+
+	// Status
+	if c.Ready {
+		result.WriteString("status: ready")
+	} else {
+		result.WriteString("status: not ready")
+	}
+	result.WriteString("\n")
+
+	// High availability
+	result.WriteString("high-availability: ")
+	if c.HaClusterFormed() {
+		result.WriteString("yes")
+	} else {
+		result.WriteString("no")
+	}
+
+	// Datastore
+	result.WriteString("\n")
+	result.WriteString("datastore:\n")
+	result.WriteString(c.datastoreToString())
+
+	// Config
 	printedConfig := UserFacingClusterConfig{}
 	if c.Config.Network != nil && c.Config.Network.Enabled != nil && *c.Config.Network.Enabled {
 		printedConfig.Network = c.Config.Network

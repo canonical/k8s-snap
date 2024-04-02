@@ -75,6 +75,10 @@ func GetUserFacingClusterConfig(ctx context.Context, state *state.State) (apiv1.
 		MetricsServer: &apiv1.MetricsServerConfig{
 			Enabled: vals.Pointer(false),
 		},
+		APIServer: &apiv1.APIServerConfig{
+			Datastore:    cfg.APIServer.Datastore,
+			DatastoreURL: cfg.APIServer.DatastoreURL,
+		},
 	}
 
 	if cfg.Network.Enabled != nil {
