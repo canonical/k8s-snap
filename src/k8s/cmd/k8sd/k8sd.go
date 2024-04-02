@@ -45,6 +45,9 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
 
+	cmd.Flags().Uint("port", 0, "Default port for the HTTP API")
+	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")
+
 	cmd.AddCommand(newSqlCmd(env))
 
 	return cmd
