@@ -47,22 +47,23 @@ func UpdateGatewayComponent(ctx context.Context, s snap.Snap, isRefresh bool) er
 	// There is a race condition where the cilium resources can change
 	// while we try to restart them, which fails with:
 	// the object has been modified; please apply your changes to the latest version and try again
-	if err := control.RetryFor(3, func() error {
+	attempts := 3
+	if err := control.RetryFor(attempts, func() error {
 		if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
 			return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 		}
 		return nil
 	}); err != nil {
-		return err
+		return fmt.Errorf("failed to restart cilium-operator deployment after %d attempts: %w", attempts, err)
 	}
 
-	if err := control.RetryFor(3, func() error {
+	if err := control.RetryFor(attempts, func() error {
 		if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
 			return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 		}
 		return nil
 	}); err != nil {
-		return err
+		return fmt.Errorf("failed to restart cilium daemonset after %d attempts: %w", attempts, err)
 	}
 
 	return nil

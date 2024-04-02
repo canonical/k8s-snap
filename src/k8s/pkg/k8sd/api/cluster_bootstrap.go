@@ -39,6 +39,7 @@ func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.
 		return response.BadRequest(fmt.Errorf("cluster is already bootstrapped"))
 	}
 
+	// TODO(bschimke95): Check context has proper timeout, seems like default is used here
 	// Set timeout
 	timeout := utils.TimeoutFromCtx(r.Context(), 45*time.Second)
 

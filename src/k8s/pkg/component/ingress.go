@@ -36,22 +36,23 @@ func UpdateIngressComponent(ctx context.Context, s snap.Snap, isRefresh bool, de
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	if err := control.RetryFor(3, func() error {
+	attempts := 3
+	if err := control.RetryFor(attempts, func() error {
 		if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
 			return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 		}
 		return nil
 	}); err != nil {
-		return err
+		return fmt.Errorf("failed to restart cilium-operator deployment after %d attempts: %w", attempts, err)
 	}
 
-	if err := control.RetryFor(3, func() error {
+	if err := control.RetryFor(attempts, func() error {
 		if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
 			return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 		}
 		return nil
 	}); err != nil {
-		return err
+		return fmt.Errorf("failed to restart cilium daemonset after %d attempts: %w", attempts, err)
 	}
 
 	return nil

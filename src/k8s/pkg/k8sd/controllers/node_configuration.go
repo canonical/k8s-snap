@@ -61,6 +61,12 @@ func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *
 		kubeletUpdateMap["--cluster-domain"] = "cluster.local"
 	}
 
+	if nodeConfig.CloudProvider != nil && *nodeConfig.CloudProvider != "" {
+		kubeletUpdateMap["--cloud-provider"] = *nodeConfig.CloudProvider
+	} else {
+		kubeletDeleteList = append(kubeletDeleteList, "--cloud-provider")
+	}
+
 	mustRestartKubelet, err := snaputil.UpdateServiceArguments(c.snap, "kubelet", kubeletUpdateMap, kubeletDeleteList)
 	if err != nil {
 		return fmt.Errorf("failed to update kubelet arguments: %w", err)
