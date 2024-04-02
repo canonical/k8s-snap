@@ -24,7 +24,7 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", req.Name, err))
 	}
 
-	timeout := utils.TimeoutFromCtx(s.Context, 30*time.Second)
+	timeout := utils.TimeoutFromCtx(r.Context(), 30*time.Second)
 
 	internalToken := types.InternalWorkerNodeToken{}
 	// Check if token is worker token

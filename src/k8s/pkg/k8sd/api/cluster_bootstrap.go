@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils"
@@ -38,11 +37,8 @@ func (e *Endpoints) postClusterBootstrap(s *state.State, r *http.Request) respon
 		return response.BadRequest(fmt.Errorf("cluster is already bootstrapped"))
 	}
 
-	// Set timeout
-	timeout := utils.TimeoutFromCtx(s.Context, 30*time.Second)
-
 	// Bootstrap the cluster
-	if err := e.provider.MicroCluster().NewCluster(hostname, req.Address, config, timeout); err != nil {
+	if err := e.provider.MicroCluster().NewCluster(hostname, req.Address, config, 0); err != nil {
 		// TODO move node cleanup here
 		return response.BadRequest(fmt.Errorf("failed to bootstrap new cluster: %w", err))
 	}

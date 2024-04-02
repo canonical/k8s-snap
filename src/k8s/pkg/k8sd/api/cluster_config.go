@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	api "github.com/canonical/k8s/api/v1"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/canonical/k8s/pkg/component"
 	"github.com/canonical/k8s/pkg/k8sd/database"
@@ -150,8 +149,9 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		}
 	}
 
+	var dnsIP = newConfig.Kubelet.ClusterDNS
 	if req.Config.DNS != nil {
-		dnsIP, _, err := component.ReconcileDNSComponent(r.Context(), e.provider.Snap(), oldConfig.DNS.Enabled, req.Config.DNS.Enabled, newConfig)
+		dnsIP, _, err = component.ReconcileDNSComponent(r.Context(), e.provider.Snap(), oldConfig.DNS.Enabled, req.Config.DNS.Enabled, newConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile dns: %w", err))
 		}
@@ -168,23 +168,20 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		}); err != nil {
 			return response.InternalError(fmt.Errorf("database transaction to update cluster configuration failed: %w", err))
 		}
+	}
 
-		var data map[string]string
-		if err := mapstructure.Decode(types.NodeConfig{
-			ClusterDNS:    dnsIP,
-			ClusterDomain: newConfig.Kubelet.ClusterDomain,
-		}, &data); err != nil {
-			return response.InternalError(fmt.Errorf("failed to encode node config: %w", err))
-		}
+	cmData := types.MapFromNodeConfig(types.NodeConfig{
+		ClusterDNS:    &dnsIP,
+		ClusterDomain: &newConfig.Kubelet.ClusterDomain,
+	})
 
-		client, err := k8s.NewClient(e.provider.Snap().KubernetesRESTClientGetter(""))
-		if err != nil {
-			return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
-		}
+	client, err := k8s.NewClient(e.provider.Snap().KubernetesRESTClientGetter(""))
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
+	}
 
-		if _, err := client.UpdateConfigMap(r.Context(), "kube-system", "k8sd-config", data); err != nil {
-			return response.InternalError(fmt.Errorf("failed to update node config: %w", err))
-		}
+	if _, err := client.UpdateConfigMap(r.Context(), "kube-system", "k8sd-config", cmData); err != nil {
+		return response.InternalError(fmt.Errorf("failed to update node config: %w", err))
 	}
 
 	if req.Config.LocalStorage != nil {
