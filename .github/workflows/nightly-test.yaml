@@ -1,9 +1,10 @@
 name: Nightly Latest/Edge Tests
 
 on:
-  pull_request:
-      branches:
-        - main  # Adjust branch name if necessary
+  # TODO: remove, this is just testing
+  push: 
+    branches: 
+      - KU-91/nightly-runs
   schedule:
     - cron: '0 0 * * *'  # Runs every midnight
 
@@ -27,7 +28,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.10'
       - name: Install tox
         run: pip install tox
       - name: Install lxd
@@ -38,10 +39,10 @@ jobs:
           sg lxd -c 'lxc version'
       - name: Install latest/edge k8s snap
         run: |
-          sudo snap install k8s --channel=edge --classic
+          sudo snap download k8s --channel=edge --basename k8s
       - name: Run end to end tests
         run: |
-          export TEST_SNAP="$HOME/snap/bin/k8s"
+          export TEST_SNAP="$PWD/k8s.snap"  
           export TEST_SUBSTRATE=lxd
           export TEST_LXD_IMAGE="${{ matrix.os }}"
           export TEST_LXD_IMAGE="${TEST_LXD_IMAGE/[-]/:}"
