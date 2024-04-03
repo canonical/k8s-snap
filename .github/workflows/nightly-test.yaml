@@ -43,7 +43,8 @@ jobs:
         run: |
           export TEST_SNAP="$HOME/snap/bin/k8s"
           export TEST_SUBSTRATE=lxd
-          export TEST_LXD_IMAGE=${{ matrix.os }}
+          export TEST_LXD_IMAGE="${{ matrix.os }}"
+          export TEST_LXD_IMAGE="${TEST_LXD_IMAGE/[-]/:}"
           cd tests/integration && sg lxd -c 'tox -e integration'
 
 
