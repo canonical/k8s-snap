@@ -1,6 +1,9 @@
 name: Nightly Latest/Edge Tests
 
 on:
+  pull_request:
+      branches:
+        - main  # Adjust branch name if necessary
   schedule:
     - cron: '0 0 * * *'  # Runs every midnight
 
