@@ -94,16 +94,8 @@ type NodeStatus struct {
 }
 
 type Datastore struct {
-	Type        string `json:"datastore,omitempty"`
-	ExternalURL string `json:"datastore-url,omitempty"`
-}
-
-func (c Datastore) String() string {
-	b, err := yaml.Marshal(c)
-	if err != nil {
-		return fmt.Sprintf("%#v\n", c)
-	}
-	return string(b)
+	Type        string `json:"type,omitempty"`
+	ExternalURL string `json:"url,omitempty"`
 }
 
 // ClusterStatus holds information about the cluster, e.g. its current members

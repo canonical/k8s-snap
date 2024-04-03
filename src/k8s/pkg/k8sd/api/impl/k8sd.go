@@ -27,7 +27,11 @@ func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus,
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get user-facing cluster config: %w", err)
 	}
 
-	apiServerConfig, err := utils.GetDatastoreConfig(ctx, s)
+	clusterConfig, err := utils.GetClusterConfig(ctx, s)
+	datastoreConfig := apiv1.Datastore{
+		Type:        clusterConfig.APIServer.Datastore,
+		ExternalURL: clusterConfig.APIServer.DatastoreURL,
+	}
 	if err != nil {
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get API server config: %w", err)
 	}
@@ -46,7 +50,7 @@ func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus,
 		Ready:     ready,
 		Members:   members,
 		Config:    config,
-		Datastore: &apiServerConfig,
+		Datastore: &datastoreConfig,
 	}, nil
 }
 

@@ -30,20 +30,6 @@ func GetClusterConfig(ctx context.Context, state *state.State) (types.ClusterCon
 	return clusterConfig, nil
 }
 
-// GetDatastoreConfig returns the APIServerConfig including datastore and datastore-url.
-func GetDatastoreConfig(ctx context.Context, state *state.State) (apiv1.Datastore, error) {
-	cfg, err := GetClusterConfig(ctx, state)
-	if err != nil {
-		return apiv1.Datastore{}, fmt.Errorf("failed to get cluster config: %w", err)
-	}
-
-	DatastoreConfig := apiv1.Datastore{
-		Type:        cfg.APIServer.Datastore,
-		ExternalURL: cfg.APIServer.DatastoreURL,
-	}
-	return DatastoreConfig, nil
-}
-
 // GetUserFacingClusterConfig returns the public cluster config.
 func GetUserFacingClusterConfig(ctx context.Context, state *state.State) (apiv1.UserFacingClusterConfig, error) {
 	cfg, err := GetClusterConfig(ctx, state)
