@@ -17,8 +17,6 @@ type Config struct {
 	Debug bool
 	// Verbose increases log message verbosity.
 	Verbose bool
-	// ListenPort is the network port to bind for connections.
-	ListenPort uint
 	// StateDir is the local directory to store the state of the node.
 	StateDir string
 	// Snap is the snap instance to use.
@@ -38,10 +36,9 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 		cfg.StateDir = cfg.Snap.K8sdStateDir()
 	}
 	cluster, err := microcluster.App(ctx, microcluster.Args{
-		Verbose:    cfg.Verbose,
-		Debug:      cfg.Debug,
-		ListenPort: fmt.Sprintf("%d", cfg.ListenPort),
-		StateDir:   cfg.StateDir,
+		Verbose:  cfg.Verbose,
+		Debug:    cfg.Debug,
+		StateDir: cfg.StateDir,
 	})
 
 	if err != nil {
