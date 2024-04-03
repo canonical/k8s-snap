@@ -51,20 +51,21 @@ func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *
 	updateArgs := make(map[string]string)
 	var deleteArgs []string
 
-	if config.ClusterDNS == nil {
-		deleteArgs = append(deleteArgs, "--cluster-dns")
-	} else {
-		updateArgs["--cluster-dns"] = config.GetClusterDNS()
-	}
-	if config.ClusterDomain == nil {
-		deleteArgs = append(deleteArgs, "--cluster-domain")
-	} else {
-		updateArgs["--cluster-domain"] = config.GetClusterDomain()
-	}
-	if config.CloudProvider == nil {
-		deleteArgs = append(deleteArgs, "--cloud-provider")
-	} else {
-		updateArgs["--cloud-provider"] = config.GetCloudProvider()
+	for _, loop := range []struct {
+		val *string
+		arg string
+	}{
+		{arg: "--cloud-provider", val: config.CloudProvider},
+		{arg: "--cluster-dns", val: config.ClusterDNS},
+		{arg: "--cluster-domain", val: config.ClusterDomain},
+	} {
+		switch {
+		case loop.val == nil:
+		case *loop.val == "":
+			deleteArgs = append(deleteArgs, loop.arg)
+		case *loop.val != "":
+			updateArgs[loop.arg] = *loop.val
+		}
 	}
 
 	mustRestartKubelet, err := snaputil.UpdateServiceArguments(c.snap, "kubelet", updateArgs, deleteArgs)
