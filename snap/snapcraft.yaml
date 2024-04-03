@@ -154,15 +154,6 @@ parts:
     source: build-scripts
     override-build: ./build-component.sh runc
 
-  cilium-dbg:
-    after: [build-deps]
-    plugin: make
-    source-type: git
-    source: https://github.com/cilium/cilium.git
-    source-tag: v1.15.2
-    source-depth: 1
-    source-subdir: cilium-dbg
-
   bash-utils:
     plugin: nil
     stage-packages:

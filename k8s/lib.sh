@@ -71,7 +71,9 @@ k8s::remove::network() {
   done
 
   rm -rf /var/run/cilium/cilium.pid
-  "${SNAP}/usr/bin/cilium-dbg" cleanup --all-state --force
+  if [ -f /opt/cni/bin/cilium-dbg ]; then
+      /opt/cni/bin/cilium-dbg cleanup --all-state --force || true
+  fi
 }
 
 # [DANGER] Cleanup containers and runtime state. Note that the order of operations below is crucial.
