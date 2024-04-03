@@ -1,0 +1,46 @@
+name: Nightly Latest/Edge Tests
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs every midnight
+
+jobs:
+  test-integration:
+    name: Test Integration ${{ matrix.os }} ${{ matrix.arch }}
+    strategy:
+      matrix:
+        os: ["ubuntu-20.04", "ubuntu-22.04"]
+        arch: ["amd64", "arm64"]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+      - name: Install snapd
+        run: |
+          sudo apt update
+          sudo apt install snapd
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+      - name: Install tox
+        run: pip install tox
+      - name: Install lxd
+        run: |
+          sudo snap refresh lxd --channel 5.19/stable
+          sudo lxd init --auto
+          sudo usermod --append --groups lxd $USER
+          sg lxd -c 'lxc version'
+      - name: Install latest/edge k8s snap
+        run: |
+          sudo snap install k8s --channel=edge --classic
+      - name: Run end to end tests
+        run: |
+          export TEST_SNAP="$HOME/snap/bin/k8s"
+          export TEST_SUBSTRATE=lxd
+          export TEST_LXD_IMAGE=${{ matrix.os }}
+          cd tests/integration && sg lxd -c 'tox -e integration'
+
+
