@@ -5,13 +5,12 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
 )
 
-func onStart(s *state.State) error {
-	snap := snap.SnapFromContext(s.Context)
+func (a *App) onStart(s *state.State) error {
+	snap := a.Snap()
 
 	configController := controllers.NewNodeConfigurationController(snap, func(ctx context.Context) *k8s.Client {
 		for {

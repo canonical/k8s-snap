@@ -6,7 +6,6 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
@@ -14,8 +13,8 @@ import (
 
 // onPostJoin is called when a control plane node joins the cluster.
 // onPostJoin retrieves the cluster config from the database and configures local services.
-func onPostJoin(s *state.State, initConfig map[string]string) error {
-	snap := snap.SnapFromContext(s.Context)
+func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
+	snap := a.Snap()
 
 	cfg, err := utils.GetClusterConfig(s.Context, s)
 	if err != nil {
@@ -139,8 +138,8 @@ func onPostJoin(s *state.State, initConfig map[string]string) error {
 	return nil
 }
 
-func onPreRemove(s *state.State, force bool) error {
-	snap := snap.SnapFromContext(s.Context)
+func (a *App) onPreRemove(s *state.State, force bool) error {
+	snap := a.Snap()
 
 	cfg, err := utils.GetClusterConfig(s.Context, s)
 	if err != nil {

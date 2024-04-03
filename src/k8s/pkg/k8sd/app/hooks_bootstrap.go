@@ -17,7 +17,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
@@ -27,15 +26,17 @@ import (
 
 // onBootstrap is called after we bootstrap the first cluster node.
 // onBootstrap configures local services then writes the cluster config on the database.
-func onBootstrap(s *state.State, initConfig map[string]string) error {
+func (a *App) onBootstrap(s *state.State, initConfig map[string]string) error {
 	if workerToken, ok := initConfig["workerToken"]; ok {
-		return onBootstrapWorkerNode(s, workerToken)
+		return a.onBootstrapWorkerNode(s, workerToken)
 	}
 
-	return onBootstrapControlPlane(s, initConfig)
+	return a.onBootstrapControlPlane(s, initConfig)
 }
 
-func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
+func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
+	snap := a.Snap()
+
 	token := &types.InternalWorkerNodeToken{}
 	if err := token.Decode(encodedToken); err != nil {
 		return fmt.Errorf("failed to parse worker token: %w", err)
@@ -90,8 +91,6 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	}
 	response := wrappedResp.Metadata
 
-	snap := snap.SnapFromContext(s.Context)
-
 	// Create directories
 	if err := setup.EnsureAllDirectories(snap); err != nil {
 		return fmt.Errorf("failed to create directories: %w", err)
@@ -145,8 +144,8 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	return nil
 }
 
-func onBootstrapControlPlane(s *state.State, initConfig map[string]string) error {
-	snap := snap.SnapFromContext(s.Context)
+func (a *App) onBootstrapControlPlane(s *state.State, initConfig map[string]string) error {
+	snap := a.Snap()
 
 	bootstrapConfig, err := apiv1.BootstrapConfigFromMap(initConfig)
 	if err != nil {

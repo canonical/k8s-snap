@@ -25,13 +25,12 @@ type Config struct {
 
 // App is the k8sd microcluster instance.
 type App struct {
-	MicroCluster *microcluster.MicroCluster
+	microCluster *microcluster.MicroCluster
+	snap         snap.Snap
 }
 
 // New initializes a new microcluster instance from configuration.
 func New(ctx context.Context, cfg Config) (*App, error) {
-	ctx = snap.ContextWithSnap(ctx, cfg.Snap)
-
 	if cfg.StateDir == "" {
 		cfg.StateDir = cfg.Snap.K8sdStateDir()
 	}
@@ -46,7 +45,8 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 	}
 
 	return &App{
-		MicroCluster: cluster,
+		microCluster: cluster,
+		snap:         cfg.Snap,
 	}, nil
 }
 
@@ -55,10 +55,10 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 func (a *App) Run(customHooks *config.Hooks) error {
 	// TODO: consider improving API for overriding hooks.
 	hooks := &config.Hooks{
-		OnBootstrap: onBootstrap,
-		PostJoin:    onPostJoin,
-		PreRemove:   onPreRemove,
-		OnStart:     onStart,
+		OnBootstrap: a.onBootstrap,
+		PostJoin:    a.onPostJoin,
+		PreRemove:   a.onPreRemove,
+		OnStart:     a.onStart,
 	}
 	if customHooks != nil {
 		if customHooks.OnBootstrap != nil {
@@ -74,7 +74,7 @@ func (a *App) Run(customHooks *config.Hooks) error {
 			hooks.OnStart = customHooks.OnStart
 		}
 	}
-	err := a.MicroCluster.Start(api.Endpoints(a.MicroCluster), database.SchemaExtensions, hooks)
+	err := a.microCluster.Start(api.New(a).Endpoints(), database.SchemaExtensions, hooks)
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
 	}
