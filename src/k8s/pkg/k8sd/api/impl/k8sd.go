@@ -9,50 +9,8 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
 )
-
-// GetClusterStatus retrieves the status of the cluster, including information about its members.
-func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus, error) {
-	snap := snap.SnapFromContext(s.Context)
-
-	members, err := GetClusterMembers(ctx, s)
-	if err != nil {
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get cluster members: %w", err)
-	}
-
-	config, err := utils.GetUserFacingClusterConfig(ctx, s)
-	if err != nil {
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get user-facing cluster config: %w", err)
-	}
-
-	clusterConfig, err := utils.GetClusterConfig(ctx, s)
-	datastoreConfig := apiv1.Datastore{
-		Type:        clusterConfig.APIServer.Datastore,
-		ExternalURL: clusterConfig.APIServer.DatastoreURL,
-	}
-	if err != nil {
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get API server config: %w", err)
-	}
-
-	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
-	if err != nil {
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to create k8s client: %w", err)
-	}
-
-	ready, err := client.HasReadyNodes(ctx)
-	if err != nil {
-		return apiv1.ClusterStatus{}, fmt.Errorf("failed to check if cluster has ready nodes: %w", err)
-	}
-
-	return apiv1.ClusterStatus{
-		Ready:     ready,
-		Members:   members,
-		Config:    config,
-		Datastore: datastoreConfig,
-	}, nil
-}
 
 // GetClusterMembers retrieves information about the members of the cluster.
 func GetClusterMembers(ctx context.Context, s *state.State) ([]apiv1.NodeStatus, error) {
@@ -81,9 +39,7 @@ func GetClusterMembers(ctx context.Context, s *state.State) ([]apiv1.NodeStatus,
 
 // GetLocalNodeStatus retrieves the status of the local node, including its roles within the cluster.
 // Unlike "GetClusterMembers" this also works on a worker node.
-func GetLocalNodeStatus(ctx context.Context, s *state.State) (apiv1.NodeStatus, error) {
-	snap := snap.SnapFromContext(s.Context)
-
+func GetLocalNodeStatus(ctx context.Context, s *state.State, snap snap.Snap) (apiv1.NodeStatus, error) {
 	// Determine cluster role.
 	clusterRole := apiv1.ClusterRoleUnknown
 	isWorker, err := snaputil.IsWorker(snap)

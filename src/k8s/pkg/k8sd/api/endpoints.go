@@ -2,19 +2,27 @@
 package api
 
 import (
-	"github.com/canonical/microcluster/microcluster"
 	"github.com/canonical/microcluster/rest"
 )
 
+type Endpoints struct {
+	provider Provider
+}
+
+// New creates a new Endpoints instance.
+func New(provider Provider) *Endpoints {
+	return &Endpoints{provider: provider}
+}
+
 // Endpoints returns the list of endpoints for a given microcluster app.
-func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
+func (e *Endpoints) Endpoints() []rest.Endpoint {
 	return []rest.Endpoint{
 		// Cluster status and bootstrap
 		{
 			Name:              "Cluster",
 			Path:              "k8sd/cluster",
-			Get:               rest.EndpointAction{Handler: getClusterStatus, AccessHandler: RestrictWorkers},
-			Post:              rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterBootstrap)},
+			Get:               rest.EndpointAction{Handler: e.getClusterStatus, AccessHandler: e.restrictWorkers},
+			Post:              rest.EndpointAction{Handler: e.postClusterBootstrap},
 			AllowedBeforeInit: true,
 		},
 		// Node
@@ -22,19 +30,19 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		{
 			Name: "NodeStatus",
 			Path: "k8sd/node",
-			Get:  rest.EndpointAction{Handler: getNodeStatus},
+			Get:  rest.EndpointAction{Handler: e.getNodeStatus},
 		},
 		// Clustering
 		// Unified token endpoint for both, control-plane and worker-node.
 		{
 			Name: "ClusterJoinTokens",
 			Path: "k8sd/cluster/tokens",
-			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterJoinTokens), AccessHandler: RestrictWorkers},
+			Post: rest.EndpointAction{Handler: e.postClusterJoinTokens, AccessHandler: e.restrictWorkers},
 		},
 		{
 			Name: "ClusterJoin",
 			Path: "k8sd/cluster/join",
-			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterJoin)},
+			Post: rest.EndpointAction{Handler: e.postClusterJoin},
 			// Joining a node is a bootstrapping action which needs to be available before k8sd is initialized.
 			AllowedBeforeInit: true,
 		},
@@ -42,7 +50,7 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		{
 			Name: "ClusterRemove",
 			Path: "k8sd/cluster/remove",
-			Post: rest.EndpointAction{Handler: wrapHandlerWithMicroCluster(app, postClusterRemove), AccessHandler: RestrictWorkers},
+			Post: rest.EndpointAction{Handler: e.postClusterRemove, AccessHandler: e.restrictWorkers},
 		},
 		// Worker nodes
 		{
@@ -50,7 +58,7 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 			Path: "k8sd/worker/info",
 			// AllowUntrusted disabled the microcluster authorization check. Authorization is done via custom token.
 			Post: rest.EndpointAction{
-				Handler:        postWorkerInfo,
+				Handler:        e.postWorkerInfo,
 				AllowUntrusted: true,
 				AccessHandler:  ValidateWorkerInfoAccessHandler("worker-name", "worker-token"),
 			},
@@ -59,27 +67,27 @@ func Endpoints(app *microcluster.MicroCluster) []rest.Endpoint {
 		{
 			Name: "Kubeconfig",
 			Path: "k8sd/kubeconfig",
-			Get:  rest.EndpointAction{Handler: getKubeconfig, AccessHandler: RestrictWorkers},
+			Get:  rest.EndpointAction{Handler: e.getKubeconfig, AccessHandler: e.restrictWorkers},
 		},
 		// Get and modify the cluster configuration (e.g. to enable/disable functionalities)
 		{
 			Name: "ClusterConfig",
 			Path: "k8sd/cluster/config",
-			Put:  rest.EndpointAction{Handler: putClusterConfig, AccessHandler: RestrictWorkers},
-			Get:  rest.EndpointAction{Handler: getClusterConfig, AccessHandler: RestrictWorkers},
+			Put:  rest.EndpointAction{Handler: e.putClusterConfig, AccessHandler: e.restrictWorkers},
+			Get:  rest.EndpointAction{Handler: e.getClusterConfig, AccessHandler: e.restrictWorkers},
 		},
 		// Kubernetes auth tokens and token review webhook for kube-apiserver
 		{
 			Name:   "KubernetesAuthTokens",
 			Path:   "kubernetes/auth/tokens",
-			Get:    rest.EndpointAction{Handler: getKubernetesAuthTokens, AllowUntrusted: true},
-			Post:   rest.EndpointAction{Handler: postKubernetesAuthTokens},
-			Delete: rest.EndpointAction{Handler: deleteKubernetesAuthTokens},
+			Get:    rest.EndpointAction{Handler: e.getKubernetesAuthTokens, AllowUntrusted: true},
+			Post:   rest.EndpointAction{Handler: e.postKubernetesAuthTokens},
+			Delete: rest.EndpointAction{Handler: e.deleteKubernetesAuthTokens},
 		},
 		{
 			Name: "KubernetesAuthWebhook",
 			Path: "kubernetes/auth/webhook",
-			Post: rest.EndpointAction{Handler: postKubernetesAuthWebhook, AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postKubernetesAuthWebhook, AllowUntrusted: true},
 		},
 	}
 }

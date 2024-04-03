@@ -4,16 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/microcluster"
 	"github.com/canonical/microcluster/state"
 )
 
-func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postClusterBootstrap(s *state.State, r *http.Request) response.Response {
 	req := apiv1.PostClusterBootstrapRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
@@ -34,16 +32,13 @@ func postClusterBootstrap(m *microcluster.MicroCluster, s *state.State, r *http.
 	}
 
 	// Check if the cluster is already bootstrapped
-	_, err = m.Status()
+	_, err = e.provider.MicroCluster().Status()
 	if err == nil {
 		return response.BadRequest(fmt.Errorf("cluster is already bootstrapped"))
 	}
 
-	// Set timeout
-	timeout := utils.TimeoutFromCtx(s.Context, 30*time.Second)
-
 	// Bootstrap the cluster
-	if err := m.NewCluster(hostname, req.Address, config, timeout); err != nil {
+	if err := e.provider.MicroCluster().NewCluster(hostname, req.Address, config, 0); err != nil {
 		// TODO move node cleanup here
 		return response.BadRequest(fmt.Errorf("failed to bootstrap new cluster: %w", err))
 	}

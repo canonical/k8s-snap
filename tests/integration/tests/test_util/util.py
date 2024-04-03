@@ -254,3 +254,27 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
         )
     ]
     return nodes
+
+
+# Create a token to join a node to an existing cluster
+def get_join_token(
+    initial_node: harness.Instance, joining_cplane_node: harness.Instance, *args: str
+) -> str:
+    out = initial_node.exec(
+        [
+            "k8s",
+            "get-join-token",
+            joining_cplane_node.id,
+            "--output-format",
+            "json",
+            *args,
+        ],
+        capture_output=True,
+    )
+    result = json.loads(out.stdout.decode())
+    return result["join-token"]
+
+
+# Join an existing cluster.
+def join_cluster(instance: harness.Instance, join_token: str):
+    instance.exec(["k8s", "join-cluster", join_token])

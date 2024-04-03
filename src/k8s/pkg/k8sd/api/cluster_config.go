@@ -9,12 +9,10 @@ import (
 	"net/http"
 
 	api "github.com/canonical/k8s/api/v1"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/canonical/k8s/pkg/component"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
@@ -104,9 +102,9 @@ func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig
 	return nil
 }
 
-func putClusterConfig(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateClusterConfigRequest
-	snap := snap.SnapFromContext(s.Context)
+	snap := e.provider.Snap()
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -152,8 +150,9 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 		}
 	}
 
+	var dnsIP = newConfig.Kubelet.ClusterDNS
 	if req.Config.DNS != nil {
-		dnsIP, _, err := component.ReconcileDNSComponent(r.Context(), snap, oldConfig.DNS.Enabled, req.Config.DNS.Enabled, newConfig)
+		dnsIP, _, err = component.ReconcileDNSComponent(r.Context(), snap, oldConfig.DNS.Enabled, req.Config.DNS.Enabled, newConfig)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile dns: %w", err))
 		}
@@ -170,23 +169,20 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 		}); err != nil {
 			return response.InternalError(fmt.Errorf("database transaction to update cluster configuration failed: %w", err))
 		}
+	}
 
-		var data map[string]string
-		if err := mapstructure.Decode(types.NodeConfig{
-			ClusterDNS:    dnsIP,
-			ClusterDomain: newConfig.Kubelet.ClusterDomain,
-		}, &data); err != nil {
-			return response.InternalError(fmt.Errorf("failed to encode node config: %w", err))
-		}
+	cmData := types.MapFromNodeConfig(types.NodeConfig{
+		ClusterDNS:    &dnsIP,
+		ClusterDomain: &newConfig.Kubelet.ClusterDomain,
+	})
 
-		client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
-		if err != nil {
-			return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
-		}
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
+	}
 
-		if _, err := client.UpdateConfigMap(r.Context(), "kube-system", "k8sd-config", data); err != nil {
-			return response.InternalError(fmt.Errorf("failed to update node config: %w", err))
-		}
+	if _, err := client.UpdateConfigMap(r.Context(), "kube-system", "k8sd-config", cmData); err != nil {
+		return response.InternalError(fmt.Errorf("failed to update node config: %w", err))
 	}
 
 	if req.Config.LocalStorage != nil {
@@ -227,7 +223,7 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &api.UpdateClusterConfigResponse{})
 }
 
-func getClusterConfig(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) getClusterConfig(s *state.State, r *http.Request) response.Response {
 	userFacing, err := utils.GetUserFacingClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get user-facing cluster config: %w", err))
