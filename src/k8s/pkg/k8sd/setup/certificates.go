@@ -11,7 +11,15 @@ import (
 )
 
 // ensureFile creates fname with the specified contents, mode and owner bits.
+// ensureFile will delete the file if contents is an empty string.
 func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) error {
+	if contents == "" {
+		if err := os.Remove(fname); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("failed to delete: %w", err)
+		}
+		return nil
+	}
+
 	if err := os.WriteFile(fname, []byte(contents), mode); err != nil {
 		return fmt.Errorf("failed to write: %w", err)
 	}
