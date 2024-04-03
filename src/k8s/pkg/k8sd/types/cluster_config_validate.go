@@ -42,6 +42,13 @@ func (c *ClusterConfig) Validate() error {
 		}
 	}
 
+	// check: load-balancer CIDRs
+	for _, cidr := range c.LoadBalancer.GetCIDRs() {
+		if _, _, err := net.ParseCIDR(cidr); err != nil {
+			return fmt.Errorf("load-balancer.cidrs contains an invalid CIDR %q: %w", cidr, err)
+		}
+	}
+
 	// check: load-balancer BGP mode configuration
 	if c.LoadBalancer.GetBGPMode() {
 		if c.LoadBalancer.GetBGPLocalASN() == 0 {

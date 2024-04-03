@@ -133,7 +133,7 @@ func TestMergeClusterConfig(t *testing.T) {
 			c.Network.Enabled = vals.Pointer(true)
 			c.LoadBalancer.Enabled = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("LoadBalancer/CIDRs", true, []string{"c1"}, []string{"c2"}, func(c *types.ClusterConfig, v any) {
+		generateMergeClusterConfigTestCases("LoadBalancer/CIDRs", true, []string{"172.16.101.0/24"}, []string{"172.16.100.0/24"}, func(c *types.ClusterConfig, v any) {
 			c.LoadBalancer.CIDRs = vals.Pointer(v.([]string))
 		}),
 		generateMergeClusterConfigTestCases("LoadBalancer/L2Mode/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.LoadBalancer.L2Mode = vals.Pointer(v.(bool)) }),
@@ -247,6 +247,15 @@ func TestMergeClusterConfig_Scenarios(t *testing.T) {
 			},
 			new: types.ClusterConfig{
 				LoadBalancer: types.LoadBalancer{BGPMode: vals.Pointer(true)},
+			},
+			expectErr: true,
+		},
+		{
+			name: "LoadBalancer/InvalidCIDR",
+			new: types.ClusterConfig{
+				LoadBalancer: types.LoadBalancer{
+					CIDRs: vals.Pointer([]string{"not-a-cidr"}),
+				},
 			},
 			expectErr: true,
 		},
