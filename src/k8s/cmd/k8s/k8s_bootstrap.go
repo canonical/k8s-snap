@@ -64,8 +64,9 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			if opts.address == "" {
-				opts.address = util.CanonicalNetworkAddress(util.NetworkInterfaceAddress(), config.DefaultPort)
+				opts.address = util.NetworkInterfaceAddress()
 			}
+			opts.address = util.CanonicalNetworkAddress(opts.address, config.DefaultPort)
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {

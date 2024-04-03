@@ -14,9 +14,8 @@ func newSqlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			app, err := app.New(cmd.Context(), app.Config{
-				StateDir:   rootCmdOpts.stateDir,
-				ListenPort: rootCmdOpts.port,
-				Snap:       env.Snap,
+				StateDir: rootCmdOpts.stateDir,
+				Snap:     env.Snap,
 			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to initialize k8sd app.\n\nThe error was: %v\n", err)
