@@ -104,7 +104,7 @@ type ClusterStatus struct {
 	Ready     bool                    `json:"ready,omitempty"`
 	Members   []NodeStatus            `json:"members,omitempty"`
 	Config    UserFacingClusterConfig `json:"config,omitempty"`
-	Datastore *Datastore              `json:"datastore,omitempty"`
+	Datastore Datastore               `json:"datastore,omitempty"`
 }
 
 // haClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
@@ -122,7 +122,7 @@ func (c ClusterStatus) datastoreToString() string {
 	result := strings.Builder{}
 
 	// Datastore
-	if c.Datastore != nil && c.Datastore.Type != "" {
+	if c.Datastore.Type != "" {
 		result.WriteString(fmt.Sprintf("  type: %s\n", c.Datastore.Type))
 		// Datastore URL for external only
 		if c.Datastore.Type == "external" {

@@ -50,7 +50,7 @@ func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus,
 		Ready:     ready,
 		Members:   members,
 		Config:    config,
-		Datastore: &datastoreConfig,
+		Datastore: datastoreConfig,
 	}, nil
 }
 
