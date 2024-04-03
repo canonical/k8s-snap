@@ -10,7 +10,6 @@ import (
 	"net"
 	"net/http"
 	"path"
-	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/component"
@@ -51,10 +50,8 @@ func onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	}
 
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
-
 	// create an HTTP client that ignores https
 	httpClient := &http.Client{
-		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
