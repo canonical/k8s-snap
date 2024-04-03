@@ -32,7 +32,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
 	}
 
-	requestedConfig := types.ClusterConfigFromUserFacing(&req.Config)
+	requestedConfig := types.ClusterConfigFromUserFacing(req.Config)
 	var mergedConfig types.ClusterConfig
 	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
@@ -130,7 +130,7 @@ func (e *Endpoints) getClusterConfig(s *state.State, r *http.Request) response.R
 	}
 
 	result := api.GetClusterConfigResponse{
-		Config: types.ClusterConfigToUserFacing(config),
+		Config: config.ToUserFacing(),
 	}
 	return response.SyncResponse(true, &result)
 }

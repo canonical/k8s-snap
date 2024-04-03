@@ -61,7 +61,7 @@ func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
 }
 
 // ClusterConfigFromUserFacing converts UserFacingClusterConfig from public API into a ClusterConfig.
-func ClusterConfigFromUserFacing(u *apiv1.UserFacingClusterConfig) ClusterConfig {
+func ClusterConfigFromUserFacing(u apiv1.UserFacingClusterConfig) ClusterConfig {
 	return ClusterConfig{
 		Kubelet: Kubelet{
 			ClusterDNS:    u.DNS.ServiceIP,
@@ -105,8 +105,8 @@ func ClusterConfigFromUserFacing(u *apiv1.UserFacingClusterConfig) ClusterConfig
 	}
 }
 
-// ClusterConfigToUserFacing converts a ClusterConfig to a UserFacingClusterConfig from the public API.
-func ClusterConfigToUserFacing(c ClusterConfig) apiv1.UserFacingClusterConfig {
+// ToUserFacing converts a ClusterConfig to a UserFacingClusterConfig from the public API.
+func (c ClusterConfig) ToUserFacing() apiv1.UserFacingClusterConfig {
 	return apiv1.UserFacingClusterConfig{
 		Network: apiv1.NetworkConfig{
 			Enabled: c.Network.Enabled,
