@@ -28,16 +28,16 @@ func NewNodeConfigurationController(snap snap.Snap, createK8sClient func(ctx con
 func (c *NodeConfigurationController) Run(ctx context.Context) {
 	client := c.createK8sClient(ctx)
 	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-time.After(3 * time.Second):
-		}
-
 		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap) }); err != nil {
 			// This also can fail during bootstrapping/start up when api-server is not ready
 			// So the watch requests get connection refused replies
 			log.Println(fmt.Errorf("error while watching configmap: %w", err))
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(3 * time.Second):
 		}
 	}
 }
