@@ -13,7 +13,6 @@ import (
 	"github.com/canonical/k8s/pkg/component"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
@@ -103,9 +102,9 @@ func validateConfig(oldConfig types.ClusterConfig, newConfig types.ClusterConfig
 	return nil
 }
 
-func putClusterConfig(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.Response {
 	var req api.UpdateClusterConfigRequest
-	snap := snap.SnapFromContext(s.Context)
+	snap := e.provider.Snap()
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -224,7 +223,7 @@ func putClusterConfig(s *state.State, r *http.Request) response.Response {
 	return response.SyncResponse(true, &api.UpdateClusterConfigResponse{})
 }
 
-func getClusterConfig(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) getClusterConfig(s *state.State, r *http.Request) response.Response {
 	userFacing, err := utils.GetUserFacingClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get user-facing cluster config: %w", err))

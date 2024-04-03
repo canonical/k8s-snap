@@ -76,12 +76,12 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 		})
 	}()
 
-	if err := app.MicroCluster.Ready(int(microclusterDatabaseInitTimeout / time.Second)); err != nil {
+	if err := app.MicroCluster().Ready(int(microclusterDatabaseInitTimeout / time.Second)); err != nil {
 		t.Fatalf("microcluster app was not ready in time: %v", err)
 	}
 
 	nextIdx++
-	if err := app.MicroCluster.NewCluster(fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), nil, microclusterDatabaseInitTimeout); err != nil {
+	if err := app.MicroCluster().NewCluster(fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), nil, microclusterDatabaseInitTimeout); err != nil {
 		t.Fatalf("microcluster app failed to bootstrap: %v", err)
 	}
 

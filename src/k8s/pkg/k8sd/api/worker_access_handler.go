@@ -7,15 +7,14 @@ import (
 	"net/http"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
-	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
 
-func RestrictWorkers(s *state.State, r *http.Request) response.Response {
-	snap := snap.SnapFromContext(s.Context)
+func (e *Endpoints) restrictWorkers(s *state.State, r *http.Request) response.Response {
+	snap := e.provider.Snap()
 
 	isWorker, err := snaputil.IsWorker(snap)
 	if err != nil {
