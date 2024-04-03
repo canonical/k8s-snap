@@ -70,7 +70,7 @@ func TestKubelet(t *testing.T) {
 				g := NewWithT(t)
 
 				cm, err := tc.kubelet.ToConfigMap()
-				g.Expect(err).To(Succeed())
+				g.Expect(err).To(BeNil())
 				g.Expect(cm).To(Equal(tc.configmap))
 			})
 
@@ -78,7 +78,7 @@ func TestKubelet(t *testing.T) {
 				g := NewWithT(t)
 
 				k, err := types.KubeletFromConfigMap(tc.configmap)
-				g.Expect(err).To(Succeed())
+				g.Expect(err).To(BeNil())
 				g.Expect(k).To(Equal(tc.kubelet))
 			})
 		})

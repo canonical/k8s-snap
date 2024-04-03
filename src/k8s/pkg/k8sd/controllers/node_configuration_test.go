@@ -146,7 +146,7 @@ func TestConfigPropagation(t *testing.T) {
 
 			for ekey, evalue := range tc.expectArgs {
 				val, err := snaputil.GetServiceArgument(s, "kubelet", ekey)
-				g.Expect(err).To(Succeed())
+				g.Expect(err).To(BeNil())
 				g.Expect(val).To(Equal(evalue))
 			}
 
