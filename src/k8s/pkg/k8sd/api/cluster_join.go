@@ -18,6 +18,11 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
+	config, err := req.Config.ToMap()
+	if err != nil {
+		return response.BadRequest(fmt.Errorf("failed to convert join config to map: %w", err))
+	}
+
 	hostname, err := utils.CleanHostname(req.Name)
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", req.Name, err))
@@ -28,12 +33,13 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 	if internalToken.Decode(req.Token) == nil {
 		// valid worker node token - let's join the cluster
 		// The validation of the token is done when fetching the cluster information.
-		if err := e.provider.MicroCluster().NewCluster(hostname, req.Address, map[string]string{"workerToken": req.Token}, 0); err != nil {
+		config["workerToken"] = req.Token
+		if err := e.provider.MicroCluster().NewCluster(hostname, req.Address, config, 0); err != nil {
 			return response.InternalError(fmt.Errorf("failed to join k8sd cluster as worker: %w", err))
 		}
 	} else {
 		// Is not a worker token. let microcluster check if it is a valid control-plane token.
-		if err := e.provider.MicroCluster().JoinCluster(hostname, req.Address, req.Token, nil, 0); err != nil {
+		if err := e.provider.MicroCluster().JoinCluster(hostname, req.Address, req.Token, config, 0); err != nil {
 			return response.InternalError(fmt.Errorf("failed to join k8sd cluster as control plane: %w", err))
 		}
 	}

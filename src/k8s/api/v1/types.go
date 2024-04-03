@@ -24,6 +24,19 @@ type BootstrapConfig struct {
 	DatastoreClientCert string   `yaml:"datastore-client-crt,omitempty"`
 	DatastoreClientKey  string   `yaml:"datastore-client-key,omitempty"`
 	ExtraSANs           []string `yaml:"extrasans,omitempty"`
+
+	CACert                     string `yaml:"ca-crt,omitempty"`
+	CAKey                      string `yaml:"ca-key,omitempty"`
+	FrontProxyCACert           string `yaml:"front-proxy-ca-crt"`
+	FrontProxyCAKey            string `yaml:"front-proxy-ca-key"`
+	APIServerKubeletClientCert string `yaml:"apiserver-kubelet-client-crt"`
+	APIServerKubeletClientKey  string `yaml:"apiserver-kubelet-client-key"`
+	ServiceAccountKey          string `yaml:"service-account-key"`
+
+	APIServerCert string `yaml:"apiserver-crt,omitempty"`
+	APIServerKey  string `yaml:"apiserver-key,omitempty"`
+	KubeletCert   string `yaml:"kubelet-crt,omitempty"`
+	KubeletKey    string `yaml:"kubelet-key,omitempty"`
 }
 
 // SetDefaults sets the fields to default values.
@@ -54,6 +67,32 @@ func BootstrapConfigFromMap(m map[string]string) (*BootstrapConfig, error) {
 	err := yaml.Unmarshal([]byte(m["bootstrapConfig"]), config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
+	}
+	return config, nil
+}
+
+type JoinClusterConfig struct {
+	APIServerCert string `yaml:"apiserver-crt,omitempty"`
+	APIServerKey  string `yaml:"apiserver-key,omitempty"`
+	KubeletCert   string `yaml:"kubelet-crt,omitempty"`
+	KubeletKey    string `yaml:"kubelet-key,omitempty"`
+}
+
+func (j *JoinClusterConfig) ToMap() (map[string]string, error) {
+	config, err := yaml.Marshal(j)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal config map: %w", err)
+	}
+	return map[string]string{
+		"joinClusterConfig": string(config),
+	}, nil
+}
+
+func JoinClusterConfigFromMap(m map[string]string) (*JoinClusterConfig, error) {
+	config := &JoinClusterConfig{}
+	err := yaml.Unmarshal([]byte(m["joinClusterConfig"]), config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal join config: %w", err)
 	}
 	return config, nil
 }

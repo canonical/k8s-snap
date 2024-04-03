@@ -28,18 +28,23 @@ import (
 // onBootstrap configures local services then writes the cluster config on the database.
 func (a *App) onBootstrap(s *state.State, initConfig map[string]string) error {
 	if workerToken, ok := initConfig["workerToken"]; ok {
-		return a.onBootstrapWorkerNode(s, workerToken)
+		return a.onBootstrapWorkerNode(s, workerToken, initConfig)
 	}
 
 	return a.onBootstrapControlPlane(s, initConfig)
 }
 
-func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
+func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, initConfig map[string]string) error {
 	snap := a.Snap()
 
 	token := &types.InternalWorkerNodeToken{}
 	if err := token.Decode(encodedToken); err != nil {
 		return fmt.Errorf("failed to parse worker token: %w", err)
+	}
+
+	joinClusterConfig, err := apiv1.JoinClusterConfigFromMap(initConfig)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal join config: %w", err)
 	}
 
 	if len(token.JoinAddresses) == 0 {
@@ -102,6 +107,12 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		KubeletCert: response.KubeletCert,
 		KubeletKey:  response.KubeletKey,
 	}
+
+	if !certificates.IsKubeletPresent() {
+		certificates.KubeletCert = joinClusterConfig.KubeletCert
+		certificates.KubeletKey = joinClusterConfig.KubeletKey
+	}
+
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize worker node certificates: %w", err)
 	}
@@ -220,6 +231,23 @@ func (a *App) onBootstrapControlPlane(s *state.State, initConfig map[string]stri
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
 	})
+
+	certificates.CACert = bootstrapConfig.CACert
+	certificates.CAKey = bootstrapConfig.CAKey
+
+	certificates.FrontProxyCACert = bootstrapConfig.FrontProxyCACert
+	certificates.FrontProxyCAKey = bootstrapConfig.FrontProxyCAKey
+
+	certificates.ServiceAccountKey = bootstrapConfig.ServiceAccountKey
+
+	certificates.APIServerKubeletClientCert = bootstrapConfig.APIServerKubeletClientCert
+	certificates.APIServerKubeletClientKey = bootstrapConfig.APIServerKubeletClientKey
+
+	certificates.APIServerCert = bootstrapConfig.APIServerCert
+	certificates.APIServerKey = bootstrapConfig.APIServerKey
+	certificates.KubeletCert = bootstrapConfig.KubeletCert
+	certificates.KubeletKey = bootstrapConfig.KubeletKey
+
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 type JoinClusterResult struct {
@@ -21,8 +22,9 @@ func (b JoinClusterResult) String() string {
 
 func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
-		name    string
-		address string
+		name       string
+		address    string
+		configFile string
 	}
 	cmd := &cobra.Command{
 		Use:    "join-cluster <join-token>",
@@ -62,8 +64,18 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
+			joinClusterConfig := apiv1.JoinClusterConfig{}
+			if opts.configFile != "" {
+				joinClusterConfig, err = getJoinClusterConfigFromYaml(opts.configFile)
+				if err != nil {
+					cmd.PrintErrf("Error: Failed to read join configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
+					env.Exit(1)
+					return
+				}
+			}
+
 			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
-			if err := client.JoinCluster(cmd.Context(), apiv1.JoinClusterRequest{Name: opts.name, Address: opts.address, Token: token}); err != nil {
+			if err := client.JoinCluster(cmd.Context(), apiv1.JoinClusterRequest{Name: opts.name, Address: opts.address, Token: token, Config: joinClusterConfig}); err != nil {
 				cmd.PrintErrf("Error: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
@@ -76,5 +88,22 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
+	cmd.PersistentFlags().StringVar(&opts.configFile, "config", "", "path to the YAML file containing your custom cluster join configuration")
 	return cmd
+}
+
+func getJoinClusterConfigFromYaml(filePath string) (apiv1.JoinClusterConfig, error) {
+	config := apiv1.JoinClusterConfig{}
+
+	yamlContent, err := os.ReadFile(filePath)
+	if err != nil {
+		return config, fmt.Errorf("failed to read YAML config file: %w", err)
+	}
+
+	err = yaml.Unmarshal(yamlContent, &config)
+	if err != nil {
+		return config, fmt.Errorf("failed to parse YAML config file: %w", err)
+	}
+
+	return config, nil
 }

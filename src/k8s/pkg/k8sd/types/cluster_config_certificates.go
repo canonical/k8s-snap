@@ -1,5 +1,7 @@
 package types
 
+import "reflect"
+
 type Certificates struct {
 	CACert                     *string `json:"ca-crt,omitempty"`
 	CAKey                      *string `json:"ca-key,omitempty"`
@@ -22,5 +24,11 @@ func (c Certificates) GetAPIServerKubeletClientKey() string {
 	return getField(c.APIServerKubeletClientKey)
 }
 func (c Certificates) Empty() bool {
-	return c.CACert == nil && c.CAKey == nil && c.FrontProxyCACert == nil && c.FrontProxyCAKey == nil && c.ServiceAccountKey == nil && c.APIServerKubeletClientCert == nil && c.APIServerKubeletClientKey == nil
+	val := reflect.ValueOf(c)
+	for i := 0; i < val.NumField(); i++ {
+		if val.Field(i).Kind() == reflect.Pointer && !val.Field(i).IsNil() {
+			return false
+		}
+	}
+	return true
 }

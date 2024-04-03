@@ -49,3 +49,7 @@ func (c *WorkerNodePKI) CompleteCertificates() error {
 	}
 	return nil
 }
+
+func (c *WorkerNodePKI) IsKubeletPresent() bool {
+	return c.KubeletCert != "" && c.KubeletKey != ""
+}

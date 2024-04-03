@@ -10,6 +10,7 @@ k8s join-cluster <join-token> [flags]
 
 ```
       --address string   microcluster address, defaults to the node IP address
+      --config string    path to the YAML file containing your custom cluster join configuration
   -h, --help             help for join-cluster
       --name string      node name, defaults to hostname
 ```
