@@ -93,12 +93,12 @@ type NodeStatus struct {
 	DatastoreRole DatastoreRole `json:"datastore-role,omitempty"`
 }
 
-type APIServerConfig struct {
-	Datastore    string `json:"datastore,omitempty"`
-	DatastoreURL string `json:"datastore-url,omitempty"`
+type Datastore struct {
+	Type        string `json:"datastore,omitempty"`
+	ExternalURL string `json:"datastore-url,omitempty"`
 }
 
-func (c APIServerConfig) String() string {
+func (c Datastore) String() string {
 	b, err := yaml.Marshal(c)
 	if err != nil {
 		return fmt.Sprintf("%#v\n", c)
@@ -112,7 +112,7 @@ type ClusterStatus struct {
 	Ready     bool                    `json:"ready,omitempty"`
 	Members   []NodeStatus            `json:"members,omitempty"`
 	Config    UserFacingClusterConfig `json:"config,omitempty"`
-	APIServer *APIServerConfig        `json:"apiserver,omitempty"`
+	Datastore *Datastore              `json:"datastore,omitempty"`
 }
 
 // haClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
@@ -130,12 +130,12 @@ func (c ClusterStatus) datastoreToString() string {
 	result := strings.Builder{}
 
 	// Datastore
-	if c.APIServer != nil && c.APIServer.Datastore != "" {
-		result.WriteString(fmt.Sprintf("  datastore: %s\n", c.APIServer.Datastore))
+	if c.Datastore != nil && c.Datastore.Type != "" {
+		result.WriteString(fmt.Sprintf("  type: %s\n", c.Datastore.Type))
 		// Datastore URL for external only
-		if c.APIServer.Datastore == "external" {
-			if c.APIServer.DatastoreURL != "" {
-				result.WriteString(fmt.Sprintf("  datastore-url: %s\n", c.APIServer.DatastoreURL))
+		if c.Datastore.Type == "external" {
+			if c.Datastore.ExternalURL != "" {
+				result.WriteString(fmt.Sprintf("  url: %s\n", c.Datastore.ExternalURL))
 			}
 			return result.String()
 		}

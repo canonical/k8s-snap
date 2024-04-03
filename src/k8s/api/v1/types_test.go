@@ -117,12 +117,12 @@ func TestString(t *testing.T) {
 					Network: &NetworkConfig{Enabled: vals.Pointer(true)},
 					DNS:     &DNSConfig{Enabled: vals.Pointer(true)},
 				},
-				APIServer: &APIServerConfig{Datastore: "k8s-dqlite", DatastoreURL: ""},
+				Datastore: &Datastore{Type: "k8s-dqlite", ExternalURL: ""},
 			},
 			expectedOutput: `status: ready
 high-availability: yes
 datastore:
-  datastore: k8s-dqlite
+  type: k8s-dqlite
   voter-nodes:
     - 192.168.0.1
     - 192.168.0.2
@@ -150,13 +150,13 @@ dns:
 					Network: &NetworkConfig{Enabled: vals.Pointer(true)},
 					DNS:     &DNSConfig{Enabled: vals.Pointer(true)},
 				},
-				APIServer: &APIServerConfig{Datastore: "external", DatastoreURL: "I-am-a-postgres-url"},
+				Datastore: &Datastore{Type: "external", ExternalURL: "I-am-a-postgres-url"},
 			},
 			expectedOutput: `status: ready
 high-availability: no
 datastore:
-  datastore: external
-  datastore-url: I-am-a-postgres-url
+  type: external
+  url: I-am-a-postgres-url
 
 network:
   enabled: true
@@ -173,7 +173,7 @@ dns:
 				Ready:     false,
 				Members:   []NodeStatus{},
 				Config:    UserFacingClusterConfig{},
-				APIServer: &APIServerConfig{},
+				Datastore: &Datastore{},
 			},
 			expectedOutput: `status: not ready
 high-availability: no
