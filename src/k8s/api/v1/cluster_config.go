@@ -27,7 +27,6 @@ type UserFacingClusterConfig struct {
 	LocalStorage  *LocalStorageConfig  `json:"local-storage,omitempty" yaml:"local-storage,omitempty"`
 	Gateway       *GatewayConfig       `json:"gateway,omitempty" yaml:"gateway,omitempty"`
 	MetricsServer *MetricsServerConfig `json:"metrics-server,omitempty" yaml:"metrics-server,omitempty"`
-	APIServer     *APIServerConfig     `json:"apiserver,omitempty" yaml:"apiserver,omitempty"`
 }
 
 type DNSConfig struct {
@@ -66,11 +65,6 @@ type NetworkConfig struct {
 	Enabled *bool `json:"enabled,omitempty" yaml:"enabled"`
 }
 
-type APIServerConfig struct {
-	Datastore    string `json:"datastore,omitempty" yaml:"datastore"`
-	DatastoreURL string `json:"datastore-url,omitempty" yaml:"datastore-url"`
-}
-
 type GatewayConfig struct {
 	Enabled *bool `json:"enabled,omitempty" yaml:"enabled"`
 }
@@ -88,14 +82,6 @@ func (c UserFacingClusterConfig) String() string {
 }
 
 func (c NetworkConfig) String() string {
-	b, err := yaml.Marshal(c)
-	if err != nil {
-		return fmt.Sprintf("%#v\n", c)
-	}
-	return string(b)
-}
-
-func (c APIServerConfig) String() string {
 	b, err := yaml.Marshal(c)
 	if err != nil {
 		return fmt.Sprintf("%#v\n", c)

@@ -27,6 +27,11 @@ func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus,
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get user-facing cluster config: %w", err)
 	}
 
+	apiServerConfig, err := utils.GetAPIServerConfig(ctx, s)
+	if err != nil {
+		return apiv1.ClusterStatus{}, fmt.Errorf("failed to get API server config: %w", err)
+	}
+
 	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return apiv1.ClusterStatus{}, fmt.Errorf("failed to create k8s client: %w", err)
@@ -38,9 +43,10 @@ func GetClusterStatus(ctx context.Context, s *state.State) (apiv1.ClusterStatus,
 	}
 
 	return apiv1.ClusterStatus{
-		Ready:   ready,
-		Members: members,
-		Config:  config,
+		Ready:     ready,
+		Members:   members,
+		Config:    config,
+		APIServer: &apiServerConfig,
 	}, nil
 }
 

@@ -93,12 +93,26 @@ type NodeStatus struct {
 	DatastoreRole DatastoreRole `json:"datastore-role,omitempty"`
 }
 
+type APIServerConfig struct {
+	Datastore    string `json:"datastore,omitempty"`
+	DatastoreURL string `json:"datastore-url,omitempty"`
+}
+
+func (c APIServerConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
+}
+
 // ClusterStatus holds information about the cluster, e.g. its current members
 type ClusterStatus struct {
 	// Ready is true if at least one node in the cluster is in READY state.
-	Ready   bool                    `json:"ready,omitempty"`
-	Members []NodeStatus            `json:"members,omitempty"`
-	Config  UserFacingClusterConfig `json:"config,omitempty"`
+	Ready     bool                    `json:"ready,omitempty"`
+	Members   []NodeStatus            `json:"members,omitempty"`
+	Config    UserFacingClusterConfig `json:"config,omitempty"`
+	APIServer *APIServerConfig        `json:"apiserver,omitempty"`
 }
 
 // HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
@@ -116,12 +130,12 @@ func (c ClusterStatus) datastoreToString() string {
 	result := strings.Builder{}
 
 	// Datastore
-	if c.Config.APIServer != nil && c.Config.APIServer.Datastore != "" {
-		result.WriteString(fmt.Sprintf("  datastore: %s\n", c.Config.APIServer.Datastore))
+	if c.APIServer != nil && c.APIServer.Datastore != "" {
+		result.WriteString(fmt.Sprintf("  datastore: %s\n", c.APIServer.Datastore))
 		// Datastore URL for external only
-		if c.Config.APIServer.Datastore == "external" {
-			if c.Config.APIServer.DatastoreURL != "" {
-				result.WriteString(fmt.Sprintf("  datastore-url: %s\n", c.Config.APIServer.DatastoreURL))
+		if c.APIServer.Datastore == "external" {
+			if c.APIServer.DatastoreURL != "" {
+				result.WriteString(fmt.Sprintf("  datastore-url: %s\n", c.APIServer.DatastoreURL))
 			}
 			return result.String()
 		}

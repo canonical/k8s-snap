@@ -31,6 +31,20 @@ func GetClusterConfig(ctx context.Context, state *state.State) (types.ClusterCon
 }
 
 // GetUserFacingClusterConfig returns the public cluster config.
+func GetAPIServerConfig(ctx context.Context, state *state.State) (apiv1.APIServerConfig, error) {
+	cfg, err := GetClusterConfig(ctx, state)
+	if err != nil {
+		return apiv1.APIServerConfig{}, fmt.Errorf("failed to get cluster config: %w", err)
+	}
+
+	apiServerConfig := apiv1.APIServerConfig{
+		Datastore:    cfg.APIServer.Datastore,
+		DatastoreURL: cfg.APIServer.DatastoreURL,
+	}
+	return apiServerConfig, nil
+}
+
+// GetUserFacingClusterConfig returns the public cluster config.
 func GetUserFacingClusterConfig(ctx context.Context, state *state.State) (apiv1.UserFacingClusterConfig, error) {
 	cfg, err := GetClusterConfig(ctx, state)
 	if err != nil {
@@ -74,10 +88,6 @@ func GetUserFacingClusterConfig(ctx context.Context, state *state.State) (apiv1.
 		},
 		MetricsServer: &apiv1.MetricsServerConfig{
 			Enabled: vals.Pointer(false),
-		},
-		APIServer: &apiv1.APIServerConfig{
-			Datastore:    cfg.APIServer.Datastore,
-			DatastoreURL: cfg.APIServer.DatastoreURL,
 		},
 	}
 

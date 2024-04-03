@@ -114,10 +114,10 @@ func TestString(t *testing.T) {
 					{Name: "node3", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.3"},
 				},
 				Config: UserFacingClusterConfig{
-					Network:   &NetworkConfig{Enabled: vals.Pointer(true)},
-					DNS:       &DNSConfig{Enabled: vals.Pointer(true)},
-					APIServer: &APIServerConfig{Datastore: "k8s-dqlite", DatastoreURL: ""},
+					Network: &NetworkConfig{Enabled: vals.Pointer(true)},
+					DNS:     &DNSConfig{Enabled: vals.Pointer(true)},
 				},
+				APIServer: &APIServerConfig{Datastore: "k8s-dqlite", DatastoreURL: ""},
 			},
 			expectedOutput: `status: ready
 high-availability: yes
@@ -147,10 +147,10 @@ dns:
 					{Name: "node1", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.1"},
 				},
 				Config: UserFacingClusterConfig{
-					Network:   &NetworkConfig{Enabled: vals.Pointer(true)},
-					DNS:       &DNSConfig{Enabled: vals.Pointer(true)},
-					APIServer: &APIServerConfig{Datastore: "external", DatastoreURL: "I-am-a-postgres-url"},
+					Network: &NetworkConfig{Enabled: vals.Pointer(true)},
+					DNS:     &DNSConfig{Enabled: vals.Pointer(true)},
 				},
+				APIServer: &APIServerConfig{Datastore: "external", DatastoreURL: "I-am-a-postgres-url"},
 			},
 			expectedOutput: `status: ready
 high-availability: no
@@ -170,9 +170,10 @@ dns:
 		{
 			name: "Cluster not ready, HA not formed, no nodes",
 			clusterStatus: ClusterStatus{
-				Ready:   false,
-				Members: []NodeStatus{},
-				Config:  UserFacingClusterConfig{},
+				Ready:     false,
+				Members:   []NodeStatus{},
+				Config:    UserFacingClusterConfig{},
+				APIServer: &APIServerConfig{},
 			},
 			expectedOutput: `status: not ready
 high-availability: no
