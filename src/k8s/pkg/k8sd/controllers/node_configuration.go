@@ -61,9 +61,12 @@ func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *
 	} {
 		switch {
 		case loop.val == nil:
+			// value is not set in the configmap, no-op
 		case *loop.val == "":
+			// value is set in the configmap to the empty string, delete argument
 			deleteArgs = append(deleteArgs, loop.arg)
 		case *loop.val != "":
+			// value is set in the configmap, update argument
 			updateArgs[loop.arg] = *loop.val
 		}
 	}
