@@ -115,8 +115,8 @@ type ClusterStatus struct {
 	APIServer *APIServerConfig        `json:"apiserver,omitempty"`
 }
 
-// HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
-func (c ClusterStatus) HaClusterFormed() bool {
+// haClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
+func (c ClusterStatus) haClusterFormed() bool {
 	voters := 0
 	for _, member := range c.Members {
 		if member.DatastoreRole == DatastoreRoleVoter {
@@ -197,7 +197,7 @@ func (c ClusterStatus) String() string {
 
 	// High availability
 	result.WriteString("high-availability: ")
-	if c.HaClusterFormed() {
+	if c.haClusterFormed() {
 		result.WriteString("yes")
 	} else {
 		result.WriteString("no")

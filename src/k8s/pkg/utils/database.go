@@ -30,7 +30,7 @@ func GetClusterConfig(ctx context.Context, state *state.State) (types.ClusterCon
 	return clusterConfig, nil
 }
 
-// GetUserFacingClusterConfig returns the public cluster config.
+// GetAPIServerConfig returns the APIServerConfig including datastore and datastore-url.
 func GetAPIServerConfig(ctx context.Context, state *state.State) (apiv1.APIServerConfig, error) {
 	cfg, err := GetClusterConfig(ctx, state)
 	if err != nil {

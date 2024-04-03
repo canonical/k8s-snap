@@ -91,7 +91,7 @@ func TestHaClusterFormed(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			g.Expect(ClusterStatus{Members: tc.members}.HaClusterFormed()).To(Equal(tc.expectedResult))
+			g.Expect(ClusterStatus{Members: tc.members}.haClusterFormed()).To(Equal(tc.expectedResult))
 		})
 	}
 }
