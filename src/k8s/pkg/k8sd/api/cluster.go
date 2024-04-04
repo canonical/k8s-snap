@@ -30,8 +30,8 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 	datastoreConfig := apiv1.Datastore{
-		Type:        *clusterConfig.Datastore.Type,
-		ExternalURL: *clusterConfig.Datastore.ExternalURL,
+		Type:        clusterConfig.Datastore.GetType(),
+		ExternalURL: clusterConfig.Datastore.GetExternalURL(),
 	}
 
 	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
