@@ -36,7 +36,8 @@ type App struct {
 	// readyWg is used to denote that the microcluster node is now running
 	readyWg sync.WaitGroup
 
-	nodeConfigController *controllers.NodeConfigurationController
+	nodeConfigController         *controllers.NodeConfigurationController
+	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
 }
 
 // New initializes a new microcluster instance from configuration.
@@ -66,6 +67,12 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 		func() (*k8s.Client, error) {
 			return k8s.NewClient(cfg.Snap.KubernetesNodeRESTClientGetter("kube-system"))
 		},
+	)
+
+	app.controlPlaneConfigController = controllers.NewControlPlaneConfigurationController(
+		cfg.Snap,
+		app.readyWg.Wait,
+		time.NewTicker(10*time.Second).C,
 	)
 
 	return app, nil
