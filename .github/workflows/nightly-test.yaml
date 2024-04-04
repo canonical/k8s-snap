@@ -27,11 +27,10 @@ jobs:
           sudo apt update
           sudo apt install snapd
       - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+        run: |
+          sudo apt install -y python3 python3-pip
       - name: Install tox
-        run: pip install tox==4.13
+        run: pip3 install tox==4.13
       - name: Install lxd
         run: |
           sudo snap refresh lxd --channel 5.19/stable
