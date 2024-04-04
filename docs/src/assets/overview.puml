@@ -13,7 +13,7 @@ System(CharmK8s, "Charm K8s", $descr="Orchestrating the lifecycle management of 
 System(LoadBalancer, "Load Balancer", $descr="External LB, offered by the substrate (cloud)", $tags="", $link="")
 System(Storage, "Storage", $descr="External storage, offered by the substrate (cloud)", $tags="", $link="")
 System(Identitymanagementsystem, "Identity management system", $descr="External identity system, offered by the substrate (cloud)", $tags="", $link="")
-System(Externaldatastore, "External datastore", $descr="postgress or etcd", $tags="", $link="")
+System(Externaldatastore, "External datastore", $descr="postgreSQL or etcd", $tags="", $link="")
 System(K8sSnapDistribution, "K8s Snap Distribution", $descr="The Kubernetes distribution in a snap", $tags="", $link="")
 
 Rel(K8sAdmin, K8sSnapDistribution, "Sets up and configured the cluster", $techn="", $tags="", $link="")
