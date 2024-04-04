@@ -44,7 +44,7 @@ jobs:
         run: |
             cd build
             snap download k8s --channel=edge --basename k8s
-      - name: Run end to end tests
+      - name: Run end to end tests # tox path needs to be specified for arm64
         run: |
           export TEST_SNAP="$PWD/build/k8s.snap" 
           export TEST_SUBSTRATE=lxd
