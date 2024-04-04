@@ -38,8 +38,8 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 	}
 
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Years: 10})
-	certificates.CACert = cfg.Certificates.CACert
-	certificates.CAKey = cfg.Certificates.CAKey
+	certificates.CACert = cfg.Certificates.GetCACert()
+	certificates.CAKey = cfg.Certificates.GetCAKey()
 	workerCertificates, err := certificates.CompleteWorkerNodePKI(workerName, nodeIP, 2048)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate worker PKI: %w", err))
@@ -95,14 +95,14 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 	}
 
 	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
-		CA:             cfg.Certificates.CACert,
+		CA:             cfg.Certificates.GetCACert(),
 		APIServers:     servers,
-		PodCIDR:        cfg.Network.PodCIDR,
+		PodCIDR:        cfg.Network.GetPodCIDR(),
 		KubeletToken:   kubeletToken,
 		KubeProxyToken: proxyToken,
-		ClusterDomain:  cfg.Kubelet.ClusterDomain,
-		ClusterDNS:     cfg.Kubelet.ClusterDNS,
-		CloudProvider:  cfg.Kubelet.CloudProvider,
+		ClusterDomain:  cfg.Kubelet.GetClusterDomain(),
+		ClusterDNS:     cfg.Kubelet.GetClusterDNS(),
+		CloudProvider:  cfg.Kubelet.GetCloudProvider(),
 		KubeletCert:    workerCertificates.KubeletCert,
 		KubeletKey:     workerCertificates.KubeletKey,
 	})

@@ -20,7 +20,7 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to get cluster members: %w", err))
 	}
 
-	config, err := utils.GetUserFacingClusterConfig(s.Context, s)
+	config, err := utils.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get user-facing cluster config: %w", err))
 	}
@@ -48,7 +48,7 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 		ClusterStatus: apiv1.ClusterStatus{
 			Ready:     ready,
 			Members:   members,
-			Config:    config,
+			Config:    config.ToUserFacing(),
 			Datastore: datastoreConfig,
 		},
 	}

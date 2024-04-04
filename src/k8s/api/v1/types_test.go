@@ -97,8 +97,6 @@ func TestHaClusterFormed(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	g := NewGomegaWithT(t)
-
 	testCases := []struct {
 		name           string
 		clusterStatus  ClusterStatus
@@ -114,8 +112,8 @@ func TestString(t *testing.T) {
 					{Name: "node3", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.3"},
 				},
 				Config: UserFacingClusterConfig{
-					Network: &NetworkConfig{Enabled: vals.Pointer(true)},
-					DNS:     &DNSConfig{Enabled: vals.Pointer(true)},
+					Network: NetworkConfig{Enabled: vals.Pointer(true)},
+					DNS:     DNSConfig{Enabled: vals.Pointer(true)},
 				},
 				Datastore: Datastore{Type: "k8s-dqlite", ExternalURL: ""},
 			},
@@ -129,14 +127,10 @@ datastore:
     - 192.168.0.3
   standby-nodes: none
   spare-nodes: none
-
 network:
   enabled: true
 dns:
   enabled: true
-  cluster-domain: ""
-  service-ip: ""
-  upstream-nameservers: []
 `,
 		},
 		{
@@ -187,6 +181,7 @@ datastore:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
 			g.Expect(tc.clusterStatus.String()).To(Equal(tc.expectedOutput))
 		})
 	}
