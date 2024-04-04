@@ -80,6 +80,6 @@ func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) error {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
 		path.Join(snap.KubernetesPKIDir(), "ca.crt"):      certificates.CACert,
 		path.Join(snap.KubernetesPKIDir(), "kubelet.crt"): certificates.KubeletCert,
-		path.Join(snap.KubernetesPKIDir(), "kubelet.crt"): certificates.KubeletKey,
+		path.Join(snap.KubernetesPKIDir(), "kubelet.key"): certificates.KubeletKey,
 	})
 }
