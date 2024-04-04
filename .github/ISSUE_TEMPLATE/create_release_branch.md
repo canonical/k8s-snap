@@ -42,19 +42,63 @@ The steps are to be followed in-order, each task must be completed by the person
 
       Thank you, $name
 
-- [ ] **Owner**: Create `release-1.xx/strict` branch from latest `autoupdate/strict`
+- [ ] **Owner**: Create `release-1.xx-strict` branch from latest `autoupdate/strict`
   - `git switch autoupdate/strict`
   - `git pull`
-  - `git checkout -b release-1.xx/strict`
-  - `git push origin release-1.xx/strict`
+  - `git checkout -b release-1.xx-strict`
+  - `git push origin release-1.xx-strict`
 - [ ] **Owner**: Create `release-1.xx` branch from latest `main`
   - `git switch main`
   - `git pull`
   - `git checkout -b release-1.xx`
   - `git push origin release-1.xx`
-
+- [ ] **Owner**: Create `1.xx` branch from latest `master` in k8s-dqlite
+  - `git clone git@github.com:canonical/k8s-dqlite.git ~/tmp/release-1.xx`
+  - `pushd ~/tmp/release-1.xx`
+  - `git switch main`
+  - `git pull`
+  - `git checkout -b 1.xx`
+  - `git push origin 1.xx`
+  - `popd`
+  - `rm -rf ~/tmp/release-1.xx`
+- [ ] **Owner**: Create `release-1.xx` branch from latest `main` in cilium-rocks
+  - `git clone git@github.com:canonical/cilium-rocks.git ~/tmp/release-1.xx`
+  - `pushd ~/tmp/release-1.xx`
+  - `git switch main`
+  - `git pull`
+  - `git checkout -b release-1.xx`
+  - `git push origin release-1.xx`
+  - `popd`
+  - `rm -rf ~/tmp/release-1.xx`
+- [ ] **Owner**: Create `release-1.xx` branch from latest `main` in coredns-rock
+  - `git clone git@github.com:canonical/coredns-rock.git ~/tmp/release-1.xx`
+  - `pushd ~/tmp/release-1.xx`
+  - `git switch main`
+  - `git pull`
+  - `git checkout -b release-1.xx`
+  - `git push origin release-1.xx`
+  - `popd`
+  - `rm -rf ~/tmp/release-1.xx`
+- [ ] **Owner**: Create `release-1.xx` branch from latest `main` in metrics-server-rock
+  - `git clone git@github.com:canonical/metrics-server-rock.git ~/tmp/release-1.xx`
+  - `pushd ~/tmp/release-1.xx`
+  - `git switch main`
+  - `git pull`
+  - `git checkout -b release-1.xx`
+  - `git push origin release-1.xx`
+  - `popd`
+  - `rm -rf ~/tmp/release-1.xx`
+- [ ] **Owner**: Create `release-1.xx` branch from latest `main` in rawfile-localpv
+  - `git clone git@github.com:canonical/rawfile-localpv.git ~/tmp/release-1.xx`
+  - `pushd ~/tmp/release-1.xx`
+  - `git switch main`
+  - `git pull`
+  - `git checkout -b release-1.xx`
+  - `git push origin release-1.xx`
+  - `popd`
+  - `rm -rf ~/tmp/release-1.xx`
 - [ ] **Reviewer**: Ensure `release-1.xx` branch is based on latest changes on `main` at the time of the release cut.
-- [ ] **Reviewer**: Ensure `release-1.xx/strict` branch is based on latest changes on `autoupdate/strict` at the time of the release cut.
+- [ ] **Reviewer**: Ensure `release-1.xx-strict` branch is based on latest changes on `autoupdate/strict` at the time of the release cut.
 - [ ] **Owner**: Create PR to initialize `release-1.xx` branch:
   - [ ] Update branch from `main` to `release-1.xx` in [.github/workflows/cla.yaml][]
   - [ ] Update branch from `main` to `release-1.xx` in [.github/workflows/cron-jobs.yaml][]
@@ -64,13 +108,15 @@ The steps are to be followed in-order, each task must be completed by the person
   - [ ] Update branch from `main` to `release-1.xx` in [.github/workflows/sbom.yaml][]
   - [ ] Update branch from `main` to `release-1.xx` in [.github/workflows/strict-integration.yaml][]
   - [ ] Update branch from `main` to `release-1.xx` in [.github/workflows/strict.yaml][]
-  - [ ] Update branch from `autoupdate/strict` to `release-1.xx/strict` in [.github/workflows/go.yaml][]
-  - [ ] Update branch from `autoupdate/strict` to `release-1.xx/strict` in [.github/workflows/strict-integration.yaml][]
-  - [ ] Update branch from `autoupdate/strict` to `release-1.xx/strict` in [.github/workflows/python.yaml][]
-  - [ ] Update branch from `autoupdate/strict` to `release-1.xx/strict` in [.github/workflows/integration.yaml][]
-  - [ ] Update branch from `autoupdate/strict` to `release-1.xx/strict` in [.github/workflows/sbom.yaml][]
-  - [ ] Update branch from `autoupdate/strict` to `release-1.xx/strict` in [.github/workflows/strict.yaml][]
+  - [ ] Update branch from `autoupdate/strict` to `release-1.xx-strict` in [.github/workflows/go.yaml][]
+  - [ ] Update branch from `autoupdate/strict` to `release-1.xx-strict` in [.github/workflows/strict-integration.yaml][]
+  - [ ] Update branch from `autoupdate/strict` to `release-1.xx-strict` in [.github/workflows/python.yaml][]
+  - [ ] Update branch from `autoupdate/strict` to `release-1.xx-strict` in [.github/workflows/integration.yaml][]
+  - [ ] Update branch from `autoupdate/strict` to `release-1.xx-strict` in [.github/workflows/sbom.yaml][]
+  - [ ] Update branch from `autoupdate/strict` to `release-1.xx-strict` in [.github/workflows/strict.yaml][]
   - [ ] Update `KUBE_TRACK` to `1.xx` in [/build-scripts/components/kubernetes/version.sh][]
+  - [ ] Update `master` to `1.xx` in [/build-scripts/components/k8s-dqlite/version.sh][]
+  - [ ] Update `"main"` to `"release-1.xx"` in [/build-scripts/hack/generate-sbom.py][]
   - [ ] `git commit -m 'Release 1.xx'`
   - [ ] Create PR with the changes and request review from **Reviewer**. Make sure to update the issue `Information` section with a link to the PR.
 - [ ] **Reviewer**: Review and merge PR to initialize branch.
@@ -89,7 +135,7 @@ The steps are to be followed in-order, each task must be completed by the person
   - [ ] Click **Create snap package** at the bottom of the page.
 - [ ] **Owner**: Create launchpad builders for `release-1.xx-strict`
   - [ ] Return to [lp:k8s][].
-  - [ ] Under **Branches**, select `release-1.xx/strict`, then **Create snap package**
+  - [ ] Under **Branches**, select `release-1.xx-strict`, then **Create snap package**
   - [ ] Set **Snap recipe name** to `k8s-snap-1.xx-strict`
   - [ ] Set **Owner** to `Canonical Kubernetes (containers)`
   - [ ] Set **The project that this Snap is associated with** to `k8s`
@@ -119,5 +165,7 @@ The steps are to be followed in-order, each task must be completed by the person
 [.github/workflows/strict-integration.yaml]: ../workflows/strict-integration.yaml
 [.github/workflows/strict.yaml]: ..workflows/strict.yaml
 [/build-scripts/components/kubernetes/version.sh]: ../../build-scripts/components/kubernetes/version.sh
+[/build-scripts/components/k8s-dqlite/version.sh]: ../../build-scripts/components/k8s-dqlite/version.sh
+[/build-scripts/hack/generate-sbom.py]: ../..//build-scripts/hack/generate-sbom.py
 [lp:k8s]: https://code.launchpad.net/~cdk8s/k8s/+git/k8s-snap
 [lp:k8s/+snaps]: https://launchpad.net/k8s/+snaps
