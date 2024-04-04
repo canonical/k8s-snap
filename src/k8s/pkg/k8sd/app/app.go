@@ -3,12 +3,17 @@ package app
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/api"
+	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/config"
 	"github.com/canonical/microcluster/microcluster"
+	"github.com/canonical/microcluster/state"
 )
 
 // Config defines configuration for the k8sd app.
@@ -27,6 +32,11 @@ type Config struct {
 type App struct {
 	microCluster *microcluster.MicroCluster
 	snap         snap.Snap
+
+	// readyWg is used to denote that the microcluster node is now running
+	readyWg sync.WaitGroup
+
+	nodeConfigController *controllers.NodeConfigurationController
 }
 
 // New initializes a new microcluster instance from configuration.
@@ -44,10 +54,21 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 		return nil, fmt.Errorf("failed to create microcluster app: %w", err)
 	}
 
-	return &App{
+	app := &App{
 		microCluster: cluster,
 		snap:         cfg.Snap,
-	}, nil
+	}
+	app.readyWg.Add(1)
+
+	app.nodeConfigController = controllers.NewNodeConfigurationController(
+		cfg.Snap,
+		app.readyWg.Wait,
+		func() (*k8s.Client, error) {
+			return k8s.NewClient(cfg.Snap.KubernetesNodeRESTClientGetter("kube-system"))
+		},
+	)
+
+	return app, nil
 }
 
 // Run starts the microcluster node and waits until it terminates.
@@ -79,4 +100,19 @@ func (a *App) Run(customHooks *config.Hooks) error {
 		return fmt.Errorf("failed to run microcluster: %w", err)
 	}
 	return nil
+}
+
+func (a *App) markNodeReady(ctx context.Context, s *state.State) {
+	for {
+		if s.Database.IsOpen() {
+			a.readyWg.Done()
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(3 * time.Second):
+		}
+	}
 }
