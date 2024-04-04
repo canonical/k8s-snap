@@ -28,12 +28,24 @@ type BootstrapConfig struct {
 
 // SetDefaults sets the fields to default values.
 func (b *BootstrapConfig) SetDefaults() {
-	b.Components = []string{"dns", "metrics-server", "network", "gateway"}
-	b.ClusterCIDR = "10.1.0.0/16"
-	b.ServiceCIDR = "10.152.183.0/24"
-	b.EnableRBAC = vals.Pointer(true)
-	b.K8sDqlitePort = 9000
-	b.Datastore = "k8s-dqlite"
+	if len(b.Components) == 0 {
+		b.Components = []string{"dns", "metrics-server", "network", "gateway"}
+	}
+	if b.ClusterCIDR == "" {
+		b.ClusterCIDR = "10.1.0.0/16"
+	}
+	if b.ServiceCIDR == "" {
+		b.ServiceCIDR = "10.152.183.0/24"
+	}
+	if b.EnableRBAC == nil {
+		b.EnableRBAC = vals.Pointer(true)
+	}
+	if b.K8sDqlitePort == 0 {
+		b.K8sDqlitePort = 9000
+	}
+	if b.Datastore == "" {
+		b.Datastore = "k8s-dqlite"
+	}
 }
 
 // ToMap marshals the BootstrapConfig into yaml and map it to "bootstrapConfig".

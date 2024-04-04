@@ -54,7 +54,7 @@ def test_etcd(instances: List[harness.Instance]):
             "openssl",
             "req",
             "-x509",
-            "-noenc",
+            "-nodes",
             "-newkey",
             "rsa:4096",
             "-subj",
@@ -72,7 +72,7 @@ def test_etcd(instances: List[harness.Instance]):
         [
             "openssl",
             "req",
-            "-noenc",
+            "-nodes",
             "-newkey",
             "rsa:4096",
             "-keyout",
@@ -99,8 +99,11 @@ def test_etcd(instances: List[harness.Instance]):
             "/tmp/ca_key.pem",
             "-out",
             "/tmp/etcd_cert.pem",
-            "-copy_extensions",
-            "copy",
+            "-extensions",
+            "v3_req",
+            "-extfile",
+            "/tmp/etcd_tls.conf",
+            "-CAcreateserial",
         ]
     )
 
