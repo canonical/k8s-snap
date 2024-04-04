@@ -25,6 +25,15 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to get user-facing cluster config: %w", err))
 	}
 
+	clusterConfig, err := utils.GetClusterConfig(s.Context, s)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
+	}
+	datastoreConfig := apiv1.Datastore{
+		Type:        clusterConfig.Datastore.GetType(),
+		ExternalURL: clusterConfig.Datastore.GetExternalURL(),
+	}
+
 	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
@@ -37,9 +46,10 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 
 	result := apiv1.GetClusterStatusResponse{
 		ClusterStatus: apiv1.ClusterStatus{
-			Ready:   ready,
-			Members: members,
-			Config:  config.ToUserFacing(),
+			Ready:     ready,
+			Members:   members,
+			Config:    config.ToUserFacing(),
+			Datastore: datastoreConfig,
 		},
 	}
 
