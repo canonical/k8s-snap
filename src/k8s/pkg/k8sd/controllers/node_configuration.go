@@ -48,14 +48,14 @@ func (c *NodeConfigurationController) Run(ctx context.Context) {
 
 	client, err := c.retryNewK8sClient(ctx)
 	if err != nil {
-		log.Println("Could not create a Kubernetes client: %v", err.Error())
+		log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
 	}
 
 	for {
 		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap) }); err != nil {
 			// This also can fail during bootstrapping/start up when api-server is not ready
 			// So the watch requests get connection refused replies
-			log.Println(fmt.Errorf("error while watching configmap: %w", err))
+			log.Println(fmt.Errorf("failed to watch configmap: %w", err))
 		}
 
 		select {
