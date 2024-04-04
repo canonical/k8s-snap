@@ -141,24 +141,20 @@ dns:
 					{Name: "node1", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.1"},
 				},
 				Config: UserFacingClusterConfig{
-					Network: &NetworkConfig{Enabled: vals.Pointer(true)},
-					DNS:     &DNSConfig{Enabled: vals.Pointer(true)},
+					Network: NetworkConfig{Enabled: vals.Pointer(true)},
+					DNS:     DNSConfig{Enabled: vals.Pointer(true)},
 				},
-				Datastore: Datastore{Type: "external", ExternalURL: "I-am-a-postgres-url"},
+				Datastore: Datastore{Type: "external", ExternalURL: "etcd-url"},
 			},
 			expectedOutput: `status: ready
 high-availability: no
 datastore:
   type: external
-  url: I-am-a-postgres-url
-
+  url: etcd-url
 network:
   enabled: true
 dns:
   enabled: true
-  cluster-domain: ""
-  service-ip: ""
-  upstream-nameservers: []
 `,
 		},
 		{
