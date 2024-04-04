@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04"]
         runner: ["ubuntu-latest", "Ubuntu_ARM64_4C_16G_01"]
-        fail-fast: false # TODO: remove once arm64 works
+      fail-fast: false # TODO: remove once arm64 works
 
     runs-on: ${{ matrix.runner }}
 
