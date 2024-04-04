@@ -37,13 +37,15 @@ jobs:
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
-      - name: Install latest/edge k8s snap
+      - name: Create build directory
+        run: mkdir -p build
+      - name: Download snap
         run: |
-          sudo snap download k8s --channel=edge --basename k8s
+            cd build
+            sudo snap download k8s --channel=edge --basename k8s
       - name: Run end to end tests
         run: |
-          export TEST_SNAP="$PWD/k8s.snap" 
-          chmod +x $TEST_SNAP 
+          export TEST_SNAP="$PWD/build/k8s.snap" 
           export TEST_SUBSTRATE=lxd
           export TEST_LXD_IMAGE="${{ matrix.os }}"
           cd tests/integration && sg lxd -c 'tox -e integration'
