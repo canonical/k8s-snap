@@ -55,14 +55,14 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 func (a *App) Run(customHooks *config.Hooks) error {
 	// TODO: consider improving API for overriding hooks.
 	hooks := &config.Hooks{
-		OnBootstrap: a.onBootstrap,
-		PostJoin:    a.onPostJoin,
-		PreRemove:   a.onPreRemove,
-		OnStart:     a.onStart,
+		PostBootstrap: a.onBootstrap,
+		PostJoin:      a.onPostJoin,
+		PreRemove:     a.onPreRemove,
+		OnStart:       a.onStart,
 	}
 	if customHooks != nil {
-		if customHooks.OnBootstrap != nil {
-			hooks.OnBootstrap = customHooks.OnBootstrap
+		if customHooks.PostBootstrap != nil {
+			hooks.PostBootstrap = customHooks.PostBootstrap
 		}
 		if customHooks.PostJoin != nil {
 			hooks.PostJoin = customHooks.PostJoin

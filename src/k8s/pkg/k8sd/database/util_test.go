@@ -15,6 +15,8 @@ import (
 const (
 	// microclusterDatabaseInitTimeout is the timeout for microcluster database initialization operations
 	microclusterDatabaseInitTimeout = 3 * time.Second
+	// microclusterDatabaseShutdownTimeout is the timeout for microcluster database shutdown operations
+	microclusterDatabaseShutdownTimeout = 3 * time.Second
 )
 
 var (
@@ -66,7 +68,7 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 	// app.Run() is blocking, so we get the database handle through a channel
 	go func() {
 		doneCh <- app.Run(&config.Hooks{
-			OnBootstrap: func(s *state.State, initConfig map[string]string) error {
+			PostBootstrap: func(s *state.State, initConfig map[string]string) error {
 				databaseCh <- s.Database
 				return nil
 			},
@@ -100,6 +102,11 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 		f(ctx, db)
 	}
 
-	// cancel context. don't bother waiting for the microcluster instance to stop, as it will not
+	// cancel context to stop the microcluster instance, and wait for it to shutdown
 	cancel()
+	select {
+	case <-doneCh:
+	case <-time.After(microclusterDatabaseShutdownTimeout):
+		t.Fatalf("timed out waiting for microcluster to shutdown")
+	}
 }
