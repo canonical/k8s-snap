@@ -95,7 +95,7 @@ type NodeStatus struct {
 
 type Datastore struct {
 	Type        string `json:"type,omitempty"`
-	ExternalURL string `json:"url,omitempty"`
+	ExternalURL string `json:"external-url,omitempty"`
 }
 
 // ClusterStatus holds information about the cluster, e.g. its current members
