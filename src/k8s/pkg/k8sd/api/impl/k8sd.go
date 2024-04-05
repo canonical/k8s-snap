@@ -16,6 +16,7 @@ import (
 func GetClusterMembers(ctx context.Context, s *state.State) ([]apiv1.NodeStatus, error) {
 	c, err := s.Leader()
 	if err != nil {
+		log.Printf("failed to get leader client: %v", err)
 		return nil, fmt.Errorf("failed to get leader client: %w", err)
 	}
 
