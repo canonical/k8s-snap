@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"log"
 )
 
 // loadCertificate parses the PEM blocks and returns the certificate and private key.
@@ -17,6 +18,7 @@ func loadCertificate(certPEM string, keyPEM string) (*x509.Certificate, *rsa.Pri
 	}
 	cert, err := x509.ParseCertificate(decodedCert.Bytes)
 	if err != nil {
+		log.Printf("failed to parse certificate: %v", err)
 		return nil, nil, fmt.Errorf("failed to parse certificate: %w", err)
 	}
 
@@ -25,6 +27,7 @@ func loadCertificate(certPEM string, keyPEM string) (*x509.Certificate, *rsa.Pri
 		pb, _ := pem.Decode([]byte(keyPEM))
 		key, err = x509.ParsePKCS1PrivateKey(pb.Bytes)
 		if err != nil {
+			log.Printf("failed to parse private key: %v", err)
 			return nil, nil, fmt.Errorf("failed to parse private key: %w", err)
 		}
 	}
