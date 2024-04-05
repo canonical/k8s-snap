@@ -3,14 +3,14 @@
 workspace "Canonical K8s Workspace" {
     model {
 
-        admin = person "K8s Admin" "Responsible for the K8s cluster, has elevated permissions"
-        user = person "K8s User" "Interact with the workloads hosted in K8s"
+        admin = person "K8s Admin"
+        user = person "K8s User"
         charm = softwareSystem "Charm K8s" "Orchestrating the lifecycle management of K8s"
 
-        external_lb = softwareSystem "Load Balancer" "External LB, offered by the substrate (cloud)" "Extern"
-        storage = softwareSystem "Storage" "External storage, offered by the substrate (cloud)" "Extern"
-        iam = softwareSystem "Identity management system" "External identity system, offered by the substrate (cloud)" "Extern"
-        external_datastore = softwareSystem "External datastore" "postgress or etcd" "Extern"
+        external_lb = softwareSystem "Load Balancer" "External LB, offered by the substrate (cloud). Could be replaced by any alternative solution." "Extern"
+        storage = softwareSystem "Storage" "External storage, offered by the substrate (cloud). Could be replaced by any storage solution." "Extern"
+        iam = softwareSystem "Identity Management System" "The external identity system, offered by the substrate (cloud). Could be replaced by any alternative system." "Extern"
+        external_datastore = softwareSystem "External datastore" "etcd" "Extern"
   
        k8s_snap = softwareSystem "K8s Snap Distribution" "The Kubernetes distribution in a snap" {
 
@@ -47,6 +47,7 @@ workspace "Canonical K8s Workspace" {
         }
 
         admin -> cli "Administers the cluster"
+        admin -> charm "Manages cluster's lifecycle"
         admin -> kubectl "Uses to manage the cluster"
         user -> loadbalancer "Interact with workloads hosted in K8s"
         charm -> api "Orchestrates the lifecycle management of K8s"
@@ -54,8 +55,8 @@ workspace "Canonical K8s Workspace" {
         k8s_snap -> storage "Hosted workloads use storage"
         k8s_snap -> iam "Users identity is retrieved"
 
-        k8s_dqlite -> external_datastore "May be replaced by" "Any" "Runtime"
-        loadbalancer -> external_lb "May be replaced by" "Any" "Runtime"
+        k8s_dqlite -> external_datastore "Stores cluster data" "" "Runtime"
+        loadbalancer -> external_lb "Routes client requests" "" "Runtime"
 
         cluster_manager -> systemd "Configures"
 
