@@ -54,7 +54,7 @@ func GetLocalNodeStatus(ctx context.Context, s *state.State, snap snap.Snap) (ap
 		if err != nil {
 			// The node is likely in a joining or leaving phase where the role is not yet settled.
 			// Use the unknown role but still log this incident for debugging.
-			log.Printf("Failed to check if node is control-plane. This is expected if the node is in a joining/leaving phase. %v", err)
+			log.Printf("failed to check if node is control-plane. This is expected if the node is in a joining/leaving phase. %v", err)
 			clusterRole = apiv1.ClusterRoleUnknown
 		} else {
 			if node != nil {

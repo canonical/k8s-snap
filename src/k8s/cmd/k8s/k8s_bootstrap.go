@@ -25,7 +25,10 @@ type BootstrapResult struct {
 
 func (b BootstrapResult) String() string {
 	buf := &bytes.Buffer{}
-	buf.WriteString(fmt.Sprintf("Bootstrapped a new Kubernetes cluster with node address %q.\n", b.Node.Address))
+	_, err := buf.WriteString(fmt.Sprintf("Bootstrapped a new Kubernetes cluster with node address %q.\n", b.Node.Address))
+	if err != nil {
+		log.Printf("failed to write to buffer: %v", err)
+	}
 	buf.WriteString("The node will be 'Ready' to host workloads after the CNI is deployed successfully.\n")
 
 	return buf.String()
@@ -181,7 +184,10 @@ func askQuestion(stdin io.Reader, stdout io.Writer, stderr io.Writer, question s
 		var s string
 		r := bufio.NewReader(stdin)
 		for {
-			fmt.Fprint(stdout, q)
+			_, err := fmt.Fprint(stdout, q)
+			if err != nil {
+				log.Printf("failed to stdout: %v", err)
+			}
 			s, _ = r.ReadString('\n')
 			if s != "" {
 				break
@@ -229,7 +235,7 @@ func askBool(stdin io.Reader, stdout io.Writer, stderr io.Writer, question strin
 
 		_, err := fmt.Fprintf(stderr, "Invalid input, try again.\n\n")
 		if err != nil {
-			log.Printf("Error writing to stderr: %v", err)
+			log.Printf("failed to write to stderr: %v", err)
 		}
 	}
 }
