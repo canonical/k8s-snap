@@ -181,7 +181,10 @@ func (c ClusterStatus) String() string {
 
 	// Status
 	if c.Ready {
-		result.WriteString("status: ready")
+		_, err := result.WriteString("status: ready")
+		if err != nil {
+			return fmt.Sprintf("failed to write status: %v", err)
+		}
 	} else {
 		result.WriteString("status: not ready")
 	}
