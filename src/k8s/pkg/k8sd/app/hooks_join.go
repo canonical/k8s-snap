@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"net"
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
@@ -100,6 +101,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	case "k8s-dqlite":
 		leader, err := s.Leader()
 		if err != nil {
+			log.Printf("failed to get dqlite leader: %v", err)
 			return fmt.Errorf("failed to get dqlite leader: %w", err)
 		}
 		members, err := leader.GetClusterMembers(s.Context)
