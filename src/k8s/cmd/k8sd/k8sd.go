@@ -1,6 +1,8 @@
 package k8sd
 
 import (
+	"log"
+
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/k8sd/app"
 	"github.com/spf13/cobra"
@@ -46,7 +48,9 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
 
 	cmd.Flags().Uint("port", 0, "Default port for the HTTP API")
-	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")
+	if err := cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version"); err != nil {
+		log.Printf("failed to mark flag port as deprecated: %v", err)
+	}
 
 	cmd.AddCommand(newSqlCmd(env))
 
