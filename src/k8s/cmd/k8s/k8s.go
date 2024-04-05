@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"log"
 	"time"
 
 	cmdutil "github.com/canonical/k8s/cmd/util"
@@ -66,7 +67,9 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 	// By default, the state dir is set to a fixed directory in the snap.
 	// This shouldn't be overwritten by the user.
-	cmd.PersistentFlags().MarkHidden("state-dir")
+	if err := cmd.PersistentFlags().MarkHidden("state-dir"); err != nil {
+		log.Printf("failed to mark state-dir flag as hidden: %v", err)
+	}
 	cmd.PersistentFlags().MarkHidden("debug")
 	cmd.PersistentFlags().MarkHidden("verbose")
 
