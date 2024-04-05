@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/utils/vals"
@@ -183,7 +184,7 @@ func (c ClusterStatus) String() string {
 	if c.Ready {
 		_, err := result.WriteString("status: ready")
 		if err != nil {
-			return fmt.Sprintf("failed to write status: %v", err)
+			log.Printf("failed to write status: %v", err)
 		}
 	} else {
 		result.WriteString("status: not ready")
