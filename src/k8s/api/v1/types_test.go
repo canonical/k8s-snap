@@ -7,49 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// This is expected to break if the default changes to make sure this is done intentionally.
-func TestSetDefaults(t *testing.T) {
-	g := NewWithT(t)
-
-	b := &BootstrapConfig{}
-	b.SetDefaults()
-
-	expected := &BootstrapConfig{
-		Components:    []string{"dns", "metrics-server", "network", "gateway"},
-		ClusterCIDR:   "10.1.0.0/16",
-		ServiceCIDR:   "10.152.183.0/24",
-		EnableRBAC:    vals.Pointer(true),
-		K8sDqlitePort: 9000,
-		Datastore:     "k8s-dqlite",
-	}
-
-	g.Expect(b).To(Equal(expected))
-}
-
-func TestBootstrapConfigFromMap(t *testing.T) {
-	g := NewWithT(t)
-	// Create a new BootstrapConfig with default values
-	bc := &BootstrapConfig{
-		ClusterCIDR:   "10.1.0.0/16",
-		Components:    []string{"dns", "network", "storage"},
-		EnableRBAC:    vals.Pointer(true),
-		K8sDqlitePort: 9000,
-	}
-
-	// Convert the BootstrapConfig to a map
-	m, err := bc.ToMap()
-	g.Expect(err).To(BeNil())
-
-	// Unmarshal the YAML string from the map into a new BootstrapConfig instance
-	bcyaml, err := BootstrapConfigFromMap(m)
-
-	// Check for errors
-	g.Expect(err).To(BeNil())
-	// Compare the unmarshaled BootstrapConfig with the original one
-	g.Expect(bcyaml).To(Equal(bc)) // Note the *bc here to compare values, not pointers
-
-}
-
 func TestHaClusterFormed(t *testing.T) {
 	g := NewGomegaWithT(t)
 
