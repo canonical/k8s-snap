@@ -108,7 +108,7 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, initCon
 		KubeletKey:  response.KubeletKey,
 	}
 
-	if !certificates.IsKubeletPresent() {
+	if !certificates.AreKubeletCertsSet() {
 		certificates.KubeletCert = joinClusterConfig.KubeletCert
 		certificates.KubeletKey = joinClusterConfig.KubeletKey
 	}

@@ -23,6 +23,8 @@ func (c Certificates) GetAPIServerKubeletClientCert() string {
 func (c Certificates) GetAPIServerKubeletClientKey() string {
 	return getField(c.APIServerKubeletClientKey)
 }
+
+// Check if every field of the Certificate struct is Nil, returns false otherwise.
 func (c Certificates) Empty() bool {
 	val := reflect.ValueOf(c)
 	for i := 0; i < val.NumField(); i++ {
