@@ -51,7 +51,7 @@ func TestBootstrapConfigFromMap(t *testing.T) {
 }
 
 func TestHaClusterFormed(t *testing.T) {
-	g := NewGomegaWithT(t)
+	g := NewWithT(t)
 
 	testCases := []struct {
 		name           string

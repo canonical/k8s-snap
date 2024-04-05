@@ -9,7 +9,7 @@ import (
 )
 
 func TestDeeplyUnwrapError(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := gomega.NewWithT(t)
 
 	t.Run("when error is not wrapped", func(t *testing.T) {
 		err := errors.New("test error")

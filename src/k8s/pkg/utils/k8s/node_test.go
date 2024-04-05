@@ -15,7 +15,7 @@ import (
 )
 
 func TestDeleteNode(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := gomega.NewWithT(t)
 
 	t.Run("node deletion is successful", func(t *testing.T) {
 		clientset := fake.NewSimpleClientset()
