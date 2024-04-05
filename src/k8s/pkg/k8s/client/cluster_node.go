@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -22,7 +23,10 @@ func (c *k8sdClient) JoinCluster(ctx context.Context, request apiv1.JoinClusterR
 
 	if err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, nil); err != nil {
 		// TODO(neoaggelos): only return error that join cluster failed
-		fmt.Fprintln(os.Stderr, "Cleaning up, error was", err)
+		_, printErr := fmt.Fprintln(os.Stderr, "Cleaning up, error was", err)
+		if printErr != nil {
+			log.Printf("failed to print to Stderr: %v", printErr)
+		}
 		c.CleanupNode(ctx, request.Name)
 		return fmt.Errorf("failed to POST /k8sd/cluster/join: %w", err)
 	}
