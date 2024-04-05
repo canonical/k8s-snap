@@ -69,6 +69,11 @@ k8s::remove::network() {
   do
     tc filter del dev $default_interface ${d} || true
   done
+
+  rm -rf /var/run/cilium/cilium.pid
+  if [ -f /opt/cni/bin/cilium-dbg ]; then
+      /opt/cni/bin/cilium-dbg cleanup --all-state --force || true
+  fi
 }
 
 # [DANGER] Cleanup containers and runtime state. Note that the order of operations below is crucial.
