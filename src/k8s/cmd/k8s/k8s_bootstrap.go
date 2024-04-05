@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"slices"
 	"strings"
@@ -226,6 +227,9 @@ func askBool(stdin io.Reader, stdout io.Writer, stderr io.Writer, question strin
 			return false
 		}
 
-		fmt.Fprintf(stderr, "Invalid input, try again.\n\n")
+		_, err := fmt.Fprintf(stderr, "Invalid input, try again.\n\n")
+		if err != nil {
+			log.Printf("Error writing to stderr: %v", err)
+		}
 	}
 }
