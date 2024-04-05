@@ -1,63 +1,51 @@
 package types
 
 import (
+	"fmt"
+
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils/vals"
 )
 
 // ClusterConfigFromBootstrapConfig converts BootstrapConfig from public API into a ClusterConfig.
-func ClusterConfigFromBootstrapConfig(b *apiv1.BootstrapConfig) ClusterConfig {
-	var config ClusterConfig
+func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, error) {
+	config := ClusterConfigFromUserFacing(b.ClusterConfig)
 
-	authorizationMode := "Node,RBAC"
-	if !vals.OptionalBool(b.EnableRBAC, true) {
-		authorizationMode = "AlwaysAllow"
+	// APIServer
+	config.APIServer.SecurePort = b.SecurePort
+	if b.DisableRBAC != nil && *b.DisableRBAC {
+		config.APIServer.AuthorizationMode = vals.Pointer("AlwaysAllow")
+	} else {
+		config.APIServer.AuthorizationMode = vals.Pointer("Node,RBAC")
 	}
-	config.APIServer.AuthorizationMode = vals.Pointer(authorizationMode)
 
-	switch b.Datastore {
+	// Datastore
+	switch b.GetDatastoreType() {
 	case "", "k8s-dqlite":
 		config.Datastore = Datastore{
 			Type:          vals.Pointer("k8s-dqlite"),
-			K8sDqlitePort: vals.Pointer(b.K8sDqlitePort),
+			K8sDqlitePort: b.K8sDqlitePort,
 		}
 	case "external":
 		config.Datastore = Datastore{
 			Type:               vals.Pointer("external"),
-			ExternalURL:        vals.Pointer(b.DatastoreURL),
-			ExternalCACert:     vals.Pointer(b.DatastoreCACert),
-			ExternalClientCert: vals.Pointer(b.DatastoreClientCert),
-			ExternalClientKey:  vals.Pointer(b.DatastoreClientKey),
+			ExternalURL:        b.DatastoreURL,
+			ExternalCACert:     b.DatastoreCACert,
+			ExternalClientCert: b.DatastoreClientCert,
+			ExternalClientKey:  b.DatastoreClientKey,
 		}
+	default:
+		return ClusterConfig{}, fmt.Errorf("unknown datastore type specified in bootstrap config %q", b.GetDatastoreType())
 	}
 
-	if b.ClusterCIDR != "" {
-		config.Network.PodCIDR = vals.Pointer(b.ClusterCIDR)
-	}
-	if b.ServiceCIDR != "" {
-		config.Network.ServiceCIDR = vals.Pointer(b.ServiceCIDR)
-	}
+	// Network
+	config.Network.PodCIDR = b.PodCIDR
+	config.Network.ServiceCIDR = b.ServiceCIDR
 
-	for _, component := range b.Components {
-		switch component {
-		case "network":
-			config.Network.Enabled = vals.Pointer(true)
-		case "dns":
-			config.DNS.Enabled = vals.Pointer(true)
-		case "local-storage":
-			config.LocalStorage.Enabled = vals.Pointer(true)
-		case "ingress":
-			config.Ingress.Enabled = vals.Pointer(true)
-		case "gateway":
-			config.Gateway.Enabled = vals.Pointer(true)
-		case "metrics-server":
-			config.MetricsServer.Enabled = vals.Pointer(true)
-		case "load-balancer":
-			config.LoadBalancer.Enabled = vals.Pointer(true)
-		}
-	}
+	// Kubelet
+	config.Kubelet.CloudProvider = b.CloudProvider
 
-	return config
+	return config, nil
 }
 
 // ClusterConfigFromUserFacing converts UserFacingClusterConfig from public API into a ClusterConfig.
