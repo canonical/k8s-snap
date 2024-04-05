@@ -9,7 +9,10 @@ import (
 
 // JSONResponse marshals the response to JSON and sets the status code.
 func JSONResponse(status int, v any) lxd.Response {
-	b, _ := json.Marshal(v)
+	b, err := json.Marshal(v)
+	if err != nil {
+		return lxd.InternalError(err)
+	}
 	return response(status, b)
 }
 
@@ -17,7 +20,10 @@ func JSONResponse(status int, v any) lxd.Response {
 func response(status int, v []byte) lxd.Response {
 	return lxd.ManualResponse(func(w http.ResponseWriter) error {
 		w.WriteHeader(status)
-		w.Write(v)
+		_, err := w.Write(v)
+		if err != nil {
+			return err
+		}
 		w.Write([]byte("\n"))
 		return nil
 	})
