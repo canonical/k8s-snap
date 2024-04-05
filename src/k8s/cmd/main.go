@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"path"
@@ -28,7 +29,9 @@ func main() {
 	base := path.Base(os.Args[0])
 	switch base {
 	case "k8s-apiserver-proxy":
-		k8s_apiserver_proxy.NewRootCmd(env).ExecuteContext(ctx)
+		if err := k8s_apiserver_proxy.NewRootCmd(env).ExecuteContext(ctx); err != nil {
+			log.Fatalf("error executing k8s-apiserver-proxy command: %v", err)
+		}
 	case "k8sd":
 		k8sd.NewRootCmd(env).ExecuteContext(ctx)
 	case "k8s":
