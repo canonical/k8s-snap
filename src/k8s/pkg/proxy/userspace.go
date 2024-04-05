@@ -47,7 +47,9 @@ func (r *remote) tryReactivate() error {
 	if err != nil {
 		return err
 	}
-	conn.Close()
+	if err := conn.Close(); err != nil {
+		return fmt.Errorf("failed to close connection: %w", err)
+	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.inactive = false
@@ -179,12 +181,17 @@ func (tp *tcpproxy) serve(in net.Conn) {
 	}
 
 	if out == nil {
-		in.Close()
+		if err := in.Close(); err != nil {
+			log.Printf("failed to close incoming connection: %v", err)
+		}
 		return
 	}
 
 	go func() {
-		io.Copy(in, out)
+		_, err := io.Copy(in, out)
+		if err != nil {
+			log.Printf("error copying from %v to %v: %v\n", out.RemoteAddr(), in.RemoteAddr(), err)
+		}
 		in.Close()
 		out.Close()
 	}()
@@ -221,6 +228,8 @@ func (tp *tcpproxy) runMonitor() {
 func (tp *tcpproxy) Stop() {
 	// graceful shutdown?
 	// shutdown current connections?
-	tp.Listener.Close()
+	if err := tp.Listener.Close(); err != nil {
+		log.Printf("failed to close listener: %v", err)
+	}
 	close(tp.donec)
 }
