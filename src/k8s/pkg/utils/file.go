@@ -85,7 +85,10 @@ func SerializeArgumentFile(arguments map[string]string, path string) error {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		file.WriteString(fmt.Sprintf("%s=%s\n", k, arguments[k]))
+		_, err = file.WriteString(fmt.Sprintf("%s=%s\n", k, arguments[k]))
+		if err != nil {
+			return fmt.Errorf("failed to write argument %s to file: %w", k, err)
+		}
 	}
 
 	return nil
