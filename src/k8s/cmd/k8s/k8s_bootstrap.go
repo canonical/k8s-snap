@@ -230,18 +230,3 @@ func askQuestion(stdin io.Reader, stdout io.Writer, stderr io.Writer, question s
 		return s
 	}
 }
-
-// askBool asks a question and expect a yes/no answer.
-func askBool(stdin io.Reader, stdout io.Writer, stderr io.Writer, question string, options []string, defaultVal string) bool {
-	for {
-		answer := askQuestion(stdin, stdout, stderr, question, options, defaultVal, nil)
-
-		if utils.ValueInSlice(strings.ToLower(answer), []string{"yes", "y"}) {
-			return true
-		} else if utils.ValueInSlice(strings.ToLower(answer), []string{"no", "n"}) {
-			return false
-		}
-
-		fmt.Fprintf(stderr, "Invalid input, try again.\n\n")
-	}
-}
