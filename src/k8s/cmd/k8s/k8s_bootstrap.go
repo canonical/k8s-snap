@@ -8,11 +8,13 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"unicode"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -81,7 +83,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			bootstrapConfig := apiv1.BootstrapConfig{}
+			var bootstrapConfig apiv1.BootstrapConfig
 			switch {
 			case opts.interactive:
 				bootstrapConfig = getConfigInteractively(env.Stdin, env.Stdout, env.Stderr)
@@ -92,8 +94,6 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					env.Exit(1)
 					return
 				}
-			default:
-				bootstrapConfig.SetDefaults()
 			}
 
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
@@ -125,16 +125,13 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 }
 
 func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
-	config := apiv1.BootstrapConfig{}
-	config.SetDefaults()
-
-	yamlContent, err := os.ReadFile(filePath)
+	b, err := os.ReadFile(filePath)
 	if err != nil {
-		return config, fmt.Errorf("failed to read YAML config file: %w", err)
+		return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	err = yaml.Unmarshal(yamlContent, &config)
-	if err != nil {
+	var config apiv1.BootstrapConfig
+	if err := yaml.UnmarshalStrict(b, &config); err != nil {
 		return config, fmt.Errorf("failed to parse YAML config file: %w", err)
 	}
 
@@ -143,21 +140,41 @@ func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
 
 func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer) apiv1.BootstrapConfig {
 	config := apiv1.BootstrapConfig{}
-	config.SetDefaults()
 
 	components := askQuestion(
 		stdin, stdout, stderr,
 		"Which components would you like to enable?",
 		componentList,
-		strings.Join(config.Components, ", "),
+		"network, dns, gateway, metrics-server",
 		nil,
 	)
-	config.Components = strings.Split(components, ",")
+	for _, component := range strings.FieldsFunc(components, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }) {
+		switch component {
+		case "network":
+			config.ClusterConfig.Network.Enabled = vals.Pointer(true)
+		case "dns":
+			config.ClusterConfig.DNS.Enabled = vals.Pointer(true)
+		case "ingress":
+			config.ClusterConfig.Ingress.Enabled = vals.Pointer(true)
+		case "load-balancer":
+			config.ClusterConfig.LoadBalancer.Enabled = vals.Pointer(true)
+		case "gateway":
+			config.ClusterConfig.Gateway.Enabled = vals.Pointer(true)
+		case "local-storage":
+			config.ClusterConfig.LocalStorage.Enabled = vals.Pointer(true)
+		case "metrics-server":
+			config.ClusterConfig.MetricsServer.Enabled = vals.Pointer(true)
+		}
+	}
 
-	config.ClusterCIDR = askQuestion(stdin, stdout, stderr, "Please set the Cluster CIDR:", nil, config.ClusterCIDR, nil)
-	config.ServiceCIDR = askQuestion(stdin, stdout, stderr, "Please set the Service CIDR:", nil, config.ServiceCIDR, nil)
-	rbac := askBool(stdin, stdout, stderr, "Enable Role Based Access Control (RBAC)?", []string{"yes", "no"}, "yes")
-	*config.EnableRBAC = rbac
+	podCIDR := askQuestion(stdin, stdout, stderr, "Please set the Pod CIDR:", nil, "10.1.0.0/16", nil)
+	serviceCIDR := askQuestion(stdin, stdout, stderr, "Please set the Service CIDR:", nil, "10.152.183.", nil)
+
+	config.PodCIDR = vals.Pointer(podCIDR)
+	config.ServiceCIDR = vals.Pointer(serviceCIDR)
+
+	// TODO: any other configs we care about in the interactive bootstrap?
+
 	return config
 }
 

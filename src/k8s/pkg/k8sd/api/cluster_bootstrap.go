@@ -17,12 +17,10 @@ func (e *Endpoints) postClusterBootstrap(s *state.State, r *http.Request) respon
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	req.Config.SetDefaults()
-
 	//Convert Bootstrap config to map
-	config, err := req.Config.ToMap()
+	config, err := req.Config.ToMicrocluster()
 	if err != nil {
-		return response.BadRequest(fmt.Errorf("failed to convert bootstrap config to map: %w", err))
+		return response.BadRequest(fmt.Errorf("failed to prepare bootstrap config: %w", err))
 	}
 
 	// Clean hostname
