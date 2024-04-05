@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"log"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/microcluster/state"
@@ -13,6 +14,7 @@ import (
 func GetControlPlaneNode(ctx context.Context, s *state.State, name string) (*apiv1.NodeStatus, error) {
 	client, err := s.Leader()
 	if err != nil {
+		log.Printf("failed to get microcluster leader client: %v", err)
 		return nil, fmt.Errorf("failed to get microcluster leader client: %w", err)
 	}
 
