@@ -150,7 +150,7 @@ func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
 
 	var config apiv1.BootstrapConfig
 	if err := yaml.UnmarshalStrict(b, &config); err != nil {
-		return config, fmt.Errorf("failed to parse YAML config file: %w", err)
+		return apiv1.BootstrapConfig{}, fmt.Errorf("failed to parse YAML config file: %w", err)
 	}
 
 	return config, nil
@@ -186,7 +186,7 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 	}
 
 	podCIDR := askQuestion(stdin, stdout, stderr, "Please set the Pod CIDR:", nil, "10.1.0.0/16", nil)
-	serviceCIDR := askQuestion(stdin, stdout, stderr, "Please set the Service CIDR:", nil, "10.152.183.", nil)
+	serviceCIDR := askQuestion(stdin, stdout, stderr, "Please set the Service CIDR:", nil, "10.152.183.0/24", nil)
 
 	config.PodCIDR = vals.Pointer(podCIDR)
 	config.ServiceCIDR = vals.Pointer(serviceCIDR)
