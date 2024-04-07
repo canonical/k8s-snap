@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils/vals"
@@ -27,9 +28,12 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 			K8sDqlitePort: b.K8sDqlitePort,
 		}
 	case "external":
+		if len(b.DatastoreServers) == 0 {
+			return ClusterConfig{}, fmt.Errorf("datastore type is external but no datastore servers were set")
+		}
 		config.Datastore = Datastore{
 			Type:               vals.Pointer("external"),
-			ExternalURL:        b.DatastoreURL,
+			ExternalURL:        vals.Pointer(strings.Join(b.DatastoreServers, ",")),
 			ExternalCACert:     b.DatastoreCACert,
 			ExternalClientCert: b.DatastoreClientCert,
 			ExternalClientKey:  b.DatastoreClientKey,

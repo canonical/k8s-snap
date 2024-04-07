@@ -44,7 +44,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			name: "K8sDqliteDefault",
 			bootstrap: apiv1.BootstrapConfig{
 				DatastoreType:       vals.Pointer(""),
-				DatastoreURL:        vals.Pointer("https://10.0.0.1:2379"),
+				DatastoreServers:    []string{"https://10.0.0.1:2379", "https://10.0.0.2:2379"},
 				DatastoreCACert:     vals.Pointer("CA DATA"),
 				DatastoreClientCert: vals.Pointer("CERT DATA"),
 				DatastoreClientKey:  vals.Pointer("KEY DATA"),
@@ -62,7 +62,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			name: "ExternalDatastore",
 			bootstrap: apiv1.BootstrapConfig{
 				DatastoreType:       vals.Pointer("external"),
-				DatastoreURL:        vals.Pointer("https://10.0.0.1:2379"),
+				DatastoreServers:    []string{"https://10.0.0.1:2379", "https://10.0.0.2:2379"},
 				DatastoreCACert:     vals.Pointer("CA DATA"),
 				DatastoreClientCert: vals.Pointer("CERT DATA"),
 				DatastoreClientKey:  vals.Pointer("KEY DATA"),
@@ -73,7 +73,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 				},
 				Datastore: types.Datastore{
 					Type:               vals.Pointer("external"),
-					ExternalURL:        vals.Pointer("https://10.0.0.1:2379"),
+					ExternalURL:        vals.Pointer("https://10.0.0.1:2379,https://10.0.0.2:2379"),
 					ExternalCACert:     vals.Pointer("CA DATA"),
 					ExternalClientCert: vals.Pointer("CERT DATA"),
 					ExternalClientKey:  vals.Pointer("KEY DATA"),
