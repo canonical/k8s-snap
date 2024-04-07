@@ -30,7 +30,7 @@ func (c Datastore) Empty() bool {
 	return c.Type == nil && c.K8sDqlitePort == nil && c.K8sDqliteCert == nil && c.K8sDqliteKey == nil && c.ExternalURL == nil && c.ExternalCACert == nil && c.ExternalClientCert == nil && c.ExternalClientKey == nil
 }
 
-// DatastoreSnapProvider is to avoid circular dependency for snap.Snap in Datastore.ToKubeAPIServerArguments()
+// DatastorePathsProvider is to avoid circular dependency for snap.Snap in Datastore.ToKubeAPIServerArguments()
 type DatastorePathsProvider interface {
 	K8sDqliteStateDir() string
 	EtcdPKIDir() string
