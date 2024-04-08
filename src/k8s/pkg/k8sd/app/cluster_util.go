@@ -57,7 +57,7 @@ func setupControlPlaneServices(snap snap.Snap, s *state.State, cfg types.Cluster
 	if err := setup.KubeScheduler(snap); err != nil {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
-	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore.GetType(), cfg.Datastore.GetExternalURL(), cfg.APIServer.GetAuthorizationMode()); err != nil {
+	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode()); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 	return nil
