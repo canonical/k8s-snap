@@ -7,32 +7,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type JoinClusterConfig struct {
-	APIServerCert string `yaml:"apiserver-crt,omitempty"`
-	APIServerKey  string `yaml:"apiserver-key,omitempty"`
-	KubeletCert   string `yaml:"kubelet-crt,omitempty"`
-	KubeletKey    string `yaml:"kubelet-key,omitempty"`
-}
-
-func (j *JoinClusterConfig) ToMap() (map[string]string, error) {
-	config, err := yaml.Marshal(j)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config map: %w", err)
-	}
-	return map[string]string{
-		"joinClusterConfig": string(config),
-	}, nil
-}
-
-func JoinClusterConfigFromMap(m map[string]string) (*JoinClusterConfig, error) {
-	config := &JoinClusterConfig{}
-	err := yaml.Unmarshal([]byte(m["joinClusterConfig"]), config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal join config: %w", err)
-	}
-	return config, nil
-}
-
 type ClusterRole string
 
 const (

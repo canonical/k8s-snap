@@ -26,18 +26,19 @@ type BootstrapConfig struct {
 	// Seed configuration for certificates
 	ExtraSANs []string `json:"extra-sans,omitempty" yaml:"extra-sans,omitempty"`
 
-	CACert                     string `yaml:"ca-crt,omitempty"`
-	CAKey                      string `yaml:"ca-key,omitempty"`
-	FrontProxyCACert           string `yaml:"front-proxy-ca-crt"`
-	FrontProxyCAKey            string `yaml:"front-proxy-ca-key"`
-	APIServerKubeletClientCert string `yaml:"apiserver-kubelet-client-crt"`
-	APIServerKubeletClientKey  string `yaml:"apiserver-kubelet-client-key"`
-	ServiceAccountKey          string `yaml:"service-account-key"`
+	// Seed configuration for external certificates
+	CACert                     *string `json:"ca-crt,omitempty" yaml:"ca-crt,omitempty"`
+	CAKey                      *string `json:"ca-key,omitempty" yaml:"ca-key,omitempty"`
+	FrontProxyCACert           *string `json:"front-proxy-ca-crt,omitempty" yaml:"front-proxy-ca-crt,omitempty"`
+	FrontProxyCAKey            *string `json:"front-proxy-ca-key,omitempty" yaml:"front-proxy-ca-key,omitempty"`
+	APIServerKubeletClientCert *string `json:"apiserver-kubelet-client-crt,omitempty" yaml:"apiserver-kubelet-client-crt,omitempty"`
+	APIServerKubeletClientKey  *string `json:"apiserver-kubelet-client-key,omitempty" yaml:"apiserver-kubelet-client-key,omitempty"`
+	ServiceAccountKey          *string `json:"service-account-key,omitempty" yaml:"service-account-key,omitempty"`
 
-	APIServerCert string `yaml:"apiserver-crt,omitempty"`
-	APIServerKey  string `yaml:"apiserver-key,omitempty"`
-	KubeletCert   string `yaml:"kubelet-crt,omitempty"`
-	KubeletKey    string `yaml:"kubelet-key,omitempty"`
+	APIServerCert *string `json:"apiserver-crt,omitempty" yaml:"apiserver-crt,omitempty"`
+	APIServerKey  *string `json:"apiserver-key,omitempty" yaml:"apiserver-key,omitempty"`
+	KubeletCert   *string `json:"kubelet-crt,omitempty" yaml:"kubelet-crt,omitempty"`
+	KubeletKey    *string `json:"kubelet-key,omitempty" yaml:"kubelet-key,omitempty"`
 }
 
 func (b *BootstrapConfig) GetDatastoreType() string       { return getField(b.DatastoreType) }
@@ -45,6 +46,21 @@ func (b *BootstrapConfig) GetDatastoreCACert() string     { return getField(b.Da
 func (b *BootstrapConfig) GetDatastoreClientCert() string { return getField(b.DatastoreClientCert) }
 func (b *BootstrapConfig) GetDatastoreClientKey() string  { return getField(b.DatastoreClientKey) }
 func (b *BootstrapConfig) GetK8sDqlitePort() int          { return getField(b.K8sDqlitePort) }
+func (b *BootstrapConfig) GetCACert() string              { return getField(b.CACert) }
+func (b *BootstrapConfig) GetCAKey() string               { return getField(b.CAKey) }
+func (b *BootstrapConfig) GetFrontProxyCACert() string    { return getField(b.FrontProxyCACert) }
+func (b *BootstrapConfig) GetFrontProxyCAKey() string     { return getField(b.FrontProxyCAKey) }
+func (b *BootstrapConfig) GetAPIServerKubeletClientCert() string {
+	return getField(b.APIServerKubeletClientCert)
+}
+func (b *BootstrapConfig) GetAPIServerKubeletClientKey() string {
+	return getField(b.APIServerKubeletClientKey)
+}
+func (b *BootstrapConfig) GetServiceAccountKey() string { return getField(b.ServiceAccountKey) }
+func (b *BootstrapConfig) GetAPIServerCert() string     { return getField(b.APIServerCert) }
+func (b *BootstrapConfig) GetAPIServerKey() string      { return getField(b.APIServerKey) }
+func (b *BootstrapConfig) GetKubeletCert() string       { return getField(b.KubeletCert) }
+func (b *BootstrapConfig) GetKubeletKey() string        { return getField(b.KubeletKey) }
 
 // ToMicrocluster converts a BootstrapConfig to a map[string]string for use in microcluster.
 func (b *BootstrapConfig) ToMicrocluster() (map[string]string, error) {

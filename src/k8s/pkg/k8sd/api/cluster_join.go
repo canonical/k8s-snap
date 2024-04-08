@@ -18,7 +18,7 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	config, err := req.Config.ToMap()
+	config, err := req.Config.ToMicrocluster()
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("failed to convert join config to map: %w", err))
 	}

@@ -64,9 +64,9 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			joinClusterConfig := apiv1.JoinClusterConfig{}
+			joinClusterConfig := apiv1.ControlPlaneNodeJoinConfig{}
 			if opts.configFile != "" {
-				joinClusterConfig, err = getJoinClusterConfigFromYaml(opts.configFile)
+				joinClusterConfig, err = getJoinConfigFromYaml(opts.configFile)
 				if err != nil {
 					cmd.PrintErrf("Error: Failed to read join configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
 					env.Exit(1)
@@ -88,21 +88,19 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
-	cmd.PersistentFlags().StringVar(&opts.configFile, "config", "", "path to the YAML file containing your custom cluster join configuration")
+	cmd.PersistentFlags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster join configuration")
 	return cmd
 }
 
-func getJoinClusterConfigFromYaml(filePath string) (apiv1.JoinClusterConfig, error) {
-	config := apiv1.JoinClusterConfig{}
-
-	yamlContent, err := os.ReadFile(filePath)
+func getJoinConfigFromYaml(filePath string) (apiv1.ControlPlaneNodeJoinConfig, error) {
+	b, err := os.ReadFile(filePath)
 	if err != nil {
-		return config, fmt.Errorf("failed to read YAML config file: %w", err)
+		return apiv1.ControlPlaneNodeJoinConfig{}, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	err = yaml.Unmarshal(yamlContent, &config)
-	if err != nil {
-		return config, fmt.Errorf("failed to parse YAML config file: %w", err)
+	var config apiv1.ControlPlaneNodeJoinConfig
+	if err := yaml.UnmarshalStrict(b, &config); err != nil {
+		return apiv1.ControlPlaneNodeJoinConfig{}, fmt.Errorf("failed to parse YAML config file: %w", err)
 	}
 
 	return config, nil

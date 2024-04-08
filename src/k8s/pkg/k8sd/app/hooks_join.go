@@ -18,7 +18,8 @@ import (
 func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	snap := a.Snap()
 
-	joinClusterConfig, err := apiv1.JoinClusterConfigFromMap(initConfig)
+	var joinClusterConfig apiv1.ControlPlaneNodeJoinConfig
+	err := apiv1.ConfigFromMicrocluster(initConfig, "joinClusterConfig", &joinClusterConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal join config: %w", err)
 	}
@@ -92,10 +93,10 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	certificates.ServiceAccountKey = cfg.Certificates.GetServiceAccountKey()
 
 	// load certificates from joinClusterConfig
-	certificates.APIServerCert = joinClusterConfig.APIServerCert
-	certificates.APIServerKey = joinClusterConfig.APIServerKey
-	certificates.KubeletCert = joinClusterConfig.KubeletCert
-	certificates.KubeletKey = joinClusterConfig.KubeletKey
+	certificates.APIServerCert = joinClusterConfig.GetAPIServerCert()
+	certificates.APIServerKey = joinClusterConfig.GetAPIServerKey()
+	certificates.KubeletCert = joinClusterConfig.GetKubeletCert()
+	certificates.KubeletKey = joinClusterConfig.GetKubeletKey()
 
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
