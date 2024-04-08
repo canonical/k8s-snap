@@ -57,8 +57,8 @@ The steps are to be followed in-order, each task must be completed by the person
   - `pushd ~/tmp/release-1.xx`
   - `git switch main`
   - `git pull`
-  - `git checkout -b 1.xx`
-  - `git push origin 1.xx`
+  - `git checkout -b release-1.xx`
+  - `git push origin release-1.xx`
   - `popd`
   - `rm -rf ~/tmp/release-1.xx`
 - [ ] **Owner**: Create `release-1.xx` branch from latest `main` in cilium-rocks
