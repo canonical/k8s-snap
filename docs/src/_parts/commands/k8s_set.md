@@ -8,7 +8,7 @@ Configure one of network, dns, gateway, ingress, local-storage, load-balancer, m
 Use `k8s get` to explore configuration options.
 
 ```
-k8s set <functionality.key=value> ... [flags]
+k8s set <feature.key=value> ... [flags]
 ```
 
 ### Options
