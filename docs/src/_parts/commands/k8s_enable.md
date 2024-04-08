@@ -1,6 +1,6 @@
 ## k8s enable
 
-Enable core cluster feature
+Enable core cluster features
 
 ### Synopsis
 
