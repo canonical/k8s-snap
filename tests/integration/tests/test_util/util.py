@@ -129,6 +129,7 @@ def stubbornly(
 # Installs and setups the k8s snap on the given instance and connects the interfaces.
 def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
     LOG.info("Install k8s snap")
+    instance.exec(["snap", "install", "core24", "--channel", "latest/edge"])
     instance.send_file(config.SNAP, snap_path)
     instance.exec(["snap", "install", snap_path, "--classic", "--dangerous"])
 
