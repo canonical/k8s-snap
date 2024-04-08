@@ -43,11 +43,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 		{
 			name: "K8sDqliteDefault",
 			bootstrap: apiv1.BootstrapConfig{
-				DatastoreType:       vals.Pointer(""),
-				DatastoreServers:    []string{"https://10.0.0.1:2379", "https://10.0.0.2:2379"},
-				DatastoreCACert:     vals.Pointer("CA DATA"),
-				DatastoreClientCert: vals.Pointer("CERT DATA"),
-				DatastoreClientKey:  vals.Pointer("KEY DATA"),
+				DatastoreType: vals.Pointer(""),
 			},
 			expectConfig: types.ClusterConfig{
 				APIServer: types.APIServer{
@@ -171,4 +167,69 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			g.Expect(config).To(Equal(tc.expectConfig))
 		})
 	}
+
+	t.Run("Invalid", func(t *testing.T) {
+		for _, tc := range []struct {
+			name      string
+			bootstrap apiv1.BootstrapConfig
+		}{
+			{
+				name: "K8sDqliteWithExternalServers",
+				bootstrap: apiv1.BootstrapConfig{
+					DatastoreType:    vals.Pointer(""),
+					DatastoreServers: []string{"http://10.0.0.1:2379"},
+				},
+			},
+			{
+				name: "K8sDqliteWithExternalCA",
+				bootstrap: apiv1.BootstrapConfig{
+					DatastoreType:   vals.Pointer(""),
+					DatastoreCACert: vals.Pointer("CA DATA"),
+				},
+			},
+			{
+				name: "K8sDqliteWithExternalClientCert",
+				bootstrap: apiv1.BootstrapConfig{
+					DatastoreType:       vals.Pointer(""),
+					DatastoreClientCert: vals.Pointer("CERT DATA"),
+				},
+			},
+			{
+				name: "K8sDqliteWithExternalClientKey",
+				bootstrap: apiv1.BootstrapConfig{
+					DatastoreType:      vals.Pointer(""),
+					DatastoreClientKey: vals.Pointer("KEY DATA"),
+				},
+			},
+			{
+				name: "ExternalWithK8sDqlitePort",
+				bootstrap: apiv1.BootstrapConfig{
+					DatastoreType:    vals.Pointer("external"),
+					DatastoreServers: []string{"http://10.0.0.1:2379"},
+					K8sDqlitePort:    vals.Pointer(18080),
+				},
+			},
+			{
+				name: "ExternalWithoutServers",
+				bootstrap: apiv1.BootstrapConfig{
+					DatastoreType: vals.Pointer("external"),
+				},
+			},
+			{
+				name: "UnsupportedDatastore",
+				bootstrap: apiv1.BootstrapConfig{
+					DatastoreType: vals.Pointer("unknown"),
+				},
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				g := NewWithT(t)
+
+				config, err := types.ClusterConfigFromBootstrapConfig(tc.bootstrap)
+				g.Expect(config).To(BeZero())
+				g.Expect(err).To(HaveOccurred())
+			})
+		}
+
+	})
 }

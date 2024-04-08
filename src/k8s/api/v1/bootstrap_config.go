@@ -27,7 +27,11 @@ type BootstrapConfig struct {
 	ExtraSANs []string `json:"extra-sans,omitempty" yaml:"extra-sans,omitempty"`
 }
 
-func (b *BootstrapConfig) GetDatastoreType() string { return getField(b.DatastoreType) }
+func (b *BootstrapConfig) GetDatastoreType() string       { return getField(b.DatastoreType) }
+func (b *BootstrapConfig) GetDatastoreCACert() string     { return getField(b.DatastoreCACert) }
+func (b *BootstrapConfig) GetDatastoreClientCert() string { return getField(b.DatastoreClientCert) }
+func (b *BootstrapConfig) GetDatastoreClientKey() string  { return getField(b.DatastoreClientKey) }
+func (b *BootstrapConfig) GetK8sDqlitePort() int          { return getField(b.K8sDqlitePort) }
 
 // ToMicrocluster converts a BootstrapConfig to a map[string]string for use in microcluster.
 func (b *BootstrapConfig) ToMicrocluster() (map[string]string, error) {

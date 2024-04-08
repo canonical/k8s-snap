@@ -23,6 +23,19 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 	// Datastore
 	switch b.GetDatastoreType() {
 	case "", "k8s-dqlite":
+		if len(b.DatastoreServers) > 0 {
+			return ClusterConfig{}, fmt.Errorf("datastore-servers needs datastore-type to be external, not %q", b.GetDatastoreType())
+		}
+		if b.GetDatastoreCACert() != "" {
+			return ClusterConfig{}, fmt.Errorf("datastore-ca-crt needs datastore-type to be external, not %q", b.GetDatastoreType())
+		}
+		if b.GetDatastoreClientCert() != "" {
+			return ClusterConfig{}, fmt.Errorf("datastore-client-crt needs datastore-type to be external, not %q", b.GetDatastoreType())
+		}
+		if b.GetDatastoreClientKey() != "" {
+			return ClusterConfig{}, fmt.Errorf("datastore-client-key needs datastore-type to be external, not %q", b.GetDatastoreType())
+		}
+
 		config.Datastore = Datastore{
 			Type:          vals.Pointer("k8s-dqlite"),
 			K8sDqlitePort: b.K8sDqlitePort,
@@ -30,6 +43,9 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 	case "external":
 		if len(b.DatastoreServers) == 0 {
 			return ClusterConfig{}, fmt.Errorf("datastore type is external but no datastore servers were set")
+		}
+		if b.GetK8sDqlitePort() != 0 {
+			return ClusterConfig{}, fmt.Errorf("k8s-dqlite-port needs datastore-type to be k8s-dqlite")
 		}
 		config.Datastore = Datastore{
 			Type:               vals.Pointer("external"),
