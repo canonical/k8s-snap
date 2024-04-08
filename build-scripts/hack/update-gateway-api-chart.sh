@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="v0.7.1"
+VERSION="v1.0.0"
 DIR=`realpath $(dirname "${0}")`
 
 CHARTS_PATH="$DIR/../../k8s/components/charts"
@@ -16,6 +16,7 @@ rm -rf gateway-api/templates/*
 rm -rf gateway-api/charts
 cp gateway-api-src/config/crd/standard/* gateway-api/templates/
 cp gateway-api-src/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml gateway-api/templates/
+cp gateway-api-src/config/crd/experimental/gateway.networking.k8s.io_grpcroutes.yaml gateway-api/templates/
 sed -i 's/^\(version: \).*$/\1'"${VERSION:1}"'/' gateway-api/Chart.yaml
 sed -i 's/^\(appVersion: \).*$/\1'"${VERSION:1}"'/' gateway-api/Chart.yaml
 sed -i 's/^\(description: \).*$/\1'"A Helm Chart containing Gateway API CRDs"'/' gateway-api/Chart.yaml

@@ -70,6 +70,7 @@ func UpdateNetworkComponent(ctx context.Context, s snap.Snap, isRefresh bool, po
 		"nodePort": map[string]any{
 			"enabled": true,
 		},
+		"disableEnvoyVersionCheck": true,
 	}
 
 	if s.Strict() {

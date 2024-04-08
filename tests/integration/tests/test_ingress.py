@@ -95,8 +95,6 @@ def test_ingress(instances: List[harness.Instance]):
         ]
     )
 
-    p = instance.exec(
-        ["curl", f"localhost:{ingress_http_port}", "-H", "Host: foo.bar.com"],
-        capture_output=True,
-    )
-    assert "Welcome to nginx!" in p.stdout.decode()
+    util.stubbornly(retries=5, delay_s=5).on(instance).until(
+        lambda p: "Welcome to nginx!" in p.stdout.decode()
+    ).exec(["curl", f"localhost:{ingress_http_port}", "-H", "Host: foo.bar.com"])
