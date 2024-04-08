@@ -25,8 +25,7 @@ func TestEnsureK8sDqlitePKI(t *testing.T) {
 		K8sDqliteKey:  "dqlite_key",
 	}
 
-	_, err := setup.EnsureK8sDqlitePKI(mock, certificates)
-	if err != nil {
+	if _, err := setup.EnsureK8sDqlitePKI(mock, certificates); err != nil {
 		t.Fatalf("EnsureK8sDqlitePKI returned unexpected error: %v", err)
 	}
 
@@ -36,8 +35,7 @@ func TestEnsureK8sDqlitePKI(t *testing.T) {
 	}
 
 	for _, file := range expectedFiles {
-		_, err := os.Stat(file)
-		if err != nil {
+		if _, err := os.Stat(file); err != nil {
 			t.Errorf("Expected file %q is missing: %v", file, err)
 		}
 	}
@@ -69,8 +67,7 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 		ServiceAccountKey:          "serviceaccount_key",
 	}
 
-	_, err := setup.EnsureControlPlanePKI(mock, certificates)
-	if err != nil {
+	if _, err := setup.EnsureControlPlanePKI(mock, certificates); err != nil {
 		t.Fatalf("EnsureControlPlanePKI returned unexpected error: %v", err)
 	}
 
@@ -91,8 +88,7 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 	}
 
 	for _, file := range expectedFiles {
-		_, err := os.Stat(file)
-		if err != nil {
+		if _, err := os.Stat(file); err != nil {
 			t.Errorf("Expected file %q is missing: %v", file, err)
 		}
 	}
@@ -114,8 +110,7 @@ func TestEnsureWorkerPKI(t *testing.T) {
 		KubeletKey:  "kubelet_key",
 	}
 
-	_, err := setup.EnsureWorkerPKI(mock, certificates)
-	if err != nil {
+	if _, err := setup.EnsureWorkerPKI(mock, certificates); err != nil {
 		t.Fatalf("EnsureWorkerPKI returned unexpected error: %v", err)
 	}
 
@@ -126,8 +121,7 @@ func TestEnsureWorkerPKI(t *testing.T) {
 	}
 
 	for _, file := range expectedFiles {
-		_, err := os.Stat(file)
-		if err != nil {
+		if _, err := os.Stat(file); err != nil {
 			t.Errorf("Expected file %q is missing: %v", file, err)
 		}
 	}
@@ -148,8 +142,7 @@ func TestExtDatastorePKI(t *testing.T) {
 		DatastoreClientCert: "client_cert",
 	}
 
-	_, err := setup.EnsureExtDatastorePKI(mock, certificates)
-	if err != nil {
+	if _, err := setup.EnsureExtDatastorePKI(mock, certificates); err != nil {
 		t.Fatalf("EnsureExtDatastorePKI returned unexpected error: %v", err)
 	}
 
@@ -160,8 +153,7 @@ func TestExtDatastorePKI(t *testing.T) {
 	}
 
 	for _, file := range expectedFiles {
-		_, err := os.Stat(file)
-		if err != nil {
+		if _, err := os.Stat(file); err != nil {
 			t.Errorf("Expected file %q is missing: %v", file, err)
 		}
 	}
@@ -185,8 +177,7 @@ func TestEmptyCert(t *testing.T) {
 	}
 
 	for _, file := range expectedFiles {
-		_, err := os.Create(file)
-		if err != nil {
+		if _, err := os.Stat(file); err != nil {
 			t.Fatalf("Failed to create file %q: %v", file, err)
 		}
 	}
@@ -196,14 +187,12 @@ func TestEmptyCert(t *testing.T) {
 		K8sDqliteKey:  "",
 	}
 
-	_, err := setup.EnsureK8sDqlitePKI(mock, certificates)
-	if err != nil {
+	if _, err := setup.EnsureK8sDqlitePKI(mock, certificates); err != nil {
 		t.Fatalf("EnsureK8sDqlitePKI returned unexpected error: %v", err)
 	}
 
 	for _, file := range expectedFiles {
-		_, err := os.Stat(file)
-		if err == nil {
+		if _, err := os.Stat(file); err != nil {
 			t.Errorf("Expected file %q to be deleted", file)
 		}
 	}
