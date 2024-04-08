@@ -1,10 +1,6 @@
 name: Nightly Latest/Edge Tests
 
 on:
-  # TODO: remove KU-91/nightly-runs, this is just testing
-  push: 
-    branches: 
-      - KU-91/nightly-runs
   schedule:
     - cron: '0 0 * * *'  # Runs every midnight
 
@@ -49,14 +45,3 @@ jobs:
           export TEST_LXD_IMAGE="${{ matrix.os }}"
           export PATH="/home/runner/.local/bin:$PATH"
           cd tests/integration && sg lxd -c 'tox -e integration'
-      # TODO, remove once debugging
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          # Print connection details and continue with the job.
-          # Waits at the end of the job for the tmate session to exit.
-          # If no user connects within 10min the connection exits gracefully.
-          detached: true
-          # Only the user who started the workflow can access the tmate session.
-          limit-access-to-actor: true
-        if: ${{ failure() }}
