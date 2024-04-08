@@ -23,9 +23,24 @@ func loadCertificate(certPEM string, keyPEM string) (*x509.Certificate, *rsa.Pri
 	var key *rsa.PrivateKey
 	if keyPEM != "" {
 		pb, _ := pem.Decode([]byte(keyPEM))
-		key, err = x509.ParsePKCS1PrivateKey(pb.Bytes)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to parse private key: %w", err)
+		switch pb.Type {
+		case "RSA PRIVATE KEY":
+			key, err = x509.ParsePKCS1PrivateKey(pb.Bytes)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to parse RSA private key: %w", err)
+			}
+		case "PRIVATE KEY":
+			parsed, err := x509.ParsePKCS8PrivateKey(pb.Bytes)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to parse private key: %w", err)
+			}
+			v, ok := parsed.(*rsa.PrivateKey)
+			if !ok {
+				return nil, nil, fmt.Errorf("not an RSA private key")
+			}
+			key = v
+		default:
+			return nil, nil, fmt.Errorf("unknown private key block type %q", pb.Type)
 		}
 	}
 	return cert, key, nil
