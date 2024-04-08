@@ -21,7 +21,7 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 	var (
 		memberExists, clusterHasOtherVoters bool
 		memberToRemove                      NodeInfo
-		failOverMemberID                    *uint64
+		freeSpareNode                       *NodeInfo
 	)
 	for _, member := range members {
 		switch {
@@ -33,10 +33,9 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 			clusterHasOtherVoters = true
 
 		case member.Address != address && member.Role == Spare:
-			// Mark as fail-over node. This is only used in a two node setup,
-			// where the leader node is removed. The fail-over node will be
-			// promoted to leader before the existing leader is removed.
-			failOverMemberID = &member.ID
+			// This is only used in a two node setup, where the leader node is removed.
+			// The free spare node will be promoted to leader before the existing leader is removed.
+			freeSpareNode = &member
 		}
 	}
 
@@ -45,7 +44,7 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 	}
 
 	if !clusterHasOtherVoters {
-		if failOverMemberID == nil {
+		if freeSpareNode == nil {
 			// This normally should not happen. There should always be a backup node, except
 			// if one tries to remove the last node in the cluster.
 			return fmt.Errorf("cannot transfer dqlite leadership as there is no remaining spare node")
@@ -53,12 +52,12 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 
 		// Leadership can only be transfered to a voter or standby node.
 		// Therefore the remaining node in the cluster needs to be promoted first.
-		if err := client.Assign(ctx, *failOverMemberID, Voter); err != nil {
-			return fmt.Errorf("failed to assign voter role to %d: %w", *failOverMemberID, err)
+		if err := client.Assign(ctx, freeSpareNode.ID, Voter); err != nil {
+			return fmt.Errorf("failed to assign voter role to %d: %w", freeSpareNode.ID, err)
 		}
 		// Transfer leadership to remaining node in cluster.
-		if err := client.Transfer(ctx, *failOverMemberID); err != nil {
-			return fmt.Errorf("failed to transfer leadership to %d: %w", *failOverMemberID, err)
+		if err := client.Transfer(ctx, freeSpareNode.ID); err != nil {
+			return fmt.Errorf("failed to transfer leadership to %d: %w", freeSpareNode.ID, err)
 		}
 		// Recreate client to point to the new leader.
 		client, err = c.clientGetter(ctx)
@@ -72,7 +71,7 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 	return control.RetryFor(ctx, 10, func() error {
 		if err := client.Remove(ctx, memberToRemove.ID); err != nil {
 			time.Sleep(5 * time.Second)
-			return fmt.Errorf("failed to remove node %#v from dqlite cluster: %w", memberToRemove, err)
+			return fmt.Errorf("failed to remove node %v from dqlite cluster: %w", memberToRemove, err)
 		}
 		return nil
 	})
