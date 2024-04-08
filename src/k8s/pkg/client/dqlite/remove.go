@@ -69,7 +69,7 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 
 	// Remove the node from the cluster. Retry as the leadership transfer might still be in progress.
 	// For a large database this might take some time.
-	return control.RetryFor(10, func() error {
+	return control.RetryFor(ctx, 10, func() error {
 		if err := client.Remove(ctx, memberToRemove.ID); err != nil {
 			time.Sleep(5 * time.Second)
 			return fmt.Errorf("failed to remove node %#v from dqlite cluster: %w", memberToRemove, err)
