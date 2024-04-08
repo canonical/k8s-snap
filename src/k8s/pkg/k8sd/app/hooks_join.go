@@ -55,7 +55,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		if err := certificates.CompleteCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize k8s-dqlite certificates: %w", err)
 		}
-		if err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
+		if _, err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write k8s-dqlite certificates: %w", err)
 		}
 	case "external":
@@ -67,7 +67,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		if err := certificates.CheckCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize external datastore certificates: %w", err)
 		}
-		if err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
+		if _, err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write external datastore certificates: %w", err)
 		}
 	default:
@@ -103,7 +103,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
-	if err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
+	if _, err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
 
