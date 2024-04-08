@@ -4,59 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/canonical/k8s/pkg/utils/vals"
 	"gopkg.in/yaml.v2"
 )
-
-type BootstrapConfig struct {
-	// Components are the components that should be enabled on bootstrap.
-	Components []string `yaml:"components"`
-	// ClusterCIDR is the CIDR of the cluster.
-	ClusterCIDR string `yaml:"cluster-cidr"`
-	// ServiceCIDR is the CIDR of the cluster services.
-	ServiceCIDR string `yaml:"service-cidr"`
-	// EnableRBAC determines if RBAC will be enabled; *bool to know true/false/unset.
-	EnableRBAC          *bool    `yaml:"enable-rbac"`
-	K8sDqlitePort       int      `yaml:"k8s-dqlite-port"`
-	Datastore           string   `yaml:"datastore"`
-	DatastoreURL        string   `yaml:"datastore-url,omitempty"`
-	DatastoreCACert     string   `yaml:"datastore-ca-crt,omitempty"`
-	DatastoreClientCert string   `yaml:"datastore-client-crt,omitempty"`
-	DatastoreClientKey  string   `yaml:"datastore-client-key,omitempty"`
-	ExtraSANs           []string `yaml:"extrasans,omitempty"`
-}
-
-// SetDefaults sets the fields to default values.
-func (b *BootstrapConfig) SetDefaults() {
-	b.Components = []string{"dns", "metrics-server", "network", "gateway"}
-	b.ClusterCIDR = "10.1.0.0/16"
-	b.ServiceCIDR = "10.152.183.0/24"
-	b.EnableRBAC = vals.Pointer(true)
-	b.K8sDqlitePort = 9000
-	b.Datastore = "k8s-dqlite"
-}
-
-// ToMap marshals the BootstrapConfig into yaml and map it to "bootstrapConfig".
-func (b *BootstrapConfig) ToMap() (map[string]string, error) {
-	config, err := yaml.Marshal(b)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config map: %w", err)
-	}
-
-	return map[string]string{
-		"bootstrapConfig": string(config),
-	}, nil
-}
-
-// BootstrapConfigFromMap converts a string map to a BootstrapConfig struct.
-func BootstrapConfigFromMap(m map[string]string) (*BootstrapConfig, error) {
-	config := &BootstrapConfig{}
-	err := yaml.Unmarshal([]byte(m["bootstrapConfig"]), config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
-	}
-	return config, nil
-}
 
 type ClusterRole string
 

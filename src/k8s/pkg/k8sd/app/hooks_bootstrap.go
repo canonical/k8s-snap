@@ -147,12 +147,15 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 func (a *App) onBootstrapControlPlane(s *state.State, initConfig map[string]string) error {
 	snap := a.Snap()
 
-	bootstrapConfig, err := apiv1.BootstrapConfigFromMap(initConfig)
+	bootstrapConfig, err := apiv1.BootstrapConfigFromMicrocluster(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
 	}
 
-	cfg := types.ClusterConfigFromBootstrapConfig(bootstrapConfig)
+	cfg, err := types.ClusterConfigFromBootstrapConfig(bootstrapConfig)
+	if err != nil {
+		return fmt.Errorf("invalid bootstrap config: %w", err)
+	}
 	cfg.SetDefaults()
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf("invalid cluster configuration: %w", err)

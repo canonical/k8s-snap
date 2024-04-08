@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	_ "embed"
 	"os"
 	"path/filepath"
 	"testing"
@@ -8,6 +9,15 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
+)
+
+var (
+	//go:embed testdata/bootstrap-config-full.yaml
+	bootstrapConfigFull string
+	//go:embed testdata/bootstrap-config-some.yaml
+	bootstrapConfigSome string
+	//go:embed testdata/bootstrap-config-invalid-keys.yaml
+	bootstrapConfigInvalidKeys string
 )
 
 type testCase struct {
@@ -19,45 +29,62 @@ type testCase struct {
 
 var testCases = []testCase{
 	{
-		name: "CompleteConfig",
-		yamlConfig: `
-components:
-  - network
-  - dns
-  - gateway
-  - ingress
-  - storage
-  - metrics-server
-cluster-cidr: "10.244.0.0/16"
-service-cidr: "10.152.100.0/24"
-enable-rbac: true
-k8s-dqlite-port: 12379`,
+		name:       "FullConfig",
+		yamlConfig: bootstrapConfigFull,
 		expectedConfig: apiv1.BootstrapConfig{
-			Components:    []string{"network", "dns", "gateway", "ingress", "storage", "metrics-server"},
-			ClusterCIDR:   "10.244.0.0/16",
-			ServiceCIDR:   "10.152.100.0/24",
-			EnableRBAC:    vals.Pointer(true),
-			K8sDqlitePort: 12379,
-			Datastore:     "k8s-dqlite",
+			ClusterConfig: apiv1.UserFacingClusterConfig{
+				Network: apiv1.NetworkConfig{
+					Enabled: vals.Pointer(true),
+				},
+				DNS: apiv1.DNSConfig{
+					Enabled:       vals.Pointer(true),
+					ClusterDomain: vals.Pointer("cluster.local"),
+				},
+				Ingress: apiv1.IngressConfig{
+					Enabled: vals.Pointer(true),
+				},
+				LoadBalancer: apiv1.LoadBalancerConfig{
+					Enabled: vals.Pointer(true),
+					L2Mode:  vals.Pointer(true),
+					CIDRs:   vals.Pointer([]string{"10.0.0.0/24"}),
+				},
+				LocalStorage: apiv1.LocalStorageConfig{
+					Enabled:    vals.Pointer(true),
+					LocalPath:  vals.Pointer("/storage/path"),
+					SetDefault: vals.Pointer(false),
+				},
+				Gateway: apiv1.GatewayConfig{
+					Enabled: vals.Pointer(true),
+				},
+				MetricsServer: apiv1.MetricsServerConfig{
+					Enabled: vals.Pointer(true),
+				},
+			},
+			PodCIDR:       vals.Pointer("10.100.0.0/16"),
+			ServiceCIDR:   vals.Pointer("10.200.0.0/16"),
+			DisableRBAC:   vals.Pointer(false),
+			SecurePort:    vals.Pointer(6443),
+			CloudProvider: vals.Pointer("external"),
+			K8sDqlitePort: vals.Pointer(9090),
+			DatastoreType: vals.Pointer("k8s-dqlite"),
+			ExtraSANs:     []string{"custom.kubernetes"},
 		},
 	},
 	{
-		name: "IncompleteConfig",
-		yamlConfig: `
-cluster-cidr: "10.244.0.0/16"
-enable-rbac: true
-bananas: 5`,
+		name:       "SomeConfig",
+		yamlConfig: bootstrapConfigSome,
 		expectedConfig: apiv1.BootstrapConfig{
-			Components:    []string{"dns", "metrics-server", "network", "gateway"},
-			ClusterCIDR:   "10.244.0.0/16",
-			ServiceCIDR:   "10.152.183.0/24",
-			EnableRBAC:    vals.Pointer(true),
-			K8sDqlitePort: 9000,
-			Datastore:     "k8s-dqlite",
+			PodCIDR:     vals.Pointer("10.100.0.0/16"),
+			ServiceCIDR: vals.Pointer("10.152.200.0/24"),
 		},
 	},
 	{
-		name:          "InvalidYaml",
+		name:          "InvalidKeys",
+		yamlConfig:    bootstrapConfigInvalidKeys,
+		expectedError: "field cluster-cidr not found in type v1.BootstrapConfig",
+	},
+	{
+		name:          "InvalidYAML",
 		yamlConfig:    "this is not valid yaml",
 		expectedError: "failed to parse YAML config file",
 	},
