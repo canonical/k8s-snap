@@ -18,7 +18,7 @@ func TestIsWorker(t *testing.T) {
 	}
 
 	t.Run("WorkerFileExists", func(t *testing.T) {
-		g := NewGomegaWithT(t)
+		g := NewWithT(t)
 
 		fname := path.Join(mock.LockFilesDir(), "worker")
 		lock, err := os.Create(fname)
@@ -32,7 +32,7 @@ func TestIsWorker(t *testing.T) {
 
 	t.Run("WorkerFileNotExists", func(t *testing.T) {
 		mock.Mock.LockFilesDir = "/non-existent"
-		g := NewGomegaWithT(t)
+		g := NewWithT(t)
 		exists, err := snaputil.IsWorker(mock)
 		g.Expect(err).To(BeNil())
 		g.Expect(exists).To(BeFalse())
@@ -50,7 +50,7 @@ func TestMarkAsWorkerNode(t *testing.T) {
 	}
 
 	t.Run("MarkWorker", func(t *testing.T) {
-		g := NewGomegaWithT(t)
+		g := NewWithT(t)
 		err := snaputil.MarkAsWorkerNode(mock, true)
 		g.Expect(err).To(BeNil())
 
@@ -63,7 +63,7 @@ func TestMarkAsWorkerNode(t *testing.T) {
 	})
 
 	t.Run("UnmarkWorker", func(t *testing.T) {
-		g := NewGomegaWithT(t)
+		g := NewWithT(t)
 		workerFile := path.Join(mock.LockFilesDir(), "worker")
 		_, err := os.Create(workerFile)
 		g.Expect(err).To(BeNil())
@@ -86,28 +86,28 @@ func TestMarkAsWorkerNode_ErrorCases(t *testing.T) {
 
 	t.Run("FailedToCreateWorkerFile", func(t *testing.T) {
 		mock.Mock.LockFilesDir = "/non-existent"
-		g := NewGomegaWithT(t)
+		g := NewWithT(t)
 		err := snaputil.MarkAsWorkerNode(mock, true)
 		g.Expect(err).To(HaveOccurred())
 	})
 
 	t.Run("FailedToRemoveWorkerFile", func(t *testing.T) {
 		mock.Mock.LockFilesDir = "/non-existent"
-		g := NewGomegaWithT(t)
+		g := NewWithT(t)
 		err := snaputil.MarkAsWorkerNode(mock, false)
 		g.Expect(err).To(HaveOccurred())
 	})
 
 	t.Run("FailedToChownWorkerFile", func(t *testing.T) {
 		mock.Mock.UID = -1 // Invalid UID to cause chown failure
-		g := NewGomegaWithT(t)
+		g := NewWithT(t)
 		err := snaputil.MarkAsWorkerNode(mock, true)
 		g.Expect(err).To(HaveOccurred())
 	})
 
 	t.Run("FailedToChmodWorkerFile", func(t *testing.T) {
 		mock.Mock.LockFilesDir = "/non-existent"
-		g := NewGomegaWithT(t)
+		g := NewWithT(t)
 		err := snaputil.MarkAsWorkerNode(mock, true)
 		g.Expect(err).To(HaveOccurred())
 	})

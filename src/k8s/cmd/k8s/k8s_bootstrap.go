@@ -44,7 +44,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			if opts.interactive && opts.configFile != "" {
-				cmd.PrintErrln("Error: --interactive and --config flags cannot be set at the same time.")
+				cmd.PrintErrln("Error: --interactive and --file flags cannot be set at the same time.")
 				env.Exit(1)
 				return
 			}
@@ -118,9 +118,10 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().BoolVar(&opts.interactive, "interactive", false, "interactively configure the most important cluster options")
-	cmd.PersistentFlags().StringVar(&opts.configFile, "config", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
+	cmd.PersistentFlags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
+
 	return cmd
 }
 

@@ -125,8 +125,8 @@ func TestConfigPropagation(t *testing.T) {
 	watcher := watch.NewFake()
 	clientset.PrependWatchReactor("configmaps", k8stesting.DefaultWatchReactor(watcher, nil))
 
-	configController := NewNodeConfigurationController(s, func(ctx context.Context) *k8s.Client {
-		return &k8s.Client{Interface: clientset}
+	configController := NewNodeConfigurationController(s, func() {}, func() (*k8s.Client, error) {
+		return &k8s.Client{Interface: clientset}, nil
 	})
 
 	go configController.Run(ctx)

@@ -132,16 +132,22 @@ type NodeStatus struct {
 	DatastoreRole DatastoreRole `json:"datastore-role,omitempty"`
 }
 
+type Datastore struct {
+	Type        string `json:"type,omitempty"`
+	ExternalURL string `json:"external-url,omitempty" yaml:"external-url,omitempty"`
+}
+
 // ClusterStatus holds information about the cluster, e.g. its current members
 type ClusterStatus struct {
 	// Ready is true if at least one node in the cluster is in READY state.
-	Ready   bool                    `json:"ready,omitempty"`
-	Members []NodeStatus            `json:"members,omitempty"`
-	Config  UserFacingClusterConfig `json:"config,omitempty"`
+	Ready     bool                    `json:"ready,omitempty"`
+	Members   []NodeStatus            `json:"members,omitempty"`
+	Config    UserFacingClusterConfig `json:"config,omitempty"`
+	Datastore Datastore               `json:"datastore,omitempty"`
 }
 
-// HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
-func (c ClusterStatus) HaClusterFormed() bool {
+// haClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
+func (c ClusterStatus) haClusterFormed() bool {
 	voters := 0
 	for _, member := range c.Members {
 		if member.DatastoreRole == DatastoreRoleVoter {
@@ -151,26 +157,22 @@ func (c ClusterStatus) HaClusterFormed() bool {
 	return voters > 2
 }
 
-// TODO: Print k8s version. However, multiple nodes can run different version, so we would need to query all nodes.
-func (c ClusterStatus) String() string {
+func (c ClusterStatus) datastoreToString() string {
 	result := strings.Builder{}
 
-	if c.Ready {
-		result.WriteString("status: ready")
-	} else {
-		result.WriteString("status: not ready")
+	// Datastore
+	if c.Datastore.Type != "" {
+		result.WriteString(fmt.Sprintf("  type: %s\n", c.Datastore.Type))
+		// Datastore URL for external only
+		if c.Datastore.Type == "external" {
+			if c.Datastore.ExternalURL != "" {
+				result.WriteString(fmt.Sprintf("  url: %s\n", c.Datastore.ExternalURL))
+			}
+			return result.String()
+		}
 	}
-	result.WriteString("\n")
 
-	result.WriteString("high-availability: ")
-	if c.HaClusterFormed() {
-		result.WriteString("yes")
-	} else {
-		result.WriteString("no")
-	}
-	result.WriteString("\n")
-	result.WriteString("datastore:\n")
-
+	// Datastore roles for dqlite
 	voters := make([]NodeStatus, 0, len(c.Members))
 	standBys := make([]NodeStatus, 0, len(c.Members))
 	spares := make([]NodeStatus, 0, len(c.Members))
@@ -209,6 +211,35 @@ func (c ClusterStatus) String() string {
 		result.WriteString("  spare-nodes: none\n")
 	}
 
+	return result.String()
+}
+
+// TODO: Print k8s version. However, multiple nodes can run different version, so we would need to query all nodes.
+func (c ClusterStatus) String() string {
+	result := strings.Builder{}
+
+	// Status
+	if c.Ready {
+		result.WriteString("status: ready")
+	} else {
+		result.WriteString("status: not ready")
+	}
+	result.WriteString("\n")
+
+	// High availability
+	result.WriteString("high-availability: ")
+	if c.haClusterFormed() {
+		result.WriteString("yes")
+	} else {
+		result.WriteString("no")
+	}
+
+	// Datastore
+	result.WriteString("\n")
+	result.WriteString("datastore:\n")
+	result.WriteString(c.datastoreToString())
+
+	// Config
 	var emptyConfig UserFacingClusterConfig
 	if c.Config != emptyConfig {
 		b, _ := yaml.Marshal(c.Config)
