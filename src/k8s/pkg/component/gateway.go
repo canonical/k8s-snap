@@ -48,7 +48,7 @@ func UpdateGatewayComponent(ctx context.Context, s snap.Snap, isRefresh bool) er
 	// while we try to restart them, which fails with:
 	// the object has been modified; please apply your changes to the latest version and try again
 	attempts := 3
-	if err := control.RetryFor(ctx, attempts, func() error {
+	if err := control.RetryFor(ctx, attempts, 0, func() error {
 		if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
 			return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 		}
@@ -57,7 +57,7 @@ func UpdateGatewayComponent(ctx context.Context, s snap.Snap, isRefresh bool) er
 		return fmt.Errorf("failed to restart cilium-operator deployment after %d attempts: %w", attempts, err)
 	}
 
-	if err := control.RetryFor(ctx, attempts, func() error {
+	if err := control.RetryFor(ctx, attempts, 0, func() error {
 		if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
 			return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 		}

@@ -15,7 +15,7 @@ func TestRetryFor(t *testing.T) {
 		retryCount := 3
 		count := 0
 
-		err := RetryFor(ctx, retryCount, func() error {
+		err := RetryFor(ctx, retryCount, 50*time.Millisecond, func() error {
 			count++
 			if count < retryCount {
 				return errors.New("failed")
@@ -37,7 +37,7 @@ func TestRetryFor(t *testing.T) {
 
 		retryCount := 3
 
-		err := RetryFor(ctx, retryCount, func() error {
+		err := RetryFor(ctx, retryCount, time.Second, func() error {
 			time.Sleep(200 * time.Millisecond)
 			return errors.New("failed")
 		})
@@ -53,7 +53,7 @@ func TestRetryFor(t *testing.T) {
 
 		retryCount := 3
 
-		err := RetryFor(ctx, retryCount, func() error {
+		err := RetryFor(ctx, retryCount, 100*time.Millisecond, func() error {
 			return errors.New("failed")
 		})
 

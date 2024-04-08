@@ -37,7 +37,7 @@ func UpdateIngressComponent(ctx context.Context, s snap.Snap, isRefresh bool, de
 	}
 
 	attempts := 3
-	if err := control.RetryFor(ctx, attempts, func() error {
+	if err := control.RetryFor(ctx, attempts, 0, func() error {
 		if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
 			return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 		}
@@ -46,7 +46,7 @@ func UpdateIngressComponent(ctx context.Context, s snap.Snap, isRefresh bool, de
 		return fmt.Errorf("failed to restart cilium-operator deployment after %d attempts: %w", attempts, err)
 	}
 
-	if err := control.RetryFor(ctx, attempts, func() error {
+	if err := control.RetryFor(ctx, attempts, 0, func() error {
 		if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
 			return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 		}

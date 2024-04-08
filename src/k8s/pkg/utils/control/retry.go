@@ -1,17 +1,20 @@
 package control
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // RetryFor will retry a given function for the given amount of times.
-// RetryFor will not wait between retries. This is up to the retryFunc to handle.
-func RetryFor(ctx context.Context, retryCount int, retryFunc func() error) error {
+// RetryFor will wait for delayBetweenRetry between retries.
+func RetryFor(ctx context.Context, retryCount int, delayBetweenRetry time.Duration, retryFunc func() error) error {
 	var err error = nil
 	for i := 0; i < retryCount; i++ {
 		if err = retryFunc(); err != nil {
 			select {
 			case <-ctx.Done():
 				return context.Canceled
-			default:
+			case <-time.After(delayBetweenRetry):
 				continue
 			}
 		}
