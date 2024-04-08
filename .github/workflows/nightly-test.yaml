@@ -5,17 +5,17 @@ on:
   push: 
     branches: 
       - KU-91/nightly-runs
-      - 'release-[0-9]+.[0-9]+'
   schedule:
     - cron: '0 0 * * *'  # Runs every midnight
 
 jobs:
   test-integration:
-    name: Integration Test ${{ matrix.os }} ${{ matrix.arch }}
+    name: Integration Test ${{ matrix.os }} ${{ matrix.arch }} {{ matrix.releases }}
     strategy:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04"]
         arch: ["amd64", "arm64"]
+        releases: ["latest/edge", "1.30-classic/beta"]
       fail-fast: false # TODO: remove once arm64 works
 
     runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-20.04' }}
@@ -38,24 +38,10 @@ jobs:
           sg lxd -c 'lxc version'
       - name: Create build directory
         run: mkdir -p build
-      - name: Determine Release branch # TODO: remove test branch ref
-        id: snap-release
-        env:
-          BRANCH: ${{ github.base_ref || github.ref }}
-        run: |
-          BRANCH=${BRANCH#refs/heads/}  # strip off refs/heads/ if it exists
-          if [[ "${BRANCH}" == "KU-91/nightly-runs" ]]; then
-            echo "release=latest/edge" >> "$GITHUB_OUTPUT"
-          elif [[ "${BRANCH}" =~ "^release-[0-9]+\.[0-9]+$" ]]; then
-            echo "release=${BRANCH:8}/edge" >> "$GITHUB_OUTPUT"
-          else
-            echo "Failed to determine matching strict branch for ${BRANCH}"
-            echo "release=edge" >> $GITHUB_OUTPUT
-          fi  
       - name: Install latest/edge k8s snap
         run: |
           cd build
-          snap download k8s --channel=${{ steps.snap-release.outputs.release }} --basename k8s
+          snap download k8s --channel=${{ matrix.releases }} --basename k8s
       - name: Run end to end tests # tox path needs to be specified for arm64
         run: |
           export TEST_SNAP="$PWD/build/k8s.snap" 
