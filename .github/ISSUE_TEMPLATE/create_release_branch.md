@@ -137,11 +137,16 @@ The steps are to be followed in-order, each task must be completed by the person
 
 #### After release
 
-**Owner** follows up with the **Reviewer** and team about things to improve around the process.
+- [ ] **Owner** follows up with the **Reviewer** and team about things to improve around the process.
+- [ ] **Owner**: After a few weeks of stable CI, update default track to `1.xx/stable` via
+  - On the snap [releases page][], select `Track` > `1.xx`
+- [ ] **Reviewer**: Ensure snap recipes are created in [lp:k8s/+snaps][]
+
 
 <!-- LINKS -->
 [Auto-update strict branch]: https://github.com/canonical/k8s-snap/actions/workflows/strict.yaml
 [snapstore track-request]: https://forum.snapcraft.io/t/tracks-request-for-k8s-snap/39122/2
+[releases-page]: https://snapcraft.io/k8s/releases
 [.github/workflows/cla.yaml]: ../workflows/cla.yaml
 [.github/workflows/cron-jobs.yaml]: ../workflows/cron-jobs.yaml
 [.github/workflows/go.yaml]: ../workflows/go.yaml
