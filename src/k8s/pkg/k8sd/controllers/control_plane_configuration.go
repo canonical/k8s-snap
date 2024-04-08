@@ -47,6 +47,7 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 
 		if isWorker, err := snaputil.IsWorker(c.snap); err != nil {
 			log.Println(fmt.Errorf("failed to check if this is a worker node: %w", err))
+			continue
 		} else if isWorker {
 			log.Println("Stopping control plane controller as this is a worker node")
 			return
