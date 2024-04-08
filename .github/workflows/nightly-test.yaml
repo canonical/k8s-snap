@@ -22,10 +22,6 @@ jobs:
     steps:
       - name: Checking out repo
         uses: actions/checkout@v4
-      - name: Install snapd
-        run: |
-          sudo apt update
-          sudo apt install snapd
       - name: Setup Python
         run: |
           sudo apt update
