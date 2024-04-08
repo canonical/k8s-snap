@@ -20,58 +20,88 @@ type UpdateClusterConfigResponse struct {
 }
 
 type UserFacingClusterConfig struct {
-	Network       *NetworkConfig       `json:"network,omitempty" yaml:"network,omitempty"`
-	DNS           *DNSConfig           `json:"dns,omitempty" yaml:"dns,omitempty"`
-	Ingress       *IngressConfig       `json:"ingress,omitempty" yaml:"ingress,omitempty"`
-	LoadBalancer  *LoadBalancerConfig  `json:"load-balancer,omitempty" yaml:"load-balancer,omitempty"`
-	LocalStorage  *LocalStorageConfig  `json:"local-storage,omitempty" yaml:"local-storage,omitempty"`
-	Gateway       *GatewayConfig       `json:"gateway,omitempty" yaml:"gateway,omitempty"`
-	MetricsServer *MetricsServerConfig `json:"metrics-server,omitempty" yaml:"metrics-server,omitempty"`
+	Network       NetworkConfig       `json:"network,omitempty" yaml:"network,omitempty"`
+	DNS           DNSConfig           `json:"dns,omitempty" yaml:"dns,omitempty"`
+	Ingress       IngressConfig       `json:"ingress,omitempty" yaml:"ingress,omitempty"`
+	LoadBalancer  LoadBalancerConfig  `json:"load-balancer,omitempty" yaml:"load-balancer,omitempty"`
+	LocalStorage  LocalStorageConfig  `json:"local-storage,omitempty" yaml:"local-storage,omitempty"`
+	Gateway       GatewayConfig       `json:"gateway,omitempty" yaml:"gateway,omitempty"`
+	MetricsServer MetricsServerConfig `json:"metrics-server,omitempty" yaml:"metrics-server,omitempty"`
 }
 
 type DNSConfig struct {
-	Enabled             *bool    `json:"enabled,omitempty" yaml:"enabled"`
-	ClusterDomain       string   `json:"cluster-domain,omitempty" yaml:"cluster-domain"`
-	ServiceIP           string   `json:"service-ip,omitempty" yaml:"service-ip"`
-	UpstreamNameservers []string `json:"upstream-nameservers,omitempty" yaml:"upstream-nameservers"`
+	Enabled             *bool     `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	ClusterDomain       *string   `json:"cluster-domain,omitempty" yaml:"cluster-domain,omitempty"`
+	ServiceIP           *string   `json:"service-ip,omitempty" yaml:"service-ip,omitempty"`
+	UpstreamNameservers *[]string `json:"upstream-nameservers,omitempty" yaml:"upstream-nameservers,omitempty"`
 }
+
+func (c DNSConfig) GetEnabled() bool                 { return getField(c.Enabled) }
+func (c DNSConfig) GetClusterDomain() string         { return getField(c.ClusterDomain) }
+func (c DNSConfig) GetServiceIP() string             { return getField(c.ServiceIP) }
+func (c DNSConfig) GetUpstreamNameservers() []string { return getField(c.UpstreamNameservers) }
 
 type IngressConfig struct {
-	Enabled             *bool  `json:"enabled,omitempty" yaml:"enabled"`
-	DefaultTLSSecret    string `json:"default-tls-secret,omitempty" yaml:"default-tls-secret"`
-	EnableProxyProtocol *bool  `json:"enable-proxy-protocol,omitempty" yaml:"enable-proxy-protocol"`
+	Enabled             *bool   `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	DefaultTLSSecret    *string `json:"default-tls-secret,omitempty" yaml:"default-tls-secret,omitempty"`
+	EnableProxyProtocol *bool   `json:"enable-proxy-protocol,omitempty" yaml:"enable-proxy-protocol,omitempty"`
 }
+
+func (c IngressConfig) GetEnabled() bool             { return getField(c.Enabled) }
+func (c IngressConfig) GetDefaultTLSSecret() string  { return getField(c.DefaultTLSSecret) }
+func (c IngressConfig) GetEnableProxyProtocol() bool { return getField(c.EnableProxyProtocol) }
 
 type LoadBalancerConfig struct {
-	Enabled        *bool    `json:"enabled,omitempty" yaml:"enabled"`
-	CIDRs          []string `json:"cidrs,omitempty" yaml:"cidrs"`
-	L2Enabled      *bool    `json:"l2-mode,omitempty" yaml:"l2-mode"`
-	L2Interfaces   []string `json:"l2-interfaces,omitempty" yaml:"l2-interfaces"`
-	BGPEnabled     *bool    `json:"bgp-mode,omitempty" yaml:"bgp-mode"`
-	BGPLocalASN    int      `json:"bgp-local-asn,omitempty" yaml:"bgp-local-asn"`
-	BGPPeerAddress string   `json:"bgp-peer-address,omitempty" yaml:"bgp-peer-address"`
-	BGPPeerASN     int      `json:"bgp-peer-asn,omitempty" yaml:"bgp-peer-asn"`
-	BGPPeerPort    int      `json:"bgp-peer-port,omitempty" yaml:"bgp-peer-port"`
+	Enabled        *bool     `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	CIDRs          *[]string `json:"cidrs,omitempty" yaml:"cidrs,omitempty"`
+	L2Mode         *bool     `json:"l2-mode,omitempty" yaml:"l2-mode,omitempty"`
+	L2Interfaces   *[]string `json:"l2-interfaces,omitempty" yaml:"l2-interfaces,omitempty"`
+	BGPMode        *bool     `json:"bgp-mode,omitempty" yaml:"bgp-mode,omitempty"`
+	BGPLocalASN    *int      `json:"bgp-local-asn,omitempty" yaml:"bgp-local-asn,omitempty"`
+	BGPPeerAddress *string   `json:"bgp-peer-address,omitempty" yaml:"bgp-peer-address,omitempty"`
+	BGPPeerASN     *int      `json:"bgp-peer-asn,omitempty" yaml:"bgp-peer-asn,omitempty"`
+	BGPPeerPort    *int      `json:"bgp-peer-port,omitempty" yaml:"bgp-peer-port,omitempty"`
 }
+
+func (c LoadBalancerConfig) GetEnabled() bool          { return getField(c.Enabled) }
+func (c LoadBalancerConfig) GetCIDRs() []string        { return getField(c.CIDRs) }
+func (c LoadBalancerConfig) GetL2Mode() bool           { return getField(c.L2Mode) }
+func (c LoadBalancerConfig) GetL2Interfaces() []string { return getField(c.L2Interfaces) }
+func (c LoadBalancerConfig) GetBGPMode() bool          { return getField(c.BGPMode) }
+func (c LoadBalancerConfig) GetBGPLocalASN() int       { return getField(c.BGPLocalASN) }
+func (c LoadBalancerConfig) GetBGPPeerAddress() string { return getField(c.BGPPeerAddress) }
+func (c LoadBalancerConfig) GetBGPPeerASN() int        { return getField(c.BGPPeerASN) }
+func (c LoadBalancerConfig) GetBGPPeerPort() int       { return getField(c.BGPPeerPort) }
 
 type LocalStorageConfig struct {
-	Enabled       *bool  `json:"enabled,omitempty" yaml:"enabled"`
-	LocalPath     string `json:"local-path,omitempty" yaml:"local-path"`
-	ReclaimPolicy string `json:"reclaim-policy,omitempty" yaml:"reclaim-policy"`
-	SetDefault    *bool  `json:"set-default,omitempty" yaml:"set-default"`
+	Enabled       *bool   `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	LocalPath     *string `json:"local-path,omitempty" yaml:"local-path,omitempty"`
+	ReclaimPolicy *string `json:"reclaim-policy,omitempty" yaml:"reclaim-policy,omitempty"`
+	SetDefault    *bool   `json:"set-default,omitempty" yaml:"set-default,omitempty"`
 }
+
+func (c LocalStorageConfig) GetEnabled() bool         { return getField(c.Enabled) }
+func (c LocalStorageConfig) GetLocalPath() string     { return getField(c.LocalPath) }
+func (c LocalStorageConfig) GetReclaimPolicy() string { return getField(c.ReclaimPolicy) }
+func (c LocalStorageConfig) GetSetDefault() bool      { return getField(c.SetDefault) }
 
 type NetworkConfig struct {
-	Enabled *bool `json:"enabled,omitempty" yaml:"enabled"`
+	Enabled *bool `json:"enabled,omitempty" yaml:"enabled,omitempty"`
 }
+
+func (c NetworkConfig) GetEnabled() bool { return getField(c.Enabled) }
 
 type GatewayConfig struct {
-	Enabled *bool `json:"enabled,omitempty" yaml:"enabled"`
+	Enabled *bool `json:"enabled,omitempty" yaml:"enabled,omitempty"`
 }
 
+func (c GatewayConfig) GetEnabled() bool { return getField(c.Enabled) }
+
 type MetricsServerConfig struct {
-	Enabled *bool `json:"enabled,omitempty" yaml:"enabled"`
+	Enabled *bool `json:"enabled,omitempty" yaml:"enabled,omitempty"`
 }
+
+func (c MetricsServerConfig) GetEnabled() bool { return getField(c.Enabled) }
 
 func (c UserFacingClusterConfig) String() string {
 	b, err := yaml.Marshal(c)

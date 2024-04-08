@@ -136,13 +136,13 @@ func ReconcileDNSComponent(ctx context.Context, s snap.Snap, alreadyEnabled *boo
 	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
 		// If already enabled, and request does not contain `enabled` key
 		// or if already enabled and request contains `enabled=true`
-		dnsIP, clusterDomain, err := UpdateDNSComponent(ctx, s, true, clusterConfig.Kubelet.ClusterDomain, clusterConfig.Kubelet.ClusterDNS, clusterConfig.DNS.UpstreamNameservers)
+		dnsIP, clusterDomain, err := UpdateDNSComponent(ctx, s, true, clusterConfig.Kubelet.GetClusterDomain(), clusterConfig.Kubelet.GetClusterDNS(), clusterConfig.DNS.GetUpstreamNameservers())
 		if err != nil {
 			return "", "", fmt.Errorf("failed to refresh dns: %w", err)
 		}
 		return dnsIP, clusterDomain, nil
 	} else if vals.OptionalBool(requestEnabled, false) {
-		dnsIP, clusterDomain, err := UpdateDNSComponent(ctx, s, false, clusterConfig.Kubelet.ClusterDomain, clusterConfig.Kubelet.ClusterDNS, clusterConfig.DNS.UpstreamNameservers)
+		dnsIP, clusterDomain, err := UpdateDNSComponent(ctx, s, false, clusterConfig.Kubelet.GetClusterDomain(), clusterConfig.Kubelet.GetClusterDNS(), clusterConfig.DNS.GetUpstreamNameservers())
 		if err != nil {
 			return "", "", fmt.Errorf("failed to enable dns: %w", err)
 		}
@@ -152,7 +152,7 @@ func ReconcileDNSComponent(ctx context.Context, s snap.Snap, alreadyEnabled *boo
 		if err != nil {
 			return "", "", fmt.Errorf("failed to disable dns: %w", err)
 		}
-		return clusterConfig.Kubelet.ClusterDNS, clusterConfig.Kubelet.ClusterDomain, nil
+		return clusterConfig.Kubelet.GetClusterDNS(), clusterConfig.Kubelet.GetClusterDomain(), nil
 	}
 	return "", "", nil
 }

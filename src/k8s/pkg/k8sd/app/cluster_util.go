@@ -45,10 +45,10 @@ func setupControlPlaneServices(snap snap.Snap, s *state.State, cfg types.Cluster
 	if err := setup.Containerd(snap, nil); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.ClusterDNS, cfg.Kubelet.ClusterDomain, cfg.Kubelet.CloudProvider); err != nil {
+	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider()); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.PodCIDR); err != nil {
+	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.GetPodCIDR()); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap); err != nil {
@@ -57,7 +57,7 @@ func setupControlPlaneServices(snap snap.Snap, s *state.State, cfg types.Cluster
 	if err := setup.KubeScheduler(snap); err != nil {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
-	if err := setup.KubeAPIServer(snap, cfg.Network.ServiceCIDR, s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.APIServer.Datastore, cfg.APIServer.DatastoreURL, cfg.APIServer.AuthorizationMode); err != nil {
+	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode()); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 	return nil

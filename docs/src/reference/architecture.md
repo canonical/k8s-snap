@@ -102,6 +102,43 @@ This functionality is exposed via the following interfaces:
 - The **API**: The API over HTTP serves the CLI and is also used to
   programmatically drive the Kubernetes cluster.
 
+## Canonical K8s charms
+
+Canonical `k8s` Charms encompass two primary components: the [`k8s` charm][K8s charm] and the [`k8s-worker` charm][K8s-worker charm].
+
+```{kroki} ../assets/charms-architecture.puml
+```
+
+Charms are instantiated on a machine as a Juju unit, and a collection of units 
+constitutes an application. Both `k8s` and `k8s-worker` units are responsible
+for installing and managing its machine's `k8s` snap, however the charm type determines
+the node's role in the Kubernetes cluster. The `k8s` charm manages `control-plane` nodes,
+whereas the `k8s-worker` charm manages Kubernetes `worker` nodes. The administrator manages 
+the cluster via the `juju` client, directing the `juju` controller to reach the model's 
+eventually consistent state. For more detail on Juju's concepts, see the [Juju docs][].
+
+The administrator may choose any supported cloud-types (Openstack, MAAS, AWS, GCP, Azure...) on
+which to manage the machines making up the Kubernetes cluster. Juju selects a single leader unit
+per application to act as a centralised figure with the model. The `k8s` leader oversees Kubernetes 
+bootstrapping and enlistment of new nodes. Follower `k8s` units will join the cluster using
+secrets shared through relation data from the leader. The entire lifecycle of the deployment
+is orchestrated by the `k8s` charm, with tokens and cluster-related information being exchanged 
+through Juju relation data.
+
+Furthermore, the `k8s-worker` unit functions exclusively as a worker within the cluster, establishing
+a relation with the `k8s` leader unit and requesting tokens and cluster-related information through
+relation data. The `k8s` leader is responsible for issuing these tokens and revoking them if
+a unit administratively departs the cluster.
+
+The `k8s` charm also supports the integration of other compatible charms, enabling integrations 
+such as connectivity with an external `etcd` datastore and the sharing of observability data with the 
+[`Canonical Observability Stack (COS)`][COS docs]. This modular and integrated approach facilitates
+a robust and flexible Canonical Kubernetes deployment managed through Juju.
+
+
 <!-- LINKS -->
-[C4 model]: https://c4model.com/
-[K8s charm]: https://charmhub.io/k8s
+[C4 model]:           https://c4model.com/
+[K8s charm]:          https://charmhub.io/k8s
+[K8s-Worker charm]:   https://charmhub.io/k8s-worker
+[Juju docs]:          https://juju.is/docs/juju
+[COS docs]:           https://ubuntu.com/observability

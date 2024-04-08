@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"net"
 	"os"
 	"path"
 	"testing"
@@ -21,20 +20,14 @@ import (
 )
 
 func TestConfigPropagation(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	g := NewWithT(t)
 
-	dir := t.TempDir()
-
 	s := &mock.Snap{
 		Mock: mock.Mock{
-			KubernetesPKIDir:    path.Join(dir, "pki"),
-			KubernetesConfigDir: path.Join(dir, "k8s-config"),
-			KubeletRootDir:      path.Join(dir, "kubelet-root"),
-			ServiceArgumentsDir: path.Join(dir, "args"),
-			ContainerdSocketDir: path.Join(dir, "containerd-run"),
-			OnLXD:               false,
+			ServiceArgumentsDir: path.Join(t.TempDir(), "args"),
 			UID:                 os.Getuid(),
 			GID:                 os.Getgid(),
 		},
@@ -42,16 +35,31 @@ func TestConfigPropagation(t *testing.T) {
 
 	g.Expect(setup.EnsureAllDirectories(s)).To(Succeed())
 
-	// Call the kubelet control plane setup function
-	g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider")).To(Succeed())
-
 	tests := []struct {
-		name            string
-		configmap       *corev1.ConfigMap
-		expectedUpdates map[string]string
+		name          string
+		configmap     *corev1.ConfigMap
+		expectArgs    map[string]string
+		expectRestart bool
 	}{
 		{
-			name: "ignore non-existent keys",
+			name: "Initial",
+			configmap: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
+				Data: map[string]string{
+					"cluster-dns":    "10.152.1.1",
+					"cluster-domain": "test-cluster.local",
+					"cloud-provider": "provider",
+				},
+			},
+			expectArgs: map[string]string{
+				"--cluster-dns":    "10.152.1.1",
+				"--cluster-domain": "test-cluster.local",
+				"--cloud-provider": "provider",
+			},
+			expectRestart: true,
+		},
+		{
+			name: "IgnoreUnknownFields",
 			configmap: &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
 				Data: map[string]string{
@@ -60,19 +68,29 @@ func TestConfigPropagation(t *testing.T) {
 					"non-existent-key3": "value3",
 				},
 			},
+			expectArgs: map[string]string{
+				"--cluster-dns":    "10.152.1.1",
+				"--cluster-domain": "test-cluster.local",
+				"--cloud-provider": "provider",
+			},
 		},
 		{
-			name: "remove cluster-dns on missing key",
+			name: "RemoveClusterDNS",
 			configmap: &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
-				Data:       map[string]string{},
+				Data: map[string]string{
+					"cluster-dns": "",
+				},
 			},
-			expectedUpdates: map[string]string{
-				"--cluster-dns": "",
+			expectArgs: map[string]string{
+				"--cluster-dns":    "",
+				"--cluster-domain": "test-cluster.local",
+				"--cloud-provider": "provider",
 			},
+			expectRestart: true,
 		},
 		{
-			name: "update node configuration",
+			name: "UpdateDNS",
 			configmap: &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
 				Data: map[string]string{
@@ -80,22 +98,25 @@ func TestConfigPropagation(t *testing.T) {
 					"cluster-dns":    "10.152.1.3",
 				},
 			},
-			expectedUpdates: map[string]string{
+			expectArgs: map[string]string{
 				"--cluster-domain": "test-cluster2.local",
 				"--cluster-dns":    "10.152.1.3",
+				"--cloud-provider": "provider",
 			},
+			expectRestart: true,
 		},
 		{
-			name: "cluster-domain remains on missing key",
+			name: "PreserveClusterDomain",
 			configmap: &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
 				Data: map[string]string{
 					"cluster-dns": "10.152.1.3",
 				},
 			},
-			expectedUpdates: map[string]string{
-				"--cluster-domain": "cluster.local",
+			expectArgs: map[string]string{
+				"--cluster-domain": "test-cluster2.local",
 				"--cluster-dns":    "10.152.1.3",
+				"--cloud-provider": "provider",
 			},
 		},
 	}
@@ -104,25 +125,35 @@ func TestConfigPropagation(t *testing.T) {
 	watcher := watch.NewFake()
 	clientset.PrependWatchReactor("configmaps", k8stesting.DefaultWatchReactor(watcher, nil))
 
-	configController := NewNodeConfigurationController(s, func(ctx context.Context) *k8s.Client {
-		return &k8s.Client{Interface: clientset}
+	configController := NewNodeConfigurationController(s, func() {}, func() (*k8s.Client, error) {
+		return &k8s.Client{Interface: clientset}, nil
 	})
 
 	go configController.Run(ctx)
-
 	defer watcher.Stop()
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			s.RestartServiceCalledWith = nil
+
 			g := NewWithT(t)
 
 			watcher.Add(tc.configmap)
+
+			// TODO: this is to ensure that the controller has handled the event. This should ideally
+			// be replaced with something like a "<-sentCh" instead
 			time.Sleep(100 * time.Millisecond)
 
-			for ekey, evalue := range tc.expectedUpdates {
+			for ekey, evalue := range tc.expectArgs {
 				val, err := snaputil.GetServiceArgument(s, "kubelet", ekey)
-				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(err).To(BeNil())
 				g.Expect(val).To(Equal(evalue))
+			}
+
+			if tc.expectRestart {
+				g.Expect(s.RestartServiceCalledWith).To(Equal([]string{"kubelet"}))
+			} else {
+				g.Expect(s.RestartServiceCalledWith).To(BeEmpty())
 			}
 		})
 	}

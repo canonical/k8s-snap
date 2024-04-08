@@ -61,8 +61,8 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&opts.stateDir, "state-dir", "", "directory with the dqlite datastore")
 	cmd.PersistentFlags().BoolVarP(&opts.logDebug, "debug", "d", false, "show all debug messages")
 	cmd.PersistentFlags().BoolVarP(&opts.logVerbose, "verbose", "v", true, "show all information messages")
-	cmd.PersistentFlags().StringVarP(&opts.outputFormat, "output-format", "o", "plain", "set the output format to one of plain, json or yaml")
-	cmd.PersistentFlags().DurationVarP(&opts.timeout, "timeout", "t", 90*time.Second, "the max time to wait for the command to execute")
+	cmd.PersistentFlags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
+	cmd.PersistentFlags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 
 	// By default, the state dir is set to a fixed directory in the snap.
 	// This shouldn't be overwritten by the user.

@@ -14,59 +14,88 @@ import (
 )
 
 type NodeConfigurationController struct {
-	snap            snap.Snap
-	createK8sClient func(ctx context.Context) *k8s.Client
+	snap         snap.Snap
+	waitReady    func()
+	newK8sClient func() (*k8s.Client, error)
 }
 
-func NewNodeConfigurationController(snap snap.Snap, createK8sClient func(ctx context.Context) *k8s.Client) *NodeConfigurationController {
+func NewNodeConfigurationController(snap snap.Snap, waitReady func(), newK8sClient func() (*k8s.Client, error)) *NodeConfigurationController {
 	return &NodeConfigurationController{
-		snap:            snap,
-		createK8sClient: createK8sClient,
+		snap:         snap,
+		waitReady:    waitReady,
+		newK8sClient: newK8sClient,
+	}
+}
+
+func (c *NodeConfigurationController) retryNewK8sClient(ctx context.Context) (*k8s.Client, error) {
+	for {
+		client, err := c.newK8sClient()
+		if err == nil {
+			return client, nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(3 * time.Second):
+		}
 	}
 }
 
 func (c *NodeConfigurationController) Run(ctx context.Context) {
-	client := c.createK8sClient(ctx)
+	// wait for microcluster node to be ready
+	c.waitReady()
+
+	client, err := c.retryNewK8sClient(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
+	}
+
 	for {
+		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap) }); err != nil {
+			// This also can fail during bootstrapping/start up when api-server is not ready
+			// So the watch requests get connection refused replies
+			log.Println(fmt.Errorf("failed to watch configmap: %w", err))
+		}
+
 		select {
 		case <-ctx.Done():
 			return
 		case <-time.After(3 * time.Second):
 		}
-
-		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap) }); err != nil {
-			// This also can fail during bootstrapping/start up when api-server is not ready
-			// So the watch requests get connection refused replies
-			log.Println(fmt.Errorf("error while watching configmap: %w", err))
-		}
 	}
 }
 
 func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *v1.ConfigMap) error {
-	nodeConfig := types.NodeConfigFromMap(configMap.Data)
-
-	kubeletUpdateMap := make(map[string]string)
-	var kubeletDeleteList []string
-
-	if nodeConfig.ClusterDNS != nil && *nodeConfig.ClusterDNS != "" {
-		kubeletUpdateMap["--cluster-dns"] = *nodeConfig.ClusterDNS
-	} else {
-		kubeletDeleteList = append(kubeletDeleteList, "--cluster-dns")
+	config, err := types.KubeletFromConfigMap(configMap.Data)
+	if err != nil {
+		return fmt.Errorf("failed to parse configmap data to kubelet config: %w", err)
 	}
 
-	if nodeConfig.ClusterDomain != nil && *nodeConfig.ClusterDomain != "" {
-		kubeletUpdateMap["--cluster-domain"] = *nodeConfig.ClusterDomain
-	} else {
-		kubeletUpdateMap["--cluster-domain"] = "cluster.local"
+	updateArgs := make(map[string]string)
+	var deleteArgs []string
+
+	for _, loop := range []struct {
+		val *string
+		arg string
+	}{
+		{arg: "--cloud-provider", val: config.CloudProvider},
+		{arg: "--cluster-dns", val: config.ClusterDNS},
+		{arg: "--cluster-domain", val: config.ClusterDomain},
+	} {
+		switch {
+		case loop.val == nil:
+			// value is not set in the configmap, no-op
+		case *loop.val == "":
+			// value is set in the configmap to the empty string, delete argument
+			deleteArgs = append(deleteArgs, loop.arg)
+		case *loop.val != "":
+			// value is set in the configmap, update argument
+			updateArgs[loop.arg] = *loop.val
+		}
 	}
 
-	if nodeConfig.CloudProvider != nil && *nodeConfig.CloudProvider != "" {
-		kubeletUpdateMap["--cloud-provider"] = *nodeConfig.CloudProvider
-	} else {
-		kubeletDeleteList = append(kubeletDeleteList, "--cloud-provider")
-	}
-
-	mustRestartKubelet, err := snaputil.UpdateServiceArguments(c.snap, "kubelet", kubeletUpdateMap, kubeletDeleteList)
+	mustRestartKubelet, err := snaputil.UpdateServiceArguments(c.snap, "kubelet", updateArgs, deleteArgs)
 	if err != nil {
 		return fmt.Errorf("failed to update kubelet arguments: %w", err)
 	}

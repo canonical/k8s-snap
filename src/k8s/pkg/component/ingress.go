@@ -80,22 +80,16 @@ func DisableIngressComponent(s snap.Snap) error {
 }
 
 func ReconcileIngressComponent(ctx context.Context, s snap.Snap, alreadyEnabled *bool, requestEnabled *bool, clusterConfig types.ClusterConfig) error {
-	var enableProxyProtocol bool
-
-	if clusterConfig.Ingress.EnableProxyProtocol != nil {
-		enableProxyProtocol = *clusterConfig.Ingress.EnableProxyProtocol
-	}
-
 	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
 		// If already enabled, and request does not contain `enabled` key
 		// or if already enabled and request contains `enabled=true`
-		err := UpdateIngressComponent(ctx, s, true, clusterConfig.Ingress.DefaultTLSSecret, enableProxyProtocol)
+		err := UpdateIngressComponent(ctx, s, true, clusterConfig.Ingress.GetDefaultTLSSecret(), clusterConfig.Ingress.GetEnableProxyProtocol())
 		if err != nil {
 			return fmt.Errorf("failed to refresh ingress: %w", err)
 		}
 		return nil
 	} else if vals.OptionalBool(requestEnabled, false) {
-		err := UpdateIngressComponent(ctx, s, false, clusterConfig.Ingress.DefaultTLSSecret, enableProxyProtocol)
+		err := UpdateIngressComponent(ctx, s, false, clusterConfig.Ingress.GetDefaultTLSSecret(), clusterConfig.Ingress.GetEnableProxyProtocol())
 		if err != nil {
 			return fmt.Errorf("failed to enable ingress: %w", err)
 		}

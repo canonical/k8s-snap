@@ -11,7 +11,7 @@ LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(2)
-def test_clustering(instances: List[harness.Instance]):
+def test_control_plane_nodes(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_node = instances[1]
 

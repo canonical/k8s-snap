@@ -39,7 +39,14 @@ METRICS_SERVER_ROCK_TAG = "main"
 RAWFILE_LOCALPV_REPO = "https://github.com/canonical/rawfile-localpv"
 RAWFILE_LOCALPV_TAG = "main"
 SNAPCRAFT_C_COMPONENTS = ["libmnl", "libnftnl", "iptables"]
-SNAPCRAFT_GO_COMPONENTS = ["runc", "containerd", "cni", "helm", "kubernetes", "k8s-dqlite"]
+SNAPCRAFT_GO_COMPONENTS = [
+    "runc",
+    "containerd",
+    "cni",
+    "helm",
+    "kubernetes",
+    "k8s-dqlite",
+]
 K8S_DIR = DIR / "../../src/k8s"
 
 
@@ -166,6 +173,7 @@ def rock_cilium(manifest, extra_files):
     LOG.info("Generating SBOM info for Cilium rocks")
 
     with _git_repo(CILIUM_ROCK_REPO, CILIUM_ROCK_TAG) as d:
+        rock_repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=d)
         rockcraft = (d / "cilium/rockcraft.yaml").read_text()
         operator_rockcraft = (d / "cilium-operator-generic/rockcraft.yaml").read_text()
 
@@ -186,8 +194,21 @@ def rock_cilium(manifest, extra_files):
 
     # NOTE: this silently assumes that cilium and cilium-operator-generic rocks are in sync
     manifest["rocks"]["cilium"] = {
+        "rock-source": {
+            "type": "git",
+            "repo": CILIUM_ROCK_REPO,
+            "tag": CILIUM_ROCK_TAG,
+            "revision": rock_repo_commit,
+        },
         "language": "go",
-        "details": ["cilium/rockcraft.yaml", "cilium-operator-generic/rockcraft.yaml"],
+        "details": [
+            "cilium/rockcraft.yaml",
+            "cilium/go.mod",
+            "cilium/go.sum",
+            "cilium-operator-generic/rockcraft.yaml",
+            "cilium-operator-generic/go.mod",
+            "cilium-operator-generic/go.sum",
+        ],
         "source": {
             "type": "git",
             "repo": repo_url,
@@ -201,6 +222,7 @@ def rock_coredns(manifest, extra_files):
     LOG.info("Generating SBOM info for CoreDNS rock")
 
     with _git_repo(COREDNS_ROCK_REPO, COREDNS_ROCK_TAG) as d:
+        rock_repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=d)
         rockcraft = (d / "rockcraft.yaml").read_text()
 
         extra_files["coredns/rockcraft.yaml"] = rockcraft
@@ -215,6 +237,12 @@ def rock_coredns(manifest, extra_files):
         extra_files["coredns/go.sum"] = _read_file(dir / "go.sum")
 
     manifest["rocks"]["coredns"] = {
+        "rock-source": {
+            "type": "git",
+            "repo": COREDNS_ROCK_REPO,
+            "tag": COREDNS_ROCK_TAG,
+            "revision": rock_repo_commit,
+        },
         "language": "go",
         "details": ["coredns/rockcraft.yaml", "coredns/go.mod", "coredns/go.sum"],
         "source": {
@@ -230,6 +258,7 @@ def rock_metrics_server(manifest, extra_files):
     LOG.info("Generating SBOM info for metrics-server rock")
 
     with _git_repo(METRICS_SERVER_ROCK_REPO, METRICS_SERVER_ROCK_TAG) as d:
+        rock_repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=d)
         rockcraft = (d / "rockcraft.yaml").read_text()
 
         extra_files["metrics-server/rockcraft.yaml"] = rockcraft
@@ -244,6 +273,12 @@ def rock_metrics_server(manifest, extra_files):
         extra_files["metrics-server/go.sum"] = _read_file(dir / "go.sum")
 
     manifest["rocks"]["metrics-server"] = {
+        "rock-source": {
+            "type": "git",
+            "repo": METRICS_SERVER_ROCK_REPO,
+            "tag": METRICS_SERVER_ROCK_TAG,
+            "revision": rock_repo_commit,
+        },
         "language": "go",
         "details": [
             "metrics-server/rockcraft.yaml",
@@ -275,6 +310,12 @@ def rock_rawfile_localpv(manifest, extra_files):
         extra_files["rawfile-localpv/requirements.txt"] = requirements
 
     manifest["rocks"]["rawfile-localpv"] = {
+        "rock-source": {
+            "type": "git",
+            "repo": repo_url,
+            "tag": repo_tag,
+            "revision": repo_commit,
+        },
         "language": "python",
         "details": [
             "rawfile-localpv/rockcraft.yaml",

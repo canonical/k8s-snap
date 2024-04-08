@@ -120,7 +120,7 @@ m5cIDhPBuZSCs7ZnhWCHF0WMztl6fqNVp2GuFGbDM+LjAZT2YOdP0Ts=
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := NewGomegaWithT(t)
+			g := NewWithT(t)
 			err := tt.pki.CompleteCertificates()
 
 			if tt.expectedError {
@@ -170,7 +170,7 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := NewGomegaWithT(t)
+			g := NewWithT(t)
 
 			pki := NewK8sDqlitePKI(tt.opts)
 			g.Expect(pki).To(Equal(tt.expectedPki), "Unexpected K8sDqlitePKI")
