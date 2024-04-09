@@ -61,7 +61,8 @@ sudo k8s bootstrap
 Canonical Kubernetes allows you to create two types of nodes: control plane and
 worker nodes. In this example, we're creating a worker node.
 
-Generate the token required for the worker node to join the cluster by executing the following command on the control-plane node:
+Generate the token required for the worker node to join the cluster by executing
+the following command on the control-plane node:
 
 ```
 sudo k8s get-join-token worker --worker
