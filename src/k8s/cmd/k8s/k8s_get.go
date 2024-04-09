@@ -11,7 +11,7 @@ import (
 
 func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	getCmd := &cobra.Command{
-		Use:    "get <functionality.key>",
+		Use:    "get <feature.key>",
 		Short:  "get cluster configuration",
 		Long:   fmt.Sprintf("Show configuration of one of %s.", strings.Join(componentList, ", ")),
 		Args:   cmdutil.MaximumNArgs(env, 1),

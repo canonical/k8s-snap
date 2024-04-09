@@ -34,7 +34,7 @@ workspace "Canonical K8s Workspace" {
 
             rt = container "Runtime" "Containerd and runc"
 
-            k8sd = container "K8sd" "Deamon implementing the functionality available in the k8s snap" {
+            k8sd = container "K8sd" "Daemon implementing the features available in the k8s snap" {
                 cli = component "CLI" "The CLI the offered" "CLI"
                 api = component "API via HTTP" "The API interface offered" "REST"
                 cluster_manager = component "CLuster management" "Management of the cluster with the help of MicroCluster"

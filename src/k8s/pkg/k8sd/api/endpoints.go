@@ -69,7 +69,7 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Path: "k8sd/kubeconfig",
 			Get:  rest.EndpointAction{Handler: e.getKubeconfig, AccessHandler: e.restrictWorkers},
 		},
-		// Get and modify the cluster configuration (e.g. to enable/disable functionalities)
+		// Get and modify the cluster configuration (e.g. to enable/disable features)
 		{
 			Name: "ClusterConfig",
 			Path: "k8sd/cluster/config",
