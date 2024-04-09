@@ -26,6 +26,19 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 	internalToken := types.InternalWorkerNodeToken{}
 	// Check if token is worker token
 	if internalToken.Decode(req.Token) == nil {
+		// Check Server Auth
+		// Get remote certificate from the cluster member
+		cert, err := utils.GetRemoteCertificate(req.Address)
+		if err != nil {
+			return response.InternalError(fmt.Errorf("failed to get certificate of cluster member: %w", err))
+		}
+
+		// verify that the fingerprint of the certificate matches the fingerprint of the token
+		fingerprint := utils.CertFingerprint(cert)
+		if fingerprint != internalToken.Fingerprint {
+			return response.BadRequest(fmt.Errorf("server authentication failed: join token fingerprint does not match that of the cluster member"))
+		}
+
 		// valid worker node token - let's join the cluster
 		// The validation of the token is done when fetching the cluster information.
 		if err := e.provider.MicroCluster().NewCluster(hostname, req.Address, map[string]string{"workerToken": req.Token}, 0); err != nil {

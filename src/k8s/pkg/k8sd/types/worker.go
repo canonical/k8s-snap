@@ -14,6 +14,8 @@ type InternalWorkerNodeToken struct {
 	Secret string `json:"secret"`
 	// JoinAddresses is a list of control-plane addresses that exist in the cluster.
 	JoinAddresses []string `json:"join_addresses"`
+	// Fingerprint is used for server Auth
+	Fingerprint string `json:"fingerprint"`
 }
 
 // internalWorkerNodeTokenSerializeMagicString is used to validate serialized worker node tokens.
