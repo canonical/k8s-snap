@@ -11,7 +11,7 @@ jobs:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04"]
         arch: ["amd64", "arm64"]
-        releases: ["latest/edge", "1.30-classic/beta"]
+        releases: ["latest/edge"]
       fail-fast: false # TODO: remove once arm64 works
 
     runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-20.04' }}
