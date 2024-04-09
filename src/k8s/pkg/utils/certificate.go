@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto"
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
@@ -30,6 +31,24 @@ func SplitIPAndDNSSANs(extraSANs []string) ([]net.IP, []string) {
 	}
 
 	return ipSANs, dnsSANs
+}
+
+func CreateHTTPClientWithCert(cert *x509.Certificate, key crypto.PrivateKey) (*http.Client, error) {
+	// Create the client
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{
+			{
+				Certificate: [][]byte{cert.Raw},
+				PrivateKey:  key,
+			},
+		},
+	}
+
+	return &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}, nil
 }
 
 func GetRemoteCertificate(address string) (*x509.Certificate, error) {

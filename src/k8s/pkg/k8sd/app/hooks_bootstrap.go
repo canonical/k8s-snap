@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -49,7 +48,6 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	if nodeIP == nil {
 		return fmt.Errorf("failed to parse node IP address %s", s.Address().Hostname())
 	}
-
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
 
 	// Check Server Auth
@@ -65,15 +63,12 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		return fmt.Errorf("server authentication failed: join token fingerprint does not match that of the cluster member")
 	}
 
-	// TODO: add certificate to trusted certificates
+	// TODO: figure out where to get this key from
+	key := "what's my key"
 
-	// create an HTTP client that ignores https
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				Certificates: cert,
-			},
-		},
+	httpClient, err := utils.CreateHTTPClientWithCert(cert, key)
+	if err != nil {
+		return fmt.Errorf("failed to create HTTP client with certificate: %w", err)
 	}
 
 	type wrappedResponse struct {
