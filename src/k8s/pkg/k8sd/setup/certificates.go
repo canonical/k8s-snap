@@ -16,15 +16,28 @@ import (
 func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (bool, error) {
 	if contents == "" {
 		if err := os.Remove(fname); err != nil {
-			return false, fmt.Errorf("failed to delete: %w", err)
+			if !os.IsNotExist(err) {
+				// File exists but failed to delete.
+				return false, fmt.Errorf("failed to delete: %w", err)
+			}
+			// File does not exist, nothing to do.
+			return false, nil
 		}
 
+		// File was deleted.
 		return true, nil
 	}
 
-	if err := os.WriteFile(fname, []byte(contents), mode); err != nil {
-		return false, fmt.Errorf("failed to write: %w", err)
+	var updated bool
+
+	if origContent, err := os.ReadFile(fname); err != nil && string(origContent) != contents {
+		if err := os.WriteFile(fname, []byte(contents), mode); err != nil {
+			return false, fmt.Errorf("failed to write: %w", err)
+		} else {
+			updated = true
+		}
 	}
+
 	if err := os.Chown(fname, uid, gid); err != nil {
 		return false, fmt.Errorf("failed to chown: %w", err)
 	}
@@ -32,25 +45,22 @@ func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (
 		return false, fmt.Errorf("failed to chmod: %w", err)
 	}
 
-	return true, nil
+	// File was updated.
+	return updated, nil
 }
 
 // ensureFiles calls ensureFile for many files.
 // It returns true if one or more files were updated and any error that occured.
 func ensureFiles(uid, gid int, mode fs.FileMode, files map[string]string) (bool, error) {
-	var anyUpdated bool
+	var changed bool
 	for fname, content := range files {
-		updated, err := ensureFile(fname, content, uid, gid, mode)
-
-		if err != nil {
+		if v, err := ensureFile(fname, content, uid, gid, mode); err != nil {
 			return false, fmt.Errorf("failed to configure %s: %w", path.Base(fname), err)
-		}
-
-		if updated {
-			anyUpdated = true
+		} else if v {
+			changed = true
 		}
 	}
-	return anyUpdated, nil
+	return changed, nil
 }
 
 // EnsureExtDatastorePKI ensures the external datastore PKI files are present
