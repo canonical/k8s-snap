@@ -65,12 +65,13 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			var joinClusterConfig string
 			if opts.configFile != "" {
-				joinClusterConfig, err = getJoinConfigContents(opts.configFile)
+				b, err := os.ReadFile(opts.configFile)
 				if err != nil {
 					cmd.PrintErrf("Error: Failed to read join configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
 					env.Exit(1)
 					return
 				}
+				joinClusterConfig = string(b)
 			}
 
 			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
@@ -87,15 +88,6 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
-	cmd.PersistentFlags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster join configuration")
+	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster join configuration")
 	return cmd
-}
-
-func getJoinConfigContents(filePath string) (string, error) {
-	b, err := os.ReadFile(filePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read file: %w", err)
-	}
-
-	return string(b), nil
 }
