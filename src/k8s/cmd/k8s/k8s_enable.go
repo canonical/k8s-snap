@@ -12,31 +12,31 @@ import (
 )
 
 type EnableResult struct {
-	Functionalities []string `json:"functionalities" yaml:"functionalities"`
+	Features []string `json:"features" yaml:"features"`
 }
 
 func (e EnableResult) String() string {
-	return fmt.Sprintf("%s enabled.\n", strings.Join(e.Functionalities, ", "))
+	return fmt.Sprintf("%s enabled.\n", strings.Join(e.Features, ", "))
 }
 
 func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:    "enable <functionality> ...",
-		Short:  "Enable core cluster functionalities",
+		Use:    "enable <feature> ...",
+		Short:  "Enable core cluster features",
 		Long:   fmt.Sprintf("Enable one of %s.", strings.Join(componentList, ", ")),
 		Args:   cmdutil.MinimumNArgs(env, 1),
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
-			functionalities := args
-			for _, functionality := range functionalities {
-				if !slices.Contains(componentList, functionality) {
-					cmd.PrintErrf("Error: Cannot enable %q, must be one of: %s\n", functionality, strings.Join(componentList, ", "))
+			features := args
+			for _, feature := range features {
+				if !slices.Contains(componentList, feature) {
+					cmd.PrintErrf("Error: Cannot enable %q, must be one of: %s\n", feature, strings.Join(componentList, ", "))
 					env.Exit(1)
 					return
 				}
 
-				switch functionality {
+				switch feature {
 				case "network":
 					config.Network = api.NetworkConfig{
 						Enabled: vals.Pointer(true),
@@ -78,14 +78,14 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			cmd.PrintErrf("Enabling %s on the cluster. This may take a few seconds, please wait.\n", strings.Join(functionalities, ", "))
+			cmd.PrintErrf("Enabling %s on the cluster. This may take a few seconds, please wait.\n", strings.Join(features, ", "))
 			if err := client.UpdateClusterConfig(cmd.Context(), request); err != nil {
-				cmd.PrintErrf("Error: Failed to enable %s on the cluster.\n\nThe error was: %v\n", strings.Join(functionalities, ", "), err)
+				cmd.PrintErrf("Error: Failed to enable %s on the cluster.\n\nThe error was: %v\n", strings.Join(features, ", "), err)
 				env.Exit(1)
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(EnableResult{Functionalities: functionalities}); err != nil {
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(EnableResult{Features: features}); err != nil {
 				cmd.PrintErrf("WARNING: Failed to print the enable result.\n\nThe error was: %v\n", err)
 			}
 		},

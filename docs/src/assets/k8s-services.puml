@@ -9,7 +9,7 @@ top to bottom direction
 !include <C4/C4_Container>
 !include <C4/C4_Component>
 
-Container(K8sSnapDistribution.K8sd, "K8sd", $techn="", $descr="Deamon implementing the functionality available in the k8s snap", $tags="", $link="")
+Container(K8sSnapDistribution.K8sd, "K8sd", $techn="", $descr="Daemon implementing the features available in the k8s snap", $tags="", $link="")
 Container(K8sSnapDistribution.State, "State", $techn="", $descr="Datastores holding the cluster state", $tags="", $link="")
 Person(K8sUser, "K8s User", $descr="Interact with the workloads hosted in K8s", $tags="", $link="")
 System(LoadBalancer, "Load Balancer", $descr="External LB, offered by the substrate (cloud)", $tags="", $link="")

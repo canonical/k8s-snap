@@ -12,31 +12,31 @@ import (
 )
 
 type DisableResult struct {
-	Functionalities []string `json:"functionalities" yaml:"functionalities"`
+	Features []string `json:"features" yaml:"features"`
 }
 
 func (d DisableResult) String() string {
-	return fmt.Sprintf("%s disabled.\n", strings.Join(d.Functionalities, ", "))
+	return fmt.Sprintf("%s disabled.\n", strings.Join(d.Features, ", "))
 }
 
 func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:    "disable <functionality> ...",
-		Short:  "Disable core cluster functionalities",
+		Use:    "disable <feature> ...",
+		Short:  "Disable core cluster features",
 		Long:   fmt.Sprintf("Disable one of %s.", strings.Join(componentList, ", ")),
 		Args:   cmdutil.MinimumNArgs(env, 1),
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
-			functionalities := args
-			for _, functionality := range functionalities {
-				if !slices.Contains(componentList, functionality) {
-					cmd.PrintErrf("Error: Cannot disable %q, must be one of: %s\n", functionality, strings.Join(componentList, ", "))
+			features := args
+			for _, feature := range features {
+				if !slices.Contains(componentList, feature) {
+					cmd.PrintErrf("Error: Cannot disable %q, must be one of: %s\n", feature, strings.Join(componentList, ", "))
 					env.Exit(1)
 					return
 				}
 
-				switch functionality {
+				switch feature {
 				case "network":
 					config.Network = api.NetworkConfig{
 						Enabled: vals.Pointer(false),
@@ -78,14 +78,14 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			cmd.PrintErrf("Disabling %s from the cluster. This may take a few seconds, please wait.\n", strings.Join(functionalities, ", "))
+			cmd.PrintErrf("Disabling %s from the cluster. This may take a few seconds, please wait.\n", strings.Join(features, ", "))
 			if err := client.UpdateClusterConfig(cmd.Context(), request); err != nil {
-				cmd.PrintErrf("Error: Failed to disable %s from the cluster.\n\nThe error was: %v\n", strings.Join(functionalities, ", "), err)
+				cmd.PrintErrf("Error: Failed to disable %s from the cluster.\n\nThe error was: %v\n", strings.Join(features, ", "), err)
 				env.Exit(1)
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(DisableResult{Functionalities: functionalities}); err != nil {
+			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(DisableResult{Features: features}); err != nil {
 				cmd.PrintErrf("WARNING: Failed to print the disable result.\n\nThe error was: %v\n", err)
 			}
 		},

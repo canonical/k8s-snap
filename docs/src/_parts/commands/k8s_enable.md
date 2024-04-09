@@ -1,13 +1,13 @@
 ## k8s enable
 
-Enable core cluster functionalities
+Enable core cluster features
 
 ### Synopsis
 
 Enable one of network, dns, gateway, ingress, local-storage, load-balancer, metrics-server.
 
 ```
-k8s enable <functionality> ... [flags]
+k8s enable <feature> ... [flags]
 ```
 
 ### Options

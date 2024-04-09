@@ -67,6 +67,8 @@ func (c ClusterStatus) haClusterFormed() bool {
 	return voters > 2
 }
 
+// TICS -COV_GO_SUPPRESSED_ERROR
+// we are just formatting the output for the k8s status command, it is ok to ignore failures from result.WriteString()
 func (c ClusterStatus) datastoreToString() string {
 	result := strings.Builder{}
 
@@ -157,3 +159,5 @@ func (c ClusterStatus) String() string {
 	}
 	return result.String()
 }
+
+// TICS +COV_GO_SUPPRESSED_ERROR

@@ -44,7 +44,7 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 	if err != nil {
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}
-	control.WaitUntilReady(ctx, func() (bool, error) {
+	if err := control.WaitUntilReady(ctx, func() (bool, error) {
 		resources, err := k8sClient.ListResourcesForGroupVersion("cilium.io/v2alpha1")
 		if err != nil {
 			// This error is expected if the group version is not yet deployed.
@@ -65,7 +65,9 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 			}
 		}
 		return requiredCount == 0, nil
-	})
+	}); err != nil {
+		return fmt.Errorf("failed to wait for cilium CRDs to be available: %w", err)
+	}
 
 	formattedCidrs := []map[string]any{}
 
@@ -110,7 +112,7 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 	}
 
 	attempts := 3
-	if err := control.RetryFor(attempts, func() error {
+	if err := control.RetryFor(ctx, attempts, 0, func() error {
 		if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
 			return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
 		}
@@ -119,7 +121,7 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 		return fmt.Errorf("failed to restart cilium-operator deployment after %d attempts: %w", attempts, err)
 	}
 
-	if err := control.RetryFor(attempts, func() error {
+	if err := control.RetryFor(ctx, attempts, 0, func() error {
 		if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
 			return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 		}

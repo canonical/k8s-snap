@@ -7,7 +7,7 @@ get cluster configuration
 Show configuration of one of network, dns, gateway, ingress, local-storage, load-balancer, metrics-server.
 
 ```
-k8s get <functionality.key> [flags]
+k8s get <feature.key> [flags]
 ```
 
 ### Options
