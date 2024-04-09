@@ -39,7 +39,6 @@ func CreateHTTPClientWithCert(cert *x509.Certificate, key crypto.PrivateKey) (*h
 		Certificates: []tls.Certificate{
 			{
 				Certificate: [][]byte{cert.Raw},
-				PrivateKey:  key,
 			},
 		},
 	}
