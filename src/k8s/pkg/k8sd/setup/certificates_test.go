@@ -176,23 +176,28 @@ func TestEmptyCert(t *testing.T) {
 		filepath.Join(tempDir, "cluster.key"),
 	}
 
-	for _, file := range expectedFiles {
-		if _, err := os.Stat(file); err != nil {
-			t.Fatalf("Failed to create file %q: %v", file, err)
-		}
+	certificates := &pki.K8sDqlitePKI{
+		K8sDqliteCert: "dqlite-cert",
+		K8sDqliteKey:  "dqlite-key",
 	}
 
-	certificates := &pki.K8sDqlitePKI{
+	// Create files
+	if _, err := setup.EnsureK8sDqlitePKI(mock, certificates); err != nil {
+		t.Fatalf("EnsureK8sDqlitePKI returned unexpected error: %v", err)
+	}
+
+	certificates = &pki.K8sDqlitePKI{
 		K8sDqliteCert: "",
 		K8sDqliteKey:  "",
 	}
 
+	// Delete files
 	if _, err := setup.EnsureK8sDqlitePKI(mock, certificates); err != nil {
 		t.Fatalf("EnsureK8sDqlitePKI returned unexpected error: %v", err)
 	}
 
 	for _, file := range expectedFiles {
-		if _, err := os.Stat(file); err != nil {
+		if _, err := os.Stat(file); err == nil {
 			t.Errorf("Expected file %q to be deleted", file)
 		}
 	}
