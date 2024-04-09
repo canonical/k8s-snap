@@ -8,6 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/snap/mock"
+	. "github.com/onsi/gomega"
 )
 
 // TestEnsureK8sDqlitePKI tests the EnsureK8sDqlitePKI function.
@@ -162,6 +163,7 @@ func TestExtDatastorePKI(t *testing.T) {
 // Check that a file passed to Ensure*PKI is deleted if the corresponding
 // certificate content is empty.
 func TestEmptyCert(t *testing.T) {
+	g := NewWithT(t)
 	tempDir := t.TempDir()
 	mock := &mock.Snap{
 		Mock: mock.Mock{
@@ -181,24 +183,21 @@ func TestEmptyCert(t *testing.T) {
 		K8sDqliteKey:  "dqlite-key",
 	}
 
-	// Create files
-	if _, err := setup.EnsureK8sDqlitePKI(mock, certificates); err != nil {
-		t.Fatalf("EnsureK8sDqlitePKI returned unexpected error: %v", err)
-	}
+	// Should create files
+	_, err := setup.EnsureK8sDqlitePKI(mock, certificates)
+	g.Expect(err).To(BeNil())
 
 	certificates = &pki.K8sDqlitePKI{
 		K8sDqliteCert: "",
 		K8sDqliteKey:  "",
 	}
 
-	// Delete files
-	if _, err := setup.EnsureK8sDqlitePKI(mock, certificates); err != nil {
-		t.Fatalf("EnsureK8sDqlitePKI returned unexpected error: %v", err)
-	}
+	// Should delete files
+	_, err = setup.EnsureK8sDqlitePKI(mock, certificates)
+	g.Expect(err).To(BeNil())
 
 	for _, file := range expectedFiles {
-		if _, err := os.Stat(file); err == nil {
-			t.Errorf("Expected file %q to be deleted", file)
-		}
+		_, err := os.Stat(file)
+		g.Expect(err).NotTo(BeNil())
 	}
 }
