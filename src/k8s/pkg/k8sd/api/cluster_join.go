@@ -39,6 +39,8 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 			return response.BadRequest(fmt.Errorf("server authentication failed: join token fingerprint does not match that of the cluster member"))
 		}
 
+		// TODO: add certificate to trusted certificates
+
 		// valid worker node token - let's join the cluster
 		// The validation of the token is done when fetching the cluster information.
 		if err := e.provider.MicroCluster().NewCluster(hostname, req.Address, map[string]string{"workerToken": req.Token}, 0); err != nil {
