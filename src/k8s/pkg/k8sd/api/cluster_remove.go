@@ -57,7 +57,7 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 	}
 
 	if !isWorker && !isControlPlane {
-		return response.InternalError(fmt.Errorf("Node %q is not part of the cluster", req.Name))
+		return response.InternalError(fmt.Errorf("node %q is not part of the cluster", req.Name))
 	}
 	return response.SyncResponse(true, nil)
 }
