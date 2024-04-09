@@ -11,8 +11,10 @@ import (
 )
 
 // ensureFile creates fname with the specified contents, mode and owner bits.
-// It will delete the file if contents is an empty string.
-// It returns true if a file was updated (or deleted) and any error that occured.
+// It will delete the file if contents parameter is an empty string. Trying to ensure a inexistent file
+// with an empty contents parameter does not result in an error.
+// It returns true if any of these is true: the file's content changed, it was created or it was deleted.
+// It also returns any error that occured.
 func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (bool, error) {
 	if contents == "" {
 		if err := os.Remove(fname); err != nil {
@@ -28,14 +30,19 @@ func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (
 		return true, nil
 	}
 
-	var updated bool
+	origContent, err := os.ReadFile(fname)
+	if err != nil && !os.IsNotExist(err) {
+		// File exists but failed to read.
+		return false, fmt.Errorf("failed to read: %w", err)
+	}
 
-	// If the file exists and the content is different, update it.
-	if origContent, err := os.ReadFile(fname); err != nil && string(origContent) != contents {
+	var contentChanged bool
+
+	if contents != string(origContent) {
 		if err := os.WriteFile(fname, []byte(contents), mode); err != nil {
 			return false, fmt.Errorf("failed to write: %w", err)
 		} else {
-			updated = true
+			contentChanged = true
 		}
 	}
 
@@ -46,7 +53,7 @@ func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (
 		return false, fmt.Errorf("failed to chmod: %w", err)
 	}
 
-	return updated, nil
+	return contentChanged, nil
 }
 
 // ensureFiles calls ensureFile for many files.
