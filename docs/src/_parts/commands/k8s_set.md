@@ -14,12 +14,7 @@ k8s set <feature.key=value> ... [flags]
 ### Options
 
 ```
-  -h, --help   help for set
-```
-
-### Options inherited from parent commands
-
-```
+  -h, --help                   help for set
       --output-format string   set the output format to one of plain, json or yaml (default "plain")
 ```
 

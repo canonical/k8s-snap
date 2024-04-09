@@ -10,6 +10,8 @@ import (
 
 var (
 	componentList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
+
+	globalFormatter cmdutil.Formatter
 )
 
 func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Command) {
@@ -40,16 +42,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			// initialize context
 			ctx := cmd.Context()
 
-			// initialize formatter
-			var err error
-			formatter, err := cmdutil.NewFormatter(opts.outputFormat, cmd.OutOrStdout())
-			if err != nil {
-				cmd.PrintErrf("Error: Unknown --output-format %q. It must be one of %q (default), %q or %q.", opts.outputFormat, "plain", "json", "yaml")
-				env.Exit(1)
-				return
-			}
-			ctx = cmdutil.ContextWithFormatter(ctx, formatter)
-
 			// configure command context timeout
 			const minTimeout = 3 * time.Second
 			if opts.timeout < minTimeout {
@@ -72,7 +64,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&opts.stateDir, "state-dir", "", "directory with the dqlite datastore")
 	cmd.PersistentFlags().BoolVarP(&opts.logDebug, "debug", "d", false, "show all debug messages")
 	cmd.PersistentFlags().BoolVarP(&opts.logVerbose, "verbose", "v", true, "show all information messages")
-	cmd.PersistentFlags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	cmd.PersistentFlags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 
 	// By default, the state dir is set to a fixed directory in the snap.

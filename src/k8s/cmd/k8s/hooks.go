@@ -21,3 +21,16 @@ func hookRequireRoot(env cmdutil.ExecutionEnvironment) func(*cobra.Command, []st
 		}
 	}
 }
+
+func hookInitializeFormatter(env cmdutil.ExecutionEnvironment, format string) func(*cobra.Command, []string) {
+	return func(cmd *cobra.Command, args []string) {
+		// initialize formatter
+		var err error
+		globalFormatter, err = cmdutil.NewFormatter(format, cmd.OutOrStdout())
+		if err != nil {
+			cmd.PrintErrf("Error: Unknown --output-format %q. It must be one of %q (default), %q or %q.", format, "plain", "json", "yaml")
+			env.Exit(1)
+			return
+		}
+	}
+}

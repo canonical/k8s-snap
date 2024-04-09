@@ -14,12 +14,6 @@ See each sub-command's help for details on how to use the generated script.
   -h, --help   help for completion
 ```
 
-### Options inherited from parent commands
-
-```
-      --output-format string   set the output format to one of plain, json or yaml (default "plain")
-```
-
 ### SEE ALSO
 
 * [k8s](k8s.md)	 - Canonical Kubernetes CLI

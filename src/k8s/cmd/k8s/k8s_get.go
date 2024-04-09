@@ -10,12 +10,15 @@ import (
 )
 
 func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
-	getCmd := &cobra.Command{
+	var opts struct {
+		outputFormat string
+	}
+	cmd := &cobra.Command{
 		Use:    "get <feature.key>",
 		Short:  "Get cluster configuration",
 		Long:   fmt.Sprintf("Show configuration of one of %s.", strings.Join(componentList, ", ")),
 		Args:   cmdutil.MaximumNArgs(env, 1),
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {
@@ -106,13 +109,10 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(output); err != nil {
-				cmd.PrintErrf("Error: Failed to print the value of %q.\n\nThe error was: %v\n", key, err)
-				env.Exit(1)
-				return
-			}
+			globalFormatter.Print(output)
 		},
 	}
+	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 
-	return getCmd
+	return cmd
 }

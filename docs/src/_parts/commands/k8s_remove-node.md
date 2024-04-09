@@ -9,13 +9,8 @@ k8s remove-node <node-name> [flags]
 ### Options
 
 ```
-      --force   forcibly remove the cluster member
-  -h, --help    help for remove-node
-```
-
-### Options inherited from parent commands
-
-```
+      --force                  forcibly remove the cluster member
+  -h, --help                   help for remove-node
       --output-format string   set the output format to one of plain, json or yaml (default "plain")
 ```
 

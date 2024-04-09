@@ -5,8 +5,7 @@ Canonical Kubernetes CLI
 ### Options
 
 ```
-  -h, --help                   help for k8s
-      --output-format string   set the output format to one of plain, json or yaml (default "plain")
+  -h, --help   help for k8s
 ```
 
 ### SEE ALSO

@@ -18,12 +18,13 @@ func (g GetJoinTokenResult) String() string {
 
 func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
-		worker bool
+		worker       bool
+		outputFormat string
 	}
 	cmd := &cobra.Command{
 		Use:    "get-join-token <node-name>",
 		Short:  "Create a token for a node to join the cluster",
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, opts.outputFormat)),
 		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
@@ -42,14 +43,10 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(GetJoinTokenResult{JoinToken: token}); err != nil {
-				cmd.PrintErrf("Error: Failed to print the join token.\n\nThe error was: %v\n", err)
-				env.Exit(1)
-				return
-			}
+			globalFormatter.Print(GetJoinTokenResult{JoinToken: token})
 		},
 	}
 
-	cmd.PersistentFlags().BoolVar(&opts.worker, "worker", false, "generate a join token for a worker node")
+	cmd.Flags().BoolVar(&opts.worker, "worker", false, "generate a join token for a worker node")
 	return cmd
 }

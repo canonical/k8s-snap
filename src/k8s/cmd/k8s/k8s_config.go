@@ -39,6 +39,6 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.Println(config)
 		},
 	}
-	cmd.PersistentFlags().StringVar(&opts.server, "server", "", "custom cluster server address")
+	cmd.Flags().StringVar(&opts.server, "server", "", "custom cluster server address")
 	return cmd
 }

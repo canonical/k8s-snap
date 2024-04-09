@@ -13,12 +13,7 @@ k8s get <feature.key> [flags]
 ### Options
 
 ```
-  -h, --help   help for get
-```
-
-### Options inherited from parent commands
-
-```
+  -h, --help                   help for get
       --output-format string   set the output format to one of plain, json or yaml (default "plain")
 ```
 

@@ -13,12 +13,7 @@ k8s disable <feature> ... [flags]
 ### Options
 
 ```
-  -h, --help   help for disable
-```
-
-### Options inherited from parent commands
-
-```
+  -h, --help                   help for disable
       --output-format string   set the output format to one of plain, json or yaml (default "plain")
 ```
 

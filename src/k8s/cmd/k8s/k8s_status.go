@@ -7,12 +7,13 @@ import (
 
 func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
-		waitReady bool
+		waitReady    bool
+		outputFormat string
 	}
 	cmd := &cobra.Command{
 		Use:    "status",
 		Short:  "Retrieve the current status of the cluster",
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {
@@ -34,14 +35,11 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(status); err != nil {
-				cmd.PrintErrf("Error: Failed to print the cluster status.\n\nThe error was: %v\n", err)
-				env.Exit(1)
-				return
-			}
+			globalFormatter.Print(status)
 		},
 	}
 
-	cmd.PersistentFlags().BoolVar(&opts.waitReady, "wait-ready", false, "wait until at least one cluster node is ready")
+	cmd.Flags().BoolVar(&opts.waitReady, "wait-ready", false, "wait until at least one cluster node is ready")
+	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	return cmd
 }

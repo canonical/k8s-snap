@@ -9,14 +9,9 @@ k8s status [flags]
 ### Options
 
 ```
-  -h, --help         help for status
-      --wait-ready   wait until at least one cluster node is ready
-```
-
-### Options inherited from parent commands
-
-```
+  -h, --help                   help for status
       --output-format string   set the output format to one of plain, json or yaml (default "plain")
+      --wait-ready             wait until at least one cluster node is ready
 ```
 
 ### SEE ALSO

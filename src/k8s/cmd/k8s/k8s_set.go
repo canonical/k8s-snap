@@ -21,7 +21,10 @@ func (s SetResult) String() string {
 }
 
 func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
-	return &cobra.Command{
+	var opts struct {
+		outputFormat string
+	}
+	cmd := &cobra.Command{
 		Use:    "set <feature.key=value> ...",
 		Short:  "Set cluster configuration",
 		Long:   fmt.Sprintf("Configure one of %s.\nUse `k8s get` to explore configuration options.", strings.Join(componentList, ", ")),
@@ -54,11 +57,13 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(SetResult{ClusterConfig: config}); err != nil {
-				cmd.PrintErrf("WARNING: Failed to print the cluster configuration result.\n\nThe error was: %v\n", err)
-			}
+			globalFormatter.Print(SetResult{ClusterConfig: config})
 		},
 	}
+
+	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
+
+	return cmd
 }
 
 func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
