@@ -84,6 +84,7 @@ func getOrCreateWorkerToken(s *state.State, nodeName string) (string, error) {
 	info := &types.InternalWorkerNodeToken{
 		Secret:        token,
 		JoinAddresses: addresses,
+		Fingerprint:   utils.CertFingerprint(s.ServerCert().CA()),
 	}
 	token, err := info.Encode()
 	if err != nil {
