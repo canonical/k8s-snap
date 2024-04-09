@@ -80,6 +80,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().MarkHidden("state-dir")
 	cmd.PersistentFlags().MarkHidden("debug")
 	cmd.PersistentFlags().MarkHidden("verbose")
+	cmd.PersistentFlags().MarkHidden("timeout")
 
 	// General
 	addCommands(
