@@ -12,9 +12,10 @@ func TestEnsureFile(t *testing.T) {
 
 	t.Run("CreateFile", func(t *testing.T) {
 		g := NewWithT(t)
+
 		tempDir := t.TempDir()
 		fname := path.Join(tempDir, "test")
-		updated, err := ensureFile(fname, "test", 1000, 1000, 0777)
+		updated, err := ensureFile(fname, "test", os.Getuid(), os.Getgid(), 0777)
 		g.Expect(err).To(BeNil())
 		g.Expect(updated).To(BeTrue())
 
@@ -28,12 +29,12 @@ func TestEnsureFile(t *testing.T) {
 		fname := path.Join(tempDir, "test")
 
 		// Create a file with some content.
-		updated, err := ensureFile(fname, "test", 1000, 1000, 0777)
+		updated, err := ensureFile(fname, "test", os.Getuid(), os.Getgid(), 0777)
 		g.Expect(err).To(BeNil())
 		g.Expect(updated).To(BeTrue())
 
 		// Delete the file.
-		updated, err = ensureFile(fname, "", 1000, 1000, 0777)
+		updated, err = ensureFile(fname, "", os.Getuid(), os.Getgid(), 0777)
 		g.Expect(err).To(BeNil())
 		g.Expect(updated).To(BeTrue())
 
@@ -47,17 +48,17 @@ func TestEnsureFile(t *testing.T) {
 		fname := path.Join(tempDir, "test")
 
 		// Create a file with some content.
-		updated, err := ensureFile(fname, "test", 1000, 1000, 0777)
+		updated, err := ensureFile(fname, "test", os.Getuid(), os.Getgid(), 0777)
 		g.Expect(err).To(BeNil())
 		g.Expect(updated).To(BeTrue())
 
 		// ensureFile with same content should return that the file was not updated.
-		updated, err = ensureFile(fname, "test", 1000, 1000, 0777)
+		updated, err = ensureFile(fname, "test", os.Getuid(), os.Getgid(), 0777)
 		g.Expect(err).To(BeNil())
 		g.Expect(updated).To(BeFalse())
 
 		// Change the content and ensureFile should return that the file was updated.
-		updated, err = ensureFile(fname, "new content", 1000, 1000, 0777)
+		updated, err = ensureFile(fname, "new content", os.Getuid(), os.Getgid(), 0777)
 		g.Expect(err).To(BeNil())
 		g.Expect(updated).To(BeTrue())
 
@@ -65,7 +66,7 @@ func TestEnsureFile(t *testing.T) {
 		g.Expect(string(createdFile) == "new content").To(BeTrue())
 
 		// Change permissions and ensureFile should return that the file was not updated.
-		updated, err = ensureFile(fname, "new content", 1000, 1000, 0666)
+		updated, err = ensureFile(fname, "new content", os.Getuid(), os.Getgid(), 0666)
 		g.Expect(err).To(BeNil())
 		g.Expect(updated).To(BeFalse())
 
