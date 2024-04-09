@@ -30,6 +30,7 @@ func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (
 
 	var updated bool
 
+	// If the file exists and the content is different, update it.
 	if origContent, err := os.ReadFile(fname); err != nil && string(origContent) != contents {
 		if err := os.WriteFile(fname, []byte(contents), mode); err != nil {
 			return false, fmt.Errorf("failed to write: %w", err)
@@ -45,7 +46,6 @@ func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (
 		return false, fmt.Errorf("failed to chmod: %w", err)
 	}
 
-	// File was updated.
 	return updated, nil
 }
 
