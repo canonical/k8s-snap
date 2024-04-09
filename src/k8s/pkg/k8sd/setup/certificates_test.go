@@ -13,6 +13,7 @@ import (
 
 // TestEnsureK8sDqlitePKI tests the EnsureK8sDqlitePKI function.
 func TestEnsureK8sDqlitePKI(t *testing.T) {
+	g := NewWithT(t)
 	tempDir := t.TempDir()
 	mock := &mock.Snap{
 		Mock: mock.Mock{
@@ -26,9 +27,8 @@ func TestEnsureK8sDqlitePKI(t *testing.T) {
 		K8sDqliteKey:  "dqlite_key",
 	}
 
-	if _, err := setup.EnsureK8sDqlitePKI(mock, certificates); err != nil {
-		t.Fatalf("EnsureK8sDqlitePKI returned unexpected error: %v", err)
-	}
+	_, err := setup.EnsureK8sDqlitePKI(mock, certificates)
+	g.Expect(err).To(BeNil())
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "cluster.crt"),
@@ -36,14 +36,14 @@ func TestEnsureK8sDqlitePKI(t *testing.T) {
 	}
 
 	for _, file := range expectedFiles {
-		if _, err := os.Stat(file); err != nil {
-			t.Errorf("Expected file %q is missing: %v", file, err)
-		}
+		_, err := os.Stat(file)
+		g.Expect(err).To(BeNil())
 	}
 }
 
 // TestEnsureControlPlanePKI tests the EnsureControlPlanePKI function.
 func TestEnsureControlPlanePKI(t *testing.T) {
+	g := NewWithT(t)
 	tempDir := t.TempDir()
 	mock := &mock.Snap{
 		Mock: mock.Mock{
@@ -68,9 +68,8 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 		ServiceAccountKey:          "serviceaccount_key",
 	}
 
-	if _, err := setup.EnsureControlPlanePKI(mock, certificates); err != nil {
-		t.Fatalf("EnsureControlPlanePKI returned unexpected error: %v", err)
-	}
+	_, err := setup.EnsureControlPlanePKI(mock, certificates)
+	g.Expect(err).To(BeNil())
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "apiserver-kubelet-client.crt"),
@@ -89,14 +88,14 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 	}
 
 	for _, file := range expectedFiles {
-		if _, err := os.Stat(file); err != nil {
-			t.Errorf("Expected file %q is missing: %v", file, err)
-		}
+		_, err := os.Stat(file)
+		g.Expect(err).To(BeNil())
 	}
 }
 
 // TestEnsureWorkerPKI tests the EnsureWorkerPKI function.
 func TestEnsureWorkerPKI(t *testing.T) {
+	g := NewWithT(t)
 	tempDir := t.TempDir()
 	mock := &mock.Snap{
 		Mock: mock.Mock{
@@ -111,9 +110,8 @@ func TestEnsureWorkerPKI(t *testing.T) {
 		KubeletKey:  "kubelet_key",
 	}
 
-	if _, err := setup.EnsureWorkerPKI(mock, certificates); err != nil {
-		t.Fatalf("EnsureWorkerPKI returned unexpected error: %v", err)
-	}
+	_, err := setup.EnsureWorkerPKI(mock, certificates)
+	g.Expect(err).To(BeNil())
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "ca.crt"),
@@ -122,13 +120,13 @@ func TestEnsureWorkerPKI(t *testing.T) {
 	}
 
 	for _, file := range expectedFiles {
-		if _, err := os.Stat(file); err != nil {
-			t.Errorf("Expected file %q is missing: %v", file, err)
-		}
+		_, err := os.Stat(file)
+		g.Expect(err).To(BeNil())
 	}
 }
 
 func TestExtDatastorePKI(t *testing.T) {
+	g := NewWithT(t)
 	tempDir := t.TempDir()
 	mock := &mock.Snap{
 		Mock: mock.Mock{
@@ -143,9 +141,8 @@ func TestExtDatastorePKI(t *testing.T) {
 		DatastoreClientCert: "client_cert",
 	}
 
-	if _, err := setup.EnsureExtDatastorePKI(mock, certificates); err != nil {
-		t.Fatalf("EnsureExtDatastorePKI returned unexpected error: %v", err)
-	}
+	_, err := setup.EnsureExtDatastorePKI(mock, certificates)
+	g.Expect(err).To(BeNil())
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "ca.crt"),
@@ -154,9 +151,8 @@ func TestExtDatastorePKI(t *testing.T) {
 	}
 
 	for _, file := range expectedFiles {
-		if _, err := os.Stat(file); err != nil {
-			t.Errorf("Expected file %q is missing: %v", file, err)
-		}
+		_, err := os.Stat(file)
+		g.Expect(err).To(BeNil())
 	}
 }
 
