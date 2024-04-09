@@ -7,6 +7,7 @@ from typing import Generator, List
 
 import pytest
 from test_util import config, harness, util
+from test_util.etcd import EtcdCluster
 
 LOG = logging.getLogger(__name__)
 
@@ -48,7 +49,8 @@ def h() -> harness.Harness:
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
-        "node_count: Mark a test to specify how many instance nodes need to be created",
+        "node_count: Mark a test to specify how many instance nodes need to be created\n"
+        + "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)",
     )
 
 
@@ -86,9 +88,32 @@ def instances(
         instances.append(instance)
         util.setup_k8s_snap(instance, snap_path)
 
-    first_node, *_ = instances
-    first_node.exec(["k8s", "bootstrap"])
+    # first_node, *_ = instances
+    # first_node.exec(["k8s", "bootstrap"])
 
     yield instances
+
+    _harness_clean(h)
+
+
+@pytest.fixture(scope="function")
+def etcd_count(request) -> int:
+    etcd_count_marker = request.node.get_closest_marker("etcd_count")
+    if not etcd_count_marker:
+        return 0
+    etcd_count_arg, *_ = etcd_count_marker.args
+    return int(etcd_count_arg)
+
+
+@pytest.fixture(scope="function")
+def etcd_cluster(
+    h: harness.Harness, etcd_count: int
+) -> Generator[List[harness.Instance], None, None]:
+    """Construct etcd instances for a cluster."""
+    LOG.info(f"Creating {etcd_count} etcd instances")
+
+    cluster = EtcdCluster(h, initial_node_count=etcd_count)
+
+    yield cluster
 
     _harness_clean(h)

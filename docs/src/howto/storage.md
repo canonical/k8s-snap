@@ -14,7 +14,7 @@ This guide assumes the following:
 
 ## Enable Local Storage
 
-When bootstrapping the snap, the storage functionality is not enabled by
+When bootstrapping the snap, the storage feature is not enabled by
 default. To enable it, execute the following command:
 
 ```
@@ -37,7 +37,7 @@ change the local storage path:
 sudo k8s set local-storage.local-path=/path/to/new/folder
 ```
 
-The local-storage functionality provides the following configuration options:
+The local-storage feature provides the following configuration options:
 
 - `local-path`: path where the local files will be created.
 - `reclaim-policy`: set the reclaim policy of the persistent volumes

@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 )
@@ -45,7 +46,7 @@ var (
 )
 
 // KubeAPIServer configures kube-apiserver on the local node.
-func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore string, externalDatastoreURL string, authorizationMode string) error {
+func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string) error {
 	authTokenWebhookConfigFile := path.Join(snap.ServiceExtraConfigDir(), "auth-token-webhook.conf")
 	authTokenWebhookFile, err := os.OpenFile(authTokenWebhookConfigFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
@@ -78,20 +79,15 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
 	}
 
-	switch datastore {
-	case "k8s-dqlite":
-		args["--etcd-servers"] = fmt.Sprintf("unix://%s", path.Join(snap.K8sDqliteStateDir(), "k8s-dqlite.sock"))
-	case "external":
-		args["--etcd-servers"] = externalDatastoreURL
-		if _, err := os.Stat(path.Join(snap.EtcdPKIDir(), "ca.crt")); err == nil {
-			args["--etcd-cafile"] = path.Join(snap.EtcdPKIDir(), "ca.crt")
-		}
-		if _, err := os.Stat(path.Join(snap.EtcdPKIDir(), "client.key")); err == nil {
-			args["--etcd-keyfile"] = path.Join(snap.EtcdPKIDir(), "client.key")
-			args["--etcd-certfile"] = path.Join(snap.EtcdPKIDir(), "client.crt")
-		}
+	switch datastore.GetType() {
+	case "k8s-dqlite", "external":
 	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore, SupportedDatastores)
+		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore.GetType(), SupportedDatastores)
+	}
+
+	datastoreUpdateArgs, deleteArgs := datastore.ToKubeAPIServerArguments(snap)
+	for key, val := range datastoreUpdateArgs {
+		args[key] = val
 	}
 
 	if enableFrontProxy {
@@ -103,7 +99,7 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		args["--proxy-client-cert-file"] = path.Join(snap.KubernetesPKIDir(), "front-proxy-client.crt")
 		args["--proxy-client-key-file"] = path.Join(snap.KubernetesPKIDir(), "front-proxy-client.key")
 	}
-	if _, err := snaputil.UpdateServiceArguments(snap, "kube-apiserver", args, nil); err != nil {
+	if _, err := snaputil.UpdateServiceArguments(snap, "kube-apiserver", args, deleteArgs); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
 	}
 	return nil

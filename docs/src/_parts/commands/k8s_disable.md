@@ -1,13 +1,13 @@
 ## k8s disable
 
-Disable core cluster functionalities
+Disable core cluster features
 
 ### Synopsis
 
 Disable one of network, dns, gateway, ingress, local-storage, load-balancer, metrics-server.
 
 ```
-k8s disable <functionality> ... [flags]
+k8s disable <feature> ... [flags]
 ```
 
 ### Options
@@ -19,8 +19,8 @@ k8s disable <functionality> ... [flags]
 ### Options inherited from parent commands
 
 ```
-  -o, --output-format string   set the output format to one of plain, json or yaml (default "plain")
-  -t, --timeout duration       the max time to wait for the command to execute (default 1m30s)
+      --output-format string   set the output format to one of plain, json or yaml (default "plain")
+      --timeout duration       the max time to wait for the command to execute (default 1m30s)
 ```
 
 ### SEE ALSO

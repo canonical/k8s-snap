@@ -4,71 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/canonical/k8s/pkg/utils/vals"
 	"gopkg.in/yaml.v2"
 )
-
-type BootstrapConfig struct {
-	// Components are the components that should be enabled on bootstrap.
-	Components []string `yaml:"components"`
-	// ClusterCIDR is the CIDR of the cluster.
-	ClusterCIDR string `yaml:"cluster-cidr"`
-	// ServiceCIDR is the CIDR of the cluster services.
-	ServiceCIDR string `yaml:"service-cidr"`
-	// EnableRBAC determines if RBAC will be enabled; *bool to know true/false/unset.
-	EnableRBAC          *bool    `yaml:"enable-rbac"`
-	K8sDqlitePort       int      `yaml:"k8s-dqlite-port"`
-	Datastore           string   `yaml:"datastore"`
-	DatastoreURL        string   `yaml:"datastore-url,omitempty"`
-	DatastoreCACert     string   `yaml:"datastore-ca-crt,omitempty"`
-	DatastoreClientCert string   `yaml:"datastore-client-crt,omitempty"`
-	DatastoreClientKey  string   `yaml:"datastore-client-key,omitempty"`
-	ExtraSANs           []string `yaml:"extrasans,omitempty"`
-}
-
-// SetDefaults sets the fields to default values.
-func (b *BootstrapConfig) SetDefaults() {
-	if len(b.Components) == 0 {
-		b.Components = []string{"dns", "metrics-server", "network", "gateway"}
-	}
-	if b.ClusterCIDR == "" {
-		b.ClusterCIDR = "10.1.0.0/16"
-	}
-	if b.ServiceCIDR == "" {
-		b.ServiceCIDR = "10.152.183.0/24"
-	}
-	if b.EnableRBAC == nil {
-		b.EnableRBAC = vals.Pointer(true)
-	}
-	if b.K8sDqlitePort == 0 {
-		b.K8sDqlitePort = 9000
-	}
-	if b.Datastore == "" {
-		b.Datastore = "k8s-dqlite"
-	}
-}
-
-// ToMap marshals the BootstrapConfig into yaml and map it to "bootstrapConfig".
-func (b *BootstrapConfig) ToMap() (map[string]string, error) {
-	config, err := yaml.Marshal(b)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config map: %w", err)
-	}
-
-	return map[string]string{
-		"bootstrapConfig": string(config),
-	}, nil
-}
-
-// BootstrapConfigFromMap converts a string map to a BootstrapConfig struct.
-func BootstrapConfigFromMap(m map[string]string) (*BootstrapConfig, error) {
-	config := &BootstrapConfig{}
-	err := yaml.Unmarshal([]byte(m["bootstrapConfig"]), config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
-	}
-	return config, nil
-}
 
 type ClusterRole string
 
@@ -105,16 +42,22 @@ type NodeStatus struct {
 	DatastoreRole DatastoreRole `json:"datastore-role,omitempty"`
 }
 
+type Datastore struct {
+	Type        string `json:"type,omitempty"`
+	ExternalURL string `json:"external-url,omitempty" yaml:"external-url,omitempty"`
+}
+
 // ClusterStatus holds information about the cluster, e.g. its current members
 type ClusterStatus struct {
 	// Ready is true if at least one node in the cluster is in READY state.
-	Ready   bool                    `json:"ready,omitempty"`
-	Members []NodeStatus            `json:"members,omitempty"`
-	Config  UserFacingClusterConfig `json:"config,omitempty"`
+	Ready     bool                    `json:"ready,omitempty"`
+	Members   []NodeStatus            `json:"members,omitempty"`
+	Config    UserFacingClusterConfig `json:"config,omitempty"`
+	Datastore Datastore               `json:"datastore,omitempty"`
 }
 
-// HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
-func (c ClusterStatus) HaClusterFormed() bool {
+// haClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
+func (c ClusterStatus) haClusterFormed() bool {
 	voters := 0
 	for _, member := range c.Members {
 		if member.DatastoreRole == DatastoreRoleVoter {
@@ -124,26 +67,24 @@ func (c ClusterStatus) HaClusterFormed() bool {
 	return voters > 2
 }
 
-// TODO: Print k8s version. However, multiple nodes can run different version, so we would need to query all nodes.
-func (c ClusterStatus) String() string {
+// TICS -COV_GO_SUPPRESSED_ERROR
+// we are just formatting the output for the k8s status command, it is ok to ignore failures from result.WriteString()
+func (c ClusterStatus) datastoreToString() string {
 	result := strings.Builder{}
 
-	if c.Ready {
-		result.WriteString("status: ready")
-	} else {
-		result.WriteString("status: not ready")
+	// Datastore
+	if c.Datastore.Type != "" {
+		result.WriteString(fmt.Sprintf("  type: %s\n", c.Datastore.Type))
+		// Datastore URL for external only
+		if c.Datastore.Type == "external" {
+			if c.Datastore.ExternalURL != "" {
+				result.WriteString(fmt.Sprintf("  url: %s\n", c.Datastore.ExternalURL))
+			}
+			return result.String()
+		}
 	}
-	result.WriteString("\n")
 
-	result.WriteString("high-availability: ")
-	if c.HaClusterFormed() {
-		result.WriteString("yes")
-	} else {
-		result.WriteString("no")
-	}
-	result.WriteString("\n")
-	result.WriteString("datastore:\n")
-
+	// Datastore roles for dqlite
 	voters := make([]NodeStatus, 0, len(c.Members))
 	standBys := make([]NodeStatus, 0, len(c.Members))
 	spares := make([]NodeStatus, 0, len(c.Members))
@@ -182,6 +123,35 @@ func (c ClusterStatus) String() string {
 		result.WriteString("  spare-nodes: none\n")
 	}
 
+	return result.String()
+}
+
+// TODO: Print k8s version. However, multiple nodes can run different version, so we would need to query all nodes.
+func (c ClusterStatus) String() string {
+	result := strings.Builder{}
+
+	// Status
+	if c.Ready {
+		result.WriteString("status: ready")
+	} else {
+		result.WriteString("status: not ready")
+	}
+	result.WriteString("\n")
+
+	// High availability
+	result.WriteString("high-availability: ")
+	if c.haClusterFormed() {
+		result.WriteString("yes")
+	} else {
+		result.WriteString("no")
+	}
+
+	// Datastore
+	result.WriteString("\n")
+	result.WriteString("datastore:\n")
+	result.WriteString(c.datastoreToString())
+
+	// Config
 	var emptyConfig UserFacingClusterConfig
 	if c.Config != emptyConfig {
 		b, _ := yaml.Marshal(c.Config)
@@ -189,3 +159,5 @@ func (c ClusterStatus) String() string {
 	}
 	return result.String()
 }
+
+// TICS +COV_GO_SUPPRESSED_ERROR

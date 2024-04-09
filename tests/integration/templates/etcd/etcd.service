@@ -1,0 +1,33 @@
+    [Unit]
+    Description=etcd
+    Documentation=https://github.com/etcd-io/etcd
+    Conflicts=etcd.service
+    Conflicts=etcd2.service
+
+    [Service]
+    Type=notify
+    Restart=always
+    RestartSec=5s
+    LimitNOFILE=40000
+    TimeoutStartSec=0
+
+    ExecStart=/tmp/test-etcd/etcd --name $NAME \
+    --data-dir /tmp/etcd/s1 \
+    --listen-client-urls $CLIENT_URL \
+    --advertise-client-urls $CLIENT_URL \
+    --listen-peer-urls $PEER_URL \
+    --initial-advertise-peer-urls $PEER_URL \
+    --initial-cluster "$CLUSTER" \
+    --initial-cluster-token tkn \
+    --initial-cluster-state new \
+    --client-cert-auth \
+    --trusted-ca-file /tmp/ca-cert.pem \
+    --cert-file /tmp/etcd-cert.pem \
+    --key-file /tmp/etcd-key.pem \
+    --peer-client-cert-auth \
+    --peer-trusted-ca-file /tmp/ca-cert.pem \
+    --peer-cert-file /tmp/etcd-cert.pem \
+    --peer-key-file /tmp/etcd-key.pem
+
+    [Install]
+    WantedBy=multi-user.target

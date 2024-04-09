@@ -1,0 +1,36 @@
+@startuml
+set separator none
+title Juju - Containers
+
+top to bottom direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+
+Person(Administrator, "Administrator", $descr="", $tags="", $link="")
+
+System_Boundary("Juju_boundary", "Juju", $tags="") {
+  Container(Juju.JujuController, "Juju Controller", $techn="Snap Package", $descr="", $tags="", $link="")
+  Container(Juju.JujuClient, "Juju Client", $techn="Snap Package", $descr="", $tags="", $link="")
+  Container(Juju.CompatibleCharms, "Compatible Charms", $techn="", $descr="Other Compatible Canonical Charms", $tags="", $link="")
+  Container(Juju.K8s, "K8s", $techn="Charmed Operator", $descr="K8s Charm", $tags="", $link="")
+  Container(Juju.K8sRelationData, "K8s Relation Data", $techn="", $descr="", $tags="", $link="")
+  Container(Juju.K8sWorker, "K8s Worker", $techn="Charmed Operator", $descr="K8s Worker Charm", $tags="", $link="")
+  Container(Juju.K8sWorkerRelationData, "K8s Worker Relation Data", $techn="Juju Relation Databag", $descr="", $tags="", $link="")
+}
+
+Rel(Juju.K8sWorker, Juju.K8sWorkerRelationData, "Reads from and writes to", $techn="", $tags="", $link="")
+Rel(Juju.K8sWorkerRelationData, Juju.K8sWorker, "Retrieves Peer Data", $techn="", $tags="", $link="")
+Rel(Juju.JujuController, Juju.K8s, "Manages", $techn="", $tags="", $link="")
+Rel(Juju.JujuController, Juju.K8sWorker, "Manages", $techn="", $tags="", $link="")
+Rel(Administrator, Juju.JujuClient, "Uses", $techn="", $tags="", $link="")
+Rel(Juju.JujuClient, Juju.JujuController, "Manages", $techn="", $tags="", $link="")
+Rel(Juju.K8s, Juju.CompatibleCharms, "Integrates with", $techn="", $tags="", $link="")
+Rel(Juju.K8sWorker, Juju.CompatibleCharms, "Integrates with", $techn="", $tags="", $link="")
+Rel(Juju.K8s, Juju.K8sRelationData, "Reads from and writes to", $techn="", $tags="", $link="")
+Rel(Juju.K8sRelationData, Juju.K8s, "Retrieves Peer Data", $techn="", $tags="", $link="")
+Rel(Juju.K8s, Juju.K8sWorkerRelationData, "Share Cluster Data", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+@enduml

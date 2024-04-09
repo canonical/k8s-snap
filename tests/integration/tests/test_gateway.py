@@ -91,8 +91,6 @@ def test_gateway(instances: List[harness.Instance]):
     )
     gateway_http_port = p.stdout.decode().replace("'", "")
 
-    p = instance.exec(
-        ["curl", f"localhost:{gateway_http_port}"],
-        capture_output=True,
-    )
-    assert "Welcome to nginx!" in p.stdout.decode()
+    util.stubbornly(retries=5, delay_s=5).on(instance).until(
+        lambda p: "Welcome to nginx!" in p.stdout.decode()
+    ).exec(["curl", f"localhost:{gateway_http_port}"])

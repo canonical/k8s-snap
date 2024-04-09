@@ -8,11 +8,13 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"unicode"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -44,7 +46,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			if opts.interactive && opts.configFile != "" {
-				cmd.PrintErrln("Error: --interactive and --config flags cannot be set at the same time.")
+				cmd.PrintErrln("Error: --interactive and --file flags cannot be set at the same time.")
 				env.Exit(1)
 				return
 			}
@@ -81,7 +83,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			bootstrapConfig := apiv1.BootstrapConfig{}
+			var bootstrapConfig apiv1.BootstrapConfig
 			switch {
 			case opts.interactive:
 				bootstrapConfig = getConfigInteractively(env.Stdin, env.Stdout, env.Stderr)
@@ -93,7 +95,23 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					return
 				}
 			default:
-				bootstrapConfig.SetDefaults()
+				// Default bootstrap configuration
+				bootstrapConfig = apiv1.BootstrapConfig{
+					ClusterConfig: apiv1.UserFacingClusterConfig{
+						Network: apiv1.NetworkConfig{
+							Enabled: vals.Pointer(true),
+						},
+						DNS: apiv1.DNSConfig{
+							Enabled: vals.Pointer(true),
+						},
+						Gateway: apiv1.GatewayConfig{
+							Enabled: vals.Pointer(true),
+						},
+						MetricsServer: apiv1.MetricsServerConfig{
+							Enabled: vals.Pointer(true),
+						},
+					},
+				}
 			}
 
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
@@ -118,24 +136,22 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().BoolVar(&opts.interactive, "interactive", false, "interactively configure the most important cluster options")
-	cmd.PersistentFlags().StringVar(&opts.configFile, "config", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
+	cmd.PersistentFlags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
+
 	return cmd
 }
 
 func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
-	config := apiv1.BootstrapConfig{}
-	config.SetDefaults()
-
-	yamlContent, err := os.ReadFile(filePath)
+	b, err := os.ReadFile(filePath)
 	if err != nil {
-		return config, fmt.Errorf("failed to read YAML config file: %w", err)
+		return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	err = yaml.Unmarshal(yamlContent, &config)
-	if err != nil {
-		return config, fmt.Errorf("failed to parse YAML config file: %w", err)
+	var config apiv1.BootstrapConfig
+	if err := yaml.UnmarshalStrict(b, &config); err != nil {
+		return apiv1.BootstrapConfig{}, fmt.Errorf("failed to parse YAML config file: %w", err)
 	}
 
 	return config, nil
@@ -143,21 +159,41 @@ func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
 
 func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer) apiv1.BootstrapConfig {
 	config := apiv1.BootstrapConfig{}
-	config.SetDefaults()
 
 	components := askQuestion(
 		stdin, stdout, stderr,
 		"Which components would you like to enable?",
 		componentList,
-		strings.Join(config.Components, ", "),
+		"network, dns, gateway, metrics-server",
 		nil,
 	)
-	config.Components = strings.Split(components, ",")
+	for _, component := range strings.FieldsFunc(components, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }) {
+		switch component {
+		case "network":
+			config.ClusterConfig.Network.Enabled = vals.Pointer(true)
+		case "dns":
+			config.ClusterConfig.DNS.Enabled = vals.Pointer(true)
+		case "ingress":
+			config.ClusterConfig.Ingress.Enabled = vals.Pointer(true)
+		case "load-balancer":
+			config.ClusterConfig.LoadBalancer.Enabled = vals.Pointer(true)
+		case "gateway":
+			config.ClusterConfig.Gateway.Enabled = vals.Pointer(true)
+		case "local-storage":
+			config.ClusterConfig.LocalStorage.Enabled = vals.Pointer(true)
+		case "metrics-server":
+			config.ClusterConfig.MetricsServer.Enabled = vals.Pointer(true)
+		}
+	}
 
-	config.ClusterCIDR = askQuestion(stdin, stdout, stderr, "Please set the Cluster CIDR:", nil, config.ClusterCIDR, nil)
-	config.ServiceCIDR = askQuestion(stdin, stdout, stderr, "Please set the Service CIDR:", nil, config.ServiceCIDR, nil)
-	rbac := askBool(stdin, stdout, stderr, "Enable Role Based Access Control (RBAC)?", []string{"yes", "no"}, "yes")
-	*config.EnableRBAC = rbac
+	podCIDR := askQuestion(stdin, stdout, stderr, "Please set the Pod CIDR:", nil, "10.1.0.0/16", nil)
+	serviceCIDR := askQuestion(stdin, stdout, stderr, "Please set the Service CIDR:", nil, "10.152.183.0/24", nil)
+
+	config.PodCIDR = vals.Pointer(podCIDR)
+	config.ServiceCIDR = vals.Pointer(serviceCIDR)
+
+	// TODO: any other configs we care about in the interactive bootstrap?
+
 	return config
 }
 
@@ -211,20 +247,5 @@ func askQuestion(stdin io.Reader, stdout io.Writer, stderr io.Writer, question s
 			}
 		}
 		return s
-	}
-}
-
-// askBool asks a question and expect a yes/no answer.
-func askBool(stdin io.Reader, stdout io.Writer, stderr io.Writer, question string, options []string, defaultVal string) bool {
-	for {
-		answer := askQuestion(stdin, stdout, stderr, question, options, defaultVal, nil)
-
-		if utils.ValueInSlice(strings.ToLower(answer), []string{"yes", "y"}) {
-			return true
-		} else if utils.ValueInSlice(strings.ToLower(answer), []string{"no", "n"}) {
-			return false
-		}
-
-		fmt.Fprintf(stderr, "Invalid input, try again.\n\n")
 	}
 }

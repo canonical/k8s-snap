@@ -13,7 +13,7 @@ func TestStartWorkerServices(t *testing.T) {
 	mock := &mock.Snap{
 		Mock: mock.Mock{},
 	}
-	g := NewGomegaWithT(t)
+	g := NewWithT(t)
 
 	mock.StartServiceErr = fmt.Errorf("service start failed")
 
@@ -33,7 +33,7 @@ func TestStartControlPlaneServices(t *testing.T) {
 	mock := &mock.Snap{
 		Mock: mock.Mock{},
 	}
-	g := NewGomegaWithT(t)
+	g := NewWithT(t)
 
 	mock.StartServiceErr = fmt.Errorf("service start failed")
 
@@ -53,7 +53,7 @@ func TestStartK8sDqliteServices(t *testing.T) {
 	mock := &mock.Snap{
 		Mock: mock.Mock{},
 	}
-	g := NewGomegaWithT(t)
+	g := NewWithT(t)
 
 	mock.StartServiceErr = fmt.Errorf("service start failed")
 
@@ -73,7 +73,7 @@ func TestStopControlPlaneServices(t *testing.T) {
 	mock := &mock.Snap{
 		Mock: mock.Mock{},
 	}
-	g := NewGomegaWithT(t)
+	g := NewWithT(t)
 
 	mock.StopServiceErr = fmt.Errorf("service stop failed")
 
@@ -93,7 +93,7 @@ func TestStopK8sDqliteServices(t *testing.T) {
 	mock := &mock.Snap{
 		Mock: mock.Mock{},
 	}
-	g := NewGomegaWithT(t)
+	g := NewWithT(t)
 
 	mock.StopServiceErr = fmt.Errorf("service stop failed")
 

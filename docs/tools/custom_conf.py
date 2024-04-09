@@ -137,7 +137,7 @@ custom_linkcheck_anchors_ignore_for_url = [
 ############################################################
 
 ## The following settings are appended to the default configuration.
-## Use them to extend the default functionality.
+## Use them to extend the default features.
 
 # Add extensions
 custom_extensions = ['sphinxcontrib.kroki',  ]
