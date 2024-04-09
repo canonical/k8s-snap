@@ -12,6 +12,17 @@ var (
 	componentList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
 )
 
+func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Command) {
+	if group != nil {
+		root.AddGroup(group)
+		for _, command := range commands {
+			command.GroupID = group.ID
+		}
+	}
+
+	root.AddCommand(commands...)
+}
+
 func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var (
 		opts struct {
@@ -71,31 +82,45 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().MarkHidden("verbose")
 
 	// General
-	cmd.AddCommand(newStatusCmd(env))
+	addCommands(
+		cmd,
+		&cobra.Group{ID: "general", Title: "General Commands:"},
+		newStatusCmd(env),
+		newKubeConfigCmd(env),
+		newKubectlCmd(env),
+	)
 
 	// Clustering
-	cmd.AddCommand(newBootstrapCmd(env))
-	cmd.AddCommand(newGetJoinTokenCmd(env))
-	cmd.AddCommand(newJoinClusterCmd(env))
-	cmd.AddCommand(newRemoveNodeCmd(env))
+	addCommands(
+		cmd,
+		&cobra.Group{ID: "cluster", Title: "Clustering Commands:"},
+		newBootstrapCmd(env),
+		newGetJoinTokenCmd(env),
+		newJoinClusterCmd(env),
+		newRemoveNodeCmd(env),
+	)
 
-	// Components
-	cmd.AddCommand(newEnableCmd(env))
-	cmd.AddCommand(newDisableCmd(env))
-	cmd.AddCommand(newSetCmd(env))
-	cmd.AddCommand(newGetCmd(env))
+	// Management
+	addCommands(
+		cmd,
+		&cobra.Group{ID: "management", Title: "Management Commands:"},
+		newEnableCmd(env),
+		newDisableCmd(env),
+		newSetCmd(env),
+		newGetCmd(env),
+	)
 
-	// internal
-	cmd.AddCommand(newGenerateAuthTokenCmd(env))
-	cmd.AddCommand(newKubeConfigCmd(env))
-	cmd.AddCommand(newLocalNodeStatusCommand(env))
-	cmd.AddCommand(newRevokeAuthTokenCmd(env))
-	cmd.AddCommand(newGenerateDocsCmd(env))
-	cmd.AddCommand(xPrintShimPidsCmd)
-
-	// Those commands replace the executable - no need for error wrapping.
-	cmd.AddCommand(newHelmCmd(env))
-	cmd.AddCommand(newKubectlCmd(env))
+	// hidden commands
+	addCommands(
+		cmd,
+		nil,
+		newGenerateAuthTokenCmd(env),
+		newLocalNodeStatusCommand(env),
+		newRevokeAuthTokenCmd(env),
+		newGenerateDocsCmd(env),
+		xPrintShimPidsCmd,
+		newHelmCmd(env),
+	)
 
 	cmd.DisableAutoGenTag = true
 	return cmd

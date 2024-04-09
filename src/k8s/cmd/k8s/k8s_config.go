@@ -11,9 +11,10 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		server string
 	}
 	cmd := &cobra.Command{
-		Use:    "config",
-		Short:  "Generate a kubeconfig that can be used to access the Kubernetes cluster",
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Use:     "config",
+		GroupID: "general",
+		Short:   "Generate an admin kubeconfig that can be used to access the Kubernetes cluster",
+		PreRun:  chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {

@@ -11,11 +11,12 @@ import (
 
 func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	getCmd := &cobra.Command{
-		Use:    "get <feature.key>",
-		Short:  "get cluster configuration",
-		Long:   fmt.Sprintf("Show configuration of one of %s.", strings.Join(componentList, ", ")),
-		Args:   cmdutil.MaximumNArgs(env, 1),
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Use:     "get <feature.key>",
+		GroupID: "management",
+		Short:   "Get cluster configuration",
+		Long:    fmt.Sprintf("Show configuration of one of %s.", strings.Join(componentList, ", ")),
+		Args:    cmdutil.MaximumNArgs(env, 1),
+		PreRun:  chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {

@@ -21,11 +21,12 @@ func (e EnableResult) String() string {
 
 func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:    "enable <feature> ...",
-		Short:  "Enable core cluster features",
-		Long:   fmt.Sprintf("Enable one of %s.", strings.Join(componentList, ", ")),
-		Args:   cmdutil.MinimumNArgs(env, 1),
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Use:     "enable <feature> ...",
+		GroupID: "management",
+		Short:   "Enable core cluster features",
+		Long:    fmt.Sprintf("Enable one of %s.", strings.Join(componentList, ", ")),
+		Args:    cmdutil.MinimumNArgs(env, 1),
+		PreRun:  chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
 			features := args

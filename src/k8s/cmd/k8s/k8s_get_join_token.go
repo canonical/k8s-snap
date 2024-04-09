@@ -21,10 +21,11 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		worker bool
 	}
 	cmd := &cobra.Command{
-		Use:    "get-join-token <node-name>",
-		Short:  "Create a token for a node to join the cluster",
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
-		Args:   cmdutil.ExactArgs(env, 1),
+		Use:     "get-join-token <node-name>",
+		GroupID: "cluster",
+		Short:   "Create a token for a node to join the cluster",
+		PreRun:  chainPreRunHooks(hookRequireRoot(env)),
+		Args:    cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
 

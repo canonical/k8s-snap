@@ -22,11 +22,12 @@ func (s SetResult) String() string {
 
 func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	return &cobra.Command{
-		Use:    "set <feature.key=value> ...",
-		Short:  "Set cluster configuration",
-		Long:   fmt.Sprintf("Configure one of %s.\nUse `k8s get` to explore configuration options.", strings.Join(componentList, ", ")),
-		Args:   cmdutil.MinimumNArgs(env, 1),
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Use:     "set <feature.key=value> ...",
+		GroupID: "management",
+		Short:   "Set cluster configuration",
+		Long:    fmt.Sprintf("Configure one of %s.\nUse `k8s get` to explore configuration options.", strings.Join(componentList, ", ")),
+		Args:    cmdutil.MinimumNArgs(env, 1),
+		PreRun:  chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := apiv1.UserFacingClusterConfig{}
 
