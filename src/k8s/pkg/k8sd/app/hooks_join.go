@@ -18,10 +18,9 @@ import (
 func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	snap := a.Snap()
 
-	var joinClusterConfig apiv1.ControlPlaneNodeJoinConfig
-	err := apiv1.ConfigFromMicrocluster(initConfig, "joinClusterConfig", &joinClusterConfig)
+	joinClusterConfig, err := apiv1.ControlPlaneJoinConfigFromMicrocluster(initConfig)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal join config: %w", err)
+		return fmt.Errorf("failed to unmarshal control plane join config: %w", err)
 	}
 
 	cfg, err := utils.GetClusterConfig(s.Context, s)

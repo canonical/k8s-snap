@@ -28,8 +28,7 @@ import (
 // onBootstrap configures local services then writes the cluster config on the database.
 func (a *App) onBootstrap(s *state.State, initConfig map[string]string) error {
 	if workerToken, ok := initConfig["workerToken"]; ok {
-		var workerConfig apiv1.WorkerNodeJoinConfig
-		err := apiv1.ConfigFromMicrocluster(initConfig, "joinClusterConfig", &workerConfig)
+		workerConfig, err := apiv1.WorkerJoinConfigFromMicrocluster(initConfig)
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal worker join config: %w", err)
 		}

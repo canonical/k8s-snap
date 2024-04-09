@@ -1,5 +1,12 @@
 package v1
 
+import (
+	"encoding/json"
+	"fmt"
+
+	"gopkg.in/yaml.v2"
+)
+
 type ControlPlaneNodeJoinConfig struct {
 	APIServerCert *string `json:"apiserver-crt,omitempty" yaml:"apiserver-crt,omitempty"`
 	APIServerKey  *string `json:"apiserver-key,omitempty" yaml:"apiserver-key,omitempty"`
@@ -21,11 +28,43 @@ func (w *WorkerNodeJoinConfig) GetKubeletCert() string { return getField(w.Kubel
 func (w *WorkerNodeJoinConfig) GetKubeletKey() string  { return getField(w.KubeletKey) }
 
 // ToMicrocluster converts a BootstrapConfig to a map[string]string for use in microcluster.
-func (j *ControlPlaneNodeJoinConfig) ToMicrocluster() (map[string]string, error) {
-	return ToMicrocluster(j, "joinClusterConfig")
+func (c *ControlPlaneNodeJoinConfig) ToMicrocluster() (map[string]string, error) {
+	config, err := json.Marshal(c)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal control plane join config: %w", err)
+	}
+
+	return map[string]string{
+		"controlPlaneJoinConfig": string(config),
+	}, nil
 }
 
 // ToMicrocluster converts a BootstrapConfig to a map[string]string for use in microcluster.
 func (w *WorkerNodeJoinConfig) ToMicrocluster() (map[string]string, error) {
-	return ToMicrocluster(w, "joinClusterConfig")
+	config, err := json.Marshal(w)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal control plane join config: %w", err)
+	}
+
+	return map[string]string{
+		"workerJoinConfig": string(config),
+	}, nil
+}
+
+// WorkerJoinConfigFromMicrocluster parses a microcluster map[string]string and retrieves the WorkerNodeJoinConfig.
+func ControlPlaneJoinConfigFromMicrocluster(m map[string]string) (ControlPlaneNodeJoinConfig, error) {
+	config := ControlPlaneNodeJoinConfig{}
+	if err := yaml.UnmarshalStrict([]byte(m["controlPlaneJoinConfig"]), &config); err != nil {
+		return ControlPlaneNodeJoinConfig{}, fmt.Errorf("failed to unmarshal control plane join config: %w", err)
+	}
+	return config, nil
+}
+
+// WorkerJoinConfigFromMicrocluster parses a microcluster map[string]string and retrieves the WorkerNodeJoinConfig.
+func WorkerJoinConfigFromMicrocluster(m map[string]string) (WorkerNodeJoinConfig, error) {
+	config := WorkerNodeJoinConfig{}
+	if err := yaml.UnmarshalStrict([]byte(m["workerJoinConfig"]), &config); err != nil {
+		return WorkerNodeJoinConfig{}, fmt.Errorf("failed to unmarshal worker join config: %w", err)
+	}
+	return config, nil
 }

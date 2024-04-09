@@ -9,7 +9,6 @@ import (
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 type JoinClusterResult struct {
@@ -64,9 +63,9 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			joinClusterConfig := apiv1.ControlPlaneNodeJoinConfig{}
+			var joinClusterConfig string
 			if opts.configFile != "" {
-				joinClusterConfig, err = getJoinConfigFromYaml(opts.configFile)
+				joinClusterConfig, err = getJoinConfigContents(opts.configFile)
 				if err != nil {
 					cmd.PrintErrf("Error: Failed to read join configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
 					env.Exit(1)
@@ -92,16 +91,11 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	return cmd
 }
 
-func getJoinConfigFromYaml(filePath string) (apiv1.ControlPlaneNodeJoinConfig, error) {
+func getJoinConfigContents(filePath string) (string, error) {
 	b, err := os.ReadFile(filePath)
 	if err != nil {
-		return apiv1.ControlPlaneNodeJoinConfig{}, fmt.Errorf("failed to read file: %w", err)
+		return "", fmt.Errorf("failed to read file: %w", err)
 	}
 
-	var config apiv1.ControlPlaneNodeJoinConfig
-	if err := yaml.UnmarshalStrict(b, &config); err != nil {
-		return apiv1.ControlPlaneNodeJoinConfig{}, fmt.Errorf("failed to parse YAML config file: %w", err)
-	}
-
-	return config, nil
+	return string(b), nil
 }
