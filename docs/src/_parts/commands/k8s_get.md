@@ -1,6 +1,6 @@
 ## k8s get
 
-get cluster configuration
+Get cluster configuration
 
 ### Synopsis
 

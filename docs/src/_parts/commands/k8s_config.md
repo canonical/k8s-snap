@@ -1,6 +1,6 @@
 ## k8s config
 
-Generate a kubeconfig that can be used to access the Kubernetes cluster
+Generate an admin kubeconfig that can be used to access the Kubernetes cluster
 
 ```
 k8s config [flags]

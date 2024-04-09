@@ -14,10 +14,10 @@ Canonical Kubernetes CLI
 
 * [k8s bootstrap](k8s_bootstrap.md)	 - Bootstrap a new Kubernetes cluster
 * [k8s completion](k8s_completion.md)	 - Generate the autocompletion script for the specified shell
-* [k8s config](k8s_config.md)	 - Generate a kubeconfig that can be used to access the Kubernetes cluster
+* [k8s config](k8s_config.md)	 - Generate an admin kubeconfig that can be used to access the Kubernetes cluster
 * [k8s disable](k8s_disable.md)	 - Disable core cluster features
 * [k8s enable](k8s_enable.md)	 - Enable core cluster features
-* [k8s get](k8s_get.md)	 - get cluster configuration
+* [k8s get](k8s_get.md)	 - Get cluster configuration
 * [k8s get-join-token](k8s_get-join-token.md)	 - Create a token for a node to join the cluster
 * [k8s join-cluster](k8s_join-cluster.md)	 - Join a cluster using the provided token
 * [k8s kubectl](k8s_kubectl.md)	 - Integrated Kubernetes kubectl client
