@@ -35,7 +35,7 @@ type plainFormatter struct {
 
 func (p plainFormatter) Print(data any) {
 	if _, err := fmt.Fprint(p.writer, data, "\n"); err != nil {
-		log.Println("Failed to format output: %v", err)
+		log.Printf("Failed to format output: %v", err)
 	}
 }
 
@@ -47,7 +47,7 @@ func (j jsonFormatter) Print(data any) {
 	encoder := json.NewEncoder(j.writer)
 	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(data); err != nil {
-		log.Println("Failed to format JSON output: %v", err)
+		log.Printf("Failed to format JSON output: %v", err)
 	}
 }
 
@@ -57,6 +57,6 @@ type yamlFormatter struct {
 
 func (y yamlFormatter) Print(data any) {
 	if err := yaml.NewEncoder(y.writer).Encode(data); err != nil {
-		log.Println("Failed to format YAML output: %v", err)
+		log.Printf("Failed to format YAML output: %v", err)
 	}
 }
