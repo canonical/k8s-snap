@@ -72,4 +72,15 @@ func TestEnsureFile(t *testing.T) {
 
 		// TODO: test with a different guid/uid than 1000
 	})
+
+	t.Run("NotExist", func(t *testing.T) {
+		g := NewWithT(t)
+		tempDir := t.TempDir()
+		fname := path.Join(tempDir, "test")
+
+		// ensureFile on inexistent file with empty content should return that the file was not updated.
+		updated, err := ensureFile(fname, "", os.Getuid(), os.Getgid(), 0777)
+		g.Expect(err).To(BeNil())
+		g.Expect(updated).To(BeFalse())
+	})
 }
