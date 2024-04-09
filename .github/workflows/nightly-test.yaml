@@ -34,7 +34,7 @@ jobs:
           sg lxd -c 'lxc version'
       - name: Create build directory
         run: mkdir -p build
-      - name: Install latest/edge k8s snap
+      - name: Install $${ matrix.releases }} k8s snap
         run: |
           cd build
           snap download k8s --channel=${{ matrix.releases }} --basename k8s
