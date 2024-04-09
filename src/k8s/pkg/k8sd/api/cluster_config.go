@@ -33,6 +33,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	}
 
 	requestedConfig := types.ClusterConfigFromUserFacing(req.Config)
+	requestedConfig.Datastore = types.DatastoreConfigFromUserFacing(req.DatastoreConfig)
 	var mergedConfig types.ClusterConfig
 	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error

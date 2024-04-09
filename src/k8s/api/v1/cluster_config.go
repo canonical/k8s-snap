@@ -14,6 +14,10 @@ type GetClusterConfigResponse struct {
 
 type UpdateClusterConfigRequest struct {
 	Config UserFacingClusterConfig
+	// DatastoreConfig contains updates of the external datastore configuration.
+	// It is not part of the UserFacingClusterConfig as it is direcly marshalled by the CLI.
+	// The datastore config should not be displayed as part of the configuration in `k8s get`
+	DatastoreConfig UserFacingDatastoreConfig
 }
 
 type UpdateClusterConfigResponse struct {
@@ -103,6 +107,21 @@ type MetricsServerConfig struct {
 
 func (c MetricsServerConfig) GetEnabled() bool { return getField(c.Enabled) }
 
+type UserFacingDatastoreConfig struct {
+	// Type of the datastore. Needs to be "external".
+	Type       *string   `json:"datastore-type,omitempty"`
+	Servers    *[]string `json:"datastore-url,omitempty"`
+	CACert     *string   `json:"ca-crt,omitempty"`
+	ClientCert *string   `json:"client-crt,omitempty"`
+	ClientKey  *string   `json:"client-key,omitempty"`
+}
+
+func (c UserFacingDatastoreConfig) GetType() string       { return getField(c.Type) }
+func (c UserFacingDatastoreConfig) GetURL() []string      { return getField(c.Servers) }
+func (c UserFacingDatastoreConfig) GetCACert() string     { return getField(c.CACert) }
+func (c UserFacingDatastoreConfig) GetClientCert() string { return getField(c.ClientCert) }
+func (c UserFacingDatastoreConfig) GetClientKey() string  { return getField(c.ClientKey) }
+
 func (c UserFacingClusterConfig) String() string {
 	b, err := yaml.Marshal(c)
 	if err != nil {
@@ -160,6 +179,14 @@ func (c GatewayConfig) String() string {
 }
 
 func (c MetricsServerConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
+}
+
+func (c UserFacingDatastoreConfig) String() string {
 	b, err := yaml.Marshal(c)
 	if err != nil {
 		return fmt.Sprintf("%#v\n", c)

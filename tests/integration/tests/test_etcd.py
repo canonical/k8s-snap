@@ -42,3 +42,22 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
         ["systemctl", "is-active", "--quiet", "snap.k8s.k8s-dqlite"], check=False
     )
     assert p.returncode != 0, "k8s-dqlite service is still active"
+
+    # increase etcd cluster
+    LOG.info("Add a new etcd node")
+    etcd_cluster.add_node()
+    # Update  server-urls in cluster
+    k8s_instance.exec(
+        [
+            "curl",
+            "-XPUT",
+            "--header",
+            "Content-Type: application/json",
+            "--data",
+            "{}",
+            "--unix-socket",
+            "/var/snap/k8s/common/var/lib/k8sd/state/control.socket",
+            "http://localhost/1.0/k8sd/cluster/config",
+        ]
+    )
+    # check that things still work
