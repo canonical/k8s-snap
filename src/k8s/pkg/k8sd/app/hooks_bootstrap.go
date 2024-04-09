@@ -50,7 +50,6 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	}
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
 
-	// Check Server Auth
 	// Get remote certificate from the cluster member
 	cert, err := utils.GetRemoteCertificate(nodeIP.String())
 	if err != nil {
