@@ -51,11 +51,27 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	}
 
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
+
+	// Check Server Auth
+	// Get remote certificate from the cluster member
+	cert, err := utils.GetRemoteCertificate(nodeIP.String())
+	if err != nil {
+		return fmt.Errorf("failed to get certificate of cluster member: %w", err)
+	}
+
+	// verify that the fingerprint of the certificate matches the fingerprint of the token
+	fingerprint := utils.CertFingerprint(cert)
+	if fingerprint != token.Fingerprint {
+		return fmt.Errorf("server authentication failed: join token fingerprint does not match that of the cluster member")
+	}
+
+	// TODO: add certificate to trusted certificates
+
 	// create an HTTP client that ignores https
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
+				Certificates: cert,
 			},
 		},
 	}
