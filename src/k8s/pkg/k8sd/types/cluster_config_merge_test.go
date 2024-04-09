@@ -184,8 +184,8 @@ func TestMergeClusterConfig(t *testing.T) {
 			c.LocalStorage.LocalPath = vals.Pointer("path")
 			c.LocalStorage.ReclaimPolicy = vals.Pointer(v.(string))
 		}),
-		generateMergeClusterConfigTestCases("LocalStorage/SetDefault/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.LocalStorage.SetDefault = vals.Pointer(v.(bool)) }),
-		generateMergeClusterConfigTestCases("LocalStorage/SetDefault/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.LocalStorage.SetDefault = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("LocalStorage/Default/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.LocalStorage.Default = vals.Pointer(v.(bool)) }),
+		generateMergeClusterConfigTestCases("LocalStorage/Default/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.LocalStorage.Default = vals.Pointer(v.(bool)) }),
 		generateMergeClusterConfigTestCases("MetricsServer/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.MetricsServer.Enabled = vals.Pointer(v.(bool)) }),
 		generateMergeClusterConfigTestCases("MetricsServer/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.MetricsServer.Enabled = vals.Pointer(v.(bool)) }),
 	} {

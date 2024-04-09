@@ -102,7 +102,7 @@ func ClusterConfigFromUserFacing(u apiv1.UserFacingClusterConfig) ClusterConfig 
 			Enabled:       u.LocalStorage.Enabled,
 			LocalPath:     u.LocalStorage.LocalPath,
 			ReclaimPolicy: u.LocalStorage.ReclaimPolicy,
-			SetDefault:    u.LocalStorage.SetDefault,
+			Default:       u.LocalStorage.Default,
 		},
 		MetricsServer: MetricsServer{
 			Enabled: u.MetricsServer.Enabled,
@@ -145,7 +145,7 @@ func (c ClusterConfig) ToUserFacing() apiv1.UserFacingClusterConfig {
 			Enabled:       c.LocalStorage.Enabled,
 			LocalPath:     c.LocalStorage.LocalPath,
 			ReclaimPolicy: c.LocalStorage.ReclaimPolicy,
-			SetDefault:    c.LocalStorage.SetDefault,
+			Default:       c.LocalStorage.Default,
 		},
 		MetricsServer: apiv1.MetricsServerConfig{
 			Enabled: c.MetricsServer.Enabled,
