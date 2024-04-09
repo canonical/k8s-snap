@@ -26,11 +26,10 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		configFile string
 	}
 	cmd := &cobra.Command{
-		Use:     "join-cluster <join-token>",
-		GroupID: "cluster",
-		Short:   "Join a cluster using the provided token",
-		PreRun:  chainPreRunHooks(hookRequireRoot(env)),
-		Args:    cmdutil.ExactArgs(env, 1),
+		Use:    "join-cluster <join-token>",
+		Short:  "Join a cluster using the provided token",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			token := args[0]
 

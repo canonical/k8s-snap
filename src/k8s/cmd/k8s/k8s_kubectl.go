@@ -13,7 +13,6 @@ import (
 func newKubectlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	return &cobra.Command{
 		Use:                "kubectl",
-		GroupID:            "general",
 		Short:              "Integrated Kubernetes kubectl client",
 		DisableFlagParsing: true,
 		PreRun:             chainPreRunHooks(hookRequireRoot(env)),

@@ -10,10 +10,9 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		waitReady bool
 	}
 	cmd := &cobra.Command{
-		Use:     "status",
-		Short:   "Retrieve the current status of the cluster",
-		PreRun:  chainPreRunHooks(hookRequireRoot(env)),
-		GroupID: "general",
+		Use:    "status",
+		Short:  "Retrieve the current status of the cluster",
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {

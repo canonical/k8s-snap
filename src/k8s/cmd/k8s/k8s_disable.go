@@ -21,12 +21,11 @@ func (d DisableResult) String() string {
 
 func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "disable <feature> ...",
-		GroupID: "management",
-		Short:   "Disable core cluster features",
-		Long:    fmt.Sprintf("Disable one of %s.", strings.Join(componentList, ", ")),
-		Args:    cmdutil.MinimumNArgs(env, 1),
-		PreRun:  chainPreRunHooks(hookRequireRoot(env)),
+		Use:    "disable <feature> ...",
+		Short:  "Disable core cluster features",
+		Long:   fmt.Sprintf("Disable one of %s.", strings.Join(componentList, ", ")),
+		Args:   cmdutil.MinimumNArgs(env, 1),
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
 			features := args
