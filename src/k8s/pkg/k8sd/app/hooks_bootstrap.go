@@ -63,7 +63,7 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		return fmt.Errorf("server authentication failed: join token fingerprint does not match that of the cluster member")
 	}
 
-	httpClient, err := utils.CreateHTTPClientWithCert(cert, key)
+	httpClient, err := utils.CreateHTTPClientWithCert(cert)
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP client with certificate: %w", err)
 	}
