@@ -27,30 +27,6 @@ func (c *ControlPlaneNodeJoinConfig) GetKubeletKey() string    { return getField
 func (w *WorkerNodeJoinConfig) GetKubeletCert() string { return getField(w.KubeletCert) }
 func (w *WorkerNodeJoinConfig) GetKubeletKey() string  { return getField(w.KubeletKey) }
 
-// ToMicrocluster converts a BootstrapConfig to a map[string]string for use in microcluster.
-func (c *ControlPlaneNodeJoinConfig) ToMicrocluster() (map[string]string, error) {
-	config, err := json.Marshal(c)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal control plane join config: %w", err)
-	}
-
-	return map[string]string{
-		"controlPlaneJoinConfig": string(config),
-	}, nil
-}
-
-// ToMicrocluster converts a BootstrapConfig to a map[string]string for use in microcluster.
-func (w *WorkerNodeJoinConfig) ToMicrocluster() (map[string]string, error) {
-	config, err := json.Marshal(w)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal control plane join config: %w", err)
-	}
-
-	return map[string]string{
-		"workerJoinConfig": string(config),
-	}, nil
-}
-
 // WorkerJoinConfigFromMicrocluster parses a microcluster map[string]string and retrieves the WorkerNodeJoinConfig.
 func ControlPlaneJoinConfigFromMicrocluster(m map[string]string) (ControlPlaneNodeJoinConfig, error) {
 	config := ControlPlaneNodeJoinConfig{}
