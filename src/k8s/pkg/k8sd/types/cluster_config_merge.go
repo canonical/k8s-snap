@@ -122,7 +122,7 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		{name: "load balancer BGP mode", val: &config.LoadBalancer.BGPMode, old: existing.LoadBalancer.BGPMode, new: new.LoadBalancer.BGPMode, allowChange: true},
 		// local-storage
 		{name: "local storage enabled", val: &config.LocalStorage.Enabled, old: existing.LocalStorage.Enabled, new: new.LocalStorage.Enabled, allowChange: true},
-		{name: "local storage set default", val: &config.LocalStorage.SetDefault, old: existing.LocalStorage.SetDefault, new: new.LocalStorage.SetDefault, allowChange: true},
+		{name: "local storage default", val: &config.LocalStorage.Default, old: existing.LocalStorage.Default, new: new.LocalStorage.Default, allowChange: true},
 		// metrics-server
 		{name: "metrics server enabled", val: &config.MetricsServer.Enabled, old: existing.MetricsServer.Enabled, new: new.MetricsServer.Enabled, allowChange: true},
 	} {

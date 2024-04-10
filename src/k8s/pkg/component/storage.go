@@ -18,7 +18,7 @@ func UpdateStorageComponent(ctx context.Context, s snap.Snap, isRefresh bool, co
 	values := map[string]any{
 		"storageClass": map[string]any{
 			"enabled":       true,
-			"isDefault":     config.GetSetDefault(),
+			"isDefault":     config.GetDefault(),
 			"reclaimPolicy": config.GetReclaimPolicy(),
 		},
 		"serviceMonitor": map[string]any{

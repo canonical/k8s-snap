@@ -38,7 +38,7 @@ func TestSetDefaults(t *testing.T) {
 			Enabled:       vals.Pointer(false),
 			LocalPath:     vals.Pointer("/var/snap/k8s/common/rawfile-storage"),
 			ReclaimPolicy: vals.Pointer("Delete"),
-			SetDefault:    vals.Pointer(true),
+			Default:       vals.Pointer(true),
 		},
 		LoadBalancer: types.LoadBalancer{
 			Enabled:        vals.Pointer(false),

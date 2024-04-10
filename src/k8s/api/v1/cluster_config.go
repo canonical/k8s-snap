@@ -77,13 +77,13 @@ type LocalStorageConfig struct {
 	Enabled       *bool   `json:"enabled,omitempty" yaml:"enabled,omitempty"`
 	LocalPath     *string `json:"local-path,omitempty" yaml:"local-path,omitempty"`
 	ReclaimPolicy *string `json:"reclaim-policy,omitempty" yaml:"reclaim-policy,omitempty"`
-	SetDefault    *bool   `json:"set-default,omitempty" yaml:"set-default,omitempty"`
+	Default       *bool   `json:"default,omitempty" yaml:"default,omitempty"`
 }
 
 func (c LocalStorageConfig) GetEnabled() bool         { return getField(c.Enabled) }
 func (c LocalStorageConfig) GetLocalPath() string     { return getField(c.LocalPath) }
 func (c LocalStorageConfig) GetReclaimPolicy() string { return getField(c.ReclaimPolicy) }
-func (c LocalStorageConfig) GetSetDefault() bool      { return getField(c.SetDefault) }
+func (c LocalStorageConfig) GetDefault() bool         { return getField(c.Default) }
 
 type NetworkConfig struct {
 	Enabled *bool `json:"enabled,omitempty" yaml:"enabled,omitempty"`

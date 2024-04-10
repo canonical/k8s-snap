@@ -14,7 +14,7 @@ cluster-config:
   local-storage:
     enabled: true
     local-path: /storage/path
-    set-default: false
+    default: false
   gateway:
     enabled: true
   metrics-server:

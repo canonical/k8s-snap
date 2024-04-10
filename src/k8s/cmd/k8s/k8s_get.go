@@ -78,8 +78,8 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				output = config.LocalStorage.GetLocalPath()
 			case "local-storage.reclaim-policy":
 				output = config.LocalStorage.GetReclaimPolicy()
-			case "local-storage.set-default":
-				output = config.LocalStorage.GetSetDefault()
+			case "local-storage.default":
+				output = config.LocalStorage.GetDefault()
 			case "load-balancer.enabled":
 				output = config.LoadBalancer.GetEnabled()
 			case "load-balancer.cidrs":

@@ -48,8 +48,8 @@ func (c *ClusterConfig) SetDefaults() {
 	if c.LocalStorage.GetReclaimPolicy() == "" {
 		c.LocalStorage.ReclaimPolicy = vals.Pointer("Delete")
 	}
-	if c.LocalStorage.SetDefault == nil {
-		c.LocalStorage.SetDefault = vals.Pointer(true)
+	if c.LocalStorage.Default == nil {
+		c.LocalStorage.Default = vals.Pointer(true)
 	}
 	// load balancer
 	if c.LoadBalancer.Enabled == nil {
