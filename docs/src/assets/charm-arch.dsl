@@ -11,16 +11,12 @@ workspace {
                 
             }
 
-            container "K8s Relation Data" {
-                k8sCharm -> this "Reads from and writes to"
-                this -> k8sCharm "Retrieves Peer Data"
-            }
 
             charmWorker = container "K8s Worker" "K8s Worker Charm" {
                 technology "Charmed Operator"
             }
 
-            container "K8s Worker Relation Data" {
+            k8sWorkerRelationData = container "K8s Worker Relation Data" {
                 technology "Juju Relation Databag"
                 k8sCharm -> this "Share Cluster Data"
                 charmWorker -> this "Reads from and writes to"
@@ -39,12 +35,20 @@ workspace {
                 user -> this "Uses"
                 this -> jujuController "Manages"
             }
-        
-        
+
+            k8sRelationData = container "K8s Relation Data" {
+                k8sCharm -> this "Reads from and writes to"
+                this -> k8sCharm "Retrieves Peer Data"
+            }
+
             externalCharms = container "Compatible Charms" "Other Compatible Canonical Charms" {
                 k8sCharm -> this "Integrates with"
                 charmWorker -> this "Integrates with
+                k8sRelationData -> this "Reads from and writes to"
+                k8sWorkerRelationData -> this "Reads from and writes to"
             }
+        
+        
         
         }
 
@@ -54,7 +58,7 @@ workspace {
 
         container jujuSystem {
             include *
-            autolayout lr
+            autolayout tb
         }
 
         theme default
