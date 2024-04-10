@@ -32,14 +32,32 @@ func SplitIPAndDNSSANs(extraSANs []string) ([]net.IP, []string) {
 	return ipSANs, dnsSANs
 }
 
+func TLSClientConfig(remoteCert *x509.Certificate) (*tls.Config, error) {
+	if remoteCert == nil {
+		return nil, fmt.Errorf("Invalid remote public key")
+	}
+
+	config := &tls.Config{}
+
+	// Add the public key to the CA pool to make it trusted.
+	config.RootCAs = x509.NewCertPool()
+	remoteCert.IsCA = true
+	remoteCert.KeyUsage = x509.KeyUsageCertSign
+	config.RootCAs.AddCert(remoteCert)
+
+	// Always use public key DNS name rather than server cert, so that it matches.
+	if len(remoteCert.DNSNames) > 0 {
+		config.ServerName = remoteCert.DNSNames[0]
+	}
+
+	return config, nil
+}
+
 func CreateHTTPClientWithCert(cert *x509.Certificate) (*http.Client, error) {
 	// Create the client
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{
-			{
-				Certificate: [][]byte{cert.Raw},
-			},
-		},
+	tlsConfig, err := TLSClientConfig(cert)
+	if err != nil {
+		return nil, err
 	}
 
 	return &http.Client{
