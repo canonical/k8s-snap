@@ -49,7 +49,7 @@ func CreateHTTPClientWithCert(cert *x509.Certificate) (*http.Client, error) {
 	}, nil
 }
 
-func GetRemoteCertificate(address string) (*x509.Certificate, error) {
+func GetRemoteCertificate(url string) (*x509.Certificate, error) {
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -59,7 +59,7 @@ func GetRemoteCertificate(address string) (*x509.Certificate, error) {
 	}
 
 	// Connect
-	req, err := http.NewRequest("GET", address, nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}

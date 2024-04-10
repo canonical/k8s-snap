@@ -50,8 +50,9 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	}
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
 
+	url := "https://" + token.JoinAddresses[0]
 	// Get remote certificate from the cluster member
-	cert, err := utils.GetRemoteCertificate(token.JoinAddresses[0])
+	cert, err := utils.GetRemoteCertificate(url)
 	if err != nil {
 		return fmt.Errorf("failed to get certificate of cluster member: %w", err)
 	}
