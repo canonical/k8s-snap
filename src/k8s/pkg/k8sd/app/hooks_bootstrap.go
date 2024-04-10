@@ -28,13 +28,22 @@ import (
 // onBootstrap configures local services then writes the cluster config on the database.
 func (a *App) onBootstrap(s *state.State, initConfig map[string]string) error {
 	if workerToken, ok := initConfig["workerToken"]; ok {
-		return a.onBootstrapWorkerNode(s, workerToken)
+		workerConfig, err := apiv1.WorkerJoinConfigFromMicrocluster(initConfig)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal worker join config: %w", err)
+		}
+		return a.onBootstrapWorkerNode(s, workerToken, workerConfig)
 	}
 
-	return a.onBootstrapControlPlane(s, initConfig)
+	bootstrapConfig, err := apiv1.BootstrapConfigFromMicrocluster(initConfig)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
+	}
+
+	return a.onBootstrapControlPlane(s, bootstrapConfig)
 }
 
-func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
+func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinConfig apiv1.WorkerNodeJoinConfig) error {
 	snap := a.Snap()
 
 	token := &types.InternalWorkerNodeToken{}
@@ -102,6 +111,14 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 		KubeletCert: response.KubeletCert,
 		KubeletKey:  response.KubeletKey,
 	}
+
+	if v := joinConfig.GetKubeletCert(); v != "" {
+		certificates.KubeletCert = v
+	}
+	if v := joinConfig.GetKubeletKey(); v != "" {
+		certificates.KubeletKey = v
+	}
+
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize worker node certificates: %w", err)
 	}
@@ -144,13 +161,8 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	return nil
 }
 
-func (a *App) onBootstrapControlPlane(s *state.State, initConfig map[string]string) error {
+func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.BootstrapConfig) error {
 	snap := a.Snap()
-
-	bootstrapConfig, err := apiv1.BootstrapConfigFromMicrocluster(initConfig)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
-	}
 
 	cfg, err := types.ClusterConfigFromBootstrapConfig(bootstrapConfig)
 	if err != nil {
@@ -223,6 +235,19 @@ func (a *App) onBootstrapControlPlane(s *state.State, initConfig map[string]stri
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
 	})
+
+	certificates.CACert = bootstrapConfig.GetCACert()
+	certificates.CAKey = bootstrapConfig.GetCAKey()
+	certificates.FrontProxyCACert = bootstrapConfig.GetFrontProxyCACert()
+	certificates.FrontProxyCAKey = bootstrapConfig.GetFrontProxyCAKey()
+	certificates.ServiceAccountKey = bootstrapConfig.GetServiceAccountKey()
+	certificates.APIServerKubeletClientCert = bootstrapConfig.GetAPIServerKubeletClientCert()
+	certificates.APIServerKubeletClientKey = bootstrapConfig.GetAPIServerKubeletClientKey()
+	certificates.APIServerCert = bootstrapConfig.GetAPIServerCert()
+	certificates.APIServerKey = bootstrapConfig.GetAPIServerKey()
+	certificates.KubeletCert = bootstrapConfig.GetKubeletCert()
+	certificates.KubeletKey = bootstrapConfig.GetKubeletKey()
+
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}

@@ -21,6 +21,8 @@ func (c Certificates) GetAPIServerKubeletClientCert() string {
 func (c Certificates) GetAPIServerKubeletClientKey() string {
 	return getField(c.APIServerKubeletClientKey)
 }
+
+// Empty returns true if all Certificates fields are unset
 func (c Certificates) Empty() bool {
 	return c.CACert == nil && c.CAKey == nil && c.FrontProxyCACert == nil && c.FrontProxyCAKey == nil && c.ServiceAccountKey == nil && c.APIServerKubeletClientCert == nil && c.APIServerKubeletClientKey == nil
 }

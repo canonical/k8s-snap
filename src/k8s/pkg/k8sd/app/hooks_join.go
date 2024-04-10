@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 
+	apiv1 "github.com/canonical/k8s/api/v1"
+
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/utils"
@@ -15,6 +17,11 @@ import (
 // onPostJoin retrieves the cluster config from the database and configures local services.
 func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	snap := a.Snap()
+
+	joinClusterConfig, err := apiv1.ControlPlaneJoinConfigFromMicrocluster(initConfig)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal control plane join config: %w", err)
+	}
 
 	cfg, err := utils.GetClusterConfig(s.Context, s)
 	if err != nil {
@@ -83,6 +90,12 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	certificates.APIServerKubeletClientCert = cfg.Certificates.GetAPIServerKubeletClientCert()
 	certificates.APIServerKubeletClientKey = cfg.Certificates.GetAPIServerKubeletClientKey()
 	certificates.ServiceAccountKey = cfg.Certificates.GetServiceAccountKey()
+
+	// load certificates from joinClusterConfig
+	certificates.APIServerCert = joinClusterConfig.GetAPIServerCert()
+	certificates.APIServerKey = joinClusterConfig.GetAPIServerKey()
+	certificates.KubeletCert = joinClusterConfig.GetKubeletCert()
+	certificates.KubeletKey = joinClusterConfig.GetKubeletKey()
 
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
