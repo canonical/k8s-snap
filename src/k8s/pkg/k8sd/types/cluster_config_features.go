@@ -35,7 +35,7 @@ type LocalStorage struct {
 	Enabled       *bool   `json:"enabled,omitempty"`
 	LocalPath     *string `json:"local-path,omitempty"`
 	ReclaimPolicy *string `json:"reclaim-policy,omitempty"`
-	SetDefault    *bool   `json:"set-default,omitempty"`
+	Default       *bool   `json:"default,omitempty"`
 }
 
 func (c DNS) GetEnabled() bool                 { return getField(c.Enabled) }
@@ -68,9 +68,9 @@ func (c LoadBalancer) Empty() bool {
 func (c LocalStorage) GetEnabled() bool         { return getField(c.Enabled) }
 func (c LocalStorage) GetLocalPath() string     { return getField(c.LocalPath) }
 func (c LocalStorage) GetReclaimPolicy() string { return getField(c.ReclaimPolicy) }
-func (c LocalStorage) GetSetDefault() bool      { return getField(c.SetDefault) }
+func (c LocalStorage) GetDefault() bool         { return getField(c.Default) }
 func (c LocalStorage) Empty() bool {
-	return c.Enabled == nil && c.LocalPath == nil && c.ReclaimPolicy == nil && c.SetDefault == nil
+	return c.Enabled == nil && c.LocalPath == nil && c.ReclaimPolicy == nil && c.Default == nil
 }
 
 func (c MetricsServer) GetEnabled() bool { return getField(c.Enabled) }

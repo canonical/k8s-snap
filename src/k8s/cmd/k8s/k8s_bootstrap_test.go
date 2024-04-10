@@ -49,9 +49,9 @@ var testCases = []testCase{
 					CIDRs:   vals.Pointer([]string{"10.0.0.0/24"}),
 				},
 				LocalStorage: apiv1.LocalStorageConfig{
-					Enabled:    vals.Pointer(true),
-					LocalPath:  vals.Pointer("/storage/path"),
-					SetDefault: vals.Pointer(false),
+					Enabled:   vals.Pointer(true),
+					LocalPath: vals.Pointer("/storage/path"),
+					Default:   vals.Pointer(false),
 				},
 				Gateway: apiv1.GatewayConfig{
 					Enabled: vals.Pointer(true),

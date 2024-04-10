@@ -118,12 +118,12 @@ func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 		config.LocalStorage.LocalPath = vals.Pointer(value)
 	case "local-storage.reclaim-policy":
 		config.LocalStorage.ReclaimPolicy = vals.Pointer(value)
-	case "local-storage.set-default":
+	case "local-storage.default":
 		v, err := strconv.ParseBool(value)
 		if err != nil {
-			return fmt.Errorf("invalid boolean value for local-storage.set-default: %w", err)
+			return fmt.Errorf("invalid boolean value for local-storage.default: %w", err)
 		}
-		config.LocalStorage.SetDefault = &v
+		config.LocalStorage.Default = &v
 	case "load-balancer.enabled":
 		v, err := strconv.ParseBool(value)
 		if err != nil {
