@@ -42,7 +42,7 @@ The local-storage feature provides the following configuration options:
 - `local-path`: path where the local files will be created.
 - `reclaim-policy`: set the reclaim policy of the persistent volumes
   provisioned. It should be one of "Retain", "Recycle", or "Delete".
-- `set-default`: set the local-storage storage class to be the default. If
+- `default`: set the local-storage storage class to be the default. If
   this flag is not set and the cluster already has a default storage class it
   is not changed. If this flag is not set and the cluster does not have a
   default class set then the class from the local-storage becomes the default.
