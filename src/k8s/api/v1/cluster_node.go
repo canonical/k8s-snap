@@ -5,6 +5,7 @@ type JoinClusterRequest struct {
 	Name    string `json:"name"`
 	Address string `json:"address"`
 	Token   string `json:"token"`
+	Config  string `json:"config"`
 }
 
 // RemoveNodeRequest is used to request to remove a node from the cluster.

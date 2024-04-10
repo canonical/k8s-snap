@@ -21,8 +21,9 @@ func (b JoinClusterResult) String() string {
 
 func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
-		name    string
-		address string
+		name       string
+		address    string
+		configFile string
 	}
 	cmd := &cobra.Command{
 		Use:    "join-cluster <join-token>",
@@ -62,8 +63,19 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
+			var joinClusterConfig string
+			if opts.configFile != "" {
+				b, err := os.ReadFile(opts.configFile)
+				if err != nil {
+					cmd.PrintErrf("Error: Failed to read join configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
+					env.Exit(1)
+					return
+				}
+				joinClusterConfig = string(b)
+			}
+
 			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
-			if err := client.JoinCluster(cmd.Context(), apiv1.JoinClusterRequest{Name: opts.name, Address: opts.address, Token: token}); err != nil {
+			if err := client.JoinCluster(cmd.Context(), apiv1.JoinClusterRequest{Name: opts.name, Address: opts.address, Token: token, Config: joinClusterConfig}); err != nil {
 				cmd.PrintErrf("Error: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
@@ -76,5 +88,6 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
+	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster join configuration")
 	return cmd
 }
