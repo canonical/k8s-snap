@@ -35,7 +35,7 @@ func TestRemoveNodeByAddress(t *testing.T) {
 		})
 	})
 
-	t.Run("LastVoterFails", func(t *testing.T) {
+	t.Run("LastVoter", func(t *testing.T) {
 		withDqliteCluster(t, 2, func(ctx context.Context, dirs []string) {
 			g := NewWithT(t)
 			client, err := dqlite.NewClient(ctx, dqlite.ClientOpts{
@@ -48,17 +48,25 @@ func TestRemoveNodeByAddress(t *testing.T) {
 			g.Expect(err).To(BeNil())
 			g.Expect(members).To(HaveLen(2))
 
-			memberToRemove := members[0].Address
+			memberToRemove := members[0]
+			remainingNode := members[1]
 			if members[0].Role != dqlite.Voter {
-				memberToRemove = members[1].Address
+				memberToRemove = members[1]
+				remainingNode = members[0]
 			}
+			g.Expect(memberToRemove.Role).To(Equal(dqlite.Voter))
+			g.Expect(remainingNode.Role).To(Equal(dqlite.Spare))
 
-			// Removing the last Voter should fail
-			g.Expect(client.RemoveNodeByAddress(ctx, memberToRemove)).ToNot(BeNil())
+			// Removing the last voter should succeed and leadership should be transfered.
+			g.Expect(client.RemoveNodeByAddress(ctx, memberToRemove.Address)).To(Succeed())
 
 			members, err = client.ListMembers(ctx)
 			g.Expect(err).To(BeNil())
-			g.Expect(members).To(HaveLen(2))
+			g.Expect(members).To(HaveLen(1))
+			g.Expect(members[0].Role == dqlite.Voter)
+			g.Expect(members[0].Address).ToNot(Equal(memberToRemove.Address))
+
+			g.Expect(client.RemoveNodeByAddress(ctx, remainingNode.Address)).ToNot(Succeed())
 		})
 	})
 }

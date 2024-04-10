@@ -1,0 +1,47 @@
+name: Nightly Latest/Edge Tests
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs every midnight
+
+jobs:
+  test-integration:
+    name: Integration Test ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.releases }}
+    strategy:
+      matrix:
+        os: ["ubuntu:20.04", "ubuntu:22.04"]
+        arch: ["amd64", "arm64"]
+        releases: ["latest/edge"]
+      fail-fast: false # TODO: remove once arm64 works
+
+    runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-20.04' }}
+
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+      - name: Setup Python
+        run: |
+          sudo apt update
+          sudo apt install -y python3 python3-pip
+      - name: Install tox
+        run: |
+          pip3 install tox==4.13
+      - name: Install lxd
+        run: |
+          sudo snap refresh lxd --channel 5.19/stable
+          sudo lxd init --auto
+          sudo usermod --append --groups lxd $USER
+          sg lxd -c 'lxc version'
+      - name: Create build directory
+        run: mkdir -p build
+      - name: Install $${ matrix.releases }} k8s snap
+        run: |
+          cd build
+          snap download k8s --channel=${{ matrix.releases }} --basename k8s
+      - name: Run end to end tests # tox path needs to be specified for arm64
+        run: |
+          export TEST_SNAP="$PWD/build/k8s.snap" 
+          export TEST_SUBSTRATE=lxd
+          export TEST_LXD_IMAGE="${{ matrix.os }}"
+          export PATH="/home/runner/.local/bin:$PATH"
+          cd tests/integration && sg lxd -c 'tox -e integration'
