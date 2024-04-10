@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"path"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -50,9 +51,12 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	}
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
 
-	url := "https://" + token.JoinAddresses[0]
+	url, err := url.Parse("https://" + token.JoinAddresses[0])
+	if err != nil {
+		return fmt.Errorf("failed to parse control plane address: %w", err)
+	}
 	// Get remote certificate from the cluster member
-	cert, err := utils.GetRemoteCertificate(url)
+	cert, err := utils.GetRemoteCertificate(url.String())
 	if err != nil {
 		return fmt.Errorf("failed to get certificate of cluster member: %w", err)
 	}
