@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"net"
+	"net/netip"
 	"strings"
 )
 
@@ -44,8 +45,31 @@ func (c *ClusterConfig) Validate() error {
 
 	// check: load-balancer CIDRs
 	for _, cidr := range c.LoadBalancer.GetCIDRs() {
-		if _, _, err := net.ParseCIDR(cidr); err != nil {
-			return fmt.Errorf("load-balancer.cidrs contains an invalid CIDR %q: %w", cidr, err)
+		// Handle IP Range
+		if strings.Contains(cidr, "-") {
+			ipRange := strings.Split(cidr, "-")
+			if len(ipRange) != 2 {
+				return fmt.Errorf("load-balancer.cidrs contains an invalid IP Range %q", cidr)
+			}
+
+			start, err := netip.ParseAddr(ipRange[0])
+			if err != nil {
+				return fmt.Errorf("load-balancer.cidrs contains an invalid IP Range %q", cidr)
+			}
+			stop, err := netip.ParseAddr(ipRange[1])
+			if err != nil {
+				return fmt.Errorf("load-balancer.cidrs contains an invalid IP Range %q", cidr)
+			}
+
+			// Check if stop is greater than start
+			if stop.Less(start) {
+				return fmt.Errorf("load-balancer.cidrs contains an invalid IP Range %q", cidr)
+			}
+		} else {
+			// Handle CIDR
+			if _, _, err := net.ParseCIDR(cidr); err != nil {
+				return fmt.Errorf("load-balancer.cidrs contains an invalid CIDR %q: %w", cidr, err)
+			}
 		}
 	}
 
