@@ -40,20 +40,23 @@ charm/reference/index
 ```
 
 ---
+
 ````{grid} 1 1 2 2
 
 ```{grid-item-card}
 :link: snap/
 ### [Install K8s from a snap ›](snap/index)
 ^^^
-Our tutorials, How To guides and other pages will explain how to install, configure and use the Canonical Kubernetes 'k8s' snap.
+Our tutorials, How To guides and other pages will explain how to install,
+ configure and use the Canonical Kubernetes 'k8s' snap.
 ```
 
 ```{grid-item-card}
 :link: charm/
 ### [Deploy K8s using Juju ›](charm/index)
 ^^^
-Our tutorials, How To guides and other pages will explain how to install, configure and use the Canonical Kubernetes 'k8s' snap.
+Our tutorials, How To guides and other pages will explain how to install,
+ configure and use the Canonical Kubernetes 'k8s' charm.
 ```
 
 ````
