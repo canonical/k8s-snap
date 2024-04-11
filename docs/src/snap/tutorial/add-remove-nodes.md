@@ -7,7 +7,8 @@ availability and resilience.
 This tutorial simplifies the concept by creating a cluster within a controlled
 environment using two Multipass VMs. The approach here allows us to focus on
 the foundational aspects of clustering using Canonical Kubernetes without the
-complexities of a full-scale, production setup.
+complexities of a full-scale, production setup. If your nodes are already
+installed, you can skip the multipass setup and go to [step 2](step2)
 
 ## Before starting
 
@@ -50,6 +51,7 @@ Install Canonical Kubernetes on both VMs with the following command:
 sudo snap install --classic --edge k8s
 ```
 
+(step2)=
 ### 2. Bootstrap your control plane node
 
 Bootstrap the control plane node:
@@ -61,7 +63,8 @@ sudo k8s bootstrap
 Canonical Kubernetes allows you to create two types of nodes: control plane and
 worker nodes. In this example, we're creating a worker node.
 
-Create the token for the worker node to join the cluster.
+Generate the token required for the worker node to join the cluster by executing
+the following command on the control-plane node:
 
 ```
 sudo k8s get-join-token worker --worker
