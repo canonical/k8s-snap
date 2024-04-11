@@ -166,12 +166,6 @@ func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 			return fmt.Errorf("invalid integer value for load-balancer.bgp-peer-asn: %w", err)
 		}
 		config.LoadBalancer.BGPPeerASN = &v
-	case "metrics-server.enabled":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for metrics-server.enabled: %w", err)
-		}
-		config.MetricsServer.Enabled = &v
 	default:
 		return fmt.Errorf("unknown config key %q", key)
 	}

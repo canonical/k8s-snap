@@ -52,8 +52,6 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				output = config.LocalStorage
 			case "load-balancer":
 				output = config.LoadBalancer
-			case "metrics-server":
-				output = config.MetricsServer
 			case "network.enabled":
 				output = config.Network.GetEnabled()
 			case "dns.enabled":
@@ -98,8 +96,6 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				output = config.LoadBalancer.GetBGPPeerPort()
 			case "load-balancer.bgp-peer-asn":
 				output = config.LoadBalancer.GetBGPPeerASN()
-			case "metrics-server.enabled":
-				output = config.MetricsServer.GetEnabled()
 			default:
 				cmd.PrintErrf("Error: Unknown config key %q.\n", key)
 				env.Exit(1)

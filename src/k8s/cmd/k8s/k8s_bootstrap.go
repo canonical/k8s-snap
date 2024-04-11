@@ -107,12 +107,12 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 						Gateway: apiv1.GatewayConfig{
 							Enabled: vals.Pointer(true),
 						},
-						MetricsServer: apiv1.MetricsServerConfig{
-							Enabled: vals.Pointer(true),
-						},
 					},
 				}
 			}
+
+			// Always enable MetricsServer by default
+			bootstrapConfig.ClusterConfig.MetricsServer.Enabled = vals.Pointer(true)
 
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
 
