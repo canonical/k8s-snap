@@ -59,12 +59,19 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	// verify that the fingerprint of the certificate matches the fingerprint of the token
 	fingerprint := utils.CertFingerprint(cert)
 	if fingerprint != token.Fingerprint {
-		return fmt.Errorf("server authentication failed: join token fingerprint does not match that of the cluster member")
+		return fmt.Errorf("fingerprint from token (%q) does not match fingerprint of node %q (%q)", token.Fingerprint, token.JoinAddresses[0], fingerprint)
 	}
 
-	httpClient, err := utils.CreateHTTPClientWithCert(cert)
+	// Create the http client with trusted certificate
+	tlsConfig, err := utils.TLSClientConfigWithTrustedCertificate(cert)
 	if err != nil {
-		return fmt.Errorf("failed to create HTTP client with certificate: %w", err)
+		return fmt.Errorf("failed to get TLS configuration for trusted certificate: %w", err)
+	}
+
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
 	}
 
 	type wrappedResponse struct {

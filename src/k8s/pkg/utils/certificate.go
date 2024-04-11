@@ -8,7 +8,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 )
 
 // SplitIPAndDNSSANs splits a list of SANs into IP and DNS SANs
@@ -33,7 +32,7 @@ func SplitIPAndDNSSANs(extraSANs []string) ([]net.IP, []string) {
 	return ipSANs, dnsSANs
 }
 
-func TLSClientConfig(remoteCert *x509.Certificate) (*tls.Config, error) {
+func TLSClientConfigWithTrustedCertificate(remoteCert *x509.Certificate) (*tls.Config, error) {
 	if remoteCert == nil {
 		return nil, fmt.Errorf("invalid remote public key")
 	}
@@ -41,9 +40,7 @@ func TLSClientConfig(remoteCert *x509.Certificate) (*tls.Config, error) {
 	config := &tls.Config{}
 
 	// Add the public key to the CA pool to make it trusted.
-	config.RootCAs = x509.NewCertPool()
 	remoteCert.IsCA = true
-	remoteCert.KeyUsage = x509.KeyUsageCertSign
 	config.RootCAs.AddCert(remoteCert)
 
 	// Always use public key DNS name rather than server cert, so that it matches.
@@ -52,20 +49,6 @@ func TLSClientConfig(remoteCert *x509.Certificate) (*tls.Config, error) {
 	}
 
 	return config, nil
-}
-
-func CreateHTTPClientWithCert(cert *x509.Certificate) (*http.Client, error) {
-	// Create the client
-	tlsConfig, err := TLSClientConfig(cert)
-	if err != nil {
-		return nil, err
-	}
-
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
-	}, nil
 }
 
 func GetRemoteCertificate(address string) (*x509.Certificate, error) {
@@ -77,13 +60,13 @@ func GetRemoteCertificate(address string) (*x509.Certificate, error) {
 		},
 	}
 
-	url, err := url.Parse("https://" + address)
+	_, _, err := net.SplitHostPort(address)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse address: %w", err)
+		return nil, fmt.Errorf("failed to validate the cluster member address: %w", err)
 	}
 
 	// Connect
-	req, err := http.NewRequest("GET", url.String(), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s", address), nil)
 	if err != nil {
 		return nil, err
 	}
