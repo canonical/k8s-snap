@@ -1,10 +1,19 @@
-# Charm Overview
+# Canonical Kubernetes charm documentation
 
-fjdkf fjf dfjdf jdfkl djfl 
+The Canonical Kubernetes charm, `k8s`, is an operator: software which wraps an
+application and contains all of the instructions necessary for deploying,
+configuring, scaling, integrating the application on any cloud supported by
+[Juju][].
 
+The `k8s` charm takes care of installing and configuring the [k8s snap
+package][] on cloud instances managed by Juju. Operating Kubernetes through
+this charm makes it significantly easier to maanage at scale, on remote cloud
+instances and also to integrate other operators to enhance or customise your
+Kubernetes deployment. You can find out more about Canonical Kubernetes on this
+[overview page] or see a more detailed explanation in our [architecture
+documentation].
 
-
-
+![Illustration depicting working on components and clouds][logo]
 
 ## In this documentation
 
@@ -62,3 +71,5 @@ and constructive feedback.
 [roadmap]: ./reference/roadmap
 [overview page]: ./explanation/about
 [architecture documentation]: ./reference/architecture
+[Juju]: https://juju.is
+[k8s snap package]: /snap/index
