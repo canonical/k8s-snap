@@ -69,8 +69,6 @@ func TestEnsureFile(t *testing.T) {
 		updated, err = ensureFile(fname, "new content", os.Getuid(), os.Getgid(), 0666)
 		g.Expect(err).To(BeNil())
 		g.Expect(updated).To(BeFalse())
-
-		// TODO: test with a different guid/uid than 1000
 	})
 
 	t.Run("NotExist", func(t *testing.T) {
