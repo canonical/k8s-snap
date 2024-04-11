@@ -2,7 +2,7 @@
 
 For a better understanding of how Canonical Kubernetes works and related
 topics such as security, these pages will help expand your knowledge and
-get the most out of Kubernetes.
+help you get the most out of Kubernetes.
 
 ```{toctree}
 :hidden:
@@ -10,12 +10,15 @@ Overview <self>
 ```
 
 ```{toctree}
-:glob:
 :titlesonly:
 about
 channels
 security
 ```
+
+For topics specifically relating to the snap version of Canonical Kubernetes, 
+please see the [explanation topic]. 
+
 
 ---
 
@@ -35,5 +38,6 @@ details or information such as the command reference or release notes.
 
 <!--LINKS -->
 [Tutorials section]: ../tutorial/index
-[How-to guides]: ../howto/index
+[How-to guides]:     ../howto/index
 [Reference section]: ../reference/index
+[explanation topic]: /snap/explanation/index.md
