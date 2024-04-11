@@ -7,6 +7,7 @@ from typing import Generator, List
 
 import pytest
 from test_util import config, harness, util
+from test_util.etcd import EtcdCluster
 
 LOG = logging.getLogger(__name__)
 
@@ -48,7 +49,9 @@ def h() -> harness.Harness:
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
-        "node_count: Mark a test to specify how many instance nodes need to be created",
+        "node_count: Mark a test to specify how many instance nodes need to be created\n"
+        "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that."
+        "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)",
     )
 
 
@@ -62,12 +65,17 @@ def node_count(request) -> int:
 
 
 @pytest.fixture(scope="function")
+def disable_k8s_bootstrapping(request) -> int:
+    return bool(request.node.get_closest_marker("disable_k8s_bootstrapping"))
+
+
+@pytest.fixture(scope="function")
 def instances(
-    h: harness.Harness, node_count: int, tmp_path: Path
+    h: harness.Harness, node_count: int, tmp_path: Path, disable_k8s_bootstrapping: bool
 ) -> Generator[List[harness.Instance], None, None]:
     """Construct instances for a cluster.
 
-    Bootstrap and setup networking on the first instance.
+    Bootstrap and setup networking on the first instance, if `disable_k8s_bootstrapping` marker is not set.
     """
     if not config.SNAP:
         pytest.fail("Set TEST_SNAP to the path where the snap is")
@@ -86,9 +94,33 @@ def instances(
         instances.append(instance)
         util.setup_k8s_snap(instance, snap_path)
 
-    first_node, *_ = instances
-    first_node.exec(["k8s", "bootstrap"])
+    if not disable_k8s_bootstrapping:
+        first_node, *_ = instances
+        first_node.exec(["k8s", "bootstrap"])
 
     yield instances
+
+    _harness_clean(h)
+
+
+@pytest.fixture(scope="function")
+def etcd_count(request) -> int:
+    etcd_count_marker = request.node.get_closest_marker("etcd_count")
+    if not etcd_count_marker:
+        return 0
+    etcd_count_arg, *_ = etcd_count_marker.args
+    return int(etcd_count_arg)
+
+
+@pytest.fixture(scope="function")
+def etcd_cluster(
+    h: harness.Harness, etcd_count: int
+) -> Generator[EtcdCluster, None, None]:
+    """Construct etcd instances for a cluster."""
+    LOG.info(f"Creating {etcd_count} etcd instances")
+
+    cluster = EtcdCluster(h, initial_node_count=etcd_count)
+
+    yield cluster
 
     _harness_clean(h)
