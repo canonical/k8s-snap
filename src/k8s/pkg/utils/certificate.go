@@ -39,7 +39,6 @@ func TLSClientConfigWithTrustedCertificate(remoteCert *x509.Certificate) (*tls.C
 
 	config := &tls.Config{}
 
-	// Add the public key to the CA pool to make it trusted.
 	remoteCert.IsCA = true
 	config.RootCAs.AddCert(remoteCert)
 
