@@ -4,11 +4,10 @@
 import json
 import logging
 import shlex
-from string import Template
 import subprocess
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Union
 
 from tenacity import (
     RetryCallState,
@@ -135,157 +134,6 @@ def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
 
     LOG.info("Ensure k8s interfaces and network requirements")
     instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
-
-
-# Setups an etcd on the given instance.
-# Returns the cluster members as dict.
-# TODO: Make ports configurable if required.
-def setup_etcd(
-    instance: harness.Instance,
-    cluster_members: Dict[str, str],
-    etcd_url: str,
-    etcd_version: str,
-    join_existing: bool = False,
-    ca_cert: Optional[str] = None,
-    ca_key: Optional[str] = None,
-) -> Dict[str, str]:
-    """
-    Set up etcd on the given instance.
-
-    Args:
-        instance (Instance): The instance on which to set up etcd.
-        cluster_members (Dict[str, str]): Dictionary containing existing cluster members as {"name", "peer_url"}.
-        etcd_url (str): The URL of the etcd service.
-        etcd_version (str): The version of etcd to be set up.
-        join_existing (bool): Whether the cluster is already bootstrapped or not. Defaults to false.
-
-    Returns:
-        Dict[str, str]: Updated cluster members dictionary.
-    """
-    LOG.info("Setup etcd")
-    ip = get_default_ip(instance)
-    peer_url = f"https://{ip}:2380"
-    members = dict.copy(cluster_members)
-    members[instance.id] = peer_url
-    substitutes = {
-        "NAME": instance.id,
-        "IP": ip,
-        "CLIENT_URL": f"https://{ip}:2379",
-        "PEER_URL": peer_url,
-        "PEER_URLS": ",".join(members.values()),
-        "CLUSTER": ",".join([f"{key}={value}" for key, value in members.items()]),
-        "CLUSTER_STATE": "existing" if join_existing else "new",
-    }
-
-    with open(config.ETCD_DIR / "etcd-tls.conf", "r") as etcd_template:
-        src = Template(etcd_template.read())
-        instance.exec(
-            ["dd", f"of=/tmp/etcd-tls.conf"],
-            input=str.encode(src.substitute(substitutes)),
-        )
-
-    # Only create CA on the first node.
-    if join_existing:
-        
-        instance.exec(
-            ["dd", f"of=/tmp/ca-cert.pem"],
-            input=str.encode(ca_cert),
-        )
-        instance.exec(
-            ["dd", f"of=/tmp/ca-key.pem"],
-            input=str.encode(ca_key),
-        )
-    else:
-        instance.exec(
-            [
-                "openssl",
-                "req",
-                "-x509",
-                "-nodes",
-                "-newkey",
-                "rsa:4096",
-                "-subj",
-                "/CN=etcdRootCA",
-                "-keyout",
-                "/tmp/ca-key.pem",
-                "-out",
-                "/tmp/ca-cert.pem",
-                "-days",
-                "36500",
-            ]
-        )
-
-    instance.exec(
-        [
-            "openssl",
-            "req",
-            "-nodes",
-            "-newkey",
-            "rsa:4096",
-            "-keyout",
-            "/tmp/etcd-key.pem",
-            "-out",
-            "/tmp/etcd-cert.csr",
-            "-config",
-            "/tmp/etcd-tls.conf",
-        ]
-    )
-
-    instance.exec(
-        [
-            "openssl",
-            "x509",
-            "-req",
-            "-days",
-            "36500",
-            "-in",
-            "/tmp/etcd-cert.csr",
-            "-CA",
-            "/tmp/ca-cert.pem",
-            "-CAkey",
-            "/tmp/ca-key.pem",
-            "-out",
-            "/tmp/etcd-cert.pem",
-            "-extensions",
-            "v3_req",
-            "-extfile",
-            "/tmp/etcd-tls.conf",
-            "-CAcreateserial",
-        ]
-    )
-
-    with open(config.ETCD_DIR / "etcd.service", "r") as etcd_template:
-        src = Template(etcd_template.read())
-        instance.exec(
-            ["dd", f"of=/etc/systemd/system/etcd-s1.service"],
-            input=str.encode(src.substitute(substitutes)),
-        )
-
-    instance.exec(
-        [
-            "curl",
-            "-L",
-            f"{etcd_url}/{etcd_version}/etcd-{etcd_version}-linux-amd64.tar.gz",
-            "-o",
-            f"/tmp/etcd-{etcd_version}-linux-amd64.tar.gz",
-        ]
-    )
-    instance.exec(["mkdir", "-p", "/tmp/test-etcd"])
-    instance.exec(
-        [
-            "tar",
-            "xzvf",
-            f"/tmp/etcd-{etcd_version}-linux-amd64.tar.gz",
-            "-C",
-            "/tmp/test-etcd",
-            "--strip-components=1",
-        ],
-    )
-    instance.exec(["systemctl", "daemon-reload"])
-    instance.exec(["systemctl", "enable", "etcd-s1.service"])
-    instance.exec(["systemctl", "start", "etcd-s1.service"])
-
-    return members
 
 
 # Validates that the K8s node is in Ready state.

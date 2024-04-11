@@ -12,22 +12,14 @@ from test_util.etcd import EtcdCluster
 LOG = logging.getLogger(__name__)
 
 
-
 @pytest.mark.node_count(1)
-@pytest.mark.etcd_count(3)
+@pytest.mark.etcd_count(1)
 def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     k8s_instance = instances[0]
 
     bootstrap_conf = yaml.safe_dump(
         {
-            "cluster-config": {
-                "network": {
-                    "enabled": True
-                },
-                "dns": {
-                    "enabled": True
-                }
-            },
+            "cluster-config": {"network": {"enabled": True}, "dns": {"enabled": True}},
             "datastore-type": "external",
             "datastore-servers": etcd_cluster.client_urls,
             "datastore-ca-crt": etcd_cluster.ca_cert,

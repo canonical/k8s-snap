@@ -19,7 +19,7 @@
     --initial-advertise-peer-urls $PEER_URL \
     --initial-cluster "$CLUSTER" \
     --initial-cluster-token tkn \
-    --initial-cluster-state new \
+    --initial-cluster-state $CLUSTER_STATE \
     --client-cert-auth \
     --trusted-ca-file /tmp/ca-cert.pem \
     --cert-file /tmp/etcd-cert.pem \
