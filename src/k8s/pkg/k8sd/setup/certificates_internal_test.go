@@ -9,7 +9,6 @@ import (
 )
 
 func TestEnsureFile(t *testing.T) {
-
 	t.Run("CreateFile", func(t *testing.T) {
 		g := NewWithT(t)
 
