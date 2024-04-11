@@ -16,8 +16,8 @@ Overview <self>
 
 install/index
 networking/index
-/howto/storage
-/howto/contribute
+storage
+contribute
 ```
 
 ---

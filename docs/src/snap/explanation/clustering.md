@@ -18,7 +18,7 @@ and scheduling of workloads.
 
 This is the overview of a Canonical Kubernetes cluster:
 
-```{kroki} ../assets/ck-cluster.puml
+```{kroki} ../../assets/ck-cluster.puml
 ```
 
 ## The Role of `k8sd` in Kubernetes Clustering

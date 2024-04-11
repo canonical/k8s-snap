@@ -10,7 +10,7 @@ current design of Canonical Kubernetes, following the [C4 model].
 This overview of Canonical Kubernetes demonstrates the interactions of
 Kubernetes with users and with other systems.
 
-```{kroki} ../assets/overview.puml
+```{kroki} ../../assets/overview.puml
 ```
 
 Two actors interact with the Kubernetes snap:
@@ -52,7 +52,7 @@ distribution. We have identified the following:
 
 Looking more closely at what is contained within the K8s snap itself:
 
-```{kroki} ../assets/k8s-container.puml
+```{kroki} ../../assets/k8s-container.puml
 ```
 
 The `k8s` snap distribution includes the following:
@@ -74,7 +74,7 @@ The `k8s` snap distribution includes the following:
 K8sd is the component that implements and exposes the operations functionality
 needed for managing the Kubernetes cluster.
 
-```{kroki} ../assets/k8sd-component.puml
+```{kroki} ../../assets/k8sd-component.puml
 ```
 
 At the core of the `k8sd` functionality we have the cluster manager that is
@@ -106,7 +106,7 @@ This functionality is exposed via the following interfaces:
 
 Canonical `k8s` Charms encompass two primary components: the [`k8s` charm][K8s charm] and the [`k8s-worker` charm][K8s-worker charm].
 
-```{kroki} ../assets/charms-architecture.puml
+```{kroki} ../../assets/charms-architecture.puml
 ```
 
 Charms are instantiated on a machine as a Juju unit, and a collection of units 

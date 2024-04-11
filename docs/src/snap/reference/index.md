@@ -9,14 +9,13 @@ Overview <self>
 ```
 
 ```{toctree}
-:glob:
 :titlesonly:
 
-/reference/releases
-/reference/commands
-/reference/community
-/reference/architecture
-/reference/roadmap
+releases
+commands
+community
+architecture
+roadmap
 ```
 
 ## Other documentation types

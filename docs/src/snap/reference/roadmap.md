@@ -11,7 +11,7 @@ specifics of whatfeatures have been delivered.
 
 
 ``` {csv-table} Canonical Kubernetes public roadmap
-   :file: ../assets/roadmap.csv
+   :file: ../../assets/roadmap.csv
    :widths: 30, 30
    :header-rows: 1
 ```

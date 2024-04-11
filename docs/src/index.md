@@ -1,6 +1,6 @@
 # Canonical Kubernetes documentation
 
-The Canonical Kubernetes snap is a performant, lightweight, secure and
+Canonical Kubernetes is a performant, lightweight, secure and
 opinionated distribution of **Kubernetes** which includes everything needed to
 create and manage a scalable cluster suitable for all use cases.
 
@@ -12,47 +12,51 @@ see a more detailed explanation in our [architecture documentation].
 ```{toctree}
 :hidden:
 :titlesonly:
-:glob:
 Home <self>
-tutorial/index
-howto/index
-explanation/index
-reference/index
+```
+
+```{toctree}
+:hidden:
+:titlesonly:
+:maxdepth: 6
+:caption: Deploy from Snap package
+Overview <snap/index.md>
+snap/tutorial/index
+snap/howto/index
+snap/explanation/index
+snap/reference/index
+```
+
+```{toctree}
+:hidden:
+:caption: Deploy with Juju
+:titlesonly:
+:glob:
+Overview <charm/index>
+charm/tutorial/index
+charm/howto/index
+charm/explanation/index
+charm/reference/index
 ```
 
 ---
-
-## In this documentation
-
 ````{grid} 1 1 2 2
 
-```{grid-item-card} [Tutorial](tutorial/index)
-
-**Start here!** A hands-on introduction to Canonical K8s for new users
+```{grid-item-card}
+:link: snap/
+### [Install K8s from a snap ›](snap/index)
+^^^
+Our tutorials, How To guides and other pages will explain how to install, configure and use the Canonical Kubernetes 'k8s' snap.
 ```
 
-```{grid-item-card} [How-to guides](howto/index)
-
-**Step-by-step guides** covering key operations and common tasks
+```{grid-item-card}
+:link: charm/
+### [Deploy K8s using Juju ›](charm/index)
+^^^
+Our tutorials, How To guides and other pages will explain how to install, configure and use the Canonical Kubernetes 'k8s' snap.
 ```
 
 ````
-
-````{grid} 1 1 2 2
-
-
-```{grid-item-card} [Reference](reference/index)
-
-**Technical information** - specifications, APIs, architecture
-```
-
-```{grid-item-card} [Explanation](explanation/index)
-
-**Discussion and clarification** of key topics
-```
-
-````
-
 ---
 
 ## Project and community
@@ -73,8 +77,8 @@ and constructive feedback.
 <!-- LINKS -->
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
-[community]: ./reference/community
-[contribute]: ./howto/contribute
-[roadmap]: ./reference/roadmap
-[overview page]: ./explanation/about
-[architecture documentation]: ./reference/architecture
+[community]: snap/reference/community
+[contribute]: snap/howto/contribute
+[roadmap]: snap/reference/roadmap
+[overview page]: snap/explanation/about
+[architecture documentation]: snap/reference/architecture

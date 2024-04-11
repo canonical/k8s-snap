@@ -11,8 +11,8 @@ how to configure and use key capabilities of Canonical Kubernetes.
 ```{toctree}
 :titlesonly:
 
-/howto/networking/default-dns.md
-/howto/networking/default-network.md
-/howto/networking/default-ingress.md
-/howto/networking/default-loadbalancer.md
+/snap/howto/networking/default-dns.md
+/snap/howto/networking/default-network.md
+/snap/howto/networking/default-ingress.md
+/snap/howto/networking/default-loadbalancer.md
 ```

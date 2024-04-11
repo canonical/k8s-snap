@@ -12,8 +12,7 @@ the current How-to guides below.
 :glob:
 :titlesonly:
 
-/howto/install/snap
-/howto/install/multipass
-/howto/install/lxd
-/howto/install/charm
+snap
+multipass
+lxd
 ```

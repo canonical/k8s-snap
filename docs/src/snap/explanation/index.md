@@ -10,12 +10,11 @@ Overview <self>
 ```
 
 ```{toctree}
-:glob:
 :titlesonly:
-/explanation/about
-/explanation/channels
-/explanation/clustering
-/explanation/security
+about
+channels
+clustering
+/snap/explanation/security
 ```
 
 ---
