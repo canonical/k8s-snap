@@ -14,6 +14,7 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.node_count(1)
 @pytest.mark.etcd_count(1)
+@pytest.mark.disable_k8s_bootstrapping()
 def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     k8s_instance = instances[0]
 
