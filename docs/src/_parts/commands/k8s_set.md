@@ -4,7 +4,7 @@ Set cluster configuration
 
 ### Synopsis
 
-Configure one of network, dns, gateway, ingress, local-storage, load-balancer, metrics-server.
+Configure one of network, dns, gateway, ingress, local-storage, load-balancer.
 Use `k8s get` to explore configuration options.
 
 ```
