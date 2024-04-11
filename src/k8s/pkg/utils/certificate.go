@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 )
 
 // SplitIPAndDNSSANs splits a list of SANs into IP and DNS SANs
@@ -34,7 +35,7 @@ func SplitIPAndDNSSANs(extraSANs []string) ([]net.IP, []string) {
 
 func TLSClientConfig(remoteCert *x509.Certificate) (*tls.Config, error) {
 	if remoteCert == nil {
-		return nil, fmt.Errorf("Invalid remote public key")
+		return nil, fmt.Errorf("invalid remote public key")
 	}
 
 	config := &tls.Config{}
@@ -67,7 +68,7 @@ func CreateHTTPClientWithCert(cert *x509.Certificate) (*http.Client, error) {
 	}, nil
 }
 
-func GetRemoteCertificate(url string) (*x509.Certificate, error) {
+func GetRemoteCertificate(address string) (*x509.Certificate, error) {
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -76,8 +77,13 @@ func GetRemoteCertificate(url string) (*x509.Certificate, error) {
 		},
 	}
 
+	url, err := url.Parse("https://" + address)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse address: %w", err)
+	}
+
 	// Connect
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url.String(), nil)
 	if err != nil {
 		return nil, err
 	}
