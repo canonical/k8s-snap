@@ -13,27 +13,21 @@ import (
 )
 
 func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.Response {
-	snap := e.provider.Snap()
+	// fail if node is not initialized yet
+	if !s.Database.IsOpen() {
+		return response.Unavailable(fmt.Errorf("daemon not yet initialized"))
+	}
 
 	members, err := impl.GetClusterMembers(s.Context, s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster members: %w", err))
 	}
-
 	config, err := utils.GetClusterConfig(s.Context, s)
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to get user-facing cluster config: %w", err))
-	}
-
-	clusterConfig, err := utils.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
-	datastoreConfig := apiv1.Datastore{
-		Type:        clusterConfig.Datastore.GetType(),
-		ExternalURL: clusterConfig.Datastore.GetExternalURL(),
-	}
 
+	snap := e.provider.Snap()
 	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
@@ -46,10 +40,13 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 
 	result := apiv1.GetClusterStatusResponse{
 		ClusterStatus: apiv1.ClusterStatus{
-			Ready:     ready,
-			Members:   members,
-			Config:    config.ToUserFacing(),
-			Datastore: datastoreConfig,
+			Ready:   ready,
+			Members: members,
+			Config:  config.ToUserFacing(),
+			Datastore: apiv1.Datastore{
+				Type:        config.Datastore.GetType(),
+				ExternalURL: config.Datastore.GetExternalURL(),
+			},
 		},
 	}
 
