@@ -3,6 +3,7 @@ package component
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
@@ -72,7 +73,14 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 	formattedCidrs := []map[string]any{}
 
 	for _, cidr := range config.GetCIDRs() {
-		formattedCidrs = append(formattedCidrs, map[string]any{"cidr": cidr})
+		// Handle IP range
+		if strings.Contains(cidr, "-") {
+			ipRange := strings.Split(cidr, "-")
+			formattedCidrs = append(formattedCidrs, map[string]any{"start": ipRange[0], "stop": ipRange[1]})
+		} else {
+			// Handle CIDRs
+			formattedCidrs = append(formattedCidrs, map[string]any{"cidr": cidr})
+		}
 	}
 
 	values := map[string]any{
