@@ -32,6 +32,9 @@ func SplitIPAndDNSSANs(extraSANs []string) ([]net.IP, []string) {
 	return ipSANs, dnsSANs
 }
 
+// TLSClientConfig returns a TLS configuration that trusts a remote server
+// The remoteCert is the public key of the server we are connecting to.
+// The rootCAs is the list of trusted CAs, allowing you to pass the clients existing trusted CAs.
 func TLSClientConfigWithTrustedCertificate(remoteCert *x509.Certificate, rootCAs *x509.CertPool) (*tls.Config, error) {
 	config := &tls.Config{}
 	if remoteCert == nil {
