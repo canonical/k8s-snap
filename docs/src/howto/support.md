@@ -8,5 +8,5 @@ Support for Canonical Kubernetes is available in a variety of ways:
 
 <!--LINKS -->
 [Canonical Kubernetes Community]: ../reference/community
-[Troubleshooting Techniques]: ../explanation/troubleshooting
+[Troubleshooting Techniques]: ../reference/troubleshooting
 [Ubuntu Support]: https://ubuntu.com/support

@@ -16,7 +16,6 @@ Overview <self>
 /explanation/channels
 /explanation/clustering
 /explanation/security
-/explanation/troubleshooting
 ```
 
 ---
