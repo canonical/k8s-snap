@@ -40,4 +40,13 @@ func TestTLSClientConfigWithTrustedCertificate(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(tlsConfig.ServerName).To(Equal("bubblegum.com"))
 	g.Expect(tlsConfig.RootCAs.Subjects()).To(ContainElement(remoteCert.RawSubject))
+
+	// Test with invalid remote certificate
+	tlsConfig, err = utils.TLSClientConfigWithTrustedCertificate(nil, rootCAs)
+	g.Expect(err).ToNot(BeNil())
+	g.Expect(tlsConfig).To(BeNil())
+
+	// Test with nil root CAs
+	_, err = utils.TLSClientConfigWithTrustedCertificate(remoteCert, nil)
+	g.Expect(err).To(BeNil())
 }

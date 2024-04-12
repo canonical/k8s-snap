@@ -41,6 +41,10 @@ func TLSClientConfigWithTrustedCertificate(remoteCert *x509.Certificate, rootCAs
 		return nil, fmt.Errorf("invalid remote public key")
 	}
 
+	if rootCAs == nil {
+		rootCAs = x509.NewCertPool()
+	}
+
 	config.RootCAs = rootCAs
 	remoteCert.IsCA = true
 	config.RootCAs.AddCert(remoteCert)
