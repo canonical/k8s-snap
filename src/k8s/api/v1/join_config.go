@@ -7,6 +7,8 @@ import (
 )
 
 type ControlPlaneNodeJoinConfig struct {
+	ExtraSANS []string `json:"extra-sans,omitempty" yaml:"extra-sans,omitempty"`
+
 	APIServerCert *string `json:"apiserver-crt,omitempty" yaml:"apiserver-crt,omitempty"`
 	APIServerKey  *string `json:"apiserver-key,omitempty" yaml:"apiserver-key,omitempty"`
 	KubeletCert   *string `json:"kubelet-crt,omitempty" yaml:"kubelet-crt,omitempty"`
