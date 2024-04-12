@@ -1,7 +1,7 @@
 package component
 
 const dnsImageRepository = "ghcr.io/canonical/coredns"
-const dnsImageTag = "1.11.1-ck1"
+const dnsImageTag = "1.11.1-ck4"
 
 const ciliumAgentImageRepository = "ghcr.io/canonical/cilium"
 const ciliumAgentImageTag = "1.15.2-ck1"
