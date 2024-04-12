@@ -14,5 +14,9 @@ func (a *App) Snap() snap.Snap {
 	return a.snap
 }
 
+func (a *App) UpdateNodeConfigurationControllerCh() chan<- struct{} {
+	return a.updateNodeConfigController.UpdateCh
+}
+
 // Ensure App implements api.Provider
 var _ api.Provider = &App{}
