@@ -10,8 +10,8 @@ package][] on cloud instances managed by Juju. Operating Kubernetes through
 this charm makes it significantly easier to maanage at scale, on remote cloud
 instances and also to integrate other operators to enhance or customise your
 Kubernetes deployment. You can find out more about Canonical Kubernetes on this
-[overview page] or see a more detailed explanation in our [architecture
-documentation].
+[overview page][] or see a more detailed explanation in our [architecture
+documentation][arch].
 
 ![Illustration depicting working on components and clouds][logo]
 
@@ -66,10 +66,10 @@ and constructive feedback.
 <!-- LINKS -->
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
-[community]: ./reference/community
-[contribute]: ./howto/contribute
-[roadmap]: ./reference/roadmap
-[overview page]: ./explanation/about
-[architecture documentation]: ./reference/architecture
+[community]: /charm/reference/community
+[contribute]: /snap/howto/contribute
+[roadmap]: /snap/reference/roadmap
+[overview page]: /charm/explanation/about
+[arch]: /charm/reference/architecture
 [Juju]: https://juju.is
 [k8s snap package]: /snap/index

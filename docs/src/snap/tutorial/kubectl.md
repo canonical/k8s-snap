@@ -10,7 +10,7 @@ tool.
 Before you begin, make sure you have the following:
 
 - A bootstrapped Canonical Kubernetes cluster (See
-  [Getting Started](getting-started.md))
+  [Getting Started](getting-started))
 - You are using the built-in `kubectl` command from the snap.
 
 ### 1. The Kubectl Command
@@ -45,7 +45,7 @@ To find out more, you can visit
 
 ### 4. Viewing objects
 
-Let's review what was created in the [Getting Started](getting-started.md)
+Let's review what was created in the [Getting Started](getting-started)
 guide.
 
 To see what pods were created when we enabled the `network` and `dns`
@@ -116,6 +116,6 @@ pods will have a status of `ContainerCreating`.
 
 ## Further information
 
-- Explore Kubernetes commands with our [Command Reference Guide](../reference/commands)
+- Explore Kubernetes commands with our [Command Reference Guide](/snap/reference/commands)
 - See the official `kubectl` reference
   [https://kubernetes.io/docs/reference/kubectl/](https://kubernetes.io/docs/reference/kubectl/)

@@ -211,9 +211,9 @@ This option ensures complete removal of the snap and its associated data.
 
 <!-- LINKS -->
 
-[How to use kubectl]: ./kubectl
-[Command Reference Guide]: ../reference/commands
-[Setting up a K8s cluster]: ./add-remove-nodes
-[Storage]: ../howto/storage
-[Networking]: ../howto/networking/index.md
-[Ingress]: ../howto/networking/default-ingress.md
+[How to use kubectl]: kubectl
+[Command Reference Guide]: /snap/reference/commands
+[Setting up a K8s cluster]: add-remove-nodes
+[Storage]: /snap/howto/storage
+[Networking]: /snap/howto/networking/index.md
+[Ingress]: /snap/howto/networking/default-ingress.md

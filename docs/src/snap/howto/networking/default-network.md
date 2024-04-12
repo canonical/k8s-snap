@@ -85,4 +85,4 @@ sudo k8s disable network --help
 
 <!-- LINKS -->
 
-[getting-started-guide]: ../../../tutorial/getting-started
+[getting-started-guide]: /snap/tutorial/getting-started

@@ -78,4 +78,4 @@ sudo k8s disable load-balancer
 <!-- LINKS -->
 
 [cidr]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing
-[getting-started-guide]: ../../../tutorial/getting-started
+[getting-started-guide]: /snap/tutorial/getting-started

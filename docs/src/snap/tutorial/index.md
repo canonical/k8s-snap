@@ -33,6 +33,6 @@ Finally, our [Reference section] is for when you need to check specific details
 or information such as the command reference or release notes.
 
 <!--LINKS -->
-[How-to guides]: ../howto/index
-[Explanation section]: ../explanation/index
-[Reference section]: ../reference/index
+[How-to guides]: /snap/howto/index
+[Explanation section]: /snap/explanation/index
+[Reference section]: /snap/reference/index

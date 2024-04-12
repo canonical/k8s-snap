@@ -8,7 +8,7 @@ This tutorial simplifies the concept by creating a cluster within a controlled
 environment using two Multipass VMs. The approach here allows us to focus on
 the foundational aspects of clustering using Canonical Kubernetes without the
 complexities of a full-scale, production setup. If your nodes are already
-installed, you can skip the multipass setup and go to [step 2](step2)
+installed, you can skip the multipass setup and go to [step 2](step2).
 
 ## Before starting
 
@@ -149,10 +149,10 @@ multipass purge
 
 <!-- LINKS -->
 
-[Getting started]: getting-started.md
+[Getting started]: getting-started
 [Multipass Installation]: https://multipass.run/install
-[Ingress]: ../howto/networking/default-ingress.md
-[Kubectl]: ./kubectl
-[Command Reference]: ../reference/commands
-[Storage]: ../howto/storage
-[Networking]: ../howto/networking/index.md
+[Ingress]: /snap/howto/networking/default-ingress
+[Kubectl]: kubectl
+[Command Reference]: /snap/reference/commands
+[Storage]: /snap/howto/storage
+[Networking]: /snap/howto/networking/index.md

@@ -94,4 +94,4 @@ sudo k8s help disable
 
 <!-- LINKS -->
 
-[getting-started-guide]: ../../../tutorial/getting-started
+[getting-started-guide]: /snap/tutorial/getting-started
