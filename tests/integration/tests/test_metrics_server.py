@@ -17,7 +17,6 @@ def test_metrics_server(instances: List[harness.Instance]):
     instance = instances[0]
     util.wait_for_dns(instance)
     util.wait_for_network(instance)
-    # metrics-server is enabled on bootstrap
 
     LOG.info("Waiting for metrics-server pod to show up...")
     util.stubbornly(retries=15, delay_s=5).on(instance).until(
