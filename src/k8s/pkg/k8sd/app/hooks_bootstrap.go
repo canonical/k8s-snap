@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/x509"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -63,7 +64,7 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string) error {
 	}
 
 	// Create the http client with trusted certificate
-	tlsConfig, err := utils.TLSClientConfigWithTrustedCertificate(cert)
+	tlsConfig, err := utils.TLSClientConfigWithTrustedCertificate(cert, x509.NewCertPool())
 	if err != nil {
 		return fmt.Errorf("failed to get TLS configuration for trusted certificate: %w", err)
 	}

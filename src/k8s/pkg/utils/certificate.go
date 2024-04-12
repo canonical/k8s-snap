@@ -32,13 +32,13 @@ func SplitIPAndDNSSANs(extraSANs []string) ([]net.IP, []string) {
 	return ipSANs, dnsSANs
 }
 
-func TLSClientConfigWithTrustedCertificate(remoteCert *x509.Certificate) (*tls.Config, error) {
+func TLSClientConfigWithTrustedCertificate(remoteCert *x509.Certificate, rootCAs *x509.CertPool) (*tls.Config, error) {
+	config := &tls.Config{}
 	if remoteCert == nil {
 		return nil, fmt.Errorf("invalid remote public key")
 	}
 
-	config := &tls.Config{}
-
+	config.RootCAs = rootCAs
 	remoteCert.IsCA = true
 	config.RootCAs.AddCert(remoteCert)
 
@@ -51,6 +51,14 @@ func TLSClientConfigWithTrustedCertificate(remoteCert *x509.Certificate) (*tls.C
 }
 
 func GetRemoteCertificate(address string) (*x509.Certificate, error) {
+	// validate address
+	_, _, err := net.SplitHostPort(address)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate the cluster member address: %w", err)
+	}
+
+	url := fmt.Sprintf("https://%s", address)
+
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -59,13 +67,8 @@ func GetRemoteCertificate(address string) (*x509.Certificate, error) {
 		},
 	}
 
-	_, _, err := net.SplitHostPort(address)
-	if err != nil {
-		return nil, fmt.Errorf("failed to validate the cluster member address: %w", err)
-	}
-
 	// Connect
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s", address), nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
