@@ -29,7 +29,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Short:  "Set cluster configuration",
 		Long:   fmt.Sprintf("Configure one of %s.\nUse `k8s get` to explore configuration options.", strings.Join(componentList, ", ")),
 		Args:   cmdutil.MinimumNArgs(env, 1),
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := apiv1.UserFacingClusterConfig{}
 
