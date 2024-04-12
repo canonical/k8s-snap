@@ -9,8 +9,9 @@ k8s get-join-token <node-name> [flags]
 ### Options
 
 ```
-  -h, --help     help for get-join-token
-      --worker   generate a join token for a worker node
+  -h, --help                   help for get-join-token
+      --output-format string   set the output format to one of plain, json or yaml (default "plain")
+      --worker                 generate a join token for a worker node
 ```
 
 ### SEE ALSO
