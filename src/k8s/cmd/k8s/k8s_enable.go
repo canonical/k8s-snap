@@ -20,12 +20,15 @@ func (e EnableResult) String() string {
 }
 
 func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		outputFormat string
+	}
 	cmd := &cobra.Command{
 		Use:    "enable <feature> ...",
 		Short:  "Enable core cluster features",
 		Long:   fmt.Sprintf("Enable one of %s.", strings.Join(componentList, ", ")),
 		Args:   cmdutil.MinimumNArgs(env, 1),
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
 			features := args
@@ -85,11 +88,11 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(EnableResult{Features: features}); err != nil {
-				cmd.PrintErrf("WARNING: Failed to print the enable result.\n\nThe error was: %v\n", err)
-			}
+			outputFormatter.Print(EnableResult{Features: features})
 		},
 	}
+
+	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 
 	return cmd
 }

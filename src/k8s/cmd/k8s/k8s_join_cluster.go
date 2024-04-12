@@ -21,14 +21,15 @@ func (b JoinClusterResult) String() string {
 
 func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
-		name       string
-		address    string
-		configFile string
+		name         string
+		address      string
+		configFile   string
+		outputFormat string
 	}
 	cmd := &cobra.Command{
 		Use:    "join-cluster <join-token>",
 		Short:  "Join a cluster using the provided token",
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			token := args[0]
@@ -81,13 +82,12 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(JoinClusterResult{Name: opts.name}); err != nil {
-				cmd.PrintErrf("WARNING: Failed to print the join cluster result.\n\nThe error was: %v\n", err)
-			}
+			outputFormatter.Print(JoinClusterResult{Name: opts.name})
 		},
 	}
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
 	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster join configuration")
+	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	return cmd
 }

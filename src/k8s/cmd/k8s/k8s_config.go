@@ -12,7 +12,8 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 	cmd := &cobra.Command{
 		Use:    "config",
-		Short:  "Generate a kubeconfig that can be used to access the Kubernetes cluster",
+		Hidden: true,
+		Short:  "Generate an admin kubeconfig that can be used to access the Kubernetes cluster",
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
@@ -38,6 +39,6 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.Println(config)
 		},
 	}
-	cmd.PersistentFlags().StringVar(&opts.server, "server", "", "custom cluster server address")
+	cmd.Flags().StringVar(&opts.server, "server", "", "custom cluster server address")
 	return cmd
 }
