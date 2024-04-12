@@ -57,6 +57,9 @@ func TLSClientConfigWithTrustedCertificate(remoteCert *x509.Certificate, rootCAs
 	return config, nil
 }
 
+// GetRemoteCertificate retrieves the remote certificate from a given address
+// The address should be in the format of "hostname:port"
+// Returns the remote certificate or an error
 func GetRemoteCertificate(address string) (*x509.Certificate, error) {
 	// validate address
 	_, _, err := net.SplitHostPort(address)
@@ -93,6 +96,7 @@ func GetRemoteCertificate(address string) (*x509.Certificate, error) {
 	return resp.TLS.PeerCertificates[0], nil
 }
 
+// CertFingerprint returns the SHA256 fingerprint of a certificate
 func CertFingerprint(cert *x509.Certificate) string {
 	return fmt.Sprintf("%x", sha256.Sum256(cert.Raw))
 }
