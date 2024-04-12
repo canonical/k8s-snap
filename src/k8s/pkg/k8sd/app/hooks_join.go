@@ -18,7 +18,7 @@ import (
 func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	snap := a.Snap()
 
-	joinClusterConfig, err := apiv1.ControlPlaneJoinConfigFromMicrocluster(initConfig)
+	joinConfig, err := apiv1.ControlPlaneJoinConfigFromMicrocluster(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal control plane join config: %w", err)
 	}
@@ -75,14 +75,16 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Certificates
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(joinConfig.ExtraSANS)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
-		IPSANs:                    append([]net.IP{nodeIP}, serviceIPs...),
+		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
+		DNSSANs:                   extraNames,
 		Years:                     20,
 		IncludeMachineAddressSANs: true,
 	})
 
-	// load existing certificates, then generate certificates for the node
+	// load shared cluster certificates
 	certificates.CACert = cfg.Certificates.GetCACert()
 	certificates.CAKey = cfg.Certificates.GetCAKey()
 	certificates.FrontProxyCACert = cfg.Certificates.GetFrontProxyCACert()
@@ -91,12 +93,13 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	certificates.APIServerKubeletClientKey = cfg.Certificates.GetAPIServerKubeletClientKey()
 	certificates.ServiceAccountKey = cfg.Certificates.GetServiceAccountKey()
 
-	// load certificates from joinClusterConfig
-	certificates.APIServerCert = joinClusterConfig.GetAPIServerCert()
-	certificates.APIServerKey = joinClusterConfig.GetAPIServerKey()
-	certificates.KubeletCert = joinClusterConfig.GetKubeletCert()
-	certificates.KubeletKey = joinClusterConfig.GetKubeletKey()
+	// load certificates from joinConfig
+	certificates.APIServerCert = joinConfig.GetAPIServerCert()
+	certificates.APIServerKey = joinConfig.GetAPIServerKey()
+	certificates.KubeletCert = joinConfig.GetKubeletCert()
+	certificates.KubeletKey = joinConfig.GetKubeletKey()
 
+	// generate missing certificates
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
