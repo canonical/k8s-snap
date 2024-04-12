@@ -10,16 +10,28 @@ import (
 
 var (
 	componentList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
+
+	outputFormatter cmdutil.Formatter
 )
+
+func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Command) {
+	if group != nil {
+		root.AddGroup(group)
+		for _, command := range commands {
+			command.GroupID = group.ID
+		}
+	}
+
+	root.AddCommand(commands...)
+}
 
 func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var (
 		opts struct {
-			logDebug     bool
-			logVerbose   bool
-			outputFormat string
-			stateDir     string
-			timeout      time.Duration
+			logDebug   bool
+			logVerbose bool
+			stateDir   string
+			timeout    time.Duration
 		}
 	)
 	cmd := &cobra.Command{
@@ -28,16 +40,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// initialize context
 			ctx := cmd.Context()
-
-			// initialize formatter
-			var err error
-			formatter, err := cmdutil.NewFormatter(opts.outputFormat, cmd.OutOrStdout())
-			if err != nil {
-				cmd.PrintErrf("Error: Unknown --output-format %q. It must be one of %q (default), %q or %q.", opts.outputFormat, "plain", "json", "yaml")
-				env.Exit(1)
-				return
-			}
-			ctx = cmdutil.ContextWithFormatter(ctx, formatter)
 
 			// configure command context timeout
 			const minTimeout = 3 * time.Second
@@ -61,7 +63,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&opts.stateDir, "state-dir", "", "directory with the dqlite datastore")
 	cmd.PersistentFlags().BoolVarP(&opts.logDebug, "debug", "d", false, "show all debug messages")
 	cmd.PersistentFlags().BoolVarP(&opts.logVerbose, "verbose", "v", true, "show all information messages")
-	cmd.PersistentFlags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	cmd.PersistentFlags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 
 	// By default, the state dir is set to a fixed directory in the snap.
@@ -69,33 +70,48 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().MarkHidden("state-dir")
 	cmd.PersistentFlags().MarkHidden("debug")
 	cmd.PersistentFlags().MarkHidden("verbose")
+	cmd.PersistentFlags().MarkHidden("timeout")
 
 	// General
-	cmd.AddCommand(newStatusCmd(env))
+	addCommands(
+		cmd,
+		&cobra.Group{ID: "general", Title: "General Commands:"},
+		newStatusCmd(env),
+		newKubeConfigCmd(env),
+		newKubectlCmd(env),
+	)
 
 	// Clustering
-	cmd.AddCommand(newBootstrapCmd(env))
-	cmd.AddCommand(newGetJoinTokenCmd(env))
-	cmd.AddCommand(newJoinClusterCmd(env))
-	cmd.AddCommand(newRemoveNodeCmd(env))
+	addCommands(
+		cmd,
+		&cobra.Group{ID: "cluster", Title: "Clustering Commands:"},
+		newBootstrapCmd(env),
+		newGetJoinTokenCmd(env),
+		newJoinClusterCmd(env),
+		newRemoveNodeCmd(env),
+	)
 
-	// Components
-	cmd.AddCommand(newEnableCmd(env))
-	cmd.AddCommand(newDisableCmd(env))
-	cmd.AddCommand(newSetCmd(env))
-	cmd.AddCommand(newGetCmd(env))
+	// Management
+	addCommands(
+		cmd,
+		&cobra.Group{ID: "management", Title: "Management Commands:"},
+		newEnableCmd(env),
+		newDisableCmd(env),
+		newSetCmd(env),
+		newGetCmd(env),
+	)
 
-	// internal
-	cmd.AddCommand(newGenerateAuthTokenCmd(env))
-	cmd.AddCommand(newKubeConfigCmd(env))
-	cmd.AddCommand(newLocalNodeStatusCommand(env))
-	cmd.AddCommand(newRevokeAuthTokenCmd(env))
-	cmd.AddCommand(newGenerateDocsCmd(env))
-	cmd.AddCommand(xPrintShimPidsCmd)
-
-	// Those commands replace the executable - no need for error wrapping.
-	cmd.AddCommand(newHelmCmd(env))
-	cmd.AddCommand(newKubectlCmd(env))
+	// hidden commands
+	addCommands(
+		cmd,
+		nil,
+		newGenerateAuthTokenCmd(env),
+		newLocalNodeStatusCommand(env),
+		newRevokeAuthTokenCmd(env),
+		newGenerateDocsCmd(env),
+		xPrintShimPidsCmd,
+		newHelmCmd(env),
+	)
 
 	cmd.DisableAutoGenTag = true
 	return cmd
