@@ -28,7 +28,7 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Short:  "Disable core cluster features",
 		Long:   fmt.Sprintf("Disable one of %s.", strings.Join(componentList, ", ")),
 		Args:   cmdutil.MinimumNArgs(env, 1),
-		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, opts.outputFormat)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
 			features := args
@@ -88,7 +88,7 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			globalFormatter.Print(DisableResult{Features: features})
+			outputFormatter.Print(DisableResult{Features: features})
 		},
 	}
 

@@ -18,7 +18,7 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Short:  "Get cluster configuration",
 		Long:   fmt.Sprintf("Show configuration of one of %s.", strings.Join(componentList, ", ")),
 		Args:   cmdutil.MaximumNArgs(env, 1),
-		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, opts.outputFormat)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
 			if err != nil {
@@ -109,7 +109,7 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			globalFormatter.Print(output)
+			outputFormatter.Print(output)
 		},
 	}
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")

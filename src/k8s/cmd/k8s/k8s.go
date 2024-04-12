@@ -11,7 +11,7 @@ import (
 var (
 	componentList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
 
-	globalFormatter cmdutil.Formatter
+	outputFormatter cmdutil.Formatter
 )
 
 func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Command) {
@@ -28,11 +28,10 @@ func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Com
 func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var (
 		opts struct {
-			logDebug     bool
-			logVerbose   bool
-			outputFormat string
-			stateDir     string
-			timeout      time.Duration
+			logDebug   bool
+			logVerbose bool
+			stateDir   string
+			timeout    time.Duration
 		}
 	)
 	cmd := &cobra.Command{

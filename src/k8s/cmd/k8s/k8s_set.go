@@ -57,7 +57,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			globalFormatter.Print(SetResult{ClusterConfig: config})
+			outputFormatter.Print(SetResult{ClusterConfig: config})
 		},
 	}
 

@@ -44,7 +44,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:    "bootstrap",
 		Short:  "Bootstrap a new Kubernetes cluster",
 		Long:   "Generate certificates, configure service arguments and start the Kubernetes services.",
-		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, opts.outputFormat)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			if opts.interactive && opts.configFile != "" {
 				cmd.PrintErrln("Error: --interactive and --file flags cannot be set at the same time.")
@@ -130,7 +130,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			globalFormatter.Print(BootstrapResult{Node: node})
+			outputFormatter.Print(BootstrapResult{Node: node})
 		},
 	}
 

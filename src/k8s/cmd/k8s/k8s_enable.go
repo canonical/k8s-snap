@@ -28,7 +28,7 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Short:  "Enable core cluster features",
 		Long:   fmt.Sprintf("Enable one of %s.", strings.Join(componentList, ", ")),
 		Args:   cmdutil.MinimumNArgs(env, 1),
-		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, opts.outputFormat)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
 			features := args
@@ -88,7 +88,7 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			globalFormatter.Print(EnableResult{Features: features})
+			outputFormatter.Print(EnableResult{Features: features})
 		},
 	}
 

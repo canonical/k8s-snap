@@ -24,7 +24,7 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "get-join-token <node-name>",
 		Short:  "Create a token for a node to join the cluster",
-		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, opts.outputFormat)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
@@ -43,10 +43,11 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			globalFormatter.Print(GetJoinTokenResult{JoinToken: token})
+			outputFormatter.Print(GetJoinTokenResult{JoinToken: token})
 		},
 	}
 
 	cmd.Flags().BoolVar(&opts.worker, "worker", false, "generate a join token for a worker node")
+	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	return cmd
 }
