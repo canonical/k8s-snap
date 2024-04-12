@@ -6,7 +6,7 @@ import apiv1 "github.com/canonical/k8s/api/v1"
 func DatastoreConfigFromUserFacing(u apiv1.UserFacingDatastoreConfig) Datastore {
 	return Datastore{
 		Type:               u.Type,
-		ExternalURL:        u.Servers,
+		ExternalServers:    u.Servers,
 		ExternalCACert:     u.CACert,
 		ExternalClientCert: u.CACert,
 		ExternalClientKey:  u.ClientKey,
@@ -17,7 +17,7 @@ func DatastoreConfigFromUserFacing(u apiv1.UserFacingDatastoreConfig) Datastore 
 func (c Datastore) ToUserFacing() apiv1.UserFacingDatastoreConfig {
 	return apiv1.UserFacingDatastoreConfig{
 		Type:       c.Type,
-		Servers:    c.ExternalURL,
+		Servers:    c.ExternalServers,
 		CACert:     c.ExternalCACert,
 		ClientCert: c.ExternalCACert,
 		ClientKey:  c.ExternalClientKey,

@@ -37,7 +37,14 @@ class EtcdCluster:
         self.instances: List[Instance] = []
         self.harness: Harness = h
 
-        for _ in range(initial_node_count):
+        self.add_nodes(initial_node_count)
+
+
+    def add_nodes(self, count: int):
+        """
+        Add a given number of nodes to the cluster.
+        """
+        for _ in range(count):
             self.add_node()
 
     def add_node(self):

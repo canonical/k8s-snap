@@ -13,11 +13,11 @@ type GetClusterConfigResponse struct {
 }
 
 type UpdateClusterConfigRequest struct {
-	Config UserFacingClusterConfig
+	Config UserFacingClusterConfig `json:"config,omitempty" yaml:"config,omitempty"`
 	// DatastoreConfig contains updates of the external datastore configuration.
 	// It is not part of the UserFacingClusterConfig as it is direcly marshalled by the CLI.
 	// The datastore config should not be displayed as part of the configuration in `k8s get`
-	DatastoreConfig UserFacingDatastoreConfig
+	DatastoreConfig UserFacingDatastoreConfig `json:"datastore-config,omitempty" yaml:"datastore-config,omitempty"`
 }
 
 type UpdateClusterConfigResponse struct {
@@ -109,15 +109,15 @@ func (c MetricsServerConfig) GetEnabled() bool { return getField(c.Enabled) }
 
 type UserFacingDatastoreConfig struct {
 	// Type of the datastore. Needs to be "external".
-	Type       *string   `json:"datastore-type,omitempty"`
-	Servers    *[]string `json:"datastore-url,omitempty"`
-	CACert     *string   `json:"ca-crt,omitempty"`
-	ClientCert *string   `json:"client-crt,omitempty"`
-	ClientKey  *string   `json:"client-key,omitempty"`
+	Type       *string   `json:"type,omitempty" yaml:"type,omitempty"`
+	Servers    *[]string `json:"servers,omitempty" yaml:"servers,omitempty"`
+	CACert     *string   `json:"ca-crt,omitempty" yaml:"ca-crt,omitempty"`
+	ClientCert *string   `json:"client-crt,omitempty" yaml:"client-crt,omitempty"`
+	ClientKey  *string   `json:"client-key,omitempty" yaml:"client-key,omitempty"`
 }
 
 func (c UserFacingDatastoreConfig) GetType() string       { return getField(c.Type) }
-func (c UserFacingDatastoreConfig) GetURL() []string      { return getField(c.Servers) }
+func (c UserFacingDatastoreConfig) GetServers() []string  { return getField(c.Servers) }
 func (c UserFacingDatastoreConfig) GetCACert() string     { return getField(c.CACert) }
 func (c UserFacingDatastoreConfig) GetClientCert() string { return getField(c.ClientCert) }
 func (c UserFacingDatastoreConfig) GetClientKey() string  { return getField(c.ClientKey) }

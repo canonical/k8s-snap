@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	api "github.com/canonical/k8s/api/v1"
@@ -26,7 +27,11 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
 	}
-
+	fmt.Println()
+	fmt.Println("---------------")
+	fmt.Println(req)
+	fmt.Println("---------------")
+	fmt.Println(req.DatastoreConfig)
 	oldConfig, err := utils.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
@@ -38,6 +43,11 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		mergedConfig, err = database.SetClusterConfig(ctx, tx, requestedConfig)
+		log.Println("requestedConfig")
+		log.Println(requestedConfig)
+		log.Println("-------------------------------")
+		log.Println("mergedConfig")
+		log.Println(mergedConfig)
 		if err != nil {
 			return fmt.Errorf("failed to update cluster configuration: %w", err)
 		}
@@ -87,6 +97,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
 	}
 
+	log.Println("Update config map")
 	if _, err := client.UpdateConfigMap(r.Context(), "kube-system", "k8sd-config", cmData); err != nil {
 		return response.InternalError(fmt.Errorf("failed to update node config: %w", err))
 	}

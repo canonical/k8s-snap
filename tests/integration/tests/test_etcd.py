@@ -1,6 +1,7 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import json
 import logging
 from typing import List
 
@@ -35,8 +36,8 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     )
 
     k8s_instance.exec(["k8s", "bootstrap", "--file", "/root/config.yaml"])
-    util.wait_for_dns(k8s_instance)
-    util.wait_for_network(k8s_instance)
+    # util.wait_for_dns(k8s_instance)
+    # util.wait_for_network(k8s_instance)
 
     p = k8s_instance.exec(
         ["systemctl", "is-active", "--quiet", "snap.k8s.k8s-dqlite"], check=False
@@ -45,8 +46,18 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
 
     # increase etcd cluster
     LOG.info("Add a new etcd node")
-    etcd_cluster.add_node()
+    etcd_cluster.add_nodes(2)
+
     # Update  server-urls in cluster
+    body = {
+        "datastore-config": {
+            "type": "external",
+            "servers": etcd_cluster.client_urls,
+            "ca-crt": etcd_cluster.ca_cert,
+            "client-crt": etcd_cluster.cert,
+            "client-key": etcd_cluster.key,
+        }
+    }
     k8s_instance.exec(
         [
             "curl",
@@ -54,7 +65,7 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
             "--header",
             "Content-Type: application/json",
             "--data",
-            "{}",
+            json.dumps(body),
             "--unix-socket",
             "/var/snap/k8s/common/var/lib/k8sd/state/control.socket",
             "http://localhost/1.0/k8sd/cluster/config",

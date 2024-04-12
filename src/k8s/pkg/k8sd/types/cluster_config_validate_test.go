@@ -101,3 +101,56 @@ func TestValidateLoadbalancer(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateExternalServers(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		clusterConfig types.ClusterConfig
+		expectErr     bool
+	}{
+		{name: "EmptyExternalServers", clusterConfig: types.ClusterConfig{Datastore: types.Datastore{ExternalServers: nil}}},
+		{
+			name: "ValidSingleExternalServers", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"localhost:123"}),
+				},
+			},
+		},
+		{
+			name: "ValidMultipleExternalServers", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"https://localhost:123", "10.11.12.13:1234"}),
+				},
+			},
+		},
+		{
+			name: "InvalidSingleExternalServers", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"localhost"}),
+				},
+			},
+			expectErr: true,
+		},
+		{
+			name: "InvalidMultipleExternalServers", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"localhost:123", "invalid_address:1:2"}),
+				},
+			},
+			expectErr: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			tc.clusterConfig.SetDefaults()
+
+			err := tc.clusterConfig.Validate()
+			if tc.expectErr {
+				g.Expect(err).To(HaveOccurred())
+			} else {
+				g.Expect(err).To(BeNil())
+			}
+		})
+	}
+}

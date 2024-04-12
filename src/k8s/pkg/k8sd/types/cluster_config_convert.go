@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"strings"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils/vals"
@@ -49,7 +48,7 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 		}
 		config.Datastore = Datastore{
 			Type:               vals.Pointer("external"),
-			ExternalURL:        vals.Pointer(strings.Join(b.DatastoreServers, ",")),
+			ExternalServers:    vals.Pointer(b.DatastoreServers),
 			ExternalCACert:     b.DatastoreCACert,
 			ExternalClientCert: b.DatastoreClientCert,
 			ExternalClientKey:  b.DatastoreClientKey,

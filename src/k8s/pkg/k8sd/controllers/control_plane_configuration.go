@@ -53,6 +53,7 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 			return
 		}
 
+		log.Println("Get Cluster Config to check for updates")
 		config, err := getClusterConfig(ctx)
 		if err != nil {
 			log.Println(fmt.Errorf("failed to retrieve cluster config: %w", err))
@@ -67,6 +68,7 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 
 func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, config types.ClusterConfig) error {
 	// kube-apiserver: external datastore
+	log.Println("Reconcile")
 	switch config.Datastore.GetType() {
 	case "external":
 		// certificates
@@ -80,6 +82,8 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 
 		// kube-apiserver arguments
 		updateArgs, deleteArgs := config.Datastore.ToKubeAPIServerArguments(c.snap)
+		log.Printf("updateArgs: %v\n", updateArgs)
+		log.Printf("deleteArgs: %v\n", deleteArgs)
 		if mustRestart, err := snaputil.UpdateServiceArguments(c.snap, "kube-apiserver", updateArgs, deleteArgs); err != nil {
 			return fmt.Errorf("failed to update kube-apiserver datastore arguments: %w", err)
 		} else if mustRestart {
