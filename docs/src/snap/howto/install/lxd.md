@@ -212,7 +212,7 @@ completely, as suggested in S.Graber's notes[^1].
 **lxc.cap.drop=**: Do not drop any capabilities [^2]. For justification see
 above.
 
-**lxc.mount.auto=proc:rw sys:rw**: Mount proc and sys rw [^3]. For privileged
+**lxc.mount.auto=proc:rw sys:rw**: Mount proc and sys rw. For privileged
 containers, lxc over-mounts part of /proc as read-only to avoid damage to the
 host. Kubernetes will complain with messages like `Failed to start
 ContainerManager open /proc/sys/kernel/panic: permission denied`
@@ -225,20 +225,19 @@ indicating permission for all devices. For justification see above.
 container.
 
 **security.privileged: “true”**: Runs the container in privileged mode, not
-using kernel namespaces [^4], [^5]. This is needed because hosted Containers may
-need to access for example storage devices (See comment in [^6]).
+using kernel namespaces [^3], [^4]. This is needed because hosted Containers may
+need to access for example storage devices (See comment in [^5]).
 
 <!-- LINKS -->
 <!-- markdownlint-disable MD034 -->
 [^1]: https://stgraber.org/2012/05/04/
 [^2]: https://stgraber.org/2014/01/01/lxc-1-0-security-features/
-[^3]: https://github.com/lxc/lxd/issues/3042
-[^4]: https://unix.stackexchange.com/questions/177030/what-is-an-unprivileged-lxc-container/177031#177031
-[^5]: http://blog.benoitblanchon.fr/lxc-unprivileged-container/
-[^6]: https://wiki.ubuntu.com/LxcSecurity
+[^3]: https://unix.stackexchange.com/questions/177030/what-is-an-unprivileged-lxc-container/177031#177031
+[^4]: http://blog.benoitblanchon.fr/lxc-unprivileged-container/
+[^5]: https://wiki.ubuntu.com/LxcSecurity
 
 [LXD]: https://canonical.com/lxd
 [default-bridged-networking]: https://ubuntu.com/blog/lxd-networking-lxdbr0-explained
 [Microbot]: https://github.com/dontrebootme/docker-microbot
 [AppArmor]: https://apparmor.net/
-[channels]: ../../explanation/channels
+[channels]: /snap/explanation/channels
