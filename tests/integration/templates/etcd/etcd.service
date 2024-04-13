@@ -22,12 +22,12 @@
     --initial-cluster-state $CLUSTER_STATE \
     --client-cert-auth \
     --trusted-ca-file /tmp/ca-cert.pem \
-    --cert-file /tmp/etcd-cert.pem \
-    --key-file /tmp/etcd-key.pem \
+    --cert-file /tmp/client-cert.pem \
+    --key-file /tmp/client-key.pem \
     --peer-client-cert-auth \
     --peer-trusted-ca-file /tmp/ca-cert.pem \
-    --peer-cert-file /tmp/etcd-cert.pem \
-    --peer-key-file /tmp/etcd-key.pem
+    --peer-cert-file /tmp/server-cert.pem \
+    --peer-key-file /tmp/server-key.pem
 
     [Install]
     WantedBy=multi-user.target

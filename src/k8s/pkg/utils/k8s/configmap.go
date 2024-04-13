@@ -11,13 +11,6 @@ import (
 )
 
 func (c *Client) WatchConfigMap(ctx context.Context, namespace string, name string, reconcile func(configMap *v1.ConfigMap) error) (err error) {
-	defer func() {
-		// recover from panic if one occurred. Set err to nil otherwise.
-		if panicErr := recover(); panicErr != nil {
-			err = fmt.Errorf("WatchConfigMap paniced")
-		}
-	}()
-
 	w, err := c.CoreV1().ConfigMaps(namespace).Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: name}))
 	if err != nil {
 		return fmt.Errorf("failed to watch configmap, namespace: %s name: %s: %w", namespace, name, err)

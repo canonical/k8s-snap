@@ -36,16 +36,15 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     )
 
     k8s_instance.exec(["k8s", "bootstrap", "--file", "/root/config.yaml"])
-    # util.wait_for_dns(k8s_instance)
-    # util.wait_for_network(k8s_instance)
+    util.wait_for_dns(k8s_instance)
+    util.wait_for_network(k8s_instance)
 
     p = k8s_instance.exec(
         ["systemctl", "is-active", "--quiet", "snap.k8s.k8s-dqlite"], check=False
     )
     assert p.returncode != 0, "k8s-dqlite service is still active"
 
-    # increase etcd cluster
-    LOG.info("Add a new etcd node")
+    LOG.info("Add new etcd nodes")
     etcd_cluster.add_nodes(2)
 
     # Update  server-urls in cluster
@@ -71,4 +70,12 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
             "http://localhost/1.0/k8sd/cluster/config",
         ]
     )
-    # check that things still work
+
+    # check that we can still connect to the kubernetes cluster 
+    k8s_instance.exec([
+        "k8s",
+        "kubectl",
+        "get",
+        "pods",
+        "-A"
+    ])

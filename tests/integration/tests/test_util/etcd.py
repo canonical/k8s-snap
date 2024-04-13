@@ -74,9 +74,9 @@ class EtcdCluster:
                     "--peer-urls",
                     f"https://{ip}:2380",
                     "--cert",
-                    "/tmp/etcd-cert.pem",
+                    "/tmp/client-cert.pem",
                     "--key",
-                    "/tmp/etcd-key.pem",
+                    "/tmp/client-key.pem",
                     "--cacert",
                     "/tmp/ca-cert.pem",
                     "--endpoints",
@@ -136,6 +136,7 @@ class EtcdCluster:
                 ]
             )
 
+        # Generate client CSR
         instance.exec(
             [
                 "openssl",
@@ -144,14 +145,15 @@ class EtcdCluster:
                 "-newkey",
                 "rsa:4096",
                 "-keyout",
-                "/tmp/etcd-key.pem",
+                "/tmp/client-key.pem",
                 "-out",
-                "/tmp/etcd-cert.csr",
+                "/tmp/client-cert.csr",
                 "-config",
                 "/tmp/etcd-tls.conf",
             ]
         )
-
+        
+        # Sign client CSR
         instance.exec(
             [
                 "openssl",
@@ -160,13 +162,54 @@ class EtcdCluster:
                 "-days",
                 "36500",
                 "-in",
-                "/tmp/etcd-cert.csr",
+                "/tmp/client-cert.csr",
                 "-CA",
                 "/tmp/ca-cert.pem",
                 "-CAkey",
                 "/tmp/ca-key.pem",
                 "-out",
-                "/tmp/etcd-cert.pem",
+                "/tmp/client-cert.pem",
+                "-extensions",
+                "v3_req",
+                "-extfile",
+                "/tmp/etcd-tls.conf",
+                "-CAcreateserial",
+            ]
+        )
+        
+        # Generate server CSR
+        instance.exec(
+            [
+                "openssl",
+                "req",
+                "-nodes",
+                "-newkey",
+                "rsa:4096",
+                "-keyout",
+                "/tmp/server-key.pem",
+                "-out",
+                "/tmp/server-cert.csr",
+                "-config",
+                "/tmp/etcd-tls.conf",
+            ]
+        )
+
+        # Sign server CSR
+        instance.exec(
+            [
+                "openssl",
+                "x509",
+                "-req",
+                "-days",
+                "36500",
+                "-in",
+                "/tmp/server-cert.csr",
+                "-CA",
+                "/tmp/ca-cert.pem",
+                "-CAkey",
+                "/tmp/ca-key.pem",
+                "-out",
+                "/tmp/server-cert.pem",
                 "-extensions",
                 "v3_req",
                 "-extfile",
@@ -236,7 +279,7 @@ class EtcdCluster:
         Returns:
             str: The certificate in PEM format.
         """
-        p = self.instances[0].exec(["cat", "/tmp/etcd-cert.pem"], capture_output=True)
+        p = self.instances[0].exec(["cat", "/tmp/client-cert.pem"], capture_output=True)
         return p.stdout.decode()
 
     @property
@@ -247,7 +290,7 @@ class EtcdCluster:
         Returns:
             str: The key in PEM format.
         """
-        p = self.instances[0].exec(["cat", "/tmp/etcd-key.pem"], capture_output=True)
+        p = self.instances[0].exec(["cat", "/tmp/client-key.pem"], capture_output=True)
         return p.stdout.decode()
 
     @property
