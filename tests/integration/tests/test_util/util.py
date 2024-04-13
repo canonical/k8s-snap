@@ -27,15 +27,7 @@ def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     kwargs.setdefault("check", True)
 
     LOG.debug("Execute command %s (kwargs=%s)", shlex.join(command), kwargs)
-    try:
-        return subprocess.run(command, **kwargs)
-    except subprocess.CalledProcessError as e:
-        LOG.warning(f"  rc={e.returncode}")
-        if e.stdout is not None:
-            LOG.warning(f"  stdout={e.stdout.decode()}")
-        if e.stderr is not None:
-            LOG.warning(f"  stderr={e.stderr.decode()}")
-        raise
+    return subprocess.run(command, **kwargs)
 
 
 def stubbornly(

@@ -39,7 +39,6 @@ class EtcdCluster:
 
         self.add_nodes(initial_node_count)
 
-
     def add_nodes(self, count: int):
         """
         Add a given number of nodes to the cluster.
@@ -152,7 +151,7 @@ class EtcdCluster:
                 "/tmp/etcd-tls.conf",
             ]
         )
-        
+
         # Sign client CSR
         instance.exec(
             [
@@ -176,7 +175,7 @@ class EtcdCluster:
                 "-CAcreateserial",
             ]
         )
-        
+
         # Generate server CSR
         instance.exec(
             [

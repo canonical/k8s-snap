@@ -3,6 +3,7 @@
 #
 import json
 import logging
+import time
 from typing import List
 
 import pytest
@@ -71,11 +72,32 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
         ]
     )
 
-    # check that we can still connect to the kubernetes cluster 
-    k8s_instance.exec([
-        "k8s",
-        "kubectl",
-        "get",
-        "pods",
-        "-A"
-    ])
+    # Give some time to reconcile and restart services.
+    time.sleep(2)
+
+    # check that we can still connect to the kubernetes cluster
+    k8s_instance.exec(["k8s", "kubectl", "get", "pods", "-A"])
+
+    # Changing the datastore back to k8s-dqlite after using the external datastore should fail.
+    body = {
+        "datastore-config": {
+            "type": "k8s-dqlite",
+        }
+    }
+
+    resp = k8s_instance.exec(
+        [
+            "curl",
+            "-XPUT",
+            "--header",
+            "Content-Type: application/json",
+            "--data",
+            json.dumps(body),
+            "--unix-socket",
+            "/var/snap/k8s/common/var/lib/k8sd/state/control.socket",
+            "http://localhost/1.0/k8sd/cluster/config",
+        ],
+        capture_output=True,
+    )
+    response = json.loads(resp.stdout.decode())
+    assert response["error_code"] == 400, "changing the datastore type should fail"
