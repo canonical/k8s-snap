@@ -108,9 +108,6 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 						Gateway: apiv1.GatewayConfig{
 							Enabled: vals.Pointer(true),
 						},
-						MetricsServer: apiv1.MetricsServerConfig{
-							Enabled: vals.Pointer(true),
-						},
 					},
 				}
 			}
@@ -162,9 +159,9 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 
 	components := askQuestion(
 		stdin, stdout, stderr,
-		"Which components would you like to enable?",
-		componentList,
-		"network, dns, gateway, metrics-server",
+		"Which features would you like to enable?",
+		featureList,
+		"network, dns, gateway",
 		nil,
 	)
 	for _, component := range strings.FieldsFunc(components, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }) {
@@ -181,8 +178,6 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 			config.ClusterConfig.Gateway.Enabled = vals.Pointer(true)
 		case "local-storage":
 			config.ClusterConfig.LocalStorage.Enabled = vals.Pointer(true)
-		case "metrics-server":
-			config.ClusterConfig.MetricsServer.Enabled = vals.Pointer(true)
 		}
 	}
 
