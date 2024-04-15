@@ -64,6 +64,10 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					config.LoadBalancer = api.LoadBalancerConfig{
 						Enabled: vals.Pointer(false),
 					}
+				case "metrics-server":
+					config.MetricsServer = api.MetricsServerConfig{
+						Enabled: vals.Pointer(false),
+					}
 				}
 			}
 			request := api.UpdateClusterConfigRequest{

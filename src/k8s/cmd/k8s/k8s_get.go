@@ -34,6 +34,9 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
+			// ignore MetricsServer config
+			config.MetricsServer = api.MetricsServerConfig{}
+
 			var key string
 			if len(args) == 1 {
 				key = args[0]

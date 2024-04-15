@@ -50,8 +50,5 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 		},
 	}
 
-	// Hide metrics-server in the cluster status response
-	result.ClusterStatus.Config.MetricsServer.Enabled = nil
-
 	return response.SyncResponse(true, &result)
 }

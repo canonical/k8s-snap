@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	api "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
@@ -34,6 +35,9 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				env.Exit(1)
 				return
 			}
+
+			// ignore MetricsServer config
+			status.Config.MetricsServer = api.MetricsServerConfig{}
 
 			outputFormatter.Print(status)
 		},

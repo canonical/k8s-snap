@@ -112,11 +112,6 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
-			// Always enable MetricsServer by default
-			if bootstrapConfig.ClusterConfig.MetricsServer.Enabled == nil {
-				bootstrapConfig.ClusterConfig.MetricsServer.Enabled = vals.Pointer(true)
-			}
-
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
 
 			request := apiv1.PostClusterBootstrapRequest{
