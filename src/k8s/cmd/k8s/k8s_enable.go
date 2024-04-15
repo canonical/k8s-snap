@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"fmt"
-	"slices"
 	"strings"
 
 	api "github.com/canonical/k8s/api/v1"
@@ -26,19 +25,13 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "enable <feature> ...",
 		Short:  "Enable core cluster features",
-		Long:   fmt.Sprintf("Enable one of %s.", strings.Join(componentList, ", ")),
+		Long:   fmt.Sprintf("Enable one of %s.", strings.Join(featureList, ", ")),
 		Args:   cmdutil.MinimumNArgs(env, 1),
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
-			features := args
-			for _, feature := range features {
-				if !slices.Contains(componentList, feature) {
-					cmd.PrintErrf("Error: Cannot enable %q, must be one of: %s\n", feature, strings.Join(componentList, ", "))
-					env.Exit(1)
-					return
-				}
 
+			for _, feature := range args {
 				switch feature {
 				case "network":
 					config.Network = api.NetworkConfig{
@@ -68,6 +61,10 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					config.MetricsServer = api.MetricsServerConfig{
 						Enabled: vals.Pointer(true),
 					}
+				default:
+					cmd.PrintErrf("Error: Cannot enable %q, must be one of: %s\n", feature, strings.Join(featureList, ", "))
+					env.Exit(1)
+					return
 				}
 			}
 			request := api.UpdateClusterConfigRequest{
@@ -81,14 +78,14 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			cmd.PrintErrf("Enabling %s on the cluster. This may take a few seconds, please wait.\n", strings.Join(features, ", "))
+			cmd.PrintErrf("Enabling %s on the cluster. This may take a few seconds, please wait.\n", strings.Join(args, ", "))
 			if err := client.UpdateClusterConfig(cmd.Context(), request); err != nil {
-				cmd.PrintErrf("Error: Failed to enable %s on the cluster.\n\nThe error was: %v\n", strings.Join(features, ", "), err)
+				cmd.PrintErrf("Error: Failed to enable %s on the cluster.\n\nThe error was: %v\n", strings.Join(args, ", "), err)
 				env.Exit(1)
 				return
 			}
 
-			outputFormatter.Print(EnableResult{Features: features})
+			outputFormatter.Print(EnableResult{Features: args})
 		},
 	}
 

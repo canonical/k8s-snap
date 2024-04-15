@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	componentList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer", "metrics-server"}
+	featureList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer"}
 
 	outputFormatter cmdutil.Formatter
 )
