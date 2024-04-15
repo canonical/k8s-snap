@@ -10,7 +10,10 @@ import (
 
 // ClusterConfigFromBootstrapConfig converts BootstrapConfig from public API into a ClusterConfig.
 func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, error) {
-	config := ClusterConfigFromUserFacing(b.ClusterConfig)
+	config, err := ClusterConfigFromUserFacing(b.ClusterConfig)
+	if err != nil {
+		return ClusterConfig{}, fmt.Errorf("invalid cluster configuration: %w", err)
+	}
 
 	// APIServer
 	config.APIServer.SecurePort = b.SecurePort
@@ -69,7 +72,12 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 }
 
 // ClusterConfigFromUserFacing converts UserFacingClusterConfig from public API into a ClusterConfig.
-func ClusterConfigFromUserFacing(u apiv1.UserFacingClusterConfig) ClusterConfig {
+func ClusterConfigFromUserFacing(u apiv1.UserFacingClusterConfig) (ClusterConfig, error) {
+	cidrs, ipRanges, err := loadBalancerCIDRsFromAPI(u.LoadBalancer.CIDRs)
+	if err != nil {
+		return ClusterConfig{}, fmt.Errorf("invalid load-balancer.cidrs: %w", err)
+	}
+
 	return ClusterConfig{
 		Kubelet: Kubelet{
 			ClusterDNS:    u.DNS.ServiceIP,
@@ -89,7 +97,8 @@ func ClusterConfigFromUserFacing(u apiv1.UserFacingClusterConfig) ClusterConfig 
 		},
 		LoadBalancer: LoadBalancer{
 			Enabled:        u.LoadBalancer.Enabled,
-			CIDRs:          u.LoadBalancer.CIDRs,
+			CIDRs:          cidrs,
+			IPRanges:       ipRanges,
 			L2Mode:         u.LoadBalancer.L2Mode,
 			L2Interfaces:   u.LoadBalancer.L2Interfaces,
 			BGPMode:        u.LoadBalancer.BGPMode,
@@ -110,7 +119,7 @@ func ClusterConfigFromUserFacing(u apiv1.UserFacingClusterConfig) ClusterConfig 
 		Gateway: Gateway{
 			Enabled: u.Gateway.Enabled,
 		},
-	}
+	}, nil
 }
 
 // ToUserFacing converts a ClusterConfig to a UserFacingClusterConfig from the public API.
@@ -132,7 +141,7 @@ func (c ClusterConfig) ToUserFacing() apiv1.UserFacingClusterConfig {
 		},
 		LoadBalancer: apiv1.LoadBalancerConfig{
 			Enabled:        c.LoadBalancer.Enabled,
-			CIDRs:          c.LoadBalancer.CIDRs,
+			CIDRs:          loadBalancerCIDRsToAPI(c.LoadBalancer.CIDRs, c.LoadBalancer.IPRanges),
 			L2Mode:         c.LoadBalancer.L2Mode,
 			L2Interfaces:   c.LoadBalancer.L2Interfaces,
 			BGPMode:        c.LoadBalancer.BGPMode,
