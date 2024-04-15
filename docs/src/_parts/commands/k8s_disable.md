@@ -4,7 +4,7 @@ Disable core cluster features
 
 ### Synopsis
 
-Disable one of network, dns, gateway, ingress, local-storage, load-balancer.
+Disable one of network, dns, gateway, ingress, local-storage, load-balancer, metrics-server.
 
 ```
 k8s disable <feature> ... [flags]
