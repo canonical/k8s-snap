@@ -95,6 +95,6 @@ func (c *ClusterConfig) SetDefaults() {
 	}
 	// metrics server
 	if c.MetricsServer.Enabled == nil {
-		c.MetricsServer.Enabled = vals.Pointer(false)
+		c.MetricsServer.Enabled = vals.Pointer(true)
 	}
 }

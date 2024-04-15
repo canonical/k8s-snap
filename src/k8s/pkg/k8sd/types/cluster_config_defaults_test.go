@@ -52,7 +52,7 @@ func TestSetDefaults(t *testing.T) {
 			BGPPeerPort:    vals.Pointer(0),
 		},
 		MetricsServer: types.MetricsServer{
-			Enabled: vals.Pointer(false),
+			Enabled: vals.Pointer(true),
 		},
 		Gateway: types.Gateway{
 			Enabled: vals.Pointer(false),
