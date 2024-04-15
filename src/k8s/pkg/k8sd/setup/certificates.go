@@ -41,9 +41,8 @@ func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (
 	if contents != string(origContent) {
 		if err := os.WriteFile(fname, []byte(contents), mode); err != nil {
 			return false, fmt.Errorf("failed to write: %w", err)
-		} else {
-			contentChanged = true
 		}
+		contentChanged = true
 	}
 
 	if err := os.Chown(fname, uid, gid); err != nil {
