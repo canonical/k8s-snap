@@ -6,23 +6,21 @@ description: |-
   Enjoy the simplified, almost zero, operations and enhanced security posture
   on any infrastructure
 license: GPL-3.0
-grade: stable
+grade: devel
 confinement: classic
-base: core20
+base: core24
+build-base: devel
 environment:
   REAL_PATH: $PATH
   REAL_LD_LIBRARY_PATH: $LD_LIBRARY_PATH
   SNAPCRAFT_ARCH_TRIPLET: $SNAPCRAFT_ARCH_TRIPLET
-
-architectures:
-  - amd64
-  - arm64
 
 parts:
   build-deps:
     plugin: nil
     build-snaps:
       - go/1.21/stable
+    build-attributes: [enable-patchelf]
     build-packages:
       - autoconf
       - automake
@@ -45,11 +43,13 @@ parts:
       - pkg-config
       - rsync
       - tcl
+      - sudo
 
   dqlite:
     after: [build-deps]
     plugin: nil
     source: src/k8s/hack
+    build-attributes: [enable-patchelf]
     override-prime: ""
     override-build: |
       DQLITE_STAGING_DIR="${SNAPCRAFT_STAGE}/static-dqlite-deps"
@@ -66,11 +66,13 @@ parts:
     after: [dqlite]
     plugin: nil
     source: build-scripts
+    build-attributes: [enable-patchelf]
     override-build: ./build-component.sh k8s-dqlite
 
   k8s-binaries:
     after: [dqlite]
     source: src/k8s
+    build-attributes: [enable-patchelf]
     plugin: nil
     override-build: |
       INSTALL="${SNAPCRAFT_PART_INSTALL}/bin"
@@ -87,12 +89,14 @@ parts:
     after: [build-deps]
     plugin: nil
     source: build-scripts
+    build-attributes: [enable-patchelf]
     override-build: ./build-component.sh cni
 
   kubernetes:
     after: [build-deps]
     plugin: nil
     source: build-scripts
+    build-attributes: [enable-patchelf]
     override-build: ./build-component.sh kubernetes
 
   kubernetes-version:
@@ -110,6 +114,7 @@ parts:
   libmnl:
     after: [build-deps]
     plugin: autotools
+    build-attributes: [enable-patchelf]
     source: https://www.netfilter.org/pub/libmnl/libmnl-1.0.4.tar.bz2
     prime:
       - -usr/local/include
@@ -117,6 +122,7 @@ parts:
   libnftnl:
     after: [libmnl]
     plugin: autotools
+    build-attributes: [enable-patchelf]
     source: https://www.netfilter.org/projects/libnftnl/files/libnftnl-1.1.8.tar.bz2
     build-environment:
       - LIBMNL_LIBS: $SNAPCRAFT_STAGE/usr/lib
@@ -127,6 +133,7 @@ parts:
     after: [libnftnl]
     source: https://www.netfilter.org/projects/iptables/files/iptables-1.8.6.tar.bz2
     plugin: autotools
+    build-attributes: [enable-patchelf]
     build-environment:
       - LIBMNL_LIBS: $SNAPCRAFT_STAGE/usr/lib
       - LIBNFTNL_LIBS: $SNAPCRAFT_STAGE/usr/lib
@@ -156,6 +163,7 @@ parts:
 
   bash-utils:
     plugin: nil
+    build-attributes: [enable-patchelf]
     stage-packages:
       - conntrack
       - coreutils
@@ -194,6 +202,7 @@ parts:
   k8s:
     plugin: nil
     source: k8s
+    build-attributes: [enable-patchelf]
     override-build: |
       rm $SNAPCRAFT_PART_INSTALL/k8s -rf
       cp --archive --link --no-dereference . $SNAPCRAFT_PART_INSTALL/k8s
