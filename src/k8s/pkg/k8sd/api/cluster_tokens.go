@@ -81,11 +81,18 @@ func getOrCreateWorkerToken(s *state.State, nodeName string) (string, error) {
 		addresses = append(addresses, addrPort.String())
 	}
 
+	cert, err := s.ClusterCert().PublicKeyX509()
+	if err != nil {
+		return "", fmt.Errorf("failed to get cluster certificate: %w", err)
+	}
+
 	info := &types.InternalWorkerNodeToken{
 		Secret:        token,
 		JoinAddresses: addresses,
+		Fingerprint:   utils.CertFingerprint(cert),
 	}
-	token, err := info.Encode()
+
+	token, err = info.Encode()
 	if err != nil {
 		return "", fmt.Errorf("failed to encode join token: %w", err)
 	}

@@ -46,7 +46,7 @@ var testCases = []testCase{
 				LoadBalancer: apiv1.LoadBalancerConfig{
 					Enabled: vals.Pointer(true),
 					L2Mode:  vals.Pointer(true),
-					CIDRs:   vals.Pointer([]string{"10.0.0.0/24"}),
+					CIDRs:   vals.Pointer([]string{"10.0.0.0/24", "10.1.0.10-10.1.0.20"}),
 				},
 				LocalStorage: apiv1.LocalStorageConfig{
 					Enabled:   vals.Pointer(true),

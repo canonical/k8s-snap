@@ -18,12 +18,13 @@ func (r RemoveNodeResult) String() string {
 
 func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
-		force bool
+		force        bool
+		outputFormat string
 	}
 	cmd := &cobra.Command{
 		Use:    "remove-node <node-name>",
 		Short:  "Remove a node from the cluster",
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Client(cmd.Context())
@@ -42,12 +43,11 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(RemoveNodeResult{Name: name}); err != nil {
-				cmd.PrintErrf("WARNING: Failed to print remove node result.\n\nThe error was: %v\n", err)
-			}
+			outputFormatter.Print(RemoveNodeResult{Name: name})
 		},
 	}
 
 	cmd.Flags().BoolVar(&opts.force, "force", false, "forcibly remove the cluster member")
+	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	return cmd
 }

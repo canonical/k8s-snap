@@ -13,14 +13,8 @@ k8s enable <feature> ... [flags]
 ### Options
 
 ```
-  -h, --help   help for enable
-```
-
-### Options inherited from parent commands
-
-```
+  -h, --help                   help for enable
       --output-format string   set the output format to one of plain, json or yaml (default "plain")
-      --timeout duration       the max time to wait for the command to execute (default 1m30s)
 ```
 
 ### SEE ALSO

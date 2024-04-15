@@ -3,7 +3,7 @@ package app
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -58,14 +58,29 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	if nodeIP == nil {
 		return fmt.Errorf("failed to parse node IP address %s", s.Address().Hostname())
 	}
-
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
-	// create an HTTP client that ignores https
+
+	// Get remote certificate from the cluster member
+	cert, err := utils.GetRemoteCertificate(token.JoinAddresses[0])
+	if err != nil {
+		return fmt.Errorf("failed to get certificate of cluster member: %w", err)
+	}
+
+	// verify that the fingerprint of the certificate matches the fingerprint of the token
+	fingerprint := utils.CertFingerprint(cert)
+	if fingerprint != token.Fingerprint {
+		return fmt.Errorf("fingerprint from token (%q) does not match fingerprint of node %q (%q)", token.Fingerprint, token.JoinAddresses[0], fingerprint)
+	}
+
+	// Create the http client with trusted certificate
+	tlsConfig, err := utils.TLSClientConfigWithTrustedCertificate(cert, x509.NewCertPool())
+	if err != nil {
+		return fmt.Errorf("failed to get TLS configuration for trusted certificate: %w", err)
+	}
+
 	httpClient := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
+			TLSClientConfig: tlsConfig,
 		},
 	}
 
@@ -222,14 +237,11 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
 
-	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
-
-	IPSANs := append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...)
-
 	// Certificates
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
-		IPSANs:                    IPSANs,
+		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
 		DNSSANs:                   extraNames,
 		Years:                     20,
 		AllowSelfSignedCA:         true,

@@ -17,6 +17,7 @@ Overview <self>
 /reference/community
 /reference/architecture
 /reference/roadmap
+/reference/troubleshooting
 ```
 
 ## Other documentation types

@@ -22,7 +22,10 @@ func (c *Client) WatchConfigMap(ctx context.Context, namespace string, name stri
 			return nil
 		case evt := <-w.ResultChan():
 			if evt.Object != nil {
-				configMap := evt.Object.(*v1.ConfigMap)
+				configMap, ok := evt.Object.(*v1.ConfigMap)
+				if !ok {
+					return fmt.Errorf("expected a ConfigMap but received %#v", evt.Object)
+				}
 
 				if err := reconcile(configMap); err != nil {
 					log.Println(fmt.Errorf("failed to reconcile configmap, namespace: %s name: %s: %w", namespace, name, err))

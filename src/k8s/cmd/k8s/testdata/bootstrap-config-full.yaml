@@ -10,6 +10,7 @@ cluster-config:
     enabled: true
     cidrs:
     - 10.0.0.0/24
+    - 10.1.0.10-10.1.0.20
     l2-mode: true
   local-storage:
     enabled: true

@@ -55,7 +55,7 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 
 		config, err := getClusterConfig(ctx)
 		if err != nil {
-			log.Println(fmt.Errorf("failed to reconcile control plane configuration: %w", err))
+			log.Println(fmt.Errorf("failed to retrieve cluster config: %w", err))
 			continue
 		}
 

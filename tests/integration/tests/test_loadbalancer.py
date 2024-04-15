@@ -13,28 +13,6 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
-def get_default_cidr(instance: harness.Instance, instance_default_ip: str):
-    # ----
-    # 1:  lo    inet 127.0.0.1/8 scope host lo .....
-    # 28: eth0  inet 10.42.254.197/24 metric 100 brd 10.42.254.255 scope global dynamic eth0 ....
-    # ----
-    # Fetching the cidr for the default interface by matching with instance ip from the output
-    p = instance.exec(["ip", "-o", "-f", "inet", "addr", "show"], capture_output=True)
-    out = p.stdout.decode().split(" ")
-    return [i for i in out if instance_default_ip in i][0]
-
-
-def get_default_ip(instance: harness.Instance):
-    # ---
-    # default via 10.42.254.1 dev eth0 proto dhcp src 10.42.254.197 metric 100
-    # ---
-    # Fetching the default IP address from the output, e.g. 10.42.254.197
-    p = instance.exec(
-        ["ip", "-o", "-4", "route", "show", "to", "default"], capture_output=True
-    )
-    return p.stdout.decode().split(" ")[8]
-
-
 def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
     net = ipaddress.IPv4Network(parent_cidr, False)
 
@@ -64,10 +42,10 @@ def test_loadbalancer(instances: List[harness.Instance]):
 
     tester_instance = instances[1]
 
-    instance_default_ip = get_default_ip(instance)
-    tester_instance_default_ip = get_default_ip(tester_instance)
+    instance_default_ip = util.get_default_ip(instance)
+    tester_instance_default_ip = util.get_default_ip(tester_instance)
 
-    instance_default_cidr = get_default_cidr(instance, instance_default_ip)
+    instance_default_cidr = util.get_default_cidr(instance, instance_default_ip)
 
     lb_cidr = find_suitable_cidr(
         parent_cidr=instance_default_cidr,

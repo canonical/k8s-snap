@@ -34,16 +34,17 @@ func (b BootstrapResult) String() string {
 
 func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
-		interactive bool
-		configFile  string
-		name        string
-		address     string
+		interactive  bool
+		configFile   string
+		name         string
+		address      string
+		outputFormat string
 	}
 	cmd := &cobra.Command{
 		Use:    "bootstrap",
 		Short:  "Bootstrap a new Kubernetes cluster",
 		Long:   "Generate certificates, configure service arguments and start the Kubernetes services.",
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			if opts.interactive && opts.configFile != "" {
 				cmd.PrintErrln("Error: --interactive and --file flags cannot be set at the same time.")
@@ -131,16 +132,15 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(BootstrapResult{Node: node}); err != nil {
-				cmd.PrintErrf("WARNING: Failed to print the cluster bootstrap result.\n\nThe error was: %v\n", err)
-			}
+			outputFormatter.Print(BootstrapResult{Node: node})
 		},
 	}
 
-	cmd.PersistentFlags().BoolVar(&opts.interactive, "interactive", false, "interactively configure the most important cluster options")
-	cmd.PersistentFlags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
+	cmd.Flags().BoolVar(&opts.interactive, "interactive", false, "interactively configure the most important cluster options")
+	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
+	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 
 	return cmd
 }

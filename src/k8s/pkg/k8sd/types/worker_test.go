@@ -12,6 +12,7 @@ func TestWorkerTokenEncode(t *testing.T) {
 		Token:         "token1",
 		Secret:        "mysecret",
 		JoinAddresses: []string{"addr1:1010", "addr2:1212"},
+		Fingerprint:   "fingerprint",
 	}
 
 	g := NewWithT(t)

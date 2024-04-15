@@ -20,12 +20,15 @@ func (d DisableResult) String() string {
 }
 
 func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		outputFormat string
+	}
 	cmd := &cobra.Command{
 		Use:    "disable <feature> ...",
 		Short:  "Disable core cluster features",
 		Long:   fmt.Sprintf("Disable one of %s.", strings.Join(componentList, ", ")),
 		Args:   cmdutil.MinimumNArgs(env, 1),
-		PreRun: chainPreRunHooks(hookRequireRoot(env)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
 			features := args
@@ -81,14 +84,11 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := cmdutil.FormatterFromContext(cmd.Context()).Print(DisableResult{Features: features}); err != nil {
-				cmd.PrintErrf("WARNING: Failed to print the disable result.\n\nThe error was: %v\n", err)
-			}
+			outputFormatter.Print(DisableResult{Features: features})
 		},
 	}
 
-	cmd.PersistentFlags().SetOutput(env.Stderr)
-	cmd.Flags().SetOutput(env.Stderr)
+	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 
 	return cmd
 }
