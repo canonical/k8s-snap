@@ -31,7 +31,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("invalid configuration: %w", err))
 	}
-````
+
 	oldConfig, err := utils.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
