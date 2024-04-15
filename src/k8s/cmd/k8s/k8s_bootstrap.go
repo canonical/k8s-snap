@@ -159,8 +159,8 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 
 	components := askQuestion(
 		stdin, stdout, stderr,
-		"Which components would you like to enable?",
-		componentList,
+		"Which features would you like to enable?",
+		featureList,
 		"network, dns, gateway",
 		nil,
 	)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	api "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
@@ -16,7 +16,7 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "get <feature.key>",
 		Short:  "Get cluster configuration",
-		Long:   fmt.Sprintf("Show configuration of one of %s.", strings.Join(componentList, ", ")),
+		Long:   fmt.Sprintf("Show configuration of one of %s.", strings.Join(featureList, ", ")),
 		Args:   cmdutil.MaximumNArgs(env, 1),
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -27,7 +27,7 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			config, err := client.GetClusterConfig(cmd.Context(), api.GetClusterConfigRequest{})
+			config, err := client.GetClusterConfig(cmd.Context(), apiv1.GetClusterConfigRequest{})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to get the current cluster configuration.\n\nThe error was: %v\n", err)
 				env.Exit(1)
@@ -35,7 +35,7 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			// ignore MetricsServer config
-			config.MetricsServer = api.MetricsServerConfig{}
+			config.MetricsServer = apiv1.MetricsServerConfig{}
 
 			var key string
 			if len(args) == 1 {
