@@ -55,7 +55,7 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		return fmt.Errorf("failed to open auth-token-webhook.conf: %w", err)
 	}
 
-	microclusterCAPath := filepath.Join(snap.K8sDqliteStateDir(), "cert.ca")
+	microclusterCAPath := filepath.Join(snap.K8sdStateDir(), "cert.ca")
 	if err := apiserverAuthTokenWebhookTemplate.Execute(authTokenWebhookFile, apiserverAuthTokenWebhookTemplateConfig{
 		URL: authWebhookURL,
 		CA:  microclusterCAPath,
