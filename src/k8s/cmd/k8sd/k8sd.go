@@ -7,9 +7,10 @@ import (
 )
 
 var rootCmdOpts struct {
-	logDebug   bool
-	logVerbose bool
-	stateDir   string
+	logDebug     bool
+	logVerbose   bool
+	stateDir     string
+	pprofAddress string
 }
 
 func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
@@ -18,10 +19,11 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Short: "Canonical Kubernetes orchestrator and clustering daemon",
 		Run: func(cmd *cobra.Command, args []string) {
 			app, err := app.New(cmd.Context(), app.Config{
-				Debug:    rootCmdOpts.logDebug,
-				Verbose:  rootCmdOpts.logVerbose,
-				StateDir: rootCmdOpts.stateDir,
-				Snap:     env.Snap,
+				Debug:        rootCmdOpts.logDebug,
+				Verbose:      rootCmdOpts.logVerbose,
+				StateDir:     rootCmdOpts.stateDir,
+				Snap:         env.Snap,
+				PprofAddress: rootCmdOpts.pprofAddress,
 			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to initialize k8sd: %v", err)
@@ -44,6 +46,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
 	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
+	cmd.PersistentFlags().StringVar(&rootCmdOpts.pprofAddress, "pprof-address", "", "Listen address for pprof endpoints, e.g. \"127.0.0.1:4217\"")
 
 	cmd.Flags().Uint("port", 0, "Default port for the HTTP API")
 	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")
