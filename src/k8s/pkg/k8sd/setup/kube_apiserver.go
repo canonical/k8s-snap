@@ -12,7 +12,8 @@ import (
 )
 
 type apiserverAuthTokenWebhookTemplateConfig struct {
-	URL string
+	URL    string
+	CAPath string
 }
 
 var SupportedDatastores = []string{"k8s-dqlite", "external"}
@@ -52,8 +53,10 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 	if err != nil {
 		return fmt.Errorf("failed to open auth-token-webhook.conf: %w", err)
 	}
+
 	if err := apiserverAuthTokenWebhookTemplate.Execute(authTokenWebhookFile, apiserverAuthTokenWebhookTemplateConfig{
-		URL: authWebhookURL,
+		URL:    authWebhookURL,
+		CAPath: path.Join(snap.K8sdStateDir(), "cluster.crt"),
 	}); err != nil {
 		return fmt.Errorf("failed to write auth-token-webhook.conf: %w", err)
 	}
