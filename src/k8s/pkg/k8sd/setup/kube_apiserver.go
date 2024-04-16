@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -13,8 +12,8 @@ import (
 )
 
 type apiserverAuthTokenWebhookTemplateConfig struct {
-	URL string
-	CA  string
+	URL    string
+	CAPath string
 }
 
 var SupportedDatastores = []string{"k8s-dqlite", "external"}
@@ -55,10 +54,9 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		return fmt.Errorf("failed to open auth-token-webhook.conf: %w", err)
 	}
 
-	microclusterCAPath := filepath.Join(snap.K8sdStateDir(), "cluster.crt")
 	if err := apiserverAuthTokenWebhookTemplate.Execute(authTokenWebhookFile, apiserverAuthTokenWebhookTemplateConfig{
-		URL: authWebhookURL,
-		CA:  microclusterCAPath,
+		URL:    authWebhookURL,
+		CAPath: path.Join(snap.K8sdStateDir(), "cluster.crt"),
 	}); err != nil {
 		return fmt.Errorf("failed to write auth-token-webhook.conf: %w", err)
 	}
