@@ -3,6 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"net/http/pprof"
 	"sync"
 	"time"
 
@@ -26,12 +29,17 @@ type Config struct {
 	StateDir string
 	// Snap is the snap instance to use.
 	Snap snap.Snap
+	// PprofAddress is the address to listen for pprof debug endpoints. Empty to disable.
+	PprofAddress string
 }
 
 // App is the k8sd microcluster instance.
 type App struct {
 	microCluster *microcluster.MicroCluster
 	snap         snap.Snap
+
+	// profilingAddress
+	profilingAddress string
 
 	// readyWg is used to denote that the microcluster node is now running
 	readyWg sync.WaitGroup
@@ -56,8 +64,9 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 	}
 
 	app := &App{
-		microCluster: cluster,
-		snap:         cfg.Snap,
+		microCluster:     cluster,
+		snap:             cfg.Snap,
+		profilingAddress: cfg.PprofAddress,
 	}
 	app.readyWg.Add(1)
 
@@ -102,6 +111,25 @@ func (a *App) Run(customHooks *config.Hooks) error {
 			hooks.OnStart = customHooks.OnStart
 		}
 	}
+
+	// start profiling server
+	if a.profilingAddress != "" {
+		log.Printf("Enable pprof endpoint at http://%s", a.profilingAddress)
+
+		go func() {
+			mux := http.NewServeMux()
+			mux.HandleFunc("/debug/pprof/", pprof.Index)
+			mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+			mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+			mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+			mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+			if err := http.ListenAndServe(a.profilingAddress, mux); err != nil {
+				log.Printf("ERROR: Failed to serve pprof endpoint: %v", err)
+			}
+		}()
+	}
+
 	err := a.microCluster.Start(api.New(a).Endpoints(), database.SchemaExtensions, hooks)
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
