@@ -27,6 +27,7 @@ type UserFacingClusterConfig struct {
 	LocalStorage  LocalStorageConfig  `json:"local-storage,omitempty" yaml:"local-storage,omitempty"`
 	Gateway       GatewayConfig       `json:"gateway,omitempty" yaml:"gateway,omitempty"`
 	MetricsServer MetricsServerConfig `json:"metrics-server,omitempty" yaml:"metrics-server,omitempty"`
+	CloudProvider *string             `json:"cloud-provider,omitempty" yaml:"cloud-provider,omitempty"`
 }
 
 type DNSConfig struct {
@@ -103,6 +104,12 @@ type MetricsServerConfig struct {
 
 func (c MetricsServerConfig) GetEnabled() bool { return getField(c.Enabled) }
 
+type CloudProviderConfig struct {
+	CloudProvider *string `json:"cloud-provider,omitempty" yaml:"cloud-provider,omitempty"`
+}
+
+func (c UserFacingClusterConfig) GetCloudProvider() string { return getField(c.CloudProvider) }
+
 func (c UserFacingClusterConfig) String() string {
 	b, err := yaml.Marshal(c)
 	if err != nil {
@@ -160,6 +167,14 @@ func (c GatewayConfig) String() string {
 }
 
 func (c MetricsServerConfig) String() string {
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Sprintf("%#v\n", c)
+	}
+	return string(b)
+}
+
+func (c CloudProviderConfig) String() string {
 	b, err := yaml.Marshal(c)
 	if err != nil {
 		return fmt.Sprintf("%#v\n", c)

@@ -74,6 +74,7 @@ func ClusterConfigFromUserFacing(u apiv1.UserFacingClusterConfig) ClusterConfig 
 		Kubelet: Kubelet{
 			ClusterDNS:    u.DNS.ServiceIP,
 			ClusterDomain: u.DNS.ClusterDomain,
+			CloudProvider: u.CloudProvider,
 		},
 		Network: Network{
 			Enabled: u.Network.Enabled,
@@ -153,5 +154,6 @@ func (c ClusterConfig) ToUserFacing() apiv1.UserFacingClusterConfig {
 		Gateway: apiv1.GatewayConfig{
 			Enabled: c.Gateway.Enabled,
 		},
+		CloudProvider: c.Kubelet.CloudProvider,
 	}
 }
