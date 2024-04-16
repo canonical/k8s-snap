@@ -1,30 +1,19 @@
 package k8s
 
 import (
-	"fmt"
-
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
-type GetJoinTokenResult struct {
-	JoinToken string `json:"join-token" yaml:"join-token"`
-}
-
-func (g GetJoinTokenResult) String() string {
-	return fmt.Sprintf("On the node you want to join call:\n\n  sudo k8s join-cluster %s\n", g.JoinToken)
-}
-
 func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
-		worker       bool
-		outputFormat string
+		worker bool
 	}
 	cmd := &cobra.Command{
 		Use:    "get-join-token <node-name>",
 		Short:  "Create a token for a node to join the cluster",
-		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
+		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
@@ -43,11 +32,10 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			outputFormatter.Print(GetJoinTokenResult{JoinToken: token})
+			cmd.PrintErrln(token)
 		},
 	}
 
 	cmd.Flags().BoolVar(&opts.worker, "worker", false, "generate a join token for a worker node")
-	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	return cmd
 }
