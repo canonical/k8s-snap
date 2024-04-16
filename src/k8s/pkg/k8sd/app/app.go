@@ -29,8 +29,8 @@ type Config struct {
 	StateDir string
 	// Snap is the snap instance to use.
 	Snap snap.Snap
-	// ProfilingAddress is the address to listen for pprof debug endpoints. Empty to disable.
-	ProfilingAddress string
+	// PprofAddress is the address to listen for pprof debug endpoints. Empty to disable.
+	PprofAddress string
 }
 
 // App is the k8sd microcluster instance.
@@ -66,7 +66,7 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 	app := &App{
 		microCluster:     cluster,
 		snap:             cfg.Snap,
-		profilingAddress: cfg.ProfilingAddress,
+		profilingAddress: cfg.PprofAddress,
 	}
 	app.readyWg.Add(1)
 
