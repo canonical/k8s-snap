@@ -52,13 +52,6 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("database transaction to update cluster configuration failed: %w", err))
 	}
 
-	// Trigger an update of the configuration.
-	// Do not wait if the channel is full. The reconcilation loop will apply the most recent changes
-	select {
-	case e.provider.UpdateNodeConfigurationControllerCh() <- struct{}{}:
-	default:
-	}
-
 	if !requestedConfig.Network.Empty() {
 		if err := component.ReconcileNetworkComponent(r.Context(), snap, oldConfig.Network.Enabled, requestedConfig.Network.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile network: %w", err))
@@ -118,6 +111,8 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 			return response.InternalError(fmt.Errorf("failed to reconcile load-balancer: %w", err))
 		}
 	}
+
+	e.provider.NotifyUpdateConfigMap()
 
 	return response.SyncResponse(true, &api.UpdateClusterConfigResponse{})
 }

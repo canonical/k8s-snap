@@ -13,13 +13,13 @@ import (
 )
 
 // UpdateNodeConfigurationController asynchronously performs updates of the cluster config.
-// An updates is triggered by sending the patch to the updateCh.
+// An updates is triggered by sending to the TriggerCh.
 type UpdateNodeConfigurationController struct {
 	snap         snap.Snap
 	waitReady    func()
 	newK8sClient func() (*k8s.Client, error)
-	// UpdateCh is used to trigger config updates.
-	UpdateCh chan struct{}
+	// TriggerCh is used to trigger config updates.
+	TriggerCh chan struct{}
 	// ReconciledCh is used to indicate that a reconcilation loop has finished.
 	ReconciledCh chan struct{}
 }
@@ -30,7 +30,7 @@ func NewUpdateNodeConfigurationController(snap snap.Snap, waitReady func(), newK
 		snap:         snap,
 		waitReady:    waitReady,
 		newK8sClient: newK8sClient,
-		UpdateCh:     make(chan struct{}, 1),
+		TriggerCh:    make(chan struct{}, 1),
 		ReconciledCh: make(chan struct{}, 1),
 	}
 }
@@ -53,7 +53,7 @@ func (c *UpdateNodeConfigurationController) retryNewK8sClient(ctx context.Contex
 // Run starts the controller.
 // Run accepts a context to manage the lifecycle of the controller.
 // Run accepts a function that retrieves the current cluster configuration.
-// Run will loop everytime a cluster config patch is sent to the UpdateCh.
+// Run will loop everytime the TriggerCh is triggered.
 func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) {
 	c.waitReady()
 
@@ -66,7 +66,7 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 		select {
 		case <-ctx.Done():
 			return
-		case <-c.UpdateCh:
+		case <-c.TriggerCh:
 		}
 
 		if isWorker, err := snaputil.IsWorker(c.snap); err != nil {
@@ -89,9 +89,6 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 
 		select {
 		case c.ReconciledCh <- struct{}{}:
-		case <-time.After(10 * time.Second):
-			log.Println("failed to reconcile cluster config in time - will fetch latest config and retry.")
-			continue
 		default:
 		}
 	}

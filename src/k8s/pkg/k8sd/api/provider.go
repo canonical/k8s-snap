@@ -9,5 +9,5 @@ import (
 type Provider interface {
 	MicroCluster() *microcluster.MicroCluster
 	Snap() snap.Snap
-	UpdateNodeConfigurationControllerCh() chan<- struct{}
+	NotifyUpdateConfigMap()
 }
