@@ -32,7 +32,7 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			cmd.PrintErrln(token)
+			cmd.Println(token)
 		},
 	}
 
