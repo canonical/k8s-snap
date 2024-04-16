@@ -352,7 +352,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	// Trigger an update of the configuration.
 	// Do not wait if the channel is full. The reconcilation loop will apply the most recent changes
 	select {
-	case a.updateNodeConfigController.UpdateCh <- struct{}{}:
+	case a.updateNodeConfigController.TriggerCh <- struct{}{}:
 	default:
 	}
 

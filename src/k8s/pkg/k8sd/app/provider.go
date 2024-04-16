@@ -14,8 +14,8 @@ func (a *App) Snap() snap.Snap {
 	return a.snap
 }
 
-func (a *App) UpdateNodeConfigurationControllerCh() chan<- struct{} {
-	return a.updateNodeConfigController.UpdateCh
+func (a *App) NotifyUpdateConfigMap() {
+	a.updateNodeConfigController.TriggerCh <- struct{}{}
 }
 
 // Ensure App implements api.Provider
