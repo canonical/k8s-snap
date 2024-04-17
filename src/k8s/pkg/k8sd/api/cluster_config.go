@@ -33,8 +33,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	}
 
 	requestedConfig := types.ClusterConfigFromUserFacing(req.Config)
-	requestedConfig.Datastore, err = types.DatastoreConfigFromUserFacing(req.Datastore)
-	if err != nil {
+	if requestedConfig.Datastore, err = types.DatastoreConfigFromUserFacing(req.Datastore); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse datastore config: %w", err))
 	}
 
