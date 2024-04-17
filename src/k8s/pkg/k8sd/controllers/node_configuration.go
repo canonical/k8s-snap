@@ -46,12 +46,12 @@ func (c *NodeConfigurationController) Run(ctx context.Context) {
 	// wait for microcluster node to be ready
 	c.waitReady()
 
-	client, err := c.retryNewK8sClient(ctx)
-	if err != nil {
-		log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
-	}
-
 	for {
+		client, err := c.retryNewK8sClient(ctx)
+		if err != nil {
+			log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
+		}
+
 		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap) }); err != nil {
 			// This also can fail during bootstrapping/start up when api-server is not ready
 			// So the watch requests get connection refused replies
