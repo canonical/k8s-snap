@@ -20,11 +20,11 @@ cluster-config:
     enabled: true
   metrics-server:
     enabled: true
+  cloud-provider: external
 pod-cidr: 10.100.0.0/16
 service-cidr: 10.200.0.0/16
 disable-rbac: false
 secure-port: 6443
-cloud-provider: external
 k8s-dqlite-port: 9090
 datastore-type: k8s-dqlite
 extra-sans:

@@ -63,7 +63,7 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 	config.Network.ServiceCIDR = b.ServiceCIDR
 
 	// Kubelet
-	config.Kubelet.CloudProvider = b.CloudProvider
+	config.Kubelet.CloudProvider = b.ClusterConfig.CloudProvider
 
 	return config, nil
 }
