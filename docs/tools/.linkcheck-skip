@@ -1,0 +1,9 @@
+# ignore create issue links
+https://github.com/canonical/k8s-snap/issues/new\?.*
+# ignore matrix as it can't not report an error
+https://matrix.to/.*
+# ignore edit this page links which lead to rate limits
+https://github.com/canonical/k8s-snap/edit/.*
+# ignore the repo link which leads to rate limits
+https://github.com/canonical/k8s-snap
+
