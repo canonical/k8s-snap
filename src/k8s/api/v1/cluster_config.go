@@ -104,12 +104,6 @@ type MetricsServerConfig struct {
 
 func (c MetricsServerConfig) GetEnabled() bool { return getField(c.Enabled) }
 
-type CloudProviderConfig struct {
-	CloudProvider *string `json:"cloud-provider,omitempty" yaml:"cloud-provider,omitempty"`
-}
-
-func (c UserFacingClusterConfig) GetCloudProvider() string { return getField(c.CloudProvider) }
-
 func (c UserFacingClusterConfig) String() string {
 	b, err := yaml.Marshal(c)
 	if err != nil {
