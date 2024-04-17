@@ -46,7 +46,6 @@ type App struct {
 
 	nodeConfigController         *controllers.NodeConfigurationController
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
-	updateNodeConfigController   *controllers.UpdateNodeConfigurationController
 }
 
 // New initializes a new microcluster instance from configuration.
@@ -83,14 +82,6 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 		cfg.Snap,
 		app.readyWg.Wait,
 		time.NewTicker(10*time.Second).C,
-	)
-
-	app.updateNodeConfigController = controllers.NewUpdateNodeConfigurationController(
-		cfg.Snap,
-		app.readyWg.Wait,
-		func() (*k8s.Client, error) {
-			return k8s.NewClient(cfg.Snap.KubernetesNodeRESTClientGetter(""))
-		},
 	)
 
 	return app, nil

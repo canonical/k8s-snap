@@ -19,6 +19,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/microcluster/state"
 )
@@ -347,6 +348,20 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		}
 	}
 
+	cmData, err := cfg.Kubelet.ToConfigMap()
+	if err != nil {
+		return fmt.Errorf("failed to format kubelet configmap data: %w", err)
+	}
+
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	if err != nil {
+		return fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
+
+	if _, err := client.UpdateConfigMap(s.Context, "kube-system", "k8sd-config", cmData); err != nil {
+		return fmt.Errorf("failed to update node configs: %w", err)
+	}
+
 	if cfg.LocalStorage.GetEnabled() {
 		if err := component.ReconcileLocalStorageComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
 			return fmt.Errorf("failed to reconcile local-storage: %w", err)
@@ -376,8 +391,6 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 			return fmt.Errorf("failed to reconcile metrics-server: %w", err)
 		}
 	}
-
-	a.NotifyUpdateConfigMap()
 
 	return nil
 }
