@@ -12,15 +12,21 @@ type Ingress struct {
 }
 
 type LoadBalancer struct {
-	Enabled        *bool     `json:"enabled,omitempty"`
-	CIDRs          *[]string `json:"cidrs,omitempty"`
-	L2Mode         *bool     `json:"l2-mode,omitempty"`
-	L2Interfaces   *[]string `json:"l2-interfaces,omitempty"`
-	BGPMode        *bool     `json:"bgp-mode,omitempty"`
-	BGPLocalASN    *int      `json:"bgp-local-asn,omitempty"`
-	BGPPeerAddress *string   `json:"bgp-peer-address,omitempty"`
-	BGPPeerASN     *int      `json:"bgp-peer-asn,omitempty"`
-	BGPPeerPort    *int      `json:"bgp-peer-port,omitempty"`
+	Enabled        *bool                   `json:"enabled,omitempty"`
+	CIDRs          *[]string               `json:"cidrs,omitempty"`
+	IPRanges       *[]LoadBalancer_IPRange `json:"ranges,omitempty"`
+	L2Mode         *bool                   `json:"l2-mode,omitempty"`
+	L2Interfaces   *[]string               `json:"l2-interfaces,omitempty"`
+	BGPMode        *bool                   `json:"bgp-mode,omitempty"`
+	BGPLocalASN    *int                    `json:"bgp-local-asn,omitempty"`
+	BGPPeerAddress *string                 `json:"bgp-peer-address,omitempty"`
+	BGPPeerASN     *int                    `json:"bgp-peer-asn,omitempty"`
+	BGPPeerPort    *int                    `json:"bgp-peer-port,omitempty"`
+}
+
+type LoadBalancer_IPRange struct {
+	Start string `json:"start"`
+	Stop  string `json:"stop"`
 }
 
 type Gateway struct {
@@ -52,15 +58,16 @@ func (c Ingress) Empty() bool {
 func (c Gateway) GetEnabled() bool { return getField(c.Enabled) }
 func (c Gateway) Empty() bool      { return c.Enabled == nil }
 
-func (c LoadBalancer) GetEnabled() bool          { return getField(c.Enabled) }
-func (c LoadBalancer) GetCIDRs() []string        { return getField(c.CIDRs) }
-func (c LoadBalancer) GetL2Mode() bool           { return getField(c.L2Mode) }
-func (c LoadBalancer) GetL2Interfaces() []string { return getField(c.L2Interfaces) }
-func (c LoadBalancer) GetBGPMode() bool          { return getField(c.BGPMode) }
-func (c LoadBalancer) GetBGPLocalASN() int       { return getField(c.BGPLocalASN) }
-func (c LoadBalancer) GetBGPPeerAddress() string { return getField(c.BGPPeerAddress) }
-func (c LoadBalancer) GetBGPPeerASN() int        { return getField(c.BGPPeerASN) }
-func (c LoadBalancer) GetBGPPeerPort() int       { return getField(c.BGPPeerPort) }
+func (c LoadBalancer) GetEnabled() bool                    { return getField(c.Enabled) }
+func (c LoadBalancer) GetCIDRs() []string                  { return getField(c.CIDRs) }
+func (c LoadBalancer) GetIPRanges() []LoadBalancer_IPRange { return getField(c.IPRanges) }
+func (c LoadBalancer) GetL2Mode() bool                     { return getField(c.L2Mode) }
+func (c LoadBalancer) GetL2Interfaces() []string           { return getField(c.L2Interfaces) }
+func (c LoadBalancer) GetBGPMode() bool                    { return getField(c.BGPMode) }
+func (c LoadBalancer) GetBGPLocalASN() int                 { return getField(c.BGPLocalASN) }
+func (c LoadBalancer) GetBGPPeerAddress() string           { return getField(c.BGPPeerAddress) }
+func (c LoadBalancer) GetBGPPeerASN() int                  { return getField(c.BGPPeerASN) }
+func (c LoadBalancer) GetBGPPeerPort() int                 { return getField(c.BGPPeerPort) }
 func (c LoadBalancer) Empty() bool {
 	return c.Enabled == nil && c.CIDRs == nil && c.L2Mode == nil && c.L2Interfaces == nil && c.BGPMode == nil && c.BGPLocalASN == nil && c.BGPPeerAddress == nil && c.BGPPeerASN == nil && c.BGPPeerPort == nil
 }
