@@ -8,10 +8,12 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/snap/mock"
+	. "github.com/onsi/gomega"
 )
 
 // TestEnsureK8sDqlitePKI tests the EnsureK8sDqlitePKI function.
 func TestEnsureK8sDqlitePKI(t *testing.T) {
+	g := NewWithT(t)
 	tempDir := t.TempDir()
 	mock := &mock.Snap{
 		Mock: mock.Mock{
@@ -25,10 +27,8 @@ func TestEnsureK8sDqlitePKI(t *testing.T) {
 		K8sDqliteKey:  "dqlite_key",
 	}
 
-	err := setup.EnsureK8sDqlitePKI(mock, certificates)
-	if err != nil {
-		t.Fatalf("EnsureK8sDqlitePKI returned unexpected error: %v", err)
-	}
+	_, err := setup.EnsureK8sDqlitePKI(mock, certificates)
+	g.Expect(err).To(BeNil())
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "cluster.crt"),
@@ -37,14 +37,13 @@ func TestEnsureK8sDqlitePKI(t *testing.T) {
 
 	for _, file := range expectedFiles {
 		_, err := os.Stat(file)
-		if err != nil {
-			t.Errorf("Expected file %q is missing: %v", file, err)
-		}
+		g.Expect(err).To(BeNil())
 	}
 }
 
 // TestEnsureControlPlanePKI tests the EnsureControlPlanePKI function.
 func TestEnsureControlPlanePKI(t *testing.T) {
+	g := NewWithT(t)
 	tempDir := t.TempDir()
 	mock := &mock.Snap{
 		Mock: mock.Mock{
@@ -69,10 +68,8 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 		ServiceAccountKey:          "serviceaccount_key",
 	}
 
-	err := setup.EnsureControlPlanePKI(mock, certificates)
-	if err != nil {
-		t.Fatalf("EnsureControlPlanePKI returned unexpected error: %v", err)
-	}
+	_, err := setup.EnsureControlPlanePKI(mock, certificates)
+	g.Expect(err).To(BeNil())
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "apiserver-kubelet-client.crt"),
@@ -92,14 +89,13 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 
 	for _, file := range expectedFiles {
 		_, err := os.Stat(file)
-		if err != nil {
-			t.Errorf("Expected file %q is missing: %v", file, err)
-		}
+		g.Expect(err).To(BeNil())
 	}
 }
 
 // TestEnsureWorkerPKI tests the EnsureWorkerPKI function.
 func TestEnsureWorkerPKI(t *testing.T) {
+	g := NewWithT(t)
 	tempDir := t.TempDir()
 	mock := &mock.Snap{
 		Mock: mock.Mock{
@@ -114,10 +110,8 @@ func TestEnsureWorkerPKI(t *testing.T) {
 		KubeletKey:  "kubelet_key",
 	}
 
-	err := setup.EnsureWorkerPKI(mock, certificates)
-	if err != nil {
-		t.Fatalf("EnsureWorkerPKI returned unexpected error: %v", err)
-	}
+	_, err := setup.EnsureWorkerPKI(mock, certificates)
+	g.Expect(err).To(BeNil())
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "ca.crt"),
@@ -127,8 +121,79 @@ func TestEnsureWorkerPKI(t *testing.T) {
 
 	for _, file := range expectedFiles {
 		_, err := os.Stat(file)
-		if err != nil {
-			t.Errorf("Expected file %q is missing: %v", file, err)
-		}
+		g.Expect(err).To(BeNil())
+	}
+}
+
+func TestExtDatastorePKI(t *testing.T) {
+	g := NewWithT(t)
+	tempDir := t.TempDir()
+	mock := &mock.Snap{
+		Mock: mock.Mock{
+			EtcdPKIDir: tempDir,
+			UID:        os.Getuid(),
+			GID:        os.Getgid(),
+		},
+	}
+	certificates := &pki.ExternalDatastorePKI{
+		DatastoreCACert:     "ca_cert",
+		DatastoreClientKey:  "client_key",
+		DatastoreClientCert: "client_cert",
+	}
+
+	_, err := setup.EnsureExtDatastorePKI(mock, certificates)
+	g.Expect(err).To(BeNil())
+
+	expectedFiles := []string{
+		filepath.Join(tempDir, "ca.crt"),
+		filepath.Join(tempDir, "client.key"),
+		filepath.Join(tempDir, "client.crt"),
+	}
+
+	for _, file := range expectedFiles {
+		_, err := os.Stat(file)
+		g.Expect(err).To(BeNil())
+	}
+}
+
+// Check that a file passed to Ensure*PKI is deleted if the corresponding
+// certificate content is empty.
+func TestEmptyCert(t *testing.T) {
+	g := NewWithT(t)
+	tempDir := t.TempDir()
+	mock := &mock.Snap{
+		Mock: mock.Mock{
+			K8sDqliteStateDir: tempDir,
+			UID:               os.Getuid(),
+			GID:               os.Getgid(),
+		},
+	}
+
+	expectedFiles := []string{
+		filepath.Join(tempDir, "cluster.crt"),
+		filepath.Join(tempDir, "cluster.key"),
+	}
+
+	certificates := &pki.K8sDqlitePKI{
+		K8sDqliteCert: "dqlite-cert",
+		K8sDqliteKey:  "dqlite-key",
+	}
+
+	// Should create files
+	_, err := setup.EnsureK8sDqlitePKI(mock, certificates)
+	g.Expect(err).To(BeNil())
+
+	certificates = &pki.K8sDqlitePKI{
+		K8sDqliteCert: "",
+		K8sDqliteKey:  "",
+	}
+
+	// Should delete files
+	_, err = setup.EnsureK8sDqlitePKI(mock, certificates)
+	g.Expect(err).To(BeNil())
+
+	for _, file := range expectedFiles {
+		_, err := os.Stat(file)
+		g.Expect(err).NotTo(BeNil())
 	}
 }

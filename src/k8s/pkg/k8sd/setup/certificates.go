@@ -11,39 +11,68 @@ import (
 )
 
 // ensureFile creates fname with the specified contents, mode and owner bits.
-// ensureFile will delete the file if contents is an empty string.
-func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) error {
+// It will delete the file if contents parameter is an empty string. Trying to ensure a inexistent file
+// with an empty contents parameter does not result in an error.
+// It returns true if any of these is true: the file's content changed, it was created or it was deleted.
+// It also returns any error that occured.
+func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (bool, error) {
 	if contents == "" {
-		if err := os.Remove(fname); err != nil && !os.IsNotExist(err) {
-			return fmt.Errorf("failed to delete: %w", err)
+		if err := os.Remove(fname); err != nil {
+			if !os.IsNotExist(err) {
+				// File exists but failed to delete.
+				return false, fmt.Errorf("failed to delete: %w", err)
+			}
+			// File does not exist, nothing to do.
+			return false, nil
 		}
-		return nil
+
+		// File was deleted.
+		return true, nil
 	}
 
-	if err := os.WriteFile(fname, []byte(contents), mode); err != nil {
-		return fmt.Errorf("failed to write: %w", err)
+	origContent, err := os.ReadFile(fname)
+	if err != nil && !os.IsNotExist(err) {
+		// File exists but failed to read.
+		return false, fmt.Errorf("failed to read: %w", err)
 	}
+
+	var contentChanged bool
+
+	if contents != string(origContent) {
+		if err := os.WriteFile(fname, []byte(contents), mode); err != nil {
+			return false, fmt.Errorf("failed to write: %w", err)
+		}
+		contentChanged = true
+	}
+
 	if err := os.Chown(fname, uid, gid); err != nil {
-		return fmt.Errorf("failed to chown: %w", err)
+		return false, fmt.Errorf("failed to chown: %w", err)
 	}
 	if err := os.Chmod(fname, mode); err != nil {
-		return fmt.Errorf("failed to chmod: %w", err)
+		return false, fmt.Errorf("failed to chmod: %w", err)
 	}
 
-	return nil
+	return contentChanged, nil
 }
 
-// ensureFiles calls ensureFile for many files
-func ensureFiles(uid, gid int, mode fs.FileMode, files map[string]string) error {
-	for fname, cert := range files {
-		if err := ensureFile(fname, cert, uid, gid, mode); err != nil {
-			return fmt.Errorf("failed to configure %s: %w", path.Base(fname), err)
+// ensureFiles calls ensureFile for many files.
+// It returns true if one or more files were updated and any error that occured.
+func ensureFiles(uid, gid int, mode fs.FileMode, files map[string]string) (bool, error) {
+	var changed bool
+	for fname, content := range files {
+		if v, err := ensureFile(fname, content, uid, gid, mode); err != nil {
+			return false, fmt.Errorf("failed to configure %s: %w", path.Base(fname), err)
+		} else if v {
+			changed = true
 		}
 	}
-	return nil
+	return changed, nil
 }
 
-func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePKI) error {
+// EnsureExtDatastorePKI ensures the external datastore PKI files are present
+// and have the correct content, permissions and ownership.
+// It returns true if one or more files were updated and any error that occured.
+func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePKI) (bool, error) {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
 		path.Join(snap.EtcdPKIDir(), "ca.crt"):     certificates.DatastoreCACert,
 		path.Join(snap.EtcdPKIDir(), "client.key"): certificates.DatastoreClientKey,
@@ -51,14 +80,20 @@ func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePK
 	})
 }
 
-func EnsureK8sDqlitePKI(snap snap.Snap, certificates *pki.K8sDqlitePKI) error {
+// EnsureK8sDqlitePKI ensures the k8s dqlite PKI files are present
+// and have the correct content, permissions and ownership.
+// It returns true if one or more files were updated and any error that occured.
+func EnsureK8sDqlitePKI(snap snap.Snap, certificates *pki.K8sDqlitePKI) (bool, error) {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
 		path.Join(snap.K8sDqliteStateDir(), "cluster.crt"): certificates.K8sDqliteCert,
 		path.Join(snap.K8sDqliteStateDir(), "cluster.key"): certificates.K8sDqliteKey,
 	})
 }
 
-func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) error {
+// EnsureControlPlanePKI ensures the control plane PKI files are present
+// and have the correct content, permissions and ownership.
+// It returns true if one or more files were updated and any error that occured.
+func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (bool, error) {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
 		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"): certificates.APIServerKubeletClientCert,
 		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"): certificates.APIServerKubeletClientKey,
@@ -76,7 +111,10 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) er
 	})
 }
 
-func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) error {
+// EnsureWorkerPKI ensures the worker PKI files are present
+// and have the correct content, permissions and ownership.
+// It returns true if one or more files were updated and any error that occured.
+func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) (bool, error) {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
 		path.Join(snap.KubernetesPKIDir(), "ca.crt"):      certificates.CACert,
 		path.Join(snap.KubernetesPKIDir(), "kubelet.crt"): certificates.KubeletCert,

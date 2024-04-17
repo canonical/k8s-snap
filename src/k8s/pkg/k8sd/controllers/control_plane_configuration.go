@@ -70,19 +70,23 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 	switch config.Datastore.GetType() {
 	case "external":
 		// certificates
-		if err := setup.EnsureExtDatastorePKI(c.snap, &pki.ExternalDatastorePKI{
+		certificatesChanged, err := setup.EnsureExtDatastorePKI(c.snap, &pki.ExternalDatastorePKI{
 			DatastoreCACert:     config.Datastore.GetExternalCACert(),
 			DatastoreClientCert: config.Datastore.GetExternalClientCert(),
 			DatastoreClientKey:  config.Datastore.GetExternalClientKey(),
-		}); err != nil {
+		})
+		if err != nil {
 			return fmt.Errorf("failed to reconcile external datastore certificates: %w", err)
 		}
 
 		// kube-apiserver arguments
 		updateArgs, deleteArgs := config.Datastore.ToKubeAPIServerArguments(c.snap)
-		if mustRestart, err := snaputil.UpdateServiceArguments(c.snap, "kube-apiserver", updateArgs, deleteArgs); err != nil {
+		argsChanged, err := snaputil.UpdateServiceArguments(c.snap, "kube-apiserver", updateArgs, deleteArgs)
+		if err != nil {
 			return fmt.Errorf("failed to update kube-apiserver datastore arguments: %w", err)
-		} else if mustRestart {
+		}
+
+		if certificatesChanged || argsChanged {
 			if err := c.snap.RestartService(ctx, "kube-apiserver"); err != nil {
 				return fmt.Errorf("failed to restart kube-apiserver to apply configuration: %w", err)
 			}
