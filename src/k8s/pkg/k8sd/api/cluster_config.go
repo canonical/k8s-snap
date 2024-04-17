@@ -27,19 +27,17 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
 	}
 
-	// Changing the datastore configuration is opt-in. We expect the caller to explicitly set the "external" type.
-	// The nil check is required to ensure we only fail if the DatastoreConfig is expected to change.
-	if req.DatastoreConfig.Type != nil && req.DatastoreConfig.GetType() != "external" {
-		return response.BadRequest(fmt.Errorf("failed to updated datastore config: type must be 'external' but is %s", req.DatastoreConfig.GetType()))
-	}
-
 	oldConfig, err := utils.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
 	}
 
 	requestedConfig := types.ClusterConfigFromUserFacing(req.Config)
-	requestedConfig.Datastore = types.DatastoreConfigFromUserFacing(req.DatastoreConfig)
+	requestedConfig.Datastore, err = types.DatastoreConfigFromUserFacing(req.Datastore)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to parse datastore config: %w", err))
+	}
+
 	var mergedConfig types.ClusterConfig
 	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error

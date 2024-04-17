@@ -13,11 +13,8 @@ type GetClusterConfigResponse struct {
 }
 
 type UpdateClusterConfigRequest struct {
-	Config UserFacingClusterConfig `json:"config,omitempty" yaml:"config,omitempty"`
-	// DatastoreConfig contains updates of the external datastore configuration.
-	// It is not part of the UserFacingClusterConfig as it is direcly marshalled by the CLI.
-	// The datastore config should not be displayed as part of the configuration in `k8s get`
-	DatastoreConfig UserFacingDatastoreConfig `json:"datastore-config,omitempty" yaml:"datastore-config,omitempty"`
+	Config    UserFacingClusterConfig   `json:"config,omitempty" yaml:"config,omitempty"`
+	Datastore UserFacingDatastoreConfig `json:"datastore,omitempty" yaml:"datastore,omitempty"`
 }
 
 type UpdateClusterConfigResponse struct {

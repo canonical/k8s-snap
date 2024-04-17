@@ -50,7 +50,7 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
 
     # Update  server-urls in cluster
     body = {
-        "datastore-config": {
+        "datastore": {
             "type": "external",
             "servers": etcd_cluster.client_urls,
             "ca-crt": etcd_cluster.ca_cert,
@@ -80,7 +80,7 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
 
     # Changing the datastore back to k8s-dqlite after using the external datastore should fail.
     body = {
-        "datastore-config": {
+        "datastore": {
             "type": "k8s-dqlite",
         }
     }
