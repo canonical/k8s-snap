@@ -79,7 +79,7 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 
 	// update LoadBalancer_IPRange fields
 	if config.LoadBalancer.IPRanges, err = mergeSliceField(existing.LoadBalancer.IPRanges, new.LoadBalancer.IPRanges, true); err != nil {
-		return ClusterConfig{}, fmt.Errorf("prevent update of load balancer IP ranges: %w", err)
+		return ClusterConfig{}, fmt.Errorf("prevented update of load balancer IP ranges: %w", err)
 	}
 
 	// update int fields
