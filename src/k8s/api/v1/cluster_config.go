@@ -167,11 +167,3 @@ func (c MetricsServerConfig) String() string {
 	}
 	return string(b)
 }
-
-func (c CloudProviderConfig) String() string {
-	b, err := yaml.Marshal(c)
-	if err != nil {
-		return fmt.Sprintf("%#v\n", c)
-	}
-	return string(b)
-}
