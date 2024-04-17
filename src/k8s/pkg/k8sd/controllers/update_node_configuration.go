@@ -57,12 +57,12 @@ func (c *UpdateNodeConfigurationController) retryNewK8sClient(ctx context.Contex
 func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) {
 	c.waitReady()
 
-	client, err := c.retryNewK8sClient(ctx)
-	if err != nil {
-		log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
-	}
-
 	for {
+		client, err := c.retryNewK8sClient(ctx)
+		if err != nil {
+			log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
+		}
+
 		select {
 		case <-ctx.Done():
 			return
