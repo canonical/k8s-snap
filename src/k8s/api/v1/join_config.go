@@ -9,10 +9,12 @@ import (
 type ControlPlaneNodeJoinConfig struct {
 	ExtraSANS []string `json:"extra-sans,omitempty" yaml:"extra-sans,omitempty"`
 
-	APIServerCert *string `json:"apiserver-crt,omitempty" yaml:"apiserver-crt,omitempty"`
-	APIServerKey  *string `json:"apiserver-key,omitempty" yaml:"apiserver-key,omitempty"`
-	KubeletCert   *string `json:"kubelet-crt,omitempty" yaml:"kubelet-crt,omitempty"`
-	KubeletKey    *string `json:"kubelet-key,omitempty" yaml:"kubelet-key,omitempty"`
+	APIServerCert        *string `json:"apiserver-crt,omitempty" yaml:"apiserver-crt,omitempty"`
+	APIServerKey         *string `json:"apiserver-key,omitempty" yaml:"apiserver-key,omitempty"`
+	FrontProxyClientCert *string `json:"front-proxy-client-crt,omitempty" yaml:"front-proxy-client-crt,omitempty"`
+	FrontProxyClientKey  *string `json:"front-proxy-client-key,omitempty" yaml:"front-proxy-client-key,omitempty"`
+	KubeletCert          *string `json:"kubelet-crt,omitempty" yaml:"kubelet-crt,omitempty"`
+	KubeletKey           *string `json:"kubelet-key,omitempty" yaml:"kubelet-key,omitempty"`
 }
 
 type WorkerNodeJoinConfig struct {
@@ -22,8 +24,14 @@ type WorkerNodeJoinConfig struct {
 
 func (c *ControlPlaneNodeJoinConfig) GetAPIServerCert() string { return getField(c.APIServerCert) }
 func (c *ControlPlaneNodeJoinConfig) GetAPIServerKey() string  { return getField(c.APIServerKey) }
-func (c *ControlPlaneNodeJoinConfig) GetKubeletCert() string   { return getField(c.KubeletCert) }
-func (c *ControlPlaneNodeJoinConfig) GetKubeletKey() string    { return getField(c.KubeletKey) }
+func (c *ControlPlaneNodeJoinConfig) GetFrontProxyClientCert() string {
+	return getField(c.FrontProxyClientCert)
+}
+func (c *ControlPlaneNodeJoinConfig) GetFrontProxyClientKey() string {
+	return getField(c.FrontProxyClientKey)
+}
+func (c *ControlPlaneNodeJoinConfig) GetKubeletCert() string { return getField(c.KubeletCert) }
+func (c *ControlPlaneNodeJoinConfig) GetKubeletKey() string  { return getField(c.KubeletKey) }
 
 func (w *WorkerNodeJoinConfig) GetKubeletCert() string { return getField(w.KubeletCert) }
 func (w *WorkerNodeJoinConfig) GetKubeletKey() string  { return getField(w.KubeletKey) }

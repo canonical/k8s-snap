@@ -252,6 +252,8 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	certificates.CAKey = bootstrapConfig.GetCAKey()
 	certificates.FrontProxyCACert = bootstrapConfig.GetFrontProxyCACert()
 	certificates.FrontProxyCAKey = bootstrapConfig.GetFrontProxyCAKey()
+	certificates.FrontProxyClientCert = bootstrapConfig.GetFrontProxyClientCert()
+	certificates.FrontProxyClientKey = bootstrapConfig.GetFrontProxyClientKey()
 	certificates.ServiceAccountKey = bootstrapConfig.GetServiceAccountKey()
 	certificates.APIServerKubeletClientCert = bootstrapConfig.GetAPIServerKubeletClientCert()
 	certificates.APIServerKubeletClientKey = bootstrapConfig.GetAPIServerKubeletClientKey()

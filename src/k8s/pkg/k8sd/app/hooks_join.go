@@ -96,6 +96,8 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	// load certificates from joinConfig
 	certificates.APIServerCert = joinConfig.GetAPIServerCert()
 	certificates.APIServerKey = joinConfig.GetAPIServerKey()
+	certificates.FrontProxyClientCert = joinConfig.GetFrontProxyClientCert()
+	certificates.FrontProxyClientKey = joinConfig.GetFrontProxyClientKey()
 	certificates.KubeletCert = joinConfig.GetKubeletCert()
 	certificates.KubeletKey = joinConfig.GetKubeletKey()
 
