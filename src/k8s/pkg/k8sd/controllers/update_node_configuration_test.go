@@ -90,6 +90,7 @@ func TestUpdateNodeConfigurationController(t *testing.T) {
 			select {
 			case <-ctrl.ReconciledCh:
 			case <-time.After(channelSendTimeout):
+				g.Fail("Time out while waiting for the reconcile to complete")
 			}
 
 			result, err := clientset.CoreV1().ConfigMaps("kube-system").Get(ctx, "k8sd-config", metav1.GetOptions{})

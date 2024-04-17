@@ -347,13 +347,6 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		}
 	}
 
-	// Trigger an update of the configuration.
-	// Do not wait if the channel is full. The reconcilation loop will apply the most recent changes
-	select {
-	case a.updateNodeConfigController.TriggerCh <- struct{}{}:
-	default:
-	}
-
 	if cfg.LocalStorage.GetEnabled() {
 		if err := component.ReconcileLocalStorageComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
 			return fmt.Errorf("failed to reconcile local-storage: %w", err)
@@ -383,6 +376,8 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 			return fmt.Errorf("failed to reconcile metrics-server: %w", err)
 		}
 	}
+
+	a.NotifyUpdateConfigMap()
 
 	return nil
 }
