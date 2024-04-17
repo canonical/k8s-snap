@@ -47,7 +47,7 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     LOG.info("Add new etcd nodes")
     etcd_cluster.add_nodes(2)
 
-    # Update  server-urls in cluster
+    # Update server-urls in cluster
     body = {
         "datastore": {
             "type": "external",
