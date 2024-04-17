@@ -15,7 +15,6 @@ type BootstrapConfig struct {
 	ServiceCIDR         *string  `json:"service-cidr,omitempty" yaml:"service-cidr,omitempty"`
 	DisableRBAC         *bool    `json:"disable-rbac,omitempty" yaml:"disable-rbac,omitempty"`
 	SecurePort          *int     `json:"secure-port,omitempty" yaml:"secure-port,omitempty"`
-	CloudProvider       *string  `json:"cloud-provider,omitempty" yaml:"cloud-provider,omitempty"`
 	K8sDqlitePort       *int     `json:"k8s-dqlite-port,omitempty" yaml:"k8s-dqlite-port,omitempty"`
 	DatastoreType       *string  `json:"datastore-type,omitempty" yaml:"datastore-type,omitempty"`
 	DatastoreServers    []string `json:"datastore-servers,omitempty" yaml:"datastore-servers,omitempty"`
