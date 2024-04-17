@@ -225,10 +225,12 @@ apps:
     stop-mode: sigterm
     restart-condition: always
     start-timeout: 5m
+    before: [kubelet]
   k8s-dqlite:
     command: k8s/wrappers/services/k8s-dqlite
     install-mode: disable
     daemon: simple
+    before: [kube-apiserver]
   k8sd:
     command: k8s/wrappers/services/k8sd
     install-mode: enable
@@ -237,23 +239,30 @@ apps:
     install-mode: disable
     command: k8s/wrappers/services/kubelet
     daemon: simple
+    after: [containerd]
   kube-apiserver:
     install-mode: disable
     command: k8s/wrappers/services/kube-apiserver
     daemon: simple
+    before: [kubelet, kube-controller-manager, kube-proxy, kube-scheduler]
+    stop-timeout: 5s
   kube-controller-manager:
     install-mode: disable
     command: k8s/wrappers/services/kube-controller-manager
     daemon: simple
+    after: [kube-apiserver]
   kube-proxy:
     install-mode: disable
     command: k8s/wrappers/services/kube-proxy
     daemon: simple
+    after: [kube-apiserver]
   kube-scheduler:
     install-mode: disable
     command: k8s/wrappers/services/kube-scheduler
     daemon: simple
+    after: [kube-apiserver]
   k8s-apiserver-proxy:
     install-mode: disable
     command: k8s/wrappers/services/k8s-apiserver-proxy
     daemon: simple
+    before: [kubelet, kube-proxy]
