@@ -79,6 +79,11 @@ This command deploys 3 units of the Canonical Kubernetes control plane (`k8s`)
 and configures them to use **etcd** as the backing datastore, ensuring high
 availability.
 
+```{important}
+Remember to run `juju expose k8s`. This will open the required
+ports to reach your cluster from outside.
+```
+
 ## Integrating Canonical Kubernetes with etcd
 Now that we have both the etcd datastore deployed alongside our Canonical
 Kubernetes cluster, it is time to integrate our cluster with our etcd datastore.
@@ -96,33 +101,32 @@ datastore.
 to verify that all components are functioning correctly. Use the `juju status`
 command to inspect the current status of your cluster.
 
-```bash
-➜  ~ juju status
-Model       Controller  Cloud/Region    Version  SLA          Timestamp
-my-cluster  canosphere  vsphere/Boston  3.4.0    unsupported  16:15:19-05:00
+```
+Model       Controller  Cloud/Region   Version  SLA          Timestamp
+my-cluster  canonicaws  aws/us-east-1  3.4.2    unsupported  16:02:18-05:00
 
-App      Version  Status  Scale  Charm    Channel      Rev  Exposed  Message
-easyrsa  3.0.1    active      1  easyrsa  stable        55  no       Certificate Authority connected.
-etcd     3.4.22   active      3  etcd     stable       760  no       Healthy with 3 known peers
-k8s      1.29.3   active      3  k8s      latest/edge   31  no       Ready
+App      Version  Status  Scale  Charm    Channel        Rev  Exposed  Message
+easyrsa  3.0.1    active      1  easyrsa  latest/stable   58  no       Certificate Authority connected.
+etcd     3.4.22   active      3  etcd     latest/stable  760  no       Healthy with 3 known peers
+k8s      1.29.4   active      3  k8s      latest/edge     33  yes      Ready
 
 Unit        Workload  Agent  Machine  Public address  Ports     Message
-easyrsa/0*  active    idle   0        10.246.154.154            Certificate Authority connected.
-etcd/0      active    idle   4        10.246.154.44   2379/tcp  Healthy with 3 known peers
-etcd/1      active    idle   5        10.246.154.11   2379/tcp  Healthy with 3 known peers
-etcd/2*     active    idle   6        10.246.154.42   2379/tcp  Healthy with 3 known peers
-k8s/0*      active    idle   1        10.246.154.120  6443/tcp  Ready
-k8s/1       active    idle   2        10.246.154.228  6443/tcp  Ready
-k8s/2       active    idle   3        10.246.154.152  6443/tcp  Ready
+easyrsa/0*  active    idle   0        35.172.230.66             Certificate Authority connected.
+etcd/0*     active    idle   1        34.204.173.161  2379/tcp  Healthy with 3 known peers
+etcd/1      active    idle   2        54.225.4.183    2379/tcp  Healthy with 3 known peers
+etcd/2      active    idle   3        3.208.15.61     2379/tcp  Healthy with 3 known peers
+k8s/0       active    idle   4        54.89.153.117   6443/tcp  Ready
+k8s/1*      active    idle   5        3.238.230.3     6443/tcp  Ready
+k8s/2       active    idle   6        34.229.202.243  6443/tcp  Ready
 
-Machine  State    Address         Inst id        Base          AZ  Message
-0        started  10.246.154.154  juju-2a1cbe-0  ubuntu@22.04      poweredOn
-1        started  10.246.154.120  juju-2a1cbe-1  ubuntu@22.04      poweredOn
-2        started  10.246.154.228  juju-2a1cbe-2  ubuntu@22.04      poweredOn
-3        started  10.246.154.152  juju-2a1cbe-3  ubuntu@22.04      poweredOn
-4        started  10.246.154.44   juju-2a1cbe-4  ubuntu@22.04      poweredOn
-5        started  10.246.154.11   juju-2a1cbe-5  ubuntu@22.04      poweredOn
-6        started  10.246.154.42   juju-2a1cbe-6  ubuntu@22.04      poweredOn
+Machine  State    Address         Inst id              Base          AZ          Message
+0        started  35.172.230.66   i-0b6fc845c28864913  ubuntu@22.04  us-east-1f  running
+1        started  34.204.173.161  i-05439714c88bea35f  ubuntu@22.04  us-east-1f  running
+2        started  54.225.4.183    i-07ecf97ed29860334  ubuntu@22.04  us-east-1c  running
+3        started  3.208.15.61     i-0be91170809d7dccc  ubuntu@22.04  us-east-1b  running
+4        started  54.89.153.117   i-07906e76071b69721  ubuntu@22.04  us-east-1c  running
+5        started  3.238.230.3     i-0773583e7a5fbf07e  ubuntu@22.04  us-east-1f  running
+6        started  34.229.202.243  i-0f03b9833a338380c  ubuntu@22.04  us-east-1b  running
 ```
 
 <!-- LINKS -->
