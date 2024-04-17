@@ -18,7 +18,7 @@ func DatastoreConfigFromUserFacing(u apiv1.UserFacingDatastoreConfig) (Datastore
 		Type:               u.Type,
 		ExternalServers:    u.Servers,
 		ExternalCACert:     u.CACert,
-		ExternalClientCert: u.CACert,
+		ExternalClientCert: u.ClientCert,
 		ExternalClientKey:  u.ClientKey,
 	}, nil
 }
@@ -29,7 +29,7 @@ func (c Datastore) ToUserFacing() apiv1.UserFacingDatastoreConfig {
 		Type:       c.Type,
 		Servers:    c.ExternalServers,
 		CACert:     c.ExternalCACert,
-		ClientCert: c.ExternalCACert,
+		ClientCert: c.ExternalClientCert,
 		ClientKey:  c.ExternalClientKey,
 	}
 }
