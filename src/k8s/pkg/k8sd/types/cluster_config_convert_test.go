@@ -106,12 +106,12 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 					MetricsServer: apiv1.MetricsServerConfig{
 						Enabled: vals.Pointer(true),
 					},
+					CloudProvider: vals.Pointer("external"),
 				},
 				PodCIDR:       vals.Pointer("10.100.0.0/16"),
 				ServiceCIDR:   vals.Pointer("10.200.0.0/16"),
 				DisableRBAC:   vals.Pointer(false),
 				SecurePort:    vals.Pointer(6443),
-				CloudProvider: vals.Pointer("external"),
 				K8sDqlitePort: vals.Pointer(9090),
 				DatastoreType: vals.Pointer("k8s-dqlite"),
 				ExtraSANs:     []string{"custom.kubernetes"},
@@ -141,9 +141,10 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 					Enabled: vals.Pointer(true),
 				},
 				LoadBalancer: types.LoadBalancer{
-					Enabled: vals.Pointer(true),
-					L2Mode:  vals.Pointer(true),
-					CIDRs:   vals.Pointer([]string{"10.0.0.0/24", "10.1.0.10-10.1.0.20"}),
+					Enabled:  vals.Pointer(true),
+					L2Mode:   vals.Pointer(true),
+					CIDRs:    vals.Pointer([]string{"10.0.0.0/24"}),
+					IPRanges: vals.Pointer([]types.LoadBalancer_IPRange{{Start: "10.1.0.10", Stop: "10.1.0.20"}}),
 				},
 				LocalStorage: types.LocalStorage{
 					Enabled:   vals.Pointer(true),

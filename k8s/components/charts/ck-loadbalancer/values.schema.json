@@ -29,12 +29,25 @@
               "properties": {
                 "cidr": {
                   "type": "string"
+                },
+                "start": {
+                  "type": "string"
+                },
+                "stop": {
+                  "type": "string"
                 }
-              },
-              "required": ["cidr"]
-            }
-          ]
-        }
+	      },
+	      "anyOf": [
+		{
+		  "required": ["cidr"]
+		},
+		{
+		  "required": ["start", "stop"]
+		}
+	      ]
+	    }
+	  ]
+	}
       },
       "required": ["cidrs"]
     },

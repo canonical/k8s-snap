@@ -133,8 +133,11 @@ func TestMergeClusterConfig(t *testing.T) {
 			c.Network.Enabled = vals.Pointer(true)
 			c.LoadBalancer.Enabled = vals.Pointer(v.(bool))
 		}),
-		generateMergeClusterConfigTestCases("LoadBalancer/CIDRs", true, []string{"172.16.101.0/24"}, []string{"172.16.100.0-172.16.100.254"}, func(c *types.ClusterConfig, v any) {
+		generateMergeClusterConfigTestCases("LoadBalancer/CIDRs", true, []string{"172.16.101.0/24"}, []string{"172.16.102.0/24"}, func(c *types.ClusterConfig, v any) {
 			c.LoadBalancer.CIDRs = vals.Pointer(v.([]string))
+		}),
+		generateMergeClusterConfigTestCases("LoadBalancer/IPRanges", true, []types.LoadBalancer_IPRange{{Start: "10.0.0.10", Stop: "10.0.0.20"}}, []types.LoadBalancer_IPRange{{Start: "10.1.0.10", Stop: "10.1.0.20"}}, func(c *types.ClusterConfig, v any) {
+			c.LoadBalancer.IPRanges = vals.Pointer(v.([]types.LoadBalancer_IPRange))
 		}),
 		generateMergeClusterConfigTestCases("LoadBalancer/L2Mode/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.LoadBalancer.L2Mode = vals.Pointer(v.(bool)) }),
 		generateMergeClusterConfigTestCases("LoadBalancer/L2Mode/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.LoadBalancer.L2Mode = vals.Pointer(v.(bool)) }),

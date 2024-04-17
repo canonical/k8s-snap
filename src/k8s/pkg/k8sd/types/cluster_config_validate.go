@@ -64,31 +64,25 @@ func (c *ClusterConfig) Validate() error {
 
 	// check: load-balancer CIDRs
 	for _, cidr := range c.LoadBalancer.GetCIDRs() {
-		// Handle IP Range
-		if strings.Contains(cidr, "-") {
-			ipRange := strings.Split(cidr, "-")
-			if len(ipRange) != 2 {
-				return fmt.Errorf("load-balancer.cidrs contains an invalid IP Range %q", cidr)
-			}
+		// Handle CIDR
+		if _, _, err := net.ParseCIDR(cidr); err != nil {
+			return fmt.Errorf("load-balancer configuration contains an invalid CIDR %q: %w", cidr, err)
+		}
+	}
 
-			start, err := netip.ParseAddr(ipRange[0])
-			if err != nil {
-				return fmt.Errorf("load-balancer.cidrs contains an invalid IP Range %q", cidr)
-			}
-			stop, err := netip.ParseAddr(ipRange[1])
-			if err != nil {
-				return fmt.Errorf("load-balancer.cidrs contains an invalid IP Range %q", cidr)
-			}
+	for _, ipRange := range c.LoadBalancer.GetIPRanges() {
+		start, err := netip.ParseAddr(ipRange.Start)
+		if err != nil {
+			return fmt.Errorf("load-balancer configuration contains an IP range (%#v) with an invalid start IP: %w", ipRange, err)
+		}
+		stop, err := netip.ParseAddr(ipRange.Stop)
+		if err != nil {
+			return fmt.Errorf("load-balancer configuration contains an IP range (%#v) with an invalid stop IP: %w", ipRange, err)
+		}
 
-			// Check if stop is greater than start
-			if stop.Less(start) {
-				return fmt.Errorf("load-balancer.cidrs contains an invalid IP Range %q", cidr)
-			}
-		} else {
-			// Handle CIDR
-			if _, _, err := net.ParseCIDR(cidr); err != nil {
-				return fmt.Errorf("load-balancer.cidrs contains an invalid CIDR %q: %w", cidr, err)
-			}
+		// Check if stop is greater than start
+		if stop.Less(start) {
+			return fmt.Errorf("load-balancer configuration contains an IP range (%#v) with start IP greater than the stop IP", ipRange)
 		}
 	}
 

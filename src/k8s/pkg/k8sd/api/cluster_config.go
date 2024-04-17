@@ -27,14 +27,17 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
 	}
 
+	requestedConfig, err := types.ClusterConfigFromUserFacing(req.Config)
+	if err != nil {
+		return response.BadRequest(fmt.Errorf("invalid configuration: %w", err))
+	}
+	if requestedConfig.Datastore, err = types.DatastoreConfigFromUserFacing(req.Datastore); err != nil {
+		return response.BadRequest(fmt.Errorf("failed to parse datastore config: %w", err))
+	}
+
 	oldConfig, err := utils.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
-	}
-
-	requestedConfig := types.ClusterConfigFromUserFacing(req.Config)
-	if requestedConfig.Datastore, err = types.DatastoreConfigFromUserFacing(req.Datastore); err != nil {
-		return response.BadRequest(fmt.Errorf("failed to parse datastore config: %w", err))
 	}
 
 	var mergedConfig types.ClusterConfig

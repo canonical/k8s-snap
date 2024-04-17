@@ -34,8 +34,8 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			// hide MetricsServer config from user as it is enabled by default
 			config.MetricsServer = apiv1.MetricsServerConfig{}
+			config.CloudProvider = nil
 
 			var key string
 			if len(args) == 1 {
