@@ -27,6 +27,7 @@ type UserFacingClusterConfig struct {
 	LocalStorage  LocalStorageConfig  `json:"local-storage,omitempty" yaml:"local-storage,omitempty"`
 	Gateway       GatewayConfig       `json:"gateway,omitempty" yaml:"gateway,omitempty"`
 	MetricsServer MetricsServerConfig `json:"metrics-server,omitempty" yaml:"metrics-server,omitempty"`
+	CloudProvider *string             `json:"cloud-provider,omitempty" yaml:"cloud-provider,omitempty"`
 }
 
 type DNSConfig struct {

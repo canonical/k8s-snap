@@ -36,8 +36,8 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			// hide MetricsServer config from user as it is enabled by default
 			status.Config.MetricsServer = apiv1.MetricsServerConfig{}
+			status.Config.CloudProvider = nil
 
 			outputFormatter.Print(status)
 		},
