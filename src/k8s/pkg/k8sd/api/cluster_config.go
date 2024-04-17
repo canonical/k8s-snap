@@ -13,6 +13,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
@@ -82,6 +83,20 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		}
 	}
 
+	cmData, err := mergedConfig.Kubelet.ToConfigMap()
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to format kubelet configmap data: %w", err))
+	}
+
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
+	}
+
+	if _, err := client.UpdateConfigMap(r.Context(), "kube-system", "k8sd-config", cmData); err != nil {
+		return response.InternalError(fmt.Errorf("failed to update node config: %w", err))
+	}
+
 	if !requestedConfig.LocalStorage.Empty() {
 		if err := component.ReconcileLocalStorageComponent(r.Context(), snap, oldConfig.LocalStorage.Enabled, requestedConfig.LocalStorage.Enabled, mergedConfig); err != nil {
 			return response.InternalError(fmt.Errorf("failed to reconcile local-storage: %w", err))
@@ -111,8 +126,6 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 			return response.InternalError(fmt.Errorf("failed to reconcile load-balancer: %w", err))
 		}
 	}
-
-	e.provider.NotifyUpdateConfigMap()
 
 	return response.SyncResponse(true, &api.UpdateClusterConfigResponse{})
 }
