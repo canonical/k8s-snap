@@ -3,7 +3,6 @@
 #
 import json
 import logging
-import time
 from typing import List
 
 import pytest
@@ -72,11 +71,10 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
         ]
     )
 
-    # Give some time to reconcile and restart services.
-    time.sleep(2)
-
     # check that we can still connect to the kubernetes cluster
-    k8s_instance.exec(["k8s", "kubectl", "get", "pods", "-A"])
+    util.stubbornly(retries=3, delay_s=1).on(k8s_instance).exec(
+        ["k8s", "kubectl", "get", "pods", "-A"]
+    )
 
     # Changing the datastore back to k8s-dqlite after using the external datastore should fail.
     body = {
