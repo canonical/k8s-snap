@@ -15,7 +15,10 @@ func (a *App) Snap() snap.Snap {
 }
 
 func (a *App) NotifyUpdateConfigMap() {
-	a.updateNodeConfigController.TriggerCh <- struct{}{}
+	select {
+	case a.updateNodeConfigController.TriggerCh <- struct{}{}:
+	default:
+	}
 }
 
 // Ensure App implements api.Provider
