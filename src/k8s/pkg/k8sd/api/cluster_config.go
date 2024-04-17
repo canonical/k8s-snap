@@ -27,12 +27,16 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
 	}
 
+	requestedConfig, err := types.ClusterConfigFromUserFacing(req.Config)
+	if err != nil {
+		return response.BadRequest(fmt.Errorf("invalid configuration: %w", err))
+	}
+
 	oldConfig, err := utils.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
 	}
 
-	requestedConfig := types.ClusterConfigFromUserFacing(req.Config)
 	var mergedConfig types.ClusterConfig
 	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error

@@ -3,7 +3,6 @@ package component
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
@@ -70,17 +69,12 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 		return fmt.Errorf("failed to wait for cilium CRDs to be available: %w", err)
 	}
 
-	formattedCidrs := []map[string]any{}
-
+	cidrs := []map[string]any{}
 	for _, cidr := range config.GetCIDRs() {
-		// Handle IP range
-		if strings.Contains(cidr, "-") {
-			ipRange := strings.Split(cidr, "-")
-			formattedCidrs = append(formattedCidrs, map[string]any{"start": ipRange[0], "stop": ipRange[1]})
-		} else {
-			// Handle CIDRs
-			formattedCidrs = append(formattedCidrs, map[string]any{"cidr": cidr})
-		}
+		cidrs = append(cidrs, map[string]any{"cidr": cidr})
+	}
+	for _, ipRange := range config.GetIPRanges() {
+		cidrs = append(cidrs, map[string]any{"start": ipRange.Start, "stop": ipRange.Stop})
 	}
 
 	values := map[string]any{
@@ -89,7 +83,7 @@ func UpdateLoadBalancerComponent(ctx context.Context, s snap.Snap, isRefresh boo
 			"interfaces": config.GetL2Interfaces(),
 		},
 		"ipPool": map[string]any{
-			"cidrs": formattedCidrs,
+			"cidrs": cidrs,
 		},
 		"bgp": map[string]any{
 			"enabled":  config.GetBGPMode(),
