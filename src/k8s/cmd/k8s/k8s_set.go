@@ -177,8 +177,6 @@ func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 			return fmt.Errorf("invalid boolean value for metrics-server.enabled: %w", err)
 		}
 		config.MetricsServer.Enabled = &v
-	case "cloud-provider":
-		config.CloudProvider = vals.Pointer(value)
 	default:
 		return fmt.Errorf("unknown config key %q", key)
 	}
