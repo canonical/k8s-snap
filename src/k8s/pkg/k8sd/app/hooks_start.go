@@ -24,5 +24,12 @@ func (a *App) onStart(s *state.State) error {
 		})
 	}
 
+	// start update node config controller
+	if a.updateNodeConfigController != nil {
+		go a.updateNodeConfigController.Run(s.Context, func(ctx context.Context) (types.ClusterConfig, error) {
+			return utils.GetClusterConfig(ctx, s)
+		})
+	}
+
 	return nil
 }
