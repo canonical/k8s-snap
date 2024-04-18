@@ -29,9 +29,9 @@ crucial, particularly if you opt for an external datastore like **etcd**.
 
 2. **Deploying Certificate Authority**:
   etcd requires a secure means of communication between its components.
-  Therefore, we require a certificates authority such as [EasyRSA][easyrsa-charm]
+  Therefore, we require a certificate authority such as [EasyRSA][easyrsa-charm]
   or [Vault][vault-charm]. Check the respective charm documentation for detailed
-  instructions on how to deploy a certificates authority. In this guide, we will
+  instructions on how to deploy a certificate authority. In this guide, we will
   be using EasyRSA.
 
   ```bash
@@ -48,7 +48,7 @@ crucial, particularly if you opt for an external datastore like **etcd**.
     ```
 
     This setup is straightforward but not recommended for production environments
-    due to lack of high availability.
+    due to a lack of high availability.
 
 - **High Availability Setup**:
   - For environments where high availability is crucial, deploy etcd across at
@@ -88,6 +88,7 @@ ports to reach your cluster from outside.
 ```
 
 ## Integrating Canonical Kubernetes with etcd
+
 Now that we have both the etcd datastore deployed alongside our Canonical
 Kubernetes cluster, it is time to integrate our cluster with our etcd datastore.
 
@@ -96,7 +97,7 @@ juju integrate k8s etcd
 ```
 
 This step integrates the k8s charm (Control Plane units)  with the etcd hosts,
-allowing the Kubernetes cluster to utilize the etcd units as an external
+allowing the Kubernetes cluster to use the etcd units as an external
 datastore.
 
 ## Final Steps
