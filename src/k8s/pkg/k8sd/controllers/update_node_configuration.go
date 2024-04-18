@@ -95,7 +95,7 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 }
 
 func (c *UpdateNodeConfigurationController) reconcile(ctx context.Context, client *k8s.Client, config types.ClusterConfig) error {
-	cmData, err := config.Kubelet.ToConfigMap()
+	cmData, err := config.Kubelet.ToConfigMap(nil)
 	if err != nil {
 		return fmt.Errorf("failed to format kubelet configmap data: %w", err)
 	}

@@ -67,7 +67,7 @@ func (c *NodeConfigurationController) Run(ctx context.Context) {
 }
 
 func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *v1.ConfigMap) error {
-	config, err := types.KubeletFromConfigMap(configMap.Data)
+	config, err := types.KubeletFromConfigMap(configMap.Data, nil)
 	if err != nil {
 		return fmt.Errorf("failed to parse configmap data to kubelet config: %w", err)
 	}
