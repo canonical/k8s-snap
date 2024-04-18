@@ -1,0 +1,111 @@
+package features
+
+import (
+	"context"
+	"fmt"
+	"net"
+	"strings"
+
+	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils/control"
+	"github.com/canonical/k8s/pkg/utils/k8s"
+)
+
+func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error {
+	m := newHelm(snap)
+
+	if !cfg.GetEnabled() {
+		if _, err := m.Apply(ctx, featureNetwork, stateDeleted, nil); err != nil {
+			return fmt.Errorf("failed to uninstall network: %w", err)
+		}
+		return nil
+	}
+
+	clusterCIDRs := strings.Split(cfg.GetPodCIDR(), ",")
+	if v := len(clusterCIDRs); v != 1 && v != 2 {
+		return fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", clusterCIDRs)
+	}
+
+	var (
+		ipv4CIDR string
+		ipv6CIDR string
+	)
+	for _, cidr := range clusterCIDRs {
+		_, parsed, err := net.ParseCIDR(cidr)
+		switch {
+		case err != nil:
+			return fmt.Errorf("failed to parse cidr: %w", err)
+		case parsed.IP.To4() != nil:
+			ipv4CIDR = cidr
+		default:
+			ipv6CIDR = cidr
+		}
+	}
+
+	values := map[string]any{
+		"image": map[string]any{
+			"repository": ciliumAgentImageRepository,
+			"tag":        ciliumAgentImageTag,
+			"useDigest":  false,
+		},
+		"socketLB": map[string]any{
+			"enabled": true,
+		},
+		"cni": map[string]any{
+			"confPath": "/etc/cni/net.d",
+			"binPath":  "/opt/cni/bin",
+		},
+		"operator": map[string]any{
+			"replicas": 1,
+			"image": map[string]any{
+				"repository": ciliumOperatorImageRepository,
+				"tag":        ciliumOperatorImageTag,
+				"useDigest":  false,
+			},
+		},
+		"ipam": map[string]any{
+			"operator": map[string]any{
+				"clusterPoolIPv4PodCIDRList": ipv4CIDR,
+				"clusterPoolIPv6PodCIDRList": ipv6CIDR,
+			},
+		},
+		"nodePort": map[string]any{
+			"enabled": true,
+		},
+		"disableEnvoyVersionCheck": true,
+	}
+
+	if _, err := m.Apply(ctx, featureNetwork, statePresent, values); err != nil {
+		return fmt.Errorf("failed to enable network: %w", err)
+	}
+
+	return nil
+}
+
+func rolloutRestartCilium(ctx context.Context, snap snap.Snap, attempts int) error {
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	if err != nil {
+		return fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
+
+	if err := control.RetryFor(ctx, attempts, 0, func() error {
+		if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
+			return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to restart cilium-operator deployment after %d attempts: %w", attempts, err)
+	}
+
+	if err := control.RetryFor(ctx, attempts, 0, func() error {
+		if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
+			return fmt.Errorf("failed to restart cilium daemonset: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to restart cilium daemonset after %d attempts: %w", attempts, err)
+	}
+
+	return nil
+}
