@@ -1,5 +1,14 @@
 package types
 
+import (
+	"crypto/ecdsa"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+)
+
 type Kubelet struct {
 	CloudProvider *string `json:"cloud-provider,omitempty"`
 	ClusterDNS    *string `json:"cluster-dns,omitempty"`
@@ -13,8 +22,27 @@ func (c Kubelet) Empty() bool {
 	return c.CloudProvider == nil && c.ClusterDNS == nil && c.ClusterDomain == nil
 }
 
+// hash returns a sha256 sum from the Kubelet configuration.
+func (c Kubelet) hash() ([]byte, error) {
+	// encoding/json.Marshal() ensures alphabetical order on JSON fields, so will
+	// always produce the same JSON document.
+	hash, err := json.Marshal(c)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash config: %w", err)
+	}
+
+	// calculate sha256 sum of produced JSON
+	h := sha256.New()
+	if _, err := h.Write(hash); err != nil {
+		return nil, fmt.Errorf("failed to compute sha256: %w", err)
+	}
+	return h.Sum(nil), nil
+}
+
 // ToConfigMap converts a Kubelet config to a map[string]string to store in a Kubernetes configmap.
-func (c Kubelet) ToConfigMap() (map[string]string, error) {
+// ToConfigMap will append a "k8sd-mac" field if a key is specified, with a signed hash of the contents.
+// ToConfigMap signes a sha256 sum of the configuration, therefore requires an ECDSA key that uses elliptic.P256() or higher.
+func (c Kubelet) ToConfigMap(key *ecdsa.PrivateKey) (map[string]string, error) {
 	data := make(map[string]string)
 
 	if v := c.CloudProvider; v != nil {
@@ -27,11 +55,28 @@ func (c Kubelet) ToConfigMap() (map[string]string, error) {
 		data["cluster-domain"] = *v
 	}
 
+	if key != nil {
+		hash, err := c.hash()
+		if err != nil {
+			return nil, fmt.Errorf("failed to compute hash: %w", err)
+		}
+		if len(hash) > key.Curve.Params().BitSize/8 {
+			return nil, fmt.Errorf("hash size is longer than the curve's bit-length, refusing to sign truncated hash. please specify an ECDSA key with curve P-256 or larger")
+		}
+		mac, err := ecdsa.SignASN1(rand.Reader, key, hash)
+		if err != nil {
+			return nil, fmt.Errorf("failed to sign hash: %w", err)
+		}
+		data["k8sd-mac"] = base64.StdEncoding.EncodeToString(mac)
+	}
+
 	return data, nil
 }
 
 // KubeletFromConfigMap parses configmap data into a Kubelet config.
-func KubeletFromConfigMap(m map[string]string) (Kubelet, error) {
+// KubeletFromConfigMap will attempt to validate the signature (found in the "k8sd-mac" field) if a key is specified.
+// KubeletFromConfigMap can parse and validate maps created with Kubelet.ToConfigMap().
+func KubeletFromConfigMap(m map[string]string, key *ecdsa.PublicKey) (Kubelet, error) {
 	var c Kubelet
 	if m == nil {
 		return c, nil
@@ -45,6 +90,20 @@ func KubeletFromConfigMap(m map[string]string) (Kubelet, error) {
 	}
 	if v, ok := m["cluster-domain"]; ok {
 		c.ClusterDomain = &v
+	}
+
+	if key != nil {
+		hash, err := c.hash()
+		if err != nil {
+			return Kubelet{}, fmt.Errorf("failed to compute config hash: %w", err)
+		}
+		signature, err := base64.StdEncoding.DecodeString(m["k8sd-mac"])
+		if err != nil {
+			return Kubelet{}, fmt.Errorf("failed to parse signature: %w", err)
+		}
+		if !ecdsa.VerifyASN1(key, hash, signature) {
+			return Kubelet{}, fmt.Errorf("failed to verify signature")
+		}
 	}
 
 	return c, nil
