@@ -31,13 +31,13 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 		// The validation of the token is done when fetching the cluster information.
 		config["workerToken"] = req.Token
 		config["workerJoinConfig"] = req.Config
-		if err := e.provider.MicroCluster().NewCluster(hostname, req.Address, config, 0); err != nil {
+		if err := e.provider.MicroCluster().NewCluster(r.Context(), hostname, req.Address, config); err != nil {
 			return response.InternalError(fmt.Errorf("failed to join k8sd cluster as worker: %w", err))
 		}
 	} else {
 		// Is not a worker token. let microcluster check if it is a valid control-plane token.
 		config["controlPlaneJoinConfig"] = req.Config
-		if err := e.provider.MicroCluster().JoinCluster(hostname, req.Address, req.Token, config, 0); err != nil {
+		if err := e.provider.MicroCluster().JoinCluster(r.Context(), hostname, req.Address, req.Token, config); err != nil {
 			return response.InternalError(fmt.Errorf("failed to join k8sd cluster as control plane: %w", err))
 		}
 	}

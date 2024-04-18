@@ -18,7 +18,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:   "k8sd",
 		Short: "Canonical Kubernetes orchestrator and clustering daemon",
 		Run: func(cmd *cobra.Command, args []string) {
-			app, err := app.New(cmd.Context(), app.Config{
+			app, err := app.New(app.Config{
 				Debug:        rootCmdOpts.logDebug,
 				Verbose:      rootCmdOpts.logVerbose,
 				StateDir:     rootCmdOpts.stateDir,
@@ -31,7 +31,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := app.Run(nil); err != nil {
+			if err := app.Run(cmd.Context(), nil); err != nil {
 				cmd.PrintErrf("Error: Failed to run k8sd: %v", err)
 				env.Exit(1)
 				return

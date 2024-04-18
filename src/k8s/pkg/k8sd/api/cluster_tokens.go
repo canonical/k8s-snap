@@ -29,9 +29,9 @@ func (e *Endpoints) postClusterJoinTokens(s *state.State, r *http.Request) respo
 
 	var token string
 	if req.Worker {
-		token, err = getOrCreateWorkerToken(s, hostname)
+		token, err = getOrCreateWorkerToken(r.Context(), s, hostname)
 	} else {
-		token, err = getOrCreateJoinToken(e.provider.MicroCluster(), hostname)
+		token, err = getOrCreateJoinToken(r.Context(), e.provider.MicroCluster(), hostname)
 	}
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create token: %w", err))
@@ -40,9 +40,9 @@ func (e *Endpoints) postClusterJoinTokens(s *state.State, r *http.Request) respo
 	return response.SyncResponse(true, &apiv1.GetJoinTokenResponse{EncodedToken: token})
 }
 
-func getOrCreateJoinToken(m *microcluster.MicroCluster, tokenName string) (string, error) {
+func getOrCreateJoinToken(ctx context.Context, m *microcluster.MicroCluster, tokenName string) (string, error) {
 	// grab token if it exists and return it
-	records, err := m.ListJoinTokens()
+	records, err := m.ListJoinTokens(ctx)
 	if err != nil {
 		fmt.Println("Failed to get existing tokens. Trying to create a new token.")
 	} else {
@@ -55,16 +55,16 @@ func getOrCreateJoinToken(m *microcluster.MicroCluster, tokenName string) (strin
 	}
 
 	// if token does not exist, create a new one
-	token, err := m.NewJoinToken(tokenName)
+	token, err := m.NewJoinToken(ctx, tokenName)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate a new microcluster join token: %w", err)
 	}
 	return token, nil
 }
 
-func getOrCreateWorkerToken(s *state.State, nodeName string) (string, error) {
+func getOrCreateWorkerToken(ctx context.Context, s *state.State, nodeName string) (string, error) {
 	var token string
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		token, err = database.GetOrCreateWorkerNodeToken(ctx, tx, nodeName)
 		if err != nil {

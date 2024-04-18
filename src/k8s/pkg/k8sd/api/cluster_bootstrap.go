@@ -30,13 +30,13 @@ func (e *Endpoints) postClusterBootstrap(s *state.State, r *http.Request) respon
 	}
 
 	// Check if the cluster is already bootstrapped
-	_, err = e.provider.MicroCluster().Status()
+	_, err = e.provider.MicroCluster().Status(r.Context())
 	if err == nil {
 		return response.BadRequest(fmt.Errorf("cluster is already bootstrapped"))
 	}
 
 	// Bootstrap the cluster
-	if err := e.provider.MicroCluster().NewCluster(hostname, req.Address, config, 0); err != nil {
+	if err := e.provider.MicroCluster().NewCluster(r.Context(), hostname, req.Address, config); err != nil {
 		// TODO move node cleanup here
 		return response.BadRequest(fmt.Errorf("failed to bootstrap new cluster: %w", err))
 	}

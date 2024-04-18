@@ -53,7 +53,7 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	app, err := app.New(ctx, app.Config{
+	app, err := app.New(app.Config{
 		StateDir: t.TempDir(),
 	})
 	if err != nil {
@@ -67,7 +67,7 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 
 	// app.Run() is blocking, so we get the database handle through a channel
 	go func() {
-		doneCh <- app.Run(&config.Hooks{
+		doneCh <- app.Run(ctx, &config.Hooks{
 			PostBootstrap: func(s *state.State, initConfig map[string]string) error {
 				databaseCh <- s.Database
 				return nil
@@ -78,12 +78,12 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 		})
 	}()
 
-	if err := app.MicroCluster().Ready(int(microclusterDatabaseInitTimeout / time.Second)); err != nil {
+	if err := app.MicroCluster().Ready(ctx); err != nil {
 		t.Fatalf("microcluster app was not ready in time: %v", err)
 	}
 
 	nextIdx++
-	if err := app.MicroCluster().NewCluster(fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), nil, microclusterDatabaseInitTimeout); err != nil {
+	if err := app.MicroCluster().NewCluster(ctx, fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), nil); err != nil {
 		t.Fatalf("microcluster app failed to bootstrap: %v", err)
 	}
 
