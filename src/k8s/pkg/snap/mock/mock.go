@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
-	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
@@ -34,7 +33,7 @@ type Mock struct {
 	ServiceArgumentsDir            string
 	ServiceExtraConfigDir          string
 	LockFilesDir                   string
-	Components                     map[string]types.Component
+	ManifestsDir                   string
 	KubernetesRESTClientGetter     genericclioptions.RESTClientGetter
 	KubernetesNodeRESTClientGetter genericclioptions.RESTClientGetter
 	K8sDqliteClient                *dqlite.Client
@@ -146,8 +145,8 @@ func (s *Snap) ServiceExtraConfigDir() string {
 func (s *Snap) LockFilesDir() string {
 	return s.Mock.LockFilesDir
 }
-func (s *Snap) Components() map[string]types.Component {
-	return s.Mock.Components
+func (s *Snap) ManifestsDir() string {
+	return s.Mock.ManifestsDir
 }
 func (s *Snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
 	return s.Mock.KubernetesRESTClientGetter
