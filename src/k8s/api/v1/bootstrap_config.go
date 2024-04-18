@@ -30,6 +30,8 @@ type BootstrapConfig struct {
 	CAKey                      *string `json:"ca-key,omitempty" yaml:"ca-key,omitempty"`
 	FrontProxyCACert           *string `json:"front-proxy-ca-crt,omitempty" yaml:"front-proxy-ca-crt,omitempty"`
 	FrontProxyCAKey            *string `json:"front-proxy-ca-key,omitempty" yaml:"front-proxy-ca-key,omitempty"`
+	FrontProxyClientCert       *string `json:"front-proxy-client-crt,omitempty" yaml:"front-proxy-client-crt,omitempty"`
+	FrontProxyClientKey        *string `json:"front-proxy-client-key,omitempty" yaml:"front-proxy-client-key,omitempty"`
 	APIServerKubeletClientCert *string `json:"apiserver-kubelet-client-crt,omitempty" yaml:"apiserver-kubelet-client-crt,omitempty"`
 	APIServerKubeletClientKey  *string `json:"apiserver-kubelet-client-key,omitempty" yaml:"apiserver-kubelet-client-key,omitempty"`
 	ServiceAccountKey          *string `json:"service-account-key,omitempty" yaml:"service-account-key,omitempty"`
@@ -40,15 +42,17 @@ type BootstrapConfig struct {
 	KubeletKey    *string `json:"kubelet-key,omitempty" yaml:"kubelet-key,omitempty"`
 }
 
-func (b *BootstrapConfig) GetDatastoreType() string       { return getField(b.DatastoreType) }
-func (b *BootstrapConfig) GetDatastoreCACert() string     { return getField(b.DatastoreCACert) }
-func (b *BootstrapConfig) GetDatastoreClientCert() string { return getField(b.DatastoreClientCert) }
-func (b *BootstrapConfig) GetDatastoreClientKey() string  { return getField(b.DatastoreClientKey) }
-func (b *BootstrapConfig) GetK8sDqlitePort() int          { return getField(b.K8sDqlitePort) }
-func (b *BootstrapConfig) GetCACert() string              { return getField(b.CACert) }
-func (b *BootstrapConfig) GetCAKey() string               { return getField(b.CAKey) }
-func (b *BootstrapConfig) GetFrontProxyCACert() string    { return getField(b.FrontProxyCACert) }
-func (b *BootstrapConfig) GetFrontProxyCAKey() string     { return getField(b.FrontProxyCAKey) }
+func (b *BootstrapConfig) GetDatastoreType() string        { return getField(b.DatastoreType) }
+func (b *BootstrapConfig) GetDatastoreCACert() string      { return getField(b.DatastoreCACert) }
+func (b *BootstrapConfig) GetDatastoreClientCert() string  { return getField(b.DatastoreClientCert) }
+func (b *BootstrapConfig) GetDatastoreClientKey() string   { return getField(b.DatastoreClientKey) }
+func (b *BootstrapConfig) GetK8sDqlitePort() int           { return getField(b.K8sDqlitePort) }
+func (b *BootstrapConfig) GetCACert() string               { return getField(b.CACert) }
+func (b *BootstrapConfig) GetCAKey() string                { return getField(b.CAKey) }
+func (b *BootstrapConfig) GetFrontProxyCACert() string     { return getField(b.FrontProxyCACert) }
+func (b *BootstrapConfig) GetFrontProxyCAKey() string      { return getField(b.FrontProxyCAKey) }
+func (b *BootstrapConfig) GetFrontProxyClientCert() string { return getField(b.FrontProxyClientCert) }
+func (b *BootstrapConfig) GetFrontProxyClientKey() string  { return getField(b.FrontProxyClientKey) }
 func (b *BootstrapConfig) GetAPIServerKubeletClientCert() string {
 	return getField(b.APIServerKubeletClientCert)
 }
