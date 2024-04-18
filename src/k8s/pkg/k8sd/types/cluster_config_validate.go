@@ -21,24 +21,6 @@ func validateCIDRs(cidrString string) error {
 	return nil
 }
 
-// isValidAddress checks if a given address is valid. Allows with and without schema.
-func isValidAddress(address string) bool {
-	if u, err := url.Parse(address); err == nil && u.Host != "" {
-		return true
-	}
-
-	host, port, err := net.SplitHostPort(address)
-	if err == nil {
-		if host == "localhost" || net.ParseIP(host) != nil {
-			if _, err := net.LookupPort("tcp", port); err == nil {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 // Validate that a ClusterConfig does not have conflicting or incompatible options.
 func (c *ClusterConfig) Validate() error {
 	// check: validate that PodCIDR and ServiceCIDR are configured
@@ -125,7 +107,7 @@ func (c *ClusterConfig) Validate() error {
 
 	// check: all external datastore servers are valid URLs
 	for _, server := range c.Datastore.GetExternalServers() {
-		if !isValidAddress(server) {
+		if _, err := url.Parse(server); err != nil {
 			return fmt.Errorf("datastore.external-servers contains invalid address: %s", server)
 		}
 	}

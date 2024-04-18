@@ -61,31 +61,52 @@ func TestValidateExternalServers(t *testing.T) {
 		clusterConfig types.ClusterConfig
 		expectErr     bool
 	}{
-		{name: "EmptyExternalServers", clusterConfig: types.ClusterConfig{Datastore: types.Datastore{ExternalServers: nil}}},
+		{name: "Empty", clusterConfig: types.ClusterConfig{Datastore: types.Datastore{ExternalServers: nil}}},
 		{
-			name: "ValidSingleExternalServers", clusterConfig: types.ClusterConfig{
+			name: "HostPort", clusterConfig: types.ClusterConfig{
 				Datastore: types.Datastore{
 					ExternalServers: vals.Pointer([]string{"localhost:123"}),
 				},
 			},
 		},
 		{
-			name: "ValidMultipleExternalServers", clusterConfig: types.ClusterConfig{
+			name: "FQDN", clusterConfig: types.ClusterConfig{
 				Datastore: types.Datastore{
-					ExternalServers: vals.Pointer([]string{"https://localhost:123", "10.11.12.13:1234"}),
+					ExternalServers: vals.Pointer([]string{"172.22.1.1.ec2.internal"}),
 				},
 			},
 		},
 		{
-			name: "InvalidSingleExternalServers", clusterConfig: types.ClusterConfig{
+			name: "IPv4", clusterConfig: types.ClusterConfig{
 				Datastore: types.Datastore{
-					ExternalServers: vals.Pointer([]string{"localhost"}),
+					ExternalServers: vals.Pointer([]string{"10.11.12.13"}),
+				},
+			},
+		},
+		{
+			name: "IPv6", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]"}),
+				},
+			},
+		},
+		{
+			name: "ValidMultiple", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"https://localhost:123", "10.11.12.13"}),
+				},
+			},
+		},
+		{
+			name: "InvalidSingle", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"invalid_address:1:2"}),
 				},
 			},
 			expectErr: true,
 		},
 		{
-			name: "InvalidMultipleExternalServers", clusterConfig: types.ClusterConfig{
+			name: "InvalidMultiple", clusterConfig: types.ClusterConfig{
 				Datastore: types.Datastore{
 					ExternalServers: vals.Pointer([]string{"localhost:123", "invalid_address:1:2"}),
 				},

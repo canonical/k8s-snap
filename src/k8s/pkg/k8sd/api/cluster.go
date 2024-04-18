@@ -44,8 +44,8 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 			Members: members,
 			Config:  config.ToUserFacing(),
 			Datastore: apiv1.Datastore{
-				Type:            config.Datastore.GetType(),
-				ExternalServers: config.Datastore.GetExternalServers(),
+				Type:    config.Datastore.GetType(),
+				Servers: config.Datastore.GetExternalServers(),
 			},
 		},
 	}
