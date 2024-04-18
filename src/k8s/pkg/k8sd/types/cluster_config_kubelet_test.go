@@ -182,7 +182,7 @@ func TestKubeletSign(t *testing.T) {
 					c[editKey] = "attack"
 
 					k, err := types.KubeletFromConfigMap(c, &key.PublicKey)
-					g.Expect(err).To(Not(BeNil()))
+					g.Expect(err).To(HaveOccurred())
 					g.Expect(k).To(BeZero())
 				})
 
@@ -191,7 +191,7 @@ func TestKubeletSign(t *testing.T) {
 					delete(c, editKey)
 
 					k, err := types.KubeletFromConfigMap(c, &key.PublicKey)
-					g.Expect(err).To(Not(BeNil()))
+					g.Expect(err).To(HaveOccurred())
 					g.Expect(k).To(BeZero())
 				})
 			})
