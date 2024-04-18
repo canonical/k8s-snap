@@ -26,6 +26,7 @@ crucial, particularly if you opt for an external datastore like **etcd**.
   ```bash
   juju add-model my-cluster
   ```
+
 2. **Deploying Certificate Authority**:
   etcd requires a secure means of communication between its components.
   Therefore, we require a certificates authority such as [EasyRSA][easyrsa-charm]
@@ -70,11 +71,13 @@ juju integrate etcd easyrsa
 ```
 
 ## Deploying Canonical Kubernetes
+
 Deploy the control plane units of Canonical Kubernetes with the command:
 
 ```bash
 juju deploy k8s --config datastore=etcd -n 3
 ```
+
 This command deploys 3 units of the Canonical Kubernetes control plane (`k8s`)
 and configures them to use **etcd** as the backing datastore, ensuring high
 availability.
@@ -97,6 +100,7 @@ allowing the Kubernetes cluster to utilize the etcd units as an external
 datastore.
 
 ## Final Steps
+
 **Verify the Deployment**: After completing the deployment, it's essential
 to verify that all components are functioning correctly. Use the `juju status`
 command to inspect the current status of your cluster.
