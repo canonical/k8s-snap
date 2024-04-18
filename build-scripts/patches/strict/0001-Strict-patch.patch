@@ -1,4 +1,4 @@
-From 9ce011f9a32e2d73bf2ca8a9a213083f32ad8fc5 Mon Sep 17 00:00:00 2001
+From 7e71f38adb094e2aa5c57a06daac37be09a0acfd Mon Sep 17 00:00:00 2001
 From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
 Date: Wed, 17 Apr 2024 00:35:00 +0300
 Subject: [PATCH] Strict patch
@@ -6,8 +6,9 @@ Subject: [PATCH] Strict patch
 ---
  build-scripts/print-patches-for.py |   2 +-
  k8s/hack/init.sh                   |   6 +-
+ k8s/wrappers/services/containerd   |   5 -
  snap/snapcraft.yaml                | 168 ++++++++++++++++++++++++++++-
- 3 files changed, 173 insertions(+), 3 deletions(-)
+ 4 files changed, 173 insertions(+), 8 deletions(-)
 
 diff --git a/build-scripts/print-patches-for.py b/build-scripts/print-patches-for.py
 index 2c65083..13ea57c 100755
@@ -35,6 +36,20 @@ index a0b57c7..d53b528 100755
 +# Initialize node for integration tests
 +"${DIR}/connect-interfaces.sh"
 +"${DIR}/network-requirements.sh"
+diff --git a/k8s/wrappers/services/containerd b/k8s/wrappers/services/containerd
+index c3f71a0..a82e1c0 100755
+--- a/k8s/wrappers/services/containerd
++++ b/k8s/wrappers/services/containerd
+@@ -21,9 +21,4 @@ You can try to apply the profile manually by running:
+ "
+ fi
+ 
+-# Re-exec outside of apparmor confinement
+-if [ -d /sys/kernel/security/apparmor ] && [ "$(cat /proc/self/attr/current)" != "unconfined" ]; then
+-    exec aa-exec -p unconfined -- "$0" "$@"
+-fi
+-
+ k8s::common::execute_service containerd
 diff --git a/snap/snapcraft.yaml b/snap/snapcraft.yaml
 index 53347a0..339ca8a 100644
 --- a/snap/snapcraft.yaml
