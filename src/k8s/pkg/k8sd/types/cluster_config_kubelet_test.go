@@ -167,11 +167,7 @@ func TestKubeletSign(t *testing.T) {
 	})
 
 	t.Run("BadSignature", func(t *testing.T) {
-		keys := make([]string, len(configmap))
-		for cmKey := range configmap {
-			keys = append(keys, cmKey)
-		}
-		for _, editKey := range keys {
+		for editKey := range configmap {
 			t.Run(editKey, func(t *testing.T) {
 				g := NewWithT(t)
 				key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
