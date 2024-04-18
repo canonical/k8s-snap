@@ -89,7 +89,7 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 		cfg.Snap,
 		app.readyWg.Wait,
 		func() (*k8s.Client, error) {
-			return k8s.NewClient(cfg.Snap.KubernetesNodeRESTClientGetter(""))
+			return k8s.NewClient(cfg.Snap.KubernetesRESTClientGetter("kube-system"))
 		},
 	)
 
