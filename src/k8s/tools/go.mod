@@ -1,6 +1,6 @@
 module github.com/canonical/k8s/tools
 
-go 1.21.4
+go 1.22
 
 require golang.org/x/tools v0.19.0
 
