@@ -148,6 +148,7 @@ func TestKubeletSign(t *testing.T) {
 		g.Expect(configmap).To(HaveKeyWithValue("k8sd-mac", Not(BeEmpty())))
 
 		t.Run("Manipulated", func(t *testing.T) {
+			g := NewWithT(t)
 			configmap["k8sd-mac"] = "MEUCIQCwOI42A5DRYI7ssh3sz+EpRgPNRM13sYLbWeMIvCAt5AIgZW0M49yZD5pGMk/Kb2f8DlUaPCbCDHFHrkmtYHzse6w="
 
 			k, err := types.KubeletFromConfigMap(configmap, &key.PublicKey)
@@ -156,6 +157,7 @@ func TestKubeletSign(t *testing.T) {
 		})
 
 		t.Run("Deleted", func(t *testing.T) {
+			g := NewWithT(t)
 			delete(configmap, "k8sd-mac")
 
 			k, err := types.KubeletFromConfigMap(configmap, &key.PublicKey)
@@ -180,6 +182,7 @@ func TestKubeletSign(t *testing.T) {
 				g.Expect(c).To(HaveKeyWithValue("k8sd-mac", Not(BeEmpty())))
 
 				t.Run("Manipulated", func(t *testing.T) {
+					g := NewWithT(t)
 					c[editKey] = "attack"
 
 					k, err := types.KubeletFromConfigMap(c, &key.PublicKey)
@@ -188,6 +191,7 @@ func TestKubeletSign(t *testing.T) {
 				})
 
 				t.Run("Deleted", func(t *testing.T) {
+					g := NewWithT(t)
 					delete(c, editKey)
 
 					k, err := types.KubeletFromConfigMap(c, &key.PublicKey)
