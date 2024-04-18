@@ -15,8 +15,8 @@ Overview <self>
 :titlesonly:
 
 charm
-contribute
 etcd
+contribute
 
 ```
 
