@@ -12,8 +12,8 @@ import (
 	"path"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/component"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -319,20 +319,18 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	}
 
 	// TODO(neoaggelos): the work below should be a POST /cluster/config
-
 	if cfg.Network.GetEnabled() {
-		if err := component.ReconcileNetworkComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
-			return fmt.Errorf("failed to reconcile network: %w", err)
+		if err := features.ApplyNetwork(s.Context, snap, cfg.Network); err != nil {
+			return fmt.Errorf("failed to apply network: %w", err)
 		}
 	}
 
 	if cfg.DNS.GetEnabled() {
-		dnsIP, _, err := component.ReconcileDNSComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg)
+		dnsIP, err := features.ApplyDNS(s.Context, snap, cfg.DNS, cfg.Kubelet)
 		if err != nil {
-			return fmt.Errorf("failed to reconcile dns: %w", err)
+			return fmt.Errorf("failed to apply DNS: %w", err)
 		}
 
-		// If DNS IP is not empty, update cluster configuration
 		if dnsIP != "" {
 			if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 				if cfg, err = database.SetClusterConfig(ctx, tx, types.ClusterConfig{
@@ -350,32 +348,28 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	}
 
 	if cfg.LocalStorage.GetEnabled() {
-		if err := component.ReconcileLocalStorageComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
-			return fmt.Errorf("failed to reconcile local-storage: %w", err)
+		if err := features.ApplyLocalStorage(s.Context, snap, cfg.LocalStorage); err != nil {
+			return fmt.Errorf("failed to apply local-storage: %w", err)
 		}
 	}
-
 	if cfg.Gateway.GetEnabled() {
-		if err := component.ReconcileGatewayComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
-			return fmt.Errorf("failed to reconcile gateway: %w", err)
+		if err := features.ApplyGateway(s.Context, snap, cfg.Gateway); err != nil {
+			return fmt.Errorf("failed to apply gateway: %w", err)
 		}
 	}
-
 	if cfg.Ingress.GetEnabled() {
-		if err := component.ReconcileIngressComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
-			return fmt.Errorf("failed to reconcile ingress: %w", err)
+		if err := features.ApplyIngress(s.Context, snap, cfg.Ingress); err != nil {
+			return fmt.Errorf("failed to apply ingress: %w", err)
 		}
 	}
-
 	if cfg.LoadBalancer.GetEnabled() {
-		if err := component.ReconcileLoadBalancerComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
-			return fmt.Errorf("failed to reconcile load-balancer: %w", err)
+		if err := features.ApplyLoadBalancer(s.Context, snap, cfg.LoadBalancer); err != nil {
+			return fmt.Errorf("failed to apply load-balancer: %w", err)
 		}
 	}
-
 	if cfg.MetricsServer.GetEnabled() {
-		if err := component.ReconcileMetricsServerComponent(s.Context, snap, vals.Pointer(false), vals.Pointer(true), cfg); err != nil {
-			return fmt.Errorf("failed to reconcile metrics-server: %w", err)
+		if err := features.ApplyMetricsServer(s.Context, snap, cfg.MetricsServer); err != nil {
+			return fmt.Errorf("failed to apply metrics-server: %w", err)
 		}
 	}
 
