@@ -5,7 +5,7 @@ VERSION="${2}"
 export INSTALL="${1}/bin"
 mkdir -p "${INSTALL}"
 
-# Pin runc to Go 1.21: https://github.com/opencontainers/runc/issues/4233
+# TODO(neoaggelos): Revert after https://github.com/opencontainers/runc/issues/4233 is resolved.
 if ! which go_121; then
   snap download go --channel 1.21 --basename go
   snap set core experimental.parallel-instances=true
