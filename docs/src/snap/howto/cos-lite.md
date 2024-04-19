@@ -52,7 +52,7 @@ KUBECONFIG=microk8s-config.yaml juju add-k8s microk8s-cloud
 
 ## Deploying COS Lite on the Microk8s cloud
 
-On the Microk8s cloud, create a new model and deploy the cos-lite bundle:
+On the Microk8s cloud, create a new model and deploy the `cos-lite` bundle:
 
 ```
 juju add-model cos-lite microk8s-cloud
