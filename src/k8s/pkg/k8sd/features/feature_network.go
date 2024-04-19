@@ -3,11 +3,13 @@ package features
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
@@ -74,6 +76,46 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error 
 			"enabled": true,
 		},
 		"disableEnvoyVersionCheck": true,
+	}
+
+	if snap.Strict() {
+		bpfMnt, err := utils.GetMountPath("bpf")
+		if err != nil {
+			return fmt.Errorf("failed to get bpf mount path: %w", err)
+		}
+
+		cgrMnt, err := utils.GetMountPath("cgroup2")
+		if err != nil {
+			return fmt.Errorf("failed to get cgroup2 mount path: %w", err)
+		}
+
+		values["bpf"] = map[string]any{
+			"autoMount": map[string]any{
+				"enabled": false,
+			},
+			"root": bpfMnt,
+		}
+		values["cgroup"] = map[string]any{
+			"autoMount": map[string]any{
+				"enabled": false,
+			},
+			"hostRoot": cgrMnt,
+		}
+	} else {
+		p, err := utils.GetMountPropagation("/sys")
+		if err != nil {
+			return fmt.Errorf("failed to get mount propagation for %s: %w", p, err)
+		}
+		if p == "private" {
+			onLXD, err := snap.OnLXD(ctx)
+			if err != nil {
+				log.Printf("failed to check if on LXD: %v", err)
+			}
+			if onLXD {
+				return fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
+			}
+			return fmt.Errorf("/sys is not a shared mount")
+		}
 	}
 
 	if _, err := m.Apply(ctx, featureNetwork, statePresent, values); err != nil {
