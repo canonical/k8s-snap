@@ -17,6 +17,7 @@ Overview <self>
 install/index
 networking/index
 storage
+external-datastore
 contribute
 ```
 
