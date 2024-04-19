@@ -20,6 +20,17 @@ about: Something is not working
 1. ...
 2. ...
 
+#### System information
+<!-- Please provide an overview of your setup (e.g. number of nodes) and the output of: 
+
+`snap version`
+`uname -a`
+`snap list k8s`
+`snap services k8s`
+`journalctl --lines 200 -f -u snap.k8s.k8sd`
+`k8s status`
+-->
+
 #### Can you suggest a fix?
 <!-- (This section is optional). How do you propose that the issue be fixed? -->
 
