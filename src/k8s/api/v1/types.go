@@ -43,8 +43,8 @@ type NodeStatus struct {
 }
 
 type Datastore struct {
-	Type        string `json:"type,omitempty"`
-	ExternalURL string `json:"external-url,omitempty" yaml:"external-url,omitempty"`
+	Type    string   `json:"type,omitempty"`
+	Servers []string `json:"servers,omitempty" yaml:"servers,omitempty"`
 }
 
 // ClusterStatus holds information about the cluster, e.g. its current members
@@ -77,8 +77,9 @@ func (c ClusterStatus) datastoreToString() string {
 		result.WriteString(fmt.Sprintf("  type: %s\n", c.Datastore.Type))
 		// Datastore URL for external only
 		if c.Datastore.Type == "external" {
-			if c.Datastore.ExternalURL != "" {
-				result.WriteString(fmt.Sprintf("  url: %s\n", c.Datastore.ExternalURL))
+			result.WriteString(fmt.Sprintln("  servers:"))
+			for _, serverURL := range c.Datastore.Servers {
+				result.WriteString(fmt.Sprintf("    - %s\n", serverURL))
 			}
 			return result.String()
 		}

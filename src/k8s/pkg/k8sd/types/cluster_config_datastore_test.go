@@ -41,7 +41,7 @@ func TestDatastoreToKubeAPIServerArguments(t *testing.T) {
 			name: "ExternalFull",
 			config: types.Datastore{
 				Type:               vals.Pointer("external"),
-				ExternalURL:        vals.Pointer("https://10.0.0.10:2379,https://10.0.0.11:2379"),
+				ExternalServers:    vals.Pointer([]string{"https://10.0.0.10:2379", "https://10.0.0.11:2379"}),
 				ExternalCACert:     vals.Pointer("data"),
 				ExternalClientCert: vals.Pointer("data"),
 				ExternalClientKey:  vals.Pointer("data"),
@@ -56,9 +56,9 @@ func TestDatastoreToKubeAPIServerArguments(t *testing.T) {
 		{
 			name: "ExternalOnlyCA",
 			config: types.Datastore{
-				Type:           vals.Pointer("external"),
-				ExternalURL:    vals.Pointer("https://10.0.0.10:2379,https://10.0.0.11:2379"),
-				ExternalCACert: vals.Pointer("data"),
+				Type:            vals.Pointer("external"),
+				ExternalServers: vals.Pointer([]string{"https://10.0.0.10:2379", "https://10.0.0.11:2379"}),
+				ExternalCACert:  vals.Pointer("data"),
 			},
 			expectUpdateArgs: map[string]string{
 				"--etcd-servers": "https://10.0.0.10:2379,https://10.0.0.11:2379",

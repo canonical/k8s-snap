@@ -66,8 +66,8 @@ func TestControlPlaneConfigController(t *testing.T) {
 				name: "Default",
 				config: types.ClusterConfig{
 					Datastore: types.Datastore{
-						Type:        vals.Pointer("external"),
-						ExternalURL: vals.Pointer("http://127.0.0.1:2379"),
+						Type:            vals.Pointer("external"),
+						ExternalServers: vals.Pointer([]string{"http://127.0.0.1:2379"}),
 					},
 				},
 				expectKubeAPIServerArgs: map[string]string{
@@ -85,7 +85,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 				config: types.ClusterConfig{
 					Datastore: types.Datastore{
 						Type:               vals.Pointer("external"),
-						ExternalURL:        vals.Pointer("https://127.0.0.1:2379"),
+						ExternalServers:    vals.Pointer([]string{"https://127.0.0.1:2379"}),
 						ExternalCACert:     vals.Pointer("CA DATA"),
 						ExternalClientCert: vals.Pointer("CERT DATA"),
 						ExternalClientKey:  vals.Pointer("KEY DATA"),
@@ -121,7 +121,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 				config: types.ClusterConfig{
 					Datastore: types.Datastore{
 						Type:               vals.Pointer("external"),
-						ExternalURL:        vals.Pointer("https://127.0.0.1:2379"),
+						ExternalServers:    vals.Pointer([]string{"https://127.0.0.1:2379"}),
 						ExternalCACert:     vals.Pointer("CA DATA"),
 						ExternalClientCert: vals.Pointer("CERT DATA"),
 						ExternalClientKey:  vals.Pointer("KEY DATA"),
@@ -149,8 +149,8 @@ func TestControlPlaneConfigController(t *testing.T) {
 				name: "UpdateAll",
 				config: types.ClusterConfig{
 					Datastore: types.Datastore{
-						Type:        vals.Pointer("external"),
-						ExternalURL: vals.Pointer("http://127.0.0.1:2379"),
+						Type:            vals.Pointer("external"),
+						ExternalServers: vals.Pointer([]string{"http://127.0.0.1:2379"}),
 					},
 					Kubelet: types.Kubelet{
 						CloudProvider: vals.Pointer(""),
@@ -264,7 +264,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 		configProvider.config = types.ClusterConfig{
 			Datastore: types.Datastore{
 				Type:               vals.Pointer("external"),
-				ExternalURL:        vals.Pointer("https://127.0.0.1:2379"),
+				ExternalServers:    vals.Pointer([]string{"https://127.0.0.1:2379"}),
 				ExternalCACert:     vals.Pointer("CA DATA"),
 				ExternalClientCert: vals.Pointer("CERT DATA"),
 				ExternalClientKey:  vals.Pointer("KEY DATA"),

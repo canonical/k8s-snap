@@ -13,7 +13,8 @@ type GetClusterConfigResponse struct {
 }
 
 type UpdateClusterConfigRequest struct {
-	Config UserFacingClusterConfig
+	Config    UserFacingClusterConfig   `json:"config,omitempty" yaml:"config,omitempty"`
+	Datastore UserFacingDatastoreConfig `json:"datastore,omitempty" yaml:"datastore,omitempty"`
 }
 
 type UpdateClusterConfigResponse struct {
@@ -103,6 +104,21 @@ type MetricsServerConfig struct {
 }
 
 func (c MetricsServerConfig) GetEnabled() bool { return getField(c.Enabled) }
+
+type UserFacingDatastoreConfig struct {
+	// Type of the datastore. Needs to be "external".
+	Type       *string   `json:"type,omitempty" yaml:"type,omitempty"`
+	Servers    *[]string `json:"servers,omitempty" yaml:"servers,omitempty"`
+	CACert     *string   `json:"ca-crt,omitempty" yaml:"ca-crt,omitempty"`
+	ClientCert *string   `json:"client-crt,omitempty" yaml:"client-crt,omitempty"`
+	ClientKey  *string   `json:"client-key,omitempty" yaml:"client-key,omitempty"`
+}
+
+func (c UserFacingDatastoreConfig) GetType() string       { return getField(c.Type) }
+func (c UserFacingDatastoreConfig) GetServers() []string  { return getField(c.Servers) }
+func (c UserFacingDatastoreConfig) GetCACert() string     { return getField(c.CACert) }
+func (c UserFacingDatastoreConfig) GetClientCert() string { return getField(c.ClientCert) }
+func (c UserFacingDatastoreConfig) GetClientKey() string  { return getField(c.ClientKey) }
 
 func (c UserFacingClusterConfig) String() string {
 	b, err := yaml.Marshal(c)

@@ -84,7 +84,7 @@ func TestMergeClusterConfig(t *testing.T) {
 		generateMergeClusterConfigTestCases("Datastore/K8sDqliteCert", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.K8sDqliteCert = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/K8sDqliteKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.K8sDqliteKey = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/K8sDqlitePort", false, 6443, 16443, func(c *types.ClusterConfig, v any) { c.Datastore.K8sDqlitePort = vals.Pointer(v.(int)) }),
-		generateMergeClusterConfigTestCases("Datastore/ExternalURL", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalURL = vals.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Datastore/ExternalServers", true, []string{"localhost:123"}, []string{"localhost:123"}, func(c *types.ClusterConfig, v any) { c.Datastore.ExternalServers = vals.Pointer(v.([]string)) }),
 		generateMergeClusterConfigTestCases("Datastore/ExternalCACert", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalCACert = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/ExternalClientCert", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalClientCert = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/ExternalClientKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalClientKey = vals.Pointer(v.(string)) }),

@@ -69,7 +69,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 				},
 				Datastore: types.Datastore{
 					Type:               vals.Pointer("external"),
-					ExternalURL:        vals.Pointer("https://10.0.0.1:2379,https://10.0.0.2:2379"),
+					ExternalServers:    vals.Pointer([]string{"https://10.0.0.1:2379", "https://10.0.0.2:2379"}),
 					ExternalCACert:     vals.Pointer("CA DATA"),
 					ExternalClientCert: vals.Pointer("CERT DATA"),
 					ExternalClientKey:  vals.Pointer("KEY DATA"),

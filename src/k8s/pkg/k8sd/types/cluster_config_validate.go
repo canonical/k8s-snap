@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"net/url"
 	"strings"
 )
 
@@ -102,6 +103,13 @@ func (c *ClusterConfig) Validate() error {
 		}
 
 		// TODO: ensure dns.service-ip is part of new.Network.ServiceCIDR
+	}
+
+	// check: all external datastore servers are valid URLs
+	for _, server := range c.Datastore.GetExternalServers() {
+		if _, err := url.Parse(server); err != nil {
+			return fmt.Errorf("datastore.external-servers contains invalid address: %s", server)
+		}
 	}
 
 	return nil

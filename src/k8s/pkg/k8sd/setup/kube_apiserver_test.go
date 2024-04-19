@@ -139,9 +139,9 @@ func TestKubeAPIServer(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Setup without proxy to simplify argument list
-		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, types.Datastore{Type: vals.Pointer("external"), ExternalURL: vals.Pointer("datastoreurl")}, "Node,RBAC")).To(BeNil())
+		g.Expect(setup.KubeAPIServer(s, "10.0.0.0/24", "https://auth-webhook.url", false, types.Datastore{Type: vals.Pointer("external"), ExternalServers: vals.Pointer([]string{"datastoreurl1", "datastoreurl2"})}, "Node,RBAC")).To(BeNil())
 
-		g.Expect(snaputil.GetServiceArgument(s, "kube-apiserver", "--etcd-servers")).To(Equal("datastoreurl"))
+		g.Expect(snaputil.GetServiceArgument(s, "kube-apiserver", "--etcd-servers")).To(Equal("datastoreurl1,datastoreurl2"))
 		_, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-apiserver"))
 		g.Expect(err).ToNot(HaveOccurred())
 	})

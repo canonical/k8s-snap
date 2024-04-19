@@ -30,6 +30,9 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("invalid configuration: %w", err))
 	}
+	if requestedConfig.Datastore, err = types.DatastoreConfigFromUserFacing(req.Datastore); err != nil {
+		return response.BadRequest(fmt.Errorf("failed to parse datastore config: %w", err))
+	}
 
 	oldConfig, err := utils.GetClusterConfig(r.Context(), s)
 	if err != nil {

@@ -72,7 +72,7 @@ func TestString(t *testing.T) {
 					Network: NetworkConfig{Enabled: vals.Pointer(true)},
 					DNS:     DNSConfig{Enabled: vals.Pointer(true)},
 				},
-				Datastore: Datastore{Type: "k8s-dqlite", ExternalURL: ""},
+				Datastore: Datastore{Type: "k8s-dqlite"},
 			},
 			expectedOutput: `status: ready
 high-availability: yes
@@ -101,13 +101,15 @@ dns:
 					Network: NetworkConfig{Enabled: vals.Pointer(true)},
 					DNS:     DNSConfig{Enabled: vals.Pointer(true)},
 				},
-				Datastore: Datastore{Type: "external", ExternalURL: "etcd-url"},
+				Datastore: Datastore{Type: "external", Servers: []string{"etcd-url1", "etcd-url2"}},
 			},
 			expectedOutput: `status: ready
 high-availability: no
 datastore:
   type: external
-  url: etcd-url
+  servers:
+    - etcd-url1
+    - etcd-url2
 network:
   enabled: true
 dns:

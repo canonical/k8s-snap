@@ -54,3 +54,77 @@ func TestValidateCIDR(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateExternalServers(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		clusterConfig types.ClusterConfig
+		expectErr     bool
+	}{
+		{name: "Empty", clusterConfig: types.ClusterConfig{Datastore: types.Datastore{ExternalServers: nil}}},
+		{
+			name: "HostPort", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"localhost:123"}),
+				},
+			},
+		},
+		{
+			name: "FQDN", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"172.22.1.1.ec2.internal"}),
+				},
+			},
+		},
+		{
+			name: "IPv4", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"10.11.12.13"}),
+				},
+			},
+		},
+		{
+			name: "IPv6", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]"}),
+				},
+			},
+		},
+		{
+			name: "ValidMultiple", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"https://localhost:123", "10.11.12.13"}),
+				},
+			},
+		},
+		{
+			name: "InvalidSingle", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"invalid_address:1:2"}),
+				},
+			},
+			expectErr: true,
+		},
+		{
+			name: "InvalidMultiple", clusterConfig: types.ClusterConfig{
+				Datastore: types.Datastore{
+					ExternalServers: vals.Pointer([]string{"localhost:123", "invalid_address:1:2"}),
+				},
+			},
+			expectErr: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			tc.clusterConfig.SetDefaults()
+
+			err := tc.clusterConfig.Validate()
+			if tc.expectErr {
+				g.Expect(err).To(HaveOccurred())
+			} else {
+				g.Expect(err).To(BeNil())
+			}
+		})
+	}
+}
