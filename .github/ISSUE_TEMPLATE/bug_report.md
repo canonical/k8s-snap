@@ -27,7 +27,7 @@ about: Something is not working
 `uname -a`
 `snap list k8s`
 `snap services k8s`
-`journalctl --lines 200 -f -u snap.k8s.k8sd`
+`snap logs k8s -n 10000`
 `k8s status`
 -->
 
