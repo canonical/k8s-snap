@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	SchemaExtensions = map[int]schema.Update{
-		1: schemaApplyMigration("kubernetes-auth-tokens", "000-create.sql"),
-		2: schemaApplyMigration("cluster-configs", "000-create.sql"),
-		3: schemaApplyMigration("worker-nodes", "000-create.sql"),
+	SchemaExtensions = []schema.Update{
+		schemaApplyMigration("kubernetes-auth-tokens", "000-create.sql"),
+		schemaApplyMigration("cluster-configs", "000-create.sql"),
+		schemaApplyMigration("worker-nodes", "000-create.sql"),
 	}
 
 	//go:embed sql/migrations
