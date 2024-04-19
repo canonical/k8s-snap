@@ -37,6 +37,8 @@ Deploy Microk8s on Ubuntu by accessing the unit you created at the last step
 with `juju ssh microk8s/0` and following the [Install Microk8s][how-to-install]
 guide for configuration.
 
+> Note: Make sure to enable the hostpath-storage and MetalLB addons for Microk8s.
+
 Export the Microk8s kubeconfig file to your current directory after configuration:
 
 ```
@@ -48,7 +50,7 @@ add-k8s"][add-k8s] for details on the add-k8s
 command):
 
 ```
-KUBECONFIG=microk8s-config.yaml juju add-k8s microk8s
+KUBECONFIG=microk8s-config.yaml juju add-k8s microk8s-aws
 ```
 
 ## Deploying COS Lite on the Microk8s cloud
@@ -56,7 +58,7 @@ KUBECONFIG=microk8s-config.yaml juju add-k8s microk8s
 On the Microk8s cloud, create a new model and deploy the cos-lite charm:
 
 ```
-juju add-model cos-lite microk8s
+juju add-model cos-lite microk8s-aws
 juju deploy cos-lite
 ```
 
@@ -67,7 +69,7 @@ juju offer grafana:grafana-dashboard
 juju offer prometheus:receive-remote-write
 ```
 
-Use juju status --relations to verify that both grafana and prometheus
+Use `juju status --relations` to verify that both grafana and prometheus
 offerings are listed.
 
 At this point, you’ve established a Microk8s model on Ubuntu and incorporated
@@ -96,12 +98,10 @@ Deploy the grafana-agent:
 juju deploy grafana-agent
 ```
 
-Relate `grafana-agent` to `k8s`, `kubernetes-control-plane` and `kubernetes-worker`:
+Relate `grafana-agent` to `k8s`:
 
 ```
 juju integrate grafana-agent:cos-agent k8s:cos-agent
-juju integrate grafana-agent:cos-agent kubernetes-control-plane:cos-agent
-juju integrate grafana-agent:cos-agent kubernetes-worker:cos-agent
 ```
 
 Relate `grafana-agent` to the COS Lite offered interfaces:
