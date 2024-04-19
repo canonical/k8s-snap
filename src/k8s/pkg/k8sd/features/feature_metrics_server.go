@@ -7,6 +7,10 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
+// ApplyMetricsServer is used to configure the metrics-server feature on Canonical Kubernetes.
+// ApplyMetricsServer deploys metrics-server when cfg.Enabled is true.
+// ApplyMetricsServer removes metrics-server when cfg.Enabled is false.
+// ApplyMetricsServer returns an error if anything fails.
 func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsServer) error {
 	m := newHelm(snap)
 

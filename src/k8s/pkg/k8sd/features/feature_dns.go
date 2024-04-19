@@ -10,12 +10,18 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
+// ApplyDNS is used to configure the DNS feature on Canonical Kubernetes.
+// ApplyDNS manages the deployment of CoreDNS, with customization options from dnsConfig and kubeletConfig which are retrieved from the cluster configuration.
+// ApplyDNS will uninstall CoreDNS from the cluster if dnsConfig.Enabled is false.
+// ApplyDNS will install or refresh CoreDNS if dnsConfig.Enabled is true.
+// ApplyDNS will return the ClusterIP address of the coredns service, if successful.
+// ApplyDNS returns an error if anything fails.
 func ApplyDNS(ctx context.Context, snap snap.Snap, dnsConfig types.DNS, kubeletConfig types.Kubelet) (string, error) {
 	m := newHelm(snap)
 
 	if !dnsConfig.GetEnabled() {
-		if _, err := m.Apply(ctx, featureDNS, stateDeleted, nil); err != nil {
-			return "", fmt.Errorf("failed to uninstall network: %w", err)
+		if _, err := m.Apply(ctx, featureCoreDNS, stateDeleted, nil); err != nil {
+			return "", fmt.Errorf("failed to uninstall coredns: %w", err)
 		}
 		return "", nil
 	}
@@ -58,8 +64,8 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dnsConfig types.DNS, kubeletC
 		},
 	}
 
-	if _, err := m.Apply(ctx, featureDNS, statePresent, values); err != nil {
-		return "", fmt.Errorf("failed to apply DNS: %w", err)
+	if _, err := m.Apply(ctx, featureCoreDNS, statePresent, values); err != nil {
+		return "", fmt.Errorf("failed to apply coredns: %w", err)
 	}
 
 	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
@@ -68,7 +74,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dnsConfig types.DNS, kubeletC
 	}
 	dnsIP, err := client.GetServiceClusterIP(ctx, "coredns", "kube-system")
 	if err != nil {
-		return "", fmt.Errorf("failed to get dns service: %w", err)
+		return "", fmt.Errorf("failed to retrieve the coredns service: %w", err)
 	}
 
 	return dnsIP, nil

@@ -10,6 +10,12 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
+// ApplyLoadBalancer is used to configure the load-balancer feature on Canonical Kubernetes.
+// ApplyLoadBalancer assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
+// ApplyLoadBalancer will configure Cilium to enable L2 or BGP mode, and deploy necessary CRs for announcing the LoadBalancer external IPs when cfg.Enabled is true.
+// ApplyLoadBalancer will disable L2 and BGP on Cilium, and remove any previously created CRs when cfg.Enabled is false.
+// ApplyLoadBalancer will rollout restart the Cilium pods in case any Cilium configuration was changed.
+// ApplyLoadBalancer returns an error if anything fails.
 func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, cfg types.LoadBalancer) error {
 	if !cfg.GetEnabled() {
 		if err := disableLoadBalancer(ctx, snap); err != nil {
@@ -27,7 +33,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, cfg types.LoadBalanc
 func disableLoadBalancer(ctx context.Context, snap snap.Snap) error {
 	m := newHelm(snap)
 
-	if _, err := m.Apply(ctx, featureLoadBalancer, stateDeleted, nil); err != nil {
+	if _, err := m.Apply(ctx, featureCiliumLoadBalancer, stateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall LoadBalancer manifests: %w", err)
 	}
 
@@ -49,7 +55,7 @@ func disableLoadBalancer(ctx context.Context, snap snap.Snap) error {
 		},
 	}
 
-	if _, err := m.Apply(ctx, featureNetwork, stateUpgradeOnly, values); err != nil {
+	if _, err := m.Apply(ctx, featureCiliumCNI, stateUpgradeOnly, values); err != nil {
 		return fmt.Errorf("failed to refresh network to apply LoadBalancer configuration: %w", err)
 	}
 	return nil
@@ -76,7 +82,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, cfg types.LoadBalan
 		},
 	}
 
-	changed, err := m.Apply(ctx, featureNetwork, stateUpgradeOnly, networkValues)
+	changed, err := m.Apply(ctx, featureCiliumCNI, stateUpgradeOnly, networkValues)
 	if err != nil {
 		return fmt.Errorf("failed to update Cilium configuration for LoadBalancer: %w", err)
 	}
@@ -113,7 +119,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, cfg types.LoadBalan
 			},
 		},
 	}
-	if _, err := m.Apply(ctx, featureLoadBalancer, statePresent, values); err != nil {
+	if _, err := m.Apply(ctx, featureCiliumLoadBalancer, statePresent, values); err != nil {
 		return fmt.Errorf("failed to apply LoadBalancer configuration: %w", err)
 	}
 

@@ -14,11 +14,17 @@ import (
 	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
+// ApplyNetwork is used to configure the CNI feature on Canonical Kubernetes.
+// ApplyNetwork will deploy Cilium when cfg.Enabled is true.
+// ApplyNetwork will remove Cilium when cfg.Enabled is false.
+// ApplyNetwork requires that bpf and cgroups2 are already mounted and available when running under strict snap confinement. If they are not, it will fail (since Cilium will not have the required permissions to mount them).
+// ApplyNetwork requires that `/sys` is mounted as a shared mount when running under classic snap confinement. This is to ensure that Cilium will be able to automatically mount bpf and cgroups2 on the pods.
+// ApplyNetwork returns an error if anything fails.
 func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error {
 	m := newHelm(snap)
 
 	if !cfg.GetEnabled() {
-		if _, err := m.Apply(ctx, featureNetwork, stateDeleted, nil); err != nil {
+		if _, err := m.Apply(ctx, featureCiliumCNI, stateDeleted, nil); err != nil {
 			return fmt.Errorf("failed to uninstall network: %w", err)
 		}
 		return nil
@@ -118,7 +124,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error 
 		}
 	}
 
-	if _, err := m.Apply(ctx, featureNetwork, statePresent, values); err != nil {
+	if _, err := m.Apply(ctx, featureCiliumCNI, statePresent, values); err != nil {
 		return fmt.Errorf("failed to enable network: %w", err)
 	}
 

@@ -15,11 +15,16 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
+// helmManager implements Manager using Helm.
 type helmManager struct {
 	restClientGetter func(string) genericclioptions.RESTClientGetter
 	manifestsBaseDir string
 }
 
+// ensure *helmManager implements Manager.
+var _ Manager = &helmManager{}
+
+// newHelm creates a new helmManager.
 func newHelm(snap snap.Snap) *helmManager {
 	return &helmManager{
 		restClientGetter: snap.KubernetesRESTClientGetter,
@@ -36,15 +41,17 @@ func (h *helmManager) newActionConfiguration(namespace string) (*action.Configur
 	return actionConfig, nil
 }
 
-func (h *helmManager) Apply(ctx context.Context, f feature, desired state, values map[string]any) (bool, error) {
+// Apply implements the Manager interface.
+func (h *helmManager) Apply(ctx context.Context, f Feature, desired state, values map[string]any) (bool, error) {
 	cfg, err := h.newActionConfiguration(f.namespace)
 	if err != nil {
 		return false, fmt.Errorf("failed to create action configuration: %w", err)
 	}
 
 	isInstalled := true
-	var oldConfig map[string]interface{}
+	var oldConfig map[string]any
 
+	// get the latest Helm release with the specified name
 	get := action.NewGet(cfg)
 	release, err := get.Run(f.name)
 	if err != nil {
@@ -53,16 +60,19 @@ func (h *helmManager) Apply(ctx context.Context, f feature, desired state, value
 		}
 		isInstalled = false
 	} else {
+		// keep the existing release configuration, to check if any changes were made.
 		oldConfig = release.Config
 	}
 
 	switch {
 	case !isInstalled && desired == stateDeleted:
+		// no-op
 		return false, nil
 	case !isInstalled && desired == stateUpgradeOnly:
+		// there is no release installed, this is an error
 		return false, fmt.Errorf("cannot upgrade %s as it is not installed", f.name)
 	case !isInstalled && desired == statePresent:
-		// run an install action
+		// there is no release installed, so we must run an install action
 		install := action.NewInstall(cfg)
 		install.ReleaseName = f.name
 		install.Namespace = f.namespace
@@ -77,7 +87,7 @@ func (h *helmManager) Apply(ctx context.Context, f feature, desired state, value
 		}
 		return true, nil
 	case isInstalled && desired != stateDeleted:
-		// run an upgrade action
+		// there is already a release installed, so we must run an install action
 		upgrade := action.NewUpgrade(cfg)
 		upgrade.Namespace = f.namespace
 		upgrade.ReuseValues = true
@@ -92,6 +102,7 @@ func (h *helmManager) Apply(ctx context.Context, f feature, desired state, value
 			return false, fmt.Errorf("failed to upgrade %s: %w", f.name, err)
 		}
 
+		// oldConfig and release.Config are the previous and current values. they are compared by checking their respective JSON, as that is good enough for our needs of comparing unstructured map[string]any data.
 		return !jsonEqual(oldConfig, release.Config), nil
 	case isInstalled && desired == stateDeleted:
 		// run an uninstall action
@@ -99,10 +110,12 @@ func (h *helmManager) Apply(ctx context.Context, f feature, desired state, value
 		if _, err := uninstall.Run(f.name); err != nil {
 			return false, fmt.Errorf("failed to uninstall %s: %w", f.name, err)
 		}
-		return true, nil
-	}
 
-	return false, nil
+		return true, nil
+	default:
+		// this never happens
+		return false, nil
+	}
 }
 
 func jsonEqual(v1 any, v2 any) bool {
@@ -110,5 +123,3 @@ func jsonEqual(v1 any, v2 any) bool {
 	b2, err2 := json.Marshal(v2)
 	return err1 == nil && err2 == nil && bytes.Equal(b1, b2)
 }
-
-var _ Manager = &helmManager{}
