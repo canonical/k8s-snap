@@ -91,17 +91,23 @@ func (h *helmManager) Apply(ctx context.Context, f feature, desired state, value
 			return false, fmt.Errorf("failed to upgrade %s: %w", f.name, err)
 		}
 
-		return !reflect.DeepEqual(oldConfig, release.Config), nil
+		return !jsonEqual(oldConfig, release.Config), nil
 	case isInstalled && desired == stateDeleted:
 		// run an uninstall action
 		uninstall := action.NewUninstall(cfg)
 		if _, err := uninstall.Run(f.name); err != nil {
-			return false, fmt.Errorf("failed to uninstall %s: %w", err)
+			return false, fmt.Errorf("failed to uninstall %s: %w", f.name, err)
 		}
 		return true, nil
 	}
 
 	return false, nil
+}
+
+func jsonEqual(v1 any, v2 any) bool {
+	b1, err1 := json.Marshal(v1)
+	b2, err2 := json.Marshal(v2)
+	return err1 == nil && err2 == nil && bytes.Equal(b1, b2)
 }
 
 var _ Manager = &helmManager{}
