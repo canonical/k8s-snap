@@ -44,16 +44,15 @@ func (h *helmManager) Apply(ctx context.Context, f feature, desired state, value
 	isInstalled := true
 	var oldConfig map[string]interface{}
 
-	history := action.NewHistory(cfg)
-	history.Max = 1
-	releases, err := history.Run(f.name)
+	get := action.NewGet(cfg)
+	release, err := get.Run(f.name)
 	if err != nil {
 		if err != driver.ErrReleaseNotFound {
-			return false, fmt.Errorf("failed to check history of release %s: %w", f.name, err)
+			return false, fmt.Errorf("failed to get status of release %s: %w", f.name, err)
 		}
 		isInstalled = false
-	} else if len(releases) > 0 {
-		oldConfig = releases[0].Config
+	} else {
+		oldConfig = release.Config
 	}
 
 	switch {
