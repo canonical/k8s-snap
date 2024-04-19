@@ -21,7 +21,7 @@ func New(ctx context.Context, snap snap.Snap) (*k8sdClient, error) {
 	if snap == nil {
 		panic("snap must not be nil")
 	}
-	m, err := microcluster.App(ctx, microcluster.Args{
+	m, err := microcluster.App(microcluster.Args{
 		StateDir: snap.K8sdStateDir(),
 	})
 	if err != nil {

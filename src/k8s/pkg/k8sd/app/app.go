@@ -50,11 +50,11 @@ type App struct {
 }
 
 // New initializes a new microcluster instance from configuration.
-func New(ctx context.Context, cfg Config) (*App, error) {
+func New(cfg Config) (*App, error) {
 	if cfg.StateDir == "" {
 		cfg.StateDir = cfg.Snap.K8sdStateDir()
 	}
-	cluster, err := microcluster.App(ctx, microcluster.Args{
+	cluster, err := microcluster.App(microcluster.Args{
 		Verbose:  cfg.Verbose,
 		Debug:    cfg.Debug,
 		StateDir: cfg.StateDir,
@@ -98,7 +98,7 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 
 // Run starts the microcluster node and waits until it terminates.
 // any non-nil customHooks override the default hooks.
-func (a *App) Run(customHooks *config.Hooks) error {
+func (a *App) Run(ctx context.Context, customHooks *config.Hooks) error {
 	// TODO: consider improving API for overriding hooks.
 	hooks := &config.Hooks{
 		PostBootstrap: a.onBootstrap,
@@ -139,7 +139,7 @@ func (a *App) Run(customHooks *config.Hooks) error {
 		}()
 	}
 
-	err := a.microCluster.Start(api.New(a).Endpoints(), database.SchemaExtensions, hooks)
+	err := a.microCluster.Start(ctx, api.New(a).Endpoints(), database.SchemaExtensions, hooks)
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
 	}
