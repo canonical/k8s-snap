@@ -1,11 +1,12 @@
 package features
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"path"
-	"reflect"
 
 	"github.com/canonical/k8s/pkg/snap"
 	"helm.sh/helm/v3/pkg/action"
