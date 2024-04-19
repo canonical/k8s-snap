@@ -48,10 +48,10 @@ func (h *helmManager) Apply(ctx context.Context, f feature, desired state, value
 	history.Max = 1
 	releases, err := history.Run(f.name)
 	if err != nil {
-		if err == driver.ErrReleaseNotFound {
-			isInstalled = false
+		if err != driver.ErrReleaseNotFound {
+			return false, fmt.Errorf("failed to check history of release %s: %w", f.name, err)
 		}
-		return false, fmt.Errorf("failed to check history of release %s: %w", f.name, err)
+		isInstalled = false
 	}
 	oldConfig = releases[0].Config
 
