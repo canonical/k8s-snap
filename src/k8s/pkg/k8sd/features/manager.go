@@ -52,8 +52,9 @@ func (h *helmManager) Apply(ctx context.Context, f feature, desired state, value
 			return false, fmt.Errorf("failed to check history of release %s: %w", f.name, err)
 		}
 		isInstalled = false
+	} else if len(releases) > 0 {
+		oldConfig = releases[0].Config
 	}
-	oldConfig = releases[0].Config
 
 	switch {
 	case !isInstalled && desired == stateDeleted:
