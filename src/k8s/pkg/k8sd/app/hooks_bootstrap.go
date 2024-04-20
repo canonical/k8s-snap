@@ -148,6 +148,21 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 		return fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err)
 	}
 
+	// Write worker node configuration to dqlite
+	cfg := types.ClusterConfig{
+		Certificates: types.Certificates{
+			K8sdPublicKey: vals.Pointer(response.K8sdPublicKey),
+		},
+	}
+	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+		if _, err := database.SetClusterConfig(ctx, tx, cfg); err != nil {
+			return fmt.Errorf("failed to write cluster configuration: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("database transaction to set cluster configuration failed: %w", err)
+	}
+
 	// Worker node services
 	if err := setup.Containerd(snap, nil); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
