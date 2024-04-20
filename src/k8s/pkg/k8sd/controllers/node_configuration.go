@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"crypto/rsa"
 	"fmt"
 	"log"
 	"time"
@@ -42,7 +43,7 @@ func (c *NodeConfigurationController) retryNewK8sClient(ctx context.Context) (*k
 	}
 }
 
-func (c *NodeConfigurationController) Run(ctx context.Context) {
+func (c *NodeConfigurationController) Run(ctx context.Context, getRSAKey func(context.Context) (*rsa.PublicKey, error)) {
 	// wait for microcluster node to be ready
 	c.waitReady()
 
@@ -52,7 +53,7 @@ func (c *NodeConfigurationController) Run(ctx context.Context) {
 			log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
 		}
 
-		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap) }); err != nil {
+		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap, getRSAKey) }); err != nil {
 			// This also can fail during bootstrapping/start up when api-server is not ready
 			// So the watch requests get connection refused replies
 			log.Println(fmt.Errorf("failed to watch configmap: %w", err))
@@ -66,8 +67,12 @@ func (c *NodeConfigurationController) Run(ctx context.Context) {
 	}
 }
 
-func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *v1.ConfigMap) error {
-	config, err := types.KubeletFromConfigMap(configMap.Data, nil)
+func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *v1.ConfigMap, getRSAKey func(context.Context) (*rsa.PublicKey, error)) error {
+	key, err := getRSAKey(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to load the RSA public key: %w", err)
+	}
+	config, err := types.KubeletFromConfigMap(configMap.Data, key)
 	if err != nil {
 		return fmt.Errorf("failed to parse configmap data to kubelet config: %w", err)
 	}
