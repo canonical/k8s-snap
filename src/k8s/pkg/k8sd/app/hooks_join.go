@@ -92,6 +92,8 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	certificates.APIServerKubeletClientCert = cfg.Certificates.GetAPIServerKubeletClientCert()
 	certificates.APIServerKubeletClientKey = cfg.Certificates.GetAPIServerKubeletClientKey()
 	certificates.ServiceAccountKey = cfg.Certificates.GetServiceAccountKey()
+	certificates.K8sdPublicKey = cfg.Certificates.GetK8sdPublicKey()
+	certificates.K8sdPrivateKey = cfg.Certificates.GetK8sdPrivateKey()
 
 	// load certificates from joinConfig
 	certificates.APIServerCert = joinConfig.GetAPIServerCert()

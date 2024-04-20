@@ -276,6 +276,8 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	cfg.Certificates.APIServerKubeletClientCert = vals.Pointer(certificates.APIServerKubeletClientCert)
 	cfg.Certificates.APIServerKubeletClientKey = vals.Pointer(certificates.APIServerKubeletClientKey)
 	cfg.Certificates.ServiceAccountKey = vals.Pointer(certificates.ServiceAccountKey)
+	cfg.Certificates.K8sdPublicKey = vals.Pointer(certificates.K8sdPublicKey)
+	cfg.Certificates.K8sdPrivateKey = vals.Pointer(certificates.K8sdPrivateKey)
 
 	// Generate kubeconfigs
 	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), cfg.Certificates.GetCACert()); err != nil {
