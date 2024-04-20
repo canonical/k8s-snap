@@ -38,29 +38,23 @@ func TestControlPlaneCertificates(t *testing.T) {
 	t.Run("K8sdKey", func(t *testing.T) {
 		g := NewWithT(t)
 
-		privBlock, _ := pem.Decode([]byte(c.K8sdPrivateKey))
-		priv, err := x509.ParsePKCS1PrivateKey(privBlock.Bytes)
-		g.Expect(err).To(Succeed())
+		priv, err := pki.LoadRSAPrivateKey(c.K8sdPrivateKey)
+		g.Expect(err).To(BeNil())
+		pub, err := pki.LoadRSAPublicKey(c.K8sdPublicKey)
+		g.Expect(err).To(BeNil())
 
+		// generate a hash to sign
 		b := make([]byte, 10)
-		_, err = rand.Read(b)
-
+		rand.Read(b)
 		h := sha256.New()
 		h.Write(b)
 		hashed := h.Sum(nil)
 
-		g.Expect(err).To(Succeed())
-
+		// sign hash
 		signed, err := rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA256, hashed)
 		g.Expect(err).To(Succeed())
 
-		pubBlock, _ := pem.Decode([]byte(c.K8sdPublicKey))
-		pubKey, err := x509.ParsePKIXPublicKey(pubBlock.Bytes)
-		g.Expect(err).To(Succeed())
-
-		pub, ok := pubKey.(*rsa.PublicKey)
-		g.Expect(ok).To(BeTrue())
-
+		// verify signature
 		g.Expect(rsa.VerifyPKCS1v15(pub, crypto.SHA256, hashed, signed)).To(BeNil())
 	})
 
