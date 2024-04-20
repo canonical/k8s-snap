@@ -16,6 +16,4 @@ type ClusterConfig struct {
 	MetricsServer MetricsServer `json:"metrics-server,omitempty"`
 }
 
-func (c ClusterConfig) Empty() bool {
-	return c.Certificates.Empty() && c.Datastore.Empty() && c.Network.Empty() && c.APIServer.Empty() && c.Kubelet.Empty() && c.Network.Empty() && c.DNS.Empty() && c.Ingress.Empty() && c.LoadBalancer.Empty() && c.Gateway.Empty() && c.LocalStorage.Empty() && c.MetricsServer.Empty()
-}
+func (c ClusterConfig) Empty() bool { return c == ClusterConfig{} }
