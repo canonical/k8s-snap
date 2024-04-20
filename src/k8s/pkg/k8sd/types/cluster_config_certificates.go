@@ -8,6 +8,8 @@ type Certificates struct {
 	ServiceAccountKey          *string `json:"service-account-key,omitempty"`
 	APIServerKubeletClientCert *string `json:"apiserver-to-kubelet-client-crt,omitempty"`
 	APIServerKubeletClientKey  *string `json:"apiserver-to-kubelet-client-key,omitempty"`
+	K8sdPublicKey              *string `json:"k8sd-public-key,omitempty"`
+	K8sdPrivateKey             *string `json:"k8sd-private-key,omitempty"`
 }
 
 func (c Certificates) GetCACert() string            { return getField(c.CACert) }
@@ -21,6 +23,8 @@ func (c Certificates) GetAPIServerKubeletClientCert() string {
 func (c Certificates) GetAPIServerKubeletClientKey() string {
 	return getField(c.APIServerKubeletClientKey)
 }
+func (c Certificates) GetK8sdPublicKey() string  { return getField(c.K8sdPublicKey) }
+func (c Certificates) GetK8sdPrivateKey() string { return getField(c.K8sdPrivateKey) }
 
 // Empty returns true if all Certificates fields are unset
 func (c Certificates) Empty() bool {

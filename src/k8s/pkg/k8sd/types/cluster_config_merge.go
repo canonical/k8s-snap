@@ -30,6 +30,8 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		{name: "front proxy CA certificate", val: &config.Certificates.FrontProxyCACert, old: existing.Certificates.FrontProxyCACert, new: new.Certificates.FrontProxyCACert},
 		{name: "front proxy CA key", val: &config.Certificates.FrontProxyCAKey, old: existing.Certificates.FrontProxyCAKey, new: new.Certificates.FrontProxyCAKey},
 		{name: "service account key", val: &config.Certificates.ServiceAccountKey, old: existing.Certificates.ServiceAccountKey, new: new.Certificates.ServiceAccountKey},
+		{name: "k8sd public key", val: &config.Certificates.K8sdPublicKey, old: existing.Certificates.K8sdPublicKey, new: new.Certificates.K8sdPublicKey},
+		{name: "k8sd private key", val: &config.Certificates.K8sdPrivateKey, old: existing.Certificates.K8sdPrivateKey, new: new.Certificates.K8sdPrivateKey},
 		// datastore
 		{name: "datastore type", val: &config.Datastore.Type, old: existing.Datastore.Type, new: new.Datastore.Type},
 		{name: "k8s-dqlite certificate", val: &config.Datastore.K8sDqliteCert, old: existing.Datastore.K8sDqliteCert, new: new.Datastore.K8sDqliteCert},

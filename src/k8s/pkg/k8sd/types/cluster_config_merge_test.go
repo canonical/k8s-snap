@@ -80,6 +80,8 @@ func TestMergeClusterConfig(t *testing.T) {
 		generateMergeClusterConfigTestCases("Certificates/APIServerKubeletClientKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) {
 			c.Certificates.APIServerKubeletClientKey = vals.Pointer(v.(string))
 		}),
+		generateMergeClusterConfigTestCases("Certificates/K8sdPublicKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.K8sdPublicKey = vals.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Certificates/K8sdPrivateKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.K8sdPrivateKey = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/Type", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.Type = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/K8sDqliteCert", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.K8sDqliteCert = vals.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/K8sDqliteKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.K8sDqliteKey = vals.Pointer(v.(string)) }),
