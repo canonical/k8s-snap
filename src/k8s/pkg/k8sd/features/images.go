@@ -1,4 +1,4 @@
-package component
+package features
 
 const dnsImageRepository = "ghcr.io/canonical/coredns"
 const dnsImageTag = "1.11.1-ck4"

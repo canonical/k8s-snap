@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
-	"github.com/canonical/k8s/pkg/k8sd/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -45,7 +44,7 @@ type Snap interface {
 
 	LockFilesDir() string // /var/snap/k8s/common/lock
 
-	Components() map[string]types.Component // available components
+	ManifestsDir() string // /snap/k8s/current/k8s/manifests
 
 	KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter     // admin kubernetes client
 	KubernetesNodeRESTClientGetter(namespace string) genericclioptions.RESTClientGetter // node kubernetes client

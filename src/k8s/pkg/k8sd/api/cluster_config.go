@@ -9,8 +9,8 @@ import (
 
 	api "github.com/canonical/k8s/api/v1"
 
-	"github.com/canonical/k8s/pkg/component"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/vals"
@@ -34,11 +34,6 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		return response.BadRequest(fmt.Errorf("failed to parse datastore config: %w", err))
 	}
 
-	oldConfig, err := utils.GetClusterConfig(r.Context(), s)
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
-	}
-
 	var mergedConfig types.ClusterConfig
 	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
@@ -53,26 +48,24 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	}
 
 	if !requestedConfig.Network.Empty() {
-		if err := component.ReconcileNetworkComponent(r.Context(), snap, oldConfig.Network.Enabled, requestedConfig.Network.Enabled, mergedConfig); err != nil {
-			return response.InternalError(fmt.Errorf("failed to reconcile network: %w", err))
+		if err := features.ApplyNetwork(s.Context, snap, mergedConfig.Network); err != nil {
+			return response.InternalError(fmt.Errorf("failed to apply network: %w", err))
 		}
 	}
 
 	if !requestedConfig.DNS.Empty() {
-		dnsIP, _, err := component.ReconcileDNSComponent(r.Context(), snap, oldConfig.DNS.Enabled, requestedConfig.DNS.Enabled, mergedConfig)
+		dnsIP, err := features.ApplyDNS(s.Context, snap, mergedConfig.DNS, mergedConfig.Kubelet)
 		if err != nil {
-			return response.InternalError(fmt.Errorf("failed to reconcile dns: %w", err))
+			return response.InternalError(fmt.Errorf("failed to apply DNS: %w", err))
 		}
 
-		// If DNS IP is not empty, update cluster configuration
 		if dnsIP != "" {
-			if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
-				mergedConfig, err = database.SetClusterConfig(ctx, tx, types.ClusterConfig{
+			if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+				if mergedConfig, err = database.SetClusterConfig(ctx, tx, types.ClusterConfig{
 					Kubelet: types.Kubelet{
 						ClusterDNS: vals.Pointer(dnsIP),
 					},
-				})
-				if err != nil {
+				}); err != nil {
 					return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)
 				}
 				return nil
@@ -83,32 +76,28 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	}
 
 	if !requestedConfig.LocalStorage.Empty() {
-		if err := component.ReconcileLocalStorageComponent(r.Context(), snap, oldConfig.LocalStorage.Enabled, requestedConfig.LocalStorage.Enabled, mergedConfig); err != nil {
-			return response.InternalError(fmt.Errorf("failed to reconcile local-storage: %w", err))
+		if err := features.ApplyLocalStorage(s.Context, snap, mergedConfig.LocalStorage); err != nil {
+			return response.InternalError(fmt.Errorf("failed to apply local-storage: %w", err))
 		}
 	}
-
 	if !requestedConfig.Gateway.Empty() {
-		if err := component.ReconcileGatewayComponent(r.Context(), snap, oldConfig.Gateway.Enabled, requestedConfig.Gateway.Enabled, mergedConfig); err != nil {
-			return response.InternalError(fmt.Errorf("failed to reconcile gateway: %w", err))
+		if err := features.ApplyGateway(s.Context, snap, mergedConfig.Gateway); err != nil {
+			return response.InternalError(fmt.Errorf("failed to apply gateway: %w", err))
 		}
 	}
-
 	if !requestedConfig.Ingress.Empty() {
-		if err := component.ReconcileIngressComponent(r.Context(), snap, oldConfig.Ingress.Enabled, requestedConfig.Ingress.Enabled, mergedConfig); err != nil {
-			return response.InternalError(fmt.Errorf("failed to reconcile ingress: %w", err))
+		if err := features.ApplyIngress(s.Context, snap, mergedConfig.Ingress); err != nil {
+			return response.InternalError(fmt.Errorf("failed to apply ingress: %w", err))
 		}
 	}
-
 	if !requestedConfig.LoadBalancer.Empty() {
-		if err := component.ReconcileLoadBalancerComponent(r.Context(), snap, oldConfig.LoadBalancer.Enabled, requestedConfig.LoadBalancer.Enabled, mergedConfig); err != nil {
-			return response.InternalError(fmt.Errorf("failed to reconcile load-balancer: %w", err))
+		if err := features.ApplyLoadBalancer(s.Context, snap, mergedConfig.LoadBalancer); err != nil {
+			return response.InternalError(fmt.Errorf("failed to apply load-balancer: %w", err))
 		}
 	}
-
 	if !requestedConfig.MetricsServer.Empty() {
-		if err := component.ReconcileMetricsServerComponent(r.Context(), snap, oldConfig.MetricsServer.Enabled, requestedConfig.MetricsServer.Enabled, mergedConfig); err != nil {
-			return response.InternalError(fmt.Errorf("failed to reconcile load-balancer: %w", err))
+		if err := features.ApplyMetricsServer(s.Context, snap, mergedConfig.MetricsServer); err != nil {
+			return response.InternalError(fmt.Errorf("failed to apply metrics-server: %w", err))
 		}
 	}
 

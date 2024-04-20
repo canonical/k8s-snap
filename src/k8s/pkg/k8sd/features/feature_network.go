@@ -1,4 +1,4 @@
-package component
+package features
 
 import (
 	"context"
@@ -10,16 +10,27 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/vals"
+	"github.com/canonical/k8s/pkg/utils/control"
+	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
-func UpdateNetworkComponent(ctx context.Context, s snap.Snap, isRefresh bool, podCIDR string) error {
-	manager, err := NewHelmClient(s, nil)
-	if err != nil {
-		return fmt.Errorf("failed to get component manager: %w", err)
+// ApplyNetwork is used to configure the CNI feature on Canonical Kubernetes.
+// ApplyNetwork will deploy Cilium when cfg.Enabled is true.
+// ApplyNetwork will remove Cilium when cfg.Enabled is false.
+// ApplyNetwork requires that bpf and cgroups2 are already mounted and available when running under strict snap confinement. If they are not, it will fail (since Cilium will not have the required permissions to mount them).
+// ApplyNetwork requires that `/sys` is mounted as a shared mount when running under classic snap confinement. This is to ensure that Cilium will be able to automatically mount bpf and cgroups2 on the pods.
+// ApplyNetwork returns an error if anything fails.
+func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error {
+	m := newHelm(snap)
+
+	if !cfg.GetEnabled() {
+		if _, err := m.Apply(ctx, featureCiliumCNI, stateDeleted, nil); err != nil {
+			return fmt.Errorf("failed to uninstall network: %w", err)
+		}
+		return nil
 	}
 
-	clusterCIDRs := strings.Split(podCIDR, ",")
+	clusterCIDRs := strings.Split(cfg.GetPodCIDR(), ",")
 	if v := len(clusterCIDRs); v != 1 && v != 2 {
 		return fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", clusterCIDRs)
 	}
@@ -73,7 +84,7 @@ func UpdateNetworkComponent(ctx context.Context, s snap.Snap, isRefresh bool, po
 		"disableEnvoyVersionCheck": true,
 	}
 
-	if s.Strict() {
+	if snap.Strict() {
 		bpfMnt, err := utils.GetMountPath("bpf")
 		if err != nil {
 			return fmt.Errorf("failed to get bpf mount path: %w", err)
@@ -102,9 +113,9 @@ func UpdateNetworkComponent(ctx context.Context, s snap.Snap, isRefresh bool, po
 			return fmt.Errorf("failed to get mount propagation for %s: %w", p, err)
 		}
 		if p == "private" {
-			onLXD, err := s.OnLXD(ctx)
+			onLXD, err := snap.OnLXD(ctx)
 			if err != nil {
-				log.Printf("failed to check if on lxd: %v", err)
+				log.Printf("failed to check if on LXD: %v", err)
 			}
 			if onLXD {
 				return fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
@@ -113,53 +124,36 @@ func UpdateNetworkComponent(ctx context.Context, s snap.Snap, isRefresh bool, po
 		}
 	}
 
-	if isRefresh {
-		if err := manager.Refresh("network", values); err != nil {
-			return fmt.Errorf("failed to refresh network component: %w", err)
-		}
-	} else {
-		if err := manager.Enable("network", values); err != nil {
-			return fmt.Errorf("failed to enable network component: %w", err)
-		}
+	if _, err := m.Apply(ctx, featureCiliumCNI, statePresent, values); err != nil {
+		return fmt.Errorf("failed to enable network: %w", err)
 	}
 
 	return nil
 }
 
-func DisableNetworkComponent(s snap.Snap) error {
-	manager, err := NewHelmClient(s, nil)
+func rolloutRestartCilium(ctx context.Context, snap snap.Snap, attempts int) error {
+	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 	if err != nil {
-		return fmt.Errorf("failed to get component manager: %w", err)
+		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	if err := manager.Disable("network"); err != nil {
-		return fmt.Errorf("failed to disable network component: %w", err)
+	if err := control.RetryFor(ctx, attempts, 0, func() error {
+		if err := client.RestartDeployment(ctx, "cilium-operator", "kube-system"); err != nil {
+			return fmt.Errorf("failed to restart cilium-operator deployment: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to restart cilium-operator deployment after %d attempts: %w", attempts, err)
 	}
 
-	return nil
-}
-
-func ReconcileNetworkComponent(ctx context.Context, s snap.Snap, alreadyEnabled *bool, requestEnabled *bool, clusterConfig types.ClusterConfig) error {
-	if vals.OptionalBool(requestEnabled, true) && vals.OptionalBool(alreadyEnabled, false) {
-		// If already enabled, and request does not contain `enabled` key
-		// or if already enabled and request contains `enabled=true`
-		err := UpdateNetworkComponent(ctx, s, true, clusterConfig.Network.GetPodCIDR())
-		if err != nil {
-			return fmt.Errorf("failed to refresh network: %w", err)
+	if err := control.RetryFor(ctx, attempts, 0, func() error {
+		if err := client.RestartDaemonset(ctx, "cilium", "kube-system"); err != nil {
+			return fmt.Errorf("failed to restart cilium daemonset: %w", err)
 		}
 		return nil
-	} else if vals.OptionalBool(requestEnabled, false) {
-		err := UpdateNetworkComponent(ctx, s, false, clusterConfig.Network.GetPodCIDR())
-		if err != nil {
-			return fmt.Errorf("failed to enable network: %w", err)
-		}
-		return nil
-	} else if !vals.OptionalBool(requestEnabled, false) {
-		err := DisableNetworkComponent(s)
-		if err != nil {
-			return fmt.Errorf("failed to disable network: %w", err)
-		}
-		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to restart cilium daemonset after %d attempts: %w", attempts, err)
 	}
+
 	return nil
 }

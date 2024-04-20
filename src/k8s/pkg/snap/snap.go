@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
-	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/moby/sys/mountinfo"
@@ -192,40 +191,8 @@ func (s *snap) ContainerdRegistryConfigDir() string {
 	return path.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
 }
 
-func (s *snap) Components() map[string]types.Component {
-	return map[string]types.Component{
-		"network": {
-			ReleaseName:  "ck-network",
-			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "cilium-1.15.2.tgz"),
-			Namespace:    "kube-system",
-		},
-		"dns": {
-			ReleaseName:  "ck-dns",
-			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "coredns-1.29.0.tgz"),
-			Namespace:    "kube-system",
-		},
-		"local-storage": {
-			ReleaseName:  "ck-storage",
-			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "rawfile-csi-0.8.0.tgz"),
-			Namespace:    "kube-system",
-		},
-		"ingress": {},
-		"gateway": {
-			ReleaseName:  "ck-gateway",
-			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "gateway-api-1.0.0.tgz"),
-			Namespace:    "kube-system",
-		},
-		"load-balancer": {
-			ReleaseName:  "ck-loadbalancer",
-			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "ck-loadbalancer"),
-			Namespace:    "kube-system",
-		},
-		"metrics-server": {
-			ReleaseName:  "metrics-server",
-			ManifestPath: path.Join(s.snapDir, "k8s", "components", "charts", "metrics-server-3.12.0.tgz"),
-			Namespace:    "kube-system",
-		},
-	}
+func (s *snap) ManifestsDir() string {
+	return path.Join(s.snapDir, "k8s", "manifests")
 }
 
 func (s *snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
