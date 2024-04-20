@@ -1,8 +1,9 @@
 package types
 
 import (
-	"crypto/ecdsa"
+	"crypto"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -40,9 +41,8 @@ func (c Kubelet) hash() ([]byte, error) {
 }
 
 // ToConfigMap converts a Kubelet config to a map[string]string to store in a Kubernetes configmap.
-// ToConfigMap will append a "k8sd-mac" field if a key is specified, with a signed hash of the contents.
-// ToConfigMap signes a sha256 sum of the configuration, therefore requires an ECDSA key that uses elliptic.P256() or higher.
-func (c Kubelet) ToConfigMap(key *ecdsa.PrivateKey) (map[string]string, error) {
+// ToConfigMap will append a "k8sd-mac" field with a signed hash of the contents, if a key is specified.
+func (c Kubelet) ToConfigMap(key *rsa.PrivateKey) (map[string]string, error) {
 	data := make(map[string]string)
 
 	if v := c.CloudProvider; v != nil {
@@ -60,10 +60,7 @@ func (c Kubelet) ToConfigMap(key *ecdsa.PrivateKey) (map[string]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to compute hash: %w", err)
 		}
-		if len(hash) > key.Curve.Params().BitSize/8 {
-			return nil, fmt.Errorf("hash size is longer than the curve's bit-length, refusing to sign truncated hash. please specify an ECDSA key with curve P-256 or larger")
-		}
-		mac, err := ecdsa.SignASN1(rand.Reader, key, hash)
+		mac, err := rsa.SignPKCS1v15(rand.Reader, key, crypto.SHA256, hash)
 		if err != nil {
 			return nil, fmt.Errorf("failed to sign hash: %w", err)
 		}
@@ -76,7 +73,7 @@ func (c Kubelet) ToConfigMap(key *ecdsa.PrivateKey) (map[string]string, error) {
 // KubeletFromConfigMap parses configmap data into a Kubelet config.
 // KubeletFromConfigMap will attempt to validate the signature (found in the "k8sd-mac" field) if a key is specified.
 // KubeletFromConfigMap can parse and validate maps created with Kubelet.ToConfigMap().
-func KubeletFromConfigMap(m map[string]string, key *ecdsa.PublicKey) (Kubelet, error) {
+func KubeletFromConfigMap(m map[string]string, key *rsa.PublicKey) (Kubelet, error) {
 	var c Kubelet
 	if m == nil {
 		return c, nil
@@ -101,8 +98,8 @@ func KubeletFromConfigMap(m map[string]string, key *ecdsa.PublicKey) (Kubelet, e
 		if err != nil {
 			return Kubelet{}, fmt.Errorf("failed to parse signature: %w", err)
 		}
-		if !ecdsa.VerifyASN1(key, hash, signature) {
-			return Kubelet{}, fmt.Errorf("failed to verify signature")
+		if err := rsa.VerifyPKCS1v15(key, crypto.SHA256, hash, signature); err != nil {
+			return Kubelet{}, fmt.Errorf("failed to verify signature: %w", err)
 		}
 	}
 

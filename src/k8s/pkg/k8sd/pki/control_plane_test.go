@@ -1,8 +1,10 @@
 package pki_test
 
 import (
-	"crypto/ecdsa"
+	"crypto"
 	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
 	"net"
@@ -37,24 +39,29 @@ func TestControlPlaneCertificates(t *testing.T) {
 		g := NewWithT(t)
 
 		privBlock, _ := pem.Decode([]byte(c.K8sdPrivateKey))
-		priv, err := x509.ParseECPrivateKey(privBlock.Bytes)
+		priv, err := x509.ParsePKCS1PrivateKey(privBlock.Bytes)
 		g.Expect(err).To(Succeed())
 
 		b := make([]byte, 10)
 		_, err = rand.Read(b)
+
+		h := sha256.New()
+		h.Write(b)
+		hashed := h.Sum(nil)
+
 		g.Expect(err).To(Succeed())
 
-		signed, err := ecdsa.SignASN1(rand.Reader, priv, b)
+		signed, err := rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA256, hashed)
 		g.Expect(err).To(Succeed())
 
 		pubBlock, _ := pem.Decode([]byte(c.K8sdPublicKey))
 		pubKey, err := x509.ParsePKIXPublicKey(pubBlock.Bytes)
 		g.Expect(err).To(Succeed())
 
-		pub, ok := pubKey.(*ecdsa.PublicKey)
+		pub, ok := pubKey.(*rsa.PublicKey)
 		g.Expect(ok).To(BeTrue())
 
-		g.Expect(ecdsa.VerifyASN1(pub, b, signed)).To(BeTrue())
+		g.Expect(rsa.VerifyPKCS1v15(pub, crypto.SHA256, hashed, signed)).To(BeNil())
 	})
 
 	t.Run("MissingCAKey", func(t *testing.T) {

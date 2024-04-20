@@ -29,6 +29,6 @@ type WorkerNodeInfoResponse struct {
 	KubeletCert string `json:"kubeletCrt,omitempty"`
 	// KubeletKey is the private key to use for kubelet TLS. It will be empty if the cluster is not using self-signed certificates.
 	KubeletKey string `json:"kubeletKey,omitempty"`
-	// K8sdPublicKey is the ECDSA public key that can be used to validate message signatures.
+	// K8sdPublicKey is the public key that can be used to validate authenticity of cluster messages.
 	K8sdPublicKey string `json:"k8sdPublicKey,omitempty"`
 }

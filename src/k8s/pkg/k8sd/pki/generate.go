@@ -1,8 +1,6 @@
 package pki
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -104,35 +102,18 @@ func signCertificate(certificate *x509.Certificate, bits int, parent *x509.Certi
 	return string(crtPEM), string(keyPEM), nil
 }
 
-func generateRSAKey(bits int) (string, error) {
-	key, err := rsa.GenerateKey(rand.Reader, bits)
+func generateRSAKey(bits int) (string, string, error) {
+	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate RSA private key: %w", err)
+		return "", "", fmt.Errorf("failed to generate RSA private key: %w", err)
 	}
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
-	if keyPEM == nil {
-		return "", fmt.Errorf("failed to encode private key PEM")
-	}
-	return string(keyPEM), nil
-}
-
-func generateECDSAKeypair(curve elliptic.Curve) (string, string, error) {
-	priv, err := ecdsa.GenerateKey(curve, rand.Reader)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to generate ECDSA private key: %w", err)
-	}
-	privBytes, err := x509.MarshalECPrivateKey(priv)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to encode ECDSA private key: %w", err)
-	}
-	privPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: privBytes})
+	privPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
 	if privPEM == nil {
 		return "", "", fmt.Errorf("failed to encode private key PEM")
 	}
-
 	pubBytes, err := x509.MarshalPKIXPublicKey(&priv.PublicKey)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to encode ECDSA public key: %w", err)
+		return "", "", fmt.Errorf("failed to encode RSA public key: %w", err)
 	}
 	pubPEM := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pubBytes})
 	if pubPEM == nil {

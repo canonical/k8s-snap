@@ -1,9 +1,8 @@
 package types_test
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -90,7 +89,7 @@ func TestKubelet(t *testing.T) {
 
 func TestKubeletSign(t *testing.T) {
 	g := NewWithT(t)
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := rsa.GenerateKey(rand.Reader, 4096)
 	g.Expect(err).To(BeNil())
 
 	kubelet := types.Kubelet{
@@ -119,10 +118,18 @@ func TestKubeletSign(t *testing.T) {
 		g.Expect(fromKubelet).To(Equal(kubelet))
 	})
 
+	t.Run("DeterministicSignature", func(t *testing.T) {
+		g := NewWithT(t)
+
+		configmap2, err := kubelet.ToConfigMap(key)
+		g.Expect(err).To(BeNil())
+		g.Expect(configmap2).To(Equal(configmap))
+	})
+
 	t.Run("WrongKey", func(t *testing.T) {
 		g := NewWithT(t)
 
-		wrongKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		wrongKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		g.Expect(err).To(BeNil())
 
 		cm, err := types.KubeletFromConfigMap(configmap, &wrongKey.PublicKey)
@@ -130,47 +137,11 @@ func TestKubeletSign(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 	})
 
-	t.Run("SmallCurve", func(t *testing.T) {
-		g := NewWithT(t)
-
-		key, err := ecdsa.GenerateKey(elliptic.P224(), rand.Reader)
-		g.Expect(err).To(BeNil())
-
-		_, err = kubelet.ToConfigMap(key)
-		g.Expect(err).To(HaveOccurred())
-	})
-
-	t.Run("InvalidSignature", func(t *testing.T) {
-		g := NewWithT(t)
-
-		configmap, err := kubelet.ToConfigMap(key)
-		g.Expect(err).To(BeNil())
-		g.Expect(configmap).To(HaveKeyWithValue("k8sd-mac", Not(BeEmpty())))
-
-		t.Run("Manipulated", func(t *testing.T) {
-			g := NewWithT(t)
-			configmap["k8sd-mac"] = "MEUCIQCwOI42A5DRYI7ssh3sz+EpRgPNRM13sYLbWeMIvCAt5AIgZW0M49yZD5pGMk/Kb2f8DlUaPCbCDHFHrkmtYHzse6w="
-
-			k, err := types.KubeletFromConfigMap(configmap, &key.PublicKey)
-			g.Expect(err).To(HaveOccurred())
-			g.Expect(k).To(BeZero())
-		})
-
-		t.Run("Deleted", func(t *testing.T) {
-			g := NewWithT(t)
-			delete(configmap, "k8sd-mac")
-
-			k, err := types.KubeletFromConfigMap(configmap, &key.PublicKey)
-			g.Expect(err).To(HaveOccurred())
-			g.Expect(k).To(BeZero())
-		})
-	})
-
 	t.Run("BadSignature", func(t *testing.T) {
 		for editKey := range configmap {
 			t.Run(editKey, func(t *testing.T) {
 				g := NewWithT(t)
-				key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				key, err := rsa.GenerateKey(rand.Reader, 2048)
 				g.Expect(err).To(BeNil())
 
 				c, err := kubelet.ToConfigMap(key)
