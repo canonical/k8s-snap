@@ -1,6 +1,7 @@
 package pki
 
 import (
+	"crypto/elliptic"
 	"crypto/x509/pkix"
 	"fmt"
 	"net"
@@ -28,6 +29,9 @@ type ControlPlanePKI struct {
 
 	// CN=system:node:hostname, O=system:nodes, DNS=hostname, IP=127.0.0.1,address (signed by kubernetes-ca)
 	KubeletCert, KubeletKey string
+
+	// ECDSA keypair used to authenticate and sign messages originating from the cluster (e.g. configmap/k8sd-config)
+	K8sdPublicKey, K8sdPrivateKey string
 }
 
 type ControlPlanePKIOpts struct {
@@ -139,7 +143,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			return fmt.Errorf("service account signing key not specified and generating new key is not allowed")
 		}
 
-		key, err := generateKey(2048)
+		key, err := generateRSAKey(2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate service account key: %w", err)
 		}
@@ -210,5 +214,21 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		c.APIServerCert = cert
 		c.APIServerKey = key
 	}
+
+	// Generate k8sd cluster key-pair (if missing)
+	if c.K8sdPrivateKey == "" || c.K8sdPublicKey == "" {
+		if !c.allowSelfSignedCA {
+			return fmt.Errorf("cluster keypair not specified and generating new key is not allowed")
+		}
+
+		priv, pub, err := generateECDSAKeypair(elliptic.P256())
+		if err != nil {
+			return fmt.Errorf("failed to generate cluster keypair: %w", err)
+		}
+
+		c.K8sdPrivateKey = priv
+		c.K8sdPublicKey = pub
+	}
+
 	return nil
 }

@@ -1,6 +1,8 @@
 package pki_test
 
 import (
+	"crypto/ecdsa"
+	"crypto/rand"
 	"crypto/x509"
 	"encoding/pem"
 	"net"
@@ -30,6 +32,30 @@ func TestControlPlaneCertificates(t *testing.T) {
 
 	g.Expect(c.CompleteCertificates()).To(Succeed())
 	g.Expect(c.CompleteCertificates()).To(Succeed())
+
+	t.Run("K8sdKey", func(t *testing.T) {
+		g := NewWithT(t)
+
+		privBlock, _ := pem.Decode([]byte(c.K8sdPrivateKey))
+		priv, err := x509.ParseECPrivateKey(privBlock.Bytes)
+		g.Expect(err).To(Succeed())
+
+		b := make([]byte, 10)
+		_, err = rand.Read(b)
+		g.Expect(err).To(Succeed())
+
+		signed, err := ecdsa.SignASN1(rand.Reader, priv, b)
+		g.Expect(err).To(Succeed())
+
+		pubBlock, _ := pem.Decode([]byte(c.K8sdPublicKey))
+		pubKey, err := x509.ParsePKIXPublicKey(pubBlock.Bytes)
+		g.Expect(err).To(Succeed())
+
+		pub, ok := pubKey.(*ecdsa.PublicKey)
+		g.Expect(ok).To(BeTrue())
+
+		g.Expect(ecdsa.VerifyASN1(pub, b, signed)).To(BeTrue())
+	})
 
 	t.Run("MissingCAKey", func(t *testing.T) {
 		c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
