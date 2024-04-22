@@ -59,3 +59,14 @@ func NewClient(ctx context.Context, opts ClientOpts) (*Client, error) {
 		},
 	}, nil
 }
+
+func (c *Client) Close(ctx context.Context) error {
+	client, err := c.clientGetter(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create dqlite client: %w", err)
+	}
+	if err = client.Close(); err != nil {
+		return fmt.Errorf("failed to close dqlite client: %w", err)
+	}
+	return nil
+}

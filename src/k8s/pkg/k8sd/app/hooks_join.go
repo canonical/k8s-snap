@@ -172,6 +172,8 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 			return fmt.Errorf("failed to create k8s-dqlite client: %w", err)
 		}
 
+		defer client.Close(s.Context)
+
 		nodeAddress := net.JoinHostPort(s.Address().Hostname(), fmt.Sprintf("%d", cfg.Datastore.GetK8sDqlitePort()))
 		if err := client.RemoveNodeByAddress(s.Context, nodeAddress); err != nil {
 			return fmt.Errorf("failed to remove node with address %s from k8s-dqlite cluster: %w", nodeAddress, err)
