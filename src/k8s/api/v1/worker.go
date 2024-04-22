@@ -19,6 +19,8 @@ type WorkerNodeInfoResponse struct {
 	KubeProxyToken string `json:"kubeProxyToken"`
 	// PodCIDR is the configured CIDR for pods in the cluster.
 	PodCIDR string `json:"podCIDR"`
+	// ServiceCIDR is the configured CIDR for services in the cluster.
+	ServiceCIDR string `json:"serviceCIDR"`
 	// ClusterDNS is the DNS server address of the cluster.
 	ClusterDNS string `json:"clusterDNS,omitempty"`
 	// ClusterDomain is the DNS domain of the cluster.

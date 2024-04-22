@@ -150,6 +150,10 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 
 	// Write worker node configuration to dqlite
 	cfg := types.ClusterConfig{
+		Network: types.Network{
+			PodCIDR:     vals.Pointer(response.PodCIDR),
+			ServiceCIDR: vals.Pointer(response.ServiceCIDR),
+		},
 		Certificates: types.Certificates{
 			K8sdPublicKey: vals.Pointer(response.K8sdPublicKey),
 		},
