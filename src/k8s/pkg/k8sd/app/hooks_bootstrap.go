@@ -149,6 +149,13 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	}
 
 	// Write worker node configuration to dqlite
+	//
+	// Worker nodes only use a subset of the ClusterConfig struct. At the moment, these are:
+	// - Network.PodCIDR and Network.ClusterCIDR: informative
+	// - Certificates.K8sdPublicKey: used to verify the signature of the k8sd-config configmap.
+	//
+	// TODO(neoaggelos): We should be explicit here and try to avoid having worker nodes use
+	// or set other cluster configuration keys by accident.
 	cfg := types.ClusterConfig{
 		Network: types.Network{
 			PodCIDR:     vals.Pointer(response.PodCIDR),
