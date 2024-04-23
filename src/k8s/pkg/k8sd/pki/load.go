@@ -34,6 +34,9 @@ func loadCertificate(certPEM string, keyPEM string) (*x509.Certificate, *rsa.Pri
 // LoadRSAPrivateKey parses the specified PEM block and return the rsa.PrivateKey.
 func LoadRSAPrivateKey(keyPEM string) (*rsa.PrivateKey, error) {
 	pb, _ := pem.Decode([]byte(keyPEM))
+	if pb == nil {
+		return nil, fmt.Errorf("failed to parse PEM block")
+	}
 	switch pb.Type {
 	case "RSA PRIVATE KEY":
 		key, err := x509.ParsePKCS1PrivateKey(pb.Bytes)

@@ -96,8 +96,9 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 }
 
 func (c *UpdateNodeConfigurationController) reconcile(ctx context.Context, client *k8s.Client, config types.ClusterConfig) error {
-	key, err := pki.LoadRSAPrivateKey(config.Certificates.GetK8sdPrivateKey())
-	if err != nil {
+	keyPEM := config.Certificates.GetK8sdPrivateKey()
+	key, err := pki.LoadRSAPrivateKey(keyPEM)
+	if err != nil && keyPEM != "" {
 		return fmt.Errorf("failed to load cluster RSA key: %w", err)
 	}
 
