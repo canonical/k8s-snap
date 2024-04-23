@@ -19,8 +19,6 @@ func TestRemoveNodeByAddress(t *testing.T) {
 			g.Expect(err).To(BeNil())
 			g.Expect(client).NotTo(BeNil())
 
-			defer client.Close(ctx)
-
 			members, err := client.ListMembers(ctx)
 			g.Expect(err).To(BeNil())
 			g.Expect(members).To(HaveLen(2))
@@ -45,8 +43,6 @@ func TestRemoveNodeByAddress(t *testing.T) {
 			})
 			g.Expect(err).To(BeNil())
 			g.Expect(client).NotTo(BeNil())
-
-			defer client.Close(ctx)
 
 			members, err := client.ListMembers(ctx)
 			g.Expect(err).To(BeNil())
