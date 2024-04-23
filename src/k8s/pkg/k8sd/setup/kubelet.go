@@ -30,8 +30,8 @@ var kubeletWorkerLabels = []string{
 }
 
 // KubeletControlPlane configures kubelet on a control plane node.
-func KubeletControlPlane(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string) error {
-	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, nil, append(kubeletControlPlaneLabels, kubeletWorkerLabels...))
+func KubeletControlPlane(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, registerWithTaints []string) error {
+	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, registerWithTaints, append(kubeletControlPlaneLabels, kubeletWorkerLabels...))
 }
 
 // KubeletWorker configures kubelet on a worker node.

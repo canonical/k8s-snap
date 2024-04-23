@@ -8,7 +8,7 @@ explains how to install the snap package and some typical operations.
 - An Ubuntu 22.04 LTS or 20.04 LTS environment to run the commands (or
   another operating system which supports snapd - see the
   [snapd documentation](https://snapcraft.io/docs/installing-snapd))
-- System Requirements: Your machine should have at least 20G disk space
+- System Requirements: Your machine should have at least 40G disk space
   and 4G of memory
 
 ### 1. Install Canonical Kubernetes
