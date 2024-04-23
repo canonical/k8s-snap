@@ -1,9 +1,9 @@
 package v1
 
 import (
+	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -69,8 +69,8 @@ func TestString(t *testing.T) {
 					{Name: "node3", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.3"},
 				},
 				Config: UserFacingClusterConfig{
-					Network: NetworkConfig{Enabled: vals.Pointer(true)},
-					DNS:     DNSConfig{Enabled: vals.Pointer(true)},
+					Network: NetworkConfig{Enabled: utils.Pointer(true)},
+					DNS:     DNSConfig{Enabled: utils.Pointer(true)},
 				},
 				Datastore: Datastore{Type: "k8s-dqlite"},
 			},
@@ -98,8 +98,8 @@ dns:
 					{Name: "node1", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.1"},
 				},
 				Config: UserFacingClusterConfig{
-					Network: NetworkConfig{Enabled: vals.Pointer(true)},
-					DNS:     DNSConfig{Enabled: vals.Pointer(true)},
+					Network: NetworkConfig{Enabled: utils.Pointer(true)},
+					DNS:     DNSConfig{Enabled: utils.Pointer(true)},
 				},
 				Datastore: Datastore{Type: "external", Servers: []string{"etcd-url1", "etcd-url2"}},
 			},

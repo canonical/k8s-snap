@@ -2,6 +2,7 @@ package controllers_test
 
 import (
 	"context"
+	"github.com/canonical/k8s/pkg/utils"
 	"os"
 	"path"
 	"testing"
@@ -12,7 +13,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -66,8 +66,8 @@ func TestControlPlaneConfigController(t *testing.T) {
 				name: "Default",
 				config: types.ClusterConfig{
 					Datastore: types.Datastore{
-						Type:            vals.Pointer("external"),
-						ExternalServers: vals.Pointer([]string{"http://127.0.0.1:2379"}),
+						Type:            utils.Pointer("external"),
+						ExternalServers: utils.Pointer([]string{"http://127.0.0.1:2379"}),
 					},
 				},
 				expectKubeAPIServerArgs: map[string]string{
@@ -84,11 +84,11 @@ func TestControlPlaneConfigController(t *testing.T) {
 				name: "Certs",
 				config: types.ClusterConfig{
 					Datastore: types.Datastore{
-						Type:               vals.Pointer("external"),
-						ExternalServers:    vals.Pointer([]string{"https://127.0.0.1:2379"}),
-						ExternalCACert:     vals.Pointer("CA DATA"),
-						ExternalClientCert: vals.Pointer("CERT DATA"),
-						ExternalClientKey:  vals.Pointer("KEY DATA"),
+						Type:               utils.Pointer("external"),
+						ExternalServers:    utils.Pointer([]string{"https://127.0.0.1:2379"}),
+						ExternalCACert:     utils.Pointer("CA DATA"),
+						ExternalClientCert: utils.Pointer("CERT DATA"),
+						ExternalClientKey:  utils.Pointer("KEY DATA"),
 					},
 				},
 				expectKubeAPIServerArgs: map[string]string{
@@ -108,7 +108,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 				name: "CloudProvider",
 				config: types.ClusterConfig{
 					Kubelet: types.Kubelet{
-						CloudProvider: vals.Pointer("external"),
+						CloudProvider: utils.Pointer("external"),
 					},
 				},
 				expectKubeControllerManagerArgs: map[string]string{
@@ -120,14 +120,14 @@ func TestControlPlaneConfigController(t *testing.T) {
 				name: "NoUpdates",
 				config: types.ClusterConfig{
 					Datastore: types.Datastore{
-						Type:               vals.Pointer("external"),
-						ExternalServers:    vals.Pointer([]string{"https://127.0.0.1:2379"}),
-						ExternalCACert:     vals.Pointer("CA DATA"),
-						ExternalClientCert: vals.Pointer("CERT DATA"),
-						ExternalClientKey:  vals.Pointer("KEY DATA"),
+						Type:               utils.Pointer("external"),
+						ExternalServers:    utils.Pointer([]string{"https://127.0.0.1:2379"}),
+						ExternalCACert:     utils.Pointer("CA DATA"),
+						ExternalClientCert: utils.Pointer("CERT DATA"),
+						ExternalClientKey:  utils.Pointer("KEY DATA"),
 					},
 					Kubelet: types.Kubelet{
-						CloudProvider: vals.Pointer("external"),
+						CloudProvider: utils.Pointer("external"),
 					},
 				},
 				expectKubeAPIServerArgs: map[string]string{
@@ -149,11 +149,11 @@ func TestControlPlaneConfigController(t *testing.T) {
 				name: "UpdateAll",
 				config: types.ClusterConfig{
 					Datastore: types.Datastore{
-						Type:            vals.Pointer("external"),
-						ExternalServers: vals.Pointer([]string{"http://127.0.0.1:2379"}),
+						Type:            utils.Pointer("external"),
+						ExternalServers: utils.Pointer([]string{"http://127.0.0.1:2379"}),
 					},
 					Kubelet: types.Kubelet{
-						CloudProvider: vals.Pointer(""),
+						CloudProvider: utils.Pointer(""),
 					},
 				},
 				expectKubeAPIServerArgs: map[string]string{
@@ -263,14 +263,14 @@ func TestControlPlaneConfigController(t *testing.T) {
 
 		configProvider.config = types.ClusterConfig{
 			Datastore: types.Datastore{
-				Type:               vals.Pointer("external"),
-				ExternalServers:    vals.Pointer([]string{"https://127.0.0.1:2379"}),
-				ExternalCACert:     vals.Pointer("CA DATA"),
-				ExternalClientCert: vals.Pointer("CERT DATA"),
-				ExternalClientKey:  vals.Pointer("KEY DATA"),
+				Type:               utils.Pointer("external"),
+				ExternalServers:    utils.Pointer([]string{"https://127.0.0.1:2379"}),
+				ExternalCACert:     utils.Pointer("CA DATA"),
+				ExternalClientCert: utils.Pointer("CERT DATA"),
+				ExternalClientKey:  utils.Pointer("KEY DATA"),
 			},
 			Kubelet: types.Kubelet{
-				CloudProvider: vals.Pointer("external"),
+				CloudProvider: utils.Pointer("external"),
 			},
 		}
 

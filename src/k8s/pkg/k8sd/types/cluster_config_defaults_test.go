@@ -1,10 +1,10 @@
 package types_test
 
 import (
+	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -15,52 +15,52 @@ func TestSetDefaults(t *testing.T) {
 	// Set defaults
 	expectedConfig := types.ClusterConfig{
 		Network: types.Network{
-			Enabled:     vals.Pointer(false),
-			PodCIDR:     vals.Pointer("10.1.0.0/16"),
-			ServiceCIDR: vals.Pointer("10.152.183.0/24"),
+			Enabled:     utils.Pointer(false),
+			PodCIDR:     utils.Pointer("10.1.0.0/16"),
+			ServiceCIDR: utils.Pointer("10.152.183.0/24"),
 		},
 		APIServer: types.APIServer{
-			SecurePort:        vals.Pointer(6443),
-			AuthorizationMode: vals.Pointer("Node,RBAC"),
+			SecurePort:        utils.Pointer(6443),
+			AuthorizationMode: utils.Pointer("Node,RBAC"),
 		},
 		Datastore: types.Datastore{
-			Type:          vals.Pointer("k8s-dqlite"),
-			K8sDqlitePort: vals.Pointer(9000),
+			Type:          utils.Pointer("k8s-dqlite"),
+			K8sDqlitePort: utils.Pointer(9000),
 		},
 		Kubelet: types.Kubelet{
-			ClusterDomain: vals.Pointer("cluster.local"),
+			ClusterDomain: utils.Pointer("cluster.local"),
 		},
 		DNS: types.DNS{
-			Enabled:             vals.Pointer(false),
-			UpstreamNameservers: vals.Pointer([]string{"/etc/resolv.conf"}),
+			Enabled:             utils.Pointer(false),
+			UpstreamNameservers: utils.Pointer([]string{"/etc/resolv.conf"}),
 		},
 		LocalStorage: types.LocalStorage{
-			Enabled:       vals.Pointer(false),
-			LocalPath:     vals.Pointer("/var/snap/k8s/common/rawfile-storage"),
-			ReclaimPolicy: vals.Pointer("Delete"),
-			Default:       vals.Pointer(true),
+			Enabled:       utils.Pointer(false),
+			LocalPath:     utils.Pointer("/var/snap/k8s/common/rawfile-storage"),
+			ReclaimPolicy: utils.Pointer("Delete"),
+			Default:       utils.Pointer(true),
 		},
 		LoadBalancer: types.LoadBalancer{
-			Enabled:        vals.Pointer(false),
-			CIDRs:          vals.Pointer([]string{}),
-			L2Mode:         vals.Pointer(false),
-			L2Interfaces:   vals.Pointer([]string{}),
-			BGPMode:        vals.Pointer(false),
-			BGPLocalASN:    vals.Pointer(0),
-			BGPPeerAddress: vals.Pointer(""),
-			BGPPeerASN:     vals.Pointer(0),
-			BGPPeerPort:    vals.Pointer(0),
+			Enabled:        utils.Pointer(false),
+			CIDRs:          utils.Pointer([]string{}),
+			L2Mode:         utils.Pointer(false),
+			L2Interfaces:   utils.Pointer([]string{}),
+			BGPMode:        utils.Pointer(false),
+			BGPLocalASN:    utils.Pointer(0),
+			BGPPeerAddress: utils.Pointer(""),
+			BGPPeerASN:     utils.Pointer(0),
+			BGPPeerPort:    utils.Pointer(0),
 		},
 		MetricsServer: types.MetricsServer{
-			Enabled: vals.Pointer(true),
+			Enabled: utils.Pointer(true),
 		},
 		Gateway: types.Gateway{
-			Enabled: vals.Pointer(false),
+			Enabled: utils.Pointer(false),
 		},
 		Ingress: types.Ingress{
-			Enabled:             vals.Pointer(false),
-			DefaultTLSSecret:    vals.Pointer(""),
-			EnableProxyProtocol: vals.Pointer(false),
+			Enabled:             utils.Pointer(false),
+			DefaultTLSSecret:    utils.Pointer(""),
+			EnableProxyProtocol: utils.Pointer(false),
 		},
 	}
 

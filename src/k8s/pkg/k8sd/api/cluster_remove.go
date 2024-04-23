@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	utils2 "github.com/canonical/k8s/pkg/k8sd/database/utils"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -51,7 +52,7 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 			return response.InternalError(fmt.Errorf("failed to remove k8s node %q: %w", req.Name, err))
 		}
 
-		if err := utils.DeleteWorkerNodeEntry(r.Context(), s, req.Name); err != nil {
+		if err := utils2.DeleteWorkerNodeEntry(r.Context(), s, req.Name); err != nil {
 			return response.InternalError(fmt.Errorf("failed to remove worker entry %q: %w", req.Name, err))
 		}
 	}

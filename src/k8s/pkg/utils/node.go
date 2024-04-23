@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"github.com/canonical/k8s/pkg/k8sd/database/utils"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/microcluster/state"
@@ -45,7 +46,7 @@ func IsControlPlaneNode(ctx context.Context, s *state.State, name string) (bool,
 
 // IsWorkerNode returns true if the given node name belongs to a worker node in the cluster.
 func IsWorkerNode(ctx context.Context, s *state.State, name string) (bool, error) {
-	exists, err := CheckWorkerExists(ctx, s, name)
+	exists, err := utils.CheckWorkerExists(ctx, s, name)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if worker node %q exists: %w", name, err)
 	}

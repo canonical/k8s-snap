@@ -2,9 +2,8 @@ package types
 
 import (
 	"fmt"
-
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/utils/vals"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 // ClusterConfigFromBootstrapConfig converts BootstrapConfig from public API into a ClusterConfig.
@@ -17,9 +16,9 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 	// APIServer
 	config.APIServer.SecurePort = b.SecurePort
 	if b.DisableRBAC != nil && *b.DisableRBAC {
-		config.APIServer.AuthorizationMode = vals.Pointer("AlwaysAllow")
+		config.APIServer.AuthorizationMode = utils.Pointer("AlwaysAllow")
 	} else {
-		config.APIServer.AuthorizationMode = vals.Pointer("Node,RBAC")
+		config.APIServer.AuthorizationMode = utils.Pointer("Node,RBAC")
 	}
 
 	// Datastore
@@ -39,7 +38,7 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 		}
 
 		config.Datastore = Datastore{
-			Type:          vals.Pointer("k8s-dqlite"),
+			Type:          utils.Pointer("k8s-dqlite"),
 			K8sDqlitePort: b.K8sDqlitePort,
 		}
 	case "external":
@@ -50,8 +49,8 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 			return ClusterConfig{}, fmt.Errorf("k8s-dqlite-port needs datastore-type to be k8s-dqlite")
 		}
 		config.Datastore = Datastore{
-			Type:               vals.Pointer("external"),
-			ExternalServers:    vals.Pointer(b.DatastoreServers),
+			Type:               utils.Pointer("external"),
+			ExternalServers:    utils.Pointer(b.DatastoreServers),
 			ExternalCACert:     b.DatastoreCACert,
 			ExternalClientCert: b.DatastoreClientCert,
 			ExternalClientKey:  b.DatastoreClientKey,

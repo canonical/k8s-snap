@@ -9,7 +9,6 @@ import (
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/moby/sys/mountinfo"
 	"gopkg.in/yaml.v2"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -207,7 +206,7 @@ func (s *snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RE
 
 func (s *snap) KubernetesNodeRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
 	flags := &genericclioptions.ConfigFlags{
-		KubeConfig: vals.Pointer(path.Join(s.KubernetesConfigDir(), "kubelet.conf")),
+		KubeConfig: utils.Pointer(path.Join(s.KubernetesConfigDir(), "kubelet.conf")),
 	}
 	if namespace != "" {
 		flags.Namespace = &namespace

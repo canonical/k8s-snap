@@ -5,13 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/utils"
 	"net"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
-	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
@@ -32,7 +32,7 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		return response.BadRequest(fmt.Errorf("failed to parse node IP address %s", req.Address))
 	}
 
-	cfg, err := utils.GetClusterConfig(s.Context, s)
+	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
