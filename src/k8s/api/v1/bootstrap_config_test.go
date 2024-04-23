@@ -1,10 +1,10 @@
 package v1_test
 
 import (
-	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
