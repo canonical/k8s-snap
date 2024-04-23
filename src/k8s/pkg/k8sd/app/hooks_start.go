@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/utils"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/microcluster/state"

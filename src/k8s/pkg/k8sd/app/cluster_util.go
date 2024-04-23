@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/canonical/k8s/pkg/k8sd/database/utils"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net"
 	"path"
 
@@ -28,7 +28,7 @@ func setupKubeconfigs(s *state.State, kubeConfigDir string, securePort int, caCe
 		{file: "scheduler.conf", username: "system:kube-scheduler"},
 		{file: "kubelet.conf", username: fmt.Sprintf("system:node:%s", s.Name()), groups: []string{"system:nodes"}},
 	} {
-		token, err := utils.GetOrCreateAuthToken(s.Context, s, kubeconfig.username, kubeconfig.groups)
+		token, err := databaseutil.GetOrCreateAuthToken(s.Context, s, kubeconfig.username, kubeconfig.groups)
 		if err != nil {
 			return fmt.Errorf("failed to generate token for username=%s groups=%v: %w", kubeconfig.username, kubeconfig.groups, err)
 		}

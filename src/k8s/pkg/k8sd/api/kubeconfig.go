@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/utils"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
