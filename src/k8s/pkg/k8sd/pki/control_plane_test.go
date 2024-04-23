@@ -39,9 +39,9 @@ func TestControlPlaneCertificates(t *testing.T) {
 		g := NewWithT(t)
 
 		priv, err := pki.LoadRSAPrivateKey(c.K8sdPrivateKey)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).ToNot(HaveOccurred())
 		pub, err := pki.LoadRSAPublicKey(c.K8sdPublicKey)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).ToNot(HaveOccurred())
 
 		// generate a hash to sign
 		b := make([]byte, 10)
@@ -52,10 +52,10 @@ func TestControlPlaneCertificates(t *testing.T) {
 
 		// sign hash
 		signed, err := rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA256, hashed)
-		g.Expect(err).To(Succeed())
+		g.Expect(err).ToNot(HaveOccurred())
 
 		// verify signature
-		g.Expect(rsa.VerifyPKCS1v15(pub, crypto.SHA256, hashed, signed)).To(BeNil())
+		g.Expect(rsa.VerifyPKCS1v15(pub, crypto.SHA256, hashed, signed)).To(Succeed())
 	})
 
 	t.Run("MissingCAKey", func(t *testing.T) {
