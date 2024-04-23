@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -21,7 +20,7 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 	snap := e.provider.Snap()
 
 	req := apiv1.WorkerNodeInfoRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 

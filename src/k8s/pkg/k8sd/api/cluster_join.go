@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -14,7 +13,7 @@ import (
 
 func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Response {
 	req := apiv1.JoinClusterRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -16,7 +15,7 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 	snap := e.provider.Snap()
 
 	req := apiv1.RemoveNodeRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
