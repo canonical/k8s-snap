@@ -400,7 +400,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		}
 	}
 
-	a.NotifyUpdateConfigMap()
+	a.NotifyNodeConfigController()
 
 	return nil
 }

@@ -14,25 +14,27 @@ import (
 )
 
 // UpdateNodeConfigurationController asynchronously performs updates of the cluster config.
-// An updates is triggered by sending to the TriggerCh.
+// A new reconcile loop is triggered by pushing to the triggerCh channel.
 type UpdateNodeConfigurationController struct {
 	snap         snap.Snap
 	waitReady    func()
 	newK8sClient func() (*k8s.Client, error)
-	// TriggerCh is used to trigger config updates.
-	TriggerCh chan struct{}
-	// ReconciledCh is used to indicate that a reconcilation loop has finished.
-	ReconciledCh chan struct{}
+
+	// triggerCh is used to trigger config updates on the controller.
+	triggerCh <-chan struct{}
+	// reconciledCh is used to notify that the controller has finished its reconciliation loop.
+	reconciledCh chan struct{}
 }
 
 // NewUpdateNodeConfigurationController creates a new controller.
-func NewUpdateNodeConfigurationController(snap snap.Snap, waitReady func(), newK8sClient func() (*k8s.Client, error)) *UpdateNodeConfigurationController {
+func NewUpdateNodeConfigurationController(snap snap.Snap, waitReady func(), newK8sClient func() (*k8s.Client, error), triggerCh <-chan struct{}) *UpdateNodeConfigurationController {
 	return &UpdateNodeConfigurationController{
 		snap:         snap,
 		waitReady:    waitReady,
 		newK8sClient: newK8sClient,
-		TriggerCh:    make(chan struct{}, 1),
-		ReconciledCh: make(chan struct{}, 1),
+
+		triggerCh:    triggerCh,
+		reconciledCh: make(chan struct{}, 1),
 	}
 }
 
@@ -59,15 +61,10 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 	c.waitReady()
 
 	for {
-		client, err := c.retryNewK8sClient(ctx)
-		if err != nil {
-			log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
-		}
-
 		select {
 		case <-ctx.Done():
 			return
-		case <-c.TriggerCh:
+		case <-c.triggerCh:
 		}
 
 		if isWorker, err := snaputil.IsWorker(c.snap); err != nil {
@@ -84,12 +81,18 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 			continue
 		}
 
+		client, err := c.retryNewK8sClient(ctx)
+		if err != nil {
+			log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
+		}
+
 		if err := c.reconcile(ctx, client, config); err != nil {
 			log.Println(fmt.Errorf("failed to reconcile cluster configuration: %w", err))
 		}
 
+		// notify downstream that the reconciliation loop is done.
 		select {
-		case c.ReconciledCh <- struct{}{}:
+		case c.reconciledCh <- struct{}{}:
 		default:
 		}
 	}
@@ -111,4 +114,9 @@ func (c *UpdateNodeConfigurationController) reconcile(ctx context.Context, clien
 	}
 
 	return nil
+}
+
+// ReconciledCh returns the channel where the controller pushes when a reconciliation loop is finished.
+func (c *UpdateNodeConfigurationController) ReconciledCh() <-chan struct{} {
+	return c.reconciledCh
 }
