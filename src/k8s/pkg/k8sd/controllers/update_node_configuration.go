@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
@@ -95,7 +96,13 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 }
 
 func (c *UpdateNodeConfigurationController) reconcile(ctx context.Context, client *k8s.Client, config types.ClusterConfig) error {
-	cmData, err := config.Kubelet.ToConfigMap(nil)
+	keyPEM := config.Certificates.GetK8sdPrivateKey()
+	key, err := pki.LoadRSAPrivateKey(keyPEM)
+	if err != nil && keyPEM != "" {
+		return fmt.Errorf("failed to load cluster RSA key: %w", err)
+	}
+
+	cmData, err := config.Kubelet.ToConfigMap(key)
 	if err != nil {
 		return fmt.Errorf("failed to format kubelet configmap data: %w", err)
 	}

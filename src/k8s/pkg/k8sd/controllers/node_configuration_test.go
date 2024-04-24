@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"crypto/rsa"
 	"os"
 	"path"
 	"testing"
@@ -129,7 +130,8 @@ func TestConfigPropagation(t *testing.T) {
 		return &k8s.Client{Interface: clientset}, nil
 	})
 
-	go configController.Run(ctx)
+	// TODO: add test with signing key
+	go configController.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) { return nil, nil })
 	defer watcher.Stop()
 
 	for _, tc := range tests {

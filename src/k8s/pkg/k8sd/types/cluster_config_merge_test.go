@@ -2,8 +2,9 @@ package types_test
 
 import (
 	"fmt"
-	"github.com/canonical/k8s/pkg/utils"
 	"testing"
+
+	"github.com/canonical/k8s/pkg/utils"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	. "github.com/onsi/gomega"
@@ -80,6 +81,8 @@ func TestMergeClusterConfig(t *testing.T) {
 		generateMergeClusterConfigTestCases("Certificates/APIServerKubeletClientKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) {
 			c.Certificates.APIServerKubeletClientKey = utils.Pointer(v.(string))
 		}),
+		generateMergeClusterConfigTestCases("Certificates/K8sdPublicKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.K8sdPublicKey = utils.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Certificates/K8sdPrivateKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.K8sdPrivateKey = utils.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/Type", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.Type = utils.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/K8sDqliteCert", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.K8sDqliteCert = utils.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/K8sDqliteKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.K8sDqliteKey = utils.Pointer(v.(string)) }),

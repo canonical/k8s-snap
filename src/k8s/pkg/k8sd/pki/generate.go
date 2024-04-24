@@ -102,14 +102,23 @@ func signCertificate(certificate *x509.Certificate, bits int, parent *x509.Certi
 	return string(crtPEM), string(keyPEM), nil
 }
 
-func generateKey(bits int) (string, error) {
-	key, err := rsa.GenerateKey(rand.Reader, bits)
+func generateRSAKey(bits int) (string, string, error) {
+	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate RSA private key: %w", err)
+		return "", "", fmt.Errorf("failed to generate RSA private key: %w", err)
 	}
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
-	if keyPEM == nil {
-		return "", fmt.Errorf("failed to encode private key PEM")
+	privPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
+	if privPEM == nil {
+		return "", "", fmt.Errorf("failed to encode private key PEM")
 	}
-	return string(keyPEM), nil
+	pubBytes, err := x509.MarshalPKIXPublicKey(&priv.PublicKey)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to encode RSA public key: %w", err)
+	}
+	pubPEM := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pubBytes})
+	if pubPEM == nil {
+		return "", "", fmt.Errorf("failed to encode public key PEM")
+	}
+
+	return string(privPEM), string(pubPEM), nil
 }

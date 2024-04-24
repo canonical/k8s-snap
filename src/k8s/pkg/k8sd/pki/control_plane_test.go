@@ -1,6 +1,10 @@
 package pki_test
 
 import (
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
 	"net"
@@ -30,6 +34,29 @@ func TestControlPlaneCertificates(t *testing.T) {
 
 	g.Expect(c.CompleteCertificates()).To(Succeed())
 	g.Expect(c.CompleteCertificates()).To(Succeed())
+
+	t.Run("K8sdKey", func(t *testing.T) {
+		g := NewWithT(t)
+
+		priv, err := pki.LoadRSAPrivateKey(c.K8sdPrivateKey)
+		g.Expect(err).ToNot(HaveOccurred())
+		pub, err := pki.LoadRSAPublicKey(c.K8sdPublicKey)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		// generate a hash to sign
+		b := make([]byte, 10)
+		rand.Read(b)
+		h := sha256.New()
+		h.Write(b)
+		hashed := h.Sum(nil)
+
+		// sign hash
+		signed, err := rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA256, hashed)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		// verify signature
+		g.Expect(rsa.VerifyPKCS1v15(pub, crypto.SHA256, hashed, signed)).To(Succeed())
+	})
 
 	t.Run("MissingCAKey", func(t *testing.T) {
 		c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{

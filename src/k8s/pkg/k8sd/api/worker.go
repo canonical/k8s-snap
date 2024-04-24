@@ -98,6 +98,7 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		CA:             cfg.Certificates.GetCACert(),
 		APIServers:     servers,
 		PodCIDR:        cfg.Network.GetPodCIDR(),
+		ServiceCIDR:    cfg.Network.GetServiceCIDR(),
 		KubeletToken:   kubeletToken,
 		KubeProxyToken: proxyToken,
 		ClusterDomain:  cfg.Kubelet.GetClusterDomain(),
@@ -105,5 +106,6 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		CloudProvider:  cfg.Kubelet.GetCloudProvider(),
 		KubeletCert:    workerCertificates.KubeletCert,
 		KubeletKey:     workerCertificates.KubeletKey,
+		K8sdPublicKey:  cfg.Certificates.GetK8sdPublicKey(),
 	})
 }

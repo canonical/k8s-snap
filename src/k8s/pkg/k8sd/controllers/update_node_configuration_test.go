@@ -63,6 +63,7 @@ func TestUpdateNodeConfigurationController(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
+			// TODO: add tests with a signed configmap
 			configProvider := &configProvider{config: tc.expectedConfig}
 			kubeletConfigMap, err := tc.initialConfig.Kubelet.ToConfigMap(nil)
 			g.Expect(err).ToNot(HaveOccurred())

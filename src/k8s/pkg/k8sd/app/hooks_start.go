@@ -2,8 +2,11 @@ package app
 
 import (
 	"context"
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
+	"crypto/rsa"
+	"fmt"
 
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
+	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/microcluster/state"
 )
@@ -14,7 +17,17 @@ func (a *App) onStart(s *state.State) error {
 
 	// start node config controller
 	if a.nodeConfigController != nil {
-		go a.nodeConfigController.Run(s.Context)
+		go a.nodeConfigController.Run(s.Context, func(ctx context.Context) (*rsa.PublicKey, error) {
+			cfg, err := databaseutil.GetClusterConfig(ctx, s)
+			if err != nil {
+				return nil, fmt.Errorf("failed to load RSA key from configuration: %w", err)
+			}
+			key, err := pki.LoadRSAPublicKey(cfg.Certificates.GetK8sdPublicKey())
+			if err != nil {
+				return nil, fmt.Errorf("failed to load RSA key: %w", err)
+			}
+			return key, nil
+		})
 	}
 
 	// start control plane config controller
