@@ -13,7 +13,6 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
-	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -345,62 +344,14 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
 
-	// TODO(neoaggelos): the work below should be a POST /cluster/config
-	if cfg.Network.GetEnabled() {
-		if err := features.ApplyNetwork(s.Context, snap, cfg.Network); err != nil {
-			return fmt.Errorf("failed to apply network: %w", err)
-		}
-	}
-
-	if cfg.DNS.GetEnabled() {
-		dnsIP, err := features.ApplyDNS(s.Context, snap, cfg.DNS, cfg.Kubelet)
-		if err != nil {
-			return fmt.Errorf("failed to apply DNS: %w", err)
-		}
-
-		if dnsIP != "" {
-			if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-				if cfg, err = database.SetClusterConfig(ctx, tx, types.ClusterConfig{
-					Kubelet: types.Kubelet{
-						ClusterDNS: utils.Pointer(dnsIP),
-					},
-				}); err != nil {
-					return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)
-				}
-				return nil
-			}); err != nil {
-				return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
-			}
-		}
-	}
-
-	if cfg.LocalStorage.GetEnabled() {
-		if err := features.ApplyLocalStorage(s.Context, snap, cfg.LocalStorage); err != nil {
-			return fmt.Errorf("failed to apply local-storage: %w", err)
-		}
-	}
-	if cfg.Gateway.GetEnabled() {
-		if err := features.ApplyGateway(s.Context, snap, cfg.Gateway); err != nil {
-			return fmt.Errorf("failed to apply gateway: %w", err)
-		}
-	}
-	if cfg.Ingress.GetEnabled() {
-		if err := features.ApplyIngress(s.Context, snap, cfg.Ingress); err != nil {
-			return fmt.Errorf("failed to apply ingress: %w", err)
-		}
-	}
-	if cfg.LoadBalancer.GetEnabled() {
-		if err := features.ApplyLoadBalancer(s.Context, snap, cfg.LoadBalancer); err != nil {
-			return fmt.Errorf("failed to apply load-balancer: %w", err)
-		}
-	}
-	if cfg.MetricsServer.GetEnabled() {
-		if err := features.ApplyMetricsServer(s.Context, snap, cfg.MetricsServer); err != nil {
-			return fmt.Errorf("failed to apply metrics-server: %w", err)
-		}
-	}
-
-	a.NotifyNodeConfigController()
-
+	a.NotifyFeatureController(
+		cfg.Network.GetEnabled(),
+		cfg.Gateway.GetEnabled(),
+		cfg.Ingress.GetEnabled(),
+		cfg.LoadBalancer.GetEnabled(),
+		cfg.LocalStorage.GetEnabled(),
+		cfg.MetricsServer.GetEnabled(),
+		cfg.DNS.GetEnabled(),
+	)
 	return nil
 }
