@@ -14,8 +14,12 @@ function collect_args {
 	if [ -e $SVC_ARGS_DIR/${service#k8s.} ]; then
 		# Strip k8s. prefix if present because args directories _are not_ created with k8s. prefix
 		cat $SVC_ARGS_DIR/${service#k8s.} &> $INSPECT_DUMP/$service/args
-		printf -- ' Arguments for %s collected\n' "$service"
+		printf -- '  Found arguments for %s\n' "$service"
 	fi
+}
+
+function collect_cluster_info {
+	k8s kubectl cluster-info dump &> $INSPECT_DUMP/cluster-info
 }
 
 function check_service {
@@ -49,7 +53,6 @@ fi
 rm -rf $INSPECT_DUMP
 mkdir -p $INSPECT_DUMP
 
-printf -- 'Inspecting services\n'
 svc_containerd='k8s.containerd'
 svc_api_server_proxy='k8s.k8s-apiserver-proxy'
 svc_k8s_dqlite='k8s.k8s-dqlite'
@@ -60,15 +63,16 @@ svc_kube_proxy='k8s.kube-proxy'
 svc_kube_scheduler='k8s.kube-scheduler'
 svc_kubelet='k8s.kubelet'
 
-#check_service $svc_containerd
-#check_service $svc_api_server_proxy
-#check_service $svc_k8s_dqlite
-#check_service $svc_k8sd
-#check_service $svc_kube_apiserver
-#check_service $svc_kube_controller_manager
-#check_service $svc_kube_proxy
-#check_service $svc_kube_scheduler
-#check_service $svc_kubelet
+printf -- 'Inspecting services\n'
+check_service $svc_containerd
+check_service $svc_api_server_proxy
+check_service $svc_k8s_dqlite
+check_service $svc_k8sd
+check_service $svc_kube_apiserver
+check_service $svc_kube_controller_manager
+check_service $svc_kube_proxy
+check_service $svc_kube_scheduler
+check_service $svc_kubelet
 
 printf -- 'Collecting arguments\n'
 collect_args $svc_containerd
@@ -80,3 +84,6 @@ collect_args $svc_kube_controller_manager
 collect_args $svc_kube_proxy
 collect_args $svc_kube_scheduler
 collect_args $svc_kubelet
+
+printf -- 'Collecting cluster info\n'
+collect_cluster_info
