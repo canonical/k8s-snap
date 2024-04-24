@@ -13,6 +13,8 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 	if err != nil {
 		return fmt.Errorf("failed to create dqlite client: %w", err)
 	}
+	defer client.Close()
+
 	members, err := client.Cluster(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve cluster nodes")
