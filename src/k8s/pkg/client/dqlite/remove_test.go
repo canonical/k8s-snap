@@ -63,7 +63,7 @@ func TestRemoveNodeByAddress(t *testing.T) {
 			members, err = client.ListMembers(ctx)
 			g.Expect(err).To(BeNil())
 			g.Expect(members).To(HaveLen(1))
-			g.Expect(members[0].Role == dqlite.Voter)
+			g.Expect(members[0].Role).To(Equal(dqlite.Voter))
 			g.Expect(members[0].Address).ToNot(Equal(memberToRemove.Address))
 
 			g.Expect(client.RemoveNodeByAddress(ctx, remainingNode.Address)).ToNot(Succeed())
