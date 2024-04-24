@@ -4,15 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
-	"github.com/canonical/k8s/pkg/utils"
 	"net/http"
 
 	api "github.com/canonical/k8s/api/v1"
-
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
@@ -100,7 +99,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		}
 	}
 
-	e.provider.NotifyUpdateConfigMap()
+	e.provider.NotifyNodeConfigController()
 
 	return response.SyncResponse(true, &api.UpdateClusterConfigResponse{})
 }
