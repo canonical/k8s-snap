@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/utils"
@@ -22,7 +21,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	var req api.UpdateClusterConfigRequest
 	snap := e.provider.Snap()
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
 	}
 
