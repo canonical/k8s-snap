@@ -9,28 +9,28 @@ SVC_ARGS_DIR=/var/snap/k8s/common/args
 
 function collect_args {
 	local service=$1
-	mkdir -p $INSPECT_DUMP/$service
+	mkdir -p "$INSPECT_DUMP"/"$service"
 
-	if [ -e $SVC_ARGS_DIR/${service#k8s.} ]; then
+	if [ -e $SVC_ARGS_DIR/"${service#k8s.}" ]; then
 		# Strip k8s. prefix if present because args directories _are not_ created with k8s. prefix
-		cat $SVC_ARGS_DIR/${service#k8s.} &> $INSPECT_DUMP/$service/args
+		cat $SVC_ARGS_DIR/"${service#k8s.}" &> "$INSPECT_DUMP"/"$service"/args
 		printf -- '  Found arguments for %s\n' "$service"
 	fi
 }
 
 function collect_cluster_info {
-	k8s kubectl cluster-info dump &> $INSPECT_DUMP/cluster-info
+	k8s kubectl cluster-info dump &> "$INSPECT_DUMP"/cluster-info
 }
 
 function check_service {
 	local service=$1
-	mkdir -p $INSPECT_DUMP/$service
+	mkdir -p "$INSPECT_DUMP"/"$service"
 
 	status="inactive"
 	
-	journalctl -n $JOURNALCTL_LIMIT -u snap.$service &> $INSPECT_DUMP/$service/journal.log
-	systemctl status snap.$service &> $INSPECT_DUMP/$service/systemctl.log
-	if systemctl status snap.$service &> /dev/null; then
+	journalctl -n $JOURNALCTL_LIMIT -u snap."$service" &> "$INSPECT_DUMP"/"$service"/journal.log
+	systemctl status snap."$service" &> "$INSPECT_DUMP"/"$service"/systemctl.log
+	if systemctl status snap."$service" &> /dev/null; then
 		status="active"
 	fi
 
@@ -50,8 +50,8 @@ if [ "$EUID" -ne 0 ]; then
 	exit 1
 fi
 
-rm -rf $INSPECT_DUMP
-mkdir -p $INSPECT_DUMP
+rm -rf "$INSPECT_DUMP"
+mkdir -p "$INSPECT_DUMP"
 
 svc_containerd='k8s.containerd'
 svc_api_server_proxy='k8s.k8s-apiserver-proxy'
