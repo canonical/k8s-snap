@@ -2,8 +2,10 @@ package api
 
 import (
 	"fmt"
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net/http"
+
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
+	"github.com/canonical/k8s/pkg/utils"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/setup"

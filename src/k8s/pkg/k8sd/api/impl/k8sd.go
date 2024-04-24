@@ -8,7 +8,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
-	"github.com/canonical/k8s/pkg/utils"
+	nodeutil "github.com/canonical/k8s/pkg/utils/node"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -30,7 +30,7 @@ func GetClusterMembers(ctx context.Context, s *state.State) ([]apiv1.NodeStatus,
 			Name:          clusterMember.Name,
 			Address:       clusterMember.Address.String(),
 			ClusterRole:   apiv1.ClusterRoleControlPlane,
-			DatastoreRole: utils.DatastoreRoleFromString(clusterMember.Role),
+			DatastoreRole: nodeutil.DatastoreRoleFromString(clusterMember.Role),
 		}
 	}
 
@@ -49,7 +49,7 @@ func GetLocalNodeStatus(ctx context.Context, s *state.State, snap snap.Snap) (ap
 	if isWorker {
 		clusterRole = apiv1.ClusterRoleWorker
 	} else {
-		node, err := utils.GetControlPlaneNode(ctx, s, s.Name())
+		node, err := nodeutil.GetControlPlaneNode(ctx, s, s.Name())
 		if err != nil {
 			// The node is likely in a joining or leaving phase where the role is not yet settled.
 			// Use the unknown role but still log this incident for debugging.
