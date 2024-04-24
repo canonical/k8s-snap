@@ -2,12 +2,13 @@ package api
 
 import (
 	"fmt"
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
+	nodeutil "github.com/canonical/k8s/pkg/utils/node"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
@@ -20,7 +21,7 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	isControlPlane, err := utils.IsControlPlaneNode(r.Context(), s, req.Name)
+	isControlPlane, err := nodeutil.IsControlPlaneNode(r.Context(), s, req.Name)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to check if node is control-plane: %w", err))
 	}

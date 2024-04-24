@@ -1,8 +1,9 @@
-package utils
+package node
 
 import (
 	"context"
 	"fmt"
+
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/microcluster/state"
 )
