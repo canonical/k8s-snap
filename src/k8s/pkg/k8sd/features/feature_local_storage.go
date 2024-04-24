@@ -41,6 +41,6 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 		},
 	}
 
-	_, err := m.Apply(ctx, featureLocalStorage, stateFromBool(cfg.GetEnabled()), values)
+	_, err := m.Apply(ctx, featureLocalStorage, statePresentOrDeleted(cfg.GetEnabled()), values)
 	return err
 }

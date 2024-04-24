@@ -25,6 +25,6 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsSe
 		},
 	}
 
-	_, err := m.Apply(ctx, featureMetricsServer, stateFromBool(cfg.GetEnabled()), values)
+	_, err := m.Apply(ctx, featureMetricsServer, statePresentOrDeleted(cfg.GetEnabled()), values)
 	return err
 }
