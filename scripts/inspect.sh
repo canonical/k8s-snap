@@ -3,8 +3,7 @@
 JOURNALCTL_LIMIT=100000
 RETURN_CODE=0
 
-#INSPECT_DUMP=${SNAP_DATA}/inspection-report
-INSPECT_DUMP=/home/user/Repos/k8s-inspect-script/inspection-report
+INSPECT_DUMP=$(pwd)/inspection-report
 
 SVC_ARGS_DIR=/var/snap/k8s/common/args
 
@@ -12,7 +11,7 @@ function collect_args {
 	local service=$1
 	mkdir -p $INSPECT_DUMP/$service
 
-	if [ -f $SVC_ARGS_DIR/${service#k8s.} ]; then
+	if [ -e $SVC_ARGS_DIR/${service#k8s.} ]; then
 		# Strip k8s. prefix if present because args directories _are not_ created with k8s. prefix
 		cat $SVC_ARGS_DIR/${service#k8s.} &> $INSPECT_DUMP/$service/args
 		printf -- ' Arguments for %s collected\n' "$service"
@@ -40,6 +39,13 @@ function check_service {
 	fi
 }
 
+# Source: https://github.com/canonical/microk8s/blob/master/microk8s-resources/actions/common/utils.sh#L1272
+# test if we run with sudo
+if [ "$EUID" -ne 0 ]; then
+	echo "Elevated permissions are needed for this command. Please use sudo."
+	exit 1
+fi
+
 rm -rf $INSPECT_DUMP
 mkdir -p $INSPECT_DUMP
 
@@ -65,7 +71,6 @@ svc_kubelet='k8s.kubelet'
 #check_service $svc_kubelet
 
 printf -- 'Collecting arguments\n'
-
 collect_args $svc_containerd
 collect_args $svc_api_server_proxy
 collect_args $svc_k8s_dqlite
