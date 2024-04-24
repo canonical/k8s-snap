@@ -15,8 +15,27 @@ func (a *App) Snap() snap.Snap {
 }
 
 func (a *App) NotifyNodeConfigController() {
+	notify(a.triggerUpdateNodeConfigControllerCh)
+}
+
+func (a *App) NotifyFeatureController(network, gateway, ingress, loadBalancer, localStorage, metricsServer, dns bool) {
+	if network || gateway || ingress || loadBalancer {
+		notify(a.triggerFeatureControllerNetworkCh)
+	}
+	if localStorage {
+		notify(a.triggerFeatureControllerLocalStorageCh)
+	}
+	if metricsServer {
+		notify(a.triggerFeatureControllerMetricsServerCh)
+	}
+	if dns {
+		notify(a.triggerFeatureControllerDNSCh)
+	}
+}
+
+func notify(ch chan<- struct{}) {
 	select {
-	case a.triggerUpdateNodeConfigControllerCh <- struct{}{}:
+	case ch <- struct{}{}:
 	default:
 	}
 }

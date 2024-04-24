@@ -50,6 +50,13 @@ type App struct {
 	// updateNodeConfigController
 	triggerUpdateNodeConfigControllerCh chan struct{}
 	updateNodeConfigController          *controllers.UpdateNodeConfigurationController
+
+	// featureController
+	triggerFeatureControllerNetworkCh       chan struct{}
+	triggerFeatureControllerLocalStorageCh  chan struct{}
+	triggerFeatureControllerMetricsServerCh chan struct{}
+	triggerFeatureControllerDNSCh           chan struct{}
+	featureController                       *controllers.FeatureController
 }
 
 // New initializes a new microcluster instance from configuration.
@@ -96,6 +103,19 @@ func New(cfg Config) (*App, error) {
 			return k8s.NewClient(cfg.Snap.KubernetesRESTClientGetter("kube-system"))
 		},
 		app.triggerUpdateNodeConfigControllerCh,
+	)
+
+	app.triggerFeatureControllerNetworkCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerLocalStorageCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerMetricsServerCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerDNSCh = make(chan struct{}, 1)
+	app.featureController = controllers.NewFeatureController(
+		cfg.Snap,
+		app.readyWg.Wait,
+		app.triggerFeatureControllerNetworkCh,
+		app.triggerFeatureControllerLocalStorageCh,
+		app.triggerFeatureControllerMetricsServerCh,
+		app.triggerFeatureControllerDNSCh,
 	)
 
 	return app, nil
