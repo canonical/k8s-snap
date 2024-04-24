@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -23,7 +24,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to unmarshal control plane join config: %w", err)
 	}
 
-	cfg, err := utils.GetClusterConfig(s.Context, s)
+	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return fmt.Errorf("failed to get cluster config: %w", err)
 	}
@@ -159,7 +160,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 func (a *App) onPreRemove(s *state.State, force bool) error {
 	snap := a.Snap()
 
-	cfg, err := utils.GetClusterConfig(s.Context, s)
+	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve k8sd cluster config: %w", err)
 	}

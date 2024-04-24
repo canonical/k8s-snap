@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -36,12 +37,12 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 		}
 	}
 
-	isWorker, err := utils.IsWorkerNode(r.Context(), s, req.Name)
+	isWorker, err := databaseutil.IsWorkerNode(r.Context(), s, req.Name)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to check if node is control-plane: %w", err))
 	}
 	if isWorker {
-		// For worker nodes, we need to manually cleanup the kubernetes node and db entry.
+		// For worker nodes, we need to manually clean up the kubernetes node and db entry.
 		c, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
@@ -51,7 +52,7 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 			return response.InternalError(fmt.Errorf("failed to remove k8s node %q: %w", req.Name, err))
 		}
 
-		if err := utils.DeleteWorkerNodeEntry(r.Context(), s, req.Name); err != nil {
+		if err := databaseutil.DeleteWorkerNodeEntry(r.Context(), s, req.Name); err != nil {
 			return response.InternalError(fmt.Errorf("failed to remove worker entry %q: %w", req.Name, err))
 		}
 	}

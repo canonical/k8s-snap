@@ -19,7 +19,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -218,8 +217,8 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 			return fmt.Errorf("failed to write k8s-dqlite certificates: %w", err)
 		}
 
-		cfg.Datastore.K8sDqliteCert = vals.Pointer(certificates.K8sDqliteCert)
-		cfg.Datastore.K8sDqliteKey = vals.Pointer(certificates.K8sDqliteKey)
+		cfg.Datastore.K8sDqliteCert = utils.Pointer(certificates.K8sDqliteCert)
+		cfg.Datastore.K8sDqliteKey = utils.Pointer(certificates.K8sDqliteKey)
 	case "external":
 		certificates := &pki.ExternalDatastorePKI{
 			DatastoreCACert:     cfg.Datastore.GetExternalCACert(),
@@ -269,13 +268,13 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	}
 
 	// Add certificates to the cluster config
-	cfg.Certificates.CACert = vals.Pointer(certificates.CACert)
-	cfg.Certificates.CAKey = vals.Pointer(certificates.CAKey)
-	cfg.Certificates.FrontProxyCACert = vals.Pointer(certificates.FrontProxyCACert)
-	cfg.Certificates.FrontProxyCAKey = vals.Pointer(certificates.FrontProxyCAKey)
-	cfg.Certificates.APIServerKubeletClientCert = vals.Pointer(certificates.APIServerKubeletClientCert)
-	cfg.Certificates.APIServerKubeletClientKey = vals.Pointer(certificates.APIServerKubeletClientKey)
-	cfg.Certificates.ServiceAccountKey = vals.Pointer(certificates.ServiceAccountKey)
+	cfg.Certificates.CACert = utils.Pointer(certificates.CACert)
+	cfg.Certificates.CAKey = utils.Pointer(certificates.CAKey)
+	cfg.Certificates.FrontProxyCACert = utils.Pointer(certificates.FrontProxyCACert)
+	cfg.Certificates.FrontProxyCAKey = utils.Pointer(certificates.FrontProxyCAKey)
+	cfg.Certificates.APIServerKubeletClientCert = utils.Pointer(certificates.APIServerKubeletClientCert)
+	cfg.Certificates.APIServerKubeletClientKey = utils.Pointer(certificates.APIServerKubeletClientKey)
+	cfg.Certificates.ServiceAccountKey = utils.Pointer(certificates.ServiceAccountKey)
 
 	// Generate kubeconfigs
 	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), cfg.Certificates.GetCACert()); err != nil {
@@ -335,7 +334,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 			if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 				if cfg, err = database.SetClusterConfig(ctx, tx, types.ClusterConfig{
 					Kubelet: types.Kubelet{
-						ClusterDNS: vals.Pointer(dnsIP),
+						ClusterDNS: utils.Pointer(dnsIP),
 					},
 				}); err != nil {
 					return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)

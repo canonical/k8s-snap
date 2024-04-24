@@ -3,6 +3,7 @@ package k8s_test
 import (
 	"bytes"
 	"context"
+	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -10,7 +11,6 @@ import (
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/k8s/pkg/k8s/client/mock"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -34,7 +34,7 @@ func TestDisableCmd(t *testing.T) {
 			funcs: []string{"gateway"},
 			expectedCall: apiv1.UpdateClusterConfigRequest{
 				Config: apiv1.UserFacingClusterConfig{
-					Gateway: apiv1.GatewayConfig{Enabled: vals.Pointer(false)},
+					Gateway: apiv1.GatewayConfig{Enabled: utils.Pointer(false)},
 				},
 			},
 			expectedStdout: "disabled",
@@ -44,8 +44,8 @@ func TestDisableCmd(t *testing.T) {
 			funcs: []string{"load-balancer", "gateway"},
 			expectedCall: apiv1.UpdateClusterConfigRequest{
 				Config: apiv1.UserFacingClusterConfig{
-					Gateway:      apiv1.GatewayConfig{Enabled: vals.Pointer(false)},
-					LoadBalancer: apiv1.LoadBalancerConfig{Enabled: vals.Pointer(false)},
+					Gateway:      apiv1.GatewayConfig{Enabled: utils.Pointer(false)},
+					LoadBalancer: apiv1.LoadBalancerConfig{Enabled: utils.Pointer(false)},
 				},
 			},
 			expectedStdout: "disabled",

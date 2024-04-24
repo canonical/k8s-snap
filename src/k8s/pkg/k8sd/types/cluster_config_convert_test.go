@@ -1,11 +1,11 @@
 package types_test
 
 import (
+	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -19,60 +19,60 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			name: "Nil",
 			expectConfig: types.ClusterConfig{
 				APIServer: types.APIServer{
-					AuthorizationMode: vals.Pointer("Node,RBAC"),
+					AuthorizationMode: utils.Pointer("Node,RBAC"),
 				},
 				Datastore: types.Datastore{
-					Type: vals.Pointer("k8s-dqlite"),
+					Type: utils.Pointer("k8s-dqlite"),
 				},
 			},
 		},
 		{
 			name: "DisableRBAC",
 			bootstrap: apiv1.BootstrapConfig{
-				DisableRBAC: vals.Pointer(true),
+				DisableRBAC: utils.Pointer(true),
 			},
 			expectConfig: types.ClusterConfig{
 				APIServer: types.APIServer{
-					AuthorizationMode: vals.Pointer("AlwaysAllow"),
+					AuthorizationMode: utils.Pointer("AlwaysAllow"),
 				},
 				Datastore: types.Datastore{
-					Type: vals.Pointer("k8s-dqlite"),
+					Type: utils.Pointer("k8s-dqlite"),
 				},
 			},
 		},
 		{
 			name: "K8sDqliteDefault",
 			bootstrap: apiv1.BootstrapConfig{
-				DatastoreType: vals.Pointer(""),
+				DatastoreType: utils.Pointer(""),
 			},
 			expectConfig: types.ClusterConfig{
 				APIServer: types.APIServer{
-					AuthorizationMode: vals.Pointer("Node,RBAC"),
+					AuthorizationMode: utils.Pointer("Node,RBAC"),
 				},
 				Datastore: types.Datastore{
-					Type: vals.Pointer("k8s-dqlite"),
+					Type: utils.Pointer("k8s-dqlite"),
 				},
 			},
 		},
 		{
 			name: "ExternalDatastore",
 			bootstrap: apiv1.BootstrapConfig{
-				DatastoreType:       vals.Pointer("external"),
+				DatastoreType:       utils.Pointer("external"),
 				DatastoreServers:    []string{"https://10.0.0.1:2379", "https://10.0.0.2:2379"},
-				DatastoreCACert:     vals.Pointer("CA DATA"),
-				DatastoreClientCert: vals.Pointer("CERT DATA"),
-				DatastoreClientKey:  vals.Pointer("KEY DATA"),
+				DatastoreCACert:     utils.Pointer("CA DATA"),
+				DatastoreClientCert: utils.Pointer("CERT DATA"),
+				DatastoreClientKey:  utils.Pointer("KEY DATA"),
 			},
 			expectConfig: types.ClusterConfig{
 				APIServer: types.APIServer{
-					AuthorizationMode: vals.Pointer("Node,RBAC"),
+					AuthorizationMode: utils.Pointer("Node,RBAC"),
 				},
 				Datastore: types.Datastore{
-					Type:               vals.Pointer("external"),
-					ExternalServers:    vals.Pointer([]string{"https://10.0.0.1:2379", "https://10.0.0.2:2379"}),
-					ExternalCACert:     vals.Pointer("CA DATA"),
-					ExternalClientCert: vals.Pointer("CERT DATA"),
-					ExternalClientKey:  vals.Pointer("KEY DATA"),
+					Type:               utils.Pointer("external"),
+					ExternalServers:    utils.Pointer([]string{"https://10.0.0.1:2379", "https://10.0.0.2:2379"}),
+					ExternalCACert:     utils.Pointer("CA DATA"),
+					ExternalClientCert: utils.Pointer("CERT DATA"),
+					ExternalClientKey:  utils.Pointer("KEY DATA"),
 				},
 			},
 		},
@@ -81,81 +81,81 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			bootstrap: apiv1.BootstrapConfig{
 				ClusterConfig: apiv1.UserFacingClusterConfig{
 					Network: apiv1.NetworkConfig{
-						Enabled: vals.Pointer(true),
+						Enabled: utils.Pointer(true),
 					},
 					DNS: apiv1.DNSConfig{
-						Enabled:       vals.Pointer(true),
-						ClusterDomain: vals.Pointer("cluster.local"),
+						Enabled:       utils.Pointer(true),
+						ClusterDomain: utils.Pointer("cluster.local"),
 					},
 					Ingress: apiv1.IngressConfig{
-						Enabled: vals.Pointer(true),
+						Enabled: utils.Pointer(true),
 					},
 					LoadBalancer: apiv1.LoadBalancerConfig{
-						Enabled: vals.Pointer(true),
-						L2Mode:  vals.Pointer(true),
-						CIDRs:   vals.Pointer([]string{"10.0.0.0/24", "10.1.0.10-10.1.0.20"}),
+						Enabled: utils.Pointer(true),
+						L2Mode:  utils.Pointer(true),
+						CIDRs:   utils.Pointer([]string{"10.0.0.0/24", "10.1.0.10-10.1.0.20"}),
 					},
 					LocalStorage: apiv1.LocalStorageConfig{
-						Enabled:   vals.Pointer(true),
-						LocalPath: vals.Pointer("/storage/path"),
-						Default:   vals.Pointer(false),
+						Enabled:   utils.Pointer(true),
+						LocalPath: utils.Pointer("/storage/path"),
+						Default:   utils.Pointer(false),
 					},
 					Gateway: apiv1.GatewayConfig{
-						Enabled: vals.Pointer(true),
+						Enabled: utils.Pointer(true),
 					},
 					MetricsServer: apiv1.MetricsServerConfig{
-						Enabled: vals.Pointer(true),
+						Enabled: utils.Pointer(true),
 					},
-					CloudProvider: vals.Pointer("external"),
+					CloudProvider: utils.Pointer("external"),
 				},
-				PodCIDR:       vals.Pointer("10.100.0.0/16"),
-				ServiceCIDR:   vals.Pointer("10.200.0.0/16"),
-				DisableRBAC:   vals.Pointer(false),
-				SecurePort:    vals.Pointer(6443),
-				K8sDqlitePort: vals.Pointer(9090),
-				DatastoreType: vals.Pointer("k8s-dqlite"),
+				PodCIDR:       utils.Pointer("10.100.0.0/16"),
+				ServiceCIDR:   utils.Pointer("10.200.0.0/16"),
+				DisableRBAC:   utils.Pointer(false),
+				SecurePort:    utils.Pointer(6443),
+				K8sDqlitePort: utils.Pointer(9090),
+				DatastoreType: utils.Pointer("k8s-dqlite"),
 				ExtraSANs:     []string{"custom.kubernetes"},
 			},
 			expectConfig: types.ClusterConfig{
 				Datastore: types.Datastore{
-					Type:          vals.Pointer("k8s-dqlite"),
-					K8sDqlitePort: vals.Pointer(9090),
+					Type:          utils.Pointer("k8s-dqlite"),
+					K8sDqlitePort: utils.Pointer(9090),
 				},
 				APIServer: types.APIServer{
-					SecurePort:        vals.Pointer(6443),
-					AuthorizationMode: vals.Pointer("Node,RBAC"),
+					SecurePort:        utils.Pointer(6443),
+					AuthorizationMode: utils.Pointer("Node,RBAC"),
 				},
 				Kubelet: types.Kubelet{
-					ClusterDomain: vals.Pointer("cluster.local"),
-					CloudProvider: vals.Pointer("external"),
+					ClusterDomain: utils.Pointer("cluster.local"),
+					CloudProvider: utils.Pointer("external"),
 				},
 				Network: types.Network{
-					Enabled:     vals.Pointer(true),
-					PodCIDR:     vals.Pointer("10.100.0.0/16"),
-					ServiceCIDR: vals.Pointer("10.200.0.0/16"),
+					Enabled:     utils.Pointer(true),
+					PodCIDR:     utils.Pointer("10.100.0.0/16"),
+					ServiceCIDR: utils.Pointer("10.200.0.0/16"),
 				},
 				DNS: types.DNS{
-					Enabled: vals.Pointer(true),
+					Enabled: utils.Pointer(true),
 				},
 				Ingress: types.Ingress{
-					Enabled: vals.Pointer(true),
+					Enabled: utils.Pointer(true),
 				},
 				LoadBalancer: types.LoadBalancer{
-					Enabled:  vals.Pointer(true),
-					L2Mode:   vals.Pointer(true),
-					CIDRs:    vals.Pointer([]string{"10.0.0.0/24"}),
-					IPRanges: vals.Pointer([]types.LoadBalancer_IPRange{{Start: "10.1.0.10", Stop: "10.1.0.20"}}),
+					Enabled:  utils.Pointer(true),
+					L2Mode:   utils.Pointer(true),
+					CIDRs:    utils.Pointer([]string{"10.0.0.0/24"}),
+					IPRanges: utils.Pointer([]types.LoadBalancer_IPRange{{Start: "10.1.0.10", Stop: "10.1.0.20"}}),
 				},
 				LocalStorage: types.LocalStorage{
-					Enabled:   vals.Pointer(true),
-					LocalPath: vals.Pointer("/storage/path"),
-					Default:   vals.Pointer(false),
+					Enabled:   utils.Pointer(true),
+					LocalPath: utils.Pointer("/storage/path"),
+					Default:   utils.Pointer(false),
 				},
 				Gateway: types.Gateway{
-					Enabled: vals.Pointer(true),
+					Enabled: utils.Pointer(true),
 				},
 				MetricsServer: types.MetricsServer{
-					Enabled: vals.Pointer(true),
+					Enabled: utils.Pointer(true),
 				},
 			},
 		},
@@ -177,49 +177,49 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			{
 				name: "K8sDqliteWithExternalServers",
 				bootstrap: apiv1.BootstrapConfig{
-					DatastoreType:    vals.Pointer(""),
+					DatastoreType:    utils.Pointer(""),
 					DatastoreServers: []string{"http://10.0.0.1:2379"},
 				},
 			},
 			{
 				name: "K8sDqliteWithExternalCA",
 				bootstrap: apiv1.BootstrapConfig{
-					DatastoreType:   vals.Pointer(""),
-					DatastoreCACert: vals.Pointer("CA DATA"),
+					DatastoreType:   utils.Pointer(""),
+					DatastoreCACert: utils.Pointer("CA DATA"),
 				},
 			},
 			{
 				name: "K8sDqliteWithExternalClientCert",
 				bootstrap: apiv1.BootstrapConfig{
-					DatastoreType:       vals.Pointer(""),
-					DatastoreClientCert: vals.Pointer("CERT DATA"),
+					DatastoreType:       utils.Pointer(""),
+					DatastoreClientCert: utils.Pointer("CERT DATA"),
 				},
 			},
 			{
 				name: "K8sDqliteWithExternalClientKey",
 				bootstrap: apiv1.BootstrapConfig{
-					DatastoreType:      vals.Pointer(""),
-					DatastoreClientKey: vals.Pointer("KEY DATA"),
+					DatastoreType:      utils.Pointer(""),
+					DatastoreClientKey: utils.Pointer("KEY DATA"),
 				},
 			},
 			{
 				name: "ExternalWithK8sDqlitePort",
 				bootstrap: apiv1.BootstrapConfig{
-					DatastoreType:    vals.Pointer("external"),
+					DatastoreType:    utils.Pointer("external"),
 					DatastoreServers: []string{"http://10.0.0.1:2379"},
-					K8sDqlitePort:    vals.Pointer(18080),
+					K8sDqlitePort:    utils.Pointer(18080),
 				},
 			},
 			{
 				name: "ExternalWithoutServers",
 				bootstrap: apiv1.BootstrapConfig{
-					DatastoreType: vals.Pointer("external"),
+					DatastoreType: utils.Pointer("external"),
 				},
 			},
 			{
 				name: "UnsupportedDatastore",
 				bootstrap: apiv1.BootstrapConfig{
-					DatastoreType: vals.Pointer("unknown"),
+					DatastoreType: utils.Pointer("unknown"),
 				},
 			},
 		} {

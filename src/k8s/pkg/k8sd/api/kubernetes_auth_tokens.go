@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
@@ -38,7 +38,7 @@ func (e *Endpoints) postKubernetesAuthTokens(s *state.State, r *http.Request) re
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	token, err := impl.GetOrCreateAuthToken(r.Context(), s, request.Username, request.Groups)
+	token, err := databaseutil.GetOrCreateAuthToken(r.Context(), s, request.Username, request.Groups)
 	if err != nil {
 		return response.InternalError(err)
 	}
@@ -52,7 +52,7 @@ func (e *Endpoints) deleteKubernetesAuthTokens(s *state.State, r *http.Request) 
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	err := impl.RevokeAuthToken(r.Context(), s, request.Token)
+	err := databaseutil.RevokeAuthToken(r.Context(), s, request.Token)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to revoke auth token: %w", err))
 	}

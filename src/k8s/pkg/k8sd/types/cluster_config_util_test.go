@@ -1,9 +1,9 @@
 package types
 
 import (
+	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -18,10 +18,10 @@ func Test_mergeField(t *testing.T) {
 			expectVal   *string
 		}{
 			{name: "keep-empty"},
-			{name: "set-empty", new: vals.Pointer("val"), expectVal: vals.Pointer("val")},
-			{name: "keep-old", old: vals.Pointer("val"), expectVal: vals.Pointer("val")},
-			{name: "update", old: vals.Pointer("val"), new: vals.Pointer("newVal"), allowChange: true, expectVal: vals.Pointer("newVal")},
-			{name: "update-not-allowed", old: vals.Pointer("val"), new: vals.Pointer("newVal"), expectErr: true},
+			{name: "set-empty", new: utils.Pointer("val"), expectVal: utils.Pointer("val")},
+			{name: "keep-old", old: utils.Pointer("val"), expectVal: utils.Pointer("val")},
+			{name: "update", old: utils.Pointer("val"), new: utils.Pointer("newVal"), allowChange: true, expectVal: utils.Pointer("newVal")},
+			{name: "update-not-allowed", old: utils.Pointer("val"), new: utils.Pointer("newVal"), expectErr: true},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				g := NewWithT(t)
@@ -50,10 +50,10 @@ func Test_mergeField(t *testing.T) {
 			expectVal   *int
 		}{
 			{name: "keep-empty"},
-			{name: "set-empty", new: vals.Pointer(100), expectVal: vals.Pointer(100)},
-			{name: "keep-old", old: vals.Pointer(100), expectVal: vals.Pointer(100)},
-			{name: "update", old: vals.Pointer(100), new: vals.Pointer(200), allowChange: true, expectVal: vals.Pointer(200)},
-			{name: "update-not-allowed", old: vals.Pointer(100), new: vals.Pointer(200), expectErr: true},
+			{name: "set-empty", new: utils.Pointer(100), expectVal: utils.Pointer(100)},
+			{name: "keep-old", old: utils.Pointer(100), expectVal: utils.Pointer(100)},
+			{name: "update", old: utils.Pointer(100), new: utils.Pointer(200), allowChange: true, expectVal: utils.Pointer(200)},
+			{name: "update-not-allowed", old: utils.Pointer(100), new: utils.Pointer(200), expectErr: true},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				g := NewWithT(t)
@@ -82,12 +82,12 @@ func Test_mergeField(t *testing.T) {
 			expectVal   *bool
 		}{
 			{name: "keep-empty"},
-			{name: "set-empty", new: vals.Pointer(true), expectVal: vals.Pointer(true)},
-			{name: "keep-old", old: vals.Pointer(false), expectVal: vals.Pointer(false)},
-			{name: "disable", old: vals.Pointer(true), new: vals.Pointer(false), allowChange: true, expectVal: vals.Pointer(false)},
-			{name: "enable", old: vals.Pointer(false), new: vals.Pointer(true), allowChange: true, expectVal: vals.Pointer(true)},
-			{name: "disable-not-allowed", old: vals.Pointer(true), new: vals.Pointer(false), expectErr: true},
-			{name: "enable-not-allowed", old: vals.Pointer(false), new: vals.Pointer(true), expectErr: true},
+			{name: "set-empty", new: utils.Pointer(true), expectVal: utils.Pointer(true)},
+			{name: "keep-old", old: utils.Pointer(false), expectVal: utils.Pointer(false)},
+			{name: "disable", old: utils.Pointer(true), new: utils.Pointer(false), allowChange: true, expectVal: utils.Pointer(false)},
+			{name: "enable", old: utils.Pointer(false), new: utils.Pointer(true), allowChange: true, expectVal: utils.Pointer(true)},
+			{name: "disable-not-allowed", old: utils.Pointer(true), new: utils.Pointer(false), expectErr: true},
+			{name: "enable-not-allowed", old: utils.Pointer(false), new: utils.Pointer(true), expectErr: true},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				g := NewWithT(t)
@@ -118,10 +118,10 @@ func Test_mergeSliceField(t *testing.T) {
 			expectVal   *[]string
 		}{
 			{name: "keep-empty"},
-			{name: "set-empty", new: vals.Pointer([]string{"val"}), expectVal: vals.Pointer([]string{"val"})},
-			{name: "keep-old", old: vals.Pointer([]string{"val"}), expectVal: vals.Pointer([]string{"val"})},
-			{name: "update", old: vals.Pointer([]string{"val"}), new: vals.Pointer([]string{"newVal"}), allowChange: true, expectVal: vals.Pointer([]string{"newVal"})},
-			{name: "update-not-allowed", old: vals.Pointer([]string{"val"}), new: vals.Pointer([]string{"newVal"}), expectErr: true},
+			{name: "set-empty", new: utils.Pointer([]string{"val"}), expectVal: utils.Pointer([]string{"val"})},
+			{name: "keep-old", old: utils.Pointer([]string{"val"}), expectVal: utils.Pointer([]string{"val"})},
+			{name: "update", old: utils.Pointer([]string{"val"}), new: utils.Pointer([]string{"newVal"}), allowChange: true, expectVal: utils.Pointer([]string{"newVal"})},
+			{name: "update-not-allowed", old: utils.Pointer([]string{"val"}), new: utils.Pointer([]string{"newVal"}), expectErr: true},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				g := NewWithT(t)

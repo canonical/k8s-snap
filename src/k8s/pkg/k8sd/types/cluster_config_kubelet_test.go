@@ -4,10 +4,10 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -29,9 +29,9 @@ func TestKubelet(t *testing.T) {
 				"cloud-provider": "",
 			},
 			kubelet: types.Kubelet{
-				ClusterDNS:    vals.Pointer(""),
-				ClusterDomain: vals.Pointer(""),
-				CloudProvider: vals.Pointer(""),
+				ClusterDNS:    utils.Pointer(""),
+				ClusterDomain: utils.Pointer(""),
+				CloudProvider: utils.Pointer(""),
 			},
 		},
 		{
@@ -40,7 +40,7 @@ func TestKubelet(t *testing.T) {
 				"cloud-provider": "external",
 			},
 			kubelet: types.Kubelet{
-				CloudProvider: vals.Pointer("external"),
+				CloudProvider: utils.Pointer("external"),
 			},
 		},
 		{
@@ -50,8 +50,8 @@ func TestKubelet(t *testing.T) {
 				"cluster-domain": "cluster.local",
 			},
 			kubelet: types.Kubelet{
-				ClusterDNS:    vals.Pointer("1.1.1.1"),
-				ClusterDomain: vals.Pointer("cluster.local"),
+				ClusterDNS:    utils.Pointer("1.1.1.1"),
+				ClusterDomain: utils.Pointer("cluster.local"),
 			},
 		},
 		{
@@ -62,9 +62,9 @@ func TestKubelet(t *testing.T) {
 				"cloud-provider": "external",
 			},
 			kubelet: types.Kubelet{
-				ClusterDNS:    vals.Pointer("1.1.1.1"),
-				ClusterDomain: vals.Pointer("cluster.local"),
-				CloudProvider: vals.Pointer("external"),
+				ClusterDNS:    utils.Pointer("1.1.1.1"),
+				ClusterDomain: utils.Pointer("cluster.local"),
+				CloudProvider: utils.Pointer("external"),
 			},
 		},
 	} {
@@ -94,9 +94,9 @@ func TestKubeletSign(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	kubelet := types.Kubelet{
-		CloudProvider: vals.Pointer("external"),
-		ClusterDNS:    vals.Pointer("10.0.0.1"),
-		ClusterDomain: vals.Pointer("cluster.local"),
+		CloudProvider: utils.Pointer("external"),
+		ClusterDNS:    utils.Pointer("10.0.0.1"),
+		ClusterDomain: utils.Pointer("cluster.local"),
 	}
 
 	configmap, err := kubelet.ToConfigMap(key)

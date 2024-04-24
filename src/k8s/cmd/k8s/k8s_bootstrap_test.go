@@ -2,12 +2,12 @@ package k8s
 
 import (
 	_ "embed"
+	"github.com/canonical/k8s/pkg/utils"
 	"os"
 	"path/filepath"
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -34,40 +34,40 @@ var testCases = []testCase{
 		expectedConfig: apiv1.BootstrapConfig{
 			ClusterConfig: apiv1.UserFacingClusterConfig{
 				Network: apiv1.NetworkConfig{
-					Enabled: vals.Pointer(true),
+					Enabled: utils.Pointer(true),
 				},
 				DNS: apiv1.DNSConfig{
-					Enabled:       vals.Pointer(true),
-					ClusterDomain: vals.Pointer("cluster.local"),
+					Enabled:       utils.Pointer(true),
+					ClusterDomain: utils.Pointer("cluster.local"),
 				},
 				Ingress: apiv1.IngressConfig{
-					Enabled: vals.Pointer(true),
+					Enabled: utils.Pointer(true),
 				},
 				LoadBalancer: apiv1.LoadBalancerConfig{
-					Enabled: vals.Pointer(true),
-					L2Mode:  vals.Pointer(true),
-					CIDRs:   vals.Pointer([]string{"10.0.0.0/24", "10.1.0.10-10.1.0.20"}),
+					Enabled: utils.Pointer(true),
+					L2Mode:  utils.Pointer(true),
+					CIDRs:   utils.Pointer([]string{"10.0.0.0/24", "10.1.0.10-10.1.0.20"}),
 				},
 				LocalStorage: apiv1.LocalStorageConfig{
-					Enabled:   vals.Pointer(true),
-					LocalPath: vals.Pointer("/storage/path"),
-					Default:   vals.Pointer(false),
+					Enabled:   utils.Pointer(true),
+					LocalPath: utils.Pointer("/storage/path"),
+					Default:   utils.Pointer(false),
 				},
 				Gateway: apiv1.GatewayConfig{
-					Enabled: vals.Pointer(true),
+					Enabled: utils.Pointer(true),
 				},
 				MetricsServer: apiv1.MetricsServerConfig{
-					Enabled: vals.Pointer(true),
+					Enabled: utils.Pointer(true),
 				},
-				CloudProvider: vals.Pointer("external"),
+				CloudProvider: utils.Pointer("external"),
 			},
 			ControlPlaneTaints: []string{"node-role.kubernetes.io/control-plane:NoSchedule"},
-			PodCIDR:            vals.Pointer("10.100.0.0/16"),
-			ServiceCIDR:        vals.Pointer("10.200.0.0/16"),
-			DisableRBAC:        vals.Pointer(false),
-			SecurePort:         vals.Pointer(6443),
-			K8sDqlitePort:      vals.Pointer(9090),
-			DatastoreType:      vals.Pointer("k8s-dqlite"),
+			PodCIDR:            utils.Pointer("10.100.0.0/16"),
+			ServiceCIDR:        utils.Pointer("10.200.0.0/16"),
+			DisableRBAC:        utils.Pointer(false),
+			SecurePort:         utils.Pointer(6443),
+			K8sDqlitePort:      utils.Pointer(9090),
+			DatastoreType:      utils.Pointer("k8s-dqlite"),
 			ExtraSANs:          []string{"custom.kubernetes"},
 		},
 	},
@@ -75,8 +75,8 @@ var testCases = []testCase{
 		name:       "SomeConfig",
 		yamlConfig: bootstrapConfigSome,
 		expectedConfig: apiv1.BootstrapConfig{
-			PodCIDR:     vals.Pointer("10.100.0.0/16"),
-			ServiceCIDR: vals.Pointer("10.152.200.0/24"),
+			PodCIDR:     utils.Pointer("10.100.0.0/16"),
+			ServiceCIDR: utils.Pointer("10.152.200.0/24"),
 		},
 	},
 	{
