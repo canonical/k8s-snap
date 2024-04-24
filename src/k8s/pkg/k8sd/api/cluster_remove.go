@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
-
 	apiv1 "github.com/canonical/k8s/api/v1"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	nodeutil "github.com/canonical/k8s/pkg/utils/node"

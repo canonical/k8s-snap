@@ -7,12 +7,11 @@ import (
 	"net"
 	"net/http"
 
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
-	"github.com/canonical/k8s/pkg/utils"
-
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
