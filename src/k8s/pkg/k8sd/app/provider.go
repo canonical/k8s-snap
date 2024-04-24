@@ -14,7 +14,7 @@ func (a *App) Snap() snap.Snap {
 	return a.snap
 }
 
-func (a *App) NotifyNodeConfigController() {
+func (a *App) NotifyUpdateNodeConfigController() {
 	notify(a.triggerUpdateNodeConfigControllerCh)
 }
 
