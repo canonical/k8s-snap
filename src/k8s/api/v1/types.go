@@ -56,8 +56,8 @@ type ClusterStatus struct {
 	Datastore Datastore               `json:"datastore,omitempty"`
 }
 
-// haClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
-func (c ClusterStatus) haClusterFormed() bool {
+// HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
+func (c ClusterStatus) HaClusterFormed() bool {
 	voters := 0
 	for _, member := range c.Members {
 		if member.DatastoreRole == DatastoreRoleVoter {
@@ -141,7 +141,7 @@ func (c ClusterStatus) String() string {
 
 	// High availability
 	result.WriteString("high-availability: ")
-	if c.haClusterFormed() {
+	if c.HaClusterFormed() {
 		result.WriteString("yes")
 	} else {
 		result.WriteString("no")

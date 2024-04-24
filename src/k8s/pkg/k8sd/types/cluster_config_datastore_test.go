@@ -1,11 +1,11 @@
 package types_test
 
 import (
+	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap/mock"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -30,7 +30,7 @@ func TestDatastoreToKubeAPIServerArguments(t *testing.T) {
 		{
 			name: "K8sDqlite",
 			config: types.Datastore{
-				Type: vals.Pointer("k8s-dqlite"),
+				Type: utils.Pointer("k8s-dqlite"),
 			},
 			expectUpdateArgs: map[string]string{
 				"--etcd-servers": "unix:///k8s-dqlite/k8s-dqlite.sock",
@@ -40,11 +40,11 @@ func TestDatastoreToKubeAPIServerArguments(t *testing.T) {
 		{
 			name: "ExternalFull",
 			config: types.Datastore{
-				Type:               vals.Pointer("external"),
-				ExternalServers:    vals.Pointer([]string{"https://10.0.0.10:2379", "https://10.0.0.11:2379"}),
-				ExternalCACert:     vals.Pointer("data"),
-				ExternalClientCert: vals.Pointer("data"),
-				ExternalClientKey:  vals.Pointer("data"),
+				Type:               utils.Pointer("external"),
+				ExternalServers:    utils.Pointer([]string{"https://10.0.0.10:2379", "https://10.0.0.11:2379"}),
+				ExternalCACert:     utils.Pointer("data"),
+				ExternalClientCert: utils.Pointer("data"),
+				ExternalClientKey:  utils.Pointer("data"),
 			},
 			expectUpdateArgs: map[string]string{
 				"--etcd-servers":  "https://10.0.0.10:2379,https://10.0.0.11:2379",
@@ -56,9 +56,9 @@ func TestDatastoreToKubeAPIServerArguments(t *testing.T) {
 		{
 			name: "ExternalOnlyCA",
 			config: types.Datastore{
-				Type:            vals.Pointer("external"),
-				ExternalServers: vals.Pointer([]string{"https://10.0.0.10:2379", "https://10.0.0.11:2379"}),
-				ExternalCACert:  vals.Pointer("data"),
+				Type:            utils.Pointer("external"),
+				ExternalServers: utils.Pointer([]string{"https://10.0.0.10:2379", "https://10.0.0.11:2379"}),
+				ExternalCACert:  utils.Pointer("data"),
 			},
 			expectUpdateArgs: map[string]string{
 				"--etcd-servers": "https://10.0.0.10:2379,https://10.0.0.11:2379",

@@ -1,9 +1,9 @@
 package types
 
 import (
+	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 )
 
@@ -100,11 +100,11 @@ func Test_loadBalancerCIDRsToAPI(t *testing.T) {
 		})
 		t.Run("CIDRsOnly", func(t *testing.T) {
 			g := NewWithT(t)
-			g.Expect(loadBalancerCIDRsToAPI(nil, vals.Pointer([]LoadBalancer_IPRange{}))).To(Equal(vals.Pointer([]string{})))
+			g.Expect(loadBalancerCIDRsToAPI(nil, utils.Pointer([]LoadBalancer_IPRange{}))).To(Equal(utils.Pointer([]string{})))
 		})
 		t.Run("RangesOnly", func(t *testing.T) {
 			g := NewWithT(t)
-			g.Expect(loadBalancerCIDRsToAPI(vals.Pointer([]string{}), nil)).To(Equal(vals.Pointer([]string{})))
+			g.Expect(loadBalancerCIDRsToAPI(utils.Pointer([]string{}), nil)).To(Equal(utils.Pointer([]string{})))
 		})
 	})
 

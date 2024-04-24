@@ -3,10 +3,10 @@ package app
 import (
 	"context"
 	"fmt"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net"
 	"path"
 
-	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
@@ -28,7 +28,7 @@ func setupKubeconfigs(s *state.State, kubeConfigDir string, securePort int, caCe
 		{file: "scheduler.conf", username: "system:kube-scheduler"},
 		{file: "kubelet.conf", username: fmt.Sprintf("system:node:%s", s.Name()), groups: []string{"system:nodes"}},
 	} {
-		token, err := impl.GetOrCreateAuthToken(s.Context, s, kubeconfig.username, kubeconfig.groups)
+		token, err := databaseutil.GetOrCreateAuthToken(s.Context, s, kubeconfig.username, kubeconfig.groups)
 		if err != nil {
 			return fmt.Errorf("failed to generate token for username=%s groups=%v: %w", kubeconfig.username, kubeconfig.groups, err)
 		}
@@ -45,7 +45,7 @@ func setupControlPlaneServices(snap snap.Snap, s *state.State, cfg types.Cluster
 	if err := setup.Containerd(snap, nil); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider()); err != nil {
+	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints()); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
 	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.GetPodCIDR()); err != nil {

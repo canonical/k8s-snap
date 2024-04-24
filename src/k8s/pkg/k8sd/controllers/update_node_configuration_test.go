@@ -2,6 +2,7 @@ package controllers_test
 
 import (
 	"context"
+	"github.com/canonical/k8s/pkg/utils"
 	"os"
 	"path"
 	"testing"
@@ -11,7 +12,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	"github.com/canonical/k8s/pkg/utils/k8s"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +32,7 @@ func TestUpdateNodeConfigurationController(t *testing.T) {
 			initialConfig: types.ClusterConfig{},
 			expectedConfig: types.ClusterConfig{
 				Kubelet: types.Kubelet{
-					ClusterDomain: vals.Pointer("cluster.local"),
+					ClusterDomain: utils.Pointer("cluster.local"),
 				},
 			},
 			expectedFailure: false,

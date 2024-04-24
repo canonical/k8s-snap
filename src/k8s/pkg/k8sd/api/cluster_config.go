@@ -3,8 +3,9 @@ package api
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
+	"github.com/canonical/k8s/pkg/utils"
 	"net/http"
 
 	api "github.com/canonical/k8s/api/v1"
@@ -12,8 +13,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
@@ -22,7 +21,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	var req api.UpdateClusterConfigRequest
 	snap := e.provider.Snap()
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
 	}
 
@@ -63,7 +62,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 			if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 				if mergedConfig, err = database.SetClusterConfig(ctx, tx, types.ClusterConfig{
 					Kubelet: types.Kubelet{
-						ClusterDNS: vals.Pointer(dnsIP),
+						ClusterDNS: utils.Pointer(dnsIP),
 					},
 				}); err != nil {
 					return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)
@@ -107,7 +106,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 }
 
 func (e *Endpoints) getClusterConfig(s *state.State, r *http.Request) response.Response {
-	config, err := utils.GetClusterConfig(r.Context(), s)
+	config, err := databaseutil.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
 	}

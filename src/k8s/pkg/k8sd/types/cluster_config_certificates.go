@@ -27,6 +27,4 @@ func (c Certificates) GetK8sdPublicKey() string  { return getField(c.K8sdPublicK
 func (c Certificates) GetK8sdPrivateKey() string { return getField(c.K8sdPrivateKey) }
 
 // Empty returns true if all Certificates fields are unset
-func (c Certificates) Empty() bool {
-	return c.CACert == nil && c.CAKey == nil && c.FrontProxyCACert == nil && c.FrontProxyCAKey == nil && c.ServiceAccountKey == nil && c.APIServerKubeletClientCert == nil && c.APIServerKubeletClientKey == nil
-}
+func (c Certificates) Empty() bool { return c == Certificates{} }
