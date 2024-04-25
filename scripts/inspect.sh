@@ -27,7 +27,7 @@ function collect_cluster_info {
 
 	k8s kubectl cluster-info dump &> $INSPECT_DUMP/cluster-info
 
-	printf -- '\033[32m SUCCESS: \033[0m Collected k8s cluster-info %s\n'
+	printf -- '\033[32m SUCCESS: \033[0m Collected k8s cluster-info\n'
 }
 
 function collect_sbom {
@@ -41,7 +41,7 @@ function collect_sbom {
 function collect_microcluster_db {
 	mkdir -p $INSPECT_DUMP
 
-	/snap/k8s/current/bin/k8sd sql .dump --state-dir $k8sd_state_dir &> $INSPECT_DUMP/k8sd-db.sql
+	/snap/k8s/current/bin/k8sd sql .dump --state-dir $K8SD_STATE_DIR &> $INSPECT_DUMP/k8sd-db.sql
 
 	printf -- '\033[32m SUCCESS: \033[0m Collected k8sd database dump\n'
 }
