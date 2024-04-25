@@ -17,7 +17,8 @@ refer to the upstream documentation:[Kubernetes Service][Service].
 
 ## Ingress
 
-TODO: how do I add my pretty little picture here?
+```{kroki} ../../assets/ingress.puml
+```
 
 [Ingress][Ingress K8s] is a Kubernetes Resource that manages
 external access by handling both HTTP and HTTPS traffic to services within your cluster.
