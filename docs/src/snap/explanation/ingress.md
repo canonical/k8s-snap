@@ -17,9 +17,6 @@ refer to the upstream documentation:[Kubernetes Service][Service].
 
 ## Ingress
 
-```{kroki} ../../assets/ingress.puml
-```
-
 [Ingress][Ingress K8s] is a Kubernetes Resource that manages
 external access by handling both HTTP and HTTPS traffic to services within your cluster.
 Traffic routed through the Ingress is directed to a service,
@@ -38,6 +35,9 @@ Ingress does not work without an Ingress Controller.
 The Ingress Controller also serves as a layer 7 (HTTP/HTTPS) load balancer
 that routes traffic from outside of your cluster to services inside of your cluster.
 Please do not confuse this with the Kubernetes Service LoadBalancer type.
+
+```{kroki} ../../assets/ingress.puml
+```
 
 With Canonical Kubernetes, enabling default Ingress is easy:
 See [default Ingress][Ingress].
