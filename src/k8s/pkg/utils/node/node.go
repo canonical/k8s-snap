@@ -1,4 +1,4 @@
-package utils
+package node
 
 import (
 	"context"
@@ -41,15 +41,6 @@ func IsControlPlaneNode(ctx context.Context, s *state.State, name string) (bool,
 		return false, fmt.Errorf("failed to get control-plane node: %w", err)
 	}
 	return node != nil, nil
-}
-
-// IsWorkerNode returns true if the given node name belongs to a worker node in the cluster.
-func IsWorkerNode(ctx context.Context, s *state.State, name string) (bool, error) {
-	exists, err := CheckWorkerExists(ctx, s, name)
-	if err != nil {
-		return false, fmt.Errorf("failed to check if worker node %q exists: %w", name, err)
-	}
-	return exists, nil
 }
 
 // DatastoreRoleFromString converts the string-based role to the enum-based role.

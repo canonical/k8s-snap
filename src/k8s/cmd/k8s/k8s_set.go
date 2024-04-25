@@ -2,13 +2,13 @@ package k8s
 
 import (
 	"fmt"
+	"github.com/canonical/k8s/pkg/utils"
 	"strconv"
 	"strings"
 	"unicode"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/spf13/cobra"
 )
 
@@ -88,11 +88,11 @@ func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 		}
 		config.DNS.Enabled = &v
 	case "dns.upstream-nameservers":
-		config.DNS.UpstreamNameservers = vals.Pointer(strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }))
+		config.DNS.UpstreamNameservers = utils.Pointer(strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }))
 	case "dns.cluster-domain":
-		config.DNS.ClusterDomain = vals.Pointer(value)
+		config.DNS.ClusterDomain = utils.Pointer(value)
 	case "dns.service-ip":
-		config.DNS.ServiceIP = vals.Pointer(value)
+		config.DNS.ServiceIP = utils.Pointer(value)
 	case "gateway.enabled":
 		v, err := strconv.ParseBool(value)
 		if err != nil {
@@ -106,7 +106,7 @@ func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 		}
 		config.Ingress.Enabled = &v
 	case "ingress.default-tls-secret":
-		config.Ingress.DefaultTLSSecret = vals.Pointer(value)
+		config.Ingress.DefaultTLSSecret = utils.Pointer(value)
 	case "ingress.enable-proxy-protocol":
 		v, err := strconv.ParseBool(value)
 		if err != nil {
@@ -120,9 +120,9 @@ func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 		}
 		config.LocalStorage.Enabled = &v
 	case "local-storage.local-path":
-		config.LocalStorage.LocalPath = vals.Pointer(value)
+		config.LocalStorage.LocalPath = utils.Pointer(value)
 	case "local-storage.reclaim-policy":
-		config.LocalStorage.ReclaimPolicy = vals.Pointer(value)
+		config.LocalStorage.ReclaimPolicy = utils.Pointer(value)
 	case "local-storage.default":
 		v, err := strconv.ParseBool(value)
 		if err != nil {
@@ -136,7 +136,7 @@ func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 		}
 		config.LoadBalancer.Enabled = &v
 	case "load-balancer.cidrs":
-		config.LoadBalancer.CIDRs = vals.Pointer(strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }))
+		config.LoadBalancer.CIDRs = utils.Pointer(strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }))
 	case "load-balancer.l2-mode":
 		v, err := strconv.ParseBool(value)
 		if err != nil {
@@ -144,7 +144,7 @@ func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 		}
 		config.LoadBalancer.L2Mode = &v
 	case "load-balancer.l2-interfaces":
-		config.LoadBalancer.L2Interfaces = vals.Pointer(strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }))
+		config.LoadBalancer.L2Interfaces = utils.Pointer(strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }))
 	case "load-balancer.bgp-mode":
 		v, err := strconv.ParseBool(value)
 		if err != nil {
@@ -158,7 +158,7 @@ func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 		}
 		config.LoadBalancer.BGPLocalASN = &v
 	case "load-balancer.bgp-peer-address":
-		config.LoadBalancer.BGPPeerAddress = vals.Pointer(value)
+		config.LoadBalancer.BGPPeerAddress = utils.Pointer(value)
 	case "load-balancer.bgp-peer-port":
 		v, err := strconv.Atoi(value)
 		if err != nil {

@@ -14,9 +14,9 @@ func (a *App) Snap() snap.Snap {
 	return a.snap
 }
 
-func (a *App) NotifyUpdateConfigMap() {
+func (a *App) NotifyNodeConfigController() {
 	select {
-	case a.updateNodeConfigController.TriggerCh <- struct{}{}:
+	case a.triggerUpdateNodeConfigControllerCh <- struct{}{}:
 	default:
 	}
 }

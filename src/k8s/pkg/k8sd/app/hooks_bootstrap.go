@@ -19,7 +19,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -148,6 +147,32 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 		return fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err)
 	}
 
+	// Write worker node configuration to dqlite
+	//
+	// Worker nodes only use a subset of the ClusterConfig struct. At the moment, these are:
+	// - Network.PodCIDR and Network.ClusterCIDR: informative
+	// - Certificates.K8sdPublicKey: used to verify the signature of the k8sd-config configmap.
+	//
+	// TODO(neoaggelos): We should be explicit here and try to avoid having worker nodes use
+	// or set other cluster configuration keys by accident.
+	cfg := types.ClusterConfig{
+		Network: types.Network{
+			PodCIDR:     utils.Pointer(response.PodCIDR),
+			ServiceCIDR: utils.Pointer(response.ServiceCIDR),
+		},
+		Certificates: types.Certificates{
+			K8sdPublicKey: utils.Pointer(response.K8sdPublicKey),
+		},
+	}
+	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+		if _, err := database.SetClusterConfig(ctx, tx, cfg); err != nil {
+			return fmt.Errorf("failed to write cluster configuration: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("database transaction to set cluster configuration failed: %w", err)
+	}
+
 	// Worker node services
 	if err := setup.Containerd(snap, nil); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
@@ -218,8 +243,8 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 			return fmt.Errorf("failed to write k8s-dqlite certificates: %w", err)
 		}
 
-		cfg.Datastore.K8sDqliteCert = vals.Pointer(certificates.K8sDqliteCert)
-		cfg.Datastore.K8sDqliteKey = vals.Pointer(certificates.K8sDqliteKey)
+		cfg.Datastore.K8sDqliteCert = utils.Pointer(certificates.K8sDqliteCert)
+		cfg.Datastore.K8sDqliteKey = utils.Pointer(certificates.K8sDqliteKey)
 	case "external":
 		certificates := &pki.ExternalDatastorePKI{
 			DatastoreCACert:     cfg.Datastore.GetExternalCACert(),
@@ -269,13 +294,15 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	}
 
 	// Add certificates to the cluster config
-	cfg.Certificates.CACert = vals.Pointer(certificates.CACert)
-	cfg.Certificates.CAKey = vals.Pointer(certificates.CAKey)
-	cfg.Certificates.FrontProxyCACert = vals.Pointer(certificates.FrontProxyCACert)
-	cfg.Certificates.FrontProxyCAKey = vals.Pointer(certificates.FrontProxyCAKey)
-	cfg.Certificates.APIServerKubeletClientCert = vals.Pointer(certificates.APIServerKubeletClientCert)
-	cfg.Certificates.APIServerKubeletClientKey = vals.Pointer(certificates.APIServerKubeletClientKey)
-	cfg.Certificates.ServiceAccountKey = vals.Pointer(certificates.ServiceAccountKey)
+	cfg.Certificates.CACert = utils.Pointer(certificates.CACert)
+	cfg.Certificates.CAKey = utils.Pointer(certificates.CAKey)
+	cfg.Certificates.FrontProxyCACert = utils.Pointer(certificates.FrontProxyCACert)
+	cfg.Certificates.FrontProxyCAKey = utils.Pointer(certificates.FrontProxyCAKey)
+	cfg.Certificates.APIServerKubeletClientCert = utils.Pointer(certificates.APIServerKubeletClientCert)
+	cfg.Certificates.APIServerKubeletClientKey = utils.Pointer(certificates.APIServerKubeletClientKey)
+	cfg.Certificates.ServiceAccountKey = utils.Pointer(certificates.ServiceAccountKey)
+	cfg.Certificates.K8sdPublicKey = utils.Pointer(certificates.K8sdPublicKey)
+	cfg.Certificates.K8sdPrivateKey = utils.Pointer(certificates.K8sdPrivateKey)
 
 	// Generate kubeconfigs
 	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), cfg.Certificates.GetCACert()); err != nil {
@@ -335,7 +362,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 			if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 				if cfg, err = database.SetClusterConfig(ctx, tx, types.ClusterConfig{
 					Kubelet: types.Kubelet{
-						ClusterDNS: vals.Pointer(dnsIP),
+						ClusterDNS: utils.Pointer(dnsIP),
 					},
 				}); err != nil {
 					return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)
@@ -373,7 +400,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		}
 	}
 
-	a.NotifyUpdateConfigMap()
+	a.NotifyNodeConfigController()
 
 	return nil
 }

@@ -1,9 +1,10 @@
-package v1
+package v1_test
 
 import (
 	"testing"
 
-	"github.com/canonical/k8s/pkg/utils/vals"
+	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -12,35 +13,35 @@ func TestHaClusterFormed(t *testing.T) {
 
 	testCases := []struct {
 		name           string
-		members        []NodeStatus
+		members        []apiv1.NodeStatus
 		expectedResult bool
 	}{
 		{
 			name: "Less than 3 voters",
-			members: []NodeStatus{
-				{DatastoreRole: DatastoreRoleVoter},
-				{DatastoreRole: DatastoreRoleVoter},
-				{DatastoreRole: DatastoreRoleStandBy},
+			members: []apiv1.NodeStatus{
+				{DatastoreRole: apiv1.DatastoreRoleVoter},
+				{DatastoreRole: apiv1.DatastoreRoleVoter},
+				{DatastoreRole: apiv1.DatastoreRoleStandBy},
 			},
 			expectedResult: false,
 		},
 		{
 			name: "Exactly 3 voters",
-			members: []NodeStatus{
-				{DatastoreRole: DatastoreRoleVoter},
-				{DatastoreRole: DatastoreRoleVoter},
-				{DatastoreRole: DatastoreRoleVoter},
+			members: []apiv1.NodeStatus{
+				{DatastoreRole: apiv1.DatastoreRoleVoter},
+				{DatastoreRole: apiv1.DatastoreRoleVoter},
+				{DatastoreRole: apiv1.DatastoreRoleVoter},
 			},
 			expectedResult: true,
 		},
 		{
 			name: "More than 3 voters",
-			members: []NodeStatus{
-				{DatastoreRole: DatastoreRoleVoter},
-				{DatastoreRole: DatastoreRoleVoter},
-				{DatastoreRole: DatastoreRoleVoter},
-				{DatastoreRole: DatastoreRoleVoter},
-				{DatastoreRole: DatastoreRoleStandBy},
+			members: []apiv1.NodeStatus{
+				{DatastoreRole: apiv1.DatastoreRoleVoter},
+				{DatastoreRole: apiv1.DatastoreRoleVoter},
+				{DatastoreRole: apiv1.DatastoreRoleVoter},
+				{DatastoreRole: apiv1.DatastoreRoleVoter},
+				{DatastoreRole: apiv1.DatastoreRoleStandBy},
 			},
 			expectedResult: true,
 		},
@@ -48,7 +49,7 @@ func TestHaClusterFormed(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			g.Expect(ClusterStatus{Members: tc.members}.haClusterFormed()).To(Equal(tc.expectedResult))
+			g.Expect(apiv1.ClusterStatus{Members: tc.members}.HaClusterFormed()).To(Equal(tc.expectedResult))
 		})
 	}
 }
@@ -56,23 +57,23 @@ func TestHaClusterFormed(t *testing.T) {
 func TestString(t *testing.T) {
 	testCases := []struct {
 		name           string
-		clusterStatus  ClusterStatus
+		clusterStatus  apiv1.ClusterStatus
 		expectedOutput string
 	}{
 		{
 			name: "Cluster ready, HA formed, nodes exist",
-			clusterStatus: ClusterStatus{
+			clusterStatus: apiv1.ClusterStatus{
 				Ready: true,
-				Members: []NodeStatus{
-					{Name: "node1", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.1"},
-					{Name: "node2", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.2"},
-					{Name: "node3", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.3"},
+				Members: []apiv1.NodeStatus{
+					{Name: "node1", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.1"},
+					{Name: "node2", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.2"},
+					{Name: "node3", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.3"},
 				},
-				Config: UserFacingClusterConfig{
-					Network: NetworkConfig{Enabled: vals.Pointer(true)},
-					DNS:     DNSConfig{Enabled: vals.Pointer(true)},
+				Config: apiv1.UserFacingClusterConfig{
+					Network: apiv1.NetworkConfig{Enabled: utils.Pointer(true)},
+					DNS:     apiv1.DNSConfig{Enabled: utils.Pointer(true)},
 				},
-				Datastore: Datastore{Type: "k8s-dqlite"},
+				Datastore: apiv1.Datastore{Type: "k8s-dqlite"},
 			},
 			expectedOutput: `status: ready
 high-availability: yes
@@ -92,16 +93,16 @@ dns:
 		},
 		{
 			name: "External Datastore",
-			clusterStatus: ClusterStatus{
+			clusterStatus: apiv1.ClusterStatus{
 				Ready: true,
-				Members: []NodeStatus{
-					{Name: "node1", DatastoreRole: DatastoreRoleVoter, Address: "192.168.0.1"},
+				Members: []apiv1.NodeStatus{
+					{Name: "node1", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.1"},
 				},
-				Config: UserFacingClusterConfig{
-					Network: NetworkConfig{Enabled: vals.Pointer(true)},
-					DNS:     DNSConfig{Enabled: vals.Pointer(true)},
+				Config: apiv1.UserFacingClusterConfig{
+					Network: apiv1.NetworkConfig{Enabled: utils.Pointer(true)},
+					DNS:     apiv1.DNSConfig{Enabled: utils.Pointer(true)},
 				},
-				Datastore: Datastore{Type: "external", Servers: []string{"etcd-url1", "etcd-url2"}},
+				Datastore: apiv1.Datastore{Type: "external", Servers: []string{"etcd-url1", "etcd-url2"}},
 			},
 			expectedOutput: `status: ready
 high-availability: no
@@ -118,11 +119,11 @@ dns:
 		},
 		{
 			name: "Cluster not ready, HA not formed, no nodes",
-			clusterStatus: ClusterStatus{
+			clusterStatus: apiv1.ClusterStatus{
 				Ready:     false,
-				Members:   []NodeStatus{},
-				Config:    UserFacingClusterConfig{},
-				Datastore: Datastore{},
+				Members:   []apiv1.NodeStatus{},
+				Config:    apiv1.UserFacingClusterConfig{},
+				Datastore: apiv1.Datastore{},
 			},
 			expectedOutput: `status: not ready
 high-availability: no

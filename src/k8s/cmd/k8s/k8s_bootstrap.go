@@ -14,7 +14,6 @@ import (
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -100,13 +99,13 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				bootstrapConfig = apiv1.BootstrapConfig{
 					ClusterConfig: apiv1.UserFacingClusterConfig{
 						Network: apiv1.NetworkConfig{
-							Enabled: vals.Pointer(true),
+							Enabled: utils.Pointer(true),
 						},
 						DNS: apiv1.DNSConfig{
-							Enabled: vals.Pointer(true),
+							Enabled: utils.Pointer(true),
 						},
 						Gateway: apiv1.GatewayConfig{
-							Enabled: vals.Pointer(true),
+							Enabled: utils.Pointer(true),
 						},
 					},
 				}
@@ -167,25 +166,25 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 	for _, component := range strings.FieldsFunc(components, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }) {
 		switch component {
 		case "network":
-			config.ClusterConfig.Network.Enabled = vals.Pointer(true)
+			config.ClusterConfig.Network.Enabled = utils.Pointer(true)
 		case "dns":
-			config.ClusterConfig.DNS.Enabled = vals.Pointer(true)
+			config.ClusterConfig.DNS.Enabled = utils.Pointer(true)
 		case "ingress":
-			config.ClusterConfig.Ingress.Enabled = vals.Pointer(true)
+			config.ClusterConfig.Ingress.Enabled = utils.Pointer(true)
 		case "load-balancer":
-			config.ClusterConfig.LoadBalancer.Enabled = vals.Pointer(true)
+			config.ClusterConfig.LoadBalancer.Enabled = utils.Pointer(true)
 		case "gateway":
-			config.ClusterConfig.Gateway.Enabled = vals.Pointer(true)
+			config.ClusterConfig.Gateway.Enabled = utils.Pointer(true)
 		case "local-storage":
-			config.ClusterConfig.LocalStorage.Enabled = vals.Pointer(true)
+			config.ClusterConfig.LocalStorage.Enabled = utils.Pointer(true)
 		}
 	}
 
 	podCIDR := askQuestion(stdin, stdout, stderr, "Please set the Pod CIDR:", nil, "10.1.0.0/16", nil)
 	serviceCIDR := askQuestion(stdin, stdout, stderr, "Please set the Service CIDR:", nil, "10.152.183.0/24", nil)
 
-	config.PodCIDR = vals.Pointer(podCIDR)
-	config.ServiceCIDR = vals.Pointer(serviceCIDR)
+	config.PodCIDR = utils.Pointer(podCIDR)
+	config.ServiceCIDR = utils.Pointer(serviceCIDR)
 
 	// TODO: any other configs we care about in the interactive bootstrap?
 

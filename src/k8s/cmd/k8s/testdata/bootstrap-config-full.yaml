@@ -21,6 +21,8 @@ cluster-config:
   metrics-server:
     enabled: true
   cloud-provider: external
+control-plane-taints:
+- node-role.kubernetes.io/control-plane:NoSchedule
 pod-cidr: 10.100.0.0/16
 service-cidr: 10.200.0.0/16
 disable-rbac: false

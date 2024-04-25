@@ -30,6 +30,8 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		{name: "front proxy CA certificate", val: &config.Certificates.FrontProxyCACert, old: existing.Certificates.FrontProxyCACert, new: new.Certificates.FrontProxyCACert},
 		{name: "front proxy CA key", val: &config.Certificates.FrontProxyCAKey, old: existing.Certificates.FrontProxyCAKey, new: new.Certificates.FrontProxyCAKey},
 		{name: "service account key", val: &config.Certificates.ServiceAccountKey, old: existing.Certificates.ServiceAccountKey, new: new.Certificates.ServiceAccountKey},
+		{name: "k8sd public key", val: &config.Certificates.K8sdPublicKey, old: existing.Certificates.K8sdPublicKey, new: new.Certificates.K8sdPublicKey},
+		{name: "k8sd private key", val: &config.Certificates.K8sdPrivateKey, old: existing.Certificates.K8sdPrivateKey, new: new.Certificates.K8sdPrivateKey},
 		// datastore
 		{name: "datastore type", val: &config.Datastore.Type, old: existing.Datastore.Type, new: new.Datastore.Type},
 		{name: "k8s-dqlite certificate", val: &config.Datastore.K8sDqliteCert, old: existing.Datastore.K8sDqliteCert, new: new.Datastore.K8sDqliteCert},
@@ -71,6 +73,7 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		{name: "external datastore servers", val: &config.Datastore.ExternalServers, old: existing.Datastore.ExternalServers, new: new.Datastore.ExternalServers, allowChange: true},
 		{name: "load balancer CIDRs", val: &config.LoadBalancer.CIDRs, old: existing.LoadBalancer.CIDRs, new: new.LoadBalancer.CIDRs, allowChange: true},
 		{name: "load balancer L2 interfaces", val: &config.LoadBalancer.L2Interfaces, old: existing.LoadBalancer.L2Interfaces, new: new.LoadBalancer.L2Interfaces, allowChange: true},
+		{name: "control-plane register with taints", val: &config.Kubelet.ControlPlaneTaints, old: existing.Kubelet.ControlPlaneTaints, new: new.Kubelet.ControlPlaneTaints, allowChange: false},
 	} {
 		if *i.val, err = mergeSliceField(i.old, i.new, i.allowChange); err != nil {
 			return ClusterConfig{}, fmt.Errorf("prevented update of %s: %w", i.name, err)

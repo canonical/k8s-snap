@@ -2,11 +2,11 @@ package k8s
 
 import (
 	"fmt"
+	"github.com/canonical/k8s/pkg/utils"
 	"strings"
 
 	api "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	"github.com/spf13/cobra"
 )
 
@@ -35,31 +35,31 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				switch feature {
 				case "network":
 					config.Network = api.NetworkConfig{
-						Enabled: vals.Pointer(false),
+						Enabled: utils.Pointer(false),
 					}
 				case "dns":
 					config.DNS = api.DNSConfig{
-						Enabled: vals.Pointer(false),
+						Enabled: utils.Pointer(false),
 					}
 				case "gateway":
 					config.Gateway = api.GatewayConfig{
-						Enabled: vals.Pointer(false),
+						Enabled: utils.Pointer(false),
 					}
 				case "ingress":
 					config.Ingress = api.IngressConfig{
-						Enabled: vals.Pointer(false),
+						Enabled: utils.Pointer(false),
 					}
 				case "local-storage":
 					config.LocalStorage = api.LocalStorageConfig{
-						Enabled: vals.Pointer(false),
+						Enabled: utils.Pointer(false),
 					}
 				case "load-balancer":
 					config.LoadBalancer = api.LoadBalancerConfig{
-						Enabled: vals.Pointer(false),
+						Enabled: utils.Pointer(false),
 					}
 				case "metrics-server":
 					config.MetricsServer = api.MetricsServerConfig{
-						Enabled: vals.Pointer(false),
+						Enabled: utils.Pointer(false),
 					}
 				default:
 					cmd.PrintErrf("Error: Cannot disable %q, must be one of: %s\n", feature, strings.Join(featureList, ", "))

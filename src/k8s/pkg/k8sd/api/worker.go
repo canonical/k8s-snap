@@ -3,13 +3,13 @@ package api
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
@@ -21,7 +21,7 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 	snap := e.provider.Snap()
 
 	req := apiv1.WorkerNodeInfoRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
@@ -32,7 +32,7 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		return response.BadRequest(fmt.Errorf("failed to parse node IP address %s", req.Address))
 	}
 
-	cfg, err := utils.GetClusterConfig(s.Context, s)
+	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
@@ -98,6 +98,7 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		CA:             cfg.Certificates.GetCACert(),
 		APIServers:     servers,
 		PodCIDR:        cfg.Network.GetPodCIDR(),
+		ServiceCIDR:    cfg.Network.GetServiceCIDR(),
 		KubeletToken:   kubeletToken,
 		KubeProxyToken: proxyToken,
 		ClusterDomain:  cfg.Kubelet.GetClusterDomain(),
@@ -105,5 +106,6 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		CloudProvider:  cfg.Kubelet.GetCloudProvider(),
 		KubeletCert:    workerCertificates.KubeletCert,
 		KubeletKey:     workerCertificates.KubeletKey,
+		K8sdPublicKey:  cfg.Certificates.GetK8sdPublicKey(),
 	})
 }

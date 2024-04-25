@@ -2,11 +2,11 @@ package api
 
 import (
 	"fmt"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
-	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
@@ -22,7 +22,7 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster members: %w", err))
 	}
-	config, err := utils.GetClusterConfig(s.Context, s)
+	config, err := databaseutil.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}

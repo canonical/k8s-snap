@@ -19,29 +19,59 @@ func loadCertificate(certPEM string, keyPEM string) (*x509.Certificate, *rsa.Pri
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse certificate: %w", err)
 	}
-
-	var key *rsa.PrivateKey
-	if keyPEM != "" {
-		pb, _ := pem.Decode([]byte(keyPEM))
-		switch pb.Type {
-		case "RSA PRIVATE KEY":
-			key, err = x509.ParsePKCS1PrivateKey(pb.Bytes)
-			if err != nil {
-				return nil, nil, fmt.Errorf("failed to parse RSA private key: %w", err)
-			}
-		case "PRIVATE KEY":
-			parsed, err := x509.ParsePKCS8PrivateKey(pb.Bytes)
-			if err != nil {
-				return nil, nil, fmt.Errorf("failed to parse private key: %w", err)
-			}
-			v, ok := parsed.(*rsa.PrivateKey)
-			if !ok {
-				return nil, nil, fmt.Errorf("not an RSA private key")
-			}
-			key = v
-		default:
-			return nil, nil, fmt.Errorf("unknown private key block type %q", pb.Type)
-		}
+	if keyPEM == "" {
+		return cert, nil, nil
 	}
+
+	key, err := LoadRSAPrivateKey(keyPEM)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to load RSA private key: %w", err)
+	}
+
 	return cert, key, nil
+}
+
+// LoadRSAPrivateKey parses the specified PEM block and return the rsa.PrivateKey.
+func LoadRSAPrivateKey(keyPEM string) (*rsa.PrivateKey, error) {
+	pb, _ := pem.Decode([]byte(keyPEM))
+	if pb == nil {
+		return nil, fmt.Errorf("failed to parse PEM block")
+	}
+	switch pb.Type {
+	case "RSA PRIVATE KEY":
+		key, err := x509.ParsePKCS1PrivateKey(pb.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse RSA private key: %w", err)
+		}
+		return key, nil
+	case "PRIVATE KEY":
+		parsed, err := x509.ParsePKCS8PrivateKey(pb.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse private key: %w", err)
+		}
+		v, ok := parsed.(*rsa.PrivateKey)
+		if !ok {
+			return nil, fmt.Errorf("not an RSA private key")
+		}
+		return v, nil
+	}
+	return nil, fmt.Errorf("unknown private key block type %q", pb.Type)
+}
+
+// LoadRSAPublicKey parses the specified PEM block and return the rsa.PublicKey.
+func LoadRSAPublicKey(keyPEM string) (*rsa.PublicKey, error) {
+	pb, _ := pem.Decode([]byte(keyPEM))
+	switch pb.Type {
+	case "PUBLIC KEY":
+		parsed, err := x509.ParsePKIXPublicKey(pb.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse public key: %w", err)
+		}
+		v, ok := parsed.(*rsa.PublicKey)
+		if !ok {
+			return nil, fmt.Errorf("not an RSA public key")
+		}
+		return v, nil
+	}
+	return nil, fmt.Errorf("unknown public key block type %q", pb.Type)
 }

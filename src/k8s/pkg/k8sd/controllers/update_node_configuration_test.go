@@ -10,12 +10,11 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap/mock"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/k8s"
-	"github.com/canonical/k8s/pkg/utils/vals"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes/fake"
 )
@@ -32,7 +31,7 @@ func TestUpdateNodeConfigurationController(t *testing.T) {
 			initialConfig: types.ClusterConfig{},
 			expectedConfig: types.ClusterConfig{
 				Kubelet: types.Kubelet{
-					ClusterDomain: vals.Pointer("cluster.local"),
+					ClusterDomain: utils.Pointer("cluster.local"),
 				},
 			},
 			expectedFailure: false,
@@ -63,6 +62,7 @@ func TestUpdateNodeConfigurationController(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
+			// TODO: add tests with a signed configmap
 			configProvider := &configProvider{config: tc.expectedConfig}
 			kubeletConfigMap, err := tc.initialConfig.Kubelet.ToConfigMap(nil)
 			g.Expect(err).ToNot(HaveOccurred())
@@ -76,19 +76,22 @@ func TestUpdateNodeConfigurationController(t *testing.T) {
 			}
 			clientset := fake.NewSimpleClientset(configMap)
 
+			triggerCh := make(chan struct{})
+			defer close(triggerCh)
+
 			ctrl := controllers.NewUpdateNodeConfigurationController(s, func() {}, func() (*k8s.Client, error) {
 				return &k8s.Client{Interface: clientset}, nil
-			})
+			}, triggerCh)
 			go ctrl.Run(ctx, configProvider.getConfig)
 
 			select {
-			case ctrl.TriggerCh <- struct{}{}:
+			case triggerCh <- struct{}{}:
 			case <-time.After(channelSendTimeout):
 				g.Fail("Timed out while attempting to trigger controller reconcile loop")
 			}
 
 			select {
-			case <-ctrl.ReconciledCh:
+			case <-ctrl.ReconciledCh():
 			case <-time.After(channelSendTimeout):
 				g.Fail("Time out while waiting for the reconcile to complete")
 			}

@@ -19,6 +19,8 @@ type WorkerNodeInfoResponse struct {
 	KubeProxyToken string `json:"kubeProxyToken"`
 	// PodCIDR is the configured CIDR for pods in the cluster.
 	PodCIDR string `json:"podCIDR"`
+	// ServiceCIDR is the configured CIDR for services in the cluster.
+	ServiceCIDR string `json:"serviceCIDR"`
 	// ClusterDNS is the DNS server address of the cluster.
 	ClusterDNS string `json:"clusterDNS,omitempty"`
 	// ClusterDomain is the DNS domain of the cluster.
@@ -29,4 +31,6 @@ type WorkerNodeInfoResponse struct {
 	KubeletCert string `json:"kubeletCrt,omitempty"`
 	// KubeletKey is the private key to use for kubelet TLS. It will be empty if the cluster is not using self-signed certificates.
 	KubeletKey string `json:"kubeletKey,omitempty"`
+	// K8sdPublicKey is the public key that can be used to validate authenticity of cluster messages.
+	K8sdPublicKey string `json:"k8sdPublicKey,omitempty"`
 }
