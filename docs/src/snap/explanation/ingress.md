@@ -39,12 +39,12 @@ Traffic routed through the Ingress is directed to a service,
 which in turn forwards it to the relevant pod
 running the desired application within a container.
 
-The Ingress Resource lets you define rules on how traffic should get handled.
+The Ingress resource lets you define rules on how traffic should get handled.
 Refer to the [Kubernetes documentation on Ingress rules][Ingress Rules]
 for up to date information on the available rules and their implementation.
 
 
-While the Ingress Resource manages the routing rules for the incoming traffic,
+While the Ingress resource manages the routing rules for the incoming traffic,
 the [Ingress Controller][Ingress Controller] is responsible for implementing
 those rules by configuring the underlying networking infrastructure of the cluster.
 Ingress does not work without an Ingress Controller.
@@ -68,7 +68,7 @@ However, we do reserve the right to change it in the future if necessary.
 If your cluster requires different Ingress Controllers,
 the responsibility of implementation falls upon you.
 
-You will need to create the Ingress Resource,
+You will need to create the Ingress resource,
 outlining rules that direct traffic to your application's Kubernetes service.
 
 <!-- LINKS -->
