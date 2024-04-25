@@ -6,7 +6,16 @@ INSPECT_DUMP=$(pwd)/inspection-report
 
 SVC_ARGS_DIR=/var/snap/k8s/common/args
 K8SD_STATE_DIR=/var/snap/k8s/common/var/lib/k8sd/state
+K8SD_BIN=/snap/k8s/current/bin/k8sd
 SBOM_FILE=/snap/k8s/current/bom.json
+
+log_success() {
+    printf -- '\033[32m SUCCESS: \033[0m %s\n' "$1"
+}
+
+log_failure() {
+    printf -- '\033[31m FAIL: \033[0m %s\n' "$1"
+}
 
 function collect_args {
 	local service=$1
@@ -16,38 +25,42 @@ function collect_args {
 	if [ -e $SVC_ARGS_DIR/${service#k8s.} ]; then
 		# Strip k8s. prefix if present because args directories _are not_ created with k8s. prefix
 		cat $SVC_ARGS_DIR/${service#k8s.} &> $INSPECT_DUMP/$service/args
-		printf -- '\033[32m SUCCESS: \033[0m Found arguments for %s\n' "$service"
+		log_success "Found arguments for $service"
 	else
-		printf -- '\033[31m FAIL: \033[0m Arguments for %s not found\n' "$service"
+		log_failure "Arguments for $service not found"
 	fi
 }
 
 function collect_cluster_info {
-	mkdir -p $INSPECT_DUMP
-
 	k8s kubectl cluster-info dump &> $INSPECT_DUMP/cluster-info
 
-	printf -- '\033[32m SUCCESS: \033[0m Collected k8s cluster-info\n'
+	log_success "Collected k8s cluster-info"
 }
 
 function collect_sbom {
-	mkdir -p $INSPECT_DUMP
-
 	cat $SBOM_FILE &> $INSPECT_DUMP/sbom.json
 
-	printf -- '\033[32m SUCCESS: \033[0m Collected SBOM\n'
+	log_success "Collected SBOM"
+}
+
+function collect_diagnostics {
+	snap version &> $INSPECT_DUMP/snap-version
+	uname -a &> $INSPECT_DUMP/uname
+	snap list k8s &> $INSPECT_DUMP/snap-list-k8s
+	snap services k8s &> $INSPECT_DUMP/snap-services-k8s
+	snap logs k8s -n 10000 &> $INSPECT_DUMP/snap-logs-k8s
+	k8s status &> $INSPECT_DUMP/k8s-status
 }
 
 function collect_microcluster_db {
-	mkdir -p $INSPECT_DUMP
+	$K8SD_BIN sql .dump --state-dir $K8SD_STATE_DIR &> $INSPECT_DUMP/k8sd-db.sql
 
-	/snap/k8s/current/bin/k8sd sql .dump --state-dir $K8SD_STATE_DIR &> $INSPECT_DUMP/k8sd-db.sql
-
-	printf -- '\033[32m SUCCESS: \033[0m Collected k8sd database dump\n'
+	log_success "Collected k8sd database dump"
 }
 
 function check_service {
 	local service=$1
+
 	mkdir -p $INSPECT_DUMP/$service
 
 	status="inactive"
@@ -59,15 +72,13 @@ function check_service {
 	fi
 
 	if [ "$status" == "active" ]; then
-	  printf -- '\033[32m SUCCESS: \033[0m Service %s is running\n' "$service"
+	  log_success "Service $service is running"
 	else
-	  printf -- '\033[31m FAIL: \033[0m Service %s is not running\n' "$service"
+	  log_failure "Service $service is not running"
 	  printf -- 'For more details look at: sudo journalctl -u snap.%s\n' "$service"
 	fi
 }
 
-# Source: https://github.com/canonical/microk8s/blob/master/microk8s-resources/actions/common/utils.sh#L1272
-# test if we run with sudo
 if [ "$EUID" -ne 0 ]; then
 	echo "Elevated permissions are needed for this command. Please use sudo."
 	exit 1
@@ -100,7 +111,7 @@ printf -- '\n'
 
 printf -- 'Collecting arguments\n'
 if [ ! -d $SVC_ARGS_DIR ]; then
-	printf -- '\033[31m FAIL: \033[0m Arguments directory not found.\n'
+	log_failure "Arguments directory not found"
 else
 	collect_args $svc_containerd
 	collect_args $svc_api_server_proxy
@@ -117,7 +128,7 @@ printf -- '\n'
 
 printf -- 'Collecting k8s cluster-info\n'
 if ! k8s &> /dev/null; then
-	printf -- '\033[31m FAIL: \033[0m k8s command not found.\n'
+	log_failure "k8s command not found"
 else
 	collect_cluster_info
 fi
@@ -125,7 +136,7 @@ printf -- '\n'
 
 printf -- 'Collecting SBOM\n'
 if [ ! -f $SBOM_FILE ]; then
-	printf -- '\033[31m FAIL: \033[0m SBOM file not found.\n'
+	log_failure "SBOM file not found"
 else
 	collect_sbom
 fi
@@ -133,13 +144,30 @@ printf -- '\n'
 
 printf -- 'Collecting k8sd database dump\n'
 if [ ! -d $K8SD_STATE_DIR ]; then
-	printf -- '\033[31m FAIL: \033[0m k8sd state directory not found.\n'
+	log_failure "k8sd state directory not found"
+elif [ ! -f $K8SD_BIN ]; then
+	log_failure "k8sd binary not found"
 else
 	collect_microcluster_db
 fi
 printf -- '\n'
 
-# Make tarball of inspection-dump
-tar -czf inspection_dump.tar.gz $INSPECT_DUMP
+printf -- 'Collecting general diagnostics\n'
+if ! k8s &> /dev/null; then
+	log_failure "k8s command not found"
+elif ! snap version &> /dev/null; then
+	log_failure "snap command not found"
+else
+	collect_diagnostics
+fi
+printf -- '\n'
+
+printf -- 'Creating inspection tarball\n'
+if [ ! -d $INSPECT_DUMP ]; then
+	log_failure "No inspection-dump folder found. Nothing to tarball."
+else
+	tar -Pczf inspection_dump.tar.gz $INSPECT_DUMP
+	log_success "Tarball inspection_dump.tar.gz created"
+fi
 
 exit
