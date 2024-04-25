@@ -9,12 +9,16 @@ K8SD_STATE_DIR=/var/snap/k8s/common/var/lib/k8sd/state
 K8SD_BIN=/snap/k8s/current/bin/k8sd
 SBOM_FILE=/snap/k8s/current/bom.json
 
-function log_success() {
+function log_success {
     printf -- '\033[32m SUCCESS: \033[0m %s\n' "$1"
 }
 
-function log_failure() {
+function log_failure {
     printf -- '\033[31m FAIL: \033[0m %s\n' "$1"
+}
+
+function log_info {
+	printf -- '\033[34m INFO: \033[0m %s\n' "$1"
 }
 
 function collect_args {
@@ -22,39 +26,39 @@ function collect_args {
 	mkdir -p "$INSPECT_DUMP"/"$service"
 	local args_file="${SVC_ARGS_DIR}/${service#k8s.}" # Strip k8s prefix because args dir doesn't have it
 
-	if [ -e "$args_file" ]; then
-		cat "$args_file" &> "$INSPECT_DUMP"/"$service"/args
-		log_success "Found arguments for $service"
-	else
-		log_failure "Arguments for $service not found"
-	fi
+	log_info "Copy $service args to the final report tarball"
+	cat "$args_file" &> "$INSPECT_DUMP"/"$service"/args
 }
 
 function collect_cluster_info {
+	log_info "Copy k8s cluster-info dump to the final report tarball"
 	k8s kubectl cluster-info dump &> "$INSPECT_DUMP"/cluster-info
-
-	log_success "Collected k8s cluster-info"
 }
 
 function collect_sbom {
+	log_info "Copy SBOM to the final report tarball"
 	cat $SBOM_FILE &> "$INSPECT_DUMP"/sbom.json
-
-	log_success "Collected SBOM"
 }
 
 function collect_diagnostics {
-	snap version &> "$INSPECT_DUMP"/snap-version
+	log_info "Copy uname to the final report tarball"
 	uname -a &> "$INSPECT_DUMP"/uname
+
+	log_info "Copy snap diagnostics to the final report tarball"
+	snap version &> "$INSPECT_DUMP"/snap-version
 	snap list k8s &> "$INSPECT_DUMP"/snap-list-k8s
 	snap services k8s &> "$INSPECT_DUMP"/snap-services-k8s
 	snap logs k8s -n 10000 &> "$INSPECT_DUMP"/snap-logs-k8s
+
+	log_info "Copy k8s version and status to the final report tarball"
+	k8s version &> "$INSPECT_DUMP"/k8s-version
 	k8s status &> "$INSPECT_DUMP"/k8s-status
 }
 
 function collect_microcluster_db {
-	$K8SD_BIN sql .dump --state-dir $K8SD_STATE_DIR &> "$INSPECT_DUMP"/k8sd-db.sql
+	log_info "Copy k8sd database dump to the final report tarball"
 
-	log_success "Collected k8sd database dump"
+	$K8SD_BIN sql .dump --state-dir $K8SD_STATE_DIR &> "$INSPECT_DUMP"/k8sd-db.sql
 }
 
 function check_service {
@@ -66,17 +70,24 @@ function check_service {
     systemctl status "snap.$service" &> "$status_file"	
 	
     if grep -q "active (running)" "$status_file"; then
-        log_success "Service $service is running"
+        log_info "Service $service is running"
     else
-        log_failure "Service $service is not running"
-        echo "For more details look at: sudo journalctl -u snap.$service"
+        log_info "Service $service is not running"
     fi
 
 	journalctl -n $JOURNALCTL_LIMIT -u "snap.$service" &> "$INSPECT_DUMP/$service/journal.log"
 }
 
+function build_report_tarball {
+  # Tar and gz the report
+  local now_is=$(date +"%Y%m%d_%H%M%S")
+  tar -C $(pwd) -cf "$(pwd)/inspection-report-${now_is}.tar" "inspection-report" &> /dev/null
+  gzip "$(pwd)/inspection-report-${now_is}.tar"
+  log_success "Report tarball is at $(pwd)/inspection-report-$now_is.tar.gz"
+}
+
 if [ "$EUID" -ne 0 ]; then
-	echo "Elevated permissions are needed for this command. Please use sudo."
+	log_failure "Elevated permissions are needed for this command. Please use sudo."
 	exit 1
 fi
 
@@ -89,60 +100,25 @@ printf -- 'Inspecting services\n'
 for service in "${services[@]}"; do
     check_service "$service"
 done
-printf -- '\n'
 
-printf -- 'Collecting arguments\n'
-if [ ! -d $SVC_ARGS_DIR ]; then
-	log_failure "Arguments directory not found"
-else
-	for service in "${services[@]}"; do
-		collect_args "$service"
-	done
-fi
-printf -- '\n'
+printf -- 'Collecting service arguments\n'
+for service in "${services[@]}"; do
+	collect_args "$service"
+done
 
 printf -- 'Collecting k8s cluster-info\n'
-if ! k8s &> /dev/null; then
-	log_failure "k8s command not found"
-else
-	collect_cluster_info
-fi
-printf -- '\n'
+collect_cluster_info
 
 printf -- 'Collecting SBOM\n'
-if [ ! -f $SBOM_FILE ]; then
-	log_failure "SBOM file not found"
-else
-	collect_sbom
-fi
-printf -- '\n'
+collect_sbom
 
-printf -- 'Collecting k8sd database dump\n'
-if [ ! -d $K8SD_STATE_DIR ]; then
-	log_failure "k8sd state directory not found"
-elif [ ! -f $K8SD_BIN ]; then
-	log_failure "k8sd binary not found"
-else
-	collect_microcluster_db
-fi
-printf -- '\n'
+printf -- 'Collecting k8sd database\n'
+collect_microcluster_db
 
-printf -- 'Collecting general diagnostics\n'
-if ! k8s &> /dev/null; then
-	log_failure "k8s command not found"
-elif ! snap version &> /dev/null; then
-	log_failure "snap command not found"
-else
-	collect_diagnostics
-fi
-printf -- '\n'
+printf -- 'Gathering system information\n'
+collect_diagnostics
 
-printf -- 'Creating inspection tarball\n'
-if [ ! -d "$INSPECT_DUMP" ]; then
-	log_failure "No inspection-dump folder found. Nothing to tarball."
-else
-	tar -Pczf inspection_dump.tar.gz "$INSPECT_DUMP"
-	log_success "Tarball inspection_dump.tar.gz created"
-fi
+printf -- 'Building the report tarball\n'
+build_report_tarball
 
 exit
