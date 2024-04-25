@@ -139,4 +139,7 @@ else
 fi
 printf -- '\n'
 
+# Make tarball of inspection-dump
+tar -czf inspection_dump.tar.gz $INSPECT_DUMP
+
 exit
