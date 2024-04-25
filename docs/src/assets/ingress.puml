@@ -1,0 +1,30 @@
+@startuml
+set separator none
+title Cluster - Containers
+
+top to bottom direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+
+Person(Clients, "Clients", $descr="", $tags="", $link="")
+
+System_Boundary("Cluster_boundary", "Cluster", $tags="") {
+  Container(Cluster.Pod1, "Pod 1", $techn="Kubernetes Pod", $descr="", $tags="", $link="")
+  Container(Cluster.Pod2, "Pod 2", $techn="Kubernetes Pod", $descr="", $tags="", $link="")
+  Container(Cluster.Pod3, "Pod 3", $techn="Kubernetes Pod", $descr="", $tags="", $link="")
+  Container(Cluster.Ingress, "Ingress", $techn="", $descr="", $tags="", $link="")
+  Container(Cluster.Service1, "Service 1", $techn="Kubernetes Service", $descr="", $tags="", $link="")
+  Container(Cluster.Service2, "Service 2", $techn="Kubernetes Service", $descr="", $tags="", $link="")
+}
+
+Rel(Cluster.Service1, Cluster.Pod1, "", $techn="", $tags="", $link="")
+Rel(Cluster.Service1, Cluster.Pod2, "", $techn="", $tags="", $link="")
+Rel(Cluster.Service2, Cluster.Pod3, "", $techn="", $tags="", $link="")
+Rel(Clients, Cluster.Ingress, "External Traffic (HTTP/HTTPS)", $techn="", $tags="", $link="")
+Rel(Cluster.Ingress, Cluster.Service1, "routing rule", $techn="", $tags="", $link="")
+Rel(Cluster.Ingress, Cluster.Service2, "routing rule", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+@enduml
