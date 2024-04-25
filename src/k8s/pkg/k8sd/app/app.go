@@ -113,9 +113,9 @@ func New(cfg Config) (*App, error) {
 		cfg.Snap,
 		app.readyWg.Wait,
 		app.triggerFeatureControllerNetworkCh,
+		app.triggerFeatureControllerDNSCh,
 		app.triggerFeatureControllerLocalStorageCh,
 		app.triggerFeatureControllerMetricsServerCh,
-		app.triggerFeatureControllerDNSCh,
 	)
 
 	return app, nil
