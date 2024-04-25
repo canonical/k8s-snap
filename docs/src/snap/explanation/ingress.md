@@ -13,7 +13,7 @@ they are exposed through services.
 Services offer a stable network interface by providing discoverable names and
 load balancing functionality for managing a set of pods.
 For further details on Kubernetes Services,
-refer to the upstream documentation:[Kubernetes Service][Service].
+refer to the upstream documentation: [Kubernetes Service][Service].
 
 ## Ingress
 
