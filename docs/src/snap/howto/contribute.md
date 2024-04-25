@@ -97,6 +97,14 @@ Every page of documentation should fit into one of those categories. If it
 doesn't you may consider if it is actually two pages (e.g. a How to *and* an
 explanation).
 
+We have included some tips and outlines of the different types of docs we 
+create to help you get started:
+
+- [Tutorial template][]
+- [How to template][]
+- [Explanation template][]
+- [Reference template][]
+
 ### Small changes
 
 If you are simply correcting a typo or updating a link, you can follow the
@@ -140,3 +148,7 @@ press `F5` in your browser to reload the page without caching)!
 [Diátaxis website]: https://diataxis.fr/
 [_parts]: https://github.com/canonical/k8s-snap/blob/main/docs/src/_parts/doc-cheat-sheet-myst.md
 [community page]: ../reference/community
+[Tutorial template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/_parts/template-tutorial
+[How to template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/_parts/template-howto
+[Explanation template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/_parts/template-explanation
+[Reference template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/_parts/template-reference
