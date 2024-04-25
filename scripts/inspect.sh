@@ -125,7 +125,7 @@ printf -- '\n'
 
 printf -- 'Collecting SBOM\n'
 if [ ! -f $SBOM_FILE ]; then
-	printf -- '\033[31m FAIL: \033[0m k8s snap directory not found.\n'
+	printf -- '\033[31m FAIL: \033[0m SBOM file not found.\n'
 else
 	collect_sbom
 fi
