@@ -15,18 +15,19 @@ load balancing functionality for managing a set of pods.
 For further details on Kubernetes Services,
 refer to the upstream documentation:[Kubernetes Service][Service].
 
-## What is Ingress?
+## Ingress
 
 TODO: how do I add my pretty little picture here?
 
-[Ingress][Ingress] is a Kubernetes Resource that is responsible for managing
-external access (via HTTP and HTTPS traffic) to services within your cluster.
-The Ingress provider forwards the traffic to a service and
-the service forwards the traffic to a pod on which a desired application may
-be running inside of a container.
+[Ingress][Ingress K8s] is a Kubernetes Resource that manages
+external access by handling both HTTP and HTTPS traffic to services within your cluster.
+Traffic routed through the Ingress is directed to a service,
+which in turn forwards it to the relevant pod
+running the desired application within a container.
 
 The Ingress Resource lets you define rules on how traffic should get handled.
-See [Ingress Rules][Ingress Rules].
+Learn more about these rules and how to implement them here:
+[Ingress Rules][Ingress Rules].
 
 While the Ingress Resource manages the routing rules for the incoming traffic,
 the [Ingress Controller][Ingress Controller] is responsible for implementing
@@ -37,11 +38,12 @@ The Ingress Controller also serves as a layer 7 (HTTP/HTTPS) load balancer
 that routes traffic from outside of your cluster to services inside of your cluster.
 Please do not confuse this with the Kubernetes Service LoadBalancer type.
 
-With Canonical Kubernetes, enabling default Ingress is easy: [Ingress][Ingress]
-At the moment of writing, this will create a
+With Canonical Kubernetes, enabling default Ingress is easy:
+See [default Ingress][Ingress].
+At the moment of writing, enabling default Ingress will create a
 [Cilium Ingress Controller][Cilium Ingress Controller] for you.
-If your cluster requires a different Ingress Controllers,
-the responsibility for implementation falls upon you.
+If your cluster requires different Ingress Controllers,
+the responsibility of implementation falls upon you.
 
 You will need to create the Ingress Resource,
 outlining rules that direct traffic to your application's Kubernetes service.
@@ -70,7 +72,7 @@ Learn how to use the Canonical Kubernetes default network: [Network][Network]
 [Cilium]: https://cilium.io/
 [network plugin]: https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/
 [Service]: https://kubernetes.io/docs/concepts/services-networking/service/
-[Ingress]: https://kubernetes.io/docs/concepts/services-networking/ingress/
+[Ingress K8s]: https://kubernetes.io/docs/concepts/services-networking/ingress/
 [Ingress Rules]: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
 [Ingress Controller]: https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/
 [Cilium Ingress Controller]: https://docs.cilium.io/en/stable/network/servicemesh/ingress/
