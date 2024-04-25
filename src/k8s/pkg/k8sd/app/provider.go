@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/microcluster/microcluster"
 )
 
@@ -15,28 +16,21 @@ func (a *App) Snap() snap.Snap {
 }
 
 func (a *App) NotifyUpdateNodeConfigController() {
-	notify(a.triggerUpdateNodeConfigControllerCh)
+	utils.MaybeNotify(a.triggerUpdateNodeConfigControllerCh)
 }
 
 func (a *App) NotifyFeatureController(network, gateway, ingress, loadBalancer, localStorage, metricsServer, dns bool) {
 	if network || gateway || ingress || loadBalancer {
-		notify(a.triggerFeatureControllerNetworkCh)
+		utils.MaybeNotify(a.triggerFeatureControllerNetworkCh)
 	}
 	if localStorage {
-		notify(a.triggerFeatureControllerLocalStorageCh)
+		utils.MaybeNotify(a.triggerFeatureControllerLocalStorageCh)
 	}
 	if metricsServer {
-		notify(a.triggerFeatureControllerMetricsServerCh)
+		utils.MaybeNotify(a.triggerFeatureControllerMetricsServerCh)
 	}
 	if dns {
-		notify(a.triggerFeatureControllerDNSCh)
-	}
-}
-
-func notify(ch chan<- struct{}) {
-	select {
-	case ch <- struct{}{}:
-	default:
+		utils.MaybeNotify(a.triggerFeatureControllerDNSCh)
 	}
 }
 

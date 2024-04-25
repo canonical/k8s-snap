@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 // FeatureController manages the lifecycle of built-in Canonical Kubernetes features on a running cluster.
@@ -16,10 +18,10 @@ type FeatureController struct {
 	snap      snap.Snap
 	waitReady func()
 
-	triggerNetworkCh       <-chan struct{}
-	triggerDNSCh           <-chan struct{}
-	triggerLocalStorageCh  <-chan struct{}
-	triggerMetricsServerCh <-chan struct{}
+	triggerNetworkCh       chan struct{}
+	triggerDNSCh           chan struct{}
+	triggerLocalStorageCh  chan struct{}
+	triggerMetricsServerCh chan struct{}
 
 	reconciledNetworkCh       chan struct{}
 	reconciledDNSCh           chan struct{}
@@ -31,10 +33,10 @@ type FeatureControllerOpts struct {
 	Snap      snap.Snap
 	WaitReady func()
 
-	TriggerNetworkCh       <-chan struct{}
-	TriggerDNSCh           <-chan struct{}
-	TriggerLocalStorageCh  <-chan struct{}
-	TriggerMetricsServerCh <-chan struct{}
+	TriggerNetworkCh       chan struct{}
+	TriggerDNSCh           chan struct{}
+	TriggerLocalStorageCh  chan struct{}
+	TriggerMetricsServerCh chan struct{}
 }
 
 func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
@@ -53,7 +55,7 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 }
 
 func (c *FeatureController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error), notifyDNSChangedIP func(ctx context.Context, dnsIP string) error) {
-	// TODO: split the network components into separate reconcileLoops (and use separate channels) after implementing retry logic in case of failures
+	// TODO: split the network components into separate reconcileLoops (and use separate channels)
 	go c.reconcileLoop(ctx, getClusterConfig, "network", c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) error {
 		if err := features.ApplyNetwork(ctx, c.snap, cfg.Network); err != nil {
 			return fmt.Errorf("failed to apply CNI configuration: %w", err)
@@ -102,21 +104,21 @@ func (c *FeatureController) reconcile(ctx context.Context, getClusterConfig func
 	return nil
 }
 
-func (c *FeatureController) reconcileLoop(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error), componentName string, triggerCh <-chan struct{}, reconciledCh chan<- struct{}, apply func(cfg types.ClusterConfig) error) {
+func (c *FeatureController) reconcileLoop(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error), componentName string, triggerCh chan struct{}, reconciledCh chan<- struct{}, apply func(cfg types.ClusterConfig) error) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-triggerCh:
-			// TODO: add retry logic in case of error
 			if err := c.reconcile(ctx, getClusterConfig, apply); err != nil {
-				log.Println(fmt.Errorf("failed to reconcile %s configuration: %w", componentName, err))
+				log.Printf("failed to reconcile %s configuration, will retry in 5 seconds: %v", componentName, err)
+
+				// notify triggerCh after 5 seconds to retry
+				time.AfterFunc(5*time.Second, func() { utils.MaybeNotify(triggerCh) })
+			} else {
+				utils.MaybeNotify(reconciledCh)
 			}
 
-			select {
-			case reconciledCh <- struct{}{}:
-			default:
-			}
 		}
 	}
 }
