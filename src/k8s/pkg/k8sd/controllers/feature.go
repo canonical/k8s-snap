@@ -27,21 +27,24 @@ type FeatureController struct {
 	reconciledMetricsServerCh chan struct{}
 }
 
-func NewFeatureController(
-	snap snap.Snap,
-	waitReady func(),
-	triggerNetworkCh <-chan struct{},
-	triggerDNSCh <-chan struct{},
-	triggerLocalStorageCh <-chan struct{},
-	triggerMetricsServerCh <-chan struct{},
-) *FeatureController {
+type FeatureControllerOpts struct {
+	Snap      snap.Snap
+	WaitReady func()
+
+	TriggerNetworkCh       <-chan struct{}
+	TriggerDNSCh           <-chan struct{}
+	TriggerLocalStorageCh  <-chan struct{}
+	TriggerMetricsServerCh <-chan struct{}
+}
+
+func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 	return &FeatureController{
-		snap:                      snap,
-		waitReady:                 waitReady,
-		triggerNetworkCh:          triggerNetworkCh,
-		triggerDNSCh:              triggerDNSCh,
-		triggerLocalStorageCh:     triggerLocalStorageCh,
-		triggerMetricsServerCh:    triggerMetricsServerCh,
+		snap:                      opts.Snap,
+		waitReady:                 opts.WaitReady,
+		triggerNetworkCh:          opts.TriggerNetworkCh,
+		triggerDNSCh:              opts.TriggerDNSCh,
+		triggerLocalStorageCh:     opts.TriggerLocalStorageCh,
+		triggerMetricsServerCh:    opts.TriggerMetricsServerCh,
 		reconciledNetworkCh:       make(chan struct{}, 1),
 		reconciledDNSCh:           make(chan struct{}, 1),
 		reconciledLocalStorageCh:  make(chan struct{}, 1),

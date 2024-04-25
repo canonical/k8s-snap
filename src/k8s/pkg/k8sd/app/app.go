@@ -109,14 +109,14 @@ func New(cfg Config) (*App, error) {
 	app.triggerFeatureControllerLocalStorageCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerMetricsServerCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerDNSCh = make(chan struct{}, 1)
-	app.featureController = controllers.NewFeatureController(
-		cfg.Snap,
-		app.readyWg.Wait,
-		app.triggerFeatureControllerNetworkCh,
-		app.triggerFeatureControllerDNSCh,
-		app.triggerFeatureControllerLocalStorageCh,
-		app.triggerFeatureControllerMetricsServerCh,
-	)
+	app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
+		Snap:                   cfg.Snap,
+		WaitReady:              app.readyWg.Wait,
+		TriggerNetworkCh:       app.triggerFeatureControllerNetworkCh,
+		TriggerDNSCh:           app.triggerFeatureControllerDNSCh,
+		TriggerLocalStorageCh:  app.triggerFeatureControllerLocalStorageCh,
+		TriggerMetricsServerCh: app.triggerFeatureControllerMetricsServerCh,
+	})
 
 	return app, nil
 }
