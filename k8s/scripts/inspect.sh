@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-JOURNALCTL_LIMIT=100000
-
 INSPECT_DUMP=$(pwd)/inspection-report
 
 SVC_ARGS_DIR=/var/snap/k8s/common/args
@@ -13,21 +11,13 @@ function log_success {
     printf -- '\033[32m SUCCESS: \033[0m %s\n' "$1"
 }
 
-function log_failure {
-    printf -- '\033[31m FAIL: \033[0m %s\n' "$1"
-}
-
 function log_info {
 	printf -- '\033[34m INFO: \033[0m %s\n' "$1"
 }
 
 function collect_args {
-	local service="$1"
-	mkdir -p "$INSPECT_DUMP"/"$service"
-	local args_file="${SVC_ARGS_DIR}/${service#k8s.}" # Strip k8s prefix because args dir doesn't have it
-
 	log_info "Copy $service args to the final report tarball"
-	cat "$args_file" &> "$INSPECT_DUMP"/"$service"/args
+	cp -r "${SVC_ARGS_DIR}" "$INSPECT_DUMP"
 }
 
 function collect_cluster_info {
@@ -37,7 +27,7 @@ function collect_cluster_info {
 
 function collect_sbom {
 	log_info "Copy SBOM to the final report tarball"
-	cat $SBOM_FILE &> "$INSPECT_DUMP"/sbom.json
+	cp $SBOM_FILE "$INSPECT_DUMP"/sbom.json
 }
 
 function collect_diagnostics {
@@ -75,19 +65,20 @@ function check_service {
         log_info "Service $service is not running"
     fi
 
-	journalctl -n $JOURNALCTL_LIMIT -u "snap.$service" &> "$INSPECT_DUMP/$service/journal.log"
+	journalctl -n 100000 -u "snap.$service" &> "$INSPECT_DUMP/$service/journal.log"
 }
 
 function build_report_tarball {
-  # Tar and gz the report
-  local now_is=$(date +"%Y%m%d_%H%M%S")
-  tar -C $(pwd) -cf "$(pwd)/inspection-report-${now_is}.tar" "inspection-report" &> /dev/null
-  gzip "$(pwd)/inspection-report-${now_is}.tar"
-  log_success "Report tarball is at $(pwd)/inspection-report-$now_is.tar.gz"
+    local now_is
+	now_is=$(date +"%Y%m%d_%H%M%S")
+
+    tar -C "$(pwd)" -cf "$(pwd)/inspection-report-${now_is}.tar" inspection-report &> /dev/null
+    gzip "$(pwd)/inspection-report-${now_is}.tar"
+    log_success "Report tarball is at $(pwd)/inspection-report-$now_is.tar.gz"
 }
 
 if [ "$EUID" -ne 0 ]; then
-	log_failure "Elevated permissions are needed for this command. Please use sudo."
+	printf -- "Elevated permissions are needed for this command. Please use sudo."
 	exit 1
 fi
 
@@ -102,9 +93,7 @@ for service in "${services[@]}"; do
 done
 
 printf -- 'Collecting service arguments\n'
-for service in "${services[@]}"; do
-	collect_args "$service"
-done
+collect_args
 
 printf -- 'Collecting k8s cluster-info\n'
 collect_cluster_info
@@ -120,5 +109,3 @@ collect_diagnostics
 
 printf -- 'Building the report tarball\n'
 build_report_tarball
-
-exit
