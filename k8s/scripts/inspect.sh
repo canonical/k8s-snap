@@ -17,7 +17,7 @@ function log_info {
 
 function collect_args {
 	log_info "Copy $service args to the final report tarball"
-	cp -r "${SVC_ARGS_DIR}" "$INSPECT_DUMP"
+	cp -r "$SVC_ARGS_DIR" "$INSPECT_DUMP"
 }
 
 function collect_cluster_info {
@@ -27,7 +27,7 @@ function collect_cluster_info {
 
 function collect_sbom {
 	log_info "Copy SBOM to the final report tarball"
-	cp $SBOM_FILE "$INSPECT_DUMP"/sbom.json
+	cp "$SBOM_FILE" "$INSPECT_DUMP"/sbom.json
 }
 
 function collect_diagnostics {
@@ -48,7 +48,7 @@ function collect_diagnostics {
 function collect_microcluster_db {
 	log_info "Copy k8sd database dump to the final report tarball"
 
-	$K8SD_BIN sql .dump --state-dir $K8SD_STATE_DIR &> "$INSPECT_DUMP"/k8sd-db.sql
+	"$K8SD_BIN" sql .dump --state-dir "$K8SD_STATE_DIR" &> "$INSPECT_DUMP"/k8sd-db.sql
 }
 
 function check_service {
