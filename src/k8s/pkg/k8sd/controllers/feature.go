@@ -19,11 +19,17 @@ type FeatureController struct {
 	waitReady func()
 
 	triggerNetworkCh       chan struct{}
+	triggerGatewayCh       chan struct{}
+	triggerIngressCh       chan struct{}
+	triggerLoadBalancerCh  chan struct{}
 	triggerDNSCh           chan struct{}
 	triggerLocalStorageCh  chan struct{}
 	triggerMetricsServerCh chan struct{}
 
 	reconciledNetworkCh       chan struct{}
+	reconciledGatewayCh       chan struct{}
+	reconciledIngressCh       chan struct{}
+	reconciledLoadBalancerCh  chan struct{}
 	reconciledDNSCh           chan struct{}
 	reconciledLocalStorageCh  chan struct{}
 	reconciledMetricsServerCh chan struct{}
@@ -34,6 +40,9 @@ type FeatureControllerOpts struct {
 	WaitReady func()
 
 	TriggerNetworkCh       chan struct{}
+	TriggerGatewayCh       chan struct{}
+	TriggerIngressCh       chan struct{}
+	TriggerLoadBalancerCh  chan struct{}
 	TriggerDNSCh           chan struct{}
 	TriggerLocalStorageCh  chan struct{}
 	TriggerMetricsServerCh chan struct{}
@@ -44,10 +53,16 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 		snap:                      opts.Snap,
 		waitReady:                 opts.WaitReady,
 		triggerNetworkCh:          opts.TriggerNetworkCh,
+		triggerGatewayCh:          opts.TriggerGatewayCh,
+		triggerIngressCh:          opts.TriggerIngressCh,
+		triggerLoadBalancerCh:     opts.TriggerLoadBalancerCh,
 		triggerDNSCh:              opts.TriggerDNSCh,
 		triggerLocalStorageCh:     opts.TriggerLocalStorageCh,
 		triggerMetricsServerCh:    opts.TriggerMetricsServerCh,
 		reconciledNetworkCh:       make(chan struct{}, 1),
+		reconciledGatewayCh:       make(chan struct{}, 1),
+		reconciledIngressCh:       make(chan struct{}, 1),
+		reconciledLoadBalancerCh:  make(chan struct{}, 1),
 		reconciledDNSCh:           make(chan struct{}, 1),
 		reconciledLocalStorageCh:  make(chan struct{}, 1),
 		reconciledMetricsServerCh: make(chan struct{}, 1),
@@ -55,21 +70,20 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 }
 
 func (c *FeatureController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error), notifyDNSChangedIP func(ctx context.Context, dnsIP string) error) {
-	// TODO: split the network components into separate reconcileLoops (and use separate channels)
 	go c.reconcileLoop(ctx, getClusterConfig, "network", c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) error {
-		if err := features.ApplyNetwork(ctx, c.snap, cfg.Network); err != nil {
-			return fmt.Errorf("failed to apply CNI configuration: %w", err)
-		}
-		if err := features.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network); err != nil {
-			return fmt.Errorf("failed to apply gateway configuration: %w", err)
-		}
-		if err := features.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network); err != nil {
-			return fmt.Errorf("failed to apply ingress configuration: %w", err)
-		}
-		if err := features.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network); err != nil {
-			return fmt.Errorf("failed to apply load balancer configuration: %w", err)
-		}
-		return nil
+		return features.ApplyNetwork(ctx, c.snap, cfg.Network)
+	})
+
+	go c.reconcileLoop(ctx, getClusterConfig, "gateway", c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) error {
+		return features.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network)
+	})
+
+	go c.reconcileLoop(ctx, getClusterConfig, "ingress", c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) error {
+		return features.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network)
+	})
+
+	go c.reconcileLoop(ctx, getClusterConfig, "load balancer", c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) error {
+		return features.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, "local storage", c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) error {

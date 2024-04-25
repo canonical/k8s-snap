@@ -20,8 +20,17 @@ func (a *App) NotifyUpdateNodeConfigController() {
 }
 
 func (a *App) NotifyFeatureController(network, gateway, ingress, loadBalancer, localStorage, metricsServer, dns bool) {
-	if network || gateway || ingress || loadBalancer {
+	if network {
 		utils.MaybeNotify(a.triggerFeatureControllerNetworkCh)
+	}
+	if gateway {
+		utils.MaybeNotify(a.triggerFeatureControllerGatewayCh)
+	}
+	if ingress {
+		utils.MaybeNotify(a.triggerFeatureControllerIngressCh)
+	}
+	if loadBalancer {
+		utils.MaybeNotify(a.triggerFeatureControllerLoadBalancerCh)
 	}
 	if localStorage {
 		utils.MaybeNotify(a.triggerFeatureControllerLocalStorageCh)

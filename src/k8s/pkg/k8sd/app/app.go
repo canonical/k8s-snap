@@ -53,6 +53,9 @@ type App struct {
 
 	// featureController
 	triggerFeatureControllerNetworkCh       chan struct{}
+	triggerFeatureControllerGatewayCh       chan struct{}
+	triggerFeatureControllerIngressCh       chan struct{}
+	triggerFeatureControllerLoadBalancerCh  chan struct{}
 	triggerFeatureControllerLocalStorageCh  chan struct{}
 	triggerFeatureControllerMetricsServerCh chan struct{}
 	triggerFeatureControllerDNSCh           chan struct{}
@@ -106,6 +109,9 @@ func New(cfg Config) (*App, error) {
 	)
 
 	app.triggerFeatureControllerNetworkCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerGatewayCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerIngressCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerLoadBalancerCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerLocalStorageCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerMetricsServerCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerDNSCh = make(chan struct{}, 1)
@@ -113,6 +119,9 @@ func New(cfg Config) (*App, error) {
 		Snap:                   cfg.Snap,
 		WaitReady:              app.readyWg.Wait,
 		TriggerNetworkCh:       app.triggerFeatureControllerNetworkCh,
+		TriggerGatewayCh:       app.triggerFeatureControllerGatewayCh,
+		TriggerIngressCh:       app.triggerFeatureControllerIngressCh,
+		TriggerLoadBalancerCh:  app.triggerFeatureControllerLoadBalancerCh,
 		TriggerDNSCh:           app.triggerFeatureControllerDNSCh,
 		TriggerLocalStorageCh:  app.triggerFeatureControllerLocalStorageCh,
 		TriggerMetricsServerCh: app.triggerFeatureControllerMetricsServerCh,
