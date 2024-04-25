@@ -4,11 +4,7 @@ workspace {
         user = person "Clients" {
         }
 
-
         cluster = softwareSystem "Cluster" {
-
-
-
 
             ingress = container "Ingress" {
                 user -> this "External Traffic (HTTP/HTTPS)"
@@ -16,12 +12,12 @@ workspace {
             
             service = container "Service 1" {
                 technology "Kubernetes Service"
-                ingress -> this
+                ingress -> this "routing rule"
             }
 
             service2 = container "Service 2" {
                 technology "Kubernetes Service"
-                ingress -> this
+                ingress -> this "routing rule"
             }
             
             pod = container "Pod 1"{
@@ -38,9 +34,7 @@ workspace {
                 technology "Kubernetes Pod"
                 service2 -> this
             }        
-        
         }
-
     }
 
     views {
@@ -52,5 +46,4 @@ workspace {
 
         theme default
     }
-
 }
