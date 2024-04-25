@@ -16,7 +16,7 @@ function log_info {
 }
 
 function collect_args {
-	log_info "Copy $service args to the final report tarball"
+	log_info "Copy service args to the final report tarball"
 	cp -r "$SVC_ARGS_DIR" "$INSPECT_DUMP"
 }
 
