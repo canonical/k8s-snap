@@ -1,0 +1,97 @@
+# Tutorial docs template
+
+> Tutorials are explained guides which fulfil the objectives of learning and
+understanding through example.
+
+>Unlike some of the other documentation types, tutorials are structured and easy
+to provide a definitive template.
+
+> Tutorials should start with a short introductory statement outlining the
+objective of the tutorial. For example:
+
+Installing Canonical Kubernetes should only take a few minutes. This tutorial
+explains how to install the snap package and some typical operations. 
+
+> For lengthier tutorials, it is worth considering adding a bullet list
+detailing this:
+
+## What you will learn
+
+- How to install the k8s snap
+- Configuring storage
+- Deploying an application to the cluster
+- Removing an application
+- Turning off the cluster
+
+> Next, ALL tutorials should include a section called 'What you will need'. This
+> is a list (with links if necessary) that covers the requirements to start the
+> tutorial. This could include things like system requirements, assumptions about
+> software already installed and even knowledge. This is essentially the list of
+> assumptions we are making
+
+## What you will need
+
+- Ubuntu 22.04 LTS or 20.04 LTS
+- At least 20G disk space and 4G of memory
+- The [Juju-client]
+
+> The tutorial should proceed with numbered steps if possible, showing the
+> sequence of the tutorial.
+
+### 1. Install Canonical Kubernetes
+
+Install the Canonical Kubernetes snap with:
+
+```
+sudo snap install k8s --edge --classic
+```
+
+> Remember this is a tutorial. It is fine to add words to explain what is going
+on, why we are doing particular things, and what results one might expect. In
+some cases you may even want to deliberately manufacture an error to better
+illustrate how things work and how to solve problems.
+
+> It is often a good idea to include a summarising statement at the end,
+detailing the things the reader should now know about. This isn't entirely a
+self-congratulatory exercise - it is an aid to learning an retention. It
+doesn't have to be long or detailed. For example:
+
+---
+
+Congratulations you have now completed the tutorial. We found out how to
+install the Kubernetes snap, how to change the configuration, deploy a
+workload and remove everything again!
+
+> Almost without exception you will then want to point the reader to other
+> tutorials or how to guides. Please include a "Next Steps" heading with a list
+> of links.
+
+## Next Steps
+
+- Keep mastering Canonical Kubernetes with kubectl: [How to use kubectl]
+- Explore Kubernetes commands with our [Command Reference Guide]
+- Learn how to set up a multi-node environment [Setting up a K8s cluster]
+- Configure storage options [Storage]
+- Master Kubernetes networking concepts: [Networking]
+- Discover how to enable and configure Ingress resources [Ingress]
+
+---
+
+> Note that the links throughout should always be by reference. Your document
+should end with a list of these links. This makes it 2000 times easier to
+maintain the document and update the links when necessary!
+
+Note the different type of links:
+
+- for pages in the same category, you can just use the name (not including the
+  file extension)
+- for pages in a different category, it is better to use the full path(relative
+  to the /docs/src/)
+- external links are straightforward
+
+<!-- LINKS -->
+
+[How to use kubectl]: kubectl
+[Command Reference Guide]: /snap/reference/commands
+[Ingress]: http://www.example.com
+
