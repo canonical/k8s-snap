@@ -2,9 +2,6 @@
 
 INSPECT_DUMP=$(pwd)/inspection-report
 
-SVC_ARGS_DIR=/var/snap/k8s/common/args
-SBOM_FILE=/snap/k8s/current/bom.json
-
 function log_success {
     printf -- '\033[32m SUCCESS: \033[0m %s\n' "$1"
 }
@@ -19,7 +16,7 @@ function log_warning_red {
 
 function collect_args {
 	log_info "Copy service args to the final report tarball"
-	cp -r --no-preserve=mode,ownership "$SVC_ARGS_DIR" "$INSPECT_DUMP"
+	cp -r --no-preserve=mode,ownership /var/snap/k8s/common/args "$INSPECT_DUMP"
 }
 
 function collect_cluster_info {
@@ -29,7 +26,7 @@ function collect_cluster_info {
 
 function collect_sbom {
 	log_info "Copy SBOM to the final report tarball"
-	cp --no-preserve=mode,ownership "$SBOM_FILE" "$INSPECT_DUMP"/sbom.json
+	cp --no-preserve=mode,ownership /snap/k8s/current/bom.json "$INSPECT_DUMP"/sbom.json
 }
 
 function collect_diagnostics {
