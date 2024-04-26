@@ -1,3 +1,3 @@
 #!/bin/bash
 
-echo "master"
+echo "release-1.30"
