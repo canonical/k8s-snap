@@ -2,7 +2,7 @@
 
 In Kubernetes, understanding how inbound traffic is managed inside of your
 cluster can be complex.
-While there is abundant documentation, this explanation provides you with the essentials
+This explanation provides you with the essentials
 to successfully manage your Canonical Kubernetes cluster.
 
 ## Network
@@ -61,9 +61,10 @@ With Canonical Kubernetes, enabling default Ingress is easy:
 See the [default Ingress guide][Ingress].
 Enabling default Ingress will create an
 [Ingress Controller][Cilium Ingress Controller] for you.
-The underlying mechanism provided by default will always operate in the same way,
-and will be Cilium for the foreseeable future.
-However, we do reserve the right to change it in the future if necessary.
+The underlying mechanism provided by default is currently Cilium.
+However, it should always be operated through the provided CLI rather than
+directly. This way, we can provide the best experience for future cluster
+maintenance and upgrades.
 
 If your cluster requires different Ingress Controllers,
 the responsibility of implementation falls upon you.
