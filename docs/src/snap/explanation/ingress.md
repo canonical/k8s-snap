@@ -57,10 +57,11 @@ which operates at layer 4 and routes traffic directly to individual pods.
 ```{kroki} ../../assets/ingress.puml
 ```
 
-With Canonical Kubernetes, enabling default Ingress is easy:
+With Canonical Kubernetes, enabling Ingress is easy:
 See the [default Ingress guide][Ingress].
-Enabling default Ingress will create an
-[Ingress Controller][Cilium Ingress Controller] for you.
+Once enabled, you will have a working
+[Ingress Controller][Cilium Ingress Controller] in your cluster.
+
 The underlying mechanism provided by default is currently Cilium.
 However, it should always be operated through the provided CLI rather than
 directly. This way, we can provide the best experience for future cluster
