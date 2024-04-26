@@ -31,13 +31,13 @@ SNAPCRAFT_YAML = yaml.safe_load(Path(DIR / "../../snap/snapcraft.yaml").read_tex
 
 # FIXME: This information should not be hardcoded here
 CILIUM_ROCK_REPO = "https://github.com/canonical/cilium-rocks"
-CILIUM_ROCK_TAG = "main"
+CILIUM_ROCK_TAG = "release-1.30"
 COREDNS_ROCK_REPO = "https://github.com/canonical/coredns-rock"
-COREDNS_ROCK_TAG = "main"
+COREDNS_ROCK_TAG = "release-1.30"
 METRICS_SERVER_ROCK_REPO = "https://github.com/canonical/metrics-server-rock"
-METRICS_SERVER_ROCK_TAG = "main"
+METRICS_SERVER_ROCK_TAG = "release-1.30"
 RAWFILE_LOCALPV_REPO = "https://github.com/canonical/rawfile-localpv"
-RAWFILE_LOCALPV_TAG = "main"
+RAWFILE_LOCALPV_TAG = "release-1.30"
 SNAPCRAFT_C_COMPONENTS = ["libmnl", "libnftnl", "iptables"]
 SNAPCRAFT_GO_COMPONENTS = [
     "runc",
