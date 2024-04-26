@@ -70,6 +70,8 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 }
 
 func (c *FeatureController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error), notifyDNSChangedIP func(ctx context.Context, dnsIP string) error) {
+	c.waitReady()
+
 	go c.reconcileLoop(ctx, getClusterConfig, "network", c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) error {
 		return features.ApplyNetwork(ctx, c.snap, cfg.Network)
 	})
