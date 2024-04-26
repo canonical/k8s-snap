@@ -61,6 +61,9 @@ func LoadRSAPrivateKey(keyPEM string) (*rsa.PrivateKey, error) {
 // LoadRSAPublicKey parses the specified PEM block and return the rsa.PublicKey.
 func LoadRSAPublicKey(keyPEM string) (*rsa.PublicKey, error) {
 	pb, _ := pem.Decode([]byte(keyPEM))
+	if pb == nil {
+		return nil, fmt.Errorf("failed to parse PEM block")
+	}
 	switch pb.Type {
 	case "PUBLIC KEY":
 		parsed, err := x509.ParsePKIXPublicKey(pb.Bytes)
