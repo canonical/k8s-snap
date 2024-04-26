@@ -353,5 +353,6 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		cfg.MetricsServer.GetEnabled(),
 		cfg.DNS.GetEnabled(),
 	)
+	a.NotifyUpdateNodeConfigController()
 	return nil
 }
