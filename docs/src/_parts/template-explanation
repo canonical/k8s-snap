@@ -11,7 +11,7 @@ You can include a diagram as an image using the usual Markdown format:
 
 ![Illustration depicting working on components and clouds][logo]
 
-The documentation also supports  various daigrams-as-code options. We
+The documentation also supports various diagrams-as-code options. We
 prefer to use UML-style diagrams, but you can also use Mermaid or many
 other types.
 
