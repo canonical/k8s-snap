@@ -29,7 +29,7 @@ function collect_args {
 
 function collect_cluster_info {
   log_info "Copy k8s cluster-info dump to the final report tarball"
-  k8s kubectl cluster-info dump &>"$INSPECT_DUMP"/cluster-info
+  k8s kubectl cluster-info dump &> "$INSPECT_DUMP/cluster-info.log"
 }
 
 function collect_sbom {
@@ -105,6 +105,7 @@ printf -- 'Inspecting services\n'
 
 if is_control_plane_node; then
   printf -- 'Running inspection on a control-plane node\n'
+  printf -- 'Inspection ran on a control plane node.' > "$INSPECT_DUMP/is-control-plane-node"
 fi
 
 for service in "${services[@]}"; do
