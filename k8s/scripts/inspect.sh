@@ -21,7 +21,7 @@ function log_warning_red {
 
 function collect_args {
 	log_info "Copy service args to the final report tarball"
-	cp -r "$SVC_ARGS_DIR" "$INSPECT_DUMP"
+	cp -r --no-preserve=mode,ownership "$SVC_ARGS_DIR" "$INSPECT_DUMP"
 }
 
 function collect_cluster_info {
@@ -31,7 +31,7 @@ function collect_cluster_info {
 
 function collect_sbom {
 	log_info "Copy SBOM to the final report tarball"
-	cp "$SBOM_FILE" "$INSPECT_DUMP"/sbom.json
+	cp --no-preserve=mode,ownership "$SBOM_FILE" "$INSPECT_DUMP"/sbom.json
 }
 
 function collect_diagnostics {
@@ -51,8 +51,8 @@ function collect_diagnostics {
 	k8s kubectl get cm k8sd-config -n kube-system -o yaml &> "$INSPECT_DUMP"/k8sd-configmap
 	k8s kubectl get cm -n kube-system &> "$INSPECT_DUMP"/k8s-configmaps
 
-	cp /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml "$INSPECT_DUMP"/k8s-dqlite-cluster.yaml
-	cp /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP"/k8sd-cluster.yaml
+	cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml "$INSPECT_DUMP"/k8s-dqlite-cluster.yaml
+	cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP"/k8sd-cluster.yaml
 }
 
 function collect_microcluster_db {
