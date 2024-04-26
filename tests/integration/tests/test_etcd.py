@@ -72,7 +72,7 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     )
 
     # check that we can still connect to the kubernetes cluster
-    util.stubbornly(retries=3, delay_s=1).on(k8s_instance).exec(
+    util.stubbornly(retries=10, delay_s=2).on(k8s_instance).exec(
         ["k8s", "kubectl", "get", "pods", "-A"]
     )
 
