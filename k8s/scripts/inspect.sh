@@ -10,7 +10,7 @@ function log_info {
   printf -- '\033[34m INFO: \033[0m %s\n' "$1"
 }
 
-log_warning () {
+function log_warning () {
   printf -- '\033[33m WARNING: \033[0m %s\n' "$1"
 }
 
