@@ -15,6 +15,10 @@ function log_info {
 	printf -- '\033[34m INFO: \033[0m %s\n' "$1"
 }
 
+function log_warning_red {
+	printf -- '\033[31m WARNING: \033[0m %s\n' "$1"
+}
+
 function collect_args {
 	log_info "Copy service args to the final report tarball"
 	cp -r "$SVC_ARGS_DIR" "$INSPECT_DUMP"
@@ -40,9 +44,12 @@ function collect_diagnostics {
 	snap services k8s &> "$INSPECT_DUMP"/snap-services-k8s
 	snap logs k8s -n 10000 &> "$INSPECT_DUMP"/snap-logs-k8s
 
-	log_info "Copy k8s version and status to the final report tarball"
+	log_info "Copy k8s diagnostics to the final report tarball"
 	k8s version &> "$INSPECT_DUMP"/k8s-version
 	k8s status &> "$INSPECT_DUMP"/k8s-status
+	k8s get &> "$INSPECT_DUMP"/k8s-get
+	k8s kubectl get cm k8sd-config -n kube-system -o yaml &> "$INSPECT_DUMP"/k8sd-configmap
+	k8s kubectl get cm -n kube-system &> "$INSPECT_DUMP"/k8s-configmaps
 }
 
 function collect_microcluster_db {
@@ -101,11 +108,16 @@ collect_cluster_info
 printf -- 'Collecting SBOM\n'
 collect_sbom
 
-printf -- 'Collecting k8sd database\n'
-collect_microcluster_db
-
 printf -- 'Gathering system information\n'
 collect_diagnostics
+
+matches=$(grep -rlEi "BEGIN CERTIFICATE|PRIVATE KEY" inspection-report)
+if [ -n "$matches" ]; then
+    matches_comma_separated=$(echo "$matches" | tr '\n' ',')
+	log_warning_red 'Unexpected private key or certificate found in the report:'
+	log_warning_red "Found in the following files: ${matches_comma_separated%,}"
+	log_warning_red 'Please remove the private key or certificate from the report before sharing.'
+fi
 
 printf -- 'Building the report tarball\n'
 build_report_tarball
