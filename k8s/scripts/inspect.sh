@@ -10,8 +10,16 @@ function log_info {
   printf -- '\033[34m INFO: \033[0m %s\n' "$1"
 }
 
+log_warning () {
+  printf -- '\033[33m WARNING: \033[0m %s\n' "$1"
+}
+
 function log_warning_red {
   printf -- '\033[31m WARNING: \033[0m %s\n' "$1"
+}
+
+function is_control_plane_node {
+  k8s local-node-status | grep -q "control-plane"
 }
 
 function collect_args {
@@ -31,40 +39,45 @@ function collect_sbom {
 
 function collect_diagnostics {
   log_info "Copy uname to the final report tarball"
-  uname -a &>"$INSPECT_DUMP"/uname
+  uname -a &>"$INSPECT_DUMP/uname.log"
 
   log_info "Copy snap diagnostics to the final report tarball"
-  snap version &>"$INSPECT_DUMP"/snap-version
-  snap list k8s &>"$INSPECT_DUMP"/snap-list-k8s
-  snap services k8s &>"$INSPECT_DUMP"/snap-services-k8s
-  snap logs k8s -n 10000 &>"$INSPECT_DUMP"/snap-logs-k8s
+  snap version &>"$INSPECT_DUMP/snap-version.log"
+  snap list k8s &>"$INSPECT_DUMP/snap-list-k8s.log"
+  snap services k8s &>"$INSPECT_DUMP/snap-services-k8s.log"
+  snap logs k8s -n 10000 &>"$INSPECT_DUMP/snap-logs-k8s.log"
 
   log_info "Copy k8s diagnostics to the final report tarball"
-  k8s version &>"$INSPECT_DUMP"/k8s-version
-  k8s status &>"$INSPECT_DUMP"/k8s-status
-  k8s get &>"$INSPECT_DUMP"/k8s-get
-  k8s kubectl get cm k8sd-config -n kube-system -o yaml &>"$INSPECT_DUMP"/k8sd-configmap
-  k8s kubectl get cm -n kube-system &>"$INSPECT_DUMP"/k8s-configmaps
+  k8s kubectl version &>"$INSPECT_DUMP/k8s-version.log"
+  k8s status &>"$INSPECT_DUMP/k8s-status.log"
+  k8s get &>"$INSPECT_DUMP/k8s-get.log"
+  k8s kubectl get cm k8sd-config -n kube-system -o yaml &>"$INSPECT_DUMP/k8sd-configmap.log"
+  k8s kubectl get cm -n kube-system &>"$INSPECT_DUMP/k8s-configmaps.log"
 
-  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml "$INSPECT_DUMP"/k8s-dqlite-cluster.yaml
-  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml "$INSPECT_DUMP"/k8s-dqlite-info.yaml
-  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP"/k8sd-cluster.yaml
-  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/info.yaml "$INSPECT_DUMP"/k8sd-info.yaml
+  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml "$INSPECT_DUMP/k8s-dqlite-cluster.yaml"
+  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml "$INSPECT_DUMP/k8s-dqlite-info.yaml"
+  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP/k8sd-cluster.yaml"
+  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/info.yaml "$INSPECT_DUMP/k8sd-info.yaml"
 }
 
 function check_service {
-  local service=$1
-  mkdir -p "$INSPECT_DUMP"/"$service"
+  local service
+  service=$1
 
-  local status_file="$INSPECT_DUMP/$service/systemctl.log"
+  mkdir -p "$INSPECT_DUMP/$service"
 
-  systemctl status "snap.$service" &>"$status_file"
+  local status_file
+  status_file="$INSPECT_DUMP/$service/systemctl.log"
+
+  systemctl status "snap.$service" &> "$status_file"
 
   if grep -q "active (running)" "$status_file"; then
     log_info "Service $service is running"
   else
     log_info "Service $service is not running"
   fi
+
+  printf -- "%s $(systemctl show "snap.$service" -p NRestarts)\n" "$service" >> "$INSPECT_DUMP/nrestarts.log"
 
   journalctl -n 100000 -u "snap.$service" &>"$INSPECT_DUMP/$service/journal.log"
 }
@@ -89,6 +102,11 @@ mkdir -p "$INSPECT_DUMP"
 declare -a services=("k8s.containerd" "k8s.k8s-apiserver-proxy" "k8s.k8s-dqlite" "k8s.k8sd" "k8s.kube-apiserver" "k8s.kube-controller-manager" "k8s.kube-proxy" "k8s.kube-scheduler" "k8s.kubelet")
 
 printf -- 'Inspecting services\n'
+
+if is_control_plane_node; then
+  printf -- 'Running inspection on a control-plane node\n'
+fi
+
 for service in "${services[@]}"; do
   check_service "$service"
 done
@@ -104,7 +122,7 @@ collect_sbom
 
 printf -- 'Gathering system information\n'
 collect_diagnostics
-
+ 
 matches=$(grep -rlEi "BEGIN CERTIFICATE|PRIVATE KEY" inspection-report)
 if [ -n "$matches" ]; then
   matches_comma_separated=$(echo "$matches" | tr '\n' ',')
