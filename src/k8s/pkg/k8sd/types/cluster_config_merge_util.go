@@ -17,7 +17,7 @@ func mergeField[T comparable](old *T, new *T, allowChange bool) (*T, error) {
 
 	// both values are not-empty
 	if !allowChange {
-		return nil, fmt.Errorf("value has changed")
+		return nil, fmt.Errorf("value cannot change")
 	}
 	return new, nil
 }
