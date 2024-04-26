@@ -52,7 +52,7 @@ The steps are to be followed in-order, each task must be completed by the person
   - `git pull`
   - `git checkout -b release-1.xx`
   - `git push origin release-1.xx`
-- [ ] **Owner**: Create `1.xx` branch from latest `master` in k8s-dqlite
+- [ ] **Owner**: Create `release-1.xx` branch from latest `master` in k8s-dqlite
   - `git clone git@github.com:canonical/k8s-dqlite.git ~/tmp/release-1.xx`
   - `pushd ~/tmp/release-1.xx`
   - `git switch main`
@@ -101,7 +101,7 @@ The steps are to be followed in-order, each task must be completed by the person
 - [ ] **Reviewer**: Ensure `release-1.xx-strict` branch is based on latest changes on `autoupdate/strict` at the time of the release cut.
 - [ ] **Owner**: Create PR to initialize `release-1.xx` branch:
   - [ ] Update `KUBE_TRACK` to `1.xx` in [/build-scripts/components/kubernetes/version.sh][]
-  - [ ] Update `master` to `1.xx` in [/build-scripts/components/k8s-dqlite/version.sh][]
+  - [ ] Update `master` to `release-1.xx` in [/build-scripts/components/k8s-dqlite/version.sh][]
   - [ ] Update `"main"` to `"release-1.xx"` in [/build-scripts/hack/generate-sbom.py][]
   - [ ] `git commit -m 'Release 1.xx'`
   - [ ] Create PR with the changes and request review from **Reviewer**. Make sure to update the issue `Information` section with a link to the PR.
