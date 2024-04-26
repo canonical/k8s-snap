@@ -21,7 +21,7 @@ file extensions and perhaps a brief decscription:
 |----------|------------|----------------------------------------------------|
 | TIFF     | .tif,.tiff | Tag Image File Format - lossless bitmaps           |
 | JPEG     | .jpg,.jpeg | Compressed photo-quality images                    |
-| PNG      | .png       | Portable Network Graphics -lossless bitmaps        |
+| PNG      | .png       | Portable Network Graphics - lossless bitmaps        |
 
 This table gives some reference information. It doesn't try to tell you which
 format to use. It doesn't explain in great detail the differences between them.
