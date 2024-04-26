@@ -14,6 +14,7 @@ Overview <self>
 about
 channels
 clustering
+ingress
 /snap/explanation/security
 ```
 

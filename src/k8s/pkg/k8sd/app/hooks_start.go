@@ -25,8 +25,9 @@ func (a *App) onStart(s *state.State) error {
 			if err != nil {
 				return nil, fmt.Errorf("failed to load RSA key from configuration: %w", err)
 			}
+			keyPEM := cfg.Certificates.GetK8sdPublicKey()
 			key, err := pki.LoadRSAPublicKey(cfg.Certificates.GetK8sdPublicKey())
-			if err != nil {
+			if err != nil && keyPEM != "" {
 				return nil, fmt.Errorf("failed to load RSA key: %w", err)
 			}
 			return key, nil

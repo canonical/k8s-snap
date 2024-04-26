@@ -11,7 +11,7 @@ import (
 // ApplyIngress is used to configure the ingress controller feature on Canonical Kubernetes.
 // ApplyIngress assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
 // ApplyIngress will enable Cilium's ingress controller when ingress.Enabled is true.
-// ApplyIngress will disable Ciilum's ingress controller when ingress.Disabled is false.
+// ApplyIngress will disable Cilium's ingress controller when ingress.Disabled is false.
 // ApplyIngress will rollout restart the Cilium pods in case any Cilium configuration was changed.
 // ApplyIngress returns an error if anything fails.
 func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, network types.Network) error {
