@@ -50,6 +50,9 @@ function collect_diagnostics {
 	k8s get &> "$INSPECT_DUMP"/k8s-get
 	k8s kubectl get cm k8sd-config -n kube-system -o yaml &> "$INSPECT_DUMP"/k8sd-configmap
 	k8s kubectl get cm -n kube-system &> "$INSPECT_DUMP"/k8s-configmaps
+
+	cp /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml "$INSPECT_DUMP"/k8s-dqlite-cluster.yaml
+	cp /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP"/k8sd-cluster.yaml
 }
 
 function collect_microcluster_db {
