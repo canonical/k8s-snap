@@ -16,38 +16,6 @@ def test_gateway(instances: List[harness.Instance]):
     util.wait_for_network(instance)
     util.wait_for_dns(instance)
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
-        [
-            "k8s",
-            "kubectl",
-            "wait",
-            "--for=condition=ready",
-            "pod",
-            "-n",
-            "kube-system",
-            "-l",
-            "io.cilium/app=operator",
-            "--timeout",
-            "180s",
-        ]
-    )
-
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
-        [
-            "k8s",
-            "kubectl",
-            "wait",
-            "--for=condition=ready",
-            "pod",
-            "-n",
-            "kube-system",
-            "-l",
-            "k8s-app=cilium",
-            "--timeout",
-            "180s",
-        ]
-    )
-
     manifest = MANIFESTS_DIR / "gateway-test.yaml"
     instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
