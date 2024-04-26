@@ -47,7 +47,9 @@ function collect_diagnostics {
 	k8s kubectl get cm -n kube-system &> "$INSPECT_DUMP"/k8s-configmaps
 
 	cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml "$INSPECT_DUMP"/k8s-dqlite-cluster.yaml
+	cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml "$INSPECT_DUMP"/k8s-dqlite-info.yaml
 	cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP"/k8sd-cluster.yaml
+	cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/info.yaml "$INSPECT_DUMP"/k8sd-info.yaml
 }
 
 function check_service {
