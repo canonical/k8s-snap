@@ -3,8 +3,6 @@
 INSPECT_DUMP=$(pwd)/inspection-report
 
 SVC_ARGS_DIR=/var/snap/k8s/common/args
-K8SD_STATE_DIR=/var/snap/k8s/common/var/lib/k8sd/state
-K8SD_BIN=/snap/k8s/current/bin/k8sd
 SBOM_FILE=/snap/k8s/current/bom.json
 
 function log_success {
