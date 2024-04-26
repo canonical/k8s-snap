@@ -55,12 +55,6 @@ function collect_diagnostics {
 	cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP"/k8sd-cluster.yaml
 }
 
-function collect_microcluster_db {
-	log_info "Copy k8sd database dump to the final report tarball"
-
-	"$K8SD_BIN" sql .dump --state-dir "$K8SD_STATE_DIR" &> "$INSPECT_DUMP"/k8sd-db.sql
-}
-
 function check_service {
 	local service=$1
 	mkdir -p "$INSPECT_DUMP"/"$service"
