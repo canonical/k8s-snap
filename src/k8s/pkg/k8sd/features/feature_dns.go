@@ -11,15 +11,15 @@ import (
 )
 
 // ApplyDNS is used to configure the DNS feature on Canonical Kubernetes.
-// ApplyDNS manages the deployment of CoreDNS, with customization options from dnsConfig and kubeletConfig which are retrieved from the cluster configuration.
-// ApplyDNS will uninstall CoreDNS from the cluster if dnsConfig.Enabled is false.
-// ApplyDNS will install or refresh CoreDNS if dnsConfig.Enabled is true.
+// ApplyDNS manages the deployment of CoreDNS, with customization options from dns and kubelet, which are retrieved from the cluster configuration.
+// ApplyDNS will uninstall CoreDNS from the cluster if dns.Enabled is false.
+// ApplyDNS will install or refresh CoreDNS if dns.Enabled is true.
 // ApplyDNS will return the ClusterIP address of the coredns service, if successful.
 // ApplyDNS returns an error if anything fails.
-func ApplyDNS(ctx context.Context, snap snap.Snap, dnsConfig types.DNS, kubeletConfig types.Kubelet) (string, error) {
+func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.Kubelet) (string, error) {
 	m := newHelm(snap)
 
-	if !dnsConfig.GetEnabled() {
+	if !dns.GetEnabled() {
 		if _, err := m.Apply(ctx, featureCoreDNS, stateDeleted, nil); err != nil {
 			return "", fmt.Errorf("failed to uninstall coredns: %w", err)
 		}
@@ -33,7 +33,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dnsConfig types.DNS, kubeletC
 		},
 		"service": map[string]any{
 			"name":      "coredns",
-			"clusterIP": kubeletConfig.GetClusterDNS(),
+			"clusterIP": kubelet.GetClusterDNS(),
 		},
 		"deployment": map[string]any{
 			"name": "coredns",
@@ -50,11 +50,11 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dnsConfig types.DNS, kubeletC
 					{"name": "ready"},
 					{
 						"name":        "kubernetes",
-						"parameters":  fmt.Sprintf("%s in-addr.arpa ip6.arpa", kubeletConfig.GetClusterDomain()),
+						"parameters":  fmt.Sprintf("%s in-addr.arpa ip6.arpa", kubelet.GetClusterDomain()),
 						"configBlock": "pods insecure\nfallthrough in-addr.arpa ip6.arpa\nttl 30",
 					},
 					{"name": "prometheus", "parameters": "0.0.0.0:9153"},
-					{"name": "forward", "parameters": fmt.Sprintf(". %s", strings.Join(dnsConfig.GetUpstreamNameservers(), " "))},
+					{"name": "forward", "parameters": fmt.Sprintf(". %s", strings.Join(dns.GetUpstreamNameservers(), " "))},
 					{"name": "cache", "parameters": "30"},
 					{"name": "loop"},
 					{"name": "reload"},

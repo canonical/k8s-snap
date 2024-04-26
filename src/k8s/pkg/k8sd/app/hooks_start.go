@@ -3,11 +3,14 @@ package app
 import (
 	"context"
 	"crypto/rsa"
+	"database/sql"
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -43,6 +46,33 @@ func (a *App) onStart(s *state.State) error {
 		go a.updateNodeConfigController.Run(s.Context, func(ctx context.Context) (types.ClusterConfig, error) {
 			return databaseutil.GetClusterConfig(ctx, s)
 		})
+	}
+
+	// start feature controller
+	if a.featureController != nil {
+		go a.featureController.Run(
+			s.Context,
+			func(ctx context.Context) (types.ClusterConfig, error) {
+				return databaseutil.GetClusterConfig(ctx, s)
+			},
+			func(ctx context.Context, dnsIP string) error {
+				if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+					if _, err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
+						Kubelet: types.Kubelet{ClusterDNS: utils.Pointer(dnsIP)},
+					}); err != nil {
+						return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)
+					}
+					return nil
+				}); err != nil {
+					return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
+				}
+
+				// DNS IP has changed, notify node config controller
+				a.NotifyUpdateNodeConfigController()
+
+				return nil
+			},
+		)
 	}
 
 	return nil

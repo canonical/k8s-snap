@@ -14,9 +14,16 @@ const (
 	stateUpgradeOnly
 )
 
-func stateFromBool(enabled bool) state {
+func statePresentOrDeleted(enabled bool) state {
 	if enabled {
 		return statePresent
+	}
+	return stateDeleted
+}
+
+func stateUpgradeOnlyOrDeleted(enabled bool) state {
+	if enabled {
+		return stateUpgradeOnly
 	}
 	return stateDeleted
 }

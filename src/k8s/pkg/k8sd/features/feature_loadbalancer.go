@@ -12,25 +12,25 @@ import (
 
 // ApplyLoadBalancer is used to configure the load-balancer feature on Canonical Kubernetes.
 // ApplyLoadBalancer assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
-// ApplyLoadBalancer will configure Cilium to enable L2 or BGP mode, and deploy necessary CRs for announcing the LoadBalancer external IPs when cfg.Enabled is true.
-// ApplyLoadBalancer will disable L2 and BGP on Cilium, and remove any previously created CRs when cfg.Enabled is false.
+// ApplyLoadBalancer will configure Cilium to enable L2 or BGP mode, and deploy necessary CRs for announcing the LoadBalancer external IPs when loadbalancer.Enabled is true.
+// ApplyLoadBalancer will disable L2 and BGP on Cilium, and remove any previously created CRs when loadbalancer.Enabled is false.
 // ApplyLoadBalancer will rollout restart the Cilium pods in case any Cilium configuration was changed.
 // ApplyLoadBalancer returns an error if anything fails.
-func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, cfg types.LoadBalancer) error {
-	if !cfg.GetEnabled() {
-		if err := disableLoadBalancer(ctx, snap); err != nil {
+func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network) error {
+	if !loadbalancer.GetEnabled() {
+		if err := disableLoadBalancer(ctx, snap, network); err != nil {
 			return fmt.Errorf("failed to disable LoadBalancer: %w", err)
 		}
 		return nil
 	}
 
-	if err := enableLoadBalancer(ctx, snap, cfg); err != nil {
+	if err := enableLoadBalancer(ctx, snap, loadbalancer, network); err != nil {
 		return fmt.Errorf("failed to enable LoadBalancer: %w", err)
 	}
 	return nil
 }
 
-func disableLoadBalancer(ctx context.Context, snap snap.Snap) error {
+func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Network) error {
 	m := newHelm(snap)
 
 	if _, err := m.Apply(ctx, featureCiliumLoadBalancer, stateDeleted, nil); err != nil {
@@ -55,21 +55,21 @@ func disableLoadBalancer(ctx context.Context, snap snap.Snap) error {
 		},
 	}
 
-	if _, err := m.Apply(ctx, featureCiliumCNI, stateUpgradeOnly, values); err != nil {
+	if _, err := m.Apply(ctx, featureCiliumCNI, stateUpgradeOnlyOrDeleted(network.GetEnabled()), values); err != nil {
 		return fmt.Errorf("failed to refresh network to apply LoadBalancer configuration: %w", err)
 	}
 	return nil
 }
 
-func enableLoadBalancer(ctx context.Context, snap snap.Snap, cfg types.LoadBalancer) error {
+func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network) error {
 	m := newHelm(snap)
 
 	networkValues := map[string]any{
 		"l2announcements": map[string]any{
-			"enabled": cfg.GetL2Mode(),
+			"enabled": loadbalancer.GetL2Mode(),
 		},
 		"bgpControlPlane": map[string]any{
-			"enabled": cfg.GetBGPMode(),
+			"enabled": loadbalancer.GetBGPMode(),
 		},
 		"externalIPs": map[string]any{
 			"enabled": true,
@@ -82,39 +82,39 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, cfg types.LoadBalan
 		},
 	}
 
-	changed, err := m.Apply(ctx, featureCiliumCNI, stateUpgradeOnly, networkValues)
+	changed, err := m.Apply(ctx, featureCiliumCNI, stateUpgradeOnlyOrDeleted(network.GetEnabled()), networkValues)
 	if err != nil {
 		return fmt.Errorf("failed to update Cilium configuration for LoadBalancer: %w", err)
 	}
 
-	if err := waitForRequiredLoadBalancerCRDs(ctx, snap, cfg.GetBGPMode()); err != nil {
+	if err := waitForRequiredLoadBalancerCRDs(ctx, snap, loadbalancer.GetBGPMode()); err != nil {
 		return fmt.Errorf("failed to wait for required Cilium CRDs to be available: %w", err)
 	}
 
 	cidrs := []map[string]any{}
-	for _, cidr := range cfg.GetCIDRs() {
+	for _, cidr := range loadbalancer.GetCIDRs() {
 		cidrs = append(cidrs, map[string]any{"cidr": cidr})
 	}
-	for _, ipRange := range cfg.GetIPRanges() {
+	for _, ipRange := range loadbalancer.GetIPRanges() {
 		cidrs = append(cidrs, map[string]any{"start": ipRange.Start, "stop": ipRange.Stop})
 	}
 
 	values := map[string]any{
 		"l2": map[string]any{
-			"enabled":    cfg.GetL2Mode(),
-			"interfaces": cfg.GetL2Interfaces(),
+			"enabled":    loadbalancer.GetL2Mode(),
+			"interfaces": loadbalancer.GetL2Interfaces(),
 		},
 		"ipPool": map[string]any{
 			"cidrs": cidrs,
 		},
 		"bgp": map[string]any{
-			"enabled":  cfg.GetBGPMode(),
-			"localASN": cfg.GetBGPLocalASN(),
+			"enabled":  loadbalancer.GetBGPMode(),
+			"localASN": loadbalancer.GetBGPLocalASN(),
 			"neighbors": []map[string]any{
 				{
-					"peerAddress": cfg.GetBGPPeerAddress(),
-					"peerASN":     cfg.GetBGPPeerASN(),
-					"peerPort":    cfg.GetBGPPeerPort(),
+					"peerAddress": loadbalancer.GetBGPPeerAddress(),
+					"peerASN":     loadbalancer.GetBGPPeerASN(),
+					"peerPort":    loadbalancer.GetBGPPeerPort(),
 				},
 			},
 		},
