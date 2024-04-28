@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
@@ -15,13 +16,13 @@ import (
 // ApplyGateway will rollout restart the Cilium pods in case any Cilium configuration was changed.
 // ApplyGateway returns an error if anything fails.
 func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network) error {
-	m := newHelm(snap)
+	m := snap.HelmClient()
 
-	if _, err := m.Apply(ctx, featureCiliumGateway, statePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {
+	if _, err := m.Apply(ctx, chartCiliumGateway, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {
 		return fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 	}
 
-	changed, err := m.Apply(ctx, featureCiliumCNI, stateUpgradeOnlyOrDeleted(network.GetEnabled()), map[string]any{"gatewayAPI": map[string]any{"enabled": gateway.GetEnabled()}})
+	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), map[string]any{"gatewayAPI": map[string]any{"enabled": gateway.GetEnabled()}})
 	if err != nil {
 		return fmt.Errorf("failed to apply Gateway API cilium configuration: %w", err)
 	}

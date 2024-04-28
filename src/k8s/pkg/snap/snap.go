@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/moby/sys/mountinfo"
@@ -191,10 +192,6 @@ func (s *snap) ContainerdRegistryConfigDir() string {
 	return path.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
 }
 
-func (s *snap) ManifestsDir() string {
-	return path.Join(s.snapDir, "k8s", "manifests")
-}
-
 func (s *snap) restClientGetter(path string, namespace string) genericclioptions.RESTClientGetter {
 	flags := &genericclioptions.ConfigFlags{
 		KubeConfig: utils.Pointer(path),
@@ -211,6 +208,15 @@ func (s *snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {
 
 func (s *snap) KubernetesNodeClient(namespace string) (*kubernetes.Client, error) {
 	return kubernetes.NewClient(s.restClientGetter(path.Join(s.KubernetesConfigDir(), "kubelet.conf"), namespace))
+}
+
+func (s *snap) HelmClient() helm.Client {
+	return helm.NewClient(
+		path.Join(s.snapDir, "k8s", "manifests"),
+		func(namespace string) genericclioptions.RESTClientGetter {
+			return s.restClientGetter(path.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
+		},
+	)
 }
 
 func (s *snap) K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) {

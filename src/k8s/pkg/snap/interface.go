@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 )
 
@@ -44,10 +45,10 @@ type Snap interface {
 
 	LockFilesDir() string // /var/snap/k8s/common/lock
 
-	ManifestsDir() string // /snap/k8s/current/k8s/manifests
-
 	KubernetesClient(namespace string) (*kubernetes.Client, error)     // admin kubernetes client
 	KubernetesNodeClient(namespace string) (*kubernetes.Client, error) // node kubernetes client
+
+	HelmClient() helm.Client // admin helm client
 
 	K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) // go-dqlite client for k8s-dqlite
 }

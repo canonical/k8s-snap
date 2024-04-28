@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/snap"
 )
@@ -33,9 +34,9 @@ type Mock struct {
 	ServiceArgumentsDir         string
 	ServiceExtraConfigDir       string
 	LockFilesDir                string
-	ManifestsDir                string
 	KubernetesClient            *kubernetes.Client
 	KubernetesNodeClient        *kubernetes.Client
+	HelmClient                  helm.Client
 	K8sDqliteClient             *dqlite.Client
 }
 
@@ -145,14 +146,14 @@ func (s *Snap) ServiceExtraConfigDir() string {
 func (s *Snap) LockFilesDir() string {
 	return s.Mock.LockFilesDir
 }
-func (s *Snap) ManifestsDir() string {
-	return s.Mock.ManifestsDir
-}
 func (s *Snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {
 	return s.Mock.KubernetesClient, nil
 }
 func (s *Snap) KubernetesNodeClient(namespace string) (*kubernetes.Client, error) {
 	return s.Mock.KubernetesNodeClient, nil
+}
+func (s *Snap) HelmClient() helm.Client {
+	return s.Mock.HelmClient
 }
 func (s *Snap) K8sDqliteClient(context.Context) (*dqlite.Client, error) {
 	return s.Mock.K8sDqliteClient, nil

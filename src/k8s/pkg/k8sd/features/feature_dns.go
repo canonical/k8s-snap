@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
@@ -16,10 +17,10 @@ import (
 // ApplyDNS will return the ClusterIP address of the coredns service, if successful.
 // ApplyDNS returns an error if anything fails.
 func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.Kubelet) (string, error) {
-	m := newHelm(snap)
+	m := snap.HelmClient()
 
 	if !dns.GetEnabled() {
-		if _, err := m.Apply(ctx, featureCoreDNS, stateDeleted, nil); err != nil {
+		if _, err := m.Apply(ctx, chartCoreDNS, helm.StateDeleted, nil); err != nil {
 			return "", fmt.Errorf("failed to uninstall coredns: %w", err)
 		}
 		return "", nil
@@ -63,7 +64,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 		},
 	}
 
-	if _, err := m.Apply(ctx, featureCoreDNS, statePresent, values); err != nil {
+	if _, err := m.Apply(ctx, chartCoreDNS, helm.StatePresent, values); err != nil {
 		return "", fmt.Errorf("failed to apply coredns: %w", err)
 	}
 

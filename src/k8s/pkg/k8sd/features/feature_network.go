@@ -7,6 +7,7 @@ import (
 	"net"
 	"strings"
 
+	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
@@ -20,10 +21,10 @@ import (
 // ApplyNetwork requires that `/sys` is mounted as a shared mount when running under classic snap confinement. This is to ensure that Cilium will be able to automatically mount bpf and cgroups2 on the pods.
 // ApplyNetwork returns an error if anything fails.
 func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error {
-	m := newHelm(snap)
+	m := snap.HelmClient()
 
 	if !cfg.GetEnabled() {
-		if _, err := m.Apply(ctx, featureCiliumCNI, stateDeleted, nil); err != nil {
+		if _, err := m.Apply(ctx, chartCilium, helm.StateDeleted, nil); err != nil {
 			return fmt.Errorf("failed to uninstall network: %w", err)
 		}
 		return nil
@@ -123,7 +124,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error 
 		}
 	}
 
-	if _, err := m.Apply(ctx, featureCiliumCNI, statePresent, values); err != nil {
+	if _, err := m.Apply(ctx, chartCilium, helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to enable network: %w", err)
 	}
 
