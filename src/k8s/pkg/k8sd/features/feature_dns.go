@@ -7,7 +7,6 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
 // ApplyDNS is used to configure the DNS feature on Canonical Kubernetes.
@@ -68,7 +67,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 		return "", fmt.Errorf("failed to apply coredns: %w", err)
 	}
 
-	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	client, err := snap.KubernetesClient("")
 	if err != nil {
 		return "", fmt.Errorf("failed to create kubernetes client: %w", err)
 	}

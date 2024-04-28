@@ -7,7 +7,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
 // ApplyLoadBalancer is used to configure the load-balancer feature on Canonical Kubernetes.
@@ -134,7 +133,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 }
 
 func waitForRequiredLoadBalancerCRDs(ctx context.Context, snap snap.Snap, bgpMode bool) error {
-	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	client, err := snap.KubernetesClient("")
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}

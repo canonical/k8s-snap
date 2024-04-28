@@ -11,7 +11,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
 // ApplyNetwork is used to configure the CNI feature on Canonical Kubernetes.
@@ -132,7 +131,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error 
 }
 
 func rolloutRestartCilium(ctx context.Context, snap snap.Snap, attempts int) error {
-	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	client, err := snap.KubernetesClient("")
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
