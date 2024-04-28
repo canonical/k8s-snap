@@ -1,4 +1,4 @@
-package k8s_test
+package kubernetes_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
 
-	"github.com/canonical/k8s/pkg/utils/k8s"
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -49,7 +49,7 @@ func TestListResourcesForGroupVersion(t *testing.T) {
 			}
 
 			// Create a new k8s client with the fake discovery client
-			client := &k8s.Client{
+			client := &kubernetes.Client{
 				Interface: clientset,
 			}
 

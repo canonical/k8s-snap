@@ -1,4 +1,4 @@
-package k8s
+package kubernetes
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestRestartDeployment(t *testing.T) {
+func TestRestartDaemonset(t *testing.T) {
 	tests := []struct {
 		name        string
 		objects     []runtime.Object
@@ -23,9 +23,9 @@ func TestRestartDeployment(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name: "deployment",
+			name: "daemonset",
 			objects: []runtime.Object{
-				&appsv1.Deployment{
+				&appsv1.DaemonSet{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test",
 						Namespace: "namespace",
@@ -34,14 +34,14 @@ func TestRestartDeployment(t *testing.T) {
 			},
 		},
 		{
-			name: "deployment with other annotations",
+			name: "daemonset with other annotations",
 			objects: []runtime.Object{
-				&appsv1.Deployment{
+				&appsv1.DaemonSet{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test",
 						Namespace: "namespace",
 					},
-					Spec: appsv1.DeploymentSpec{
+					Spec: appsv1.DaemonSetSpec{
 						Template: corev1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
 								Annotations: map[string]string{
@@ -62,14 +62,14 @@ func TestRestartDeployment(t *testing.T) {
 			clientset := fake.NewSimpleClientset(tc.objects...)
 			client := &Client{Interface: clientset}
 
-			err := client.RestartDeployment(context.Background(), "test", "namespace")
+			err := client.RestartDaemonset(context.Background(), "test", "namespace")
 			if tc.expectError {
 				g.Expect(err).To(HaveOccurred())
 			} else {
 				g.Expect(err).To(BeNil())
-				deploy, err := client.AppsV1().Deployments("namespace").Get(context.Background(), "test", metav1.GetOptions{})
+				ds, err := client.AppsV1().DaemonSets("namespace").Get(context.Background(), "test", metav1.GetOptions{})
 				g.Expect(err).To(BeNil())
-				g.Expect(deploy.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"]).NotTo(BeEmpty())
+				g.Expect(ds.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"]).NotTo(BeEmpty())
 			}
 		})
 	}
