@@ -6,19 +6,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
 // UpdateNodeConfigurationController asynchronously performs updates of the cluster config.
 // A new reconcile loop is triggered by pushing to the triggerCh channel.
 type UpdateNodeConfigurationController struct {
-	snap         snap.Snap
-	waitReady    func()
-	newK8sClient func() (*k8s.Client, error)
+	snap      snap.Snap
+	waitReady func()
 
 	// triggerCh is used to trigger config updates on the controller.
 	triggerCh <-chan struct{}
@@ -27,20 +26,19 @@ type UpdateNodeConfigurationController struct {
 }
 
 // NewUpdateNodeConfigurationController creates a new controller.
-func NewUpdateNodeConfigurationController(snap snap.Snap, waitReady func(), newK8sClient func() (*k8s.Client, error), triggerCh <-chan struct{}) *UpdateNodeConfigurationController {
+func NewUpdateNodeConfigurationController(snap snap.Snap, waitReady func(), triggerCh <-chan struct{}) *UpdateNodeConfigurationController {
 	return &UpdateNodeConfigurationController{
-		snap:         snap,
-		waitReady:    waitReady,
-		newK8sClient: newK8sClient,
+		snap:      snap,
+		waitReady: waitReady,
 
 		triggerCh:    triggerCh,
 		reconciledCh: make(chan struct{}, 1),
 	}
 }
 
-func (c *UpdateNodeConfigurationController) retryNewK8sClient(ctx context.Context) (*k8s.Client, error) {
+func (c *UpdateNodeConfigurationController) retryNewK8sClient(ctx context.Context) (*kubernetes.Client, error) {
 	for {
-		client, err := c.newK8sClient()
+		client, err := c.snap.KubernetesClient("kube-system")
 		if err == nil {
 			return client, nil
 		}
@@ -98,7 +96,7 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 	}
 }
 
-func (c *UpdateNodeConfigurationController) reconcile(ctx context.Context, client *k8s.Client, config types.ClusterConfig) error {
+func (c *UpdateNodeConfigurationController) reconcile(ctx context.Context, client *kubernetes.Client, config types.ClusterConfig) error {
 	keyPEM := config.Certificates.GetK8sdPrivateKey()
 	key, err := pki.LoadRSAPrivateKey(keyPEM)
 	if err != nil && keyPEM != "" {

@@ -3,6 +3,7 @@ package features
 import (
 	"context"
 
+	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
@@ -12,7 +13,7 @@ import (
 // ApplyLocalStorage removes the rawfile-localpv when cfg.Enabled is false.
 // ApplyLocalStorage returns an error if anything fails.
 func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStorage) error {
-	m := newHelm(snap)
+	m := snap.HelmClient()
 
 	values := map[string]any{
 		"storageClass": map[string]any{
@@ -41,6 +42,6 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 		},
 	}
 
-	_, err := m.Apply(ctx, featureLocalStorage, statePresentOrDeleted(cfg.GetEnabled()), values)
+	_, err := m.Apply(ctx, chartLocalStorage, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
 	return err
 }

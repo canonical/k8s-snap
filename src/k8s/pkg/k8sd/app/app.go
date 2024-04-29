@@ -13,7 +13,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/config"
 	"github.com/canonical/microcluster/microcluster"
 	"github.com/canonical/microcluster/state"
@@ -87,9 +86,6 @@ func New(cfg Config) (*App, error) {
 	app.nodeConfigController = controllers.NewNodeConfigurationController(
 		cfg.Snap,
 		app.readyWg.Wait,
-		func() (*k8s.Client, error) {
-			return k8s.NewClient(cfg.Snap.KubernetesNodeRESTClientGetter("kube-system"))
-		},
 	)
 
 	app.controlPlaneConfigController = controllers.NewControlPlaneConfigurationController(
@@ -102,9 +98,6 @@ func New(cfg Config) (*App, error) {
 	app.updateNodeConfigController = controllers.NewUpdateNodeConfigurationController(
 		cfg.Snap,
 		app.readyWg.Wait,
-		func() (*k8s.Client, error) {
-			return k8s.NewClient(cfg.Snap.KubernetesRESTClientGetter("kube-system"))
-		},
 		app.triggerUpdateNodeConfigControllerCh,
 	)
 

@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/moby/sys/mountinfo"
 	"gopkg.in/yaml.v2"
@@ -190,13 +192,9 @@ func (s *snap) ContainerdRegistryConfigDir() string {
 	return path.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
 }
 
-func (s *snap) ManifestsDir() string {
-	return path.Join(s.snapDir, "k8s", "manifests")
-}
-
-func (s *snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
+func (s *snap) restClientGetter(path string, namespace string) genericclioptions.RESTClientGetter {
 	flags := &genericclioptions.ConfigFlags{
-		KubeConfig: &[]string{"/etc/kubernetes/admin.conf"}[0],
+		KubeConfig: utils.Pointer(path),
 	}
 	if namespace != "" {
 		flags.Namespace = &namespace
@@ -204,14 +202,21 @@ func (s *snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RE
 	return flags
 }
 
-func (s *snap) KubernetesNodeRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
-	flags := &genericclioptions.ConfigFlags{
-		KubeConfig: utils.Pointer(path.Join(s.KubernetesConfigDir(), "kubelet.conf")),
-	}
-	if namespace != "" {
-		flags.Namespace = &namespace
-	}
-	return flags
+func (s *snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {
+	return kubernetes.NewClient(s.restClientGetter(path.Join(s.KubernetesConfigDir(), "admin.conf"), namespace))
+}
+
+func (s *snap) KubernetesNodeClient(namespace string) (*kubernetes.Client, error) {
+	return kubernetes.NewClient(s.restClientGetter(path.Join(s.KubernetesConfigDir(), "kubelet.conf"), namespace))
+}
+
+func (s *snap) HelmClient() helm.Client {
+	return helm.NewClient(
+		path.Join(s.snapDir, "k8s", "manifests"),
+		func(namespace string) genericclioptions.RESTClientGetter {
+			return s.restClientGetter(path.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
+		},
+	)
 }
 
 func (s *snap) K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) {

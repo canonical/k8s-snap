@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
@@ -15,7 +16,7 @@ import (
 // ApplyIngress will rollout restart the Cilium pods in case any Cilium configuration was changed.
 // ApplyIngress returns an error if anything fails.
 func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, network types.Network) error {
-	m := newHelm(snap)
+	m := snap.HelmClient()
 
 	var values map[string]any
 	if ingress.GetEnabled() {
@@ -39,7 +40,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 		}
 	}
 
-	changed, err := m.Apply(ctx, featureCiliumCNI, stateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
+	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
 	if err != nil {
 		return fmt.Errorf("failed to enable ingress: %w", err)
 	}

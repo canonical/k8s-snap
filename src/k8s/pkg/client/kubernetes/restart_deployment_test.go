@@ -1,4 +1,4 @@
-package k8s
+package kubernetes
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestRestartDaemonset(t *testing.T) {
+func TestRestartDeployment(t *testing.T) {
 	tests := []struct {
 		name        string
 		objects     []runtime.Object
@@ -23,9 +23,9 @@ func TestRestartDaemonset(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name: "daemonset",
+			name: "deployment",
 			objects: []runtime.Object{
-				&appsv1.DaemonSet{
+				&appsv1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test",
 						Namespace: "namespace",
@@ -34,14 +34,14 @@ func TestRestartDaemonset(t *testing.T) {
 			},
 		},
 		{
-			name: "daemonset with other annotations",
+			name: "deployment with other annotations",
 			objects: []runtime.Object{
-				&appsv1.DaemonSet{
+				&appsv1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test",
 						Namespace: "namespace",
 					},
-					Spec: appsv1.DaemonSetSpec{
+					Spec: appsv1.DeploymentSpec{
 						Template: corev1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
 								Annotations: map[string]string{
@@ -62,14 +62,14 @@ func TestRestartDaemonset(t *testing.T) {
 			clientset := fake.NewSimpleClientset(tc.objects...)
 			client := &Client{Interface: clientset}
 
-			err := client.RestartDaemonset(context.Background(), "test", "namespace")
+			err := client.RestartDeployment(context.Background(), "test", "namespace")
 			if tc.expectError {
 				g.Expect(err).To(HaveOccurred())
 			} else {
 				g.Expect(err).To(BeNil())
-				ds, err := client.AppsV1().DaemonSets("namespace").Get(context.Background(), "test", metav1.GetOptions{})
+				deploy, err := client.AppsV1().Deployments("namespace").Get(context.Background(), "test", metav1.GetOptions{})
 				g.Expect(err).To(BeNil())
-				g.Expect(ds.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"]).NotTo(BeEmpty())
+				g.Expect(deploy.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"]).NotTo(BeEmpty())
 			}
 		})
 	}
