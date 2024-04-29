@@ -5,7 +5,8 @@ on:
     branches:
       - main
       - 'release-[0-9]+.[0-9]+'
-
+permissions:
+  contents: read
 jobs:
   prepare:
     name: Prepare
@@ -28,6 +29,8 @@ jobs:
             echo "strict=" >> $GITHUB_OUTPUT
           fi
   update:
+    permissions:
+      contents: write  # for Git to git push
     runs-on: ubuntu-20.04
     needs: [ prepare ]
     if: ${{ needs.prepare.outputs.strict }}

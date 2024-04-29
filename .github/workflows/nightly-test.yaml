@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '0 0 * * *'  # Runs every midnight
 
+permissions:
+  contents: read
+
 jobs:
   test-integration:
     name: Integration Test ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.releases }}

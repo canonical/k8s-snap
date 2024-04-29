@@ -10,8 +10,14 @@ on:
 
   pull_request:
 
+permissions:
+  contents: read  
+
 jobs:
   test:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      pull-requests: write  # for marocchino/sticky-pull-request-comment to create or update PR comment
     name: Unit Tests & Code Quality
     runs-on: ubuntu-latest
 
