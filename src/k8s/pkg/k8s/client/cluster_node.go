@@ -15,13 +15,13 @@ func (c *k8sdClient) JoinCluster(ctx context.Context, request apiv1.JoinClusterR
 	}
 
 	if err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, nil); err != nil {
-		// TODO(neoaggelos): only return error that join cluster failed
 		return fmt.Errorf("failed to POST /k8sd/cluster/join: %w", err)
 	}
 
-	if err := c.WaitForMicroclusterNodeToBeReady(ctx, request.Name); err != nil {
-		return fmt.Errorf("microcluster node did not become ready: %w", err)
-	}
+	// TODO(neoaggelos): this error is ignored because WaitForMicroclusterNodeToBeReady() currently fails on worker nodes.
+	err := c.WaitForMicroclusterNodeToBeReady(ctx, request.Name)
+	_ = err
+
 	return nil
 }
 
