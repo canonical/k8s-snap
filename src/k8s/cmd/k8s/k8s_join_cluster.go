@@ -78,6 +78,17 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
 			if err := client.JoinCluster(cmd.Context(), apiv1.JoinClusterRequest{Name: opts.name, Address: opts.address, Token: token, Config: joinClusterConfig}); err != nil {
 				cmd.PrintErrf("Error: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
+
+				cmd.PrintErrf("\n\nCleaning up...\n\n")
+				if err := client.WaitForMicroclusterNodeToBeReady(cmd.Context(), opts.name); err != nil {
+					cmd.PrintErrf("Warning: Failed to wait for the node %q to be ready.\n\nThe error was: %v\n", opts.name, err)
+				}
+				if err := client.CleanupKubernetesServices(cmd.Context()); err != nil {
+					cmd.PrintErrf("Warning: Failed to cleanup Kubernetes services after failed bootstrap attempt.\n\nThe error was: %v\n", err)
+				}
+				if err := client.DeleteClusterMember(cmd.Context(), apiv1.RemoveNodeRequest{Name: opts.name, Force: true}); err != nil {
+					cmd.PrintErrf("Warning: Failed to remove the node %q from the cluster.\n\nThe error was: %v\n", opts.name, err)
+				}
 				env.Exit(1)
 				return
 			}

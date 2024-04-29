@@ -122,6 +122,14 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			node, err := client.Bootstrap(cmd.Context(), request)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to bootstrap the cluster.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("\n\nCleaning up...\n\n")
+				if err := client.CleanupKubernetesServices(cmd.Context()); err != nil {
+					cmd.PrintErrf("Warning: Failed to cleanup Kubernetes services after failed bootstrap attempt.\n\nThe error was: %v\n", err)
+				}
+				if err := client.ResetClusterMember(cmd.Context(), opts.name, true); err != nil {
+					cmd.PrintErrf("Warning: Failed to cleanup microcluster state after failed bootstrap attempt.\n\nThe error was: %v\n", err)
+				}
+
 				env.Exit(1)
 				return
 			}
