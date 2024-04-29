@@ -23,8 +23,6 @@ func (c *k8sdClient) Bootstrap(ctx context.Context, request apiv1.PostClusterBoo
 	response := apiv1.NodeStatus{}
 
 	if err := c.mc.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster"), request, &response); err != nil {
-
-		c.CleanupNode(ctx, request.Name)
 		return response, fmt.Errorf("failed to bootstrap new cluster using POST /k8sd/cluster: %w", err)
 	}
 

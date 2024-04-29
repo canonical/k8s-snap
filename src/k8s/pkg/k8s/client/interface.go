@@ -12,8 +12,6 @@ type Client interface {
 	Bootstrap(ctx context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error)
 	// IsBootstrapped checks whether the current node is already bootstrapped.
 	IsBootstrapped(ctx context.Context) bool
-	// CleanupNode performs cleanup operations for a specific node in the cluster.
-	CleanupNode(ctx context.Context, nodeName string)
 	// ClusterStatus retrieves the current status of the Kubernetes cluster.
 	ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error)
 	// LocalNodeStatus retrieves the current status of the local node.
@@ -28,12 +26,18 @@ type Client interface {
 	JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest) error
 	// KubeConfig retrieves the Kubernetes configuration for the current node.
 	KubeConfig(ctx context.Context, request apiv1.GetKubeConfigRequest) (string, error)
-	// RemoveNode removes a node from the cluster.
-	RemoveNode(ctx context.Context, request apiv1.RemoveNodeRequest) error
+	// DeleteClusterMember removes a node from the cluster.
+	DeleteClusterMember(ctx context.Context, request apiv1.RemoveNodeRequest) error
+	// ResetClusterMember calls microcluster's ResetClusterMember.
+	ResetClusterMember(ctx context.Context, name string, force bool) error
+	// CleanupKubernetesServices cleans up service arguments and leftover state on the local node, typically used after a failed bootstrap or join attempt.
+	CleanupKubernetesServices(ctx context.Context) error
 	// UpdateClusterConfig updates configuration of the cluster.
 	UpdateClusterConfig(ctx context.Context, request apiv1.UpdateClusterConfigRequest) error
 	// GetClusterConfig retrieves configuration of the cluster.
 	GetClusterConfig(ctx context.Context, request apiv1.GetClusterConfigRequest) (apiv1.UserFacingClusterConfig, error)
+	// WaitForMicroclusterNodeToBeReady waits until the underlying dqlite node of the microcluster is not in PENDING state.
+	WaitForMicroclusterNodeToBeReady(ctx context.Context, nodeName string) error
 }
 
 var _ Client = &k8sdClient{}
