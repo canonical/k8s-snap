@@ -20,6 +20,10 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-20.04' }}
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Setup Python

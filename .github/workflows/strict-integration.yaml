@@ -20,6 +20,10 @@ jobs:
     outputs:
       strict: ${{ steps.determine.outputs.strict }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Determine Strict branch
         id: determine
         env:
@@ -40,6 +44,10 @@ jobs:
     needs: [ prepare ]
     if: ${{ needs.prepare.outputs.strict }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Install lxd
@@ -75,6 +83,10 @@ jobs:
         os: ["ubuntu:20.04"]
     runs-on: ubuntu-20.04
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Check out code
         uses: actions/checkout@v4
       - name: Setup Python
