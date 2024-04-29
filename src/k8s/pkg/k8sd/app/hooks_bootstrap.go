@@ -186,7 +186,6 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 
-	// TODO(berkayoz): remove the lock on cleanup
 	if err := snaputil.MarkAsWorkerNode(snap, true); err != nil {
 		return fmt.Errorf("failed to mark node as worker: %w", err)
 	}

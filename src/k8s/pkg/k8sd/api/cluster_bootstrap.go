@@ -36,7 +36,6 @@ func (e *Endpoints) postClusterBootstrap(s *state.State, r *http.Request) respon
 
 	// Bootstrap the cluster
 	if err := e.provider.MicroCluster().NewCluster(r.Context(), hostname, req.Address, config); err != nil {
-		// TODO move node cleanup here
 		return response.BadRequest(fmt.Errorf("failed to bootstrap new cluster: %w", err))
 	}
 

@@ -26,8 +26,9 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 		return response.InternalError(fmt.Errorf("failed to check if node is control-plane: %w", err))
 	}
 	if isControlPlane {
-		// Remove control plane via microcluster API.
-		// The postRemove hook will take care of cleaning up kubernetes.
+		// Remove control plane via microcluster API DeleteClusterMember which removes cluster member from dqlite.
+		// DeleteClusterMember also calls ResetClusterMember which removes the cluster member from the microcluster state.
+		// The preRemove (in ResetClusterMember) hook will take care of cleaning up kubernetes.
 		c, err := e.provider.MicroCluster().LocalClient()
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to create local client: %w", err))
