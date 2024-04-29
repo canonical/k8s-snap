@@ -23,6 +23,7 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Path:              "k8sd/cluster",
 			Get:               rest.EndpointAction{Handler: e.getClusterStatus, AccessHandler: e.restrictWorkers},
 			Post:              rest.EndpointAction{Handler: e.postClusterBootstrap},
+			Delete:            rest.EndpointAction{Handler: e.deleteCluster},
 			AllowedBeforeInit: true,
 		},
 		// Node
