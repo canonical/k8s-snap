@@ -147,7 +147,7 @@ collect_cluster_info
 printf -- 'Collecting SBOM\n'
 collect_sbom
 
-printf -- 'Gathering system information\n'
+printf -- 'Collecting system information\n'
 collect_k8s_diagnostics
 
 matches=$(grep -rlEi "BEGIN CERTIFICATE|PRIVATE KEY" inspection-report)
