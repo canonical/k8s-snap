@@ -36,7 +36,7 @@ function collect_args {
 
 function collect_cluster_info {
   log_info "Copy k8s cluster-info dump to the final report tarball"
-  k8s kubectl cluster-info dump --output-directory "$INSPECT_DUMP/cluster-info"
+  k8s kubectl cluster-info dump --output-directory "$INSPECT_DUMP/cluster-info" &>/dev/null
 }
 
 function collect_sbom {
@@ -58,16 +58,16 @@ function collect_k8s_diagnostics {
   k8s kubectl version &>"$INSPECT_DUMP/k8s-version.log"
   k8s status &>"$INSPECT_DUMP/k8s-status.log"
   k8s get &>"$INSPECT_DUMP/k8s-get.log"
-  k8s kubectl get cm k8sd-config -n kube-system -o yaml &>"$INSPECT_DUMP/k8sd-configmap.log"
+  k8s kubectl get cm k8sd-config -n kube-system -o yaml &>"$INSPECT_DUMP/k8s.k8sd/k8sd-configmap.log"
   k8s kubectl get cm -n kube-system &>"$INSPECT_DUMP/k8s-configmaps.log"
 
-  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml "$INSPECT_DUMP/k8s-dqlite-cluster.yaml"
-  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml "$INSPECT_DUMP/k8s-dqlite-info.yaml"
-  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP/k8sd-cluster.yaml"
-  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/info.yaml "$INSPECT_DUMP/k8sd-info.yaml"
+  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml "$INSPECT_DUMP/k8s.k8s-dqlite/k8s-dqlite-cluster.yaml"
+  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml "$INSPECT_DUMP/k8s.k8s-dqlite/k8s-dqlite-info.yaml"
+  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP/k8s.k8sd/k8sd-cluster.yaml"
+  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/info.yaml "$INSPECT_DUMP/k8s.k8sd/k8sd-info.yaml"
 
-  ls -la /var/snap/k8s/common/var/lib/k8s-dqlite &>"$INSPECT_DUMP/k8s-dqlite-files.log"
-  ls -la /var/snap/k8s/common/var/lib/k8sd &>"$INSPECT_DUMP/k8sd-files.log"
+  ls -la /var/snap/k8s/common/var/lib/k8s-dqlite &>"$INSPECT_DUMP/k8s.k8s-dqlite/k8s-dqlite-files.log"
+  ls -la /var/snap/k8s/common/var/lib/k8sd &>"$INSPECT_DUMP/k8s.k8sd/k8sd-files.log"
 }
 
 function collect_service_diagnostics {
