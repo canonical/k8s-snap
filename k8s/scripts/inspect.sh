@@ -10,7 +10,7 @@ function log_info {
   printf -- '\033[34m INFO: \033[0m %s\n' "$1"
 }
 
-function log_warning () {
+function log_warning() {
   printf -- '\033[33m WARNING: \033[0m %s\n' "$1"
 }
 
@@ -22,6 +22,13 @@ function is_control_plane_node {
   k8s local-node-status | grep -q "control-plane"
 }
 
+function is_service_active {
+  local service
+  service=$1
+
+  systemctl status "snap.$service" | grep -q "active (running)"
+}
+
 function collect_args {
   log_info "Copy service args to the final report tarball"
   cp -r --no-preserve=mode,ownership /var/snap/k8s/common/args "$INSPECT_DUMP"
@@ -29,7 +36,7 @@ function collect_args {
 
 function collect_cluster_info {
   log_info "Copy k8s cluster-info dump to the final report tarball"
-  k8s kubectl cluster-info dump &> "$INSPECT_DUMP/cluster-info.log"
+  k8s kubectl cluster-info dump --output-directory "$INSPECT_DUMP/cluster-info"
 }
 
 function collect_sbom {
@@ -37,7 +44,7 @@ function collect_sbom {
   cp --no-preserve=mode,ownership /snap/k8s/current/bom.json "$INSPECT_DUMP"/sbom.json
 }
 
-function collect_diagnostics {
+function collect_k8s_diagnostics {
   log_info "Copy uname to the final report tarball"
   uname -a &>"$INSPECT_DUMP/uname.log"
 
@@ -58,9 +65,12 @@ function collect_diagnostics {
   cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml "$INSPECT_DUMP/k8s-dqlite-info.yaml"
   cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP/k8sd-cluster.yaml"
   cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/info.yaml "$INSPECT_DUMP/k8sd-info.yaml"
+
+  ls -la /var/snap/k8s/common/var/lib/k8s-dqlite &>"$INSPECT_DUMP/k8s-dqlite-files.log"
+  ls -la /var/snap/k8s/common/var/lib/k8sd &>"$INSPECT_DUMP/k8sd-files.log"
 }
 
-function check_service {
+function collect_service_diagnostics {
   local service
   service=$1
 
@@ -69,15 +79,9 @@ function check_service {
   local status_file
   status_file="$INSPECT_DUMP/$service/systemctl.log"
 
-  systemctl status "snap.$service" &> "$status_file"
+  systemctl status "snap.$service" &>"$status_file"
 
-  if grep -q "active (running)" "$status_file"; then
-    log_info "Service $service is running"
-  else
-    log_info "Service $service is not running"
-  fi
-
-  printf -- "%s $(systemctl show "snap.$service" -p NRestarts)\n" "$service" >> "$INSPECT_DUMP/nrestarts.log"
+  printf -- "%s $(systemctl show "snap.$service" -p NRestarts)\n" "$service" >>"$INSPECT_DUMP/nrestarts.log"
 
   journalctl -n 100000 -u "snap.$service" &>"$INSPECT_DUMP/$service/journal.log"
 }
@@ -99,18 +103,40 @@ fi
 rm -rf "$INSPECT_DUMP"
 mkdir -p "$INSPECT_DUMP"
 
-declare -a services=("k8s.containerd" "k8s.k8s-apiserver-proxy" "k8s.k8s-dqlite" "k8s.k8sd" "k8s.kube-apiserver" "k8s.kube-controller-manager" "k8s.kube-proxy" "k8s.kube-scheduler" "k8s.kubelet")
-
 printf -- 'Inspecting services\n'
 
 if is_control_plane_node; then
   printf -- 'Running inspection on a control-plane node\n'
-  printf -- 'Inspection ran on a control plane node.' > "$INSPECT_DUMP/is-control-plane-node"
+  printf -- 'Inspection ran on a control plane node.' >"$INSPECT_DUMP/is-control-plane-node"
+else
+  printf -- 'Running inspection on a worker node\n'
+  printf -- 'Inspection ran on a worker node.' >"$INSPECT_DUMP/is-worker-node"
 fi
 
-for service in "${services[@]}"; do
-  check_service "$service"
-done
+control_plane_services=("k8s.containerd" "k8s.kube-proxy" "k8s.k8s-dqlite" "k8s.k8sd" "k8s.kube-apiserver" "k8s.kube-controller-manager" "k8s.kube-scheduler" "k8s.kubelet")
+worker_services=("k8s.containerd" "k8s.k8s-apiserver-proxy" "k8s.kubelet" "k8s.k8sd" "k8s.kube-proxy")
+
+if is_control_plane_node; then
+    for cp_svc in "${control_plane_services[@]}"; do
+    collect_service_diagnostics "$cp_svc"
+    if ! is_service_active "$cp_svc"; then
+      log_info "Service $cp_svc is not running"
+      log_warning "Service $cp_svc should be running on this control-plane node"
+    else
+      log_info "Service $cp_svc is running"
+    fi
+    done
+else
+    for worker_svc in "${worker_services[@]}"; do
+    collect_service_diagnostics "$worker_svc"
+    if ! is_service_active "$worker_svc"; then
+      log_info "Service $worker_svc is not running"
+      log_warning "Service $worker_svc should be running on this worker node"
+    else
+      log_info "Service $worker_svc is running"
+    fi
+    done
+fi
 
 printf -- 'Collecting service arguments\n'
 collect_args
@@ -122,8 +148,8 @@ printf -- 'Collecting SBOM\n'
 collect_sbom
 
 printf -- 'Gathering system information\n'
-collect_diagnostics
- 
+collect_k8s_diagnostics
+
 matches=$(grep -rlEi "BEGIN CERTIFICATE|PRIVATE KEY" inspection-report)
 if [ -n "$matches" ]; then
   matches_comma_separated=$(echo "$matches" | tr '\n' ',')
