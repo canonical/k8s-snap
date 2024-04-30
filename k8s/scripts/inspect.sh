@@ -117,7 +117,7 @@ control_plane_services=("k8s.containerd" "k8s.kube-proxy" "k8s.k8s-dqlite" "k8s.
 worker_services=("k8s.containerd" "k8s.k8s-apiserver-proxy" "k8s.kubelet" "k8s.k8sd" "k8s.kube-proxy")
 
 if is_control_plane_node; then
-    for cp_svc in "${control_plane_services[@]}"; do
+  for cp_svc in "${control_plane_services[@]}"; do
     collect_service_diagnostics "$cp_svc"
     if ! is_service_active "$cp_svc"; then
       log_info "Service $cp_svc is not running"
@@ -125,9 +125,9 @@ if is_control_plane_node; then
     else
       log_info "Service $cp_svc is running"
     fi
-    done
+  done
 else
-    for worker_svc in "${worker_services[@]}"; do
+  for worker_svc in "${worker_services[@]}"; do
     collect_service_diagnostics "$worker_svc"
     if ! is_service_active "$worker_svc"; then
       log_info "Service $worker_svc is not running"
@@ -135,7 +135,7 @@ else
     else
       log_info "Service $worker_svc is running"
     fi
-    done
+  done
 fi
 
 printf -- 'Collecting service arguments\n'
