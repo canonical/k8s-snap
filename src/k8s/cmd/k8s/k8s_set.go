@@ -2,13 +2,12 @@ package k8s
 
 import (
 	"fmt"
-	"github.com/canonical/k8s/pkg/utils"
-	"strconv"
 	"strings"
-	"unicode"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/utils"
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +33,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			config := apiv1.UserFacingClusterConfig{}
 
 			for _, arg := range args {
-				if err := updateConfig(&config, arg); err != nil {
+				if err := updateConfigMapstructure(&config, arg); err != nil {
 					cmd.PrintErrf("Error: Invalid option %q.\n\nThe error was: %v\n", arg, err)
 					env.Exit(1)
 				}
@@ -66,7 +65,48 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	return cmd
 }
 
-func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
+var knownSetKeys = map[string]struct{}{
+	"cloud-provider":                 struct{}{},
+	"dns.cluster-domain":             struct{}{},
+	"dns.enabled":                    struct{}{},
+	"dns.service-ip":                 struct{}{},
+	"dns.upstream-nameservers":       struct{}{},
+	"gateway.enabled":                struct{}{},
+	"ingress.default-tls-secret":     struct{}{},
+	"ingress.enable-proxy-protocol":  struct{}{},
+	"ingress.enabled":                struct{}{},
+	"load-balancer.bgp-local-asn":    struct{}{},
+	"load-balancer.bgp-mode":         struct{}{},
+	"load-balancer.bgp-peer-address": struct{}{},
+	"load-balancer.bgp-peer-asn":     struct{}{},
+	"load-balancer.bgp-peer-port":    struct{}{},
+	"load-balancer.cidrs":            struct{}{},
+	"load-balancer.enabled":          struct{}{},
+	"load-balancer.l2-interfaces":    struct{}{},
+	"load-balancer.l2-mode":          struct{}{},
+	"local-storage.default":          struct{}{},
+	"local-storage.enabled":          struct{}{},
+	"local-storage.local-path":       struct{}{},
+	"local-storage.reclaim-policy":   struct{}{},
+	"metrics-server.enabled":         struct{}{},
+	"network.enabled":                struct{}{},
+}
+
+func updateConfigMapstructure(config *apiv1.UserFacingClusterConfig, arg string) error {
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		TagName:          "json",
+		WeaklyTypedInput: true,
+		ErrorUnused:      true,
+		Result:           config,
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			utils.YAMLToStringSliceHookFunc,
+			utils.StringToFieldsSliceHookFunc(','),
+		),
+	})
+	if err != nil {
+		panic(fmt.Sprintf("failed to define decoder with error %v", err.Error()))
+	}
+
 	parts := strings.SplitN(arg, "=", 2)
 	if len(parts) != 2 {
 		return fmt.Errorf("option not in <key>=<value> format")
@@ -74,111 +114,20 @@ func updateConfig(config *apiv1.UserFacingClusterConfig, arg string) error {
 	key := parts[0]
 	value := parts[1]
 
-	switch key {
-	case "network.enabled":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for network.enabled: %w", err)
-		}
-		config.Network.Enabled = &v
-	case "dns.enabled":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for dns.enabled: %w", err)
-		}
-		config.DNS.Enabled = &v
-	case "dns.upstream-nameservers":
-		config.DNS.UpstreamNameservers = utils.Pointer(strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }))
-	case "dns.cluster-domain":
-		config.DNS.ClusterDomain = utils.Pointer(value)
-	case "dns.service-ip":
-		config.DNS.ServiceIP = utils.Pointer(value)
-	case "gateway.enabled":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for gateway.enabled: %w", err)
-		}
-		config.Gateway.Enabled = &v
-	case "ingress.enabled":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for ingress.enabled: %w", err)
-		}
-		config.Ingress.Enabled = &v
-	case "ingress.default-tls-secret":
-		config.Ingress.DefaultTLSSecret = utils.Pointer(value)
-	case "ingress.enable-proxy-protocol":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for ingress.enable-proxy-protocol: %w", err)
-		}
-		config.Ingress.EnableProxyProtocol = &v
-	case "local-storage.enabled":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for local-storage.enabled: %w", err)
-		}
-		config.LocalStorage.Enabled = &v
-	case "local-storage.local-path":
-		config.LocalStorage.LocalPath = utils.Pointer(value)
-	case "local-storage.reclaim-policy":
-		config.LocalStorage.ReclaimPolicy = utils.Pointer(value)
-	case "local-storage.default":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for local-storage.default: %w", err)
-		}
-		config.LocalStorage.Default = &v
-	case "load-balancer.enabled":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for load-balancer.enabled: %w", err)
-		}
-		config.LoadBalancer.Enabled = &v
-	case "load-balancer.cidrs":
-		config.LoadBalancer.CIDRs = utils.Pointer(strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }))
-	case "load-balancer.l2-mode":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for load-balancer.l2-mode: %w", err)
-		}
-		config.LoadBalancer.L2Mode = &v
-	case "load-balancer.l2-interfaces":
-		config.LoadBalancer.L2Interfaces = utils.Pointer(strings.FieldsFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }))
-	case "load-balancer.bgp-mode":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for load-balancer.bgp-mode: %w", err)
-		}
-		config.LoadBalancer.BGPMode = &v
-	case "load-balancer.bgp-local-asn":
-		v, err := strconv.Atoi(value)
-		if err != nil {
-			return fmt.Errorf("invalid integer value for load-balancer.bgp-local-asn: %w", err)
-		}
-		config.LoadBalancer.BGPLocalASN = &v
-	case "load-balancer.bgp-peer-address":
-		config.LoadBalancer.BGPPeerAddress = utils.Pointer(value)
-	case "load-balancer.bgp-peer-port":
-		v, err := strconv.Atoi(value)
-		if err != nil {
-			return fmt.Errorf("invalid integer value for load-balancer.bgp-peer-port: %w", err)
-		}
-		config.LoadBalancer.BGPPeerPort = &v
-	case "load-balancer.bgp-peer-asn":
-		v, err := strconv.Atoi(value)
-		if err != nil {
-			return fmt.Errorf("invalid integer value for load-balancer.bgp-peer-asn: %w", err)
-		}
-		config.LoadBalancer.BGPPeerASN = &v
-	case "metrics-server.enabled":
-		v, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("invalid boolean value for metrics-server.enabled: %w", err)
-		}
-		config.MetricsServer.Enabled = &v
-	default:
-		return fmt.Errorf("unknown config key %q", key)
+	if _, ok := knownSetKeys[key]; !ok {
+		return fmt.Errorf("unknown option key %q", key)
+	}
+
+	if err := decoder.Decode(toRecursiveMap(key, value)); err != nil {
+		return fmt.Errorf("invalid option %q: %w", arg, err)
 	}
 	return nil
+}
+
+func toRecursiveMap(key, value string) map[string]any {
+	parts := strings.SplitN(key, ".", 2)
+	if len(parts) == 2 {
+		return map[string]any{parts[0]: toRecursiveMap(parts[1], value)}
+	}
+	return map[string]any{key: value}
 }

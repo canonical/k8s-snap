@@ -6,6 +6,7 @@ require (
 	github.com/canonical/go-dqlite v1.21.0
 	github.com/canonical/lxd v0.0.0-20240403135607-df45915ce961
 	github.com/canonical/microcluster v0.0.0-20240418162032-e0f837527e02
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/sys/mountinfo v0.7.1
 	github.com/onsi/gomega v1.30.0
 	github.com/pelletier/go-toml v1.9.5
