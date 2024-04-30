@@ -36,7 +36,7 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 			return response.InternalError(fmt.Errorf("failed to check if node is worker: %w", err))
 		}
 		if isWorker {
-			return InvalidNode(fmt.Errorf("node %q is part of the cluster", hostname))
+			return NodeInUse(fmt.Errorf("node %q is part of the cluster", hostname))
 		}
 	} else {
 		isControlPlane, err := nodeutil.IsControlPlaneNode(r.Context(), s, hostname)
@@ -44,7 +44,7 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 			return response.InternalError(fmt.Errorf("failed to check if node is control-plane: %w", err))
 		}
 		if isControlPlane {
-			return InvalidNode(fmt.Errorf("node %q is part of the cluster", hostname))
+			return NodeInUse(fmt.Errorf("node %q is part of the cluster", hostname))
 		}
 	}
 
