@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,16 +25,6 @@ func TestConfigPropagation(t *testing.T) {
 	defer cancel()
 
 	g := NewWithT(t)
-
-	s := &mock.Snap{
-		Mock: mock.Mock{
-			ServiceArgumentsDir: path.Join(t.TempDir(), "args"),
-			UID:                 os.Getuid(),
-			GID:                 os.Getgid(),
-		},
-	}
-
-	g.Expect(setup.EnsureAllDirectories(s)).To(Succeed())
 
 	tests := []struct {
 		name          string
@@ -126,12 +116,21 @@ func TestConfigPropagation(t *testing.T) {
 	watcher := watch.NewFake()
 	clientset.PrependWatchReactor("configmaps", k8stesting.DefaultWatchReactor(watcher, nil))
 
-	configController := NewNodeConfigurationController(s, func() {}, func() (*k8s.Client, error) {
-		return &k8s.Client{Interface: clientset}, nil
-	})
+	s := &mock.Snap{
+		Mock: mock.Mock{
+			ServiceArgumentsDir:  path.Join(t.TempDir(), "args"),
+			UID:                  os.Getuid(),
+			GID:                  os.Getgid(),
+			KubernetesNodeClient: &kubernetes.Client{Interface: clientset},
+		},
+	}
+
+	g.Expect(setup.EnsureAllDirectories(s)).To(Succeed())
+
+	ctrl := NewNodeConfigurationController(s, func() {})
 
 	// TODO: add test with signing key
-	go configController.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) { return nil, nil })
+	go ctrl.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) { return nil, nil })
 	defer watcher.Stop()
 
 	for _, tc := range tests {

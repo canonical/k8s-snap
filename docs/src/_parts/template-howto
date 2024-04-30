@@ -1,0 +1,62 @@
+# How to docs template
+
+> A How to guide consists of task-oriented, step-by-step instructions to
+> achieve a specific goal.
+> The title of the document should explain a clear objective.
+
+# How to use default DNS
+
+> Add an introductory paragraph explaining the objective and any background 
+> necessary.
+
+Canonical Kubernetes includes a default DNS (Domain Name System) which is
+essential for internal cluster communication. When enabled, the DNS facilitates
+service discovery by assigning each service a DNS name. When disabled, you can
+integrate a custom DNS solution into your cluster.
+
+
+> ALWAYS start with a list of requirements/assumptions. Link to other docs
+> if helpful
+
+## What you'll need
+
+This guide assumes the following:
+
+- You have root or sudo access to the machine.
+- You have a bootstrapped Canonical Kubernetes cluster (see the [Getting
+  Started][getting-started-guide] guide).
+
+> Proceed with clearly labelled steps. N.B. Use 'imperatives' rather than
+> gerunds ('Enable XXX' rather than 'Enabling XXX', 'Check' rather than
+> 'Checking')
+
+## Check DNS status
+
+> ALWAYS have some text directly after each heading
+
+Find out whether DNS is enabled or disabled with the following command:
+
+
+> Commands are identified by three backticks to start and end the sequence. No
+> need to specify a code type for normal bash commands. DO NOT include '#' or
+> '$' prompts
+
+> ALWAYS separate input and output
+
+```
+sudo k8s status
+```
+
+> Proceed with steps until the task is complete. Consider whether links to related
+> Guides or resources are appropriate
+
+## See also
+
+- [How to xxx with yyy][]
+- [Get more out of zzz][]
+
+> ALWAYS use links by reference for easier maintenance!
+
+<!-- LINKS -->
+
+[getting-started-guide]: /snap/tutorial/getting-started

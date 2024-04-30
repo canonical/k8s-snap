@@ -13,7 +13,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/config"
 	"github.com/canonical/microcluster/microcluster"
 	"github.com/canonical/microcluster/state"
@@ -50,6 +49,16 @@ type App struct {
 	// updateNodeConfigController
 	triggerUpdateNodeConfigControllerCh chan struct{}
 	updateNodeConfigController          *controllers.UpdateNodeConfigurationController
+
+	// featureController
+	triggerFeatureControllerNetworkCh       chan struct{}
+	triggerFeatureControllerGatewayCh       chan struct{}
+	triggerFeatureControllerIngressCh       chan struct{}
+	triggerFeatureControllerLoadBalancerCh  chan struct{}
+	triggerFeatureControllerLocalStorageCh  chan struct{}
+	triggerFeatureControllerMetricsServerCh chan struct{}
+	triggerFeatureControllerDNSCh           chan struct{}
+	featureController                       *controllers.FeatureController
 }
 
 // New initializes a new microcluster instance from configuration.
@@ -77,9 +86,6 @@ func New(cfg Config) (*App, error) {
 	app.nodeConfigController = controllers.NewNodeConfigurationController(
 		cfg.Snap,
 		app.readyWg.Wait,
-		func() (*k8s.Client, error) {
-			return k8s.NewClient(cfg.Snap.KubernetesNodeRESTClientGetter("kube-system"))
-		},
 	)
 
 	app.controlPlaneConfigController = controllers.NewControlPlaneConfigurationController(
@@ -92,11 +98,27 @@ func New(cfg Config) (*App, error) {
 	app.updateNodeConfigController = controllers.NewUpdateNodeConfigurationController(
 		cfg.Snap,
 		app.readyWg.Wait,
-		func() (*k8s.Client, error) {
-			return k8s.NewClient(cfg.Snap.KubernetesRESTClientGetter("kube-system"))
-		},
 		app.triggerUpdateNodeConfigControllerCh,
 	)
+
+	app.triggerFeatureControllerNetworkCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerGatewayCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerIngressCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerLoadBalancerCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerLocalStorageCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerMetricsServerCh = make(chan struct{}, 1)
+	app.triggerFeatureControllerDNSCh = make(chan struct{}, 1)
+	app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
+		Snap:                   cfg.Snap,
+		WaitReady:              app.readyWg.Wait,
+		TriggerNetworkCh:       app.triggerFeatureControllerNetworkCh,
+		TriggerGatewayCh:       app.triggerFeatureControllerGatewayCh,
+		TriggerIngressCh:       app.triggerFeatureControllerIngressCh,
+		TriggerLoadBalancerCh:  app.triggerFeatureControllerLoadBalancerCh,
+		TriggerDNSCh:           app.triggerFeatureControllerDNSCh,
+		TriggerLocalStorageCh:  app.triggerFeatureControllerLocalStorageCh,
+		TriggerMetricsServerCh: app.triggerFeatureControllerMetricsServerCh,
+	})
 
 	return app, nil
 }

@@ -1,0 +1,27 @@
+# Explanation docs template
+
+> Explanations are for learning and understanding
+
+There is no set format to an explanation document. Good examples consist of
+easy to understand text and are quite frequently accompanied by diagrams.
+
+## Diagrams
+
+You can include a diagram as an image using the usual Markdown format:
+
+![Illustration depicting working on components and clouds][logo]
+
+The documentation also supports various diagrams-as-code options. We
+prefer to use UML-style diagrams, but you can also use Mermaid or many
+other types.
+
+Diagrams like this are processed using the 'kroki' directive:
+
+```{kroki} ../../assets/ck-cluster.puml
+```
+
+## Links
+
+Explanations frequently include links to other documents. In particular, please
+consider adding a section titled 'Further Reading' at the end to collate
+related topics (internal or external).

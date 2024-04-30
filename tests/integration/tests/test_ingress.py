@@ -37,38 +37,6 @@ def test_ingress(instances: List[harness.Instance]):
     )
     ingress_http_port = p.stdout.decode().replace("'", "")
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
-        [
-            "k8s",
-            "kubectl",
-            "wait",
-            "--for=condition=ready",
-            "pod",
-            "-n",
-            "kube-system",
-            "-l",
-            "io.cilium/app=operator",
-            "--timeout",
-            "180s",
-        ]
-    )
-
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
-        [
-            "k8s",
-            "kubectl",
-            "wait",
-            "--for=condition=ready",
-            "pod",
-            "-n",
-            "kube-system",
-            "-l",
-            "k8s-app=cilium",
-            "--timeout",
-            "180s",
-        ]
-    )
-
     manifest = MANIFESTS_DIR / "ingress-test.yaml"
     instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
