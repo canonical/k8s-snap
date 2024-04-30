@@ -38,7 +38,7 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 
 	isWorker, err := databaseutil.IsWorkerNode(r.Context(), s, req.Name)
 	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to check if node is control-plane: %w", err))
+		return response.InternalError(fmt.Errorf("failed to check if node is worker: %w", err))
 	}
 	if isWorker {
 		// For worker nodes, we need to manually clean up the kubernetes node and db entry.
@@ -57,7 +57,7 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 	}
 
 	if !isWorker && !isControlPlane {
-		return response.InternalError(fmt.Errorf("node %q is not part of the cluster", req.Name))
+		return InvalidNode(fmt.Errorf("node %q is not part of the cluster", req.Name))
 	}
 	return response.SyncResponse(true, nil)
 }

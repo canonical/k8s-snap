@@ -5,8 +5,10 @@ import (
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
+	nodeutil "github.com/canonical/k8s/pkg/utils/node"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
@@ -25,7 +27,28 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 	config := map[string]string{}
 	internalToken := types.InternalWorkerNodeToken{}
 	// Check if token is worker token
-	if internalToken.Decode(req.Token) == nil {
+
+	workerToken := internalToken.Decode(req.Token) == nil
+
+	if workerToken {
+		isWorker, err := databaseutil.IsWorkerNode(r.Context(), s, hostname)
+		if err != nil {
+			return response.InternalError(fmt.Errorf("failed to check if node is worker: %w", err))
+		}
+		if isWorker {
+			return InvalidNode(fmt.Errorf("node %q is part of the cluster", hostname))
+		}
+	} else {
+		isControlPlane, err := nodeutil.IsControlPlaneNode(r.Context(), s, hostname)
+		if err != nil {
+			return response.InternalError(fmt.Errorf("failed to check if node is control-plane: %w", err))
+		}
+		if isControlPlane {
+			return InvalidNode(fmt.Errorf("node %q is part of the cluster", hostname))
+		}
+	}
+
+	if workerToken {
 		// valid worker node token - let's join the cluster
 		// The validation of the token is done when fetching the cluster information.
 		config["workerToken"] = req.Token
