@@ -5,11 +5,13 @@ import (
 )
 
 const (
-	StatusNodeUnavailable = 520 // Node cannot be removed because it isn't in the cluster
-	StatusNodeInUse       = 521 // Node cannot be joined because it is in the cluster.
+	// StatusNodeUnavailable is the Http status code that the API returns if the node isn't in the cluster
+	StatusNodeUnavailable = 520
+	// StatusNodeInUse is the Http status code that the API returns if the node is already in the cluster
+	StatusNodeInUse = 521
 )
 
-func NodeUnavalable(err error) response.Response {
+func NodeUnavailable(err error) response.Response {
 	return response.ErrorResponse(StatusNodeUnavailable, err.Error())
 }
 
