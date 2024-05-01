@@ -7,12 +7,12 @@ Canonical Kubernetes can be deployed via [Juju][] with the following charms:
   intended as workers in a cluster (at least one `k8s` charm must be deployed
   and integrated with the worker for it to function)
 
-## Charm store
+## Charmhub
 
-Both of the above charms are publised to the Charm store.
+Both of the above charms are published to Charmhub.
 
-- [The Charm store page for the `k8s` charm][cs-k8s]
-- [The Charm store page for the `k8s-worker` charm][cs-k8s-worker]
+- [The Charmhub page for the `k8s` charm][cs-k8s]
+- [The Charmhub page for the `k8s-worker` charm][cs-k8s-worker]
 
 For an explanation of the releases and channels, please see the documentation
 [explaining channels][].
