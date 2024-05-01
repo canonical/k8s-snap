@@ -12,6 +12,8 @@ Overview <self>
 :titlesonly:
 
 releases
+proxy
+architecture
 community
 
 ```
