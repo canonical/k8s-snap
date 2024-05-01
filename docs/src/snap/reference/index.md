@@ -16,6 +16,7 @@ commands
 troubleshooting
 community
 architecture
+proxy
 roadmap
 ```
 

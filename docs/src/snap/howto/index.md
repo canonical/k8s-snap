@@ -18,6 +18,7 @@ install/index
 networking/index
 storage
 external-datastore
+proxy
 contribute
 ```
 
