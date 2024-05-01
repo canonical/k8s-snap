@@ -1,0 +1,19 @@
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs every midnight
+
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Skopeo
+        run: |
+          docker run quay.io/skopeo/stable:v1.15 sync \
+            --src docker \
+            --dest docker \
+            --all registry.k8s.io/pause ghcr.io/canonical \
+            --format oci \
+            --dest-creds ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}
