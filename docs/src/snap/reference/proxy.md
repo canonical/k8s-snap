@@ -1,7 +1,7 @@
 # Proxy environment variables
 
 Canonical Kubernetes uses the standard system-wide environment variables to
-control access through proxies. 
+control access through proxies.
 
 On Ubuntu and other Linux operating systems, proxies are configured through
 system-wide environment variables defined in the `/etc/environment` file.
@@ -19,8 +19,8 @@ When configuring proxies, it is important to note that there are always some
 CIDRs which need to be excluded and added to the `no-proxy` lists. For
 Canonical Kubernetes these are:
 
- - The range used by Kubernetes services (defaults to **10.152.183.0/24**)
- - The range used by the Kubernetes pods (defaults to **10.1.0.0/16**)
+- The range used by Kubernetes services (defaults to **10.152.183.0/24**)
+- The range used by the Kubernetes pods (defaults to **10.1.0.0/16**)
 
 And it is also important to exclude the local network to maintain access to any
 local traffic.
