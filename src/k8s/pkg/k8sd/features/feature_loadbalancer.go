@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 )
 
 // ApplyLoadBalancer is used to configure the load-balancer feature on Canonical Kubernetes.
@@ -31,9 +31,9 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 }
 
 func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Network) error {
-	m := newHelm(snap)
+	m := snap.HelmClient()
 
-	if _, err := m.Apply(ctx, featureCiliumLoadBalancer, stateDeleted, nil); err != nil {
+	if _, err := m.Apply(ctx, chartCiliumLoadBalancer, helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall LoadBalancer manifests: %w", err)
 	}
 
@@ -55,14 +55,14 @@ func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Netw
 		},
 	}
 
-	if _, err := m.Apply(ctx, featureCiliumCNI, stateUpgradeOnlyOrDeleted(network.GetEnabled()), values); err != nil {
+	if _, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values); err != nil {
 		return fmt.Errorf("failed to refresh network to apply LoadBalancer configuration: %w", err)
 	}
 	return nil
 }
 
 func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network) error {
-	m := newHelm(snap)
+	m := snap.HelmClient()
 
 	networkValues := map[string]any{
 		"l2announcements": map[string]any{
@@ -82,7 +82,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 		},
 	}
 
-	changed, err := m.Apply(ctx, featureCiliumCNI, stateUpgradeOnlyOrDeleted(network.GetEnabled()), networkValues)
+	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), networkValues)
 	if err != nil {
 		return fmt.Errorf("failed to update Cilium configuration for LoadBalancer: %w", err)
 	}
@@ -119,7 +119,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 			},
 		},
 	}
-	if _, err := m.Apply(ctx, featureCiliumLoadBalancer, statePresent, values); err != nil {
+	if _, err := m.Apply(ctx, chartCiliumLoadBalancer, helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to apply LoadBalancer configuration: %w", err)
 	}
 
@@ -134,7 +134,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 }
 
 func waitForRequiredLoadBalancerCRDs(ctx context.Context, snap snap.Snap, bgpMode bool) error {
-	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	client, err := snap.KubernetesClient("")
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}

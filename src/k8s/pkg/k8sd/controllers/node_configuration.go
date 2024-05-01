@@ -7,30 +7,28 @@ import (
 	"log"
 	"time"
 
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 	v1 "k8s.io/api/core/v1"
 )
 
 type NodeConfigurationController struct {
-	snap         snap.Snap
-	waitReady    func()
-	newK8sClient func() (*k8s.Client, error)
+	snap      snap.Snap
+	waitReady func()
 }
 
-func NewNodeConfigurationController(snap snap.Snap, waitReady func(), newK8sClient func() (*k8s.Client, error)) *NodeConfigurationController {
+func NewNodeConfigurationController(snap snap.Snap, waitReady func()) *NodeConfigurationController {
 	return &NodeConfigurationController{
-		snap:         snap,
-		waitReady:    waitReady,
-		newK8sClient: newK8sClient,
+		snap:      snap,
+		waitReady: waitReady,
 	}
 }
 
-func (c *NodeConfigurationController) retryNewK8sClient(ctx context.Context) (*k8s.Client, error) {
+func (c *NodeConfigurationController) retryNewK8sClient(ctx context.Context) (*kubernetes.Client, error) {
 	for {
-		client, err := c.newK8sClient()
+		client, err := c.snap.KubernetesNodeClient("kube-system")
 		if err == nil {
 			return client, nil
 		}

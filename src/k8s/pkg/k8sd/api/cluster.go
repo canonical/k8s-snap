@@ -2,12 +2,11 @@ package api
 
 import (
 	"fmt"
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
-	"github.com/canonical/k8s/pkg/utils/k8s"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
@@ -27,8 +26,7 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
-	snap := e.provider.Snap()
-	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	client, err := e.provider.Snap().KubernetesClient("")
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
 	}

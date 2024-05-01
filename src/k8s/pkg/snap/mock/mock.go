@@ -4,39 +4,40 @@ import (
 	"context"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/snap"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 type Mock struct {
-	Strict                         bool
-	OnLXD                          bool
-	OnLXDErr                       error
-	UID                            int
-	GID                            int
-	KubernetesConfigDir            string
-	KubernetesPKIDir               string
-	EtcdPKIDir                     string
-	KubeletRootDir                 string
-	CNIConfDir                     string
-	CNIBinDir                      string
-	CNIPlugins                     []string
-	CNIPluginsBinary               string
-	ContainerdConfigDir            string
-	ContainerdExtraConfigDir       string
-	ContainerdRegistryConfigDir    string
-	ContainerdRootDir              string
-	ContainerdSocketDir            string
-	ContainerdStateDir             string
-	K8sdStateDir                   string
-	K8sDqliteStateDir              string
-	ServiceArgumentsDir            string
-	ServiceExtraConfigDir          string
-	LockFilesDir                   string
-	ManifestsDir                   string
-	KubernetesRESTClientGetter     genericclioptions.RESTClientGetter
-	KubernetesNodeRESTClientGetter genericclioptions.RESTClientGetter
-	K8sDqliteClient                *dqlite.Client
+	Strict                      bool
+	OnLXD                       bool
+	OnLXDErr                    error
+	UID                         int
+	GID                         int
+	KubernetesConfigDir         string
+	KubernetesPKIDir            string
+	EtcdPKIDir                  string
+	KubeletRootDir              string
+	CNIConfDir                  string
+	CNIBinDir                   string
+	CNIPlugins                  []string
+	CNIPluginsBinary            string
+	ContainerdConfigDir         string
+	ContainerdExtraConfigDir    string
+	ContainerdRegistryConfigDir string
+	ContainerdRootDir           string
+	ContainerdSocketDir         string
+	ContainerdStateDir          string
+	K8sdStateDir                string
+	K8sDqliteStateDir           string
+	ServiceArgumentsDir         string
+	ServiceExtraConfigDir       string
+	LockFilesDir                string
+	KubernetesClient            *kubernetes.Client
+	KubernetesNodeClient        *kubernetes.Client
+	HelmClient                  helm.Client
+	K8sDqliteClient             *dqlite.Client
 }
 
 // Snap is a mock implementation for snap.Snap.
@@ -145,14 +146,14 @@ func (s *Snap) ServiceExtraConfigDir() string {
 func (s *Snap) LockFilesDir() string {
 	return s.Mock.LockFilesDir
 }
-func (s *Snap) ManifestsDir() string {
-	return s.Mock.ManifestsDir
+func (s *Snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {
+	return s.Mock.KubernetesClient, nil
 }
-func (s *Snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
-	return s.Mock.KubernetesRESTClientGetter
+func (s *Snap) KubernetesNodeClient(namespace string) (*kubernetes.Client, error) {
+	return s.Mock.KubernetesNodeClient, nil
 }
-func (s *Snap) KubernetesNodeRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
-	return s.Mock.KubernetesNodeRESTClientGetter
+func (s *Snap) HelmClient() helm.Client {
+	return s.Mock.HelmClient
 }
 func (s *Snap) K8sDqliteClient(context.Context) (*dqlite.Client, error) {
 	return s.Mock.K8sDqliteClient, nil
