@@ -1,4 +1,7 @@
 on:
+  push:
+    branches:
+      - "eaudetcobello/KU-617"
   schedule:
     - cron: "0 0 * * *" # Runs every midnight
 
@@ -11,9 +14,14 @@ jobs:
 
       - name: Skopeo
         run: |
-          docker run quay.io/skopeo/stable:v1.15 sync \
-            --src docker \
+          cat <<EOF > $HOME/registry.k8s.io-config.yaml
+          registry.k8s.io:
+            images-by-semver:
+              pause: ">= 3.0"
+          EOF
+          docker run -v $HOME:$HOME quay.io/skopeo/stable:v1.15 sync \
+            --src yaml \
             --dest docker \
-            --all registry.k8s.io/pause ghcr.io/canonical \
+            $HOME/registry.k8s.io-config.yaml ghcr.io/canonical \
             --format oci \
             --dest-creds ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}
