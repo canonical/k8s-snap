@@ -18,7 +18,10 @@ install/index
 networking/index
 storage
 external-datastore
+cos-lite
+proxy
 contribute
+support
 ```
 
 ---

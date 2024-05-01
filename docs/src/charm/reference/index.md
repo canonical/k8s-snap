@@ -13,6 +13,8 @@ Overview <self>
 
 releases
 charms
+proxy
+architecture
 community
 
 ```
