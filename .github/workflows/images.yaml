@@ -17,7 +17,7 @@ jobs:
           cat <<EOF > $HOME/registry.k8s.io-config.yaml
           registry.k8s.io:
             images-by-semver:
-              pause: ">= 3.0"
+              pause: "= 3.7"
           EOF
           docker run -v $HOME:$HOME quay.io/skopeo/stable:v1.15 sync \
             --src yaml \
