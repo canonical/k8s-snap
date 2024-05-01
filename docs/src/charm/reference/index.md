@@ -12,6 +12,7 @@ Overview <self>
 :titlesonly:
 
 releases
+charms
 community
 
 ```
