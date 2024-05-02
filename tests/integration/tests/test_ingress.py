@@ -11,12 +11,7 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
-def test_ingress(instances: List[harness.Instance]):
-    instance = instances[0]
-    util.wait_for_network(instance)
-    util.wait_for_dns(instance)
-
-    instance.exec(["k8s", "enable", "ingress"])
+def test_ingress(instance: List[harness.Instance]):
 
     util.stubbornly(retries=5, delay_s=2).on(instance).until(
         lambda p: "cilium-ingress" in p.stdout.decode()

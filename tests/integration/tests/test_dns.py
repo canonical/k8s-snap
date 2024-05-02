@@ -2,18 +2,13 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
-from typing import List
 
 from test_util import harness, util
 
 LOG = logging.getLogger(__name__)
 
 
-def test_dns(instances: List[harness.Instance]):
-    instance = instances[0]
-    util.wait_for_dns(instance)
-    util.wait_for_network(instance)
-
+def test_dns(instance: harness.Instance):
     instance.exec(
         [
             "k8s",

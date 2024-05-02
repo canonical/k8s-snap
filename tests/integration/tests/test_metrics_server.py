@@ -2,22 +2,13 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
-from typing import List
 
-import pytest
-from test_util import config, harness, util
+from test_util import harness, util
 
 LOG = logging.getLogger(__name__)
 
 
-def test_metrics_server(instances: List[harness.Instance]):
-    if not config.SNAP:
-        pytest.fail("Set TEST_SNAP to the path where the snap is")
-
-    instance = instances[0]
-    util.wait_for_dns(instance)
-    util.wait_for_network(instance)
-
+def test_metrics_server(instance: harness.Instance):
     LOG.info("Waiting for metrics-server pod to show up...")
     util.stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "metrics-server" in p.stdout.decode()

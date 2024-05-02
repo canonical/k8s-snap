@@ -86,7 +86,7 @@ def instances(
     snap_path = (tmp_path / "k8s.snap").as_posix()
 
     LOG.info(f"Creating {node_count} instances")
-    instances: List[util.Instance] = []
+    instances: List[harness.Instance] = []
 
     for _ in range(node_count):
         # Create <node_count> instances and setup the k8s snap in each.
@@ -100,7 +100,38 @@ def instances(
 
     yield instances
 
-    _harness_clean(h)
+    if not config.SKIP_CLEANUP:
+        for instance in instances:
+            h.delete_instance(instance.id)
+
+
+@pytest.fixture(scope="session")
+def instance(
+    h: harness.Harness, tmp_path_factory: pytest.TempPathFactory
+) -> Generator[harness.Instance, None, None]:
+    """Constructs and bootstraps an instance that persists over a test session.
+
+    Bootstraps the instance with all k8sd features enabled to reduce testing time.
+    """
+    LOG.info("Setup node and enable all features")
+
+    snap_path = str(tmp_path_factory.mktemp("data") / "k8s.snap")
+    instance = h.new_instance()
+    util.setup_k8s_snap(instance, snap_path)
+
+    bootstrap_config_path = (
+        tmp_path_factory.mktemp("data") / "bootstrap-all-features.yaml"
+    ).as_posix()
+    instance.send_file(
+        (config.MANIFESTS_DIR / "bootstrap-all.yaml").as_posix(), bootstrap_config_path
+    )
+
+    instance.exec(["k8s", "bootstrap", "--file", bootstrap_config_path])
+    util.wait_until_k8s_ready(instance, [instance])
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
+
+    yield instance
 
 
 @pytest.fixture(scope="function")
@@ -122,5 +153,3 @@ def etcd_cluster(
     cluster = EtcdCluster(h, initial_node_count=etcd_count)
 
     yield cluster
-
-    _harness_clean(h)

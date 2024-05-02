@@ -2,18 +2,13 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
-from typing import List
 
-from test_util import harness, util
+from test_util import harness
 
 LOG = logging.getLogger(__name__)
 
 
-def test_smoke(instances: List[harness.Instance]):
-    instance = instances[0]
-
-    util.wait_until_k8s_ready(instance, instances)
-
+def test_smoke(instance: harness.Instance):
     # Verify the functionality of the k8s config command during the smoke test.
     # It would be excessive to deploy a cluster solely for this purpose.
     result = instance.exec(

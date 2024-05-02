@@ -5,10 +5,8 @@ import json
 import logging
 import subprocess
 from pathlib import Path
-from typing import List
 
-import pytest
-from test_util import config, harness, util
+from test_util import harness, util
 from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
@@ -22,13 +20,7 @@ def check_pvc_bound(p: subprocess.CompletedProcess) -> bool:
     return False
 
 
-def test_storage(instances: List[harness.Instance]):
-    if not config.SNAP:
-        pytest.fail("Set TEST_SNAP to the path where the snap is")
-
-    instance = instances[0]
-    instance.exec(["k8s", "enable", "local-storage"])
-
+def test_storage(instance: harness.Instance):
     LOG.info("Waiting for storage provisioner pod to show up...")
     util.stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "ck-storage" in p.stdout.decode()

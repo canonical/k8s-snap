@@ -4,7 +4,6 @@
 import json
 import logging
 from pathlib import Path
-from typing import List
 
 from test_util import harness, util
 from test_util.config import MANIFESTS_DIR
@@ -12,11 +11,7 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
-def test_network(instances: List[harness.Instance]):
-    instance = instances[0]
-    util.wait_for_dns(instance)
-    util.wait_for_network(instance)
-
+def test_network(instance: harness.Instance):
     p = instance.exec(
         [
             "k8s",

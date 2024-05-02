@@ -3,7 +3,6 @@
 #
 import logging
 from pathlib import Path
-from typing import List
 
 from test_util import harness, util
 from test_util.config import MANIFESTS_DIR
@@ -11,11 +10,7 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
-def test_gateway(instances: List[harness.Instance]):
-    instance = instances[0]
-    util.wait_for_network(instance)
-    util.wait_for_dns(instance)
-
+def test_gateway(instance: harness.Instance):
     manifest = MANIFESTS_DIR / "gateway-test.yaml"
     instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
