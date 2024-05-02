@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/spf13/cobra"
@@ -59,7 +60,13 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					env.Exit(1)
 					return
 				}
-				if err := snapdconfig.SetSnapdFromK8sd(cmd.Context(), client, env.Snap); err != nil {
+				config, err := client.GetClusterConfig(cmd.Context(), apiv1.GetClusterConfigRequest{})
+				if err != nil {
+					cmd.PrintErrf("Error: failed to retrieve cluster configuration: %v\n", err)
+					env.Exit(1)
+					return
+				}
+				if err := snapdconfig.SetSnapdFromK8sd(cmd.Context(), config, env.Snap); err != nil {
 					cmd.PrintErrf("Error: failed to update snapd state: %v\n", err)
 					env.Exit(1)
 					return

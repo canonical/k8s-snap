@@ -6,15 +6,10 @@ import (
 	"fmt"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-func SetSnapdFromK8sd(ctx context.Context, client client.Client, snap snap.Snap) error {
-	config, err := client.GetClusterConfig(ctx, apiv1.GetClusterConfigRequest{})
-	if err != nil {
-		return fmt.Errorf("failed to retrieve cluster configuration: %w", err)
-	}
+func SetSnapdFromK8sd(ctx context.Context, config apiv1.UserFacingClusterConfig, snap snap.Snap) error {
 
 	var sets []string
 	for key, cfg := range map[string]any{
