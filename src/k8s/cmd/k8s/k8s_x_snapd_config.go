@@ -1,0 +1,100 @@
+package k8s
+
+import (
+	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
+	"github.com/spf13/cobra"
+)
+
+func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	disableCmd := &cobra.Command{
+		Use: "disable",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := snapdconfig.Disable(cmd.Context(), env.Snap); err != nil {
+				cmd.PrintErrf("Error: failed to disable snapd configuration: %v\n", err)
+				env.Exit(1)
+			}
+		},
+	}
+	resetCmd := &cobra.Command{
+		Use: "reset",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := snapdconfig.SetMeta(cmd.Context(), env.Snap, snapdconfig.Meta{Orb: "k8sd", APIVersion: "1.30"}); err != nil {
+				cmd.PrintErrf("Error: failed to reset snapd configuration: %v\n", err)
+				env.Exit(1)
+			}
+		},
+	}
+	reconcileCmd := &cobra.Command{
+		Use: "reconcile",
+		Run: func(cmd *cobra.Command, args []string) {
+			mode, empty, err := snapdconfig.ParseMeta(cmd.Context(), env.Snap)
+			if err != nil {
+				if !empty {
+					cmd.PrintErrf("Error: failed to parse meta configuration: %v\n", err)
+					env.Exit(1)
+					return
+				}
+
+				cmd.PrintErrf("Warning: failed to parse meta configuration: %v\n", err)
+				cmd.PrintErrf("Warning: ignoring further errors to prevent infinite loop\n")
+				if setErr := snapdconfig.SetMeta(cmd.Context(), env.Snap, snapdconfig.Meta{
+					APIVersion: "1.30",
+					Orb:        "none",
+					Error:      err.Error(),
+				}); setErr != nil {
+					cmd.PrintErrf("Warning: failed to set meta configuration to safe defaults: %v\n", setErr)
+				}
+				return
+			}
+
+			switch mode.Orb {
+			case "none":
+				cmd.PrintErrln("Warning: meta.orb is none, do not do anything")
+				return
+			case "k8sd":
+				client, err := env.Client(cmd.Context())
+				if err != nil {
+					cmd.PrintErrf("Error: failed to create k8sd client: %v\n", err)
+					env.Exit(1)
+					return
+				}
+				if err := snapdconfig.SetSnapdFromK8sd(cmd.Context(), client, env.Snap); err != nil {
+					cmd.PrintErrf("Error: failed to update snapd state: %v\n", err)
+					env.Exit(1)
+					return
+				}
+			case "snapd":
+				client, err := env.Client(cmd.Context())
+				if err != nil {
+					cmd.PrintErrf("Error: failed to create k8sd client: %v\n", err)
+					env.Exit(1)
+					return
+				}
+				if err := snapdconfig.SetK8sdFromSnapd(cmd.Context(), client, env.Snap); err != nil {
+					cmd.PrintErrf("Error: failed to update k8sd state: %v\n", err)
+					env.Exit(1)
+					return
+				}
+			}
+
+			mode.Orb = "snapd"
+			if err := snapdconfig.SetMeta(cmd.Context(), env.Snap, mode); err != nil {
+				cmd.PrintErrf("Error: failed to set snapd configuration: %v\n", err)
+				env.Exit(1)
+				return
+			}
+		},
+	}
+	cmd := &cobra.Command{
+		Use:    "x-snapd-config",
+		Short:  "Manage snapd configuration",
+		Hidden: true,
+	}
+
+	cmd.AddCommand(reconcileCmd)
+	cmd.AddCommand(resetCmd)
+	cmd.AddCommand(disableCmd)
+
+	return cmd
+}

@@ -111,7 +111,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		newGenerateDocsCmd(env),
 		newHelmCmd(env),
 		xPrintShimPidsCmd,
-		newXReconcileSnapdConfigCmd(env),
+		newXSnapdConfigCmd(env),
 	)
 
 	cmd.DisableAutoGenTag = true
