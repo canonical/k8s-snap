@@ -84,7 +84,7 @@ function collect_service_diagnostics {
   local n_restarts
   n_restarts=$(systemctl show "snap.$service" -p NRestarts | cut -d'=' -f2) 
 
-  printf -- "%s NRestarts=%s" "$service" "$n_restarts" >> "$INSPECT_DUMP/nrestarts.log"
+  printf -- "%s -> %s\n" "$service" "$n_restarts" >> "$INSPECT_DUMP/nrestarts.log"
 
   if [ "$n_restarts" -gt 0 ]; then
     log_warning "Service $service has restarted $n_restarts times due to errors"
@@ -133,7 +133,7 @@ fi
 rm -rf "$INSPECT_DUMP"
 mkdir -p "$INSPECT_DUMP"
 
-printf -- 'Inspecting services\n'
+printf -- 'Collecting service information\n'
 
 if is_control_plane_node; then
   printf -- 'Running inspection on a control-plane node\n'
