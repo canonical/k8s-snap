@@ -81,7 +81,14 @@ function collect_service_diagnostics {
 
   systemctl status "snap.$service" &>"$status_file"
 
-  printf -- "%s $(systemctl show "snap.$service" -p NRestarts)\n" "$service" >>"$INSPECT_DUMP/nrestarts.log"
+  local n_restarts
+  n_restarts=$(systemctl show "snap.$service" -p NRestarts | cut -d'=' -f2) 
+
+  printf -- "%s NRestarts=%s" "$service" "$n_restarts" >> "$INSPECT_DUMP/nrestarts.log"
+
+  if [[ $n_restarts -gt 0 ]]; then
+    log_warning "Service $service has restarted $n_restarts times due to errors"
+  fi
 
   journalctl -n 100000 -u "snap.$service" &>"$INSPECT_DUMP/$service/journal.log"
 }
