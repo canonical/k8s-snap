@@ -86,7 +86,7 @@ function collect_service_diagnostics {
 
   printf -- "%s NRestarts=%s" "$service" "$n_restarts" >> "$INSPECT_DUMP/nrestarts.log"
 
-  if [[ $n_restarts -gt 0 ]]; then
+  if [ "$n_restarts" -gt 0 ]; then
     log_warning "Service $service has restarted $n_restarts times due to errors"
   fi
 
