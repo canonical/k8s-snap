@@ -22,8 +22,7 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", req.Name, err))
 	}
 
-	context := r.Context()
-	if _, err := e.provider.MicroCluster().Status(context); err == nil {
+	if _, err := e.provider.MicroCluster().Status(r.Context()); err == nil {
 		return NodeInUse(fmt.Errorf("node %q is part of the cluster", hostname))
 	}
 
@@ -35,13 +34,13 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 		// The validation of the token is done when fetching the cluster information.
 		config["workerToken"] = req.Token
 		config["workerJoinConfig"] = req.Config
-		if err := e.provider.MicroCluster().NewCluster(context, hostname, req.Address, config); err != nil {
+		if err := e.provider.MicroCluster().NewCluster(r.Context(), hostname, req.Address, config); err != nil {
 			return response.InternalError(fmt.Errorf("failed to join k8sd cluster as worker: %w", err))
 		}
 	} else {
 		// Is not a worker token. let microcluster check if it is a valid control-plane token.
 		config["controlPlaneJoinConfig"] = req.Config
-		if err := e.provider.MicroCluster().JoinCluster(context, hostname, req.Address, req.Token, config); err != nil {
+		if err := e.provider.MicroCluster().JoinCluster(r.Context(), hostname, req.Address, req.Token, config); err != nil {
 			return response.InternalError(fmt.Errorf("failed to join k8sd cluster as control plane: %w", err))
 		}
 	}
