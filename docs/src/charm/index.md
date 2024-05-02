@@ -7,7 +7,7 @@ configuring, scaling, integrating the application on any cloud supported by
 
 The `k8s` charm takes care of installing and configuring the [k8s snap
 package][] on cloud instances managed by Juju. Operating Kubernetes through
-this charm makes it significantly easier to maanage at scale, on remote cloud
+this charm makes it significantly easier to manage at scale, on remote cloud
 instances and also to integrate other operators to enhance or customise your
 Kubernetes deployment. You can find out more about Canonical Kubernetes on this
 [overview page][] or see a more detailed explanation in our [architecture
