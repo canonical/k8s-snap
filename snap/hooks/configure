@@ -1,0 +1,7 @@
+#!/bin/bash -xe
+
+. "$SNAP/k8s/lib.sh"
+
+k8s::common::setup_env
+
+k8s::cmd::k8s x-reconcile-snapd-config

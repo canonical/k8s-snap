@@ -20,6 +20,9 @@ type Snap interface {
 	StopService(ctx context.Context, serviceName string) error    // snapctl stop $service
 	RestartService(ctx context.Context, serviceName string) error // snapctl restart $service
 
+	SnapctlGet(ctx context.Context, args ...string) ([]byte, error) // snapctl get $args...
+	SnapctlSet(ctx context.Context, args ...string) error           // snapctl set $args...
+
 	CNIConfDir() string       // /etc/cni/net.d
 	CNIBinDir() string        // /opt/cni/bin
 	CNIPluginsBinary() string // /snap/k8s/current/bin/cni
