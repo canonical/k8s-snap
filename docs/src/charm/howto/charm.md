@@ -12,7 +12,7 @@ This guide assumes the following:
 - If you still need to do this, please take a look at the quickstart
   instructions, or, for custom clouds (OpenStack, MAAS), please consult the
   [Juju documentation][juju].
-- you are not using the Juju 'localhost' cloud (see [localhost
+- You are not using the Juju 'localhost' cloud (see [localhost
   instructions][localhost] for this).
 
 ```{note}
