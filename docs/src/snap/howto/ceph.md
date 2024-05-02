@@ -173,6 +173,122 @@ EOF
 kubectl apply -f csi-rbd-secret.yaml
 ```
 
+## Create ceph-csi's custom Kubernetes objects
+
+Create the ServiceAccount and RBAC ClusterRole/ClusterRoleBinding objects.
+
+```
+kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-provisioner-rbac.yaml
+
+kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml
+```
+
+Create the ceph-csi provisioner and node plugins.
+
+```
+wget https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml
+
+kubectl apply -f csi-rbdplugin-provisioner.yaml
+
+wget https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-rbdplugin.yaml
+
+kubectl apply -f csi-rbdplugin.yaml
+```
+
+Consider this important note from the Ceph documentation:
+>The provisioner and node plugin YAMLs will, by default, pull the development release of the ceph-csi container (quay.io/cephcsi/cephcsi:canary). The YAMLs should be updated to use a release version container for production workloads.
+
+## Create a StorageClass
+
+You are ready to create a ceph-csi StorageClass.
+
+```
+cat <<EOF > csi-rbd-sc.yaml
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+   name: csi-rbd-sc
+provisioner: rbd.csi.ceph.com
+parameters:
+   clusterID: b9127830-b0cc-4e34-aa47-9d1a2e9949a8
+   pool: kubernetes
+   imageFeatures: layering
+   csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
+   csi.storage.k8s.io/provisioner-secret-namespace: default
+   csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret
+   csi.storage.k8s.io/controller-expand-secret-namespace: default
+   csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret
+   csi.storage.k8s.io/node-stage-secret-namespace: default
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+mountOptions:
+   - discard
+EOF
+```
+
+```
+kubectl apply -f csi-rbd-sc.yaml
+```
+
+## Create a PVC for a RBD-backed file-system.
+
+```
+cat <<EOF > pvc.yaml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rbd-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: csi-rbd-sc
+EOF
+```
+
+```
+kubectl apply -f pvc.yaml
+```
+
+## Create a pod that binds to the RBD PVC.
+
+```
+cat <<EOF > pod.yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: csi-rbd-demo-pod
+spec:
+  containers:
+    - name: web-server
+      image: nginx
+      volumeMounts:
+        - name: mypvc
+          mountPath: /var/lib/www/html
+  volumes:
+    - name: mypvc
+      persistentVolumeClaim:
+        claimName: rbd-pvc
+        readOn
+```
+
+```
+kubectl apply -f pod.yaml
+```
+
+## Verify that the pod is using the RBD PV
+
+To verify that the csi-rbd-demo-pod is indeed using a RBD PV, run the following commands:
+
+```
+```
+
 <!-- LINKS -->
 [getting-started-guide]: ../tutorial/getting-started.md
 [block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
