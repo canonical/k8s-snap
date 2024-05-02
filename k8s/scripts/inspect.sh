@@ -93,6 +93,29 @@ function collect_service_diagnostics {
   journalctl -n 100000 -u "snap.$service" &>"$INSPECT_DUMP/$service/journal.log"
 }
 
+function collect_network_diagnostics {
+  log_info "Copy network diagnostics to the final report tarball"
+  ip a &>"$INSPECT_DUMP/ip-a.log"
+  ip r &>"$INSPECT_DUMP/ip-r.log"
+  iptables-save &>"$INSPECT_DUMP/iptables.log"
+  ss -plnt &>"$INSPECT_DUMP/ss-plnt.log"
+}
+
+function check_expected_services {
+  local services
+  services=("$@")
+
+  for service in "${services[@]}"; do
+    collect_service_diagnostics "$service"
+    if ! is_service_active "$service"; then
+      log_info "Service $service is not running"
+      log_warning "Service $service should be running on this node"
+    else
+      log_info "Service $service is running"
+    fi
+  done
+}
+
 function build_report_tarball {
   local now_is
   now_is=$(date +"%Y%m%d_%H%M%S")
@@ -124,25 +147,9 @@ control_plane_services=("k8s.containerd" "k8s.kube-proxy" "k8s.k8s-dqlite" "k8s.
 worker_services=("k8s.containerd" "k8s.k8s-apiserver-proxy" "k8s.kubelet" "k8s.k8sd" "k8s.kube-proxy")
 
 if is_control_plane_node; then
-  for cp_svc in "${control_plane_services[@]}"; do
-    collect_service_diagnostics "$cp_svc"
-    if ! is_service_active "$cp_svc"; then
-      log_info "Service $cp_svc is not running"
-      log_warning "Service $cp_svc should be running on this control-plane node"
-    else
-      log_info "Service $cp_svc is running"
-    fi
-  done
+  check_expected_services "${control_plane_services[@]}"
 else
-  for worker_svc in "${worker_services[@]}"; do
-    collect_service_diagnostics "$worker_svc"
-    if ! is_service_active "$worker_svc"; then
-      log_info "Service $worker_svc is not running"
-      log_warning "Service $worker_svc should be running on this worker node"
-    else
-      log_info "Service $worker_svc is running"
-    fi
-  done
+  check_expected_services "${worker_services[@]}"
 fi
 
 printf -- 'Collecting service arguments\n'
@@ -156,6 +163,9 @@ collect_sbom
 
 printf -- 'Collecting system information\n'
 collect_k8s_diagnostics
+
+printf -- 'Collecting networking information\n'
+collect_network_diagnostics
 
 matches=$(grep -rlEi "BEGIN CERTIFICATE|PRIVATE KEY" inspection-report)
 if [ -n "$matches" ]; then
