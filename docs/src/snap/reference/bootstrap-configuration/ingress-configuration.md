@@ -1,4 +1,4 @@
-# Ingress Configuration
+# Ingress configuration
 
 ## Format Specification
 

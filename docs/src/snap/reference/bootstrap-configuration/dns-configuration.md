@@ -1,4 +1,4 @@
-# DNS Configuration
+# DNS configuration
 
 ## Format Specification
 

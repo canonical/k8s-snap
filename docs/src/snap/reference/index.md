@@ -13,6 +13,7 @@ Overview <self>
 
 releases
 commands
+bootstrap-configuration/index
 troubleshooting
 community
 architecture

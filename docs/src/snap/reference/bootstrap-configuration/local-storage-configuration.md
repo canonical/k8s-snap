@@ -1,4 +1,4 @@
-# Local-storage Configuration
+# Local-storage configuration
 
 ## Format Specification
 

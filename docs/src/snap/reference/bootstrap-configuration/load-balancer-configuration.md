@@ -1,4 +1,4 @@
-# Load-balancer Configuration
+# Load-balancer configuration
 
 ## Format Specification
 

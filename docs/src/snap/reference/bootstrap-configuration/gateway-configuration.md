@@ -1,4 +1,4 @@
-# Gateway Configuration
+# Gateway configuration
 
 ## Format Specification
 
