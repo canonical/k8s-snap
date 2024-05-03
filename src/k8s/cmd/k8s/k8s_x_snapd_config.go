@@ -9,7 +9,8 @@ import (
 
 func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	disableCmd := &cobra.Command{
-		Use: "disable",
+		Use:   "disable",
+		Short: "Disable the use of snap get/set to manage the cluster configuration",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := snapdconfig.Disable(cmd.Context(), env.Snap); err != nil {
 				cmd.PrintErrf("Error: failed to disable snapd configuration: %v\n", err)
@@ -17,17 +18,9 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 		},
 	}
-	resetCmd := &cobra.Command{
-		Use: "reset",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := snapdconfig.SetMeta(cmd.Context(), env.Snap, snapdconfig.Meta{Orb: "k8sd", APIVersion: "1.30"}); err != nil {
-				cmd.PrintErrf("Error: failed to reset snapd configuration: %v\n", err)
-				env.Exit(1)
-			}
-		},
-	}
 	reconcileCmd := &cobra.Command{
-		Use: "reconcile",
+		Use:   "reconcile",
+		Short: "Reconcile the cluster configuration changes from k8s {set,get} <-> snap {set,get} k8s",
 		Run: func(cmd *cobra.Command, args []string) {
 			mode, empty, err := snapdconfig.ParseMeta(cmd.Context(), env.Snap)
 			if err != nil {
@@ -100,7 +93,6 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 
 	cmd.AddCommand(reconcileCmd)
-	cmd.AddCommand(resetCmd)
 	cmd.AddCommand(disableCmd)
 
 	return cmd

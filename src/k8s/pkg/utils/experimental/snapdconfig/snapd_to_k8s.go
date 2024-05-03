@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
+// SetK8sdFromSnapd updates the k8sd cluster configuration from the current local snapd configuration.
 func SetK8sdFromSnapd(ctx context.Context, client client.Client, snap snap.Snap) error {
 	b, err := snap.SnapctlGet(ctx, "-d", "dns", "network", "local-storage", "load-balancer", "ingress", "gateway")
 	if err != nil {

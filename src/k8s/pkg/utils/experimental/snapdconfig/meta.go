@@ -9,7 +9,6 @@ import (
 )
 
 // Meta represents meta configuration that describes how to parse the snapd configuration values.
-// See docs/snapd-config.md for details.
 type Meta struct {
 	// Orb is one of "", "k8sd", "snapd", "none".
 	Orb string `json:"orb"`
