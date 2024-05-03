@@ -10,20 +10,20 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
-def test_gateway(instance: harness.Instance):
+def test_gateway(session_instance: harness.Instance):
     manifest = MANIFESTS_DIR / "gateway-test.yaml"
-    instance.exec(
+    session_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
     LOG.info("Waiting for nginx pod to show up...")
-    util.stubbornly(retries=5, delay_s=10).on(instance).until(
+    util.stubbornly(retries=5, delay_s=10).on(session_instance).until(
         lambda p: "my-nginx" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Nginx pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -37,11 +37,11 @@ def test_gateway(instance: harness.Instance):
         ]
     )
 
-    util.stubbornly(retries=5, delay_s=2).on(instance).until(
+    util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
         lambda p: "cilium-gateway-my-gateway" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
 
-    p = instance.exec(
+    p = session_instance.exec(
         [
             "k8s",
             "kubectl",
@@ -54,6 +54,6 @@ def test_gateway(instance: harness.Instance):
     )
     gateway_http_port = p.stdout.decode().replace("'", "")
 
-    util.stubbornly(retries=5, delay_s=5).on(instance).until(
+    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{gateway_http_port}"])

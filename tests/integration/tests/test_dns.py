@@ -8,8 +8,8 @@ from test_util import harness, util
 LOG = logging.getLogger(__name__)
 
 
-def test_dns(instance: harness.Instance):
-    instance.exec(
+def test_dns(session_instance: harness.Instance):
+    session_instance.exec(
         [
             "k8s",
             "kubectl",
@@ -23,7 +23,7 @@ def test_dns(instance: harness.Instance):
         ],
     )
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -37,14 +37,14 @@ def test_dns(instance: harness.Instance):
         ]
     )
 
-    result = instance.exec(
+    result = session_instance.exec(
         ["k8s", "kubectl", "exec", "busybox", "--", "nslookup", "kubernetes.default"],
         capture_output=True,
     )
 
     assert "10.152.183.1 kubernetes.default.svc.cluster.local" in result.stdout.decode()
 
-    result = instance.exec(
+    result = session_instance.exec(
         ["k8s", "kubectl", "exec", "busybox", "--", "nslookup", "canonical.com"],
         capture_output=True,
         check=False,

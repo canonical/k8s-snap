@@ -11,8 +11,8 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
-def test_network(instance: harness.Instance):
-    p = instance.exec(
+def test_network(session_instance: harness.Instance):
+    p = session_instance.exec(
         [
             "k8s",
             "kubectl",
@@ -33,7 +33,7 @@ def test_network(instance: harness.Instance):
 
     cilium_pod = out["items"][0]
 
-    p = instance.exec(
+    p = session_instance.exec(
         [
             "k8s",
             "kubectl",
@@ -55,12 +55,12 @@ def test_network(instance: harness.Instance):
     assert p.stdout.decode().strip() == "OK"
 
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
-    p = instance.exec(
+    p = session_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -74,7 +74,7 @@ def test_network(instance: harness.Instance):
         ]
     )
 
-    p = instance.exec(
+    p = session_instance.exec(
         [
             "k8s",
             "kubectl",

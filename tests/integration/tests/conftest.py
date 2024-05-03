@@ -101,12 +101,16 @@ def instances(
     yield instances
 
     if not config.SKIP_CLEANUP:
+        # Cleanup after each test.
+        # We cannot execute _harness_clean() here as this would also 
+        # remove the session_instance. The harness ensures that everything is cleaned up
+        # at the end of the test session.
         for instance in instances:
             h.delete_instance(instance.id)
 
 
 @pytest.fixture(scope="session")
-def instance(
+def session_instance(
     h: harness.Harness, tmp_path_factory: pytest.TempPathFactory
 ) -> Generator[harness.Instance, None, None]:
     """Constructs and bootstraps an instance that persists over a test session.
@@ -119,9 +123,7 @@ def instance(
     instance = h.new_instance()
     util.setup_k8s_snap(instance, snap_path)
 
-    bootstrap_config_path = (
-        tmp_path_factory.mktemp("data") / "bootstrap-all-features.yaml"
-    ).as_posix()
+    bootstrap_config_path = "/home/ubuntu/bootstrap-all-features.yaml"
     instance.send_file(
         (config.MANIFESTS_DIR / "bootstrap-all.yaml").as_posix(), bootstrap_config_path
     )

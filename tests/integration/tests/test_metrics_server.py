@@ -8,14 +8,14 @@ from test_util import harness, util
 LOG = logging.getLogger(__name__)
 
 
-def test_metrics_server(instance: harness.Instance):
+def test_metrics_server(session_instance: harness.Instance):
     LOG.info("Waiting for metrics-server pod to show up...")
-    util.stubbornly(retries=15, delay_s=5).on(instance).until(
+    util.stubbornly(retries=15, delay_s=5).on(session_instance).until(
         lambda p: "metrics-server" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"])
     LOG.info("Metrics-server pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -31,6 +31,6 @@ def test_metrics_server(instance: harness.Instance):
         ]
     )
 
-    util.stubbornly(retries=15, delay_s=5).on(instance).until(
-        lambda p: instance.id in p.stdout.decode()
+    util.stubbornly(retries=15, delay_s=5).on(session_instance).until(
+        lambda p: session_instance.id in p.stdout.decode()
     ).exec(["k8s", "kubectl", "top", "node"])
