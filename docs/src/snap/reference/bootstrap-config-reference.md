@@ -382,3 +382,41 @@ If omitted defaults to an auto generated certificate.
 
 The key to be used for the kubelet.
 If omitted defaults to an auto generated key.
+
+## Example
+
+```yaml
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+    cluster-domain: cluster.local
+  ingress:
+    enabled: true
+  load-balancer:
+    enabled: true
+    cidrs:
+    - 10.0.0.0/24
+    - 10.1.0.10-10.1.0.20
+    l2-mode: true
+  local-storage:
+    enabled: true
+    local-path: /storage/path
+    default: false
+  gateway:
+    enabled: true
+  metrics-server:
+    enabled: true
+  cloud-provider: external
+control-plane-taints:
+- node-role.kubernetes.io/control-plane:NoSchedule
+pod-cidr: 10.100.0.0/16
+service-cidr: 10.200.0.0/16
+disable-rbac: false
+secure-port: 6443
+k8s-dqlite-port: 9090
+datastore-type: k8s-dqlite
+extra-sans:
+- custom.kubernetes
+```
