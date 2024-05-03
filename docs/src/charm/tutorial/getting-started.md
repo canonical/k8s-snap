@@ -103,7 +103,7 @@ application won't settle into a 'Ready' status, because it requires a
 connection to the control plane. This is handled in Juju by integrating the
 charms so they can communicate using a standard interface. The charm info we
 fetched earlier also includes a list of the relations possible, and from this
-we can see that the k8s-worker requires "cluster: k8s-cluster"
+we can see that the k8s-worker requires "cluster: k8s-cluster".
 
 To connect these charms and effectively add the worker to our cluster, we use
 the 'integrate' command, adding the interface we wish to connect
