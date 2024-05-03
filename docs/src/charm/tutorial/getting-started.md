@@ -157,7 +157,7 @@ task. In this case it collects the cluster information - the YAML formatted
 details of the cluster and the keys required to connect to it.
 
 ```{warning}  If you already have Kubectl and are using it to manage other clusters,
-   you should edit the relevant parts of the cluster yaml output and add them to
+   you should edit the relevant parts of the cluster yaml output and append them to
    your current kubeconfig file.
 ```
 
