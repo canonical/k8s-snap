@@ -46,7 +46,7 @@ or
 juju info k8s-worker
 ```
 
-Both these charms are published simultaneously from the same source so the
+Both these charms, the control-plane charm and the worker charm, are published simultaneously from the same source so the
 available channels should match. Running the commands will output basic
 information about the charm, including a list of the available channels at the
 end.
