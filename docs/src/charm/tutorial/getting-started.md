@@ -146,7 +146,7 @@ If you have just installed it, you should also create a file to contain the conf
 mkdir ~/.kube
 ```
 
-To fetch the configuration information from the cluster we can run
+To fetch the configuration information from the cluster we can run:
 
 ```
 juju run k8s/0 get-kubeconfig 
