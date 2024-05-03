@@ -88,7 +88,7 @@ func waitApiServerReady(ctx context.Context, snap snap.Snap) error {
 	}
 
 	if err := client.WaitKubernetesEndpointAvailable(ctx); err != nil {
-		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
+		return fmt.Errorf("kubernetes endpoints not ready yet: %w", err)
 	}
 
 	return nil
