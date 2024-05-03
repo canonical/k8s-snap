@@ -81,8 +81,8 @@ When the status reports that K8s is "idle/ready"
 
 ## 3. Deploy a worker
 Before we start doing things in Kubernetes, we should consider adding a worker.
-The K8s worker is an additional node for the cluster which doesn't run the
-control-plane. This means it needs a connection to a control-plane node to tell
+The K8s worker is an additional node for the cluster which focuses on running workloads without running any
+control-plane services. This means it needs a connection to a control-plane node to tell
 it what to do, but it also means more of its resources are available for
 running workloads. We can deploy a worker node in a similar way to the original
 K8s node:
