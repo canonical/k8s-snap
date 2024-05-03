@@ -56,6 +56,11 @@ sudo k8s bootstrap
 
 This command will output a message confirming local cluster services have been started.
 
+```{note}
+Additional configuration is possible by passing a YAML file. The various options are described 
+in the [bootstrap reference documentation][bootstrap].
+```
+
 ## Confirm the cluster is ready
 
 It is recommended to ensure that the cluster initialises properly and is
@@ -75,3 +80,4 @@ ready state.
 [channels page]: ../../explanation/channels
 [snap]: https://snapcraft.io/docs
 [snapd support]: https://snapcraft.io/docs/installing-snapd
+[bootstrap]: /snap/reference/bootstrap-config-reference
