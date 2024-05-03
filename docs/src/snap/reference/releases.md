@@ -22,7 +22,7 @@ can install it now to try:
   more nodes][nodes]. 
 - **Networking** - Our built-in network component allows cluster administrators
   to automatically scale and secure network policies across the cluster. Find
-  out more in our [how-to guide][networking].
+  out more in our [how-to guides][networking].
 - **Observability** - Canonical Kubernetes ships with [COS Lite], so you never
   need to wonder what your cluster is actually doing. See the [observability
   documentation] for more details.
@@ -35,5 +35,5 @@ Follow along with the [tutorial] to get started!
 [tutorial]: /snap/tutorial/getting-started
 [nodes]: /snap/tutorial/add-remove-nodes
 [COS Lite]: https://charmhub.io/cos-lite
-[networking]: /snap/howto/networking
+[networking]: /snap/howto/networking/index
 [observability documentation]: /snap/howto/cos-lite
