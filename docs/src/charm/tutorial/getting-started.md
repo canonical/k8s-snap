@@ -46,10 +46,12 @@ or
 juju info k8s-worker
 ```
 
-Both these charms, the control-plane charm and the worker charm, are published simultaneously from the same source so the
-available channels should match. Running the commands will output basic
-information about the charm, including a list of the available channels at the
-end.
+There are two distinct charms - one includes control-plane services for
+administering the cluster, the other omits these for nodes which are to be
+deployed purely for workloads. Both are published simultaneously from the same
+source so the available channels should match. Running the commands will output
+basic information about the charm, including a list of the available channels
+at the end.
 
 Charm deployments default to "latest/stable", but if you want to chose a
 specific version it can be indicated when deploying with the `--channel=`
@@ -59,9 +61,9 @@ argument, for example `--channel=latest/edge`.
 
 To make sure that Juju creates an instance which has enough resources to
 actually run Kubernetes, we will make use of 'constraints'. These specify the
-minimums required. For the Kubernetes control plane (k8s charm), the recommendation is two
-CPU cores, 16GB of memory and 40GB of disk space. Now we can go ahead and
-create a cluster:
+minimums required. For the Kubernetes control plane (`k8s` charm), the
+recommendation is two CPU cores, 16GB of memory and 40GB of disk space. Now we
+can go ahead and create a cluster:
 
 ```
 juju deploy k8s --channel=latest/edge --constraints='cores=2 mem=16G root-disk=40G'
@@ -76,16 +78,17 @@ your cloud. You can monitor progress by watching the Juju status output:
 juju status --watch 2s
 ```
 
-When the status reports that K8s is "idle/ready"
-
+When the status reports that K8s is "idle/ready" you have successfully deployed
+a Canonical Kubernetes control-plane using Juju.
 
 ## 3. Deploy a worker
+
 Before we start doing things in Kubernetes, we should consider adding a worker.
-The K8s worker is an additional node for the cluster which focuses on running workloads without running any
-control-plane services. This means it needs a connection to a control-plane node to tell
-it what to do, but it also means more of its resources are available for
-running workloads. We can deploy a worker node in a similar way to the original
-K8s node:
+The K8s worker is an additional node for the cluster which focuses on running
+workloads without running any control-plane services. This means it needs a
+connection to a control-plane node to tell it what to do, but it also means
+more of its resources are available for running workloads. We can deploy a
+worker node in a similar way to the original K8s node:
 
 ```
 juju deploy k8s-worker --channel=latest/edge --constraints='cores=2 mem=16G root-disk=40G'
@@ -120,9 +123,11 @@ add the integration again. If you check the Juju status, you should see that a
 new unit is created, and now you have `k8s-worker/0` and `k8s-worker/1`
 
 
-## 5. Use kubectl
+## 5. Use Kubectl
 
-Kubectl is the standard upstream tool for interacting with a Kubernetes cluster. This is the command that can be used to inspect and manage your cluster.
+[Kubectl][] is the standard upstream tool for interacting with a Kubernetes
+cluster. This is the command that can be used to inspect and manage your
+cluster.
 
 If you don't already have `kubectl`, it can be installed from a snap:
 
@@ -130,7 +135,7 @@ If you don't already have `kubectl`, it can be installed from a snap:
 sudo snap install kubectl --classic
 ```
 
-If you have just installed it, you should also create a file to contain the configuration
+If you have just installed it, you should also create a file to contain the configuration:
 
 ```
 mkdir ~/.kube
@@ -148,10 +153,11 @@ details of the cluster and the keys required to connect to it.
 
 ```{warning}  If you already have Kubectl and are using it to manage other clusters,
    you should edit the relevant parts of the cluster yaml output and add them to
-   your current config.
+   your current kubeconfig file.
 ```
 
-We can pipe this output directly to a config file which will just require a bit of editing:
+We can use pipe to append your cluster's kubeconfig information directly to a
+config file which will just require a bit of editing:
 
 ```
 juju run k8s/0 get-kubeconfig >> ~/.kube/config
@@ -163,8 +169,8 @@ The output includes the root of the YAML, `kubeconfig: |`, so we can just use an
 nano ~/.kube/config
 ```
 
-You can use whatever editor you like, just delete that first line and save the file. 
-You can now confirm Kubectl can read the config:
+Please use the editor of your choice to delete the first line and save the file.  
+You can now confirm Kubectl can read the kubeconfig file:
 
 ```
 kubectl config show
@@ -220,3 +226,4 @@ informed of updates.
 [Juju tutorial]: https://juju.is/docs/juju/tutorial
 [Kubectl]: https://kubernetes.io/docs/reference/kubectl/
 [the channel explanation page]: /snap/explanation/channels
+[Kubectl]: https://kubernetes.io/docs/reference/kubectl/
