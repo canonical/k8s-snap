@@ -111,7 +111,7 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 	// snapd
 	if meta, _, err := snapdconfig.ParseMeta(ctx, c.snap); err == nil && meta.Orb != "none" {
 		if err := snapdconfig.SetSnapdFromK8sd(ctx, config.ToUserFacing(), c.snap); err != nil {
-			log.Println("Warning: failed to update snapd configuration: %v", err)
+			log.Printf("Warning: failed to update snapd configuration: %v", err)
 		}
 	}
 

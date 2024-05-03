@@ -23,7 +23,7 @@ func SetSnapdFromK8sd(ctx context.Context, config apiv1.UserFacingClusterConfig,
 	} {
 		b, err := json.Marshal(cfg)
 		if err != nil {
-			return fmt.Errorf("failed to marshal %s config: %w", err)
+			return fmt.Errorf("failed to marshal %s config: %w", key, err)
 		}
 		sets = append(sets, fmt.Sprintf("%s=%s", key, string(b)))
 	}
