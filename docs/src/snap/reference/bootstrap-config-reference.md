@@ -384,7 +384,7 @@ The key to be used for the kubelet.
 If omitted defaults to an auto generated key.
 
 ## Example
-
+The following example configures and enables certain features, sets an external cloud provider, marks the control plane nodes as unschedulable, changes the pod and service CIDRs from the defaults and adds an extra SAN to the generated certificates.
 ```yaml
 cluster-config:
   network:
