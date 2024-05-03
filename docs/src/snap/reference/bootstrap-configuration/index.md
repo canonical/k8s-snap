@@ -3,16 +3,14 @@
 A YAML file can be supplied to the `k8s bootstrap` command to configure and customize the cluster.
 This Reference section provides the format of this file by listing all available options and their details.
 
-## Format Specification
-
-### cluster-config.network
+## cluster-config.network
 
 **Type:** `object` <br>
 **Required:** `No`
 
 Configuration options for the network feature
 
-#### cluster-config.network.enabled
+### cluster-config.network.enabled
 **Type:** `bool`<br>
 **Required:** `No` <br>
 
