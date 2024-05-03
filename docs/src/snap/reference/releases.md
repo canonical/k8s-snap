@@ -15,7 +15,7 @@ sudo k8s bootstrap
 ```
 
 Currently Canonical Kubernetes is working towards general availability, but you
-can install it now to try out these features:
+can install it now to try:
 
 - **Clustering** - need high availability or just an army of worker nodes?
   Canonical Kubernetes is emminently scaleable, see the [tutorial on adding
