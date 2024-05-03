@@ -87,7 +87,7 @@ func waitApiServerReady(ctx context.Context, snap snap.Snap) error {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
-	if err := client.WaitApiServerReady(ctx); err != nil {
+	if err := client.WaitKubernetesEndpointAvailable(ctx); err != nil {
 		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
 
