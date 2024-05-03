@@ -70,9 +70,9 @@ def test_storage(session_instance: harness.Instance):
     )
 
     LOG.info("Waiting for storage to get provisioned...")
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).until(check_pvc_bound).exec(
-        ["k8s", "kubectl", "get", "pvc", "-o", "json"]
-    )
+    util.stubbornly(retries=3, delay_s=1).on(session_instance).until(
+        check_pvc_bound
+    ).exec(["k8s", "kubectl", "get", "pvc", "-o", "json"])
     LOG.info("Storage got provisioned and pvc is bound.")
 
     util.stubbornly(retries=5, delay_s=10).on(session_instance).until(

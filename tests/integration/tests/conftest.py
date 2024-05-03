@@ -102,7 +102,7 @@ def instances(
 
     if not config.SKIP_CLEANUP:
         # Cleanup after each test.
-        # We cannot execute _harness_clean() here as this would also 
+        # We cannot execute _harness_clean() here as this would also
         # remove the session_instance. The harness ensures that everything is cleaned up
         # at the end of the test session.
         for instance in instances:
