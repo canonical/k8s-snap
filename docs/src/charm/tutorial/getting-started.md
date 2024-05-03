@@ -98,7 +98,7 @@ charms so they can communicate using a standard interface. The charm info we
 fetched earlier also includes a list of the relations possible, and from this
 we can see that the k8s-worker requires "cluster: k8s-cluster"
 
-To connect these charms, we use the 'integrate' command, adding the interface
+To connect these charms and effectively add the worker to our cluster, we use the 'integrate' command, adding the interface
 we wish to connect
 
 ```
