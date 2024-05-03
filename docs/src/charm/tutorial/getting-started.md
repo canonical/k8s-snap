@@ -206,6 +206,14 @@ kube-system   coredns-7d4dffcffd-tvs6v           1/1     Running   0          35
 kube-system   metrics-server-6f66c6cc48-wdxxk    1/1     Running   0          35m
 ```
 
+## Next steps
+
+Congratulations - you now have a functional Kubernetes cluster! In the near
+future more charms are on the way to simplify usage and extend the base
+functionality of Canonical Kubernetes. Bookmark the [releases page] to keep
+informed of updates.
+
+
 <!-- LINKS -->
 
 [Juju client]: https://juju.is/docs/juju/install-and-manage-the-client
