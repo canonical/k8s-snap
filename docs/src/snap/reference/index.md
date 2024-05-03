@@ -14,10 +14,10 @@ Overview <self>
 releases
 commands
 bootstrap-config-reference
-troubleshooting
-community
-architecture
 proxy
+troubleshooting
+architecture
+community
 roadmap
 ```
 
