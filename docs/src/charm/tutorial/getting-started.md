@@ -59,7 +59,7 @@ argument, for example `--channel=latest/edge`.
 
 To make sure that Juju creates an instance which has enough resources to
 actually run Kubernetes, we will make use of 'constraints'. These specify the
-minimums required. For the Kubernetes control plane, the recommendation is two
+minimums required. For the Kubernetes control plane (k8s charm), the recommendation is two
 CPU cores, 16GB of memory and 40GB of disk space. Now we can go ahead and
 create a cluster:
 
