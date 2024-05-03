@@ -81,6 +81,10 @@ juju status --watch 2s
 When the status reports that K8s is "idle/ready" you have successfully deployed
 a Canonical Kubernetes control-plane using Juju.
 
+```{note} For High Availability you will need at least three units of the k8s 
+   charm. Scaling the deployment is covered below.
+```
+
 ## 3. Deploy a worker
 
 Before we start doing things in Kubernetes, we should consider adding a worker.
@@ -101,8 +105,8 @@ charms so they can communicate using a standard interface. The charm info we
 fetched earlier also includes a list of the relations possible, and from this
 we can see that the k8s-worker requires "cluster: k8s-cluster"
 
-To connect these charms and effectively add the worker to our cluster, we use the 'integrate' command, adding the interface
-we wish to connect
+To connect these charms and effectively add the worker to our cluster, we use
+the 'integrate' command, adding the interface we wish to connect
 
 ```
 juju integrate k8s k8s-worker:cluster
@@ -111,6 +115,7 @@ juju integrate k8s k8s-worker:cluster
 After a short time, the worker node will share information with the control plane and be joined to the cluster.
 
 ## 4. Scale the cluster (Optional)
+
 If one worker doesn't seem like enough, we can easily add more:
 
 ```
@@ -197,11 +202,14 @@ users:
   user:
     token: REDACTED
 ```
-You can then further confirm that it is possible to inspect the cluster by running a simple command such as :
+
+You can then further confirm that it is possible to inspect the cluster by
+running a simple command such as :
 
 ```
 kubectl get pods -A
 ```
+
 This should return some pods, confirming the command can reach the cluster:
 
 ```
@@ -219,11 +227,10 @@ future more charms are on the way to simplify usage and extend the base
 functionality of Canonical Kubernetes. Bookmark the [releases page] to keep
 informed of updates.
 
-
 <!-- LINKS -->
 
 [Juju client]: https://juju.is/docs/juju/install-and-manage-the-client
 [Juju tutorial]: https://juju.is/docs/juju/tutorial
 [Kubectl]: https://kubernetes.io/docs/reference/kubectl/
 [the channel explanation page]: /snap/explanation/channels
-[Kubectl]: https://kubernetes.io/docs/reference/kubectl/
+[releases]: /charm/reference/releases
