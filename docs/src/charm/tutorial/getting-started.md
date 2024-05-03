@@ -174,7 +174,14 @@ The output includes the root of the YAML, `kubeconfig: |`, so we can just use an
 nano ~/.kube/config
 ```
 
-Please use the editor of your choice to delete the first line and save the file.  
+Please use the editor of your choice to delete the first line and save the file.
+
+Alternatively, if you are a `yq` user, the same can be achieved with:
+
+```
+juju run k8s/0 get-kubeconfig | yq '.kubeconfig' -r >> ~/.kube/config
+```
+
 You can now confirm Kubectl can read the kubeconfig file:
 
 ```
@@ -233,4 +240,4 @@ informed of updates.
 [Juju tutorial]: https://juju.is/docs/juju/tutorial
 [Kubectl]: https://kubernetes.io/docs/reference/kubectl/
 [the channel explanation page]: /snap/explanation/channels
-[releases]: /charm/reference/releases
+[releases page]: /charm/reference/releases
