@@ -11,6 +11,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 )
 
 // ControlPlaneConfigurationController watches for changes in the cluster configuration
@@ -104,6 +105,13 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 			if err := c.snap.RestartService(ctx, "kube-controller-manager"); err != nil {
 				return fmt.Errorf("failed to restart kube-controller-manager to apply configuration: %w", err)
 			}
+		}
+	}
+
+	// snapd
+	if meta, _, err := snapdconfig.ParseMeta(ctx, c.snap); err == nil && meta.Orb != "none" {
+		if err := snapdconfig.SetSnapdFromK8sd(ctx, config.ToUserFacing(), c.snap); err != nil {
+			log.Printf("Warning: failed to update snapd configuration: %v", err)
 		}
 	}
 

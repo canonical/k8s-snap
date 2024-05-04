@@ -1,9 +1,11 @@
 package snap
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 
@@ -20,7 +22,7 @@ import (
 type snap struct {
 	snapDir       string
 	snapCommonDir string
-	runCommand    func(ctx context.Context, command ...string) error
+	runCommand    func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
 }
 
 // NewSnap creates a new interface with the K8s snap.
@@ -54,17 +56,17 @@ func serviceName(serviceName string) string {
 
 // StartService starts a k8s service. The name can be either prefixed or not.
 func (s *snap) StartService(ctx context.Context, name string) error {
-	return s.runCommand(ctx, "snapctl", "start", "--enable", serviceName(name))
+	return s.runCommand(ctx, []string{"snapctl", "start", "--enable", serviceName(name)})
 }
 
 // StopService stops a k8s service. The name can be either prefixed or not.
 func (s *snap) StopService(ctx context.Context, name string) error {
-	return s.runCommand(ctx, "snapctl", "stop", "--disable", serviceName(name))
+	return s.runCommand(ctx, []string{"snapctl", "stop", "--disable", serviceName(name)})
 }
 
 // RestartService restarts a k8s service. The name can be either prefixed or not.
 func (s *snap) RestartService(ctx context.Context, name string) error {
-	return s.runCommand(ctx, "snapctl", "restart", serviceName(name))
+	return s.runCommand(ctx, []string{"snapctl", "restart", serviceName(name)})
 }
 
 type snapcraftYml struct {
@@ -229,6 +231,18 @@ func (s *snap) K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) {
 		return nil, fmt.Errorf("failed to create default k8s-dqlite client: %w", err)
 	}
 	return client, nil
+}
+
+func (s *snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
+	var b bytes.Buffer
+	if err := s.runCommand(ctx, append([]string{"snapctl", "get"}, args...), func(c *exec.Cmd) { c.Stdout = &b }); err != nil {
+		return nil, err
+	}
+	return b.Bytes(), nil
+}
+
+func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
+	return s.runCommand(ctx, append([]string{"snapctl", "set"}, args...))
 }
 
 var _ Snap = &snap{}
