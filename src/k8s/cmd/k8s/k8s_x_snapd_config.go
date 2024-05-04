@@ -44,7 +44,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			switch mode.Orb {
 			case "none":
-				cmd.PrintErrln("Warning: meta.orb is none, do not do anything")
+				cmd.PrintErrln("Warning: meta.orb is none, skipping reconcile actions")
 				return
 			case "k8sd":
 				client, err := env.Client(cmd.Context())
