@@ -41,8 +41,7 @@ jobs:
           path: k8s-strict.snap
 
   test-integration:
-    needs: [ prepare, build ]
-    if: ${{ needs.prepare.outputs.strict }}
+    needs: [ build ]
     name: Test ${{ matrix.os }}
     strategy:
       matrix:
