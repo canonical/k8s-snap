@@ -16,9 +16,8 @@ channels
 security
 ```
 
-For topics specifically relating to the snap version of Canonical Kubernetes, 
-please see the [explanation topic]. 
-
+For topics specifically relating to the snap version of Canonical Kubernetes,
+please see the [explanation topic].
 
 ---
 
