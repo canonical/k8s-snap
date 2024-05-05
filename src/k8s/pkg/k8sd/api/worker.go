@@ -12,7 +12,6 @@ import (
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
@@ -45,12 +44,12 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		return response.InternalError(fmt.Errorf("failed to generate worker PKI: %w", err))
 	}
 
-	client, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	client, err := snap.KubernetesClient("")
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
 	}
-	if err := client.WaitApiServerReady(s.Context); err != nil {
-		return response.InternalError(fmt.Errorf("kube-apiserver did not become ready in time: %w", err))
+	if err := client.WaitKubernetesEndpointAvailable(s.Context); err != nil {
+		return response.InternalError(fmt.Errorf("kubernetes endpoints not ready yet: %w", err))
 	}
 	servers, err := client.GetKubeAPIServerEndpoints(s.Context)
 	if err != nil {

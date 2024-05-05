@@ -3,6 +3,7 @@ package features
 import (
 	"context"
 
+	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
@@ -12,7 +13,7 @@ import (
 // ApplyMetricsServer removes metrics-server when cfg.Enabled is false.
 // ApplyMetricsServer returns an error if anything fails.
 func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsServer) error {
-	m := newHelm(snap)
+	m := snap.HelmClient()
 
 	values := map[string]any{
 		"image": map[string]any{
@@ -25,6 +26,6 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsSe
 		},
 	}
 
-	_, err := m.Apply(ctx, featureMetricsServer, statePresentOrDeleted(cfg.GetEnabled()), values)
+	_, err := m.Apply(ctx, chartMetricsServer, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
 	return err
 }

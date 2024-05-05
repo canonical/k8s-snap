@@ -1,13 +1,17 @@
 package snap
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/moby/sys/mountinfo"
 	"gopkg.in/yaml.v2"
@@ -18,7 +22,7 @@ import (
 type snap struct {
 	snapDir       string
 	snapCommonDir string
-	runCommand    func(ctx context.Context, command ...string) error
+	runCommand    func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
 }
 
 // NewSnap creates a new interface with the K8s snap.
@@ -52,17 +56,17 @@ func serviceName(serviceName string) string {
 
 // StartService starts a k8s service. The name can be either prefixed or not.
 func (s *snap) StartService(ctx context.Context, name string) error {
-	return s.runCommand(ctx, "snapctl", "start", "--enable", serviceName(name))
+	return s.runCommand(ctx, []string{"snapctl", "start", "--enable", serviceName(name)})
 }
 
 // StopService stops a k8s service. The name can be either prefixed or not.
 func (s *snap) StopService(ctx context.Context, name string) error {
-	return s.runCommand(ctx, "snapctl", "stop", "--disable", serviceName(name))
+	return s.runCommand(ctx, []string{"snapctl", "stop", "--disable", serviceName(name)})
 }
 
 // RestartService restarts a k8s service. The name can be either prefixed or not.
 func (s *snap) RestartService(ctx context.Context, name string) error {
-	return s.runCommand(ctx, "snapctl", "restart", serviceName(name))
+	return s.runCommand(ctx, []string{"snapctl", "restart", serviceName(name)})
 }
 
 type snapcraftYml struct {
@@ -190,13 +194,9 @@ func (s *snap) ContainerdRegistryConfigDir() string {
 	return path.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
 }
 
-func (s *snap) ManifestsDir() string {
-	return path.Join(s.snapDir, "k8s", "manifests")
-}
-
-func (s *snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
+func (s *snap) restClientGetter(path string, namespace string) genericclioptions.RESTClientGetter {
 	flags := &genericclioptions.ConfigFlags{
-		KubeConfig: &[]string{"/etc/kubernetes/admin.conf"}[0],
+		KubeConfig: utils.Pointer(path),
 	}
 	if namespace != "" {
 		flags.Namespace = &namespace
@@ -204,14 +204,21 @@ func (s *snap) KubernetesRESTClientGetter(namespace string) genericclioptions.RE
 	return flags
 }
 
-func (s *snap) KubernetesNodeRESTClientGetter(namespace string) genericclioptions.RESTClientGetter {
-	flags := &genericclioptions.ConfigFlags{
-		KubeConfig: utils.Pointer(path.Join(s.KubernetesConfigDir(), "kubelet.conf")),
-	}
-	if namespace != "" {
-		flags.Namespace = &namespace
-	}
-	return flags
+func (s *snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {
+	return kubernetes.NewClient(s.restClientGetter(path.Join(s.KubernetesConfigDir(), "admin.conf"), namespace))
+}
+
+func (s *snap) KubernetesNodeClient(namespace string) (*kubernetes.Client, error) {
+	return kubernetes.NewClient(s.restClientGetter(path.Join(s.KubernetesConfigDir(), "kubelet.conf"), namespace))
+}
+
+func (s *snap) HelmClient() helm.Client {
+	return helm.NewClient(
+		path.Join(s.snapDir, "k8s", "manifests"),
+		func(namespace string) genericclioptions.RESTClientGetter {
+			return s.restClientGetter(path.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
+		},
+	)
 }
 
 func (s *snap) K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) {
@@ -224,6 +231,18 @@ func (s *snap) K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) {
 		return nil, fmt.Errorf("failed to create default k8s-dqlite client: %w", err)
 	}
 	return client, nil
+}
+
+func (s *snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
+	var b bytes.Buffer
+	if err := s.runCommand(ctx, append([]string{"snapctl", "get"}, args...), func(c *exec.Cmd) { c.Stdout = &b }); err != nil {
+		return nil, err
+	}
+	return b.Bytes(), nil
+}
+
+func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
+	return s.runCommand(ctx, append([]string{"snapctl", "set"}, args...))
 }
 
 var _ Snap = &snap{}

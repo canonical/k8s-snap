@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 )
 
 // Snap abstracts file system paths and interacting with the k8s services.
@@ -18,6 +19,9 @@ type Snap interface {
 	StartService(ctx context.Context, serviceName string) error   // snapctl start $service
 	StopService(ctx context.Context, serviceName string) error    // snapctl stop $service
 	RestartService(ctx context.Context, serviceName string) error // snapctl restart $service
+
+	SnapctlGet(ctx context.Context, args ...string) ([]byte, error) // snapctl get $args...
+	SnapctlSet(ctx context.Context, args ...string) error           // snapctl set $args...
 
 	CNIConfDir() string       // /etc/cni/net.d
 	CNIBinDir() string        // /opt/cni/bin
@@ -44,10 +48,10 @@ type Snap interface {
 
 	LockFilesDir() string // /var/snap/k8s/common/lock
 
-	ManifestsDir() string // /snap/k8s/current/k8s/manifests
+	KubernetesClient(namespace string) (*kubernetes.Client, error)     // admin kubernetes client
+	KubernetesNodeClient(namespace string) (*kubernetes.Client, error) // node kubernetes client
 
-	KubernetesRESTClientGetter(namespace string) genericclioptions.RESTClientGetter     // admin kubernetes client
-	KubernetesNodeRESTClientGetter(namespace string) genericclioptions.RESTClientGetter // node kubernetes client
+	HelmClient() helm.Client // admin helm client
 
 	K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) // go-dqlite client for k8s-dqlite
 }

@@ -13,9 +13,11 @@ Overview <self>
 
 releases
 commands
+bootstrap-config-reference
+proxy
 troubleshooting
-community
 architecture
+community
 roadmap
 ```
 

@@ -2,15 +2,13 @@ package app
 
 import (
 	"fmt"
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -183,7 +181,7 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 	default:
 	}
 
-	c, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+	c, err := snap.KubernetesClient("")
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}

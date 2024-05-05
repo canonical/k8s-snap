@@ -7,7 +7,6 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/k8s/pkg/utils/k8s"
 	nodeutil "github.com/canonical/k8s/pkg/utils/node"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
@@ -44,7 +43,7 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 	}
 	if isWorker {
 		// For worker nodes, we need to manually clean up the kubernetes node and db entry.
-		c, err := k8s.NewClient(snap.KubernetesRESTClientGetter(""))
+		c, err := snap.KubernetesClient("")
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
 		}

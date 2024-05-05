@@ -16,6 +16,7 @@ Overview <self>
 
 charm
 etcd
+proxy
 contribute
 
 ```
