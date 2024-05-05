@@ -297,7 +297,10 @@ kubectl describe pvc rbd-pvc
 kubectl describe pod csi-rbd-demo-pod
 ```
 
+Congratulations! By following this guide, you've set up a basic yet reliable persistent storage solution for your Kubernetes cluster. To further enhance and prepare your cluster for production use, we recommend reviewing the official Ceph documentation: [Intro to Ceph].
+
 <!-- LINKS -->
 [getting-started-guide]: ../tutorial/getting-started.md
 [block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
 [placement groups]: https://docs.ceph.com/en/mimic/rados/operations/placement-groups/
+[Intro to Ceph]: https://docs.ceph.com/en/latest/start/intro/
