@@ -15,11 +15,13 @@ This guide assumes the following:
 
 Create a storage pool named "kubernetes" in the Ceph cluster.
 
+We will set the number of placement groups to 128 because the Ceph cluster of this demonstration will have less than 5 OSDs. (See [placement groups])
+
 ```
-ceph osd pool create kubernetes
+ceph osd pool create kubernetes 128
 ```
 
-Initialize the pool as a Ceph block device (RBD) pool
+Initialize the pool as a Ceph block device (RBD) pool.
 
 ```
 rbd pool init kubernetes
@@ -61,7 +63,7 @@ election_strategy: 1
 dumped monmap epoch 2
 ```
 
-Note the v1 IP (10.0.0.136:6789) and the fsid (fsid 6d5c12c9-6dfb-445a-940f-301aa7de0f29).
+Note the v1 IP (`10.0.0.136:6789`) and the fsid (`6d5c12c9-6dfb-445a-940f-301aa7de0f29`).
 
 ```
 cat <<EOF > csi-config-map.yaml
@@ -82,9 +84,6 @@ metadata:
   name: ceph-csi-config
 EOF
 ```
-
-Apply the ConfigMap object
-
 ```
 kubectl apply -f csi-config-map.yaml
 ```
@@ -132,6 +131,9 @@ kubectl apply -f ceph-config-map.yaml
 ```
 
 ## Generate ceph-csi cephx secret
+
+You will now create a ConfigMap and Secret which will allow Kubernetes to authenticate with the Ceph cluster.
+
 ```
 cat <<EOF > ceph-config-map.yaml
 ---
@@ -155,6 +157,8 @@ kubectl apply -f ceph-config-map.yaml
 
 ## Create the ceph-csi cephx secret
 
+This secret contains the `userID` and `userKey` created in the Ceph cluster earlier.
+
 ```
 cat <<EOF > csi-rbd-secret.yaml
 ---
@@ -168,7 +172,6 @@ stringData:
   userKey: AQBh1TNmFYERJhAAf5yqP4Wnrb/u4yNGsBKZHA==
 EOF
 ```
-
 ```
 kubectl apply -f csi-rbd-secret.yaml
 ```
@@ -226,12 +229,13 @@ mountOptions:
    - discard
 EOF
 ```
-
 ```
 kubectl apply -f csi-rbd-sc.yaml
 ```
 
 ## Create a PVC for a RBD-backed file-system.
+
+This PVC will allow users to request RBD-backed storage.
 
 ```
 cat <<EOF > pvc.yaml
@@ -250,12 +254,13 @@ spec:
   storageClassName: csi-rbd-sc
 EOF
 ```
-
 ```
 kubectl apply -f pvc.yaml
 ```
 
 ## Create a pod that binds to the RBD PVC.
+
+Finally, create a pod configuration that uses the RBD-backed PVC.
 
 ```
 cat <<EOF > pod.yaml
@@ -276,19 +281,23 @@ spec:
       persistentVolumeClaim:
         claimName: rbd-pvc
         readOn
+EOF
 ```
-
 ```
 kubectl apply -f pod.yaml
 ```
 
 ## Verify that the pod is using the RBD PV
 
-To verify that the csi-rbd-demo-pod is indeed using a RBD PV, run the following commands:
+To verify that the csi-rbd-demo-pod is indeed using a RBD PV, run the following commands, you should see information related to attached volumes in both of their outputs:
 
 ```
+kubectl describe pvc rbd-pvc
+
+kubectl describe pod csi-rbd-demo-pod
 ```
 
 <!-- LINKS -->
 [getting-started-guide]: ../tutorial/getting-started.md
 [block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
+[placement groups]: https://docs.ceph.com/en/mimic/rados/operations/placement-groups/
