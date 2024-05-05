@@ -1,0 +1,14 @@
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs every midnight
+
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync registry.k8s.io to ghcr.io/canonical
+        run: |
+          ./${GITHUB_WORKSPACE}/.github/scripts/sync-registry.sh ${{ github.actor }} ${{ secrets.GITHUB_TOKEN }} ${GITHUB_WORKSPACE}
