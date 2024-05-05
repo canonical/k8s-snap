@@ -95,10 +95,15 @@ function collect_service_diagnostics {
 
 function collect_network_diagnostics {
   log_info "Copy network diagnostics to the final report tarball"
-  ip a &>"$INSPECT_DUMP/ip-a.log"
-  ip r &>"$INSPECT_DUMP/ip-r.log"
-  iptables-save &>"$INSPECT_DUMP/iptables.log"
-  ss -plnt &>"$INSPECT_DUMP/ss-plnt.log"
+  ip a &>"$INSPECT_DUMP/ip-a.log" || true
+  ip r &>"$INSPECT_DUMP/ip-r.log" || true
+  iptables-save &>"$INSPECT_DUMP/iptables.log" || true
+  iptables-legacy-save &>"$INSPECT_DUMP/iptables-legacy.log" || true
+  ss -plnt &>"$INSPECT_DUMP/ss-plnt.log" || true
+
+  ip6tables-save &>"$INSPECT_DUMP/iptables6.log" || true
+  ip6tables-legacy-save &>"$INSPECT_DUMP/iptables6-legacy.log" || true
+  ss -6 -plnt &>"$INSPECT_DUMP/ss6-plnt.log" || true
 }
 
 function check_expected_services {
