@@ -100,13 +100,16 @@ def instances(
 
     yield instances
 
-    if not config.SKIP_CLEANUP:
-        # Cleanup after each test.
-        # We cannot execute _harness_clean() here as this would also
-        # remove the session_instance. The harness ensures that everything is cleaned up
-        # at the end of the test session.
-        for instance in instances:
-            h.delete_instance(instance.id)
+    if config.SKIP_CLEANUP:
+        LOG.warning("Skipping clean-up of instances, delete them on your own")
+        return
+
+    # Cleanup after each test.
+    # We cannot execute _harness_clean() here as this would also
+    # remove the session_instance. The harness ensures that everything is cleaned up
+    # at the end of the test session.
+    for instance in instances:
+        h.delete_instance(instance.id)
 
 
 @pytest.fixture(scope="session")
