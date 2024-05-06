@@ -73,7 +73,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				if opts.configFile == "-" {
 					b, err = io.ReadAll(os.Stdin)
 					if err != nil {
-						cmd.PrintErrf("Error: Failed to read join configuration from stdin. \n\nThe error was: %w\n", err)
+						cmd.PrintErrf("Error: Failed to read join configuration from stdin. \n\nThe error was: %v\n", err)
 						env.Exit(1)
 						return
 					}

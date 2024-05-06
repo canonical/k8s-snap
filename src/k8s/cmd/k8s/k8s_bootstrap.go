@@ -88,7 +88,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			case opts.interactive:
 				bootstrapConfig = getConfigInteractively(env.Stdin, env.Stdout, env.Stderr)
 			case opts.configFile != "":
-				bootstrapConfig, err = getConfigFromYaml(opts.configFile)
+				bootstrapConfig, err = getConfigFromYaml(env, opts.configFile)
 				if err != nil {
 					cmd.PrintErrf("Error: Failed to read bootstrap configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
 					env.Exit(1)
@@ -139,12 +139,12 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	return cmd
 }
 
-func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
+func getConfigFromYaml(env cmdutil.ExecutionEnvironment, filePath string) (apiv1.BootstrapConfig, error) {
 	var b []byte
 	var err error
 
 	if filePath == "-" {
-		b, err = io.ReadAll(os.Stdin)
+		b, err = io.ReadAll(env.Stdin)
 		if err != nil {
 			return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read config from stdin: %w", err)
 		}
