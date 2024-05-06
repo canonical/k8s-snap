@@ -6,6 +6,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils/control"
+	nodeutil "github.com/canonical/k8s/pkg/utils/node"
 	"github.com/canonical/lxd/shared/api"
 )
 
@@ -21,7 +22,6 @@ func (c *k8sdClient) JoinCluster(ctx context.Context, request apiv1.JoinClusterR
 	// TODO(neoaggelos): this error is ignored because WaitForMicroclusterNodeToBeReady() currently fails on worker nodes.
 	err := c.WaitForMicroclusterNodeToBeReady(ctx, request.Name)
 	_ = err
-
 	return nil
 }
 
@@ -46,17 +46,38 @@ func (c *k8sdClient) ResetClusterMember(ctx context.Context, name string, force 
 	return nil
 }
 
+func (c *k8sdClient) GetClusterMembers(ctx context.Context) ([]apiv1.NodeStatus, error) {
+	clusterMembers, err := c.mc.GetClusterMembers(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cluster members: %w", err)
+	}
+
+	members := make([]apiv1.NodeStatus, len(clusterMembers))
+	for i, clusterMember := range clusterMembers {
+		members[i] = apiv1.NodeStatus{
+			Name:          clusterMember.Name,
+			Address:       clusterMember.Address.String(),
+			ClusterRole:   apiv1.ClusterRoleControlPlane,
+			DatastoreRole: nodeutil.DatastoreRoleFromString(clusterMember.Role),
+		}
+	}
+
+	return members, nil
+
+}
+
 // WaitForMicroclusterNodeToBeReady waits until the underlying dqlite node of the microcluster is not in PENDING state.
 // While microcluster checkReady will validate that the nodes API server is ready, it will not check if the
 // dqlite node is properly setup yet.
 func (c *k8sdClient) WaitForMicroclusterNodeToBeReady(ctx context.Context, nodeName string) error {
 	return control.WaitUntilReady(ctx, func() (bool, error) {
-		clusterStatus, err := c.ClusterStatus(ctx, false)
+
+		clusterMembers, err := c.GetClusterMembers(ctx)
 		if err != nil {
 			return false, fmt.Errorf("failed to get the cluster status: %w", err)
 		}
 
-		for _, member := range clusterStatus.Members {
+		for _, member := range clusterMembers {
 			if member.Name == nodeName {
 				if member.DatastoreRole == apiv1.DatastoreRolePending {
 					return false, nil
