@@ -17,6 +17,7 @@ Overview <self>
 charm
 etcd
 proxy
+cos-lite
 contribute
 
 ```
