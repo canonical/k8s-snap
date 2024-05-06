@@ -7,6 +7,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
 )
@@ -86,9 +87,30 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				if err := client.CleanupKubernetesServices(cmd.Context()); err != nil {
 					cmd.PrintErrf("Warning: Failed to cleanup Kubernetes services after failed bootstrap attempt.\n\nThe error was: %v\n", err)
 				}
-				if err := client.DeleteClusterMember(cmd.Context(), apiv1.RemoveNodeRequest{Name: opts.name, Force: true}); err != nil {
-					cmd.PrintErrf("Warning: Failed to remove the node %q from the cluster.\n\nThe error was: %v\n", opts.name, err)
+
+				// For worker nodes we need to reset the node from the cluster
+				isWorker, err := snaputil.IsWorker(env.Snap)
+				if err != nil {
+					cmd.PrintErrf("Warning: Failed to check if this is worker-only node.\n\nThe error was: %v\n", err)
 				}
+
+				if isWorker {
+					// triggers pre-remove hook>> remove node from kubernetes
+					if err := client.ResetClusterMember(cmd.Context(), opts.name, true); err != nil {
+						cmd.PrintErrf("Warning: Failed to reset the node %q.\n\nThe error was: %v\n", opts.name, err)
+					}
+					// Remove worker node marker
+					if is, err := snaputil.IsWorker(env.Snap); err == nil && is {
+						if err := snaputil.MarkAsWorkerNode(env.Snap, false); err != nil {
+							cmd.PrintErrf("Warning: Failed to remove worker node mark %q.\n\nThe error was: %v\n", opts.name, err)
+						}
+					}
+				} else {
+					if err := client.DeleteClusterMember(cmd.Context(), apiv1.RemoveNodeRequest{Name: opts.name, Force: true}); err != nil {
+						cmd.PrintErrf("Warning: Failed to remove the node %q from the cluster.\n\nThe error was: %v\n", opts.name, err)
+					}
+				}
+
 				env.Exit(1)
 				return
 			}

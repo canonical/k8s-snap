@@ -32,13 +32,6 @@ func (e *Endpoints) deleteCluster(s *state.State, r *http.Request) response.Resp
 		errs = append(errs, err)
 	}
 
-	// Remove worker node marker
-	if is, err := snaputil.IsWorker(snap); err == nil && is {
-		if err := snaputil.MarkAsWorkerNode(snap, false); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
 	if len(errs) > 0 {
 		return response.InternalError(errors.Join(errs...))
 	}
