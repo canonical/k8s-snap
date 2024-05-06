@@ -15,8 +15,8 @@ environment:
   SNAPCRAFT_ARCH_TRIPLET: $SNAPCRAFT_ARCH_TRIPLET
 
 architectures:
-  - amd64
-  - arm64
+  - build-on: [amd64]
+  - build-on: [arm64]
 
 parts:
   build-deps:
