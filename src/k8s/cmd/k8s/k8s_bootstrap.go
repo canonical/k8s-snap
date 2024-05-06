@@ -131,7 +131,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 
 	cmd.Flags().BoolVar(&opts.interactive, "interactive", false, "interactively configure the most important cluster options")
-	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
+	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster bootstrap configuration. Use '-' to read from stdin.")
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
@@ -140,9 +140,19 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 }
 
 func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
-	b, err := os.ReadFile(filePath)
-	if err != nil {
-		return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read file: %w", err)
+	var b []byte
+	var err error
+
+	if filePath == "-" {
+		b, err = io.ReadAll(os.Stdin)
+		if err != nil {
+			return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read config from stdin: %w", err)
+		}
+	} else {
+		b, err = os.ReadFile(filePath)
+		if err != nil {
+			return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read file: %w", err)
+		}
 	}
 
 	var config apiv1.BootstrapConfig
