@@ -1,6 +1,6 @@
 # How to use ceph
 
-Distributed, redundant storage is a must-have when you want to develop reliable applications. Ceph is a storage solution which provides exactly that, and is built with distributed clusters in mind. In this tutorial, we'll be looking at how to integrate Canonical Kubernetes with a Ceph cluster. Specifically, by the end of this tutorial you'll have a Kubernetes pod with a mounted RBD-backed volume. This how to is adapted from [block-devices-and-kubernetes].
+Distributed, redundant storage is a must-have when you want to develop reliable applications. [Ceph] is a storage solution which provides exactly that, and is built with distributed clusters in mind. In this tutorial, we'll be looking at how to integrate Canonical Kubernetes with a Ceph cluster. Specifically, by the end of this tutorial you'll have a Kubernetes pod with a mounted RBD-backed volume. RBD stands for RADOS Block Device and it is the abstraction used by Ceph to provide reliable and distributed storage. This how to is adapted from [block-devices-and-kubernetes].
 
 ## What you'll need
 
@@ -21,7 +21,7 @@ We will set the number of placement groups to 128 because the Ceph cluster of th
 ceph osd pool create kubernetes 128
 ```
 
-Initialize the pool as a Ceph block device (RBD) pool.
+Initialize the pool as a Ceph block device pool.
 
 ```
 rbd pool init kubernetes
@@ -42,9 +42,9 @@ ceph auth get-or-create client.kubernetes mon 'profile rbd' osd 'profile rbd poo
 	key = AQBh1TNmFYERJhAAf5yqP4Wnrb/u4yNGsBKZHA==
 ```
 
-Note the generated key.
+Note the generated key, you will need it at a later step.
 
-## Generate ceph-csi-configmap.yaml
+## Generate csi-config-map.yaml
 
 First, get the fsid and the monitor addresses of your cluster.
 
@@ -63,7 +63,8 @@ election_strategy: 1
 dumped monmap epoch 2
 ```
 
-Note the v1 IP (`10.0.0.136:6789`) and the fsid (`6d5c12c9-6dfb-445a-940f-301aa7de0f29`).
+Keep note of the v1 IP (`10.0.0.136:6789`) and the fsid (`6d5c12c9-6dfb-445a-940f-301aa7de0f29`) as you will need to
+refer to them soon.
 
 ```
 cat <<EOF > csi-config-map.yaml
@@ -88,9 +89,8 @@ EOF
 kubectl apply -f csi-config-map.yaml
 ```
 
-Next, here is a quote from the [block-devices-and-kubernetes] page.
+Recent versions of ceph-csi also require an additional ConfigMap object to define Key Management Service (KMS) provider details. KMS is not set up as part of this tutorial, hence put an empty configuration in csi-kms-config-map.yaml.
 
-> Recent versions of ceph-csi also require an additional ConfigMap object to define Key Management Service (KMS) provider details. If KMS isn’t set up, put an empty configuration in a csi-kms-config-map.yaml file or refer to examples at https://github.com/ceph/ceph-csi/tree/master/examples/kms:
 ```
 cat <<EOF > csi-kms-config-map.yaml
 ---
@@ -107,32 +107,7 @@ EOF
 kubectl apply -f csi-kms-config-map.yaml
 ```
 
-Then, we need another ConfigMap which will be stored inside a ceph.conf file in the CSI containers.
-
-```
-cat <<EOF > ceph-config-map.yaml
----
-apiVersion: v1
-kind: ConfigMap
-data:
-  ceph.conf: |
-    [global]
-    auth_cluster_required = cephx
-    auth_service_required = cephx
-    auth_client_required = cephx
-  # keyring is a required key and its value should be empty
-  keyring: |
-metadata:
-  name: ceph-config
-EOF
-```
-```
-kubectl apply -f ceph-config-map.yaml
-```
-
-## Generate ceph-csi cephx secret
-
-You will now create a ConfigMap and Secret which will allow Kubernetes to authenticate with the Ceph cluster.
+Create the `ceph-config-map.yaml` which will be stored inside a ceph.conf file in the CSI containers. This ceph.conf file will be used by Ceph daemons on each container to authenticate with the Ceph cluster.
 
 ```
 cat <<EOF > ceph-config-map.yaml
@@ -233,7 +208,7 @@ EOF
 kubectl apply -f csi-rbd-sc.yaml
 ```
 
-## Create a PVC for a RBD-backed file-system.
+## Create a PVC for a RBD-backed file-system
 
 This PVC will allow users to request RBD-backed storage.
 
@@ -258,7 +233,7 @@ EOF
 kubectl apply -f pvc.yaml
 ```
 
-## Create a pod that binds to the RBD PVC.
+## Create a pod that binds to the RBD PVC
 
 Finally, create a pod configuration that uses the RBD-backed PVC.
 
@@ -300,6 +275,7 @@ kubectl describe pod csi-rbd-demo-pod
 Congratulations! By following this guide, you've set up a basic yet reliable persistent storage solution for your Kubernetes cluster. To further enhance and prepare your cluster for production use, we recommend reviewing the official Ceph documentation: [Intro to Ceph].
 
 <!-- LINKS -->
+[Ceph]: https://ceph.com/
 [getting-started-guide]: ../tutorial/getting-started.md
 [block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
 [placement groups]: https://docs.ceph.com/en/mimic/rados/operations/placement-groups/
