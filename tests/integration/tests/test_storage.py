@@ -5,10 +5,8 @@ import json
 import logging
 import subprocess
 from pathlib import Path
-from typing import List
 
-import pytest
-from test_util import config, harness, util
+from test_util import harness, util
 from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
@@ -22,20 +20,14 @@ def check_pvc_bound(p: subprocess.CompletedProcess) -> bool:
     return False
 
 
-def test_storage(instances: List[harness.Instance]):
-    if not config.SNAP:
-        pytest.fail("Set TEST_SNAP to the path where the snap is")
-
-    instance = instances[0]
-    instance.exec(["k8s", "enable", "local-storage"])
-
+def test_storage(session_instance: harness.Instance):
     LOG.info("Waiting for storage provisioner pod to show up...")
-    util.stubbornly(retries=15, delay_s=5).on(instance).until(
+    util.stubbornly(retries=15, delay_s=5).on(session_instance).until(
         lambda p: "ck-storage" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"])
     LOG.info("Storage provisioner pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -52,18 +44,18 @@ def test_storage(instances: List[harness.Instance]):
     )
 
     manifest = MANIFESTS_DIR / "storage-setup.yaml"
-    instance.exec(
+    session_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
     LOG.info("Waiting for storage writer pod to show up...")
-    util.stubbornly(retries=3, delay_s=10).on(instance).until(
+    util.stubbornly(retries=3, delay_s=10).on(session_instance).until(
         lambda p: "storage-writer-pod" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Storage writer pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -78,16 +70,16 @@ def test_storage(instances: List[harness.Instance]):
     )
 
     LOG.info("Waiting for storage to get provisioned...")
-    util.stubbornly(retries=3, delay_s=1).on(instance).until(check_pvc_bound).exec(
-        ["k8s", "kubectl", "get", "pvc", "-o", "json"]
-    )
+    util.stubbornly(retries=3, delay_s=1).on(session_instance).until(
+        check_pvc_bound
+    ).exec(["k8s", "kubectl", "get", "pvc", "-o", "json"])
     LOG.info("Storage got provisioned and pvc is bound.")
 
-    util.stubbornly(retries=5, delay_s=10).on(instance).until(
+    util.stubbornly(retries=5, delay_s=10).on(session_instance).until(
         lambda p: "LOREM IPSUM" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "logs", "storage-writer-pod"])
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -100,18 +92,18 @@ def test_storage(instances: List[harness.Instance]):
     )
 
     manifest = MANIFESTS_DIR / "storage-test.yaml"
-    instance.exec(
+    session_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
     LOG.info("Waiting for storage reader pod to show up...")
-    util.stubbornly(retries=3, delay_s=10).on(instance).until(
+    util.stubbornly(retries=3, delay_s=10).on(session_instance).until(
         lambda p: "storage-reader-pod" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Storage reader pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -125,7 +117,7 @@ def test_storage(instances: List[harness.Instance]):
         ]
     )
 
-    util.stubbornly(retries=5, delay_s=10).on(instance).until(
+    util.stubbornly(retries=5, delay_s=10).on(session_instance).until(
         lambda p: "LOREM IPSUM" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "logs", "storage-reader-pod"])
 
