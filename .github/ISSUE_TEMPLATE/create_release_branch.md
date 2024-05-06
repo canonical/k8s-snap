@@ -115,6 +115,7 @@ The steps are to be followed in-order, each task must be completed by the person
   - [ ] Set **The project that this Snap is associated with** to `k8s`
   - [ ] Set **Series** to Infer from snapcraft.yaml
   - [ ] Set **Processors** to `AMD x86-64 (amd64)` and `ARM ARMv8 (arm64)`
+  - [ ] Enable **Automatically build when branch changes**
   - [ ] Enable **Automatically upload to store**
   - [ ] Set **Registered store name** to `k8s`
   - [ ] In **Store Channels**, set **Track** to `1.xx-classic` and **Risk** to `edge`. Leave **Branch** empty
@@ -127,6 +128,7 @@ The steps are to be followed in-order, each task must be completed by the person
   - [ ] Set **The project that this Snap is associated with** to `k8s`
   - [ ] Set **Series** to Infer from snapcraft.yaml
   - [ ] Set **Processors** to `AMD x86-64 (amd64)` and `ARM ARMv8 (arm64)`
+  - [ ] Enable **Automatically build when branch changes**
   - [ ] Enable **Automatically upload to store**
   - [ ] Set **Registered store name** to `k8s`
   - [ ] In **Store Channels**, set **Track** to `1.xx` and **Risk** to `edge`. Leave **Branch** empty
