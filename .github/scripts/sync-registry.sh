@@ -1,8 +1,8 @@
 #!/bin/bash
 
-actor=$1
-token=$2
-dir=$3
+actor=${ACTOR}
+token=${TOKEN}
+dir=${DIR}
 
 docker run -v "$dir":/tmp/ quay.io/skopeo/stable:v1.15 sync \
   --src yaml \

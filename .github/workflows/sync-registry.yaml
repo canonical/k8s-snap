@@ -10,5 +10,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Sync registry.k8s.io to ghcr.io/canonical
+        env:
+          ACTOR: ${{ github.actor }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DIR: ${GITHUB_WORKSPACE}
         run: |
-          ./${GITHUB_WORKSPACE}/.github/scripts/sync-registry.sh ${{ github.actor }} ${{ secrets.GITHUB_TOKEN }} ${GITHUB_WORKSPACE}
+          ./${GITHUB_WORKSPACE}/.github/scripts/sync-registry.sh
