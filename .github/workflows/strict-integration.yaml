@@ -5,10 +5,20 @@ on:
     branches:
       - main
       - 'release-[0-9]+.[0-9]+'
+    paths:
+      - 'build-scripts/**'
+      - 'k8s/**'
+      - 'src/**'
+      - 'snap/**'
   pull_request:
     branches:
       - main
       - 'release-[0-9]+.[0-9]+'
+    paths:
+      - 'build-scripts/**'
+      - 'k8s/**'
+      - 'src/**'
+      - 'snap/**'
 
 jobs:
   build:

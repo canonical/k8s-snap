@@ -7,8 +7,12 @@ on:
       - autoupdate/strict
       - 'release-[0-9]+.[0-9]+'
       - 'release-[0-9]+.[0-9]+-strict'
+    paths:
+      - '**/*.go'
 
   pull_request:
+    paths:
+      - '**/*.go'
 
 jobs:
   test:
