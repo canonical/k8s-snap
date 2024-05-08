@@ -14,6 +14,7 @@ build:
     post_checkout:
       # Cancel building pull requests when there aren't changed in the docs directory or YAML file.
       #
+      # https://docs.readthedocs.io/en/latest/build-customization.html#cancel-build-based-on-a-condition
       # If there are no changes (git diff exits with 0) we force the command to return with 183.
       # This is a special exit code on Read the Docs that will cancel the build immediately.
       - |
