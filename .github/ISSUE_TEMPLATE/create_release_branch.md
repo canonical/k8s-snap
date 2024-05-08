@@ -42,11 +42,6 @@ The steps are to be followed in-order, each task must be completed by the person
 
       Thank you, $name
 
-- [ ] **Owner**: Create `release-1.xx-strict` branch from latest `autoupdate/strict`
-  - `git switch autoupdate/strict`
-  - `git pull`
-  - `git checkout -b release-1.xx-strict`
-  - `git push origin release-1.xx-strict`
 - [ ] **Owner**: Create `release-1.xx` branch from latest `main`
   - `git switch main`
   - `git pull`
@@ -98,7 +93,6 @@ The steps are to be followed in-order, each task must be completed by the person
   - `popd`
   - `rm -rf ~/tmp/release-1.xx`
 - [ ] **Reviewer**: Ensure `release-1.xx` branch is based on latest changes on `main` at the time of the release cut.
-- [ ] **Reviewer**: Ensure `release-1.xx-strict` branch is based on latest changes on `autoupdate/strict` at the time of the release cut.
 - [ ] **Owner**: Create PR to initialize `release-1.xx` branch:
   - [ ] Update `KUBE_TRACK` to `1.xx` in [/build-scripts/components/kubernetes/version.sh][]
   - [ ] Update `master` to `release-1.xx` in [/build-scripts/components/k8s-dqlite/version.sh][]
@@ -106,7 +100,7 @@ The steps are to be followed in-order, each task must be completed by the person
   - [ ] `git commit -m 'Release 1.xx'`
   - [ ] Create PR with the changes and request review from **Reviewer**. Make sure to update the issue `Information` section with a link to the PR.
 - [ ] **Reviewer**: Review and merge PR to initialize branch.
-- [ ] **Reviewer**: On merge, confirm [Auto-update strict branch] action runs to completion
+- [ ] **Reviewer**: On merge, confirm [Auto-update strict branch] action runs to completion and that the `autoupdate/release-1.xx-strict` branch is created.
 - [ ] **Owner**: Create launchpad builders for `release-1.xx`
   - [ ] Go to [lp:k8s][] and do **Import now** to pick up all latest changes.
   - [ ] Under **Branches**, select `release-1.xx`, then **Create snap package**
@@ -122,7 +116,7 @@ The steps are to be followed in-order, each task must be completed by the person
   - [ ] Click **Create snap package** at the bottom of the page.
 - [ ] **Owner**: Create launchpad builders for `release-1.xx-strict`
   - [ ] Return to [lp:k8s][].
-  - [ ] Under **Branches**, select `release-1.xx-strict`, then **Create snap package**
+  - [ ] Under **Branches**, select `autoupdate/release-1.xx-strict`, then **Create snap package**
   - [ ] Set **Snap recipe name** to `k8s-snap-1.xx-strict`
   - [ ] Set **Owner** to `Canonical Kubernetes (containers)`
   - [ ] Set **The project that this Snap is associated with** to `k8s`
