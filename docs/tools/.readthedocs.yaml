@@ -22,7 +22,7 @@ build:
           exit 183;
         fi
     pre_build:
-      - cp -r docs/src/* docs/tools/    
+      - cp -r docs/src/* docs/tools/
       
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
