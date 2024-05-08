@@ -22,7 +22,7 @@ jobs:
           if [[ "${BRANCH}" == "main" ]]; then
             echo "strict=autoupdate/strict" >> "$GITHUB_OUTPUT"
           elif [[ "${BRANCH}" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
-            echo "strict=${BRANCH}-strict" >> "$GITHUB_OUTPUT"
+            echo "strict=autoupdate/${BRANCH}-strict" >> "$GITHUB_OUTPUT"
           else
             echo "Failed to determine matching strict branch for ${BRANCH}"
             echo "strict=" >> $GITHUB_OUTPUT
