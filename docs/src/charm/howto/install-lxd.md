@@ -9,8 +9,8 @@ scenarios which require some extra steps however. These are:
   the 'to:' directive to install to an existing machine)
 
 The container running the charm, or more accurately, the LXD instance
-controlling the container, needs to have a particular configuratin in order for
-the Kubernetes components to operate properly.
+controlling the container, needs to have a particular configuration in order
+for the Kubernetes components to operate properly.
 
 ## Fetching the profile
 
@@ -50,7 +50,7 @@ output a table like this:
 Each model created by Juju will generate a new profile for LXD. We can inspect
 and edit the profiles easily by using `lxc` commands.
 
-To replace the model's profile with the Kubernetes specific one we downloaded,
+To replace the model's profile with the Kubernetes-specific one we downloaded,
 run the command:
 
 ```
