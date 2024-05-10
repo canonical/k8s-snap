@@ -282,21 +282,29 @@ def remove_k8s_snap(instance: harness.Instance):
         ["snap", "remove", config.SNAP_NAME, "--purge"]
     )
 
-    LOG.info("Waiting for shims to go away...")
-    stubbornly(retries=20, delay_s=5).on(instance).until(
-        lambda p: all(
-            x not in p.stdout.decode()
-            for x in ["containerd-shim", "cilium", "coredns", "/pause"]
-        )
-    ).exec(["ps", "-fea"])
-
-    LOG.info("Waiting for kubelet and containerd mounts to go away...")
-    stubbornly(retries=20, delay_s=5).on(instance).until(
-        lambda p: all(
-            x not in p.stdout.decode()
-            for x in ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
-        )
-    ).exec(["mount"])
+    # NOTE(lpetrut): on "strict", the snap remove hook is unable to:
+    #  * terminate processes
+    #  * remove network namespaces
+    #  * list mounts
+    #
+    # https://paste.ubuntu.com/p/WscCCfnvGH/plain/
+    # https://paste.ubuntu.com/p/sSnJVvZkrr/plain/
+    #
+    # LOG.info("Waiting for shims to go away...")
+    # stubbornly(retries=20, delay_s=5).on(instance).until(
+    #     lambda p: all(
+    #         x not in p.stdout.decode()
+    #         for x in ["containerd-shim", "cilium", "coredns", "/pause"]
+    #     )
+    # ).exec(["ps", "-fea"])
+    #
+    # LOG.info("Waiting for kubelet and containerd mounts to go away...")
+    # stubbornly(retries=20, delay_s=5).on(instance).until(
+    #     lambda p: all(
+    #         x not in p.stdout.decode()
+    #         for x in ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
+    #     )
+    # ).exec(["mount"])
 
     # NOTE(neoaggelos): Temporarily disable this as it fails on strict.
     # For details, `snap changes` then `snap change $remove_k8s_snap_change`.
