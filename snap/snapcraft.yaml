@@ -7,7 +7,7 @@ description: |-
   on any infrastructure
 license: GPL-3.0
 grade: stable
-confinement: classic
+confinement: strict
 base: core22
 environment:
   REAL_PATH: $PATH
@@ -240,6 +240,20 @@ parts:
 apps:
   k8s:
     command: k8s/wrappers/commands/k8s
+    plugs:
+      - firewall-control
+      - home-read-all
+      - home
+      - kernel-module-observe
+      - kubernetes-support
+      - login-session-observe
+      - log-observe
+      - mount-observe
+      - network
+      - network-control
+      - network-observe
+      - opengl
+      - system-observe
   containerd:
     command: k8s/wrappers/services/containerd
     daemon: notify
@@ -250,43 +264,198 @@ apps:
     restart-condition: always
     start-timeout: 5m
     before: [kubelet]
+    plugs:
+      - network-bind
+      - docker-privileged
+      - firewall-control
+      - network-control
+      - mount-observe
+      - kubernetes-support
+      - cilium-module-load
+      - opengl
+      - cifs-mount
+      - fuse-support
+      - kernel-crypto-api
   k8s-dqlite:
     command: k8s/wrappers/services/k8s-dqlite
     install-mode: disable
     daemon: simple
     before: [kube-apiserver]
+    plugs:
+      - network-bind
   k8sd:
     command: k8s/wrappers/services/k8sd
     install-mode: enable
     daemon: simple
+    # FIXME: we keep 'kubernetes-support' because 'mount-observe' is not sufficient for some reason, investigate
+    plugs:
+      - network
+      - network-bind
+      - mount-observe
+      - kubernetes-support
   kubelet:
     install-mode: disable
     command: k8s/wrappers/services/kubelet
     daemon: simple
     after: [containerd]
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - mount-observe
+      - network-bind
+      - network-observe
+      - network-control
+      - process-control
+      - system-observe
+      - opengl
+      - kernel-module-observe
   kube-apiserver:
     install-mode: disable
     command: k8s/wrappers/services/kube-apiserver
     daemon: simple
     before: [kubelet, kube-controller-manager, kube-proxy, kube-scheduler]
     stop-timeout: 5s
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - mount-observe
+      - network-bind
+      - network-observe
+      - network-control
+      - process-control
+      - system-observe
+      - opengl
+      - kernel-module-observe
   kube-controller-manager:
     install-mode: disable
     command: k8s/wrappers/services/kube-controller-manager
     daemon: simple
     after: [kube-apiserver]
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - mount-observe
+      - network-bind
+      - network-observe
+      - network-control
+      - process-control
+      - system-observe
+      - opengl
+      - kernel-module-observe
   kube-proxy:
     install-mode: disable
     command: k8s/wrappers/services/kube-proxy
     daemon: simple
     after: [kube-apiserver]
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - mount-observe
+      - network-bind
+      - network-observe
+      - network-control
+      - process-control
+      - system-observe
+      - opengl
+      - kernel-module-observe
   kube-scheduler:
     install-mode: disable
     command: k8s/wrappers/services/kube-scheduler
     daemon: simple
     after: [kube-apiserver]
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - mount-observe
+      - network-bind
+      - network-observe
+      - network-control
+      - process-control
+      - system-observe
+      - opengl
+      - kernel-module-observe
   k8s-apiserver-proxy:
     install-mode: disable
     command: k8s/wrappers/services/k8s-apiserver-proxy
     daemon: simple
     before: [kubelet, kube-proxy]
+    plugs:
+      - network-bind
+
+layout:
+  # Kubernetes paths
+  /etc/kubernetes:
+    bind: $SNAP_COMMON/etc/kubernetes
+  /etc/cni/net.d:
+    bind: $SNAP_COMMON/etc/cni/net.d
+  /opt/cni/bin:
+    bind: $SNAP_COMMON/opt/cni/bin
+  /var/lib/kubelet:
+    bind: $SNAP_COMMON/var/lib/kubelet
+  # Logs and temporary files
+  /var/log/pods:
+    bind: $SNAP_COMMON/var/log/pods
+  /var/log/containers:
+    bind: $SNAP_COMMON/var/log/containers
+  # CNI
+  /var/lib/cni:
+    bind: $SNAP_COMMON/var/lib/cni
+  /var/lib/calico:
+    bind: $SNAP_COMMON/var/lib/calico
+  # Extras
+  /usr/local:
+    bind: $SNAP_COMMON/usr/local
+  # TBD (maybe not required)
+  /usr/libexec:
+    bind: $SNAP_COMMON/usr/libexec
+  /var/lib/kube-proxy:
+    bind: $SNAP_COMMON/var/lib/kube-proxy
+  /etc/service/enabled:
+    bind: $SNAP_COMMON/etc/service/enabled
+  /etc/nanorc:
+    bind-file: $SNAP_COMMON/etc/nanorc
+
+plugs:
+  home-read-all:
+    interface: home
+    read: all
+  docker-privileged:
+    interface: docker-support
+    privileged-containers: true
+  docker-unprivileged:
+    interface: docker-support
+    privileged-containers: false
+  # Cilium Ingress requires and loads iptable_raw and xt_socket modules
+  # If these modules are not loaded, ingress responses return 503 Service Unavailable
+  # since datapath L7 redirection does not work correctly.
+  # https://github.com/cilium/cilium/blob/1ab043d546e52fb2428300e6c6ea35fa3bd7c711/install/kubernetes/cilium/values.yaml#L792-L796
+  # https://github.com/cilium/cilium/issues/25021#issuecomment-1699969830
+  cilium-module-load:
+    interface: kernel-module-load
+    modules:
+    - name: iptable_raw
+      load: "on-boot"
+    - name: xt_socket
+      load: "on-boot"
+
+hooks:
+  remove:
+    plugs:
+      - network
+      - network-bind
+      - network-control
+      - network-observe
+      - process-control
+      - firewall-control
+      - system-observe
+      - mount-observe
