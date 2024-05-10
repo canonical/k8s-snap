@@ -37,9 +37,9 @@ CONTAINERD_RELEASE_BRANCH = "release/1.6"
 HELM_RELEASE_BRANCH = "release-3.14"
 
 
-def get_kubernetes_version(marker: str) -> str:
+def get_kubernetes_version() -> str:
     """Update Kubernetes version based on the specified marker file"""
-    LOG.info("Checking latest Kubernetes version from %s", marker)
+    LOG.info("Checking latest Kubernetes version from %s", KUBERNETES_VERSION_MARKER)
     return util.read_url(KUBERNETES_VERSION_MARKER)
 
 
@@ -54,7 +54,8 @@ def get_cni_version() -> str:
 
         for dep in deps["dependencies"]:
             if dep["name"] == "cni":
-                return dep["version"]
+                ersion = dep["version"]
+                return f"v{ersion.lstrip('v')}"
 
         raise Exception(f"Failed to find cni dependency in {deps_file}")
 
