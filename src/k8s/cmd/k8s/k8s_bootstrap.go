@@ -107,6 +107,9 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 						Gateway: apiv1.GatewayConfig{
 							Enabled: utils.Pointer(true),
 						},
+						LocalStorage: apiv1.LocalStorageConfig{
+							Enabled: utils.Pointer(true),
+						},
 					},
 				}
 			}
@@ -160,7 +163,7 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 		stdin, stdout, stderr,
 		"Which features would you like to enable?",
 		featureList,
-		"network, dns, gateway",
+		"network, dns, gateway, local-storage",
 		nil,
 	)
 	for _, component := range strings.FieldsFunc(components, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }) {
