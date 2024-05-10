@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
 
 PATCH_DIRS = ["patches"]
+
+# SNAPCRAFT_PROJECT_DIR is set when building the snap. If unset, resolve based on current file path
+_PROJECT_DIR = os.getenv("SNAPCRAFT_PROJECT_DIR") or ""
+PROJECT_DIR = _PROJECT_DIR and Path(_PROJECT_DIR) or Path(DIR / "..")
 
 
 class Version:
@@ -71,7 +76,7 @@ def get_patches_for(component: str, version_string: str) -> list:
     with target 'version'.
     """
     component_version = Version(version_string)
-    component_dir = DIR / "components" / component
+    component_dir = PROJECT_DIR / "build-scripts/components" / component
 
     patches = []
     for patch_dir_name in PATCH_DIRS:
