@@ -98,7 +98,7 @@ The steps are to be followed in-order, each task must be completed by the person
 - [ ] **Reviewer**: Ensure `release-1.xx` branch is based on latest changes on `main` at the time of the release cut.
 - [ ] **Owner**: Create PR to initialize `release-1.xx` branch:
   - [ ] Update `KUBERNETES_RELEASE_MARKER` to `stable-1.xx` in [/build-scripts/hack/update-component-versions.py][]
-  - [ ] Update `master` to `release-1.xx` in [/build-scripts/components/k8s-dqlite/version.sh][]
+  - [ ] Update `master` to `release-1.xx` in [/build-scripts/components/k8s-dqlite/version][]
   - [ ] Update `"main"` to `"release-1.xx"` in [/build-scripts/hack/generate-sbom.py][]
   - [ ] `git commit -m 'Release 1.xx'`
   - [ ] Create PR against `release-1.xx` with the changes and request review from **Reviewer**. Make sure to update the issue `Information` section with a link to the PR.
@@ -160,8 +160,7 @@ The steps are to be followed in-order, each task must be completed by the person
 [.github/workflows/strict.yaml]: ../workflows/strict.yaml
 [.github/workflows/update-components.yaml]: ../workflows/update-components.yaml
 [/build-scripts/components/hack/update-component-versions.py]: ../../build-scripts/components/hack/update-component-versions.py
-[/build-scripts/components/kubernetes/version.sh]: ../../build-scripts/components/kubernetes/version.sh
-[/build-scripts/components/k8s-dqlite/version.sh]: ../../build-scripts/components/k8s-dqlite/version.sh
+[/build-scripts/components/k8s-dqlite/version]: ../../build-scripts/components/k8s-dqlite/version
 [/build-scripts/hack/generate-sbom.py]: ../..//build-scripts/hack/generate-sbom.py
 [lp:k8s]: https://code.launchpad.net/~cdk8s/k8s/+git/k8s-snap
 [lp:k8s/+snaps]: https://launchpad.net/k8s/+snaps
