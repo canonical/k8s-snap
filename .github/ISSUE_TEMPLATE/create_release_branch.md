@@ -94,11 +94,11 @@ The steps are to be followed in-order, each task must be completed by the person
   - `rm -rf ~/tmp/release-1.xx`
 - [ ] **Reviewer**: Ensure `release-1.xx` branch is based on latest changes on `main` at the time of the release cut.
 - [ ] **Owner**: Create PR to initialize `release-1.xx` branch:
-  - [ ] Update `KUBE_TRACK` to `1.xx` in [/build-scripts/components/kubernetes/version.sh][]
+  - [ ] Update `KUBERNETES_RELEASE_MARKER` to `stable-1.xx` in [/build-scripts/hack/update-component-versions.py][]
   - [ ] Update `master` to `release-1.xx` in [/build-scripts/components/k8s-dqlite/version.sh][]
   - [ ] Update `"main"` to `"release-1.xx"` in [/build-scripts/hack/generate-sbom.py][]
   - [ ] `git commit -m 'Release 1.xx'`
-  - [ ] Create PR with the changes and request review from **Reviewer**. Make sure to update the issue `Information` section with a link to the PR.
+  - [ ] Create PR against `release-1.xx` with the changes and request review from **Reviewer**. Make sure to update the issue `Information` section with a link to the PR.
 - [ ] **Reviewer**: Review and merge PR to initialize branch.
 - [ ] **Reviewer**: On merge, confirm [Auto-update strict branch] action runs to completion and that the `autoupdate/release-1.xx-strict` branch is created.
 - [ ] **Owner**: Create launchpad builders for `release-1.xx`

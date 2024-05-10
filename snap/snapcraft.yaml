@@ -98,7 +98,7 @@ parts:
   kubernetes-version:
     plugin: nil
     source: build-scripts/components/kubernetes
-    override-build: snapcraftctl set-version "$(./version.sh)"
+    override-build: snapcraftctl set-version "$(cat ./version)"
 
   helm:
     after: [build-deps]
