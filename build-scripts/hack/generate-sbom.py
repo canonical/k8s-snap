@@ -64,7 +64,7 @@ def go_components_external(manifest, extra_files):
     for component in SNAPCRAFT_GO_COMPONENTS:
         LOG.info("Generating SBOM info for Go component %s", component)
         repo_url = util.read_file(DIR / "../components" / component / "repository")
-        repo_tag = util.read_file([DIR / "../components" / component / "version"])
+        repo_tag = util.read_file(DIR / "../components" / component / "version")
 
         go_mod_name = f"{component}/go.mod"
         go_sum_name = f"{component}/go.sum"
