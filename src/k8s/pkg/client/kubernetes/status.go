@@ -9,14 +9,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// WaitApiServerReady waits until the kube-apiserver becomes available.
-func (c *Client) WaitApiServerReady(ctx context.Context) error {
+// WaitKubernetesEndpointAvailable waits until the kubernetes endpoint becomes available.
+func (c *Client) WaitKubernetesEndpointAvailable(ctx context.Context) error {
 	return control.WaitUntilReady(ctx, func() (bool, error) {
 		// TODO: use the /readyz endpoint instead
 		// We want to retry if an error occurs (=API server not ready)
 		// returning the error would abort, thus checking for nil
-		_, err := c.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
-		return err == nil, nil
+		endpoint, err := c.CoreV1().Endpoints("default").Get(ctx, "kubernetes", metav1.GetOptions{})
+		return err == nil && endpoint != nil, nil
 	})
 }
 

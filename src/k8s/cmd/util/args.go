@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// MinimumNArgs requires at least N args to be passe.
+// MinimumNArgs requires at least N args to be passed.
 func MinimumNArgs(env ExecutionEnvironment, n int) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		if len(args) < n {

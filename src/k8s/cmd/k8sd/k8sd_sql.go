@@ -23,13 +23,18 @@ func newSqlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			_, batch, err := app.MicroCluster().SQL(cmd.Context(), args[0])
+			str, batch, err := app.MicroCluster().SQL(cmd.Context(), args[0])
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to execute the SQL query.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
-			cmd.Println(batch.Results[0].Rows)
+
+			if args[0] == ".dump" || args[0] == ".schema" {
+				cmd.Println(str)
+			} else {
+				cmd.Println(batch.Results[0].Rows)
+			}
 		},
 	}
 }

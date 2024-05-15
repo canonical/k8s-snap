@@ -88,7 +88,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			case opts.interactive:
 				bootstrapConfig = getConfigInteractively(env.Stdin, env.Stdout, env.Stderr)
 			case opts.configFile != "":
-				bootstrapConfig, err = getConfigFromYaml(opts.configFile)
+				bootstrapConfig, err = getConfigFromYaml(env, opts.configFile)
 				if err != nil {
 					cmd.PrintErrf("Error: Failed to read bootstrap configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
 					env.Exit(1)
@@ -105,6 +105,9 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 							Enabled: utils.Pointer(true),
 						},
 						Gateway: apiv1.GatewayConfig{
+							Enabled: utils.Pointer(true),
+						},
+						LocalStorage: apiv1.LocalStorageConfig{
 							Enabled: utils.Pointer(true),
 						},
 					},
@@ -131,7 +134,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 
 	cmd.Flags().BoolVar(&opts.interactive, "interactive", false, "interactively configure the most important cluster options")
-	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster bootstrap configuration.")
+	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster bootstrap configuration. Use '-' to read from stdin.")
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
@@ -139,10 +142,20 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	return cmd
 }
 
-func getConfigFromYaml(filePath string) (apiv1.BootstrapConfig, error) {
-	b, err := os.ReadFile(filePath)
-	if err != nil {
-		return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read file: %w", err)
+func getConfigFromYaml(env cmdutil.ExecutionEnvironment, filePath string) (apiv1.BootstrapConfig, error) {
+	var b []byte
+	var err error
+
+	if filePath == "-" {
+		b, err = io.ReadAll(env.Stdin)
+		if err != nil {
+			return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read config from stdin: %w", err)
+		}
+	} else {
+		b, err = os.ReadFile(filePath)
+		if err != nil {
+			return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read file: %w", err)
+		}
 	}
 
 	var config apiv1.BootstrapConfig
@@ -160,7 +173,7 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 		stdin, stdout, stderr,
 		"Which features would you like to enable?",
 		featureList,
-		"network, dns, gateway",
+		"network, dns, gateway, local-storage",
 		nil,
 	)
 	for _, component := range strings.FieldsFunc(components, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }) {

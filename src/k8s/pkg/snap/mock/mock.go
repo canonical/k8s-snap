@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/helm"
@@ -38,6 +39,7 @@ type Mock struct {
 	KubernetesNodeClient        *kubernetes.Client
 	HelmClient                  helm.Client
 	K8sDqliteClient             *dqlite.Client
+	SnapctlGet                  map[string][]byte
 }
 
 // Snap is a mock implementation for snap.Snap.
@@ -48,6 +50,11 @@ type Snap struct {
 	StopServiceErr           error
 	RestartServiceCalledWith []string
 	RestartServiceErr        error
+
+	SnapctlSetCalledWith [][]string
+	SnapctlSetErr        error
+	SnapctlGetCalledWith [][]string
+	SnapctlGetErr        error
 
 	Mock Mock
 }
@@ -157,6 +164,14 @@ func (s *Snap) HelmClient() helm.Client {
 }
 func (s *Snap) K8sDqliteClient(context.Context) (*dqlite.Client, error) {
 	return s.Mock.K8sDqliteClient, nil
+}
+func (s *Snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
+	s.SnapctlGetCalledWith = append(s.SnapctlGetCalledWith, args)
+	return s.Mock.SnapctlGet[strings.Join(args, " ")], s.SnapctlGetErr
+}
+func (s *Snap) SnapctlSet(ctx context.Context, args ...string) error {
+	s.SnapctlSetCalledWith = append(s.SnapctlGetCalledWith, args)
+	return s.SnapctlSetErr
 }
 
 var _ snap.Snap = &Snap{}
