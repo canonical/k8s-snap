@@ -14,7 +14,7 @@ k8s bootstrap [flags]
 
 ```
       --address string         microcluster address, defaults to the node IP address
-      --file string            path to the YAML file containing your custom cluster bootstrap configuration.
+      --file string            path to the YAML file containing your custom cluster bootstrap configuration. Use '-' to read from stdin.
   -h, --help                   help for bootstrap
       --interactive            interactively configure the most important cluster options
       --name string            node name, defaults to hostname
