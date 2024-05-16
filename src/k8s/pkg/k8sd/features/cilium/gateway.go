@@ -1,4 +1,4 @@
-package features
+package cilium
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-// ApplyGateway is used to configure the gateway feature on Canonical Kubernetes.
 // ApplyGateway assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
 // ApplyGateway will deploy the Gateway API CRDs on the cluster and enable the GatewayAPI controllers on Cilium, when gateway.Enabled is true.
 // ApplyGateway will remove the Gateway API CRDs from the cluster and disable the GatewayAPI controllers on Cilium, when gateway.Enabled is false.

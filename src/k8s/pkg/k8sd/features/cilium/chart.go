@@ -1,4 +1,4 @@
-package features
+package cilium
 
 import (
 	"path"
@@ -7,13 +7,6 @@ import (
 )
 
 var (
-	// chartCoreDNS is manifests for the built-in DNS feature, powered by CoreDNS.
-	chartCoreDNS = helm.InstallableChart{
-		Name:         "ck-dns",
-		Namespace:    "kube-system",
-		ManifestPath: path.Join("charts", "coredns-1.29.0.tgz"),
-	}
-
 	// chartCilium is manifests for the built-in CNI feature, powered by Cilium.
 	chartCilium = helm.InstallableChart{
 		Name:         "ck-network",
@@ -35,17 +28,15 @@ var (
 		ManifestPath: path.Join("charts", "gateway-api-1.0.0.tgz"),
 	}
 
-	// chartLocalStorage is manifests for the built-in local storage feature, powered by Rawfile LocalPV CSI.
-	chartLocalStorage = helm.InstallableChart{
-		Name:         "ck-storage",
-		Namespace:    "kube-system",
-		ManifestPath: path.Join("charts", "rawfile-csi-0.8.0.tgz"),
-	}
+	// ciliumAgentImageRepo is the image to use for cilium-agent.
+	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
 
-	// chartMetricsServer is manifests for the built-in metrics-server feature, powered by the upstream metrics-server.
-	chartMetricsServer = helm.InstallableChart{
-		Name:         "metrics-server",
-		Namespace:    "kube-system",
-		ManifestPath: path.Join("charts", "metrics-server-3.12.0.tgz"),
-	}
+	// agentImageTag is the tag to use for the cilium-agent image.
+	ciliumAgentImageTag = "1.15.2-ck1"
+
+	// ciliumOperatorImageRepo is the image to use for cilium-operator.
+	ciliumOperatorImageRepository = "ghcr.io/canonical/cilium-operator"
+
+	// ciliumOperatorImageTag is the tag to use for the cilium-operator image.
+	ciliumOperatorImageTag = "1.15.2-ck1"
 )

@@ -1,4 +1,4 @@
-package features
+package metrics_server
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-// ApplyMetricsServer is used to configure the metrics-server feature on Canonical Kubernetes.
 // ApplyMetricsServer deploys metrics-server when cfg.Enabled is true.
 // ApplyMetricsServer removes metrics-server when cfg.Enabled is false.
 // ApplyMetricsServer returns an error if anything fails.
@@ -17,8 +16,8 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsSe
 
 	values := map[string]any{
 		"image": map[string]any{
-			"repository": metricsServerImageRepository,
-			"tag":        metricsServerImageTag,
+			"repository": imageRepo,
+			"tag":        imageTag,
 		},
 		"securityContext": map[string]any{
 			// ROCKs with Pebble as the entrypoint do not work with this option.
@@ -26,6 +25,6 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsSe
 		},
 	}
 
-	_, err := m.Apply(ctx, chartMetricsServer, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
+	_, err := m.Apply(ctx, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
 	return err
 }

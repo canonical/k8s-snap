@@ -1,4 +1,4 @@
-package features
+package cilium
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-// ApplyIngress is used to configure the ingress controller feature on Canonical Kubernetes.
 // ApplyIngress assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
 // ApplyIngress will enable Cilium's ingress controller when ingress.Enabled is true.
 // ApplyIngress will disable Cilium's ingress controller when ingress.Disabled is false.

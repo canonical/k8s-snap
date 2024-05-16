@@ -1,4 +1,4 @@
-package features
+package cilium
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"github.com/canonical/k8s/pkg/utils/control"
 )
 
-// ApplyLoadBalancer is used to configure the load-balancer feature on Canonical Kubernetes.
 // ApplyLoadBalancer assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
 // ApplyLoadBalancer will configure Cilium to enable L2 or BGP mode, and deploy necessary CRs for announcing the LoadBalancer external IPs when loadbalancer.Enabled is true.
 // ApplyLoadBalancer will disable L2 and BGP on Cilium, and remove any previously created CRs when loadbalancer.Enabled is false.
