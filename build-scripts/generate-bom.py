@@ -12,12 +12,8 @@ DIR = Path(__file__).absolute().parent
 SNAPCRAFT_PART_BUILD = Path(os.getenv("SNAPCRAFT_PART_BUILD", ""))
 SNAPCRAFT_PART_INSTALL = Path(os.getenv("SNAPCRAFT_PART_INSTALL", ""))
 
-BUILD_DIRECTORY = (
-    SNAPCRAFT_PART_BUILD.exists() and SNAPCRAFT_PART_BUILD or DIR / ".build"
-)
-INSTALL_DIRECTORY = (
-    SNAPCRAFT_PART_INSTALL.exists() and SNAPCRAFT_PART_INSTALL or DIR / ".install"
-)
+BUILD_DIRECTORY = SNAPCRAFT_PART_BUILD.exists() and SNAPCRAFT_PART_BUILD or DIR / ".build"
+INSTALL_DIRECTORY = SNAPCRAFT_PART_INSTALL.exists() and SNAPCRAFT_PART_INSTALL or DIR / ".install"
 
 # List of tools used to build or bundled in the snap
 TOOLS = {
@@ -56,14 +52,10 @@ if __name__ == "__main__":
 
         try:
             version = _read_file(component_dir / "version")
-            patches = _parse_output(
-                [sys.executable, DIR / "print-patches-for.py", component, version]
-            )
+            patches = _parse_output([sys.executable, DIR / "print-patches-for.py", component, version])
             clean_patches = []
             if patches:
-                clean_patches = [
-                    p[p.find("build-scripts/") :] for p in patches.split("\n")
-                ]
+                clean_patches = [p[p.find("build-scripts/") :] for p in patches.split("\n")]
 
             BOM["components"][component] = {
                 "repository": _read_file(component_dir / "repository"),

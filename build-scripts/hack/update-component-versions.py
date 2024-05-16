@@ -64,9 +64,7 @@ def get_containerd_version() -> str:
     """Update containerd version using latest tag of specified branch"""
     containerd_repo = util.read_file(COMPONENTS / "containerd/repository")
 
-    with util.git_repo(
-        containerd_repo, CONTAINERD_RELEASE_BRANCH, shallow=False
-    ) as dir:
+    with util.git_repo(containerd_repo, CONTAINERD_RELEASE_BRANCH, shallow=False) as dir:
         # Get the latest tagged release from the current branch
         return util.parse_output(["git", "describe", "--tags", "--abbrev=0"], cwd=dir)
 
