@@ -10,6 +10,9 @@ permissions:
  
 jobs:
   TICS:
+    permissions:
+      contents: read
+      security-events: write 
     runs-on: ubuntu-latest
     strategy:
       matrix:
