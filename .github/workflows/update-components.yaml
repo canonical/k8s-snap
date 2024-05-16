@@ -40,7 +40,6 @@ jobs:
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
           commit-message: "[${{ matrix.branch }}] Update component versions"
           title: "[${{ matrix.branch }}] Update component versions"
           body: "[${{ matrix.branch }}] Update component versions"
