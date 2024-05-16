@@ -229,6 +229,25 @@ def get_local_node_status(instance: harness.Instance) -> str:
     return resp.stdout.decode().strip()
 
 
+def get_nodes(control_node: harness.Instance) -> List[Any]:
+    """Get a list of existing nodes.
+
+    Args:
+        control_node: instance on which to execute check
+
+    Returns:
+        list of nodes
+    """
+    result = control_node.exec(
+        ["k8s", "kubectl", "get", "nodes", "-o", "json"],
+        capture_output=True
+    )
+    assert result.returncode == 0, "Failed to get nodes with kubectl"
+    node_list = json.loads(result.stdout.decode())
+    assert node_list["kind"] == "List", "Should have found a list of nodes"
+    return [node for node in node_list["items"]]
+    
+
 def ready_nodes(control_node: harness.Instance) -> List[Any]:
     """Get a list of the ready nodes.
 
@@ -238,22 +257,14 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
     Returns:
         list of nodes
     """
-    result = control_node.exec(
-        "k8s kubectl get nodes -o json".split(" "), capture_output=True
-    )
-    assert result.returncode == 0, "Failed to get nodes with kubectl"
-    node_list = json.loads(result.stdout.decode())
-    assert node_list["kind"] == "List", "Should have found a list of nodes"
-    nodes = [
-        node
-        for node in node_list["items"]
+    return [
+        node for node in get_nodes(control_node)
         if all(
             condition["status"] == "False"
             for condition in node["status"]["conditions"]
             if condition["type"] != "Ready"
         )
     ]
-    return nodes
 
 
 # Create a token to join a node to an existing cluster
