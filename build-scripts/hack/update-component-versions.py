@@ -28,7 +28,7 @@ COMPONENTS = DIR.parent / "components"
 #
 # - "https://dl.k8s.io/release/stable.txt"
 # - "https://dl.k8s.io/release/stable-1.xx.txt"
-KUBERNETES_VERSION_MARKER = "https://dl.k8s.io/release/stable.txt"
+KUBERNETES_VERSION_MARKER = "https://dl.k8s.io/release/stable-1.30.txt"
 
 # Containerd release branch to track. The most recent tag in the branch will be used.
 CONTAINERD_RELEASE_BRANCH = "release/1.6"
