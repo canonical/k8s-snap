@@ -45,40 +45,6 @@ jobs:
         os: ["ubuntu:20.04"]
     runs-on: ubuntu-20.04
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: block
-          allowed-endpoints: >
-            auth.docker.io:443
-            canonical-bos01.cdn.snapcraftcontent.com:443
-            canonical-lgw01.cdn.snapcraftcontent.com:443
-            cdn03.quay.io:443
-            cilium.io:443
-            cloud-images.ubuntu.com:443
-            cloud-images.ubuntu.com:80
-            files.pythonhosted.org:443
-            ghcr.io:443
-            github.com:443
-            images.linuxcontainers.org:443
-            k8s.gcr.io:443
-            objects.githubusercontent.com:443
-            one.one.one.one:443
-            one.one.one.one:80
-            pkg-containers.githubusercontent.com:443
-            prod-registry-k8s-io-us-east-1.s3.dualstack.us-east-1.amazonaws.com:443
-            prod-registry-k8s-io-us-east-2.s3.dualstack.us-east-2.amazonaws.com:443
-            prod-registry-k8s-io-us-west-1.s3.dualstack.us-west-1.amazonaws.com:443
-            production.cloudflare.docker.com:443
-            pypi.org:443
-            quay.io:443
-            raw.githubusercontent.com:443
-            registry-1.docker.io:443
-            registry.k8s.io:443
-            storage.googleapis.com:443
-            us-central1-docker.pkg.dev:443
-            us-east4-docker.pkg.dev:443
-            us-west2-docker.pkg.dev:443
       - name: Check out code
         uses: actions/checkout@v4
       - name: Setup Python
