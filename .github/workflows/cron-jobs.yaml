@@ -3,6 +3,7 @@ name: Security and quality nightly scan
 on:
   schedule:
     - cron: '0 10 * * *'
+  pull_request: #TODO: rm after testing
 
 permissions:
   contents: read
@@ -75,8 +76,8 @@ jobs:
 
   Trivy:
     permissions:
-      contents: read  # for actions/checkout to fetch code
-      security-events: write  # for github/codeql-action/upload-sarif to upload SARIF results
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     runs-on: ubuntu-latest
     strategy:
       matrix:

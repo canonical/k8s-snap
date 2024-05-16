@@ -9,6 +9,9 @@ on:
       - 'autoupdate/release-[0-9]+.[0-9]+-strict'
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build
