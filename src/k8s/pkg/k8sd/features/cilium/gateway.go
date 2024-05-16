@@ -17,7 +17,7 @@ import (
 func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network) error {
 	m := snap.HelmClient()
 
-	if _, err := m.Apply(ctx, chartCiliumGateway, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {
+	if _, err := m.Apply(ctx, chartGateway, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {
 		return fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 	}
 

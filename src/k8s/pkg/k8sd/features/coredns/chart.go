@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	// chartCoreDNS is manifests for the built-in DNS feature, powered by CoreDNS.
+	// chartCoreDNS represents manifests to deploy CoreDNS.
 	chart = helm.InstallableChart{
 		Name:         "ck-dns",
 		Namespace:    "kube-system",

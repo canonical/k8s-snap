@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	// chart is manifests for the built-in metrics-server feature, powered by the upstream metrics-server.
+	// chart represents manifests to deploy metrics-server.
 	chart = helm.InstallableChart{
 		Name:         "metrics-server",
 		Namespace:    "kube-system",

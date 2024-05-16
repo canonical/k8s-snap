@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	// chart is manifests for the built-in local storage feature, powered by Rawfile LocalPV CSI.
+	// chart represents manifests to deploy Rawfile LocalPV CSI.
 	chart = helm.InstallableChart{
 		Name:         "ck-storage",
 		Namespace:    "kube-system",

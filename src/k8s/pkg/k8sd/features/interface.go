@@ -11,7 +11,7 @@ import (
 type Interface interface {
 	// ApplyDNS is used to configure the DNS feature on Canonical Kubernetes.
 	ApplyDNS(context.Context, snap.Snap, types.DNS, types.Kubelet) (string, error)
-	// ApplyDNS is used to configure the network feature on Canonical Kubernetes.
+	// ApplyNetwork is used to configure the network feature on Canonical Kubernetes.
 	ApplyNetwork(context.Context, snap.Snap, types.Network) error
 	// ApplyLoadBalancer is used to configure the load-balancer feature on Canonical Kubernetes.
 	ApplyLoadBalancer(context.Context, snap.Snap, types.LoadBalancer, types.Network) error
