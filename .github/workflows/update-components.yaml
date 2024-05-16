@@ -1,0 +1,49 @@
+name: Check for component upgrades
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 10 * * *"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch:
+          # Keep main branch up to date
+          - main
+          # Supported stable release branches
+          - release-1.30
+
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+          ssh-key: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip3 install -r ./build-scripts/hack/requirements.txt
+
+      - name: Check for new component versions
+        run: |
+          ./build-scripts/hack/update-component-versions.py
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
+          commit-message: "[${{ matrix.branch }}] Update component versions"
+          title: "[${{ matrix.branch }}] Update component versions"
+          body: "[${{ matrix.branch }}] Update component versions"
+          branch: "autoupdate/sync/${{ matrix.branch }}"
+          delete-branch: true
+          base: ${{ matrix.branch }}

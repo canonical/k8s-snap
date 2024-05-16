@@ -65,8 +65,8 @@ parts:
   k8s-dqlite:
     after: [dqlite]
     plugin: nil
-    source: build-scripts
-    override-build: ./build-component.sh k8s-dqlite
+    source: build-scripts/components/k8s-dqlite
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
 
   k8s-binaries:
     after: [dqlite]
@@ -86,26 +86,26 @@ parts:
   cni:
     after: [build-deps]
     plugin: nil
-    source: build-scripts
-    override-build: ./build-component.sh cni
+    source: build-scripts/components/cni
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh cni
 
   kubernetes:
     after: [build-deps]
     plugin: nil
     source: build-scripts
-    override-build: ./build-component.sh kubernetes
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh kubernetes
 
   kubernetes-version:
     plugin: nil
     source: build-scripts/components/kubernetes
-    override-build: snapcraftctl set-version "$(./version.sh)"
+    override-build: snapcraftctl set-version "$(cat ./version)"
 
   helm:
     after: [build-deps]
     build-attributes: [no-patchelf]
     plugin: nil
-    source: build-scripts
-    override-build: ./build-component.sh helm
+    source: build-scripts/components/helm
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh helm
 
   libmnl:
     after: [build-deps]
@@ -144,15 +144,15 @@ parts:
     after: [runc]
     plugin: nil
     build-attributes: [no-patchelf]
-    source: build-scripts
-    override-build: ./build-component.sh containerd
+    source: build-scripts/components/containerd
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
 
   runc:
     after: [iptables, build-deps]
     plugin: nil
     build-attributes: [no-patchelf]
-    source: build-scripts
-    override-build: ./build-component.sh runc
+    source: build-scripts/components/runc
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh runc
 
   bash-utils:
     plugin: nil
