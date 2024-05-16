@@ -239,14 +239,13 @@ def get_nodes(control_node: harness.Instance) -> List[Any]:
         list of nodes
     """
     result = control_node.exec(
-        ["k8s", "kubectl", "get", "nodes", "-o", "json"],
-        capture_output=True
+        ["k8s", "kubectl", "get", "nodes", "-o", "json"], capture_output=True
     )
     assert result.returncode == 0, "Failed to get nodes with kubectl"
     node_list = json.loads(result.stdout.decode())
     assert node_list["kind"] == "List", "Should have found a list of nodes"
     return [node for node in node_list["items"]]
-    
+
 
 def ready_nodes(control_node: harness.Instance) -> List[Any]:
     """Get a list of the ready nodes.
@@ -258,7 +257,8 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
         list of nodes
     """
     return [
-        node for node in get_nodes(control_node)
+        node
+        for node in get_nodes(control_node)
         if all(
             condition["status"] == "False"
             for condition in node["status"]["conditions"]
