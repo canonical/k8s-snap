@@ -14,7 +14,7 @@ build-scripts/
     components/
         $component_name/
             repository              <-- git repository to clone
-            version.sh              <-- prints the repository tag or commit to checkout
+            version                 <-- repository tag or commit to checkout
             build.sh                <-- runs as `build.sh $output $version`
                                         first argument is the output directory where
                                         binaries should be placed, second is the component version
@@ -26,7 +26,7 @@ build-scripts/
 
 ## Applying patches
 
-Most K8s components are retrieved from an upstream source (specified in the `repository`), with a specific tag (specified in `version.sh`), have some patches applied to them (from the `patches/` directory) and are then built (using `build.sh`).
+Most K8s components are retrieved from an upstream source (specified in the `repository`), with a specific tag (specified in `version`), have some patches applied to them (from the `patches/` directory) and are then built (using `build.sh`).
 
 This section explains the directory format for the `patches` directory.
 

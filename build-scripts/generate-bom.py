@@ -51,7 +51,7 @@ if __name__ == "__main__":
         component_dir = DIR / "components" / component
 
         try:
-            version = _parse_output([component_dir / "version.sh"])
+            version = _read_file(component_dir / "version")
             patches = _parse_output([sys.executable, DIR / "print-patches-for.py", component, version])
             clean_patches = []
             if patches:
