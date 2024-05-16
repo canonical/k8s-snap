@@ -89,8 +89,6 @@ def get_helm_version() -> str:
 
 
 def update_component_versions(dry_run: bool):
-    # get_kubernetes_version(KUBERNETES_VERSION_MARKER, dry_run)
-    # update_cni_version(dry_run)
     for component, get_version in [
         ("kubernetes", get_kubernetes_version),
         ("cni", get_cni_version),
@@ -99,11 +97,11 @@ def update_component_versions(dry_run: bool):
         ("helm", get_helm_version),
     ]:
         LOG.info("Updating version for %s", component)
-        version = get_version()
+        version: str = get_version()
         path = COMPONENTS / component / "version"
         LOG.info("Update %s version to %s in %s", component, version, path)
         if not dry_run:
-            Path(path).write_text(version)
+            Path(path).write_text(version.strip() + "\n")
 
 
 def main():
