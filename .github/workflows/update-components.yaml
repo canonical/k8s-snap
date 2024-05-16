@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ matrix.branch }}
+          ssh-key: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
