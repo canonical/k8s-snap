@@ -1,4 +1,4 @@
-package features_test
+package metrics_server_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
-	"github.com/canonical/k8s/pkg/k8sd/features"
+	metrics_server "github.com/canonical/k8s/pkg/k8sd/features/metrics-server"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
 	"github.com/canonical/k8s/pkg/utils"
@@ -43,7 +43,7 @@ func TestApplyMetricsServer(t *testing.T) {
 				},
 			}
 
-			err := features.ApplyMetricsServer(context.Background(), s, tc.config)
+			err := metrics_server.ApplyMetricsServer(context.Background(), s, tc.config)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(h.ApplyCalledWith).To(ConsistOf(SatisfyAll(
