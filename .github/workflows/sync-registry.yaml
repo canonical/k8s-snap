@@ -13,6 +13,5 @@ jobs:
         env:
           ACTOR: ${{ github.actor }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DIR: ${GITHUB_WORKSPACE}
         run: |
-          ./${GITHUB_WORKSPACE}/.github/scripts/sync-registry.sh
+          ./${GITHUB_WORKSPACE}/build-scripts/hack/sync-registry.sh
