@@ -19,6 +19,14 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Check for Go file changes
+        id: files
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            go:
+              - '**/*.go'
+
       - name: Install Go
         uses: actions/setup-go@v5
         with:
@@ -76,7 +84,7 @@ jobs:
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.files.outputs.go == 'true'
         with:
           recreate: true
           path: code-coverage-results.md
