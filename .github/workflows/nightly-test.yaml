@@ -3,7 +3,6 @@ name: Nightly Latest/Edge Tests
 on:
   schedule:
     - cron: '0 0 * * *'  # Runs every midnight
-  pull_request: #TODO: rm after testing
 
 permissions:
   contents: read

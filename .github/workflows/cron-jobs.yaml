@@ -3,7 +3,6 @@ name: Security and quality nightly scan
 on:
   schedule:
     - cron: '0 10 * * *'
-  pull_request: #TODO: rm after testing
 
 permissions:
   contents: read
