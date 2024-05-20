@@ -6,4 +6,4 @@ docker run -v "${DIR}/registry-k8s-io.yaml":/config.yaml quay.io/skopeo/stable:v
   --dest docker \
   /config.yaml ghcr.io/canonical \
   --format oci \
-  --dest-creds "${ACTOR}":"${TOKEN}"
+  --dest-creds "${DEST_CREDS}"
