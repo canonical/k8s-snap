@@ -6,9 +6,18 @@ on:
       - main
       - 'release-[0-9]+.[0-9]+'
 
+permissions:
+  contents: read
+      
 jobs:
   cla-check:
+    permissions:
+      pull-requests: write  # for canonical/has-signed-canonical-cla to create & update comments
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Check if CLA signed
         uses: canonical/has-signed-canonical-cla@v1

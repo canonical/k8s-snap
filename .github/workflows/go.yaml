@@ -10,12 +10,22 @@ on:
       - 'autoupdate/sync/**'
   pull_request:
 
+permissions:
+  contents: read  
+
 jobs:
   test:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      pull-requests: write  # for marocchino/sticky-pull-request-comment to create or update PR comment
     name: Unit Tests & Code Quality
     runs-on: ubuntu-latest
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Check out code
         uses: actions/checkout@v4
 
@@ -87,6 +97,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Check out code
         uses: actions/checkout@v4
 
