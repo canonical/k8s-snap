@@ -1,4 +1,4 @@
-package features
+package cilium
 
 import (
 	"context"
@@ -14,7 +14,6 @@ import (
 	"github.com/canonical/k8s/pkg/utils/control"
 )
 
-// ApplyNetwork is used to configure the CNI feature on Canonical Kubernetes.
 // ApplyNetwork will deploy Cilium when cfg.Enabled is true.
 // ApplyNetwork will remove Cilium when cfg.Enabled is false.
 // ApplyNetwork requires that bpf and cgroups2 are already mounted and available when running under strict snap confinement. If they are not, it will fail (since Cilium will not have the required permissions to mount them).
@@ -53,7 +52,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error 
 
 	values := map[string]any{
 		"image": map[string]any{
-			"repository": ciliumAgentImageRepository,
+			"repository": ciliumAgentImageRepo,
 			"tag":        ciliumAgentImageTag,
 			"useDigest":  false,
 		},

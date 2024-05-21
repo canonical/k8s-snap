@@ -1,4 +1,4 @@
-package features
+package coredns
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-// ApplyDNS is used to configure the DNS feature on Canonical Kubernetes.
 // ApplyDNS manages the deployment of CoreDNS, with customization options from dns and kubelet, which are retrieved from the cluster configuration.
 // ApplyDNS will uninstall CoreDNS from the cluster if dns.Enabled is false.
 // ApplyDNS will install or refresh CoreDNS if dns.Enabled is true.
@@ -20,7 +19,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 	m := snap.HelmClient()
 
 	if !dns.GetEnabled() {
-		if _, err := m.Apply(ctx, chartCoreDNS, helm.StateDeleted, nil); err != nil {
+		if _, err := m.Apply(ctx, chart, helm.StateDeleted, nil); err != nil {
 			return "", fmt.Errorf("failed to uninstall coredns: %w", err)
 		}
 		return "", nil
@@ -28,8 +27,8 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 
 	values := map[string]any{
 		"image": map[string]any{
-			"repository": dnsImageRepository,
-			"tag":        dnsImageTag,
+			"repository": imageRepo,
+			"tag":        imageTag,
 		},
 		"service": map[string]any{
 			"name":      "coredns",
@@ -64,7 +63,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 		},
 	}
 
-	if _, err := m.Apply(ctx, chartCoreDNS, helm.StatePresent, values); err != nil {
+	if _, err := m.Apply(ctx, chart, helm.StatePresent, values); err != nil {
 		return "", fmt.Errorf("failed to apply coredns: %w", err)
 	}
 

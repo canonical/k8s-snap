@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
 
-PATCH_DIRS = ["patches"]
+# SNAPCRAFT_PROJECT_DIR is set when building the snap. If unset, resolve based on current file path
+_PROJECT_DIR = os.getenv("SNAPCRAFT_PROJECT_DIR") or ""
+PROJECT_DIR = _PROJECT_DIR and Path(_PROJECT_DIR) or Path(DIR / "..")
+
+# Strict confinement needs extra patches
+STRICT = "confinement: strict" in (PROJECT_DIR / "snap/snapcraft.yaml").read_text()
 
 
 class Version:
@@ -71,10 +77,14 @@ def get_patches_for(component: str, version_string: str) -> list:
     with target 'version'.
     """
     component_version = Version(version_string)
-    component_dir = DIR / "components" / component
+    component_dir = PROJECT_DIR / "build-scripts/components" / component
+
+    patch_dirs = ["patches"]
+    if STRICT:
+        patch_dirs += ["strict-patches"]
 
     patches = []
-    for patch_dir_name in PATCH_DIRS:
+    for patch_dir_name in patch_dirs:
         patches_dir = component_dir / patch_dir_name
         if not patches_dir.is_dir():
             continue
