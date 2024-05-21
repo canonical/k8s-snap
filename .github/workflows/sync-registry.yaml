@@ -11,6 +11,7 @@ jobs:
 
       - name: Sync registry.k8s.io to ghcr.io/canonical
         env:
-          DEST_CREDS: ${{ github.actor }}:${{ services.GITHUB_TOKEN }}
+          DEST_CREDS: ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./${GITHUB_WORKSPACE}/build-scripts/hack/sync-registry.sh
+          chmod +x ${GITHUB_WORKSPACE}/build-scripts/hack/sync-registry.sh
+          ${GITHUB_WORKSPACE}/build-scripts/hack/sync-registry.sh
