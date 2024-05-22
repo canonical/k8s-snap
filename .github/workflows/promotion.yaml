@@ -1,0 +1,25 @@
+name: Promote tracks
+
+on:
+  # TODO: remove
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'  # Runs every midnight
+
+jobs:
+  promotion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip3 install -r ./scripts/requirements.txt
+      - name: Run track promotion
+        run: |
+          SNAPSTORE_AUTH_TOKEN=${{ secrets.SNAPSTORE_AUTH_TOKEN }} ./scripts/promote-tracks.py
