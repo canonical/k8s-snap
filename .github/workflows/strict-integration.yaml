@@ -6,13 +6,21 @@ on:
       - main
       - 'release-[0-9]+.[0-9]+'
       - 'autoupdate/sync/**'
+      - KU-629/harden-CI-follow-up  #TODO: rm after testing
   pull_request:
 
+permissions:
+  contents: read
+    
 jobs:
   build:
     name: Build
     runs-on: ubuntu-20.04
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Install lxd
