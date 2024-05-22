@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 10 * * *"
-  push: #TODO: rm after testing
-    branches:
-      - KU-629/harden-CI-follow-up
 
 permissions:
   contents: read
