@@ -13,5 +13,4 @@ jobs:
         env:
           DEST_CREDS: ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}
         run: |
-          chmod +x ${GITHUB_WORKSPACE}/build-scripts/hack/sync-registry.sh
           ${GITHUB_WORKSPACE}/build-scripts/hack/sync-registry.sh
