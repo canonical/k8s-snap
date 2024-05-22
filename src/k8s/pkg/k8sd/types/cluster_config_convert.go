@@ -65,6 +65,9 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 
 	// Kubelet
 	config.Kubelet.CloudProvider = b.ClusterConfig.CloudProvider
+	if len(b.ControlPlaneTaints) != 0 {
+		config.Kubelet.ControlPlaneTaints = utils.Pointer(b.ControlPlaneTaints)
+	}
 
 	return config, nil
 }
