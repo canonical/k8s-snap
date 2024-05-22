@@ -5,4 +5,5 @@ docker run -v "${GITHUB_WORKSPACE}/.github/data/sync-registry-config.yaml":/conf
   --dest docker \
   /config.yaml ghcr.io/canonical \
   --format oci \
+  --all \
   --dest-creds "${DEST_CREDS}"

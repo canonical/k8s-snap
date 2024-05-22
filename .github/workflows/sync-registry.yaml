@@ -1,6 +1,5 @@
 on:
-  schedule:
-    - cron: "0 0 * * *" # Runs every midnight
+  push:
 
 jobs:
   publish:
