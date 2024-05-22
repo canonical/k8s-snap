@@ -16,6 +16,10 @@ jobs:
     outputs:
       strict: ${{ steps.determine.outputs.strict }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Determine Strict branch
         id: determine
         env:
@@ -37,6 +41,10 @@ jobs:
     needs: [ prepare ]
     if: ${{ needs.prepare.outputs.strict }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Sync ${{ github.ref }} to ${{ needs.prepare.outputs.strict }}
         uses: actions/checkout@v4
         with:
