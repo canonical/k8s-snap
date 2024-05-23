@@ -41,11 +41,13 @@ Ceph CSI is the Container Storage Interface (CSI) driver for Ceph. With Ceph
 CSI, Kubernetes will be able to accomplish tasks related to your Ceph cluster
 (like attaching volumes to workloads.)
 
-Create a user for Kubernetes and ceph-csi.
+The following command creates a user called "kubernetes" with the necessary capabilities to administer your Ceph cluster:
 
 ```
 ceph auth get-or-create client.kubernetes mon 'profile rbd' osd 'profile rbd pool=kubernetes' mgr 'profile rbd pool=kubernetes'
 ```
+
+For more information on user capabilities in Ceph, see [https://docs.ceph.com/en/latest/rados/operations/user-management/#authorization-capabilities]
 
 ```
 [client.kubernetes]
