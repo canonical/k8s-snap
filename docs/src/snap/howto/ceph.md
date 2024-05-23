@@ -1,4 +1,4 @@
-# How to use ceph
+# How to use Ceph storage with Canonical K8s
 
 Distributed, redundant storage is a must-have when you want to develop reliable
 applications. [Ceph] is a storage solution which provides exactly that, and is
