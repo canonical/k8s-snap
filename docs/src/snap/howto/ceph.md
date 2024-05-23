@@ -6,7 +6,7 @@ built with distributed clusters in mind. In this tutorial, we'll be looking at
 how to integrate Canonical Kubernetes with a Ceph cluster. Specifically, by the
 end of this tutorial you'll have a Kubernetes pod with a mounted RBD-backed
 volume. RBD stands for RADOS Block Device and it is the abstraction used by Ceph
-to provide reliable and distributed storage. This how to is adapted from
+to provide reliable and distributed storage. This how-to guide is adapted from
 [block-devices-and-kubernetes].
 
 ## What you'll need
@@ -125,6 +125,10 @@ Then apply:
 kubectl apply -f csi-kms-config-map.yaml
 ```
 
+If you do need to configure a KMS provider, an example ConfigMap is available in
+the Ceph repository:
+[https://github.com/ceph/ceph-csi/blob/devel/examples/kms/vault/kms-config.yaml]
+
 Create the `ceph-config-map.yaml` which will be stored inside a ceph.conf file
 in the CSI containers. This `ceph.conf` file will be used by Ceph daemons on
 each container to authenticate with the Ceph cluster.
@@ -241,7 +245,7 @@ Then apply:
 kubectl apply -f csi-rbd-sc.yaml
 ```
 
-## Create a PVC for a RBD-backed file-system
+## Create a Persistant Volume Claim (PVC) for a RBD-backed file-system
 
 This PVC will allow users to request RBD-backed storage.
 
@@ -269,7 +273,7 @@ Then apply:
 kubectl apply -f pvc.yaml
 ```
 
-## Create a pod that binds to the RBD PVC
+## Create a pod that binds to the Rados Block Device PVC
 
 Finally, create a pod configuration that uses the RBD-backed PVC.
 
@@ -303,9 +307,9 @@ kubectl apply -f pod.yaml
 
 ## Verify that the pod is using the RBD PV
 
-To verify that the csi-rbd-demo-pod is indeed using a RBD PV, run the following
-commands, you should see information related to attached volumes in both of
-their outputs:
+To verify that the csi-rbd-demo-pod is indeed using a RBD Persistant Volume, run
+the following commands, you should see information related to attached volumes
+in both of their outputs:
 
 ```
 kubectl describe pvc rbd-pvc
