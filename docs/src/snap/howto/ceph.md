@@ -1,6 +1,13 @@
 # How to use ceph
 
-Distributed, redundant storage is a must-have when you want to develop reliable applications. [Ceph] is a storage solution which provides exactly that, and is built with distributed clusters in mind. In this tutorial, we'll be looking at how to integrate Canonical Kubernetes with a Ceph cluster. Specifically, by the end of this tutorial you'll have a Kubernetes pod with a mounted RBD-backed volume. RBD stands for RADOS Block Device and it is the abstraction used by Ceph to provide reliable and distributed storage. This how to is adapted from [block-devices-and-kubernetes].
+Distributed, redundant storage is a must-have when you want to develop reliable
+applications. [Ceph] is a storage solution which provides exactly that, and is
+built with distributed clusters in mind. In this tutorial, we'll be looking at
+how to integrate Canonical Kubernetes with a Ceph cluster. Specifically, by the
+end of this tutorial you'll have a Kubernetes pod with a mounted RBD-backed
+volume. RBD stands for RADOS Block Device and it is the abstraction used by Ceph
+to provide reliable and distributed storage. This how to is adapted from
+[block-devices-and-kubernetes].
 
 ## What you'll need
 
@@ -15,7 +22,8 @@ This guide assumes the following:
 
 Create a storage pool named "kubernetes" in the Ceph cluster.
 
-We will set the number of placement groups to 128 because the Ceph cluster of this demonstration will have less than 5 OSDs. (See [placement groups])
+We will set the number of placement groups to 128 because the Ceph cluster of
+this demonstration will have less than 5 OSDs. (See [placement groups])
 
 ```
 ceph osd pool create kubernetes 128
@@ -29,7 +37,9 @@ rbd pool init kubernetes
 
 ## Configure ceph-csi
 
-Ceph CSI is the CSI driver for Ceph. With Ceph CSI, Kubernetes will be able to accomplish tasks related to your Ceph cluster (like attaching volumes to workloads.)
+Ceph CSI is the CSI driver for Ceph. With Ceph CSI, Kubernetes will be able to
+accomplish tasks related to your Ceph cluster (like attaching volumes to
+workloads.)
 
 Create a user for Kubernetes and ceph-csi.
 
@@ -63,8 +73,8 @@ election_strategy: 1
 dumped monmap epoch 2
 ```
 
-Keep note of the v1 IP (`10.0.0.136:6789`) and the fsid (`6d5c12c9-6dfb-445a-940f-301aa7de0f29`) as you will need to
-refer to them soon.
+Keep note of the v1 IP (`10.0.0.136:6789`) and the fsid
+(`6d5c12c9-6dfb-445a-940f-301aa7de0f29`) as you will need to refer to them soon.
 
 ```
 cat <<EOF > csi-config-map.yaml
@@ -85,11 +95,14 @@ metadata:
   name: ceph-csi-config
 EOF
 ```
+
 ```
 kubectl apply -f csi-config-map.yaml
 ```
 
-Recent versions of ceph-csi also require an additional ConfigMap object to define Key Management Service (KMS) provider details. KMS is not set up as part of this tutorial, hence put an empty configuration in csi-kms-config-map.yaml.
+Recent versions of ceph-csi also require an additional ConfigMap object to
+define Key Management Service (KMS) provider details. KMS is not set up as part
+of this tutorial, hence put an empty configuration in csi-kms-config-map.yaml.
 
 ```
 cat <<EOF > csi-kms-config-map.yaml
@@ -103,11 +116,14 @@ metadata:
   name: ceph-csi-encryption-kms-config
 EOF
 ```
+
 ```
 kubectl apply -f csi-kms-config-map.yaml
 ```
 
-Create the `ceph-config-map.yaml` which will be stored inside a ceph.conf file in the CSI containers. This ceph.conf file will be used by Ceph daemons on each container to authenticate with the Ceph cluster.
+Create the `ceph-config-map.yaml` which will be stored inside a ceph.conf file
+in the CSI containers. This ceph.conf file will be used by Ceph daemons on each
+container to authenticate with the Ceph cluster.
 
 ```
 cat <<EOF > ceph-config-map.yaml
@@ -126,13 +142,15 @@ metadata:
   name: ceph-config
 EOF
 ```
+
 ```
 kubectl apply -f ceph-config-map.yaml
 ```
 
 ## Create the ceph-csi cephx secret
 
-This secret contains the `userID` and `userKey` created in the Ceph cluster earlier.
+This secret contains the `userID` and `userKey` created in the Ceph cluster
+earlier.
 
 ```
 cat <<EOF > csi-rbd-secret.yaml
@@ -147,6 +165,7 @@ stringData:
   userKey: AQBh1TNmFYERJhAAf5yqP4Wnrb/u4yNGsBKZHA==
 EOF
 ```
+
 ```
 kubectl apply -f csi-rbd-secret.yaml
 ```
@@ -174,7 +193,10 @@ kubectl apply -f csi-rbdplugin.yaml
 ```
 
 Consider this important note from the Ceph documentation:
->The provisioner and node plugin YAMLs will, by default, pull the development release of the ceph-csi container (quay.io/cephcsi/cephcsi:canary). The YAMLs should be updated to use a release version container for production workloads.
+
+> The provisioner and node plugin YAMLs will, by default, pull the development
+> release of the ceph-csi container (quay.io/cephcsi/cephcsi:canary). The YAMLs
+> should be updated to use a release version container for production workloads.
 
 ## Create a StorageClass
 
@@ -204,6 +226,7 @@ mountOptions:
    - discard
 EOF
 ```
+
 ```
 kubectl apply -f csi-rbd-sc.yaml
 ```
@@ -229,6 +252,7 @@ spec:
   storageClassName: csi-rbd-sc
 EOF
 ```
+
 ```
 kubectl apply -f pvc.yaml
 ```
@@ -258,13 +282,16 @@ spec:
         readOn
 EOF
 ```
+
 ```
 kubectl apply -f pod.yaml
 ```
 
 ## Verify that the pod is using the RBD PV
 
-To verify that the csi-rbd-demo-pod is indeed using a RBD PV, run the following commands, you should see information related to attached volumes in both of their outputs:
+To verify that the csi-rbd-demo-pod is indeed using a RBD PV, run the following
+commands, you should see information related to attached volumes in both of
+their outputs:
 
 ```
 kubectl describe pvc rbd-pvc
@@ -272,11 +299,17 @@ kubectl describe pvc rbd-pvc
 kubectl describe pod csi-rbd-demo-pod
 ```
 
-Congratulations! By following this guide, you've set up a basic yet reliable persistent storage solution for your Kubernetes cluster. To further enhance and prepare your cluster for production use, we recommend reviewing the official Ceph documentation: [Intro to Ceph].
+Congratulations! By following this guide, you've set up a basic yet reliable
+persistent storage solution for your Kubernetes cluster. To further enhance and
+prepare your cluster for production use, we recommend reviewing the official
+Ceph documentation: [Intro to Ceph].
 
 <!-- LINKS -->
+
 [Ceph]: https://ceph.com/
-[getting-started-guide]: ../tutorial/getting-started.md
-[block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
-[placement groups]: https://docs.ceph.com/en/mimic/rados/operations/placement-groups/
-[Intro to Ceph]: https://docs.ceph.com/en/latest/start/intro/
+
+[getting-started-guide]:
+../tutorial/getting-started.md[block-devices-and-kubernetes]:
+https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/ [placement groups]:
+https://docs.ceph.com/en/mimic/rados/operations/placement-groups/ [Intro to
+Ceph]: https://docs.ceph.com/en/latest/start/intro/
