@@ -6,11 +6,12 @@ on:
       - main
       - autoupdate/strict
       - 'release-[0-9]+.[0-9]+'
-      - 'release-[0-9]+.[0-9]+-strict'
+      - 'autoupdate/release-[0-9]+.[0-9]+-strict'
+      - 'autoupdate/sync/**'
   pull_request:
-    branches:
-      - main
-      - 'release-[0-9].[0-9]+'
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -18,6 +19,10 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Install lxd
@@ -74,10 +79,17 @@ jobs:
           cd tests/integration && sg lxd -c 'tox -e integration'
 
   security-scan:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      security-events: write  # for github/codeql-action/upload-sarif to upload SARIF results
     name: Security scan
     runs-on: ubuntu-20.04
     needs: build
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Fetch snap

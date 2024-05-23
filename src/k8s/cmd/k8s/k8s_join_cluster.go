@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -67,11 +68,23 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			var joinClusterConfig string
 			if opts.configFile != "" {
-				b, err := os.ReadFile(opts.configFile)
-				if err != nil {
-					cmd.PrintErrf("Error: Failed to read join configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
-					env.Exit(1)
-					return
+				var b []byte
+				var err error
+
+				if opts.configFile == "-" {
+					b, err = io.ReadAll(os.Stdin)
+					if err != nil {
+						cmd.PrintErrf("Error: Failed to read join configuration from stdin. \n\nThe error was: %v\n", err)
+						env.Exit(1)
+						return
+					}
+				} else {
+					b, err = os.ReadFile(opts.configFile)
+					if err != nil {
+						cmd.PrintErrf("Error: Failed to read join configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
+						env.Exit(1)
+						return
+					}
 				}
 				joinClusterConfig = string(b)
 			}
@@ -120,7 +133,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
-	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster join configuration")
+	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster join configuration. Use '-' to read from stdin.")
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	return cmd
 }

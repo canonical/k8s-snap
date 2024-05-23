@@ -22,6 +22,10 @@ func (e *Endpoints) postClusterJoin(s *state.State, r *http.Request) response.Re
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", req.Name, err))
 	}
 
+	if _, err := e.provider.MicroCluster().Status(r.Context()); err == nil {
+		return NodeInUse(fmt.Errorf("node %q is part of the cluster", hostname))
+	}
+
 	config := map[string]string{}
 	internalToken := types.InternalWorkerNodeToken{}
 	// Check if token is worker token

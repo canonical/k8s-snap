@@ -27,7 +27,7 @@ func SetClusterConfig(ctx context.Context, tx *sql.Tx, new types.ClusterConfig) 
 	}
 	config, err := types.MergeClusterConfig(old, new)
 	if err != nil {
-		return types.ClusterConfig{}, fmt.Errorf("failed to update cluster config: %w", err)
+		return types.ClusterConfig{}, fmt.Errorf("failed to merge new cluster configuration options: %w", err)
 	}
 
 	b, err := json.Marshal(config)

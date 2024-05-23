@@ -10,16 +10,14 @@ directory.
 """
 
 import argparse
-import contextlib
 import json
 import logging
-import subprocess
 import sys
 import tarfile
 import tempfile
 import yaml
 from pathlib import Path
-from typing import Any, Generator
+import util
 
 logging.basicConfig(level=logging.INFO)
 
@@ -27,7 +25,7 @@ LOG = logging.getLogger(__name__)
 
 DIR = Path(__file__).absolute().parent
 
-SNAPCRAFT_YAML = yaml.safe_load(Path(DIR / "../../snap/snapcraft.yaml").read_text())
+SNAPCRAFT_YAML = yaml.safe_load(util.read_file(DIR / "../../snap/snapcraft.yaml"))
 
 # FIXME: This information should not be hardcoded here
 CILIUM_ROCK_REPO = "https://github.com/canonical/cilium-rocks"
@@ -50,37 +48,6 @@ SNAPCRAFT_GO_COMPONENTS = [
 K8S_DIR = DIR / "../../src/k8s"
 
 
-@contextlib.contextmanager
-def _git_repo(repo_url: str, repo_tag: str) -> Generator[Path, Any, Any]:
-    """
-    Clone a git repository on a temporary directory and return the directory.
-
-    Example usage:
-
-    ```
-    with _git_repo("https://github.com/canonical/k8s-snap", "master") as dir:
-        print("Repo cloned at", dir)
-    ```
-
-    """
-    with tempfile.TemporaryDirectory() as tmpdir:
-        LOG.info("Cloning %s @ %s", repo_url, repo_tag)
-        _parse_output(["git", "clone", repo_url, tmpdir, "-b", repo_tag, "--depth=1"])
-        yield Path(tmpdir)
-
-
-def _parse_output(*args, **kwargs):
-    return (
-        subprocess.run(*args, capture_output=True, check=True, **kwargs)
-        .stdout.decode()
-        .strip()
-    )
-
-
-def _read_file(path: Path) -> str:
-    return path.read_text().strip()
-
-
 def c_components_from_snapcraft(manifest, extra_files):
     for component in SNAPCRAFT_C_COMPONENTS:
         LOG.info("Generating SBOM info for C component %s", component)
@@ -96,16 +63,16 @@ def c_components_from_snapcraft(manifest, extra_files):
 def go_components_external(manifest, extra_files):
     for component in SNAPCRAFT_GO_COMPONENTS:
         LOG.info("Generating SBOM info for Go component %s", component)
-        repo_url = _read_file(DIR / "../components" / component / "repository")
-        repo_tag = _parse_output([DIR / "../components" / component / "version.sh"])
+        repo_url = util.read_file(DIR / "../components" / component / "repository")
+        repo_tag = util.read_file(DIR / "../components" / component / "version")
 
         go_mod_name = f"{component}/go.mod"
         go_sum_name = f"{component}/go.sum"
 
-        with _git_repo(repo_url, repo_tag) as dir:
-            repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
-            extra_files[go_mod_name] = _read_file(Path(dir) / "go.mod")
-            extra_files[go_sum_name] = _read_file(Path(dir) / "go.sum")
+        with util.git_repo(repo_url, repo_tag) as dir:
+            repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
+            extra_files[go_mod_name] = util.read_file(Path(dir) / "go.mod")
+            extra_files[go_sum_name] = util.read_file(Path(dir) / "go.sum")
 
         manifest["snap"]["external"][component] = {
             "language": "go",
@@ -121,16 +88,16 @@ def go_components_external(manifest, extra_files):
 
 def k8s_snap_go_components(manifest, extra_files):
     LOG.info("Generating SBOM info for k8s-snap")
-    extra_files["k8s-snap/go.mod"] = _read_file(K8S_DIR / "go.mod")
-    extra_files["k8s-snap/go.sum"] = _read_file(K8S_DIR / "go.sum")
+    extra_files["k8s-snap/go.mod"] = util.read_file(K8S_DIR / "go.mod")
+    extra_files["k8s-snap/go.sum"] = util.read_file(K8S_DIR / "go.sum")
     manifest["snap"]["k8s-snap"]["k8s-snap"] = {
         "language": "go",
         "details": ["k8s-snap/go.mod", "k8s-snap/go.sum"],
         "source": {
             "type": "git",
-            "repo": _parse_output(["git", "remote", "get-url", "origin"]),
-            "tag": _parse_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]),
-            "revision": _parse_output(["git", "rev-parse", "HEAD"]),
+            "repo": util.parse_output(["git", "remote", "get-url", "origin"]),
+            "tag": util.parse_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]),
+            "revision": util.parse_output(["git", "rev-parse", "HEAD"]),
         },
     }
 
@@ -155,8 +122,8 @@ def k8s_snap_c_dqlite_components(manifest, extra_files):
     for component in repos:
         repo_url = repos[component]
         repo_tag = tags[component]
-        with _git_repo(repo_url, repo_tag) as dir:
-            repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
+        with util.git_repo(repo_url, repo_tag) as dir:
+            repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
 
         manifest["snap"]["k8s-snap"][component] = {
             "language": "c",
@@ -172,8 +139,8 @@ def k8s_snap_c_dqlite_components(manifest, extra_files):
 def rock_cilium(manifest, extra_files):
     LOG.info("Generating SBOM info for Cilium rocks")
 
-    with _git_repo(CILIUM_ROCK_REPO, CILIUM_ROCK_TAG) as d:
-        rock_repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=d)
+    with util.git_repo(CILIUM_ROCK_REPO, CILIUM_ROCK_TAG) as d:
+        rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
         rockcraft = (d / "cilium/rockcraft.yaml").read_text()
         operator_rockcraft = (d / "cilium-operator-generic/rockcraft.yaml").read_text()
 
@@ -184,13 +151,13 @@ def rock_cilium(manifest, extra_files):
         repo_url = rockcraft_yaml["parts"]["cilium"]["source"]
         repo_tag = rockcraft_yaml["parts"]["cilium"]["source-tag"]
 
-    with _git_repo(repo_url, repo_tag) as dir:
-        repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
-        extra_files["cilium/go.mod"] = _read_file(dir / "go.mod")
-        extra_files["cilium/go.sum"] = _read_file(dir / "go.sum")
+    with util.git_repo(repo_url, repo_tag) as dir:
+        repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
+        extra_files["cilium/go.mod"] = util.read_file(dir / "go.mod")
+        extra_files["cilium/go.sum"] = util.read_file(dir / "go.sum")
 
-        extra_files["cilium-operator-generic/go.mod"] = _read_file(dir / "go.mod")
-        extra_files["cilium-operator-generic/go.sum"] = _read_file(dir / "go.sum")
+        extra_files["cilium-operator-generic/go.mod"] = util.read_file(dir / "go.mod")
+        extra_files["cilium-operator-generic/go.sum"] = util.read_file(dir / "go.sum")
 
     # NOTE: this silently assumes that cilium and cilium-operator-generic rocks are in sync
     manifest["rocks"]["cilium"] = {
@@ -221,8 +188,8 @@ def rock_cilium(manifest, extra_files):
 def rock_coredns(manifest, extra_files):
     LOG.info("Generating SBOM info for CoreDNS rock")
 
-    with _git_repo(COREDNS_ROCK_REPO, COREDNS_ROCK_TAG) as d:
-        rock_repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=d)
+    with util.git_repo(COREDNS_ROCK_REPO, COREDNS_ROCK_TAG) as d:
+        rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
         rockcraft = (d / "rockcraft.yaml").read_text()
 
         extra_files["coredns/rockcraft.yaml"] = rockcraft
@@ -231,10 +198,10 @@ def rock_coredns(manifest, extra_files):
         repo_url = rockcraft_yaml["parts"]["coredns"]["source"]
         repo_tag = rockcraft_yaml["parts"]["coredns"]["source-tag"]
 
-    with _git_repo(repo_url, repo_tag) as dir:
-        repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
-        extra_files["coredns/go.mod"] = _read_file(dir / "go.mod")
-        extra_files["coredns/go.sum"] = _read_file(dir / "go.sum")
+    with util.git_repo(repo_url, repo_tag) as dir:
+        repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
+        extra_files["coredns/go.mod"] = util.read_file(dir / "go.mod")
+        extra_files["coredns/go.sum"] = util.read_file(dir / "go.sum")
 
     manifest["rocks"]["coredns"] = {
         "rock-source": {
@@ -257,8 +224,8 @@ def rock_coredns(manifest, extra_files):
 def rock_metrics_server(manifest, extra_files):
     LOG.info("Generating SBOM info for metrics-server rock")
 
-    with _git_repo(METRICS_SERVER_ROCK_REPO, METRICS_SERVER_ROCK_TAG) as d:
-        rock_repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=d)
+    with util.git_repo(METRICS_SERVER_ROCK_REPO, METRICS_SERVER_ROCK_TAG) as d:
+        rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
         rockcraft = (d / "rockcraft.yaml").read_text()
 
         extra_files["metrics-server/rockcraft.yaml"] = rockcraft
@@ -267,10 +234,10 @@ def rock_metrics_server(manifest, extra_files):
         repo_url = rockcraft_yaml["parts"]["metrics-server"]["source"]
         repo_tag = rockcraft_yaml["parts"]["metrics-server"]["source-tag"]
 
-    with _git_repo(repo_url, repo_tag) as dir:
-        repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
-        extra_files["metrics-server/go.mod"] = _read_file(dir / "go.mod")
-        extra_files["metrics-server/go.sum"] = _read_file(dir / "go.sum")
+    with util.git_repo(repo_url, repo_tag) as dir:
+        repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
+        extra_files["metrics-server/go.mod"] = util.read_file(dir / "go.mod")
+        extra_files["metrics-server/go.sum"] = util.read_file(dir / "go.sum")
 
     manifest["rocks"]["metrics-server"] = {
         "rock-source": {
@@ -300,11 +267,11 @@ def rock_rawfile_localpv(manifest, extra_files):
     repo_url = RAWFILE_LOCALPV_REPO
     repo_tag = RAWFILE_LOCALPV_TAG
 
-    with _git_repo(repo_url, repo_tag) as dir:
+    with util.git_repo(repo_url, repo_tag) as dir:
         rockcraft = (dir / "rockcraft.yaml").read_text()
         requirements = (dir / "requirements.txt").read_text()
 
-        repo_commit = _parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
+        repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
 
         extra_files["rawfile-localpv/rockcraft.yaml"] = rockcraft
         extra_files["rawfile-localpv/requirements.txt"] = requirements

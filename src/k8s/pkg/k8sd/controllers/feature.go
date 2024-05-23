@@ -73,31 +73,31 @@ func (c *FeatureController) Run(ctx context.Context, getClusterConfig func(conte
 	c.waitReady()
 
 	go c.reconcileLoop(ctx, getClusterConfig, "network", c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) error {
-		return features.ApplyNetwork(ctx, c.snap, cfg.Network)
+		return features.Implementation.ApplyNetwork(ctx, c.snap, cfg.Network)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, "gateway", c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) error {
-		return features.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network)
+		return features.Implementation.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, "ingress", c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) error {
-		return features.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network)
+		return features.Implementation.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, "load balancer", c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) error {
-		return features.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network)
+		return features.Implementation.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, "local storage", c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) error {
-		return features.ApplyLocalStorage(ctx, c.snap, cfg.LocalStorage)
+		return features.Implementation.ApplyLocalStorage(ctx, c.snap, cfg.LocalStorage)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, "metrics server", c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) error {
-		return features.ApplyMetricsServer(ctx, c.snap, cfg.MetricsServer)
+		return features.Implementation.ApplyMetricsServer(ctx, c.snap, cfg.MetricsServer)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, "DNS", c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) error {
-		if dnsIP, err := features.ApplyDNS(ctx, c.snap, cfg.DNS, cfg.Kubelet); err != nil {
+		if dnsIP, err := features.Implementation.ApplyDNS(ctx, c.snap, cfg.DNS, cfg.Kubelet); err != nil {
 			return fmt.Errorf("failed to apply DNS configuration: %w", err)
 		} else if dnsIP != "" {
 			if err := notifyDNSChangedIP(ctx, dnsIP); err != nil {

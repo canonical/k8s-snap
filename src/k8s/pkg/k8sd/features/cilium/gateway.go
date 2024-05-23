@@ -1,4 +1,4 @@
-package features
+package cilium
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-// ApplyGateway is used to configure the gateway feature on Canonical Kubernetes.
 // ApplyGateway assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
 // ApplyGateway will deploy the Gateway API CRDs on the cluster and enable the GatewayAPI controllers on Cilium, when gateway.Enabled is true.
 // ApplyGateway will remove the Gateway API CRDs from the cluster and disable the GatewayAPI controllers on Cilium, when gateway.Enabled is false.
@@ -18,7 +17,7 @@ import (
 func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network) error {
 	m := snap.HelmClient()
 
-	if _, err := m.Apply(ctx, chartCiliumGateway, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {
+	if _, err := m.Apply(ctx, chartGateway, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {
 		return fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 	}
 

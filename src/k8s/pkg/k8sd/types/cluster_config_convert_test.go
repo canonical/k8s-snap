@@ -159,6 +159,23 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "ControlPlainTaints",
+			bootstrap: apiv1.BootstrapConfig{
+				ControlPlaneTaints: []string{"node-role.kubernetes.io/control-plane:NoSchedule"},
+			},
+			expectConfig: types.ClusterConfig{
+				APIServer: types.APIServer{
+					AuthorizationMode: utils.Pointer("Node,RBAC"),
+				},
+				Datastore: types.Datastore{
+					Type: utils.Pointer("k8s-dqlite"),
+				},
+				Kubelet: types.Kubelet{
+					ControlPlaneTaints: utils.Pointer([]string{"node-role.kubernetes.io/control-plane:NoSchedule"}),
+				},
+			},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)

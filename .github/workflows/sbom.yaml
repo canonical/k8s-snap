@@ -6,11 +6,12 @@ on:
       - main
       - autoupdate/strict
       - 'release-[0-9]+.[0-9]+'
-      - 'release-[0-9]+.[0-9]+-strict'
+      - 'autoupdate/release-[0-9]+.[0-9]+-strict'
+      - 'autoupdate/sync/**'
   pull_request:
-    branches:
-      - main
-      - 'release-[0-9]+.[0-9]+'
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -18,6 +19,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Setup Python

@@ -36,4 +36,4 @@ Follow along with the [tutorial] to get started!
 [nodes]: /snap/tutorial/add-remove-nodes
 [COS Lite]: https://charmhub.io/cos-lite
 [networking]: /snap/howto/networking/index
-[observability documentation]: /snap/howto/cos-lite
+[observability documentation]: /charm/howto/cos-lite

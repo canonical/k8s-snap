@@ -1,11 +1,14 @@
 package k8s
 
 import (
+	"bytes"
 	_ "embed"
-	"github.com/canonical/k8s/pkg/utils"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/utils"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	. "github.com/onsi/gomega"
@@ -112,7 +115,7 @@ func TestGetConfigYaml(t *testing.T) {
 			mustAddConfigToTestDir(t, configPath, tc.yamlConfig)
 
 			// Get the config from the test directory
-			bootstrapConfig, err := getConfigFromYaml(configPath)
+			bootstrapConfig, err := getConfigFromYaml(cmdutil.DefaultExecutionEnvironment(), configPath)
 
 			if tc.expectedError != "" {
 				g.Expect(err).To(HaveOccurred())
@@ -123,4 +126,21 @@ func TestGetConfigYaml(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetConfigFromYaml_Stdin(t *testing.T) {
+	g := NewWithT(t)
+
+	input := `secure-port: 5000`
+
+	// Redirect stdin to the mock input
+	env := cmdutil.DefaultExecutionEnvironment()
+	env.Stdin = bytes.NewBufferString(input)
+
+	// Call the getConfigFromYaml function with "-" as filePath
+	config, err := getConfigFromYaml(env, "-")
+	g.Expect(err).ToNot(HaveOccurred())
+
+	expectedConfig := apiv1.BootstrapConfig{SecurePort: utils.Pointer(5000)}
+	g.Expect(config).To(Equal(expectedConfig))
 }
