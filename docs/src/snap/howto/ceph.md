@@ -37,9 +37,9 @@ rbd pool init kubernetes
 
 ## Configure ceph-csi
 
-Ceph CSI is the CSI driver for Ceph. With Ceph CSI, Kubernetes will be able to
-accomplish tasks related to your Ceph cluster (like attaching volumes to
-workloads.)
+Ceph CSI is the Container Storage Interface (CSI) driver for Ceph. With Ceph
+CSI, Kubernetes will be able to accomplish tasks related to your Ceph cluster
+(like attaching volumes to workloads.)
 
 Create a user for Kubernetes and ceph-csi.
 
@@ -61,6 +61,8 @@ First, get the fsid and the monitor addresses of your cluster.
 ```
 sudo ceph mon dump
 ```
+
+This will dump a Ceph monitor map such as:
 
 ```
 epoch 2
@@ -102,7 +104,7 @@ kubectl apply -f csi-config-map.yaml
 
 Recent versions of ceph-csi also require an additional ConfigMap object to
 define Key Management Service (KMS) provider details. KMS is not set up as part
-of this tutorial, hence put an empty configuration in csi-kms-config-map.yaml.
+of this guide, hence put an empty configuration in `csi-kms-config-map.yaml`.
 
 ```
 cat <<EOF > csi-kms-config-map.yaml
@@ -117,13 +119,15 @@ metadata:
 EOF
 ```
 
+Then apply:
+
 ```
 kubectl apply -f csi-kms-config-map.yaml
 ```
 
 Create the `ceph-config-map.yaml` which will be stored inside a ceph.conf file
-in the CSI containers. This ceph.conf file will be used by Ceph daemons on each
-container to authenticate with the Ceph cluster.
+in the CSI containers. This `ceph.conf` file will be used by Ceph daemons on
+each container to authenticate with the Ceph cluster.
 
 ```
 cat <<EOF > ceph-config-map.yaml
@@ -142,6 +146,8 @@ metadata:
   name: ceph-config
 EOF
 ```
+
+Then apply:
 
 ```
 kubectl apply -f ceph-config-map.yaml
@@ -166,13 +172,15 @@ stringData:
 EOF
 ```
 
+Then apply:
+
 ```
 kubectl apply -f csi-rbd-secret.yaml
 ```
 
 ## Create ceph-csi's custom Kubernetes objects
 
-Create the ServiceAccount and RBAC ClusterRole/ClusterRoleBinding objects.
+Create the ServiceAccount and RBAC ClusterRole/ClusterRoleBinding objects:
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-provisioner-rbac.yaml
@@ -180,11 +188,11 @@ kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/r
 kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml
 ```
 
-Create the ceph-csi provisioner and node plugins.
+Create the ceph-csi provisioner and node plugins:
 
 ```
 wget https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml
-
+:
 kubectl apply -f csi-rbdplugin-provisioner.yaml
 
 wget https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-rbdplugin.yaml
@@ -227,6 +235,8 @@ mountOptions:
 EOF
 ```
 
+Then apply:
+
 ```
 kubectl apply -f csi-rbd-sc.yaml
 ```
@@ -252,6 +262,8 @@ spec:
   storageClassName: csi-rbd-sc
 EOF
 ```
+
+Then apply:
 
 ```
 kubectl apply -f pvc.yaml
@@ -282,6 +294,8 @@ spec:
         readOn
 EOF
 ```
+
+Then apply:
 
 ```
 kubectl apply -f pod.yaml
