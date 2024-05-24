@@ -9,8 +9,9 @@ k8s get-join-token <node-name> [flags]
 ### Options
 
 ```
-  -h, --help     help for get-join-token
-      --worker   generate a join token for a worker node
+  -h, --help               help for get-join-token
+      --timeout duration   the max time to wait for the command to execute (default 1m30s)
+      --worker             generate a join token for a worker node
 ```
 
 ### SEE ALSO
