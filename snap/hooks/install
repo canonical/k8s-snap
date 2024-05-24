@@ -4,8 +4,6 @@
 
 k8s::common::setup_env
 
-# disable snap set/get by default
-k8s::cmd::k8s x-snapd-config disable
 
 # k8s has a REST interface to initialize a cluster.
 # In order to interact with the REST API the k8sd service

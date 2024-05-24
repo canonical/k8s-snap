@@ -78,7 +78,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
-			mode.Orb = "snapd"
+			mode.Orb = "k8sd"
 			if err := snapdconfig.SetMeta(cmd.Context(), env.Snap, mode); err != nil {
 				cmd.PrintErrf("Error: failed to set snapd configuration: %v\n", err)
 				env.Exit(1)

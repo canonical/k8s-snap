@@ -33,9 +33,9 @@ func ParseMeta(ctx context.Context, s snap.Snap) (Meta, bool, error) {
 		return Meta{}, false, fmt.Errorf("failed to parse snap config mode: %w", err)
 	}
 
-	// default meta.orb is none
+	// default meta.orb is k8sd
 	if parse.Meta.Orb == "" {
-		parse.Meta.Orb = "none"
+		parse.Meta.Orb = "k8sd"
 	}
 	switch parse.Meta.Orb {
 	case "k8sd", "snapd", "none":
