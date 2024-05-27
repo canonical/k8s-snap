@@ -1,0 +1,9 @@
+version: 1
+creds:
+  - registry: ghcr.io/canonical
+    user: '{{ env "USERNAME" }}'
+    pass: '{{ env "PASSWORD" }}'
+sync:
+  - source: registry.k8s.io/pause:3.7
+    target: ghcr.io/canonical/pause:3.7
+    type: image

@@ -1,7 +1,0 @@
-registry.k8s.io:
-  images-by-semver:
-    pause: "= 3.7"
-
-quay.io:
-  images-by-semver:
-    skopeo/stable: "= v1.15.0"

@@ -1,0 +1,21 @@
+on:
+  push:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Sync registry.k8s.io to ghcr.io/canonical
+        env:
+          USERNAME: ${{ github.actor }}
+          PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./build-scripts/hack/sync-images.sh
