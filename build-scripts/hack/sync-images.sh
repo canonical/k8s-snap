@@ -8,4 +8,4 @@
 
 DIR="$(realpath "$(dirname "${0}")")"
 
-"${DIR}/../../src/k8s/tools/regsync.sh" once "${DIR}/sync-images.yaml"
+"${DIR}/../../src/k8s/tools/regsync.sh" once -c "${DIR}/sync-images.yaml"
