@@ -1,6 +1,9 @@
 #!/bin/bash
 
-docker run -v "./sync-registry-config.yaml":/config.yaml ghcr.io/canonical/stable:1.15.0 sync \
+DIR=`realpath $(dirname "${0}")`
+echo "DIR: $DIR"
+
+docker run -v "$DIR/sync-registry-config.yaml":/config.yaml ghcr.io/canonical/stable:1.15.0 sync \
   --src yaml \
   --dest docker \
   /config.yaml ghcr.io/canonical \
