@@ -1,5 +1,7 @@
+name: Sync upstream images to ghcr.io
+
 on:
-  push:
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -13,7 +15,7 @@ jobs:
         with:
           go-version: "1.22"
 
-      - name: Sync registry.k8s.io to ghcr.io/canonical
+      - name: Sync images
         env:
           USERNAME: ${{ github.actor }}
           PASSWORD: ${{ secrets.GITHUB_TOKEN }}
