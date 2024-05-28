@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -142,6 +143,10 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	// Configure services
 	if err := setupControlPlaneServices(snap, s, cfg, nodeIP); err != nil {
 		return fmt.Errorf("failed to configure services: %w", err)
+	}
+
+	if err := snapdconfig.SetSnapdFromK8sd(s.Context, cfg.ToUserFacing(), snap); err != nil {
+		return fmt.Errorf("failed to set snapd configuration from k8sd: %w", err)
 	}
 
 	// Start services
