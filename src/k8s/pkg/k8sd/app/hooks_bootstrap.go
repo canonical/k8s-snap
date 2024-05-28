@@ -18,6 +18,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -332,6 +333,10 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		return nil
 	}); err != nil {
 		return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
+	}
+
+	if err := snapdconfig.SetSnapdFromK8sd(s.Context, cfg.ToUserFacing(), snap); err != nil {
+		return fmt.Errorf("failed to set snapd configuration from k8sd: %w", err)
 	}
 
 	// Start services

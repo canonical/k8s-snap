@@ -4,6 +4,4 @@
 
 k8s::common::setup_env
 
-if [ -e "$SNAP_COMMON/var/lib/k8sd/state/control.socket" ]; then
-  k8s::cmd::k8s x-snapd-config reconcile
-fi
+k8s::cmd::k8s x-snapd-config reconcile

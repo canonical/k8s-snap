@@ -13,7 +13,7 @@ import (
 func SetSnapdFromK8sd(ctx context.Context, config apiv1.UserFacingClusterConfig, snap snap.Snap) error {
 	var sets []string
 	for key, cfg := range map[string]any{
-		"meta":          Meta{Orb: "k8sd", APIVersion: "1.30"},
+		"meta":          Meta{Orb: "snapd", APIVersion: "1.30"},
 		"dns":           config.DNS,
 		"network":       config.Network,
 		"local-storage": config.LocalStorage,
