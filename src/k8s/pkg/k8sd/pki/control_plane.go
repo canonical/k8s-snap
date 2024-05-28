@@ -113,6 +113,19 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		c.CAKey = key
 	}
 
+	// Generate self-signed client CA (if not set already)
+	if c.ClientCACert == "" && c.ClientCAKey == "" {
+		if !c.allowSelfSignedCA {
+			return fmt.Errorf("kubernetes client CA not specified and generating self-signed CA not allowed")
+		}
+		cert, key, err := generateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca-client"}, c.years, 2048)
+		if err != nil {
+			return fmt.Errorf("failed to generate kubernetes client CA: %w", err)
+		}
+		c.ClientCACert = cert
+		c.ClientCAKey = key
+	}
+
 	serverCACert, serverCAKey, err := loadCertificate(c.CACert, c.CAKey)
 	if err != nil {
 		return fmt.Errorf("failed to parse kubernetes CA: %w", err)
