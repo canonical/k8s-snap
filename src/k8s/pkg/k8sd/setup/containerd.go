@@ -124,7 +124,7 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry) error {
 		CNIBinDir:         snap.CNIBinDir(),
 		ImportsDir:        snap.ContainerdExtraConfigDir(),
 		RegistryConfigDir: snap.ContainerdRegistryConfigDir(),
-		PauseImage:        "registry.k8s.io/pause:3.7",
+		PauseImage:        "ghcr.io/canonical/k8s-snap/pause:3.10",
 	}); err != nil {
 		return fmt.Errorf("failed to write config.toml: %w", err)
 	}
