@@ -1,8 +1,6 @@
 package setup_test
 
 import (
-	"encoding/base64"
-	"fmt"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -12,11 +10,10 @@ import (
 func TestKubeconfigString(t *testing.T) {
 	g := NewWithT(t)
 
-	ca := base64.StdEncoding.EncodeToString([]byte("ca"))
-	expectedConfig := fmt.Sprintf(`apiVersion: v1
+	expectedConfig := `apiVersion: v1
 clusters:
 - cluster:
-    certificate-authority-data: %s
+    certificate-authority-data: Y2E=
     server: https://server
   name: k8s
 contexts:
@@ -30,10 +27,11 @@ preferences: {}
 users:
 - name: k8s-user
   user:
-    token: token
-`, ca)
+    client-certificate-data: Y3J0
+    client-key-data: a2V5
+`
 
-	actual, err := setup.KubeconfigString("token", "server", "ca")
+	actual, err := setup.KubeconfigString("server", "ca", "crt", "key")
 
 	g.Expect(actual).To(Equal(expectedConfig))
 	g.Expect(err).To(BeNil())

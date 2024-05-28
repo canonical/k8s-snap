@@ -120,9 +120,13 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 
 	// Certificates
 	certificates := &pki.WorkerNodePKI{
-		CACert:      response.CA,
-		KubeletCert: response.KubeletCert,
-		KubeletKey:  response.KubeletKey,
+		CACert:              response.CA,
+		KubeletCert:         response.KubeletCert,
+		KubeletKey:          response.KubeletKey,
+		KubeletClientCert:   response.KubeletClientCert,
+		KubeletClientKey:    response.KubeletClientKey,
+		KubeProxyClientCert: response.KubeProxyClientCert,
+		KubeProxyClientKey:  response.KubeProxyClientKey,
 	}
 
 	if v := joinConfig.GetKubeletCert(); v != "" {
@@ -140,10 +144,10 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	}
 
 	// Kubeconfigs
-	if err := setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), "kubelet.conf"), response.KubeletToken, "127.0.0.1:6443", certificates.CACert); err != nil {
+	if err := setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), "kubelet.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
 		return fmt.Errorf("failed to generate kubelet kubeconfig: %w", err)
 	}
-	if err := setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), "proxy.conf"), response.KubeProxyToken, "127.0.0.1:6443", certificates.CACert); err != nil {
+	if err := setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), "proxy.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
 		return fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err)
 	}
 
@@ -274,6 +278,8 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 
 	certificates.CACert = bootstrapConfig.GetCACert()
 	certificates.CAKey = bootstrapConfig.GetCAKey()
+	certificates.ClientCACert = bootstrapConfig.GetClientCACert()
+	certificates.ClientCAKey = bootstrapConfig.GetClientCAKey()
 	certificates.FrontProxyCACert = bootstrapConfig.GetFrontProxyCACert()
 	certificates.FrontProxyCAKey = bootstrapConfig.GetFrontProxyCAKey()
 	certificates.FrontProxyClientCert = bootstrapConfig.GetFrontProxyClientCert()
@@ -305,7 +311,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	cfg.Certificates.K8sdPrivateKey = utils.Pointer(certificates.K8sdPrivateKey)
 
 	// Generate kubeconfigs
-	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), cfg.Certificates.GetCACert()); err != nil {
+	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 

@@ -100,6 +100,7 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (b
 		path.Join(snap.KubernetesPKIDir(), "apiserver.crt"):                certificates.APIServerCert,
 		path.Join(snap.KubernetesPKIDir(), "apiserver.key"):                certificates.APIServerKey,
 		path.Join(snap.KubernetesPKIDir(), "ca.crt"):                       certificates.CACert,
+		path.Join(snap.KubernetesPKIDir(), "client-ca.crt"):                certificates.ClientCACert,
 		path.Join(snap.KubernetesPKIDir(), "ca.key"):                       certificates.CAKey,
 		path.Join(snap.KubernetesPKIDir(), "front-proxy-ca.crt"):           certificates.FrontProxyCACert,
 		path.Join(snap.KubernetesPKIDir(), "front-proxy-ca.key"):           certificates.FrontProxyCAKey,

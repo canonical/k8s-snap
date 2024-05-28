@@ -29,6 +29,8 @@ type BootstrapConfig struct {
 	// Seed configuration for external certificates
 	CACert                     *string `json:"ca-crt,omitempty" yaml:"ca-crt,omitempty"`
 	CAKey                      *string `json:"ca-key,omitempty" yaml:"ca-key,omitempty"`
+	ClientCACert               *string `json:"cca-crt,omitempty" yaml:"ca-crt,omitempty"`
+	ClientCAKey                *string `json:"cca-key,omitempty" yaml:"ca-key,omitempty"`
 	FrontProxyCACert           *string `json:"front-proxy-ca-crt,omitempty" yaml:"front-proxy-ca-crt,omitempty"`
 	FrontProxyCAKey            *string `json:"front-proxy-ca-key,omitempty" yaml:"front-proxy-ca-key,omitempty"`
 	FrontProxyClientCert       *string `json:"front-proxy-client-crt,omitempty" yaml:"front-proxy-client-crt,omitempty"`
@@ -50,6 +52,8 @@ func (b *BootstrapConfig) GetDatastoreClientKey() string   { return getField(b.D
 func (b *BootstrapConfig) GetK8sDqlitePort() int           { return getField(b.K8sDqlitePort) }
 func (b *BootstrapConfig) GetCACert() string               { return getField(b.CACert) }
 func (b *BootstrapConfig) GetCAKey() string                { return getField(b.CAKey) }
+func (b *BootstrapConfig) GetClientCACert() string         { return getField(b.ClientCACert) }
+func (b *BootstrapConfig) GetClientCAKey() string          { return getField(b.ClientCAKey) }
 func (b *BootstrapConfig) GetFrontProxyCACert() string     { return getField(b.FrontProxyCACert) }
 func (b *BootstrapConfig) GetFrontProxyCAKey() string      { return getField(b.FrontProxyCAKey) }
 func (b *BootstrapConfig) GetFrontProxyClientCert() string { return getField(b.FrontProxyClientCert) }
