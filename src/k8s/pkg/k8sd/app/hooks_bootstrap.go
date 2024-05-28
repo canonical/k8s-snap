@@ -307,6 +307,8 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	cfg.Certificates.APIServerKubeletClientCert = utils.Pointer(certificates.APIServerKubeletClientCert)
 	cfg.Certificates.APIServerKubeletClientKey = utils.Pointer(certificates.APIServerKubeletClientKey)
 	cfg.Certificates.ServiceAccountKey = utils.Pointer(certificates.ServiceAccountKey)
+	cfg.Certificates.AdminClientCert = utils.Pointer(certificates.AdminClientCert)
+	cfg.Certificates.AdminClientKey = utils.Pointer(certificates.AdminClientKey)
 	cfg.Certificates.K8sdPublicKey = utils.Pointer(certificates.K8sdPublicKey)
 	cfg.Certificates.K8sdPrivateKey = utils.Pointer(certificates.K8sdPrivateKey)
 
