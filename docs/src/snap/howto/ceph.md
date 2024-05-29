@@ -331,7 +331,6 @@ Ceph documentation: [Intro to Ceph].
 <!-- LINKS -->
 
 [Ceph]: https://ceph.com/
-
 [getting-started-guide]: ../tutorial/getting-started.md
 [block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
 [placement groups]: https://docs.ceph.com/en/mimic/rados/operations/placement-groups/
