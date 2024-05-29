@@ -302,6 +302,8 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	// Add certificates to the cluster config
 	cfg.Certificates.CACert = utils.Pointer(certificates.CACert)
 	cfg.Certificates.CAKey = utils.Pointer(certificates.CAKey)
+	cfg.Certificates.ClientCACert = utils.Pointer(certificates.ClientCACert)
+	cfg.Certificates.ClientCAKey = utils.Pointer(certificates.ClientCAKey)
 	cfg.Certificates.FrontProxyCACert = utils.Pointer(certificates.FrontProxyCACert)
 	cfg.Certificates.FrontProxyCAKey = utils.Pointer(certificates.FrontProxyCAKey)
 	cfg.Certificates.APIServerKubeletClientCert = utils.Pointer(certificates.APIServerKubeletClientCert)
