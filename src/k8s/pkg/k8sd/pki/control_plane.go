@@ -24,7 +24,7 @@ type ControlPlanePKI struct {
 	// [server] CN=kube-apiserver, DNS=hostname,kubernetes.* IP=127.0.0.1,10.152.183.1,address (signed by kubernetes-ca)
 	APIServerCert, APIServerKey string
 
-	// [server] CN=system:node:hostname, O=system:nodes, DNS=hostname, IP=127.0.0.1,address (signed by kubernetes-ca)
+	// [server] CN=system:node:$hostname, O=system:nodes, DNS=hostname, IP=127.0.0.1,address (signed by kubernetes-ca)
 	KubeletCert, KubeletKey string
 
 	// [client] CN=kubernetes:admin, O=system:masters (signed by kubernetes-ca-client)
@@ -39,7 +39,7 @@ type ControlPlanePKI struct {
 	// [client] CN=system:kube-proxy (signed by kubernetes-ca-client)
 	KubeProxyClientCert, KubeProxyClientKey string
 
-	// [client] CN=system:node:hostname, O=system:nodes (signed by kubernetes-ca-client)
+	// [client] CN=system:node:$hostname, O=system:nodes (signed by kubernetes-ca-client)
 	KubeletClientCert, KubeletClientKey string
 
 	// [client] CN=kube-apiserver-kubelet-client, O=system:masters (signed by kubernetes-ca-client)

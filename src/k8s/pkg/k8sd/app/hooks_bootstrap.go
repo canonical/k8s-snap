@@ -130,11 +130,21 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 		KubeProxyClientKey:  response.KubeProxyClientKey,
 	}
 
-	if v := joinConfig.GetKubeletCert(); v != "" {
-		certificates.KubeletCert = v
-	}
-	if v := joinConfig.GetKubeletKey(); v != "" {
-		certificates.KubeletKey = v
+	// override certificates from JoinConfig
+	for _, i := range []struct {
+		target   *string
+		override string
+	}{
+		{target: &certificates.KubeletCert, override: joinConfig.GetKubeletCert()},
+		{target: &certificates.KubeletKey, override: joinConfig.GetKubeletKey()},
+		{target: &certificates.KubeletClientCert, override: joinConfig.GetKubeletClientCert()},
+		{target: &certificates.KubeletClientKey, override: joinConfig.GetKubeletClientKey()},
+		{target: &certificates.KubeProxyClientCert, override: joinConfig.GetKubeProxyClientCert()},
+		{target: &certificates.KubeProxyClientKey, override: joinConfig.GetKubeProxyClientKey()},
+	} {
+		if i.override != "" {
+			*i.target = i.override
+		}
 	}
 
 	if err := certificates.CompleteCertificates(); err != nil {
@@ -288,10 +298,21 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	certificates.ServiceAccountKey = bootstrapConfig.GetServiceAccountKey()
 	certificates.APIServerKubeletClientCert = bootstrapConfig.GetAPIServerKubeletClientCert()
 	certificates.APIServerKubeletClientKey = bootstrapConfig.GetAPIServerKubeletClientKey()
+	certificates.AdminClientCert = bootstrapConfig.GetAdminClientCert()
+	certificates.AdminClientKey = bootstrapConfig.GetAdminClientKey()
+	certificates.KubeControllerManagerClientCert = bootstrapConfig.GetKubeControllerManagerClientCert()
+	certificates.KubeControllerManagerClientKey = bootstrapConfig.GetKubeControllerManagerClientKey()
+	certificates.KubeSchedulerClientCert = bootstrapConfig.GetKubeSchedulerClientCert()
+	certificates.KubeSchedulerClientKey = bootstrapConfig.GetKubeSchedulerClientKey()
+	certificates.KubeProxyClientCert = bootstrapConfig.GetKubeProxyClientCert()
+	certificates.KubeProxyClientKey = bootstrapConfig.GetKubeProxyClientKey()
+
 	certificates.APIServerCert = bootstrapConfig.GetAPIServerCert()
 	certificates.APIServerKey = bootstrapConfig.GetAPIServerKey()
 	certificates.KubeletCert = bootstrapConfig.GetKubeletCert()
 	certificates.KubeletKey = bootstrapConfig.GetKubeletKey()
+	certificates.KubeletClientCert = bootstrapConfig.GetKubeletClientCert()
+	certificates.KubeletClientKey = bootstrapConfig.GetKubeletClientKey()
 
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)

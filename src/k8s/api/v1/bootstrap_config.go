@@ -26,23 +26,34 @@ type BootstrapConfig struct {
 	// Seed configuration for certificates
 	ExtraSANs []string `json:"extra-sans,omitempty" yaml:"extra-sans,omitempty"`
 
-	// Seed configuration for external certificates
-	CACert                     *string `json:"ca-crt,omitempty" yaml:"ca-crt,omitempty"`
-	CAKey                      *string `json:"ca-key,omitempty" yaml:"ca-key,omitempty"`
-	ClientCACert               *string `json:"client-ca-crt,omitempty" yaml:"client-ca-crt,omitempty"`
-	ClientCAKey                *string `json:"client-ca-key,omitempty" yaml:"client-ca-key,omitempty"`
-	FrontProxyCACert           *string `json:"front-proxy-ca-crt,omitempty" yaml:"front-proxy-ca-crt,omitempty"`
-	FrontProxyCAKey            *string `json:"front-proxy-ca-key,omitempty" yaml:"front-proxy-ca-key,omitempty"`
-	FrontProxyClientCert       *string `json:"front-proxy-client-crt,omitempty" yaml:"front-proxy-client-crt,omitempty"`
-	FrontProxyClientKey        *string `json:"front-proxy-client-key,omitempty" yaml:"front-proxy-client-key,omitempty"`
-	APIServerKubeletClientCert *string `json:"apiserver-kubelet-client-crt,omitempty" yaml:"apiserver-kubelet-client-crt,omitempty"`
-	APIServerKubeletClientKey  *string `json:"apiserver-kubelet-client-key,omitempty" yaml:"apiserver-kubelet-client-key,omitempty"`
-	ServiceAccountKey          *string `json:"service-account-key,omitempty" yaml:"service-account-key,omitempty"`
+	// Seed configuration for external certificates (cluster-wide)
+	CACert                          *string `json:"ca-crt,omitempty" yaml:"ca-crt,omitempty"`
+	CAKey                           *string `json:"ca-key,omitempty" yaml:"ca-key,omitempty"`
+	ClientCACert                    *string `json:"client-ca-crt,omitempty" yaml:"client-ca-crt,omitempty"`
+	ClientCAKey                     *string `json:"client-ca-key,omitempty" yaml:"client-ca-key,omitempty"`
+	FrontProxyCACert                *string `json:"front-proxy-ca-crt,omitempty" yaml:"front-proxy-ca-crt,omitempty"`
+	FrontProxyCAKey                 *string `json:"front-proxy-ca-key,omitempty" yaml:"front-proxy-ca-key,omitempty"`
+	FrontProxyClientCert            *string `json:"front-proxy-client-crt,omitempty" yaml:"front-proxy-client-crt,omitempty"`
+	FrontProxyClientKey             *string `json:"front-proxy-client-key,omitempty" yaml:"front-proxy-client-key,omitempty"`
+	APIServerKubeletClientCert      *string `json:"apiserver-kubelet-client-crt,omitempty" yaml:"apiserver-kubelet-client-crt,omitempty"`
+	APIServerKubeletClientKey       *string `json:"apiserver-kubelet-client-key,omitempty" yaml:"apiserver-kubelet-client-key,omitempty"`
+	AdminClientCert                 *string `json:"admin-client-crt,omitempty" yaml:"admin-client-crt,omitempty"`
+	AdminClientKey                  *string `json:"admin-client-key,omitempty" yaml:"admin-client-key,omitempty"`
+	KubeProxyClientCert             *string `json:"kube-proxy-client-crt,omitempty" yaml:"kube-proxy-client-crt,omitempty"`
+	KubeProxyClientKey              *string `json:"kube-proxy-client-key,omitempty" yaml:"kube-proxy-client-key,omitempty"`
+	KubeSchedulerClientCert         *string `json:"kube-scheduler-client-crt,omitempty" yaml:"kube-scheduler-client-crt,omitempty"`
+	KubeSchedulerClientKey          *string `json:"kube-scheduler-client-key,omitempty" yaml:"kube-scheduler-client-key,omitempty"`
+	KubeControllerManagerClientCert *string `json:"kube-controller-manager-client-crt,omitempty" yaml:"kube-controller-manager-client-crt,omitempty"`
+	KubeControllerManagerClientKey  *string `json:"kube-controller-manager-client-key,omitempty" yaml:"kube-ControllerManager-client-key,omitempty"`
+	ServiceAccountKey               *string `json:"service-account-key,omitempty" yaml:"service-account-key,omitempty"`
 
-	APIServerCert *string `json:"apiserver-crt,omitempty" yaml:"apiserver-crt,omitempty"`
-	APIServerKey  *string `json:"apiserver-key,omitempty" yaml:"apiserver-key,omitempty"`
-	KubeletCert   *string `json:"kubelet-crt,omitempty" yaml:"kubelet-crt,omitempty"`
-	KubeletKey    *string `json:"kubelet-key,omitempty" yaml:"kubelet-key,omitempty"`
+	// Seed configuration for external certificates (node-specific)
+	APIServerCert     *string `json:"apiserver-crt,omitempty" yaml:"apiserver-crt,omitempty"`
+	APIServerKey      *string `json:"apiserver-key,omitempty" yaml:"apiserver-key,omitempty"`
+	KubeletCert       *string `json:"kubelet-crt,omitempty" yaml:"kubelet-crt,omitempty"`
+	KubeletKey        *string `json:"kubelet-key,omitempty" yaml:"kubelet-key,omitempty"`
+	KubeletClientCert *string `json:"kubelet-client-crt,omitempty" yaml:"kubelet-client-crt,omitempty"`
+	KubeletClientKey  *string `json:"kubelet-client-key,omitempty" yaml:"kubelet-client-key,omitempty"`
 }
 
 func (b *BootstrapConfig) GetDatastoreType() string        { return getField(b.DatastoreType) }
@@ -64,11 +75,29 @@ func (b *BootstrapConfig) GetAPIServerKubeletClientCert() string {
 func (b *BootstrapConfig) GetAPIServerKubeletClientKey() string {
 	return getField(b.APIServerKubeletClientKey)
 }
+func (b *BootstrapConfig) GetAdminClientCert() string     { return getField(b.AdminClientCert) }
+func (b *BootstrapConfig) GetAdminClientKey() string      { return getField(b.AdminClientKey) }
+func (b *BootstrapConfig) GetKubeProxyClientCert() string { return getField(b.KubeProxyClientCert) }
+func (b *BootstrapConfig) GetKubeProxyClientKey() string  { return getField(b.KubeProxyClientKey) }
+func (b *BootstrapConfig) GetKubeSchedulerClientCert() string {
+	return getField(b.KubeSchedulerClientCert)
+}
+func (b *BootstrapConfig) GetKubeSchedulerClientKey() string {
+	return getField(b.KubeSchedulerClientKey)
+}
+func (b *BootstrapConfig) GetKubeControllerManagerClientCert() string {
+	return getField(b.KubeControllerManagerClientCert)
+}
+func (b *BootstrapConfig) GetKubeControllerManagerClientKey() string {
+	return getField(b.KubeControllerManagerClientKey)
+}
 func (b *BootstrapConfig) GetServiceAccountKey() string { return getField(b.ServiceAccountKey) }
 func (b *BootstrapConfig) GetAPIServerCert() string     { return getField(b.APIServerCert) }
 func (b *BootstrapConfig) GetAPIServerKey() string      { return getField(b.APIServerKey) }
 func (b *BootstrapConfig) GetKubeletCert() string       { return getField(b.KubeletCert) }
 func (b *BootstrapConfig) GetKubeletKey() string        { return getField(b.KubeletKey) }
+func (b *BootstrapConfig) GetKubeletClientCert() string { return getField(b.KubeletClientCert) }
+func (b *BootstrapConfig) GetKubeletClientKey() string  { return getField(b.KubeletClientKey) }
 
 // ToMicrocluster converts a BootstrapConfig to a map[string]string for use in microcluster.
 func (b *BootstrapConfig) ToMicrocluster() (map[string]string, error) {
