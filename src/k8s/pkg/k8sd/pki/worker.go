@@ -31,15 +31,6 @@ func (c *ControlPlanePKI) CompleteWorkerNodePKI(hostname string, nodeIP net.IP, 
 		return nil, fmt.Errorf("failed to load kubernetes client CA: %w", err)
 	}
 
-	fmt.Printf("%#v\n", map[string]interface{}{
-		"server-ca-crt":        serverCACert,
-		"server-ca-key":        serverCAKey,
-		"client-ca-crt-string": c.ClientCACert,
-		"client-ca-key-string": c.ClientCAKey,
-		"client-ca-crt":        clientCACert,
-		"client-ca-key":        clientCAKey,
-	})
-
 	pki := &WorkerNodePKI{CACert: c.CACert}
 
 	// we have a cluster CA key, sign the kubelet server certificate
@@ -65,8 +56,8 @@ func (c *ControlPlanePKI) CompleteWorkerNodePKI(hostname string, nodeIP net.IP, 
 			cert *string
 			key  *string
 		}{
-			{name: "proxy", cn: "system:kube-proxy", cert: &c.KubeProxyClientCert, key: &c.KubeProxyClientKey},
-			{name: "kubelet", cn: fmt.Sprintf("system:node:%s", c.hostname), o: []string{"system:nodes"}, cert: &c.KubeletClientCert, key: &c.KubeletClientKey},
+			{name: "proxy", cn: "system:kube-proxy", cert: &pki.KubeProxyClientCert, key: &pki.KubeProxyClientKey},
+			{name: "kubelet", cn: fmt.Sprintf("system:node:%s", c.hostname), o: []string{"system:nodes"}, cert: &pki.KubeletClientCert, key: &pki.KubeletClientKey},
 		} {
 			if *i.cert == "" || *i.key == "" {
 				template, err := generateCertificate(pkix.Name{CommonName: i.cn, Organization: i.o}, c.years, false, nil, nil)
