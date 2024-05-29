@@ -71,15 +71,19 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 	}
 
 	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
-		CA:            cfg.Certificates.GetCACert(),
-		APIServers:    servers,
-		PodCIDR:       cfg.Network.GetPodCIDR(),
-		ServiceCIDR:   cfg.Network.GetServiceCIDR(),
-		ClusterDomain: cfg.Kubelet.GetClusterDomain(),
-		ClusterDNS:    cfg.Kubelet.GetClusterDNS(),
-		CloudProvider: cfg.Kubelet.GetCloudProvider(),
-		KubeletCert:   workerCertificates.KubeletCert,
-		KubeletKey:    workerCertificates.KubeletKey,
-		K8sdPublicKey: cfg.Certificates.GetK8sdPublicKey(),
+		CA:                  cfg.Certificates.GetCACert(),
+		APIServers:          servers,
+		PodCIDR:             cfg.Network.GetPodCIDR(),
+		ServiceCIDR:         cfg.Network.GetServiceCIDR(),
+		ClusterDomain:       cfg.Kubelet.GetClusterDomain(),
+		ClusterDNS:          cfg.Kubelet.GetClusterDNS(),
+		CloudProvider:       cfg.Kubelet.GetCloudProvider(),
+		KubeletCert:         workerCertificates.KubeletCert,
+		KubeletKey:          workerCertificates.KubeletKey,
+		KubeletClientCert:   workerCertificates.KubeletClientCert,
+		KubeletClientKey:    workerCertificates.KubeletClientKey,
+		KubeProxyClientCert: workerCertificates.KubeProxyClientCert,
+		KubeProxyClientKey:  workerCertificates.KubeProxyClientKey,
+		K8sdPublicKey:       cfg.Certificates.GetK8sdPublicKey(),
 	})
 }

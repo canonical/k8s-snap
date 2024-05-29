@@ -118,8 +118,6 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 		return fmt.Errorf("failed to create directories: %w", err)
 	}
 
-	fmt.Println("Response was: %#v\n", response)
-
 	// Certificates
 	certificates := &pki.WorkerNodePKI{
 		CACert:              response.CA,
