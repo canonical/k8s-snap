@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
 )
@@ -58,7 +60,19 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			if opts.address == "" {
 				opts.address = util.NetworkInterfaceAddress()
 			}
-			opts.address = util.CanonicalNetworkAddress(opts.address, config.DefaultPort)
+
+			ip := opts.address
+			if _, ipNet, err := net.ParseCIDR(opts.address); err == nil {
+				matchingIP, err := utils.FindMatchingNodeAddress(ipNet)
+				if err != nil {
+					cmd.PrintErrf("Error: Failed to find a matching node address for %q.\n\nThe error was: %v\n", ip, err)
+					env.Exit(1)
+					return
+				}
+				ip = matchingIP.String()
+			}
+
+			opts.address = util.CanonicalNetworkAddress(ip, config.DefaultPort)
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
@@ -110,7 +124,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
-	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
+	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address or CIDR, defaults to the node IP address")
 	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster join configuration. Use '-' to read from stdin.")
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")

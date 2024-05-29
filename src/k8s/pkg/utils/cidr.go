@@ -7,6 +7,26 @@ import (
 	"strings"
 )
 
+// FindMatchingNodeAddress returns the IP address of a network interface that belongs to the given CIDR.
+func FindMatchingNodeAddress(cidr *net.IPNet) (net.IP, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, fmt.Errorf("could not get interface addresses: %w", err)
+	}
+
+	for _, addr := range addrs {
+		ipNet, ok := addr.(*net.IPNet)
+		if !ok {
+			continue
+		}
+		if cidr.Contains(ipNet.IP) {
+			return ipNet.IP, nil
+		}
+	}
+
+	return nil, fmt.Errorf("could not find a matching address for CIDR %q", cidr.String())
+}
+
 // GetFirstIP returns the first IP address of a subnet. Use big.Int so that it can handle both IPv4 and IPv6 addreses.
 func GetFirstIP(subnet string) (net.IP, error) {
 	_, cidr, err := net.ParseCIDR(subnet)
