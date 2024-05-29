@@ -117,8 +117,9 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (b
 // It returns true if one or more files were updated and any error that occured.
 func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) (bool, error) {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
-		path.Join(snap.KubernetesPKIDir(), "ca.crt"):      certificates.CACert,
-		path.Join(snap.KubernetesPKIDir(), "kubelet.crt"): certificates.KubeletCert,
-		path.Join(snap.KubernetesPKIDir(), "kubelet.key"): certificates.KubeletKey,
+		path.Join(snap.KubernetesPKIDir(), "ca.crt"):        certificates.CACert,
+		path.Join(snap.KubernetesPKIDir(), "client-ca.crt"): certificates.ClientCACert,
+		path.Join(snap.KubernetesPKIDir(), "kubelet.crt"):   certificates.KubeletCert,
+		path.Join(snap.KubernetesPKIDir(), "kubelet.key"):   certificates.KubeletKey,
 	})
 }

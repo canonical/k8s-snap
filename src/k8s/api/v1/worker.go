@@ -9,8 +9,10 @@ type WorkerNodeInfoRequest struct {
 
 // WorkerNodeInfoResponse is used to return a worker node token.
 type WorkerNodeInfoResponse struct {
-	// CA is the PEM encoded certificate authority of the cluster.
-	CA string `json:"ca,omitempty"`
+	// CACert is the PEM encoded certificate authority of the cluster.
+	CACert string `json:"ca,omitempty"`
+	// ClientCACert is the PEM encoded certificate authority of the cluster clients.
+	ClientCACert string `json:"client-ca,omitempty"`
 	// APIServers is a list of kube-apiserver endpoints of the cluster.
 	APIServers []string `json:"apiServers"`
 	// KubeletClientCert is the certificate to use in kubelet to authenticate with kube-apiserver.

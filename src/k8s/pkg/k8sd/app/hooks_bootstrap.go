@@ -120,7 +120,8 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 
 	// Certificates
 	certificates := &pki.WorkerNodePKI{
-		CACert:              response.CA,
+		CACert:              response.CACert,
+		ClientCACert:        response.ClientCACert,
 		KubeletCert:         response.KubeletCert,
 		KubeletKey:          response.KubeletKey,
 		KubeletClientCert:   response.KubeletClientCert,

@@ -56,7 +56,7 @@ func TestKubelet(t *testing.T) {
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--cert-dir", expectedVal: s.Mock.KubernetesPKIDir},
-			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
+			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--container-runtime-endpoint", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
 			{key: "--containerd", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
 			{key: "--eviction-hard", expectedVal: "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'"},

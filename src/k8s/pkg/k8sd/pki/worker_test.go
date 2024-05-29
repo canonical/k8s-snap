@@ -33,6 +33,7 @@ func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
 			},
 			expectPKITo: SatisfyAll(
 				HaveField("CACert", Equal(serverCACert)),
+				HaveField("ClientCACert", Equal(clientCACert)),
 				HaveField("KubeletCert", Not(BeEmpty())),
 				HaveField("KubeletKey", Not(BeEmpty())),
 				HaveField("KubeletClientCert", Not(BeEmpty())),
@@ -78,6 +79,7 @@ func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
 			},
 			expectPKITo: SatisfyAll(
 				HaveField("CACert", Equal(serverCACert)),
+				HaveField("ClientCACert", Equal(clientCACert)),
 				HaveField("KubeletCert", BeEmpty()),
 				HaveField("KubeletKey", BeEmpty()),
 				HaveField("KubeletClientCert", Not(BeEmpty())),

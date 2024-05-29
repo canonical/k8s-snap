@@ -71,7 +71,8 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 	}
 
 	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
-		CA:                  cfg.Certificates.GetCACert(),
+		CACert:              cfg.Certificates.GetCACert(),
+		ClientCACert:        cfg.Certificates.GetClientCACert(),
 		APIServers:          servers,
 		PodCIDR:             cfg.Network.GetPodCIDR(),
 		ServiceCIDR:         cfg.Network.GetServiceCIDR(),
