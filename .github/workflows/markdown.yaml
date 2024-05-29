@@ -9,10 +9,6 @@ jobs:
         fetch-depth: 0
     - uses: tj-actions/changed-files@v44
       id: changed-files
-      with:
-        files: 'docs/src/*'
-        files_separator: ","
-        separator: ","
     - uses: DavidAnson/markdownlint-cli2-action@v16
       if: steps.changed-files.outputs.any_changed == 'true'
       with:
