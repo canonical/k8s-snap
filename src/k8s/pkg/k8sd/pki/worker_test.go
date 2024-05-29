@@ -67,15 +67,7 @@ func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
 				pki.CAKey = serverCAKey
 				pki.ClientCACert = clientCACert
 			},
-			expectPKITo: SatisfyAll(
-				HaveField("CACert", Equal(serverCACert)),
-				HaveField("KubeletCert", Not(BeEmpty())),
-				HaveField("KubeletKey", Not(BeEmpty())),
-				HaveField("KubeletClientCert", BeEmpty()),
-				HaveField("KubeletClientKey", BeEmpty()),
-				HaveField("KubeProxyClientCert", BeEmpty()),
-				HaveField("KubeProxyClientKey", BeEmpty()),
-			),
+			expectErr: true,
 		},
 		{
 			name: "OnlyClientCAKey",
