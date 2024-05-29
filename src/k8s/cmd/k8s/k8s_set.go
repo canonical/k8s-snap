@@ -1,8 +1,10 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
@@ -22,6 +24,7 @@ func (s SetResult) String() string {
 func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
 		outputFormat string
+		timeout      time.Duration
 	}
 	cmd := &cobra.Command{
 		Use:    "set <feature.key=value> ...",
@@ -50,7 +53,10 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				Config: config,
 			}
 
-			if err := client.UpdateClusterConfig(cmd.Context(), request); err != nil {
+			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
+			cobra.OnFinalize(cancel)
+
+			if err := client.UpdateClusterConfig(ctx, request); err != nil {
 				cmd.PrintErrf("Error: Failed to apply requested cluster configuration changes.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
@@ -61,35 +67,36 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
+	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 
 	return cmd
 }
 
 var knownSetKeys = map[string]struct{}{
-	"cloud-provider":                 struct{}{},
-	"dns.cluster-domain":             struct{}{},
-	"dns.enabled":                    struct{}{},
-	"dns.service-ip":                 struct{}{},
-	"dns.upstream-nameservers":       struct{}{},
-	"gateway.enabled":                struct{}{},
-	"ingress.default-tls-secret":     struct{}{},
-	"ingress.enable-proxy-protocol":  struct{}{},
-	"ingress.enabled":                struct{}{},
-	"load-balancer.bgp-local-asn":    struct{}{},
-	"load-balancer.bgp-mode":         struct{}{},
-	"load-balancer.bgp-peer-address": struct{}{},
-	"load-balancer.bgp-peer-asn":     struct{}{},
-	"load-balancer.bgp-peer-port":    struct{}{},
-	"load-balancer.cidrs":            struct{}{},
-	"load-balancer.enabled":          struct{}{},
-	"load-balancer.l2-interfaces":    struct{}{},
-	"load-balancer.l2-mode":          struct{}{},
-	"local-storage.default":          struct{}{},
-	"local-storage.enabled":          struct{}{},
-	"local-storage.local-path":       struct{}{},
-	"local-storage.reclaim-policy":   struct{}{},
-	"metrics-server.enabled":         struct{}{},
-	"network.enabled":                struct{}{},
+	"cloud-provider":                 {},
+	"dns.cluster-domain":             {},
+	"dns.enabled":                    {},
+	"dns.service-ip":                 {},
+	"dns.upstream-nameservers":       {},
+	"gateway.enabled":                {},
+	"ingress.default-tls-secret":     {},
+	"ingress.enable-proxy-protocol":  {},
+	"ingress.enabled":                {},
+	"load-balancer.bgp-local-asn":    {},
+	"load-balancer.bgp-mode":         {},
+	"load-balancer.bgp-peer-address": {},
+	"load-balancer.bgp-peer-asn":     {},
+	"load-balancer.bgp-peer-port":    {},
+	"load-balancer.cidrs":            {},
+	"load-balancer.enabled":          {},
+	"load-balancer.l2-interfaces":    {},
+	"load-balancer.l2-mode":          {},
+	"local-storage.default":          {},
+	"local-storage.enabled":          {},
+	"local-storage.local-path":       {},
+	"local-storage.reclaim-policy":   {},
+	"metrics-server.enabled":         {},
+	"network.enabled":                {},
 }
 
 func updateConfigMapstructure(config *apiv1.UserFacingClusterConfig, arg string) error {

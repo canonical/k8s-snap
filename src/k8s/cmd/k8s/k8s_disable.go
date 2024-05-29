@@ -1,9 +1,12 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
-	"github.com/canonical/k8s/pkg/utils"
 	"strings"
+	"time"
+
+	"github.com/canonical/k8s/pkg/utils"
 
 	api "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
@@ -21,6 +24,7 @@ func (d DisableResult) String() string {
 func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
 		outputFormat string
+		timeout      time.Duration
 	}
 	cmd := &cobra.Command{
 		Use:    "disable <feature> ...",
@@ -30,6 +34,11 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			config := api.UserFacingClusterConfig{}
+
+			if opts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", opts.timeout, minTimeout, minTimeout)
+				opts.timeout = minTimeout
+			}
 
 			for _, feature := range args {
 				switch feature {
@@ -79,7 +88,9 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			cmd.PrintErrf("Disabling %s from the cluster. This may take a few seconds, please wait.\n", strings.Join(args, ", "))
-			if err := client.UpdateClusterConfig(cmd.Context(), request); err != nil {
+			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
+			cobra.OnFinalize(cancel)
+			if err := client.UpdateClusterConfig(ctx, request); err != nil {
 				cmd.PrintErrf("Error: Failed to disable %s from the cluster.\n\nThe error was: %v\n", strings.Join(args, ", "), err)
 				env.Exit(1)
 				return
@@ -90,6 +101,7 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
+	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 
 	return cmd
 }

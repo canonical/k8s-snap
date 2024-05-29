@@ -1,0 +1,9 @@
+version: 1
+creds:
+  - registry: ghcr.io
+    user: '{{ env "USERNAME" }}'
+    pass: '{{ env "PASSWORD" }}'
+sync:
+  - source: registry.k8s.io/pause:3.10
+    target: ghcr.io/canonical/k8s-snap/pause:3.10
+    type: image
