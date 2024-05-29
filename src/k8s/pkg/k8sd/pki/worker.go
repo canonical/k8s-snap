@@ -31,6 +31,15 @@ func (c *ControlPlanePKI) CompleteWorkerNodePKI(hostname string, nodeIP net.IP, 
 		return nil, fmt.Errorf("failed to load kubernetes client CA: %w", err)
 	}
 
+	fmt.Printf("%#v\n", map[string]interface{}{
+		"server-ca-crt":        serverCACert,
+		"server-ca-key":        serverCAKey,
+		"client-ca-crt-string": c.ClientCACert,
+		"client-ca-key-string": c.ClientCAKey,
+		"client-ca-crt":        clientCACert,
+		"client-ca-key":        clientCAKey,
+	})
+
 	pki := &WorkerNodePKI{CACert: c.CACert}
 
 	// we have a cluster CA key, sign the kubelet server certificate
