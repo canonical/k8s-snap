@@ -57,7 +57,7 @@ func (c *ControlPlanePKI) CompleteWorkerNodePKI(hostname string, nodeIP net.IP, 
 			key  *string
 		}{
 			{name: "proxy", cn: "system:kube-proxy", cert: &pki.KubeProxyClientCert, key: &pki.KubeProxyClientKey},
-			{name: "kubelet", cn: fmt.Sprintf("system:node:%s", c.hostname), o: []string{"system:nodes"}, cert: &pki.KubeletClientCert, key: &pki.KubeletClientKey},
+			{name: "kubelet", cn: fmt.Sprintf("system:node:%s", hostname), o: []string{"system:nodes"}, cert: &pki.KubeletClientCert, key: &pki.KubeletClientKey},
 		} {
 			if *i.cert == "" || *i.key == "" {
 				template, err := generateCertificate(pkix.Name{CommonName: i.cn, Organization: i.o}, c.years, false, nil, nil)
