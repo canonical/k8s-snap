@@ -12,9 +12,7 @@ Snaps are self-contained, simple to install, secure, cross-platform, and
 dependency-free. They can be installed on any Linux system which supports the
 `snapd` service (see the [snapd documentation] for more information). Security
 and robustness are their key features, alongside being easy to install, easy to
-maintain and easy to upgrade.hdjfds hfjkdsfh djkfd fdhfjdkf hjfk hdfjk fhdsklf
-dhsjkf dshfjklds fdhfdsjkf dsjfkl dsfhjdf dhjfk dsfhjdkslf djfkd
-fhdsjkfdshfjkdsf dsk
+maintain and easy to upgrade.
 
 ## What else comes with it?
 

@@ -1,3 +1,5 @@
+name: "Docs: Markdown lint"
+
 on: [push, pull_request]
 
 jobs:
@@ -15,5 +17,5 @@ jobs:
         config: 'docs/src/.markdownlint.json'
         globs: ${{ steps.changed-files.outputs.all_changed_files }}
         separator: ","
-        
+
 
