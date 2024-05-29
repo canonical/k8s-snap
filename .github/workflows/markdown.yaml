@@ -10,7 +10,7 @@ jobs:
     - uses: tj-actions/changed-files@v44
       id: changed-files
       with:
-        files: 'docs/src/snap/*.md,docs/src/charm/*.md'
+        files: 'docs/src/*'
         files_separator: ","
         separator: ","
     - uses: DavidAnson/markdownlint-cli2-action@v16
