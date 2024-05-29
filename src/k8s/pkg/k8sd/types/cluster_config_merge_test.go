@@ -83,8 +83,8 @@ func TestMergeClusterConfig(t *testing.T) {
 		generateMergeClusterConfigTestCases("Certificates/APIServerKubeletClientKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) {
 			c.Certificates.APIServerKubeletClientKey = utils.Pointer(v.(string))
 		}),
-		generateMergeClusterConfigTestCases("Certificates/AdminClientCert", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.AdminClientCert = utils.Pointer(v.(string)) }),
-		generateMergeClusterConfigTestCases("Certificates/AdminClientKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.AdminClientKey = utils.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Certificates/AdminClientCert", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.AdminClientCert = utils.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Certificates/AdminClientKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.AdminClientKey = utils.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Certificates/K8sdPublicKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.K8sdPublicKey = utils.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Certificates/K8sdPrivateKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Certificates.K8sdPrivateKey = utils.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/Type", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.Type = utils.Pointer(v.(string)) }),
