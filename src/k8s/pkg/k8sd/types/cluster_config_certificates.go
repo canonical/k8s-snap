@@ -3,8 +3,8 @@ package types
 type Certificates struct {
 	CACert                     *string `json:"ca-crt,omitempty"`
 	CAKey                      *string `json:"ca-key,omitempty"`
-	ClientCACert               *string `json:"cca-crt,omitempty"`
-	ClientCAKey                *string `json:"cca-key,omitempty"`
+	ClientCACert               *string `json:"client-ca-crt,omitempty"`
+	ClientCAKey                *string `json:"client-ca-key,omitempty"`
 	FrontProxyCACert           *string `json:"front-proxy-ca-crt,omitempty"`
 	FrontProxyCAKey            *string `json:"front-proxy-ca-key,omitempty"`
 	ServiceAccountKey          *string `json:"service-account-key,omitempty"`

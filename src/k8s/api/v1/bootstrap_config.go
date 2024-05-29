@@ -29,8 +29,8 @@ type BootstrapConfig struct {
 	// Seed configuration for external certificates
 	CACert                     *string `json:"ca-crt,omitempty" yaml:"ca-crt,omitempty"`
 	CAKey                      *string `json:"ca-key,omitempty" yaml:"ca-key,omitempty"`
-	ClientCACert               *string `json:"cca-crt,omitempty" yaml:"ca-crt,omitempty"`
-	ClientCAKey                *string `json:"cca-key,omitempty" yaml:"ca-key,omitempty"`
+	ClientCACert               *string `json:"client-ca-crt,omitempty" yaml:"client-ca-crt,omitempty"`
+	ClientCAKey                *string `json:"client-ca-key,omitempty" yaml:"client-ca-key,omitempty"`
 	FrontProxyCACert           *string `json:"front-proxy-ca-crt,omitempty" yaml:"front-proxy-ca-crt,omitempty"`
 	FrontProxyCAKey            *string `json:"front-proxy-ca-key,omitempty" yaml:"front-proxy-ca-key,omitempty"`
 	FrontProxyClientCert       *string `json:"front-proxy-client-crt,omitempty" yaml:"front-proxy-client-crt,omitempty"`

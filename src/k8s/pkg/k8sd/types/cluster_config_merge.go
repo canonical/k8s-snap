@@ -25,11 +25,15 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		// certificates
 		{name: "CA certificate", val: &config.Certificates.CACert, old: existing.Certificates.CACert, new: new.Certificates.CACert},
 		{name: "CA key", val: &config.Certificates.CAKey, old: existing.Certificates.CAKey, new: new.Certificates.CAKey},
+		{name: "client CA certificate", val: &config.Certificates.ClientCACert, old: existing.Certificates.ClientCACert, new: new.Certificates.ClientCACert},
+		{name: "client CA key", val: &config.Certificates.ClientCAKey, old: existing.Certificates.ClientCAKey, new: new.Certificates.ClientCAKey},
 		{name: "apiserver-kubelet-client certificate", val: &config.Certificates.APIServerKubeletClientCert, old: existing.Certificates.APIServerKubeletClientCert, new: new.Certificates.APIServerKubeletClientCert, allowChange: true},
 		{name: "apiserver-kubelet-client key", val: &config.Certificates.APIServerKubeletClientKey, old: existing.Certificates.APIServerKubeletClientKey, new: new.Certificates.APIServerKubeletClientKey, allowChange: true},
 		{name: "front proxy CA certificate", val: &config.Certificates.FrontProxyCACert, old: existing.Certificates.FrontProxyCACert, new: new.Certificates.FrontProxyCACert},
 		{name: "front proxy CA key", val: &config.Certificates.FrontProxyCAKey, old: existing.Certificates.FrontProxyCAKey, new: new.Certificates.FrontProxyCAKey},
 		{name: "service account key", val: &config.Certificates.ServiceAccountKey, old: existing.Certificates.ServiceAccountKey, new: new.Certificates.ServiceAccountKey},
+		{name: "admin client certificate", val: &config.Certificates.AdminClientCert, old: existing.Certificates.AdminClientCert, new: new.Certificates.AdminClientCert, allowChange: true},
+		{name: "admin client key", val: &config.Certificates.AdminClientKey, old: existing.Certificates.AdminClientKey, new: new.Certificates.AdminClientKey, allowChange: true},
 		{name: "k8sd public key", val: &config.Certificates.K8sdPublicKey, old: existing.Certificates.K8sdPublicKey, new: new.Certificates.K8sdPublicKey},
 		{name: "k8sd private key", val: &config.Certificates.K8sdPrivateKey, old: existing.Certificates.K8sdPrivateKey, new: new.Certificates.K8sdPrivateKey},
 		// datastore
