@@ -87,6 +87,8 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	// load shared cluster certificates
 	certificates.CACert = cfg.Certificates.GetCACert()
 	certificates.CAKey = cfg.Certificates.GetCAKey()
+	certificates.ClientCACert = cfg.Certificates.GetClientCACert()
+	certificates.ClientCAKey = cfg.Certificates.GetClientCAKey()
 	certificates.FrontProxyCACert = cfg.Certificates.GetFrontProxyCACert()
 	certificates.FrontProxyCAKey = cfg.Certificates.GetFrontProxyCAKey()
 	certificates.APIServerKubeletClientCert = cfg.Certificates.GetAPIServerKubeletClientCert()
@@ -111,7 +113,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
 
-	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), cfg.Certificates.GetCACert()); err != nil {
+	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
