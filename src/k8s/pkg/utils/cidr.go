@@ -10,12 +10,15 @@ import (
 	"github.com/canonical/lxd/lxd/util"
 )
 
-// FindMatchingNodeAddress returns the IP address of a network interface that belongs to the given CIDR.
-func FindMatchingNodeAddress(cidr *net.IPNet) (net.IP, error) {
+// findMatchingNodeAddress returns the IP address of a network interface that belongs to the given CIDR.
+func findMatchingNodeAddress(cidr *net.IPNet) (net.IP, error) {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return nil, fmt.Errorf("could not get interface addresses: %w", err)
 	}
+
+	var selectedIP net.IP
+	selectedSubnetBits := 32
 
 	for _, addr := range addrs {
 		ipNet, ok := addr.(*net.IPNet)
@@ -23,11 +26,19 @@ func FindMatchingNodeAddress(cidr *net.IPNet) (net.IP, error) {
 			continue
 		}
 		if cidr.Contains(ipNet.IP) {
-			return ipNet.IP, nil
+			if _, subnetBits := cidr.Mask.Size(); subnetBits < selectedSubnetBits {
+				// Prefer the address with the fewest subnet bits
+				selectedIP = ipNet.IP
+				selectedSubnetBits = subnetBits
+			}
 		}
 	}
 
-	return nil, fmt.Errorf("could not find a matching address for CIDR %q", cidr.String())
+	if selectedIP == nil {
+		return nil, fmt.Errorf("could not find a matching address for CIDR %q", cidr.String())
+	}
+
+	return selectedIP, nil
 }
 
 // GetFirstIP returns the first IP address of a subnet. Use big.Int so that it can handle both IPv4 and IPv6 addreses.
@@ -74,10 +85,8 @@ func ParseAddressString(address string, port int64) (string, error) {
 
 	if address == "" {
 		address = util.NetworkInterfaceAddress()
-	}
-
-	if _, ipNet, err := net.ParseCIDR(address); err == nil {
-		matchingIP, err := FindMatchingNodeAddress(ipNet)
+	} else if _, ipNet, err := net.ParseCIDR(address); err == nil {
+		matchingIP, err := findMatchingNodeAddress(ipNet)
 		if err != nil {
 			return "", fmt.Errorf("failed to find a matching node address for %q: %w", address, err)
 		}
