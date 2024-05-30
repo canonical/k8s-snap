@@ -6,7 +6,7 @@ import (
 	"net"
 	"path"
 
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
+	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
@@ -14,24 +14,20 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func setupKubeconfigs(s *state.State, kubeConfigDir string, securePort int, caCert string) error {
+func setupKubeconfigs(s *state.State, kubeConfigDir string, securePort int, pki pki.ControlPlanePKI) error {
 	// Generate kubeconfigs
 	for _, kubeconfig := range []struct {
-		file     string
-		username string
-		groups   []string
+		file string
+		crt  string
+		key  string
 	}{
-		{file: "admin.conf", username: "kubernetes-admin", groups: []string{"system:masters"}},
-		{file: "controller.conf", username: "system:kube-controller-manager"},
-		{file: "proxy.conf", username: "system:kube-proxy"},
-		{file: "scheduler.conf", username: "system:kube-scheduler"},
-		{file: "kubelet.conf", username: fmt.Sprintf("system:node:%s", s.Name()), groups: []string{"system:nodes"}},
+		{file: "admin.conf", crt: pki.AdminClientCert, key: pki.AdminClientKey},
+		{file: "controller.conf", crt: pki.KubeControllerManagerClientCert, key: pki.KubeControllerManagerClientKey},
+		{file: "proxy.conf", crt: pki.KubeProxyClientCert, key: pki.KubeProxyClientKey},
+		{file: "scheduler.conf", crt: pki.KubeSchedulerClientCert, key: pki.KubeSchedulerClientKey},
+		{file: "kubelet.conf", crt: pki.KubeletClientCert, key: pki.KubeletClientKey},
 	} {
-		token, err := databaseutil.GetOrCreateAuthToken(s.Context, s, kubeconfig.username, kubeconfig.groups)
-		if err != nil {
-			return fmt.Errorf("failed to generate token for username=%s groups=%v: %w", kubeconfig.username, kubeconfig.groups, err)
-		}
-		if err := setup.Kubeconfig(path.Join(kubeConfigDir, kubeconfig.file), token, fmt.Sprintf("127.0.0.1:%d", securePort), caCert); err != nil {
+		if err := setup.Kubeconfig(path.Join(kubeConfigDir, kubeconfig.file), fmt.Sprintf("127.0.0.1:%d", securePort), pki.CACert, kubeconfig.crt, kubeconfig.key); err != nil {
 			return fmt.Errorf("failed to write kubeconfig %s: %w", kubeconfig.file, err)
 		}
 	}

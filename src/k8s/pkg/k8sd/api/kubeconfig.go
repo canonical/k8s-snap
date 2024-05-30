@@ -27,12 +27,8 @@ func (e *Endpoints) getKubeconfig(s *state.State, r *http.Request) response.Resp
 	if req.Server == "" {
 		server = fmt.Sprintf("%s:%d", s.Address().Hostname(), config.APIServer.GetSecurePort())
 	}
-	token, err := databaseutil.GetOrCreateAuthToken(s.Context, s, "kubernetes-admin", []string{"system:masters"})
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to get admin token: %w", err))
-	}
 
-	kubeconfig, err := setup.KubeconfigString(token, server, config.Certificates.GetCACert())
+	kubeconfig, err := setup.KubeconfigString(server, config.Certificates.GetCACert(), config.Certificates.GetAdminClientCert(), config.Certificates.GetAdminClientKey())
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get kubeconfig: %w", err))
 	}

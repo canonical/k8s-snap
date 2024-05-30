@@ -100,6 +100,7 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (b
 		path.Join(snap.KubernetesPKIDir(), "apiserver.crt"):                certificates.APIServerCert,
 		path.Join(snap.KubernetesPKIDir(), "apiserver.key"):                certificates.APIServerKey,
 		path.Join(snap.KubernetesPKIDir(), "ca.crt"):                       certificates.CACert,
+		path.Join(snap.KubernetesPKIDir(), "client-ca.crt"):                certificates.ClientCACert,
 		path.Join(snap.KubernetesPKIDir(), "ca.key"):                       certificates.CAKey,
 		path.Join(snap.KubernetesPKIDir(), "front-proxy-ca.crt"):           certificates.FrontProxyCACert,
 		path.Join(snap.KubernetesPKIDir(), "front-proxy-ca.key"):           certificates.FrontProxyCAKey,
@@ -116,8 +117,9 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (b
 // It returns true if one or more files were updated and any error that occured.
 func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) (bool, error) {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
-		path.Join(snap.KubernetesPKIDir(), "ca.crt"):      certificates.CACert,
-		path.Join(snap.KubernetesPKIDir(), "kubelet.crt"): certificates.KubeletCert,
-		path.Join(snap.KubernetesPKIDir(), "kubelet.key"): certificates.KubeletKey,
+		path.Join(snap.KubernetesPKIDir(), "ca.crt"):        certificates.CACert,
+		path.Join(snap.KubernetesPKIDir(), "client-ca.crt"): certificates.ClientCACert,
+		path.Join(snap.KubernetesPKIDir(), "kubelet.crt"):   certificates.KubeletCert,
+		path.Join(snap.KubernetesPKIDir(), "kubelet.key"):   certificates.KubeletKey,
 	})
 }

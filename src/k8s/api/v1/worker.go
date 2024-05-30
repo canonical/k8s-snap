@@ -9,14 +9,20 @@ type WorkerNodeInfoRequest struct {
 
 // WorkerNodeInfoResponse is used to return a worker node token.
 type WorkerNodeInfoResponse struct {
-	// CA is the PEM encoded certificate authority of the cluster.
-	CA string `json:"ca,omitempty"`
+	// CACert is the PEM encoded certificate authority of the cluster.
+	CACert string `json:"ca,omitempty"`
+	// ClientCACert is the PEM encoded certificate authority of the cluster clients.
+	ClientCACert string `json:"client-ca,omitempty"`
 	// APIServers is a list of kube-apiserver endpoints of the cluster.
 	APIServers []string `json:"apiServers"`
-	// KubeletToken is the token to use for kubelet.
-	KubeletToken string `json:"kubeletToken"`
-	// KubeProxyToken is the token to use for kube-proxy.
-	KubeProxyToken string `json:"kubeProxyToken"`
+	// KubeletClientCert is the certificate to use in kubelet to authenticate with kube-apiserver.
+	KubeletClientCert string `json:"kubeletClientCert"`
+	// KubeletClientKey is the private key to use in kubelet to authenticate with kube-apiserver.
+	KubeletClientKey string `json:"kubeletClientKey"`
+	// KubeProxyClientCert is the certificate to use in kube-proxy to authenticate with kube-apiserver.
+	KubeProxyClientCert string `json:"kubeProxyClientCert"`
+	// KubeProxyClientKey is the private key to use in kube-proxy to authenticate with kube-apiserver.
+	KubeProxyClientKey string `json:"kubeProxyClientKey"`
 	// PodCIDR is the configured CIDR for pods in the cluster.
 	PodCIDR string `json:"podCIDR"`
 	// ServiceCIDR is the configured CIDR for services in the cluster.
