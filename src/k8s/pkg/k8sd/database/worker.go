@@ -32,7 +32,7 @@ func CheckWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string, toke
 	}
 	var tokenNodeName string
 	if selectTxStmt.QueryRowContext(ctx, token).Scan(&tokenNodeName) == nil {
-		return subtle.ConstantTimeCompare([]byte(nodeName), []byte(tokenNodeName)) == 1, nil
+		return tokenNodeName == "" || subtle.ConstantTimeCompare([]byte(nodeName), []byte(tokenNodeName)) == 1, nil
 	}
 	return false, nil
 }
