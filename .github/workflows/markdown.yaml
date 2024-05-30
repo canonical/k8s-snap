@@ -1,0 +1,21 @@
+name: "Docs: Markdown lint"
+
+on: [push, pull_request]
+
+jobs:
+  markdown-lint:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: tj-actions/changed-files@v44
+      id: changed-files
+    - uses: DavidAnson/markdownlint-cli2-action@v16
+      if: steps.changed-files.outputs.any_changed == 'true'
+      with:
+        config: 'docs/src/.markdownlint.json'
+        globs: ${{ steps.changed-files.outputs.all_changed_files }}
+        separator: ","
+
+
