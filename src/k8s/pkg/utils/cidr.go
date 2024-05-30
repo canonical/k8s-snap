@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"strconv"
 	"strings"
+
+	"github.com/canonical/lxd/lxd/util"
 )
 
 // FindMatchingNodeAddress returns the IP address of a network interface that belongs to the given CIDR.
@@ -56,4 +59,31 @@ func GetKubernetesServiceIPsFromServiceCIDRs(serviceCIDR string) ([]net.IP, erro
 		firstIPs = append(firstIPs, ip)
 	}
 	return firstIPs, nil
+}
+
+// ParseAddressString parses an address string and returns a canonical network address.
+func ParseAddressString(address string, port int64) (string, error) {
+	host, hostPort, err := net.SplitHostPort(address)
+	if err == nil {
+		address = host
+		port, err = strconv.ParseInt(hostPort, 10, 64)
+		if err != nil {
+			return "", fmt.Errorf("failed to parse the port from %q: %w", hostPort, err)
+		}
+	}
+
+	if address == "" {
+		address = util.NetworkInterfaceAddress()
+	}
+
+	if _, ipNet, err := net.ParseCIDR(address); err == nil {
+		matchingIP, err := FindMatchingNodeAddress(ipNet)
+		if err != nil {
+			return "", fmt.Errorf("failed to find a matching node address for %q: %w", address, err)
+		}
+		address = matchingIP.String()
+	}
+
+	return util.CanonicalNetworkAddress(address, port), nil
+
 }

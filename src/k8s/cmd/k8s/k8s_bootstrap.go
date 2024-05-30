@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net"
 	"os"
 	"slices"
 	"strings"
@@ -17,7 +16,6 @@ import (
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -74,22 +72,14 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
-			if opts.address == "" {
-				opts.address = util.NetworkInterfaceAddress()
+			address, err := utils.ParseAddressString(opts.address, config.DefaultPort)
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to parse the address %q.\n\nThe error was: %v\n", opts.address, err)
+				env.Exit(1)
+				return
 			}
 
-			ip := opts.address
-			if _, ipNet, err := net.ParseCIDR(opts.address); err == nil {
-				matchingIP, err := utils.FindMatchingNodeAddress(ipNet)
-				if err != nil {
-					cmd.PrintErrf("Error: Failed to find a matching node address for %q.\n\nThe error was: %v\n", ip, err)
-					env.Exit(1)
-					return
-				}
-				ip = matchingIP.String()
-			}
-
-			opts.address = util.CanonicalNetworkAddress(ip, config.DefaultPort)
+			opts.address = address
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
