@@ -18,7 +18,7 @@ func findMatchingNodeAddress(cidr *net.IPNet) (net.IP, error) {
 	}
 
 	var selectedIP net.IP
-	selectedSubnetBits := 32
+	selectedSubnetBits := -1
 
 	for _, addr := range addrs {
 		ipNet, ok := addr.(*net.IPNet)
@@ -26,7 +26,8 @@ func findMatchingNodeAddress(cidr *net.IPNet) (net.IP, error) {
 			continue
 		}
 		if cidr.Contains(ipNet.IP) {
-			if _, subnetBits := cidr.Mask.Size(); subnetBits < selectedSubnetBits {
+			_, subnetBits := cidr.Mask.Size()
+			if selectedSubnetBits == -1 || subnetBits < selectedSubnetBits {
 				// Prefer the address with the fewest subnet bits
 				selectedIP = ipNet.IP
 				selectedSubnetBits = subnetBits
