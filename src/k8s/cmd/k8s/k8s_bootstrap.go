@@ -79,8 +79,6 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			opts.address = address
-
 			client, err := env.Client(cmd.Context())
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
@@ -129,7 +127,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			request := apiv1.PostClusterBootstrapRequest{
 				Name:    opts.name,
-				Address: opts.address,
+				Address: address,
 				Config:  bootstrapConfig,
 			}
 
