@@ -17,6 +17,8 @@ jobs:
         with:
           files: |
             docs/**/*.md
+          files_ignore: |
+            docs/src/_parts/**
       - uses: DavidAnson/markdownlint-cli2-action@v16
         if: steps.changed-markdown-files.outputs.any_changed == 'true'
         with:
