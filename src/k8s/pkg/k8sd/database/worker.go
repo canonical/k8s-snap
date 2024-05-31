@@ -18,9 +18,9 @@ var (
 		"select-by-name": MustPrepareStatement("worker-nodes", "select-by-name.sql"),
 		"delete-node":    MustPrepareStatement("worker-nodes", "delete.sql"),
 
-		"insert-token": MustPrepareStatement("cluster-configs", "insert-worker-token.sql"),
-		"select-token": MustPrepareStatement("cluster-configs", "select-worker-token.sql"),
-		"delete-token": MustPrepareStatement("cluster-configs", "delete-worker-token.sql"),
+		"insert-token": MustPrepareStatement("worker-tokens", "insert.sql"),
+		"select-token": MustPrepareStatement("worker-tokens", "select.sql"),
+		"delete-token": MustPrepareStatement("worker-tokens", "delete-by-token.sql"),
 	}
 )
 
@@ -30,9 +30,9 @@ func CheckWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string, toke
 	if err != nil {
 		return false, fmt.Errorf("failed to prepare select statement: %w", err)
 	}
-	var realToken string
-	if selectTxStmt.QueryRowContext(ctx, nodeName).Scan(&realToken) == nil {
-		return subtle.ConstantTimeCompare([]byte(token), []byte(realToken)) == 1, nil
+	var tokenNodeName string
+	if selectTxStmt.QueryRowContext(ctx, token).Scan(&tokenNodeName) == nil {
+		return tokenNodeName == "" || subtle.ConstantTimeCompare([]byte(nodeName), []byte(tokenNodeName)) == 1, nil
 	}
 	return false, nil
 }
@@ -40,13 +40,9 @@ func CheckWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string, toke
 // GetOrCreateWorkerNodeToken returns a token that can be used to join a worker node on the cluster.
 // GetOrCreateWorkerNodeToken will return the existing token, if one already exists for the node.
 func GetOrCreateWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string) (string, error) {
-	selectTxStmt, err := cluster.Stmt(tx, workerStmts["select-token"])
+	insertTxStmt, err := cluster.Stmt(tx, workerStmts["insert-token"])
 	if err != nil {
-		return "", fmt.Errorf("failed to prepare select statement: %w", err)
-	}
-	var token string
-	if selectTxStmt.QueryRowContext(ctx, fmt.Sprintf("worker-token::%s", nodeName)).Scan(&token) == nil {
-		return token, nil
+		return "", fmt.Errorf("failed to prepare insert statement: %w", err)
 	}
 
 	// generate random bytes for the token
@@ -54,12 +50,7 @@ func GetOrCreateWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string
 	if _, err := rand.Read(b); err != nil {
 		return "", fmt.Errorf("is the system entropy low? failed to get random bytes: %w", err)
 	}
-	token = fmt.Sprintf("worker::%s", hex.EncodeToString(b))
-
-	insertTxStmt, err := cluster.Stmt(tx, workerStmts["insert-token"])
-	if err != nil {
-		return "", fmt.Errorf("failed to prepare insert statement: %w", err)
-	}
+	token := fmt.Sprintf("worker::%s", hex.EncodeToString(b))
 	if _, err := insertTxStmt.ExecContext(ctx, nodeName, token); err != nil {
 		return "", fmt.Errorf("insert token query failed: %w", err)
 	}
