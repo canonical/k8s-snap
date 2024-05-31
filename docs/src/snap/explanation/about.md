@@ -16,7 +16,8 @@ maintain and easy to upgrade.
 
 ## What else comes with it?
 
-In addition to the upstream Kubernetes services, Canonical Kubernetes also includes:
+In addition to the upstream Kubernetes services, 
+Canonical Kubernetes also includes:
 
 - a DNS service for the node
 - a CNI for the node/cluster
@@ -30,7 +31,8 @@ In addition to the upstream Kubernetes services, Canonical Kubernetes also inclu
 
 The Canonical Kubernetes snap can be installed on a Linux OS, wherever it may
 be: run it in several local containers or VMs for example, or use it on
-public/private cloud instances. For deploying with [Juju], a machine [charm] to deploy
+public/private cloud instances. 
+For deploying with [Juju], a machine [charm] to deploy
 the snap is also available.
 
 ## Can I use it to make a cluster?
