@@ -4,7 +4,7 @@
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/k8s)
 
-#TODO: remove this linter teeeeeest way to long line -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 **Canonical Kubernetes** is the fastest, easiest way to deploy a fully-conformant Kubernetes cluster. Harnessing pure upstream Kubernetes, this distribution adds the missing pieces (e.g. ingress, dns, networking) for a zero-ops experience.
 

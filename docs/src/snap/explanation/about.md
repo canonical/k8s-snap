@@ -39,7 +39,7 @@ Yes. Canonical Kubernetes is designed to be eminently scalable. You can start
 with a single node and add more as and when the need arises. Scale up or down
 at any time. Systems with more than three nodes will automatically become
 Highly Available.
-#TODO: remove this linter teeeeeest way to long line -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ## Does it come with support?
 
 Each and every user will be supported by the community. For a more detailed
