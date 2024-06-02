@@ -153,8 +153,7 @@ func (c ClusterStatus) String() string {
 	result.WriteString(c.datastoreToString())
 
 	// Config
-	var emptyConfig UserFacingClusterConfig
-	if c.Config != emptyConfig {
+	if !c.Config.Empty() {
 		b, _ := yaml.Marshal(c.Config)
 		result.WriteString(string(b))
 	}

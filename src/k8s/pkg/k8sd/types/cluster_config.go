@@ -14,6 +14,6 @@ type ClusterConfig struct {
 	Gateway       Gateway       `json:"gateway,omitempty"`
 	LocalStorage  LocalStorage  `json:"local-storage,omitempty"`
 	MetricsServer MetricsServer `json:"metrics-server,omitempty"`
-}
 
-func (c ClusterConfig) Empty() bool { return c == ClusterConfig{} }
+	Annotations Annotations `json:"annotations,omitempty"`
+}

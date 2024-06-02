@@ -29,6 +29,31 @@ type UserFacingClusterConfig struct {
 	Gateway       GatewayConfig       `json:"gateway,omitempty" yaml:"gateway,omitempty"`
 	MetricsServer MetricsServerConfig `json:"metrics-server,omitempty" yaml:"metrics-server,omitempty"`
 	CloudProvider *string             `json:"cloud-provider,omitempty" yaml:"cloud-provider,omitempty"`
+	Annotations   map[string]string   `json:"annotations,omitempty" yaml:"annotations,omitempty"`
+}
+
+func (c UserFacingClusterConfig) Empty() bool {
+	switch {
+	case c.Network != NetworkConfig{}:
+		return false
+	case c.DNS != DNSConfig{}:
+		return false
+	case c.Ingress != IngressConfig{}:
+		return false
+	case c.LoadBalancer != LoadBalancerConfig{}:
+		return false
+	case c.LocalStorage != LocalStorageConfig{}:
+		return false
+	case c.Gateway != GatewayConfig{}:
+		return false
+	case c.MetricsServer != MetricsServerConfig{}:
+		return false
+	case getField(c.CloudProvider) != "":
+		return false
+	case len(c.Annotations) > 0:
+		return false
+	}
+	return true
 }
 
 type DNSConfig struct {

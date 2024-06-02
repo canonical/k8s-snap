@@ -143,6 +143,9 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		}
 	}
 
+	// merge annotations
+	config.Annotations = mergeAnnotationsField(existing.Annotations, new.Annotations)
+
 	if err := config.Validate(); err != nil {
 		return ClusterConfig{}, fmt.Errorf("updated cluster configuration is not valid: %w", err)
 	}
