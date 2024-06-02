@@ -79,6 +79,47 @@ func generateMapstructureTestCasesStringSlice(keyName string, fieldName string) 
 	}
 }
 
+func generateMapstructureTestCasesMap(keyName string, fieldName string) []mapstructureTestCase {
+	return []mapstructureTestCase{
+		{
+			val:        fmt.Sprintf("%s=", keyName),
+			assertions: []types.GomegaMatcher{HaveField(fieldName, map[string]string{})},
+		},
+		{
+			val:        fmt.Sprintf("%s={}", keyName),
+			assertions: []types.GomegaMatcher{HaveField(fieldName, map[string]string{})},
+		},
+		{
+			val:        fmt.Sprintf("%s=k1=", keyName),
+			assertions: []types.GomegaMatcher{HaveField(fieldName, map[string]string{"k1": ""})},
+		},
+		{
+			val:        fmt.Sprintf("%s=k1=,k2=test", keyName),
+			assertions: []types.GomegaMatcher{HaveField(fieldName, map[string]string{"k1": "", "k2": "test"})},
+		},
+		{
+			val:        fmt.Sprintf("%s=k1=v1", keyName),
+			assertions: []types.GomegaMatcher{HaveField(fieldName, map[string]string{"k1": "v1"})},
+		},
+		{
+			val:        fmt.Sprintf("%s=k1=v1,k2=v2", keyName),
+			assertions: []types.GomegaMatcher{HaveField(fieldName, map[string]string{"k1": "v1", "k2": "v2"})},
+		},
+		{
+			val:        fmt.Sprintf("%s={k1: v1}", keyName),
+			assertions: []types.GomegaMatcher{HaveField(fieldName, map[string]string{"k1": "v1"})},
+		},
+		{
+			val:        fmt.Sprintf("%s={k1: v1, k2: v2}", keyName),
+			assertions: []types.GomegaMatcher{HaveField(fieldName, map[string]string{"k1": "v1", "k2": "v2"})},
+		},
+		{
+			val:       fmt.Sprintf("%s=k1,k2", keyName),
+			expectErr: true,
+		},
+	}
+}
+
 func generateMapstructureTestCasesString(keyName string, fieldName string) []mapstructureTestCase {
 	return []mapstructureTestCase{
 		{
@@ -139,6 +180,8 @@ func Test_updateConfigMapstructure(t *testing.T) {
 		generateMapstructureTestCasesInt("load-balancer.bgp-local-asn", "LoadBalancer.BGPLocalASN"),
 		generateMapstructureTestCasesInt("load-balancer.bgp-peer-asn", "LoadBalancer.BGPPeerASN"),
 		generateMapstructureTestCasesInt("load-balancer.bgp-peer-port", "LoadBalancer.BGPPeerPort"),
+
+		generateMapstructureTestCasesMap("annotations", "Annotations"),
 	} {
 		for _, tc := range tcs {
 			t.Run(tc.val, func(t *testing.T) {
