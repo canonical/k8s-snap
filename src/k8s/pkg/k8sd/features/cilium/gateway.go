@@ -14,7 +14,7 @@ import (
 // ApplyGateway will remove the Gateway API CRDs from the cluster and disable the GatewayAPI controllers on Cilium, when gateway.Enabled is false.
 // ApplyGateway will rollout restart the Cilium pods in case any Cilium configuration was changed.
 // ApplyGateway returns an error if anything fails.
-func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network) error {
+func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) error {
 	m := snap.HelmClient()
 
 	if _, err := m.Apply(ctx, chartGateway, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {

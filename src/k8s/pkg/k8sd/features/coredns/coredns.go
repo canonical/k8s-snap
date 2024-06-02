@@ -15,7 +15,7 @@ import (
 // ApplyDNS will install or refresh CoreDNS if dns.Enabled is true.
 // ApplyDNS will return the ClusterIP address of the coredns service, if successful.
 // ApplyDNS returns an error if anything fails.
-func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.Kubelet) (string, error) {
+func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.Kubelet, _ types.Annotations) (string, error) {
 	m := snap.HelmClient()
 
 	if !dns.GetEnabled() {

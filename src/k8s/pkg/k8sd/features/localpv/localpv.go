@@ -11,7 +11,7 @@ import (
 // ApplyLocalStorage deploys the rawfile-localpv CSI driver on the cluster based on the given configuration, when cfg.Enabled is true.
 // ApplyLocalStorage removes the rawfile-localpv when cfg.Enabled is false.
 // ApplyLocalStorage returns an error if anything fails.
-func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStorage) error {
+func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStorage, _ types.Annotations) error {
 	m := snap.HelmClient()
 
 	values := map[string]any{

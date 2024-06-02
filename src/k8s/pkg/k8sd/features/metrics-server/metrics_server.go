@@ -11,7 +11,7 @@ import (
 // ApplyMetricsServer deploys metrics-server when cfg.Enabled is true.
 // ApplyMetricsServer removes metrics-server when cfg.Enabled is false.
 // ApplyMetricsServer returns an error if anything fails.
-func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsServer) error {
+func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsServer, annotations types.Annotations) error {
 	m := snap.HelmClient()
 
 	values := map[string]any{

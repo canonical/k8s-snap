@@ -19,7 +19,7 @@ import (
 // ApplyNetwork requires that bpf and cgroups2 are already mounted and available when running under strict snap confinement. If they are not, it will fail (since Cilium will not have the required permissions to mount them).
 // ApplyNetwork requires that `/sys` is mounted as a shared mount when running under classic snap confinement. This is to ensure that Cilium will be able to automatically mount bpf and cgroups2 on the pods.
 // ApplyNetwork returns an error if anything fails.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error {
+func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ types.Annotations) error {
 	m := snap.HelmClient()
 
 	if !cfg.GetEnabled() {
