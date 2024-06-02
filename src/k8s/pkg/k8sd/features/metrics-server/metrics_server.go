@@ -14,10 +14,12 @@ import (
 func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsServer, annotations types.Annotations) error {
 	m := snap.HelmClient()
 
+	config := internalConfig(annotations)
+
 	values := map[string]any{
 		"image": map[string]any{
-			"repository": imageRepo,
-			"tag":        imageTag,
+			"repository": config.imageRepo,
+			"tag":        config.imageTag,
 		},
 		"securityContext": map[string]any{
 			// ROCKs with Pebble as the entrypoint do not work with this option.
