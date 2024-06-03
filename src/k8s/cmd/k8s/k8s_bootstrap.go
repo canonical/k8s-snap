@@ -3,11 +3,13 @@ package k8s
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"slices"
 	"strings"
+	"time"
 	"unicode"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -38,6 +40,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		name         string
 		address      string
 		outputFormat string
+		timeout      time.Duration
 	}
 	cmd := &cobra.Command{
 		Use:    "bootstrap",
@@ -49,6 +52,11 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				cmd.PrintErrln("Error: --interactive and --file flags cannot be set at the same time.")
 				env.Exit(1)
 				return
+			}
+
+			if opts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", opts.timeout, minTimeout, minTimeout)
+				opts.timeout = minTimeout
 			}
 
 			// Use hostname as default node name
@@ -122,7 +130,10 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				Config:  bootstrapConfig,
 			}
 
-			node, err := client.Bootstrap(cmd.Context(), request)
+			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
+			cobra.OnFinalize(cancel)
+
+			node, err := client.Bootstrap(ctx, request)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to bootstrap the cluster.\n\nThe error was: %v\n", err)
 				env.Exit(1)
@@ -138,6 +149,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
 	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
+	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 
 	return cmd
 }
