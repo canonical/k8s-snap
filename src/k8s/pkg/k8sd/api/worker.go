@@ -39,6 +39,8 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Years: 10})
 	certificates.CACert = cfg.Certificates.GetCACert()
 	certificates.CAKey = cfg.Certificates.GetCAKey()
+	certificates.ClientCACert = cfg.Certificates.GetClientCACert()
+	certificates.ClientCAKey = cfg.Certificates.GetClientCAKey()
 	workerCertificates, err := certificates.CompleteWorkerNodePKI(workerName, nodeIP, 2048)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate worker PKI: %w", err))
@@ -56,31 +58,6 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		return response.InternalError(fmt.Errorf("failed to retrieve list of known kube-apiserver endpoints: %w", err))
 	}
 
-	var (
-		kubeletToken string
-		proxyToken   string
-	)
-	for _, i := range []struct {
-		token    *string
-		name     string
-		username string
-		groups   []string
-	}{
-		{token: &kubeletToken, name: "kubelet", username: fmt.Sprintf("system:node:%s", workerName), groups: []string{"system:nodes"}},
-		{token: &proxyToken, name: "kube-proxy", username: "system:kube-proxy"},
-	} {
-		if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-			t, err := database.GetOrCreateToken(ctx, tx, i.username, i.groups)
-			if err != nil {
-				return fmt.Errorf("failed to generate %s token for node %q: %w", i.name, workerName, err)
-			}
-			*i.token = t
-			return nil
-		}); err != nil {
-			return response.InternalError(fmt.Errorf("create token transaction failed: %w", err))
-		}
-	}
-
 	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 		return database.AddWorkerNode(ctx, tx, workerName)
 	}); err != nil {
@@ -95,17 +72,20 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 	}
 
 	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
-		CA:             cfg.Certificates.GetCACert(),
-		APIServers:     servers,
-		PodCIDR:        cfg.Network.GetPodCIDR(),
-		ServiceCIDR:    cfg.Network.GetServiceCIDR(),
-		KubeletToken:   kubeletToken,
-		KubeProxyToken: proxyToken,
-		ClusterDomain:  cfg.Kubelet.GetClusterDomain(),
-		ClusterDNS:     cfg.Kubelet.GetClusterDNS(),
-		CloudProvider:  cfg.Kubelet.GetCloudProvider(),
-		KubeletCert:    workerCertificates.KubeletCert,
-		KubeletKey:     workerCertificates.KubeletKey,
-		K8sdPublicKey:  cfg.Certificates.GetK8sdPublicKey(),
+		CACert:              cfg.Certificates.GetCACert(),
+		ClientCACert:        cfg.Certificates.GetClientCACert(),
+		APIServers:          servers,
+		PodCIDR:             cfg.Network.GetPodCIDR(),
+		ServiceCIDR:         cfg.Network.GetServiceCIDR(),
+		ClusterDomain:       cfg.Kubelet.GetClusterDomain(),
+		ClusterDNS:          cfg.Kubelet.GetClusterDNS(),
+		CloudProvider:       cfg.Kubelet.GetCloudProvider(),
+		KubeletCert:         workerCertificates.KubeletCert,
+		KubeletKey:          workerCertificates.KubeletKey,
+		KubeletClientCert:   workerCertificates.KubeletClientCert,
+		KubeletClientKey:    workerCertificates.KubeletClientKey,
+		KubeProxyClientCert: workerCertificates.KubeProxyClientCert,
+		KubeProxyClientKey:  workerCertificates.KubeProxyClientKey,
+		K8sdPublicKey:       cfg.Certificates.GetK8sdPublicKey(),
 	})
 }
