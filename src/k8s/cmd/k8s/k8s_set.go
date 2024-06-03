@@ -73,6 +73,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 }
 
 var knownSetKeys = map[string]struct{}{
+	"annotations":                    {},
 	"cloud-provider":                 {},
 	"dns.cluster-domain":             {},
 	"dns.enabled":                    {},
@@ -108,6 +109,8 @@ func updateConfigMapstructure(config *apiv1.UserFacingClusterConfig, arg string)
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
 			utils.YAMLToStringSliceHookFunc,
 			utils.StringToFieldsSliceHookFunc(','),
+			utils.YAMLToStringMapHookFunc,
+			utils.StringToStringMapHookFunc,
 		),
 	})
 	if err != nil {

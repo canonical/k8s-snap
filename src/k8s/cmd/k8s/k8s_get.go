@@ -47,6 +47,7 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			config.MetricsServer = apiv1.MetricsServerConfig{}
 			config.CloudProvider = nil
+			config.Annotations = nil
 
 			var key string
 			if len(args) == 1 {

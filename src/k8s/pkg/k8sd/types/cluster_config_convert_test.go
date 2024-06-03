@@ -1,11 +1,11 @@
 package types_test
 
 import (
-	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -80,6 +80,9 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			name: "Full",
 			bootstrap: apiv1.BootstrapConfig{
 				ClusterConfig: apiv1.UserFacingClusterConfig{
+					Annotations: map[string]string{
+						"key": "value",
+					},
 					Network: apiv1.NetworkConfig{
 						Enabled: utils.Pointer(true),
 					},
@@ -156,6 +159,9 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 				},
 				MetricsServer: types.MetricsServer{
 					Enabled: utils.Pointer(true),
+				},
+				Annotations: types.Annotations{
+					"key": "value",
 				},
 			},
 		},

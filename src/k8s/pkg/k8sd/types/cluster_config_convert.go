@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/utils"
 )
@@ -80,6 +81,7 @@ func ClusterConfigFromUserFacing(u apiv1.UserFacingClusterConfig) (ClusterConfig
 	}
 
 	return ClusterConfig{
+		Annotations: Annotations(u.Annotations),
 		Kubelet: Kubelet{
 			ClusterDNS:    u.DNS.ServiceIP,
 			ClusterDomain: u.DNS.ClusterDomain,
@@ -165,5 +167,6 @@ func (c ClusterConfig) ToUserFacing() apiv1.UserFacingClusterConfig {
 			Enabled: c.Gateway.Enabled,
 		},
 		CloudProvider: c.Kubelet.CloudProvider,
+		Annotations:   map[string]string(c.Annotations),
 	}
 }

@@ -1,9 +1,9 @@
 package types
 
 import (
-	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -139,4 +139,33 @@ func Test_mergeSliceField(t *testing.T) {
 			})
 		}
 	})
+}
+
+func Test_mergeAnnotationsField(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		old       Annotations
+		new       Annotations
+		expectErr bool
+		expectVal Annotations
+	}{
+		{name: "keep-empty"},
+		{name: "set-empty", new: Annotations{"k1": "v1"}, expectVal: Annotations{"k1": "v1"}},
+		{name: "keep-old", old: Annotations{"k1": "v1"}, expectVal: Annotations{"k1": "v1"}},
+		{name: "update", old: Annotations{"k1": "v1"}, new: Annotations{"k1": "v2"}, expectVal: Annotations{"k1": "v2"}},
+		{name: "update-add-fields", old: Annotations{"k1": "v1"}, new: Annotations{"k1": "v2", "k2": "v2"}, expectVal: Annotations{"k1": "v2", "k2": "v2"}},
+		{name: "delete-fields", old: Annotations{"k1": "v1", "k2": "v2"}, new: Annotations{"k1": "-"}, expectVal: Annotations{"k2": "v2"}},
+		{name: "delete-last-field", old: Annotations{"k1": "v1"}, new: Annotations{"k1": "-"}, expectVal: Annotations{}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			result := mergeAnnotationsField(tc.old, tc.new)
+			if tc.expectVal != nil {
+				g.Expect(result).To(Equal(tc.expectVal))
+			} else {
+				g.Expect(result).To(BeNil())
+			}
+		})
+	}
 }

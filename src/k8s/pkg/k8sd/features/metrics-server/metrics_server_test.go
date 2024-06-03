@@ -43,7 +43,7 @@ func TestApplyMetricsServer(t *testing.T) {
 				},
 			}
 
-			err := metrics_server.ApplyMetricsServer(context.Background(), s, tc.config)
+			err := metrics_server.ApplyMetricsServer(context.Background(), s, tc.config, nil)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(h.ApplyCalledWith).To(ConsistOf(SatisfyAll(
@@ -53,4 +53,29 @@ func TestApplyMetricsServer(t *testing.T) {
 			)))
 		})
 	}
+
+	t.Run("Annotations", func(t *testing.T) {
+		g := NewWithT(t)
+		h := &helmmock.Mock{}
+		s := &snapmock.Snap{
+			Mock: snapmock.Mock{
+				HelmClient: h,
+			},
+		}
+
+		cfg := types.MetricsServer{
+			Enabled: utils.Pointer(true),
+		}
+		annotations := types.Annotations{
+			"k8sd/v1alpha1/metrics-server/image-repo": "custom-image",
+			"k8sd/v1alpha1/metrics-server/image-tag":  "custom-tag",
+		}
+
+		err := metrics_server.ApplyMetricsServer(context.Background(), s, cfg, annotations)
+		g.Expect(err).To(BeNil())
+		g.Expect(h.ApplyCalledWith).To(ConsistOf(HaveField("Values", HaveKeyWithValue("image", SatisfyAll(
+			HaveKeyWithValue("repository", "custom-image"),
+			HaveKeyWithValue("tag", "custom-tag"),
+		)))))
+	})
 }
