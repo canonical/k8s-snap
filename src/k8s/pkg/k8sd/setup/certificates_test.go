@@ -55,6 +55,8 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 	certificates := &pki.ControlPlanePKI{
 		CACert:                     "ca_cert",
 		CAKey:                      "ca_key",
+		ClientCACert:               "client_ca_cert",
+		ClientCAKey:                "client_ca_key",
 		FrontProxyCACert:           "front_proxy_ca_cert",
 		FrontProxyCAKey:            "front_proxy_ca_key",
 		FrontProxyClientCert:       "front_proxy_client_cert",
@@ -77,6 +79,7 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 		filepath.Join(tempDir, "apiserver.crt"),
 		filepath.Join(tempDir, "apiserver.key"),
 		filepath.Join(tempDir, "ca.crt"),
+		filepath.Join(tempDir, "client-ca.crt"),
 		filepath.Join(tempDir, "front-proxy-ca.crt"),
 		filepath.Join(tempDir, "front-proxy-client.crt"),
 		filepath.Join(tempDir, "front-proxy-client.key"),
@@ -105,9 +108,10 @@ func TestEnsureWorkerPKI(t *testing.T) {
 		},
 	}
 	certificates := &pki.WorkerNodePKI{
-		CACert:      "ca_cert",
-		KubeletCert: "kubelet_cert",
-		KubeletKey:  "kubelet_key",
+		CACert:       "ca_cert",
+		ClientCACert: "client_ca_cert",
+		KubeletCert:  "kubelet_cert",
+		KubeletKey:   "kubelet_key",
 	}
 
 	_, err := setup.EnsureWorkerPKI(mock, certificates)
@@ -115,6 +119,7 @@ func TestEnsureWorkerPKI(t *testing.T) {
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "ca.crt"),
+		filepath.Join(tempDir, "client-ca.crt"),
 		filepath.Join(tempDir, "kubelet.crt"),
 		filepath.Join(tempDir, "kubelet.key"),
 	}

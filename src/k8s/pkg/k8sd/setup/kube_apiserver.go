@@ -66,7 +66,7 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--allow-privileged":                         "true",
 		"--authentication-token-webhook-config-file": authTokenWebhookConfigFile,
 		"--authorization-mode":                       authorizationMode,
-		"--client-ca-file":                           path.Join(snap.KubernetesPKIDir(), "ca.crt"),
+		"--client-ca-file":                           path.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
 		"--enable-admission-plugins":                 "NodeRestriction",
 		"--kubelet-certificate-authority":            path.Join(snap.KubernetesPKIDir(), "ca.crt"),
 		"--kubelet-client-certificate":               path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"),
