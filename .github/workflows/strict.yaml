@@ -52,9 +52,7 @@ jobs:
       - name: Apply strict patch
         run: |
           git checkout -b ${{ needs.prepare.outputs.strict }}
-          git config --global user.email k8s-bot@canonical.com
-          git config --global user.name k8s-bot
-          git am ./build-scripts/patches/strict/*.patch
+          ./build-scripts/patches/strict/apply
       - name: Push to ${{ needs.prepare.outputs.strict }}
         run: |
           git push origin --force ${{ needs.prepare.outputs.strict }}
