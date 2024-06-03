@@ -71,6 +71,12 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network) error 
 				"useDigest":  false,
 			},
 		},
+		"ipv4": map[string]any{
+			"enabled": ipv4CIDR != "",
+		},
+		"ipv6": map[string]any{
+			"enabled": ipv6CIDR != "",
+		},
 		"ipam": map[string]any{
 			"operator": map[string]any{
 				"clusterPoolIPv4PodCIDRList": ipv4CIDR,
