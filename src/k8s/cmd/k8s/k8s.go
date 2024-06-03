@@ -94,6 +94,8 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		newHelmCmd(env),
 		xPrintShimPidsCmd,
 		newXSnapdConfigCmd(env),
+		newXWaitForDNSCmd(env),
+		newXWaitForNetworkCmd(env),
 	)
 
 	cmd.DisableAutoGenTag = true

@@ -21,3 +21,8 @@ var Implementation Interface = &implementation{
 	applyMetricsServer: metrics_server.ApplyMetricsServer,
 	applyLocalStorage:  localpv.ApplyLocalStorage,
 }
+
+var StatusChecks StatusInterface = &statusChecks{
+	checkNetwork: cilium.CheckNetwork,
+	checkDNS:     coredns.CheckDNS,
+}
