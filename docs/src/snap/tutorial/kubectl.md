@@ -10,13 +10,13 @@ tool.
 Before you begin, make sure you have the following:
 
 - A bootstrapped Canonical Kubernetes cluster (See
-  [Getting Started](getting-started))
+  [Getting Started])
 - You are using the built-in `kubectl` command from the snap.
 
 ### 1. The Kubectl Command
 
 The `kubectl` command communicates with the
-[Kubernetes API server](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/).
+[Kubernetes API server][kubernetes-api-server].
 
 The `kubectl` command included with Canonical Kubernetes is built from the
 original upstream source into the `k8s` snap you have installed.
@@ -41,11 +41,11 @@ the configuration when you run `kubectl config view` lives at
 command.
 
 To find out more, you can visit
-[the official kubeconfig documentation](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/)
+[the official kubeconfig documentation][kubeconfig-doc]
 
 ### 4. Viewing objects
 
-Let's review what was created in the [Getting Started](getting-started)
+Let's review what was created in the [Getting Started]
 guide.
 
 To see what pods were created when we enabled the `network` and `dns`
@@ -116,6 +116,15 @@ pods will have a status of `ContainerCreating`.
 
 ## Further information
 
-- Explore Kubernetes commands with our [Command Reference Guide](/snap/reference/commands)
+- Explore Kubernetes commands with our
+  [Command Reference Guide]
 - See the official `kubectl` reference
-  [https://kubernetes.io/docs/reference/kubectl/](https://kubernetes.io/docs/reference/kubectl/)
+  [kubectl-reference][kubectl-reference]
+
+<!-- LINKS -->
+
+[Command Reference Guide]: /snap/reference/commands
+[Getting Started]: getting-started
+[kubernetes-api-server]: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
+[kubeconfig-doc]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
+[kubectl-reference]: https://kubernetes.io/docs/reference/kubectl/
