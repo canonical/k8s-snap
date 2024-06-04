@@ -58,7 +58,8 @@ Once you have the name of the pod, run the following command to see Cilium's
 status:
 
 ```sh
-sudo k8s kubectl exec -it cilium-97vcw -n kube-system -c cilium-agent -- cilium status
+sudo k8s kubectl exec -it cilium-97vcw -n kube-system -c cilium-agent \
+  -- cilium status
 ```
 
 You should see a wide range of metrics and configuration values for your cluster.
@@ -68,10 +69,14 @@ You should see a wide range of metrics and configuration values for your cluster
 You can `disable` the built-in network:
 
 ``` {warning}
-   If you have an active cluster, disabling Network may impact external access to
-   services within your cluster.
-   Ensure that you have alternative configurations in place before disabling Network.
+   If you have an active cluster, disabling Network may impact external 
+   access to services within your cluster.
+   Ensure that you have alternative configurations in place before 
+   disabling Network.
 ```
+
+If you currently have gateway enabled run `sudo k8s disable gateway` 
+before disabling network.
 
 ```
 sudo k8s disable network
