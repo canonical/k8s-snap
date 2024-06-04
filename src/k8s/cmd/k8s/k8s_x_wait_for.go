@@ -9,9 +9,8 @@ import (
 
 func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	waitForDNSCmd := &cobra.Command{
-		Use:    "dns",
-		Short:  "Wait for DNS to be ready",
-		Hidden: true,
+		Use:   "dns",
+		Short: "Wait for DNS to be ready",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := control.WaitUntilReady(cmd.Context(), func() (bool, error) {
 				return features.StatusChecks.CheckDNS(cmd.Context(), env.Snap)
@@ -24,9 +23,8 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 
 	waitForNetworkCmd := &cobra.Command{
-		Use:    "network",
-		Short:  "Wait for Network to be ready",
-		Hidden: true,
+		Use:   "network",
+		Short: "Wait for Network to be ready",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := control.WaitUntilReady(cmd.Context(), func() (bool, error) {
 				return features.StatusChecks.CheckNetwork(cmd.Context(), env.Snap)
