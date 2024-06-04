@@ -1,0 +1,10 @@
+#!/bin/bash -xe
+
+DIR="$(realpath "$(dirname "${0}")")"
+
+# Configure git author
+git config user.email k8s-bot@canonical.com
+git config user.name k8s-bot
+
+# Apply strict patch
+git am "${DIR}/0001-Moonray.patch"
