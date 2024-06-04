@@ -21,3 +21,9 @@ var Implementation Interface = &implementation{
 	applyMetricsServer: metrics_server.ApplyMetricsServer,
 	applyLocalStorage:  localpv.ApplyLocalStorage,
 }
+
+// StatusChecks implements the Canonical Kubernetes built-in feature status checks.
+var StatusChecks StatusInterface = &statusChecks{
+	checkNetwork: cilium.CheckNetwork,
+	checkDNS:     coredns.CheckDNS,
+}
