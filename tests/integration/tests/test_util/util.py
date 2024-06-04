@@ -153,69 +153,13 @@ def wait_until_k8s_ready(
 
 
 def wait_for_dns(instance: harness.Instance):
-    LOG.info("Waiting for CoreDNS pod to show up...")
-    stubbornly(retries=15, delay_s=5).on(instance).until(
-        lambda p: "coredns" in p.stdout.decode()
-    ).exec(["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"])
-    LOG.info("CoreDNS pod showed up.")
-
-    stubbornly(retries=3, delay_s=1).on(instance).exec(
-        [
-            "k8s",
-            "kubectl",
-            "wait",
-            "--for=condition=ready",
-            "pod",
-            "-n",
-            "kube-system",
-            "-l",
-            "app.kubernetes.io/name=coredns",
-            "--timeout",
-            "180s",
-        ]
-    )
+    LOG.info("Waiting for DNS to be ready")
+    instance.exec(["k8s", "x-wait-for", "dns"])
 
 
 def wait_for_network(instance: harness.Instance):
-    LOG.info("Waiting for cilium pods to show up...")
-    stubbornly(retries=15, delay_s=5).on(instance).until(
-        lambda p: "cilium" in p.stdout.decode()
-    ).exec(
-        ["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"],
-    )
-    LOG.info("Cilium pods showed up.")
-
-    stubbornly(retries=3, delay_s=1).on(instance).exec(
-        [
-            "k8s",
-            "kubectl",
-            "wait",
-            "--for=condition=ready",
-            "pod",
-            "-n",
-            "kube-system",
-            "-l",
-            "io.cilium/app=operator",
-            "--timeout",
-            "180s",
-        ],
-    )
-
-    stubbornly(retries=3, delay_s=1).on(instance).exec(
-        [
-            "k8s",
-            "kubectl",
-            "wait",
-            "--for=condition=ready",
-            "pod",
-            "-n",
-            "kube-system",
-            "-l",
-            "k8s-app=cilium",
-            "--timeout",
-            "180s",
-        ]
-    )
+    LOG.info("Waiting for network to be ready")
+    instance.exec(["k8s", "x-wait-for", "network"])
 
 
 def hostname(instance: harness.Instance) -> str:
