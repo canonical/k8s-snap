@@ -11,7 +11,7 @@ import (
 
 // CheckDNS checks the CoreDNS deployment in the cluster.
 func CheckDNS(ctx context.Context, snap snap.Snap) (bool, error) {
-	client, err := snap.KubernetesClient("")
+	client, err := snap.KubernetesClient("kube-system")
 	if err != nil {
 		return false, fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
