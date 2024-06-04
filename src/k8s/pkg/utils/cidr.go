@@ -84,6 +84,10 @@ func ParseAddressString(address string, port int64) (string, error) {
 		}
 	}
 
+	if port < 0 || port > 65535 {
+		return "", fmt.Errorf("invalid port number %d", port)
+	}
+
 	if address == "" {
 		address = util.NetworkInterfaceAddress()
 	} else if _, ipNet, err := net.ParseCIDR(address); err == nil {
