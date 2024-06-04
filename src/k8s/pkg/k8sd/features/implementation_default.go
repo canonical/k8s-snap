@@ -22,6 +22,7 @@ var Implementation Interface = &implementation{
 	applyLocalStorage:  localpv.ApplyLocalStorage,
 }
 
+// StatusChecks implements the Canonical Kubernetes built-in feature status checks.
 var StatusChecks StatusInterface = &statusChecks{
 	checkNetwork: cilium.CheckNetwork,
 	checkDNS:     coredns.CheckDNS,
