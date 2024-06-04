@@ -1,7 +1,9 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
@@ -20,6 +22,7 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
 		force        bool
 		outputFormat string
+		timeout      time.Duration
 	}
 	cmd := &cobra.Command{
 		Use:    "remove-node <node-name>",
@@ -27,6 +30,11 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Args:   cmdutil.ExactArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if opts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", opts.timeout, minTimeout, minTimeout)
+				opts.timeout = minTimeout
+			}
+
 			client, err := env.Client(cmd.Context())
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
@@ -36,8 +44,11 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			name := args[0]
 
+			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
+			cobra.OnFinalize(cancel)
+
 			cmd.PrintErrf("Removing %q from the Kubernetes cluster. This may take a few seconds, please wait.\n", name)
-			if err := client.RemoveNode(cmd.Context(), apiv1.RemoveNodeRequest{Name: name, Force: opts.force}); err != nil {
+			if err := client.RemoveNode(ctx, apiv1.RemoveNodeRequest{Name: name, Force: opts.force}); err != nil {
 				cmd.PrintErrf("Error: Failed to remove node %q from the cluster.\n\nThe error was: %v\n", name, err)
 				env.Exit(1)
 				return
@@ -49,5 +60,7 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 	cmd.Flags().BoolVar(&opts.force, "force", false, "forcibly remove the cluster member")
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
+	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
+
 	return cmd
 }

@@ -1,8 +1,10 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
@@ -12,6 +14,7 @@ import (
 func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
 		outputFormat string
+		timeout      time.Duration
 	}
 	cmd := &cobra.Command{
 		Use:    "get <feature.key>",
@@ -20,6 +23,11 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Args:   cmdutil.MaximumNArgs(env, 1),
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
+			if opts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", opts.timeout, minTimeout, minTimeout)
+				opts.timeout = minTimeout
+			}
+
 			client, err := env.Client(cmd.Context())
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
@@ -27,7 +35,10 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			config, err := client.GetClusterConfig(cmd.Context(), apiv1.GetClusterConfigRequest{})
+			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
+			cobra.OnFinalize(cancel)
+
+			config, err := client.GetClusterConfig(ctx, apiv1.GetClusterConfigRequest{})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to get the current cluster configuration.\n\nThe error was: %v\n", err)
 				env.Exit(1)
@@ -112,6 +123,7 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
+	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 
 	return cmd
 }
