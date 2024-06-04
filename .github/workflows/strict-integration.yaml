@@ -25,9 +25,7 @@ jobs:
           sudo snap install snapcraft --classic
       - name: Apply strict patch
         run: |
-          git config --global user.email k8s-bot@canonical.com
-          git config --global user.name k8s-bot
-          git am ./build-scripts/patches/strict/*.patch
+          ./build-scripts/patches/strict/apply
       - name: Build snap
         run: |
           sg lxd -c 'snapcraft --use-lxd'
