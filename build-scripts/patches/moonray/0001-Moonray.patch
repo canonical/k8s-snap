@@ -16,7 +16,7 @@ index aeb1729..184f2ce 100644
 +//go:build ignore
 +
  package features
- 
+
  import (
 diff --git a/src/k8s/pkg/k8sd/features/implementation_moonray.go b/src/k8s/pkg/k8sd/features/implementation_moonray.go
 index f8abf25..cdf39fa 100644
@@ -26,8 +26,7 @@ index f8abf25..cdf39fa 100644
 -//go:build ignore
 -
  package features
- 
- import (
--- 
-2.34.1
 
+ import (
+--
+2.34.1

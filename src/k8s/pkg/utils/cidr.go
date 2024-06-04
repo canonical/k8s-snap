@@ -99,5 +99,29 @@ func ParseAddressString(address string, port int64) (string, error) {
 	}
 
 	return util.CanonicalNetworkAddress(address, port), nil
+}
 
+// ParseCIDRs parses the given CIDR string and returns the respective IPv4 and IPv6 CIDRs.
+func ParseCIDRs(CIDRstring string) (string, string, error) {
+	clusterCIDRs := strings.Split(CIDRstring, ",")
+	if v := len(clusterCIDRs); v != 1 && v != 2 {
+		return "", "", fmt.Errorf("invalid CIDR list: %v", clusterCIDRs)
+	}
+
+	var (
+		ipv4CIDR string
+		ipv6CIDR string
+	)
+	for _, cidr := range clusterCIDRs {
+		_, parsed, err := net.ParseCIDR(cidr)
+		switch {
+		case err != nil:
+			return "", "", fmt.Errorf("failed to parse cidr: %w", err)
+		case parsed.IP.To4() != nil:
+			ipv4CIDR = cidr
+		default:
+			ipv6CIDR = cidr
+		}
+	}
+	return ipv4CIDR, ipv6CIDR, nil
 }

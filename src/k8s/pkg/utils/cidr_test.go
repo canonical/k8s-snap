@@ -112,3 +112,55 @@ func TestParseAddressString(t *testing.T) {
 		})
 	}
 }
+
+func TestParseCIDRs(t *testing.T) {
+	RegisterTestingT(t)
+
+	testCases := []struct {
+		input        string
+		expectedIPv4 string
+		expectedIPv6 string
+		expectedErr  bool
+	}{
+		{
+			input:        "192.168.1.0/24",
+			expectedIPv4: "192.168.1.0/24",
+			expectedIPv6: "",
+		},
+		{
+			input:        "2001:db8::/32",
+			expectedIPv4: "",
+			expectedIPv6: "2001:db8::/32",
+		},
+		{
+			input:        "192.168.1.0/24,2001:db8::/32",
+			expectedIPv4: "192.168.1.0/24",
+			expectedIPv6: "2001:db8::/32",
+		},
+		{
+			input:        "192.168.1.0/24,invalidCIDR",
+			expectedIPv4: "",
+			expectedIPv6: "",
+			expectedErr:  true,
+		},
+		{
+			input:        "192.168.1.0/24,2001:db8::/32,10.0.0.0/8",
+			expectedIPv4: "",
+			expectedIPv6: "",
+			expectedErr:  true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(tc.input)
+			if tc.expectedErr {
+				Expect(err).To(HaveOccurred())
+			} else {
+				Expect(err).To(BeNil())
+				Expect(ipv4CIDR).To(Equal(tc.expectedIPv4))
+				Expect(ipv6CIDR).To(Equal(tc.expectedIPv6))
+			}
+		})
+	}
+}
