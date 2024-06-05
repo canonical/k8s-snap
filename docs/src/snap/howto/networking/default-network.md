@@ -62,7 +62,8 @@ sudo k8s kubectl exec -it cilium-97vcw -n kube-system -c cilium-agent \
   -- cilium status
 ```
 
-You should see a wide range of metrics and configuration values for your cluster.
+You should see a wide range of metrics and configuration values for your 
+cluster.
 
 ## Disable Network
 
@@ -75,7 +76,7 @@ You can `disable` the built-in network:
    disabling Network.
 ```
 
-If you currently have gateway enabled run `sudo k8s disable gateway` 
+If your underlying network is cilium you will have to run `sudo k8s disable gateway` 
 before disabling network.
 
 ```

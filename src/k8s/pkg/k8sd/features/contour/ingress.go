@@ -26,12 +26,6 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 			"tls": map[string]any{
 				"envoy-client-certificate": ingress.GetDefaultTLSSecret(), //TODO: I think this is wrong
 			},
-			"gateway": map[string]any{
-				"gatewayRef": map[string]any{
-					"name":      "gateway",
-					"namespace": "project-contour",
-				},
-			},
 		}
 	}
 

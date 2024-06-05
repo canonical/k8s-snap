@@ -39,14 +39,14 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	}
 	changed, err := m.Apply(ctx, chartContour, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
 	if err != nil {
-		return fmt.Errorf("failed to apply Gateway API cilium configuration: %w", err)
+		return fmt.Errorf("failed to apply Gateway API contour configuration: %w", err)
 	}
 
 	if !changed || !gateway.GetEnabled() {
 		return nil
 	}
 	if err := rolloutRestartContour(ctx, snap, 3); err != nil {
-		return fmt.Errorf("failed to rollout restart cilium to apply Gateway API: %w", err)
+		return fmt.Errorf("failed to rollout restart contour to apply Gateway API: %w", err)
 	}
 
 	return nil
