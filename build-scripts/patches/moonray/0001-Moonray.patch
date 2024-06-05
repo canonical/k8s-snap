@@ -1,24 +1,33 @@
-From de526e476d051fbc5ec4cfbec383a60729434159 Mon Sep 17 00:00:00 2001
+From 1a16f5952ebda874a37556cfdca410a8e7e00ae6 Mon Sep 17 00:00:00 2001
 From: Benjamin Schimke <benjamin.schimke@canonical.com>
 Date: Wed, 5 Jun 2024 09:48:57 +0200
 Subject: [PATCH] Moonray
 
 ---
- src/k8s/pkg/k8sd/features/implementation_default.go | 1 +
- 1 file changed, 1 insertion(+)
+ src/k8s/pkg/k8sd/features/implementation_default.go | 2 ++
+ src/k8s/pkg/k8sd/features/implementation_moonray.go | 2 --
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/src/k8s/pkg/k8sd/features/implementation_default.go b/src/k8s/pkg/k8sd/features/implementation_default.go
-index aac2d97..313a7f5 100644
+index aeb1729..184f2ce 100644
 --- a/src/k8s/pkg/k8sd/features/implementation_default.go
 +++ b/src/k8s/pkg/k8sd/features/implementation_default.go
-@@ -12,6 +12,7 @@ import (
- // CoreDNS is used for DNS.
- // MetricsServer is used for metrics-server.
- // LocalPV Rawfile CSI is used for local-storage.
-+// TODO: Replace with moonray specific implementation.
- var Implementation Interface = &implementation{
- 	applyDNS:           coredns.ApplyDNS,
- 	applyNetwork:       cilium.ApplyNetwork,
+@@ -1,3 +1,5 @@
++//go:build ignore
++
+ package features
+ 
+ import (
+diff --git a/src/k8s/pkg/k8sd/features/implementation_moonray.go b/src/k8s/pkg/k8sd/features/implementation_moonray.go
+index f8abf25..cdf39fa 100644
+--- a/src/k8s/pkg/k8sd/features/implementation_moonray.go
++++ b/src/k8s/pkg/k8sd/features/implementation_moonray.go
+@@ -1,5 +1,3 @@
+-//go:build ignore
+-
+ package features
+ 
+ import (
 -- 
 2.34.1
 
