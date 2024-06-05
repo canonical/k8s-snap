@@ -6,5 +6,9 @@ DIR="$(realpath "$(dirname "${0}")")"
 git config user.email k8s-bot@canonical.com
 git config user.name k8s-bot
 
+# Remove unrelated tests
+rm "${DIR}/../../../tests/integration/tests/test_cilium_e2e.py"
+git commit -a -m "Remove unrelated tests"
+
 # Apply strict patch
 git am "${DIR}/0001-Moonray.patch"
