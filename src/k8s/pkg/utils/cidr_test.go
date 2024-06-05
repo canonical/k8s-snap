@@ -1,9 +1,12 @@
 package utils_test
 
 import (
+	"fmt"
+	"net"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/lxd/lxd/util"
 	. "github.com/onsi/gomega"
 )
 
@@ -67,4 +70,45 @@ func TestGetKubernetesServiceIPsFromServiceCIDRs(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestParseAddressString(t *testing.T) {
+	g := NewWithT(t)
+
+	// Seed the default address
+	defaultAddress := util.NetworkInterfaceAddress()
+	ip := net.ParseIP(defaultAddress)
+	subnetMask := net.CIDRMask(24, 32)
+	networkAddress := ip.Mask(subnetMask)
+	// Infer the CIDR notation
+	networkAddressCIDR := fmt.Sprintf("%s/24", networkAddress.String())
+
+	for _, tc := range []struct {
+		name    string
+		address string
+		port    int64
+		want    string
+		wantErr bool
+	}{
+		{name: "EmptyAddress", address: "", port: 8080, want: fmt.Sprintf("%s:8080", defaultAddress), wantErr: false},
+		{name: "CIDR", address: networkAddressCIDR, port: 8080, want: fmt.Sprintf("%s:8080", defaultAddress), wantErr: false},
+		{name: "CIDRAndPort", address: fmt.Sprintf("%s:9090", networkAddressCIDR), port: 8080, want: fmt.Sprintf("%s:9090", defaultAddress), wantErr: false},
+		{name: "IPv4", address: "10.0.0.10", port: 8080, want: "10.0.0.10:8080", wantErr: false},
+		{name: "IPv4AndPort", address: "10.0.0.10:9090", port: 8080, want: "10.0.0.10:9090", wantErr: false},
+		{name: "NonMatchingCIDR", address: "10.10.5.0/24", port: 8080, want: "", wantErr: true},
+		{name: "IPv6", address: "fe80::1:234", port: 8080, want: "[fe80::1:234]:8080", wantErr: false},
+		{name: "IPv6AndPort", address: "[fe80::1:234]:9090", port: 8080, want: "[fe80::1:234]:9090", wantErr: false},
+		{name: "InvalidPort", address: "127.0.0.1:invalid-port", port: 0, want: "", wantErr: true},
+		{name: "PortOutOfBounds", address: "10.0.0.10:70799", port: 8080, want: "", wantErr: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := utils.ParseAddressString(tc.address, tc.port)
+			if tc.wantErr {
+				g.Expect(err).To(HaveOccurred())
+			} else {
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(got).To(Equal(tc.want))
+			}
+		})
+	}
 }

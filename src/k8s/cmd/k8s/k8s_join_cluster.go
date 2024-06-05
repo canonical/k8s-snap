@@ -10,7 +10,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
-	"github.com/canonical/lxd/lxd/util"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -55,10 +55,12 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				opts.name = hostname
 			}
 
-			if opts.address == "" {
-				opts.address = util.NetworkInterfaceAddress()
+			address, err := utils.ParseAddressString(opts.address, config.DefaultPort)
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to parse the address %q.\n\nThe error was: %v\n", opts.address, err)
+				env.Exit(1)
+				return
 			}
-			opts.address = util.CanonicalNetworkAddress(opts.address, config.DefaultPort)
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
@@ -100,7 +102,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cobra.OnFinalize(cancel)
 
 			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
-			if err := client.JoinCluster(ctx, apiv1.JoinClusterRequest{Name: opts.name, Address: opts.address, Token: token, Config: joinClusterConfig}); err != nil {
+			if err := client.JoinCluster(ctx, apiv1.JoinClusterRequest{Name: opts.name, Address: address, Token: token, Config: joinClusterConfig}); err != nil {
 				cmd.PrintErrf("Error: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
@@ -110,7 +112,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
-	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
+	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address or CIDR, defaults to the node IP address")
 	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster join configuration. Use '-' to read from stdin.")
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
