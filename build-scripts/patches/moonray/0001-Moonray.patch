@@ -1,73 +1,24 @@
-From bc1f724eb7219c8b8221663d6398e370c9a15842 Mon Sep 17 00:00:00 2001
+From de526e476d051fbc5ec4cfbec383a60729434159 Mon Sep 17 00:00:00 2001
 From: Benjamin Schimke <benjamin.schimke@canonical.com>
-Date: Tue, 4 Jun 2024 15:19:13 +0200
+Date: Wed, 5 Jun 2024 09:48:57 +0200
 Subject: [PATCH] Moonray
 
 ---
- tests/integration/tests/test_cilium_e2e.py | 54 ----------------------
- 1 file changed, 54 deletions(-)
- delete mode 100644 tests/integration/tests/test_cilium_e2e.py
+ src/k8s/pkg/k8sd/features/implementation_default.go | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/tests/integration/tests/test_cilium_e2e.py b/tests/integration/tests/test_cilium_e2e.py
-deleted file mode 100644
-index cf2735e..0000000
---- a/tests/integration/tests/test_cilium_e2e.py
-+++ /dev/null
-@@ -1,54 +0,0 @@
--#
--# Copyright 2024 Canonical, Ltd.
--#
--import logging
--import platform
--from typing import List
--
--import pytest
--from test_util import config, harness, util
--
--LOG = logging.getLogger(__name__)
--
--ARCH = platform.machine()
--CILIUM_CLI_ARCH_MAP = {"aarch64": "arm64", "x86_64": "amd64"}
--CILIUM_CLI_VERSION = "v0.16.3"
--CILIUM_CLI_TAR_GZ = f"https://github.com/cilium/cilium-cli/releases/download/{CILIUM_CLI_VERSION}/cilium-linux-{CILIUM_CLI_ARCH_MAP.get(ARCH)}.tar.gz"  # noqa
--
--
--@pytest.mark.skipif(
--    ARCH not in CILIUM_CLI_ARCH_MAP, reason=f"Platform {ARCH} not supported"
--)
--def test_cilium_e2e(instances: List[harness.Instance]):
--    instance = instances[0]
--    instance.exec(["bash", "-c", "mkdir -p ~/.kube"])
--    instance.exec(["bash", "-c", "k8s config > ~/.kube/config"])
--
--    # Download cilium-cli
--    instance.exec(["curl", "-L", CILIUM_CLI_TAR_GZ, "-o", "cilium.tar.gz"])
--    instance.exec(["tar", "xvzf", "cilium.tar.gz"])
--    instance.exec(["./cilium", "version", "--client"])
--
--    instance.exec(["k8s", "status", "--wait-ready"])
--
--    util.wait_for_dns(instance)
--    util.wait_for_network(instance)
--
--    # Run cilium e2e tests
--    e2e_args = []
--    if config.SUBSTRATE == "lxd":
--        # NOTE(neoaggelos): disable "no-unexpected-packet-drops" on LXD as it fails:
--        # [=] Test [no-unexpected-packet-drops] [1/61]
--        #   [-] Scenario [no-unexpected-packet-drops/no-unexpected-packet-drops]
--        #       Found unexpected packet drops:
--        # {
--        #   "labels": {
--        #     "direction": "INGRESS",
--        #     "reason": "VLAN traffic disallowed by VLAN filter"
--        #   },
--        #   "name": "cilium_drop_count_total",
--        #   "value": 4
--        # }
--        e2e_args.extend(["--test", "!no-unexpected-packet-drops"])
--
--    instance.exec(["./cilium", "connectivity", "test", *e2e_args])
+diff --git a/src/k8s/pkg/k8sd/features/implementation_default.go b/src/k8s/pkg/k8sd/features/implementation_default.go
+index aac2d97..313a7f5 100644
+--- a/src/k8s/pkg/k8sd/features/implementation_default.go
++++ b/src/k8s/pkg/k8sd/features/implementation_default.go
+@@ -12,6 +12,7 @@ import (
+ // CoreDNS is used for DNS.
+ // MetricsServer is used for metrics-server.
+ // LocalPV Rawfile CSI is used for local-storage.
++// TODO: Replace with moonray specific implementation.
+ var Implementation Interface = &implementation{
+ 	applyDNS:           coredns.ApplyDNS,
+ 	applyNetwork:       cilium.ApplyNetwork,
 -- 
 2.34.1
 
