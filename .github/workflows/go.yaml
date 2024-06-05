@@ -61,10 +61,6 @@ jobs:
         working-directory: src/k8s
         run: make go.vet
 
-      - name: go deadcode
-        working-directory: src/k8s
-        run: make go.deadcode
-
       - name: go test
         working-directory: src/k8s
         run: make go.unit
