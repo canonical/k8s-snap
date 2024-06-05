@@ -59,7 +59,7 @@ func rolloutRestartContour(ctx context.Context, snap snap.Snap, attempts int) er
 	}
 
 	if err := control.RetryFor(ctx, attempts, 0, func() error {
-		if err := client.RestartDeployment(ctx, "contour-contour", "projectcontour"); err != nil { //TODO: check name of deployment
+		if err := client.RestartDeployment(ctx, "ck-ingress-contour-envoy", "projectcontour"); err != nil { //TODO: check name of deployment
 			return fmt.Errorf("failed to restart contour deployment: %w", err)
 		}
 		return nil
@@ -68,7 +68,7 @@ func rolloutRestartContour(ctx context.Context, snap snap.Snap, attempts int) er
 	}
 
 	if err := control.RetryFor(ctx, attempts, 0, func() error {
-		if err := client.RestartDaemonset(ctx, "contour-envoy", "projectcontour"); err != nil {
+		if err := client.RestartDaemonset(ctx, "ck-ingress-contour-envoy", "projectcontour"); err != nil {
 			return fmt.Errorf("failed to restart contour daemonset: %w", err)
 		}
 		return nil

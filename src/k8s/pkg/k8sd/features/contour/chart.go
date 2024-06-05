@@ -13,4 +13,10 @@ var (
 		Namespace:    "projectcontour",
 		ManifestPath: path.Join("charts", "contour-18.1.2.tgz"),
 	}
+
+	chartEnvoyGateway = helm.InstallableChart{
+		Name:         "ck-gateway",
+		Namespace:    "envoy-gateway-system",
+		ManifestPath: path.Join("charts", "gateway-helm-v1.0.1.tgz"),
+	}
 )
