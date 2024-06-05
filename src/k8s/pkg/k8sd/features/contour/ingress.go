@@ -18,18 +18,27 @@ import (
 func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, network types.Network, _ types.Annotations) error {
 	m := snap.HelmClient()
 
+	//TODO: map these friends
+	// enableProxyProtocol = ingress.GetEnableProxyProtocol()
+	// defaultTLSSecret = ingress.GetDefaultTLSSecret()
+
+	if !ingress.GetEnabled() {
+		if _, err := m.Apply(ctx, chartContour, helm.StateDeleted, nil); err != nil {
+			return fmt.Errorf("failed to uninstall ingress: %w", err)
+		}
+	}
 	var values map[string]any
 	if ingress.GetEnabled() {
 		values = map[string]any{
-			"envoy-service-namespace": "project-contour",
+			"envoy-service-namespace": "projectcontour",
 			"envoy-service-name":      "envoy",
-			"tls": map[string]any{
-				"envoy-client-certificate": ingress.GetDefaultTLSSecret(), //TODO: I think this is wrong
-			},
+			// "tls": map[string]any{
+			// 	"envoy-client-certificate": ingress.GetDefaultTLSSecret(), //TODO: I think this is wrong
+			// },
 		}
 	}
 
-	changed, err := m.Apply(ctx, chartContour, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
+	changed, err := m.Apply(ctx, chartContour, helm.StatePresent, values)
 	if err != nil {
 		return fmt.Errorf("failed to enable ingress: %w", err)
 	}
@@ -50,7 +59,7 @@ func rolloutRestartContour(ctx context.Context, snap snap.Snap, attempts int) er
 	}
 
 	if err := control.RetryFor(ctx, attempts, 0, func() error {
-		if err := client.RestartDeployment(ctx, "contour-contour", "project-contour"); err != nil { //TODO: check name of deployment
+		if err := client.RestartDeployment(ctx, "contour-contour", "projectcontour"); err != nil { //TODO: check name of deployment
 			return fmt.Errorf("failed to restart contour deployment: %w", err)
 		}
 		return nil
@@ -59,7 +68,7 @@ func rolloutRestartContour(ctx context.Context, snap snap.Snap, attempts int) er
 	}
 
 	if err := control.RetryFor(ctx, attempts, 0, func() error {
-		if err := client.RestartDaemonset(ctx, "contour-envoy", "project-contour"); err != nil {
+		if err := client.RestartDaemonset(ctx, "contour-envoy", "projectcontour"); err != nil {
 			return fmt.Errorf("failed to restart contour daemonset: %w", err)
 		}
 		return nil

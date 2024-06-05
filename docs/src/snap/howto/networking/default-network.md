@@ -76,8 +76,8 @@ You can `disable` the built-in network:
    disabling Network.
 ```
 
-If your underlying network is cilium you will have to run `sudo k8s disable gateway` 
-before disabling network.
+If your underlying network is cilium you will have to run 
+`sudo k8s disable gateway` before disabling network.
 
 ```
 sudo k8s disable network

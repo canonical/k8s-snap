@@ -23,7 +23,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 			"gateway": map[string]any{
 				"gatewayRef": map[string]any{
 					"name":      "gateway",
-					"namespace": "project-contour",
+					"namespace": "projectcontour",
 				},
 			},
 		}

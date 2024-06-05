@@ -18,7 +18,7 @@ var Implementation Interface = &implementation{
 	applyNetwork:       fake.ApplyNetwork, //TODO: remove default overwrite for testing
 	applyLoadBalancer:  fake.ApplyLoadBalancer,
 	applyIngress:       contour.ApplyIngress,
-	applyGateway:       contour.ApplyGateway,
+	applyGateway:       fake.ApplyGateway,
 	applyMetricsServer: metrics_server.ApplyMetricsServer,
 	applyLocalStorage:  localpv.ApplyLocalStorage,
 }
