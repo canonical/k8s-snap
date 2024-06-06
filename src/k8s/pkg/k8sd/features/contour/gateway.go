@@ -28,38 +28,5 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		}
 	}
 
-	// Second update gateway config bits in contour ingress
-	var values map[string]any
-	if gateway.GetEnabled() { //TODO: Do we need to check for ingress enabled? Are we overwriting values set in ingress?
-		values = map[string]any{
-			"gateway": map[string]any{
-				"gatewayRef": map[string]any{
-					"name":      "contour",
-					"namespace": "projectcontour",
-				},
-			},
-		}
-	} else {
-		values = map[string]any{
-			"gateway": map[string]any{
-				"gatewayRef": map[string]any{
-					"name":      "",
-					"namespace": "",
-				},
-			},
-		}
-	}
-	changed, err := m.Apply(ctx, chartContour, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
-	if err != nil {
-		return fmt.Errorf("failed to apply Gateway configuration to contour: %w", err)
-	}
-
-	if !changed || !gateway.GetEnabled() {
-		return nil
-	}
-	if err := rolloutRestartContour(ctx, snap, 3); err != nil {
-		return fmt.Errorf("failed to rollout restart contour to apply Gateway configuration: %w", err)
-	}
-
 	return nil
 }
