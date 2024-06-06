@@ -3,6 +3,7 @@
 package features
 
 import (
+	"github.com/canonical/k8s/pkg/k8sd/features/calico"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/features/coredns"
 	"github.com/canonical/k8s/pkg/k8sd/features/localpv"
@@ -13,7 +14,7 @@ import (
 // TODO: Replace default by moonray.
 var Implementation Interface = &implementation{
 	applyDNS:           coredns.ApplyDNS,
-	applyNetwork:       cilium.ApplyNetwork,
+	applyNetwork:       calico.ApplyNetwork,
 	applyLoadBalancer:  cilium.ApplyLoadBalancer,
 	applyIngress:       cilium.ApplyIngress,
 	applyGateway:       cilium.ApplyGateway,
@@ -24,6 +25,6 @@ var Implementation Interface = &implementation{
 // StatusChecks implements the Canonical Kubernetes moonray feature status checks.
 // TODO: Replace default by moonray.
 var StatusChecks StatusInterface = &statusChecks{
-	checkNetwork: cilium.CheckNetwork,
+	checkNetwork: calico.CheckNetwork,
 	checkDNS:     coredns.CheckDNS,
 }
