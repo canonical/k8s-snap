@@ -38,7 +38,7 @@ metadata:
   name: contour
   namespace: projectcontour
 spec:
-  gatewayClassName: my-gateway-class # maybe gatewayclasses.gateway.networking.k8s.io?
+  gatewayClassName: ck-gateway
   listeners:
   - protocol: HTTP
     port: 80
@@ -46,25 +46,6 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
----
-kind: GatewayClass
-apiVersion: gateway.networking.k8s.io/v1beta1
-metadata:
-  name: my-gateway-class
-spec:
-  controllerName: projectcontour.io/gateway-controller
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: contour
-  namespace: projectcontour
-data:
-  contour.yaml: |
-    gateway:
-      gatewayRef:
-        name: contour
-        namespace: projectcontour
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
