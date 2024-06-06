@@ -1,6 +1,6 @@
-From 1a16f5952ebda874a37556cfdca410a8e7e00ae6 Mon Sep 17 00:00:00 2001
-From: Benjamin Schimke <benjamin.schimke@canonical.com>
-Date: Wed, 5 Jun 2024 09:48:57 +0200
+From 4f26e12832ef73b5c76a59cf3209d4f1f5b0aa3b Mon Sep 17 00:00:00 2001
+From: k8s-bot <k8s-bot@canonical.com>
+Date: Thu, 6 Jun 2024 10:34:52 +0200
 Subject: [PATCH] Moonray
 
 ---
@@ -19,7 +19,7 @@ index aeb1729..184f2ce 100644
  
  import (
 diff --git a/src/k8s/pkg/k8sd/features/implementation_moonray.go b/src/k8s/pkg/k8sd/features/implementation_moonray.go
-index f8abf25..cdf39fa 100644
+index dece19d..5933221 100644
 --- a/src/k8s/pkg/k8sd/features/implementation_moonray.go
 +++ b/src/k8s/pkg/k8sd/features/implementation_moonray.go
 @@ -1,5 +1,3 @@
