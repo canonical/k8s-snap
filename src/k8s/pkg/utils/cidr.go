@@ -4,8 +4,43 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"strconv"
 	"strings"
+
+	"github.com/canonical/lxd/lxd/util"
 )
+
+// findMatchingNodeAddress returns the IP address of a network interface that belongs to the given CIDR.
+func findMatchingNodeAddress(cidr *net.IPNet) (net.IP, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, fmt.Errorf("could not get interface addresses: %w", err)
+	}
+
+	var selectedIP net.IP
+	selectedSubnetBits := -1
+
+	for _, addr := range addrs {
+		ipNet, ok := addr.(*net.IPNet)
+		if !ok {
+			continue
+		}
+		if cidr.Contains(ipNet.IP) {
+			_, subnetBits := cidr.Mask.Size()
+			if selectedSubnetBits == -1 || subnetBits < selectedSubnetBits {
+				// Prefer the address with the fewest subnet bits
+				selectedIP = ipNet.IP
+				selectedSubnetBits = subnetBits
+			}
+		}
+	}
+
+	if selectedIP == nil {
+		return nil, fmt.Errorf("could not find a matching address for CIDR %q", cidr.String())
+	}
+
+	return selectedIP, nil
+}
 
 // GetFirstIP returns the first IP address of a subnet. Use big.Int so that it can handle both IPv4 and IPv6 addreses.
 func GetFirstIP(subnet string) (net.IP, error) {
@@ -36,4 +71,33 @@ func GetKubernetesServiceIPsFromServiceCIDRs(serviceCIDR string) ([]net.IP, erro
 		firstIPs = append(firstIPs, ip)
 	}
 	return firstIPs, nil
+}
+
+// ParseAddressString parses an address string and returns a canonical network address.
+func ParseAddressString(address string, port int64) (string, error) {
+	host, hostPort, err := net.SplitHostPort(address)
+	if err == nil {
+		address = host
+		port, err = strconv.ParseInt(hostPort, 10, 64)
+		if err != nil {
+			return "", fmt.Errorf("failed to parse the port from %q: %w", hostPort, err)
+		}
+	}
+
+	if port < 0 || port > 65535 {
+		return "", fmt.Errorf("invalid port number %d", port)
+	}
+
+	if address == "" {
+		address = util.NetworkInterfaceAddress()
+	} else if _, ipNet, err := net.ParseCIDR(address); err == nil {
+		matchingIP, err := findMatchingNodeAddress(ipNet)
+		if err != nil {
+			return "", fmt.Errorf("failed to find a matching node address for %q: %w", address, err)
+		}
+		address = matchingIP.String()
+	}
+
+	return util.CanonicalNetworkAddress(address, port), nil
+
 }

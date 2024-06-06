@@ -16,7 +16,6 @@ import (
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/lxd/lxd/util"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -73,10 +72,12 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
-			if opts.address == "" {
-				opts.address = util.NetworkInterfaceAddress()
+			address, err := utils.ParseAddressString(opts.address, config.DefaultPort)
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to parse the address %q.\n\nThe error was: %v\n", opts.address, err)
+				env.Exit(1)
+				return
 			}
-			opts.address = util.CanonicalNetworkAddress(opts.address, config.DefaultPort)
 
 			client, err := env.Client(cmd.Context())
 			if err != nil {
@@ -126,7 +127,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			request := apiv1.PostClusterBootstrapRequest{
 				Name:    opts.name,
-				Address: opts.address,
+				Address: address,
 				Config:  bootstrapConfig,
 			}
 
@@ -147,7 +148,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.Flags().BoolVar(&opts.interactive, "interactive", false, "interactively configure the most important cluster options")
 	cmd.Flags().StringVar(&opts.configFile, "file", "", "path to the YAML file containing your custom cluster bootstrap configuration. Use '-' to read from stdin.")
 	cmd.Flags().StringVar(&opts.name, "name", "", "node name, defaults to hostname")
-	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address, defaults to the node IP address")
+	cmd.Flags().StringVar(&opts.address, "address", "", "microcluster address or CIDR, defaults to the node IP address")
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 
