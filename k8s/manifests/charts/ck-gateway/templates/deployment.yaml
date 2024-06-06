@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: contour-gateway-provisioner
+  name: contour-gateway-provisioner
+  namespace: projectcontour
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: contour-gateway-provisioner
+  template:
+    metadata:
+      labels:
+        control-plane: contour-gateway-provisioner
+    spec:
+      containers:
+      - args:
+        - gateway-provisioner
+        - --metrics-addr=127.0.0.1:8080
+        - --enable-leader-election
+        command: ["contour"]
+        image: ghcr.io/projectcontour/contour:v1.29.0
+        imagePullPolicy: IfNotPresent
+        name: contour-gateway-provisioner
+        resources:
+          requests:
+            cpu: 100m
+            memory: 70Mi
+        env:
+        - name: CONTOUR_PROVISIONER_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+      serviceAccountName: contour-gateway-provisioner
+      terminationGracePeriodSeconds: 10

@@ -1,7 +1,10 @@
+---
 kind: GatewayClass
 apiVersion: gateway.networking.k8s.io/v1beta1
 metadata:
   name: ck-gateway
+  annotations:
+  "helm.sh/hook": post-install
+  "helm.sh/hook-delete-policy": before-hook-creation
 spec:
   controllerName: projectcontour.io/gateway-controller
----
