@@ -51,13 +51,6 @@ def test_network(session_instance: harness.Instance):
     assert len(out["items"]) > 0, "No NGINX pod found"
     podIP = out["items"][0]["status"]["podIP"]
 
-    p = session_instance.exec(
-        [
-            "curl",
-            "-s",
-            f"http://{podIP}",
-        ],
-        capture_output=True,
-    )
-
-    assert "Welcome to nginx!" in p.stdout.decode()
+    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+        lambda p: "Welcome to nginx!" in p.stdout.decode()
+    ).exec(["curl", "-s", f"http://{podIP}"])
