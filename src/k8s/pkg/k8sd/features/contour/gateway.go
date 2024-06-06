@@ -18,12 +18,12 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	m := snap.HelmClient()
 	// First Install envoy-gateway-system
 	if gateway.GetEnabled() {
-		if _, err := m.Apply(ctx, chartEnvoyGateway, helm.StatePresent, nil); err != nil {
+		if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, nil); err != nil {
 			return fmt.Errorf("failed to install envoy-gateway-system: %w", err)
 		}
 
 	} else {
-		if _, err := m.Apply(ctx, chartEnvoyGateway, helm.StateDeleted, nil); err != nil {
+		if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
 			return fmt.Errorf("failed to uninstall envoy-gateway-system: %w", err)
 		}
 	}
@@ -34,7 +34,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		values = map[string]any{
 			"gateway": map[string]any{
 				"gatewayRef": map[string]any{
-					"name":      "gateway",
+					"name":      "contour",
 					"namespace": "projectcontour",
 				},
 			},
