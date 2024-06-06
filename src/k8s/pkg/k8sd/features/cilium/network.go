@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net"
-	"strings"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -29,25 +27,9 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 		return nil
 	}
 
-	clusterCIDRs := strings.Split(cfg.GetPodCIDR(), ",")
-	if v := len(clusterCIDRs); v != 1 && v != 2 {
-		return fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", clusterCIDRs)
-	}
-
-	var (
-		ipv4CIDR string
-		ipv6CIDR string
-	)
-	for _, cidr := range clusterCIDRs {
-		_, parsed, err := net.ParseCIDR(cidr)
-		switch {
-		case err != nil:
-			return fmt.Errorf("failed to parse cidr: %w", err)
-		case parsed.IP.To4() != nil:
-			ipv4CIDR = cidr
-		default:
-			ipv6CIDR = cidr
-		}
+	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
+	if err != nil {
+		return fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", err)
 	}
 
 	values := map[string]any{

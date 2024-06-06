@@ -32,3 +32,12 @@ func (c *Client) IsPodReady(ctx context.Context, name, namespace string, listOpt
 
 	return false, nil
 }
+
+// ListPods lists all pods in a namespace.
+func (c *Client) ListPods(ctx context.Context, namespace string, listOptions metav1.ListOptions) ([]corev1.Pod, error) {
+	pods, err := c.CoreV1().Pods(namespace).List(ctx, listOptions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list pods: %w", err)
+	}
+	return pods.Items, nil
+}
