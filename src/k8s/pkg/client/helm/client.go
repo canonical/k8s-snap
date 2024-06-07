@@ -75,6 +75,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		install := action.NewInstall(cfg)
 		install.ReleaseName = c.Name
 		install.Namespace = c.Namespace
+		install.CreateNamespace = true
 
 		chart, err := loader.Load(path.Join(h.manifestsBaseDir, c.ManifestPath))
 		if err != nil {
