@@ -73,6 +73,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 	case !isInstalled && desired == StatePresent:
 		// there is no release installed, so we must run an install action
 		install := action.NewInstall(cfg)
+		install.CreateNamespace = true
 		install.ReleaseName = c.Name
 		install.Namespace = c.Namespace
 
