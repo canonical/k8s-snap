@@ -75,6 +75,9 @@ jobs:
         with:
           name: k8s-${{ matrix.patch }}.snap
           path: build
+      - name: Apply ${{ matrix.patch }} patch
+        run: |
+          ./build-scripts/patches/${{ matrix.patch }}/apply
       - name: Run end to end tests
         run: |
           export TEST_SNAP="$PWD/build/k8s-${{ matrix.patch }}.snap"
