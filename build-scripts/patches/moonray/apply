@@ -8,6 +8,13 @@ git config user.name k8s-bot
 
 # Remove unrelated tests
 rm "${DIR}/../../../tests/integration/tests/test_cilium_e2e.py"
+## TODO: remove when loadbalancer is implemented
+rm "${DIR}/../../../tests/integration/tests/test_loadbalancer.py"
+## TODO: remove when gateway is implemented
+rm "${DIR}/../../../tests/integration/tests/test_gateway.py"
+## TODO: remove when ingress is implemented
+rm "${DIR}/../../../tests/integration/tests/test_ingress.py"
+
 git commit -a -m "Remove unrelated tests"
 
 # Apply strict patch
