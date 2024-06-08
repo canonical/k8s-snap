@@ -7,6 +7,14 @@ ExecStart=/opt/k8s/current/bin/pebble run
 Restart=always
 RestartSec=2
 
+# Must set environment here as well, since Docker ENV is not propagated to the service
+Environment=SNAP=/opt/k8s/current
+Environment=SNAP_REVISION=current
+Environment=SNAP_COMMON=/opt/k8s/common
+Environment=REAL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/k8s/current/bin
+Environment=K8SD_RUNTIME_ENVIRONMENT=pebble
+
 # Having non-zero Limit*s causes performance problems due to accounting overhead
 # in the kernel. We recommend using cgroups to do container-local accounting.
 LimitNPROC=infinity
