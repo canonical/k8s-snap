@@ -28,7 +28,7 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 		},
 	}
-	waitForDNSCmd.Flags().DurationVar(&opts.timeout, "timeout", 3*time.Minute, "maximum time to wait")
+	waitForDNSCmd.Flags().DurationVar(&opts.timeout, "timeout", 5*time.Minute, "maximum time to wait")
 
 	waitForNetworkCmd := &cobra.Command{
 		Use:   "network",
@@ -44,7 +44,7 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 		},
 	}
-	waitForNetworkCmd.Flags().DurationVar(&opts.timeout, "timeout", 3*time.Minute, "maximum time to wait")
+	waitForNetworkCmd.Flags().DurationVar(&opts.timeout, "timeout", 5*time.Minute, "maximum time to wait")
 
 	cmd := &cobra.Command{
 		Use:    "x-wait-for",
