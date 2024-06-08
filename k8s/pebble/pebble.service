@@ -1,0 +1,19 @@
+[Unit]
+Description=pebble
+After=network.target
+
+[Service]
+ExecStart=/opt/k8s/current/bin/pebble run
+Restart=always
+RestartSec=2
+
+# Having non-zero Limit*s causes performance problems due to accounting overhead
+# in the kernel. We recommend using cgroups to do container-local accounting.
+LimitNPROC=infinity
+LimitCORE=infinity
+LimitNOFILE=infinity
+TasksMax=infinity
+OOMScoreAdjust=-999
+
+[Install]
+WantedBy=multi-user.target
