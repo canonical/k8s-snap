@@ -1,0 +1,45 @@
+services:
+  k8sd:
+    override: replace
+    command: bash -c "$SNAP/k8s/wrappers/services/k8sd"
+    startup: enabled
+
+  containerd:
+    override: replace
+    command: bash -c "$SNAP/k8s/wrappers/services/containerd"
+    startup: disabled
+
+  k8s-dqlite:
+    override: replace
+    command: bash -c "$SNAP/k8s/wrappers/services/k8s-dqlite"
+    startup: disabled
+
+  kube-apiserver:
+    override: replace
+    command: bash -c "$SNAP/k8s/wrappers/services/kube-apiserver"
+    startup: disabled
+
+  kubelet:
+    override: replace
+    command: bash -c "$SNAP/k8s/wrappers/services/kubelet"
+    startup: disabled
+
+  kube-controller-manager:
+    override: replace
+    command: bash -c "$SNAP/k8s/wrappers/services/kube-controller-manager"
+    startup: disabled
+
+  kube-scheduler:
+    override: replace
+    command: bash -c "$SNAP/k8s/wrappers/services/kube-scheduler"
+    startup: disabled
+
+  kube-proxy:
+    override: replace
+    command: bash -c "$SNAP/k8s/wrappers/services/kube-proxy"
+    startup: disabled
+
+  k8s-apiserver-proxy:
+    override: replace
+    command: bash -c "$SNAP/k8s/wrappers/services/k8s-apiserver-proxy"
+    startup: disabled
