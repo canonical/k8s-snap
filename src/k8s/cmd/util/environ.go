@@ -33,7 +33,10 @@ type ExecutionEnvironment struct {
 
 // DefaultExecutionEnvironment is used to run the CLI.
 func DefaultExecutionEnvironment() ExecutionEnvironment {
-	snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
+	snap := snap.NewSnap(snap.SnapOpts{
+		SnapDir:       os.Getenv("SNAP"),
+		SnapCommonDir: os.Getenv("SNAP_COMMON"),
+	})
 
 	return ExecutionEnvironment{
 		Stdin:   os.Stdin,

@@ -11,11 +11,15 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestServices(t *testing.T) {
+func TestSnap(t *testing.T) {
 	t.Run("Start", func(t *testing.T) {
 		g := NewWithT(t)
 		mockRunner := &mock.Runner{}
-		snap := snap.NewSnap("testdir", "testdir", snap.WithCommandRunner(mockRunner.Run))
+		snap := snap.NewSnap(snap.SnapOpts{
+			SnapDir:       "testdir",
+			SnapCommonDir: "testdir",
+			RunCommand:    mockRunner.Run,
+		})
 
 		err := snap.StartService(context.Background(), "test-service")
 		g.Expect(err).To(BeNil())
@@ -33,8 +37,11 @@ func TestServices(t *testing.T) {
 	t.Run("Stop", func(t *testing.T) {
 		g := NewWithT(t)
 		mockRunner := &mock.Runner{}
-		snap := snap.NewSnap("testdir", "testdir", snap.WithCommandRunner(mockRunner.Run))
-
+		snap := snap.NewSnap(snap.SnapOpts{
+			SnapDir:       "testdir",
+			SnapCommonDir: "testdir",
+			RunCommand:    mockRunner.Run,
+		})
 		err := snap.StopService(context.Background(), "test-service")
 		g.Expect(err).To(BeNil())
 		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snapctl stop --disable k8s.test-service"))
@@ -51,7 +58,11 @@ func TestServices(t *testing.T) {
 	t.Run("Restart", func(t *testing.T) {
 		g := NewWithT(t)
 		mockRunner := &mock.Runner{}
-		snap := snap.NewSnap("testdir", "testdir", snap.WithCommandRunner(mockRunner.Run))
+		snap := snap.NewSnap(snap.SnapOpts{
+			SnapDir:       "testdir",
+			SnapCommonDir: "testdir",
+			RunCommand:    mockRunner.Run,
+		})
 
 		err := snap.RestartService(context.Background(), "test-service")
 		g.Expect(err).To(BeNil())
