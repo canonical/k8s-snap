@@ -26,7 +26,7 @@ func CheckNetwork(ctx context.Context, snap snap.Snap) (bool, error) {
 			return false, fmt.Errorf("failed to check if pod %q is ready: %w", ciliumPod, err)
 		}
 		if !isReady {
-			return false, nil
+			return false, fmt.Errorf("cilium pod %q is not yet ready: %w", ciliumPod, err)
 		}
 	}
 
