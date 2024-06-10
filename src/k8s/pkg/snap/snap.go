@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strings"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/helm"
@@ -18,6 +18,12 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
+type SnapOpts struct {
+	SnapDir       string
+	SnapCommonDir string
+	RunCommand    func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+}
+
 // snap implements the Snap interface.
 type snap struct {
 	snapDir       string
@@ -27,31 +33,18 @@ type snap struct {
 
 // NewSnap creates a new interface with the K8s snap.
 // NewSnap accepts the $SNAP, $SNAP_COMMON, directories, and a number of options.
-func NewSnap(snapDir, snapCommonDir string, options ...func(s *snap)) *snap {
-	s := &snap{
-		snapDir:       snapDir,
-		snapCommonDir: snapCommonDir,
-		runCommand:    utils.RunCommand,
+func NewSnap(opts SnapOpts) *snap {
+	runCommand := utils.RunCommand
+	if opts.RunCommand != nil {
+		runCommand = opts.RunCommand
 	}
-
-	for _, option := range options {
-		option(s) // Apply each passed option to the snap instance
+	s := &snap{
+		snapDir:       opts.SnapDir,
+		snapCommonDir: opts.SnapCommonDir,
+		runCommand:    runCommand,
 	}
 
 	return s
-}
-
-func (s *snap) path(parts ...string) string {
-	return path.Join(append([]string{s.snapDir}, parts...)...)
-}
-
-// serviceName infers the name of the snapctl daemon from the service name.
-// if the serviceName is the snap name `k8s` (=referes to all services) it will return it as is.
-func serviceName(serviceName string) string {
-	if strings.HasPrefix(serviceName, "k8s.") || serviceName == "k8s" {
-		return serviceName
-	}
-	return fmt.Sprintf("k8s.%s", serviceName)
 }
 
 // StartService starts a k8s service. The name can be either prefixed or not.
@@ -75,7 +68,7 @@ type snapcraftYml struct {
 
 func (s *snap) Strict() bool {
 	var meta snapcraftYml
-	contents, err := os.ReadFile(s.path("meta", "snap.yaml"))
+	contents, err := os.ReadFile(filepath.Join(s.snapDir, "meta", "snap.yaml"))
 	if err != nil {
 		return false
 	}
@@ -214,7 +207,7 @@ func (s *snap) KubernetesNodeClient(namespace string) (*kubernetes.Client, error
 
 func (s *snap) HelmClient() helm.Client {
 	return helm.NewClient(
-		path.Join(s.snapDir, "k8s", "manifests"),
+		filepath.Join(s.snapDir, "k8s", "manifests"),
 		func(namespace string) genericclioptions.RESTClientGetter {
 			return s.restClientGetter(path.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
 		},
