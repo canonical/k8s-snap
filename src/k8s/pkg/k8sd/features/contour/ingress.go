@@ -30,11 +30,8 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 	var values map[string]any
 	if ingress.GetEnabled() {
 		values = map[string]any{
-			"envoy-service-namespace": "projectcontour",
+			"envoy-service-namespace": "projectcontour", //TODO: Can we remove this?
 			"envoy-service-name":      "envoy",
-			// "tls": map[string]any{
-			// 	"envoy-client-certificate": ingress.GetDefaultTLSSecret(), //TODO: I think this is wrong
-			// },
 		}
 	}
 
@@ -49,6 +46,23 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 	if err := rolloutRestartContour(ctx, snap, 3); err != nil {
 		return fmt.Errorf("failed to rollout restart contour to apply ingress: %w", err)
 	}
+
+	// Install the delegation resource for the default TLS secret.
+	// The default TLS secret is created by the user created,
+	// and gets set via k8s set defaultTLSSecret=bananas.
+	if ingress.GetDefaultTLSSecret() != "" {
+		values = map[string]any{
+			"defaultTLSSecret": ingress.GetDefaultTLSSecret(),
+		}
+		if _, err := m.Apply(ctx, chartDefaultTLS, helm.StatePresent, values); err != nil {
+			return fmt.Errorf("failed to install the delegation resource for default TLS secret: %w", err)
+		}
+	} else {
+		if _, err := m.Apply(ctx, chartDefaultTLS, helm.StateDeleted, nil); err != nil {
+			return fmt.Errorf("failed to uninstall the delegation resource for default TLS secret: %w", err)
+		}
+	}
+
 	return nil
 }
 
