@@ -10,9 +10,8 @@ import (
 	"github.com/canonical/k8s/pkg/utils/control"
 )
 
-// ApplyIngress assumes that the managed Contour CNI is already installed on the cluster. It will fail if that is not the case.
-// ApplyIngress will enable Contour's ingress controller when ingress.Enabled is true.
-// ApplyIngress will disable Contour's ingress controller when ingress.Disabled is false.
+// ApplyIngress will install the contour helm chart when ingress.Enabled is true.
+// ApplyIngress will deinstall the contour helm chart when ingress.Disabled is false.
 // ApplyIngress will rollout restart the Contour pods in case any Contour configuration was changed.
 // ApplyIngress returns an error if anything fails.
 func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, network types.Network, _ types.Annotations) error {
@@ -20,7 +19,6 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 
 	//TODO: map these friends
 	// enableProxyProtocol = ingress.GetEnableProxyProtocol()
-	// defaultTLSSecret = ingress.GetDefaultTLSSecret()
 
 	if !ingress.GetEnabled() {
 		if _, err := m.Apply(ctx, chartContour, helm.StateDeleted, nil); err != nil {

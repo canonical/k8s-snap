@@ -18,4 +18,9 @@ var (
 		Namespace:    "projectcontour",
 		ManifestPath: path.Join("charts", "ck-gateway"),
 	}
+	chartDefaultTLS = helm.InstallableChart{
+		Name:         "ck-ingress-tls",
+		Namespace:    "projectcontour-root",
+		ManifestPath: path.Join("charts", "ck-ingress-tls"),
+	}
 )
