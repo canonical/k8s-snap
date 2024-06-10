@@ -26,7 +26,7 @@ func CheckNetwork(ctx context.Context, snap snap.Snap) error {
 		if err := client.CheckForReadyPods(ctx, check.namespace, metav1.ListOptions{
 			LabelSelector: metav1.FormatLabelSelector(&metav1.LabelSelector{MatchLabels: check.labels}),
 		}); err != nil {
-			return fmt.Errorf("check %v failed: %w", check.name, err)
+			return fmt.Errorf("%v pods not yet ready: %w", check.name, err)
 		}
 	}
 

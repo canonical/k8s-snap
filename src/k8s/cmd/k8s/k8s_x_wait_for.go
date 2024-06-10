@@ -22,6 +22,9 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			defer cancel()
 			if err := control.WaitUntilReady(ctx, func() (bool, error) {
 				err := features.StatusChecks.CheckDNS(cmd.Context(), env.Snap)
+				if err != nil {
+					cmd.PrintErrf("DNS not ready yet: %v\n", err.Error())
+				}
 				return err == nil, nil
 			}); err != nil {
 				cmd.PrintErrf("Error: DNS did not become ready: %v\n", err)
@@ -39,6 +42,9 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			defer cancel()
 			if err := control.WaitUntilReady(ctx, func() (bool, error) {
 				err := features.StatusChecks.CheckNetwork(cmd.Context(), env.Snap)
+				if err != nil {
+					cmd.PrintErrf("network not ready yet: %v\n", err.Error())
+				}
 				return err == nil, nil
 			}); err != nil {
 				cmd.PrintErrf("Error: network did not become ready: %v\n", err)
