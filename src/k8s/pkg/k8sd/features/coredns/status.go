@@ -20,6 +20,9 @@ func CheckDNS(ctx context.Context, snap snap.Snap) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to wait for CoreDNS pod to be ready: %w", err)
 	}
+	if !isReady {
+		return false, fmt.Errorf("coredns pod not ready yet")
+	}
 
 	return isReady, nil
 }

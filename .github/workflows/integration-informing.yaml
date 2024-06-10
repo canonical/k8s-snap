@@ -1,4 +1,4 @@
-name: Integration Tests (Strict)
+name: Informing Integration Tests
 
 on:
   push:
@@ -13,8 +13,12 @@ permissions:
 
 jobs:
   build:
-    name: Build
+    name: Build ${{ matrix.patch }}
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        patch: ["strict", "moonray"]
+      fail-fast: false
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@v2
@@ -30,25 +34,27 @@ jobs:
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
-      - name: Apply strict patch
+      - name: Apply ${{ matrix.patch }} patch
         run: |
-          ./build-scripts/patches/strict/apply
+          ./build-scripts/patches/${{ matrix.patch }}/apply
       - name: Build snap
         run: |
           sg lxd -c 'snapcraft --use-lxd'
-          mv k8s_*.snap k8s-strict.snap
+          mv k8s_*.snap k8s-${{ matrix.patch }}.snap
       - name: Uploading snap
         uses: actions/upload-artifact@v4
         with:
-          name: k8s-strict.snap
-          path: k8s-strict.snap
+          name: k8s-${{ matrix.patch }}.snap
+          path: k8s-${{ matrix.patch }}.snap
 
   test-integration:
     needs: [ build ]
-    name: Test ${{ matrix.os }}
+    name: Test ${{ matrix.patch }} ${{ matrix.os }}
     strategy:
       matrix:
         os: ["ubuntu:20.04"]
+        patch: ["strict", "moonray"]
+      fail-fast: false
     runs-on: ubuntu-20.04
     steps:
       - name: Check out code
@@ -68,11 +74,14 @@ jobs:
       - name: Download snap
         uses: actions/download-artifact@v4
         with:
-          name: k8s-strict.snap
+          name: k8s-${{ matrix.patch }}.snap
           path: build
+      - name: Apply ${{ matrix.patch }} patch
+        run: |
+          ./build-scripts/patches/${{ matrix.patch }}/apply
       - name: Run end to end tests
         run: |
-          export TEST_SNAP="$PWD/build/k8s-strict.snap"
+          export TEST_SNAP="$PWD/build/k8s-${{ matrix.patch }}.snap"
           export TEST_SUBSTRATE=lxd
           export TEST_LXD_IMAGE=${{ matrix.os }}
           cd tests/integration && sg lxd -c 'tox -e integration'
