@@ -14,8 +14,6 @@ import (
 )
 
 func TestCheckForReadyPods(t *testing.T) {
-	g := NewGomegaWithT(t)
-
 	testCases := []struct {
 		name          string
 		namespace     string
@@ -82,6 +80,8 @@ func TestCheckForReadyPods(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
 			clientset := fake.NewSimpleClientset()
 			client := &Client{
 				Interface: clientset,
