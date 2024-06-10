@@ -1,6 +1,9 @@
 package k8s
 
 import (
+	"context"
+	"time"
+
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/utils/control"
@@ -8,33 +11,50 @@ import (
 )
 
 func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		timeout time.Duration
+	}
 	waitForDNSCmd := &cobra.Command{
 		Use:   "dns",
 		Short: "Wait for DNS to be ready",
 		Run: func(cmd *cobra.Command, args []string) {
-			err := control.WaitUntilReady(cmd.Context(), func() (bool, error) {
-				return features.StatusChecks.CheckDNS(cmd.Context(), env.Snap)
-			})
-			if err != nil {
-				cmd.PrintErrf("Error: failed to wait for DNS to be ready: %v\n", err)
+			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
+			defer cancel()
+			if err := control.WaitUntilReady(ctx, func() (bool, error) {
+				ok, err := features.StatusChecks.CheckDNS(cmd.Context(), env.Snap)
+				if ok {
+					return true, nil
+				}
+				cmd.PrintErrf("DNS not ready yet: %v\n", err.Error())
+				return false, nil
+			}); err != nil {
+				cmd.PrintErrf("Error: DNS did not become ready: %v\n", err)
 				env.Exit(1)
 			}
 		},
 	}
+	waitForDNSCmd.Flags().DurationVar(&opts.timeout, "timeout", 5*time.Minute, "maximum time to wait")
 
 	waitForNetworkCmd := &cobra.Command{
 		Use:   "network",
 		Short: "Wait for Network to be ready",
 		Run: func(cmd *cobra.Command, args []string) {
-			err := control.WaitUntilReady(cmd.Context(), func() (bool, error) {
-				return features.StatusChecks.CheckNetwork(cmd.Context(), env.Snap)
-			})
-			if err != nil {
-				cmd.PrintErrf("Error: failed to wait for DNS to be ready: %v\n", err)
+			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
+			defer cancel()
+			if err := control.WaitUntilReady(ctx, func() (bool, error) {
+				ok, err := features.StatusChecks.CheckNetwork(cmd.Context(), env.Snap)
+				if ok {
+					return true, nil
+				}
+				cmd.PrintErrf("network not ready yet: %v\n", err.Error())
+				return false, nil
+			}); err != nil {
+				cmd.PrintErrf("Error: network did not become ready: %v\n", err)
 				env.Exit(1)
 			}
 		},
 	}
+	waitForNetworkCmd.Flags().DurationVar(&opts.timeout, "timeout", 5*time.Minute, "maximum time to wait")
 
 	cmd := &cobra.Command{
 		Use:    "x-wait-for",

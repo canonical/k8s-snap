@@ -61,7 +61,7 @@ You should be seeing the network operator, networking agent and CoreDNS pods.
 > bootstrap your cluster.
 
 ```
-sudo k8s kubectl get services --all-namespace
+sudo k8s kubectl get services --all-namespaces
 ```
 
 The `kubernetes` service in the `default` namespace is where the Kubernetes API

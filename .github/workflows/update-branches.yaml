@@ -1,0 +1,51 @@
+name: Auto-update branches
+
+on:
+  push:
+    branches:
+      - main
+      - 'release-[0-9]+.[0-9]+'
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    name: "${{ matrix.patch }}"
+    permissions:
+      contents: write  # for Git to git push
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        patch: ["strict", "moonray"]
+    outputs:
+      branch: ${{ steps.determine.outputs.branch }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - name: Determine branch
+        id: determine
+        env:
+          BRANCH: ${{ github.ref }}
+        run: |
+          BRANCH=${BRANCH#refs/heads/}  # strip off refs/heads/ if it exists
+          if [[ "${BRANCH}" == "main" ]]; then
+            echo "branch=autoupdate/${{ matrix.patch }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${BRANCH}" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
+            echo "branch=autoupdate/${BRANCH}-${{ matrix.patch }}" >> "$GITHUB_OUTPUT"
+          else
+            exit 1
+          fi
+      - name: Sync ${{ github.ref }} to ${{ steps.determine.outputs.branch }}
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
+      - name: Apply ${{ matrix.patch }} patch
+        run: |
+          git checkout -b ${{ steps.determine.outputs.branch }}
+          ./build-scripts/patches/${{ matrix.patch }}/apply
+      - name: Push to ${{ steps.determine.outputs.branch }}
+        run: |
+          git push origin --force ${{ steps.determine.outputs.branch }}
