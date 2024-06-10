@@ -38,14 +38,14 @@ jobs:
           else
             exit 1
           fi
-      - name: Sync ${{ github.ref }} to ${{ needs.prepare.outputs.branch }}
+      - name: Sync ${{ github.ref }} to ${{ steps.determine.outputs.branch }}
         uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
       - name: Apply ${{ matrix.patch }} patch
         run: |
-          git checkout -b ${{ needs.prepare.outputs.branch }}
+          git checkout -b ${{ steps.determine.outputs.branch }}
           ./build-scripts/patches/${{ matrix.patch }}/apply
-      - name: Push to ${{ needs.prepare.outputs.branch }}
+      - name: Push to ${{ steps.determine.outputs.branch }}
         run: |
-          git push origin --force ${{ needs.prepare.outputs.branch }}
+          git push origin --force ${{ steps.determine.outputs.branch }}
