@@ -13,12 +13,11 @@ import (
 // ApplyIngress will install the contour helm chart when ingress.Enabled is true.
 // ApplyIngress will deinstall the contour helm chart when ingress.Disabled is false.
 // ApplyIngress will rollout restart the Contour pods in case any Contour configuration was changed.
+// ApplyIngress will install a delegation resource via helm chart
+// for the default TLS secret if ingress.DefaultTLSSecret is set.
 // ApplyIngress returns an error if anything fails.
-func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, network types.Network, _ types.Annotations) error {
+func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ types.Network, _ types.Annotations) error {
 	m := snap.HelmClient()
-
-	//TODO: map these friends
-	// enableProxyProtocol = ingress.GetEnableProxyProtocol()
 
 	if !ingress.GetEnabled() {
 		if _, err := m.Apply(ctx, chartContour, helm.StateDeleted, nil); err != nil {
@@ -26,10 +25,14 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 		}
 	}
 	var values map[string]any
-	if ingress.GetEnabled() {
-		values = map[string]any{
-			"envoy-service-namespace": "projectcontour", //TODO: Can we remove this?
-			"envoy-service-name":      "envoy",
+	values = map[string]any{
+		"envoy-service-namespace": "projectcontour",
+		"envoy-service-name":      "envoy",
+	}
+
+	if ingress.GetEnableProxyProtocol() {
+		values["contour"] = map[string]any{
+			"extraArgs": []string{"--use-proxy-protocol"},
 		}
 	}
 
