@@ -11,7 +11,7 @@ import (
 )
 
 // KubeProxy configures kube-proxy on the local node.
-func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR string) error {
+func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR string, extraArgs map[string]*string) error {
 	serviceArgs := map[string]string{
 		"--cluster-cidr":         podCIDR,
 		"--healthz-bind-address": "127.0.0.1",
@@ -32,6 +32,12 @@ func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR str
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "kube-proxy", serviceArgs, nil); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
+	}
+
+	// Apply extra arguments after the defaults, so they can override them.
+	updateArgs, deleteArgs := snaputil.ServiceArgsFromMap(extraArgs)
+	if _, err := snaputil.UpdateServiceArguments(snap, "kube-proxy", updateArgs, deleteArgs); err != nil {
+		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
 	return nil
 }

@@ -113,7 +113,7 @@ func containerdHostConfig(registry types.ContainerdRegistry) containerdHostsConf
 
 // Containerd configures configuration and arguments for containerd on the local node.
 // Optionally, a number of registry mirrors and auths can be configured.
-func Containerd(snap snap.Snap, registries []types.ContainerdRegistry) error {
+func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs map[string]*string) error {
 	configToml, err := os.OpenFile(path.Join(snap.ContainerdConfigDir(), "config.toml"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open config.toml: %w", err)
@@ -135,6 +135,12 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry) error {
 		"--root":    snap.ContainerdRootDir(),
 		"--state":   snap.ContainerdStateDir(),
 	}, nil); err != nil {
+		return fmt.Errorf("failed to write arguments file: %w", err)
+	}
+
+	// Apply extra arguments after the defaults, so they can override them.
+	updateArgs, deleteArgs := snaputil.ServiceArgsFromMap(extraArgs)
+	if _, err := snaputil.UpdateServiceArguments(snap, "containerd", updateArgs, deleteArgs); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
 
