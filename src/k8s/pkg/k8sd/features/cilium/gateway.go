@@ -25,6 +25,11 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		return fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 	}
 
+	// Apply our GatewayClass named ck-gateway
+	if _, err := m.Apply(ctx, chartGatewayClass, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {
+		return fmt.Errorf("failed to install Gateway API GatewayClass: %w", err)
+	}
+
 	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), map[string]any{"gatewayAPI": map[string]any{"enabled": gateway.GetEnabled()}})
 	if err != nil {
 		return fmt.Errorf("failed to apply Gateway API cilium configuration: %w", err)

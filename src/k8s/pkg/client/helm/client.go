@@ -75,7 +75,6 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		install := action.NewInstall(cfg)
 		install.ReleaseName = c.Name
 		install.Namespace = c.Namespace
-		//TODO: Does this fails if the namespace already exists?
 		install.CreateNamespace = true
 
 		chart, err := loader.Load(path.Join(h.manifestsBaseDir, c.ManifestPath))

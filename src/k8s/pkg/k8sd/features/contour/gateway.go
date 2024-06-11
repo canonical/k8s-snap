@@ -18,7 +18,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 
 	if !gateway.GetEnabled() {
 		if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
-			return fmt.Errorf("failed to uninstall envoy-gateway-system: %w", err)
+			return fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
 		}
 	}
 
@@ -28,7 +28,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	}
 
 	if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, nil); err != nil {
-		return fmt.Errorf("failed to install envoy-gateway-system: %w", err)
+		return fmt.Errorf("failed to install the contour gateway chart: %w", err)
 	}
 
 	return nil

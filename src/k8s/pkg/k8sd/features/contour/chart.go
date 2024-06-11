@@ -19,7 +19,7 @@ var (
 	chartGateway = helm.InstallableChart{
 		Name:         "ck-gateway",
 		Namespace:    "projectcontour",
-		ManifestPath: path.Join("charts", "ck-gateway"),
+		ManifestPath: path.Join("charts", "ck-gateway-contour"),
 	}
 	// chartDefaultTLS represents manifests to deploy a delegation resource for the default TLS secret.
 	chartDefaultTLS = helm.InstallableChart{
