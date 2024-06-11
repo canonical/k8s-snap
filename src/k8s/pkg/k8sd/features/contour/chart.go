@@ -8,21 +8,26 @@ import (
 
 var (
 	// chartContour represents manifests to deploy Contour.
+	// This excludes shared CRDs.
 	chartContour = helm.InstallableChart{
 		Name:         "ck-ingress",
 		Namespace:    "projectcontour",
 		ManifestPath: path.Join("charts", "contour-18.1.2.tgz"),
 	}
+	// chartGateway represents manifests to deploy Contour Gateway.
+	// This excludes shared CRDs.
 	chartGateway = helm.InstallableChart{
 		Name:         "ck-gateway",
 		Namespace:    "projectcontour",
 		ManifestPath: path.Join("charts", "ck-gateway"),
 	}
+	// chartDefaultTLS represents manifests to deploy a delegation resource for the default TLS secret.
 	chartDefaultTLS = helm.InstallableChart{
 		Name:         "ck-ingress-tls",
 		Namespace:    "projectcontour-root",
 		ManifestPath: path.Join("charts", "ck-ingress-tls"),
 	}
+	// chartCommonContourCRDS represents manifests to deploy common Contour CRDs.
 	chartCommonContourCRDS = helm.InstallableChart{
 		Name:         "ck-contour-common",
 		Namespace:    "projectcontour",
