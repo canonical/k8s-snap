@@ -72,6 +72,7 @@ var testCases = []testCase{
 			K8sDqlitePort:                      utils.Pointer(9090),
 			DatastoreType:                      utils.Pointer("k8s-dqlite"),
 			ExtraSANs:                          []string{"custom.kubernetes"},
+			ExtraNodeConfigFiles:               map[string]string{"extra-node-config-file": "/path/to/extra/config.yaml"},
 			ExtraNodeKubeAPIServerArgs:         map[string]*string{"--extra-kube-apiserver-arg": utils.Pointer("extra-kube-apiserver-value")},
 			ExtraNodeKubeControllerManagerArgs: map[string]*string{"--extra-kube-controller-manager-arg": utils.Pointer("extra-kube-controller-manager-value")},
 			ExtraNodeKubeSchedulerArgs:         map[string]*string{"--extra-kube-scheduler-arg": utils.Pointer("extra-kube-scheduler-value")},
@@ -122,7 +123,7 @@ func TestGetConfigYaml(t *testing.T) {
 			mustAddConfigToTestDir(t, configPath, tc.yamlConfig)
 
 			// Get the config from the test directory
-			bootstrapConfig, err := getConfigFromYaml(cmdutil.DefaultExecutionEnvironment(), configPath)
+			bootstrapConfig, err := getConfigFromYaml[apiv1.BootstrapConfig](cmdutil.DefaultExecutionEnvironment(), configPath)
 
 			if tc.expectedError != "" {
 				g.Expect(err).To(HaveOccurred())
@@ -145,7 +146,7 @@ func TestGetConfigFromYaml_Stdin(t *testing.T) {
 	env.Stdin = bytes.NewBufferString(input)
 
 	// Call the getConfigFromYaml function with "-" as filePath
-	config, err := getConfigFromYaml(env, "-")
+	config, err := getConfigFromYaml[apiv1.BootstrapConfig](env, "-")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	expectedConfig := apiv1.BootstrapConfig{SecurePort: utils.Pointer(5000)}

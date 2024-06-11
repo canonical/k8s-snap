@@ -97,11 +97,21 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			case opts.interactive:
 				bootstrapConfig = getConfigInteractively(env.Stdin, env.Stdout, env.Stderr)
 			case opts.configFile != "":
-				bootstrapConfig, err = getConfigFromYaml(env, opts.configFile)
+				bootstrapConfig, err = getConfigFromYaml[apiv1.BootstrapConfig](env, opts.configFile)
 				if err != nil {
 					cmd.PrintErrf("Error: Failed to read bootstrap configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
 					env.Exit(1)
 					return
+				}
+				// Resolve file names to file contents before sending to the server.
+				for filename, configFile := range bootstrapConfig.ExtraNodeConfigFiles {
+					content, err := os.ReadFile(configFile)
+					if err != nil {
+						cmd.PrintErrf("Error: Extra node config file %q does not exist.\n\nThe error was: %v\n", configFile, err)
+						env.Exit(1)
+						return
+					}
+					bootstrapConfig.ExtraNodeConfigFiles[filename] = string(content)
 				}
 			default:
 				// Default bootstrap configuration
@@ -155,25 +165,25 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	return cmd
 }
 
-func getConfigFromYaml(env cmdutil.ExecutionEnvironment, filePath string) (apiv1.BootstrapConfig, error) {
+func getConfigFromYaml[T any](env cmdutil.ExecutionEnvironment, filePath string) (T, error) {
 	var b []byte
 	var err error
 
 	if filePath == "-" {
 		b, err = io.ReadAll(env.Stdin)
 		if err != nil {
-			return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read config from stdin: %w", err)
+			return *new(T), fmt.Errorf("failed to read config from stdin: %w", err)
 		}
 	} else {
 		b, err = os.ReadFile(filePath)
 		if err != nil {
-			return apiv1.BootstrapConfig{}, fmt.Errorf("failed to read file: %w", err)
+			return *new(T), fmt.Errorf("failed to read file: %w", err)
 		}
 	}
 
-	var config apiv1.BootstrapConfig
+	var config T
 	if err := yaml.UnmarshalStrict(b, &config); err != nil {
-		return apiv1.BootstrapConfig{}, fmt.Errorf("failed to parse YAML config file: %w", err)
+		return *new(T), fmt.Errorf("failed to parse YAML config file: %w", err)
 	}
 
 	return config, nil

@@ -3,7 +3,6 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 type JoinClusterResult struct {
@@ -77,25 +77,12 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			var joinClusterConfig string
 			if opts.configFile != "" {
-				var b []byte
-				var err error
-
-				if opts.configFile == "-" {
-					b, err = io.ReadAll(os.Stdin)
-					if err != nil {
-						cmd.PrintErrf("Error: Failed to read join configuration from stdin. \n\nThe error was: %v\n", err)
-						env.Exit(1)
-						return
-					}
-				} else {
-					b, err = os.ReadFile(opts.configFile)
-					if err != nil {
-						cmd.PrintErrf("Error: Failed to read join configuration from %q.\n\nThe error was: %v\n", opts.configFile, err)
-						env.Exit(1)
-						return
-					}
+				joinClusterConfig, err = readAndParseConfigFile(env, opts.configFile)
+				if err != nil {
+					cmd.PrintErrf("Error: Failed to read config file %s.\n\n The error was %v\n", opts.configFile, err)
+					env.Exit(1)
+					return
 				}
-				joinClusterConfig = string(b)
 			}
 
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
@@ -117,4 +104,35 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
 	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 	return cmd
+}
+
+// readAndParseConfigFile reads the join configuration file and returns the parsed configuration as a string.
+// readAndParseConfigFile replaces file paths in "extra-node-config-files" with its contents.
+// TODO(bschimke): We don't use explicit types for the join configs because control plane and worker join configs are different.
+// This leads to the ugly type assertion dance below. We should consider generics for that instead.
+func readAndParseConfigFile(env cmdutil.ExecutionEnvironment, configFilePath string) (string, error) {
+	joinClusterConfigMap, err := getConfigFromYaml[map[string]any](env, configFilePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read and parse the join configuration file: %w", err)
+	}
+
+	if ef, ok := joinClusterConfigMap["extra-node-config-files"]; ok {
+		if extraFiles, ok := ef.([]interface{}); ok {
+			// Resolve file names to file contents before sending to the server.
+			for idx, configFile := range extraFiles {
+				content, err := os.ReadFile(configFile.(string))
+				if err != nil {
+					return "", fmt.Errorf("failed to read extra node config file %q: %w", configFile, err)
+				}
+				extraFiles[idx] = string(content)
+			}
+			joinClusterConfigMap["extra-node-config-files"] = extraFiles
+		}
+	}
+
+	b, err := yaml.Marshal(joinClusterConfigMap)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal the join configuration: %w", err)
+	}
+	return string(b), nil
 }

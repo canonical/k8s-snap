@@ -1,0 +1,11 @@
+# Contains extra node args for the worker node.
+extra-node-config-files:
+  worker-extra-file.yaml: /home/ubuntu/extra-args-test-file.yaml
+extra-node-kube-proxy-args:
+  --config-sync-period: 12m
+extra-node-kubelet-args:
+  --authentication-token-webhook-cache-ttl: 5m
+extra-node-containerd-args:
+  --log-level: error
+extra-node-k8s-apiserver-proxy-args:
+  --refresh-interval: 29s

@@ -1,0 +1,18 @@
+# Contains extra node args for the joining cp node.
+# Differs from the bootstrap-extra-node-args.yaml to verify that the correct values are applied.
+extra-node-config-files:
+  join-extra-file.yaml: /home/ubuntu/extra-args-test-file.yaml
+extra-node-kube-apiserver-args:
+  --request-timeout: 3m
+extra-node-kube-controller-manager-args:
+  --leader-elect-retry-period: 4s
+extra-node-kube-scheduler-args:
+  --authorization-webhook-cache-authorized-ttl: 12s
+extra-node-kube-proxy-args:
+  --config-sync-period: 13m
+extra-node-kubelet-args:
+  --authentication-token-webhook-cache-ttl: 4m
+extra-node-containerd-args:
+  --log-level: warning
+extra-node-k8s-dqlite-args:
+  --watch-storage-available-size-interval: 7s

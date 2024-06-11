@@ -201,6 +201,9 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	if err := setup.K8sAPIServerProxy(snap, response.APIServers, joinConfig.ExtraNodeK8sAPIServerProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure k8s-apiserver-proxy: %w", err)
 	}
+	if err := setup.ExtraNodeConfigFiles(snap, joinConfig.ExtraNodeConfigFiles); err != nil {
+		return fmt.Errorf("failed to write extra node config files: %w", err)
+	}
 
 	// TODO(berkayoz): remove the lock on cleanup
 	if err := snaputil.MarkAsWorkerNode(snap, true); err != nil {
@@ -370,6 +373,10 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	}
 	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), bootstrapConfig.ExtraNodeKubeAPIServerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
+	}
+
+	if err := setup.ExtraNodeConfigFiles(snap, bootstrapConfig.ExtraNodeConfigFiles); err != nil {
+		return fmt.Errorf("failed to write extra node config files: %w", err)
 	}
 
 	// Write cluster configuration to dqlite
