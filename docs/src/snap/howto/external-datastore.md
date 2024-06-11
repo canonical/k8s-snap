@@ -23,8 +23,8 @@ There is no migration path between the bundled dqlite and the external datastore
 
 To use an external datastore, a configuration file that contains the required
 datastore parameters needs to be provided to the bootstrap command.
-Create a configuration file and insert the contents below while replacing
-the placeholder values based on the configuration of your etcd cluster.
+Create a configuration file and insert the contents below at the root level of
+your bootstrap configuration file. Make sure to replace the values with your own.
 
 ```yaml
 datastore: external
