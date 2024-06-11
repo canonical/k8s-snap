@@ -33,7 +33,21 @@ type ExecutionEnvironment struct {
 
 // DefaultExecutionEnvironment is used to run the CLI.
 func DefaultExecutionEnvironment() ExecutionEnvironment {
-	snap := snap.NewSnap(os.Getenv("SNAP"), os.Getenv("SNAP_COMMON"))
+	var s snap.Snap
+	switch os.Getenv("K8SD_RUNTIME_ENVIRONMENT") {
+	case "", "snap":
+		s = snap.NewSnap(snap.SnapOpts{
+			SnapDir:       os.Getenv("SNAP"),
+			SnapCommonDir: os.Getenv("SNAP_COMMON"),
+		})
+	case "pebble":
+		s = snap.NewPebble(snap.PebbleOpts{
+			SnapDir:       os.Getenv("SNAP"),
+			SnapCommonDir: os.Getenv("SNAP_COMMON"),
+		})
+	default:
+		panic(fmt.Sprintf("invalid runtime environment %q", os.Getenv("K8SD_RUNTIME_ENVIRONMENT")))
+	}
 
 	return ExecutionEnvironment{
 		Stdin:   os.Stdin,
@@ -42,9 +56,9 @@ func DefaultExecutionEnvironment() ExecutionEnvironment {
 		Exit:    os.Exit,
 		Environ: os.Environ(),
 		Getuid:  os.Getuid,
-		Snap:    snap,
+		Snap:    s,
 		Client: func(ctx context.Context) (client.Client, error) {
-			return client.New(ctx, snap)
+			return client.New(ctx, s)
 		},
 	}
 }

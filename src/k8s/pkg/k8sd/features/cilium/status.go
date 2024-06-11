@@ -9,26 +9,26 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func CheckNetwork(ctx context.Context, snap snap.Snap) (bool, error) {
+func CheckNetwork(ctx context.Context, snap snap.Snap) error {
 	client, err := snap.KubernetesClient("kube-system")
 	if err != nil {
-		return false, fmt.Errorf("failed to create kubernetes client: %w", err)
+		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	ciliumPods := map[string]string{
-		"cilium-operator": "io.cilium/app=operator",
-		"cilium":          "k8s-app=cilium",
-	}
-
-	for ciliumPod, selector := range ciliumPods {
-		isReady, err := client.IsPodReady(ctx, ciliumPod, "kube-system", metav1.ListOptions{LabelSelector: selector})
-		if err != nil {
-			return false, fmt.Errorf("failed to check if pod %q is ready: %w", ciliumPod, err)
+	for _, check := range []struct {
+		name      string
+		namespace string
+		labels    map[string]string
+	}{
+		{name: "cilium-operator", namespace: "kube-system", labels: map[string]string{"io.cilium/app": "operator"}},
+		{name: "cilium", namespace: "kube-system", labels: map[string]string{"k8s-app": "cilium"}},
+	} {
+		if err := client.CheckForReadyPods(ctx, check.namespace, metav1.ListOptions{
+			LabelSelector: metav1.FormatLabelSelector(&metav1.LabelSelector{MatchLabels: check.labels}),
+		}); err != nil {
+			return fmt.Errorf("%v pods not yet ready: %w", check.name, err)
 		}
-		if !isReady {
-			return false, fmt.Errorf("cilium pod %q is not yet ready", ciliumPod)
-		}
 	}
 
-	return true, nil
+	return nil
 }

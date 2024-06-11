@@ -11,11 +11,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestSnap(t *testing.T) {
+func TestPebble(t *testing.T) {
 	t.Run("Start", func(t *testing.T) {
 		g := NewWithT(t)
 		mockRunner := &mock.Runner{}
-		snap := snap.NewSnap(snap.SnapOpts{
+		snap := snap.NewPebble(snap.PebbleOpts{
 			SnapDir:       "testdir",
 			SnapCommonDir: "testdir",
 			RunCommand:    mockRunner.Run,
@@ -23,7 +23,7 @@ func TestSnap(t *testing.T) {
 
 		err := snap.StartService(context.Background(), "test-service")
 		g.Expect(err).To(BeNil())
-		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snapctl start --enable k8s.test-service"))
+		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("testdir/bin/pebble start test-service"))
 
 		t.Run("Fail", func(t *testing.T) {
 			g := NewWithT(t)
@@ -37,14 +37,14 @@ func TestSnap(t *testing.T) {
 	t.Run("Stop", func(t *testing.T) {
 		g := NewWithT(t)
 		mockRunner := &mock.Runner{}
-		snap := snap.NewSnap(snap.SnapOpts{
+		snap := snap.NewPebble(snap.PebbleOpts{
 			SnapDir:       "testdir",
 			SnapCommonDir: "testdir",
 			RunCommand:    mockRunner.Run,
 		})
 		err := snap.StopService(context.Background(), "test-service")
 		g.Expect(err).To(BeNil())
-		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snapctl stop --disable k8s.test-service"))
+		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("testdir/bin/pebble stop test-service"))
 
 		t.Run("Fail", func(t *testing.T) {
 			g := NewWithT(t)
@@ -58,7 +58,7 @@ func TestSnap(t *testing.T) {
 	t.Run("Restart", func(t *testing.T) {
 		g := NewWithT(t)
 		mockRunner := &mock.Runner{}
-		snap := snap.NewSnap(snap.SnapOpts{
+		snap := snap.NewPebble(snap.PebbleOpts{
 			SnapDir:       "testdir",
 			SnapCommonDir: "testdir",
 			RunCommand:    mockRunner.Run,
@@ -66,7 +66,7 @@ func TestSnap(t *testing.T) {
 
 		err := snap.RestartService(context.Background(), "test-service")
 		g.Expect(err).To(BeNil())
-		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snapctl restart k8s.test-service"))
+		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("testdir/bin/pebble restart test-service"))
 
 		t.Run("Fail", func(t *testing.T) {
 			g := NewWithT(t)

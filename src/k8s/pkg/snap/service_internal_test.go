@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestServiceName(t *testing.T) {
+func Test_serviceName(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
