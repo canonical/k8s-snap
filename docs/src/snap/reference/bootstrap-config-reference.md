@@ -302,7 +302,8 @@ Can be used to point to an external datastore like etcd.
 **Type:** `list[string]` <br>
 **Required:** `No` <br>
 
-The server addresses to be used when `datastore-type` is set to `external`.
+The server addresses, in URL form,
+ to be used when `datastore-type` is set to `external`.
 
 ### datastore-ca-crt
 
