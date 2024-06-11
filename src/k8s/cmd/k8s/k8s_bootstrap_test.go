@@ -72,6 +72,7 @@ var testCases = []testCase{
 			K8sDqlitePort:                      utils.Pointer(9090),
 			DatastoreType:                      utils.Pointer("k8s-dqlite"),
 			ExtraSANs:                          []string{"custom.kubernetes"},
+			ExtraNodeConfigFiles:               map[string]string{"extra-node-config-file.yaml": "test-file-content"},
 			ExtraNodeKubeAPIServerArgs:         map[string]*string{"--extra-kube-apiserver-arg": utils.Pointer("extra-kube-apiserver-value")},
 			ExtraNodeKubeControllerManagerArgs: map[string]*string{"--extra-kube-controller-manager-arg": utils.Pointer("extra-kube-controller-manager-value")},
 			ExtraNodeKubeSchedulerArgs:         map[string]*string{"--extra-kube-scheduler-arg": utils.Pointer("extra-kube-scheduler-value")},

@@ -126,9 +126,10 @@ def session_instance(
     instance = h.new_instance()
     util.setup_k8s_snap(instance, snap_path)
 
-    bootstrap_config_path = "/home/ubuntu/bootstrap-all-features.yaml"
+    bootstrap_config_path = "/home/ubuntu/bootstrap-session.yaml"
     instance.send_file(
-        (config.MANIFESTS_DIR / "bootstrap-all.yaml").as_posix(), bootstrap_config_path
+        (config.MANIFESTS_DIR / "bootstrap-session.yaml").as_posix(),
+        bootstrap_config_path,
     )
 
     instance.exec(["k8s", "bootstrap", "--file", bootstrap_config_path])
