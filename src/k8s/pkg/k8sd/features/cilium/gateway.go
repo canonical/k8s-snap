@@ -15,6 +15,10 @@ import (
 // ApplyGateway will rollout restart the Cilium pods in case any Cilium configuration was changed.
 // ApplyGateway returns an error if anything fails.
 func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) error {
+	if !network.GetEnabled() && gateway.GetEnabled() {
+		return fmt.Errorf("cilium gateway requires network to be enabled")
+	}
+
 	m := snap.HelmClient()
 
 	if _, err := m.Apply(ctx, chartGateway, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {

@@ -16,6 +16,7 @@ import (
 // ApplyIngress will install a delegation resource via helm chart
 // for the default TLS secret if ingress.DefaultTLSSecret is set.
 // ApplyIngress returns an error if anything fails.
+// Contour CRDS are applied through a ck-contour common chart (Overlap with gateway)
 func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ types.Network, _ types.Annotations) error {
 	m := snap.HelmClient()
 
@@ -24,10 +25,17 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 			return fmt.Errorf("failed to uninstall ingress: %w", err)
 		}
 	}
+
+	// Apply common contour CRDS, these are shared with gateway
+	if err := applyCommonContourCRDS(ctx, snap, ingress.GetEnabled()); err != nil {
+		return fmt.Errorf("failed to apply common contour CRDS: %w", err)
+	}
+
 	var values map[string]any
 	values = map[string]any{
 		"envoy-service-namespace": "projectcontour",
 		"envoy-service-name":      "envoy",
+		"manageCRDs":              false,
 	}
 
 	if ingress.GetEnableProxyProtocol() {
@@ -67,6 +75,24 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	return nil
 }
 
+// applyCommonContourCRDS will install the common contour CRDS when enabled is true.
+// These CRDS are shared between the contour ingress and the gateway feature.
+func applyCommonContourCRDS(ctx context.Context, snap snap.Snap, enabled bool) error {
+	m := snap.HelmClient()
+	if enabled {
+		if _, err := m.Apply(ctx, chartCommonContourCRDS, helm.StatePresent, nil); err != nil {
+			return fmt.Errorf("failed to install common CRDS: %w", err)
+		}
+	} else {
+		if _, err := m.Apply(ctx, chartCommonContourCRDS, helm.StateDeleted, nil); err != nil {
+			return fmt.Errorf("failed to uninstall common CRDS: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// rolloutRestartContour will rollout restart the Contour pods in case any Contour configuration was changed.
 func rolloutRestartContour(ctx context.Context, snap snap.Snap, attempts int) error {
 	client, err := snap.KubernetesClient("")
 	if err != nil {

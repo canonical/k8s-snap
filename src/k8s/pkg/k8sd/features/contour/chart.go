@@ -23,4 +23,9 @@ var (
 		Namespace:    "projectcontour-root",
 		ManifestPath: path.Join("charts", "ck-ingress-tls"),
 	}
+	chartCommonContourCRDS = helm.InstallableChart{
+		Name:         "ck-contour-common",
+		Namespace:    "projectcontour",
+		ManifestPath: path.Join("charts", "ck-contour-common"),
+	}
 )

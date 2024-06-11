@@ -15,6 +15,10 @@ import (
 // ApplyIngress will rollout restart the Cilium pods in case any Cilium configuration was changed.
 // ApplyIngress returns an error if anything fails.
 func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, network types.Network, _ types.Annotations) error {
+	if !network.GetEnabled() && ingress.GetEnabled() {
+		return fmt.Errorf("cilium ingress requires network to be enabled")
+	}
+
 	m := snap.HelmClient()
 
 	var values map[string]any

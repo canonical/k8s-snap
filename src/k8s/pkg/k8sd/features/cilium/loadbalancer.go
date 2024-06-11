@@ -16,6 +16,10 @@ import (
 // ApplyLoadBalancer will rollout restart the Cilium pods in case any Cilium configuration was changed.
 // ApplyLoadBalancer returns an error if anything fails.
 func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) error {
+	if !network.GetEnabled() && loadbalancer.GetEnabled() {
+		return fmt.Errorf("cilium loadbalancer requires network to be enabled")
+	}
+
 	if !loadbalancer.GetEnabled() {
 		if err := disableLoadBalancer(ctx, snap, network); err != nil {
 			return fmt.Errorf("failed to disable LoadBalancer: %w", err)
