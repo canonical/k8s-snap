@@ -42,8 +42,8 @@ func TestExtraNodeConfigFiles(t *testing.T) {
 			snap := &mock.Snap{
 				Mock: mock.Mock{
 					ServiceExtraConfigDir: tmpDir,
-					UID:                   1000,
-					GID:                   1000,
+					UID:                   os.Getuid(),
+					GID:                   os.Getgid(),
 				},
 			}
 
