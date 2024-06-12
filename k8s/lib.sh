@@ -43,37 +43,11 @@ k8s::common::is_strict() {
   fi
 }
 
-# Cleanup configuration left by the network component
-#   - Iptables Rules
-#   - Network Interfaces
-#   - Traffic Control(tc) rules
-# https://github.com/cilium/cilium/blob/7318ce2d0d89a91227e3f313adebce892f3c388e/cilium-dbg/cmd/cleanup.go#L132-L139
+# Cleanup configuration left by the network feature
 k8s::remove::network() {
   k8s::common::setup_env
 
-  local default_interface
-
-  for link in cilium_vxlan cilium_host cilium_net
-  do
-    ip link delete ${link} || true
-  done
-
-  iptables-save | grep -iv cilium | iptables-restore
-  ip6tables-save | grep -iv cilium | ip6tables-restore
-  iptables-legacy-save | grep -iv cilium | iptables-legacy-restore
-  ip6tables-legacy-save | grep -iv cilium | ip6tables-legacy-restore
-
-  default_interface="$(k8s::util::default_interface)"
-
-  for d in ingress egress
-  do
-    tc filter del dev $default_interface ${d} || true
-  done
-
-  rm -rf /var/run/cilium/cilium.pid
-  if [ -f /opt/cni/bin/cilium-dbg ]; then
-      /opt/cni/bin/cilium-dbg cleanup --all-state --force || true
-  fi
+  k8s::cmd::k8s x-cleanup network || true
 }
 
 # [DANGER] Cleanup containers and runtime state. Note that the order of operations below is crucial.
