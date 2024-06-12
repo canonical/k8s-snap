@@ -39,7 +39,7 @@ def test_gateway(session_instance: harness.Instance):
     )
 
     # Get gateway node port
-    gateway_http_port = None
+    gateway_node_port = None
     util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
         lambda p: "my-gateway" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
@@ -55,7 +55,7 @@ def test_gateway(session_instance: harness.Instance):
         capture_output=True,
     )
 
-    #TODO: test this
+    # TODO: test this
     services = json.loads(p.stdout.decode())
     LOG.info(f"services: {services}")
     for svc in services["items"]:
@@ -68,7 +68,11 @@ def test_gateway(session_instance: harness.Instance):
                     break
             if gateway_node_port:
                 break
+
+    if gateway_node_port == None:
+        LOG.error("No ingress nodePort found.")
+
     LOG.info(f"Gateway node port is {gateway_node_port}")
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
-    ).exec(["curl", f"localhost:{gateway_http_port}"])
+    ).exec(["curl", f"localhost:{gateway_node_port}"])

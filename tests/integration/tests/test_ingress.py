@@ -2,6 +2,7 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
+import json
 from pathlib import Path
 from typing import List
 
@@ -14,7 +15,7 @@ LOG = logging.getLogger(__name__)
 def test_ingress(session_instance: List[harness.Instance]):
 
     util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
-        lambda p: "cilium-ingress" in p.stdout.decode()
+        lambda p: "ingress" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "service", "-n", "kube-system", "-o", "json"])
 
     p = session_instance.exec(
@@ -23,15 +24,26 @@ def test_ingress(session_instance: List[harness.Instance]):
             "kubectl",
             "get",
             "service",
-            "-n",
-            "kube-system",
-            "cilium-ingress",
-            "-o=jsonpath='{.spec.ports[?(@.name==\"http\")].nodePort}'",
+            "-A",
+            "-o=json",
         ],
         capture_output=True,
     )
-    ingress_http_port = p.stdout.decode().replace("'", "")
 
+    ingress_node_port = None
+    services = json.loads(p.stdout.decode())
+    LOG.info(f"services: {services}")
+    for svc in services["items"]:
+        if "ingress" in svc["metadata"]["name"]:
+            LOG.info(f"Found service {svc['metadata']['name']}")
+            for port in svc["spec"]["ports"]:
+                if port["name"] == "port-80":
+                    ingress_node_port = port["nodePort"]
+                    
+                    break
+            if ingress_node_port:
+                break
+    
     manifest = MANIFESTS_DIR / "ingress-test.yaml"
     session_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
@@ -57,6 +69,8 @@ def test_ingress(session_instance: List[harness.Instance]):
             "180s",
         ]
     )
+    if ingress_node_port == None:
+        LOG.error("No ingress nodePort found.")
 
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
