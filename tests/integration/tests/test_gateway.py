@@ -39,7 +39,7 @@ def test_gateway(session_instance: harness.Instance):
     )
 
     # Get gateway node port
-    gateway_node_port = None
+    gateway_http_port = None
     util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
         lambda p: "my-gateway" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
@@ -63,15 +63,14 @@ def test_gateway(session_instance: harness.Instance):
             LOG.info(f"Found service {svc['metadata']['name']}")
             for port in svc["spec"]["ports"]:
                 if port["name"] == "port-80":
-                    gateway_node_port = port["nodePort"]
-                    
+                    gateway_http_port = port["nodePort"]
                     break
-            if gateway_node_port:
+            if gateway_http_port:
                 break
 
-    assert gateway_node_port is not None, "No ingress nodePort found."
+    assert gateway_http_port is not None, "No ingress nodePort found."
 
-    LOG.info(f"Gateway node port is {gateway_node_port}")
+    LOG.info(f"Gateway node port is {gateway_http_port}")
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
-    ).exec(["curl", f"localhost:{gateway_node_port}"])
+    ).exec(["curl", f"localhost:{gateway_http_port}"])

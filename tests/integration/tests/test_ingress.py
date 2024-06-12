@@ -30,7 +30,7 @@ def test_ingress(session_instance: List[harness.Instance]):
         capture_output=True,
     )
 
-    ingress_node_port = None
+    ingress_http_port = None
     services = json.loads(p.stdout.decode())
     LOG.info(f"services: {services}")
     for svc in services["items"]:
@@ -38,12 +38,11 @@ def test_ingress(session_instance: List[harness.Instance]):
             LOG.info(f"Found service {svc['metadata']['name']}")
             for port in svc["spec"]["ports"]:
                 if port["name"] == "port-80":
-                    ingress_node_port = port["nodePort"]
-                    
+                    ingress_http_port = port["nodePort"]
                     break
-            if ingress_node_port:
+            if ingress_http_port:
                 break
-    
+
     manifest = MANIFESTS_DIR / "ingress-test.yaml"
     session_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
@@ -69,7 +68,7 @@ def test_ingress(session_instance: List[harness.Instance]):
             "180s",
         ]
     )
-    assert ingress_node_port is not None, "No ingress nodePort found."
+    assert ingress_http_port is not None, "No ingress nodePort found."
 
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
