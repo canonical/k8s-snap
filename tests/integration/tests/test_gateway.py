@@ -69,8 +69,7 @@ def test_gateway(session_instance: harness.Instance):
             if gateway_node_port:
                 break
 
-    if gateway_node_port == None:
-        LOG.error("No ingress nodePort found.")
+    assert gateway_node_port is not None, "No ingress nodePort found."
 
     LOG.info(f"Gateway node port is {gateway_node_port}")
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(

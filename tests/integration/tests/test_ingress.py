@@ -69,8 +69,7 @@ def test_ingress(session_instance: List[harness.Instance]):
             "180s",
         ]
     )
-    if ingress_node_port == None:
-        LOG.error("No ingress nodePort found.")
+    assert ingress_node_port is not None, "No ingress nodePort found."
 
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
