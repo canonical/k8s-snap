@@ -41,7 +41,7 @@ def test_gateway(session_instance: harness.Instance):
     # Get gateway node port
     gateway_http_port = None
     util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
-        lambda p: "get-my-gateway" in p.stdout.decode()
+        lambda p: "my-gateway" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
 
     p = session_instance.exec(
@@ -50,7 +50,6 @@ def test_gateway(session_instance: harness.Instance):
             "kubectl",
             "get",
             "service",
-            "cilium-gateway-my-gateway",
             "-o=json",
         ],
         capture_output=True,

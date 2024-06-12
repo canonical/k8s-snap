@@ -27,7 +27,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	}
 
 	// Apply common contour CRDS, these are shared with gateway
-	if err := applyCommonContourCRDS(ctx, snap, ingress.GetEnabled()); err != nil {
+	if err := applyCommonContourCRDS(ctx, snap, true); err != nil {
 		return fmt.Errorf("failed to apply common contour CRDS: %w", err)
 	}
 
@@ -35,28 +35,31 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	values = map[string]any{
 		"envoy-service-namespace": "projectcontour",
 		"envoy-service-name":      "envoy",
-		"manageCRDs":              false,
-		"ingress": map[string]any{
-			"ingressClassName": "ck-ingress",
+		"contour": map[string]any{
+			"manageCRDs": false,
+			"ingressClass": map[string]any{
+				"name":    "ck-ingress",
+				"create":  true,
+				"default": true,
+			},
 		},
 	}
 
 	if ingress.GetEnableProxyProtocol() {
-		values["contour"] = map[string]any{
-			"extraArgs": []string{"--use-proxy-protocol"},
-		}
+		contour := values["contour"].(map[string]any)
+		contour["extraArgs"] = []string{"--use-proxy-protocol"}
+
 	}
 
 	changed, err := m.Apply(ctx, chartContour, helm.StatePresent, values)
 	if err != nil {
 		return fmt.Errorf("failed to enable ingress: %w", err)
 	}
-	if !changed || !ingress.GetEnabled() {
-		return nil
-	}
 
-	if err := rolloutRestartContour(ctx, snap, 3); err != nil {
-		return fmt.Errorf("failed to rollout restart contour to apply ingress: %w", err)
+	if changed {
+		if err := rolloutRestartContour(ctx, snap, 3); err != nil {
+			return fmt.Errorf("failed to rollout restart contour to apply ingress: %w", err)
+		}
 	}
 
 	// Install the delegation resource for the default TLS secret.
@@ -103,21 +106,12 @@ func rolloutRestartContour(ctx context.Context, snap snap.Snap, attempts int) er
 	}
 
 	if err := control.RetryFor(ctx, attempts, 0, func() error {
-		if err := client.RestartDeployment(ctx, "ck-ingress-contour-envoy", "projectcontour"); err != nil { //TODO: check name of deployment
+		if err := client.RestartDeployment(ctx, "ck-ingress-contour-contour", "projectcontour"); err != nil {
 			return fmt.Errorf("failed to restart contour deployment: %w", err)
 		}
 		return nil
 	}); err != nil {
 		return fmt.Errorf("failed to restart contour deployment after %d attempts: %w", attempts, err)
-	}
-
-	if err := control.RetryFor(ctx, attempts, 0, func() error {
-		if err := client.RestartDaemonset(ctx, "ck-ingress-contour-envoy", "projectcontour"); err != nil {
-			return fmt.Errorf("failed to restart contour daemonset: %w", err)
-		}
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to restart contour daemonset after %d attempts: %w", attempts, err)
 	}
 
 	return nil
