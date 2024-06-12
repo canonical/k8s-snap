@@ -1,8 +1,8 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
-import logging
 import json
+import logging
 from pathlib import Path
 
 from test_util import harness, util
