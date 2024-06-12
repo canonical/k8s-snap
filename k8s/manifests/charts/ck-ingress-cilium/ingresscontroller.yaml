@@ -1,0 +1,6 @@
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: ck-ingress
+spec:
+  controller: cilium.io/ingress-controller

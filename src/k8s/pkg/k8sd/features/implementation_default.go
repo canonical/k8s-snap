@@ -1,10 +1,8 @@
 package features
 
 import (
-	"github.com/canonical/k8s/pkg/k8sd/features/calico"
-	"github.com/canonical/k8s/pkg/k8sd/features/contour"
+	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/features/coredns"
-	"github.com/canonical/k8s/pkg/k8sd/features/fake"
 	"github.com/canonical/k8s/pkg/k8sd/features/localpv"
 	metrics_server "github.com/canonical/k8s/pkg/k8sd/features/metrics-server"
 )
@@ -16,16 +14,16 @@ import (
 // LocalPV Rawfile CSI is used for local-storage.
 var Implementation Interface = &implementation{
 	applyDNS:           coredns.ApplyDNS,
-	applyNetwork:       calico.ApplyNetwork, //TODO: remove default overwrite for testing
-	applyLoadBalancer:  fake.ApplyLoadBalancer,
-	applyIngress:       contour.ApplyIngress,
-	applyGateway:       contour.ApplyGateway,
+	applyNetwork:       cilium.ApplyNetwork, //TODO: remove default overwrite for testing
+	applyLoadBalancer:  cilium.ApplyLoadBalancer,
+	applyIngress:       cilium.ApplyIngress,
+	applyGateway:       cilium.ApplyGateway,
 	applyMetricsServer: metrics_server.ApplyMetricsServer,
 	applyLocalStorage:  localpv.ApplyLocalStorage,
 }
 
 // StatusChecks implements the Canonical Kubernetes built-in feature status checks.
 var StatusChecks StatusInterface = &statusChecks{
-	checkNetwork: calico.CheckNetwork,
+	checkNetwork: cilium.CheckNetwork,
 	checkDNS:     coredns.CheckDNS,
 }

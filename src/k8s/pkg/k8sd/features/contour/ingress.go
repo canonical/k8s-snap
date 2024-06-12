@@ -36,6 +36,9 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		"envoy-service-namespace": "projectcontour",
 		"envoy-service-name":      "envoy",
 		"manageCRDs":              false,
+		"ingress": map[string]any{
+			"ingressClassName": "ck-ingress",
+		},
 	}
 
 	if ingress.GetEnableProxyProtocol() {
