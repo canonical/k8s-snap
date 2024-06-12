@@ -252,6 +252,9 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.GetServiceCIDR(), err)
 	}
 
+	// Certificates
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
+
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
@@ -281,12 +284,40 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		if _, err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write external datastore certificates: %w", err)
 		}
+	case "embedded":
+		certificates := pki.NewEtcdPKI(pki.EtcdPKIOpts{
+			Hostname:          s.Name(),
+			IPSANs:            append([]net.IP{nodeIP}, extraIPs...),
+			AllowSelfSignedCA: true,
+			DNSSANs:           append([]string{s.Name()}, extraNames...),
+			Years:             20,
+		})
+
+		certificates.CACert = bootstrapConfig.GetEmbeddedCACert()
+		certificates.CAKey = bootstrapConfig.GetEmbeddedCAKey()
+		certificates.ServerCert = bootstrapConfig.GetEmbeddedServerCert()
+		certificates.ServerKey = bootstrapConfig.GetEmbeddedServerKey()
+		certificates.ServerPeerCert = bootstrapConfig.GetEmbeddedServerPeerCert()
+		certificates.ServerPeerKey = bootstrapConfig.GetEmbeddedServerPeerKey()
+		certificates.APIServerClientCert = bootstrapConfig.GetEmbeddedAPIServerClientCert()
+		certificates.APIServerClientKey = bootstrapConfig.GetEmbeddedAPIServerClientKey()
+
+		if err := certificates.CompleteCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize embedded datastore certificates: %w", err)
+		}
+		if _, err := setup.EnsureEtcdPKI(snap, certificates); err != nil {
+			return fmt.Errorf("failed to write embedded datastore certificates: %w", err)
+		}
+
+		// Add certificates to cluster config
+		cfg.Datastore.EmbeddedCACert = utils.Pointer(certificates.CACert)
+		cfg.Datastore.EmbeddedCAKey = utils.Pointer(certificates.CAKey)
+		cfg.Datastore.EmbeddedAPIServerClientCert = utils.Pointer(certificates.APIServerClientCert)
+		cfg.Datastore.EmbeddedAPIServerClientKey = utils.Pointer(certificates.APIServerClientKey)
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
 
-	// Certificates
-	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),

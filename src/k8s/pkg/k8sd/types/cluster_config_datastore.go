@@ -17,6 +17,13 @@ type Datastore struct {
 	ExternalCACert     *string   `json:"external-ca-crt,omitempty"`
 	ExternalClientCert *string   `json:"external-client-crt,omitempty"`
 	ExternalClientKey  *string   `json:"external-client-key,omitempty"`
+
+	EmbeddedCACert              *string `json:"embedded-ca-crt,omitempty"`
+	EmbeddedCAKey               *string `json:"embedded-ca-key,omitempty"`
+	EmbeddedAPIServerClientCert *string `json:"embedded-apiserver-client-crt,omitempty"`
+	EmbeddedAPIServerClientKey  *string `json:"embedded-apiserver-client-key,omitempty"`
+	EmbeddedPort                *int    `json:"embedded-port,omitempty"`
+	EmbeddedPeerPort            *int    `json:"embedded-peer-port,omitempty"`
 }
 
 func (c Datastore) GetType() string               { return getField(c.Type) }
@@ -27,10 +34,21 @@ func (c Datastore) GetExternalServers() []string  { return getField(c.ExternalSe
 func (c Datastore) GetExternalCACert() string     { return getField(c.ExternalCACert) }
 func (c Datastore) GetExternalClientCert() string { return getField(c.ExternalClientCert) }
 func (c Datastore) GetExternalClientKey() string  { return getField(c.ExternalClientKey) }
-func (c Datastore) Empty() bool                   { return c == Datastore{} }
+func (c Datastore) GetEmbeddedCACert() string     { return getField(c.EmbeddedCACert) }
+func (c Datastore) GetEmbeddedCAKey() string      { return getField(c.EmbeddedCAKey) }
+func (c Datastore) GetEmbeddedAPIServerClientCert() string {
+	return getField(c.EmbeddedAPIServerClientCert)
+}
+func (c Datastore) GetEmbeddedAPIServerClientKey() string {
+	return getField(c.EmbeddedAPIServerClientKey)
+}
+func (c Datastore) GetEmbeddedPort() int     { return getField(c.EmbeddedPort) }
+func (c Datastore) GetEmbeddedPeerPort() int { return getField(c.EmbeddedPeerPort) }
+func (c Datastore) Empty() bool              { return c == Datastore{} }
 
 // DatastorePathsProvider is to avoid circular dependency for snap.Snap in Datastore.ToKubeAPIServerArguments()
 type DatastorePathsProvider interface {
+	KubernetesPKIDir() string
 	K8sDqliteStateDir() string
 	EtcdPKIDir() string
 }
@@ -66,6 +84,11 @@ func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[strin
 				deleteArgs = append(deleteArgs, loop.arg)
 			}
 		}
+	case "embedded":
+		updateArgs["--etcd-servers"] = fmt.Sprintf("https://127.0.0.1:%d", c.GetEmbeddedPort())
+		updateArgs["--etcd-cafile"] = path.Join(p.EtcdPKIDir(), "ca.crt")
+		updateArgs["--etcd-certfile"] = path.Join(p.KubernetesPKIDir(), "apiserver-etcd-client.crt")
+		updateArgs["--etcd-keyfile"] = path.Join(p.KubernetesPKIDir(), "apiserver-etcd-client.key")
 	}
 
 	return updateArgs, deleteArgs

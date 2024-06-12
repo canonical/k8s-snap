@@ -47,6 +47,16 @@ type BootstrapConfig struct {
 	KubeControllerManagerClientKey  *string `json:"kube-controller-manager-client-key,omitempty" yaml:"kube-ControllerManager-client-key,omitempty"`
 	ServiceAccountKey               *string `json:"service-account-key,omitempty" yaml:"service-account-key,omitempty"`
 
+	// Seed configuration for embedded datastore
+	EmbeddedCACert              *string `json:"embedded-ca-crt,omitempty" yaml:"embedded-ca-crt,omitempty"`
+	EmbeddedCAKey               *string `json:"embedded-ca-key,omitempty" yaml:"embedded-ca-key,omitempty"`
+	EmbeddedServerCert          *string `json:"embedded-server-crt,omitempty" yaml:"embedded-server-crt,omitempty"`
+	EmbeddedServerKey           *string `json:"embedded-server-key,omitempty" yaml:"embedded-server-key,omitempty"`
+	EmbeddedServerPeerCert      *string `json:"embedded-peer-crt,omitempty" yaml:"embedded-peer-crt,omitempty"`
+	EmbeddedServerPeerKey       *string `json:"embedded-peer-key,omitempty" yaml:"embedded-peer-key,omitempty"`
+	EmbeddedAPIServerClientCert *string `json:"embedded-apiserver-client-crt,omitempty" yaml:"embedded-apiserver-client-crt,omitempty"`
+	EmbeddedAPIServerClientKey  *string `json:"embedded-apiserver-client-key,omitempty" yaml:"embedded-apiserver-client-key,omitempty"`
+
 	// Seed configuration for external certificates (node-specific)
 	APIServerCert     *string `json:"apiserver-crt,omitempty" yaml:"apiserver-crt,omitempty"`
 	APIServerKey      *string `json:"apiserver-key,omitempty" yaml:"apiserver-key,omitempty"`
@@ -103,7 +113,21 @@ func (b *BootstrapConfig) GetKubeControllerManagerClientCert() string {
 func (b *BootstrapConfig) GetKubeControllerManagerClientKey() string {
 	return getField(b.KubeControllerManagerClientKey)
 }
-func (b *BootstrapConfig) GetServiceAccountKey() string { return getField(b.ServiceAccountKey) }
+func (b *BootstrapConfig) GetServiceAccountKey() string  { return getField(b.ServiceAccountKey) }
+func (b *BootstrapConfig) GetEmbeddedCACert() string     { return getField(b.EmbeddedCACert) }
+func (b *BootstrapConfig) GetEmbeddedCAKey() string      { return getField(b.EmbeddedCAKey) }
+func (b *BootstrapConfig) GetEmbeddedServerCert() string { return getField(b.EmbeddedServerCert) }
+func (b *BootstrapConfig) GetEmbeddedServerKey() string  { return getField(b.EmbeddedServerKey) }
+func (b *BootstrapConfig) GetEmbeddedServerPeerCert() string {
+	return getField(b.EmbeddedServerPeerCert)
+}
+func (b *BootstrapConfig) GetEmbeddedServerPeerKey() string { return getField(b.EmbeddedServerPeerKey) }
+func (b *BootstrapConfig) GetEmbeddedAPIServerClientCert() string {
+	return getField(b.EmbeddedAPIServerClientCert)
+}
+func (b *BootstrapConfig) GetEmbeddedAPIServerClientKey() string {
+	return getField(b.EmbeddedAPIServerClientKey)
+}
 func (b *BootstrapConfig) GetAPIServerCert() string     { return getField(b.APIServerCert) }
 func (b *BootstrapConfig) GetAPIServerKey() string      { return getField(b.APIServerKey) }
 func (b *BootstrapConfig) GetKubeletCert() string       { return getField(b.KubeletCert) }

@@ -87,7 +87,7 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 	}
 
 	switch datastore.GetType() {
-	case "k8s-dqlite", "external":
+	case "k8s-dqlite", "external", "embedded":
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore.GetType(), SupportedDatastores)
 	}

@@ -156,7 +156,6 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 				IPSANs:            []net.IP{net.ParseIP("127.0.0.1")},
 				Years:             2,
 				AllowSelfSignedCA: true,
-				Datastore:         "k8s-dqlite",
 			},
 			expectedPki: &K8sDqlitePKI{
 				hostname:          "localhost",

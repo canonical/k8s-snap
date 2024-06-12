@@ -95,6 +95,16 @@ func TestMergeClusterConfig(t *testing.T) {
 		generateMergeClusterConfigTestCases("Datastore/ExternalCACert", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalCACert = utils.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/ExternalClientCert", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalClientCert = utils.Pointer(v.(string)) }),
 		generateMergeClusterConfigTestCases("Datastore/ExternalClientKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.ExternalClientKey = utils.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Datastore/EmbeddedCACert", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.EmbeddedCACert = utils.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Datastore/EmbeddedCAKey", false, "v1", "v2", func(c *types.ClusterConfig, v any) { c.Datastore.EmbeddedCAKey = utils.Pointer(v.(string)) }),
+		generateMergeClusterConfigTestCases("Datastore/EmbeddedAPIServerClientCert", true, "v1", "v2", func(c *types.ClusterConfig, v any) {
+			c.Datastore.EmbeddedAPIServerClientCert = utils.Pointer(v.(string))
+		}),
+		generateMergeClusterConfigTestCases("Datastore/EmbeddedAPIServerClientKey", true, "v1", "v2", func(c *types.ClusterConfig, v any) {
+			c.Datastore.EmbeddedAPIServerClientKey = utils.Pointer(v.(string))
+		}),
+		generateMergeClusterConfigTestCases("Datastore/EmbeddedPort", false, 2379, 12379, func(c *types.ClusterConfig, v any) { c.Datastore.EmbeddedPort = utils.Pointer(v.(int)) }),
+		generateMergeClusterConfigTestCases("Datastore/EmbeddedPeerPort", false, 2380, 12380, func(c *types.ClusterConfig, v any) { c.Datastore.EmbeddedPeerPort = utils.Pointer(v.(int)) }),
 		generateMergeClusterConfigTestCases("Network/Enable", true, true, false, func(c *types.ClusterConfig, v any) { c.Network.Enabled = utils.Pointer(v.(bool)) }),
 		generateMergeClusterConfigTestCases("Network/Disable", true, false, true, func(c *types.ClusterConfig, v any) { c.Network.Enabled = utils.Pointer(v.(bool)) }),
 		generateMergeClusterConfigTestCases("Network/PodCIDR", false, "10.1.0.0/16", "10.2.0.0/16", func(c *types.ClusterConfig, v any) { c.Network.PodCIDR = utils.Pointer(v.(string)) }),

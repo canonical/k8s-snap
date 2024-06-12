@@ -24,7 +24,6 @@ type K8sDqlitePKIOpts struct {
 	IPSANs            []net.IP
 	Years             int
 	AllowSelfSignedCA bool
-	Datastore         string
 }
 
 func NewK8sDqlitePKI(opts K8sDqlitePKIOpts) *K8sDqlitePKI {
