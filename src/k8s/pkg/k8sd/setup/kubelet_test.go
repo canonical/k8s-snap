@@ -53,9 +53,9 @@ func TestKubelet(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
-			{key: "--cert-dir", expectedVal: s.Mock.KubernetesPKIDir},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--container-runtime-endpoint", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
 			{key: "--containerd", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
@@ -69,6 +69,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--root-dir", expectedVal: s.Mock.KubeletRootDir},
 			{key: "--serialize-image-pulls", expectedVal: "false"},
 			{key: "--tls-cipher-suites", expectedVal: kubeletTLSCipherSuites},
+			{key: "--tls-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.crt")},
+			{key: "--tls-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.key")},
 			{key: "--cluster-dns", expectedVal: "10.152.1.1"},
 			{key: "--cloud-provider", expectedVal: "provider"},
 			{key: "--cluster-domain", expectedVal: "test-cluster.local"},
@@ -108,9 +110,9 @@ func TestKubelet(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
-			{key: "--cert-dir", expectedVal: s.Mock.KubernetesPKIDir},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--container-runtime-endpoint", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
 			{key: "--containerd", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
@@ -124,6 +126,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--root-dir", expectedVal: s.Mock.KubeletRootDir},
 			{key: "--serialize-image-pulls", expectedVal: "false"},
 			{key: "--tls-cipher-suites", expectedVal: kubeletTLSCipherSuites},
+			{key: "--tls-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.crt")},
+			{key: "--tls-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.key")},
 			{key: "--cluster-dns", expectedVal: "10.152.1.1"},
 			// Overwritten by extraArgs
 			{key: "--cluster-domain", expectedVal: "override.local"},
@@ -163,9 +167,9 @@ func TestKubelet(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
-			{key: "--cert-dir", expectedVal: s.Mock.KubernetesPKIDir},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--container-runtime-endpoint", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
 			{key: "--containerd", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
@@ -179,6 +183,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--root-dir", expectedVal: s.Mock.KubeletRootDir},
 			{key: "--serialize-image-pulls", expectedVal: "false"},
 			{key: "--tls-cipher-suites", expectedVal: kubeletTLSCipherSuites},
+			{key: "--tls-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.crt")},
+			{key: "--tls-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.key")},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
@@ -209,9 +215,9 @@ func TestKubelet(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
-			{key: "--cert-dir", expectedVal: s.Mock.KubernetesPKIDir},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--container-runtime-endpoint", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
 			{key: "--containerd", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
@@ -225,6 +231,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--root-dir", expectedVal: s.Mock.KubeletRootDir},
 			{key: "--serialize-image-pulls", expectedVal: "false"},
 			{key: "--tls-cipher-suites", expectedVal: kubeletTLSCipherSuites},
+			{key: "--tls-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.key")},
+			{key: "--tls-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.crt")},
 			{key: "--cloud-provider", expectedVal: "provider"},
 			{key: "--cluster-dns", expectedVal: "10.152.1.1"},
 			{key: "--cluster-domain", expectedVal: "test-cluster.local"},
@@ -264,9 +272,9 @@ func TestKubelet(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
-			{key: "--cert-dir", expectedVal: s.Mock.KubernetesPKIDir},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--container-runtime-endpoint", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
 			{key: "--containerd", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
@@ -280,6 +288,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--root-dir", expectedVal: s.Mock.KubeletRootDir},
 			{key: "--serialize-image-pulls", expectedVal: "false"},
 			{key: "--tls-cipher-suites", expectedVal: kubeletTLSCipherSuites},
+			{key: "--tls-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.crt")},
+			{key: "--tls-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.key")},
 			{key: "--cluster-dns", expectedVal: "10.152.1.1"},
 			{key: "--cluster-domain", expectedVal: "override.local"},
 			{key: "--node-ip", expectedVal: "192.168.0.1"},
@@ -318,9 +328,9 @@ func TestKubelet(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
-			{key: "--cert-dir", expectedVal: s.Mock.KubernetesPKIDir},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--container-runtime-endpoint", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
 			{key: "--containerd", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
@@ -334,6 +344,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--root-dir", expectedVal: s.Mock.KubeletRootDir},
 			{key: "--serialize-image-pulls", expectedVal: "false"},
 			{key: "--tls-cipher-suites", expectedVal: kubeletTLSCipherSuites},
+			{key: "--tls-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.crt")},
+			{key: "--tls-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "kubelet.key")},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {

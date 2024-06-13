@@ -43,9 +43,9 @@ func KubeletWorker(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS st
 // kubelet configures kubelet on the local node.
 func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, taints []string, labels []string, extraArgs map[string]*string) error {
 	args := map[string]string{
+		"--authorization-mode":           "Webhook",
 		"--anonymous-auth":               "false",
 		"--authentication-token-webhook": "true",
-		"--cert-dir":                     snap.KubernetesPKIDir(),
 		"--client-ca-file":               path.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
 		"--container-runtime-endpoint":   path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
 		"--containerd":                   path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
@@ -59,6 +59,8 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 		"--root-dir":                     snap.KubeletRootDir(),
 		"--serialize-image-pulls":        "false",
 		"--tls-cipher-suites":            strings.Join(kubeletTLSCipherSuites, ","),
+		"--tls-cert-file":                path.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
+		"--tls-private-key-file":         path.Join(snap.KubernetesPKIDir(), "kubelet.key"),
 	}
 	if cloudProvider != "" {
 		args["--cloud-provider"] = cloudProvider
