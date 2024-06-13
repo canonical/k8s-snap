@@ -69,10 +69,14 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 			Years:    20,
 		})
 
+		certificates.CACert = cfg.Datastore.GetEmbeddedCACert()
+		certificates.CAKey = cfg.Datastore.GetEmbeddedCAKey()
 		certificates.ServerCert = joinConfig.GetEmbeddedServerCert()
 		certificates.ServerKey = joinConfig.GetEmbeddedServerKey()
 		certificates.ServerPeerCert = joinConfig.GetEmbeddedServerPeerCert()
 		certificates.ServerPeerKey = joinConfig.GetEmbeddedServerPeerKey()
+		certificates.APIServerClientCert = cfg.Datastore.GetEmbeddedAPIServerClientCert()
+		certificates.APIServerClientKey = cfg.Datastore.GetEmbeddedAPIServerClientKey()
 
 		if err := certificates.CompleteCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize embedded datastore certificates: %w", err)
