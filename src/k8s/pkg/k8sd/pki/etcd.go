@@ -79,10 +79,9 @@ func (c *EtcdPKI) CompleteCertificates() error {
 
 	// Generate etcd server certificate
 	if c.ServerCert == "" && c.ServerKey == "" {
-		if !c.allowSelfSignedCA {
-			return fmt.Errorf("etcd server certificate not specified and generating self-signed certificates is not allowed")
+		if key == nil {
+			return fmt.Errorf("using an external etcd CA with specifying an etcd server certificate is not possible")
 		}
-
 		template, err := generateCertificate(pkix.Name{CommonName: "kube-etcd"}, c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
 		if err != nil {
 			return fmt.Errorf("failed to generate k8s-dqlite certificate: %w", err)
@@ -98,8 +97,8 @@ func (c *EtcdPKI) CompleteCertificates() error {
 
 	// Generate etcd peer server certificate
 	if c.ServerPeerCert == "" && c.ServerPeerKey == "" {
-		if !c.allowSelfSignedCA {
-			return fmt.Errorf("etcd server certificate not specified and generating self-signed certificates is not allowed")
+		if key == nil {
+			return fmt.Errorf("using an external etcd CA with specifying an etcd server peer certificate is not possible")
 		}
 
 		template, err := generateCertificate(pkix.Name{CommonName: "kube-etcd-peer"}, c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
@@ -117,8 +116,8 @@ func (c *EtcdPKI) CompleteCertificates() error {
 
 	// Generate kube-apiserver etcd client certificate
 	if c.APIServerClientCert == "" && c.APIServerClientKey == "" {
-		if !c.allowSelfSignedCA {
-			return fmt.Errorf("apiserver client certificate not specified and generating self-signed certificates is not allowed")
+		if key == nil {
+			return fmt.Errorf("using an external etcd CA with specifying an etcd apiserver client certificate is not possible")
 		}
 
 		template, err := generateCertificate(pkix.Name{CommonName: "kube-apiserver-etcd-client"}, c.years, false, nil, nil)
