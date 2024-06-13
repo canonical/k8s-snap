@@ -54,6 +54,7 @@ func TestKubelet(t *testing.T) {
 			expectedVal string
 		}{
 			{key: "--anonymous-auth", expectedVal: "false"},
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--cloud-provider", expectedVal: "provider"},
@@ -111,6 +112,7 @@ func TestKubelet(t *testing.T) {
 		}{
 			// Overwritten by extraArgs
 			{key: "--anonymous-auth", expectedVal: "false"},
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--cluster-dns", expectedVal: "10.152.1.1"},
@@ -167,6 +169,7 @@ func TestKubelet(t *testing.T) {
 			expectedVal string
 		}{
 			{key: "--anonymous-auth", expectedVal: "false"},
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--container-runtime-endpoint", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
@@ -214,6 +217,7 @@ func TestKubelet(t *testing.T) {
 			expectedVal string
 		}{
 			{key: "--anonymous-auth", expectedVal: "false"},
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--cloud-provider", expectedVal: "provider"},
@@ -270,6 +274,7 @@ func TestKubelet(t *testing.T) {
 			expectedVal string
 		}{
 			{key: "--anonymous-auth", expectedVal: "false"},
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--cluster-dns", expectedVal: "10.152.1.1"},
@@ -325,6 +330,7 @@ func TestKubelet(t *testing.T) {
 			expectedVal string
 		}{
 			{key: "--anonymous-auth", expectedVal: "false"},
+			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--container-runtime-endpoint", expectedVal: path.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
