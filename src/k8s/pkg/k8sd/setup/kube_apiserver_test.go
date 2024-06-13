@@ -44,14 +44,25 @@ func TestKubeAPIServer(t *testing.T) {
 			expectedVal string
 		}{
 			{key: "--allow-privileged", expectedVal: "true"},
+			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook-config-file", expectedVal: path.Join(s.Mock.ServiceExtraConfigDir, "auth-token-webhook.conf")},
 			{key: "--authorization-mode", expectedVal: "Node,RBAC"},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--enable-admission-plugins", expectedVal: "NodeRestriction"},
+			{key: "--etcd-servers", expectedVal: fmt.Sprintf("unix://%s", path.Join(s.Mock.K8sDqliteStateDir, "k8s-dqlite.sock"))},
 			{key: "--kubelet-certificate-authority", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--kubelet-client-certificate", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "apiserver-kubelet-client.crt")},
 			{key: "--kubelet-client-key", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "apiserver-kubelet-client.key")},
 			{key: "--kubelet-preferred-address-types", expectedVal: "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP"},
+			{key: "--profiling", expectedVal: "false"},
+			{key: "--proxy-client-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "front-proxy-client.crt")},
+			{key: "--proxy-client-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "front-proxy-client.key")},
+			{key: "--requestheader-allowed-names", expectedVal: "front-proxy-client"},
+			{key: "--requestheader-client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "front-proxy-ca.crt")},
+			{key: "--requestheader-extra-headers-prefix", expectedVal: "X-Remote-Extra-"},
+			{key: "--requestheader-group-headers", expectedVal: "X-Remote-Group"},
+			{key: "--requestheader-username-headers", expectedVal: "X-Remote-User"},
+			{key: "--requests-timeout", expectedVal: "300s"},
 			{key: "--secure-port", expectedVal: "6443"},
 			{key: "--service-account-issuer", expectedVal: "https://kubernetes.default.svc"},
 			{key: "--service-account-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
@@ -60,17 +71,6 @@ func TestKubeAPIServer(t *testing.T) {
 			{key: "--tls-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "apiserver.crt")},
 			{key: "--tls-cipher-suites", expectedVal: apiserverTLSCipherSuites},
 			{key: "--tls-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "apiserver.key")},
-			{key: "--etcd-servers", expectedVal: fmt.Sprintf("unix://%s", path.Join(s.Mock.K8sDqliteStateDir, "k8s-dqlite.sock"))},
-			{key: "--requestheader-client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "front-proxy-ca.crt")},
-			{key: "--requestheader-allowed-names", expectedVal: "front-proxy-client"},
-			{key: "--requestheader-extra-headers-prefix", expectedVal: "X-Remote-Extra-"},
-			{key: "--requestheader-group-headers", expectedVal: "X-Remote-Group"},
-			{key: "--requestheader-username-headers", expectedVal: "X-Remote-User"},
-			{key: "--proxy-client-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "front-proxy-client.crt")},
-			{key: "--proxy-client-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "front-proxy-client.key")},
-			{key: "--anonymous-auth", expectedVal: "false"},
-			{key: "--profiling", expectedVal: "false"},
-			{key: "--requests-timeout", expectedVal: "300s"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
@@ -102,14 +102,17 @@ func TestKubeAPIServer(t *testing.T) {
 			expectedVal string
 		}{
 			{key: "--allow-privileged", expectedVal: "true"},
+			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook-config-file", expectedVal: path.Join(s.Mock.ServiceExtraConfigDir, "auth-token-webhook.conf")},
 			{key: "--authorization-mode", expectedVal: "Node,RBAC"},
 			{key: "--client-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
 			{key: "--enable-admission-plugins", expectedVal: "NodeRestriction"},
+			{key: "--etcd-servers", expectedVal: fmt.Sprintf("unix://%s", path.Join(s.Mock.K8sDqliteStateDir, "k8s-dqlite.sock"))},
 			{key: "--kubelet-certificate-authority", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--kubelet-client-certificate", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "apiserver-kubelet-client.crt")},
 			{key: "--kubelet-client-key", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "apiserver-kubelet-client.key")},
 			{key: "--kubelet-preferred-address-types", expectedVal: "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP"},
+			{key: "--requests-timeout", expectedVal: "300s"},
 			{key: "--secure-port", expectedVal: "6443"},
 			{key: "--service-account-issuer", expectedVal: "https://kubernetes.default.svc"},
 			{key: "--service-account-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
@@ -118,10 +121,7 @@ func TestKubeAPIServer(t *testing.T) {
 			{key: "--tls-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "apiserver.crt")},
 			{key: "--tls-cipher-suites", expectedVal: apiserverTLSCipherSuites},
 			{key: "--tls-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "apiserver.key")},
-			{key: "--etcd-servers", expectedVal: fmt.Sprintf("unix://%s", path.Join(s.Mock.K8sDqliteStateDir, "k8s-dqlite.sock"))},
-			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--profiling", expectedVal: "false"},
-			{key: "--requests-timeout", expectedVal: "300s"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
