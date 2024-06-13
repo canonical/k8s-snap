@@ -80,6 +80,9 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--tls-cert-file":                            path.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
 		"--tls-cipher-suites":                        strings.Join(apiserverTLSCipherSuites, ","),
 		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
+		"--anonymous-auth":                           "false",
+		"--profiling":                                "false",
+		"--requests-timeout":                         "300s",
 	}
 
 	switch datastore.GetType() {

@@ -68,6 +68,9 @@ func TestKubeAPIServer(t *testing.T) {
 			{key: "--requestheader-username-headers", expectedVal: "X-Remote-User"},
 			{key: "--proxy-client-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "front-proxy-client.crt")},
 			{key: "--proxy-client-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "front-proxy-client.key")},
+			{key: "--anonymous-auth", expectedVal: "false"},
+			{key: "--profiling", expectedVal: "false"},
+			{key: "--requests-timeout", expectedVal: "300s"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
@@ -116,6 +119,9 @@ func TestKubeAPIServer(t *testing.T) {
 			{key: "--tls-cipher-suites", expectedVal: apiserverTLSCipherSuites},
 			{key: "--tls-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "apiserver.key")},
 			{key: "--etcd-servers", expectedVal: fmt.Sprintf("unix://%s", path.Join(s.Mock.K8sDqliteStateDir, "k8s-dqlite.sock"))},
+			{key: "--anonymous-auth", expectedVal: "false"},
+			{key: "--profiling", expectedVal: "false"},
+			{key: "--requests-timeout", expectedVal: "300s"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {

@@ -21,6 +21,7 @@ func KubeControllerManager(snap snap.Snap) error {
 		"--root-ca-file":                     path.Join(snap.KubernetesPKIDir(), "ca.crt"),
 		"--service-account-private-key-file": path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
 		"--use-service-account-credentials":  "true",
+		"--terminated-pod-gc-threshold":      "12500",
 	}
 	// enable cluster-signing if certificates are available
 	if _, err := os.Stat(path.Join(snap.KubernetesPKIDir(), "ca.key")); err == nil {
