@@ -178,11 +178,11 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		}
 		clientURLs := make([]string, len(members))
 		for _, member := range members {
-			clientURLs = append(clientURLs, utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEmbeddedPort()))
+			clientURLs = append(clientURLs, fmt.Sprintf("https://%s", utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEmbeddedPort())))
 		}
 
-		clientURL := utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPort())
-		peerURL := utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPeerPort())
+		clientURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPort()))
+		peerURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPeerPort()))
 		if err := setup.K8sDqliteEmbedded(snap, s.Name(), clientURL, peerURL, clientURLs, joinConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to config k8s-dqlite embedded with peerURL=%s cluster=%v: %w", peerURL, clientURLs, err)
 		}

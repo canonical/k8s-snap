@@ -393,7 +393,9 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 			return fmt.Errorf("failed to configure k8s-dqlite: %w", err)
 		}
 	case "embedded":
-		if err := setup.K8sDqliteEmbedded(snap, s.Name(), utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPort()), utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPeerPort()), nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
+		clientURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPort()))
+		peerURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPeerPort()))
+		if err := setup.K8sDqliteEmbedded(snap, s.Name(), clientURL, peerURL, nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure embedded k8s-dqlite: %w", err)
 		}
 	case "external":
