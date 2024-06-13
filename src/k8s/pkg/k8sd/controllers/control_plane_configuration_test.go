@@ -2,11 +2,12 @@ package controllers_test
 
 import (
 	"context"
-	"github.com/canonical/k8s/pkg/utils"
 	"os"
 	"path"
 	"testing"
 	"time"
+
+	"github.com/canonical/k8s/pkg/utils"
 
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -50,7 +51,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 		configProvider := &configProvider{}
 
 		ctrl := controllers.NewControlPlaneConfigurationController(s, func() {}, triggerCh)
-		go ctrl.Run(ctx, configProvider.getConfig)
+		go ctrl.Run(ctx, func() string { return "127.0.0.1" }, configProvider.getConfig)
 
 		for _, tc := range []struct {
 			name   string
@@ -256,7 +257,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 		configProvider := &configProvider{}
 
 		ctrl := controllers.NewControlPlaneConfigurationController(s, func() {}, triggerCh)
-		go ctrl.Run(ctx, configProvider.getConfig)
+		go ctrl.Run(ctx, func() string { return "127.0.0.1" }, configProvider.getConfig)
 
 		// mark as worker node
 		g.Expect(snaputil.MarkAsWorkerNode(s, true)).To(Succeed())

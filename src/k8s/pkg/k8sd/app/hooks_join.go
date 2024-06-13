@@ -43,6 +43,9 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.GetServiceCIDR(), err)
 	}
 
+	// Certificates
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(joinConfig.ExtraSANS)
+
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
@@ -58,6 +61,26 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		if _, err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write k8s-dqlite certificates: %w", err)
 		}
+	case "embedded":
+		certificates := pki.NewEtcdPKI(pki.EtcdPKIOpts{
+			Hostname: s.Name(),
+			IPSANs:   append([]net.IP{nodeIP}, extraIPs...),
+			DNSSANs:  append([]string{s.Name()}, extraNames...),
+			Years:    20,
+		})
+
+		certificates.ServerCert = joinConfig.GetEmbeddedServerCert()
+		certificates.ServerKey = joinConfig.GetEmbeddedServerKey()
+		certificates.ServerPeerCert = joinConfig.GetEmbeddedServerPeerCert()
+		certificates.ServerPeerKey = joinConfig.GetEmbeddedServerPeerKey()
+
+		if err := certificates.CompleteCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize embedded datastore certificates: %w", err)
+		}
+		if _, err := setup.EnsureEtcdPKI(snap, certificates); err != nil {
+			return fmt.Errorf("failed to write embedded datastore certificates: %w", err)
+		}
+
 	case "external":
 		certificates := &pki.ExternalDatastorePKI{
 			DatastoreCACert:     cfg.Datastore.GetExternalCACert(),
@@ -74,8 +97,6 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
 
-	// Certificates
-	extraIPs, extraNames := utils.SplitIPAndDNSSANs(joinConfig.ExtraSANS)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
@@ -126,6 +147,8 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 
 	// Configure datastore
 	switch cfg.Datastore.GetType() {
+	case "external":
+		// no-op
 	case "k8s-dqlite":
 		leader, err := s.Leader()
 		if err != nil {
@@ -137,14 +160,32 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		}
 		cluster := make([]string, len(members))
 		for _, member := range members {
-			cluster = append(cluster, fmt.Sprintf("%s:%d", member.Address.Addr(), cfg.Datastore.GetK8sDqlitePort()))
+			cluster = append(cluster, utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetK8sDqlitePort()))
 		}
 
-		address := fmt.Sprintf("%s:%d", nodeIP.String(), cfg.Datastore.GetK8sDqlitePort())
+		address := utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetK8sDqlitePort())
 		if err := setup.K8sDqlite(snap, address, cluster, joinConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
-	case "external":
+	case "embedded":
+		leader, err := s.Leader()
+		if err != nil {
+			return fmt.Errorf("failed to get dqlite leader: %w", err)
+		}
+		members, err := leader.GetClusterMembers(s.Context)
+		if err != nil {
+			return fmt.Errorf("failed to get microcluster members: %w", err)
+		}
+		clientURLs := make([]string, len(members))
+		for _, member := range members {
+			clientURLs = append(clientURLs, utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEmbeddedPort()))
+		}
+
+		clientURL := utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPort())
+		peerURL := utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPeerPort())
+		if err := setup.K8sDqliteEmbedded(snap, s.Name(), clientURL, peerURL, clientURLs, joinConfig.ExtraNodeK8sDqliteArgs); err != nil {
+			return fmt.Errorf("failed to config k8s-dqlite embedded with peerURL=%s cluster=%v: %w", peerURL, clientURLs, err)
+		}
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
@@ -165,7 +206,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	if err := setup.KubeScheduler(snap, joinConfig.ExtraNodeKubeSchedulerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
-	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), joinConfig.ExtraNodeKubeAPIServerArgs); err != nil {
+	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), s.Address().Hostname(), joinConfig.ExtraNodeKubeAPIServerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 
@@ -200,17 +241,20 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 
 	// configure datastore
 	switch cfg.Datastore.GetType() {
+	case "external":
+		// no-op
 	case "k8s-dqlite":
 		client, err := snap.K8sDqliteClient(s.Context)
 		if err != nil {
 			return fmt.Errorf("failed to create k8s-dqlite client: %w", err)
 		}
 
-		nodeAddress := net.JoinHostPort(s.Address().Hostname(), fmt.Sprintf("%d", cfg.Datastore.GetK8sDqlitePort()))
+		nodeAddress := utils.JoinHostPort(s.Address().Hostname(), cfg.Datastore.GetK8sDqlitePort())
 		if err := client.RemoveNodeByAddress(s.Context, nodeAddress); err != nil {
 			return fmt.Errorf("failed to remove node with address %s from k8s-dqlite cluster: %w", nodeAddress, err)
 		}
-	case "external":
+	case "embedded":
+		// TODO(neoaggelos): make sure that the departing node gets removed
 	default:
 	}
 

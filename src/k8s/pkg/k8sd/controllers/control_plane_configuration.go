@@ -36,7 +36,7 @@ func NewControlPlaneConfigurationController(snap snap.Snap, waitReady func(), tr
 // Run accepts a context to manage the lifecycle of the controller.
 // Run accepts a function that retrieves the current cluster configuration.
 // Run will loop every time the trigger channel is
-func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) {
+func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getNodeIP func() string, getClusterConfig func(context.Context) (types.ClusterConfig, error)) {
 	c.waitReady()
 
 	for {
@@ -60,13 +60,13 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 			continue
 		}
 
-		if err := c.reconcile(ctx, config); err != nil {
+		if err := c.reconcile(ctx, config, getNodeIP()); err != nil {
 			log.Println(fmt.Errorf("failed to reconcile control plane configuration: %w", err))
 		}
 	}
 }
 
-func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, config types.ClusterConfig) error {
+func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, config types.ClusterConfig, nodeIP string) error {
 	// kube-apiserver: external datastore
 	switch config.Datastore.GetType() {
 	case "external":
@@ -81,7 +81,7 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 		}
 
 		// kube-apiserver arguments
-		updateArgs, deleteArgs := config.Datastore.ToKubeAPIServerArguments(c.snap)
+		updateArgs, deleteArgs := config.Datastore.ToKubeAPIServerArguments(c.snap, nodeIP)
 		argsChanged, err := snaputil.UpdateServiceArguments(c.snap, "kube-apiserver", updateArgs, deleteArgs)
 		if err != nil {
 			return fmt.Errorf("failed to update kube-apiserver datastore arguments: %w", err)

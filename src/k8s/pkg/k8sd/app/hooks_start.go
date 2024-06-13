@@ -36,9 +36,15 @@ func (a *App) onStart(s *state.State) error {
 
 	// start control plane config controller
 	if a.controlPlaneConfigController != nil {
-		go a.controlPlaneConfigController.Run(s.Context, func(ctx context.Context) (types.ClusterConfig, error) {
-			return databaseutil.GetClusterConfig(ctx, s)
-		})
+		go a.controlPlaneConfigController.Run(
+			s.Context,
+			func() string {
+				return s.Address().Hostname()
+			},
+			func(ctx context.Context) (types.ClusterConfig, error) {
+				return databaseutil.GetClusterConfig(ctx, s)
+			},
+		)
 	}
 
 	// start update node config controller

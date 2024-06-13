@@ -36,9 +36,9 @@ func setupKubeconfigs(s *state.State, kubeConfigDir string, securePort int, pki 
 func startControlPlaneServices(ctx context.Context, snap snap.Snap, datastore string) error {
 	// Start services
 	switch datastore {
-	case "k8s-dqlite":
+	case "k8s-dqlite", "embedded":
 		if err := snaputil.StartK8sDqliteServices(ctx, snap); err != nil {
-			return fmt.Errorf("failed to start control plane services: %w", err)
+			return fmt.Errorf("failed to start k8s-dqlite services: %w", err)
 		}
 	case "external":
 	default:
