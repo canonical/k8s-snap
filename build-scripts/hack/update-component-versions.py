@@ -109,7 +109,7 @@ def update_component_versions(dry_run: bool):
             Path(path).write_text(version.strip() + "\n")
 
     for component, pull_helm_chart in [
-        ("contour", pull_contour_chart),
+        ("bitnami/contour", pull_contour_chart),
     ]:
         LOG.info("Updating chart for %s", component)
         if not dry_run:
