@@ -254,7 +254,9 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 			return fmt.Errorf("failed to remove node with address %s from k8s-dqlite cluster: %w", nodeAddress, err)
 		}
 	case "embedded":
-		// TODO(neoaggelos): make sure that the departing node gets removed
+		// TODO(neoaggelos): validate pre-checks that we can remove the node from the embedded datastore without losing quorum
+		// TODO(neoaggelos): remove the node from the datastore before proceeding
+		return fmt.Errorf("remove node not implemented yet for embedded datastore")
 	default:
 	}
 
