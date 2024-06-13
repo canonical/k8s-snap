@@ -15,7 +15,7 @@ func CleanupNetwork(ctx context.Context, snap snap.Snap) error {
 	}
 
 	if _, err := os.Stat("/opt/cni/bin/cilium-dbg"); err == nil {
-		if _, err := exec.CommandContext(ctx, "/opt/cni/bin/cilium-dbg", "cleanup", "--all-state", "--force").CombinedOutput(); err != nil {
+		if err := exec.CommandContext(ctx, "/opt/cni/bin/cilium-dbg", "cleanup", "--all-state", "--force").Run(); err != nil {
 			return fmt.Errorf("cilium-dbg cleanup failed: %w", err)
 		}
 	} else {

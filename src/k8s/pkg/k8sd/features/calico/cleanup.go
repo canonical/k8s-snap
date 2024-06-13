@@ -1,30 +1,24 @@
 package calico
 
 import (
+	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
+	"net"
+	"os"
 	"os/exec"
+	"path"
 	"regexp"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/snap"
+	"golang.org/x/sys/unix"
 )
 
 func CleanupNetwork(ctx context.Context, snap snap.Snap) error {
-	output, err := exec.CommandContext(ctx, "ip", "-j", "link", "show").Output()
+	interfaces, err := net.Interfaces()
 	if err != nil {
 		return fmt.Errorf("failed to list network interfaces: %w", err)
-	}
-
-	// Parse the json output of `ip -j link show` to find the interfaces that were created by Calico.
-	type NetworkInterface struct {
-		Name string `json:"ifname"`
-	}
-	var interfaces []NetworkInterface
-	err = json.Unmarshal(output, &interfaces)
-	if err != nil {
-		return fmt.Errorf("failed to parse network interface JSON: %w", err)
 	}
 
 	// Find the interfaces created by Calico
@@ -36,52 +30,51 @@ func CleanupNetwork(ctx context.Context, snap snap.Snap) error {
 		}
 		if match {
 			// Perform cleanup for Calico interface
-			if _, err := exec.CommandContext(ctx, "ip", "link", "delete", iface.Name).CombinedOutput(); err != nil {
+			if err := exec.CommandContext(ctx, "ip", "link", "delete", iface.Name).Run(); err != nil {
 				return fmt.Errorf("failed to delete interface %s: %w", iface.Name, err)
 			}
 		}
 	}
 
-	// List network namespaces in JSON format
-	nsOutput, err := exec.CommandContext(ctx, "ip", "-j", "netns", "list").Output()
+	// Delete network namespaces that start with "cali-"
+	netnsDir := "/run/netns"
+	entries, err := os.ReadDir(netnsDir)
 	if err != nil {
-		return fmt.Errorf("failed to list network namespaces: %w", err)
+		return fmt.Errorf("failed to list files under %s: %w", netnsDir, err)
 	}
 
-	// Parse the JSON output of `ip -j netns list` to find the namespaces that start with "cali-"
-	type Namespace struct {
-		Name string `json:"name"`
-	}
-	var namespaces []Namespace
-	err = json.Unmarshal(nsOutput, &namespaces)
-	if err != nil {
-		return fmt.Errorf("failed to parse network namespace JSON: %w", err)
-	}
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), "cali-") {
+			nsPath := path.Join(netnsDir, entry.Name())
 
-	// Delete the namespaces that start with "cali-"
-	for _, ns := range namespaces {
-		if strings.HasPrefix(ns.Name, "cali-") {
-			// Delete the namespace
-			if _, err := exec.CommandContext(ctx, "ip", "netns", "delete", ns.Name).CombinedOutput(); err != nil {
-				return fmt.Errorf("failed to delete network namespace %s: %w", ns.Name, err)
+			if err := unix.Unmount(nsPath, unix.MNT_DETACH); err != nil {
+				return fmt.Errorf("failed to unmount network namespace %s: %w", entry.Name(), err)
+			}
+
+			if err := os.Remove(nsPath); err != nil {
+				return fmt.Errorf("failed to remove network namespace %s: %w", entry.Name(), err)
 			}
 		}
 	}
 
-	if _, err := exec.Command("bash", "-c", "iptables-legacy-save | grep -iv cali | iptables-legacy-restore").CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to remove calico iptables rules: %w", err)
-	}
+	for _, cmd := range []string{"iptables", "ip6tables", "iptables-legacy", "ip6tables-legacy"} {
+		out, err := exec.Command(fmt.Sprintf("%s-save", cmd)).Output()
+		if err != nil {
+			return fmt.Errorf("failed to read iptables rules: %w", err)
+		}
 
-	if _, err := exec.Command("bash", "-c", "iptables-save | grep -iv cali | iptables-restore").CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to remove calico iptables rules: %w", err)
-	}
+		grep := exec.Command("grep", "-iv", "cali")
+		grep.Stdin = bytes.NewReader(out)
+		grepOut, err := grep.Output()
+		if err != nil {
+			return fmt.Errorf("failed to filter calico iptables rules: %w", err)
+		}
 
-	if _, err := exec.Command("bash", "-c", "ip6tables-legacy-save | grep -iv cali | ip6tables-legacy-restore").CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to remove calico iptables rules: %w", err)
-	}
-
-	if _, err := exec.Command("bash", "-c", "ip6tables-save | grep -iv cali | ip6tables-restore").CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to remove calico iptables rules: %w", err)
+		restore := exec.Command(fmt.Sprintf("%s-restore", cmd))
+		restore.Stdin = bytes.NewReader(grepOut)
+		if err := restore.Run(); err != nil {
+			return fmt.Errorf("failed to restore iptables rules: %w", err)
+		}
 	}
 
 	return nil
