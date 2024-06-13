@@ -3,6 +3,7 @@ from typing import Any, Generator
 import tempfile
 import subprocess
 import logging
+import yaml
 from urllib.request import urlopen
 from pathlib import Path
 
@@ -48,3 +49,9 @@ def read_file(path: Path) -> str:
 
 def read_url(url: str) -> str:
     return urlopen(url).read().decode().strip()
+
+def helm_pull(chart_name: str, repo_url: str, version: str, destination: Path) -> None:
+    parse_output(["helm", "repo", "add", chart_name, repo_url])
+    parse_output(["helm", "pull", f"{chart_name}/{chart_name}", "--version", version, "--destination", destination])
+
+    LOG.info("Pulled helm repository %s @ %s as %s to %s", repo_url, version, chart_name, destination)
