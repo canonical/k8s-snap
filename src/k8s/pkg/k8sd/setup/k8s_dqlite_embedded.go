@@ -41,7 +41,7 @@ func K8sDqliteEmbedded(snap snap.Snap, name, clientURL, peerURL string, clientUR
 
 	if b, err := yaml.Marshal(&k8sDqliteEmbeddedYaml{
 		Name:                     name,
-		DataDir:                  filepath.Join(snap.K8sDqliteStateDir(), "data"),
+		DataDir:                  snap.K8sDqliteStateDir(),
 		InitialCluster:           fmt.Sprintf("%s=%s", name, peerURL), // NOTE: will be updated for joining nodes
 		InitialClusterState:      clusterState,
 		InitialAdvertisePeerURLs: peerURL,
@@ -71,7 +71,7 @@ func K8sDqliteEmbedded(snap snap.Snap, name, clientURL, peerURL string, clientUR
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "k8s-dqlite", map[string]string{
 		"--embedded":    "true",
-		"--storage-dir": filepath.Join(snap.K8sDqliteStateDir(), "data"),
+		"--storage-dir": snap.K8sDqliteStateDir(),
 	}, nil); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
