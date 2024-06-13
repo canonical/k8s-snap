@@ -11,17 +11,20 @@ type BootstrapConfig struct {
 	ClusterConfig UserFacingClusterConfig `json:"cluster-config,omitempty" yaml:"cluster-config,omitempty"`
 
 	// Seed configuration for the control plane (flat on purpose). Empty values are ignored
-	ControlPlaneTaints  []string `json:"control-plane-taints,omitempty" yaml:"control-plane-taints,omitempty"`
-	PodCIDR             *string  `json:"pod-cidr,omitempty" yaml:"pod-cidr,omitempty"`
-	ServiceCIDR         *string  `json:"service-cidr,omitempty" yaml:"service-cidr,omitempty"`
-	DisableRBAC         *bool    `json:"disable-rbac,omitempty" yaml:"disable-rbac,omitempty"`
-	SecurePort          *int     `json:"secure-port,omitempty" yaml:"secure-port,omitempty"`
-	K8sDqlitePort       *int     `json:"k8s-dqlite-port,omitempty" yaml:"k8s-dqlite-port,omitempty"`
-	DatastoreType       *string  `json:"datastore-type,omitempty" yaml:"datastore-type,omitempty"`
-	DatastoreServers    []string `json:"datastore-servers,omitempty" yaml:"datastore-servers,omitempty"`
-	DatastoreCACert     *string  `json:"datastore-ca-crt,omitempty" yaml:"datastore-ca-crt,omitempty"`
-	DatastoreClientCert *string  `json:"datastore-client-crt,omitempty" yaml:"datastore-client-crt,omitempty"`
-	DatastoreClientKey  *string  `json:"datastore-client-key,omitempty" yaml:"datastore-client-key,omitempty"`
+	ControlPlaneTaints []string `json:"control-plane-taints,omitempty" yaml:"control-plane-taints,omitempty"`
+	PodCIDR            *string  `json:"pod-cidr,omitempty" yaml:"pod-cidr,omitempty"`
+	ServiceCIDR        *string  `json:"service-cidr,omitempty" yaml:"service-cidr,omitempty"`
+	DisableRBAC        *bool    `json:"disable-rbac,omitempty" yaml:"disable-rbac,omitempty"`
+	SecurePort         *int     `json:"secure-port,omitempty" yaml:"secure-port,omitempty"`
+
+	K8sDqlitePort             *int     `json:"k8s-dqlite-port,omitempty" yaml:"k8s-dqlite-port,omitempty"`
+	DatastoreType             *string  `json:"datastore-type,omitempty" yaml:"datastore-type,omitempty"`
+	DatastoreServers          []string `json:"datastore-servers,omitempty" yaml:"datastore-servers,omitempty"`
+	DatastoreCACert           *string  `json:"datastore-ca-crt,omitempty" yaml:"datastore-ca-crt,omitempty"`
+	DatastoreClientCert       *string  `json:"datastore-client-crt,omitempty" yaml:"datastore-client-crt,omitempty"`
+	DatastoreClientKey        *string  `json:"datastore-client-key,omitempty" yaml:"datastore-client-key,omitempty"`
+	DatastoreEmbeddedPort     *int     `json:"datastore-embedded-port,omitempty" yaml:"datastore-embedded-port,omitempty"`
+	DatastoreEmbeddedPeerPort *int     `json:"datastore-embedded-peer-port,omitempty" yaml:"datastore-embedded-peer-port,omitempty"`
 
 	// Seed configuration for certificates
 	ExtraSANs []string `json:"extra-sans,omitempty" yaml:"extra-sans,omitempty"`
@@ -78,10 +81,14 @@ type BootstrapConfig struct {
 	ExtraNodeK8sDqliteArgs             map[string]*string `json:"extra-node-k8s-dqlite-args,omitempty" yaml:"extra-node-k8s-dqlite-args,omitempty"`
 }
 
-func (b *BootstrapConfig) GetDatastoreType() string        { return getField(b.DatastoreType) }
-func (b *BootstrapConfig) GetDatastoreCACert() string      { return getField(b.DatastoreCACert) }
-func (b *BootstrapConfig) GetDatastoreClientCert() string  { return getField(b.DatastoreClientCert) }
-func (b *BootstrapConfig) GetDatastoreClientKey() string   { return getField(b.DatastoreClientKey) }
+func (b *BootstrapConfig) GetDatastoreType() string       { return getField(b.DatastoreType) }
+func (b *BootstrapConfig) GetDatastoreCACert() string     { return getField(b.DatastoreCACert) }
+func (b *BootstrapConfig) GetDatastoreClientCert() string { return getField(b.DatastoreClientCert) }
+func (b *BootstrapConfig) GetDatastoreClientKey() string  { return getField(b.DatastoreClientKey) }
+func (b *BootstrapConfig) GetDatastoreEmbeddedPort() int  { return getField(b.DatastoreEmbeddedPort) }
+func (b *BootstrapConfig) GetDatastoreEmbeddedPeerPort() int {
+	return getField(b.DatastoreEmbeddedPeerPort)
+}
 func (b *BootstrapConfig) GetK8sDqlitePort() int           { return getField(b.K8sDqlitePort) }
 func (b *BootstrapConfig) GetCACert() string               { return getField(b.CACert) }
 func (b *BootstrapConfig) GetCAKey() string                { return getField(b.CAKey) }
