@@ -110,7 +110,6 @@ func TestKubelet(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
-			// Overwritten by extraArgs
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authorization-mode", expectedVal: "Webhook"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
