@@ -72,10 +72,12 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		if _, err := m.Apply(ctx, chartDefaultTLS, helm.StatePresent, values); err != nil {
 			return fmt.Errorf("failed to install the delegation resource for default TLS secret: %w", err)
 		}
-	} else {
-		if _, err := m.Apply(ctx, chartDefaultTLS, helm.StateDeleted, nil); err != nil {
-			return fmt.Errorf("failed to uninstall the delegation resource for default TLS secret: %w", err)
-		}
+		return nil
+	}
+
+	if _, err := m.Apply(ctx, chartDefaultTLS, helm.StateDeleted, nil); err != nil {
+		return fmt.Errorf("failed to uninstall the delegation resource for default TLS secret: %w", err)
+
 	}
 
 	return nil
@@ -89,10 +91,9 @@ func applyCommonContourCRDS(ctx context.Context, snap snap.Snap, enabled bool) e
 		if _, err := m.Apply(ctx, chartCommonContourCRDS, helm.StatePresent, nil); err != nil {
 			return fmt.Errorf("failed to install common CRDS: %w", err)
 		}
-	} else {
-		if _, err := m.Apply(ctx, chartCommonContourCRDS, helm.StateDeleted, nil); err != nil {
-			return fmt.Errorf("failed to uninstall common CRDS: %w", err)
-		}
+		return nil
+	if _, err := m.Apply(ctx, chartCommonContourCRDS, helm.StateDeleted, nil); err != nil {
+		return fmt.Errorf("failed to uninstall common CRDS: %w", err)
 	}
 
 	return nil
