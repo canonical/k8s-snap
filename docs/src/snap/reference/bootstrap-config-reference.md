@@ -443,7 +443,7 @@ If omitted defaults to an auto generated certificate.
 The key to be used for the kubelet.
 If omitted defaults to an auto generated key.
 
-### extra-node-config-files:
+### extra-node-config-files
 
 **Type:** `map[string]string` <br>
 **Required:** `No` <br>
@@ -453,7 +453,7 @@ to a node on bootstrap. These files can them be references by Kubernetes
 service arguments.
 The format is `map[<filename>]<filecontent>`.
 
-### extra-node-kube-apiserver-args:
+### extra-node-kube-apiserver-args
 
 **Type:** `map[string]string` <br>
 **Required:** `No` <br>
@@ -462,7 +462,7 @@ Additional arguments that are passed to the `kube-apiserver` only for that
 specific node. Overwrites default configuration. A parameter that is explicitly
 set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
 
-### extra-node-kube-controller-manager-args:
+### extra-node-kube-controller-manager-args
 
 **Type:** `map[string]string` <br>
 **Required:** `No` <br>
@@ -471,7 +471,7 @@ Additional arguments that are passed to the `kube-controller-manager` only for
 that specific node. Overwrites default configuration. A parameter that is
 explicitly set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
 
-### extra-node-kube-scheduler-args:
+### extra-node-kube-scheduler-args
 
 **Type:** `map[string]string` <br>
 **Required:** `No` <br>
@@ -480,7 +480,7 @@ Additional arguments that are passed to the `kube-scheduler` only for that
 specific node. Overwrites default configuration. A parameter that is explicitly
 set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
 
-### extra-node-kube-proxy-args:
+### extra-node-kube-proxy-args
 
 **Type:** `map[string]string` <br>
 **Required:** `No` <br>
@@ -489,7 +489,7 @@ Additional arguments that are passed to the `kube-proxy` only for that
 specific node. Overwrites default configuration. A parameter that is explicitly
 set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
 
-### extra-node-kubelet-args:
+### extra-node-kubelet-args
 
 **Type:** `map[string]string` <br>
 **Required:** `No` <br>
@@ -498,7 +498,7 @@ Additional arguments that are passed to the `kubelet` only for that
 specific node. Overwrites default configuration. A parameter that is explicitly
 set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
 
-### extra-node-containerd-args:
+### extra-node-containerd-args
 
 **Type:** `map[string]string` <br>
 **Required:** `No` <br>
@@ -507,7 +507,7 @@ Additional arguments that are passed to `containerd` only for that
 specific node. Overwrites default configuration. A parameter that is explicitly
 set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
 
-### extra-node-k8s-dqlite-args:
+### extra-node-k8s-dqlite-args
 
 **Type:** `map[string]string` <br>
 **Required:** `No` <br>
