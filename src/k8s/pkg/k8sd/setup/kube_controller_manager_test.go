@@ -49,6 +49,7 @@ func TestKubeControllerManager(t *testing.T) {
 			{key: "--use-service-account-credentials", expectedVal: "true"},
 			{key: "--cluster-signing-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--cluster-signing-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.key")},
+			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
@@ -94,6 +95,7 @@ func TestKubeControllerManager(t *testing.T) {
 			{key: "--root-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--service-account-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
 			{key: "--use-service-account-credentials", expectedVal: "true"},
+			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
