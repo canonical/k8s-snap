@@ -19,7 +19,7 @@ type k8sDqliteEmbeddedYaml struct {
 	ListenPeerURLs           string `yaml:"listen-peer-urls,omitempty"`
 	InitialClusterState      string `yaml:"initial-cluster-state,omitempty"`
 	InitialCluster           string `yaml:"initial-cluster,omitempty"`
-	InitialAdvertisePeerURLs string `yaml:"initial-advertise-peer-url,omitempty"`
+	InitialAdvertisePeerURLs string `yaml:"initial-advertise-peer-urls,omitempty"`
 }
 
 type k8sdDqliteEmbeddedConfigYaml struct {
@@ -42,6 +42,7 @@ func K8sDqliteEmbedded(snap snap.Snap, name, clientURL, peerURL string, clientUR
 	if b, err := yaml.Marshal(&k8sDqliteEmbeddedYaml{
 		Name:                     name,
 		DataDir:                  filepath.Join(snap.K8sDqliteStateDir(), "data"),
+		InitialCluster:           fmt.Sprintf("%s=%s", name, peerURL), // NOTE: will be updated for joining nodes
 		InitialClusterState:      clusterState,
 		InitialAdvertisePeerURLs: peerURL,
 		ListenPeerURLs:           peerURL,
@@ -70,7 +71,7 @@ func K8sDqliteEmbedded(snap snap.Snap, name, clientURL, peerURL string, clientUR
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "k8s-dqlite", map[string]string{
 		"--embedded":    "true",
-		"--storage-dir": snap.K8sDqliteStateDir(),
+		"--storage-dir": filepath.Join(snap.K8sDqliteStateDir(), "data"),
 	}, nil); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
