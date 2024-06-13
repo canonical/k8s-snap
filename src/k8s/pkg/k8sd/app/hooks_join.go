@@ -134,7 +134,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		}
 
 		address := fmt.Sprintf("%s:%d", nodeIP.String(), cfg.Datastore.GetK8sDqlitePort())
-		if err := setup.K8sDqlite(snap, address, cluster); err != nil {
+		if err := setup.K8sDqlite(snap, address, cluster, joinConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
 	case "external":
@@ -143,8 +143,27 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Configure services
-	if err := setupControlPlaneServices(snap, s, cfg, nodeIP); err != nil {
-		return fmt.Errorf("failed to configure services: %w", err)
+	if err := setup.Containerd(snap, nil, joinConfig.ExtraNodeContainerdArgs); err != nil {
+		return fmt.Errorf("failed to configure containerd: %w", err)
+	}
+	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), joinConfig.ExtraNodeKubeletArgs); err != nil {
+		return fmt.Errorf("failed to configure kubelet: %w", err)
+	}
+	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.GetPodCIDR(), joinConfig.ExtraNodeKubeProxyArgs); err != nil {
+		return fmt.Errorf("failed to configure kube-proxy: %w", err)
+	}
+	if err := setup.KubeControllerManager(snap, joinConfig.ExtraNodeKubeControllerManagerArgs); err != nil {
+		return fmt.Errorf("failed to configure kube-controller-manager: %w", err)
+	}
+	if err := setup.KubeScheduler(snap, joinConfig.ExtraNodeKubeSchedulerArgs); err != nil {
+		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
+	}
+	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), joinConfig.ExtraNodeKubeAPIServerArgs); err != nil {
+		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
+	}
+
+	if err := setup.ExtraNodeConfigFiles(snap, joinConfig.ExtraNodeConfigFiles); err != nil {
+		return fmt.Errorf("failed to write extra node config files: %w", err)
 	}
 
 	if err := snapdconfig.SetSnapdFromK8sd(s.Context, cfg.ToUserFacing(), snap); err != nil {

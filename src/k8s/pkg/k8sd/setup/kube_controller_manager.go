@@ -7,10 +7,11 @@ import (
 
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 // KubeControllerManager configures kube-controller-manager on the local node.
-func KubeControllerManager(snap snap.Snap) error {
+func KubeControllerManager(snap snap.Snap, extraArgs map[string]*string) error {
 	args := map[string]string{
 		"--authentication-kubeconfig":        path.Join(snap.KubernetesConfigDir(), "controller.conf"),
 		"--authorization-kubeconfig":         path.Join(snap.KubernetesConfigDir(), "controller.conf"),
@@ -29,6 +30,11 @@ func KubeControllerManager(snap snap.Snap) error {
 	}
 	if _, err := snaputil.UpdateServiceArguments(snap, "kube-controller-manager", args, nil); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
+	}
+	// Apply extra arguments after the defaults, so they can override them.
+	updateArgs, deleteArgs := utils.ServiceArgsFromMap(extraArgs)
+	if _, err := snaputil.UpdateServiceArguments(snap, "kube-controller-manager", updateArgs, deleteArgs); err != nil {
+		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
 	return nil
 }

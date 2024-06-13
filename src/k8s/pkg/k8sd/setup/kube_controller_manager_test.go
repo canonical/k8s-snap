@@ -31,7 +31,7 @@ func TestKubeControllerManager(t *testing.T) {
 		os.Create(path.Join(s.Mock.KubernetesPKIDir, "ca.key"))
 
 		// Call the kube controller manager setup function
-		g.Expect(setup.KubeControllerManager(s)).To(BeNil())
+		g.Expect(setup.KubeControllerManager(s, nil)).To(BeNil())
 
 		// Ensure the kube controller manager arguments file has the expected arguments and values
 		tests := []struct {
@@ -67,7 +67,7 @@ func TestKubeControllerManager(t *testing.T) {
 		t.Run("MissingArgsDir", func(t *testing.T) {
 			g := NewWithT(t)
 			s.Mock.ServiceArgumentsDir = "nonexistent"
-			g.Expect(setup.KubeControllerManager(s)).ToNot(Succeed())
+			g.Expect(setup.KubeControllerManager(s, nil)).ToNot(Succeed())
 		})
 	})
 
@@ -78,7 +78,7 @@ func TestKubeControllerManager(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeControllerManagerMock)
 
 		// Call the kube controller manager setup function
-		g.Expect(setup.KubeControllerManager(s)).To(BeNil())
+		g.Expect(setup.KubeControllerManager(s, nil)).To(BeNil())
 
 		// Ensure the kube controller manager arguments file has the expected arguments and values
 		tests := []struct {
@@ -112,7 +112,67 @@ func TestKubeControllerManager(t *testing.T) {
 		t.Run("MissingArgsDir", func(t *testing.T) {
 			g := NewWithT(t)
 			s.Mock.ServiceArgumentsDir = "nonexistent"
-			g.Expect(setup.KubeControllerManager(s)).ToNot(Succeed())
+			g.Expect(setup.KubeControllerManager(s, nil)).ToNot(Succeed())
+		})
+	})
+
+	t.Run("WithExtraArgs", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// Create a mock snap
+		s := mustSetupSnapAndDirectories(t, setKubeControllerManagerMock)
+
+		// Create ca.key so that cluster-signing-cert-file and cluster-signing-key-file are added to the arguments
+		os.Create(path.Join(s.Mock.KubernetesPKIDir, "ca.key"))
+
+		extraArgs := map[string]*string{
+			"--leader-elect-lease-duration": nil,
+			"--profiling":                   utils.Pointer("true"),
+			"--my-extra-arg":                utils.Pointer("my-extra-val"),
+		}
+		// Call the kube controller manager setup function
+		g.Expect(setup.KubeControllerManager(s, extraArgs)).To(BeNil())
+
+		// Ensure the kube controller manager arguments file has the expected arguments and values
+		tests := []struct {
+			key         string
+			expectedVal string
+		}{
+			{key: "--authentication-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--authorization-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--leader-elect-renew-deadline", expectedVal: "15s"},
+			{key: "--profiling", expectedVal: "true"},
+			{key: "--root-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
+			{key: "--service-account-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
+			{key: "--use-service-account-credentials", expectedVal: "true"},
+			{key: "--cluster-signing-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
+			{key: "--cluster-signing-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.key")},
+			{key: "--my-extra-arg", expectedVal: "my-extra-val"},
+		}
+		for _, tc := range tests {
+			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
+				val, err := snaputil.GetServiceArgument(s, "kube-controller-manager", tc.key)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(tc.expectedVal).To(Equal(val))
+			})
+		}
+
+		// Ensure that the leader-elect-lease-duration argument was deleted
+		val, err := snaputil.GetServiceArgument(s, "kube-controller-manager", "--leader-elect-lease-duration")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(val).To(BeZero())
+
+		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
+		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(len(args)).To(Equal(len(tests)))
+
+		t.Run("MissingArgsDir", func(t *testing.T) {
+			g := NewWithT(t)
+			s.Mock.ServiceArgumentsDir = "nonexistent"
+			g.Expect(setup.KubeControllerManager(s, nil)).ToNot(Succeed())
 		})
 	})
 }
