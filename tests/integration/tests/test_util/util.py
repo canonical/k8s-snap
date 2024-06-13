@@ -223,8 +223,8 @@ def get_join_token(
 
 
 # Join an existing cluster.
-def join_cluster(instance: harness.Instance, join_token: str, *args: str):
-    instance.exec(["k8s", "join-cluster", join_token, *args])
+def join_cluster(instance: harness.Instance, join_token: str):
+    instance.exec(["k8s", "join-cluster", join_token])
 
 
 def get_default_cidr(instance: harness.Instance, instance_default_ip: str):

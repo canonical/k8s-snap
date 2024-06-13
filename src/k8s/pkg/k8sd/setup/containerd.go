@@ -139,7 +139,7 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs
 	}
 
 	// Apply extra arguments after the defaults, so they can override them.
-	updateArgs, deleteArgs := snaputil.ServiceArgsFromMap(extraArgs)
+	updateArgs, deleteArgs := utils.ServiceArgsFromMap(extraArgs)
 	if _, err := snaputil.UpdateServiceArguments(snap, "containerd", updateArgs, deleteArgs); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}

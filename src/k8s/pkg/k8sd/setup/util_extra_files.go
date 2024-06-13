@@ -19,26 +19,14 @@ func ExtraNodeConfigFiles(snap snap.Snap, files map[string]string) error {
 		}
 
 		filePath := path.Join(snap.ServiceExtraConfigDir(), filename)
-		// Create or truncate the file
-		file, err := os.Create(filePath)
-		if err != nil {
-			return fmt.Errorf("failed to create file %s: %w", filePath, err)
-		}
-		defer file.Close()
-
 		// Write the content to the file
-		_, err = file.WriteString(content)
-		if err != nil {
+		if err := os.WriteFile(filePath, []byte(content), 0400); err != nil {
 			return fmt.Errorf("failed to write to file %s: %w", filePath, err)
 		}
 
 		// Set file owner to root
 		if err := os.Chown(filePath, snap.UID(), snap.GID()); err != nil {
 			return fmt.Errorf("failed to change owner of file %s: %w", filePath, err)
-		}
-
-		if err := os.Chmod(filePath, 0400); err != nil {
-			return fmt.Errorf("failed to change mode of file %s: %w", filePath, err)
 		}
 	}
 	return nil

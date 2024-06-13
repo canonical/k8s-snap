@@ -8,6 +8,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 var kubeletTLSCipherSuites = []string{
@@ -76,7 +77,7 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 	}
 
 	// Apply extra arguments after the defaults, so they can override them.
-	updateArgs, deleteArgs := snaputil.ServiceArgsFromMap(extraArgs)
+	updateArgs, deleteArgs := utils.ServiceArgsFromMap(extraArgs)
 	if _, err := snaputil.UpdateServiceArguments(snap, "kubelet", updateArgs, deleteArgs); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}

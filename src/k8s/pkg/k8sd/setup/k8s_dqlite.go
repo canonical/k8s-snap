@@ -7,6 +7,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 	"gopkg.in/yaml.v2"
 )
 
@@ -33,7 +34,7 @@ func K8sDqlite(snap snap.Snap, address string, cluster []string, extraArgs map[s
 	}
 
 	// Apply extra arguments after the defaults, so they can override them.
-	updateArgs, deleteArgs := snaputil.ServiceArgsFromMap(extraArgs)
+	updateArgs, deleteArgs := utils.ServiceArgsFromMap(extraArgs)
 	if _, err := snaputil.UpdateServiceArguments(snap, "k8s-dqlite", updateArgs, deleteArgs); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
