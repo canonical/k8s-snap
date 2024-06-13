@@ -94,8 +94,8 @@ func TestKubeControllerManager(t *testing.T) {
 			{key: "--profiling", expectedVal: "false"},
 			{key: "--root-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--service-account-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
-			{key: "--use-service-account-credentials", expectedVal: "true"},
 			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
+			{key: "--use-service-account-credentials", expectedVal: "true"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
@@ -142,16 +142,16 @@ func TestKubeControllerManager(t *testing.T) {
 		}{
 			{key: "--authentication-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
 			{key: "--authorization-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--cluster-signing-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
+			{key: "--cluster-signing-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.key")},
 			{key: "--kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
 			{key: "--leader-elect-renew-deadline", expectedVal: "15s"},
 			{key: "--profiling", expectedVal: "true"},
 			{key: "--root-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--service-account-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
-			{key: "--use-service-account-credentials", expectedVal: "true"},
-			{key: "--cluster-signing-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
-			{key: "--cluster-signing-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.key")},
-			{key: "--my-extra-arg", expectedVal: "my-extra-val"},
 			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
+			{key: "--use-service-account-credentials", expectedVal: "true"},
+			{key: "--my-extra-arg", expectedVal: "my-extra-val"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {

@@ -44,10 +44,8 @@ func KubeletWorker(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS st
 func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, taints []string, labels []string, extraArgs map[string]*string) error {
 	args := map[string]string{
 		"--anonymous-auth":               "false",
-		"--authorization-mode":           "Webhook",
 		"--authentication-token-webhook": "true",
-		"--tls-cert-file":                path.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
-		"--tls-private-key-file":         path.Join(snap.KubernetesPKIDir(), "kubelet.key"),
+		"--authorization-mode":           "Webhook",
 		"--client-ca-file":               path.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
 		"--container-runtime-endpoint":   path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
 		"--containerd":                   path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
@@ -60,7 +58,9 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 		"--register-with-taints":         strings.Join(taints, ","),
 		"--root-dir":                     snap.KubeletRootDir(),
 		"--serialize-image-pulls":        "false",
+		"--tls-cert-file":                path.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
 		"--tls-cipher-suites":            strings.Join(kubeletTLSCipherSuites, ","),
+		"--tls-private-key-file":         path.Join(snap.KubernetesPKIDir(), "kubelet.key"),
 	}
 	if cloudProvider != "" {
 		args["--cloud-provider"] = cloudProvider
