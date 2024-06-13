@@ -1,7 +1,6 @@
 package calico
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"net"
@@ -24,7 +23,7 @@ func CleanupNetwork(ctx context.Context, snap snap.Snap) error {
 	// Find the interfaces created by Calico
 	for _, iface := range interfaces {
 		// Check if the interface name matches the regex pattern
-		match, err := regexp.MatchString("^vxlan[-v6]*.calico|cali[a-f0-9]*$", iface.Name)
+		match, err := regexp.MatchString("^vxlan[-v6]*.calico|cali[a-f0-9]*|tunl[0-9]*$", iface.Name)
 		if err != nil {
 			return fmt.Errorf("failed to match regex pattern: %w", err)
 		}
@@ -63,15 +62,15 @@ func CleanupNetwork(ctx context.Context, snap snap.Snap) error {
 			return fmt.Errorf("failed to read iptables rules: %w", err)
 		}
 
-		grep := exec.Command("grep", "-iv", "cali")
-		grep.Stdin = bytes.NewReader(out)
-		grepOut, err := grep.Output()
-		if err != nil {
-			return fmt.Errorf("failed to filter calico iptables rules: %w", err)
+		lines := strings.Split(string(out), "\n")
+		for i, line := range lines {
+			if strings.Contains(line, "cali") {
+				lines[i] = ""
+			}
 		}
 
 		restore := exec.Command(fmt.Sprintf("%s-restore", cmd))
-		restore.Stdin = bytes.NewReader(grepOut)
+		restore.Stdin = strings.NewReader(strings.Join(lines, "\n"))
 		if err := restore.Run(); err != nil {
 			return fmt.Errorf("failed to restore iptables rules: %w", err)
 		}
