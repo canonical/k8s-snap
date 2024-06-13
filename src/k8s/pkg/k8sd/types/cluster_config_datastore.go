@@ -2,7 +2,9 @@ package types
 
 import (
 	"fmt"
+	"net"
 	"path"
+	"strconv"
 	"strings"
 )
 
@@ -55,7 +57,7 @@ type DatastorePathsProvider interface {
 
 // ToKubeAPIServerArguments returns updateArgs, deleteArgs that can be used with snaputil.UpdateServiceArguments() for the kube-apiserver
 // according the datastore configuration.
-func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[string]string, []string) {
+func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider, nodeIP string) (map[string]string, []string) {
 	var (
 		updateArgs = make(map[string]string)
 		deleteArgs []string
@@ -85,7 +87,7 @@ func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[strin
 			}
 		}
 	case "embedded":
-		updateArgs["--etcd-servers"] = fmt.Sprintf("https://127.0.0.1:%d", c.GetEmbeddedPort())
+		updateArgs["--etcd-servers"] = fmt.Sprintf("https://%s", net.JoinHostPort(nodeIP, strconv.Itoa(c.GetEmbeddedPort())))
 		updateArgs["--etcd-cafile"] = path.Join(p.EtcdPKIDir(), "ca.crt")
 		updateArgs["--etcd-certfile"] = path.Join(p.KubernetesPKIDir(), "apiserver-etcd-client.crt")
 		updateArgs["--etcd-keyfile"] = path.Join(p.KubernetesPKIDir(), "apiserver-etcd-client.key")
