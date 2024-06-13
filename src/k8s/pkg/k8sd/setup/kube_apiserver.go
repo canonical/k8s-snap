@@ -65,6 +65,7 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 
 	args := map[string]string{
 		"--allow-privileged":                         "true",
+		"--anonymous-auth":                           "false",
 		"--authentication-token-webhook-config-file": authTokenWebhookConfigFile,
 		"--authorization-mode":                       authorizationMode,
 		"--client-ca-file":                           path.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
@@ -73,6 +74,8 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--kubelet-client-certificate":               path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"),
 		"--kubelet-client-key":                       path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"),
 		"--kubelet-preferred-address-types":          "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP",
+		"--profiling":                                "false",
+		"--requests-timeout":                         "300s",
 		"--secure-port":                              "6443",
 		"--service-account-issuer":                   "https://kubernetes.default.svc",
 		"--service-account-key-file":                 path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
@@ -81,9 +84,6 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--tls-cert-file":                            path.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
 		"--tls-cipher-suites":                        strings.Join(apiserverTLSCipherSuites, ","),
 		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
-		"--anonymous-auth":                           "false",
-		"--profiling":                                "false",
-		"--requests-timeout":                         "300s",
 	}
 
 	switch datastore.GetType() {
