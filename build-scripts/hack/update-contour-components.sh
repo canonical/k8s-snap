@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CONTOUR_VERSION="v1.28.2"
-DIR=`realpath $(dirname "${0}")`
+DIR=$(realpath $(dirname "${0}"))
 CHARTS_PATH="$DIR/../../k8s/components/charts"
 
 cd "$CHARTS_PATH"
@@ -38,9 +38,19 @@ mkdir -p ck-gateway-contour/crds
 cp contour-src/examples/gateway/00-crds.yaml ck-gateway-contour/crds/
 cp contour-src/examples/gateway-provisioner/00-common.yaml ck-gateway-contour/templates/
 cp contour-src/examples/gateway-provisioner/01-roles.yaml ck-gateway-contour/templates/
-cp contour-src/examples/gateway-provisioner/02-role-bindings.yaml ck-gateway-contour/templates/
+cp contour-src/examples/gateway-provisioner/02-rolebindings.yaml ck-gateway-contour/templates/
 cp contour-src/examples/gateway-provisioner/03-gateway-provisioner.yaml ck-gateway-contour/templates/
 
+# Add Gateway Class
+cat <<EOF >ck-gateway-contour/templates/ck-gateway-class.yaml
+---
+kind: GatewayClass
+apiVersion: gateway.networking.k8s.io/v1beta1
+metadata:
+  name: ck-gateway
+spec:
+  controllerName: projectcontour.io/gateway-controller
+EOF
 # Remove the Namespace resource from 00-common.yaml
 sed -i '1,5d' ck-gateway-contour/templates/00-common.yaml
 
@@ -53,4 +63,3 @@ rm -rf ck-gateway-contour
 
 # Remove the github source code
 rm -rf contour-src
-
