@@ -55,7 +55,6 @@ def test_gateway(session_instance: harness.Instance):
         capture_output=True,
     )
 
-    # TODO: test this
     services = json.loads(p.stdout.decode())
     LOG.info(f"services: {services}")
     for svc in services["items"]:
@@ -70,7 +69,7 @@ def test_gateway(session_instance: harness.Instance):
 
     assert gateway_http_port is not None, "No ingress nodePort found."
 
-    LOG.info(f"Gateway node port is {gateway_http_port}")
+    LOG.info(f"Gateway http port is {gateway_http_port}")
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{gateway_http_port}"])

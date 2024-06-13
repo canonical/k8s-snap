@@ -32,7 +32,6 @@ def test_ingress(session_instance: List[harness.Instance]):
 
     ingress_http_port = None
     services = json.loads(p.stdout.decode())
-    LOG.info(f"services: {services}")
     for svc in services["items"]:
         if "ingress" in svc["metadata"]["name"]:
             LOG.info(f"Found service {svc['metadata']['name']}")
@@ -44,7 +43,7 @@ def test_ingress(session_instance: List[harness.Instance]):
                 break
 
     assert ingress_http_port is not None, "No ingress nodePort found."
-    LOG.info(f"Found ingress nodePort: {ingress_http_port}")
+    LOG.info(f"Found http port: {ingress_http_port}")
 
     manifest = MANIFESTS_DIR / "ingress-test.yaml"
     session_instance.exec(
