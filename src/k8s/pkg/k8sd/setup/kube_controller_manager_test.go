@@ -151,6 +151,7 @@ func TestKubeControllerManager(t *testing.T) {
 			{key: "--cluster-signing-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--cluster-signing-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.key")},
 			{key: "--my-extra-arg", expectedVal: "my-extra-val"},
+			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
