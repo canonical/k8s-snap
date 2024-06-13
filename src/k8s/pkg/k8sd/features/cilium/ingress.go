@@ -23,10 +23,6 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 
 	var values map[string]any
 	if ingress.GetEnabled() {
-		// Apply IngressClass
-		if _, err := m.Apply(ctx, chartIngressClass, helm.StatePresent, nil); err != nil {
-			return fmt.Errorf("failed to install the cilium ingress class chart: %w", err)
-		}
 
 		values = map[string]any{
 			"ingressController": map[string]any{
@@ -38,10 +34,6 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 			},
 		}
 	} else {
-		// Uninstall IngressClass
-		if _, err := m.Apply(ctx, chartIngressClass, helm.StateDeleted, nil); err != nil {
-			return fmt.Errorf("failed to uninstall the cilium ingress class chart: %w", err)
-		}
 		values = map[string]any{
 			"ingressController": map[string]any{
 				"enabled":                false,

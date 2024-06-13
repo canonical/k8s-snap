@@ -35,12 +35,6 @@ var (
 		ManifestPath: path.Join("charts", "ck-gateway-cilium"),
 	}
 
-	// chartIngressClass represents a manifest to deploy a IngressClass called ck-ingress.
-	chartIngressClass = helm.InstallableChart{
-		Name:         "ck-ingress-class",
-		Namespace:    "default",
-		ManifestPath: path.Join("charts", "ck-ingress-cilium"),
-	}
 	// ciliumAgentImageRepo represents the image to use for cilium-agent.
 	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
 
