@@ -30,12 +30,6 @@ def test_ingress(session_instance: List[harness.Instance]):
         capture_output=True,
     )
 
-    LOG.info("Waiting for ingress class to show up...")
-    util.stubbornly(retries=15, delay_s=2).on(session_instance).until(
-        lambda p: "ck-ingress" in p.stdout.decode()
-    ).exec(["k8s", "kubectl", "get", "ingressclass", "ck-ingress", "-o", "json"])
-    LOG.info("Ingress class showed up.")
-
     ingress_http_port = None
     services = json.loads(p.stdout.decode())
     for svc in services["items"]:

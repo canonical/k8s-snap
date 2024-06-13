@@ -14,7 +14,7 @@ import (
 // LocalPV Rawfile CSI is used for local-storage.
 var Implementation Interface = &implementation{
 	applyDNS:           coredns.ApplyDNS,
-	applyNetwork:       cilium.ApplyNetwork, //TODO: remove default overwrite for testing
+	applyNetwork:       cilium.ApplyNetwork,
 	applyLoadBalancer:  cilium.ApplyLoadBalancer,
 	applyIngress:       cilium.ApplyIngress,
 	applyGateway:       cilium.ApplyGateway,
