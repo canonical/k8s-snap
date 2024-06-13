@@ -16,7 +16,7 @@ def test_ingress(session_instance: List[harness.Instance]):
 
     util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
         lambda p: "ingress" in p.stdout.decode()
-    ).exec(["k8s", "kubectl", "get", "service", "-n", "kube-system", "-o", "json"])
+    ).exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
 
     p = session_instance.exec(
         [
