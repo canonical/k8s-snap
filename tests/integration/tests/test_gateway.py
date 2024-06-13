@@ -62,7 +62,7 @@ def test_gateway(session_instance: harness.Instance):
         if "my-gateway" in svc["metadata"]["name"]:
             LOG.info(f"Found service {svc['metadata']['name']}")
             for port in svc["spec"]["ports"]:
-                if port["name"] == "port-80":
+                if port["port"] == 80:
                     gateway_http_port = port["nodePort"]
                     break
             if gateway_http_port:
