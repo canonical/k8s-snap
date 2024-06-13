@@ -174,14 +174,14 @@ func TestEtcdPKI(t *testing.T) {
 		},
 	}
 	certificates := &pki.EtcdPKI{
-		CACert:                  "ca_cert",
-		CAKey:                   "ca_key",
-		ServerCert:              "server_cert",
-		ServerKey:               "server_key",
-		ServerPeerCert:          "server_peer_cert",
-		ServerPeerKey:           "server_peer_key",
-		KubeAPIServerClientCert: "client_cert",
-		KubeAPIServerClientKey:  "client_key",
+		CACert:              "ca_cert",
+		CAKey:               "ca_key",
+		ServerCert:          "server_cert",
+		ServerKey:           "server_key",
+		ServerPeerCert:      "server_peer_cert",
+		ServerPeerKey:       "server_peer_key",
+		APIServerClientCert: "client_cert",
+		APIServerClientKey:  "client_key",
 	}
 
 	_, err := setup.EnsureEtcdPKI(mock, certificates)

@@ -134,7 +134,7 @@ func EnsureEtcdPKI(snap snap.Snap, certificates *pki.EtcdPKI) (bool, error) {
 		path.Join(snap.EtcdPKIDir(), "server.key"):                      certificates.ServerKey,
 		path.Join(snap.EtcdPKIDir(), "peer.crt"):                        certificates.ServerPeerCert,
 		path.Join(snap.EtcdPKIDir(), "peer.key"):                        certificates.ServerPeerKey,
-		path.Join(snap.KubernetesPKIDir(), "apiserver-etcd-client.crt"): certificates.KubeAPIServerClientCert,
-		path.Join(snap.KubernetesPKIDir(), "apiserver-etcd-client.key"): certificates.KubeAPIServerClientKey,
+		path.Join(snap.KubernetesPKIDir(), "apiserver-etcd-client.crt"): certificates.APIServerClientCert,
+		path.Join(snap.KubernetesPKIDir(), "apiserver-etcd-client.key"): certificates.APIServerClientKey,
 	})
 }
