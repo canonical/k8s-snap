@@ -44,6 +44,7 @@ func KubeletWorker(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS st
 func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, taints []string, labels []string, extraArgs map[string]*string) error {
 	args := map[string]string{
 		"--anonymous-auth":               "false",
+		"--authorization-mode":           "Webhook",
 		"--authentication-token-webhook": "true",
 		"--tls-cert-file":                path.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
 		"--tls-private-key":              path.Join(snap.KubernetesPKIDir(), "kubelet.key"),
