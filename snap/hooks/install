@@ -11,11 +11,3 @@ k8s::cmd::k8s x-snapd-config disable
 # In order to interact with the REST API the k8sd service
 # needs to be started and configured in the installation step.
 k8s::init::k8sd
-
-# NOTE(neoaggelos): in some environments the Kubernetes might hang when running for the first time
-# This works around the issue by running them once during the install hook
-"${SNAP}"/bin/kube-apiserver --version
-"${SNAP}"/bin/kube-controller-manager --version
-"${SNAP}"/bin/kube-scheduler --version
-"${SNAP}"/bin/kube-proxy --version
-"${SNAP}"/bin/kubelet --version

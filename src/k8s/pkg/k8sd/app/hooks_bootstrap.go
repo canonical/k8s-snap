@@ -179,6 +179,12 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 			K8sdPublicKey: utils.Pointer(response.K8sdPublicKey),
 		},
 	}
+
+	// Pre-init checks
+	if err := snap.PreInitChecks(s.Context, cfg); err != nil {
+		return fmt.Errorf("pre-init checks failed for worker node: %w", err)
+	}
+
 	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := database.SetClusterConfig(ctx, tx, cfg); err != nil {
 			return fmt.Errorf("failed to write cluster configuration: %w", err)
@@ -338,6 +344,11 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	cfg.Certificates.AdminClientKey = utils.Pointer(certificates.AdminClientKey)
 	cfg.Certificates.K8sdPublicKey = utils.Pointer(certificates.K8sdPublicKey)
 	cfg.Certificates.K8sdPrivateKey = utils.Pointer(certificates.K8sdPrivateKey)
+
+	// Pre-init checks
+	if err := snap.PreInitChecks(s.Context, cfg); err != nil {
+		return fmt.Errorf("pre-init checks failed for bootstrap node: %w", err)
+	}
 
 	// Generate kubeconfigs
 	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
