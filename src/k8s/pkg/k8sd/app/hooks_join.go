@@ -109,6 +109,13 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
+
+	// Pre-init checks
+	if err := snap.PreInitChecks(s.Context, cfg); err != nil {
+		return fmt.Errorf("pre-init checks failed for joining node: %w", err)
+	}
+
+	// Write certificates to disk
 	if _, err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
