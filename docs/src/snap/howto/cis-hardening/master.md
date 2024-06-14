@@ -794,7 +794,7 @@ Description: `Ensure that the --profiling argument is set to false (Automated)`
 
 Audit:
 ```
-/bin/ps -ef | grep $schedulerbin | grep -v grep
+/bin/ps -ef | grep kube-scheduler | grep -v grep
 ```
 
 Remediation:
@@ -807,7 +807,7 @@ Description: `Ensure that the --bind-address argument is set to 127.0.0.1 (Autom
 
 Audit:
 ```
-/bin/ps -ef | grep $schedulerbin | grep -v grep
+/bin/ps -ef | grep kube-scheduler | grep -v grep
 ```
 
 Remediation:
