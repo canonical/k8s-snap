@@ -12,48 +12,6 @@ LOG = logging.getLogger(__name__)
 
 
 def test_network(session_instance: harness.Instance):
-    p = session_instance.exec(
-        [
-            "k8s",
-            "kubectl",
-            "get",
-            "pod",
-            "-n",
-            "kube-system",
-            "-l",
-            "k8s-app=cilium",
-            "-o",
-            "json",
-        ],
-        capture_output=True,
-    )
-
-    out = json.loads(p.stdout.decode())
-    assert len(out["items"]) > 0
-
-    cilium_pod = out["items"][0]
-
-    p = session_instance.exec(
-        [
-            "k8s",
-            "kubectl",
-            "exec",
-            "-it",
-            cilium_pod["metadata"]["name"],
-            "-n",
-            "kube-system",
-            "-c",
-            "cilium-agent",
-            "--",
-            "cilium",
-            "status",
-            "--brief",
-        ],
-        capture_output=True,
-    )
-
-    assert p.stdout.decode().strip() == "OK"
-
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
     p = session_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
@@ -78,20 +36,21 @@ def test_network(session_instance: harness.Instance):
         [
             "k8s",
             "kubectl",
-            "exec",
-            "-it",
-            cilium_pod["metadata"]["name"],
-            "-n",
-            "kube-system",
-            "-c",
-            "cilium-agent",
-            "--",
-            "cilium",
-            "endpoint",
-            "list",
+            "get",
+            "pod",
+            "-l",
+            "app=nginx",
             "-o",
             "json",
         ],
         capture_output=True,
     )
-    assert "nginx" in p.stdout.decode().strip()
+
+    out = json.loads(p.stdout.decode())
+
+    assert len(out["items"]) > 0, "No NGINX pod found"
+    podIP = out["items"][0]["status"]["podIP"]
+
+    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+        lambda p: "Welcome to nginx!" in p.stdout.decode()
+    ).exec(["curl", "-s", f"http://{podIP}"])
