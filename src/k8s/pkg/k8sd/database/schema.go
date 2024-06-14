@@ -13,6 +13,7 @@ import (
 
 var (
 	SchemaExtensions = []schema.Update{
+		schemaApplyMigration("capi-auth", "000-create.sql"),
 		schemaApplyMigration("kubernetes-auth-tokens", "000-create.sql"),
 		schemaApplyMigration("cluster-configs", "000-create.sql"),
 		schemaApplyMigration("worker-nodes", "000-create.sql"),
