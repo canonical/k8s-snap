@@ -245,7 +245,7 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) er
 	// NOTE(neoaggelos): in some environments the Kubernetes might hang when running for the first time
 	// This works around the issue by running them once during the install hook
 	for _, binary := range []string{"kube-apiserver", "kube-controller-manager", "kube-scheduler", "kube-proxy", "kubelet"} {
-		if err := s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", binary, "--version")}); err != nil {
+		if err := s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", binary), "--version"}); err != nil {
 			return fmt.Errorf("%q binary could not run: %w", binary, err)
 		}
 	}
