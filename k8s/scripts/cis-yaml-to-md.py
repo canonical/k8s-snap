@@ -27,7 +27,7 @@ JINJA_TEMPLATE = "cis-template.jinja2"
 CONFIG_FILE = "config.yaml"
 
 
-def get_variable_substitutions(data: str) -> dict[str, str]:
+def get_variable_substitutions(data: Any) -> dict[str, str]:
     return {
         "$apiserverbin": data["master"]["apiserver"]["bins"][0],
         "$apiserverconf": data["master"]["apiserver"]["confs"][0],
