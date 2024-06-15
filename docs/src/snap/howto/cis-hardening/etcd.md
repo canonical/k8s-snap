@@ -1,4 +1,3 @@
-
 ## Etcd Node Configuration
 ### Etcd Node Configuration
 Control **2.1**

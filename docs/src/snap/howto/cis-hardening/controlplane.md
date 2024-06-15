@@ -1,4 +1,3 @@
-
 ## Control Plane Configuration
 ### Authentication and Authorization
 Control **3.1.1**

@@ -1,4 +1,3 @@
-
 ## Control Plane Security Configuration
 ### Control Plane Node Configuration Files
 Control **1.1.1**

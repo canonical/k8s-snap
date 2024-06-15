@@ -1,4 +1,3 @@
-
 ## Kubernetes Policies
 ### RBAC and Service Accounts
 Control **5.1.1**
