@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 ## Control Plane Configuration
 ### Authentication and Authorization
-Control **3.1.1**
+#### Control **3.1.1**
 
 Description: `Client certificate authentication should not be used for users (Manual)`
 
@@ -12,7 +12,7 @@ implemented in place of client certificates.
 ```
 
 ### Logging
-Control **3.2.1**
+#### Control **3.2.1**
 
 Description: `Ensure that a minimal audit policy is created (Manual)`
 
@@ -33,7 +33,7 @@ test_items:
   set: true
 ```
 
-Control **3.2.2**
+#### Control **3.2.2**
 
 Description: `Ensure that the audit policy covers key security concerns (Manual)`
 
