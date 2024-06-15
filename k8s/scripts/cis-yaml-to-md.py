@@ -1,10 +1,13 @@
-from pathlib import Path
-from jinja2 import Environment, FileSystemLoader
-import yaml
 import argparse
 import logging
+from pathlib import Path
 
-USAGE = "Generate CIS Hardening Markdown files from upstream YAML files."
+import yaml
+from jinja2 import Environment, FileSystemLoader
+
+USAGE = """
+python3 cis-yaml-to-md.py --input-directory=INPUT_DIR --output-directory=OUTPUT_DIR
+"""
 
 DESCRIPTION = """
 Parse the YAML files in the input directory and generate
@@ -96,7 +99,7 @@ def generate_markdown(input_dir: Path, output_dir: Path):
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(usage=USAGE, description=DESCRIPTION)
     parser.add_argument(
         "--input-dir", type=str, required=True, help="Input directory path"
     )
