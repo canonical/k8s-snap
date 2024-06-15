@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/embedded"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -55,6 +56,8 @@ type Snap interface {
 	HelmClient() helm.Client // admin helm client
 
 	K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) // go-dqlite client for k8s-dqlite
+
+	EmbeddedClient() embedded.Client // client for embedded datastore
 
 	PreInitChecks(ctx context.Context, config types.ClusterConfig) error // pre-init checks before k8s-snap can start
 }
