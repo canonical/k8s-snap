@@ -238,6 +238,15 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 func (a *App) onPreRemove(s *state.State, force bool) error {
 	snap := a.Snap()
 
+	// NOTE(neoaggelos): this is not sufficient, as it leaves behind other cluster resources tied to the node
+	c, err := snap.KubernetesClient("")
+	if err != nil {
+		return fmt.Errorf("failed to create Kubernetes client: %w", err)
+	}
+	if err := c.DeleteNode(s.Context, s.Name()); err != nil {
+		return fmt.Errorf("failed to remove k8s node %q: %w", s.Name(), err)
+	}
+
 	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve k8sd cluster config: %w", err)
@@ -247,13 +256,6 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 	switch cfg.Datastore.GetType() {
 	case "external":
 		// no-op
-		c, err := snap.KubernetesClient("")
-		if err != nil {
-			return fmt.Errorf("failed to create Kubernetes client: %w", err)
-		}
-		if err := c.DeleteNode(s.Context, s.Name()); err != nil {
-			return fmt.Errorf("failed to remove k8s node %q: %w", s.Name(), err)
-		}
 	case "k8s-dqlite":
 		client, err := snap.K8sDqliteClient(s.Context)
 		if err != nil {
@@ -264,23 +266,8 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 		if err := client.RemoveNodeByAddress(s.Context, nodeAddress); err != nil {
 			return fmt.Errorf("failed to remove node with address %s from k8s-dqlite cluster: %w", nodeAddress, err)
 		}
-
-		c, err := snap.KubernetesClient("")
-		if err != nil {
-			return fmt.Errorf("failed to create Kubernetes client: %w", err)
-		}
-		if err := c.DeleteNode(s.Context, s.Name()); err != nil {
-			return fmt.Errorf("failed to remove k8s node %q: %w", s.Name(), err)
-		}
 	case "embedded":
 		// for embedded, we first delete the kubernetes node and then proceed with removing the node from the embedded cluster
-		c, err := snap.KubernetesClient("")
-		if err != nil {
-			return fmt.Errorf("failed to create Kubernetes client: %w", err)
-		}
-		if err := c.DeleteNode(s.Context, s.Name()); err != nil {
-			return fmt.Errorf("failed to remove k8s node %q: %w", s.Name(), err)
-		}
 		client := snap.EmbeddedClient()
 		nodeAddress := fmt.Sprintf("https://%s", utils.JoinHostPort(s.Address().Hostname(), cfg.Datastore.GetEmbeddedPeerPort()))
 		if err := client.RemoveNodeByAddress(s.Context, nodeAddress); err != nil {
@@ -288,7 +275,6 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 		}
 	default:
 	}
-	fmt.Println("RUNNING ON NODE", s.Name, s.Address().Hostname())
 
 	return nil
 }
