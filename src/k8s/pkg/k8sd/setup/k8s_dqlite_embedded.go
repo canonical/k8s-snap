@@ -41,7 +41,7 @@ func K8sDqliteEmbedded(snap snap.Snap, name, clientURL, peerURL string, clientUR
 
 	if b, err := yaml.Marshal(&k8sDqliteEmbeddedYaml{
 		Name:                     name,
-		DataDir:                  snap.K8sDqliteStateDir(),
+		DataDir:                  filepath.Join(snap.K8sDqliteStateDir(), "data"),
 		InitialCluster:           fmt.Sprintf("%s=%s", name, peerURL), // NOTE: will be updated for joining nodes
 		InitialClusterState:      clusterState,
 		InitialAdvertisePeerURLs: peerURL,

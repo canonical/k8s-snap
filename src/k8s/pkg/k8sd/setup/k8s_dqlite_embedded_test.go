@@ -42,7 +42,7 @@ func TestK8sDqliteEmbedded(t *testing.T) {
 			expectedVal string
 		}{
 			{key: "--embedded", expectedVal: "true"},
-			{key: "--storage-dir", expectedVal: filepath.Join(s.K8sDqliteStateDir(), "data")},
+			{key: "--storage-dir", expectedVal: s.K8sDqliteStateDir()},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
