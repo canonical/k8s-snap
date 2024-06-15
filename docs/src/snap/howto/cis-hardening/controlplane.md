@@ -15,6 +15,7 @@ implemented in place of client certificates.
 Control **3.2.1**
 
 Description: `Ensure that a minimal audit policy is created (Manual)`
+
 Audit:
 ```
 /bin/ps -ef | grep kube-apiserver | grep -v grep
