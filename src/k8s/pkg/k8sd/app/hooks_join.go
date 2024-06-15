@@ -270,7 +270,9 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
-
+	if err := c.WaitKubernetesEndpointAvailable(s.Context); err != nil {
+		return fmt.Errorf("kube-apiserver was not available in time: %w", err)
+	}
 	if err := c.DeleteNode(s.Context, s.Name()); err != nil {
 		return fmt.Errorf("failed to remove k8s node %q: %w", s.Name(), err)
 	}
