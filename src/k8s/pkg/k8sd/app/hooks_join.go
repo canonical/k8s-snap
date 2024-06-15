@@ -258,9 +258,11 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 			return fmt.Errorf("failed to remove node with address %s from k8s-dqlite cluster: %w", nodeAddress, err)
 		}
 	case "embedded":
-		// TODO(neoaggelos): validate pre-checks that we can remove the node from the embedded datastore without losing quorum
-		// TODO(neoaggelos): remove the node from the datastore before proceeding
-		return fmt.Errorf("remove node not implemented yet for embedded datastore")
+		client := snap.EmbeddedClient()
+		nodeAddress := fmt.Sprintf("https://%s", utils.JoinHostPort(s.Address().Hostname(), cfg.Datastore.GetEmbeddedPeerPort()))
+		if err := client.RemoveNodeByAddress(s.Context, nodeAddress); err != nil {
+			return fmt.Errorf("failed to remove node with address %s from embedded cluster: %w", nodeAddress, err)
+		}
 	default:
 	}
 
