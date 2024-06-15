@@ -2,10 +2,11 @@ package types
 
 import (
 	"fmt"
-	"net"
 	"path"
-	"strconv"
+	"slices"
 	"strings"
+
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 type Datastore struct {
@@ -57,7 +58,7 @@ type DatastorePathsProvider interface {
 
 // ToKubeAPIServerArguments returns updateArgs, deleteArgs that can be used with snaputil.UpdateServiceArguments() for the kube-apiserver
 // according the datastore configuration.
-func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider, nodeIP string) (map[string]string, []string) {
+func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider, nodeIPs []string, embeddedPort int) (map[string]string, []string) {
 	var (
 		updateArgs = make(map[string]string)
 		deleteArgs []string
@@ -87,10 +88,21 @@ func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider, nodeIP str
 			}
 		}
 	case "embedded":
-		updateArgs["--etcd-servers"] = fmt.Sprintf("https://%s", net.JoinHostPort(nodeIP, strconv.Itoa(c.GetEmbeddedPort())))
+		// Silently ignore an empty list of clientURLs and do not update the --etcd-servers argument.
 		updateArgs["--etcd-cafile"] = path.Join(p.EtcdPKIDir(), "ca.crt")
 		updateArgs["--etcd-certfile"] = path.Join(p.KubernetesPKIDir(), "apiserver-etcd-client.crt")
 		updateArgs["--etcd-keyfile"] = path.Join(p.KubernetesPKIDir(), "apiserver-etcd-client.key")
+
+		if len(nodeIPs) == 0 {
+			break
+		}
+		clientURLs := make([]string, 0, len(nodeIPs))
+		for _, ip := range nodeIPs {
+			clientURLs = append(clientURLs, fmt.Sprintf("https://%s", utils.JoinHostPort(ip, embeddedPort)))
+		}
+		slices.Sort(clientURLs)
+
+		updateArgs["--etcd-servers"] = strings.Join(clientURLs, ",")
 	}
 
 	return updateArgs, deleteArgs

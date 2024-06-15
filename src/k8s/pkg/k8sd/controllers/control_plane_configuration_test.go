@@ -21,7 +21,12 @@ import (
 const channelSendTimeout = 100 * time.Millisecond
 
 type configProvider struct {
-	config types.ClusterConfig
+	config  types.ClusterConfig
+	nodeIPs []string
+}
+
+func (c *configProvider) getConfigAndNodeIPs(ctx context.Context) (types.ClusterConfig, []string, error) {
+	return c.config, c.nodeIPs, nil
 }
 
 func (c *configProvider) getConfig(ctx context.Context) (types.ClusterConfig, error) {
@@ -35,6 +40,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 		s := &mock.Snap{
 			Mock: mock.Mock{
 				EtcdPKIDir:          path.Join(dir, "etcd-pki"),
+				KubernetesPKIDir:    path.Join(dir, "kube-pki"),
 				ServiceArgumentsDir: path.Join(dir, "args"),
 				UID:                 os.Getuid(),
 				GID:                 os.Getgid(),
@@ -48,10 +54,12 @@ func TestControlPlaneConfigController(t *testing.T) {
 		defer cancel()
 
 		triggerCh := make(chan time.Time)
-		configProvider := &configProvider{}
+		configProvider := &configProvider{
+			nodeIPs: []string{"10.0.0.1", "10.0.0.2"},
+		}
 
 		ctrl := controllers.NewControlPlaneConfigurationController(s, func() {}, triggerCh)
-		go ctrl.Run(ctx, func() string { return "127.0.0.1" }, configProvider.getConfig)
+		go ctrl.Run(ctx, configProvider.getConfigAndNodeIPs)
 
 		for _, tc := range []struct {
 			name   string
@@ -173,6 +181,21 @@ func TestControlPlaneConfigController(t *testing.T) {
 				},
 				expectServiceRestarts: []string{"kube-apiserver", "kube-controller-manager"},
 			},
+			{
+				name: "Embedded",
+				config: types.ClusterConfig{
+					Datastore: types.Datastore{
+						Type:         utils.Pointer("embedded"),
+						EmbeddedPort: utils.Pointer(12379),
+					},
+				},
+				expectKubeAPIServerArgs: map[string]string{
+					"--etcd-servers":  "https://10.0.0.1:12379,https://10.0.0.2:12379",
+					"--etcd-cafile":   path.Join(dir, "etcd-pki", "ca.crt"),
+					"--etcd-certfile": path.Join(dir, "kube-pki", "apiserver-etcd-client.crt"),
+					"--etcd-keyfile":  path.Join(dir, "kube-pki", "apiserver-etcd-client.key"),
+				},
+			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				g := NewWithT(t)
@@ -257,7 +280,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 		configProvider := &configProvider{}
 
 		ctrl := controllers.NewControlPlaneConfigurationController(s, func() {}, triggerCh)
-		go ctrl.Run(ctx, func() string { return "127.0.0.1" }, configProvider.getConfig)
+		go ctrl.Run(ctx, configProvider.getConfigAndNodeIPs)
 
 		// mark as worker node
 		g.Expect(snaputil.MarkAsWorkerNode(s, true)).To(Succeed())

@@ -38,11 +38,29 @@ func (a *App) onStart(s *state.State) error {
 	if a.controlPlaneConfigController != nil {
 		go a.controlPlaneConfigController.Run(
 			s.Context,
-			func() string {
-				return s.Address().Hostname()
-			},
-			func(ctx context.Context) (types.ClusterConfig, error) {
-				return databaseutil.GetClusterConfig(ctx, s)
+			func(ctx context.Context) (types.ClusterConfig, []string, error) {
+				cfg, err := databaseutil.GetClusterConfig(ctx, s)
+				if err != nil {
+					return types.ClusterConfig{}, nil, fmt.Errorf("failed to retrieve cluster config: %w", err)
+				}
+
+				if cfg.Datastore.GetType() != "embedded" {
+					return cfg, nil, nil
+				}
+				leader, err := s.Leader()
+				if err != nil {
+					return types.ClusterConfig{}, nil, fmt.Errorf("failed to retrieve cluster leader: %w", err)
+				}
+				members, err := leader.GetClusterMembers(ctx)
+				if err != nil {
+					return types.ClusterConfig{}, nil, fmt.Errorf("failed to retrieve cluster members: %w", err)
+				}
+				nodeIPs := make([]string, 0, len(members))
+				for _, member := range members {
+					nodeIPs = append(nodeIPs, member.Address.Addr().String())
+				}
+
+				return cfg, nodeIPs, nil
 			},
 		)
 	}
