@@ -238,7 +238,7 @@ Description: `Ensure that the etcd data directory permissions are set to 700 or 
 Audit:
 ```
 DATA_DIR='/var/lib/etcd'
-stat -c permissions=%a "/etc/default/etcd"
+stat -c permissions=%a "$DATA_DIR"
 ```
 
 Remediation:
@@ -265,7 +265,7 @@ Description: `Ensure that the etcd data directory ownership is set to etcd:etcd 
 Audit:
 ```
 DATA_DIR='/var/lib/etcd'
-stat -c %U:%G "/etc/default/etcd"
+stat -c %U:%G "$DATA_DIR"
 ```
 
 Remediation:
