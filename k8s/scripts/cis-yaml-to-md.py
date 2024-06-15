@@ -27,7 +27,7 @@ JINJA_TEMPLATE = "cis-template.jinja2"
 CONFIG_FILE = "config.yaml"
 
 
-def get_variable_substitutions(data: str):
+def get_variable_substitutions(data: str) -> dict[str, str]:
     return {
         "$DATA_DIR": data["master"]["etcd"]["confs"][0],
         "$apiserverbin": data["master"]["apiserver"]["bins"][0],
@@ -39,7 +39,6 @@ def get_variable_substitutions(data: str):
         ][0],
         "$etcdbin": data["master"]["etcd"]["bins"][0],
         "$etcdconf": data["master"]["etcd"]["confs"][0],
-        "$kubeletbin": data["node"]["kubelet"]["bins"][0],
         "$kubeletbin": data["node"]["kubelet"]["bins"][0],
         "$kubeletcafile": data["node"]["kubelet"]["cafile"][0],
         "$kubeletconf": data["node"]["kubelet"]["confs"][0],
@@ -69,30 +68,23 @@ def make_template(data: str) -> str:
     )
 
 
-def generate_markdown(input_dir: Path, output_dir: Path):
-    # All files in the input directory, but not the config.yaml file.
+def generate_markdown(
+    input_dir: Path, output_dir: Path, substitutions: dict[str, str] = None
+):
     input_files = [
         file
         for file in input_dir.iterdir()
         if file.is_file() and file.suffix == ".yaml" and file.name != "config.yaml"
     ]
 
-    substs = get_variable_substitutions(
-        yaml.safe_load((input_dir / "config.yaml").read_text())
-    )
-
     for file in input_files:
-        control_data = yaml.safe_load(file.read_text())
+        markdown_content = make_template(yaml.safe_load(file.read_text()))
 
-        markdown_content = make_template(control_data)
-
-        for old, new in substs.items():
-            markdown_content = markdown_content.replace(old, new)
-
-        output_dir.mkdir(exist_ok=True)
+        if substitutions:
+            for old, new in substitutions.items():
+                markdown_content = markdown_content.replace(old, new)
 
         output_file = output_dir / f"{file.stem}.md"
-        output_file.touch()
         output_file.write_text(markdown_content)
 
         LOG.info(f"Rendered {file} to {output_file}.")
@@ -108,7 +100,16 @@ def main():
     )
     args = parser.parse_args()
 
-    generate_markdown(Path(args.input_dir), Path(args.output_dir))
+    input_dir = Path(args.input_dir).expanduser()
+    output_dir = Path(args.output_dir).expanduser()
+
+    output_dir.mkdir(exist_ok=True)
+
+    substitutions = get_variable_substitutions(
+        yaml.safe_load((input_dir / "config.yaml").read_text())
+    )
+
+    generate_markdown(input_dir, output_dir, substitutions)
 
 
 if __name__ == "__main__":
