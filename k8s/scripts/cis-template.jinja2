@@ -1,0 +1,33 @@
+## {{ title | trim }}
+{% for group in groups %}
+### {{group.text}}
+{% for check in group.checks %}
+Control **{{ check.id }}**
+
+{% if check.text %}
+Description: `{{ check.text | trim }}`
+{% endif %}
+{% if check.audit %}
+
+Audit:
+```
+{{ check.audit | trim }}
+```
+{% endif %}
+
+{% if check.remediation %}
+Remediation:
+```
+{{ check.remediation | trim }}
+```
+{% endif %}
+
+{% if check.tests %}
+Expected output:
+```
+{{ check.tests | to_yaml | trim }}
+```
+
+{% endif %}
+{% endfor %}
+{% endfor %}
