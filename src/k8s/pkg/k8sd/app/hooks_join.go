@@ -266,6 +266,8 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 	default:
 	}
 
+	fmt.Println("RUNNING ON NODE", s.Name, s.Address().Hostname())
+
 	c, err := snap.KubernetesClient("")
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
