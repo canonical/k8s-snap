@@ -3,7 +3,7 @@
 {% for group in groups %}
 ### {{group.text}}
 {% for check in group.checks %}
-#### Control **{{ check.id }}**
+#### Control {{ check.id }}
 
 {% if check.text %}
 Description: `{{ check.text | trim }}`

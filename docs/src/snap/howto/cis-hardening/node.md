@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 ## Worker Node Security Configuration
 ### Worker Node Configuration Files
-#### Control **4.1.1**
+#### Control 4.1.1
 
 Description: `Ensure that the kubelet service file permissions are set to 600 or more restrictive (Automated)`
 
@@ -25,7 +25,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **4.1.2**
+#### Control 4.1.2
 
 Description: `Ensure that the kubelet service file ownership is set to root:root (Automated)`
 
@@ -49,7 +49,7 @@ test_items:
 - flag: File not found
 ```
 
-#### Control **4.1.3**
+#### Control 4.1.3
 
 Description: `If proxy kubeconfig file exists ensure permissions are set to 600 or more restrictive (Manual)`
 
@@ -76,7 +76,7 @@ test_items:
   set: true
 ```
 
-#### Control **4.1.4**
+#### Control 4.1.4
 
 Description: `If proxy kubeconfig file exists ensure ownership is set to root:root (Manual)`
 
@@ -98,7 +98,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **4.1.5**
+#### Control 4.1.5
 
 Description: `Ensure that the --kubeconfig kubelet.conf file permissions are set to 600 or more restrictive (Automated)`
 
@@ -123,7 +123,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **4.1.6**
+#### Control 4.1.6
 
 Description: `Ensure that the --kubeconfig kubelet.conf file ownership is set to root:root (Automated)`
 
@@ -145,7 +145,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **4.1.7**
+#### Control 4.1.7
 
 Description: `Ensure that the certificate authorities file permissions are set to 600 or more restrictive (Manual)`
 
@@ -171,7 +171,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **4.1.8**
+#### Control 4.1.8
 
 Description: `Ensure that the client certificate authorities file ownership is set to root:root (Manual)`
 
@@ -197,7 +197,7 @@ test_items:
   flag: root:root
 ```
 
-#### Control **4.1.9**
+#### Control 4.1.9
 
 Description: `If the kubelet config.yaml configuration file is being used validate permissions set to 600 or more restrictive (Manual)`
 
@@ -221,7 +221,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **4.1.10**
+#### Control 4.1.10
 
 Description: `If the kubelet config.yaml configuration file is being used validate file ownership is set to root:root (Manual)`
 
@@ -243,7 +243,7 @@ test_items:
 ```
 
 ### Kubelet
-#### Control **4.2.1**
+#### Control 4.2.1
 
 Description: `Ensure that the --anonymous-auth argument is set to false (Automated)`
 
@@ -275,7 +275,7 @@ test_items:
   path: '{.authentication.anonymous.enabled}'
 ```
 
-#### Control **4.2.2**
+#### Control 4.2.2
 
 Description: `Ensure that the --authorization-mode argument is not set to AlwaysAllow (Automated)`
 
@@ -306,7 +306,7 @@ test_items:
   path: '{.authorization.mode}'
 ```
 
-#### Control **4.2.3**
+#### Control 4.2.3
 
 Description: `Ensure that the --client-ca-file argument is set as appropriate (Automated)`
 
@@ -335,7 +335,7 @@ test_items:
   path: '{.authentication.x509.clientCAFile}'
 ```
 
-#### Control **4.2.4**
+#### Control 4.2.4
 
 Description: `Verify that the --read-only-port argument is set to 0 (Manual)`
 
@@ -370,7 +370,7 @@ test_items:
   set: false
 ```
 
-#### Control **4.2.5**
+#### Control 4.2.5
 
 Description: `Ensure that the --streaming-connection-idle-timeout argument is not set to 0 (Manual)`
 
@@ -406,7 +406,7 @@ test_items:
   set: false
 ```
 
-#### Control **4.2.6**
+#### Control 4.2.6
 
 Description: `Ensure that the --protect-kernel-defaults argument is set to true (Automated)`
 
@@ -437,7 +437,7 @@ test_items:
   path: '{.protectKernelDefaults}'
 ```
 
-#### Control **4.2.7**
+#### Control 4.2.7
 
 Description: `Ensure that the --make-iptables-util-chains argument is set to true (Automated)`
 
@@ -472,7 +472,7 @@ test_items:
   set: false
 ```
 
-#### Control **4.2.8**
+#### Control 4.2.8
 
 Description: `Ensure that the --hostname-override argument is not set (Manual)`
 
@@ -498,7 +498,7 @@ test_items:
   set: false
 ```
 
-#### Control **4.2.9**
+#### Control 4.2.9
 
 Description: `Ensure that the eventRecordQPS argument is set to a level which ensures appropriate event capture (Manual)`
 
@@ -532,7 +532,7 @@ test_items:
   set: false
 ```
 
-#### Control **4.2.10**
+#### Control 4.2.10
 
 Description: `Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate (Manual)`
 
@@ -565,7 +565,7 @@ test_items:
   path: '{.tlsPrivateKeyFile}'
 ```
 
-#### Control **4.2.11**
+#### Control 4.2.11
 
 Description: `Ensure that the --rotate-certificates argument is not set to false (Automated)`
 
@@ -601,7 +601,7 @@ test_items:
   set: false
 ```
 
-#### Control **4.2.12**
+#### Control 4.2.12
 
 Description: `Verify that the RotateKubeletServerCertificate argument is set to true (Manual)`
 
@@ -634,7 +634,7 @@ test_items:
   set: false
 ```
 
-#### Control **4.2.13**
+#### Control 4.2.13
 
 Description: `Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers (Manual)`
 

@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 ## Control Plane Security Configuration
 ### Control Plane Node Configuration Files
-#### Control **1.1.1**
+#### Control 1.1.1
 
 Description: `Ensure that the API server pod specification file permissions are set to 600 or more restrictive (Automated)`
 
@@ -26,7 +26,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **1.1.2**
+#### Control 1.1.2
 
 Description: `Ensure that the API server pod specification file ownership is set to root:root (Automated)`
 
@@ -47,7 +47,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **1.1.3**
+#### Control 1.1.3
 
 Description: `Ensure that the controller manager pod specification file permissions are set to 600 or more restrictive (Automated)`
 
@@ -71,7 +71,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **1.1.4**
+#### Control 1.1.4
 
 Description: `Ensure that the controller manager pod specification file ownership is set to root:root (Automated)`
 
@@ -92,7 +92,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **1.1.5**
+#### Control 1.1.5
 
 Description: `Ensure that the scheduler pod specification file permissions are set to 600 or more restrictive (Automated)`
 
@@ -116,7 +116,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **1.1.6**
+#### Control 1.1.6
 
 Description: `Ensure that the scheduler pod specification file ownership is set to root:root (Automated)`
 
@@ -137,7 +137,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **1.1.7**
+#### Control 1.1.7
 
 Description: `Ensure that the etcd pod specification file permissions are set to 644 or more restrictive (Automated)`
 
@@ -162,7 +162,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **1.1.8**
+#### Control 1.1.8
 
 Description: `Ensure that the etcd pod specification file ownership is set to root:root (Automated)`
 
@@ -184,7 +184,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **1.1.9**
+#### Control 1.1.9
 
 Description: `Ensure that the Container Network Interface file permissions are set to 600 or more restrictive (Manual)`
 
@@ -209,7 +209,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **1.1.10**
+#### Control 1.1.10
 
 Description: `Ensure that the Container Network Interface file ownership is set to root:root (Manual)`
 
@@ -232,7 +232,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **1.1.11**
+#### Control 1.1.11
 
 Description: `Ensure that the etcd data directory permissions are set to 700 or more restrictive (Automated)`
 
@@ -259,7 +259,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **1.1.12**
+#### Control 1.1.12
 
 Description: `Ensure that the etcd data directory ownership is set to etcd:etcd (Automated)`
 
@@ -283,7 +283,7 @@ test_items:
 - flag: etcd:etcd
 ```
 
-#### Control **1.1.13**
+#### Control 1.1.13
 
 Description: `Ensure that the admin.conf file permissions are set to 600 or more restrictive (Automated)`
 
@@ -307,7 +307,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **1.1.14**
+#### Control 1.1.14
 
 Description: `Ensure that the admin.conf file ownership is set to root:root (Automated)`
 
@@ -328,7 +328,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **1.1.15**
+#### Control 1.1.15
 
 Description: `Ensure that the scheduler.conf file permissions are set to 600 or more restrictive (Automated)`
 
@@ -353,7 +353,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **1.1.16**
+#### Control 1.1.16
 
 Description: `Ensure that the scheduler.conf file ownership is set to root:root (Automated)`
 
@@ -375,7 +375,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **1.1.17**
+#### Control 1.1.17
 
 Description: `Ensure that the controller-manager.conf file permissions are set to 600 or more restrictive (Automated)`
 
@@ -400,7 +400,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **1.1.18**
+#### Control 1.1.18
 
 Description: `Ensure that the controller-manager.conf file ownership is set to root:root (Automated)`
 
@@ -422,7 +422,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **1.1.19**
+#### Control 1.1.19
 
 Description: `Ensure that the Kubernetes PKI directory and file ownership is set to root:root (Automated)`
 
@@ -444,7 +444,7 @@ test_items:
 - flag: root:root
 ```
 
-#### Control **1.1.20**
+#### Control 1.1.20
 
 Description: `Ensure that the Kubernetes PKI certificate file permissions are set to 600 or more restrictive (Manual)`
 
@@ -469,7 +469,7 @@ test_items:
   flag: permissions
 ```
 
-#### Control **1.1.21**
+#### Control 1.1.21
 
 Description: `Ensure that the Kubernetes PKI key file permissions are set to 600 (Manual)`
 
@@ -495,7 +495,7 @@ test_items:
 ```
 
 ### API Server
-#### Control **1.2.1**
+#### Control 1.2.1
 
 Description: `Ensure that the --anonymous-auth argument is set to false (Manual)`
 
@@ -520,7 +520,7 @@ test_items:
   flag: --anonymous-auth
 ```
 
-#### Control **1.2.2**
+#### Control 1.2.2
 
 Description: `Ensure that the --token-auth-file parameter is not set (Automated)`
 
@@ -543,7 +543,7 @@ test_items:
   set: false
 ```
 
-#### Control **1.2.3**
+#### Control 1.2.3
 
 Description: `Ensure that the --DenyServiceExternalIPs is not set (Automated)`
 
@@ -571,7 +571,7 @@ test_items:
   set: false
 ```
 
-#### Control **1.2.4**
+#### Control 1.2.4
 
 Description: `Ensure that the --kubelet-client-certificate and --kubelet-client-key arguments are set as appropriate (Automated)`
 
@@ -598,7 +598,7 @@ test_items:
 - flag: --kubelet-client-key
 ```
 
-#### Control **1.2.5**
+#### Control 1.2.5
 
 Description: `Ensure that the --kubelet-certificate-authority argument is set as appropriate (Automated)`
 
@@ -622,7 +622,7 @@ test_items:
 - flag: --kubelet-certificate-authority
 ```
 
-#### Control **1.2.6**
+#### Control 1.2.6
 
 Description: `Ensure that the --authorization-mode argument is not set to AlwaysAllow (Automated)`
 
@@ -648,7 +648,7 @@ test_items:
   flag: --authorization-mode
 ```
 
-#### Control **1.2.7**
+#### Control 1.2.7
 
 Description: `Ensure that the --authorization-mode argument includes Node (Automated)`
 
@@ -673,7 +673,7 @@ test_items:
   flag: --authorization-mode
 ```
 
-#### Control **1.2.8**
+#### Control 1.2.8
 
 Description: `Ensure that the --authorization-mode argument includes RBAC (Automated)`
 
@@ -698,7 +698,7 @@ test_items:
   flag: --authorization-mode
 ```
 
-#### Control **1.2.9**
+#### Control 1.2.9
 
 Description: `Ensure that the admission control plugin EventRateLimit is set (Manual)`
 
@@ -725,7 +725,7 @@ test_items:
   flag: --enable-admission-plugins
 ```
 
-#### Control **1.2.10**
+#### Control 1.2.10
 
 Description: `Ensure that the admission control plugin AlwaysAdmit is not set (Automated)`
 
@@ -753,7 +753,7 @@ test_items:
   set: false
 ```
 
-#### Control **1.2.11**
+#### Control 1.2.11
 
 Description: `Ensure that the admission control plugin AlwaysPullImages is set (Manual)`
 
@@ -779,7 +779,7 @@ test_items:
   flag: --enable-admission-plugins
 ```
 
-#### Control **1.2.12**
+#### Control 1.2.12
 
 Description: `Ensure that the admission control plugin SecurityContextDeny is set if PodSecurityPolicy is not used (Manual)`
 
@@ -810,7 +810,7 @@ test_items:
   flag: --enable-admission-plugins
 ```
 
-#### Control **1.2.13**
+#### Control 1.2.13
 
 Description: `Ensure that the admission control plugin ServiceAccount is set (Automated)`
 
@@ -839,7 +839,7 @@ test_items:
   set: false
 ```
 
-#### Control **1.2.14**
+#### Control 1.2.14
 
 Description: `Ensure that the admission control plugin NamespaceLifecycle is set (Automated)`
 
@@ -867,7 +867,7 @@ test_items:
   set: false
 ```
 
-#### Control **1.2.15**
+#### Control 1.2.15
 
 Description: `Ensure that the admission control plugin NodeRestriction is set (Automated)`
 
@@ -894,7 +894,7 @@ test_items:
   flag: --enable-admission-plugins
 ```
 
-#### Control **1.2.16**
+#### Control 1.2.16
 
 Description: `Ensure that the --secure-port argument is not set to 0 (Automated)`
 
@@ -922,7 +922,7 @@ test_items:
   set: false
 ```
 
-#### Control **1.2.17**
+#### Control 1.2.17
 
 Description: `Ensure that the --profiling argument is set to false (Automated)`
 
@@ -947,7 +947,7 @@ test_items:
   flag: --profiling
 ```
 
-#### Control **1.2.18**
+#### Control 1.2.18
 
 Description: `Ensure that the --audit-log-path argument is set (Automated)`
 
@@ -970,7 +970,7 @@ test_items:
 - flag: --audit-log-path
 ```
 
-#### Control **1.2.19**
+#### Control 1.2.19
 
 Description: `Ensure that the --audit-log-maxage argument is set to 30 or as appropriate (Automated)`
 
@@ -996,7 +996,7 @@ test_items:
   flag: --audit-log-maxage
 ```
 
-#### Control **1.2.20**
+#### Control 1.2.20
 
 Description: `Ensure that the --audit-log-maxbackup argument is set to 10 or as appropriate (Automated)`
 
@@ -1022,7 +1022,7 @@ test_items:
   flag: --audit-log-maxbackup
 ```
 
-#### Control **1.2.21**
+#### Control 1.2.21
 
 Description: `Ensure that the --audit-log-maxsize argument is set to 100 or as appropriate (Automated)`
 
@@ -1047,7 +1047,7 @@ test_items:
   flag: --audit-log-maxsize
 ```
 
-#### Control **1.2.22**
+#### Control 1.2.22
 
 Description: `Ensure that the --request-timeout argument is set as appropriate (Manual)`
 
@@ -1063,7 +1063,7 @@ and set the below parameter as appropriate and if needed.
 For example, --request-timeout=300s
 ```
 
-#### Control **1.2.23**
+#### Control 1.2.23
 
 Description: `Ensure that the --service-account-lookup argument is set to true (Automated)`
 
@@ -1093,7 +1093,7 @@ test_items:
   flag: --service-account-lookup
 ```
 
-#### Control **1.2.24**
+#### Control 1.2.24
 
 Description: `Ensure that the --service-account-key-file argument is set as appropriate (Automated)`
 
@@ -1116,7 +1116,7 @@ test_items:
 - flag: --service-account-key-file
 ```
 
-#### Control **1.2.25**
+#### Control 1.2.25
 
 Description: `Ensure that the --etcd-certfile and --etcd-keyfile arguments are set as appropriate (Automated)`
 
@@ -1142,7 +1142,7 @@ test_items:
 - flag: --etcd-keyfile
 ```
 
-#### Control **1.2.26**
+#### Control 1.2.26
 
 Description: `Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate (Automated)`
 
@@ -1168,7 +1168,7 @@ test_items:
 - flag: --tls-private-key-file
 ```
 
-#### Control **1.2.27**
+#### Control 1.2.27
 
 Description: `Ensure that the --client-ca-file argument is set as appropriate (Automated)`
 
@@ -1191,7 +1191,7 @@ test_items:
 - flag: --client-ca-file
 ```
 
-#### Control **1.2.28**
+#### Control 1.2.28
 
 Description: `Ensure that the --etcd-cafile argument is set as appropriate (Automated)`
 
@@ -1214,7 +1214,7 @@ test_items:
 - flag: --etcd-cafile
 ```
 
-#### Control **1.2.29**
+#### Control 1.2.29
 
 Description: `Ensure that the --encryption-provider-config argument is set as appropriate (Manual)`
 
@@ -1237,7 +1237,7 @@ test_items:
 - flag: --encryption-provider-config
 ```
 
-#### Control **1.2.30**
+#### Control 1.2.30
 
 Description: `Ensure that encryption providers are appropriately configured (Manual)`
 
@@ -1262,7 +1262,7 @@ test_items:
   flag: provider
 ```
 
-#### Control **1.2.31**
+#### Control 1.2.31
 
 Description: `Ensure that the API Server only makes use of Strong Cryptographic Ciphers (Manual)`
 
@@ -1295,7 +1295,7 @@ test_items:
 ```
 
 ### Controller Manager
-#### Control **1.3.1**
+#### Control 1.3.1
 
 Description: `Ensure that the --terminated-pod-gc-threshold argument is set as appropriate (Manual)`
 
@@ -1317,7 +1317,7 @@ test_items:
 - flag: --terminated-pod-gc-threshold
 ```
 
-#### Control **1.3.2**
+#### Control 1.3.2
 
 Description: `Ensure that the --profiling argument is set to false (Automated)`
 
@@ -1342,7 +1342,7 @@ test_items:
   flag: --profiling
 ```
 
-#### Control **1.3.3**
+#### Control 1.3.3
 
 Description: `Ensure that the --use-service-account-credentials argument is set to true (Automated)`
 
@@ -1367,7 +1367,7 @@ test_items:
   flag: --use-service-account-credentials
 ```
 
-#### Control **1.3.4**
+#### Control 1.3.4
 
 Description: `Ensure that the --service-account-private-key-file argument is set as appropriate (Automated)`
 
@@ -1390,7 +1390,7 @@ test_items:
 - flag: --service-account-private-key-file
 ```
 
-#### Control **1.3.5**
+#### Control 1.3.5
 
 Description: `Ensure that the --root-ca-file argument is set as appropriate (Automated)`
 
@@ -1412,7 +1412,7 @@ test_items:
 - flag: --root-ca-file
 ```
 
-#### Control **1.3.6**
+#### Control 1.3.6
 
 Description: `Ensure that the RotateKubeletServerCertificate argument is set to true (Automated)`
 
@@ -1441,7 +1441,7 @@ test_items:
   set: false
 ```
 
-#### Control **1.3.7**
+#### Control 1.3.7
 
 Description: `Ensure that the --bind-address argument is set to 127.0.0.1 (Automated)`
 
@@ -1469,7 +1469,7 @@ test_items:
 ```
 
 ### Scheduler
-#### Control **1.4.1**
+#### Control 1.4.1
 
 Description: `Ensure that the --profiling argument is set to false (Automated)`
 
@@ -1494,7 +1494,7 @@ test_items:
   flag: --profiling
 ```
 
-#### Control **1.4.2**
+#### Control 1.4.2
 
 Description: `Ensure that the --bind-address argument is set to 127.0.0.1 (Automated)`
 

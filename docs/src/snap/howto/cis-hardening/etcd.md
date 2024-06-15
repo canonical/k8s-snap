@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 ## Etcd Node Configuration
 ### Etcd Node Configuration
-#### Control **2.1**
+#### Control 2.1
 
 Description: `Ensure that the --cert-file and --key-file arguments are set as appropriate (Automated)`
 
@@ -29,7 +29,7 @@ test_items:
   flag: --key-file
 ```
 
-#### Control **2.2**
+#### Control 2.2
 
 Description: `Ensure that the --client-cert-auth argument is set to true (Automated)`
 
@@ -55,7 +55,7 @@ test_items:
   flag: --client-cert-auth
 ```
 
-#### Control **2.3**
+#### Control 2.3
 
 Description: `Ensure that the --auto-tls argument is not set to true (Automated)`
 
@@ -85,7 +85,7 @@ test_items:
   flag: --auto-tls
 ```
 
-#### Control **2.4**
+#### Control 2.4
 
 Description: `Ensure that the --peer-cert-file and --peer-key-file arguments are set as appropriate (Automated)`
 
@@ -114,7 +114,7 @@ test_items:
   flag: --peer-key-file
 ```
 
-#### Control **2.5**
+#### Control 2.5
 
 Description: `Ensure that the --peer-client-cert-auth argument is set to true (Automated)`
 
@@ -140,7 +140,7 @@ test_items:
   flag: --peer-client-cert-auth
 ```
 
-#### Control **2.6**
+#### Control 2.6
 
 Description: `Ensure that the --peer-auto-tls argument is not set to true (Automated)`
 
@@ -170,7 +170,7 @@ test_items:
   flag: --peer-auto-tls
 ```
 
-#### Control **2.7**
+#### Control 2.7
 
 Description: `Ensure that a unique Certificate Authority is used for etcd (Manual)`
 
