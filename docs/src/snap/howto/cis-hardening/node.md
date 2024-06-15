@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 ## Worker Node Security Configuration
 ### Worker Node Configuration Files
 Control **4.1.1**
