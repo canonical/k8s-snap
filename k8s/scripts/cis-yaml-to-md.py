@@ -29,7 +29,6 @@ CONFIG_FILE = "config.yaml"
 
 def get_variable_substitutions(data: str) -> dict[str, str]:
     return {
-        "$DATA_DIR": data["master"]["etcd"]["confs"][0],
         "$apiserverbin": data["master"]["apiserver"]["bins"][0],
         "$apiserverconf": data["master"]["apiserver"]["confs"][0],
         "$controllermanagerbin": data["master"]["controllermanager"]["bins"][0],
