@@ -32,14 +32,16 @@ def test_ingress(session_instance: List[harness.Instance]):
 
     ingress_http_port = None
     services = json.loads(p.stdout.decode())
-    for svc in services["items"]:
-        if "ingress" in svc["metadata"]["name"]:
-            for port in svc["spec"]["ports"]:
-                if port["port"] == 80:
-                    ingress_http_port = port["nodePort"]
-                    break
-            if ingress_http_port:
+
+    ingress_services = [svc for svc in services["items"] if "ingress" in svc["metadata"]["name"]]
+
+    for svc in ingress_services:
+        for port in svc["spec"]["ports"]:
+            if port["port"] == 80:
+                ingress_http_port = port["nodePort"]
                 break
+        if ingress_http_port:
+            break
 
     assert ingress_http_port is not None, "No ingress nodePort found."
 

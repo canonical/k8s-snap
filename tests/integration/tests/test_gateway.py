@@ -56,16 +56,16 @@ def test_gateway(session_instance: harness.Instance):
     )
 
     services = json.loads(p.stdout.decode())
-    LOG.info(f"services: {services}")
-    for svc in services["items"]:
-        if "my-gateway" in svc["metadata"]["name"]:
-            LOG.info(f"Found service {svc['metadata']['name']}")
-            for port in svc["spec"]["ports"]:
-                if port["port"] == 80:
-                    gateway_http_port = port["nodePort"]
-                    break
-            if gateway_http_port:
+
+    ingress_services = [svc for svc in services["items"] if "my-gateway" in svc["metadata"]["name"]]
+
+    for svc in ingress_services:
+        for port in svc["spec"]["ports"]:
+            if port["port"] == 80:
+                gateway_http_port = port["nodePort"]
                 break
+        if gateway_http_port:
+            break
 
     assert gateway_http_port is not None, "No ingress nodePort found."
 
