@@ -33,7 +33,9 @@ def test_ingress(session_instance: List[harness.Instance]):
     ingress_http_port = None
     services = json.loads(p.stdout.decode())
 
-    ingress_services = [svc for svc in services["items"] if "ingress" in svc["metadata"]["name"]]
+    ingress_services = [
+        svc for svc in services["items"] if "ingress" in svc["metadata"]["name"]
+    ]
 
     for svc in ingress_services:
         for port in svc["spec"]["ports"]:
