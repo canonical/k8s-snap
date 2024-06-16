@@ -27,7 +27,7 @@ Create a configuration file and insert the contents below while replacing
 the placeholder values based on the configuration of your etcd cluster.
 
 ```yaml
-datastore: external
+datastore-type: external
 datastore-url: "<etcd-member-addresses>"
 datastore-ca-crt: |
   <etcd-root-ca-certificate>
