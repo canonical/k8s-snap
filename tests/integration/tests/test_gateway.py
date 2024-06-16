@@ -57,7 +57,9 @@ def test_gateway(session_instance: harness.Instance):
 
     services = json.loads(p.stdout.decode())
 
-    ingress_services = [svc for svc in services["items"] if "my-gateway" in svc["metadata"]["name"]]
+    ingress_services = [
+        svc for svc in services["items"] if "my-gateway" in svc["metadata"]["name"]
+    ]
 
     for svc in ingress_services:
         for port in svc["spec"]["ports"]:
