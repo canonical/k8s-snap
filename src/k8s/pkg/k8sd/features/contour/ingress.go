@@ -92,6 +92,8 @@ func applyCommonContourCRDS(ctx context.Context, snap snap.Snap, enabled bool) e
 			return fmt.Errorf("failed to install common CRDS: %w", err)
 		}
 		return nil
+	}
+
 	if _, err := m.Apply(ctx, chartCommonContourCRDS, helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall common CRDS: %w", err)
 	}
