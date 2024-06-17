@@ -82,7 +82,7 @@ parts:
       for binary in k8s k8sd k8s-apiserver-proxy; do
         cp -P "bin/static/${binary}" "${INSTALL}/bin/${binary}"
       done
-      ./bin/static/k8s x-list-images > "${INSTALL}/images.txt"
+      ./bin/static/k8s list-images > "${INSTALL}/images.txt"
 
   cni:
     after: [build-deps]

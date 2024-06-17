@@ -8,11 +8,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newXListImagesCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+func newListImagesCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
-		Hidden: true,
-		Use:    "x-list-images",
-		Short:  "List all images used by the current version of k8s-snap",
+		Hidden:  true,
+		Aliases: []string{"list-images"},
+		Short:   "List all images used by this build",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Println(strings.Join(images.Images(), "\n"))
 		},
