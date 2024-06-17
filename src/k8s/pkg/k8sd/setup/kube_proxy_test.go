@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -94,4 +95,19 @@ func TestKubeProxy(t *testing.T) {
 		}
 	})
 
+	t.Run("HostnameOverride", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// FIXME(neoaggelos): kube-proxy tests should not reuse the same snap instance, as it leads
+		// to implicit state like this shared between the tests
+		s.Mock.Hostname = "dev"
+		s.Mock.ServiceArgumentsDir = filepath.Join(dir, "k8s")
+
+		g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
+		g.Expect(setup.KubeProxy(context.Background(), s, "dev", "10.1.0.0/16", nil)).To(BeNil())
+
+		val, err := snaputil.GetServiceArgument(s, "kube-proxy", "--hostname-override")
+		g.Expect(err).To(BeNil())
+		g.Expect(val).To(BeEmpty())
+	})
 }
