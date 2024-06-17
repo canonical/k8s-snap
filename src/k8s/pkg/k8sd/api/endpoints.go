@@ -93,7 +93,7 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		{
 			Name: "GenerateJoinToken",
 			Path: "x/capi/generate-join-token",
-			Post: rest.EndpointAction{Handler: e.postClusterJoinTokens, AccessHandler: ValidateCAPIAuthTokenAccessHandler("token"), AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postClusterJoinTokens, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
 		},
 		{
 			Name: "SetAuthToken",
