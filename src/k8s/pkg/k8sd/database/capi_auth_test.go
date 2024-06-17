@@ -14,7 +14,7 @@ func TestClusterAPIAuthTokens(t *testing.T) {
 	WithDB(t, func(ctx context.Context, db DB) {
 		var token string = "test-token"
 
-		// Seed the intial cluster config.
+		// Seed the initial cluster config.
 		err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 			clusterConfig := types.ClusterConfig{}
 			clusterConfig.SetDefaults()
