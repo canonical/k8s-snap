@@ -12,6 +12,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/moby/sys/mountinfo"
 	"gopkg.in/yaml.v2"
@@ -92,6 +93,14 @@ func (s *snap) UID() int {
 
 func (s *snap) GID() int {
 	return 0
+}
+
+func (s *snap) Hostname() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "dev"
+	}
+	return hostname
 }
 
 func (s *snap) ContainerdConfigDir() string {
@@ -236,6 +245,20 @@ func (s *snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
 
 func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
 	return s.runCommand(ctx, append([]string{"snapctl", "set"}, args...))
+}
+
+func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) error {
+	// TODO: check for available ports for k8s-dqlite, apiserver, containerd, etc
+
+	// NOTE(neoaggelos): in some environments the Kubernetes might hang when running for the first time
+	// This works around the issue by running them once during the install hook
+	for _, binary := range []string{"kube-apiserver", "kube-controller-manager", "kube-scheduler", "kube-proxy", "kubelet"} {
+		if err := s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", binary), "--version"}); err != nil {
+			return fmt.Errorf("%q binary could not run: %w", binary, err)
+		}
+	}
+
+	return nil
 }
 
 var _ Snap = &snap{}

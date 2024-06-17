@@ -1,3 +1,5 @@
+# Contains the bootstrap configuration for the session instance of the integration tests.
+# The session instance persists over test runs and is used to speed-up the integration tests.
 cluster-config:
   network:
     enabled: true

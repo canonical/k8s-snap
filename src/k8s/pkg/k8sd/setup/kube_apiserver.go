@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 type apiserverAuthTokenWebhookTemplateConfig struct {
@@ -47,7 +48,7 @@ var (
 )
 
 // KubeAPIServer configures kube-apiserver on the local node.
-func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string) error {
+func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string, extraArgs map[string]*string) error {
 	authTokenWebhookConfigFile := path.Join(snap.ServiceExtraConfigDir(), "auth-token-webhook.conf")
 	authTokenWebhookFile, err := os.OpenFile(authTokenWebhookConfigFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
@@ -63,6 +64,7 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 	defer authTokenWebhookFile.Close()
 
 	args := map[string]string{
+		"--anonymous-auth":                           "false",
 		"--allow-privileged":                         "true",
 		"--authentication-token-webhook-config-file": authTokenWebhookConfigFile,
 		"--authorization-mode":                       authorizationMode,
@@ -72,6 +74,8 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--kubelet-client-certificate":               path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"),
 		"--kubelet-client-key":                       path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"),
 		"--kubelet-preferred-address-types":          "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP",
+		"--profiling":                                "false",
+		"--request-timeout":                          "300s",
 		"--secure-port":                              "6443",
 		"--service-account-issuer":                   "https://kubernetes.default.svc",
 		"--service-account-key-file":                 path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
@@ -104,6 +108,12 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 	}
 	if _, err := snaputil.UpdateServiceArguments(snap, "kube-apiserver", args, deleteArgs); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
+	}
+
+	// Apply extra arguments after the defaults, so they can override them.
+	updateArgs, deleteArgs := utils.ServiceArgsFromMap(extraArgs)
+	if _, err := snaputil.UpdateServiceArguments(snap, "kube-apiserver", updateArgs, deleteArgs); err != nil {
+		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
 	return nil
 }
