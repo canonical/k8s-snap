@@ -60,8 +60,10 @@ def test_gateway(session_instance: harness.Instance):
     gateway_services = [
         svc for svc in services["items"]
         if (
-            ("projectcontour.io/owning-gateway-name" in svc["metadata"]["labels"] and svc["metadata"]["labels"]["projectcontour.io/owning-gateway-name"] == "my-gateway") or
-            ("io.cilium.gateway/owning-gateway" in svc["metadata"]["labels"] and svc["metadata"]["labels"]["io.cilium.gateway/owning-gateway"] == "my-gateway")
+            (svc["metadata"].get("labels").get("projectcontour.io/owning-gateway-name") \
+             == "my-gateway") or
+            (svc["metadata"].get("labels").get("io.cilium.gateway/owning-gateway") \
+             == "my-gateway")
         )
     ]
 
