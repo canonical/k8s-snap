@@ -12,6 +12,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -40,7 +41,7 @@ func TestContainerd(t *testing.T) {
 		},
 	}
 
-	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
+	g.Expect(setup.EnsureAllDirectories(s)).To(Succeed())
 	g.Expect(setup.Containerd(s, []types.ContainerdRegistry{
 		{
 			Host:     "docker.io",
@@ -53,6 +54,11 @@ func TestContainerd(t *testing.T) {
 			URLs:  []string{"https://ghcr.mirror.internal"},
 			Token: "token",
 		},
+	}, map[string]*string{
+		"--log-level":    utils.Pointer("debug"),
+		"--metrics":      utils.Pointer("true"),
+		"--address":      nil, // This should trigger a delete
+		"--my-extra-arg": utils.Pointer("my-extra-val"),
 	})).To(Succeed())
 
 	t.Run("Config", func(t *testing.T) {
@@ -102,10 +108,12 @@ func TestContainerd(t *testing.T) {
 
 	t.Run("Args", func(t *testing.T) {
 		for key, expectedVal := range map[string]string{
-			"--address": path.Join(dir, "containerd-run", "containerd.sock"),
-			"--config":  path.Join(dir, "containerd", "config.toml"),
-			"--root":    path.Join(dir, "containerd-root"),
-			"--state":   path.Join(dir, "containerd-state"),
+			"--config":       path.Join(dir, "containerd", "config.toml"),
+			"--root":         path.Join(dir, "containerd-root"),
+			"--state":        path.Join(dir, "containerd-state"),
+			"--log-level":    "debug",
+			"--metrics":      "true",
+			"--my-extra-arg": "my-extra-val",
 		} {
 			t.Run(key, func(t *testing.T) {
 				g := NewWithT(t)
@@ -114,6 +122,13 @@ func TestContainerd(t *testing.T) {
 				g.Expect(val).To(Equal(expectedVal))
 			})
 		}
+		// --address was deleted by extraArgs
+		t.Run("--address", func(t *testing.T) {
+			g := NewWithT(t)
+			val, err := snaputil.GetServiceArgument(s, "containerd", "--address")
+			g.Expect(err).To(BeNil())
+			g.Expect(val).To(BeZero())
+		})
 	})
 
 	t.Run("Registries", func(t *testing.T) {

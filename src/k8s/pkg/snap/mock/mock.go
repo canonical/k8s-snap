@@ -7,6 +7,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
 
@@ -55,6 +56,9 @@ type Snap struct {
 	SnapctlSetErr        error
 	SnapctlGetCalledWith [][]string
 	SnapctlGetErr        error
+
+	PreInitChecksCalledWith []types.ClusterConfig
+	PreInitChecksErr        error
 
 	Mock Mock
 }
@@ -172,6 +176,10 @@ func (s *Snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
 func (s *Snap) SnapctlSet(ctx context.Context, args ...string) error {
 	s.SnapctlSetCalledWith = append(s.SnapctlGetCalledWith, args)
 	return s.SnapctlSetErr
+}
+func (s *Snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) error {
+	s.PreInitChecksCalledWith = append(s.PreInitChecksCalledWith, config)
+	return s.PreInitChecksErr
 }
 
 var _ snap.Snap = &Snap{}

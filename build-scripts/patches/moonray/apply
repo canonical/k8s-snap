@@ -12,8 +12,6 @@ rm "${DIR}/../../../tests/integration/tests/test_cilium_e2e.py"
 rm "${DIR}/../../../tests/integration/tests/test_loadbalancer.py"
 ## TODO: restore when cleanup is implemented
 rm "${DIR}/../../../tests/integration/tests/test_cleanup.py"
-## TODO: restore when network test is fixed
-rm "${DIR}/../../../tests/integration/tests/test_network.py"
 
 sed -i 's/ingressClassName: cilium/ingressClassName: ck-ingress/g' "${DIR}/../../../tests/integration/templates/ingress-test.yaml"
 

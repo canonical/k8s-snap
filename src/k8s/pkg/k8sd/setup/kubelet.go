@@ -8,6 +8,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 var kubeletTLSCipherSuites = []string{
@@ -30,21 +31,21 @@ var kubeletWorkerLabels = []string{
 }
 
 // KubeletControlPlane configures kubelet on a control plane node.
-func KubeletControlPlane(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, registerWithTaints []string) error {
-	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, registerWithTaints, append(kubeletControlPlaneLabels, kubeletWorkerLabels...))
+func KubeletControlPlane(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, registerWithTaints []string, extraArgs map[string]*string) error {
+	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, registerWithTaints, append(kubeletControlPlaneLabels, kubeletWorkerLabels...), extraArgs)
 }
 
 // KubeletWorker configures kubelet on a worker node.
-func KubeletWorker(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string) error {
-	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, nil, kubeletWorkerLabels)
+func KubeletWorker(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, extraArgs map[string]*string) error {
+	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, nil, kubeletWorkerLabels, extraArgs)
 }
 
 // kubelet configures kubelet on the local node.
-func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, taints []string, labels []string) error {
+func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, taints []string, labels []string, extraArgs map[string]*string) error {
 	args := map[string]string{
+		"--authorization-mode":           "Webhook",
 		"--anonymous-auth":               "false",
 		"--authentication-token-webhook": "true",
-		"--cert-dir":                     snap.KubernetesPKIDir(),
 		"--client-ca-file":               path.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
 		"--container-runtime-endpoint":   path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
 		"--containerd":                   path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
@@ -58,6 +59,8 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 		"--root-dir":                     snap.KubeletRootDir(),
 		"--serialize-image-pulls":        "false",
 		"--tls-cipher-suites":            strings.Join(kubeletTLSCipherSuites, ","),
+		"--tls-cert-file":                path.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
+		"--tls-private-key-file":         path.Join(snap.KubernetesPKIDir(), "kubelet.key"),
 	}
 	if cloudProvider != "" {
 		args["--cloud-provider"] = cloudProvider
@@ -73,6 +76,12 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 	}
 	if _, err := snaputil.UpdateServiceArguments(snap, "kubelet", args, nil); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
+	}
+
+	// Apply extra arguments after the defaults, so they can override them.
+	updateArgs, deleteArgs := utils.ServiceArgsFromMap(extraArgs)
+	if _, err := snaputil.UpdateServiceArguments(snap, "kubelet", updateArgs, deleteArgs); err != nil {
+		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
 	return nil
 }

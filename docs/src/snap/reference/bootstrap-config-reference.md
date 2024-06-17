@@ -37,6 +37,7 @@ Determines if the feature should be enabled.
 If omitted defaults to `true`
 
 #### cluster-config.dns.cluster-domain
+
 **Type:** `string`<br>
 **Required:** `No` <br>
 
@@ -59,7 +60,8 @@ Can be used to point to an external dns server when feature is disabled.
 **Type:** `list[string]`<br>
 **Required:** `No` <br>
 
-Sets the upstream nameservers used to forward queries for out-of-cluster endpoints.
+Sets the upstream nameservers used to forward queries for out-of-cluster
+endpoints.
 If omitted defaults to `/etc/resolv.conf` and uses the nameservers of the node.
 
 
@@ -83,7 +85,8 @@ If omitted defaults to `false`
 **Type:** `string`<br>
 **Required:** `No` <br>
 
-Sets the name of the secret to be used for providing default encryption to ingresses.
+Sets the name of the secret to be used for providing default encryption to
+ingresses.
 
 Ingresses can specify another TLS secret in their resource definitions,
 in which case the default secret won't be used.
@@ -117,7 +120,8 @@ If omitted defaults to `false`
 **Type:** `list[string]`<br>
 **Required:** `No` <br>
 
-Sets the CIDRs used for assigning IP addresses to Kubernetes services with type `LoadBalancer`.
+Sets the CIDRs used for assigning IP addresses to Kubernetes services with type
+`LoadBalancer`.
 
 #### cluster-config.load-balancer.l2-mode
 
@@ -316,7 +320,8 @@ The CA certificate to be used when communicating with the external datastore.
 **Type:** `string` <br>
 **Required:** `No` <br>
 
-The client certificate to be used when communicating with the external datastore.
+The client certificate to be used when communicating with the external
+datastore.
 
 ### datastore-client-key
 
@@ -386,7 +391,8 @@ If omitted defaults to an auto generated key.
 **Type:** `string` <br>
 **Required:** `No` <br>
 
-The client certificate to be used by kubelet for communicating with the kube-apiserver.
+The client certificate to be used by kubelet for communicating with the
+kube-apiserver.
 If omitted defaults to an auto generated certificate.
 
 ### apiserver-kubelet-client-key
@@ -437,6 +443,79 @@ If omitted defaults to an auto generated certificate.
 The key to be used for the kubelet.
 If omitted defaults to an auto generated key.
 
+### extra-node-config-files
+
+**Type:** `map[string]string` <br>
+**Required:** `No` <br>
+
+Additional files that are uploaded `/var/snap/k8s/common/args/conf.d/<filename>`
+to a node on bootstrap. These files can them be references by Kubernetes
+service arguments.
+The format is `map[<filename>]<filecontent>`.
+
+### extra-node-kube-apiserver-args
+
+**Type:** `map[string]string` <br>
+**Required:** `No` <br>
+
+Additional arguments that are passed to the `kube-apiserver` only for that
+specific node. Overwrites default configuration. A parameter that is explicitly
+set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+
+### extra-node-kube-controller-manager-args
+
+**Type:** `map[string]string` <br>
+**Required:** `No` <br>
+
+Additional arguments that are passed to the `kube-controller-manager` only for
+that specific node. Overwrites default configuration. A parameter that is
+explicitly set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+
+### extra-node-kube-scheduler-args
+
+**Type:** `map[string]string` <br>
+**Required:** `No` <br>
+
+Additional arguments that are passed to the `kube-scheduler` only for that
+specific node. Overwrites default configuration. A parameter that is explicitly
+set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+
+### extra-node-kube-proxy-args
+
+**Type:** `map[string]string` <br>
+**Required:** `No` <br>
+
+Additional arguments that are passed to the `kube-proxy` only for that
+specific node. Overwrites default configuration. A parameter that is explicitly
+set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+
+### extra-node-kubelet-args
+
+**Type:** `map[string]string` <br>
+**Required:** `No` <br>
+
+Additional arguments that are passed to the `kubelet` only for that
+specific node. Overwrites default configuration. A parameter that is explicitly
+set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+
+### extra-node-containerd-args
+
+**Type:** `map[string]string` <br>
+**Required:** `No` <br>
+
+Additional arguments that are passed to `containerd` only for that
+specific node. Overwrites default configuration. A parameter that is explicitly
+set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+
+### extra-node-k8s-dqlite-args
+
+**Type:** `map[string]string` <br>
+**Required:** `No` <br>
+
+Additional arguments that are passed to `k8s-dqlite` only for that
+specific node. Overwrites default configuration. A parameter that is explicitly
+set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+
 ## Example
 
 The following example configures and enables certain features, sets an external
@@ -478,4 +557,20 @@ k8s-dqlite-port: 9090
 datastore-type: k8s-dqlite
 extra-sans:
 - custom.kubernetes
+extra-node-config-files:
+  bootstrap-extra-file.yaml: extra-args-test-file-content
+extra-node-kube-apiserver-args:
+  --request-timeout: 2m
+extra-node-kube-controller-manager-args:
+  --leader-elect-retry-period: 3s
+extra-node-kube-scheduler-args:
+  --authorization-webhook-cache-authorized-ttl: 11s
+extra-node-kube-proxy-args:
+  --config-sync-period: 14m
+extra-node-kubelet-args:
+  --authentication-token-webhook-cache-ttl: 3m
+extra-node-containerd-args:
+  --log-level: debug
+extra-node-k8s-dqlite-args:
+  --watch-storage-available-size-interval: 6s
 ```
