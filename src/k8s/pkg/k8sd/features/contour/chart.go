@@ -17,7 +17,7 @@ var (
 	// chartGateway represents manifests to deploy Contour Gateway.
 	// This excludes shared CRDs.
 	chartGateway = helm.InstallableChart{
-		Name:         "ck-gateway-contour",
+		Name:         "ck-gateway",
 		Namespace:    "projectcontour",
 		ManifestPath: path.Join("charts", "ck-gateway-contour-1.28.2.tgz"),
 	}

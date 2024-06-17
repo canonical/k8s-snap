@@ -57,11 +57,15 @@ def test_gateway(session_instance: harness.Instance):
 
     services = json.loads(p.stdout.decode())
 
-    ingress_services = [
-        svc for svc in services["items"] if "my-gateway" in svc["metadata"]["name"]
+    gateway_services = [
+        svc for svc in services["items"]
+        if (
+            ("projectcontour.io/owning-gateway-name" in svc["metadata"]["labels"] and svc["metadata"]["labels"]["projectcontour.io/owning-gateway-name"] == "my-gateway") or
+            ("io.cilium.gateway/owning-gateway" in svc["metadata"]["labels"] and svc["metadata"]["labels"]["io.cilium.gateway/owning-gateway"] == "my-gateway")
+        )
     ]
 
-    for svc in ingress_services:
+    for svc in gateway_services:
         for port in svc["spec"]["ports"]:
             if port["port"] == 80:
                 gateway_http_port = port["nodePort"]
