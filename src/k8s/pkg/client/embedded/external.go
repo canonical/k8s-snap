@@ -18,9 +18,10 @@ func NewExternalClient(binary string, storageDir string) *externalClient {
 }
 
 func (c *externalClient) RemoveNodeByAddress(ctx context.Context, peerURL string) error {
-	cmd := exec.CommandContext(ctx, c.binary, "embeddedctl", "member", "remove", "--storage-dir", c.storageDir, "--peer-url", peerURL)
+	command := []string{c.binary, "embeddedctl", "member", "remove", "--storage-dir", c.storageDir, "--peer-url", peerURL}
+	cmd := exec.CommandContext(ctx, command[0], command[1:]...)
 	if b, err := cmd.CombinedOutput(); err != nil && !bytes.Contains(b, []byte("cluster member not found")) {
-		return fmt.Errorf("command failed, rc=%v output=%q", cmd.ProcessState.ExitCode(), string(b))
+		return fmt.Errorf("command failed, rc=%v command=%v output=%q", cmd.ProcessState.ExitCode(), command, string(b))
 	}
 	return nil
 }
