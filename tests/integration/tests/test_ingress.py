@@ -37,6 +37,8 @@ def test_ingress(session_instance: List[harness.Instance]):
         svc for svc in services["items"] if "ingress" in svc["metadata"]["name"]
     ]
 
+    assert len(ingress_services) > 0, "No ingress services found."
+
     for svc in ingress_services:
         for port in svc["spec"]["ports"]:
             if port["port"] == 80:

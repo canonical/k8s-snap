@@ -58,14 +58,19 @@ def test_gateway(session_instance: harness.Instance):
     services = json.loads(p.stdout.decode())
 
     gateway_services = [
-        svc for svc in services["items"]
+        svc
+        for svc in services["items"]
         if (
-            (svc["metadata"].get("labels").get("projectcontour.io/owning-gateway-name") \
-             == "my-gateway") or
-            (svc["metadata"].get("labels").get("io.cilium.gateway/owning-gateway") \
-             == "my-gateway")
+            svc["metadata"].get("labels").get("projectcontour.io/owning-gateway-name")
+            == "my-gateway"
+            or svc["metadata"].get("labels").get("io.cilium.gateway/owning-gateway")
+            == "my-gateway"
         )
     ]
+
+    assert (
+        len(gateway_services) > 0
+    ), "No gateway services found that are owned by my-gateway."
 
     for svc in gateway_services:
         for port in svc["spec"]["ports"]:
