@@ -34,7 +34,12 @@ def test_ingress(session_instance: List[harness.Instance]):
     services = json.loads(p.stdout.decode())
 
     ingress_services = [
-        svc for svc in services["items"] if "ingress" in svc["metadata"]["name"]
+        svc
+        for svc in services["items"]
+        if (
+            svc["metadata"]["name"] == "ck-ingress-contour-envoy"
+            or svc["metadata"]["name"] == "cilium-ingress"
+        )
     ]
 
     assert len(ingress_services) > 0, "No ingress services found."
