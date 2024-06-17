@@ -6,12 +6,15 @@ import (
 	"os"
 	"path"
 
+	"github.com/canonical/k8s/pkg/k8sd/images"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/pelletier/go-toml"
 )
+
+const defaultPauseImage = "ghcr.io/canonical/k8s-snap/pause:3.10"
 
 var (
 	containerdConfigTomlTemplate = mustTemplate("containerd", "config.toml")
@@ -124,7 +127,7 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs
 		CNIBinDir:         snap.CNIBinDir(),
 		ImportsDir:        snap.ContainerdExtraConfigDir(),
 		RegistryConfigDir: snap.ContainerdRegistryConfigDir(),
-		PauseImage:        "ghcr.io/canonical/k8s-snap/pause:3.10",
+		PauseImage:        defaultPauseImage,
 	}); err != nil {
 		return fmt.Errorf("failed to write config.toml: %w", err)
 	}
@@ -207,4 +210,8 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs
 	}
 
 	return nil
+}
+
+func init() {
+	images.Register(defaultPauseImage)
 }
