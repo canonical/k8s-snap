@@ -16,4 +16,6 @@ type ClusterConfig struct {
 	MetricsServer MetricsServer `json:"metrics-server,omitempty"`
 
 	Annotations Annotations `json:"annotations,omitempty"`
+
+	ClusterAPI ClusterAPI `json:"cluster-api,omitempty"`
 }

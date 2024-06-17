@@ -20,7 +20,7 @@ func (e *Endpoints) postSetAuthToken(s *state.State, r *http.Request) response.R
 	}
 
 	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
-		return database.SetAuthToken(ctx, tx, request.Token)
+		return database.SetClusterAPIToken(ctx, tx, request.Token)
 	}); err != nil {
 		return response.InternalError(err)
 	}

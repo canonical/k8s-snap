@@ -21,7 +21,7 @@ func ValidateCAPIAuthTokenAccessHandler(tokenHeaderName string) func(s *state.St
 		var tokenIsValid bool
 		if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 			var err error
-			tokenIsValid, err = database.CheckAuthToken(ctx, tx, token)
+			tokenIsValid, err = database.ValidateClusterAPIToken(ctx, tx, token)
 			if err != nil {
 				return fmt.Errorf("failed to check CAPI auth token: %w", err)
 			}
