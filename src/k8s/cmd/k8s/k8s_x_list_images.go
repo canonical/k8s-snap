@@ -14,7 +14,7 @@ func newXListImagesCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:    "x-list-images",
 		Short:  "List all images used by the current version of k8s-snap",
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.PrintErrln(strings.Join(images.Images(), "\n"))
+			cmd.Println(strings.Join(images.Images(), "\n"))
 		},
 	}
 	return cmd
