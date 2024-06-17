@@ -50,7 +50,7 @@ def get_variable_substitutions(data: Any) -> dict[str, str]:
     }
 
 
-def make_template(data: str) -> str:
+def make_template(data: Any) -> str:
     def to_yaml_filter(value):
         return yaml.dump(value, default_flow_style=False).strip()
 
