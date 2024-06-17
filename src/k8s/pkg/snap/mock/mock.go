@@ -7,6 +7,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
 
@@ -16,6 +17,7 @@ type Mock struct {
 	OnLXDErr                    error
 	UID                         int
 	GID                         int
+	Hostname                    string
 	KubernetesConfigDir         string
 	KubernetesPKIDir            string
 	EtcdPKIDir                  string
@@ -56,6 +58,9 @@ type Snap struct {
 	SnapctlGetCalledWith [][]string
 	SnapctlGetErr        error
 
+	PreInitChecksCalledWith []types.ClusterConfig
+	PreInitChecksErr        error
+
 	Mock Mock
 }
 
@@ -95,6 +100,9 @@ func (s *Snap) UID() int {
 }
 func (s *Snap) GID() int {
 	return s.Mock.GID
+}
+func (s *Snap) Hostname() string {
+	return s.Mock.Hostname
 }
 func (s *Snap) ContainerdConfigDir() string {
 	return s.Mock.ContainerdConfigDir
@@ -172,6 +180,10 @@ func (s *Snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
 func (s *Snap) SnapctlSet(ctx context.Context, args ...string) error {
 	s.SnapctlSetCalledWith = append(s.SnapctlGetCalledWith, args)
 	return s.SnapctlSetErr
+}
+func (s *Snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) error {
+	s.PreInitChecksCalledWith = append(s.PreInitChecksCalledWith, config)
+	return s.PreInitChecksErr
 }
 
 var _ snap.Snap = &Snap{}

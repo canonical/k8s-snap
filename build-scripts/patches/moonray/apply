@@ -14,8 +14,6 @@ rm "${DIR}/../../../tests/integration/tests/test_loadbalancer.py"
 rm "${DIR}/../../../tests/integration/tests/test_gateway.py"
 ## TODO: restore when ingress is implemented
 rm "${DIR}/../../../tests/integration/tests/test_ingress.py"
-## TODO: restore when network test is fixed
-rm "${DIR}/../../../tests/integration/tests/test_network.py"
 
 git commit -a -m "Remove unrelated tests"
 
