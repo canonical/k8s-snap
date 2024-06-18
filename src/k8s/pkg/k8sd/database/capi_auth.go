@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/subtle"
 	"database/sql"
-	_ "embed"
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"

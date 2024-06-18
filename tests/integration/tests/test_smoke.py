@@ -56,18 +56,15 @@ def test_smoke(instances: List[harness.Instance]):
         )
         assert value in args.stdout.decode()
 
-
-def test_capi_auth(session_instance: harness.Instance):
-    """Verify the functionality of the CAPI endpoints."""
-
-    session_instance.exec("k8s x-capi set-auth-token my-secret-token".split())
+    LOG.info("Verify the functionality of the CAPI endpoints.")
+    instance.exec("k8s x-capi set-auth-token my-secret-token".split())
 
     body = {
         "name": "my-node",
         "worker": False,
     }
 
-    resp = session_instance.exec(
+    resp = instance.exec(
         [
             "curl",
             "-XPOST",
@@ -89,5 +86,9 @@ def test_capi_auth(session_instance: harness.Instance):
         response["error_code"] == 0
     ), "Failed to generate join token using CAPI endpoints."
     metadata = response.get("metadata")
-    assert metadata is not None, "Metadata not found in the response."
-    assert metadata.get("token") is not None, "Token not found in the response."
+    assert (
+        metadata is not None
+    ), "Metadata not found in the generate-join-token response."
+    assert (
+        metadata.get("token") is not None
+    ), "Token not found in the generate-join-token response."
