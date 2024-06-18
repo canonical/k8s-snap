@@ -59,8 +59,6 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		// local storage
 		{name: "local storage path", val: &config.LocalStorage.LocalPath, old: existing.LocalStorage.LocalPath, new: new.LocalStorage.LocalPath, allowChange: !existing.LocalStorage.GetEnabled() || !new.LocalStorage.GetEnabled()},
 		{name: "local storage reclaim policy", val: &config.LocalStorage.ReclaimPolicy, old: existing.LocalStorage.ReclaimPolicy, new: new.LocalStorage.ReclaimPolicy, allowChange: !existing.LocalStorage.GetEnabled() || !new.LocalStorage.GetEnabled()},
-		// clusterapi auth
-		{name: "clusterAPI authentication token", val: &config.ClusterAPI.AuthToken, old: existing.ClusterAPI.AuthToken, new: new.ClusterAPI.AuthToken, allowChange: true},
 	} {
 		if *i.val, err = mergeField(i.old, i.new, i.allowChange); err != nil {
 			return ClusterConfig{}, fmt.Errorf("prevented update of %s: %w", i.name, err)
