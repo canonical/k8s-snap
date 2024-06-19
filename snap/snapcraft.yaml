@@ -73,15 +73,16 @@ parts:
     source: src/k8s
     plugin: nil
     override-build: |
-      INSTALL="${SNAPCRAFT_PART_INSTALL}/bin"
-      mkdir -p "${INSTALL}"
+      INSTALL="${SNAPCRAFT_PART_INSTALL}"
 
       export DQLITE_BUILD_SCRIPTS_DIR="${SNAPCRAFT_STAGE}/static-dqlite-deps"
       make static -j
 
+      mkdir -p "${INSTALL}/bin"
       for binary in k8s k8sd k8s-apiserver-proxy; do
-        cp -P "bin/static/${binary}" "${INSTALL}/${binary}"
+        cp -P "bin/static/${binary}" "${INSTALL}/bin/${binary}"
       done
+      ./bin/static/k8s list-images > "${INSTALL}/images.txt"
 
   cni:
     after: [build-deps]
