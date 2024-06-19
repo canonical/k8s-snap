@@ -13,8 +13,8 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func (e *Endpoints) postSetAuthToken(s *state.State, r *http.Request) response.Response {
-	request := apiv1.SetAuthTokenRequest{}
+func (e *Endpoints) postSetClusterAPIAuthToken(s *state.State, r *http.Request) response.Response {
+	request := apiv1.SetClusterAPIAuthTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}

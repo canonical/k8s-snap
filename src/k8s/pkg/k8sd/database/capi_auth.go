@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"crypto/subtle"
 	"database/sql"
 	"fmt"
 
@@ -40,11 +39,11 @@ func ValidateClusterAPIToken(ctx context.Context, tx *sql.Tx, token string) (boo
 		return false, fmt.Errorf("failed to prepare select statement: %w", err)
 	}
 
-	var storedToken string
-	err = selectTxStmt.QueryRowContext(ctx).Scan(&storedToken)
+	var exists bool
+	err = selectTxStmt.QueryRowContext(ctx, token).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("failed to query ClusterAPI token: %w", err)
 	}
 
-	return subtle.ConstantTimeCompare([]byte(token), []byte(storedToken)) == 1, nil
+	return exists, nil
 }

@@ -26,7 +26,7 @@ func newXCAPICmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			err = client.SetAuthToken(cmd.Context(), apiv1.SetAuthTokenRequest{Token: token})
+			err = client.SetClusterAPIAuthToken(cmd.Context(), apiv1.SetClusterAPIAuthTokenRequest{Token: token})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to set the CAPI auth token.\n\nThe error was: %v\n", err)
 				env.Exit(1)

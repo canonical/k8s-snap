@@ -8,8 +8,8 @@ import (
 	"github.com/canonical/lxd/shared/api"
 )
 
-// SetAuthToken calls "POST 1.0/x/capi/set-auth-token".
-func (c *k8sdClient) SetAuthToken(ctx context.Context, request apiv1.SetAuthTokenRequest) error {
+// SetClusterAPIAuthToken calls "POST 1.0/x/capi/set-auth-token".
+func (c *k8sdClient) SetClusterAPIAuthToken(ctx context.Context, request apiv1.SetClusterAPIAuthTokenRequest) error {
 	if err := c.mc.Query(ctx, "POST", api.NewURL().Path("x", "capi", "set-auth-token"), request, nil); err != nil {
 		return fmt.Errorf("failed to POST /x/capi/set-auth-token: %w", err)
 	}

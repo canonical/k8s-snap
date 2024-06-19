@@ -91,14 +91,14 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		},
 		// ClusterAPI management endpoints.
 		{
-			Name: "GenerateJoinToken",
+			Name: "ClusterAPI/GenerateJoinToken",
 			Path: "x/capi/generate-join-token",
 			Post: rest.EndpointAction{Handler: e.postClusterJoinTokens, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
 		},
 		{
-			Name: "SetAuthToken",
+			Name: "ClusterAPI/SetAuthToken",
 			Path: "x/capi/set-auth-token",
-			Post: rest.EndpointAction{Handler: e.postSetAuthToken},
+			Post: rest.EndpointAction{Handler: e.postSetClusterAPIAuthToken},
 		},
 	}
 }
