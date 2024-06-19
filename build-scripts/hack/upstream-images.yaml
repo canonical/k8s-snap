@@ -7,3 +7,30 @@ sync:
   - source: registry.k8s.io/pause:3.10
     target: ghcr.io/canonical/k8s-snap/pause:3.10
     type: image
+  - source: docker.io/calico/apiserver:v3.28.0
+    target: ghcr.io/canonical/k8s-snap/calico/apiserver:v3.28.0
+    type: image
+  - source: docker.io/calico/cni:v3.28.0
+    target: ghcr.io/canonical/k8s-snap/calico/cni:v3.28.0
+    type: image
+  - source: docker.io/calico/csi:v3.28.0
+    target: ghcr.io/canonical/k8s-snap/calico/csi:v3.28.0
+    type: image
+  - source: docker.io/calico/kube-controllers:v3.28.0
+    target: ghcr.io/canonical/k8s-snap/calico/kube-controllers:v3.28.0
+    type: image
+  - source: docker.io/calico/node-driver-registrar:v3.28.0
+    target: ghcr.io/canonical/k8s-snap/calico/node-driver-registrar:v3.28.0
+    type: image
+  - source: docker.io/calico/node:v3.28.0
+    target: ghcr.io/canonical/k8s-snap/calico/node:v3.28.0
+    type: image
+  - source: docker.io/calico/pod2daemon-flexvol:v3.28.0
+    target: ghcr.io/canonical/k8s-snap/calico/pod2daemon-flexvol:v3.28.0
+    type: image
+  - source: docker.io/calico/typha:v3.28.0
+    target: ghcr.io/canonical/k8s-snap/calico/typha:v3.28.0
+    type: image
+  - source: quay.io/tigera/operator:v1.34.0
+    target: ghcr.io/canonical/k8s-snap/tigera/operator:v1.34.0
+    type: image
