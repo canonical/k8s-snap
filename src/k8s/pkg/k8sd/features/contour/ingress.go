@@ -68,7 +68,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	}
 
 	// Install the delegation resource for the default TLS secret.
-	// The default TLS secret is created by the user created,
+	// The default TLS secret is created by the user
 	// and gets set via k8s set defaultTLSSecret=bananas.
 	if ingress.GetDefaultTLSSecret() != "" {
 		values = map[string]any{
