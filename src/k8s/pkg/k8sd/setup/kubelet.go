@@ -51,7 +51,6 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 		"--containerd":                   path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
 		"--eviction-hard":                "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'",
 		"--fail-swap-on":                 "false",
-		"--hostname-override":            hostname,
 		"--kubeconfig":                   path.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
 		"--node-labels":                  strings.Join(labels, ","),
 		"--read-only-port":               "0",
@@ -61,6 +60,10 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 		"--tls-cipher-suites":            strings.Join(kubeletTLSCipherSuites, ","),
 		"--tls-cert-file":                path.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
 		"--tls-private-key-file":         path.Join(snap.KubernetesPKIDir(), "kubelet.key"),
+	}
+
+	if hostname != snap.Hostname() {
+		args["--hostname-override"] = hostname
 	}
 	if cloudProvider != "" {
 		args["--cloud-provider"] = cloudProvider

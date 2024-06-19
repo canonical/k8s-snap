@@ -14,8 +14,9 @@ type Snap interface {
 	Strict() bool                        // Strict returns true if the snap is installed with strict confinement.
 	OnLXD(context.Context) (bool, error) // OnLXD returns true if the host runs on LXD.
 
-	UID() int // UID is the user ID to set on config files.
-	GID() int // GID is the group ID to set on config files.
+	UID() int         // UID is the user ID to set on config files.
+	GID() int         // GID is the group ID to set on config files.
+	Hostname() string // Hostname is the name of the node.
 
 	StartService(ctx context.Context, serviceName string) error   // snapctl start $service
 	StopService(ctx context.Context, serviceName string) error    // snapctl stop $service

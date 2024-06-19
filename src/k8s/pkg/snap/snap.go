@@ -95,6 +95,14 @@ func (s *snap) GID() int {
 	return 0
 }
 
+func (s *snap) Hostname() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "dev"
+	}
+	return hostname
+}
+
 func (s *snap) ContainerdConfigDir() string {
 	return path.Join(s.snapCommonDir, "etc", "containerd")
 }

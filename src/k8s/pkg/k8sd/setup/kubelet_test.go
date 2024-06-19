@@ -379,4 +379,19 @@ func TestKubelet(t *testing.T) {
 
 		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil)).ToNot(Succeed())
 	})
+
+	t.Run("HostnameOverride", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// Create a mock snap
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
+		s.Mock.Hostname = "dev"
+
+		// Call the kubelet control plane setup function
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
+
+		val, err := snaputil.GetServiceArgument(s, "kubelet", "--hostname-override")
+		g.Expect(err).To(BeNil())
+		g.Expect(val).To(BeEmpty())
+	})
 }
