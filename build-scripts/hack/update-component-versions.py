@@ -65,7 +65,7 @@ def get_cni_version() -> str:
 
 def pull_contour_chart() -> None:
     LOG.info("Pulling Contour Helm chart from %s with version %s", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION)
-    util.helm_pull("contour", "bitnami", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION, CHARTS)
+    util.helm_pull("bitnami/contour", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION, CHARTS)
 
 def get_containerd_version() -> str:
     """Update containerd version using latest tag of specified branch"""
