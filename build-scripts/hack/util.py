@@ -63,4 +63,4 @@ def helm_pull(chart, repo_url: str, version: str, destination: Path) -> None:
         ]
     )
 
-    LOG.info("Pulled helm chart %s @ %s as %s to %s", chart_name, version, repo_url, destination)
+    LOG.info("Pulled helm chart %s @ %s as %s to %s", chart, version, repo_url, destination)
