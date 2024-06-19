@@ -14,10 +14,10 @@ var (
 		ManifestPath: path.Join("charts", "tigera-operator-v3.28.0.tgz"),
 	}
 
-	// tigeraOperatorRepo represents the repo to fetch the tigera-operator image for calico.
 	// Note: Tigera is the company behind Calico and the tigera-operator is the operator for Calico.
 	// TODO: use ROCKs instead of upstream
-	tigeraOperatorRegistry = "ghcr.io/canonical/k8s-snap"
+	// imageRepo represents the repo to fetch the Calico CNI images.
+	imageRepo = "ghcr.io/canonical/k8s-snap"
 
 	// tigeraOperatorImage represents the image to fetch for calico.
 	tigeraOperatorImage = "tigera/operator"

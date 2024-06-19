@@ -8,7 +8,7 @@ import (
 
 func init() {
 	images.Register(
-		fmt.Sprintf("%s/%s:%s", tigeraOperatorRegistry, tigeraOperatorImage, tigeraOperatorVersion),
+		fmt.Sprintf("%s/%s:%s", imageRepo, tigeraOperatorImage, tigeraOperatorVersion),
 	)
 
 	// TODO: configurable Calico images, include in this list
