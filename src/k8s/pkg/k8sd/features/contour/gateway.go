@@ -46,27 +46,48 @@ func waitForRequiredContourCommonCRDs(ctx context.Context, snap snap.Snap) error
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
-	return control.WaitUntilReady(ctx, func() (bool, error) {
-		resources, err := client.ListResourcesForGroupVersion("projectcontour.io/v1alpha1")
+	requiredCRDs := map[string][]string{
+		"projectcontour.io/v1alpha1": {
+			"contourconfigurations.projectcontour.io",
+			"contourdeployments.projectcontour.io",
+			"extensionservices.projectcontour.io",
+		},
+		"projectcontour.io/v1": {
+			"tlscertificatedelegations.projectcontour.io",
+			"httpproxies.projectcontour.io",
+		},
+	}
+
+	// checkRequiredCRDs checks if the required CRDs are present in the cluster.
+	checkRequiredCRDs := func(groupVersion string, required []string) (bool, error) {
+		resources, err := client.ListResourcesForGroupVersion(groupVersion)
 		if err != nil {
 			// This error is expected if the group version is not yet deployed.
 			return false, nil
 		}
 
-		requiredCRDs := map[string]bool{
-			"contourconfigurations.projectcontour.io":     true,
-			"contourdeployments.projectcontour.io":        true,
-			"extensionservices.projectcontour.io":         true,
-			"httpproxies.projectcontour.io":               true,
-			"tlscertificatedelegations.projectcontour.io": true,
+		requiredMap := make(map[string]bool)
+		for _, crd := range required {
+			requiredMap[crd] = true
 		}
 
-		requiredCount := len(requiredCRDs)
 		for _, resource := range resources.APIResources {
-			if _, exists := requiredCRDs[resource.Name]; exists {
-				requiredCount--
+			delete(requiredMap, resource.Name)
+		}
+
+		return len(requiredMap) == 0, nil
+	}
+
+	return control.WaitUntilReady(ctx, func() (bool, error) {
+		for groupVersion, crds := range requiredCRDs {
+			ready, err := checkRequiredCRDs(groupVersion, crds)
+			if err != nil {
+				return false, err
+			}
+			if !ready {
+				return false, nil
 			}
 		}
-		return requiredCount == 0, nil
+		return true, nil
 	})
 }
