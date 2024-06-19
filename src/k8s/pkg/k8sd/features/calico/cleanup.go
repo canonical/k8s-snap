@@ -23,6 +23,8 @@ func CleanupNetwork(ctx context.Context, snap snap.Snap) error {
 	// Find the interfaces created by Calico
 	for _, iface := range interfaces {
 		// Check if the interface name matches the regex pattern
+		// Adapted from MicroK8s' link removal hook:
+		// https://github.com/canonical/microk8s/blob/dff3627959d4774198000795a0a0afcaa003324b/microk8s-resources/default-hooks/remove.d/10-cni-link#L15
 		match, err := regexp.MatchString("^vxlan[-v6]*.calico|cali[a-f0-9]*|tunl[0-9]*$", iface.Name)
 		if err != nil {
 			return fmt.Errorf("failed to match regex pattern: %w", err)

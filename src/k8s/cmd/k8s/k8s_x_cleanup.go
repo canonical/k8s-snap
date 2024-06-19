@@ -27,7 +27,7 @@ func newXCleanupCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 		},
 	}
-	cleanupNetworkCmd.Flags().DurationVar(&opts.timeout, "timeout", 5*time.Minute, "maximum time to wait")
+	cleanupNetworkCmd.Flags().DurationVar(&opts.timeout, "timeout", 5*time.Minute, "the max time to wait for the command to execute")
 
 	cmd := &cobra.Command{
 		Use:    "x-cleanup",
