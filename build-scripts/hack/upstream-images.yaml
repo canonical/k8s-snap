@@ -16,6 +16,9 @@ sync:
   - source: docker.io/calico/csi:v3.28.0
     target: ghcr.io/canonical/k8s-snap/calico/csi:v3.28.0
     type: image
+  - source: docker.io/calico/ctl:v3.28.0
+    target: ghcr.io/canonical/k8s-snap/calico/ctl:v3.28.0
+    type: image
   - source: docker.io/calico/kube-controllers:v3.28.0
     target: ghcr.io/canonical/k8s-snap/calico/kube-controllers:v3.28.0
     type: image

@@ -17,7 +17,7 @@ var (
 	// tigeraOperatorRepo represents the repo to fetch the tigera-operator image for calico.
 	// Note: Tigera is the company behind Calico and the tigera-operator is the operator for Calico.
 	// TODO: use ROCKs instead of upstream
-	tigeraOperatorRegistry = "quay.io"
+	tigeraOperatorRegistry = "ghcr.io/canonical/k8s-snap"
 
 	// tigeraOperatorImage represents the image to fetch for calico.
 	tigeraOperatorImage = "tigera/operator"
@@ -27,7 +27,7 @@ var (
 
 	// calicoCtlImage represents the image to fetch for calicoctl.
 	// TODO: use ROCKs instead of upstream
-	calicoCtlImage = "docker.io/calico/ctl"
+	calicoCtlImage = "ghcr.io/canonical/k8s-snap/calico/ctl"
 	// calicoCtlTag represents the tag to use for the calicoctl image.
 	calicoCtlTag = "v3.28.0"
 )
