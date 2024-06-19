@@ -11,7 +11,7 @@ import (
 )
 
 // ApplyIngress will install the contour helm chart when ingress.Enabled is true.
-// ApplyIngress will deinstall the contour helm chart when ingress.Disabled is false.
+// ApplyIngress will uninstall the contour helm chart when ingress.Disabled is false.
 // ApplyIngress will rollout restart the Contour pods in case any Contour configuration was changed.
 // ApplyIngress will install a delegation resource via helm chart
 // for the default TLS secret if ingress.DefaultTLSSecret is set.
@@ -29,6 +29,10 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	// Apply common contour CRDS, these are shared with gateway
 	if err := applyCommonContourCRDS(ctx, snap, true); err != nil {
 		return fmt.Errorf("failed to apply common contour CRDS: %w", err)
+	}
+
+	if err := waitForRequiredContourCommonCRDs(ctx, snap); err != nil {
+		return fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
 	}
 
 	var values map[string]any
