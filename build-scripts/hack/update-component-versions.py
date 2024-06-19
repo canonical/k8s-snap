@@ -38,7 +38,7 @@ CONTAINERD_RELEASE_BRANCH = "release/1.6"
 HELM_RELEASE_BRANCH = "release-3.14"
 
 # Contour Helm repository and chart version
-CONTOUR_HELM_REPO = "https://charts.bitnami.com/bitnami"
+CONTOUR_HELM_REPO = "oci://registry-1.docker.io/bitnamicharts/contour"
 CONTOUR_CHART_VERSION = "17.0.4"
 
 def get_kubernetes_version() -> str:
@@ -65,7 +65,7 @@ def get_cni_version() -> str:
 
 def pull_contour_chart() -> None:
     LOG.info("Pulling Contour Helm chart from %s with version %s", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION)
-    util.helm_pull("contour", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION, CHARTS)
+    util.helm_pull("contour", "bitnami", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION, CHARTS)
 
 def get_containerd_version() -> str:
     """Update containerd version using latest tag of specified branch"""
