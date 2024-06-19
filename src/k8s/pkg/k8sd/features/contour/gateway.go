@@ -21,10 +21,11 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
 			return fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
 		}
+		return nil
 	}
 
 	// Apply common contour CRDS, these are shared with ingress
-	if err := applyCommonContourCRDS(ctx, snap, true); err != nil { //TODO: check wether one of ingress/gateway is enabled
+	if err := applyCommonContourCRDS(ctx, snap, true); err != nil {
 		return fmt.Errorf("failed to apply common contour CRDS: %w", err)
 	}
 

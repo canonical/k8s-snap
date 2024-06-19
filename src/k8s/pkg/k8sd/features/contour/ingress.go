@@ -24,6 +24,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		if _, err := m.Apply(ctx, chartContour, helm.StateDeleted, nil); err != nil {
 			return fmt.Errorf("failed to uninstall ingress: %w", err)
 		}
+		return nil
 	}
 
 	// Apply common contour CRDS, these are shared with gateway
