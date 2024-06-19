@@ -47,14 +47,18 @@ func waitForRequiredContourCommonCRDs(ctx context.Context, snap snap.Snap) error
 	}
 
 	return control.WaitUntilReady(ctx, func() (bool, error) {
-		resources, err := client.ListResourcesForGroupVersion("apiextensions.k8s.io/v1")
+		resources, err := client.ListResourcesForGroupVersion("projectcontour.io/v1alpha1")
 		if err != nil {
 			// This error is expected if the group version is not yet deployed.
 			return false, nil
 		}
 
 		requiredCRDs := map[string]bool{
-			"customresourcedefinitions": true,
+			"contourconfigurations.projectcontour.io":     true,
+			"contourdeployments.projectcontour.io":        true,
+			"extensionservices.projectcontour.io":         true,
+			"httpproxies.projectcontour.io":               true,
+			"tlscertificatedelegations.projectcontour.io": true,
 		}
 
 		requiredCount := len(requiredCRDs)
