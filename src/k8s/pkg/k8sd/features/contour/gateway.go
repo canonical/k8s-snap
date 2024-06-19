@@ -54,11 +54,7 @@ func waitForRequiredContourCommonCRDs(ctx context.Context, snap snap.Snap) error
 		}
 
 		requiredCRDs := map[string]bool{
-			"contourconfigurations.projectcontour.io":     true,
-			"contourdeployments.projectcontour.io":        true,
-			"extensionservices.projectcontour.io":         true,
-			"httpproxies.projectcontour.io":               true,
-			"tlscertificatedelegations.projectcontour.io": true,
+			"customresourcedefinitions": true,
 		}
 
 		requiredCount := len(requiredCRDs)
