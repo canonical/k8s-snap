@@ -62,11 +62,11 @@ func waitForRequiredContourCommonCRDs(ctx context.Context, snap snap.Snap) error
 		combinedAPIResources := append(resourcesV1Alpha.APIResources, resourcesV1.APIResources...)
 
 		requiredCRDs := map[string]bool{
-			"projectcontour.io/v1alpha1:contourconfigurations.projectcontour.io": true,
-			"projectcontour.io/v1alpha1:contourdeployments.projectcontour.io":    true,
-			"projectcontour.io/v1alpha1:extensionservices.projectcontour.io":     true,
-			"projectcontour.io/v1:tlscertificatedelegations.projectcontour.io":   true,
-			"projectcontour.io/v1:httpproxies.projectcontour.io":                 true,
+			"projectcontour.io/v1alpha1:contourconfigurations": true,
+			"projectcontour.io/v1alpha1:contourdeployments":    true,
+			"projectcontour.io/v1alpha1:extensionservices":     true,
+			"projectcontour.io/v1:tlscertificatedelegations":   true,
+			"projectcontour.io/v1:httpproxies":                 true,
 		}
 
 		requiredCount := len(requiredCRDs)
