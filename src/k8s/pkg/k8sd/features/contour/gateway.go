@@ -40,54 +40,41 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	return nil
 }
 
+// waitForRequiredContourCommonCRDs waits for the required contour CRDs to be available
+// by checking the API resources by group version and name.
 func waitForRequiredContourCommonCRDs(ctx context.Context, snap snap.Snap) error {
 	client, err := snap.KubernetesClient("")
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
-	requiredCRDs := map[string][]string{
-		"projectcontour.io/v1alpha1": {
-			"contourconfigurations.projectcontour.io",
-			"contourdeployments.projectcontour.io",
-			"extensionservices.projectcontour.io",
-		},
-		"projectcontour.io/v1": {
-			"tlscertificatedelegations.projectcontour.io",
-			"httpproxies.projectcontour.io",
-		},
-	}
-
-	// checkRequiredCRDs checks if the required CRDs are present in the cluster.
-	checkRequiredCRDs := func(groupVersion string, required []string) (bool, error) {
-		resources, err := client.ListResourcesForGroupVersion(groupVersion)
+	return control.WaitUntilReady(ctx, func() (bool, error) {
+		resourcesV1Alpha, err := client.ListResourcesForGroupVersion("projectcontour.io/v1alpha1")
 		if err != nil {
 			// This error is expected if the group version is not yet deployed.
 			return false, nil
 		}
+		resourcesV1, err := client.ListResourcesForGroupVersion("projectcontour.io/v1")
+		if err != nil {
+			// This error is expected if the group version is not yet deployed.
+			return false, nil
+		}
+		combinedAPIResources := append(resourcesV1Alpha.APIResources, resourcesV1.APIResources...)
 
-		requiredMap := make(map[string]bool)
-		for _, crd := range required {
-			requiredMap[crd] = true
+		requiredCRDs := map[string]bool{
+			"projectcontour.io/v1alpha1:contourconfigurations.projectcontour.io": true,
+			"projectcontour.io/v1alpha1:contourdeployments.projectcontour.io":    true,
+			"projectcontour.io/v1alpha1:extensionservices.projectcontour.io":     true,
+			"projectcontour.io/v1:tlscertificatedelegations.projectcontour.io":   true,
+			"projectcontour.io/v1:httpproxies.projectcontour.io":                 true,
 		}
 
-		for _, resource := range resources.APIResources {
-			delete(requiredMap, resource.Name)
-		}
-
-		return len(requiredMap) == 0, nil
-	}
-
-	return control.WaitUntilReady(ctx, func() (bool, error) {
-		for groupVersion, crds := range requiredCRDs {
-			ready, err := checkRequiredCRDs(groupVersion, crds)
-			if err != nil {
-				return false, err
-			}
-			if !ready {
-				return false, nil
+		requiredCount := len(requiredCRDs)
+		for _, resource := range combinedAPIResources {
+			if _, exists := requiredCRDs[fmt.Sprintf("%s:%s", resource.Group, resource.Name)]; exists {
+				requiredCount--
 			}
 		}
-		return true, nil
+		return requiredCount == 0, nil
 	})
 }
