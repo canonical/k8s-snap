@@ -71,7 +71,6 @@ func waitForRequiredContourCommonCRDs(ctx context.Context, snap snap.Snap) error
 
 		requiredCount := len(requiredCRDs)
 		for _, resource := range combinedAPIResources {
-			fmt.Printf("%s", resource.Name)
 			if _, exists := requiredCRDs[resource.Name]; exists {
 				requiredCount--
 			}
