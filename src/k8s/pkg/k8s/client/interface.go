@@ -34,6 +34,8 @@ type Client interface {
 	UpdateClusterConfig(ctx context.Context, request apiv1.UpdateClusterConfigRequest) error
 	// GetClusterConfig retrieves configuration of the cluster.
 	GetClusterConfig(ctx context.Context, request apiv1.GetClusterConfigRequest) (apiv1.UserFacingClusterConfig, error)
+	// SetClusterAPIAuthToken sets the auth token for the CAPI provider.
+	SetClusterAPIAuthToken(ctx context.Context, request apiv1.SetClusterAPIAuthTokenRequest) error
 }
 
 var _ Client = &k8sdClient{}

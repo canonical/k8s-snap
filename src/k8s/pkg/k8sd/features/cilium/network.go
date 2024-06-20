@@ -48,7 +48,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 		"operator": map[string]any{
 			"replicas": 1,
 			"image": map[string]any{
-				"repository": ciliumOperatorImageRepository,
+				"repository": ciliumOperatorImageRepo,
 				"tag":        ciliumOperatorImageTag,
 				"useDigest":  false,
 			},

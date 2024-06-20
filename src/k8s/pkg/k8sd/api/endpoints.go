@@ -89,5 +89,16 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Path: "kubernetes/auth/webhook",
 			Post: rest.EndpointAction{Handler: e.postKubernetesAuthWebhook, AllowUntrusted: true},
 		},
+		// ClusterAPI management endpoints.
+		{
+			Name: "ClusterAPI/GenerateJoinToken",
+			Path: "x/capi/generate-join-token",
+			Post: rest.EndpointAction{Handler: e.postClusterJoinTokens, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
+		},
+		{
+			Name: "ClusterAPI/SetAuthToken",
+			Path: "x/capi/set-auth-token",
+			Post: rest.EndpointAction{Handler: e.postSetClusterAPIAuthToken},
+		},
 	}
 }
