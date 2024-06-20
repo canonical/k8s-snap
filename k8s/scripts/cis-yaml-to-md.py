@@ -107,7 +107,7 @@ def main():
     output_dir.mkdir(exist_ok=True)
 
     substitutions = get_variable_substitutions(
-        yaml.safe_load((input_dir / "config.yaml").read_text())
+        yaml.safe_load((input_dir / CONFIG_FILE).read_text())
     )
 
     generate_markdown(input_dir, output_dir, substitutions)
