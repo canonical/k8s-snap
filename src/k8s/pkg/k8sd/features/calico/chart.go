@@ -19,6 +19,11 @@ var (
 	// imageRepo represents the repo to fetch the Calico CNI images.
 	imageRepo = "ghcr.io/canonical/k8s-snap"
 
+	// calicoImageRepo represents the repo to fetch the calico images.
+	calicoImageRepo = "ghcr.io/canonical/k8s-snap/calico"
+	// calicoTag represents the tag to use for the calico images.
+	calicoTag = "v3.28.0"
+
 	// tigeraOperatorImage represents the image to fetch for calico.
 	tigeraOperatorImage = "tigera/operator"
 
