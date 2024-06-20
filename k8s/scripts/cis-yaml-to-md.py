@@ -23,6 +23,8 @@ logging.basicConfig(level=logging.INFO)
 
 LOG = logging.getLogger(__name__)
 
+DIR = Path(__file__).absolute().parent
+
 JINJA_TEMPLATE = "cis-template.jinja2"
 CONFIG_FILE = "config.yaml"
 
@@ -55,7 +57,7 @@ def make_template(data: Any) -> str:
         return yaml.dump(value, default_flow_style=False).strip()
 
     env = Environment(
-        loader=FileSystemLoader("."),
+        loader=FileSystemLoader(DIR),
         trim_blocks=True,
         lstrip_blocks=True,
     )
