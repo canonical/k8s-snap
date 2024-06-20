@@ -47,8 +47,10 @@ type Client struct {
 		Config apiv1.UserFacingClusterConfig
 		Err    error
 	}
-	UpdateClusterConfigCalledWith apiv1.UpdateClusterConfigRequest
-	UpdateClusterConfigErr        error
+	UpdateClusterConfigCalledWith    apiv1.UpdateClusterConfigRequest
+	UpdateClusterConfigErr           error
+	SetClusterAPIAuthTokenCalledWith apiv1.SetClusterAPIAuthTokenRequest
+	SetClusterAPIAuthTokenErr        error
 }
 
 func (c *Client) Bootstrap(ctx context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error) {
@@ -111,6 +113,11 @@ func (c *Client) UpdateClusterConfig(ctx context.Context, request apiv1.UpdateCl
 func (c *Client) GetClusterConfig(ctx context.Context, request apiv1.GetClusterConfigRequest) (apiv1.UserFacingClusterConfig, error) {
 	c.GetClusterConfigCalledWith = request
 	return c.GetClusterConfigReturn.Config, c.GetClusterConfigReturn.Err
+}
+
+func (c *Client) SetClusterAPIAuthToken(ctx context.Context, request apiv1.SetClusterAPIAuthTokenRequest) error {
+	c.SetClusterAPIAuthTokenCalledWith = request
+	return c.SetClusterAPIAuthTokenErr
 }
 
 var _ client.Client = &Client{}
