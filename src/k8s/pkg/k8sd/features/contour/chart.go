@@ -33,4 +33,21 @@ var (
 		Namespace:    "projectcontour",
 		ManifestPath: path.Join("charts", "ck-contour-common-1.28.2.tgz"),
 	}
+	// envoyImageRepo represents the image to use for the Contour Envoy proxy.
+	envoyImageRepo = "docker.io/bitnami/envoy"
+
+	// envoyImageTag is the tag to use for the Contour Envoy proxy image.
+	envoyImageTag = "1.28.2-debian-12-r0"
+
+	// contourImageRepo represents the image to use for Contour.
+	contourImageRepo = "docker.io/bitnami/contour"
+
+	// contourImageTag is the tag to use for the Contour image.
+	contourImageTag = "1.28.2-debian-12-r4"
+
+	// contourGatewayImageRepo represents the image to use for the Contour Gateway Provisioner.
+	contourGatewayImageRepo = "ghcr.io/projectcontour/contour"
+
+	// contourGatewayImageTag is the tag to use for the Contour Gateway Provisioner image.
+	contourGatewayImageTag = "v1.28.2"
 )
