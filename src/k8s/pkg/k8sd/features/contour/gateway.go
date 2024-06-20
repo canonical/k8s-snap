@@ -59,22 +59,27 @@ func waitForRequiredContourCommonCRDs(ctx context.Context, snap snap.Snap) error
 			// This error is expected if the group version is not yet deployed.
 			return false, nil
 		}
-		combinedAPIResources := append(resourcesV1Alpha.APIResources, resourcesV1.APIResources...)
 
 		requiredCRDs := map[string]bool{
-			"contourconfigurations":     true,
-			"contourdeployments":        true,
-			"extensionservices":         true,
-			"tlscertificatedelegations": true,
-			"httpproxies":               true,
+			"projectcontour.io/v1alpha1:contourconfigurations": true,
+			"projectcontour.io/v1alpha1:contourdeployments":    true,
+			"projectcontour.io/v1alpha1:extensionservices":     true,
+			"projectcontour.io/v1:tlscertificatedelegations":   true,
+			"projectcontour.io/v1:httpproxies":                 true,
 		}
 
 		requiredCount := len(requiredCRDs)
-		for _, resource := range combinedAPIResources {
-			if _, exists := requiredCRDs[resource.Name]; exists {
+		for _, resource := range resourcesV1Alpha.APIResources {
+			if _, exists := requiredCRDs[fmt.Sprintf("projectcontour.io/v1alpha1:%s", resource.Name)]; exists {
 				requiredCount--
 			}
 		}
+		for _, resource := range resourcesV1.APIResources {
+			if _, exists := requiredCRDs[fmt.Sprintf("projectcontour.io/v1:%s", resource.Name)]; exists {
+				requiredCount--
+			}
+		}
+
 		return requiredCount == 0, nil
 	})
 }
