@@ -46,3 +46,27 @@ controls:
     expected: the RotateKubeletServerCertificate feature gate is not set
   - id: 4.2.13
     expected: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
+
+  # controlplane.md
+  - id: 3.1.1
+    expected:
+  - id: 3.2.1
+    expected: --audit-policy-file is set
+  - id: 3.2.2
+    expected:
+
+  # etcd.md
+  - id: 2.1 # needs review
+    expected: (--cert-file or ETCD_CERT_FILE) and (--key-file or ETCD_KEY_FILE) are set
+  - id: 2.2
+    expected: --client-cert-auth or ETCD_CLIENT_CERT_AUTH are set to true
+  - id: 2.3 # needs review
+    expected: --auto-tls and ETCD_AUTO_TLS are not set, if they are set, they are set to false
+  - id: 2.4
+    expected: (--peer-cert-file or ETCD_PEER_CERT_FILE) and (--peer-key-file or ETCD_PEER_KEY_FILE) are set
+  - id: 2.5
+    expected: --peer-client-cert-auth or ETCD_PEER_CLIENT_CERT_AUTH are set to true
+  - id: 2.6 # needs review
+    expected: --peer-auto-tls and ETCD_PEER_AUTO_TLS are not set, or if they are set, they are set to false
+  - id: 2.7
+    expected: --trusted-ca-file or ETCD_TRUSTED_CA_FILE are set
