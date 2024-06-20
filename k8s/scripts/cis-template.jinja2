@@ -1,16 +1,20 @@
-<!-- markdownlint-disable -->
 ## {{ title | trim }}
+
 {% for group in groups %}
+{% if group.text != title %}
 ### {{group.text}}
+
+{% endif %}
 {% for check in group.checks %}
 #### Control {{ check.id }}
 
 {% if check.text %}
-Description: `{{ check.text | trim }}`
+Description: `{{ check.text | trim | wordwrap(64) }}`
 {% endif %}
 {% if check.audit %}
 
 Audit:
+
 ```
 {{ check.audit | trim }}
 ```
@@ -18,13 +22,15 @@ Audit:
 
 {% if check.remediation %}
 Remediation:
+
 ```
-{{ check.remediation | trim }}
+{{ check.remediation | trim | wordwrap(64)}}
 ```
 {% endif %}
 
 {% if check.tests %}
 Expected output:
+
 ```
 {{ check.tests | to_yaml | trim }}
 ```
