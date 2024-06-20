@@ -49,22 +49,28 @@ func waitForRequiredContourCommonCRDs(ctx context.Context, snap snap.Snap) error
 	}
 
 	return control.WaitUntilReady(ctx, func() (bool, error) {
-		resources, err := client.ListResourcesForGroupVersion("projectcontour.io")
+		resourcesV1Alpha, err := client.ListResourcesForGroupVersion("projectcontour.io/v1alpha1")
 		if err != nil {
 			// This error is expected if the group version is not yet deployed.
 			return false, nil
 		}
+		resourcesV1, err := client.ListResourcesForGroupVersion("projectcontour.io/v1")
+		if err != nil {
+			// This error is expected if the group version is not yet deployed.
+			return false, nil
+		}
+		combinedAPIResources := append(resourcesV1Alpha.APIResources, resourcesV1.APIResources...)
 
 		requiredCRDs := map[string]bool{
-			"contourconfigurations":     true,
-			"contourdeployments":        true,
-			"extensionservices":         true,
-			"tlscertificatedelegations": true,
-			"httpproxies":               true,
+			"projectcontour.io/v1alpha1:contourconfigurations.projectcontour.io": true,
+			"projectcontour.io/v1alpha1:contourdeployments.projectcontour.io":    true,
+			"projectcontour.io/v1alpha1:extensionservices.projectcontour.io":     true,
+			"projectcontour.io/v1:tlscertificatedelegations.projectcontour.io":   true,
+			"projectcontour.io/v1:httpproxies.projectcontour.io":                 true,
 		}
 
 		requiredCount := len(requiredCRDs)
-		for _, resource := range resources.APIResources {
+		for _, resource := range combinedAPIResources {
 			if _, exists := requiredCRDs[fmt.Sprintf("%s:%s", resource.Group, resource.Name)]; exists {
 				requiredCount--
 			}
