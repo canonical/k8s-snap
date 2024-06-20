@@ -17,6 +17,7 @@ type Mock struct {
 	OnLXDErr                    error
 	UID                         int
 	GID                         int
+	Hostname                    string
 	KubernetesConfigDir         string
 	KubernetesPKIDir            string
 	EtcdPKIDir                  string
@@ -99,6 +100,9 @@ func (s *Snap) UID() int {
 }
 func (s *Snap) GID() int {
 	return s.Mock.GID
+}
+func (s *Snap) Hostname() string {
+	return s.Mock.Hostname
 }
 func (s *Snap) ContainerdConfigDir() string {
 	return s.Mock.ContainerdConfigDir
