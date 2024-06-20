@@ -1,25 +1,30 @@
-<!-- markdownlint-disable -->
 ## Etcd Node Configuration
-### Etcd Node Configuration
+
 #### Control 2.1
 
-Description: `Ensure that the --cert-file and --key-file arguments are set as appropriate (Automated)`
+Description: `Ensure that the --cert-file and --key-file arguments are set as
+appropriate (Automated)`
 
 Audit:
+
 ```
 /bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
 Remediation:
+
 ```
-Follow the etcd service documentation and configure TLS encryption.
-Then, edit the etcd pod specification file /etc/kubernetes/manifests/etcd.yaml
+Follow the etcd service documentation and configure TLS
+encryption.
+Then, edit the etcd pod specification file
+/etc/kubernetes/manifests/etcd.yaml
 on the master node and set the below parameters.
 --cert-file=</path/to/ca-file>
 --key-file=</path/to/key-file>
 ```
 
 Expected output:
+
 ```
 bin_op: and
 test_items:
@@ -31,14 +36,17 @@ test_items:
 
 #### Control 2.2
 
-Description: `Ensure that the --client-cert-auth argument is set to true (Automated)`
+Description: `Ensure that the --client-cert-auth argument is set to true
+(Automated)`
 
 Audit:
+
 ```
 /bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
 Remediation:
+
 ```
 Edit the etcd pod specification file /etc/default/etcd on the master
 node and set the below parameter.
@@ -46,6 +54,7 @@ node and set the below parameter.
 ```
 
 Expected output:
+
 ```
 test_items:
 - compare:
@@ -57,21 +66,26 @@ test_items:
 
 #### Control 2.3
 
-Description: `Ensure that the --auto-tls argument is not set to true (Automated)`
+Description: `Ensure that the --auto-tls argument is not set to true
+(Automated)`
 
 Audit:
+
 ```
 /bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
 Remediation:
+
 ```
 Edit the etcd pod specification file /etc/default/etcd on the master
-node and either remove the --auto-tls parameter or set it to false.
+node and either remove the --auto-tls parameter or set it to
+false.
   --auto-tls=false
 ```
 
 Expected output:
+
 ```
 bin_op: or
 test_items:
@@ -87,16 +101,20 @@ test_items:
 
 #### Control 2.4
 
-Description: `Ensure that the --peer-cert-file and --peer-key-file arguments are set as appropriate (Automated)`
+Description: `Ensure that the --peer-cert-file and --peer-key-file arguments
+are set as appropriate (Automated)`
 
 Audit:
+
 ```
 /bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
 Remediation:
+
 ```
-Follow the etcd service documentation and configure peer TLS encryption as appropriate
+Follow the etcd service documentation and configure peer TLS
+encryption as appropriate
 for your etcd cluster.
 Then, edit the etcd pod specification file /etc/default/etcd on the
 master node and set the below parameters.
@@ -105,6 +123,7 @@ master node and set the below parameters.
 ```
 
 Expected output:
+
 ```
 bin_op: and
 test_items:
@@ -116,14 +135,17 @@ test_items:
 
 #### Control 2.5
 
-Description: `Ensure that the --peer-client-cert-auth argument is set to true (Automated)`
+Description: `Ensure that the --peer-client-cert-auth argument is set to true
+(Automated)`
 
 Audit:
+
 ```
 /bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
 Remediation:
+
 ```
 Edit the etcd pod specification file /etc/default/etcd on the master
 node and set the below parameter.
@@ -131,6 +153,7 @@ node and set the below parameter.
 ```
 
 Expected output:
+
 ```
 test_items:
 - compare:
@@ -142,21 +165,26 @@ test_items:
 
 #### Control 2.6
 
-Description: `Ensure that the --peer-auto-tls argument is not set to true (Automated)`
+Description: `Ensure that the --peer-auto-tls argument is not set to true
+(Automated)`
 
 Audit:
+
 ```
 /bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
 Remediation:
+
 ```
 Edit the etcd pod specification file /etc/default/etcd on the master
-node and either remove the --peer-auto-tls parameter or set it to false.
+node and either remove the --peer-auto-tls parameter or set it
+to false.
 --peer-auto-tls=false
 ```
 
 Expected output:
+
 ```
 bin_op: or
 test_items:
@@ -172,17 +200,21 @@ test_items:
 
 #### Control 2.7
 
-Description: `Ensure that a unique Certificate Authority is used for etcd (Manual)`
+Description: `Ensure that a unique Certificate Authority is used for etcd
+(Manual)`
 
 Audit:
+
 ```
 /bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
 Remediation:
+
 ```
 [Manual test]
-Follow the etcd documentation and create a dedicated certificate authority setup for the
+Follow the etcd documentation and create a dedicated certificate
+authority setup for the
 etcd service.
 Then, edit the etcd pod specification file /etc/default/etcd on the
 master node and set the below parameter.
@@ -190,6 +222,7 @@ master node and set the below parameter.
 ```
 
 Expected output:
+
 ```
 test_items:
 - env: ETCD_TRUSTED_CA_FILE
