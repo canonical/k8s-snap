@@ -54,8 +54,9 @@ def helm_pull(chart, repo_url: str, version: str, destination: Path) -> None:
         [
             "helm",
             "pull",
-            f"{repo_url}",
             f"{chart}",
+            "--repo",
+            f"{repo_url}",
             "--version",
             version,
             "--destination",
