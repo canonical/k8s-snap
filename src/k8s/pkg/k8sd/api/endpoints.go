@@ -100,5 +100,10 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Path: "x/capi/set-auth-token",
 			Post: rest.EndpointAction{Handler: e.postSetClusterAPIAuthToken},
 		},
+		{
+			Name: "ClusterAPI/RemoveNode",
+			Path: "x/capi/remove-node",
+			Post: rest.EndpointAction{Handler: e.postClusterRemove, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
+		},
 	}
 }
