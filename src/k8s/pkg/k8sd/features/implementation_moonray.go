@@ -5,6 +5,7 @@ package features
 import (
 	"github.com/canonical/k8s/pkg/k8sd/features/calico"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
+	"github.com/canonical/k8s/pkg/k8sd/features/contour"
 	"github.com/canonical/k8s/pkg/k8sd/features/coredns"
 	"github.com/canonical/k8s/pkg/k8sd/features/localpv"
 	metrics_server "github.com/canonical/k8s/pkg/k8sd/features/metrics-server"
@@ -16,8 +17,8 @@ var Implementation Interface = &implementation{
 	applyDNS:           coredns.ApplyDNS,
 	applyNetwork:       calico.ApplyNetwork,
 	applyLoadBalancer:  cilium.ApplyLoadBalancer,
-	applyIngress:       cilium.ApplyIngress,
-	applyGateway:       cilium.ApplyGateway,
+	applyIngress:       contour.ApplyIngress,
+	applyGateway:       contour.ApplyGateway,
 	applyMetricsServer: metrics_server.ApplyMetricsServer,
 	applyLocalStorage:  localpv.ApplyLocalStorage,
 }

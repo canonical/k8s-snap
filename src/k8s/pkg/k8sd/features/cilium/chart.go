@@ -28,6 +28,13 @@ var (
 		ManifestPath: path.Join("charts", "gateway-api-1.0.0.tgz"),
 	}
 
+	//chartGatewayClass represents a manifest to deploy a GatewayClass called ck-gateway.
+	chartGatewayClass = helm.InstallableChart{
+		Name:         "ck-gateway-class",
+		Namespace:    "default",
+		ManifestPath: path.Join("charts", "ck-gateway-cilium"),
+	}
+
 	// ciliumAgentImageRepo represents the image to use for cilium-agent.
 	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
 

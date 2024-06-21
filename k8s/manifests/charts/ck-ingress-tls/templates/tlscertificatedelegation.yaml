@@ -1,0 +1,10 @@
+apiVersion: projectcontour.io/v1
+kind: TLSCertificateDelegation
+metadata:
+  name: ck-ingress-tls-delegation
+  namespace: projectcontour-root
+spec:
+  delegations:
+    - secretName: {{ .Values.defaultTLSSecret}} 
+      targetNamespaces:
+      - "*"

@@ -37,7 +37,7 @@ kind: Gateway
 metadata:
   name: my-gateway
 spec:
-  gatewayClassName: cilium
+  gatewayClassName: ck-gateway
   listeners:
   - protocol: HTTP
     port: 80

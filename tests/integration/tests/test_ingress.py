@@ -1,6 +1,7 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import json
 import logging
 from pathlib import Path
 from typing import List
@@ -14,8 +15,8 @@ LOG = logging.getLogger(__name__)
 def test_ingress(session_instance: List[harness.Instance]):
 
     util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
-        lambda p: "cilium-ingress" in p.stdout.decode()
-    ).exec(["k8s", "kubectl", "get", "service", "-n", "kube-system", "-o", "json"])
+        lambda p: "ingress" in p.stdout.decode()
+    ).exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
 
     p = session_instance.exec(
         [
@@ -23,14 +24,35 @@ def test_ingress(session_instance: List[harness.Instance]):
             "kubectl",
             "get",
             "service",
-            "-n",
-            "kube-system",
-            "cilium-ingress",
-            "-o=jsonpath='{.spec.ports[?(@.name==\"http\")].nodePort}'",
+            "-A",
+            "-o=json",
         ],
         capture_output=True,
     )
-    ingress_http_port = p.stdout.decode().replace("'", "")
+
+    ingress_http_port = None
+    services = json.loads(p.stdout.decode())
+
+    ingress_services = [
+        svc
+        for svc in services["items"]
+        if (
+            svc["metadata"]["name"] == "ck-ingress-contour-envoy"
+            or svc["metadata"]["name"] == "cilium-ingress"
+        )
+    ]
+
+    assert len(ingress_services) > 0, "No ingress services found."
+
+    for svc in ingress_services:
+        for port in svc["spec"]["ports"]:
+            if port["port"] == 80:
+                ingress_http_port = port["nodePort"]
+                break
+        if ingress_http_port:
+            break
+
+    assert ingress_http_port is not None, "No ingress nodePort found."
 
     manifest = MANIFESTS_DIR / "ingress-test.yaml"
     session_instance.exec(
