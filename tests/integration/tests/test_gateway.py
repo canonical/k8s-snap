@@ -1,6 +1,7 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import json
 import logging
 from pathlib import Path
 
@@ -37,8 +38,10 @@ def test_gateway(session_instance: harness.Instance):
         ]
     )
 
+    # Get gateway node port
+    gateway_http_port = None
     util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
-        lambda p: "cilium-gateway-my-gateway" in p.stdout.decode()
+        lambda p: "my-gateway" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
 
     p = session_instance.exec(
@@ -47,12 +50,37 @@ def test_gateway(session_instance: harness.Instance):
             "kubectl",
             "get",
             "service",
-            "cilium-gateway-my-gateway",
-            "-o=jsonpath='{.spec.ports[?(@.name==\"port-80\")].nodePort}'",
+            "-o=json",
         ],
         capture_output=True,
     )
-    gateway_http_port = p.stdout.decode().replace("'", "")
+
+    services = json.loads(p.stdout.decode())
+
+    gateway_services = [
+        svc
+        for svc in services["items"]
+        if (
+            svc["metadata"].get("labels").get("projectcontour.io/owning-gateway-name")
+            == "my-gateway"
+            or svc["metadata"].get("labels").get("io.cilium.gateway/owning-gateway")
+            == "my-gateway"
+        )
+    ]
+
+    assert (
+        len(gateway_services) > 0
+    ), "No gateway services found that are owned by my-gateway."
+
+    for svc in gateway_services:
+        for port in svc["spec"]["ports"]:
+            if port["port"] == 80:
+                gateway_http_port = port["nodePort"]
+                break
+        if gateway_http_port:
+            break
+
+    assert gateway_http_port is not None, "No ingress nodePort found."
 
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()

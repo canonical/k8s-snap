@@ -23,6 +23,7 @@ LOG = logging.getLogger(__name__)
 
 DIR = Path(__file__).absolute().parent
 COMPONENTS = DIR.parent / "components"
+CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
 
 # Version marker for latest Kubernetes version. Expected to be one of:
 #
@@ -36,6 +37,9 @@ CONTAINERD_RELEASE_BRANCH = "release/1.6"
 # Helm release branch to track. The most recent tag in the branch will be used.
 HELM_RELEASE_BRANCH = "release-3.14"
 
+# Contour Helm repository and chart version
+CONTOUR_HELM_REPO = "https://charts.bitnami.com/bitnami"
+CONTOUR_CHART_VERSION = "17.0.4"
 
 def get_kubernetes_version() -> str:
     """Update Kubernetes version based on the specified marker file"""
@@ -59,6 +63,9 @@ def get_cni_version() -> str:
 
         raise Exception(f"Failed to find cni dependency in {deps_file}")
 
+def pull_contour_chart() -> None:
+    LOG.info("Pulling Contour Helm chart from %s with version %s", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION)
+    util.helm_pull("contour", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION, CHARTS)
 
 def get_containerd_version() -> str:
     """Update containerd version using latest tag of specified branch"""
@@ -100,6 +107,13 @@ def update_component_versions(dry_run: bool):
         LOG.info("Update %s version to %s in %s", component, version, path)
         if not dry_run:
             Path(path).write_text(version.strip() + "\n")
+
+    for component, pull_helm_chart in [
+        ("bitnami/contour", pull_contour_chart),
+    ]:
+        LOG.info("Updating chart for %s", component)
+        if not dry_run:
+            pull_helm_chart()
 
 
 def main():

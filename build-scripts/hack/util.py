@@ -48,3 +48,20 @@ def read_file(path: Path) -> str:
 
 def read_url(url: str) -> str:
     return urlopen(url).read().decode().strip()
+
+def helm_pull(chart, repo_url: str, version: str, destination: Path) -> None:
+    parse_output(
+        [
+            "helm",
+            "pull",
+            chart,
+            "--repo",
+            repo_url,
+            "--version",
+            version,
+            "--destination",
+            destination
+        ]
+    )
+
+    LOG.info("Pulled helm chart %s @ %s as %s to %s", chart, version, repo_url, destination)
