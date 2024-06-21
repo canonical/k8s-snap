@@ -1,6 +1,6 @@
-## {{ title | trim }}
+## {{ kube_bench_control_file.text | trim }}
 
-{% for group in groups %}
+{% for group in kube_bench_control_file.groups %}
 {% if group.text != title %}
 ### {{group.text}}
 
@@ -28,11 +28,11 @@ Remediation:
 ```
 {% endif %}
 
-{% if check.tests %}
+{% if custom_outputs_by_control_id %}
 Expected output:
 
 ```
-{{ check.tests | to_yaml | trim }}
+{{ custom_outputs_by_control_id[check.id] | trim | wordwrap(64) }}
 ```
 
 {% endif %}
