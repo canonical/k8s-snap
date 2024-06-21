@@ -14,10 +14,15 @@ var (
 		ManifestPath: path.Join("charts", "tigera-operator-v3.28.0.tgz"),
 	}
 
-	// tigeraOperatorRepo represents the repo to fetch the tigera-operator image for calico.
 	// Note: Tigera is the company behind Calico and the tigera-operator is the operator for Calico.
 	// TODO: use ROCKs instead of upstream
-	tigeraOperatorRegistry = "quay.io"
+	// imageRepo represents the repo to fetch the Calico CNI images.
+	imageRepo = "ghcr.io/canonical/k8s-snap"
+
+	// calicoImageRepo represents the repo to fetch the calico images.
+	calicoImageRepo = "ghcr.io/canonical/k8s-snap/calico"
+	// calicoTag represents the tag to use for the calico images.
+	calicoTag = "v3.28.0"
 
 	// tigeraOperatorImage represents the image to fetch for calico.
 	tigeraOperatorImage = "tigera/operator"
@@ -27,7 +32,7 @@ var (
 
 	// calicoCtlImage represents the image to fetch for calicoctl.
 	// TODO: use ROCKs instead of upstream
-	calicoCtlImage = "docker.io/calico/ctl"
+	calicoCtlImage = "ghcr.io/canonical/k8s-snap/calico/ctl"
 	// calicoCtlTag represents the tag to use for the calicoctl image.
 	calicoCtlTag = "v3.28.0"
 )
