@@ -1,196 +1,91 @@
-controls:
-  # node.md
-  - id: 4.1.1
-    expected: permissions=644
-  - id: 4.1.2
-    expected: root:root
-  - id: 4.1.3
-    expected: permissions=644
-  - id: 4.1.4
-    expected: root:root
-  - id: 4.1.5
-    expected: permissions=600
-  - id: 4.1.6
-    expected: root:root
-  - id: 4.1.7
-    expected: permissions=600
-  - id: 4.1.8
-    expected: root:root
-  - id: 4.1.9
-    expected: permissions=600
-  - id: 4.1.10
-    expected: root:root
-  - id: 4.2.1
-    expected: --anonymous-auth is false
-  - id: 4.2.2
-    expected: --authorization-mode is not AlwaysAllow
-  - id: 4.2.3
-    expected: --client-ca-file is set
-  - id: 4.2.4
-    expected: --read-only-port is not set or is set to 0
-  - id: 4.2.5
-    expected: --streaming-connection-idle-timeout is not set or is set to 0
-  - id: 4.2.6
-    expected: --protect-kernel-defaults is set to true
-  - id: 4.2.7
-    expected: --make-iptables-util-chains is not set or is set to true
-  - id: 4.2.8
-    expected: --hostname-override is set to false
-  - id: 4.2.9
-    expected: --event-qps is not set or is set to greater than or equal to 0
-  - id: 4.2.10
-    expected: --tls-cert-file and --tls-private-key-file are set
-  - id: 4.2.11
-    expected: --rotate-certificates is not set or is set to true
-  - id: 4.2.12
-    expected: the RotateKubeletServerCertificate feature gate is not set
-  - id: 4.2.13
-    expected: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
-
-  # controlplane.md
-  - id: 3.1.1
-    expected:
-  - id: 3.2.1
-    expected: --audit-policy-file is set
-  - id: 3.2.2
-    expected:
-
-  # etcd.md
-  - id: 2.1 # needs review
-    expected: (--cert-file or ETCD_CERT_FILE) and (--key-file or ETCD_KEY_FILE) are set
-  - id: 2.2
-    expected: --client-cert-auth or ETCD_CLIENT_CERT_AUTH are set to true
-  - id: 2.3 # needs review
-    expected: --auto-tls and ETCD_AUTO_TLS are not set, if they are set, they are set to false
-  - id: 2.4
-    expected: (--peer-cert-file or ETCD_PEER_CERT_FILE) and (--peer-key-file or ETCD_PEER_KEY_FILE) are set
-  - id: 2.5
-    expected: --peer-client-cert-auth or ETCD_PEER_CLIENT_CERT_AUTH are set to true
-  - id: 2.6 # needs review
-    expected: --peer-auto-tls and ETCD_PEER_AUTO_TLS are not set, or if they are set, they are set to false
-  - id: 2.7
-    expected: --trusted-ca-file or ETCD_TRUSTED_CA_FILE are set
-
-  # master.md
-  - id: 1.1.1
-    expected: permissions=600
-  - id: 1.1.2
-    expected: root:root
-  - id: 1.1.3
-    expected: permissions=600
-  - id: 1.1.4
-    expected: root:root
-  - id: 1.1.5
-    expected: permissions=600
-  - id: 1.1.6
-    expected: root:root
-  - id: 1.1.7
-    expected: permissions=644
-  - id: 1.1.8
-    expected: root:root
-  - id: 1.1.9
-    expected: permissions=644
-  - id: 1.1.10
-    expected: root:root
-  - id: 1.1.11
-    expected: permissions=700
-  - id: 1.1.12
-    expected: etcd:etcd
-  - id: 1.1.13
-    expected: permissions=600
-  - id: 1.1.14
-    expected: root:root
-  - id: 1.1.15
-    expected: permissions=600
-  - id: 1.1.16
-    expected: root:root
-  - id: 1.1.17
-    expected: permissions=600
-  - id: 1.1.18
-    expected: root:root
-  - id: 1.1.19
-    expected: root:root
-  - id: 1.1.20
-    expected: permissions=600
-  - id: 1.1.21
-    expected: permissions=600
-  - id: 1.2.1
-    expected: --anonymous-auth is set to false
-  - id: 1.2.2
-    expected: --token-auth-file is not set
-  - id: 1.2.3
-    expected: --enable-admission-plugins is not set, or if it is set, does not contain DenyServiceExternalIPs
-  - id: 1.2.4
-    expected: --kubelet-client-certificate and --kubelet-client-key are set
-  - id: 1.2.5
-    expected: --kubelet-certificate-authority is set
-  - id: 1.2.6
-    expected: --authorization-mode is not AlwaysAllow
-  - id: 1.2.7
-    expected: --authorization-mode includes Node
-  - id: 1.2.8
-    expected: --authorization-mode includes RBAC
-  - id: 1.2.9
-    expected: --enable-admission-plugins includes EventRateLimit
-  - id: 1.2.10
-    expected: --enable-admission-plugins is not set, or if it is set, does not include AlwaysAdmit
-  - id: 1.2.11
-    expected: --enable-admission-plugins includes AlwaysPullImages
-  - id: 1.2.12
-    expected: --enable-admission-plugins includes PodSecurityPolicy or SecurityContextDeny
-  - id: 1.2.13
-    expected: --disable-admission-plugins is not set, or if it is set, includes ServiceAccount
-  - id: 1.2.14
-    expected: --disable-admission-plugins is not set, or if it is set, does not include NamespaceLifecycle
-  - id: 1.2.15
-    expected: --enable-admission-plugins includes NodeRestriction
-  - id: 1.2.16
-    expected: --secure-port is not set, or if it is set, it is set to 0 or higher
-  - id: 1.2.17
-    expected: --profiling is set to false
-  - id: 1.2.18
-    expected: --audit-log-path is set
-  - id: 1.2.19
-    expected: --audit-log-maxage is set to 30 or more
-  - id: 1.2.20
-    expected: --audit-log-maxbackup is set to 10 or more
-  - id: 1.2.21
-    expected: --audit-log-maxsize is set to 100 or more
-  - id: 1.2.22
-    expected:
-  - id: 1.2.23
-    expected: --service-account-lookup is not set, or if it is set, it is set to true
-  - id: 1.2.24
-    expected: --service-account-key-file is set
-  - id: 1.2.25
-    expected: --etcd-certfile and --etcd-keyfile are set
-  - id: 1.2.26
-    expected: --tls-cert-file and --tls-private-key-file are set
-  - id: 1.2.27
-    expected: --client-ca-file is set
-  - id: 1.2.27
-    expected: --etcd-cafile is set
-  - id: 1.2.29 # we do not set this
-    expected: --encryption-provider-config is set
-  - id: 1.2.30 # what is valid_elements?
-    expected: --encryption-provider-config is one of or all of aescbc,kms,secretbox
-  - id: 1.2.31
-    expected: --tls-cipher-suites is set to one of or all of TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_3DES_EDE_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384
-  - id: 1.3.1
-    expected: --terminated-pod-gc-threshold is set
-  - id: 1.3.2
-    expected: --profiling is false
-  - id: 1.3.3
-    expected: --user-service-account-credentials is true
-  - id: 1.3.4
-    expected: --service-account-private-key-file is set
-  - id: 1.3.5
-    expected: --root-ca-file is set
-  - id: 1.3.6
-    expected: --feature-gates is not set, of it is set, it includes RotateKubeletServerCertificate=true
-  - id: 1.3.7
-    expected: --bind-address is not set, or if it is set, it is set to 127.0.0.1
-  - id: 1.4.1
-    expected: --profiling is set to false
-  - id: 1.4.2
-    expected: --bind-address is not set, or if it is set, it is set to 127.0.0.1
+1.1.1:     "permissions=600"
+1.1.2:     "root:root"
+1.1.3:     "permissions=600"
+1.1.4:     "root:root"
+1.1.5:     "permissions=600"
+1.1.6:     "root:root"
+1.1.7:     "permissions=644"
+1.1.8:     "root:root"
+1.1.9:     "permissions=644"
+1.1.10:    "root:root"
+1.1.11:    "permissions=700"
+1.1.12:    "etcd:etcd"
+1.1.13:    "permissions=600"
+1.1.14:    "root:root"
+1.1.15:    "permissions=600"
+1.1.16:    "root:root"
+1.1.17:    "permissions=600"
+1.1.18:    "root:root"
+1.1.19:    "root:root"
+1.1.20:    "permissions=600"
+1.1.21:    "permissions=600"
+1.2.1:     "--anonymous-auth is set to false"
+1.2.2:     "--token-auth-file is not set"
+1.2.3:     "--enable-admission-plugins is not set, or if it is set, does not contain DenyServiceExternalIPs"
+1.2.4:     "--kubelet-client-certificate and --kubelet-client-key are set"
+1.2.5:     "--kubelet-certificate-authority is set"
+1.2.6:     "--authorization-mode is not AlwaysAllow"
+1.2.7:     "--authorization-mode includes Node"
+1.2.8:     "--authorization-mode includes RBAC"
+1.2.9:     "--enable-admission-plugins includes EventRateLimit"
+1.2.10:    "--enable-admission-plugins is not set, or if it is set, does not include AlwaysAdmit"
+1.2.11:    "--enable-admission-plugins includes AlwaysPullImages"
+1.2.12:    "--enable-admission-plugins includes PodSecurityPolicy or SecurityContextDeny"
+1.2.13:    "--disable-admission-plugins is not set, or if it is set, includes ServiceAccount"
+1.2.14:    "--disable-admission-plugins is not set, or if it is set, does not include NamespaceLifecycle"
+1.2.15:    "--enable-admission-plugins includes NodeRestriction"
+1.2.16:    "--secure-port is not set, or if it is set, it is set to 0 or higher"
+1.2.17:    "--profiling is set to false"
+1.2.18:    "--audit-log-path is set"
+1.2.19:    "--audit-log-maxage is set to 30 or more"
+1.2.20:    "--audit-log-maxbackup is set to 10 or more"
+1.2.21:    "--audit-log-maxsize is set to 100 or more"
+1.2.22:    ""
+1.2.23:    "--service-account-lookup is not set, or if it is set, it is set to true"
+1.2.24:    "--service-account-key-file is set"
+1.2.25:    "--etcd-certfile and --etcd-keyfile are set"
+1.2.26:    "--tls-cert-file and --tls-private-key-file are set"
+1.2.27:    "--client-ca-file is set"
+1.2.28:    "--etcd-cafile is set"
+1.2.29:    "--encryption-provider-config is set"
+1.2.30:    "--encryption-provider-config is one of or all of aescbc,kms,secretbox"
+1.2.31:    "--tls-cipher-suites is set to one of or all of TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_3DES_EDE_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384"
+1.3.1:     "--terminated-pod-gc-threshold is set"
+1.3.2:     "--profiling is false"
+1.3.3:     "--user-service-account-credentials is true"
+1.3.4:     "--service-account-private-key-file is set"
+1.3.5:     "--root-ca-file is set"
+1.3.6:     "--feature-gates is not set, of it is set, it"
+2.1:       "(--cert-file or ETCD_CERT_FILE) and (--key-file or ETCD_KEY_FILE) are set"
+2.2:       "--client-cert-auth or ETCD_CLIENT_CERT_AUTH are set to true"
+2.3:       "--auto-tls and ETCD_AUTO_TLS are not set, if they are set, they are set to false"
+2.4:       "(--peer-cert-file or ETCD_PEER_CERT_FILE) and (--peer-key-file or ETCD_PEER_KEY_FILE) are set"
+2.5:       "--peer-client-cert-auth or ETCD_PEER_CLIENT_CERT_AUTH are set to true"
+2.6:       "--peer-auto-tls and ETCD_PEER_AUTO_TLS are not set, or if they are set, they are set to false"
+2.7:       "--trusted-ca-file or ETCD_TRUSTED_CA_FILE are set"
+3.1.1:     "--audit-policy-file is set"
+3.2.1:     "--audit-policy-file is set"
+3.2.2:     ""
+4.1.1:     "permissions=644"
+4.1.2:     "root:root"
+4.1.3:     "permissions=644"
+4.1.4:     "root:root"
+4.1.5:     "permissions=600"
+4.1.6:     "root:root"
+4.1.7:     "permissions=600"
+4.1.8:     "root:root"
+4.1.9:     "permissions=600"
+4.1.10:    "root:root"
+4.2.1:     "--anonymous-auth is false"
+4.2.2:     "--authorization-mode is not AlwaysAllow"
+4.2.3:     "--client-ca-file is set"
+4.2.4:     "--read-only-port is not set or is set to 0"
+4.2.5:     "--streaming-connection-idle-timeout is not set or is set to 0"
+4.2.6:     "--protect-kernel-defaults is set to true"
+4.2.7:     "--make-iptables-util-chains is not set or is set to true"
+4.2.8:     "--hostname-override is set to false"
+4.2.9:     "--event-qps is not set or is set to greater than or equal to 0"
+4.2.10:    "--tls-cert-file and --tls-private-key-file are set"
+4.2.11:    "--rotate-certificates is not set or is set to true"
+4.2.12:    "the RotateKubeletServerCertificate feature gate is not set"
+4.2.13:    "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256"
