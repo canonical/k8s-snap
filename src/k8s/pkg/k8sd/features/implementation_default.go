@@ -27,3 +27,7 @@ var StatusChecks StatusInterface = &statusChecks{
 	checkNetwork: cilium.CheckNetwork,
 	checkDNS:     coredns.CheckDNS,
 }
+
+var Cleanup CleanupInterface = &cleanup{
+	cleanupNetwork: cilium.CleanupNetwork,
+}
