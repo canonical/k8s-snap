@@ -24,11 +24,7 @@ For example, chmod 600 /etc/systemd/system/snap.k8s.kubelet.service
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '644'
-  flag: permissions
+permissions=644
 ```
 
 #### Control 4.1.2
@@ -54,10 +50,7 @@ chown root:root /etc/systemd/system/snap.k8s.kubelet.service
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- flag: root:root
-- flag: File not found
+root:root
 ```
 
 #### Control 4.1.3
@@ -83,13 +76,7 @@ chmod 600 /etc/kubernetes/proxy.conf
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: bitmask
-    value: '644'
-  flag: permissions
-  set: true
+permissions=644
 ```
 
 #### Control 4.1.4
@@ -114,9 +101,7 @@ For example, chown root:root /etc/kubernetes/proxy.conf
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 4.1.5
@@ -142,11 +127,7 @@ chmod 600 /etc/kubernetes/kubelet.conf
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 #### Control 4.1.6
@@ -172,8 +153,7 @@ chown root:root /etc/kubernetes/kubelet.conf
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 4.1.7
@@ -199,11 +179,7 @@ Run the following command to modify the file permissions of the
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 #### Control 4.1.8
@@ -230,11 +206,7 @@ chown root:root <filename>
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: eq
-    value: root:root
-  flag: root:root
+root:root
 ```
 
 #### Control 4.1.9
@@ -259,11 +231,7 @@ chmod 600 /var/snap/k8s/common/args/kubelet
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 #### Control 4.1.10
@@ -288,8 +256,7 @@ chown root:root /var/snap/k8s/common/args/kubelet
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 ### Kubelet
@@ -323,12 +290,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: eq
-    value: false
-  flag: --anonymous-auth
-  path: '{.authentication.anonymous.enabled}'
+--anonymous-auth is false
 ```
 
 #### Control 4.2.2
@@ -359,12 +321,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: nothave
-    value: AlwaysAllow
-  flag: --authorization-mode
-  path: '{.authorization.mode}'
+--authorization-mode is not AlwaysAllow
 ```
 
 #### Control 4.2.3
@@ -396,9 +353,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-test_items:
-- flag: --client-ca-file
-  path: '{.authentication.x509.clientCAFile}'
+--client-ca-file is set
 ```
 
 #### Control 4.2.4
@@ -428,16 +383,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: eq
-    value: 0
-  flag: --read-only-port
-  path: '{.readOnlyPort}'
-- flag: --read-only-port
-  path: '{.readOnlyPort}'
-  set: false
+--read-only-port is not set or is set to 0
 ```
 
 #### Control 4.2.5
@@ -469,16 +415,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: noteq
-    value: 0
-  flag: --streaming-connection-idle-timeout
-  path: '{.streamingConnectionIdleTimeout}'
-- flag: --streaming-connection-idle-timeout
-  path: '{.streamingConnectionIdleTimeout}'
-  set: false
+--streaming-connection-idle-timeout is not set or is set to 0
 ```
 
 #### Control 4.2.6
@@ -509,12 +446,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: eq
-    value: true
-  flag: --protect-kernel-defaults
-  path: '{.protectKernelDefaults}'
+--protect-kernel-defaults is set to true
 ```
 
 #### Control 4.2.7
@@ -545,16 +477,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: eq
-    value: true
-  flag: --make-iptables-util-chains
-  path: '{.makeIPTablesUtilChains}'
-- flag: --make-iptables-util-chains
-  path: '{.makeIPTablesUtilChains}'
-  set: false
+--make-iptables-util-chains is not set or is set to true
 ```
 
 #### Control 4.2.8
@@ -582,9 +505,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-test_items:
-- flag: --hostname-override
-  set: false
+--hostname-override is set to false
 ```
 
 #### Control 4.2.9
@@ -614,16 +535,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: gte
-    value: 0
-  flag: --event-qps
-  path: '{.eventRecordQPS}'
-- flag: --event-qps
-  path: '{.eventRecordQPS}'
-  set: false
+--event-qps is not set or is set to greater than or equal to 0
 ```
 
 #### Control 4.2.10
@@ -658,11 +570,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-test_items:
-- flag: --tls-cert-file
-  path: '{.tlsCertFile}'
-- flag: --tls-private-key-file
-  path: '{.tlsPrivateKeyFile}'
+--tls-cert-file and --tls-private-key-file are set
 ```
 
 #### Control 4.2.11
@@ -695,16 +603,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: eq
-    value: true
-  flag: --rotate-certificates
-  path: '{.rotateCertificates}'
-- flag: --rotate-certificates
-  path: '{.rotateCertificates}'
-  set: false
+--rotate-certificates is not set or is set to true
 ```
 
 #### Control 4.2.12
@@ -733,16 +632,7 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: nothave
-    value: false
-  flag: RotateKubeletServerCertificate
-  path: '{.featureGates.RotateKubeletServerCertificate}'
-- flag: RotateKubeletServerCertificate
-  path: '{.featureGates.RotateKubeletServerCertificate}'
-  set: false
+the RotateKubeletServerCertificate feature gate is not set
 ```
 
 #### Control 4.2.13
@@ -784,11 +674,10 @@ systemctl restart kubelet.service
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: valid_elements
-    value: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
-  flag: --tls-cipher-suites
-  path: '{range .tlsCipherSuites[:]}{}{'',''}{end}'
+TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_1
+28_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_R
+SA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM
+_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
 ```
 

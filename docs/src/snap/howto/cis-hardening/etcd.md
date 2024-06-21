@@ -1,5 +1,7 @@
 ## Etcd Node Configuration
 
+### Etcd Node Configuration
+
 #### Control 2.1
 
 Description: `Ensure that the --cert-file and --key-file arguments are set as
@@ -26,12 +28,8 @@ on the master node and set the below parameters.
 Expected output:
 
 ```
-bin_op: and
-test_items:
-- env: ETCD_CERT_FILE
-  flag: --cert-file
-- env: ETCD_KEY_FILE
-  flag: --key-file
+(--cert-file or ETCD_CERT_FILE) and (--key-file or
+ETCD_KEY_FILE) are set
 ```
 
 #### Control 2.2
@@ -56,12 +54,7 @@ node and set the below parameter.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: eq
-    value: true
-  env: ETCD_CLIENT_CERT_AUTH
-  flag: --client-cert-auth
+--client-cert-auth or ETCD_CLIENT_CERT_AUTH are set to true
 ```
 
 #### Control 2.3
@@ -87,16 +80,8 @@ false.
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- env: ETCD_AUTO_TLS
-  flag: --auto-tls
-  set: false
-- compare:
-    op: eq
-    value: false
-  env: ETCD_AUTO_TLS
-  flag: --auto-tls
+--auto-tls and ETCD_AUTO_TLS are not set, if they are set, they
+are set to false
 ```
 
 #### Control 2.4
@@ -125,12 +110,8 @@ master node and set the below parameters.
 Expected output:
 
 ```
-bin_op: and
-test_items:
-- env: ETCD_PEER_CERT_FILE
-  flag: --peer-cert-file
-- env: ETCD_PEER_KEY_FILE
-  flag: --peer-key-file
+(--peer-cert-file or ETCD_PEER_CERT_FILE) and (--peer-key-file
+or ETCD_PEER_KEY_FILE) are set
 ```
 
 #### Control 2.5
@@ -155,12 +136,8 @@ node and set the below parameter.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: eq
-    value: true
-  env: ETCD_PEER_CLIENT_CERT_AUTH
-  flag: --peer-client-cert-auth
+--peer-client-cert-auth or ETCD_PEER_CLIENT_CERT_AUTH are set to
+true
 ```
 
 #### Control 2.6
@@ -186,16 +163,8 @@ to false.
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- env: ETCD_PEER_AUTO_TLS
-  flag: --peer-auto-tls
-  set: false
-- compare:
-    op: eq
-    value: false
-  env: ETCD_PEER_AUTO_TLS
-  flag: --peer-auto-tls
+--peer-auto-tls and ETCD_PEER_AUTO_TLS are not set, or if they
+are set, they are set to false
 ```
 
 #### Control 2.7
@@ -224,8 +193,6 @@ master node and set the below parameter.
 Expected output:
 
 ```
-test_items:
-- env: ETCD_TRUSTED_CA_FILE
-  flag: --trusted-ca-file
+--trusted-ca-file or ETCD_TRUSTED_CA_FILE are set
 ```
 

@@ -15,6 +15,12 @@ OIDC should be
 implemented in place of client certificates.
 ```
 
+Expected output:
+
+```
+--audit-policy-file is set
+```
+
 ### Logging
 
 #### Control 3.2.1
@@ -36,9 +42,7 @@ Create an audit policy file for your cluster.
 Expected output:
 
 ```
-test_items:
-- flag: --audit-policy-file
-  set: true
+--audit-policy-file is set
 ```
 
 #### Control 3.2.2
@@ -63,5 +67,11 @@ TokenReviews, in
 For most requests, minimally logging at the Metadata level is
 recommended
 (the most basic level of logging).
+```
+
+Expected output:
+
+```
+TODO
 ```
 

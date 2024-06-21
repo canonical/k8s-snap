@@ -20,6 +20,12 @@ clusterrolebinding to the cluster-admin role :
 kubectl delete clusterrolebinding [name]
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.1.2
 
 Description: `Minimize access to secrets (Manual)`
@@ -29,6 +35,12 @@ Remediation:
 ```
 Where possible, remove get, list and watch access to Secret
 objects in the cluster.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 #### Control 5.1.3
@@ -43,6 +55,12 @@ roles with specific
 objects or actions.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.1.4
 
 Description: `Minimize access to create pods (Manual)`
@@ -52,6 +70,12 @@ Remediation:
 ```
 Where possible, remove create access to pod objects in the
 cluster.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 #### Control 5.1.5
@@ -70,6 +94,12 @@ include this value
 automountServiceAccountToken: false
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.1.6
 
 Description: `Ensure that Service Account Tokens are only mounted where
@@ -83,6 +113,12 @@ need to mount service
 account tokens to disable it.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.1.7
 
 Description: `Avoid use of system:masters group (Manual)`
@@ -91,6 +127,12 @@ Remediation:
 
 ```
 Remove the system:masters group from all users in the cluster.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 #### Control 5.1.8
@@ -103,6 +145,12 @@ Remediation:
 ```
 Where possible, remove the impersonate, bind and escalate rights
 from subjects.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 ### Pod Security Standards
@@ -120,6 +168,12 @@ control system is in place
 for every namespace which contains user workloads.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.2.2
 
 Description: `Minimize the admission of privileged containers (Manual)`
@@ -130,6 +184,12 @@ Remediation:
 Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of privileged containers.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 #### Control 5.2.3
@@ -145,6 +205,12 @@ workloads to restrict the
 admission of `hostPID` containers.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.2.4
 
 Description: `Minimize the admission of containers wishing to share the host
@@ -158,6 +224,12 @@ workloads to restrict the
 admission of `hostIPC` containers.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.2.5
 
 Description: `Minimize the admission of containers wishing to share the host
@@ -169,6 +241,12 @@ Remediation:
 Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of `hostNetwork` containers.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 #### Control 5.2.6
@@ -185,6 +263,12 @@ admission of containers with `.spec.allowPrivilegeEscalation`
 set to `true`.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.2.7
 
 Description: `Minimize the admission of root containers (Automated)`
@@ -195,6 +279,12 @@ Remediation:
 Create a policy for each namespace in the cluster, ensuring that
 either `MustRunAsNonRoot`
 or `MustRunAs` with the range of UIDs not including 0, is set.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 #### Control 5.2.8
@@ -210,6 +300,12 @@ workloads to restrict the
 admission of containers with the `NET_RAW` capability.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.2.9
 
 Description: `Minimize the admission of containers with added capabilities
@@ -221,6 +317,12 @@ Remediation:
 Ensure that `allowedCapabilities` is not present in policies for
 the cluster unless
 it is set to an empty array.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 #### Control 5.2.10
@@ -239,6 +341,12 @@ a PSP which forbids the admission of containers which do not
 drop all capabilities.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.2.11
 
 Description: `Minimize the admission of Windows HostProcess containers
@@ -253,6 +361,12 @@ admission of containers that have
 `.securityContext.windowsOptions.hostProcess` set to `true`.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.2.12
 
 Description: `Minimize the admission of HostPath volumes (Manual)`
@@ -263,6 +377,12 @@ Remediation:
 Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of containers with `hostPath` volumes.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 #### Control 5.2.13
@@ -276,6 +396,12 @@ Remediation:
 Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of containers which use `hostPort` sections.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 ### Network Policies and CNI
@@ -294,6 +420,12 @@ mechanism for restricting traffic
 in the Kubernetes cluster.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.3.2
 
 Description: `Ensure that all Namespaces have NetworkPolicies defined (Manual)`
@@ -303,6 +435,12 @@ Remediation:
 ```
 Follow the documentation and create NetworkPolicy objects as you
 need them.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 ### Secrets Management
@@ -320,6 +458,12 @@ mounted secret files, rather than
 from environment variables.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.4.2
 
 Description: `Consider external secret storage (Manual)`
@@ -330,6 +474,12 @@ Remediation:
 Refer to the Secrets management options offered by your cloud
 provider or a third-party
 secrets management solution.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 ### Extensible Admission Control
@@ -345,6 +495,12 @@ Remediation:
 Follow the Kubernetes documentation and setup image provenance.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 ### General Policies
 
 #### Control 5.7.1
@@ -358,6 +514,12 @@ Remediation:
 Follow the documentation and create namespaces for objects in
 your deployment as you need
 them.
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 #### Control 5.7.2
@@ -376,6 +538,12 @@ An example is as below:
       type: RuntimeDefault
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.7.3
 
 Description: `Apply SecurityContext to your Pods and Containers (Manual)`
@@ -390,6 +558,12 @@ Security Benchmark for Docker
 Containers.
 ```
 
+Expected output:
+
+```
+TODO
+```
+
 #### Control 5.7.4
 
 Description: `The default namespace should not be used (Manual)`
@@ -401,5 +575,11 @@ Ensure that namespaces are created to allow for appropriate
 segregation of Kubernetes
 resources and that all new resources are created in a specific
 namespace.
+```
+
+Expected output:
+
+```
+TODO
 ```
 

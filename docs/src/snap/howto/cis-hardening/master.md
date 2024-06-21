@@ -25,11 +25,7 @@ For example, chmod 600 /var/snap/k8s/common/args/kube-apiserver
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 #### Control 1.1.2
@@ -54,8 +50,7 @@ For example, chown root:root /var/snap/k8s/common/args/kube-apiserver
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 1.1.3
@@ -80,11 +75,7 @@ For example, chmod 600 /var/snap/k8s/common/args/kube-controller-manager
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 #### Control 1.1.4
@@ -109,8 +100,7 @@ For example, chown root:root /var/snap/k8s/common/args/kube-controller-manager
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 1.1.5
@@ -135,11 +125,7 @@ For example, chmod 600 /var/snap/k8s/common/args/kube-scheduler
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 #### Control 1.1.6
@@ -164,8 +150,7 @@ For example, chown root:root /var/snap/k8s/common/args/kube-scheduler
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 1.1.7
@@ -191,11 +176,7 @@ chmod 644 /etc/default/etcd
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '644'
-  flag: permissions
+permissions=644
 ```
 
 #### Control 1.1.8
@@ -221,8 +202,7 @@ chown root:root /etc/default/etcd
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 1.1.9
@@ -248,11 +228,7 @@ For example, chmod 644 <path/to/cni/files>
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '644'
-  flag: permissions
+permissions=644
 ```
 
 #### Control 1.1.10
@@ -279,8 +255,7 @@ chown root:root <path/to/cni/files>
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 1.1.11
@@ -309,11 +284,7 @@ chmod 700 /var/lib/etcd
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '700'
-  flag: permissions
+permissions=700
 ```
 
 #### Control 1.1.12
@@ -342,8 +313,7 @@ For example, chown root:root /var/lib/etcd
 Expected output:
 
 ```
-test_items:
-- flag: etcd:etcd
+etcd:etcd
 ```
 
 #### Control 1.1.13
@@ -368,11 +338,7 @@ For example, chmod 600 /etc/kubernetes/admin.conf
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 #### Control 1.1.14
@@ -397,8 +363,7 @@ For example, chown root:root /etc/kubernetes/admin.conf
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 1.1.15
@@ -424,11 +389,7 @@ chmod 600 /etc/kubernetes/scheduler.conf
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 #### Control 1.1.16
@@ -454,8 +415,7 @@ chown root:root /etc/kubernetes/scheduler.conf
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 1.1.17
@@ -481,11 +441,7 @@ chmod 600 /etc/kubernetes/controller.conf
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 #### Control 1.1.18
@@ -511,8 +467,7 @@ chown root:root /etc/kubernetes/controller.conf
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 1.1.19
@@ -538,8 +493,7 @@ chown -R root:root /etc/kubernetes/pki/
 Expected output:
 
 ```
-test_items:
-- flag: root:root
+root:root
 ```
 
 #### Control 1.1.20
@@ -565,11 +519,7 @@ chmod -R 600 /etc/kubernetes/pki/*.crt
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 #### Control 1.1.21
@@ -595,11 +545,7 @@ chmod -R 600 /etc/kubernetes/pki/*.key
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: bitmask
-    value: '600'
-  flag: permissions
+permissions=600
 ```
 
 ### API Server
@@ -626,11 +572,7 @@ on the control plane node and set the below parameter.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: eq
-    value: false
-  flag: --anonymous-auth
+--anonymous-auth is set to false
 ```
 
 #### Control 1.2.2
@@ -657,9 +599,7 @@ file=<filename> parameter.
 Expected output:
 
 ```
-test_items:
-- flag: --token-auth-file
-  set: false
+--token-auth-file is not set
 ```
 
 #### Control 1.2.3
@@ -684,14 +624,8 @@ from enabled admission plugins.
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: nothave
-    value: DenyServiceExternalIPs
-  flag: --enable-admission-plugins
-- flag: --enable-admission-plugins
-  set: false
+--enable-admission-plugins is not set, or if it is set, does not
+contain DenyServiceExternalIPs
 ```
 
 #### Control 1.2.4
@@ -721,10 +655,7 @@ kubelet client certificate and key parameters as below.
 Expected output:
 
 ```
-bin_op: and
-test_items:
-- flag: --kubelet-client-certificate
-- flag: --kubelet-client-key
+--kubelet-client-certificate and --kubelet-client-key are set
 ```
 
 #### Control 1.2.5
@@ -754,8 +685,7 @@ cert file for the certificate authority.
 Expected output:
 
 ```
-test_items:
-- flag: --kubelet-certificate-authority
+--kubelet-certificate-authority is set
 ```
 
 #### Control 1.2.6
@@ -782,11 +712,7 @@ One such example could be as below.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: nothave
-    value: AlwaysAllow
-  flag: --authorization-mode
+--authorization-mode is not AlwaysAllow
 ```
 
 #### Control 1.2.7
@@ -812,11 +738,7 @@ parameter to a value that includes Node.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: has
-    value: Node
-  flag: --authorization-mode
+--authorization-mode includes Node
 ```
 
 #### Control 1.2.8
@@ -842,11 +764,7 @@ for example `--authorization-mode=Node,RBAC`.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: has
-    value: RBAC
-  flag: --authorization-mode
+--authorization-mode includes RBAC
 ```
 
 #### Control 1.2.9
@@ -874,11 +792,7 @@ and set the below parameters.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: has
-    value: EventRateLimit
-  flag: --enable-admission-plugins
+--enable-admission-plugins includes EventRateLimit
 ```
 
 #### Control 1.2.10
@@ -904,14 +818,8 @@ value that does not include AlwaysAdmit.
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: nothave
-    value: AlwaysAdmit
-  flag: --enable-admission-plugins
-- flag: --enable-admission-plugins
-  set: false
+--enable-admission-plugins is not set, or if it is set, does not
+include AlwaysAdmit
 ```
 
 #### Control 1.2.11
@@ -938,11 +846,7 @@ AlwaysPullImages.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: has
-    value: AlwaysPullImages
-  flag: --enable-admission-plugins
+--enable-admission-plugins includes AlwaysPullImages
 ```
 
 #### Control 1.2.12
@@ -970,16 +874,8 @@ place.
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: has
-    value: SecurityContextDeny
-  flag: --enable-admission-plugins
-- compare:
-    op: has
-    value: PodSecurityPolicy
-  flag: --enable-admission-plugins
+--enable-admission-plugins includes PodSecurityPolicy or
+SecurityContextDeny
 ```
 
 #### Control 1.2.13
@@ -1007,14 +903,8 @@ value that does not include ServiceAccount.
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: nothave
-    value: ServiceAccount
-  flag: --disable-admission-plugins
-- flag: --disable-admission-plugins
-  set: false
+--disable-admission-plugins is not set, or if it is set,
+includes ServiceAccount
 ```
 
 #### Control 1.2.14
@@ -1040,14 +930,8 @@ ensure it does not include NamespaceLifecycle.
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: nothave
-    value: NamespaceLifecycle
-  flag: --disable-admission-plugins
-- flag: --disable-admission-plugins
-  set: false
+--disable-admission-plugins is not set, or if it is set, does
+not include NamespaceLifecycle
 ```
 
 #### Control 1.2.15
@@ -1076,11 +960,7 @@ value that includes NodeRestriction.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: has
-    value: NodeRestriction
-  flag: --enable-admission-plugins
+--enable-admission-plugins includes NodeRestriction
 ```
 
 #### Control 1.2.16
@@ -1106,14 +986,8 @@ set it to a different (non-zero) desired port.
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: gt
-    value: 0
-  flag: --secure-port
-- flag: --secure-port
-  set: false
+--secure-port is not set, or if it is set, it is set to 0 or
+higher
 ```
 
 #### Control 1.2.17
@@ -1137,11 +1011,7 @@ on the control plane node and set the below parameter.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: eq
-    value: false
-  flag: --profiling
+--profiling is set to false
 ```
 
 #### Control 1.2.18
@@ -1167,8 +1037,7 @@ file where you would like audit logs to be written, for example,
 Expected output:
 
 ```
-test_items:
-- flag: --audit-log-path
+--audit-log-path is set
 ```
 
 #### Control 1.2.19
@@ -1195,11 +1064,7 @@ or as an appropriate number of days, for example,
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: gte
-    value: 30
-  flag: --audit-log-maxage
+--audit-log-maxage is set to 30 or more
 ```
 
 #### Control 1.2.20
@@ -1226,11 +1091,7 @@ value. For example,
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: gte
-    value: 10
-  flag: --audit-log-maxbackup
+--audit-log-maxbackup is set to 10 or more
 ```
 
 #### Control 1.2.21
@@ -1256,11 +1117,7 @@ For example, to set it as 100 MB, --audit-log-maxsize=100
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: gte
-    value: 100
-  flag: --audit-log-maxsize
+--audit-log-maxsize is set to 100 or more
 ```
 
 #### Control 1.2.22
@@ -1280,6 +1137,12 @@ Remediation:
 Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
 and set the below parameter as appropriate and if needed.
 For example, --request-timeout=300s
+```
+
+Expected output:
+
+```
+TODO
 ```
 
 #### Control 1.2.23
@@ -1307,14 +1170,8 @@ that the default takes effect.
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- flag: --service-account-lookup
-  set: false
-- compare:
-    op: eq
-    value: true
-  flag: --service-account-lookup
+--service-account-lookup is not set, or if it is set, it is set
+to true
 ```
 
 #### Control 1.2.24
@@ -1341,8 +1198,7 @@ to the public key file for service accounts. For example,
 Expected output:
 
 ```
-test_items:
-- flag: --service-account-key-file
+--service-account-key-file is set
 ```
 
 #### Control 1.2.25
@@ -1371,10 +1227,7 @@ file parameters.
 Expected output:
 
 ```
-bin_op: and
-test_items:
-- flag: --etcd-certfile
-- flag: --etcd-keyfile
+--etcd-certfile and --etcd-keyfile are set
 ```
 
 #### Control 1.2.26
@@ -1403,10 +1256,7 @@ private key file parameters.
 Expected output:
 
 ```
-bin_op: and
-test_items:
-- flag: --tls-cert-file
-- flag: --tls-private-key-file
+--tls-cert-file and --tls-private-key-file are set
 ```
 
 #### Control 1.2.27
@@ -1434,8 +1284,7 @@ authority file.
 Expected output:
 
 ```
-test_items:
-- flag: --client-ca-file
+--client-ca-file is set
 ```
 
 #### Control 1.2.28
@@ -1463,8 +1312,7 @@ file parameter.
 Expected output:
 
 ```
-test_items:
-- flag: --etcd-cafile
+--etcd-cafile is set
 ```
 
 #### Control 1.2.29
@@ -1493,8 +1341,7 @@ config=</path/to/EncryptionConfig/File>
 Expected output:
 
 ```
-test_items:
-- flag: --encryption-provider-config
+--encryption-provider-config is set
 ```
 
 #### Control 1.2.30
@@ -1521,11 +1368,8 @@ provider.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: valid_elements
-    value: aescbc,kms,secretbox
-  flag: provider
+--encryption-provider-config is one of or all of
+aescbc,kms,secretbox
 ```
 
 #### Control 1.2.31
@@ -1566,11 +1410,19 @@ _RSA_WITH_AES_256_GCM_SHA384
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: valid_elements
-    value: TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_3DES_EDE_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384
-  flag: --tls-cipher-suites
+--tls-cipher-suites is set to one of or all of TLS_AES_128_GCM_S
+HA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_EC
+DHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_
+SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH
+_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_E
+CDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_3DES
+_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WI
+TH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECD
+HE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1
+305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_3DE
+S_EDE_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_
+GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM
+_SHA384
 ```
 
 ### Controller Manager
@@ -1599,8 +1451,7 @@ for example, --terminated-pod-gc-threshold=10
 Expected output:
 
 ```
-test_items:
-- flag: --terminated-pod-gc-threshold
+--terminated-pod-gc-threshold is set
 ```
 
 #### Control 1.3.2
@@ -1625,11 +1476,7 @@ on the control plane node and set the below parameter.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: eq
-    value: false
-  flag: --profiling
+--profiling is false
 ```
 
 #### Control 1.3.3
@@ -1655,11 +1502,7 @@ on the control plane node to set the below parameter.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: noteq
-    value: false
-  flag: --use-service-account-credentials
+--user-service-account-credentials is true
 ```
 
 #### Control 1.3.4
@@ -1687,8 +1530,7 @@ to the private key file for service accounts.
 Expected output:
 
 ```
-test_items:
-- flag: --service-account-private-key-file
+--service-account-private-key-file is set
 ```
 
 #### Control 1.3.5
@@ -1715,8 +1557,7 @@ to the certificate bundle file`.
 Expected output:
 
 ```
-test_items:
-- flag: --root-ca-file
+--root-ca-file is set
 ```
 
 #### Control 1.3.6
@@ -1743,15 +1584,7 @@ to include RotateKubeletServerCertificate=true.
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: nothave
-    value: RotateKubeletServerCertificate=false
-  flag: --feature-gates
-  set: true
-- flag: --feature-gates
-  set: false
+--feature-gates is not set, of it is set, it
 ```
 
 #### Control 1.3.7
@@ -1777,14 +1610,7 @@ on the control plane node and ensure the correct value for the
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: eq
-    value: 127.0.0.1
-  flag: --bind-address
-- flag: --bind-address
-  set: false
+TODO
 ```
 
 ### Scheduler
@@ -1810,11 +1636,7 @@ on the control plane node and set the below parameter.
 Expected output:
 
 ```
-test_items:
-- compare:
-    op: eq
-    value: false
-  flag: --profiling
+TODO
 ```
 
 #### Control 1.4.2
@@ -1839,13 +1661,6 @@ on the control plane node and ensure the correct value for the
 Expected output:
 
 ```
-bin_op: or
-test_items:
-- compare:
-    op: eq
-    value: 127.0.0.1
-  flag: --bind-address
-- flag: --bind-address
-  set: false
+TODO
 ```
 
