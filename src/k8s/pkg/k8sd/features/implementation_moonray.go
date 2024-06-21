@@ -28,3 +28,7 @@ var StatusChecks StatusInterface = &statusChecks{
 	checkNetwork: calico.CheckNetwork,
 	checkDNS:     coredns.CheckDNS,
 }
+
+var Cleanup CleanupInterface = &cleanup{
+	cleanupNetwork: calico.CleanupNetwork,
+}
