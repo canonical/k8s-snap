@@ -32,7 +32,7 @@ Remediation:
 Expected output:
 
 ```
-{{ custom_outputs_by_control_id[check.id] | trim | wordwrap(64) }}
+{{ custom_outputs_by_control_id[check.id] | default("TODO") | trim | wordwrap(64) }}
 ```
 
 {% endif %}
