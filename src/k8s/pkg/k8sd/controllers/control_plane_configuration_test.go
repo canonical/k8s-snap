@@ -182,11 +182,11 @@ func TestControlPlaneConfigController(t *testing.T) {
 				expectServiceRestarts: []string{"kube-apiserver", "kube-controller-manager"},
 			},
 			{
-				name: "Embedded",
+				name: "Etcd",
 				config: types.ClusterConfig{
 					Datastore: types.Datastore{
-						Type:         utils.Pointer("embedded"),
-						EmbeddedPort: utils.Pointer(12379),
+						Type:     utils.Pointer("etcd"),
+						EtcdPort: utils.Pointer(12379),
 					},
 				},
 				expectKubeAPIServerArgs: map[string]string{

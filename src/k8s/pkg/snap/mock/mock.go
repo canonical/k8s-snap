@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
-	"github.com/canonical/k8s/pkg/client/embedded"
+	"github.com/canonical/k8s/pkg/client/etcd"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -41,7 +41,7 @@ type Mock struct {
 	KubernetesNodeClient        *kubernetes.Client
 	HelmClient                  helm.Client
 	K8sDqliteClient             *dqlite.Client
-	EmbeddedClient              embedded.Client
+	EtcdClient                  etcd.Client
 	SnapctlGet                  map[string][]byte
 }
 
@@ -171,8 +171,8 @@ func (s *Snap) HelmClient() helm.Client {
 func (s *Snap) K8sDqliteClient(context.Context) (*dqlite.Client, error) {
 	return s.Mock.K8sDqliteClient, nil
 }
-func (s *Snap) EmbeddedClient() embedded.Client {
-	return s.Mock.EmbeddedClient
+func (s *Snap) EtcdClient() etcd.Client {
+	return s.Mock.EtcdClient
 }
 func (s *Snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
 	s.SnapctlGetCalledWith = append(s.SnapctlGetCalledWith, args)

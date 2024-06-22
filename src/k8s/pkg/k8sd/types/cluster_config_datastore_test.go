@@ -71,7 +71,7 @@ func TestDatastoreToKubeAPIServerArguments(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
 
-			update, delete := tc.config.ToKubeAPIServerArguments(snap, nil, 0)
+			update, delete := tc.config.ToKubeAPIServerArguments(snap, nil)
 			g.Expect(update).To(Equal(tc.expectUpdateArgs))
 			g.Expect(delete).To(Equal(tc.expectDeleteArgs))
 		})

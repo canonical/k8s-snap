@@ -6,7 +6,7 @@ import (
 	"net"
 )
 
-// EtcdPKI is a list of certificates required by the embedded etcd datastore.
+// EtcdPKI is a list of certificates required by the etcd datastore.
 type EtcdPKI struct {
 	allowSelfSignedCA bool     // create self-signed CA certificates if missing
 	hostname          string   // node name

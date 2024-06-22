@@ -33,7 +33,7 @@ type k8sdDqliteEmbeddedConfigYaml struct {
 	PeerKeyFile  string   `yaml:"peer-key-file,omitempty"`
 }
 
-func K8sDqliteEmbedded(snap snap.Snap, name, clientURL, peerURL string, clientURLs []string, extraArgs map[string]*string) error {
+func Etcd(snap snap.Snap, name, clientURL, peerURL string, clientURLs []string, extraArgs map[string]*string) error {
 	clusterState := "new"
 	if len(clientURLs) > 0 {
 		clusterState = "existing"

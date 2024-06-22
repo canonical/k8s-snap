@@ -27,28 +27,28 @@ the placeholder values based on the desired configuration.
 
 ```yaml
 # required
-datastore-type: embedded
+datastore-type: etcd
 
 # optional
-datastore-embedded-port: 2379
-datastore-embedded-peer-port: 2380
-datastore-embedded-ca-crt: |
+etcd-port: 2379
+etcd-peer-port: 2380
+etcd-ca-crt: |
   <etcd-root-ca-certificate>
-datastore-embedded-ca-key: |
+etcd-ca-key: |
   <etcd-root-ca-private-key>
 ```
 
-* `datastore-type` must be set to `embedded`.
-* `datastore-embedded-port` expects a port number that will be used for the
-  client URLs of the embedded cluster. The default is port `2379`.
-* `datastore-embedded-peer-port` expects a port number that will be used for
-  the peer URLs of the embedded cluster. The default is port `2380`.
-* `datastore-embedded-ca-crt` and `datastore-embedded-ca-key`: an optional
-  custom CA certificate and private key to use for the embedded etcd cluster.
-  If not specified, k8sd will automatically generate a self-signed CA.
+* `datastore-type` must be set to `etcd`.
+* `etcd-port` expects a port number that will be used for the client URLs of
+  the etcd cluster. The default is port `2379`.
+* `etcd-peer-port` expects a port number that will be used for the peer URLs of
+  the etcd cluster. The default is port `2380`.
+* `etcd-ca-crt` and `etcd-ca-key`: an optional custom CA certificate and
+  private key to use for the etcd etcd cluster. If not specified, k8sd will
+  automatically generate a self-signed CA.
 
 ```{note}
-the embedded datastore will always be configured with TLS.
+the etcd cluster will always be configured with TLS.
 ```
 
 ## Bootstrap the cluster

@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func mockK8sDqliteEmbeddedSnap(t *testing.T) *mock.Snap {
+func mockEtcdSnap(t *testing.T) *mock.Snap {
 	s := &mock.Snap{
 		Mock: mock.Mock{
 			ServiceArgumentsDir: t.TempDir(),
@@ -26,15 +26,15 @@ func mockK8sDqliteEmbeddedSnap(t *testing.T) *mock.Snap {
 	return s
 }
 
-func TestK8sDqliteEmbedded(t *testing.T) {
+func TestEtcd(t *testing.T) {
 	t.Run("Args", func(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s := mockK8sDqliteEmbeddedSnap(t)
+		s := mockEtcdSnap(t)
 
 		// Call the K8sDqlite setup function with mock arguments
-		g.Expect(setup.K8sDqliteEmbedded(s, "t1", "https://127.0.0.1:2379", "https://127.0.0.1:2380", nil, nil)).To(BeNil())
+		g.Expect(setup.Etcd(s, "t1", "https://127.0.0.1:2379", "https://127.0.0.1:2380", nil, nil)).To(BeNil())
 
 		// Ensure the K8sDqlite arguments file has the expected arguments and values
 		tests := []struct {
@@ -63,8 +63,8 @@ func TestK8sDqliteEmbedded(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s := mockK8sDqliteEmbeddedSnap(t)
-		g.Expect(setup.K8sDqliteEmbedded(s, "t1", "https://127.0.0.1:2379", "https://127.0.0.1:2380", nil, nil)).To(BeNil())
+		s := mockEtcdSnap(t)
+		g.Expect(setup.Etcd(s, "t1", "https://127.0.0.1:2379", "https://127.0.0.1:2380", nil, nil)).To(BeNil())
 
 		eb, err := os.ReadFile(filepath.Join(s.K8sDqliteStateDir(), "embedded.yaml"))
 		g.Expect(err).To(BeNil())
@@ -97,8 +97,8 @@ func TestK8sDqliteEmbedded(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s := mockK8sDqliteEmbeddedSnap(t)
-		g.Expect(setup.K8sDqliteEmbedded(s, "t1", "https://127.0.0.1:2379", "https://127.0.0.1:2380", []string{"https://10.0.0.1:2379"}, nil)).To(BeNil())
+		s := mockEtcdSnap(t)
+		g.Expect(setup.Etcd(s, "t1", "https://127.0.0.1:2379", "https://127.0.0.1:2380", []string{"https://10.0.0.1:2379"}, nil)).To(BeNil())
 
 		eb, err := os.ReadFile(filepath.Join(s.K8sDqliteStateDir(), "embedded.yaml"))
 		g.Expect(err).To(BeNil())
@@ -131,7 +131,7 @@ func TestK8sDqliteEmbedded(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s := mockK8sDqliteEmbeddedSnap(t)
+		s := mockEtcdSnap(t)
 		s.Mock.K8sDqliteStateDir = "nonexistent"
 		g.Expect(setup.K8sDqlite(s, "", []string{}, nil)).ToNot(Succeed())
 	})
@@ -140,7 +140,7 @@ func TestK8sDqliteEmbedded(t *testing.T) {
 		g := NewWithT(t)
 
 		// Create a mock snap
-		s := mockK8sDqliteEmbeddedSnap(t)
+		s := mockEtcdSnap(t)
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 		g.Expect(setup.K8sDqlite(s, "", []string{}, nil)).ToNot(Succeed())
 	})

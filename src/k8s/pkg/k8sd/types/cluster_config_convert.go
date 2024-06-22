@@ -37,18 +37,18 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 		if b.GetDatastoreClientKey() != "" {
 			return ClusterConfig{}, fmt.Errorf("datastore-client-key needs datastore-type to be external, not %q", b.GetDatastoreType())
 		}
-		if b.GetDatastoreEmbeddedPeerPort() != 0 {
-			return ClusterConfig{}, fmt.Errorf("datastore-embedded-peer-port needs datastore-type to be embedded, not %q", b.GetDatastoreType())
+		if b.GetEtcdPeerPort() != 0 {
+			return ClusterConfig{}, fmt.Errorf("etcd-peer-port needs datastore-type to be etcd, not %q", b.GetDatastoreType())
 		}
-		if b.GetDatastoreEmbeddedPort() != 0 {
-			return ClusterConfig{}, fmt.Errorf("datastore-embedded-port needs datastore-type to be embedded, not %q", b.GetDatastoreType())
+		if b.GetEtcdPort() != 0 {
+			return ClusterConfig{}, fmt.Errorf("etcd-port needs datastore-type to be etcd, not %q", b.GetDatastoreType())
 		}
 
 		config.Datastore = Datastore{
 			Type:          utils.Pointer("k8s-dqlite"),
 			K8sDqlitePort: b.K8sDqlitePort,
 		}
-	case "embedded":
+	case "etcd":
 		if len(b.DatastoreServers) > 0 {
 			return ClusterConfig{}, fmt.Errorf("datastore-servers needs datastore-type to be external, not %q", b.GetDatastoreType())
 		}
@@ -62,26 +62,26 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 			return ClusterConfig{}, fmt.Errorf("datastore-client-key needs datastore-type to be external, not %q", b.GetDatastoreType())
 		}
 		if b.GetK8sDqlitePort() != 0 {
-			return ClusterConfig{}, fmt.Errorf("datastore.k8s-dqlite-port needs datastore.type to be ")
+			return ClusterConfig{}, fmt.Errorf("datastore.k8s-dqlite-port needs datastore.type to be k8s-dqlite, not %q", b.GetDatastoreType())
 		}
 
 		config.Datastore = Datastore{
-			Type:             utils.Pointer("embedded"),
-			EmbeddedPort:     b.DatastoreEmbeddedPort,
-			EmbeddedPeerPort: b.DatastoreEmbeddedPeerPort,
+			Type:         utils.Pointer("etcd"),
+			EtcdPort:     b.EtcdPort,
+			EtcdPeerPort: b.EtcdPeerPort,
 		}
 	case "external":
 		if len(b.DatastoreServers) == 0 {
 			return ClusterConfig{}, fmt.Errorf("datastore type is external but no datastore servers were set")
 		}
 		if b.GetK8sDqlitePort() != 0 {
-			return ClusterConfig{}, fmt.Errorf("k8s-dqlite-port needs datastore-type to be k8s-dqlite")
+			return ClusterConfig{}, fmt.Errorf("k8s-dqlite-port needs datastore-type to be k8s-dqlite, not %q", b.GetDatastoreType())
 		}
-		if b.GetDatastoreEmbeddedPeerPort() != 0 {
-			return ClusterConfig{}, fmt.Errorf("datastore-embedded-peer-port needs datastore-type to be embedded, not %q", b.GetDatastoreType())
+		if b.GetEtcdPeerPort() != 0 {
+			return ClusterConfig{}, fmt.Errorf("etcd-peer-port needs datastore-type to be etcd, not %q", b.GetDatastoreType())
 		}
-		if b.GetDatastoreEmbeddedPort() != 0 {
-			return ClusterConfig{}, fmt.Errorf("datastore-embedded-port needs datastore-type to be embedded, not %q", b.GetDatastoreType())
+		if b.GetEtcdPort() != 0 {
+			return ClusterConfig{}, fmt.Errorf("etcd-port needs datastore-type to be etcd, not %q", b.GetDatastoreType())
 		}
 		config.Datastore = Datastore{
 			Type:               utils.Pointer("external"),
