@@ -14,7 +14,7 @@ import (
 type etcdTransportSecurity struct {
 	CertFile      string `yaml:"cert-file,omitempty"`
 	KeyFile       string `yaml:"key-file,omitempty"`
-	TrustedCAFile string `yaml:"trusted-ca-cert,omitempty"`
+	TrustedCAFile string `yaml:"trusted-ca-file,omitempty"`
 }
 
 type etcdConfig struct {
