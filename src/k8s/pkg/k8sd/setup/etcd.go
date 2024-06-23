@@ -32,10 +32,9 @@ type etcdConfig struct {
 }
 
 type etcdRegisterConfig struct {
+	etcdTransportSecurity
 	PeerURL    string   `yaml:"peer-url,omitempty"`
 	ClientURLs []string `yaml:"client-urls,omitempty"`
-
-	ClientTransportSecurity etcdTransportSecurity `yaml:"client-transport-security,omitempty"`
 }
 
 func newEtcdConfig(snap snap.Snap, name, clientURL, peerURL string, clientURLs []string) etcdConfig {
@@ -69,7 +68,7 @@ func newEtcdRegisterConfig(snap snap.Snap, peerURL string, clientURLs []string) 
 	return etcdRegisterConfig{
 		PeerURL:    peerURL,
 		ClientURLs: clientURLs,
-		ClientTransportSecurity: etcdTransportSecurity{
+		etcdTransportSecurity: etcdTransportSecurity{
 			TrustedCAFile: filepath.Join(snap.EtcdPKIDir(), "ca.crt"),
 			CertFile:      filepath.Join(snap.EtcdPKIDir(), "server.crt"),
 			KeyFile:       filepath.Join(snap.EtcdPKIDir(), "server.key"),

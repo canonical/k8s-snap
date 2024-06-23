@@ -91,10 +91,9 @@ func TestEtcd(t *testing.T) {
 		g.Expect(err).To(BeNil())
 		g.Expect(string(cb)).To(SatisfyAll(
 			ContainSubstring("peer-url: https://127.0.0.1:2380"),
-			ContainSubstring("client-transport-security:"),
-			ContainSubstring("  trusted-ca-file: %s/ca.crt", s.EtcdPKIDir()),
-			ContainSubstring("  cert-file: %s/server.crt", s.EtcdPKIDir()),
-			ContainSubstring("  key-file: %s/server.key", s.EtcdPKIDir()),
+			ContainSubstring("trusted-ca-file: %s/ca.crt", s.EtcdPKIDir()),
+			ContainSubstring("cert-file: %s/server.crt", s.EtcdPKIDir()),
+			ContainSubstring("key-file: %s/server.key", s.EtcdPKIDir()),
 		))
 	})
 
@@ -123,10 +122,9 @@ func TestEtcd(t *testing.T) {
 		g.Expect(string(cb)).To(SatisfyAll(
 			ContainSubstring("client-urls:\n- https://10.0.0.1:2379"),
 			ContainSubstring("peer-url: https://127.0.0.1:2380"),
-			ContainSubstring("client-transport-security:"),
-			ContainSubstring("  trusted-ca-file: %s/ca.crt", s.EtcdPKIDir()),
-			ContainSubstring("  cert-file: %s/server.crt", s.EtcdPKIDir()),
-			ContainSubstring("  key-file: %s/server.key", s.EtcdPKIDir()),
+			ContainSubstring("trusted-ca-file: %s/ca.crt", s.EtcdPKIDir()),
+			ContainSubstring("cert-file: %s/server.crt", s.EtcdPKIDir()),
+			ContainSubstring("key-file: %s/server.key", s.EtcdPKIDir()),
 		))
 	})
 
