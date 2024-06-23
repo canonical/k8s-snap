@@ -11,7 +11,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type k8sDqliteEmbeddedYaml struct {
+type etcdTransportSecurity struct {
+	CertFile      string `yaml:"cert-file,omitempty"`
+	KeyFile       string `yaml:"key-file,omitempty"`
+	TrustedCAFile string `yaml:"trusted-ca-cert,omitempty"`
+}
+
+type etcdConfig struct {
 	Name                     string `yaml:"name,omitempty,omitempty"`
 	DataDir                  string `yaml:"data-dir,omitempty"`
 	AdvertiseClientURLs      string `yaml:"advertise-client-urls,omitempty"`
@@ -20,26 +26,24 @@ type k8sDqliteEmbeddedYaml struct {
 	InitialClusterState      string `yaml:"initial-cluster-state,omitempty"`
 	InitialCluster           string `yaml:"initial-cluster,omitempty"`
 	InitialAdvertisePeerURLs string `yaml:"initial-advertise-peer-urls,omitempty"`
+
+	ClientTransportSecurity etcdTransportSecurity `yaml:"client-transport-security,omitempty"`
+	PeerTransportSecurity   etcdTransportSecurity `yaml:"peer-transport-security,omitempty"`
 }
 
-type k8sdDqliteEmbeddedConfigYaml struct {
-	ClientURLs   []string `yaml:"client-urls,omitempty"`
-	PeerURL      string   `yaml:"peer-url,omitempty"`
-	CAFile       string   `yaml:"ca-file,omitempty"`
-	CertFile     string   `yaml:"cert-file,omitempty"`
-	KeyFile      string   `yaml:"key-file,omitempty"`
-	PeerCAFile   string   `yaml:"peer-ca-file,omitempty"`
-	PeerCertFile string   `yaml:"peer-cert-file,omitempty"`
-	PeerKeyFile  string   `yaml:"peer-key-file,omitempty"`
+type etcdRegisterConfig struct {
+	PeerURL    string   `yaml:"peer-url,omitempty"`
+	ClientURLs []string `yaml:"client-urls,omitempty"`
+
+	ClientTransportSecurity etcdTransportSecurity `yaml:"client-transport-security,omitempty"`
 }
 
-func Etcd(snap snap.Snap, name, clientURL, peerURL string, clientURLs []string, extraArgs map[string]*string) error {
+func newEtcdConfig(snap snap.Snap, name, clientURL, peerURL string, clientURLs []string) etcdConfig {
 	clusterState := "new"
 	if len(clientURLs) > 0 {
 		clusterState = "existing"
 	}
-
-	if b, err := yaml.Marshal(&k8sDqliteEmbeddedYaml{
+	return etcdConfig{
 		Name:                     name,
 		DataDir:                  filepath.Join(snap.K8sDqliteStateDir(), "data"),
 		InitialCluster:           fmt.Sprintf("%s=%s", name, peerURL), // NOTE: will be updated for joining nodes
@@ -48,29 +52,46 @@ func Etcd(snap snap.Snap, name, clientURL, peerURL string, clientURLs []string, 
 		ListenPeerURLs:           peerURL,
 		AdvertiseClientURLs:      clientURL,
 		ListenClientURLs:         clientURL,
-	}); err != nil {
-		return fmt.Errorf("failed to create embedded.yaml file for name=%q address=%q: %w", name, peerURL, err)
-	} else if err := os.WriteFile(filepath.Join(snap.K8sDqliteStateDir(), "embedded.yaml"), b, 0600); err != nil {
-		return fmt.Errorf("failed to write embedded.yaml config for name=%q address=%q: %w", name, peerURL, err)
+		ClientTransportSecurity: etcdTransportSecurity{
+			TrustedCAFile: filepath.Join(snap.EtcdPKIDir(), "ca.crt"),
+			CertFile:      filepath.Join(snap.EtcdPKIDir(), "server.crt"),
+			KeyFile:       filepath.Join(snap.EtcdPKIDir(), "server.key"),
+		},
+		PeerTransportSecurity: etcdTransportSecurity{
+			TrustedCAFile: filepath.Join(snap.EtcdPKIDir(), "ca.crt"),
+			CertFile:      filepath.Join(snap.EtcdPKIDir(), "peer.crt"),
+			KeyFile:       filepath.Join(snap.EtcdPKIDir(), "peer.key"),
+		},
+	}
+}
+
+func newEtcdRegisterConfig(snap snap.Snap, peerURL string, clientURLs []string) etcdRegisterConfig {
+	return etcdRegisterConfig{
+		PeerURL:    peerURL,
+		ClientURLs: clientURLs,
+		ClientTransportSecurity: etcdTransportSecurity{
+			TrustedCAFile: filepath.Join(snap.EtcdPKIDir(), "ca.crt"),
+			CertFile:      filepath.Join(snap.EtcdPKIDir(), "server.crt"),
+			KeyFile:       filepath.Join(snap.EtcdPKIDir(), "server.key"),
+		},
+	}
+}
+
+func Etcd(snap snap.Snap, name, clientURL, peerURL string, clientURLs []string, extraArgs map[string]*string) error {
+	if b, err := yaml.Marshal(newEtcdConfig(snap, name, clientURL, peerURL, clientURLs)); err != nil {
+		return fmt.Errorf("failed to create etcd.yaml file for name=%q address=%q: %w", name, peerURL, err)
+	} else if err := os.WriteFile(filepath.Join(snap.K8sDqliteStateDir(), "etcd.yaml"), b, 0600); err != nil {
+		return fmt.Errorf("failed to write etcd.yaml config for name=%q address=%q: %w", name, peerURL, err)
 	}
 
-	if b, err := yaml.Marshal(&k8sdDqliteEmbeddedConfigYaml{
-		ClientURLs:   clientURLs,
-		PeerURL:      peerURL,
-		CAFile:       filepath.Join(snap.EtcdPKIDir(), "ca.crt"),
-		CertFile:     filepath.Join(snap.EtcdPKIDir(), "server.crt"),
-		KeyFile:      filepath.Join(snap.EtcdPKIDir(), "server.key"),
-		PeerCAFile:   filepath.Join(snap.EtcdPKIDir(), "ca.crt"),
-		PeerCertFile: filepath.Join(snap.EtcdPKIDir(), "peer.crt"),
-		PeerKeyFile:  filepath.Join(snap.EtcdPKIDir(), "peer.key"),
-	}); err != nil {
-		return fmt.Errorf("failed to create config.yaml file for name=%q address=%q: %w", name, peerURL, err)
-	} else if err := os.WriteFile(filepath.Join(snap.K8sDqliteStateDir(), "config.yaml"), b, 0600); err != nil {
-		return fmt.Errorf("failed to write config.yaml file for name=%q address=%q: %w", name, peerURL, err)
+	if b, err := yaml.Marshal(newEtcdRegisterConfig(snap, peerURL, clientURLs)); err != nil {
+		return fmt.Errorf("failed to create register.yaml file for name=%q address=%q: %w", name, peerURL, err)
+	} else if err := os.WriteFile(filepath.Join(snap.K8sDqliteStateDir(), "register.yaml"), b, 0600); err != nil {
+		return fmt.Errorf("failed to write register.yaml file for name=%q address=%q: %w", name, peerURL, err)
 	}
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "k8s-dqlite", map[string]string{
-		"--embedded":    "true",
+		"--etcd-mode":   "true",
 		"--storage-dir": snap.K8sDqliteStateDir(),
 	}, nil); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
