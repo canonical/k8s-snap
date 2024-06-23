@@ -180,8 +180,12 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get microcluster members: %w", err)
 		}
-		clientURLs := make([]string, len(members))
+		clientURLs := make([]string, 0, len(members)-1)
 		for _, member := range members {
+			if member.Name == s.Name() {
+				// skip self
+				continue
+			}
 			clientURLs = append(clientURLs, fmt.Sprintf("https://%s", utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPort())))
 		}
 
