@@ -32,9 +32,11 @@ type etcdConfig struct {
 }
 
 type etcdRegisterConfig struct {
-	etcdTransportSecurity
-	PeerURL    string   `yaml:"peer-url,omitempty"`
-	ClientURLs []string `yaml:"client-urls,omitempty"`
+	PeerURL       string   `yaml:"peer-url,omitempty"`
+	ClientURLs    []string `yaml:"client-urls,omitempty"`
+	CertFile      string   `yaml:"cert-file,omitempty"`
+	KeyFile       string   `yaml:"key-file,omitempty"`
+	TrustedCAFile string   `yaml:"trusted-ca-file,omitempty"`
 }
 
 func newEtcdConfig(snap snap.Snap, name, clientURL, peerURL string, clientURLs []string) etcdConfig {
@@ -66,13 +68,11 @@ func newEtcdConfig(snap snap.Snap, name, clientURL, peerURL string, clientURLs [
 
 func newEtcdRegisterConfig(snap snap.Snap, peerURL string, clientURLs []string) etcdRegisterConfig {
 	return etcdRegisterConfig{
-		PeerURL:    peerURL,
-		ClientURLs: clientURLs,
-		etcdTransportSecurity: etcdTransportSecurity{
-			TrustedCAFile: filepath.Join(snap.EtcdPKIDir(), "ca.crt"),
-			CertFile:      filepath.Join(snap.EtcdPKIDir(), "server.crt"),
-			KeyFile:       filepath.Join(snap.EtcdPKIDir(), "server.key"),
-		},
+		PeerURL:       peerURL,
+		ClientURLs:    clientURLs,
+		TrustedCAFile: filepath.Join(snap.EtcdPKIDir(), "ca.crt"),
+		CertFile:      filepath.Join(snap.EtcdPKIDir(), "server.crt"),
+		KeyFile:       filepath.Join(snap.EtcdPKIDir(), "server.key"),
 	}
 }
 
