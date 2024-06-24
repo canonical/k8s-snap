@@ -33,6 +33,8 @@ The [core20][Core20] and `k8s` snap are downloaded. The `core20.assert` and
     Find the version you desire in the [snapstore][snapstore].
 ```
 
+```{note} With updates to the snap the base core is subject to change.```
+
 ### Prep 2: Network Requirements
 
 Air-gap deployments are typically associated with a number of constraints and
@@ -101,23 +103,145 @@ increasing complexity of implementation.
 You may also find it helpful to combine these options for your scenario.
 
 ### Images Option A: via an HTTP proxy
-
-
+In many cases, the nodes of the airgap deployment may not have direct access to upstream registries, but can reach them through the [use of an HTTP proxy][proxy].
 
 ### Images Option B: private registry mirror
+In case regulations and/or network constraints do not allow the cluster nodes
+to access any upstream image registry,
+it is typical to deploy a private registry mirror.
+This is an image registry service that contains all the required OCI Images
+(e.g. [registry](https://docs.docker.com/registry/),
+[Harbor](https://goharbor.io/) or any other OCI registry) and
+is reachable from all cluster nodes.
+
+This requires three steps:
+
+1. Deploy and secure the registry service. This is out of scope for this
+   document, please follow the instructions for the registry
+   that you want to deploy.
+2. Load all images from the upstream source and push to our registry mirror.
+3. Configure the MicroK8s container runtime (`containerd`) to load images from
+   the private registry mirror instead of the upstream source. This will be
+   described in the
+   [Configure registry mirrors](#option-b-configure-registry-mirrors) section.
+
+In order to load images into the private registry, you need a machine with
+access to both the upstream registry (e.g. `docker.io`) and the internal one.
+Loading the images is possible with `docker` or `ctr`.
+
+For the examples below we assume that a private registry mirror is running at `10.100.100.100:5000`.
+
+#### Load images with ctr
+
+On the machine with access to both registries, first install `ctr`.
+For Ubuntu hosts, this can be done with:
+
+```bash
+sudo apt-get update
+sudo apt-get install containerd
+```
+
+Then, pull an image:
+
+```{note}  For DockerHub images, prefix with `docker.io/library`. ```
+
+```bash
+export IMAGE=library/nginx:latest
+export FROM_REPOSITORY=docker.io
+export TO_REPOSITORY=10.100.100.100:5000
+
+# pull the image and tag
+ctr image pull "$FROM_REPOSITORY/$IMAGE"
+ctr image convert "$FROM_REPOSITORY/$IMAGE" "$TO_REPOSITORY/$IMAGE"
+```
+
+Finally, push the image (see `ctr image push --help` for a complete list of
+supported arguments):
+
+```bash
+# push image
+ctr image push "$TO_REPOSITORY/$IMAGE"
+# OR, if using HTTP and basic auth
+ctr image push "$TO_REPOSITORY/$IMAGE" --plain-http -u "$USER:$PASS"
+# OR, if using HTTPS and a custom CA (assuming CA certificate is at `/path/to/ca.crt`)
+ctr image push "$TO_REPOSITORY/$IMAGE" --ca /path/to/ca.crt
+```
+
+Make sure to repeat the steps above (pull, convert, push) for all the images that you need.
+
+##### Load images with docker
+
+On the machine with access to both registries, first install `docker`.
+For Ubuntu hosts, this can be done with:
+
+```bash
+sudo apt-get update
+sudo apt-get install docker.io
+```
+
+If needed, login to the private registry:
+
+```bash
+sudo docker login $TO_REGISTRY
+```
+
+Then pull, tag and push the image:
+
+```bash
+export IMAGE=library/nginx:latest
+export FROM_REPOSITORY=docker.io
+export TO_REPOSITORY=10.100.100.100:5000
+
+sudo docker pull "$FROM_REPOSITORY/$IMAGE"
+sudo docker tag "$FROM_REPOSITORY/$IMAGE" "$TO_REPOSITORY/$IMAGE"
+sudo docker push "$TO_REPOSITORY/$IMAGE"
+```
+
+Repeat the pull, tag and push steps for all required images.
 
 ### Images Option C: Side-load images
+Image side-loading is the process of loading all required OCI images directly
+into the container runtime, so that they do not have to be fetched at runtime.
+Upon choosing this option, you need to create a bundle of all the OCI images
+that will be used by the cluster.
+
+<!-- TODO: how to image side loading with CK8s -->
 
 ## Deploy Canonical Kubernetes
 
+Now that you have fulfilled all steps in preparation for your
+air gapped cluster, it is time to get it deployed.
+
 ### Step 1: Install Canonical Kubernetes
 
-### Step 2: Configure registry mirrors
+Copy the `k8s.snap`, `k8s.assert`, `core20.snap` and `core20.assert` files into
+the target node, then install with:
+
+```bash
+sudo snap ack core20.assert && sudo snap install ./core20.snap
+sudo snap ack k8s.assert && sudo snap install ./k8s.snap --classic
+```
+
+Repeat the above for all nodes of the cluster.
+
+### Step 2: Form Canonical Kubernetes cluster
+
+```{note}  Please skip this section for one node deployments. ```
+
+You can add and remove nodes as described in the
+[add-and-remove-nodes tutorial][nodes].
+
+After a while, confirm that all the cluster nodes show up in
+the output of the `sudo k8s kubectl get node`. 
+
+The nodes will most likely be in `NotReady` state,
+since we still need to ensure the container runtime can fetch images.
 
 ### Step 3: Container Runtime
 
 <!-- LINKS -->
 
-[Getting started]: getting-started
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
 [snapstore]: https://snapcraft.io/k8s
+[proxy]: /snap/howto/proxy.md
+[nodes]: /snap/tutorial/add-remove-nodes.md
