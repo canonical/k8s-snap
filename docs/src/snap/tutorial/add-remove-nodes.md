@@ -129,11 +129,11 @@ sudo k8s remove-node worker
 sudo k8s remove-node control-plane
 ```
 
-To delete the VMs from your system, two commands are needed:
+To delete the VMs from your system use the following commands:
 
 ```
-multipass remove control-plane
-multipass remove worker
+multipass delete control-plane
+multipass delete worker
 multipass purge
 ```
 
