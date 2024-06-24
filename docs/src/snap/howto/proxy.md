@@ -7,6 +7,9 @@ network environment, such access is usually controlled through proxies.
 On Ubuntu and other Linux operating systems, proxies are configured through
 system-wide environment variables defined in the `/etc/environment` file.
 
+To set up a proxy using squid follow the
+[how-to-install-a-squid-server][squid] tutorial.
+
 ## Adding proxy configuration for the k8s snap
 
 Edit the `/etc/environment` file and add the relevant URLs
@@ -45,3 +48,4 @@ see the [documentation for adding proxy configuration via Juju].
 <!-- LINKS -->
 
 [documentation for adding proxy configuration via Juju]: /charm/howto/proxy
+[squid]: https://ubuntu.com/server/docs/how-to-install-a-squid-servers
