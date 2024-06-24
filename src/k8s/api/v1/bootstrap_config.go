@@ -17,14 +17,21 @@ type BootstrapConfig struct {
 	DisableRBAC        *bool    `json:"disable-rbac,omitempty" yaml:"disable-rbac,omitempty"`
 	SecurePort         *int     `json:"secure-port,omitempty" yaml:"secure-port,omitempty"`
 
-	K8sDqlitePort             *int     `json:"k8s-dqlite-port,omitempty" yaml:"k8s-dqlite-port,omitempty"`
-	DatastoreType             *string  `json:"datastore-type,omitempty" yaml:"datastore-type,omitempty"`
-	DatastoreServers          []string `json:"datastore-servers,omitempty" yaml:"datastore-servers,omitempty"`
-	DatastoreCACert           *string  `json:"datastore-ca-crt,omitempty" yaml:"datastore-ca-crt,omitempty"`
-	DatastoreClientCert       *string  `json:"datastore-client-crt,omitempty" yaml:"datastore-client-crt,omitempty"`
-	DatastoreClientKey        *string  `json:"datastore-client-key,omitempty" yaml:"datastore-client-key,omitempty"`
-	DatastoreEmbeddedPort     *int     `json:"datastore-embedded-port,omitempty" yaml:"datastore-embedded-port,omitempty"`
-	DatastoreEmbeddedPeerPort *int     `json:"datastore-embedded-peer-port,omitempty" yaml:"datastore-embedded-peer-port,omitempty"`
+	// DatastoreType is one of "k8s-dqlite", "etcd", "external"
+	DatastoreType *string `json:"datastore-type,omitempty" yaml:"datastore-type,omitempty"`
+
+	// Datastore configuration for type "k8s-dqlite"
+	K8sDqlitePort *int `json:"k8s-dqlite-port,omitempty" yaml:"k8s-dqlite-port,omitempty"`
+
+	// Datastore configuration for type "etcd"
+	EtcdPort     *int `json:"etcd-port,omitempty" yaml:"etcd-port,omitempty"`
+	EtcdPeerPort *int `json:"etcd-peer-port,omitempty" yaml:"etcd-peer-port,omitempty"`
+
+	// Datastore configuration for type "external"
+	DatastoreServers    []string `json:"datastore-servers,omitempty" yaml:"datastore-servers,omitempty"`
+	DatastoreCACert     *string  `json:"datastore-ca-crt,omitempty" yaml:"datastore-ca-crt,omitempty"`
+	DatastoreClientCert *string  `json:"datastore-client-crt,omitempty" yaml:"datastore-client-crt,omitempty"`
+	DatastoreClientKey  *string  `json:"datastore-client-key,omitempty" yaml:"datastore-client-key,omitempty"`
 
 	// Seed configuration for certificates
 	ExtraSANs []string `json:"extra-sans,omitempty" yaml:"extra-sans,omitempty"`
@@ -50,15 +57,15 @@ type BootstrapConfig struct {
 	KubeControllerManagerClientKey  *string `json:"kube-controller-manager-client-key,omitempty" yaml:"kube-ControllerManager-client-key,omitempty"`
 	ServiceAccountKey               *string `json:"service-account-key,omitempty" yaml:"service-account-key,omitempty"`
 
-	// Seed configuration for embedded datastore
-	EmbeddedCACert              *string `json:"embedded-ca-crt,omitempty" yaml:"embedded-ca-crt,omitempty"`
-	EmbeddedCAKey               *string `json:"embedded-ca-key,omitempty" yaml:"embedded-ca-key,omitempty"`
-	EmbeddedServerCert          *string `json:"embedded-server-crt,omitempty" yaml:"embedded-server-crt,omitempty"`
-	EmbeddedServerKey           *string `json:"embedded-server-key,omitempty" yaml:"embedded-server-key,omitempty"`
-	EmbeddedServerPeerCert      *string `json:"embedded-peer-crt,omitempty" yaml:"embedded-peer-crt,omitempty"`
-	EmbeddedServerPeerKey       *string `json:"embedded-peer-key,omitempty" yaml:"embedded-peer-key,omitempty"`
-	EmbeddedAPIServerClientCert *string `json:"embedded-apiserver-client-crt,omitempty" yaml:"embedded-apiserver-client-crt,omitempty"`
-	EmbeddedAPIServerClientKey  *string `json:"embedded-apiserver-client-key,omitempty" yaml:"embedded-apiserver-client-key,omitempty"`
+	// Seed certificates for datastore type "etcd"
+	EtcdCACert              *string `json:"etcd-ca-crt,omitempty" yaml:"etcd-ca-crt,omitempty"`
+	EtcdCAKey               *string `json:"etcd-ca-key,omitempty" yaml:"etcd-ca-key,omitempty"`
+	EtcdServerCert          *string `json:"etcd-server-crt,omitempty" yaml:"etcd-server-crt,omitempty"`
+	EtcdServerKey           *string `json:"etcd-server-key,omitempty" yaml:"etcd-server-key,omitempty"`
+	EtcdServerPeerCert      *string `json:"etcd-peer-crt,omitempty" yaml:"etcd-peer-crt,omitempty"`
+	EtcdServerPeerKey       *string `json:"etcd-peer-key,omitempty" yaml:"etcd-peer-key,omitempty"`
+	EtcdAPIServerClientCert *string `json:"etcd-apiserver-client-crt,omitempty" yaml:"etcd-apiserver-client-crt,omitempty"`
+	EtcdAPIServerClientKey  *string `json:"etcd-apiserver-client-key,omitempty" yaml:"etcd-apiserver-client-key,omitempty"`
 
 	// Seed configuration for external certificates (node-specific)
 	APIServerCert     *string `json:"apiserver-crt,omitempty" yaml:"apiserver-crt,omitempty"`
@@ -79,16 +86,15 @@ type BootstrapConfig struct {
 	ExtraNodeKubeletArgs               map[string]*string `json:"extra-node-kubelet-args,omitempty" yaml:"extra-node-kubelet-args,omitempty"`
 	ExtraNodeContainerdArgs            map[string]*string `json:"extra-node-containerd-args,omitempty" yaml:"extra-node-containerd-args,omitempty"`
 	ExtraNodeK8sDqliteArgs             map[string]*string `json:"extra-node-k8s-dqlite-args,omitempty" yaml:"extra-node-k8s-dqlite-args,omitempty"`
+	ExtraNodeEtcdArgs                  map[string]*string `json:"extra-node-etcd-args,omitempty" yaml:"extra-node-etcd-args,omitempty"`
 }
 
-func (b *BootstrapConfig) GetDatastoreType() string       { return getField(b.DatastoreType) }
-func (b *BootstrapConfig) GetDatastoreCACert() string     { return getField(b.DatastoreCACert) }
-func (b *BootstrapConfig) GetDatastoreClientCert() string { return getField(b.DatastoreClientCert) }
-func (b *BootstrapConfig) GetDatastoreClientKey() string  { return getField(b.DatastoreClientKey) }
-func (b *BootstrapConfig) GetDatastoreEmbeddedPort() int  { return getField(b.DatastoreEmbeddedPort) }
-func (b *BootstrapConfig) GetDatastoreEmbeddedPeerPort() int {
-	return getField(b.DatastoreEmbeddedPeerPort)
-}
+func (b *BootstrapConfig) GetDatastoreType() string        { return getField(b.DatastoreType) }
+func (b *BootstrapConfig) GetDatastoreCACert() string      { return getField(b.DatastoreCACert) }
+func (b *BootstrapConfig) GetDatastoreClientCert() string  { return getField(b.DatastoreClientCert) }
+func (b *BootstrapConfig) GetDatastoreClientKey() string   { return getField(b.DatastoreClientKey) }
+func (b *BootstrapConfig) GetEtcdPort() int                { return getField(b.EtcdPort) }
+func (b *BootstrapConfig) GetEtcdPeerPort() int            { return getField(b.EtcdPeerPort) }
 func (b *BootstrapConfig) GetK8sDqlitePort() int           { return getField(b.K8sDqlitePort) }
 func (b *BootstrapConfig) GetCACert() string               { return getField(b.CACert) }
 func (b *BootstrapConfig) GetCAKey() string                { return getField(b.CAKey) }
@@ -121,19 +127,17 @@ func (b *BootstrapConfig) GetKubeControllerManagerClientKey() string {
 	return getField(b.KubeControllerManagerClientKey)
 }
 func (b *BootstrapConfig) GetServiceAccountKey() string  { return getField(b.ServiceAccountKey) }
-func (b *BootstrapConfig) GetEmbeddedCACert() string     { return getField(b.EmbeddedCACert) }
-func (b *BootstrapConfig) GetEmbeddedCAKey() string      { return getField(b.EmbeddedCAKey) }
-func (b *BootstrapConfig) GetEmbeddedServerCert() string { return getField(b.EmbeddedServerCert) }
-func (b *BootstrapConfig) GetEmbeddedServerKey() string  { return getField(b.EmbeddedServerKey) }
-func (b *BootstrapConfig) GetEmbeddedServerPeerCert() string {
-	return getField(b.EmbeddedServerPeerCert)
+func (b *BootstrapConfig) GetEtcdCACert() string         { return getField(b.EtcdCACert) }
+func (b *BootstrapConfig) GetEtcdCAKey() string          { return getField(b.EtcdCAKey) }
+func (b *BootstrapConfig) GetEtcdServerCert() string     { return getField(b.EtcdServerCert) }
+func (b *BootstrapConfig) GetEtcdServerKey() string      { return getField(b.EtcdServerKey) }
+func (b *BootstrapConfig) GetEtcdServerPeerCert() string { return getField(b.EtcdServerPeerCert) }
+func (b *BootstrapConfig) GetEtcdServerPeerKey() string  { return getField(b.EtcdServerPeerKey) }
+func (b *BootstrapConfig) GetEtcdAPIServerClientCert() string {
+	return getField(b.EtcdAPIServerClientCert)
 }
-func (b *BootstrapConfig) GetEmbeddedServerPeerKey() string { return getField(b.EmbeddedServerPeerKey) }
-func (b *BootstrapConfig) GetEmbeddedAPIServerClientCert() string {
-	return getField(b.EmbeddedAPIServerClientCert)
-}
-func (b *BootstrapConfig) GetEmbeddedAPIServerClientKey() string {
-	return getField(b.EmbeddedAPIServerClientKey)
+func (b *BootstrapConfig) GetEtcdAPIServerClientKey() string {
+	return getField(b.EtcdAPIServerClientKey)
 }
 func (b *BootstrapConfig) GetAPIServerCert() string     { return getField(b.APIServerCert) }
 func (b *BootstrapConfig) GetAPIServerKey() string      { return getField(b.APIServerKey) }

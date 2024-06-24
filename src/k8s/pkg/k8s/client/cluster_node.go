@@ -79,7 +79,7 @@ func (c *k8sdClient) CleanupNode(ctx context.Context, nodeName string) {
 	c.ResetNode(ctx, nodeName, true)
 
 	snaputil.StopControlPlaneServices(ctx, c.snap)
-	snaputil.StopK8sDqliteServices(ctx, c.snap)
+	snaputil.StopK8sDBService(ctx, c.snap)
 
 	snaputil.MarkAsWorkerNode(c.snap, false)
 }

@@ -43,10 +43,10 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		{name: "external datastore CA certificate", val: &config.Datastore.ExternalCACert, old: existing.Datastore.ExternalCACert, new: new.Datastore.ExternalCACert, allowChange: true},
 		{name: "external datastore client certificate", val: &config.Datastore.ExternalClientCert, old: existing.Datastore.ExternalClientCert, new: new.Datastore.ExternalClientCert, allowChange: true},
 		{name: "external datastore client key", val: &config.Datastore.ExternalClientKey, old: existing.Datastore.ExternalClientKey, new: new.Datastore.ExternalClientKey, allowChange: true},
-		{name: "embedded CA certificate", val: &config.Datastore.EmbeddedCACert, old: existing.Datastore.EmbeddedCACert, new: new.Datastore.EmbeddedCACert},
-		{name: "embedded CA key", val: &config.Datastore.EmbeddedCAKey, old: existing.Datastore.EmbeddedCAKey, new: new.Datastore.EmbeddedCAKey},
-		{name: "embedded apiserver client certificate", val: &config.Datastore.EmbeddedAPIServerClientCert, old: existing.Datastore.EmbeddedAPIServerClientCert, new: new.Datastore.EmbeddedAPIServerClientCert, allowChange: true},
-		{name: "embeddedAPIServer apiserver client key", val: &config.Datastore.EmbeddedAPIServerClientKey, old: existing.Datastore.EmbeddedAPIServerClientKey, new: new.Datastore.EmbeddedAPIServerClientKey, allowChange: true},
+		{name: "etcd CA certificate", val: &config.Datastore.EtcdCACert, old: existing.Datastore.EtcdCACert, new: new.Datastore.EtcdCACert},
+		{name: "etcd CA key", val: &config.Datastore.EtcdCAKey, old: existing.Datastore.EtcdCAKey, new: new.Datastore.EtcdCAKey},
+		{name: "etcd apiserver client certificate", val: &config.Datastore.EtcdAPIServerClientCert, old: existing.Datastore.EtcdAPIServerClientCert, new: new.Datastore.EtcdAPIServerClientCert, allowChange: true},
+		{name: "etcd apiserver client key", val: &config.Datastore.EtcdAPIServerClientKey, old: existing.Datastore.EtcdAPIServerClientKey, new: new.Datastore.EtcdAPIServerClientKey, allowChange: true},
 		// network
 		{name: "pod CIDR", val: &config.Network.PodCIDR, old: existing.Network.PodCIDR, new: new.Network.PodCIDR},
 		{name: "service CIDR", val: &config.Network.ServiceCIDR, old: existing.Network.ServiceCIDR, new: new.Network.ServiceCIDR},
@@ -105,8 +105,8 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		{name: "kube-apiserver secure port", val: &config.APIServer.SecurePort, old: existing.APIServer.SecurePort, new: new.APIServer.SecurePort},
 		// datastore
 		{name: "k8s-dqlite port", val: &config.Datastore.K8sDqlitePort, old: existing.Datastore.K8sDqlitePort, new: new.Datastore.K8sDqlitePort},
-		{name: "embedded client port", val: &config.Datastore.EmbeddedPort, old: existing.Datastore.EmbeddedPort, new: new.Datastore.EmbeddedPort},
-		{name: "embedded peer port", val: &config.Datastore.EmbeddedPeerPort, old: existing.Datastore.EmbeddedPeerPort, new: new.Datastore.EmbeddedPeerPort},
+		{name: "etcd client port", val: &config.Datastore.EtcdPort, old: existing.Datastore.EtcdPort, new: new.Datastore.EtcdPort},
+		{name: "etcd peer port", val: &config.Datastore.EtcdPeerPort, old: existing.Datastore.EtcdPeerPort, new: new.Datastore.EtcdPeerPort},
 		// load-balancer
 		{name: "load balancer BGP local ASN", val: &config.LoadBalancer.BGPLocalASN, old: existing.LoadBalancer.BGPLocalASN, new: new.LoadBalancer.BGPLocalASN, allowChange: true},
 		{name: "load balancer BGP peer ASN", val: &config.LoadBalancer.BGPPeerASN, old: existing.LoadBalancer.BGPPeerASN, new: new.LoadBalancer.BGPPeerASN, allowChange: true},

@@ -77,20 +77,20 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			},
 		},
 		{
-			name: "EmbeddedDatastore",
+			name: "EtcdDatastore",
 			bootstrap: apiv1.BootstrapConfig{
-				DatastoreType:             utils.Pointer("embedded"),
-				DatastoreEmbeddedPort:     utils.Pointer(12379),
-				DatastoreEmbeddedPeerPort: utils.Pointer(12380),
+				DatastoreType: utils.Pointer("etcd"),
+				EtcdPort:      utils.Pointer(12379),
+				EtcdPeerPort:  utils.Pointer(12380),
 			},
 			expectConfig: types.ClusterConfig{
 				APIServer: types.APIServer{
 					AuthorizationMode: utils.Pointer("Node,RBAC"),
 				},
 				Datastore: types.Datastore{
-					Type:             utils.Pointer("embedded"),
-					EmbeddedPort:     utils.Pointer(12379),
-					EmbeddedPeerPort: utils.Pointer(12380),
+					Type:         utils.Pointer("etcd"),
+					EtcdPort:     utils.Pointer(12379),
+					EtcdPeerPort: utils.Pointer(12380),
 				},
 			},
 		},

@@ -87,12 +87,12 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 	}
 
 	switch datastore.GetType() {
-	case "k8s-dqlite", "external", "embedded":
+	case "k8s-dqlite", "external", "etcd":
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore.GetType(), SupportedDatastores)
 	}
 
-	datastoreUpdateArgs, deleteArgs := datastore.ToKubeAPIServerArguments(snap, []string{nodeIP}, datastore.GetEmbeddedPort())
+	datastoreUpdateArgs, deleteArgs := datastore.ToKubeAPIServerArguments(snap, []string{nodeIP})
 	for key, val := range datastoreUpdateArgs {
 		args[key] = val
 	}

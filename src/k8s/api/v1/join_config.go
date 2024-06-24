@@ -26,10 +26,10 @@ type ControlPlaneNodeJoinConfig struct {
 	KubeletClientCert *string `json:"kubelet-client-crt,omitempty" yaml:"kubelet-client-crt,omitempty"`
 	KubeletClientKey  *string `json:"kubelet-client-key,omitempty" yaml:"kubelet-client-key,omitempty"`
 
-	EmbeddedServerCert     *string `json:"embedded-server-crt,omitempty" yaml:"embedded-server-crt,omitempty"`
-	EmbeddedServerKey      *string `json:"embedded-server-key,omitempty" yaml:"embedded-server-key,omitempty"`
-	EmbeddedServerPeerCert *string `json:"embedded-peer-crt,omitempty" yaml:"embedded-peer-crt,omitempty"`
-	EmbeddedServerPeerKey  *string `json:"embedded-peer-key,omitempty" yaml:"embedded-peer-key,omitempty"`
+	EtcdServerCert     *string `json:"etcd-server-crt,omitempty" yaml:"etcd-server-crt,omitempty"`
+	EtcdServerKey      *string `json:"etcd-server-key,omitempty" yaml:"etcd-server-key,omitempty"`
+	EtcdServerPeerCert *string `json:"etcd-peer-crt,omitempty" yaml:"etcd-peer-crt,omitempty"`
+	EtcdServerPeerKey  *string `json:"etcd-peer-key,omitempty" yaml:"etcd-peer-key,omitempty"`
 
 	// ExtraNodeConfigFiles will be written to /var/snap/k8s/common/args/conf.d
 	ExtraNodeConfigFiles map[string]string `json:"extra-node-config-files,omitempty" yaml:"extra-node-config-files,omitempty"`
@@ -96,17 +96,13 @@ func (c *ControlPlaneNodeJoinConfig) GetKubeletClientCert() string {
 func (c *ControlPlaneNodeJoinConfig) GetKubeletClientKey() string {
 	return getField(c.KubeletClientKey)
 }
-func (b *ControlPlaneNodeJoinConfig) GetEmbeddedServerCert() string {
-	return getField(b.EmbeddedServerCert)
+func (b *ControlPlaneNodeJoinConfig) GetEtcdServerCert() string { return getField(b.EtcdServerCert) }
+func (b *ControlPlaneNodeJoinConfig) GetEtcdServerKey() string  { return getField(b.EtcdServerKey) }
+func (b *ControlPlaneNodeJoinConfig) GetEtcdServerPeerCert() string {
+	return getField(b.EtcdServerPeerCert)
 }
-func (b *ControlPlaneNodeJoinConfig) GetEmbeddedServerKey() string {
-	return getField(b.EmbeddedServerKey)
-}
-func (b *ControlPlaneNodeJoinConfig) GetEmbeddedServerPeerCert() string {
-	return getField(b.EmbeddedServerPeerCert)
-}
-func (b *ControlPlaneNodeJoinConfig) GetEmbeddedServerPeerKey() string {
-	return getField(b.EmbeddedServerPeerKey)
+func (b *ControlPlaneNodeJoinConfig) GetEtcdServerPeerKey() string {
+	return getField(b.EtcdServerPeerKey)
 }
 
 func (w *WorkerNodeJoinConfig) GetKubeletCert() string       { return getField(w.KubeletCert) }

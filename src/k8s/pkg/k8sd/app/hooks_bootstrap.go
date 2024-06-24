@@ -284,7 +284,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		if _, err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write external datastore certificates: %w", err)
 		}
-	case "embedded":
+	case "etcd":
 		certificates := pki.NewEtcdPKI(pki.EtcdPKIOpts{
 			Hostname:          s.Name(),
 			IPSANs:            append([]net.IP{nodeIP}, extraIPs...),
@@ -293,27 +293,27 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 			Years:             20,
 		})
 
-		certificates.CACert = bootstrapConfig.GetEmbeddedCACert()
-		certificates.CAKey = bootstrapConfig.GetEmbeddedCAKey()
-		certificates.ServerCert = bootstrapConfig.GetEmbeddedServerCert()
-		certificates.ServerKey = bootstrapConfig.GetEmbeddedServerKey()
-		certificates.ServerPeerCert = bootstrapConfig.GetEmbeddedServerPeerCert()
-		certificates.ServerPeerKey = bootstrapConfig.GetEmbeddedServerPeerKey()
-		certificates.APIServerClientCert = bootstrapConfig.GetEmbeddedAPIServerClientCert()
-		certificates.APIServerClientKey = bootstrapConfig.GetEmbeddedAPIServerClientKey()
+		certificates.CACert = bootstrapConfig.GetEtcdCACert()
+		certificates.CAKey = bootstrapConfig.GetEtcdCAKey()
+		certificates.ServerCert = bootstrapConfig.GetEtcdServerCert()
+		certificates.ServerKey = bootstrapConfig.GetEtcdServerKey()
+		certificates.ServerPeerCert = bootstrapConfig.GetEtcdServerPeerCert()
+		certificates.ServerPeerKey = bootstrapConfig.GetEtcdServerPeerKey()
+		certificates.APIServerClientCert = bootstrapConfig.GetEtcdAPIServerClientCert()
+		certificates.APIServerClientKey = bootstrapConfig.GetEtcdAPIServerClientKey()
 
 		if err := certificates.CompleteCertificates(); err != nil {
-			return fmt.Errorf("failed to initialize embedded datastore certificates: %w", err)
+			return fmt.Errorf("failed to initialize etcd certificates: %w", err)
 		}
 		if _, err := setup.EnsureEtcdPKI(snap, certificates); err != nil {
-			return fmt.Errorf("failed to write embedded datastore certificates: %w", err)
+			return fmt.Errorf("failed to write etcd certificates: %w", err)
 		}
 
 		// Add certificates to cluster config
-		cfg.Datastore.EmbeddedCACert = utils.Pointer(certificates.CACert)
-		cfg.Datastore.EmbeddedCAKey = utils.Pointer(certificates.CAKey)
-		cfg.Datastore.EmbeddedAPIServerClientCert = utils.Pointer(certificates.APIServerClientCert)
-		cfg.Datastore.EmbeddedAPIServerClientKey = utils.Pointer(certificates.APIServerClientKey)
+		cfg.Datastore.EtcdCACert = utils.Pointer(certificates.CACert)
+		cfg.Datastore.EtcdCAKey = utils.Pointer(certificates.CAKey)
+		cfg.Datastore.EtcdAPIServerClientCert = utils.Pointer(certificates.APIServerClientCert)
+		cfg.Datastore.EtcdAPIServerClientKey = utils.Pointer(certificates.APIServerClientKey)
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
@@ -392,11 +392,11 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		if err := setup.K8sDqlite(snap, utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetK8sDqlitePort()), nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite: %w", err)
 		}
-	case "embedded":
-		clientURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPort()))
-		peerURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEmbeddedPeerPort()))
-		if err := setup.K8sDqliteEmbedded(snap, s.Name(), clientURL, peerURL, nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
-			return fmt.Errorf("failed to configure embedded k8s-dqlite: %w", err)
+	case "etcd":
+		clientURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPort()))
+		peerURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPeerPort()))
+		if err := setup.Etcd(snap, s.Name(), clientURL, peerURL, nil, bootstrapConfig.ExtraNodeEtcdArgs); err != nil {
+			return fmt.Errorf("failed to configure etcd: %w", err)
 		}
 	case "external":
 	default:

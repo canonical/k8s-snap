@@ -69,8 +69,8 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, config types.ClusterConfig, nodeIPs []string) error {
 	// kube-apiserver: external datastore
 	switch config.Datastore.GetType() {
-	case "embedded":
-		updateArgs, deleteArgs := config.Datastore.ToKubeAPIServerArguments(c.snap, nodeIPs, config.Datastore.GetEmbeddedPort())
+	case "etcd":
+		updateArgs, deleteArgs := config.Datastore.ToKubeAPIServerArguments(c.snap, nodeIPs)
 
 		// NOTE(neoaggelos): update kube-apiserver arguments in case cluster nodes have changed, but do not
 		// restart kube-apiserver, to avoid downtime for existing cluster nodes. The next time kube-apiserver
@@ -90,7 +90,7 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 		}
 
 		// kube-apiserver arguments
-		updateArgs, deleteArgs := config.Datastore.ToKubeAPIServerArguments(c.snap, nodeIPs, config.Datastore.GetEmbeddedPort())
+		updateArgs, deleteArgs := config.Datastore.ToKubeAPIServerArguments(c.snap, nodeIPs)
 		argsChanged, err := snaputil.UpdateServiceArguments(c.snap, "kube-apiserver", updateArgs, deleteArgs)
 		if err != nil {
 			return fmt.Errorf("failed to update kube-apiserver datastore arguments: %w", err)

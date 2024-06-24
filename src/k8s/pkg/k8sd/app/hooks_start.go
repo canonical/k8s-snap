@@ -44,7 +44,7 @@ func (a *App) onStart(s *state.State) error {
 					return types.ClusterConfig{}, nil, fmt.Errorf("failed to retrieve cluster config: %w", err)
 				}
 
-				if cfg.Datastore.GetType() != "embedded" {
+				if cfg.Datastore.GetType() != "etcd" {
 					return cfg, nil, nil
 				}
 				leader, err := s.Leader()

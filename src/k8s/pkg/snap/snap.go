@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
-	"github.com/canonical/k8s/pkg/client/embedded"
+	"github.com/canonical/k8s/pkg/client/etcd"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -254,8 +254,8 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) er
 	return nil
 }
 
-func (s *snap) EmbeddedClient() embedded.Client {
-	return embedded.NewExternalClient(
+func (s *snap) EtcdClient() etcd.Client {
+	return etcd.NewExternalClient(
 		filepath.Join(s.snapDir, "bin", "k8s-dqlite"),
 		s.K8sDqliteStateDir(),
 	)

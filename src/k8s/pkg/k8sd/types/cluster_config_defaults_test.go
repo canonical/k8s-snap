@@ -25,10 +25,10 @@ func TestSetDefaults(t *testing.T) {
 			AuthorizationMode: utils.Pointer("Node,RBAC"),
 		},
 		Datastore: types.Datastore{
-			Type:             utils.Pointer("k8s-dqlite"),
-			K8sDqlitePort:    utils.Pointer(9000),
-			EmbeddedPort:     utils.Pointer(2379),
-			EmbeddedPeerPort: utils.Pointer(2380),
+			Type:          utils.Pointer("k8s-dqlite"),
+			K8sDqlitePort: utils.Pointer(9000),
+			EtcdPort:      utils.Pointer(2379),
+			EtcdPeerPort:  utils.Pointer(2380),
 		},
 		Kubelet: types.Kubelet{
 			ClusterDomain: utils.Pointer("cluster.local"),
