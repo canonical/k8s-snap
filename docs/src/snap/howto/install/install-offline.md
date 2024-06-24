@@ -16,7 +16,8 @@ handle images for workloads and Canonical Kubernetes features.
 ### Prep 1: Download the Canonical Kubernetes snap
 
 From a machine with access to the internet download the following:
-```
+
+```bash
 sudo snap download k8s --channel 1.30-classic/beta
 sudo snap download core20
 sudo mv k8s_*.snap k8s.snap
@@ -54,11 +55,13 @@ Kubernetes services use the default network interface of the machine
 for the means of node discovery:
 
 - kube-apiserver (part of kubelite) 
-  - uses the default network interface to advertise this address to other nodes in the cluster.
+  - uses the default network interface to advertise this address to 
+    other nodes in the cluster.
   - Without a default route kube-apiserver does not start.
 - kubelet (part of kubelite)
   - uses the default network interface to pick the node's InternalIP address.
-  - A default gateway greatly simplifies the process of setting up the network feature.
+  - A default gateway greatly simplifies the process of setting up the
+    network feature.
 
 In case your air gap environment does not have a default gateway,
 you can add a dummy default route on interface eth0 using the following command:
@@ -66,20 +69,22 @@ you can add a dummy default route on interface eth0 using the following command:
 ```
 ip route add default dev eth0
 ```
-<!-- TODO: back-tick quoty thingies -->
+
 ```{note} Confirm the name of you default network interface used for pod-to-pod
     communication by running "ip a".
 ```
 
 ```{note} The dummy gateway will only be used by the Kubernetes services to 
-    know which interface to use, actual connectivity to the internet is not required. Ensure that the dummy gateway rule survives a node reboot.
+    know which interface to use,
+    actual connectivity to the internet is not required.
+    Ensure that the dummy gateway rule survives a node reboot.
 ```
 
 #### (Optional) Network Requirement: Ensure proxy access
 
-If you do not allow an HTTP proxy (e.g. squid) limited access to 
-image registries (e.g. docker.io, quay.io, rocks.canonical.com, etc)
-please skip this section.
+Please skip this section, if you can't use an HTTP proxy (e.g. squid)
+with limited access to 
+image registries (e.g. docker.io, quay.io, rocks.canonical.com, etc).
 
 Ensure that all nodes can use the proxy to access the image registry.
 In this example we use squid as an http proxy.
@@ -89,8 +94,9 @@ Test the connectivity:
 
 ```
 export https_proxy=http://squid.internal:3128
-curl -v https://registry-1.docker.io
+curl -v https://registry-1.docker.io 
 ```
+<!-- TODO: 404 on curl and https://registry-1.docker.io/v2 unauthorized -->
 
 Please refer to the next section `images` on how to use the HTTP proxy
 to allow limited access to image registries.
@@ -302,7 +308,7 @@ ca = "/var/snap/microk8s/current/args/certs.d/docker.io/ca.crt"
 
 <!-- TODO: figure it out maybe use ctr? -->
 
-
+<!-- TODO: is this relevant? # microk8s.kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=kubernetes-internal-ip -->
 <!-- LINKS -->
 
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
