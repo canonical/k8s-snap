@@ -67,12 +67,16 @@ you can add a dummy default route on interface eth0 using the following command:
 ip route add default dev eth0
 ```
 <!-- TODO: back-tick quoty thingies -->
-```{note} Confirm the name of you default network interface used for pod-to-pod communication by running "ip a".
+```{note} Confirm the name of you default network interface used for pod-to-pod
+    communication by running "ip a".
 ```
-```{note} The dummy gateway will only be used by the Kubernetes services to know which interface to use, actual connectivity to the internet is not required. Ensure that the dummy gateway rule survives a node reboot.
+
+```{note} The dummy gateway will only be used by the Kubernetes services to 
+    know which interface to use, actual connectivity to the internet is not required. Ensure that the dummy gateway rule survives a node reboot.
 ```
 
 #### (Optional) Network Requirement: Ensure proxy access
+
 If you do not allow an HTTP proxy (e.g. squid) limited access to 
 image registries (e.g. docker.io, quay.io, rocks.canonical.com, etc)
 please skip this section.
@@ -80,7 +84,9 @@ please skip this section.
 Ensure that all nodes can use the proxy to access the image registry.
 In this example we use squid as an http proxy.
 This set up uses http://squid.internal:3128 to access docker.io.
+
 Test the connectivity:
+
 ```
 export https_proxy=http://squid.internal:3128
 curl -v https://registry-1.docker.io
@@ -103,9 +109,13 @@ increasing complexity of implementation.
 You may also find it helpful to combine these options for your scenario.
 
 ### Images Option A: via an HTTP proxy
-In many cases, the nodes of the airgap deployment may not have direct access to upstream registries, but can reach them through the [use of an HTTP proxy][proxy].
+
+In many cases, the nodes of the airgap deployment may not have direct access to
+upstream registries, but can reach them through the
+[use of an HTTP proxy][proxy].
 
 ### Images Option B: private registry mirror
+
 In case regulations and/or network constraints do not allow the cluster nodes
 to access any upstream image registry,
 it is typical to deploy a private registry mirror.
@@ -163,11 +173,13 @@ supported arguments):
 ctr image push "$TO_REPOSITORY/$IMAGE"
 # OR, if using HTTP and basic auth
 ctr image push "$TO_REPOSITORY/$IMAGE" --plain-http -u "$USER:$PASS"
-# OR, if using HTTPS and a custom CA (assuming CA certificate is at `/path/to/ca.crt`)
+# OR, if using HTTPS and a custom CA 
+# (assuming CA certificate is at `/path/to/ca.crt`)
 ctr image push "$TO_REPOSITORY/$IMAGE" --ca /path/to/ca.crt
 ```
 
-Make sure to repeat the steps above (pull, convert, push) for all the images that you need.
+Make sure to repeat the steps above (pull, convert, push)
+for all the images that you need.
 
 ##### Load images with docker
 
@@ -200,6 +212,7 @@ sudo docker push "$TO_REPOSITORY/$IMAGE"
 Repeat the pull, tag and push steps for all required images.
 
 ### Images Option C: Side-load images
+
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so that they do not have to be fetched at runtime.
 Upon choosing this option, you need to create a bundle of all the OCI images
@@ -238,6 +251,57 @@ The nodes will most likely be in `NotReady` state,
 since we still need to ensure the container runtime can fetch images.
 
 ### Step 3: Container Runtime
+
+#### Container Runtime Option A: Configure HTTP proxy for registries
+
+Edit `/etc/environment` and set the appropriate http_proxy, https_proxy and
+no_proxy variables as described in the
+[adding proxy configuration section][proxy]. 
+<!-- TODO: Can I point to a subheading? -->
+
+Then restart the k8s snap with:
+
+```bash
+sudo snap restart k8s
+```
+
+#### Container Runtime Option B: Configure registry mirrors
+
+This requires that you have already setup a registry mirror,
+as explained in the preparation section on the private registry mirror.
+
+Assuming the registry mirror is at 10.100.100.100:5000, edit 
+`/var/snap/k8s/common/etc/containerd/config.toml`
+and make sure it looks like this:
+<!-- TODO: figure out dir /var/snap/k8s/current/args/certs.d/docker.io/hosts.toml  -->
+
+##### HTTP registry
+
+
+```bash
+# /var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml
+[host."http://10.100.100.100:5000"]
+capabilities = ["pull", "resolve"]
+```
+
+##### HTTPS registry
+
+HTTPS requires that you additionally specify the registry CA certificate.
+Copy the certificate to /var/snap/k8s/current/args/certs.d/docker.io/ca.crt,
+<!-- TODO: check this dir -->
+then add:
+
+```bash
+# /var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml
+[host."https://10.100.100.100:5000"]
+capabilities = ["pull", "resolve"]
+ca = "/var/snap/microk8s/current/args/certs.d/docker.io/ca.crt"
+```
+
+#### Container Runtime Option C: Side-load images
+
+<!-- TODO: figure it out maybe use ctr? -->
+
 
 <!-- LINKS -->
 
