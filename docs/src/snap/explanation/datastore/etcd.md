@@ -1,4 +1,4 @@
-# etcd datastore
+# Canonical Kubernetes with a managed etcd datastore
 
 Canonical Kubernetes supports using a managed etcd cluster as the underlying
 datastore of the cluster.
@@ -62,14 +62,14 @@ raft quorum. That means an odd number of **2k + 1** nodes is needed to maintain
 a fault tolerance of **k** nodes (such that the rest **k + 1** nodes maintain
 an active quorum).
 
-## etcd configuration and data directory
+## Directories and paths
 
 The etcd configuration and data directories to be aware of are:
 
-- `/var/snap/k8s/common/var/lib/k8s-dqlite/etcd.yaml`: YAML file with etcd
+- `/var/snap/k8s/common/var/lib/etcd/etcd.yaml`: YAML file with etcd
   cluster configuration. This contains information for the initial cluster
   members, TLS certificate paths and member peer and client URLs.
-- `/var/snap/k8s/comonn/var/lib/k8s-dqlite/data`: etcd data directory.
+- `/var/snap/k8s/comonn/var/lib/etcd/data`: etcd data directory.
 - `/etc/kubernetes/pki/etcd`: contains certificates for the etcd cluster
   (etcd CA certificate, server certificate and key, peer certificate and key).
 

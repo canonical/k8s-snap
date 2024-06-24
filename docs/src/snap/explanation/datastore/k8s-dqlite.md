@@ -1,4 +1,4 @@
-# k8s-dqlite datastore
+# Canonical Kubernetes with a managed dqlite datastore
 
 Canonical Kubernetes supports using a managed dqlite cluster as the underlying
 datastore of the cluster. This is the default option when no configuration is
@@ -6,7 +6,7 @@ specified.
 
 This page explains the behaviour of the managed dqlite cluster. See How-To
 [Configure Canonical Kubernetes with dqlite][how-to-dqlite] for steps to
-deploy Canonical Kubernetes with a managed etcd datastore.
+deploy Canonical Kubernetes with a managed dqlite datastore.
 
 ## Topology
 
@@ -30,7 +30,7 @@ k8s-dqlite cluster.
 Since `kube-apiserver` instances access the datastore over a local unix socket,
 no reconfiguration is needed on that front.
 
-## configuration and data directory
+## Directories and paths
 
 The k8s-dqlite configuration and data paths to be aware of are:
 

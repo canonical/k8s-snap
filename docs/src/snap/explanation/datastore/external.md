@@ -1,4 +1,4 @@
-# external datastore
+# Canonical Kubernetes with an external etcd datastore
 
 Canonical Kubernetes supports using an external etcd cluster as the underlying
 datastore of the cluster.
@@ -35,7 +35,7 @@ configure it to use the same list of etcd servers and client certificates.
 Removing a cluster node using `k8s remove-node` will not have any side-effect
 on the external datastore.
 
-## configuration and data directories
+## Directories and paths
 
 - `/etc/kubernetes/pki/etcd/ca.crt`: This is the CA certificate of the etcd
   cluster certificate. This will be created by Canonical Kubernetes, and contain
