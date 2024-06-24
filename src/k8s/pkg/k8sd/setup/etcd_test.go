@@ -16,7 +16,7 @@ func mockEtcdSnap(t *testing.T) *mock.Snap {
 	s := &mock.Snap{
 		Mock: mock.Mock{
 			ServiceArgumentsDir: t.TempDir(),
-			K8sDqliteStateDir:   t.TempDir(),
+			EtcdDir:             t.TempDir(),
 			EtcdPKIDir:          t.TempDir(),
 			KubernetesPKIDir:    t.TempDir(),
 		},
@@ -42,7 +42,7 @@ func TestEtcd(t *testing.T) {
 			expectedVal string
 		}{
 			{key: "--etcd-mode", expectedVal: "true"},
-			{key: "--storage-dir", expectedVal: s.K8sDqliteStateDir()},
+			{key: "--storage-dir", expectedVal: s.EtcdDir()},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
@@ -65,11 +65,11 @@ func TestEtcd(t *testing.T) {
 		s := mockEtcdSnap(t)
 		g.Expect(setup.Etcd(s, "t1", "https://127.0.0.1:2379", "https://127.0.0.1:2380", nil, nil)).To(BeNil())
 
-		eb, err := os.ReadFile(filepath.Join(s.K8sDqliteStateDir(), "etcd.yaml"))
+		eb, err := os.ReadFile(filepath.Join(s.EtcdDir(), "etcd.yaml"))
 		g.Expect(err).To(BeNil())
 		g.Expect(string(eb)).To(SatisfyAll(
 			ContainSubstring("initial-cluster-state: new"),
-			ContainSubstring("data-dir: %s/data", s.K8sDqliteStateDir()),
+			ContainSubstring("data-dir: %s/data", s.EtcdDir()),
 			ContainSubstring("name: t1"),
 			ContainSubstring("advertise-client-urls: https://127.0.0.1:2379"),
 			ContainSubstring("listen-client-urls: https://127.0.0.1:2379"),
@@ -87,7 +87,7 @@ func TestEtcd(t *testing.T) {
 			ContainSubstring("  key-file: %s/peer.key", s.EtcdPKIDir()),
 		))
 
-		cb, err := os.ReadFile(filepath.Join(s.K8sDqliteStateDir(), "register.yaml"))
+		cb, err := os.ReadFile(filepath.Join(s.EtcdDir(), "register.yaml"))
 		g.Expect(err).To(BeNil())
 		g.Expect(string(cb)).To(SatisfyAll(
 			ContainSubstring("peer-url: https://127.0.0.1:2380"),
@@ -104,10 +104,10 @@ func TestEtcd(t *testing.T) {
 		s := mockEtcdSnap(t)
 		g.Expect(setup.Etcd(s, "t1", "https://127.0.0.1:2379", "https://127.0.0.1:2380", []string{"https://10.0.0.1:2379"}, nil)).To(BeNil())
 
-		eb, err := os.ReadFile(filepath.Join(s.K8sDqliteStateDir(), "etcd.yaml"))
+		eb, err := os.ReadFile(filepath.Join(s.EtcdDir(), "etcd.yaml"))
 		g.Expect(err).To(BeNil())
 		g.Expect(string(eb)).To(SatisfyAll(
-			ContainSubstring("data-dir: %s/data", s.K8sDqliteStateDir()),
+			ContainSubstring("data-dir: %s/data", s.EtcdDir()),
 			ContainSubstring("name: t1"),
 			ContainSubstring("advertise-client-urls: https://127.0.0.1:2379"),
 			ContainSubstring("listen-client-urls: https://127.0.0.1:2379"),
@@ -117,7 +117,7 @@ func TestEtcd(t *testing.T) {
 			ContainSubstring("initial-cluster: t1=https://127.0.0.1:2380"),
 		))
 
-		cb, err := os.ReadFile(filepath.Join(s.K8sDqliteStateDir(), "register.yaml"))
+		cb, err := os.ReadFile(filepath.Join(s.EtcdDir(), "register.yaml"))
 		g.Expect(err).To(BeNil())
 		g.Expect(string(cb)).To(SatisfyAll(
 			ContainSubstring("client-urls:\n- https://10.0.0.1:2379"),
@@ -133,8 +133,8 @@ func TestEtcd(t *testing.T) {
 
 		// Create a mock snap
 		s := mockEtcdSnap(t)
-		s.Mock.K8sDqliteStateDir = "nonexistent"
-		g.Expect(setup.K8sDqlite(s, "", []string{}, nil)).ToNot(Succeed())
+		s.Mock.EtcdDir = "nonexistent"
+		g.Expect(setup.Etcd(s, "", "", "", nil, nil)).ToNot(Succeed())
 	})
 
 	t.Run("MissingArgsDir", func(t *testing.T) {
@@ -143,6 +143,6 @@ func TestEtcd(t *testing.T) {
 		// Create a mock snap
 		s := mockEtcdSnap(t)
 		s.Mock.ServiceArgumentsDir = "nonexistent"
-		g.Expect(setup.K8sDqlite(s, "", []string{}, nil)).ToNot(Succeed())
+		g.Expect(setup.Etcd(s, "", "", "", nil, nil)).ToNot(Succeed())
 	})
 }

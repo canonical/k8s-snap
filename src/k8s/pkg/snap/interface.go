@@ -44,6 +44,7 @@ type Snap interface {
 
 	K8sdStateDir() string      // /var/snap/k8s/common/var/lib/k8sd/state
 	K8sDqliteStateDir() string // /var/snap/k8s/common/var/lib/k8s-dqlite
+	EtcdDir() string           // /var/snap/k8s/common/var/lib/etcd
 
 	ServiceArgumentsDir() string   // /var/snap/k8s/common/args
 	ServiceExtraConfigDir() string // /var/snap/k8s/common/args/conf.d

@@ -46,7 +46,7 @@ func newEtcdConfig(snap snap.Snap, name, clientURL, peerURL string, clientURLs [
 	}
 	return etcdConfig{
 		Name:                     name,
-		DataDir:                  filepath.Join(snap.K8sDqliteStateDir(), "data"),
+		DataDir:                  filepath.Join(snap.EtcdDir(), "data"),
 		InitialCluster:           fmt.Sprintf("%s=%s", name, peerURL), // NOTE: will be updated for joining nodes
 		InitialClusterState:      clusterState,
 		InitialAdvertisePeerURLs: peerURL,
@@ -79,19 +79,19 @@ func newEtcdRegisterConfig(snap snap.Snap, peerURL string, clientURLs []string) 
 func Etcd(snap snap.Snap, name, clientURL, peerURL string, clientURLs []string, extraArgs map[string]*string) error {
 	if b, err := yaml.Marshal(newEtcdConfig(snap, name, clientURL, peerURL, clientURLs)); err != nil {
 		return fmt.Errorf("failed to create etcd.yaml file for name=%q address=%q: %w", name, peerURL, err)
-	} else if err := os.WriteFile(filepath.Join(snap.K8sDqliteStateDir(), "etcd.yaml"), b, 0600); err != nil {
+	} else if err := os.WriteFile(filepath.Join(snap.EtcdDir(), "etcd.yaml"), b, 0600); err != nil {
 		return fmt.Errorf("failed to write etcd.yaml config for name=%q address=%q: %w", name, peerURL, err)
 	}
 
 	if b, err := yaml.Marshal(newEtcdRegisterConfig(snap, peerURL, clientURLs)); err != nil {
 		return fmt.Errorf("failed to create register.yaml file for name=%q address=%q: %w", name, peerURL, err)
-	} else if err := os.WriteFile(filepath.Join(snap.K8sDqliteStateDir(), "register.yaml"), b, 0600); err != nil {
+	} else if err := os.WriteFile(filepath.Join(snap.EtcdDir(), "register.yaml"), b, 0600); err != nil {
 		return fmt.Errorf("failed to write register.yaml file for name=%q address=%q: %w", name, peerURL, err)
 	}
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "k8s-dqlite", map[string]string{
 		"--etcd-mode":   "true",
-		"--storage-dir": snap.K8sDqliteStateDir(),
+		"--storage-dir": snap.EtcdDir(),
 	}, nil); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}

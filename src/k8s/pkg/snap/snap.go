@@ -169,6 +169,10 @@ func (s *snap) K8sDqliteStateDir() string {
 	return path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite")
 }
 
+func (s *snap) EtcdDir() string {
+	return path.Join(s.snapCommonDir, "var", "lib", "etcd")
+}
+
 func (s *snap) ServiceArgumentsDir() string {
 	return path.Join(s.snapCommonDir, "args")
 }
@@ -257,7 +261,7 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) er
 func (s *snap) EtcdClient() etcd.Client {
 	return etcd.NewExternalClient(
 		filepath.Join(s.snapDir, "bin", "k8s-dqlite"),
-		s.K8sDqliteStateDir(),
+		s.EtcdDir(),
 	)
 }
 
