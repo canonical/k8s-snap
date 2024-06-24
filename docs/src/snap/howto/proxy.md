@@ -39,7 +39,7 @@ Note that you may need to restart for these settings to take effect.
 
 ## Adding proxy configuration for the k8s charms
 
-Proxy confiuration is handled by Juju when deploying the `k8s` charms. Please
+Proxy configuration is handled by Juju when deploying the `k8s` charms. Please
 see the [documentation for adding proxy configuration via Juju].
 
 <!-- LINKS -->
