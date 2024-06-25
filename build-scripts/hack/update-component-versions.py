@@ -41,6 +41,11 @@ HELM_RELEASE_BRANCH = "release-3.14"
 CONTOUR_HELM_REPO = "https://charts.bitnami.com/bitnami"
 CONTOUR_CHART_VERSION = "17.0.4"
 
+# MetalLB Helm repository and chart version
+METALLB_REPO = "https://metallb.github.io/metallb"
+METALLB_CHART_VERSION = "0.14.5"
+
+
 def get_kubernetes_version() -> str:
     """Update Kubernetes version based on the specified marker file"""
     LOG.info("Checking latest Kubernetes version from %s", KUBERNETES_VERSION_MARKER)
@@ -63,9 +68,15 @@ def get_cni_version() -> str:
 
         raise Exception(f"Failed to find cni dependency in {deps_file}")
 
+
 def pull_contour_chart() -> None:
-    LOG.info("Pulling Contour Helm chart from %s with version %s", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION)
+    LOG.info(
+        "Pulling Contour Helm chart from %s with version %s",
+        CONTOUR_HELM_REPO,
+        CONTOUR_CHART_VERSION,
+    )
     util.helm_pull("contour", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION, CHARTS)
+
 
 def get_containerd_version() -> str:
     """Update containerd version using latest tag of specified branch"""
@@ -93,6 +104,11 @@ def get_helm_version() -> str:
         return util.parse_output(["git", "describe", "--tags", "--abbrev=0"], cwd=dir)
 
 
+def pull_metallb_chart() -> None:
+    LOG.info("Pulling MetalLB chart @ %s", METALLB_CHART_VERSION)
+    util.helm_pull("metallb", METALLB_REPO, METALLB_CHART_VERSION, CHARTS)
+
+
 def update_component_versions(dry_run: bool):
     for component, get_version in [
         ("kubernetes", get_kubernetes_version),
@@ -110,6 +126,7 @@ def update_component_versions(dry_run: bool):
 
     for component, pull_helm_chart in [
         ("bitnami/contour", pull_contour_chart),
+        ("metallb", pull_metallb_chart),
     ]:
         LOG.info("Updating chart for %s", component)
         if not dry_run:

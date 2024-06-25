@@ -1,4 +1,6 @@
-{{- if .Values.bgp.enabled }}
+{{- if (eq .Values.driver "cilium") }}
+{{- if (.Values.bgp.enabled) }}
+
 apiVersion: "cilium.io/v2alpha1"
 kind: CiliumBGPPeeringPolicy
 metadata:
@@ -15,4 +17,6 @@ spec:
    neighbors:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+
+{{- end}}
 {{- end}}

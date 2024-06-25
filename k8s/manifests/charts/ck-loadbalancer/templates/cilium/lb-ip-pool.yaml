@@ -1,15 +1,17 @@
-{{- if .Values.l2.enabled }}
+{{- if (eq .Values.driver "cilium") }}
+{{- if .Values.ipPool.cidrs }}
+
 apiVersion: "cilium.io/v2alpha1"
-kind: CiliumL2AnnouncementPolicy
+kind: CiliumLoadBalancerIPPool
 metadata:
   name: {{ include "ck-loadbalancer.fullname" . }}
   labels:
     {{- include "ck-loadbalancer.labels" . | nindent 4 }}
 spec:
-  {{- with .Values.l2.interfaces }}
-  interfaces:
+  {{- with .Values.ipPool.cidrs }}
+  blocks:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  externalIPs: true
-  loadBalancerIPs: true
+
+{{- end }}
 {{- end }}
