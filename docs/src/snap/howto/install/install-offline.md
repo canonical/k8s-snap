@@ -29,10 +29,8 @@ sudo mv core20_*.assert core20.assert
 The [core20][Core20] and `k8s` snap are downloaded. The `core20.assert` and 
 `k8s.assert` files, are necessary to verify the integrity of the snap packages.
 
- <!-- TODO: link in a note? -->
 ```{note} Update the version of k8s by adjusting the channel parameter.
-    Find the version you desire in the [snapstore][snapstore].
-```
+    Find the version you desire in the [snapstore](https://snapcraft.io/k8s).```
 
 ```{note} With updates to the snap the base core is subject to change.```
 
@@ -46,7 +44,7 @@ and optionally ensure proxy access.
 #### Network Requirement: Cluster node communication
 <!-- TODO: Services and Ports Doc -->
 Ensure that all cluster nodes are reachable from each other.
-Refer to Services and ports used for a list of all network ports
+Refer to [Services and ports][svc-ports] used for a list of all network ports
 used by Canonical Kubernetes.
 
 #### Network Requirement: Default Gateway
@@ -70,7 +68,7 @@ you can add a dummy default route on interface eth0 using the following command:
 ip route add default dev eth0
 ```
 
-```{note} Confirm the name of you default network interface used for pod-to-pod
+```{note} Confirm the name of your default network interface used for pod-to-pod
     communication by running "ip a".
 ```
 
@@ -119,6 +117,20 @@ You may also find it helpful to combine these options for your scenario.
 In many cases, the nodes of the airgap deployment may not have direct access to
 upstream registries, but can reach them through the
 [use of an HTTP proxy][proxy].
+
+To configure the proxy, edit `/etc/squid/squid.conf` and set the appropriate
+allowed networks and domains. 
+
+Upon changes to the proxy configuration,
+restart both the squid proxy and the k8s snap with:
+
+```bash
+sudo systemctl restart squid
+```
+  
+```bash
+sudo snap restart k8s
+```
 
 ### Images Option B: private registry mirror
 
@@ -244,8 +256,13 @@ sudo snap ack k8s.assert && sudo snap install ./k8s.snap --classic
 Repeat the above for all nodes of the cluster.
 
 ### Step 2: Form Canonical Kubernetes cluster
+Now are ready to bootstrap the cluster by running:
 
-```{note}  Please skip this section for one node deployments. ```
+```bash
+sudo k8s bootstrap
+```
+
+```{note}  Please skip the following section for one node deployments. ```
 
 You can add and remove nodes as described in the
 [add-and-remove-nodes tutorial][nodes].
@@ -312,6 +329,6 @@ ca = "/var/snap/microk8s/current/args/certs.d/docker.io/ca.crt"
 <!-- LINKS -->
 
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
-[snapstore]: https://snapcraft.io/k8s
+[svc-ports]: TODO
 [proxy]: /snap/howto/proxy.md
 [nodes]: /snap/tutorial/add-remove-nodes.md
