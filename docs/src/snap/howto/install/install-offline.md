@@ -148,10 +148,9 @@ This requires three steps:
    document, please follow the instructions for the registry
    that you want to deploy.
 2. Load all images from the upstream source and push to our registry mirror.
-3. Configure the MicroK8s container runtime (`containerd`) to load images from
+3. Configure the Canonical Kubernetes container runtime (`containerd`) to load images from
    the private registry mirror instead of the upstream source. This will be
-   described in the
-   [Configure registry mirrors](#option-b-configure-registry-mirrors) section.
+   described in the installation section.
 
 In order to load images into the private registry, you need a machine with
 access to both the upstream registry (e.g. `docker.io`) and the internal one.
@@ -236,7 +235,25 @@ into the container runtime, so that they do not have to be fetched at runtime.
 Upon choosing this option, you need to create a bundle of all the OCI images
 that will be used by the cluster.
 
-<!-- TODO: how to image side loading with CK8s -->
+#### Create a bundle
+
+From a running cluster you may import images with `ctr`.
+Ensure you grab all images from all nodes in the cluster.
+  
+If we have an OCI image called nginx.tar,
+we can load this to all the cluster nodes by running the following command
+on any of them:
+```bash
+sudo k8s ctr image import - < nginx.tar
+```
+<!-- TODO: I think ctr is already installed where? -->
+On success, the output will look like this:
+
+```bash
+unpacking docker.io/library/nginx:latest (sha256:9c58d14962869bf1167bdef6a6a3922f607aa823196c392a1785f45cdc8c3451)...d
+```
+
+For all standard OCI images that you will use, from .tar archives.
 
 ## Deploy Canonical Kubernetes
 
@@ -256,6 +273,7 @@ sudo snap ack k8s.assert && sudo snap install ./k8s.snap --classic
 Repeat the above for all nodes of the cluster.
 
 ### Step 2: Form Canonical Kubernetes cluster
+
 Now are ready to bootstrap the cluster by running:
 
 ```bash
@@ -323,7 +341,13 @@ ca = "/var/snap/microk8s/current/args/certs.d/docker.io/ca.crt"
 
 #### Container Runtime Option C: Side-load images
 
-<!-- TODO: figure it out maybe use ctr? -->
+Copy the images.tar file to each of the cluster nodes and
+run the following command:
+
+```bash
+k8s ctr image import - < images.tar
+
+```
 
 <!-- TODO: is this relevant? # microk8s.kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=kubernetes-internal-ip -->
 <!-- LINKS -->
