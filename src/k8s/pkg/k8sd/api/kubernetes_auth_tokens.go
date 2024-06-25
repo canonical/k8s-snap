@@ -6,8 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net/http"
+
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
@@ -101,7 +102,7 @@ func (e *Endpoints) postKubernetesAuthWebhook(s *state.State, r *http.Request) r
 		username, groups, err = database.CheckToken(ctx, tx, review.Spec.Token)
 		return err
 	}); err != nil {
-		review.Status.Error = "invalid token"
+		review.Status.Error = "invalid kubernetes auth token"
 		return utils.JSONResponse(http.StatusUnauthorized, review)
 	}
 

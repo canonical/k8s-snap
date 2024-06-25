@@ -42,7 +42,7 @@ func ValidateWorkerInfoAccessHandler(nodeHeaderName string, tokenHeaderName stri
 
 		token := r.Header.Get(tokenHeaderName)
 		if token == "" {
-			return response.Unauthorized(fmt.Errorf("invalid token"))
+			return response.Unauthorized(fmt.Errorf("missing worker token"))
 		}
 
 		var tokenIsValid bool
@@ -57,7 +57,7 @@ func ValidateWorkerInfoAccessHandler(nodeHeaderName string, tokenHeaderName stri
 			return response.InternalError(fmt.Errorf("check token database transaction failed: %w", err))
 		}
 		if !tokenIsValid {
-			return response.Unauthorized(fmt.Errorf("invalid token"))
+			return response.Unauthorized(fmt.Errorf("invalid worker token"))
 		}
 
 		return response.EmptySyncResponse

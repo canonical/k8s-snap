@@ -57,7 +57,7 @@ func CheckToken(ctx context.Context, tx *sql.Tx, token string) (string, []string
 	var username, groupsString string
 	if err := txStmt.QueryRowContext(ctx, token).Scan(&username, &groupsString); err != nil {
 		if err == sql.ErrNoRows {
-			return "", nil, fmt.Errorf("invalid token")
+			return "", nil, fmt.Errorf("invalid kubernetes auth token")
 		}
 		return "", nil, fmt.Errorf("failed to check token: %w", err)
 	}

@@ -30,7 +30,7 @@ func ValidateCAPIAuthTokenAccessHandler(tokenHeaderName string) func(s *state.St
 			return response.InternalError(fmt.Errorf("check CAPI auth token database transaction failed: %w", err))
 		}
 		if !tokenIsValid {
-			return response.Unauthorized(fmt.Errorf("invalid token"))
+			return response.Unauthorized(fmt.Errorf("invalid capi access token"))
 		}
 
 		return response.EmptySyncResponse
