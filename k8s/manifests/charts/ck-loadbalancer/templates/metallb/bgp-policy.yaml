@@ -1,0 +1,31 @@
+{{- if (eq .Values.driver "metallb") }}
+{{- if .Values.bgp.enabled }}
+
+apiVersion: "metallb.io/v1beta2"
+kind: BGPPeer
+metadata:
+  name: {{ include "ck-loadbalancer.fullname" . }}
+  labels:
+    {{- include "ck-loadbalancer.labels" . | nindent 4 }}
+spec:
+  myASN: {{ .Values.bgp.localASN }}
+  {{- with (index .Values.bgp.neighbors 0) }}
+  peerASN: {{ .peerASN }}
+  peerAddress: {{ .peerAddress }}
+  peerPort: {{ .peerPort }}
+  {{- end }}
+
+---
+
+apiVersion: "metallb.io/v1beta1"
+kind: BGPAdvertisement
+metadata:
+  name: {{ include "ck-loadbalancer.fullname" . }}
+  labels:
+    {{- include "ck-loadbalancer.labels" . | nindent 4 }}
+spec:
+   ipAddressPools:
+     - {{ include "ck-loadbalancer.fullname" . }}
+
+{{- end }}
+{{- end}}

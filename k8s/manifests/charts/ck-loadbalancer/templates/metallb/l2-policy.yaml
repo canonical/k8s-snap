@@ -1,0 +1,19 @@
+{{- if (eq .Values.driver "metallb") -}}
+{{- if .Values.l2.enabled }}
+
+apiVersion: "metallb.io/v1beta1"
+kind: L2Advertisement
+metadata:
+  name: {{ include "ck-loadbalancer.fullname" . }}
+  labels:
+    {{- include "ck-loadbalancer.labels" . | nindent 4 }}
+spec:
+  ipAddressPools:
+    - {{ include "ck-loadbalancer.fullname" . }}
+  {{- with .Values.l2.interfaces }}
+  interfaces:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+{{- end }}
+{{- end }}
