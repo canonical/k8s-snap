@@ -56,7 +56,7 @@ ready state.
 ## Operations
 
 In the following section, common operations for interacting with the managed
-etcd datastore are documented.
+k8s-dqlite datastore are documented.
 
 ### How to use the dqlite CLI
 

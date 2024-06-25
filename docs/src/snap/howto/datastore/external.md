@@ -82,6 +82,8 @@ are documented.
 
 When using an external datastore, it is possible that the etcd server URLs
 change, or that the client certificates need to be rotated. In that case, to
+update the etcd credentials used by the cluster, the following steps are
+required:
 
 1.  Create a `config.json` file with the new certificates and list of etcd servers:
 
