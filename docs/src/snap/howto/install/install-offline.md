@@ -64,7 +64,7 @@ for the means of node discovery:
 In case your air gap environment does not have a default gateway,
 you can add a dummy default route on interface eth0 using the following command:
 
-```
+```bash
 ip route add default dev eth0
 ```
 
@@ -138,7 +138,7 @@ In case regulations and/or network constraints do not allow the cluster nodes
 to access any upstream image registry,
 it is typical to deploy a private registry mirror.
 This is an image registry service that contains all the required OCI Images
-(e.g. [registry](https://docs.docker.com/registry/),
+(e.g. [registry](https://distribution.github.io/distribution/),
 [Harbor](https://goharbor.io/) or any other OCI registry) and
 is reachable from all cluster nodes.
 
@@ -147,8 +147,9 @@ This requires three steps:
 1. Deploy and secure the registry service. This is out of scope for this
    document, please follow the instructions for the registry
    that you want to deploy.
-2. Load all images from the upstream source and push to our registry mirror.
-3. Configure the Canonical Kubernetes container runtime (`containerd`) to load images from
+2. Load all images from the upstream source and push to your registry mirror.
+3. Configure the Canonical Kubernetes container runtime (`containerd`) to load 
+   images from
    the private registry mirror instead of the upstream source. This will be
    described in the installation section.
 
@@ -314,13 +315,15 @@ as explained in the preparation section on the private registry mirror.
 Assuming the registry mirror is at 10.100.100.100:5000, edit 
 `/var/snap/k8s/common/etc/containerd/config.toml`
 and make sure it looks like this:
-<!-- TODO: figure out dir /var/snap/k8s/current/args/certs.d/docker.io/hosts.toml  -->
+
 
 ##### HTTP registry
 
+In `/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/hosts.toml`
+add the configuration:
 
 ```bash
-# /var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml
+
 [host."http://10.100.100.100:5000"]
 capabilities = ["pull", "resolve"]
 ```
@@ -328,15 +331,15 @@ capabilities = ["pull", "resolve"]
 ##### HTTPS registry
 
 HTTPS requires that you additionally specify the registry CA certificate.
-Copy the certificate to /var/snap/k8s/current/args/certs.d/docker.io/ca.crt,
-<!-- TODO: check this dir -->
-then add:
+Copy the certificate to
+`/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt`,
+
+Then we add our config in `/var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml`:
 
 ```bash
-# /var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml
 [host."https://10.100.100.100:5000"]
 capabilities = ["pull", "resolve"]
-ca = "/var/snap/microk8s/current/args/certs.d/docker.io/ca.crt"
+ca = "/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt"
 ```
 
 #### Container Runtime Option C: Side-load images
