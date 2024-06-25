@@ -5,7 +5,7 @@
 Datastore <self>
 ```
 
-The Datastore is where all the state of a Kubernetes cluster is persisted.
+The state of a Kubernetes cluster is persisted in the [Datastore][]
 
 These topics cover how to configure the different datastore types that are
 supported by Canonical Kubernetes.
@@ -17,3 +17,7 @@ k8s-dqlite
 etcd
 external
 ```
+
+<!-- LINKS -->
+
+[Datastore]: /snap/explanation/datastore/index
