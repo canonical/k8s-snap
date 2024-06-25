@@ -8,7 +8,6 @@ using the embedded etcd datastore.
 This guide assumes the following:
 
 - You have root or sudo access to the machine
-- You have an external etcd cluster
 - You have installed the Canonical Kubernetes snap
   (see How-to [Install Canonical Kubernetes from a snap][snap-install-howto]).
 - You have not bootstrapped the Canonical Kubernetes cluster yet
