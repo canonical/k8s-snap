@@ -30,6 +30,10 @@ type Config struct {
 	Snap snap.Snap
 	// PprofAddress is the address to listen for pprof debug endpoints. Empty to disable.
 	PprofAddress string
+	// DisableNodeConfigController is a bool flag to disable node config controller
+	DisableNodeConfigController bool
+	// DisableControlPlaneConfigController is a bool flag to disable control-plane config controller
+	DisableControlPlaneConfigController bool
 }
 
 // App is the k8sd microcluster instance.
@@ -83,16 +87,24 @@ func New(cfg Config) (*App, error) {
 	}
 	app.readyWg.Add(1)
 
-	app.nodeConfigController = controllers.NewNodeConfigurationController(
-		cfg.Snap,
-		app.readyWg.Wait,
-	)
+	if cfg.DisableNodeConfigController {
+		log.Println("node config controller was not initialized. change this behvaiour by unsetting --disable-node-config-controller (or setting it to `false` which is the default).")
+	} else {
+		app.nodeConfigController = controllers.NewNodeConfigurationController(
+			cfg.Snap,
+			app.readyWg.Wait,
+		)
+	}
 
-	app.controlPlaneConfigController = controllers.NewControlPlaneConfigurationController(
-		cfg.Snap,
-		app.readyWg.Wait,
-		time.NewTicker(10*time.Second).C,
-	)
+	if cfg.DisableControlPlaneConfigController {
+		log.Println("control plane config controller was not initialized. change this behvaiour by unsetting --disable-control-plane-config-controller (or setting it to `false` which is the default).")
+	} else {
+		app.controlPlaneConfigController = controllers.NewControlPlaneConfigurationController(
+			cfg.Snap,
+			app.readyWg.Wait,
+			time.NewTicker(10*time.Second).C,
+		)
+	}
 
 	app.triggerUpdateNodeConfigControllerCh = make(chan struct{}, 1)
 	app.updateNodeConfigController = controllers.NewUpdateNodeConfigurationController(
