@@ -20,4 +20,4 @@ external
 
 <!-- LINKS -->
 
-[datastore]: /snap/explanation/datastore/index
+[datastore]: /snap/explanation/datastore/
