@@ -50,11 +50,12 @@ Install Canonical Kubernetes on both VMs with the following command:
 ```
 sudo snap install --classic --edge k8s
 ```
+<!-- markdownlint-capture -->
 <!-- markdownlint-disable -->
 (step2)=
 ### 2. Bootstrap your control plane node
 
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 Bootstrap the control plane node:
 
 ```
