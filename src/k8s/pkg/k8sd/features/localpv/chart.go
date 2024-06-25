@@ -16,17 +16,15 @@ var (
 
 	// imageRepo is the repository to use for Rawfile LocalPV CSI.
 	imageRepo = "ghcr.io/canonical/rawfile-localpv"
-	// csiImageRepo is the repository to use for the CSI images.
-	csiImageRepo = "ghcr.io/canonical/k8s-snap/sig-storage"
-	// csiNodeDriverImage is the image to use for the CSI node driver.
-	csiNodeDriverImage = "csi-node-driver-registrar:v2.10.1"
-	// csiProvisionerImage is the image to use for the CSI provisioner.
-	csiProvisionerImage = "csi-provisioner:v5.0.1"
-	// csiResizerImage is the image to use for the CSI resizer.
-	csiResizerImage = "csi-resizer:v1.11.1"
-	// csiSnapshotterImage is the image to use for the CSI snapshotter.
-	csiSnapshotterImage = "csi-snapshotter:v8.0.1"
-
-	// imageTag is the image tag to use.
+	// imageTag is the image tag to use for Rawfile LocalPV CSI.
 	imageTag = "0.8.0-ck5"
+
+	// csiNodeDriverImage is the image to use for the CSI node driver.
+	csiNodeDriverImage = "ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1"
+	// csiProvisionerImage is the image to use for the CSI provisioner.
+	csiProvisionerImage = "ghcr.io/canonical/k8s-snap/sig-storage/csi-provisioner:v5.0.1"
+	// csiResizerImage is the image to use for the CSI resizer.
+	csiResizerImage = "ghcr.io/canonical/k8s-snap/sig-storage/csi-resizer:v1.11.1"
+	// csiSnapshotterImage is the image to use for the CSI snapshotter.
+	csiSnapshotterImage = "ghcr.io/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1"
 )

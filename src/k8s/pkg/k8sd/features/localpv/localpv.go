@@ -2,7 +2,6 @@ package localpv
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -41,10 +40,10 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 			},
 		},
 		"images": map[string]any{
-			"csiNodeDriverRegistrar": fmt.Sprintf("%s/%s", csiImageRepo, csiNodeDriverImage),
-			"csiProvisioner":         fmt.Sprintf("%s/%s", csiImageRepo, csiProvisionerImage),
-			"csiResizer":             fmt.Sprintf("%s/%s", csiImageRepo, csiResizerImage),
-			"csiSnapshotter":         fmt.Sprintf("%s/%s", csiImageRepo, csiSnapshotterImage),
+			"csiNodeDriverRegistrar": csiNodeDriverImage,
+			"csiProvisioner":         csiProvisionerImage,
+			"csiResizer":             csiResizerImage,
+			"csiSnapshotter":         csiSnapshotterImage,
 		},
 	}
 
