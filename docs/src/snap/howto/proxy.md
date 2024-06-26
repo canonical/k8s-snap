@@ -4,15 +4,13 @@ Canonical Kubernetes packages a number of utilities (eg curl, helm) which need
 to fetch resources they expect to find on the internet. In a constrained
 network environment, such access is usually controlled through proxies.
 
-On Ubuntu and other Linux operating systems, proxies are configured through
-system-wide environment variables defined in the `/etc/environment` file.
-
 To set up a proxy using squid follow the
 [how-to-install-a-squid-server][squid] tutorial.
 
 ## Adding proxy configuration for the k8s snap
 
-Edit the `/etc/environment` file and add the relevant URLs
+Add the `/etc/systemd/system/snap.k8s.containerd.d/10-env.conf` file
+and add the relevant URLs.
 
 ```{note} It is important to add whatever address ranges are used by the
  cluster itself to the `NO_PROXY` and `no_proxy` variables.

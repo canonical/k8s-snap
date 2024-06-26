@@ -18,28 +18,28 @@ handle images for workloads and Canonical Kubernetes features.
 From a machine with access to the internet download the following:
 
 ```bash
-sudo snap download k8s --channel 1.30-classic/beta
-sudo snap download core20
-sudo mv k8s_*.snap k8s.snap
-sudo mv k8s_*.assert k8s.assert
-sudo mv core20_*.snap core20.snap
-sudo mv core20_*.assert core20.assert
+sudo snap download k8s --channel 1.30-classic/beta --basename k8s
+sudo snap download core20 --basename core20
 ```
 
-The [core20][Core20] and `k8s` snap are downloaded. The `core20.assert` and 
-`k8s.assert` files, are necessary to verify the integrity of the snap packages.
+The [core20][Core20] and `k8s` snap are downloaded. `core20.assert` and 
+`k8s.assert` are necessary to verify the integrity of the snap packages.
 
-```{note} Update the version of k8s by adjusting the channel parameter.
-    Find the version you desire in the [snapstore](https://snapcraft.io/k8s).```
+```{note} 
+Update the version of k8s by adjusting the channel parameter.
+For more information on channels visit the
+[channels explanation](/snap/explanation/channels.md).
+```
 
-```{note} With updates to the snap the base core is subject to change.```
+```{note}
+With updates to the snap the base core is subject to change.
+```
 
 ### Prep 2: Network Requirements
 
 Air-gap deployments are typically associated with a number of constraints and
 restrictions with the networking connectivity of the machines.
-Verify that your cluster nodes can communicate, machines have a default gateway
-and optionally ensure proxy access.
+Below we discuss the requirements that the deployment needs to fulfill.
 
 #### Network Requirement: Cluster node communication
 <!-- TODO: Services and Ports Doc -->
@@ -47,48 +47,18 @@ Ensure that all cluster nodes are reachable from each other.
 Refer to [Services and ports][svc-ports] used for a list of all network ports
 used by Canonical Kubernetes.
 
-#### Network Requirement: Default Gateway
-
-Kubernetes services use the default network interface of the machine
-for the means of node discovery:
-
-- kube-apiserver (part of kubelite) 
-  - uses the default network interface to advertise this address to 
-    other nodes in the cluster.
-  - Without a default route kube-apiserver does not start.
-- kubelet (part of kubelite)
-  - uses the default network interface to pick the node's InternalIP address.
-  - A default gateway greatly simplifies the process of setting up the
-    network feature.
-
-In case your air gap environment does not have a default gateway,
-you can add a dummy default route on interface eth0 using the following command:
-
-```bash
-ip route add default dev eth0
-```
-
-```{note} Confirm the name of your default network interface used for pod-to-pod
-    communication by running "ip a".
-```
-
-```{note} The dummy gateway will only be used by the Kubernetes services to 
-    know which interface to use,
-    actual connectivity to the internet is not required.
-    Ensure that the dummy gateway rule survives a node reboot.
-```
-
+#### Network Requirement: Advertise address
+<!-- TODO: --advertise-address flag in kube-apiserver (using the node IP) -->
+ 
 #### (Optional) Network Requirement: Ensure proxy access
 
-Please skip this section, if you can't use an HTTP proxy (e.g. squid)
-with limited access to 
-image registries (e.g. docker.io, quay.io, rocks.canonical.com, etc).
+This section is only relevant if access to upstream image registries
+(e.g. docker.io, quay.io, rocks.canonical.com, etc)
+is only allowed through an HTTP proxy (e.g. squid).
 
 Ensure that all nodes can use the proxy to access the image registry.
-In this example we use squid as an http proxy.
-This set up uses http://squid.internal:3128 to access docker.io.
-
-Test the connectivity:
+For example, if using `http://squid.internal:3128` to access docker.io,
+an easy way to test connectivity is:
 
 ```
 export https_proxy=http://squid.internal:3128
@@ -114,12 +84,12 @@ You may also find it helpful to combine these options for your scenario.
 
 If you already have a running cluster,
 you can list the images in use by running:
-  
+
 ```bash
-sudo k8s kubectl get node -o template='{{ range .items }}{{ .metadata.name }}\
-{{":"}}{{ range .status.images }}{{ "\n- " }}{{ index .names 1 }}\
-{{ end }}{{"\n"}}{{ end }}'
+sudo k8s list-images
 ```
+
+Additionally, remember to keep track of the images used by your workloads.
 
 ### Images Option A: via an HTTP proxy
 
@@ -127,19 +97,7 @@ In many cases, the nodes of the airgap deployment may not have direct access to
 upstream registries, but can reach them through the
 [use of an HTTP proxy][proxy].
 
-To configure the proxy, edit `/etc/squid/squid.conf` and set the appropriate
-allowed networks and domains. 
-
-Upon changes to the proxy configuration,
-restart both the squid proxy and the k8s snap with:
-
-```bash
-sudo systemctl restart squid
-```
-  
-```bash
-sudo snap restart k8s
-```
+The configuration of the proxy is out of the scope of this documentation.
 
 ### Images Option B: private registry mirror
 
@@ -156,117 +114,45 @@ This requires three steps:
 1. Deploy and secure the registry service. This is out of scope for this
    document, please follow the instructions for the registry
    that you want to deploy.
-2. Load all images from the upstream source and push to your registry mirror.
+2. Using [regsync][regsync], load all images from the upstream source and
+   push to your registry mirror.
 3. Configure the Canonical Kubernetes container runtime (`containerd`) to load 
    images from
    the private registry mirror instead of the upstream source. This will be
    described in the installation section.
 
 In order to load images into the private registry, you need a machine with
-access to both the upstream registry (e.g. `docker.io`) and the internal one.
-Loading the images is possible with `docker` or `ctr`.
+access to both the upstream registry (e.g. `docker.io`) and the internal one. 
 
-For the examples below we assume that a private registry mirror is running at
-`10.100.100.100:5000`.
+#### Load images with regsync
 
-#### Load images with ctr
+We recommend using [regsync][regsync] to copy images
+from the upstream registry to your private registry.
 
-On the machine with access to both registries, first install `ctr`.
-For Ubuntu hosts, this can be done with:
+For the images used in the k8s-snap we currently sync upstream images
+to `ghcr.io/canonical`.
 
-```bash
-sudo apt-get update
-sudo apt-get install containerd
-```
+Since you will need to do something similar you
+will find it helpful to look at the [upstream-images.yaml][upstream-imgs] file
+as well as the [sync-images][sync-images] script.
 
-Then, pull an image:
+In [upstream-images.yaml][upstream-imgs] you will have to
+change the sync target from `ghcr.io/canonical` to your private registry mirror.
 
-```{note}  For DockerHub images, prefix with `docker.io/library`. ```
-
-```bash
-export IMAGE=library/nginx:latest
-export FROM_REPOSITORY=docker.io
-export TO_REPOSITORY=10.100.100.100:5000
-
-# pull the image and tag
-ctr image pull "$FROM_REPOSITORY/$IMAGE"
-ctr image convert "$FROM_REPOSITORY/$IMAGE" "$TO_REPOSITORY/$IMAGE"
-```
-
-Finally, push the image (see `ctr image push --help` for a complete list of
-supported arguments):
+After you have updated the yaml file, you can run the [sync-images][sync-images]
+script:
 
 ```bash
-# push image
-ctr image push "$TO_REPOSITORY/$IMAGE"
-# OR, if using HTTP and basic auth
-ctr image push "$TO_REPOSITORY/$IMAGE" --plain-http -u "$USER:$PASS"
-# OR, if using HTTPS and a custom CA 
-# (assuming CA certificate is at `/path/to/ca.crt`)
-ctr image push "$TO_REPOSITORY/$IMAGE" --ca /path/to/ca.crt
+USERNAME="$username" PASSWORD="$password" ./sync-images.sh
 ```
-
-Make sure to repeat the steps above (pull, convert, push)
-for all the images that you need.
-
-##### Load images with docker
-
-On the machine with access to both registries, first install `docker`.
-For Ubuntu hosts, this can be done with:
-
-```bash
-sudo apt-get update
-sudo apt-get install docker.io
-```
-
-If needed, login to the private registry:
-
-```bash
-sudo docker login $TO_REGISTRY
-```
-
-Then pull, tag and push the image:
-
-```bash
-export IMAGE=library/nginx:latest
-export FROM_REPOSITORY=docker.io
-export TO_REPOSITORY=10.100.100.100:5000
-
-sudo docker pull "$FROM_REPOSITORY/$IMAGE"
-sudo docker tag "$FROM_REPOSITORY/$IMAGE" "$TO_REPOSITORY/$IMAGE"
-sudo docker push "$TO_REPOSITORY/$IMAGE"
-```
-
-Repeat the pull, tag and push steps for all required images.
 
 ### Images Option C: Side-load images
 
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so that they do not have to be fetched at runtime.
-Upon choosing this option, you need to create a bundle of all the OCI images
-that will be used by the cluster.
 
-#### Create a bundle
-
-From a running cluster you may import images with `ctr`.
-Ensure you grab all images from all nodes in the cluster.
-  
-If we have an OCI image called nginx.tar,
-we can load this to all the cluster nodes by running the following command
-on any of them:
-
-```bash
-sudo k8s ctr image import - < nginx.tar
-```
-<!-- TODO: I think ctr is already installed where? -->
-On success, the output will look like this:
-
-```bash
-unpacking docker.io/library/nginx:latest \
-(sha256:9c58d14962869bf1167bdef6a6a3922f607aa823196c392a1785f45cdc8c3451)...d
-```
-
-For all standard OCI images that you will use, from .tar archives.
+Upon choosing this option, you place all images under
+`/var/snap/k8s/common/images` and they will be picked up by containerd.
 
 ## Deploy Canonical Kubernetes
 
@@ -287,10 +173,11 @@ Repeat the above for all nodes of the cluster.
 
 ### Step 2: Form Canonical Kubernetes cluster
 
-Now are ready to bootstrap the cluster by running:
+Now, bootstrap the cluster and replace MY-NODE-IP with the IP of the node
+by running the command:
 
 ```bash
-sudo k8s bootstrap
+sudo k8s bootstrap --address MY-NODE-IP
 ```
 
 ```{note}  Please skip the following section for one node deployments. ```
@@ -308,25 +195,21 @@ since we still need to ensure the container runtime can fetch images.
 
 #### Container Runtime Option A: Configure HTTP proxy for registries
 
-Edit `/etc/environment` and set the appropriate http_proxy, https_proxy and
+Edit `/etc/systemd/system/snap.k8s.containerd.conf.d/env.conf`
+and set the appropriate http_proxy, https_proxy and
 no_proxy variables as described in the
 [adding proxy configuration section][proxy].
-
-Then restart the k8s snap with:
-
-```bash
-sudo snap restart k8s
-```
 
 #### Container Runtime Option B: Configure registry mirrors
 
 This requires that you have already setup a registry mirror,
 as explained in the preparation section on the private registry mirror.
+For each upstream registry that you want to mirror, create a hosts.toml file.
 
-Assuming the registry mirror is at 10.100.100.100:5000, edit 
+This example configuring http://10.100.100.100:5000 as a mirror for docker.io.
+We edit 
 `/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/hosts.toml`
 and make sure it looks like this:
-
 
 ##### HTTP registry
 
@@ -337,8 +220,6 @@ add the configuration:
 [host."http://10.100.100.100:5000"]
 capabilities = ["pull", "resolve"]
 ```
-
-Please replace the registry ip with your own.
 
 ##### HTTPS registry
 
@@ -355,20 +236,16 @@ capabilities = ["pull", "resolve"]
 ca = "/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt"
 ```
 
-Please replace the registry ip with your own.
-
 #### Container Runtime Option C: Side-load images
 
-Copy the images.tar file to each of the cluster nodes and
-run the following command:
-
-```bash
-k8s ctr image import - < images.tar
-```
+Copy the images.tar file(s) to /var/snap/k8s/common/images on each cluster node.
 
 <!-- LINKS -->
 
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
 [svc-ports]: TODO
 [proxy]: /snap/howto/proxy.md
+[upstream-imgs]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/upstream-images.yaml
+[sync-images]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/sync-images.sh
+[regsync]: https://github.com/regclient/regclient
 [nodes]: /snap/tutorial/add-remove-nodes.md
