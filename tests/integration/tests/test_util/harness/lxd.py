@@ -29,6 +29,7 @@ class LXDHarness(Harness):
         self._next_id = 0
 
         self.profile = config.LXD_PROFILE_NAME
+        self.sideload_images_dir = config.LXD_SIDELOAD_IMAGES_DIR
         self.image = config.LXD_IMAGE
         self.instances = set()
 
@@ -75,10 +76,43 @@ class LXDHarness(Harness):
                     self.profile,
                 ]
             )
+            self.instances.add(instance_id)
+
+            if self.sideload_images_dir:
+                stubbornly(retries=3, delay_s=1).exec(
+                    [
+                        "lxc",
+                        "config",
+                        "device",
+                        "add",
+                        instance_id,
+                        "k8s-e2e-images",
+                        "disk",
+                        f"source={self.sideload_images_dir}",
+                        "path=/mnt/images",
+                        "readonly=true",
+                    ]
+                )
+
+                self.exec(
+                    instance_id,
+                    [
+                        "mkdir",
+                        "-p",
+                        "/var/snap/k8s/common",
+                    ],
+                )
+                self.exec(
+                    instance_id,
+                    [
+                        "cp",
+                        "-rv",
+                        "/mnt/images",
+                        "/var/snap/k8s/common/images",
+                    ],
+                )
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"Failed to create LXD container {instance_id}") from e
-
-        self.instances.add(instance_id)
 
         self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
         return Instance(self, instance_id)

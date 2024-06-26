@@ -40,6 +40,10 @@ LXD_PROFILE = (
 # LXD_IMAGE is the image to use for LXD containers.
 LXD_IMAGE = os.getenv("TEST_LXD_IMAGE") or "ubuntu:22.04"
 
+# LXD_SIDELOAD_IMAGES_DIR is an optional directory with OCI images from the host
+# that will be mounted at /var/snap/k8s/common/images on the LXD containers.
+LXD_SIDELOAD_IMAGES_DIR = os.getenv("TEST_LXD_SIDELOAD_IMAGES_DIR") or ""
+
 # MULTIPASS_IMAGE is the image to use for Multipass VMs.
 MULTIPASS_IMAGE = os.getenv("TEST_MULTIPASS_IMAGE") or "22.04"
 
