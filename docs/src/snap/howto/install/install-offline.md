@@ -47,9 +47,19 @@ Ensure that all cluster nodes are reachable from each other.
 Refer to [Services and ports][svc-ports] used for a list of all network ports
 used by Canonical Kubernetes.
 
-#### Network Requirement: Advertise address
-<!-- TODO: --advertise-address flag in kube-apiserver (using the node IP) -->
- 
+#### Network Requirement: Set advertise address
+
+The advertise-address is the IP address on which to advertise the apiserver
+ to members of the cluster.
+
+Add the `--advertise-address` flag on the `k8s bootstrap` command by adding the
+following to your bootstrap configuration file:
+
+```bash
+extra-node-kube-apiserver-args:
+  --advertise-address: MY-NODE-IP
+```
+
 #### (Optional) Network Requirement: Ensure proxy access
 
 This section is only relevant if access to upstream image registries
@@ -62,9 +72,8 @@ an easy way to test connectivity is:
 
 ```
 export https_proxy=http://squid.internal:3128
-curl -v https://registry-1.docker.io 
+curl -v https://registry-1.docker.io/v2
 ```
-<!-- TODO: 404 on curl and https://registry-1.docker.io/v2 unauthorized -->
 
 Please refer to the next section `images` on how to use the HTTP proxy
 to allow limited access to image registries.
@@ -150,6 +159,12 @@ USERNAME="$username" PASSWORD="$password" ./sync-images.sh
 
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so that they do not have to be fetched at runtime.
+
+To create a bundle of images, you can use the [regctl][regctl] tool.
+
+```bash
+regctl image export --platform=local
+```
 
 Upon choosing this option, you place all images under
 `/var/snap/k8s/common/images` and they will be picked up by containerd.
@@ -243,9 +258,10 @@ Copy the images.tar file(s) to /var/snap/k8s/common/images on each cluster node.
 <!-- LINKS -->
 
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
-[svc-ports]: TODO
+[svc-ports]: /snap/explanation/services-and-ports.md
 [proxy]: /snap/howto/proxy.md
 [upstream-imgs]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/upstream-images.yaml
 [sync-images]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/sync-images.sh
 [regsync]: https://github.com/regclient/regclient
+[regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
 [nodes]: /snap/tutorial/add-remove-nodes.md

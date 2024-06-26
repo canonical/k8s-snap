@@ -2,6 +2,7 @@ package setup
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"path"
 	"strings"
@@ -108,6 +109,15 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 	}
 	if _, err := snaputil.UpdateServiceArguments(snap, "kube-apiserver", args, deleteArgs); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
+	}
+
+	advertiseAddress, ok := extraArgs["--advertise-address"]
+	if ok {
+		ip := net.ParseIP(*advertiseAddress)
+		if ip != nil && ip.IsLoopback() {
+			// remove advertise address if it is loopback
+			delete(extraArgs, "--advertise-address")
+		}
 	}
 
 	// Apply extra arguments after the defaults, so they can override them.
