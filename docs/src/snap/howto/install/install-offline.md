@@ -112,6 +112,15 @@ The following options are presented in the order of
 increasing complexity of implementation.
 You may also find it helpful to combine these options for your scenario.
 
+If you already have a running cluster,
+you can list the images in use by running:
+  
+```bash
+sudo k8s kubectl get node -o template='{{ range .items }}{{ .metadata.name }}\
+{{":"}}{{ range .status.images }}{{ "\n- " }}{{ index .names 1 }}\
+{{ end }}{{"\n"}}{{ end }}'
+```
+
 ### Images Option A: via an HTTP proxy
 
 In many cases, the nodes of the airgap deployment may not have direct access to
@@ -157,7 +166,8 @@ In order to load images into the private registry, you need a machine with
 access to both the upstream registry (e.g. `docker.io`) and the internal one.
 Loading the images is possible with `docker` or `ctr`.
 
-For the examples below we assume that a private registry mirror is running at `10.100.100.100:5000`.
+For the examples below we assume that a private registry mirror is running at
+`10.100.100.100:5000`.
 
 #### Load images with ctr
 
@@ -244,6 +254,7 @@ Ensure you grab all images from all nodes in the cluster.
 If we have an OCI image called nginx.tar,
 we can load this to all the cluster nodes by running the following command
 on any of them:
+
 ```bash
 sudo k8s ctr image import - < nginx.tar
 ```
@@ -251,7 +262,8 @@ sudo k8s ctr image import - < nginx.tar
 On success, the output will look like this:
 
 ```bash
-unpacking docker.io/library/nginx:latest (sha256:9c58d14962869bf1167bdef6a6a3922f607aa823196c392a1785f45cdc8c3451)...d
+unpacking docker.io/library/nginx:latest \
+(sha256:9c58d14962869bf1167bdef6a6a3922f607aa823196c392a1785f45cdc8c3451)...d
 ```
 
 For all standard OCI images that you will use, from .tar archives.
@@ -298,8 +310,7 @@ since we still need to ensure the container runtime can fetch images.
 
 Edit `/etc/environment` and set the appropriate http_proxy, https_proxy and
 no_proxy variables as described in the
-[adding proxy configuration section][proxy]. 
-<!-- TODO: Can I point to a subheading? -->
+[adding proxy configuration section][proxy].
 
 Then restart the k8s snap with:
 
@@ -313,7 +324,7 @@ This requires that you have already setup a registry mirror,
 as explained in the preparation section on the private registry mirror.
 
 Assuming the registry mirror is at 10.100.100.100:5000, edit 
-`/var/snap/k8s/common/etc/containerd/config.toml`
+`/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/hosts.toml`
 and make sure it looks like this:
 
 
@@ -322,11 +333,12 @@ and make sure it looks like this:
 In `/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/hosts.toml`
 add the configuration:
 
-```bash
-
+```
 [host."http://10.100.100.100:5000"]
 capabilities = ["pull", "resolve"]
 ```
+
+Please replace the registry ip with your own.
 
 ##### HTTPS registry
 
@@ -334,13 +346,16 @@ HTTPS requires that you additionally specify the registry CA certificate.
 Copy the certificate to
 `/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt`,
 
-Then we add our config in `/var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml`:
+Then we add our config in
+`/var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml`:
 
-```bash
+```
 [host."https://10.100.100.100:5000"]
 capabilities = ["pull", "resolve"]
 ca = "/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt"
 ```
+
+Please replace the registry ip with your own.
 
 #### Container Runtime Option C: Side-load images
 
@@ -349,10 +364,8 @@ run the following command:
 
 ```bash
 k8s ctr image import - < images.tar
-
 ```
 
-<!-- TODO: is this relevant? # microk8s.kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=kubernetes-internal-ip -->
 <!-- LINKS -->
 
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
