@@ -7,8 +7,8 @@ import (
 	"os/exec"
 )
 
-// RunCommand executes a command with a given context.
-// RunCommand returns nil if the command completes successfully and the exit code is 0.
+// runCommand executes a command with a given context.
+// runCommand returns nil if the command completes successfully and the exit code is 0.
 func RunCommand(ctx context.Context, command []string, opts ...func(*exec.Cmd)) error {
 	var args []string
 	if len(command) > 1 {

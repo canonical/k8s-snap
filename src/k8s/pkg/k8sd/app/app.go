@@ -97,7 +97,7 @@ func New(cfg Config) (*App, error) {
 			app.readyWg.Wait,
 		)
 	} else {
-		log.Println("node config controller was not initialized. change this behvaiour by unsetting --disable-node-config-controller (or setting it to `false` which is the default).")
+		log.Println("node-config-controller disabled via config")
 	}
 
 	if !cfg.DisableControlPlaneConfigController {
@@ -107,7 +107,7 @@ func New(cfg Config) (*App, error) {
 			time.NewTicker(10*time.Second).C,
 		)
 	} else {
-		log.Println("control plane config controller was not initialized. change this behvaiour by unsetting --disable-control-plane-config-controller (or setting it to `false` which is the default).")
+		log.Println("control-plane-config-controller disabled via config")
 	}
 
 	app.triggerUpdateNodeConfigControllerCh = make(chan struct{}, 1)
@@ -119,7 +119,7 @@ func New(cfg Config) (*App, error) {
 			app.triggerUpdateNodeConfigControllerCh,
 		)
 	} else {
-		log.Println("update node config controller was not initialized. change this behvaiour by unsetting --disable-update-node-config-controller (or setting it to `false` which is the default).")
+		log.Println("update-node-config-controller disabled via config")
 	}
 
 	app.triggerFeatureControllerNetworkCh = make(chan struct{}, 1)
@@ -143,7 +143,7 @@ func New(cfg Config) (*App, error) {
 			TriggerMetricsServerCh: app.triggerFeatureControllerMetricsServerCh,
 		})
 	} else {
-		log.Println("feature controller was not initialized. change this behvaiour by unsetting --disable-feature-controller (or setting it to `false` which is the default).")
+		log.Println("feature-controller disabled via config")
 	}
 
 	return app, nil
