@@ -50,7 +50,7 @@ case "${BASE_DISTRO}" in
     # install snapd and ensure /snap/bin is in the environment
     lxc shell tmp-builder -- bash -c "while ! ping -c1 snapcraft.io; do sleep 1; done"
     lxc shell tmp-builder -- bash -c "dnf install epel-release -y"
-    lxc shell tmp-builder -- bash -c "dnf install sudo -y"
+    lxc shell tmp-builder -- bash -c "dnf install tar sudo -y"
     lxc shell tmp-builder -- bash -c "dnf install fuse squashfuse -y"
     lxc shell tmp-builder -- bash -c "dnf install snapd -y"
 
