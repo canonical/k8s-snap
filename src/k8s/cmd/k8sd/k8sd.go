@@ -13,6 +13,8 @@ var rootCmdOpts struct {
 	pprofAddress                        string
 	disableNodeConfigController         bool
 	disableControlPlaneConfigController bool
+	disableFeatureController            bool
+	disableUpdateNodeConfigController   bool
 }
 
 func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
@@ -28,6 +30,8 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				PprofAddress:                        rootCmdOpts.pprofAddress,
 				DisableNodeConfigController:         rootCmdOpts.disableNodeConfigController,
 				DisableControlPlaneConfigController: rootCmdOpts.disableControlPlaneConfigController,
+				DisableUpdateNodeConfigController:   rootCmdOpts.disableUpdateNodeConfigController,
+				DisableFeatureController:            rootCmdOpts.disableFeatureController,
 			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to initialize k8sd: %v", err)
@@ -51,8 +55,10 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.pprofAddress, "pprof-address", "", "Listen address for pprof endpoints, e.g. \"127.0.0.1:4217\"")
-	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableNodeConfigController, "disable-node-config-controller", false, "Disable the Node Config Controller (defaults to `false`)")
-	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableControlPlaneConfigController, "disable-control-plane-config-controller", false, "Disable the Control Plane Config Controller (defaults to `false`)")
+	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableNodeConfigController, "disable-node-config-controller", false, "Disable the Node Config Controller")
+	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableControlPlaneConfigController, "disable-control-plane-config-controller", false, "Disable the Control Plane Config Controller")
+	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableUpdateNodeConfigController, "disable-update-node-config-controller", false, "Disable the Update Node Config Controller")
+	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableFeatureController, "disable-feature-controller", false, "Disable the Feature Controller")
 
 	cmd.Flags().Uint("port", 0, "Default port for the HTTP API")
 	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")
