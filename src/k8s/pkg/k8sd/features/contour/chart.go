@@ -33,14 +33,24 @@ var (
 		Namespace:    "projectcontour",
 		ManifestPath: path.Join("charts", "ck-contour-common-1.28.2.tgz"),
 	}
+
+	// registry represents the registry (ghcr.io/canonical) to use for Contour images.
+	registry = "ghcr.io/canonical"
+
+	// envoyProxyImageRepo represents the image to use for envoy in the gateway.
+	envoyProxyImageRepo = "envoyproxy/envoy"
+
+	// envoyProxyImageTag is the tag to use for for envoy in the gateway.
+	envoyProxyImageTag = "v1.29.2"
+
 	// envoyImageRepo represents the image to use for the Contour Envoy proxy.
-	envoyImageRepo = "docker.io/bitnami/envoy"
+	envoyImageRepo = "bitnami/envoy"
 
 	// envoyImageTag is the tag to use for the Contour Envoy proxy image.
 	envoyImageTag = "1.28.2-debian-12-r0"
 
 	// contourImageRepo represents the image to use for Contour.
-	contourImageRepo = "docker.io/bitnami/contour"
+	contourImageRepo = "bitnami/contour"
 
 	// contourImageTag is the tag to use for the Contour image.
 	contourImageTag = "1.28.2-debian-12-r4"

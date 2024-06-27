@@ -40,12 +40,24 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	values = map[string]any{
 		"envoy-service-namespace": "projectcontour",
 		"envoy-service-name":      "envoy",
+		"envoy": map[string]any{
+			"image": map[string]any{
+				"registry":   registry,
+				"repository": envoyImageRepo,
+				"tag":        envoyImageTag,
+			},
+		},
 		"contour": map[string]any{
 			"manageCRDs": false,
 			"ingressClass": map[string]any{
 				"name":    "ck-ingress",
 				"create":  true,
 				"default": true,
+			},
+			"image": map[string]any{
+				"registry":   registry,
+				"repository": contourImageRepo,
+				"tag":        contourImageTag,
 			},
 		},
 	}
