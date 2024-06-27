@@ -1,4 +1,4 @@
-package v1
+package apiv1
 
 // GetClusterStatusRequest is used to request the current status of the cluster.
 type GetClusterStatusRequest struct{}

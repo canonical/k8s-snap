@@ -1,4 +1,4 @@
-package v1
+package apiv1
 
 // GenerateKubernetesAuthTokenRequest is used to request a new Kubernetes auth token.
 type GenerateKubernetesAuthTokenRequest struct {

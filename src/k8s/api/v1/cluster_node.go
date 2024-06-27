@@ -1,4 +1,4 @@
-package v1
+package apiv1
 
 // JoinClusterRequest is used to request to add a node to the cluster.
 type JoinClusterRequest struct {

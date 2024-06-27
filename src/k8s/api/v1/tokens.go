@@ -1,4 +1,4 @@
-package v1
+package apiv1
 
 // GetJoinTokenRequest is used to request a token for joining a node to the cluster.
 type GetJoinTokenRequest struct {
