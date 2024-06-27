@@ -49,7 +49,7 @@ var (
 )
 
 // KubeAPIServer configures kube-apiserver on the local node.
-func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string, nodeIP string, extraArgs map[string]*string) error {
+func KubeAPIServer(snap snap.Snap, nodeIP net.IP, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string, extraArgs map[string]*string) error {
 	authTokenWebhookConfigFile := path.Join(snap.ServiceExtraConfigDir(), "auth-token-webhook.conf")
 	authTokenWebhookFile, err := os.OpenFile(authTokenWebhookConfigFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
@@ -87,13 +87,17 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
 	}
 
+	if nodeIP != nil && !nodeIP.IsLoopback() {
+		args["--advertise-address"] = nodeIP.String()
+	}
+
 	switch datastore.GetType() {
 	case "k8s-dqlite", "external", "etcd":
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore.GetType(), SupportedDatastores)
 	}
 
-	datastoreUpdateArgs, deleteArgs := datastore.ToKubeAPIServerArguments(snap, []string{nodeIP})
+	datastoreUpdateArgs, deleteArgs := datastore.ToKubeAPIServerArguments(snap)
 	for key, val := range datastoreUpdateArgs {
 		args[key] = val
 	}
@@ -109,15 +113,6 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 	}
 	if _, err := snaputil.UpdateServiceArguments(snap, "kube-apiserver", args, deleteArgs); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
-	}
-
-	advertiseAddress, ok := extraArgs["--advertise-address"]
-	if ok {
-		ip := net.ParseIP(*advertiseAddress)
-		if ip != nil && ip.IsLoopback() {
-			// remove advertise address if it is loopback
-			delete(extraArgs, "--advertise-address")
-		}
 	}
 
 	// Apply extra arguments after the defaults, so they can override them.
