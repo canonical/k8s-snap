@@ -9,7 +9,7 @@ import (
 )
 
 // reBinaryName is the regular expression used to match containerd shim and /pause processes.
-var reBinaryName = regexp.MustCompile(`(^/snap/k8s/.*/bin/containerd-shim-runc-v2|^/pause$)`)
+var reBinaryName = regexp.MustCompile(`(^(/var/lib/snapd)?/snap/k8s/.*/bin/containerd-shim-runc-v2|^/pause$)`)
 
 // RunningContainerdShimPIDs returns a list of all the pids on the system that have been started by a containerd shim.
 func RunningContainerdShimPIDs(ctx context.Context) ([]string, error) {

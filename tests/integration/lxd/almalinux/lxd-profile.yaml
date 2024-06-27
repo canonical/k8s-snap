@@ -1,8 +1,9 @@
-description: "LXD profile for Canonical Kubernetes"
+description: "LXD profile for Canonical Kubernetes (AlmaLinux)"
 config:
   linux.kernel_modules: ip_vs,ip_vs_rr,ip_vs_wrr,ip_vs_sh,ip_tables,ip6_tables,iptable_raw,netlink_diag,nf_nat,overlay,br_netfilter,xt_socket
   raw.lxc: |
-    lxc.apparmor.profile=unconfined
+    # lxc.apparmor.profile=unconfined
+    lxc.selinux.context=unconfined_t
     lxc.mount.auto=proc:rw sys:rw cgroup:rw
     lxc.cgroup.devices.allow=a
     lxc.cap.drop=
