@@ -45,6 +45,9 @@ cp contour-src/examples/gateway-provisioner/03-gateway-provisioner.yaml ck-gatew
 # image: "{{ .Values.projectcontour.image.registry }}/{{ .Values.projectcontour.image.repository }}:{{ .Values.projectcontour.image.tag }}"
 sed -i "s|image: ghcr.io/projectcontour/contour:${CONTOUR_VERSION}|image: \"{{ .Values.projectcontour.image.registry }}/{{ .Values.projectcontour.image.repository }}:{{ .Values.projectcontour.image.tag }}\"|" ck-gateway-contour/templates/03-gateway-provisioner.yaml
 
+# Add the args section with the image flags
+sed -i '/^        - --enable-leader-election$/a\ \ \ \ \ \ \ \ - --envoy-image={{ .Values.envoyproxy.image.registry }}/{{ .Values.envoyproxy.image.repository }}:{{ .Values.envoyproxy.image.tag }}\n\ \ \ \ \ \ \ \ - --contour-image={{ .Values.projectcontour.image.registry }}/{{ .Values.projectcontour.image.repository }}:{{ .Values.projectcontour.image.tag }}' ck-gateway-contour/templates/03-gateway-provisioner.yaml
+
 # Add values.yaml
 cat <<EOF >ck-gateway-contour/values.yaml
 projectcontour:
@@ -53,6 +56,11 @@ projectcontour:
     repository: projectcontour/contour
     tag: ${CONTOUR_VERSION}
 
+envoyproxy:
+  image:
+    registry: docker.io
+    repository: envoyproxy/envoy
+    tag: ${CONTOUR_VERSION}
 EOF
 
 # Add Gateway Class
