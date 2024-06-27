@@ -30,6 +30,14 @@ type Config struct {
 	Snap snap.Snap
 	// PprofAddress is the address to listen for pprof debug endpoints. Empty to disable.
 	PprofAddress string
+	// DisableNodeConfigController is a bool flag to disable node config controller
+	DisableNodeConfigController bool
+	// DisableControlPlaneConfigController is a bool flag to disable control-plane config controller
+	DisableControlPlaneConfigController bool
+	// DisableUpdateNodeConfigController is a bool flag to disable update node config controller
+	DisableUpdateNodeConfigController bool
+	// DisableFeatureController is a bool flag to disable feature controller
+	DisableFeatureController bool
 }
 
 // App is the k8sd microcluster instance.
@@ -83,23 +91,36 @@ func New(cfg Config) (*App, error) {
 	}
 	app.readyWg.Add(1)
 
-	app.nodeConfigController = controllers.NewNodeConfigurationController(
-		cfg.Snap,
-		app.readyWg.Wait,
-	)
+	if !cfg.DisableNodeConfigController {
+		app.nodeConfigController = controllers.NewNodeConfigurationController(
+			cfg.Snap,
+			app.readyWg.Wait,
+		)
+	} else {
+		log.Println("node-config-controller disabled via config")
+	}
 
-	app.controlPlaneConfigController = controllers.NewControlPlaneConfigurationController(
-		cfg.Snap,
-		app.readyWg.Wait,
-		time.NewTicker(10*time.Second).C,
-	)
+	if !cfg.DisableControlPlaneConfigController {
+		app.controlPlaneConfigController = controllers.NewControlPlaneConfigurationController(
+			cfg.Snap,
+			app.readyWg.Wait,
+			time.NewTicker(10*time.Second).C,
+		)
+	} else {
+		log.Println("control-plane-config-controller disabled via config")
+	}
 
 	app.triggerUpdateNodeConfigControllerCh = make(chan struct{}, 1)
-	app.updateNodeConfigController = controllers.NewUpdateNodeConfigurationController(
-		cfg.Snap,
-		app.readyWg.Wait,
-		app.triggerUpdateNodeConfigControllerCh,
-	)
+
+	if !cfg.DisableUpdateNodeConfigController {
+		app.updateNodeConfigController = controllers.NewUpdateNodeConfigurationController(
+			cfg.Snap,
+			app.readyWg.Wait,
+			app.triggerUpdateNodeConfigControllerCh,
+		)
+	} else {
+		log.Println("update-node-config-controller disabled via config")
+	}
 
 	app.triggerFeatureControllerNetworkCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerGatewayCh = make(chan struct{}, 1)
@@ -108,17 +129,22 @@ func New(cfg Config) (*App, error) {
 	app.triggerFeatureControllerLocalStorageCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerMetricsServerCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerDNSCh = make(chan struct{}, 1)
-	app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
-		Snap:                   cfg.Snap,
-		WaitReady:              app.readyWg.Wait,
-		TriggerNetworkCh:       app.triggerFeatureControllerNetworkCh,
-		TriggerGatewayCh:       app.triggerFeatureControllerGatewayCh,
-		TriggerIngressCh:       app.triggerFeatureControllerIngressCh,
-		TriggerLoadBalancerCh:  app.triggerFeatureControllerLoadBalancerCh,
-		TriggerDNSCh:           app.triggerFeatureControllerDNSCh,
-		TriggerLocalStorageCh:  app.triggerFeatureControllerLocalStorageCh,
-		TriggerMetricsServerCh: app.triggerFeatureControllerMetricsServerCh,
-	})
+
+	if !cfg.DisableFeatureController {
+		app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
+			Snap:                   cfg.Snap,
+			WaitReady:              app.readyWg.Wait,
+			TriggerNetworkCh:       app.triggerFeatureControllerNetworkCh,
+			TriggerGatewayCh:       app.triggerFeatureControllerGatewayCh,
+			TriggerIngressCh:       app.triggerFeatureControllerIngressCh,
+			TriggerLoadBalancerCh:  app.triggerFeatureControllerLoadBalancerCh,
+			TriggerDNSCh:           app.triggerFeatureControllerDNSCh,
+			TriggerLocalStorageCh:  app.triggerFeatureControllerLocalStorageCh,
+			TriggerMetricsServerCh: app.triggerFeatureControllerMetricsServerCh,
+		})
+	} else {
+		log.Println("feature-controller disabled via config")
+	}
 
 	return app, nil
 }
