@@ -4,28 +4,26 @@
 
 #### Control 3.1.1
 
-Description: `Client certificate authentication should not be used for users
-(Manual)`
-
-Remediation:
-
-```
-Alternative mechanisms provided by Kubernetes such as the use of
-OIDC should be
-implemented in place of client certificates.
-```
+Description: Client certificate authentication should not be used for users
+(Manual)
 
 Expected output:
 
 ```
---audit-policy-file is set
+Not applicable.
 ```
+
+Remediation:
+
+Alternative mechanisms provided by Kubernetes such as the use of
+OIDC should be
+implemented in place of client certificates.
 
 ### Logging
 
 #### Control 3.2.1
 
-Description: `Ensure that a minimal audit policy is created (Manual)`
+Description: Ensure that a minimal audit policy is created (Manual)
 
 Audit:
 
@@ -33,26 +31,29 @@ Audit:
 /bin/ps -ef | grep kube-apiserver | grep -v grep
 ```
 
-Remediation:
+Expected output:
 
 ```
-Create an audit policy file for your cluster.
+--audit-policy-file=/var/snap/k8s/common/etc/audit-policy.yaml
 ```
+
+Remediation:
+
+Create an audit policy file for your cluster.
+
+#### Control 3.2.2
+
+Description: Ensure that the audit policy covers key security concerns
+(Manual)
 
 Expected output:
 
 ```
---audit-policy-file is set
+Not applicable.
 ```
-
-#### Control 3.2.2
-
-Description: `Ensure that the audit policy covers key security concerns
-(Manual)`
 
 Remediation:
 
-```
 Review the audit policy provided for the cluster and ensure that
 it covers
 at least the following areas,
@@ -67,11 +68,4 @@ TokenReviews, in
 For most requests, minimally logging at the Metadata level is
 recommended
 (the most basic level of logging).
-```
-
-Expected output:
-
-```
-TODO
-```
 
