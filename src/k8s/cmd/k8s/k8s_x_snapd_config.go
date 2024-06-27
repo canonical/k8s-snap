@@ -46,7 +46,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				cmd.PrintErrln("Warning: meta.orb is none, skipping reconcile actions")
 				return
 			case "k8sd":
-				client, err := env.Snap.K8sdClient()
+				client, err := env.Snap.K8sdClient("")
 				if err != nil {
 					cmd.PrintErrf("Error: failed to create k8sd client: %v\n", err)
 					env.Exit(1)
@@ -64,7 +64,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					return
 				}
 			case "snapd":
-				client, err := env.Snap.K8sdClient()
+				client, err := env.Snap.K8sdClient("")
 				if err != nil {
 					cmd.PrintErrf("Error: failed to create k8sd client: %v\n", err)
 					env.Exit(1)

@@ -58,7 +58,7 @@ type Snap interface {
 
 	K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) // go-dqlite client for k8s-dqlite
 
-	K8sdClient() (k8sd.Client, error) // k8sd client
+	K8sdClient(address string) (k8sd.Client, error) // k8sd client
 
 	PreInitChecks(ctx context.Context, config types.ClusterConfig) error // pre-init checks before k8s-snap can start
 }

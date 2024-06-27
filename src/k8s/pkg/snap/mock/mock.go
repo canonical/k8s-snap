@@ -175,7 +175,7 @@ func (s *Snap) HelmClient() helm.Client {
 func (s *Snap) K8sDqliteClient(context.Context) (*dqlite.Client, error) {
 	return s.Mock.K8sDqliteClient, nil
 }
-func (s *Snap) K8sdClient() (k8sd.Client, error) {
+func (s *Snap) K8sdClient(address string) (k8sd.Client, error) {
 	return s.Mock.K8sdClient, nil
 }
 func (s *Snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
