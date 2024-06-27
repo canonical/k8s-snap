@@ -37,6 +37,10 @@ type Mock struct {
 	KubeConfigCalledWith apiv1.GetKubeConfigRequest
 	KubeConfigResult     string
 	KubeConfigErr        error
+
+	// k8sd.ClusterAPIClient
+	SetClusterAPIAuthTokenCalledWith apiv1.SetClusterAPIAuthTokenRequest
+	SetClusterAPIAuthTokenErr        error
 }
 
 func (m *Mock) BootstrapCluster(_ context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error) {
@@ -74,6 +78,11 @@ func (m *Mock) SetClusterConfig(_ context.Context, request apiv1.UpdateClusterCo
 func (m *Mock) KubeConfig(_ context.Context, request apiv1.GetKubeConfigRequest) (string, error) {
 	m.KubeConfigCalledWith = request
 	return m.KubeConfigResult, m.KubeConfigErr
+}
+
+func (m *Mock) SetClusterAPIAuthToken(_ context.Context, request apiv1.SetClusterAPIAuthTokenRequest) error {
+	m.SetClusterAPIAuthTokenCalledWith = request
+	return m.SetClusterAPIAuthTokenErr
 }
 
 var _ k8sd.Client = &Mock{}
