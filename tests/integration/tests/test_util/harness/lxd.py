@@ -96,20 +96,11 @@ class LXDHarness(Harness):
 
                 self.exec(
                     instance_id,
-                    [
-                        "mkdir",
-                        "-p",
-                        "/var/snap/k8s/common",
-                    ],
+                    ["mkdir", "-p", "/var/snap/k8s/common"],
                 )
                 self.exec(
                     instance_id,
-                    [
-                        "cp",
-                        "-rv",
-                        "/mnt/images",
-                        "/var/snap/k8s/common/images",
-                    ],
+                    ["cp", "-rv", "/mnt/images", "/var/snap/k8s/common/images"],
                 )
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"Failed to create LXD container {instance_id}") from e
