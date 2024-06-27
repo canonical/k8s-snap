@@ -80,7 +80,7 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				Config: config,
 			}
 
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient()
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
@@ -90,7 +90,7 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.PrintErrf("Disabling %s from the cluster. This may take a few seconds, please wait.\n", strings.Join(args, ", "))
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
-			if err := client.UpdateClusterConfig(ctx, request); err != nil {
+			if err := client.SetClusterConfig(ctx, request); err != nil {
 				cmd.PrintErrf("Error: Failed to disable %s from the cluster.\n\nThe error was: %v\n", strings.Join(args, ", "), err)
 				env.Exit(1)
 				return

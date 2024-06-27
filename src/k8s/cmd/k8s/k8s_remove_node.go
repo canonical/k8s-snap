@@ -35,7 +35,7 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				opts.timeout = minTimeout
 			}
 
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient()
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)

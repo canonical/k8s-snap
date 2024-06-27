@@ -42,7 +42,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient()
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
@@ -56,7 +56,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			if err := client.UpdateClusterConfig(ctx, request); err != nil {
+			if err := client.SetClusterConfig(ctx, request); err != nil {
 				cmd.PrintErrf("Error: Failed to apply requested cluster configuration changes.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return

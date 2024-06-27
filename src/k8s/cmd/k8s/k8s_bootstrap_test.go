@@ -93,7 +93,7 @@ var testCases = []testCase{
 	{
 		name:          "InvalidKeys",
 		yamlConfig:    bootstrapConfigInvalidKeys,
-		expectedError: "field cluster-cidr not found in type v1.BootstrapConfig",
+		expectedError: "field cluster-cidr not found in type apiv1.BootstrapConfig",
 	},
 	{
 		name:          "InvalidYAML",

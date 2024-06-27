@@ -2,15 +2,14 @@ package k8s_test
 
 import (
 	"bytes"
-	"context"
-	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/cmd/k8s"
 	cmdutil "github.com/canonical/k8s/cmd/util"
-	"github.com/canonical/k8s/pkg/k8s/client"
-	"github.com/canonical/k8s/pkg/k8s/client/mock"
+	k8sdmock "github.com/canonical/k8s/pkg/client/k8sd/mock"
+	snapmock "github.com/canonical/k8s/pkg/snap/mock"
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -64,14 +63,16 @@ func TestK8sEnableCmd(t *testing.T) {
 
 			stdout := &bytes.Buffer{}
 			stderr := &bytes.Buffer{}
-			mockClient := &mock.Client{}
+			mockClient := &k8sdmock.Mock{}
 			var returnCode int
 			env := cmdutil.ExecutionEnvironment{
 				Stdout: stdout,
 				Stderr: stderr,
 				Getuid: func() int { return 0 },
-				Client: func(ctx context.Context) (client.Client, error) {
-					return mockClient, nil
+				Snap: &snapmock.Snap{
+					Mock: snapmock.Mock{
+						K8sdClient: mockClient,
+					},
 				},
 				Exit: func(rc int) { returnCode = rc },
 			}
@@ -85,7 +86,7 @@ func TestK8sEnableCmd(t *testing.T) {
 			g.Expect(returnCode).To(Equal(tt.expectedCode))
 
 			if tt.expectedCode == 0 {
-				g.Expect(mockClient.UpdateClusterConfigCalledWith).To(Equal(tt.expectedCall))
+				g.Expect(mockClient.SetClusterConfigCalledWith).To(Equal(tt.expectedCall))
 			}
 		})
 	}

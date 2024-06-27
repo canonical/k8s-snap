@@ -15,14 +15,14 @@ func newLocalNodeStatusCommand(env cmdutil.ExecutionEnvironment) *cobra.Command 
 		Hidden: true,
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient()
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			status, err := client.LocalNodeStatus(cmd.Context())
+			status, err := client.NodeStatus(cmd.Context())
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to get the status of the local node.\n\nThe error was: %v\n", err)
 				env.Exit(1)
