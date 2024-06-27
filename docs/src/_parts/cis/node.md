@@ -260,16 +260,11 @@ Expected output:
 
 Remediation:
 
-If using a Kubelet config file, edit the file to set
-`authentication: anonymous: enabled` to
-`false`.
-If using executable arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
-set the below parameter in KUBELET_SYSTEM_PODS_ARGS variable.
+Edit the kubelet configuration file
+/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
 `--anonymous-auth=false`
-Based on your system, restart the kubelet service. For example,
-systemctl daemon-reload
-systemctl restart kubelet.service
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.2
 
@@ -290,15 +285,11 @@ Expected output:
 
 Remediation:
 
-If using a Kubelet config file, edit the file to set
-`authorization.mode` to Webhook. If
-using executable arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
-set the below parameter in KUBELET_AUTHZ_ARGS variable.
+Edit the kubelet configuration file
+/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
 --authorization-mode=Webhook
-Based on your system, restart the kubelet service. For example,
-systemctl daemon-reload
-systemctl restart kubelet.service
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.3
 
@@ -319,16 +310,11 @@ Expected output:
 
 Remediation:
 
-If using a Kubelet config file, edit the file to set
-`authentication.x509.clientCAFile` to
-the location of the client CA file.
-If using command line arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
-set the below parameter in KUBELET_AUTHZ_ARGS variable.
+Edit the kubelet configuration file
+/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
 --client-ca-file=<path/to/client-ca-file>
-Based on your system, restart the kubelet service. For example,
-systemctl daemon-reload
-systemctl restart kubelet.service
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.4
 
@@ -348,15 +334,11 @@ Expected output:
 
 Remediation:
 
-If using a Kubelet config file, edit the file to set
-`readOnlyPort` to 0.
-If using command line arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
-set the below parameter in KUBELET_SYSTEM_PODS_ARGS variable.
+Edit the kubelet configuration file
+/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
 --read-only-port=0
-Based on your system, restart the kubelet service. For example,
-systemctl daemon-reload
-systemctl restart kubelet.service
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.5
 
@@ -377,16 +359,11 @@ Expected output:
 
 Remediation:
 
-If using a Kubelet config file, edit the file to set
-`streamingConnectionIdleTimeout` to a
-value other than 0.
-If using command line arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
-set the below parameter in KUBELET_SYSTEM_PODS_ARGS variable.
+Edit the kubelet configuration file
+/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
 --streaming-connection-idle-timeout=5m
-Based on your system, restart the kubelet service. For example,
-systemctl daemon-reload
-systemctl restart kubelet.service
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.6
 
@@ -407,15 +384,11 @@ Expected output:
 
 Remediation:
 
-If using a Kubelet config file, edit the file to set
-`protectKernelDefaults` to `true`.
-If using command line arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
-set the below parameter in KUBELET_SYSTEM_PODS_ARGS variable.
+Edit the kubelet configuration file
+/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
 --protect-kernel-defaults=true
-Based on your system, restart the kubelet service. For example:
-systemctl daemon-reload
-systemctl restart kubelet.service
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.7
 
@@ -436,15 +409,11 @@ Expected output:
 
 Remediation:
 
-If using a Kubelet config file, edit the file to set
-`makeIPTablesUtilChains` to `true`.
-If using command line arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
-remove the --make-iptables-util-chains argument from the
-KUBELET_SYSTEM_PODS_ARGS variable.
-Based on your system, restart the kubelet service. For example:
-systemctl daemon-reload
-systemctl restart kubelet.service
+Edit the kubelet configuration file
+/var/snap/k8s/common/args/kubelet on each worker node and
+remove the --make-iptables-util-chains argument.
+Restart the kubelet service. For example:
+snap restart k8s.kubelet
 
 #### Control 4.2.8
 
@@ -464,13 +433,10 @@ Expected output:
 
 Remediation:
 
-Edit the kubelet service file /etc/systemd/system/snap.k8s.kubelet.service
-on each worker node and remove the --hostname-override argument
-from the
-KUBELET_SYSTEM_PODS_ARGS variable.
-Based on your system, restart the kubelet service. For example,
-systemctl daemon-reload
-systemctl restart kubelet.service
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet
+on each worker node and remove the --hostname-override argument.
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.9
 
@@ -491,14 +457,11 @@ Expected output:
 
 Remediation:
 
-If using a Kubelet config file, edit the file to set
-`eventRecordQPS` to an appropriate level.
-If using command line arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
-set the below parameter in KUBELET_SYSTEM_PODS_ARGS variable.
-Based on your system, restart the kubelet service. For example,
-systemctl daemon-reload
-systemctl restart kubelet.service
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
+node and
+set the --event-qps parameter as appropriate.
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.10
 
@@ -520,19 +483,13 @@ private-key-file=/etc/kubernetes/pki/kubelet.key
 
 Remediation:
 
-If using a Kubelet config file, edit the file to set
-`tlsCertFile` to the location
-of the certificate file to use to identify this Kubelet, and
-`tlsPrivateKeyFile`
-to the location of the corresponding private key file.
-If using command line arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
-set the below parameters in KUBELET_CERTIFICATE_ARGS variable.
+Edit the kubelet service file /var/snap/k8s/common/args/kubelet on each worker node
+and
+set the below arguments:
 --tls-cert-file=<path/to/tls-certificate-file>
 --tls-private-key-file=<path/to/tls-key-file>
-Based on your system, restart the kubelet service. For example,
-systemctl daemon-reload
-systemctl restart kubelet.service
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.11
 
@@ -553,17 +510,11 @@ Expected output:
 
 Remediation:
 
-If using a Kubelet config file, edit the file to add the line
-`rotateCertificates` to `true` or
-remove it altogether to use the default value.
-If using command line arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
-remove --rotate-certificates=false argument from the
-KUBELET_CERTIFICATE_ARGS
-variable.
-Based on your system, restart the kubelet service. For example,
-systemctl daemon-reload
-systemctl restart kubelet.service
+Edit the kubelet service file /var/snap/k8s/common/args/kubelet on each worker node
+and
+remove the --rotate-certificates=false argument.
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.12
 
@@ -584,13 +535,13 @@ the RotateKubeletServerCertificate feature gate is not set
 
 Remediation:
 
-Edit the kubelet service file /etc/systemd/system/snap.k8s.kubelet.service
-on each worker node and set the below parameter in
-KUBELET_CERTIFICATE_ARGS variable.
---feature-gates=RotateKubeletServerCertificate=true
-Based on your system, restart the kubelet service. For example:
-systemctl daemon-reload
-systemctl restart kubelet.service
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
+node and
+set the argument --feature-
+gates=RotateKubeletServerCertificate=true
+on each worker node.
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
 #### Control 4.2.13
 
@@ -615,16 +566,8 @@ RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
 
 Remediation:
 
-If using a Kubelet config file, edit the file to set
-`TLSCipherSuites` to
-TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_1
-28_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_R
-SA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
-TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM
-_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
-or to a subset of these values.
-If using executable arguments, edit the kubelet service file
-/etc/systemd/system/snap.k8s.kubelet.service on each worker node and
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
+node and
 set the --tls-cipher-suites parameter as follows, or to a subset
 of these values.
 --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_
@@ -632,7 +575,6 @@ ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_
 POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WIT
 H_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_
 RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
-Based on your system, restart the kubelet service. For example:
-systemctl daemon-reload
-systemctl restart kubelet.service
+Restart the kubelet service. For example,
+snap restart k8s.kubelet
 
