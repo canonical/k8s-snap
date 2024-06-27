@@ -4,8 +4,8 @@
 
 #### Control 1.1.1
 
-Description: Ensure that the API server pod specification file permissions
-are set to 600 or more restrictive (Automated)
+Description: Ensure that the API server configuration file permissions are
+set to 600 or more restrictive (Automated)
 
 Audit:
 
@@ -28,8 +28,8 @@ For example, chmod 600 /var/snap/k8s/common/args/kube-apiserver
 
 #### Control 1.1.2
 
-Description: Ensure that the API server pod specification file ownership is
-set to root:root (Automated)
+Description: Ensure that the API server configuration file ownership is set
+to root:root (Automated)
 
 Audit:
 
@@ -51,7 +51,7 @@ For example, chown root:root /var/snap/k8s/common/args/kube-apiserver
 
 #### Control 1.1.3
 
-Description: Ensure that the controller manager pod specification file
+Description: Ensure that the controller manager configuration file
 permissions are set to 600 or more restrictive (Automated)
 
 Audit:
@@ -74,8 +74,8 @@ For example, chmod 600 /var/snap/k8s/common/args/kube-controller-manager
 
 #### Control 1.1.4
 
-Description: Ensure that the controller manager pod specification file
-ownership is set to root:root (Automated)
+Description: Ensure that the controller manager configuration file ownership
+is set to root:root (Automated)
 
 Audit:
 
@@ -97,8 +97,8 @@ For example, chown root:root /var/snap/k8s/common/args/kube-controller-manager
 
 #### Control 1.1.5
 
-Description: Ensure that the scheduler pod specification file permissions are
-set to 600 or more restrictive (Automated)
+Description: Ensure that the scheduler configuration file permissions are set
+to 600 or more restrictive (Automated)
 
 Audit:
 
@@ -120,8 +120,8 @@ For example, chmod 600 /var/snap/k8s/common/args/kube-scheduler
 
 #### Control 1.1.6
 
-Description: Ensure that the scheduler pod specification file ownership is
-set to root:root (Automated)
+Description: Ensure that the scheduler configuration file ownership is set to
+root:root (Automated)
 
 Audit:
 
@@ -143,8 +143,8 @@ For example, chown root:root /var/snap/k8s/common/args/kube-scheduler
 
 #### Control 1.1.7
 
-Description: Ensure that the etcd pod specification file permissions are set
-to 644 or more restrictive (Automated)
+Description: Ensure that the etcd configuration file permissions are set to
+644 or more restrictive (Automated)
 
 Audit:
 
@@ -167,7 +167,7 @@ chmod 644 /etc/default/etcd
 
 #### Control 1.1.8
 
-Description: Ensure that the etcd pod specification file ownership is set to
+Description: Ensure that the etcd configuration file ownership is set to
 root:root (Automated)
 
 Audit:
@@ -527,7 +527,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the below parameter.
 --anonymous-auth=false
 
@@ -552,7 +552,7 @@ Remediation:
 
 Follow the documentation and configure alternate mechanisms for
 authentication. Then,
-edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and remove the --token-auth-
 file=<filename> parameter.
 
@@ -575,7 +575,7 @@ DenyServiceExternalIPs
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and remove the
 `DenyServiceExternalIPs`
 from enabled admission plugins.
@@ -603,8 +603,7 @@ Remediation:
 
 Follow the Kubernetes documentation and set up the TLS
 connection between the
-apiserver and kubelets. Then, edit API server pod specification
-file
+apiserver and kubelets. Then, edit API server configuration file
 /var/snap/k8s/common/args/kube-apiserver on the control plane node and set the
 kubelet client certificate and key parameters as below.
 --kubelet-client-certificate=<path/to/client-certificate-file>
@@ -631,8 +630,8 @@ Remediation:
 
 Follow the Kubernetes documentation and setup the TLS connection
 between
-the apiserver and kubelets. Then, edit the API server pod
-specification file
+the apiserver and kubelets. Then, edit the API server
+configuration file
 /var/snap/k8s/common/args/kube-apiserver on the control plane node and set the
 --kubelet-certificate-authority parameter to the path to the
 cert file for the certificate authority.
@@ -657,7 +656,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --authorization-mode
 parameter to values other than AlwaysAllow.
 One such example could be as below.
@@ -682,7 +681,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --authorization-mode
 parameter to a value that includes Node.
 --authorization-mode=Node,RBAC
@@ -706,7 +705,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --authorization-mode
 parameter to a value that includes RBAC,
 for example `--authorization-mode=Node,RBAC`.
@@ -733,7 +732,7 @@ Remediation:
 
 Follow the Kubernetes documentation and set the desired limits
 in a configuration file.
-Then, edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 and set the below parameters.
 --enable-admission-plugins=...,EventRateLimit,...
 --admission-control-config-file=<path/to/configuration/file>
@@ -758,7 +757,7 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and either remove the --enable-
 admission-plugins parameter, or set it to a
 value that does not include AlwaysAdmit.
@@ -783,7 +782,7 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --enable-admission-plugins
 parameter to include
 AlwaysPullImages.
@@ -809,7 +808,7 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --enable-admission-plugins
 parameter to include
 SecurityContextDeny, unless PodSecurityPolicy is already in
@@ -837,7 +836,7 @@ Remediation:
 
 Follow the documentation and create ServiceAccount objects as
 per your environment.
-Then, edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and ensure that the --disable-
 admission-plugins parameter is set to a
 value that does not include ServiceAccount.
@@ -861,7 +860,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --disable-admission-
 plugins parameter to
 ensure it does not include NamespaceLifecycle.
@@ -888,7 +887,7 @@ Remediation:
 
 Follow the Kubernetes documentation and configure
 NodeRestriction plug-in on kubelets.
-Then, edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --enable-admission-plugins
 parameter to a
 value that includes NodeRestriction.
@@ -913,7 +912,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and either remove the --secure-port
 parameter or
 set it to a different (non-zero) desired port.
@@ -936,7 +935,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the below parameter.
 --profiling=false
 
@@ -958,7 +957,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --audit-log-path parameter
 to a suitable path and
 file where you would like audit logs to be written, for example,
@@ -983,7 +982,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --audit-log-maxage
 parameter to 30
 or as an appropriate number of days, for example,
@@ -1008,7 +1007,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --audit-log-maxbackup
 parameter to 10 or to an appropriate
 value. For example,
@@ -1033,7 +1032,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --audit-log-maxsize
 parameter to an appropriate size in MB.
 For example, to set it as 100 MB, --audit-log-maxsize=100
@@ -1057,7 +1056,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 and set the below parameter as appropriate and if needed.
 For example, --request-timeout=300s
 
@@ -1080,7 +1079,7 @@ Expected output:
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the below parameter.
 --service-account-lookup=true
 Alternatively, you can delete the --service-account-lookup
@@ -1107,7 +1106,7 @@ file=/etc/kubernetes/pki/serviceaccount.key
 
 Remediation:
 
-Edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --service-account-key-file
 parameter
 to the public key file for service accounts. For example,
@@ -1135,7 +1134,7 @@ Remediation:
 
 Follow the Kubernetes documentation and set up the TLS
 connection between the apiserver and etcd.
-Then, edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the etcd certificate and key
 file parameters.
 --etcd-certfile=<path/to/client-certificate-file>
@@ -1163,7 +1162,7 @@ Remediation:
 
 Follow the Kubernetes documentation and set up the TLS
 connection on the apiserver.
-Then, edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the TLS certificate and
 private key file parameters.
 --tls-cert-file=<path/to/tls-certificate-file>
@@ -1190,7 +1189,7 @@ Remediation:
 
 Follow the Kubernetes documentation and set up the TLS
 connection on the apiserver.
-Then, edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the client certificate
 authority file.
 --client-ca-file=<path/to/client-ca-file>
@@ -1216,7 +1215,7 @@ Remediation:
 
 Follow the Kubernetes documentation and set up the TLS
 connection between the apiserver and etcd.
-Then, edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the etcd certificate authority
 file parameter.
 --etcd-cafile=<path/to/ca-file>
@@ -1242,7 +1241,7 @@ Remediation:
 
 Follow the Kubernetes documentation and configure a
 EncryptionConfig file.
-Then, edit the API server pod specification file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --encryption-provider-
 config parameter to the path of that file.
 For example, --encryption-provider-
@@ -1304,7 +1303,7 @@ _256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384
 
 Remediation:
 
-Edit the API server pod specification file
+Edit the API server configuration file
 /etc/kubernetes/manifests/kube-apiserver.yaml
 on the control plane node and set the below parameter.
 --tls-cipher-suites=TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA38
@@ -1345,7 +1344,7 @@ Expected output:
 
 Remediation:
 
-Edit the Controller Manager pod specification file
+Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and set the --terminated-pod-gc-
 threshold to an appropriate threshold,
@@ -1369,7 +1368,7 @@ Expected output:
 
 Remediation:
 
-Edit the Controller Manager pod specification file
+Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and set the below parameter.
 --profiling=false
@@ -1393,7 +1392,7 @@ Expected output:
 
 Remediation:
 
-Edit the Controller Manager pod specification file
+Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
 on the control plane node to set the below parameter.
 --use-service-account-credentials=true
@@ -1418,7 +1417,7 @@ file=/etc/kubernetes/pki/serviceaccount.key
 
 Remediation:
 
-Edit the Controller Manager pod specification file
+Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and set the --service-account-private-
 key-file parameter
@@ -1444,7 +1443,7 @@ Expected output:
 
 Remediation:
 
-Edit the Controller Manager pod specification file
+Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and set the --root-ca-file parameter
 to the certificate bundle file`.
@@ -1469,7 +1468,7 @@ Expected output:
 
 Remediation:
 
-Edit the Controller Manager pod specification file
+Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and set the --feature-gates parameter
 to include RotateKubeletServerCertificate=true.
@@ -1488,7 +1487,7 @@ Audit:
 
 Remediation:
 
-Edit the Controller Manager pod specification file
+Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and ensure the correct value for the
 --bind-address parameter
@@ -1507,7 +1506,7 @@ Audit:
 
 Remediation:
 
-Edit the Scheduler pod specification file /var/snap/k8s/common/args/kube-scheduler file
+Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler file
 on the control plane node and set the below parameter.
 --profiling=false
 
@@ -1524,7 +1523,7 @@ Audit:
 
 Remediation:
 
-Edit the Scheduler pod specification file /var/snap/k8s/common/args/kube-scheduler
+Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler
 on the control plane node and ensure the correct value for the
 --bind-address parameter
 
