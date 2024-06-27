@@ -23,7 +23,9 @@ Remediation:
 
 Run the below command (based on the file location on your
 system) on the each worker node.
-For example, chmod 600 /etc/systemd/system/snap.k8s.kubelet.service
+
+
+`chmod 600 /etc/systemd/system/snap.k8s.kubelet.service`
 
 #### Control 4.1.2
 
@@ -46,8 +48,9 @@ Remediation:
 
 Run the below command (based on the file location on your
 system) on the each worker node.
-For example,
-chown root:root /etc/systemd/system/snap.k8s.kubelet.service
+
+
+`chown root:root /etc/systemd/system/snap.k8s.kubelet.service`
 
 #### Control 4.1.3
 
@@ -68,10 +71,10 @@ permissions=644
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the each worker node.
-For example,
-chmod 600 /etc/kubernetes/proxy.conf
+Run the below command on the each worker node.
+
+
+`chmod 600 /etc/kubernetes/proxy.conf`
 
 #### Control 4.1.4
 
@@ -92,9 +95,10 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the each worker node.
-For example, chown root:root /etc/kubernetes/proxy.conf
+Run the below command on the each worker node.
+
+
+`chown root:root /etc/kubernetes/proxy.conf`
 
 #### Control 4.1.5
 
@@ -115,10 +119,10 @@ permissions=600
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the each worker node.
-For example,
-chmod 600 /etc/kubernetes/kubelet.conf
+Run the below command on the each worker node.
+
+
+`chmod 600 /etc/kubernetes/kubelet.conf`
 
 #### Control 4.1.6
 
@@ -139,10 +143,10 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the each worker node.
-For example,
-chown root:root /etc/kubernetes/kubelet.conf
+Run the below command on the each worker node.
+
+
+`chown root:root /etc/kubernetes/kubelet.conf`
 
 #### Control 4.1.7
 
@@ -166,7 +170,10 @@ permissions=600
 Remediation:
 
 Run the following command to modify the file permissions of the
---client-ca-file chmod 600 <filename>
+--client-ca-file.
+
+
+`chmod 600 <filename>`
 
 #### Control 4.1.8
 
@@ -191,7 +198,9 @@ Remediation:
 
 Run the following command to modify the ownership of the
 --client-ca-file.
-chown root:root <filename>
+
+
+`chown root:root <filename>`
 
 #### Control 4.1.9
 
@@ -214,7 +223,9 @@ Remediation:
 
 Run the following command (using the config file location
 identified in the Audit step)
-chmod 600 /var/snap/k8s/common/args/kubelet
+
+
+`chmod 600 /var/snap/k8s/common/args/kubelet`
 
 #### Control 4.1.10
 
@@ -237,7 +248,9 @@ Remediation:
 
 Run the following command (using the config file location
 identified in the Audit step)
-chown root:root /var/snap/k8s/common/args/kubelet
+
+
+`chown root:root /var/snap/k8s/common/args/kubelet`
 
 ### Kubelet
 
@@ -262,9 +275,14 @@ Remediation:
 
 Edit the kubelet configuration file
 /var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
+
+
 `--anonymous-auth=false`
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.2
 
@@ -287,9 +305,12 @@ Remediation:
 
 Edit the kubelet configuration file
 /var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
---authorization-mode=Webhook
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+
+`--authorization-mode=Webhook`
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.3
 
@@ -312,9 +333,12 @@ Remediation:
 
 Edit the kubelet configuration file
 /var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
---client-ca-file=<path/to/client-ca-file>
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+
+`--client-ca-file=<path/to/client-ca-file>`
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.4
 
@@ -336,9 +360,12 @@ Remediation:
 
 Edit the kubelet configuration file
 /var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
---read-only-port=0
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+
+`--read-only-port=0`
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.5
 
@@ -361,9 +388,12 @@ Remediation:
 
 Edit the kubelet configuration file
 /var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
---streaming-connection-idle-timeout=5m
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+
+`--streaming-connection-idle-timeout=5m`
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.6
 
@@ -386,9 +416,12 @@ Remediation:
 
 Edit the kubelet configuration file
 /var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
---protect-kernel-defaults=true
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+
+`--protect-kernel-defaults=true`
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.7
 
@@ -412,8 +445,10 @@ Remediation:
 Edit the kubelet configuration file
 /var/snap/k8s/common/args/kubelet on each worker node and
 remove the --make-iptables-util-chains argument.
-Restart the kubelet service. For example:
-snap restart k8s.kubelet
+
+Restart the kubelet service.
+
+For example: `snap restart k8s.kubelet`
 
 #### Control 4.2.8
 
@@ -435,8 +470,10 @@ Remediation:
 
 Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet
 on each worker node and remove the --hostname-override argument.
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.9
 
@@ -460,8 +497,10 @@ Remediation:
 Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
 node and
 set the --event-qps parameter as appropriate.
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.10
 
@@ -486,10 +525,15 @@ Remediation:
 Edit the kubelet service file /var/snap/k8s/common/args/kubelet on each worker node
 and
 set the below arguments:
+
+```
 --tls-cert-file=<path/to/tls-certificate-file>
---tls-private-key-file=<path/to/tls-key-file>
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+--tls-cert-file=<path/to/tls-certificate-file>
+```
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.11
 
@@ -513,8 +557,10 @@ Remediation:
 Edit the kubelet service file /var/snap/k8s/common/args/kubelet on each worker node
 and
 remove the --rotate-certificates=false argument.
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.12
 
@@ -540,8 +586,10 @@ node and
 set the argument --feature-
 gates=RotateKubeletServerCertificate=true
 on each worker node.
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
 #### Control 4.2.13
 
@@ -570,11 +618,16 @@ Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each wo
 node and
 set the --tls-cipher-suites parameter as follows, or to a subset
 of these values.
+
+```
 --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_
 ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_
 POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WIT
 H_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_
 RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
-Restart the kubelet service. For example,
-snap restart k8s.kubelet
+```
+
+Restart the kubelet service.
+
+For example, `snap restart k8s.kubelet`
 
