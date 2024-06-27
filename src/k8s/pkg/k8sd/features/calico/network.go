@@ -72,11 +72,11 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 		},
 		"installation": map[string]any{
 			"calicoNetwork": map[string]any{
-				"ipPools": podIpPools,
+				"ipPools":                    podIpPools,
+				"nodeAddressAutodetectionV4": config.autodetectionV4,
+				"nodeAddressAutodetectionV6": config.autodetectionV6,
 			},
-			"nodeAddressAutodetectionV4": config.autodetectionV4,
-			"nodeAddressAutodetectionV6": config.autodetectionV6,
-			"registry":                   imageRepo,
+			"registry": imageRepo,
 		},
 		"apiServer": map[string]any{
 			"enabled": config.apiServerEnabled,

@@ -73,8 +73,8 @@ func TestInternalConfig(t *testing.T) {
 				apiServerEnabled: false,
 				encapsulationV4:  "VXLAN",
 				encapsulationV6:  "VXLAN",
-				autodetectionV4: map[string]any{
-					"cidrs": []string{"10.1.0.0/16", "2001:0db8::/32"},
+				autodetectionV4: &autodetection{
+					CIDRs: []string{"10.1.0.0/16", "2001:0db8::/32"},
 				},
 				autodetectionV6: nil,
 			},
