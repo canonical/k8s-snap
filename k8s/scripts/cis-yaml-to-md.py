@@ -16,9 +16,14 @@ Parse the YAML files in the input directory and generate
 Markdown files in the output directory. The Markdown files are generated using the
 Jinja2 template file.
 
-It is expected that the input directory contains a config.yaml file. This file
-will not be rendered to Markdown, but it will be used to extract variables that
-will be replaced in the Jinja2 template.
+It is expected that the input directory contains a config.yaml file.
+(See https://raw.githubusercontent.com/canonical/kube-bench/ck8s/cfg/cis-1.24-ck8s/config.yaml)
+
+It is also expected that the input directory contains the control files.
+(See controlplane.md, etcd.yaml, master.yaml, node.yaml and policies.yaml from the same repo.)
+
+The config.yaml file will not be rendered to Markdown, but it will be used to extract variables
+that will be replaced when generating the markdown files.
 """
 
 logging.basicConfig(level=logging.INFO)
