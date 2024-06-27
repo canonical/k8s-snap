@@ -37,6 +37,15 @@ sync:
   - source: quay.io/tigera/operator:v1.34.0
     target: ghcr.io/canonical/k8s-snap/tigera/operator:v1.34.0
     type: image
+  - source: quay.io/metallb/controller:v0.14.5
+    target: ghcr.io/canonical/k8s-snap/metallb/controller:v0.14.5
+    type: image
+  - source: quay.io/metallb/speaker:v0.14.5
+    target: ghcr.io/canonical/k8s-snap/metallb/speaker:v0.14.5
+    type: image
+  - source: quay.io/frrouting/frr:9.0.2
+    target: ghcr.io/canonical/k8s-snap/frrouting/frr:9.0.2
+    type: image
   - source: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.10.1
     target: ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1
     type: image
@@ -49,4 +58,3 @@ sync:
   - source: registry.k8s.io/sig-storage/csi-snapshotter:v8.0.1
     target: ghcr.io/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1
     type: image
-  

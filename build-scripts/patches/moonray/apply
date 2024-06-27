@@ -8,8 +8,6 @@ git config user.name k8s-bot
 
 # Remove unrelated tests
 rm "${DIR}/../../../tests/integration/tests/test_cilium_e2e.py"
-## TODO: restore when loadbalancer is implemented
-rm "${DIR}/../../../tests/integration/tests/test_loadbalancer.py"
 
 sed -i 's/ingressClassName: cilium/ingressClassName: ck-ingress/g' "${DIR}/../../../tests/integration/templates/ingress-test.yaml"
 
