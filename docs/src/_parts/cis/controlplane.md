@@ -7,11 +7,6 @@
 Description: Client certificate authentication should not be used for users
 (Manual)
 
-Expected output:
-
-```
-Not applicable.
-```
 
 Remediation:
 
@@ -46,11 +41,6 @@ Create an audit policy file for your cluster.
 Description: Ensure that the audit policy covers key security concerns
 (Manual)
 
-Expected output:
-
-```
-Not applicable.
-```
 
 Remediation:
 
