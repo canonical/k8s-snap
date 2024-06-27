@@ -41,11 +41,10 @@ cp contour-src/examples/gateway-provisioner/01-roles.yaml ck-gateway-contour/tem
 cp contour-src/examples/gateway-provisioner/02-rolebindings.yaml ck-gateway-contour/templates/
 cp contour-src/examples/gateway-provisioner/03-gateway-provisioner.yaml ck-gateway-contour/templates/
 
-# change image: ghcr.io/projectcontour/contour:v1.28.2 to 
-# image: "{{ .Values.projectcontour.image.registry }}/{{ .Values.projectcontour.image.repository }}:{{ .Values.projectcontour.image.tag }}"
+# change gateway provisioner image to use the values from values.yaml
 sed -i "s|image: ghcr.io/projectcontour/contour:${CONTOUR_VERSION}|image: \"{{ .Values.projectcontour.image.registry }}/{{ .Values.projectcontour.image.repository }}:{{ .Values.projectcontour.image.tag }}\"|" ck-gateway-contour/templates/03-gateway-provisioner.yaml
 
-# Add the args section with the image flags
+# Add image args to the gateway provisioner 
 sed -i '/^        - --enable-leader-election$/a\ \ \ \ \ \ \ \ - --envoy-image={{ .Values.envoyproxy.image.registry }}/{{ .Values.envoyproxy.image.repository }}:{{ .Values.envoyproxy.image.tag }}\n\ \ \ \ \ \ \ \ - --contour-image={{ .Values.projectcontour.image.registry }}/{{ .Values.projectcontour.image.repository }}:{{ .Values.projectcontour.image.tag }}' ck-gateway-contour/templates/03-gateway-provisioner.yaml
 
 # Add values.yaml
