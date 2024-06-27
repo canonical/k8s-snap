@@ -653,7 +653,7 @@ on the control plane node and set the --authorization-mode
 parameter to values other than AlwaysAllow.
 One such example could be as follows.
 
-`--authorization-mode=RBAC`
+`--authorization-mode=Node,RBAC`
 
 #### Control 1.2.7
 

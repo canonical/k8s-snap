@@ -520,8 +520,8 @@ private-key-file=/etc/kubernetes/pki/kubelet.key
 
 Remediation:
 
-Edit the kubelet service file /var/snap/k8s/common/args/kubelet on each worker node
-and
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
+node and
 set the following arguments:
 
 ```
@@ -552,8 +552,8 @@ Expected output:
 
 Remediation:
 
-Edit the kubelet service file /var/snap/k8s/common/args/kubelet on each worker node
-and
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
+node and
 remove the --rotate-certificates=false argument.
 
 Restart the kubelet service.
