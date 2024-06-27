@@ -21,8 +21,7 @@ permissions=644
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the each worker node.
+Run the following command on each worker node.
 
 
 `chmod 600 /etc/systemd/system/snap.k8s.kubelet.service`
@@ -46,8 +45,7 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the each worker node.
+Run the following command on each worker node.
 
 
 `chown root:root /etc/systemd/system/snap.k8s.kubelet.service`
@@ -71,7 +69,7 @@ permissions=644
 
 Remediation:
 
-Run the below command on the each worker node.
+Run the following command on the each worker node.
 
 
 `chmod 600 /etc/kubernetes/proxy.conf`
@@ -95,7 +93,7 @@ root:root
 
 Remediation:
 
-Run the below command on the each worker node.
+Run the following command on the each worker node.
 
 
 `chown root:root /etc/kubernetes/proxy.conf`
@@ -119,7 +117,7 @@ permissions=600
 
 Remediation:
 
-Run the below command on the each worker node.
+Run the following command on the each worker node.
 
 
 `chmod 600 /etc/kubernetes/kubelet.conf`
@@ -143,7 +141,7 @@ root:root
 
 Remediation:
 
-Run the below command on the each worker node.
+Run the following command on the each worker node.
 
 
 `chown root:root /etc/kubernetes/kubelet.conf`
@@ -274,7 +272,7 @@ Expected output:
 Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
 
 
 `--anonymous-auth=false`
@@ -304,7 +302,7 @@ Expected output:
 Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
 
 `--authorization-mode=Webhook`
 
@@ -332,7 +330,7 @@ Expected output:
 Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
 
 `--client-ca-file=<path/to/client-ca-file>`
 
@@ -359,7 +357,7 @@ Expected output:
 Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
 
 `--read-only-port=0`
 
@@ -387,7 +385,7 @@ Expected output:
 Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
 
 `--streaming-connection-idle-timeout=5m`
 
@@ -415,7 +413,7 @@ Expected output:
 Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the below argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
 
 `--protect-kernel-defaults=true`
 
@@ -524,7 +522,7 @@ Remediation:
 
 Edit the kubelet service file /var/snap/k8s/common/args/kubelet on each worker node
 and
-set the below arguments:
+set the following arguments:
 
 ```
 --tls-cert-file=<path/to/tls-certificate-file>

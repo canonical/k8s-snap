@@ -315,7 +315,7 @@ Remediation:
 
 Use `securityContext` to enable the docker/default seccomp
 profile in your pod definitions.
-An example is as below:
+An example is as follows:
   securityContext:
     seccompProfile:
       type: RuntimeDefault

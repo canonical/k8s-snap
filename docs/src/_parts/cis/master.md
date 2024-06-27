@@ -21,10 +21,9 @@ permissions=600
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the
-control plane node.
-For example, chmod 600 /var/snap/k8s/common/args/kube-apiserver
+Run the following command on the control plane node.
+
+`chmod 600 /var/snap/k8s/common/args/kube-apiserver`
 
 #### Control 1.1.2
 
@@ -45,9 +44,9 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example, chown root:root /var/snap/k8s/common/args/kube-apiserver
+Run the following command on the control plane node.
+
+`chown root:root /var/snap/k8s/common/args/kube-apiserver`
 
 #### Control 1.1.3
 
@@ -68,9 +67,9 @@ permissions=600
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example, chmod 600 /var/snap/k8s/common/args/kube-controller-manager
+Run the following command on the control plane node.
+
+`chmod 600 /var/snap/k8s/common/args/kube-controller-manager`
 
 #### Control 1.1.4
 
@@ -91,9 +90,9 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example, chown root:root /var/snap/k8s/common/args/kube-controller-manager
+Run the following command on the control plane node.
+
+`chown root:root /var/snap/k8s/common/args/kube-controller-manager`
 
 #### Control 1.1.5
 
@@ -114,9 +113,9 @@ permissions=600
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example, chmod 600 /var/snap/k8s/common/args/kube-scheduler
+Run the following command on the control plane node.
+
+`chmod 600 /var/snap/k8s/common/args/kube-scheduler`
 
 #### Control 1.1.6
 
@@ -137,9 +136,9 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example, chown root:root /var/snap/k8s/common/args/kube-scheduler
+Run the following command on the control plane node.
+
+`chown root:root /var/snap/k8s/common/args/kube-scheduler`
 
 #### Control 1.1.7
 
@@ -160,10 +159,9 @@ permissions=644
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example,
-chmod 644 /etc/default/etcd
+Run the following command on the control plane node.
+
+`chmod 644 /etc/default/etcd`
 
 #### Control 1.1.8
 
@@ -184,10 +182,9 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example,
-chown root:root /etc/default/etcd
+Run the following command on the control plane node.
+
+`chown root:root /etc/default/etcd`
 
 #### Control 1.1.9
 
@@ -209,9 +206,9 @@ permissions=644
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example, chmod 644 <path/to/cni/files>
+Run the following command on the control plane node.
+
+`chmod 644 <path/to/cni/files>`
 
 #### Control 1.1.10
 
@@ -233,10 +230,9 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example,
-chown root:root <path/to/cni/files>
+Run the following command on the control plane node.
+
+`chown root:root <path/to/cni/files>`
 
 #### Control 1.1.11
 
@@ -261,9 +257,8 @@ Remediation:
 On the etcd server node, get the etcd data directory, passed as
 an argument --data-dir,
 from the command 'ps -ef | grep etcd'.
-Run the below command (based on the etcd data directory found
-above). For example,
-chmod 700 /var/lib/etcd
+
+`chmod 700 /var/lib/etcd`
 
 #### Control 1.1.12
 
@@ -288,9 +283,8 @@ Remediation:
 On the etcd server node, get the etcd data directory, passed as
 an argument --data-dir,
 from the command 'ps -ef | grep etcd'.
-Run the below command (based on the etcd data directory found
-above).
-For example, chown root:root /var/lib/etcd
+
+`chown root:root /var/lib/etcd`
 
 #### Control 1.1.13
 
@@ -311,9 +305,9 @@ permissions=600
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example, chmod 600 /etc/kubernetes/admin.conf
+Run the following command on the control plane node.
+
+`chmod 600 /etc/kubernetes/admin.conf`
 
 #### Control 1.1.14
 
@@ -334,9 +328,9 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example, chown root:root /etc/kubernetes/admin.conf
+Run the following command on the control plane node.
+
+`chown root:root /etc/kubernetes/admin.conf`
 
 #### Control 1.1.15
 
@@ -357,10 +351,9 @@ permissions=600
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example,
-chmod 600 /etc/kubernetes/scheduler.conf
+Run the following command on the control plane node.
+
+`chmod 600 /etc/kubernetes/scheduler.conf`
 
 #### Control 1.1.16
 
@@ -381,10 +374,9 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example,
-chown root:root /etc/kubernetes/scheduler.conf
+Run the following command on the control plane node.
+
+`chown root:root /etc/kubernetes/scheduler.conf`
 
 #### Control 1.1.17
 
@@ -405,10 +397,9 @@ permissions=600
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example,
-chmod 600 /etc/kubernetes/controller.conf
+Run the following command on the control plane node.
+
+`chmod 600 /etc/kubernetes/controller.conf`
 
 #### Control 1.1.18
 
@@ -429,10 +420,9 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example,
-chown root:root /etc/kubernetes/controller.conf
+Run the following command on the control plane node.
+
+`chown root:root /etc/kubernetes/controller.conf`
 
 #### Control 1.1.19
 
@@ -453,10 +443,9 @@ root:root
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example,
-chown -R root:root /etc/kubernetes/pki/
+Run the following command on the control plane node.
+
+`chown -R root:root /etc/kubernetes/pki/`
 
 #### Control 1.1.20
 
@@ -477,10 +466,9 @@ permissions=600
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example,
-chmod -R 600 /etc/kubernetes/pki/*.crt
+Run the following command on the control plane node.
+
+`chmod -R 600 /etc/kubernetes/pki/*.crt`
 
 #### Control 1.1.21
 
@@ -501,10 +489,9 @@ permissions=600
 
 Remediation:
 
-Run the below command (based on the file location on your
-system) on the control plane node.
-For example,
-chmod -R 600 /etc/kubernetes/pki/*.key
+Run the following command on the control plane node.
+
+`chmod -R 600 /etc/kubernetes/pki/*.key`
 
 ### API Server
 
@@ -528,8 +515,9 @@ Expected output:
 Remediation:
 
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the below parameter.
---anonymous-auth=false
+on the control plane node and set the following argument.
+
+`--anonymous-auth=false`
 
 #### Control 1.2.2
 
@@ -554,7 +542,7 @@ Follow the documentation and configure alternate mechanisms for
 authentication. Then,
 edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and remove the --token-auth-
-file=<filename> parameter.
+file=<filename> argument.
 
 #### Control 1.2.3
 
@@ -605,9 +593,12 @@ Follow the Kubernetes documentation and set up the TLS
 connection between the
 apiserver and kubelets. Then, edit API server configuration file
 /var/snap/k8s/common/args/kube-apiserver on the control plane node and set the
-kubelet client certificate and key parameters as below.
+kubelet client certificate and key parameters as follows.
+
+```
 --kubelet-client-certificate=<path/to/client-certificate-file>
 --kubelet-client-key=<path/to/client-key-file>
+```
 
 #### Control 1.2.5
 
@@ -635,7 +626,8 @@ configuration file
 /var/snap/k8s/common/args/kube-apiserver on the control plane node and set the
 --kubelet-certificate-authority parameter to the path to the
 cert file for the certificate authority.
---kubelet-certificate-authority=<ca-string>
+
+`--kubelet-certificate-authority=<ca-string>`
 
 #### Control 1.2.6
 
@@ -659,8 +651,9 @@ Remediation:
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --authorization-mode
 parameter to values other than AlwaysAllow.
-One such example could be as below.
---authorization-mode=RBAC
+One such example could be as follows.
+
+`--authorization-mode=RBAC`
 
 #### Control 1.2.7
 
@@ -684,7 +677,8 @@ Remediation:
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --authorization-mode
 parameter to a value that includes Node.
---authorization-mode=Node,RBAC
+
+`--authorization-mode=Node,RBAC`
 
 #### Control 1.2.8
 
@@ -708,7 +702,8 @@ Remediation:
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --authorization-mode
 parameter to a value that includes RBAC,
-for example `--authorization-mode=Node,RBAC`.
+
+`--authorization-mode=Node,RBAC`
 
 #### Control 1.2.9
 
@@ -733,9 +728,12 @@ Remediation:
 Follow the Kubernetes documentation and set the desired limits
 in a configuration file.
 Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-and set the below parameters.
+and set the following arguments.
+
+```
 --enable-admission-plugins=...,EventRateLimit,...
 --admission-control-config-file=<path/to/configuration/file>
+```
 
 #### Control 1.2.10
 
@@ -786,7 +784,8 @@ Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --enable-admission-plugins
 parameter to include
 AlwaysPullImages.
---enable-admission-plugins=...,AlwaysPullImages,...
+
+`--enable-admission-plugins=...,AlwaysPullImages,...`
 
 #### Control 1.2.12
 
@@ -813,7 +812,8 @@ on the control plane node and set the --enable-admission-plugins
 parameter to include
 SecurityContextDeny, unless PodSecurityPolicy is already in
 place.
---enable-admission-plugins=...,SecurityContextDeny,...
+
+`--enable-admission-plugins=...,SecurityContextDeny,...`
 
 #### Control 1.2.13
 
@@ -891,7 +891,8 @@ Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apis
 on the control plane node and set the --enable-admission-plugins
 parameter to a
 value that includes NodeRestriction.
---enable-admission-plugins=...,NodeRestriction,...
+
+`--enable-admission-plugins=...,NodeRestriction,...`
 
 #### Control 1.2.16
 
@@ -936,8 +937,9 @@ Expected output:
 Remediation:
 
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the below parameter.
---profiling=false
+on the control plane node and set the following argument.
+
+`--profiling=false`
 
 #### Control 1.2.18
 
@@ -960,8 +962,9 @@ Remediation:
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --audit-log-path parameter
 to a suitable path and
-file where you would like audit logs to be written, for example,
---audit-log-path=/var/log/apiserver/audit.log
+file where you would like audit logs to be written.
+
+`--audit-log-path=/var/log/apiserver/audit.log`
 
 #### Control 1.2.19
 
@@ -985,8 +988,9 @@ Remediation:
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --audit-log-maxage
 parameter to 30
-or as an appropriate number of days, for example,
---audit-log-maxage=30
+or as an appropriate number of days.
+
+`--audit-log-maxage=30`
 
 #### Control 1.2.20
 
@@ -1010,8 +1014,9 @@ Remediation:
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --audit-log-maxbackup
 parameter to 10 or to an appropriate
-value. For example,
---audit-log-maxbackup=10
+value.
+
+`--audit-log-maxbackup=10`
 
 #### Control 1.2.21
 
@@ -1035,7 +1040,8 @@ Remediation:
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --audit-log-maxsize
 parameter to an appropriate size in MB.
-For example, to set it as 100 MB, --audit-log-maxsize=100
+
+`--audit-log-maxsize=100`
 
 #### Control 1.2.22
 
@@ -1057,8 +1063,9 @@ Expected output:
 Remediation:
 
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-and set the below parameter as appropriate and if needed.
-For example, --request-timeout=300s
+and set the following argument as appropriate and if needed.
+
+`--request-timeout=300s`
 
 #### Control 1.2.23
 
@@ -1080,10 +1087,12 @@ Expected output:
 Remediation:
 
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the below parameter.
---service-account-lookup=true
+on the control plane node and set the following argument.
+
+`--service-account-lookup=true`
+
 Alternatively, you can delete the --service-account-lookup
-parameter from this file so
+argument from this file so
 that the default takes effect.
 
 #### Control 1.2.24
@@ -1109,8 +1118,9 @@ Remediation:
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --service-account-key-file
 parameter
-to the public key file for service accounts. For example,
---service-account-key-file=<filename>
+to the public key file for service accounts.
+
+`--service-account-key-file=<filename>`
 
 #### Control 1.2.25
 
@@ -1137,8 +1147,11 @@ connection between the apiserver and etcd.
 Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the etcd certificate and key
 file parameters.
+
+```
 --etcd-certfile=<path/to/client-certificate-file>
 --etcd-keyfile=<path/to/client-key-file>
+```
 
 #### Control 1.2.26
 
@@ -1165,8 +1178,11 @@ connection on the apiserver.
 Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the TLS certificate and
 private key file parameters.
+
+```
 --tls-cert-file=<path/to/tls-certificate-file>
 --tls-private-key-file=<path/to/tls-key-file>
+```
 
 #### Control 1.2.27
 
@@ -1192,7 +1208,8 @@ connection on the apiserver.
 Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the client certificate
 authority file.
---client-ca-file=<path/to/client-ca-file>
+
+`--client-ca-file=<path/to/client-ca-file>`
 
 #### Control 1.2.28
 
@@ -1218,7 +1235,8 @@ connection between the apiserver and etcd.
 Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the etcd certificate authority
 file parameter.
---etcd-cafile=<path/to/ca-file>
+
+`--etcd-cafile=<path/to/ca-file>`
 
 #### Control 1.2.29
 
@@ -1244,8 +1262,8 @@ EncryptionConfig file.
 Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --encryption-provider-
 config parameter to the path of that file.
-For example, --encryption-provider-
-config=</path/to/EncryptionConfig/File>
+
+`--encryption-provider-config=</path/to/EncryptionConfig/File>`
 
 #### Control 1.2.30
 
@@ -1305,7 +1323,9 @@ Remediation:
 
 Edit the API server configuration file
 /etc/kubernetes/manifests/kube-apiserver.yaml
-on the control plane node and set the below parameter.
+on the control plane node and set the following argument.
+
+```
 --tls-cipher-suites=TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA38
 4,TLS_CHACHA20_POLY1305_SHA256,
 TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_12
@@ -1322,6 +1342,7 @@ TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_3DES_ED
 E_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,
 TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS
 _RSA_WITH_AES_256_GCM_SHA384
+```
 
 ### Controller Manager
 
@@ -1347,8 +1368,9 @@ Remediation:
 Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and set the --terminated-pod-gc-
-threshold to an appropriate threshold,
-for example, --terminated-pod-gc-threshold=10
+threshold to an appropriate threshold.
+
+`--terminated-pod-gc-threshold=10`
 
 #### Control 1.3.2
 
@@ -1370,8 +1392,9 @@ Remediation:
 
 Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
-on the control plane node and set the below parameter.
---profiling=false
+on the control plane node and set the following argument.
+
+`--profiling=false`
 
 #### Control 1.3.3
 
@@ -1394,8 +1417,9 @@ Remediation:
 
 Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
-on the control plane node to set the below parameter.
---use-service-account-credentials=true
+on the control plane node to set the following argument.
+
+`--use-service-account-credentials=true`
 
 #### Control 1.3.4
 
@@ -1422,7 +1446,8 @@ Edit the Controller Manager configuration file
 on the control plane node and set the --service-account-private-
 key-file parameter
 to the private key file for service accounts.
---service-account-private-key-file=<filename>
+
+`--service-account-private-key-file=<filename>`
 
 #### Control 1.3.5
 
@@ -1446,8 +1471,9 @@ Remediation:
 Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and set the --root-ca-file parameter
-to the certificate bundle file`.
---root-ca-file=<path/to/file>
+to the certificate bundle file.
+
+`--root-ca-file=<path/to/file>`
 
 #### Control 1.3.6
 
@@ -1472,7 +1498,8 @@ Edit the Controller Manager configuration file
 /var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and set the --feature-gates parameter
 to include RotateKubeletServerCertificate=true.
---feature-gates=RotateKubeletServerCertificate=true
+
+`--feature-gates=RotateKubeletServerCertificate=true`
 
 #### Control 1.3.7
 
@@ -1507,8 +1534,9 @@ Audit:
 Remediation:
 
 Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler file
-on the control plane node and set the below parameter.
---profiling=false
+on the control plane node and set the following argument.
+
+`--profiling=false`
 
 #### Control 1.4.2
 

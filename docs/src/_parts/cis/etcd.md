@@ -24,7 +24,7 @@ Remediation:
 Follow the etcd service documentation and configure TLS
 encryption.
 Then, edit the etcd daemon configuration file /etc/default/etcd
-on the master node and set the below variables.
+on the master node and set the following variables.
 ETCD_CERT_FILE=</path/to/ca-file>
 ETCD_KEY_FILE=</path/to/key-file>
 
@@ -48,7 +48,7 @@ ETCD_CLIENT_CERT_AUTH is set to true
 Remediation:
 
 Edit the etcd daemon configuration file /etc/default/etcd on the master
-node and set the below variable.
+node and set the following variable.
 ETCD_CLIENT_CERT_AUTH=true
 
 #### Control 2.3
@@ -98,7 +98,7 @@ Follow the etcd service documentation and configure peer TLS
 encryption as appropriate
 for your etcd cluster.
 Then, edit the etcd daemon configuration file /etc/default/etcd on the
-master node and set the below variables.
+master node and set the following variables.
 ETCD_PEER_CERT_FILE=</path/to/peer-cert-file>
 ETCD_PEER_KEY_FILE=</path/to/peer-key-file>
 
@@ -122,7 +122,7 @@ ETCD_PEER_CLIENT_CERT_AUTH is set to true
 Remediation:
 
 Edit the etcd daemon configuration file /etc/default/etcd on the master
-node and set the below parameter.
+node and set the following argument.
 ETCD_PEER_CLIENT_CERT_AUTH=true
 
 #### Control 2.6
@@ -172,6 +172,6 @@ Follow the etcd documentation and create a dedicated certificate
 authority setup for the
 etcd service.
 Then, edit the etcd daemon configuration file /etc/default/etcd on the
-master node and set the below parameter.
+master node and set the following argument.
 ETCD_TRUSTED_CA_FILE=</path/to/ca-file>
 
