@@ -44,8 +44,8 @@ Below we discuss the requirements that the deployment needs to fulfill.
 #### Network Requirement: Cluster node communication
 <!-- TODO: Add Services and Ports Doc -->
 Ensure that all cluster nodes are reachable from each other.
-<!-- Refer to [Services and ports][svc-ports] used for a list of all network ports
-used by Canonical Kubernetes.  -->
+<!-- Refer to [Services and ports][svc-ports] used for a list of all network
+ports used by Canonical Kubernetes.  -->
 
 
 #### (Optional) Network Requirement: Ensure proxy access
