@@ -7,6 +7,18 @@ sync:
   - source: registry.k8s.io/pause:3.10
     target: ghcr.io/canonical/k8s-snap/pause:3.10
     type: image
+  - source: docker.io/bitnami/contour:1.28.2-debian-12-r4
+    target: ghcr.io/canonical/k8s-snap/bitnami/contour:1.28.2-debian-12-r4
+    type: image
+  - source: docker.io/bitnami/envoy:1.28.2-debian-12-r0
+    target: ghcr.io/canonical/k8s-snap/bitnami/envoy:1.28.2-debian-12-r0
+    type: image
+  - source: ghcr.io/projectcontour/contour:v1.28.2
+    target: ghcr.io/canonical/k8s-snap/projectcontour/contour:v1.28.2
+    type: image
+  - source: docker.io/envoyproxy/envoy:v1.28.2
+    target: ghcr.io/canonical/k8s-snap/envoyproxy/envoy:v1.28.2
+    type: image
   - source: docker.io/calico/apiserver:v3.28.0
     target: ghcr.io/canonical/k8s-snap/calico/apiserver:v3.28.0
     type: image
@@ -49,4 +61,3 @@ sync:
   - source: registry.k8s.io/sig-storage/csi-snapshotter:v8.0.1
     target: ghcr.io/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1
     type: image
-  
