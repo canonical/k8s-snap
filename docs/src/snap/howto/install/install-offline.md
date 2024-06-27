@@ -32,23 +32,24 @@ For more information on channels visit the
 ```
 
 ```{note}
-With updates to the snap the base core is subject to change.
+With updates to the snap the base core is subject to change in the future.
 ```
 
 ### Prep 2: Network Requirements
 
 Air-gap deployments are typically associated with a number of constraints and
-restrictions with the networking connectivity of the machines.
+restrictions when it comes to
+the networking connectivity of the machines.
 Below we discuss the requirements that the deployment needs to fulfill.
 
-#### Network Requirement: Cluster node communication
+#### Cluster node communication
 <!-- TODO: Add Services and Ports Doc -->
 Ensure that all cluster nodes are reachable from each other.
 <!-- Refer to [Services and ports][svc-ports] used for a list of all network
 ports used by Canonical Kubernetes.  -->
 
 
-#### (Optional) Network Requirement: Ensure proxy access
+#### Ensure proxy access
 
 This section is only relevant if access to upstream image registries
 (e.g. docker.io, quay.io, rocks.canonical.com, etc)
@@ -66,7 +67,7 @@ curl -v https://registry-1.docker.io/v2
 Please refer to the next section `images` on how to use the HTTP proxy
 to allow limited access to image registries.
 
-## Prep 3: Images
+### Prep 3: Images
 
 All workloads in a Kubernetes cluster are running as an OCI image.
 Kubernetes needs to be able to fetch these images and load them
@@ -86,9 +87,9 @@ you can list the images in use by running:
 sudo k8s list-images
 ```
 
-Additionally, remember to keep track of the images used by your workloads.
+Please remember to keep track of the images used by your workloads as well.
 
-### Images Option A: via an HTTP proxy
+#### Images Option A: via an HTTP proxy
 
 In many cases, the nodes of the airgap deployment may not have direct access to
 upstream registries, but can reach them through the
@@ -96,7 +97,7 @@ upstream registries, but can reach them through the
 
 The configuration of the proxy is out of the scope of this documentation.
 
-### Images Option B: private registry mirror
+#### Images Option B: private registry mirror
 
 In case regulations and/or network constraints do not allow the cluster nodes
 to access any upstream image registry,
@@ -108,7 +109,7 @@ is reachable from all cluster nodes.
 
 This requires three steps:
 
-1. Deploy and secure the registry service. This is out of scope for this
+1. Deploy and secure the registry service. This is out of the scope for this
    document, please follow the instructions for the registry
    that you want to deploy.
 2. Using [regsync][regsync], load all images from the upstream source and
@@ -121,7 +122,7 @@ This requires three steps:
 In order to load images into the private registry, you need a machine with
 access to both the upstream registry (e.g. `docker.io`) and the internal one. 
 
-#### Load images with regsync
+##### Load images with regsync
 
 We recommend using [regsync][regsync] to copy images
 from the upstream registry to your private registry.
@@ -143,7 +144,7 @@ script:
 USERNAME="$username" PASSWORD="$password" ./sync-images.sh
 ```
 
-### Images Option C: Side-load images
+#### Images Option C: Side-load images
 
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so that they do not have to be fetched at runtime.
@@ -165,7 +166,7 @@ air gapped cluster, it is time to get it deployed.
 ### Step 1: Install Canonical Kubernetes
 
 Copy the `k8s.snap`, `k8s.assert`, `core20.snap` and `core20.assert` files into
-the target node, then install with:
+the target node, then install the k8s snap by running:
 
 ```bash
 sudo snap ack core20.assert && sudo snap install ./core20.snap
@@ -176,25 +177,29 @@ Repeat the above for all nodes of the cluster.
 
 ### Step 2: Form Canonical Kubernetes cluster
 
-Now, bootstrap the cluster and replace MY-NODE-IP with the IP of the node
+Now, bootstrap the cluster and replace `MY-NODE-IP` with the IP of the node
 by running the command:
 
 ```bash
 sudo k8s bootstrap --address MY-NODE-IP
 ```
 
-```{note}  Please skip the following section for one node deployments. ```
+```{note}
+Please skip the following section for one node deployments.
+```
 
 You can add and remove nodes as described in the
 [add-and-remove-nodes tutorial][nodes].
 
 After a while, confirm that all the cluster nodes show up in
-the output of the `sudo k8s kubectl get node`. 
+the output of the `sudo k8s kubectl get node` command. 
 
 The nodes will most likely be in `NotReady` state,
 since we still need to ensure the container runtime can fetch images.
 
 ### Step 3: Container Runtime
+
+The container runtime needs to be configured to be ble to fetch images.
 
 #### Container Runtime Option A: Configure HTTP proxy for registries
 
@@ -209,7 +214,8 @@ This requires that you have already setup a registry mirror,
 as explained in the preparation section on the private registry mirror.
 For each upstream registry that you want to mirror, create a hosts.toml file.
 
-This example configuring http://10.100.100.100:5000 as a mirror for docker.io.
+This example configured `http://10.100.100.100:5000` as a mirror for
+`docker.io`.
 We edit 
 `/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/hosts.toml`
 and make sure it looks like this:
@@ -230,7 +236,7 @@ HTTPS requires that you additionally specify the registry CA certificate.
 Copy the certificate to
 `/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt`,
 
-Then we add our config in
+Then add your config in
 `/var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml`:
 
 ```
@@ -241,7 +247,8 @@ ca = "/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt"
 
 #### Container Runtime Option C: Side-load images
 
-Copy the images.tar file(s) to /var/snap/k8s/common/images on each cluster node.
+Copy the `images.tar` file(s) to `/var/snap/k8s/common/images`
+on each cluster node.
 
 <!-- LINKS -->
 

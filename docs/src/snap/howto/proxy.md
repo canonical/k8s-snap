@@ -46,4 +46,4 @@ see the [documentation for adding proxy configuration via Juju].
 <!-- LINKS -->
 
 [documentation for adding proxy configuration via Juju]: /charm/howto/proxy
-[squid]: https://ubuntu.com/server/docs/how-to-install-a-squid-servers
+[squid]: https://ubuntu.com/server/docs/how-to-install-a-squid-server
