@@ -7,7 +7,6 @@
 Description: Client certificate authentication should not be used for users
 (Manual)
 
-
 Remediation:
 
 Alternative mechanisms provided by Kubernetes such as the use of
@@ -40,7 +39,6 @@ Create an audit policy file for your cluster.
 
 Description: Ensure that the audit policy covers key security concerns
 (Manual)
-
 
 Remediation:
 

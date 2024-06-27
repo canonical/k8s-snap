@@ -10,29 +10,29 @@
 
 {% if check.text %}
 Description: {{ check.text | trim | wordwrap(64) }}
+
 {% endif %}
 {% if check.audit %}
-
 Audit:
 
 ```
 {{ check.audit | trim }}
 ```
-{% endif %}
 
+{% endif %}
 {% if custom_outputs_by_control_id[check.id] %}
 Expected output:
 
 ```
 {{ custom_outputs_by_control_id[check.id] | trim | wordwrap(64) }}
 ```
-{% endif %}
 
+{% endif %}
 {% if check.remediation %}
 Remediation:
 
 {{ check.remediation | trim | wordwrap(64)}}
-{% endif %}
 
+{% endif %}
 {% endfor %}
 {% endfor %}

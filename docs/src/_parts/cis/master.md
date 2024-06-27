@@ -1486,7 +1486,6 @@ Audit:
 /bin/ps -ef | grep kube-controller-manager | grep -v grep
 ```
 
-
 Remediation:
 
 Edit the Controller Manager pod specification file
@@ -1506,7 +1505,6 @@ Audit:
 /bin/ps -ef | grep kube-scheduler | grep -v grep
 ```
 
-
 Remediation:
 
 Edit the Scheduler pod specification file /var/snap/k8s/common/args/kube-scheduler file
@@ -1523,7 +1521,6 @@ Audit:
 ```
 /bin/ps -ef | grep kube-scheduler | grep -v grep
 ```
-
 
 Remediation:
 

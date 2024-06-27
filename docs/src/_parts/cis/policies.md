@@ -7,7 +7,6 @@
 Description: Ensure that the cluster-admin role is only used where required
 (Manual)
 
-
 Remediation:
 
 Identify all clusterrolebindings to the cluster-admin role.
@@ -23,7 +22,6 @@ kubectl delete clusterrolebinding [name]
 
 Description: Minimize access to secrets (Manual)
 
-
 Remediation:
 
 Where possible, remove get, list and watch access to Secret
@@ -32,7 +30,6 @@ objects in the cluster.
 #### Control 5.1.3
 
 Description: Minimize wildcard use in Roles and ClusterRoles (Manual)
-
 
 Remediation:
 
@@ -44,7 +41,6 @@ objects or actions.
 
 Description: Minimize access to create pods (Manual)
 
-
 Remediation:
 
 Where possible, remove create access to pod objects in the
@@ -54,7 +50,6 @@ cluster.
 
 Description: Ensure that default service accounts are not actively used.
 (Manual)
-
 
 Remediation:
 
@@ -70,7 +65,6 @@ automountServiceAccountToken: false
 Description: Ensure that Service Account Tokens are only mounted where
 necessary (Manual)
 
-
 Remediation:
 
 Modify the definition of pods and service accounts which do not
@@ -81,7 +75,6 @@ account tokens to disable it.
 
 Description: Avoid use of system:masters group (Manual)
 
-
 Remediation:
 
 Remove the system:masters group from all users in the cluster.
@@ -90,7 +83,6 @@ Remove the system:masters group from all users in the cluster.
 
 Description: Limit use of the Bind, Impersonate and Escalate permissions in
 the Kubernetes cluster (Manual)
-
 
 Remediation:
 
@@ -104,7 +96,6 @@ from subjects.
 Description: Ensure that the cluster has at least one active policy control
 mechanism in place (Manual)
 
-
 Remediation:
 
 Ensure that either Pod Security Admission or an external policy
@@ -114,7 +105,6 @@ for every namespace which contains user workloads.
 #### Control 5.2.2
 
 Description: Minimize the admission of privileged containers (Manual)
-
 
 Remediation:
 
@@ -127,7 +117,6 @@ admission of privileged containers.
 Description: Minimize the admission of containers wishing to share the host
 process ID namespace (Automated)
 
-
 Remediation:
 
 Add policies to each namespace in the cluster which has user
@@ -138,7 +127,6 @@ admission of `hostPID` containers.
 
 Description: Minimize the admission of containers wishing to share the host
 IPC namespace (Automated)
-
 
 Remediation:
 
@@ -151,7 +139,6 @@ admission of `hostIPC` containers.
 Description: Minimize the admission of containers wishing to share the host
 network namespace (Automated)
 
-
 Remediation:
 
 Add policies to each namespace in the cluster which has user
@@ -162,7 +149,6 @@ admission of `hostNetwork` containers.
 
 Description: Minimize the admission of containers with
 allowPrivilegeEscalation (Automated)
-
 
 Remediation:
 
@@ -175,7 +161,6 @@ set to `true`.
 
 Description: Minimize the admission of root containers (Automated)
 
-
 Remediation:
 
 Create a policy for each namespace in the cluster, ensuring that
@@ -186,7 +171,6 @@ or `MustRunAs` with the range of UIDs not including 0, is set.
 
 Description: Minimize the admission of containers with the NET_RAW capability
 (Automated)
-
 
 Remediation:
 
@@ -199,7 +183,6 @@ admission of containers with the `NET_RAW` capability.
 Description: Minimize the admission of containers with added capabilities
 (Automated)
 
-
 Remediation:
 
 Ensure that `allowedCapabilities` is not present in policies for
@@ -210,7 +193,6 @@ it is set to an empty array.
 
 Description: Minimize the admission of containers with capabilities assigned
 (Manual)
-
 
 Remediation:
 
@@ -226,7 +208,6 @@ drop all capabilities.
 Description: Minimize the admission of Windows HostProcess containers
 (Manual)
 
-
 Remediation:
 
 Add policies to each namespace in the cluster which has user
@@ -238,7 +219,6 @@ admission of containers that have
 
 Description: Minimize the admission of HostPath volumes (Manual)
 
-
 Remediation:
 
 Add policies to each namespace in the cluster which has user
@@ -249,7 +229,6 @@ admission of containers with `hostPath` volumes.
 
 Description: Minimize the admission of containers which use HostPorts
 (Manual)
-
 
 Remediation:
 
@@ -263,7 +242,6 @@ admission of containers which use `hostPort` sections.
 
 Description: Ensure that the CNI in use supports NetworkPolicies (Manual)
 
-
 Remediation:
 
 If the CNI plugin in use does not support network policies,
@@ -275,7 +253,6 @@ in the Kubernetes cluster.
 #### Control 5.3.2
 
 Description: Ensure that all Namespaces have NetworkPolicies defined (Manual)
-
 
 Remediation:
 
@@ -289,7 +266,6 @@ need them.
 Description: Prefer using Secrets as files over Secrets as environment
 variables (Manual)
 
-
 Remediation:
 
 If possible, rewrite application code to read Secrets from
@@ -299,7 +275,6 @@ from environment variables.
 #### Control 5.4.2
 
 Description: Consider external secret storage (Manual)
-
 
 Remediation:
 
@@ -314,7 +289,6 @@ secrets management solution.
 Description: Configure Image Provenance using ImagePolicyWebhook admission
 controller (Manual)
 
-
 Remediation:
 
 Follow the Kubernetes documentation and setup image provenance.
@@ -326,7 +300,6 @@ Follow the Kubernetes documentation and setup image provenance.
 Description: Create administrative boundaries between resources using
 namespaces (Manual)
 
-
 Remediation:
 
 Follow the documentation and create namespaces for objects in
@@ -337,7 +310,6 @@ them.
 
 Description: Ensure that the seccomp profile is set to docker/default in your
 Pod definitions (Manual)
-
 
 Remediation:
 
@@ -352,7 +324,6 @@ An example is as below:
 
 Description: Apply SecurityContext to your Pods and Containers (Manual)
 
-
 Remediation:
 
 Follow the Kubernetes documentation and apply SecurityContexts
@@ -364,7 +335,6 @@ Containers.
 #### Control 5.7.4
 
 Description: The default namespace should not be used (Manual)
-
 
 Remediation:
 
