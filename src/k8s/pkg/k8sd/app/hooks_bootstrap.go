@@ -382,7 +382,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	if err := setup.KubeScheduler(snap, bootstrapConfig.ExtraNodeKubeSchedulerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
-	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), bootstrapConfig.ExtraNodeKubeAPIServerArgs); err != nil {
+	if err := setup.KubeAPIServer(snap, nodeIP, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), bootstrapConfig.ExtraNodeKubeAPIServerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 
