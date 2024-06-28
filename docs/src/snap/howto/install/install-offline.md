@@ -146,8 +146,8 @@ sync:
     type: image
 ```
 
-After you have updated the yaml file, you can run the [sync-images][sync-images]
-script:
+After you have updated the yaml file, use [regctl][regctl] to sync the images.
+Run the [sync-images][sync-images] script:
 
 ```bash
 ./src/k8s/tools/regctl.sh USERNAME="$username" PASSWORD="$password" \
@@ -198,7 +198,7 @@ The container runtime needs to be configured to be able to fetch images.
 #### Container Runtime Option A: Configure HTTP proxy for registries
 
 Edit `/etc/systemd/system/snap.k8s.containerd.conf.d/env.conf`
-and set the appropriate http_proxy, https_proxy and
+on each node and set the appropriate http_proxy, https_proxy and
 no_proxy variables as described in the
 [adding proxy configuration section][proxy].
 
@@ -206,13 +206,11 @@ no_proxy variables as described in the
 
 This requires that you have already setup a registry mirror,
 as explained in the preparation section on the private registry mirror.
+Complete the following instructions on all nodes.
 For each upstream registry that you want to mirror, create a `hosts.toml` file.
 
 This example configured `http://10.100.100.100:5000` as a mirror for
 `docker.io`.
-Edit
-`/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/hosts.toml`
-and make sure it looks like this:
 
 ##### HTTP registry
 
