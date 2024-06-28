@@ -1,7 +1,7 @@
 # Installing Canonical Kubernetes in air-gapped environments
 
-There are situations where it is necessary or desirable to run Canonical 
-Kubernetes on a machine that is not connected to the internet. 
+There are situations where it is necessary or desirable to run Canonical
+Kubernetes on a machine that is not connected to the internet.
 Based on different degrees of separation from the network,
 different solutions are offered to accomplish this goal.
 This guide documents any necessary extra preparation for air-gap deployments,
@@ -27,7 +27,7 @@ sudo snap download core20 --basename core20
 Besides the snaps, this will also download the corresponding assert files which
 are necessary to verify the integrity of the packages.
 
-```{note} 
+```{note}
 Update the version of k8s by adjusting the channel parameter.
 For more information on channels visit the
 [channels explanation](/snap/explanation/channels.md).
@@ -44,11 +44,13 @@ restrictions when it comes to the networking connectivity of the machines.
 Below we discuss the requirements that the deployment needs to fulfill.
 
 #### Cluster node communication
+
 <!-- TODO: Add Services and Ports Doc -->
+
 Ensure that all cluster nodes are reachable from each other.
+
 <!-- Refer to [Services and ports][svc-ports] used for a list of all network
 ports used by Canonical Kubernetes.  -->
-
 
 #### Ensure proxy access
 
@@ -114,11 +116,10 @@ This requires three steps:
    Please follow the instructions for the desired registry deployment.
 2. Using [regsync][regsync], load all images from the upstream source and
    push to your registry mirror.
-3. Configure the Canonical Kubernetes container runtime (`containerd`) to load 
+3. Configure the Canonical Kubernetes container runtime (`containerd`) to load
    images from
    the private registry mirror instead of the upstream source. This will be
-   described in the 
-   [Configure registry mirrors](
+   described in the [Configure registry mirrors](
       #Container-Runtime-Option-B:-Configure-registry-mirrors) section.
 
 In order to load images into the private registry, you need a machine with
@@ -177,21 +178,8 @@ Upon choosing this option, you place all images under
 Now that you have fulfilled all steps in preparation for your
 air-gapped cluster, it is time to deploy it.
 
-### Step 1: Container Runtime (Image Option C): 
 
-The container runtime needs to be configured to be able to fetch images.
-
-#### Container Runtime Option C: Side-load images
-
-This is only required if you chose to
-[side-load images](#images-option-c-side-load-images). 
-Make sure that the directory `/var/snap/k8s/common/images` directory exists, 
-then copy all `$image.tar` to that directory, such that containerd automatically
-picks them up and imports them when it starts.
-Copy the `images.tar` file(s) to `/var/snap/k8s/common/images`
-on each cluster node.
-
-### Step 2: Install Canonical Kubernetes
+### Step 1: Install Canonical Kubernetes
 
 Copy the `k8s.snap`, `k8s.assert`, `core20.snap` and `core20.assert` files into
 the target node, then install the k8s snap by running:
@@ -203,7 +191,10 @@ sudo snap ack k8s.assert && sudo snap install ./k8s.snap --classic
 
 Repeat the above for all nodes of the cluster.
 
-### Step 3: Container Runtime (Image Option A & B)
+### Step 2: Container Runtime
+
+The container runtime needs to be configured to be able to fetch images.
+
 
 #### Container Runtime Option A: Configure HTTP proxy for registries
 
@@ -220,7 +211,7 @@ For each upstream registry that you want to mirror, create a `hosts.toml` file.
 
 This example configured `http://10.100.100.100:5000` as a mirror for
 `docker.io`.
-We edit 
+Edit
 `/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/hosts.toml`
 and make sure it looks like this:
 
@@ -249,7 +240,17 @@ capabilities = ["pull", "resolve"]
 ca = "/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt"
 ```
 
-### Step 4: Bootstrap cluster
+#### Container Runtime Option C: Side-load images
+
+This is only required if you chose to
+[side-load images](#images-option-c-side-load-images). 
+Make sure that the directory `/var/snap/k8s/common/images` directory exists, 
+then copy all `$image.tar` to that directory, such that containerd automatically
+picks them up and imports them when it starts.
+Copy the `images.tar` file(s) to `/var/snap/k8s/common/images`
+on each cluster node.
+
+### Step 3: Bootstrap cluster
 
 Now, bootstrap the cluster and replace `MY-NODE-IP` with the IP of the node
 by running the command:
@@ -262,7 +263,7 @@ You can add and remove nodes as described in the
 [add-and-remove-nodes tutorial][nodes].
 
 After a while, confirm that all the cluster nodes show up in
-the output of the `sudo k8s kubectl get node` command. 
+the output of the `sudo k8s kubectl get node` command.
 
 <!-- LINKS -->
 
