@@ -36,9 +36,9 @@ var (
 	// calicoCtlTag represents the tag to use for the calicoctl image.
 	calicoCtlTag = "v3.28.0"
 
-	// encapsulation represents the default encapsulation method to use for Calico.
-	encapsulation = "VXLAN"
+	// defaultEncapsulation represents the default defaultEncapsulation method to use for Calico.
+	defaultEncapsulation = "VXLAN"
 
-	// apiServerEnabled determines if the Calico API server should be enabled.
-	apiServerEnabled = false
+	// defaultApiServerEnabled determines if the Calico API server should be enabled.
+	defaultApiServerEnabled = false
 )
