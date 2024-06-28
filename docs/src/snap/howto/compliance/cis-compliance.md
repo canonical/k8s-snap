@@ -175,14 +175,34 @@ sudo snap install k8s --classic --channel=1.30/edge
 ```
 
 Create a file called *configuration.yaml*. In this configuration file we let
-the snap start with its default CNI (calico), with CoreDNS deployed and we also
-point k8s to the external etcd. 
+the snap start with its default CNI and DNS deployed and we also
+point k8s to the external etcd:
 
+<!-- TO DO:
+ Is this config relevant for generic k8s? (e.g. cpu) -->
 
-cluster-config:  network:    enabled: true  dns:    enabled: true
-  local-storage:    enabled: trueextra-node-kubelet-args:  --reserved-cpus: "0-31"  --cpu-manager-policy: "static"  --topology-manager-policy: "best-effort"`datastore-type:`` ``external`
-datastore-servers:`  ``-`` ``https://127.0.0.1:2379`
-datastore-ca-crt: |  <contents of ca-cert.pem>datastore-client-crt: |  <contents of client-cert.pem>datastore-client-key: |  <contents of client-key.pem>
+```
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+  local-storage:
+    enabled: true
+extra-node-kubelet-args:
+  --reserved-cpus: "0-31"
+  --cpu-manager-policy: "static"
+  --topology-manager-policy: "best-effort"
+datastore-type: external
+datastore-servers:
+  - https://127.0.0.1:2379
+datastore-ca-crt: |
+  ### insert the contents of ca-cert.pem
+datastore-client-crt: |
+  ### insert the contents of client-cert.pem
+datastore-client-key: |
+  ### insert the contents of client-key.pem
+
 ```
 
 Bootstrap Canonical Kubernetes using the above configuration file.
@@ -204,12 +224,12 @@ sudo k8s kubectl get all -A
 1. Install the k8s snap on the second node
 
 ```
-worker$ sudo snap install k8s --classic --channel=1.30-moonray/beta
+sudo snap install k8s --classic --channel=1.30/edge
 ```
 
 2. On the control plane node generate a join token to be used for joining the second node
 
-2. ```
+ ```
 controlplane$ sudo k8s get-join-token --worker
 ```
 
@@ -224,7 +244,7 @@ extra-node-kubelet-args:
 
 4. On the worker node use the token to join the cluster
 
-4. ```
+```
 sudo k8s join-cluster --file configuration.yaml <token-generated-on-the-control-plane-node>
 ```
 
@@ -244,7 +264,13 @@ sudo k8s kubectl get no
 1. Create an *audit-policy.yaml *file under /var/snap/k8s/common/etc/ and specify the level of auditing you desire based on the [upstream instructions](https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/). Here is a minimal example of such a policy file.
 
 ```
-sudo sh -c 'cat >/var/snap/k8s/common/etc/audit-policy.yaml <<EOLLog all requests at the Metadata level.apiVersion: audit.k8s.io/v1kind: Policyrules:  - level: MetadataEOL'
+sudo sh -c 'cat >/var/snap/k8s/common/etc/audit-policy.yaml <<EOL
+# Log all requests at the Metadata level.
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+  - level: Metadata
+EOL'
 ```
 
 2. Enable auditing at the API server by adding the following arguments.
@@ -354,6 +380,8 @@ Run kube-bench against Canonical Kubernetes. Make sure you do not have any files
 sudo -E ./kube-bench --version cis-1.24-ck8s --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
 ```
 
+
+<!--
 ##### References
 
 etcd project: [https://github.com/etcd-io/etcd](https://github.com/etcd-io/etcd/releases/download/v3.5.14/etcd-v3.5.14-linux-amd64.tar.gz)
@@ -371,4 +399,4 @@ Multus: [https://github.com/k8snetworkplumbingwg/multus-cni/blob/master/docs/qui
 Sriov network device plugin: [https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin/tree/master?tab=readme-ov-file#quick-start](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin/tree/master?tab=readme-ov-file#quick-start)
 
 Sriov cni: [https://github.com/k8snetworkplumbingwg/sriov-cni?tab=readme-ov-file#kubernetes-quick-start](https://github.com/k8snetworkplumbingwg/sriov-cni?tab=readme-ov-file#kubernetes-quick-start)
-
+-->
