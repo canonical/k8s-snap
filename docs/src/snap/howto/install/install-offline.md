@@ -1,11 +1,12 @@
-# Installing Canonical Kubernetes Offline or in an air gapped environment
+# Installing Canonical Kubernetes in airgapped environments
 
 There are situations where it is necessary or desirable to run Canonical 
 Kubernetes on a machine that is not connected to the internet. 
 Based on different degrees of separation from the network,
 different solutions are offered to accomplish this goal.
-This guide explains the necessary preparation required for the
-offline installation and walks you through the different potential scenarios.
+This guide documents any necessary extra preparation for airgap deployments,
+as well the steps that are needed to successfully deploy Canonical Kubernetes
+in such environments.
 
 ## Prepare for Deployment
 
@@ -38,8 +39,7 @@ With updates to the snap the base core is subject to change in the future.
 ### Prep 2: Network Requirements
 
 Air-gap deployments are typically associated with a number of constraints and
-restrictions when it comes to
-the networking connectivity of the machines.
+restrictions when it comes to the networking connectivity of the machines.
 Below we discuss the requirements that the deployment needs to fulfill.
 
 #### Cluster node communication
@@ -87,6 +87,9 @@ you can list the images in use by running:
 sudo k8s list-images
 ```
 
+A list of images can also be found in the downloaded k8s snap for the
+`images.txt` file.
+
 Please remember to keep track of the images used by your workloads as well.
 
 #### Images Option A: via an HTTP proxy
@@ -117,10 +120,13 @@ This requires three steps:
 3. Configure the Canonical Kubernetes container runtime (`containerd`) to load 
    images from
    the private registry mirror instead of the upstream source. This will be
-   described in the installation section.
+   described in the 
+   [Configure registry mirrors](
+      #Container-Runtime-Option-B:-Configure-registry-mirrors) section.
 
 In order to load images into the private registry, you need a machine with
-access to both the upstream registry (e.g. `docker.io`) and the internal one. 
+access to both any upstream registries (e.g. `docker.io`)
+and the private mirror.
 
 ##### Load images with regsync
 
@@ -128,20 +134,27 @@ We recommend using [regsync][regsync] to copy images
 from the upstream registry to your private registry.
 
 For the images used in the k8s-snap we currently sync upstream images
-to `ghcr.io/canonical`.
+to the `ghcr.io` repo.
 
 Since you will need to do something similar you
 will find it helpful to look at the [upstream-images.yaml][upstream-imgs] file
 as well as the [sync-images][sync-images] script.
 
 In [upstream-images.yaml][upstream-imgs] you will have to
-change the sync target from `ghcr.io/canonical` to your private registry mirror.
+change the sync target to your private registry mirror.
+
+```yaml
+sync:
+  - source: ghcr.io/canonical/k8s-snap/pause:3.10
+    target: '{{ env "MIRROR" }}/canonical/k8s-snap/pause:3.10'
+    type: image
+```
 
 After you have updated the yaml file, you can run the [sync-images][sync-images]
 script:
 
 ```bash
-USERNAME="$username" PASSWORD="$password" ./sync-images.sh
+./src/k8s/tools/regctl.sh USERNAME="$username" PASSWORD="$password" MIRROR="$mirror"
 ```
 
 #### Images Option C: Side-load images
@@ -174,28 +187,6 @@ sudo snap ack k8s.assert && sudo snap install ./k8s.snap --classic
 ```
 
 Repeat the above for all nodes of the cluster.
-
-### Step 2: Form Canonical Kubernetes cluster
-
-Now, bootstrap the cluster and replace `MY-NODE-IP` with the IP of the node
-by running the command:
-
-```bash
-sudo k8s bootstrap --address MY-NODE-IP
-```
-
-```{note}
-Please skip the following section for one node deployments.
-```
-
-You can add and remove nodes as described in the
-[add-and-remove-nodes tutorial][nodes].
-
-After a while, confirm that all the cluster nodes show up in
-the output of the `sudo k8s kubectl get node` command. 
-
-The nodes will most likely be in `NotReady` state,
-since we still need to ensure the container runtime can fetch images.
 
 ### Step 3: Container Runtime
 
@@ -249,6 +240,25 @@ ca = "/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt"
 
 Copy the `images.tar` file(s) to `/var/snap/k8s/common/images`
 on each cluster node.
+
+### Step 2: Bootstrap cluster
+
+Now, bootstrap the cluster and replace `MY-NODE-IP` with the IP of the node
+by running the command:
+
+```bash
+sudo k8s bootstrap --address MY-NODE-IP
+```
+
+```{note}
+Please skip the following section for one node deployments.
+```
+
+You can add and remove nodes as described in the
+[add-and-remove-nodes tutorial][nodes].
+
+After a while, confirm that all the cluster nodes show up in
+the output of the `sudo k8s kubectl get node` command. 
 
 <!-- LINKS -->
 
