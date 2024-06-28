@@ -35,10 +35,10 @@ var (
 	}
 
 	// registry represents the registry (ghcr.io/canonical) to use for Contour images.
-	registry = "ghcr.io/canonical"
+	registry = "ghcr.io/canonical/k8s-snap/"
 
 	// envoyProxyImageRepo represents the image to use for envoy in the gateway.
-	envoyProxyImageRepo = "envoyproxy/envoy"
+	envoyProxyImageRepo = "ghcr.io/canonical/k8s-snap/envoyproxy/envoy"
 
 	// envoyProxyImageTag is the tag to use for for envoy in the gateway.
 	envoyProxyImageTag = "v1.29.2"
@@ -56,7 +56,7 @@ var (
 	contourImageTag = "1.28.2-debian-12-r4"
 
 	// contourGatewayImageRepo represents the image to use for the Contour Gateway Provisioner.
-	contourGatewayImageRepo = "ghcr.io/projectcontour/contour"
+	contourGatewayImageRepo = "ghcr.io/canonical/k8s-snap/projectcontour/contour"
 
 	// contourGatewayImageTag is the tag to use for the Contour Gateway Provisioner image.
 	contourGatewayImageTag = "v1.28.2"
