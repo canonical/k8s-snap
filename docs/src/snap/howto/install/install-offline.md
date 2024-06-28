@@ -164,10 +164,11 @@ Instructions for this are described in
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so that they do not have to be fetched at runtime.
 
-To create a bundle of images, you can use the [regctl][regctl] tool.
+To create a bundle of images, you can use the [regctl][regctl] tool
+or simply invoke the [regctl.sh][regctl.sh] script.
 
 ```bash
-regctl image export --platform=local
+./src/k8s/tools/regctl.sh image export --platform=local
 ```
 
 Upon choosing this option, you place all images under
@@ -177,7 +178,6 @@ Upon choosing this option, you place all images under
 
 Now that you have fulfilled all steps in preparation for your
 air-gapped cluster, it is time to deploy it.
-
 
 ### Step 1: Install Canonical Kubernetes
 
@@ -240,8 +240,8 @@ ca = "/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt"
 #### Container Runtime Option C: Side-load images
 
 This is only required if you chose to
-[side-load images](#images-option-c-side-load-images). 
-Make sure that the directory `/var/snap/k8s/common/images` directory exists, 
+[side-load images](#images-option-c-side-load-images).
+Make sure that the directory `/var/snap/k8s/common/images` directory exists,
 then copy all `$image.tar` to that directory, such that containerd automatically
 picks them up and imports them when it starts.
 Copy the `images.tar` file(s) to `/var/snap/k8s/common/images`
@@ -271,5 +271,6 @@ the output of the `sudo k8s kubectl get node` command.
 [sync-images]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/sync-images.sh
 [regsync]: https://github.com/regclient/regclient
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
+[regctl.sh]: https://github.com/canonical/k8s-snap/blob/main/src/k8s/tools/regctl.sh
 [nodes]: /snap/tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/
