@@ -195,7 +195,6 @@ Repeat the above for all nodes of the cluster.
 
 The container runtime needs to be configured to be able to fetch images.
 
-
 #### Container Runtime Option A: Configure HTTP proxy for registries
 
 Edit `/etc/systemd/system/snap.k8s.containerd.conf.d/env.conf`
