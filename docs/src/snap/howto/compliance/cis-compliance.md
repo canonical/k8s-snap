@@ -15,6 +15,9 @@ to achieve full compliance.
 
 ## What you will need
 
+- Xxxx xxxxxxx xxxx xx xxxx xxxxx xxx Xxxxxxx xxx.
+- X xxxxxx XXXX xxx xxxxx xxxx xxxxxx xxxxxxxxxx.
+- X xxxxx xxxxxxx XXXX xxx  xx xxxx xxxx xxxxx xxxxx.
 
 ## Single node etcd setup
 
@@ -53,21 +56,21 @@ EOF
 
 ```
 
-#### Generate CA
+Generate the CA:
 
 ```
 openssl req -x509 -nodes -newkey rsa:4096 -subj /CN=etcdRootCA \
  -keyout ca-key.pem -out ca-cert.pem
 ```
 
-3. Generate client key and CSR for the client key
+Generate client key and CSR for the client key:
 
 ```
 openssl req -nodes -newkey rsa:4096 -keyout client-key.pem \
 -out client-cert.csr -config etcd-tls.conf
 ```
 
-4. Generate client certificate
+Generate client certificate:
 
 ```
 openssl x509 -req -in client-cert.csr -CA ca-cert.pem \
@@ -75,14 +78,14 @@ openssl x509 -req -in client-cert.csr -CA ca-cert.pem \
 -extfile etcd-tls.conf -CAcreateserial
 ```
 
-5. Generate server key and CSR for the server key
+Generate server key and CSR for the server key:
 
 ```
 openssl req -nodes -newkey rsa:4096 -keyout server-key.pem \
 -out server-cert.csr -config etcd-tls.conf
 ```
 
-6. Generate server certificate
+Generate server certificate:
 
 ```
 openssl x509 -req -in server-cert.csr -CA ca-cert.pem \
@@ -90,9 +93,9 @@ openssl x509 -req -in server-cert.csr -CA ca-cert.pem \
 -extfile etcd-tls.conf -CAcreateserial
 ```
 
-#### Verify certificates generation
+### Verify certificates generation
 
-We now have the following certificates:
+The following certificates should now exist:
 
 - CA: 
   - `ca-cert.pem`
@@ -126,7 +129,7 @@ sudo cp ./server-* /etc/etcd-certs/
 sudo chown -R etcd:etcd /etc/etcd-certs/
 ```
 
-Configure etcd
+Configure etcd:
 
 ```
 sudo sh -c 'cat >>/etc/default/etcd <<EOL
@@ -146,25 +149,25 @@ ETCD_PEER_KEY_FILE="/etc/etcd-certs/server-key.pem"
 EOL'
 ```
 
-Restart etcd
+Restart etcd:
 
 ```
 sudo systemctl restart etcd.service
 ```
 
-#### Verify etcd cluster is setup
+### Verify etcd cluster is running correctly
 
-If you want to verify your configuration is valid you can send a verbose https
-request to the etcd server.
+To verify the configuration is valid you can send a verbose https
+request to the etcd server:
 
 ```
 curl --cacert ca-cert.pem --cert ./client-cert.pem \
 --key ./client-key.pem -L https://127.0.0.1:2379/version -v
 ```
 
-## Canonical Kubernetes setup
+## Install Canonical Kubernetes 
 
-Canonical Kubernetes is delivered as a snap (https://snapcraft.io/k8s). 
+Canonical Kubernetes is delivered as a snap. 
 
 ### Control plane and worker node
 
@@ -221,19 +224,19 @@ sudo k8s kubectl get all -A
 
 ### Second k8s node as worker
 
-1. Install the k8s snap on the second node
+Install the k8s snap on the second node
 
 ```
 sudo snap install k8s --classic --channel=1.30/edge
 ```
 
-2. On the control plane node generate a join token to be used for joining the second node
+On the control plane node generate a join token to be used for joining the second node
 
  ```
 controlplane$ sudo k8s get-join-token --worker
 ```
 
-3. On the worker node create  the followingconfiguration.yaml
+On the worker node create  the followingconfiguration.yaml
 
 ```
 extra-node-kubelet-args:  
@@ -242,7 +245,7 @@ extra-node-kubelet-args:
   --topology-manager-policy: "best-effort"
 ```
 
-4. On the worker node use the token to join the cluster
+On the worker node use the token to join the cluster
 
 ```
 sudo k8s join-cluster --file configuration.yaml <token-generated-on-the-control-plane-node>
@@ -261,7 +264,7 @@ sudo k8s kubectl get no
 
 ### Configure auditing
 
-1. Create an *audit-policy.yaml *file under /var/snap/k8s/common/etc/ and specify the level of auditing you desire based on the [upstream instructions](https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/). Here is a minimal example of such a policy file.
+Create an *audit-policy.yaml *file under /var/snap/k8s/common/etc/ and specify the level of auditing you desire based on the [upstream instructions](https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/). Here is a minimal example of such a policy file.
 
 ```
 sudo sh -c 'cat >/var/snap/k8s/common/etc/audit-policy.yaml <<EOL
@@ -273,39 +276,35 @@ rules:
 EOL'
 ```
 
-2. Enable auditing at the API server by adding the following arguments.
+Enable auditing at the API server by adding the following arguments.
 
 ```
 sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL--audit-log-path=/var/log/apiserver/audit.log--audit-log-maxage=30--audit-log-maxbackup=10--audit-log-maxsize=100--audit-policy-file=/var/snap/k8s/common/etc/audit-policy.yamlEOL'
 ```
 
-3. Restart the API server.
+Restart the API server.
 
-3. ```
+```
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
 
 ### Set event rate limits
 
-1. Create a configuration file with the [rate limits](https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1) and place it under /var/snap/k8s/common/etc/ . For example:
+Create a configuration file with the [rate limits](https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1) and place it under /var/snap/k8s/common/etc/ . For example:
 
 ```
 sudo sh -c 'cat >/var/snap/k8s/common/etc/eventconfig.yaml <<EOLapiVersion: eventratelimit.admission.k8s.io/v1alpha1kind: Configurationlimits:  - type: Server    qps: 5000    burst: 20000EOL'
 ```
 
-2. Create an admissions control config file under /var/k8s/snap/common/etc/
+Create an admissions control config file under /var/k8s/snap/common/etc/
 
 ```
-sudo sh -c 'cat >/var/snap/k8s/common/etc/admission-control-config-file.yaml <<EOL`apiVersion:`` ``apiserver.config.k8s.io/v1`
-`kind:`` ``AdmissionConfiguration`
-plugins:`  ``-`` ``name:`` ``EventRateLimit`
-`    ``path:`` ``eventconfig.yaml`
-EOL'
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
-3. Make sure the EventRateLimit admission plugin is loaded in the /var/snap/k8s/common/args/kube-apiserver.
+Make sure the EventRateLimit admission plugin is loaded in the /var/snap/k8s/common/args/kube-apiserver.
 
-3. ```
+```
 --enable-admission-plugins=...,EventRateLimit,...
 ```
 
@@ -324,39 +323,39 @@ sudo systemctl restart snap.k8s.kube-apiserver
 
 ### AlwaysPullImages admission control plugin
 
-1. Make sure the AlwaysPullImages admission plugin is loaded in the /var/snap/k8s/common/args/kube-apiserver.
+Make sure the AlwaysPullImages admission plugin is loaded in the /var/snap/k8s/common/args/kube-apiserver.
 
 ```
 --enable-admission-plugins=...,AlwaysPullImages,...
 ```
 
-2. Restart the API server.
+Restart the API server.
 
-2. ```
+```
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
 
-## Hardening the workers
+## Hardening the worker nodes
 
 ### Protect kernel defaults
 
 Kubelet will not start if it finds kernel configurations incompatible with its defaults.
 
-1. Configure kubelet.
+Configure kubelet.
 
-1. ```
+```
 sudo sh -c 'cat >>/var/snap/k8s/common/args/kubelet <<EOL--protect-kernel-defaults=trueEOL'
 ```
 
-2. Restart kubelet.
+Restart kubelet.
 
 ```
 sudo systemctl restart snap.k8s.kubelet
 ```
 
-## Run kube-bench on Canonical Kubernetes
+## Run Kubebench on Canonical Kubernetes
 
-1. Download the KubeBench.
+Download KubeBench.
 
 ```
 $ mkdir kube-bench$ cd kube-bench$ curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.7.3/kube-bench_0.7.3_linux_amd64.tar.gz -o kube-bench_0.7.3_linux_amd64.tar.gz$ tar -xvf kube-bench_0.7.3_linux_amd64.tar.gz
