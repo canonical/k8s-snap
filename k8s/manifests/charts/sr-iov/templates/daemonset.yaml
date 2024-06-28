@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Values.daemonset.fullName }}
+  namespace: {{ .Values.daemonset.namespace }}
+  labels:
+    tier: {{ .Values.daemonset.labels.tier }}
+    app: {{ .Values.daemonset.name }}
+spec:
+  selector:
+    matchLabels:
+      name: {{ .Values.daemonset.name }}
+  template:
+    metadata:
+      labels:
+        name: {{ .Values.daemonset.name }}
+        tier: {{ .Values.daemonset.labels.tier }}
+        app: {{ .Values.daemonset.name }}
+    spec:
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: {{ .Values.daemonset.containerName }}
+        image: {{ .Values.daemonset.image.repository }}:{{ .Values.daemonset.image.tag }}
+        imagePullPolicy: {{ .Values.daemonset.image.pullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        resources:
+          requests:
+            cpu: {{ .Values.daemonset.resources.requests.cpu }}
+            memory: {{ .Values.daemonset.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.daemonset.resources.requests.cpu }}
+            memory: {{ .Values.daemonset.resources.requests.memory }}
+        volumeMounts:
+        - name: cnibin
+          mountPath: /host/opt/cni/bin
+      volumes:
+        - name: cnibin
+          hostPath:
+            path: /opt/cni/bin

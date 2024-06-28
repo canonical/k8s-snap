@@ -1,0 +1,24 @@
+# Default values for sr-iov.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+daemonset:
+  name: sriov-cni
+  fullName: kube-sriov-cni-ds
+  containerName: kube-sriov-cni
+  namespace: kube-system
+  labels:
+    tier: node
+  image: 
+    repository: ghcr.io/k8snetworkplumbingwg/sriov-cni
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "50Mi"
+    limits:
+      cpu: "100mu"
+      memory: "50Mi"
+
+
