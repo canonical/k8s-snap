@@ -1,5 +1,7 @@
 package apiv1
 
+import "time"
+
 // GetClusterStatusRequest is used to request the current status of the cluster.
 type GetClusterStatusRequest struct{}
 
@@ -13,6 +15,7 @@ type PostClusterBootstrapRequest struct {
 	Name    string          `json:"name"`
 	Address string          `json:"address"`
 	Config  BootstrapConfig `json:"config"`
+	Timeout time.Duration   `json:"timeout"`
 }
 
 // GetKubeConfigRequest is used to ask for the admin kubeconfig

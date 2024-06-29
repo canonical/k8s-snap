@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net"
 
@@ -18,12 +19,20 @@ import (
 func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	snap := a.Snap()
 
+	ctx, cancel := context.WithCancel(s.Context)
+	defer cancel()
+	if t := utils.MicroclusterTimeoutFromConfig(initConfig); t != 0 {
+		ctx, cancel = context.WithTimeout(ctx, t)
+		defer cancel()
+	}
+
+
 	joinConfig, err := apiv1.ControlPlaneJoinConfigFromMicrocluster(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal control plane join config: %w", err)
 	}
 
-	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
+	cfg, err := databaseutil.GetClusterConfig(ctx, s)
 	if err != nil {
 		return fmt.Errorf("failed to get cluster config: %w", err)
 	}
@@ -111,7 +120,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(s.Context, cfg); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg); err != nil {
 		return fmt.Errorf("pre-init checks failed for joining node: %w", err)
 	}
 
@@ -131,7 +140,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get dqlite leader: %w", err)
 		}
-		members, err := leader.GetClusterMembers(s.Context)
+		members, err := leader.GetClusterMembers(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get microcluster members: %w", err)
 		}
@@ -156,7 +165,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.GetPodCIDR(), joinConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), joinConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap, joinConfig.ExtraNodeKubeControllerManagerArgs); err != nil {
@@ -173,17 +182,17 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to write extra node config files: %w", err)
 	}
 
-	if err := snapdconfig.SetSnapdFromK8sd(s.Context, cfg.ToUserFacing(), snap); err != nil {
+	if err := snapdconfig.SetSnapdFromK8sd(ctx, cfg.ToUserFacing(), snap); err != nil {
 		return fmt.Errorf("failed to set snapd configuration from k8sd: %w", err)
 	}
 
 	// Start services
-	if err := startControlPlaneServices(s.Context, snap, cfg.Datastore.GetType()); err != nil {
+	if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
 		return fmt.Errorf("failed to start services: %w", err)
 	}
 
 	// Wait until Kube-API server is ready
-	if err := waitApiServerReady(s.Context, snap); err != nil {
+	if err := waitApiServerReady(ctx, snap); err != nil {
 		return fmt.Errorf("failed to wait for kube-apiserver to become ready: %w", err)
 	}
 
