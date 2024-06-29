@@ -52,8 +52,47 @@ func (a *App) onBootstrap(s *state.State, initConfig map[string]string) error {
 	return a.onBootstrapControlPlane(ctx, s, bootstrapConfig)
 }
 
-func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encodedToken string, joinConfig apiv1.WorkerNodeJoinConfig) error {
+func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encodedToken string, joinConfig apiv1.WorkerNodeJoinConfig) (rerr error) {
 	snap := a.Snap()
+
+	// make sure to cleanup in case of errors
+	// the code can register cleanup hooks by appending to this slice
+	var cleanups []func(context.Context) error
+	defer func() {
+		// do not cleanup if bootstrap was successful
+		if rerr == nil {
+			log.Println("Joined cluster successfully")
+			return
+		}
+
+		// annotate error with context cancellation
+		if err := ctx.Err(); err != nil {
+			rerr = fmt.Errorf("%w: %v", rerr, ctx.Err())
+		}
+
+		// start goroutine to cleanup on the background and return quickly
+		go func() {
+			log.Printf("Join cluster failed: %v", rerr)
+			log.Println("Cleaning up...")
+			for i := len(cleanups) - 1; i >= 0; i-- {
+				// run cleanup functions in reverse order
+				if err := cleanups[i](s.Context); err != nil {
+					log.Printf("Cleanup hook %d/%d failed: %v", i, len(cleanups), err)
+				}
+			}
+			log.Println("All cleanup hooks finished, resetting microcluster state")
+
+			client, err := a.microCluster.LocalClient()
+			if err != nil {
+				log.Printf("Failed to create local microcluster client, cannot reset node: %v", err)
+				return
+			}
+
+			if err := client.ResetClusterMember(s.Context, s.Name(), true); err != nil {
+				log.Printf("Failed to ResetClusterMember: %v", err)
+			}
+		}()
+	}()
 
 	token := &types.InternalWorkerNodeToken{}
 	if err := token.Decode(encodedToken); err != nil {
@@ -161,6 +200,13 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encoded
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize worker node certificates: %w", err)
 	}
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Cleaning up worker certificates")
+		if _, err := setup.EnsureWorkerPKI(snap, &pki.WorkerNodePKI{}); err != nil {
+			return fmt.Errorf("failed to cleanup worker certificates: %w", err)
+		}
+		return nil
+	})
 	if _, err := setup.EnsureWorkerPKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write worker node certificates: %w", err)
 	}
@@ -205,6 +251,16 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encoded
 		return fmt.Errorf("database transaction to set cluster configuration failed: %w", err)
 	}
 
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		for _, dir := range []string{snap.ServiceArgumentsDir()} {
+			log.Printf("Cleaning up config files from %v", dir)
+			if err := os.RemoveAll(dir); err != nil {
+				return fmt.Errorf("failed to delete %v: %w", dir, err)
+			}
+		}
+		return nil
+	})
+
 	// Worker node services
 	if err := setup.Containerd(snap, nil, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
@@ -222,12 +278,25 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encoded
 		return fmt.Errorf("failed to write extra node config files: %w", err)
 	}
 
-	// TODO(berkayoz): remove the lock on cleanup
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Removing worker node mark")
+		if err := snaputil.MarkAsWorkerNode(snap, false); err != nil {
+			return fmt.Errorf("failed to unmark node as worker: %w", err)
+		}
+		return nil
+	})
 	if err := snaputil.MarkAsWorkerNode(snap, true); err != nil {
 		return fmt.Errorf("failed to mark node as worker: %w", err)
 	}
 
 	// Start services
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Stopping worker services")
+		if err := snaputil.StopWorkerServices(ctx, snap); err != nil {
+			return fmt.Errorf("failed to start worker services: %w", err)
+		}
+		return nil
+	})
 	if err := snaputil.StartWorkerServices(ctx, snap); err != nil {
 		return fmt.Errorf("failed to start worker services: %w", err)
 	}
