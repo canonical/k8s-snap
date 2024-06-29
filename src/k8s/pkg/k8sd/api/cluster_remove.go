@@ -27,9 +27,9 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 	if isControlPlane {
 		// Remove control plane via microcluster API.
 		// The postRemove hook will take care of cleaning up kubernetes.
-		c, err := e.provider.MicroCluster().LocalClient()
+		c, err := s.Leader()
 		if err != nil {
-			return response.InternalError(fmt.Errorf("failed to create local client: %w", err))
+			return response.InternalError(fmt.Errorf("failed to create client to cluster leader: %w", err))
 		}
 		if err := c.DeleteClusterMember(r.Context(), req.Name, req.Force); err != nil {
 			return response.InternalError(fmt.Errorf("failed to delete cluster member %s: %w", req.Name, err))

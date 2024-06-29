@@ -6,7 +6,6 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/lxd/shared/api"
 )
 
@@ -41,19 +40,6 @@ func (c *k8sd) JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest
 	if err := c.client.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "join"), request, nil); err != nil {
 		return fmt.Errorf("failed to POST /k8sd/cluster/join: %w", err)
 	}
-
-	// NOTE(neoaggelos): we should not ignore this error
-	_ = control.WaitUntilReady(ctx, func() (bool, error) {
-		nodeStatus, err := c.NodeStatus(ctx)
-		switch {
-		case err != nil:
-			return false, fmt.Errorf("failed to get node status: %w", err)
-		case nodeStatus.DatastoreRole == apiv1.DatastoreRolePending:
-			// still waiting for node to join
-			return false, nil
-		}
-		return true, nil
-	})
 
 	return nil
 }
