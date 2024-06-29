@@ -7,8 +7,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
+	"os"
 	"path"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -233,8 +235,47 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encoded
 	return nil
 }
 
-func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, bootstrapConfig apiv1.BootstrapConfig) error {
+func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, bootstrapConfig apiv1.BootstrapConfig) (rerr error) {
 	snap := a.Snap()
+
+	// make sure to cleanup in case of errors
+	// the code can register cleanup hooks by appending to this slice
+	var cleanups []func(context.Context) error
+	defer func() {
+		// do not cleanup if bootstrap was successful
+		if rerr == nil {
+			log.Println("Bootstrapped cluster successfully")
+			return
+		}
+
+		// annotate error with context cancellation
+		if err := ctx.Err(); err != nil {
+			rerr = fmt.Errorf("%w: %v", rerr, ctx.Err())
+		}
+
+		// start goroutine to cleanup on the background and return quickly
+		go func() {
+			log.Printf("Bootstrap failed: %v", rerr)
+			log.Println("Cleaning up...")
+			for i := len(cleanups) - 1; i >= 0; i-- {
+				// run cleanup functions in reverse order
+				if err := cleanups[i](s.Context); err != nil {
+					log.Printf("Cleanup hook %d/%d failed: %v", i, len(cleanups), err)
+				}
+			}
+			log.Println("All cleanup hooks finished, resetting microcluster state")
+
+			client, err := a.microCluster.LocalClient()
+			if err != nil {
+				log.Printf("Failed to create local microcluster client, cannot reset node: %v", err)
+				return
+			}
+
+			if err := client.ResetClusterMember(s.Context, s.Name(), true); err != nil {
+				log.Printf("Failed to ResetClusterMember: %v", err)
+			}
+		}()
+	}()
 
 	cfg, err := types.ClusterConfigFromBootstrapConfig(bootstrapConfig)
 	if err != nil {
@@ -287,6 +328,13 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, boots
 		if err := certificates.CheckCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize external datastore certificates: %w", err)
 		}
+		cleanups = append(cleanups, func(ctx context.Context) error {
+			log.Println("Cleaning up external datastore certificates")
+			if _, err := setup.EnsureExtDatastorePKI(snap, &pki.ExternalDatastorePKI{}); err != nil {
+				return fmt.Errorf("failed to cleanup external datastore certificates: %w", err)
+			}
+			return nil
+		})
 		if _, err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write external datastore certificates: %w", err)
 		}
@@ -335,6 +383,14 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, boots
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
+
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Cleaning up control plane certificates")
+		if _, err := setup.EnsureControlPlanePKI(snap, &pki.ControlPlanePKI{}); err != nil {
+			return fmt.Errorf("failed to cleanup control plane certificates: %w", err)
+		}
+		return nil
+	})
 	if _, err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
@@ -367,6 +423,13 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, boots
 	// Configure datastore
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
+		cleanups = append(cleanups, func(ctx context.Context) error {
+			log.Println("Cleaning up k8s-dqlite directory")
+			if err := os.RemoveAll(snap.K8sDqliteStateDir()); err != nil {
+				return fmt.Errorf("failed to cleanup k8s-dqlite state directory: %w", err)
+			}
+			return nil
+		})
 		if err := setup.K8sDqlite(snap, fmt.Sprintf("%s:%d", nodeIP.String(), cfg.Datastore.GetK8sDqlitePort()), nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite: %w", err)
 		}
@@ -374,6 +437,15 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, boots
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		for _, dir := range []string{snap.ServiceArgumentsDir()} {
+			log.Printf("Cleaning up config files from %v", dir)
+			if err := os.RemoveAll(dir); err != nil {
+				return fmt.Errorf("failed to delete %v: %w", dir, err)
+			}
+		}
+		return nil
+	})
 
 	// Configure services
 	if err := setup.Containerd(snap, nil, bootstrapConfig.ExtraNodeContainerdArgs); err != nil {
@@ -414,6 +486,13 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, boots
 	}
 
 	// Start services
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Stopping control plane services")
+		if err := stopControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
+			return fmt.Errorf("failed to stop services: %w", err)
+		}
+		return nil
+	})
 	if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
 		return fmt.Errorf("failed to start services: %w", err)
 	}
