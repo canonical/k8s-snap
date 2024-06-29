@@ -82,13 +82,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encoded
 			}
 			log.Println("All cleanup hooks finished, resetting microcluster state")
 
-			client, err := a.microCluster.LocalClient()
-			if err != nil {
-				log.Printf("Failed to create local microcluster client, cannot reset node: %v", err)
-				return
-			}
-
-			if err := client.ResetClusterMember(s.Context, s.Name(), true); err != nil {
+			if err := a.client.ResetClusterMember(s.Context, s.Name(), true); err != nil {
 				log.Printf("Failed to ResetClusterMember: %v", err)
 			}
 		}()
@@ -334,13 +328,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, boots
 			}
 			log.Println("All cleanup hooks finished, resetting microcluster state")
 
-			client, err := a.microCluster.LocalClient()
-			if err != nil {
-				log.Printf("Failed to create local microcluster client, cannot reset node: %v", err)
-				return
-			}
-
-			if err := client.ResetClusterMember(s.Context, s.Name(), true); err != nil {
+			if err := a.client.ResetClusterMember(s.Context, s.Name(), true); err != nil {
 				log.Printf("Failed to ResetClusterMember: %v", err)
 			}
 		}()

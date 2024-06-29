@@ -13,6 +13,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/microcluster/client"
 	"github.com/canonical/microcluster/config"
 	"github.com/canonical/microcluster/microcluster"
 	"github.com/canonical/microcluster/state"
@@ -42,8 +43,9 @@ type Config struct {
 
 // App is the k8sd microcluster instance.
 type App struct {
-	microCluster *microcluster.MicroCluster
-	snap         snap.Snap
+	cluster *microcluster.MicroCluster
+	client  *client.Client
+	snap    snap.Snap
 
 	// profilingAddress
 	profilingAddress string
@@ -79,13 +81,17 @@ func New(cfg Config) (*App, error) {
 		Debug:    cfg.Debug,
 		StateDir: cfg.StateDir,
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to create microcluster app: %w", err)
 	}
+	client, err := cluster.LocalClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create microcluster local client: %w", err)
+	}
 
 	app := &App{
-		microCluster:     cluster,
+		cluster:          cluster,
+		client:           client,
 		snap:             cfg.Snap,
 		profilingAddress: cfg.PprofAddress,
 	}
@@ -192,7 +198,7 @@ func (a *App) Run(ctx context.Context, customHooks *config.Hooks) error {
 		}()
 	}
 
-	err := a.microCluster.Start(ctx, api.New(a).Endpoints(), database.SchemaExtensions, hooks)
+	err := a.cluster.Start(ctx, api.New(a).Endpoints(), database.SchemaExtensions, hooks)
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
 	}
