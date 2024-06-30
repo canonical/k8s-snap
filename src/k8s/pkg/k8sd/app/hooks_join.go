@@ -26,7 +26,6 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		defer cancel()
 	}
 
-
 	joinConfig, err := apiv1.ControlPlaneJoinConfigFromMicrocluster(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal control plane join config: %w", err)
