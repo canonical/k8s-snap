@@ -347,7 +347,7 @@ func (a *App) onPreRemove(s *state.State, force bool) (rerr error) {
 	}
 
 	if err := c.DeleteNode(s.Context, s.Name()); err != nil {
-		return fmt.Errorf("failed to remove Kubernetes node %q: %w", err)
+		return fmt.Errorf("failed to remove k8s node %q: %w", s.Name(), err)
 	}
 
 	return nil
