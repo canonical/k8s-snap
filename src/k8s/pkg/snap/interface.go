@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/etcd"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -44,6 +45,7 @@ type Snap interface {
 
 	K8sdStateDir() string      // /var/snap/k8s/common/var/lib/k8sd/state
 	K8sDqliteStateDir() string // /var/snap/k8s/common/var/lib/k8s-dqlite
+	EtcdDir() string           // /var/snap/k8s/common/var/lib/etcd
 
 	ServiceArgumentsDir() string   // /var/snap/k8s/common/args
 	ServiceExtraConfigDir() string // /var/snap/k8s/common/args/conf.d
@@ -56,6 +58,8 @@ type Snap interface {
 	HelmClient() helm.Client // admin helm client
 
 	K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) // go-dqlite client for k8s-dqlite
+
+	EtcdClient() etcd.Client // client for the managed etcd cluster
 
 	PreInitChecks(ctx context.Context, config types.ClusterConfig) error // pre-init checks before k8s-snap can start
 }
