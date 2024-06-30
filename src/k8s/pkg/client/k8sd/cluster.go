@@ -45,6 +45,11 @@ func (c *k8sd) JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest
 }
 
 func (c *k8sd) RemoveNode(ctx context.Context, request apiv1.RemoveNodeRequest) error {
+	// NOTE(neoaggelos): microcluster adds an arbitrary 30 second timeout in case no context deadline is set.
+	// Configure a client deadline for timeout + 30 seconds (the timeout will come from the server)
+	ctx, cancel := context.WithTimeout(ctx, request.Timeout+30*time.Second)
+	defer cancel()
+
 	if err := c.client.Query(ctx, "POST", api.NewURL().Path("k8sd", "cluster", "remove"), request, nil); err != nil {
 		return fmt.Errorf("failed to POST /k8sd/cluster/remove: %w", err)
 	}

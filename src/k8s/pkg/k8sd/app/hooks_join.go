@@ -67,6 +67,23 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) (rerr err
 		go func() {
 			log.Printf("Join cluster failed: %v", rerr)
 
+			log.Printf("Waiting for node to finish microcluster join")
+			control.WaitUntilReady(s.Context, func() (bool, error) {
+				var notPending bool
+				if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+					member, err := cluster.GetInternalClusterMember(ctx, tx, s.Name())
+					if err != nil {
+						log.Printf("Failed to get member: %v", err)
+						return nil
+					}
+					notPending = member.Role != cluster.Pending
+					return nil
+				}); err != nil {
+					log.Printf("Transaction to check cluster member role failed: %v", err)
+				}
+				return notPending, nil
+			})
+
 			log.Println("Cleaning up...")
 			for i := len(cleanups) - 1; i >= 0; i-- {
 				// run cleanup functions in reverse order
@@ -289,8 +306,19 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) (rerr err
 	return nil
 }
 
-func (a *App) onPreRemove(s *state.State, force bool) error {
+func (a *App) onPreRemove(s *state.State, force bool) (rerr error) {
 	snap := a.Snap()
+
+	// NOTE(neoaggelos): When the pre-remove hook fails, the microcluster node will
+	// be removed from the cluster members, but remains in the microcluster dqlite database.
+	//
+	// Log the error and proceed, such that the node is in fact removed.
+	defer func() {
+		if rerr != nil {
+			log.Printf("WARNING: There was an error when running the pre-remove hook: %v", rerr)
+		}
+		rerr = nil
+	}()
 
 	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
 	if err != nil {
@@ -319,7 +347,7 @@ func (a *App) onPreRemove(s *state.State, force bool) error {
 	}
 
 	if err := c.DeleteNode(s.Context, s.Name()); err != nil {
-		log.Printf("Warning: failed to remove k8s node %q: %v", s.Name(), err)
+		return fmt.Errorf("failed to remove Kubernetes node %q: %w", err)
 	}
 
 	return nil
