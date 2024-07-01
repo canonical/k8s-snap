@@ -8,7 +8,7 @@ import (
 )
 
 func (a *App) MicroCluster() *microcluster.MicroCluster {
-	return a.microCluster
+	return a.cluster
 }
 
 func (a *App) Snap() snap.Snap {
