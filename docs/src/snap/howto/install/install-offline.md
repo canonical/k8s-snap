@@ -140,6 +140,7 @@ In [upstream-images.yaml][upstream-imgs] you will have to
 change the sync target to your private registry mirror.
 
 ```yaml
+# upstream-images.yaml
 sync:
   - source: ghcr.io/canonical/k8s-snap/pause:3.10
     target: '{{ env "MIRROR" }}/canonical/k8s-snap/pause:3.10'
@@ -147,11 +148,11 @@ sync:
 ```
 
 After you have updated the yaml file, use [regctl][regctl] to sync the images.
-Run the [sync-images][sync-images] script:
+Run the [sync-images][sync-images] script in `./build-scripts/hack`:
 
 ```bash
-./src/k8s/tools/regctl.sh USERNAME="$username" PASSWORD="$password" \
-MIRROR="$mirror"
+USERNAME="$username" PASSWORD="$password" MIRROR="$mirror" ./sync-images.sh \
+once -c ./upstream-images.yaml
 ```
 
 An alternative to configuring a registry mirror is to download all necessary
@@ -165,10 +166,11 @@ Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so that they do not have to be fetched at runtime.
 
 To create a bundle of images, you can use the [regctl][regctl] tool
-or simply invoke the [regctl.sh][regctl.sh] script.
+or simply invoke the [regctl.sh][regctl.sh] script:
 
 ```bash
-./src/k8s/tools/regctl.sh image export --platform=local
+./src/k8s/tools/regctl.sh image export ghcr.io/canonical/k8s-snap/pause:3.10 \
+--platform=local > pause.tar
 ```
 
 Upon choosing this option, you place all images under
