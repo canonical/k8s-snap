@@ -19,6 +19,7 @@ networking/index
 storage
 external-datastore
 proxy
+compliance/index
 contribute
 support
 ```
