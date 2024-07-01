@@ -1,4 +1,4 @@
-package v1_test
+package apiv1_test
 
 import (
 	"testing"

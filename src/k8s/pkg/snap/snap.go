@@ -11,6 +11,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
@@ -233,6 +234,10 @@ func (s *snap) K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) {
 		return nil, fmt.Errorf("failed to create default k8s-dqlite client: %w", err)
 	}
 	return client, nil
+}
+
+func (s *snap) K8sdClient(address string) (k8sd.Client, error) {
+	return k8sd.New(filepath.Join(s.snapCommonDir, "var", "lib", "k8sd", "state"), address)
 }
 
 func (s *snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {

@@ -62,14 +62,14 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient("")
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			if client.IsBootstrapped(cmd.Context()) {
+			if _, err := client.NodeStatus(cmd.Context()); err == nil {
 				cmd.PrintErrln("Error: The node is already part of a cluster")
 				env.Exit(1)
 				return

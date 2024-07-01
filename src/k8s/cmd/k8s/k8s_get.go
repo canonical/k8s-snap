@@ -28,7 +28,7 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				opts.timeout = minTimeout
 			}
 
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient("")
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
@@ -38,7 +38,7 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			config, err := client.GetClusterConfig(ctx, apiv1.GetClusterConfigRequest{})
+			config, err := client.GetClusterConfig(ctx)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to get the current cluster configuration.\n\nThe error was: %v\n", err)
 				env.Exit(1)

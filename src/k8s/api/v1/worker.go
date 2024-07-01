@@ -1,4 +1,4 @@
-package v1
+package apiv1
 
 // WorkerNodeInfoRequest is used by a worker node to retrieve the required credentials
 // to join a cluster.

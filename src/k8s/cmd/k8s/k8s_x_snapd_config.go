@@ -1,7 +1,6 @@
 package k8s
 
 import (
-	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/spf13/cobra"
@@ -47,13 +46,13 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				cmd.PrintErrln("Warning: meta.orb is none, skipping reconcile actions")
 				return
 			case "k8sd":
-				client, err := env.Client(cmd.Context())
+				client, err := env.Snap.K8sdClient("")
 				if err != nil {
 					cmd.PrintErrf("Error: failed to create k8sd client: %v\n", err)
 					env.Exit(1)
 					return
 				}
-				config, err := client.GetClusterConfig(cmd.Context(), apiv1.GetClusterConfigRequest{})
+				config, err := client.GetClusterConfig(cmd.Context())
 				if err != nil {
 					cmd.PrintErrf("Error: failed to retrieve cluster configuration: %v\n", err)
 					env.Exit(1)
@@ -65,7 +64,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					return
 				}
 			case "snapd":
-				client, err := env.Client(cmd.Context())
+				client, err := env.Snap.K8sdClient("")
 				if err != nil {
 					cmd.PrintErrf("Error: failed to create k8sd client: %v\n", err)
 					env.Exit(1)
