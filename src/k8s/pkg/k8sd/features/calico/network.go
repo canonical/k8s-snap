@@ -72,9 +72,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 		},
 		"installation": map[string]any{
 			"calicoNetwork": map[string]any{
-				"ipPools":                    podIpPools,
-				"nodeAddressAutodetectionV4": config.autodetectionV4,
-				"nodeAddressAutodetectionV6": config.autodetectionV6,
+				"ipPools": podIpPools,
 			},
 			"registry": imageRepo,
 		},
@@ -82,6 +80,14 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 			"enabled": config.apiServerEnabled,
 		},
 		"serviceCIDRs": serviceCIDRs,
+	}
+
+	if config.autodetectionV4 != nil {
+		values["installation"].(map[string]any)["calicoNetwork"].(map[string]any)["nodeAddressAutodetectionV4"] = config.autodetectionV4
+	}
+
+	if config.autodetectionV6 != nil {
+		values["installation"].(map[string]any)["calicoNetwork"].(map[string]any)["nodeAddressAutodetectionV6"] = config.autodetectionV6
 	}
 
 	if _, err := m.Apply(ctx, chartCalico, helm.StatePresent, values); err != nil {

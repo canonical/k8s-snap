@@ -59,7 +59,7 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name: "MultipleAutodetectionV4",
 			annotations: map[string]string{
-				annotationAutodetectionV4Firstfound: "true",
+				annotationAutodetectionV4FirstFound: "true",
 				annotationAutodetectionV4Kubernetes: "true",
 			},
 			expectError: true,
@@ -67,7 +67,7 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name: "ValidAutodetectionCidrs",
 			annotations: map[string]string{
-				annotationAutodetectionV4Cidrs: "10.1.0.0/16,2001:0db8::/32",
+				annotationAutodetectionV4CIDRs: "10.1.0.0/16,2001:0db8::/32",
 			},
 			expectedConfig: config{
 				apiServerEnabled: false,

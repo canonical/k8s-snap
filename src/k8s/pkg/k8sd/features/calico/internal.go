@@ -11,18 +11,18 @@ const (
 	annotationAPIServerEnabled             = "k8sd/v1alpha1/calico/apiserver-enabled"
 	annotationEncapsulationV4              = "k8sd/v1alpha1/calico/encapsulation-v4"
 	annotationEncapsulationV6              = "k8sd/v1alpha1/calico/encapsulation-v6"
-	annotationAutodetectionV4Firstfound    = "k8sd/v1alpha1/calico/autodetection-v4/firstFound"
+	annotationAutodetectionV4FirstFound    = "k8sd/v1alpha1/calico/autodetection-v4/firstFound"
 	annotationAutodetectionV4Kubernetes    = "k8sd/v1alpha1/calico/autodetection-v4/kubernetes"
 	annotationAutodetectionV4Interface     = "k8sd/v1alpha1/calico/autodetection-v4/interface"
 	annotationAutodetectionV4SkipInterface = "k8sd/v1alpha1/calico/autodetection-v4/skipInterface"
 	annotationAutodetectionV4CanReach      = "k8sd/v1alpha1/calico/autodetection-v4/canReach"
-	annotationAutodetectionV4Cidrs         = "k8sd/v1alpha1/calico/autodetection-v4/cidrs"
-	annotationAutodetectionV6Firstfound    = "k8sd/v1alpha1/calico/autodetection-v6/firstFound"
+	annotationAutodetectionV4CIDRs         = "k8sd/v1alpha1/calico/autodetection-v4/cidrs"
+	annotationAutodetectionV6FirstFound    = "k8sd/v1alpha1/calico/autodetection-v6/firstFound"
 	annotationAutodetectionV6Kubernetes    = "k8sd/v1alpha1/calico/autodetection-v6/kubernetes"
 	annotationAutodetectionV6Interface     = "k8sd/v1alpha1/calico/autodetection-v6/interface"
 	annotationAutodetectionV6SkipInterface = "k8sd/v1alpha1/calico/autodetection-v6/skipInterface"
 	annotationAutodetectionV6CanReach      = "k8sd/v1alpha1/calico/autodetection-v6/canReach"
-	annotationAutodetectionV6Cidrs         = "k8sd/v1alpha1/calico/autodetection-v6/cidrs"
+	annotationAutodetectionV6CIDRs         = "k8sd/v1alpha1/calico/autodetection-v6/cidrs"
 )
 
 type config struct {
@@ -45,7 +45,7 @@ func internalConfig(annotations types.Annotations) (config, error) {
 	config := config{
 		encapsulationV4:  defaultEncapsulation,
 		encapsulationV6:  defaultEncapsulation,
-		apiServerEnabled: defaultApiServerEnabled,
+		apiServerEnabled: defaultAPIServerEnabled,
 	}
 
 	if v, ok := annotations.Get(annotationAPIServerEnabled); ok {
@@ -69,9 +69,9 @@ func internalConfig(annotations types.Annotations) (config, error) {
 	var autodetectionV4Key string
 	var autodetectionV4Value any
 
-	if v, ok := annotations.Get(annotationAutodetectionV4Firstfound); ok {
+	if v, ok := annotations.Get(annotationAutodetectionV4FirstFound); ok {
 		if autodetectionV4Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v4 annotations found: %s", annotationAutodetectionV4Firstfound)
+			return config, fmt.Errorf("multiple autodetection-v4 annotations found: %s", annotationAutodetectionV4FirstFound)
 		}
 		autodetectionV4Key = "firstFound"
 		autodetectionV4Value = v == "true"
@@ -104,9 +104,9 @@ func internalConfig(annotations types.Annotations) (config, error) {
 		autodetectionV4Key = "canReach"
 		autodetectionV4Value = v
 	}
-	if v, ok := annotations.Get(annotationAutodetectionV4Cidrs); ok {
+	if v, ok := annotations.Get(annotationAutodetectionV4CIDRs); ok {
 		if autodetectionV4Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v4 annotations found: %s", annotationAutodetectionV4Cidrs)
+			return config, fmt.Errorf("multiple autodetection-v4 annotations found: %s", annotationAutodetectionV4CIDRs)
 		}
 		autodetectionV4Key = "cidrs"
 		autodetectionV4Value = strings.Split(v, ",")
@@ -122,9 +122,9 @@ func internalConfig(annotations types.Annotations) (config, error) {
 	var autodetectionV6Key string
 	var autodetectionV6Value any
 
-	if v, ok := annotations.Get(annotationAutodetectionV6Firstfound); ok {
+	if v, ok := annotations.Get(annotationAutodetectionV6FirstFound); ok {
 		if autodetectionV6Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v6 annotations found: %s", annotationAutodetectionV6Firstfound)
+			return config, fmt.Errorf("multiple autodetection-v6 annotations found: %s", annotationAutodetectionV6FirstFound)
 		}
 		autodetectionV6Key = "firstFound"
 		autodetectionV6Value = v == "true"
@@ -157,9 +157,9 @@ func internalConfig(annotations types.Annotations) (config, error) {
 		autodetectionV6Key = "canReach"
 		autodetectionV6Value = v
 	}
-	if v, ok := annotations.Get(annotationAutodetectionV6Cidrs); ok {
+	if v, ok := annotations.Get(annotationAutodetectionV6CIDRs); ok {
 		if autodetectionV6Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v6 annotations found: %s", annotationAutodetectionV6Cidrs)
+			return config, fmt.Errorf("multiple autodetection-v6 annotations found: %s", annotationAutodetectionV6CIDRs)
 		}
 		autodetectionV6Key = "cidrs"
 		autodetectionV6Value = strings.Split(v, ",")

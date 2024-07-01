@@ -39,6 +39,6 @@ var (
 	// defaultEncapsulation represents the default defaultEncapsulation method to use for Calico.
 	defaultEncapsulation = "VXLAN"
 
-	// defaultApiServerEnabled determines if the Calico API server should be enabled.
-	defaultApiServerEnabled = false
+	// defaultAPIServerEnabled determines if the Calico API server should be enabled.
+	defaultAPIServerEnabled = false
 )
