@@ -7,7 +7,7 @@ Disable core cluster features
 Disable one of network, dns, gateway, ingress, local-storage, load-balancer.
 
 ```
-k8s disable <feature> ... [flags]
+k8s disable [network|dns|gateway|ingress|local-storage|load-balancer] ... [flags]
 ```
 
 ### Options
@@ -21,4 +21,3 @@ k8s disable <feature> ... [flags]
 ### SEE ALSO
 
 * [k8s](k8s.md)	 - Canonical Kubernetes CLI
-
