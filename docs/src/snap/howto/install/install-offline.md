@@ -81,10 +81,20 @@ increasing complexity of implementation.
 You may also find it helpful to combine these options for your scenario.
 
 If you already have the `k8s` snap installed,
-you can list the images in use by running:
+you can list the images in use like this:
 
 ```bash
-sudo k8s list-images
+ubuntu@demo:~$ sudo k8s list-images
+ghcr.io/canonical/cilium-operator-generic:1.15.2-ck2
+ghcr.io/canonical/cilium:1.15.2-ck2
+ghcr.io/canonical/coredns:1.11.1-ck4
+ghcr.io/canonical/k8s-snap/pause:3.10
+ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1
+ghcr.io/canonical/k8s-snap/sig-storage/csi-provisioner:v5.0.1
+ghcr.io/canonical/k8s-snap/sig-storage/csi-resizer:v1.11.1
+ghcr.io/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1
+ghcr.io/canonical/metrics-server:0.7.0-ck0
+ghcr.io/canonical/rawfile-localpv:0.8.0-ck5
 ```
 
 A list of images can also be found in the downloaded k8s snap for the
@@ -132,27 +142,56 @@ We recommend using [regsync][regsync] to copy images
 from the upstream registry to your private registry.
 For the images used in the k8s-snap we currently sync upstream images
 to the `ghcr.io` repo.
-Since you will need to do something similar you
-will find it helpful to look at the [upstream-images.yaml][upstream-imgs] file
-as well as the [sync-images][sync-images] script.
+For a similar task, it may be helpful to refer to the
+[upstream-images.yaml][upstream-imgs] file as well as the
+[sync-images][sync-images] script.
 
-In [upstream-images.yaml][upstream-imgs] you will have to
-change the sync target to your private registry mirror.
+Using the output from `sudo k8s list-images`,
+create a yaml file with the images to sync to the private registry.
 
+<!-- markdownlint-disable MD013 -->
 ```yaml
-# upstream-images.yaml
+# my-images.yaml
 sync:
   - source: ghcr.io/canonical/k8s-snap/pause:3.10
     target: '{{ env "MIRROR" }}/canonical/k8s-snap/pause:3.10'
     type: image
+  - source: ghcr.io/canonical/cilium-operator-generic:1.15.2-ck2
+    target: '{{ env "MIRROR" }}/canonical/cilium-operator-generic:1.15.2-ck2'
+    type: image
+  - source: ghcr.io/canonical/cilium:1.15.2-ck2
+    target: '{{ env "MIRROR" }}/canonical/cilium:1.15.2-ck2'
+    type: image
+  - source: ghcr.io/canonical/coredns:1.11.1-ck4
+    target: '{{ env "MIRROR" }}/canonical/coredns:1.11.1-ck4'
+    type: image
+  - source: ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1
+    target: '{{ env "MIRROR" }}/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1'
+    type: image
+  - source: ghcr.io/canonical/k8s-snap/sig-storage/csi-provisioner:v5.0.1
+    target: '{{ env "MIRROR" }}/canonical/k8s-snap/sig-storage/csi-provisioner:v5.0.1'
+    type: image
+  - source: ghcr.io/canonical/k8s-snap/sig-storage/csi-resizer:v1.11.1
+    target: '{{ env "MIRROR" }}/canonical/k8s-snap/sig-storage/csi-resizer:v1.11.1'
+    type: image
+  - source: ghcr.io/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1
+    target: '{{ env "MIRROR" }}/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1'
+    type: image
+  - source: ghcr.io/canonical/metrics-server:0.7.0-ck0
+    target: '{{ env "MIRROR" }}/canonical/metrics-server:0.7.0-ck0'
+    type: image
+  - source: ghcr.io/canonical/rawfile-localpv:0.8.0-ck5
+    target: '{{ env "MIRROR" }}/canonical/rawfile-localpv:0.8.0-ck5'
+    type: image
 ```
+<!-- markdownlint-enable MD013 -->
 
 After you have updated the yaml file, use [regctl][regctl] to sync the images.
 Run the [sync-images][sync-images] script in `./build-scripts/hack`:
 
 ```bash
 USERNAME="$username" PASSWORD="$password" MIRROR="$mirror" ./sync-images.sh \
-once -c ./upstream-images.yaml
+once -c ./my-images.yaml
 ```
 
 An alternative to configuring a registry mirror is to download all necessary
@@ -199,7 +238,7 @@ The container runtime needs to be configured to be able to fetch images.
 
 #### Container Runtime Option A: Configure HTTP proxy for registries
 
-Edit `/etc/systemd/system/snap.k8s.containerd.conf.d/env.conf`
+Edit `/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`
 on each node and set the appropriate http_proxy, https_proxy and
 no_proxy variables as described in the
 [adding proxy configuration section][proxy].
