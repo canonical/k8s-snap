@@ -27,7 +27,7 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		timeout      time.Duration
 	}
 	cmd := &cobra.Command{
-		Use:    "enable <feature> ...",
+		Use:    fmt.Sprintf("enable [%s] ...", strings.Join(featureList, "|")),
 		Short:  "Enable core cluster features",
 		Long:   fmt.Sprintf("Enable one of %s.", strings.Join(featureList, ", ")),
 		Args:   cmdutil.MinimumNArgs(env, 1),
