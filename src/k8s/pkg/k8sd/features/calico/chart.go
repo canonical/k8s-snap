@@ -35,4 +35,10 @@ var (
 	calicoCtlImage = "ghcr.io/canonical/k8s-snap/calico/ctl"
 	// calicoCtlTag represents the tag to use for the calicoctl image.
 	calicoCtlTag = "v3.28.0"
+
+	// defaultEncapsulation represents the default defaultEncapsulation method to use for Calico.
+	defaultEncapsulation = "VXLAN"
+
+	// defaultAPIServerEnabled determines if the Calico API server should be enabled.
+	defaultAPIServerEnabled = false
 )
