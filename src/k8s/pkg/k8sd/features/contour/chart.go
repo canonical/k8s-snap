@@ -40,6 +40,8 @@ var (
 	// envoyProxyImageRepo represents the image to use for envoy in the gateway.
 	envoyProxyImageRepo = "ghcr.io/canonical/k8s-snap/envoyproxy/envoy"
 
+	// NOTE: The image version is v1.29.2 instead of 1.28.2
+	// to follow the upstream configuration for the contour gateway provisioner.
 	// envoyProxyImageTag is the tag to use for for envoy in the gateway.
 	envoyProxyImageTag = "v1.29.2"
 
