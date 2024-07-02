@@ -41,136 +41,100 @@ func checkEncapsulation(v string) error {
 	return fmt.Errorf("unsupported encapsulation type: %s", v)
 }
 
+func parseAutodetectionAnnotations(annotations types.Annotations, autodetectionMap map[string]string) (map[string]any, error) {
+	var autodetectionAnnotations []string
+	var autodetectionKey string
+	var autodetectionValue any
+
+	for annotation, key := range autodetectionMap {
+		if v, ok := annotations.Get(annotation); ok {
+			autodetectionAnnotations = append(autodetectionAnnotations, annotation)
+			autodetectionKey = key
+			autodetectionValue = v
+		}
+	}
+
+	if len(autodetectionAnnotations) > 1 {
+		return nil, fmt.Errorf("multiple annotations found: %s", strings.Join(autodetectionAnnotations, ", "))
+	}
+
+	// If any annotation is set, return the map otherwise it's left nil
+	if autodetectionKey != "" {
+		switch autodetectionKey {
+		case "firstFound":
+			autodetectionValue = autodetectionValue == "true"
+		case "cidrs":
+			autodetectionValue = strings.Split(autodetectionValue.(string), ",")
+		}
+
+		return map[string]any{
+			autodetectionKey: autodetectionValue,
+		}, nil
+	}
+
+	return nil, nil
+}
+
 func internalConfig(annotations types.Annotations) (config, error) {
-	config := config{
+	c := config{
 		encapsulationV4:  defaultEncapsulation,
 		encapsulationV6:  defaultEncapsulation,
 		apiServerEnabled: defaultAPIServerEnabled,
 	}
 
 	if v, ok := annotations.Get(annotationAPIServerEnabled); ok {
-		config.apiServerEnabled = v == "true"
+		c.apiServerEnabled = v == "true"
 	}
 
 	if v, ok := annotations.Get(annotationEncapsulationV4); ok {
 		if err := checkEncapsulation(v); err != nil {
-			return config, fmt.Errorf("invalid encapsulation-v4 annotation: %w", err)
+			return config{}, fmt.Errorf("invalid encapsulation-v4 annotation: %w", err)
 		}
-		config.encapsulationV4 = v
+		c.encapsulationV4 = v
 	}
 
 	if v, ok := annotations.Get(annotationEncapsulationV6); ok {
 		if err := checkEncapsulation(v); err != nil {
-			return config, fmt.Errorf("invalid encapsulation-v6 annotation: %w", err)
+			return config{}, fmt.Errorf("invalid encapsulation-v6 annotation: %w", err)
 		}
-		config.encapsulationV6 = v
+		c.encapsulationV6 = v
 	}
 
-	var autodetectionV4Key string
-	var autodetectionV4Value any
-
-	if v, ok := annotations.Get(annotationAutodetectionV4FirstFound); ok {
-		if autodetectionV4Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v4 annotations found: %s", annotationAutodetectionV4FirstFound)
-		}
-		autodetectionV4Key = "firstFound"
-		autodetectionV4Value = v == "true"
-	}
-	if v, ok := annotations.Get(annotationAutodetectionV4Kubernetes); ok {
-		if autodetectionV4Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v4 annotations found: %s", annotationAutodetectionV4Kubernetes)
-		}
-		autodetectionV4Key = "kubernetes"
-		autodetectionV4Value = v
-	}
-	if v, ok := annotations.Get(annotationAutodetectionV4Interface); ok {
-		if autodetectionV4Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v4 annotations found: %s", annotationAutodetectionV4Interface)
-		}
-		autodetectionV4Key = "interface"
-		autodetectionV4Value = v
-	}
-	if v, ok := annotations.Get(annotationAutodetectionV4SkipInterface); ok {
-		if autodetectionV4Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v4 annotations found: %s", annotationAutodetectionV4SkipInterface)
-		}
-		autodetectionV4Key = "skipInterface"
-		autodetectionV4Value = v
-	}
-	if v, ok := annotations.Get(annotationAutodetectionV4CanReach); ok {
-		if autodetectionV4Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v4 annotations found: %s", annotationAutodetectionV4CanReach)
-		}
-		autodetectionV4Key = "canReach"
-		autodetectionV4Value = v
-	}
-	if v, ok := annotations.Get(annotationAutodetectionV4CIDRs); ok {
-		if autodetectionV4Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v4 annotations found: %s", annotationAutodetectionV4CIDRs)
-		}
-		autodetectionV4Key = "cidrs"
-		autodetectionV4Value = strings.Split(v, ",")
+	v4Map := map[string]string{
+		annotationAutodetectionV4FirstFound:    "firstFound",
+		annotationAutodetectionV4Kubernetes:    "kubernetes",
+		annotationAutodetectionV4Interface:     "interface",
+		annotationAutodetectionV4SkipInterface: "skipInterface",
+		annotationAutodetectionV4CanReach:      "canReach",
+		annotationAutodetectionV4CIDRs:         "cidrs",
 	}
 
-	// If any annotation is set, pass the map to the config otherwise it's left nil
-	if autodetectionV4Key != "" {
-		config.autodetectionV4 = map[string]any{
-			autodetectionV4Key: autodetectionV4Value,
-		}
+	autodetectionV4, err := parseAutodetectionAnnotations(annotations, v4Map)
+	if err != nil {
+		return config{}, fmt.Errorf("error parsing autodetection-v4 annotations: %w", err)
 	}
 
-	var autodetectionV6Key string
-	var autodetectionV6Value any
-
-	if v, ok := annotations.Get(annotationAutodetectionV6FirstFound); ok {
-		if autodetectionV6Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v6 annotations found: %s", annotationAutodetectionV6FirstFound)
-		}
-		autodetectionV6Key = "firstFound"
-		autodetectionV6Value = v == "true"
-	}
-	if v, ok := annotations.Get(annotationAutodetectionV6Kubernetes); ok {
-		if autodetectionV6Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v6 annotations found: %s", annotationAutodetectionV6Kubernetes)
-		}
-		autodetectionV6Key = "kubernetes"
-		autodetectionV6Value = v
-	}
-	if v, ok := annotations.Get(annotationAutodetectionV6Interface); ok {
-		if autodetectionV6Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v6 annotations found: %s", annotationAutodetectionV6Interface)
-		}
-		autodetectionV6Key = "interface"
-		autodetectionV6Value = v
-	}
-	if v, ok := annotations.Get(annotationAutodetectionV6SkipInterface); ok {
-		if autodetectionV6Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v6 annotations found: %s", annotationAutodetectionV6SkipInterface)
-		}
-		autodetectionV6Key = "skipInterface"
-		autodetectionV6Value = v
-	}
-	if v, ok := annotations.Get(annotationAutodetectionV6CanReach); ok {
-		if autodetectionV6Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v6 annotations found: %s", annotationAutodetectionV6CanReach)
-		}
-		autodetectionV6Key = "canReach"
-		autodetectionV6Value = v
-	}
-	if v, ok := annotations.Get(annotationAutodetectionV6CIDRs); ok {
-		if autodetectionV6Key != "" {
-			return config, fmt.Errorf("multiple autodetection-v6 annotations found: %s", annotationAutodetectionV6CIDRs)
-		}
-		autodetectionV6Key = "cidrs"
-		autodetectionV6Value = strings.Split(v, ",")
+	if autodetectionV4 != nil {
+		c.autodetectionV4 = autodetectionV4
 	}
 
-	// If any annotation is set, pass the map to the config otherwise it's left nil
-	if autodetectionV6Key != "" {
-		config.autodetectionV6 = map[string]any{
-			autodetectionV6Key: autodetectionV6Value,
-		}
+	v6Map := map[string]string{
+		annotationAutodetectionV6FirstFound:    "firstFound",
+		annotationAutodetectionV6Kubernetes:    "kubernetes",
+		annotationAutodetectionV6Interface:     "interface",
+		annotationAutodetectionV6SkipInterface: "skipInterface",
+		annotationAutodetectionV6CanReach:      "canReach",
+		annotationAutodetectionV6CIDRs:         "cidrs",
 	}
 
-	return config, nil
+	autodetectionV6, err := parseAutodetectionAnnotations(annotations, v6Map)
+	if err != nil {
+		return config{}, fmt.Errorf("error parsing autodetection-v6 annotations: %w", err)
+	}
+
+	if autodetectionV6 != nil {
+		c.autodetectionV6 = autodetectionV6
+	}
+
+	return c, nil
 }

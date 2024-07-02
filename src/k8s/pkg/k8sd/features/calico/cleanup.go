@@ -14,16 +14,12 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+var reDefaultCalicoInterface = regexp.MustCompile("^vxlan[-v6]*.calico|cali[a-f0-9]*|tunl[0-9]*$")
+
 func CleanupNetwork(ctx context.Context, snap snap.Snap) error {
 	interfaces, err := net.Interfaces()
 	if err != nil {
 		return fmt.Errorf("failed to list network interfaces: %w", err)
-	}
-
-	// Compile the regular expression outside the loop
-	regex, err := regexp.Compile("^vxlan[-v6]*.calico|cali[a-f0-9]*|tunl[0-9]*$")
-	if err != nil {
-		return fmt.Errorf("failed to compile regex pattern: %w", err)
 	}
 
 	// Find the interfaces created by Calico
@@ -31,7 +27,7 @@ func CleanupNetwork(ctx context.Context, snap snap.Snap) error {
 		// Check if the interface name matches the regex pattern
 		// Adapted from MicroK8s' link removal hook:
 		// https://github.com/canonical/microk8s/blob/dff3627959d4774198000795a0a0afcaa003324b/microk8s-resources/default-hooks/remove.d/10-cni-link#L15
-		match := regex.MatchString(iface.Name)
+		match := reDefaultCalicoInterface.MatchString(iface.Name)
 		if match {
 			// Perform cleanup for Calico interface
 			if err := exec.CommandContext(ctx, "ip", "link", "delete", iface.Name).Run(); err != nil {
