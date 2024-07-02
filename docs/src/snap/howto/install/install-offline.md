@@ -52,6 +52,26 @@ Ensure that all cluster nodes are reachable from each other.
 <!-- Refer to [Services and ports][svc-ports] used for a list of all network
 ports used by Canonical Kubernetes.  -->
 
+#### Default Gateway
+
+In cases where the air gap environment does not have a default gateway,
+add a dummy default route on interface eth0 using the following command:
+
+```bash
+ip route add default dev eth0
+```
+
+```{note} 
+Confirm the name of the default network interface used for pod-to-pod
+communication by running "ip a".
+```
+
+```{note} 
+The dummy gateway will only be used by the Kubernetes services to 
+know which interface to use, actual connectivity to the internet is not 
+required. Ensure that the dummy gateway rule survives a node reboot.
+```
+
 #### Ensure proxy access
 
 This section is only relevant if access to upstream image registries
