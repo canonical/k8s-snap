@@ -16,7 +16,7 @@ sync:
   - source: ghcr.io/projectcontour/contour:v1.28.2
     target: ghcr.io/canonical/k8s-snap/projectcontour/contour:v1.28.2
     type: image
-  - source: docker.io/envoyproxy/envoy:v1.28.2
+  - source: docker.io/envoyproxy/envoy:v1.29.2
     target: ghcr.io/canonical/k8s-snap/envoyproxy/envoy:v1.28.2
     type: image
   - source: docker.io/calico/apiserver:v3.28.0
