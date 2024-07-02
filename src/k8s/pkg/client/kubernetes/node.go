@@ -11,7 +11,7 @@ import (
 
 // DeleteNode will remove a node from the kubernetes cluster.
 // DeleteNode will retry if there is a conflict on the resource.
-// DeleteNode will not fail if the node does not
+// DeleteNode will not fail if the node does not exist.
 func (c *Client) DeleteNode(ctx context.Context, nodeName string) error {
 	return retry.RetryOnConflict(retry.DefaultBackoff, func() error {
 		if err := c.CoreV1().Nodes().Delete(ctx, nodeName, metav1.DeleteOptions{}); err != nil && !apierrors.IsNotFound(err) {
