@@ -9,24 +9,30 @@ To set up a proxy using squid follow the
 
 ## Adding proxy configuration for the k8s snap
 
-Add the `/etc/systemd/system/snap.k8s.containerd.d/10-env.conf` file
-and add the relevant URLs.
+If necessary, create the `snap.k8s.containerd.service.d` directory:
+
+```bash
+sudo mkdir -p /etc/systemd/system/snap.k8s.containerd.service.d
+```
 
 ```{note} It is important to add whatever address ranges are used by the
  cluster itself to the `NO_PROXY` and `no_proxy` variables.
 ```
 
 For example, assume we have a proxy running at `http://squid.internal:3128` and
-we are using the networks `10.0.0.0/8`,`192.168.0.0/16` and `172.16.0.0/12`. We
-would edit the environment (`/etc/environment`) file to include these lines:
+we are using the networks `10.0.0.0/8`,`192.168.0.0/16` and `172.16.0.0/12`.
+We would add the configuration to the
+(`/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`) file:
 
-```
-HTTPS_PROXY=http://squid.internal:3128
-HTTP_PROXY=http://squid.internal:3128
-NO_PROXY=10.0.0.0/8,192.168.0.0/16,127.0.0.1,172.16.0.0/12
-https_proxy=http://squid.internal:3128
-http_proxy=http://squid.internal:3128
-no_proxy=10.0.0.0/8,192.168.0.0/16,127.0.0.1,172.16.0.0/12
+```bash
+# /etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf
+[Service]
+Environment="HTTPS_PROXY=http://squid.internal:3128"
+Environment="HTTP_PROXY=http://squid.internal:3128"
+Environment="NO_PROXY=10.0.0.0/8,10.152.183.1,192.168.0.0/16,127.0.0.1,172.16.0.0/12"
+Environment="https_proxy=http://squid.internal:3128"
+Environment="http_proxy=http://squid.internal:3128"
+Environment="no_proxy=10.0.0.0/8,10.152.183.1,192.168.0.0/16,127.0.0.1,172.16.0.0/12"
 ```
 
 Note that you may need to restart for these settings to take effect.
