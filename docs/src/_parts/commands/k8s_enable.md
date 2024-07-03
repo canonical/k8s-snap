@@ -21,3 +21,4 @@ k8s enable [network|dns|gateway|ingress|local-storage|load-balancer] ... [flags]
 ### SEE ALSO
 
 * [k8s](k8s.md)	 - Canonical Kubernetes CLI
+
