@@ -27,9 +27,12 @@ class LocalHarness(Harness):
 
         LOG.debug("Configured local substrate")
 
-    def new_instance(self) -> Instance:
+    def new_instance(self, dualstack: bool=False) -> Instance:
         if self.initialized:
             raise HarnessError("local substrate only supports up to one instance")
+
+        if dualstack:
+            raise HarnessError("Dualstack is currently not supported by Local harness")
 
         self.initialized = True
         LOG.debug("Initializing instance")

@@ -53,7 +53,10 @@ class JujuHarness(Harness):
                 self.constraints,
             )
 
-    def new_instance(self) -> Instance:
+    def new_instance(self, dualstack: bool=False) -> Instance:
+        if dualstack:
+            raise HarnessError("Dualstack is currently not supported by Juju harness")
+
         for instance_id in self.existing_machines:
             if not self.existing_machines[instance_id]:
                 LOG.debug("Reusing existing machine %s", instance_id)

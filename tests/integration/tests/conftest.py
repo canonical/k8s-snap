@@ -50,8 +50,9 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers",
         "node_count: Mark a test to specify how many instance nodes need to be created\n"
-        "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that."
-        "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)",
+        "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.\n"
+        "enable_dualstack: Mark a test to enable dualstack networking\n"
+        "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n",
     )
 
 
@@ -68,10 +69,14 @@ def node_count(request) -> int:
 def disable_k8s_bootstrapping(request) -> int:
     return bool(request.node.get_closest_marker("disable_k8s_bootstrapping"))
 
+@pytest.fixture(scope="function")
+def enable_dualstack(request) -> int:
+    return bool(request.node.get_closest_marker("enable_dualstack"))
+
 
 @pytest.fixture(scope="function")
 def instances(
-    h: harness.Harness, node_count: int, tmp_path: Path, disable_k8s_bootstrapping: bool
+    h: harness.Harness, node_count: int, tmp_path: Path, disable_k8s_bootstrapping: bool, enable_dualstack: bool
 ) -> Generator[List[harness.Instance], None, None]:
     """Construct instances for a cluster.
 
@@ -90,7 +95,7 @@ def instances(
 
     for _ in range(node_count):
         # Create <node_count> instances and setup the k8s snap in each.
-        instance = h.new_instance()
+        instance = h.new_instance(dualstack=enable_dualstack)
         instances.append(instance)
         util.setup_k8s_snap(instance, snap_path)
 
