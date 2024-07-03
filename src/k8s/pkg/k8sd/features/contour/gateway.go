@@ -33,7 +33,22 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		return fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
 	}
 
-	if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, nil); err != nil {
+	values := map[string]any{
+		"projectcontour": map[string]any{
+			"image": map[string]any{
+				"repository": contourGatewayProvisionerContourImageRepo,
+				"tag":        contourGatewayProvisionerContourImageTag,
+			},
+		},
+		"envoyproxy": map[string]any{
+			"image": map[string]any{
+				"repository": contourGatewayProvisionerEnvoyImageRepo,
+				"tag":        contourGatewayProvisionerEnvoyImageTag,
+			},
+		},
+	}
+
+	if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to install the contour gateway chart: %w", err)
 	}
 
