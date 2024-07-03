@@ -36,9 +36,9 @@ func setupKubeconfigs(s *state.State, kubeConfigDir string, securePort int, pki 
 func startControlPlaneServices(ctx context.Context, snap snap.Snap, datastore string) error {
 	// Start services
 	switch datastore {
-	case "k8s-dqlite":
-		if err := snaputil.StartK8sDqliteServices(ctx, snap); err != nil {
-			return fmt.Errorf("failed to start control plane services: %w", err)
+	case "k8s-dqlite", "etcd":
+		if err := snaputil.StartK8sDBService(ctx, snap); err != nil {
+			return fmt.Errorf("failed to start datastore: %w", err)
 		}
 	case "external":
 	default:
@@ -54,9 +54,9 @@ func startControlPlaneServices(ctx context.Context, snap snap.Snap, datastore st
 func stopControlPlaneServices(ctx context.Context, snap snap.Snap, datastore string) error {
 	// Stop services
 	switch datastore {
-	case "k8s-dqlite":
-		if err := snaputil.StopK8sDqliteServices(ctx, snap); err != nil {
-			return fmt.Errorf("failed to stop k8s-dqlite service: %w", err)
+	case "k8s-dqlite", "etcd":
+		if err := snaputil.StopK8sDBService(ctx, snap); err != nil {
+			return fmt.Errorf("failed to stop datastore: %w", err)
 		}
 	case "external":
 	default:

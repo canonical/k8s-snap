@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/etcd"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
@@ -177,6 +178,10 @@ func (s *snap) K8sDqliteStateDir() string {
 	return path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite")
 }
 
+func (s *snap) EtcdDir() string {
+	return path.Join(s.snapCommonDir, "var", "lib", "etcd")
+}
+
 func (s *snap) ServiceArgumentsDir() string {
 	return path.Join(s.snapCommonDir, "args")
 }
@@ -264,6 +269,13 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) er
 	}
 
 	return nil
+}
+
+func (s *snap) EtcdClient() etcd.Client {
+	return etcd.NewExternalClient(
+		filepath.Join(s.snapDir, "bin", "k8s-dqlite"),
+		s.EtcdDir(),
+	)
 }
 
 var _ Snap = &snap{}
