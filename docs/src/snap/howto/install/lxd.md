@@ -195,9 +195,6 @@ lxc delete k8s
 
 ## Explanation of custom LXD rules
 
-**boot.autostart: “true”**: Always start the container when LXD starts. This is
-needed to start the container when the host boots.
-
 **linux.kernel_modules**: Comma separated list of kernel modules to load before
 starting the container
 
