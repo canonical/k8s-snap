@@ -36,23 +36,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) (rerr err
 	// the code can register cleanup hooks by appending to this slice
 	var cleanups []func(context.Context) error
 	defer func() {
-		log.Printf("Waiting for node to finish microcluster join")
-		control.WaitUntilReady(s.Context, func() (bool, error) {
-			var notPending bool
-			if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-				member, err := cluster.GetInternalClusterMember(ctx, tx, s.Name())
-				if err != nil {
-					log.Printf("Failed to get member: %v", err)
-				}
-				notPending = member.Role != cluster.Pending
-				return nil
-			}); err != nil {
-				log.Printf("Transaction to check cluster member role failed: %v", err)
-			}
-			return notPending, nil
-		})
-
-		// do not cleanup if bootstrap was successful
+		// do not cleanup if joining was successful
 		if rerr == nil {
 			log.Println("Joined cluster successfully")
 			return

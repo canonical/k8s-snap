@@ -29,7 +29,7 @@ func newKubectlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				env.Exit(1)
 				return
 			} else if status.ClusterRole == apiv1.ClusterRoleWorker {
-				cmd.PrintErrln("Error: k8s helm commands are not allowed on worker nodes.")
+				cmd.PrintErrln("Error: k8s kubectl commands are not allowed on worker nodes.")
 				env.Exit(1)
 				return
 			}
