@@ -50,10 +50,12 @@ Install Canonical Kubernetes on both VMs with the following command:
 ```
 sudo snap install --classic --edge k8s
 ```
-
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable -->
 (step2)=
 ### 2. Bootstrap your control plane node
 
+<!-- markdownlint-restore -->
 Bootstrap the control plane node:
 
 ```
@@ -129,11 +131,11 @@ sudo k8s remove-node worker
 sudo k8s remove-node control-plane
 ```
 
-To delete the VMs from your system, two commands are needed:
+To delete the VMs from your system use the following commands:
 
 ```
-multipass remove control-plane
-multipass remove worker
+multipass delete control-plane
+multipass delete worker
 multipass purge
 ```
 

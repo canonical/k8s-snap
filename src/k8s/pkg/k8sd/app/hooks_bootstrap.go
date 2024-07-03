@@ -7,8 +7,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
+	"os"
 	"path"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -25,12 +27,21 @@ import (
 // onBootstrap is called after we bootstrap the first cluster node.
 // onBootstrap configures local services then writes the cluster config on the database.
 func (a *App) onBootstrap(s *state.State, initConfig map[string]string) error {
+
+	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
+	ctx, cancel := context.WithCancel(s.Context)
+	defer cancel()
+	if t := utils.MicroclusterTimeoutFromConfig(initConfig); t != 0 {
+		ctx, cancel = context.WithTimeout(ctx, t)
+		defer cancel()
+	}
+
 	if workerToken, ok := initConfig["workerToken"]; ok {
 		workerConfig, err := apiv1.WorkerJoinConfigFromMicrocluster(initConfig)
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal worker join config: %w", err)
 		}
-		return a.onBootstrapWorkerNode(s, workerToken, workerConfig)
+		return a.onBootstrapWorkerNode(ctx, s, workerToken, workerConfig)
 	}
 
 	bootstrapConfig, err := apiv1.BootstrapConfigFromMicrocluster(initConfig)
@@ -38,11 +49,44 @@ func (a *App) onBootstrap(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
 	}
 
-	return a.onBootstrapControlPlane(s, bootstrapConfig)
+	return a.onBootstrapControlPlane(ctx, s, bootstrapConfig)
 }
 
-func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinConfig apiv1.WorkerNodeJoinConfig) error {
+func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encodedToken string, joinConfig apiv1.WorkerNodeJoinConfig) (rerr error) {
 	snap := a.Snap()
+
+	// make sure to cleanup in case of errors
+	// the code can register cleanup hooks by appending to this slice
+	var cleanups []func(context.Context) error
+	defer func() {
+		// do not cleanup if bootstrap was successful
+		if rerr == nil {
+			log.Println("Joined cluster successfully")
+			return
+		}
+
+		// annotate error with context cancellation
+		if err := ctx.Err(); err != nil {
+			rerr = fmt.Errorf("%w: %v", rerr, ctx.Err())
+		}
+
+		// start goroutine to cleanup on the background and return quickly
+		go func() {
+			log.Printf("Join cluster failed: %v", rerr)
+			log.Println("Cleaning up...")
+			for i := len(cleanups) - 1; i >= 0; i-- {
+				// run cleanup functions in reverse order
+				if err := cleanups[i](s.Context); err != nil {
+					log.Printf("Cleanup hook %d/%d failed: %v", i, len(cleanups), err)
+				}
+			}
+			log.Println("All cleanup hooks finished, resetting microcluster state")
+
+			if err := a.client.ResetClusterMember(s.Context, s.Name(), true); err != nil {
+				log.Printf("Failed to ResetClusterMember: %v", err)
+			}
+		}()
+	}()
 
 	token := &types.InternalWorkerNodeToken{}
 	if err := token.Decode(encodedToken); err != nil {
@@ -150,6 +194,13 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize worker node certificates: %w", err)
 	}
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Cleaning up worker certificates")
+		if _, err := setup.EnsureWorkerPKI(snap, &pki.WorkerNodePKI{}); err != nil {
+			return fmt.Errorf("failed to cleanup worker certificates: %w", err)
+		}
+		return nil
+	})
 	if _, err := setup.EnsureWorkerPKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write worker node certificates: %w", err)
 	}
@@ -181,11 +232,11 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	}
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(s.Context, cfg); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg); err != nil {
 		return fmt.Errorf("pre-init checks failed for worker node: %w", err)
 	}
 
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := database.SetClusterConfig(ctx, tx, cfg); err != nil {
 			return fmt.Errorf("failed to write cluster configuration: %w", err)
 		}
@@ -194,6 +245,16 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 		return fmt.Errorf("database transaction to set cluster configuration failed: %w", err)
 	}
 
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		for _, dir := range []string{snap.ServiceArgumentsDir()} {
+			log.Printf("Cleaning up config files from %v", dir)
+			if err := os.RemoveAll(dir); err != nil {
+				return fmt.Errorf("failed to delete %v: %w", dir, err)
+			}
+		}
+		return nil
+	})
+
 	// Worker node services
 	if err := setup.Containerd(snap, nil, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
@@ -201,7 +262,7 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	if err := setup.KubeletWorker(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), response.PodCIDR, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.K8sAPIServerProxy(snap, response.APIServers, joinConfig.ExtraNodeK8sAPIServerProxyArgs); err != nil {
@@ -211,21 +272,67 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 		return fmt.Errorf("failed to write extra node config files: %w", err)
 	}
 
-	// TODO(berkayoz): remove the lock on cleanup
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Removing worker node mark")
+		if err := snaputil.MarkAsWorkerNode(snap, false); err != nil {
+			return fmt.Errorf("failed to unmark node as worker: %w", err)
+		}
+		return nil
+	})
 	if err := snaputil.MarkAsWorkerNode(snap, true); err != nil {
 		return fmt.Errorf("failed to mark node as worker: %w", err)
 	}
 
 	// Start services
-	if err := snaputil.StartWorkerServices(s.Context, snap); err != nil {
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Stopping worker services")
+		if err := snaputil.StopWorkerServices(ctx, snap); err != nil {
+			return fmt.Errorf("failed to start worker services: %w", err)
+		}
+		return nil
+	})
+	if err := snaputil.StartWorkerServices(ctx, snap); err != nil {
 		return fmt.Errorf("failed to start worker services: %w", err)
 	}
 
 	return nil
 }
 
-func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.BootstrapConfig) error {
+func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, bootstrapConfig apiv1.BootstrapConfig) (rerr error) {
 	snap := a.Snap()
+
+	// make sure to cleanup in case of errors
+	// the code can register cleanup hooks by appending to this slice
+	var cleanups []func(context.Context) error
+	defer func() {
+		// do not cleanup if bootstrap was successful
+		if rerr == nil {
+			log.Println("Bootstrapped cluster successfully")
+			return
+		}
+
+		// annotate error with context cancellation
+		if err := ctx.Err(); err != nil {
+			rerr = fmt.Errorf("%w: %v", rerr, ctx.Err())
+		}
+
+		// start goroutine to cleanup on the background and return quickly
+		go func() {
+			log.Printf("Bootstrap failed: %v", rerr)
+			log.Println("Cleaning up...")
+			for i := len(cleanups) - 1; i >= 0; i-- {
+				// run cleanup functions in reverse order
+				if err := cleanups[i](s.Context); err != nil {
+					log.Printf("Cleanup hook %d/%d failed: %v", i, len(cleanups), err)
+				}
+			}
+			log.Println("All cleanup hooks finished, resetting microcluster state")
+
+			if err := a.client.ResetClusterMember(s.Context, s.Name(), true); err != nil {
+				log.Printf("Failed to ResetClusterMember: %v", err)
+			}
+		}()
+	}()
 
 	cfg, err := types.ClusterConfigFromBootstrapConfig(bootstrapConfig)
 	if err != nil {
@@ -281,6 +388,13 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		if err := certificates.CheckCertificates(); err != nil {
 			return fmt.Errorf("failed to initialize external datastore certificates: %w", err)
 		}
+		cleanups = append(cleanups, func(ctx context.Context) error {
+			log.Println("Cleaning up external datastore certificates")
+			if _, err := setup.EnsureExtDatastorePKI(snap, &pki.ExternalDatastorePKI{}); err != nil {
+				return fmt.Errorf("failed to cleanup external datastore certificates: %w", err)
+			}
+			return nil
+		})
 		if _, err := setup.EnsureExtDatastorePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write external datastore certificates: %w", err)
 		}
@@ -357,6 +471,14 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
+
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Cleaning up control plane certificates")
+		if _, err := setup.EnsureControlPlanePKI(snap, &pki.ControlPlanePKI{}); err != nil {
+			return fmt.Errorf("failed to cleanup control plane certificates: %w", err)
+		}
+		return nil
+	})
 	if _, err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
@@ -377,7 +499,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	cfg.Certificates.K8sdPrivateKey = utils.Pointer(certificates.K8sdPrivateKey)
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(s.Context, cfg); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg); err != nil {
 		return fmt.Errorf("pre-init checks failed for bootstrap node: %w", err)
 	}
 
@@ -389,10 +511,24 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	// Configure datastore
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
-		if err := setup.K8sDqlite(snap, utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetK8sDqlitePort()), nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
+		cleanups = append(cleanups, func(ctx context.Context) error {
+			log.Println("Cleaning up k8s-dqlite directory")
+			if err := os.RemoveAll(snap.K8sDqliteStateDir()); err != nil {
+				return fmt.Errorf("failed to cleanup k8s-dqlite state directory: %w", err)
+			}
+			return nil
+		})
+		if err := setup.K8sDqlite(snap, fmt.Sprintf("%s:%d", nodeIP.String(), cfg.Datastore.GetK8sDqlitePort()), nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite: %w", err)
 		}
 	case "etcd":
+		cleanups = append(cleanups, func(ctx context.Context) error {
+			log.Println("Cleaning upetcd directory")
+			if err := os.RemoveAll(snap.EtcdDir()); err != nil {
+				return fmt.Errorf("failed to cleanup etcd state directory: %w", err)
+			}
+			return nil
+		})
 		clientURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPort()))
 		peerURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPeerPort()))
 		if err := setup.Etcd(snap, s.Name(), clientURL, peerURL, nil, bootstrapConfig.ExtraNodeEtcdArgs); err != nil {
@@ -402,6 +538,15 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		for _, dir := range []string{snap.ServiceArgumentsDir()} {
+			log.Printf("Cleaning up config files from %v", dir)
+			if err := os.RemoveAll(dir); err != nil {
+				return fmt.Errorf("failed to delete %v: %w", dir, err)
+			}
+		}
+		return nil
+	})
 
 	// Configure services
 	if err := setup.Containerd(snap, nil, bootstrapConfig.ExtraNodeContainerdArgs); err != nil {
@@ -410,7 +555,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), bootstrapConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.GetPodCIDR(), bootstrapConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), bootstrapConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap, bootstrapConfig.ExtraNodeKubeControllerManagerArgs); err != nil {
@@ -428,7 +573,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	}
 
 	// Write cluster configuration to dqlite
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := database.SetClusterConfig(ctx, tx, cfg); err != nil {
 			return fmt.Errorf("failed to write cluster configuration: %w", err)
 		}
@@ -437,17 +582,24 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
 	}
 
-	if err := snapdconfig.SetSnapdFromK8sd(s.Context, cfg.ToUserFacing(), snap); err != nil {
+	if err := snapdconfig.SetSnapdFromK8sd(ctx, cfg.ToUserFacing(), snap); err != nil {
 		return fmt.Errorf("failed to set snapd configuration from k8sd: %w", err)
 	}
 
 	// Start services
-	if err := startControlPlaneServices(s.Context, snap, cfg.Datastore.GetType()); err != nil {
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Stopping control plane services")
+		if err := stopControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
+			return fmt.Errorf("failed to stop services: %w", err)
+		}
+		return nil
+	})
+	if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
 		return fmt.Errorf("failed to start services: %w", err)
 	}
 
 	// Wait until Kube-API server is ready
-	if err := waitApiServerReady(s.Context, snap); err != nil {
+	if err := waitApiServerReady(ctx, snap); err != nil {
 		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
 

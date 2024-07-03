@@ -56,6 +56,17 @@ func StartK8sDBService(ctx context.Context, snap snap.Snap) error {
 	return nil
 }
 
+// StopWorkerServices starts the worker services.
+// StopWorkerServices will return on the first failing service.
+func StopWorkerServices(ctx context.Context, snap snap.Snap) error {
+	for _, service := range workerServices {
+		if err := snap.StopService(ctx, service); err != nil {
+			return fmt.Errorf("failed to stop service %s: %w", service, err)
+		}
+	}
+	return nil
+}
+
 // StopControlPlaneServices stops the control plane services.
 // StopControlPlaneServices will return on the first failing service.
 func StopControlPlaneServices(ctx context.Context, snap snap.Snap) error {

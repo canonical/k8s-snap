@@ -7,6 +7,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/etcd"
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
@@ -18,6 +19,7 @@ type Mock struct {
 	OnLXDErr                    error
 	UID                         int
 	GID                         int
+	Hostname                    string
 	KubernetesConfigDir         string
 	KubernetesPKIDir            string
 	EtcdPKIDir                  string
@@ -43,6 +45,7 @@ type Mock struct {
 	HelmClient                  helm.Client
 	K8sDqliteClient             *dqlite.Client
 	EtcdClient                  etcd.Client
+	K8sdClient                  k8sd.Client
 	SnapctlGet                  map[string][]byte
 }
 
@@ -102,6 +105,9 @@ func (s *Snap) UID() int {
 }
 func (s *Snap) GID() int {
 	return s.Mock.GID
+}
+func (s *Snap) Hostname() string {
+	return s.Mock.Hostname
 }
 func (s *Snap) ContainerdConfigDir() string {
 	return s.Mock.ContainerdConfigDir
@@ -177,6 +183,9 @@ func (s *Snap) K8sDqliteClient(context.Context) (*dqlite.Client, error) {
 }
 func (s *Snap) EtcdClient() etcd.Client {
 	return s.Mock.EtcdClient
+}
+func (s *Snap) K8sdClient(address string) (k8sd.Client, error) {
+	return s.Mock.K8sdClient, nil
 }
 func (s *Snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
 	s.SnapctlGetCalledWith = append(s.SnapctlGetCalledWith, args)

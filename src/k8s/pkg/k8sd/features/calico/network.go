@@ -55,7 +55,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 
 	values := map[string]any{
 		"tigeraOperator": map[string]any{
-			"registry": tigeraOperatorRegistry,
+			"registry": imageRepo,
 			"image":    tigeraOperatorImage,
 			"version":  tigeraOperatorVersion,
 		},
@@ -67,6 +67,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 			"calicoNetwork": map[string]any{
 				"ipPools": podIpPools,
 			},
+			"registry": imageRepo,
 		},
 		"serviceCIDRs": serviceCIDRs,
 	}

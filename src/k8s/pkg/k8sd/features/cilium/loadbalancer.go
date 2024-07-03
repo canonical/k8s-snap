@@ -99,6 +99,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 	}
 
 	values := map[string]any{
+		"driver": "cilium",
 		"l2": map[string]any{
 			"enabled":    loadbalancer.GetL2Mode(),
 			"interfaces": loadbalancer.GetL2Interfaces(),

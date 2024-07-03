@@ -1,7 +1,6 @@
 package k8s
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -62,14 +61,14 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient("")
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			if client.IsBootstrapped(cmd.Context()) {
+			if _, err := client.NodeStatus(cmd.Context()); err == nil {
 				cmd.PrintErrln("Error: The node is already part of a cluster")
 				env.Exit(1)
 				return
@@ -98,11 +97,14 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				joinClusterConfig = string(b)
 			}
 
-			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
-			cobra.OnFinalize(cancel)
-
 			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
-			if err := client.JoinCluster(ctx, apiv1.JoinClusterRequest{Name: opts.name, Address: address, Token: token, Config: joinClusterConfig}); err != nil {
+			if err := client.JoinCluster(cmd.Context(), apiv1.JoinClusterRequest{
+				Name:    opts.name,
+				Address: address,
+				Token:   token,
+				Config:  joinClusterConfig,
+				Timeout: opts.timeout,
+			}); err != nil {
 				cmd.PrintErrf("Error: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return

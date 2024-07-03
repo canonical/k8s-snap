@@ -1,29 +1,104 @@
 package app
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
+	"log"
 	"net"
+	"os"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
+	"github.com/canonical/microcluster/cluster"
 	"github.com/canonical/microcluster/state"
 )
 
 // onPostJoin is called when a control plane node joins the cluster.
 // onPostJoin retrieves the cluster config from the database and configures local services.
-func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
+func (a *App) onPostJoin(s *state.State, initConfig map[string]string) (rerr error) {
 	snap := a.Snap()
+
+	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
+	ctx, cancel := context.WithCancel(s.Context)
+	defer cancel()
+	if t := utils.MicroclusterTimeoutFromConfig(initConfig); t != 0 {
+		ctx, cancel = context.WithTimeout(ctx, t)
+		defer cancel()
+	}
+
+	// make sure to cleanup in case of errors
+	// the code can register cleanup hooks by appending to this slice
+	var cleanups []func(context.Context) error
+	defer func() {
+		// do not cleanup if joining was successful
+		if rerr == nil {
+			log.Println("Joined cluster successfully")
+			return
+		}
+
+		// annotate error with context cancellation
+		if err := ctx.Err(); err != nil {
+			rerr = fmt.Errorf("%w: %v", rerr, ctx.Err())
+		}
+
+		// start goroutine to cleanup on the background and return quickly
+		go func() {
+			log.Printf("Join cluster failed: %v", rerr)
+
+			log.Printf("Waiting for node to finish microcluster join")
+			control.WaitUntilReady(s.Context, func() (bool, error) {
+				var notPending bool
+				if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+					member, err := cluster.GetInternalClusterMember(ctx, tx, s.Name())
+					if err != nil {
+						log.Printf("Failed to get member: %v", err)
+						return nil
+					}
+					notPending = member.Role != cluster.Pending
+					return nil
+				}); err != nil {
+					log.Printf("Transaction to check cluster member role failed: %v", err)
+				}
+				return notPending, nil
+			})
+
+			log.Println("Cleaning up...")
+			for i := len(cleanups) - 1; i >= 0; i-- {
+				// run cleanup functions in reverse order
+				if err := cleanups[i](s.Context); err != nil {
+					log.Printf("Cleanup hook %d/%d failed: %v", i, len(cleanups), err)
+				}
+			}
+			log.Println("All cleanup hooks finished, removing node from microcluster")
+
+			// NOTE(neoaggelos): this also runs the pre-remove hook and resets the cluster member
+			control.WaitUntilReady(s.Context, func() (bool, error) {
+				client, err := s.Leader()
+				if err != nil {
+					log.Printf("Error: failed to create client to leader: %v", err)
+					return false, nil
+				}
+				if err := client.DeleteClusterMember(s.Context, s.Name(), true); err != nil {
+					log.Printf("Error: failed to DeleteClusterMember: %v", err)
+					return false, nil
+				}
+				return true, nil
+			})
+		}()
+	}()
 
 	joinConfig, err := apiv1.ControlPlaneJoinConfigFromMicrocluster(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal control plane join config: %w", err)
 	}
 
-	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
+	cfg, err := databaseutil.GetClusterConfig(ctx, s)
 	if err != nil {
 		return fmt.Errorf("failed to get cluster config: %w", err)
 	}
@@ -136,11 +211,18 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(s.Context, cfg); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg); err != nil {
 		return fmt.Errorf("pre-init checks failed for joining node: %w", err)
 	}
 
 	// Write certificates to disk
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Cleaning up control plane certificates")
+		if _, err := setup.EnsureControlPlanePKI(snap, &pki.ControlPlanePKI{}); err != nil {
+			return fmt.Errorf("failed to cleanup control plane certificates: %w", err)
+		}
+		return nil
+	})
 	if _, err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
@@ -154,11 +236,12 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	case "external":
 		// no-op
 	case "k8s-dqlite":
+		// TODO(neoaggelos): use cluster.GetInternalClusterMembers() instead
 		leader, err := s.Leader()
 		if err != nil {
 			return fmt.Errorf("failed to get microcluster leader: %w", err)
 		}
-		members, err := leader.GetClusterMembers(s.Context)
+		members, err := leader.GetClusterMembers(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get microcluster members: %w", err)
 		}
@@ -198,6 +281,16 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
 
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		for _, dir := range []string{snap.ServiceArgumentsDir()} {
+			log.Printf("Cleaning up config files from %v", dir)
+			if err := os.RemoveAll(dir); err != nil {
+				return fmt.Errorf("failed to delete %v: %w", dir, err)
+			}
+		}
+		return nil
+	})
+
 	// Configure services
 	if err := setup.Containerd(snap, nil, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
@@ -205,7 +298,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.GetPodCIDR(), joinConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), joinConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap, joinConfig.ExtraNodeKubeControllerManagerArgs); err != nil {
@@ -222,25 +315,43 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to write extra node config files: %w", err)
 	}
 
-	if err := snapdconfig.SetSnapdFromK8sd(s.Context, cfg.ToUserFacing(), snap); err != nil {
+	if err := snapdconfig.SetSnapdFromK8sd(ctx, cfg.ToUserFacing(), snap); err != nil {
 		return fmt.Errorf("failed to set snapd configuration from k8sd: %w", err)
 	}
 
 	// Start services
-	if err := startControlPlaneServices(s.Context, snap, cfg.Datastore.GetType()); err != nil {
+	cleanups = append(cleanups, func(ctx context.Context) error {
+		log.Println("Stopping control plane services")
+		if err := stopControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
+			return fmt.Errorf("failed to stop services: %w", err)
+		}
+		return nil
+	})
+	if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
 		return fmt.Errorf("failed to start services: %w", err)
 	}
 
 	// Wait until Kube-API server is ready
-	if err := waitApiServerReady(s.Context, snap); err != nil {
+	if err := waitApiServerReady(ctx, snap); err != nil {
 		return fmt.Errorf("failed to wait for kube-apiserver to become ready: %w", err)
 	}
 
 	return nil
 }
 
-func (a *App) onPreRemove(s *state.State, force bool) error {
+func (a *App) onPreRemove(s *state.State, force bool) (rerr error) {
 	snap := a.Snap()
+
+	// NOTE(neoaggelos): When the pre-remove hook fails, the microcluster node will
+	// be removed from the cluster members, but remains in the microcluster dqlite database.
+	//
+	// Log the error and proceed, such that the node is in fact removed.
+	defer func() {
+		if rerr != nil {
+			log.Printf("WARNING: There was an error when running the pre-remove hook: %v", rerr)
+		}
+		rerr = nil
+	}()
 
 	// NOTE(neoaggelos): this is not sufficient, as it leaves behind other cluster resources tied to the node
 	c, err := snap.KubernetesClient("")

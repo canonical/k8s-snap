@@ -39,6 +39,12 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 				"path": cfg.GetLocalPath(),
 			},
 		},
+		"images": map[string]any{
+			"csiNodeDriverRegistrar": csiNodeDriverImage,
+			"csiProvisioner":         csiProvisionerImage,
+			"csiResizer":             csiResizerImage,
+			"csiSnapshotter":         csiSnapshotterImage,
+		},
 	}
 
 	_, err := m.Apply(ctx, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)

@@ -1,13 +1,11 @@
 package cmdutil
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
-	"github.com/canonical/k8s/pkg/k8s/client"
 	"github.com/canonical/k8s/pkg/snap"
 )
 
@@ -27,8 +25,6 @@ type ExecutionEnvironment struct {
 	Getuid func() int
 	// Snap provides the snap environment for the command.
 	Snap snap.Snap
-	// Client is used to retrieve a k8sd client.
-	Client func(ctx context.Context) (client.Client, error)
 }
 
 // DefaultExecutionEnvironment is used to run the CLI.
@@ -57,9 +53,6 @@ func DefaultExecutionEnvironment() ExecutionEnvironment {
 		Environ: os.Environ(),
 		Getuid:  os.Getuid,
 		Snap:    s,
-		Client: func(ctx context.Context) (client.Client, error) {
-			return client.New(ctx, s)
-		},
 	}
 }
 

@@ -1,0 +1,19 @@
+{{ if (eq .Values.driver "metallb") }}
+{{ if .Values.ipPool.cidrs }}
+apiVersion: "metallb.io/v1beta1"
+kind: IPAddressPool
+metadata:
+  name: {{ include "ck-loadbalancer.fullname" . }}
+  labels:
+    {{- include "ck-loadbalancer.labels" . | nindent 4 }}
+spec:
+  addresses:
+    {{- range .Values.ipPool.cidrs }}
+    {{- if .cidr }}
+    - {{ .cidr }}
+    {{- else if and .start .stop }}
+    - {{ printf "%s-%s" .start .stop }}
+    {{ end }}
+    {{ end }}
+{{ end }}
+{{ end }}

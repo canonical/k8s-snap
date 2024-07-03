@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
@@ -17,6 +18,16 @@ type k8sDqliteInit struct {
 }
 
 func K8sDqlite(snap snap.Snap, address string, cluster []string, extraArgs map[string]*string) error {
+	// cleanup in case of existing cluster
+	if _, err := os.Stat(filepath.Join(snap.K8sDqliteStateDir(), "cluster.yaml")); err == nil {
+		if err := os.RemoveAll(snap.K8sDqliteStateDir()); err != nil {
+			return fmt.Errorf("failed to cleanup not-empty k8s-dqlite directory: %w", err)
+		}
+		if err := os.MkdirAll(snap.K8sDqliteStateDir(), 0700); err != nil {
+			return fmt.Errorf("failed to create k8s-dqlite state directory: %w", err)
+		}
+	}
+
 	b, err := yaml.Marshal(&k8sDqliteInit{Address: address, Cluster: cluster})
 	if err != nil {
 		return fmt.Errorf("failed to create init.yaml file for address=%s cluster=%v: %w", address, cluster, err)

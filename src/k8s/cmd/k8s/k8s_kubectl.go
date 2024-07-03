@@ -5,8 +5,8 @@ import (
 	"path"
 	"syscall"
 
+	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
-	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/spf13/cobra"
 )
 
@@ -17,28 +17,19 @@ func newKubectlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		DisableFlagParsing: true,
 		PreRun:             chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
-			isWorker, err := snaputil.IsWorker(env.Snap)
-			if err != nil {
-				cmd.PrintErrf("Error: Failed to check if this is worker-only node.\n\nThe error was: %v\n", err)
-				env.Exit(1)
-				return
-			}
-
-			if isWorker {
-				cmd.PrintErrln("Error: k8s kubectl commands are not allowed on worker nodes")
-				env.Exit(1)
-				return
-			}
-
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient("")
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			if !client.IsBootstrapped(cmd.Context()) {
+			if status, err := client.NodeStatus(cmd.Context()); err != nil {
 				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				env.Exit(1)
+				return
+			} else if status.ClusterRole == apiv1.ClusterRoleWorker {
+				cmd.PrintErrln("Error: k8s kubectl commands are not allowed on worker nodes.")
 				env.Exit(1)
 				return
 			}

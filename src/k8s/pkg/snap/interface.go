@@ -6,6 +6,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/etcd"
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 )
@@ -15,8 +16,9 @@ type Snap interface {
 	Strict() bool                        // Strict returns true if the snap is installed with strict confinement.
 	OnLXD(context.Context) (bool, error) // OnLXD returns true if the host runs on LXD.
 
-	UID() int // UID is the user ID to set on config files.
-	GID() int // GID is the group ID to set on config files.
+	UID() int         // UID is the user ID to set on config files.
+	GID() int         // GID is the group ID to set on config files.
+	Hostname() string // Hostname is the name of the node.
 
 	StartService(ctx context.Context, serviceName string) error   // snapctl start $service
 	StopService(ctx context.Context, serviceName string) error    // snapctl stop $service
@@ -59,6 +61,8 @@ type Snap interface {
 	K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) // go-dqlite client for k8s-dqlite
 
 	EtcdClient() etcd.Client // client for the managed etcd cluster
+
+	K8sdClient(address string) (k8sd.Client, error) // k8sd client
 
 	PreInitChecks(ctx context.Context, config types.ClusterConfig) error // pre-init checks before k8s-snap can start
 }

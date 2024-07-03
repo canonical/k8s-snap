@@ -23,6 +23,7 @@ LOG = logging.getLogger(__name__)
 
 DIR = Path(__file__).absolute().parent
 COMPONENTS = DIR.parent / "components"
+CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
 
 # Version marker for latest Kubernetes version. Expected to be one of:
 #
@@ -35,6 +36,14 @@ CONTAINERD_RELEASE_BRANCH = "release/1.6"
 
 # Helm release branch to track. The most recent tag in the branch will be used.
 HELM_RELEASE_BRANCH = "release-3.14"
+
+# Contour Helm repository and chart version
+CONTOUR_HELM_REPO = "https://charts.bitnami.com/bitnami"
+CONTOUR_CHART_VERSION = "17.0.4"
+
+# MetalLB Helm repository and chart version
+METALLB_REPO = "https://metallb.github.io/metallb"
+METALLB_CHART_VERSION = "0.14.5"
 
 
 def get_kubernetes_version() -> str:
@@ -58,6 +67,15 @@ def get_cni_version() -> str:
                 return f"v{ersion.lstrip('v')}"
 
         raise Exception(f"Failed to find cni dependency in {deps_file}")
+
+
+def pull_contour_chart() -> None:
+    LOG.info(
+        "Pulling Contour Helm chart from %s with version %s",
+        CONTOUR_HELM_REPO,
+        CONTOUR_CHART_VERSION,
+    )
+    util.helm_pull("contour", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION, CHARTS)
 
 
 def get_containerd_version() -> str:
@@ -86,6 +104,11 @@ def get_helm_version() -> str:
         return util.parse_output(["git", "describe", "--tags", "--abbrev=0"], cwd=dir)
 
 
+def pull_metallb_chart() -> None:
+    LOG.info("Pulling MetalLB chart @ %s", METALLB_CHART_VERSION)
+    util.helm_pull("metallb", METALLB_REPO, METALLB_CHART_VERSION, CHARTS)
+
+
 def update_component_versions(dry_run: bool):
     for component, get_version in [
         ("kubernetes", get_kubernetes_version),
@@ -100,6 +123,14 @@ def update_component_versions(dry_run: bool):
         LOG.info("Update %s version to %s in %s", component, version, path)
         if not dry_run:
             Path(path).write_text(version.strip() + "\n")
+
+    for component, pull_helm_chart in [
+        ("bitnami/contour", pull_contour_chart),
+        ("metallb", pull_metallb_chart),
+    ]:
+        LOG.info("Updating chart for %s", component)
+        if not dry_run:
+            pull_helm_chart()
 
 
 def main():

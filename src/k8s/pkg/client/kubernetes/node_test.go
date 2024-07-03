@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -15,7 +15,7 @@ import (
 )
 
 func TestDeleteNode(t *testing.T) {
-	g := gomega.NewWithT(t)
+	g := NewWithT(t)
 
 	t.Run("node deletion is successful", func(t *testing.T) {
 		clientset := fake.NewSimpleClientset()
@@ -28,7 +28,16 @@ func TestDeleteNode(t *testing.T) {
 		}, metav1.CreateOptions{})
 
 		err := client.DeleteNode(context.Background(), nodeName)
-		g.Expect(err).To(gomega.BeNil())
+		g.Expect(err).To(BeNil())
+	})
+
+	t.Run("node does not exist is successful", func(t *testing.T) {
+		clientset := fake.NewSimpleClientset()
+		client := &Client{Interface: clientset}
+		nodeName := "test-node"
+
+		err := client.DeleteNode(context.Background(), nodeName)
+		g.Expect(err).To(BeNil())
 	})
 
 	t.Run("node deletion fails", func(t *testing.T) {
@@ -41,6 +50,6 @@ func TestDeleteNode(t *testing.T) {
 		})
 
 		err := client.DeleteNode(context.Background(), nodeName)
-		g.Expect(err).To(gomega.MatchError(fmt.Errorf("failed to delete node: %w", expectedErr)))
+		g.Expect(err).To(MatchError(fmt.Errorf("failed to delete node: %w", expectedErr)))
 	})
 }

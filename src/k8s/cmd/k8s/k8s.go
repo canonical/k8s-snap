@@ -87,14 +87,15 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	addCommands(
 		cmd,
 		nil,
-		newGenerateAuthTokenCmd(env),
 		newLocalNodeStatusCommand(env),
-		newRevokeAuthTokenCmd(env),
 		newGenerateDocsCmd(env),
 		newHelmCmd(env),
 		xPrintShimPidsCmd,
 		newXSnapdConfigCmd(env),
 		newXWaitForCmd(env),
+		newXCAPICmd(env),
+		newListImagesCmd(env),
+		newXCleanupCmd(env),
 	)
 
 	cmd.DisableAutoGenTag = true
