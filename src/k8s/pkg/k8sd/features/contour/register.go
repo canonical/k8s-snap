@@ -11,5 +11,6 @@ func init() {
 		fmt.Sprintf("%s:%s", envoyImageRepo, envoyImageTag),
 		fmt.Sprintf("%s:%s", contourImageRepo, contourImageTag),
 		fmt.Sprintf("%s:%s", contourGatewayImageRepo, contourGatewayImageTag),
+		fmt.Sprintf("%s:%s", envoyProxyImageRepo, envoyProxyImageTag),
 	)
 }
