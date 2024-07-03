@@ -27,7 +27,7 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		timeout      time.Duration
 	}
 	cmd := &cobra.Command{
-		Use:    "disable <feature> ...",
+		Use:    fmt.Sprintf("disable [%s] ...", strings.Join(featureList, "|")),
 		Short:  "Disable core cluster features",
 		Long:   fmt.Sprintf("Disable one of %s.", strings.Join(featureList, ", ")),
 		Args:   cmdutil.MinimumNArgs(env, 1),
