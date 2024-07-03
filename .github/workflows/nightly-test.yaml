@@ -2,7 +2,7 @@ name: Nightly Latest/Edge Tests
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs every midnight
+    - cron: '0 0 * * *' # Runs every midnight
 
 permissions:
   contents: read
@@ -12,7 +12,7 @@ jobs:
     name: Integration Test ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.releases }}
     strategy:
       matrix:
-        os: ["ubuntu:20.04", "ubuntu:22.04"]
+        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
         releases: ["latest/edge"]
       fail-fast: false # TODO: remove once arm64 works

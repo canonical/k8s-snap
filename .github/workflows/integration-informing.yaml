@@ -28,6 +28,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Install lxd
         run: |
+          sudo snap refresh lxd --channel 5.21/stable
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
@@ -67,7 +68,7 @@ jobs:
         run: pip install tox
       - name: Install lxd
         run: |
-          sudo snap refresh lxd --channel 5.19/stable
+          sudo snap refresh lxd --channel 5.21/stable
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
