@@ -43,8 +43,8 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		"envoy": map[string]any{
 			"image": map[string]any{
 				"registry":   "",
-				"repository": envoyImageRepo,
-				"tag":        envoyImageTag,
+				"repository": contourIngressEnvoyImageRepo,
+				"tag":        contourIngressEnvoyImageTag,
 			},
 		},
 		"contour": map[string]any{
@@ -56,8 +56,8 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 			},
 			"image": map[string]any{
 				"registry":   "",
-				"repository": contourImageRepo,
-				"tag":        contourImageTag,
+				"repository": contourIngressContourImageRepo,
+				"tag":        contourIngressContourImageTag,
 			},
 		},
 	}

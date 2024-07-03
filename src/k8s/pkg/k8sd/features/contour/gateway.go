@@ -36,14 +36,14 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	values := map[string]any{
 		"projectcontour": map[string]any{
 			"image": map[string]any{
-				"repository": contourGatewayImageRepo,
-				"tag":        contourGatewayImageTag,
+				"repository": contourGatewayProvisionerContourImageRepo,
+				"tag":        contourGatewayProvisionerContourImageTag,
 			},
 		},
 		"envoyproxy": map[string]any{
 			"image": map[string]any{
-				"repository": envoyProxyImageRepo,
-				"tag":        envoyProxyImageTag,
+				"repository": contourGatewayProvisionerEnvoyImageRepo,
+				"tag":        contourGatewayProvisionerEnvoyImageTag,
 			},
 		},
 	}
