@@ -60,6 +60,18 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 		serviceCIDRs = append(serviceCIDRs, ipv6ServiceCIDR)
 	}
 
+	calicoNetworkValues := map[string]any{
+		"ipPools": podIpPools,
+	}
+
+	if config.autodetectionV4 != nil {
+		calicoNetworkValues["nodeAddressAutodetectionV4"] = config.autodetectionV4
+	}
+
+	if config.autodetectionV6 != nil {
+		calicoNetworkValues["nodeAddressAutodetectionV6"] = config.autodetectionV6
+	}
+
 	values := map[string]any{
 		"tigeraOperator": map[string]any{
 			"registry": imageRepo,
@@ -71,23 +83,13 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 			"tag":   calicoCtlTag,
 		},
 		"installation": map[string]any{
-			"calicoNetwork": map[string]any{
-				"ipPools": podIpPools,
-			},
-			"registry": imageRepo,
+			"calicoNetwork": calicoNetworkValues,
+			"registry":      imageRepo,
 		},
 		"apiServer": map[string]any{
 			"enabled": config.apiServerEnabled,
 		},
 		"serviceCIDRs": serviceCIDRs,
-	}
-
-	if config.autodetectionV4 != nil {
-		values["installation"].(map[string]any)["calicoNetwork"].(map[string]any)["nodeAddressAutodetectionV4"] = config.autodetectionV4
-	}
-
-	if config.autodetectionV6 != nil {
-		values["installation"].(map[string]any)["calicoNetwork"].(map[string]any)["nodeAddressAutodetectionV6"] = config.autodetectionV6
 	}
 
 	if _, err := m.Apply(ctx, chartCalico, helm.StatePresent, values); err != nil {
