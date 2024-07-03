@@ -108,7 +108,7 @@ If the `k8s` snap is already installed,
 list the images in use with the following command:
 
 ```bash
-ubuntu@demo:~$ sudo k8s list-images
+ubuntu@demo:~$ k8s list-images
 ghcr.io/canonical/cilium-operator-generic:1.15.2-ck2
 ghcr.io/canonical/cilium:1.15.2-ck2
 ghcr.io/canonical/coredns:1.11.1-ck4
@@ -121,8 +121,8 @@ ghcr.io/canonical/metrics-server:0.7.0-ck0
 ghcr.io/canonical/rawfile-localpv:0.8.0-ck5
 ```
 
-A list of images can also be found in the downloaded `k8s` snap within the
-`images.txt` file.
+A list of images can be found in the `images.txt` file when unsquashing the
+downloaded k8s snap.
 
 Please ensure that the images used by workloads are tracked as well.
 
@@ -163,59 +163,20 @@ and the private mirror.
 ##### Load images with regsync
 
 We recommend using [regsync][regsync] to copy images
-from the upstream registry to your private registry.
-For the images used in the k8s-snap we currently sync upstream images
-to the `ghcr.io` repo.
-For a similar task, it may be helpful to refer to the
-[upstream-images.yaml][upstream-imgs] file as well as the
-[sync-images][sync-images] script.
+from the upstream registry to your private registry. Refer to the
+[sync-images.yaml][sync-images-yaml] file that contains the configuration for
+syncing images from the upstream registry to the private registry. Using the
+output from `k8s list-images` update the images in the
+[sync-images.yaml][sync-images-yaml] file if necessary. Update the file with the
+appropriate mirror, and specify a mirror for ghcr.io that points to the
+registry.
 
-Using the output from `sudo k8s list-images`,
-create a yaml file with the images to sync to the private registry.
-
-<!-- markdownlint-disable MD013 -->
-```yaml
-# my-images.yaml
-sync:
-  - source: ghcr.io/canonical/k8s-snap/pause:3.10
-    target: '{{ env "MIRROR" }}/canonical/k8s-snap/pause:3.10'
-    type: image
-  - source: ghcr.io/canonical/cilium-operator-generic:1.15.2-ck2
-    target: '{{ env "MIRROR" }}/canonical/cilium-operator-generic:1.15.2-ck2'
-    type: image
-  - source: ghcr.io/canonical/cilium:1.15.2-ck2
-    target: '{{ env "MIRROR" }}/canonical/cilium:1.15.2-ck2'
-    type: image
-  - source: ghcr.io/canonical/coredns:1.11.1-ck4
-    target: '{{ env "MIRROR" }}/canonical/coredns:1.11.1-ck4'
-    type: image
-  - source: ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1
-    target: '{{ env "MIRROR" }}/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1'
-    type: image
-  - source: ghcr.io/canonical/k8s-snap/sig-storage/csi-provisioner:v5.0.1
-    target: '{{ env "MIRROR" }}/canonical/k8s-snap/sig-storage/csi-provisioner:v5.0.1'
-    type: image
-  - source: ghcr.io/canonical/k8s-snap/sig-storage/csi-resizer:v1.11.1
-    target: '{{ env "MIRROR" }}/canonical/k8s-snap/sig-storage/csi-resizer:v1.11.1'
-    type: image
-  - source: ghcr.io/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1
-    target: '{{ env "MIRROR" }}/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1'
-    type: image
-  - source: ghcr.io/canonical/metrics-server:0.7.0-ck0
-    target: '{{ env "MIRROR" }}/canonical/metrics-server:0.7.0-ck0'
-    type: image
-  - source: ghcr.io/canonical/rawfile-localpv:0.8.0-ck5
-    target: '{{ env "MIRROR" }}/canonical/rawfile-localpv:0.8.0-ck5'
-    type: image
-```
-<!-- markdownlint-enable MD013 -->
-
-After creating the yaml file, use [regctl][regctl] to sync the images.
-Run the [sync-images][sync-images] script in `./build-scripts/hack`:
+After creating the `sync-images.yaml` file, use [regsync][regsync] to sync the
+images. Assuming your registry mirror is at http://10.10.10.10:5050, run:
 
 ```bash
-USERNAME="$username" PASSWORD="$password" MIRROR="$mirror" ./sync-images.sh \
-once -c ./my-images.yaml
+USERNAME="$username" PASSWORD="$password" MIRROR="10.10.10.10:5050" \
+./src/k8s/tools/regsync.sh once -c path/to/sync-images.yaml
 ```
 
 An alternative to configuring a registry mirror is to download all necessary
@@ -275,11 +236,11 @@ Complete the following instructions on all nodes.
 For each upstream registry that needs mirroring, create a `hosts.toml` file.
 
 This example configured `http://10.100.100.100:5000` as a mirror for
-`docker.io`.
+`ghcr.io`.
 
 ##### HTTP registry
 
-In `/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/hosts.toml`
+In `/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/hosts.toml`
 add the configuration:
 
 ```
@@ -291,15 +252,14 @@ capabilities = ["pull", "resolve"]
 
 HTTPS requires the additionally specification of the registry CA certificate.
 Copy the certificate to
-`/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt`,
-
-Then add the configuration in
-`/var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml`:
+`/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt`.
+Then add the configuration in 
+`/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/hosts.toml`:
 
 ```
 [host."https://10.100.100.100:5000"]
 capabilities = ["pull", "resolve"]
-ca = "/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt"
+ca = "/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt"
 ```
 
 #### Container Runtime Option C: Side-load images
@@ -332,9 +292,8 @@ the output of the `sudo k8s kubectl get node` command.
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
 [svc-ports]: /snap/explanation/services-and-ports.md
 [proxy]: /snap/howto/proxy.md
-[upstream-imgs]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/upstream-images.yaml
-[sync-images]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/sync-images.sh
-[regsync]: https://github.com/regclient/regclient
+[sync-images-yaml]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/sync-images.yaml
+[regsync]: https://github.com/regclient/regclient/blob/main/docs/regsync.md
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
 [regctl.sh]: https://github.com/canonical/k8s-snap/blob/main/src/k8s/tools/regctl.sh
 [nodes]: /snap/tutorial/add-remove-nodes.md
