@@ -2,10 +2,7 @@ name: Nightly Latest/Edge Tests
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Runs every midnight
-  push:
-    branches:
-      - KU-1019/e2e-matrix #TODO: rm testing
+    - cron: '0 0 * * *' # Runs every midnight
 
 permissions:
   contents: read

@@ -6,7 +6,6 @@ on:
       - main
       - 'release-[0-9]+.[0-9]+'
       - 'autoupdate/sync/**'
-      - 'KU-1019/e2e-matrix' # TODO: remove testing
   pull_request:
 
 permissions:
