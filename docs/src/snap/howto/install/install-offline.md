@@ -10,7 +10,7 @@ in such environments.
 
 ## Prepare for Deployment
 
-In preparation for the offline deployment you will download the Canonical
+In preparation for the offline deployment download the Canonical
 Kubernetes snap, fulfill the networking requirements based on your scenario and
 handle images for workloads and Canonical Kubernetes features.
 
@@ -54,7 +54,7 @@ ports used by Canonical Kubernetes.  -->
 
 #### Default Gateway
 
-In cases where the air gap environment does not have a default gateway,
+In cases where the air-gap environment does not have a default gateway,
 add a dummy default route on interface eth0 using the following command:
 
 ```bash
@@ -62,8 +62,8 @@ ip route add default dev eth0
 ```
 
 ```{note} 
-Confirm the name of the default network interface used for pod-to-pod
-communication by running "ip a".
+Ensure that `eth0` is the name of the default network interface used for
+pod-to-pod communication.
 ```
 
 ```{note} 
@@ -92,16 +92,20 @@ curl -v https://registry-1.docker.io/v2
 All workloads in a Kubernetes cluster are running as an OCI image.
 Kubernetes needs to be able to fetch these images and load them
 into the container runtime, in order to run workloads.
-For a Canonical Kubernetes deployment, you will need to fetch the images
-used by its features (network, dns, etc) as well as any images that are
-needed to run your workloads.
+For a Canonical Kubernetes deployment, it is necessary to fetch the images used
+by its features (network, dns, etc) as well as any images that are
+needed to run specific workloads.
 
-The following options are presented in the order of
+```{note} 
+The image options are presented in the order of
 increasing complexity of implementation.
-You may also find it helpful to combine these options for your scenario.
+It may be helpful to combine these options for different scenarios.
+```
 
-If you already have the `k8s` snap installed,
-you can list the images in use like this:
+#### List images
+
+If the `k8s` snap is already installed,
+list the images in use with the following command:
 
 ```bash
 ubuntu@demo:~$ sudo k8s list-images
@@ -117,14 +121,14 @@ ghcr.io/canonical/metrics-server:0.7.0-ck0
 ghcr.io/canonical/rawfile-localpv:0.8.0-ck5
 ```
 
-A list of images can also be found in the downloaded k8s snap for the
+A list of images can also be found in the downloaded `k8s` snap within the
 `images.txt` file.
 
-Please remember to keep track of the images used by your workloads as well.
+Please ensure that the images used by workloads are tracked as well.
 
 #### Images Option A: via an HTTP proxy
 
-In many cases, the nodes of the airgap deployment may not have direct access to
+In many cases, the nodes of the air-gap deployment may not have direct access to
 upstream registries, but can reach them through the
 [use of an HTTP proxy][proxy].
 
@@ -137,7 +141,7 @@ to access any upstream image registry,
 it is typical to deploy a private registry mirror.
 This is an image registry service that contains all the required OCI Images
 (e.g. [registry](https://distribution.github.io/distribution/),
-[Harbor](https://goharbor.io/) or any other OCI registry) and
+[harbor](https://goharbor.io/) or any other OCI registry) and
 is reachable from all cluster nodes.
 
 This requires three steps:
@@ -152,7 +156,7 @@ This requires three steps:
    described in the [Configure registry mirrors](
       #Container-Runtime-Option-B:-Configure-registry-mirrors) section.
 
-In order to load images into the private registry, you need a machine with
+In order to load images into the private registry, a machine os needed with
 access to both any upstream registries (e.g. `docker.io`)
 and the private mirror.
 
@@ -206,7 +210,7 @@ sync:
 ```
 <!-- markdownlint-enable MD013 -->
 
-After you have updated the yaml file, use [regctl][regctl] to sync the images.
+After creating the yaml file, use [regctl][regctl] to sync the images.
 Run the [sync-images][sync-images] script in `./build-scripts/hack`:
 
 ```bash
@@ -224,7 +228,7 @@ Instructions for this are described in
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so that they do not have to be fetched at runtime.
 
-To create a bundle of images, you can use the [regctl][regctl] tool
+To create a bundle of images, use the [regctl][regctl] tool
 or simply invoke the [regctl.sh][regctl.sh] script:
 
 ```bash
@@ -232,12 +236,12 @@ or simply invoke the [regctl.sh][regctl.sh] script:
 --platform=local > pause.tar
 ```
 
-Upon choosing this option, you place all images under
+Upon choosing this option, place all images under
 `/var/snap/k8s/common/images` and they will be picked up by containerd.
 
 ## Deploy Canonical Kubernetes
 
-Now that you have fulfilled all steps in preparation for your
+After fulfilling all steps in preparation for your
 air-gapped cluster, it is time to deploy it.
 
 ### Step 1: Install Canonical Kubernetes
@@ -265,10 +269,10 @@ no_proxy variables as described in the
 
 #### Container Runtime Option B: Configure registry mirrors
 
-This requires that you have already setup a registry mirror,
+This requires having already set up a registry mirror,
 as explained in the preparation section on the private registry mirror.
 Complete the following instructions on all nodes.
-For each upstream registry that you want to mirror, create a `hosts.toml` file.
+For each upstream registry that needs mirroring, create a `hosts.toml` file.
 
 This example configured `http://10.100.100.100:5000` as a mirror for
 `docker.io`.
@@ -285,11 +289,11 @@ capabilities = ["pull", "resolve"]
 
 ##### HTTPS registry
 
-HTTPS requires that you additionally specify the registry CA certificate.
+HTTPS requires the additionally specification of the registry CA certificate.
 Copy the certificate to
 `/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt`,
 
-Then add your config in
+Then add the configuration in
 `/var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml`:
 
 ```
@@ -300,7 +304,7 @@ ca = "/var/snap/k8s/common/etc/containerd/hosts.d/docker.io/ca.crt"
 
 #### Container Runtime Option C: Side-load images
 
-This is only required if you chose to
+This is only required if choosing to
 [side-load images](#images-option-c-side-load-images).
 Make sure that the directory `/var/snap/k8s/common/images` directory exists,
 then copy all `$image.tar` to that directory, such that containerd automatically
@@ -317,7 +321,7 @@ by running the command:
 sudo k8s bootstrap --address MY-NODE-IP
 ```
 
-You can add and remove nodes as described in the
+Add and remove nodes as described in the
 [add-and-remove-nodes tutorial][nodes].
 
 After a while, confirm that all the cluster nodes show up in
