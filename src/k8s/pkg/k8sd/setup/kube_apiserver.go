@@ -97,7 +97,7 @@ func KubeAPIServer(snap snap.Snap, nodeIP net.IP, serviceCIDR string, authWebhoo
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore.GetType(), SupportedDatastores)
 	}
 
-	datastoreUpdateArgs, deleteArgs := datastore.ToKubeAPIServerArguments(snap)
+	datastoreUpdateArgs, deleteArgs := datastore.ToKubeAPIServerArguments(snap, []string{nodeIP.String()})
 	for key, val := range datastoreUpdateArgs {
 		args[key] = val
 	}
