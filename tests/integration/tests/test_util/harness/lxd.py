@@ -58,6 +58,19 @@ class LXDHarness(Harness):
         if dualstack:
             # Setup dualstack profile once
             if self.dualstack_profile is None:
+                # Create the dualstack network (fail if it already exists)
+                run(
+                    [
+                        "lxc",
+                        "network",
+                        "create",
+                        config.LXD_DUALSTACK_NETWORK,
+                        "ipv4.address=auto",
+                        "ipv6.address=auto",
+                        "ipv4.nat=true",
+                        "ipv6.nat=true",
+                    ],
+                )
                 self.dualstack_profile = config.LXD_DUALSTACK_PROFILE_NAME
                 configure_lxd_profile(
                     self.dualstack_profile,

@@ -37,6 +37,7 @@ LXD_PROFILE = (
     or (DIR / ".." / ".." / "lxd-profile.yaml").read_text()
 )
 
+# LXD_DUALSTACK_NETWORK is the network to use for LXD containers with dualstack configured.
 LXD_DUALSTACK_NETWORK = os.getenv("TEST_LXD_DUALSTACK_NETWORK") or "dualstack-br0"
 
 # LXD_DUALSTACK_PROFILE_NAME is the profile name to use for LXD containers with dualstack configured.

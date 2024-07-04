@@ -13,19 +13,6 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.node_count(1)
 def test_dualstack(h: harness.Harness, tmp_path: Path):
-    util.run(
-        [
-            "lxc",
-            "network",
-            "create",
-            config.LXD_DUALSTACK_NETWORK,
-            "ipv4.address=auto",
-            "ipv6.address=auto",
-            "ipv4.nat=true",
-            "ipv6.nat=true",
-        ],
-    )
-
     snap_path = (tmp_path / "k8s.snap").as_posix()
     main = h.new_instance(dualstack=True)
     util.setup_k8s_snap(main, snap_path)
