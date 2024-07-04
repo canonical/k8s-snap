@@ -7,7 +7,7 @@ import shlex
 import subprocess
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union, Dict
 
 from tenacity import (
     RetryCallState,
@@ -247,3 +247,33 @@ def get_default_ip(instance: harness.Instance):
         ["ip", "-o", "-4", "route", "show", "to", "default"], capture_output=True
     )
     return p.stdout.decode().split(" ")[8]
+
+def configure_lxd_profile(profile_name: str, profile_config: str, template_overwrites: Dict[str, str] = {}):
+    LOG.debug("Checking for LXD profile %s", profile_name)
+    try:
+        run(["lxc", "profile", "show", profile_name])
+    except subprocess.CalledProcessError:
+        try:
+            LOG.debug("Creating LXD profile %s", profile_name)
+            run(["lxc", "profile", "create", profile_name])
+
+        except subprocess.CalledProcessError as e:
+            raise harness.HarnessError(
+                f"Failed to create LXD profile {profile_name}"
+            ) from e
+
+    # Apply template overwrites before configuring the profile
+    for key, value in template_overwrites.items():
+        profile_config = profile_config.replace(key, value)
+        print(profile_config)
+
+    try:
+        LOG.debug("Configuring LXD profile %s", profile_name)
+        run(
+            ["lxc", "profile", "edit", profile_name],
+            input=profile_config.encode(),
+        )
+    except subprocess.CalledProcessError as e:
+        raise harness.HarnessError(
+            f"Failed to configure LXD profile {profile_name}"
+        ) from e

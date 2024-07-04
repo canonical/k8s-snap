@@ -11,7 +11,7 @@ from test_util import config, harness, util
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.node_count(2)
+@pytest.mark.node_count(1)
 def test_dualstack(h: harness.Harness, tmp_path: Path):
     util.run(
         [

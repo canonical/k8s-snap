@@ -9,7 +9,7 @@ from pathlib import Path
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
-from test_util.util import run, stubbornly
+from test_util.util import run, stubbornly, configure_lxd_profile
 
 LOG = logging.getLogger(__name__)
 
@@ -29,40 +29,12 @@ class LXDHarness(Harness):
         self._next_id = 0
 
         self.profile = config.LXD_PROFILE_NAME
-        self.dualstack_profile = config.LXD_DUALSTACK_PROFILE_NAME
+        self.dualstack_profile = None
         self.sideload_images_dir = config.LXD_SIDELOAD_IMAGES_DIR
         self.image = config.LXD_IMAGE
         self.instances = set()
 
-        def _configure_lxd_profile(self, profile_name: str, profile_config: str):
-            LOG.debug("Checking for LXD profile %s", profile_name)
-            try:
-                run(["lxc", "profile", "show", profile_name])
-            except subprocess.CalledProcessError:
-                try:
-                    LOG.debug("Creating LXD profile %s", profile_name)
-                    run(["lxc", "profile", "create", profile_name])
-
-                except subprocess.CalledProcessError as e:
-                    raise HarnessError(
-                        f"Failed to create LXD profile {profile_name}"
-                    ) from e
-
-            try:
-                LOG.debug("Configuring LXD profile %s", profile_name)
-                run(
-                    ["lxc", "profile", "edit", profile_name],
-                    input=profile_config.encode(),
-                )
-            except subprocess.CalledProcessError as e:
-                raise HarnessError(
-                    f"Failed to configure LXD profile {self.profile}"
-                ) from e
-
-        _configure_lxd_profile(self, self.profile, config.LXD_PROFILE)
-        _configure_lxd_profile(
-            self, self.dualstack_profile, config.LXD_DUALSTACK_PROFILE
-        )
+        configure_lxd_profile(self.profile, config.LXD_PROFILE)
 
         LOG.debug(
             "Configured LXD substrate (profile %s, image %s)", self.profile, self.image
@@ -84,6 +56,16 @@ class LXDHarness(Harness):
         ]
 
         if dualstack:
+            # Setup dualstack profile once
+            if self.dualstack_profile is None:
+                self.dualstack_profile = config.LXD_DUALSTACK_PROFILE_NAME
+                configure_lxd_profile(
+                    self.dualstack_profile,
+                    config.LXD_DUALSTACK_PROFILE,
+                    template_overwrites={
+                        "LXD_DUALSTACK_NETWORK": config.LXD_DUALSTACK_NETWORK
+                    },
+                )
             launch_lxd_command.extend(["-p", self.dualstack_profile])
 
         try:
