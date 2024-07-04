@@ -50,7 +50,6 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers",
         "node_count: Mark a test to specify how many instance nodes need to be created\n"
-        "enable_dualstack: Mark a test to enable dualstack networking\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n",
     )
 
