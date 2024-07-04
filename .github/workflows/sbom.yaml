@@ -3,11 +3,12 @@ name: SBOM
 on:
   push:
     branches:
-      - main
-      - autoupdate/strict
-      - autoupdate/moonray
+      - 'main'
       - 'release-[0-9]+.[0-9]+'
-      - 'autoupdate/release-[0-9]+.[0-9]+-strict'
+      - 'strict/main'
+      - 'strict/release-[0-9]+.[0-9]+'
+      - 'moonray/main'
+      - 'moonray/release-[0-9]+.[0-9]+'
       - 'autoupdate/sync/**'
   pull_request:
 

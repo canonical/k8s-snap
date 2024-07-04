@@ -24,8 +24,21 @@ jobs:
         uses: step-security/harden-runner@v2
         with:
           egress-policy: audit
+      - name: Figure out target branch
+        # ${{ steps.branch.outputs.upstream }} == "main", "release-1.30"
+        # ${{ steps.branch.outputs.target }} == "moonray/main", "moonray/release-1.30"
+        id: branch
+        run: |
+          NAME=${${{ github.ref }}#refs/heads/}  # strip off refs/heads/ if it exists
+          echo "upstream=$NAME" >> "$GITHUB_OUTPUT"
+          echo "target=${{ matrix.patch }}/$NAME" >> "$GITHUB_OUTPUT"
       - name: Checking out repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.branch.outputs.target }}
+      - name: Merge ${{ steps.branch.outputs.upstream }} into ${{ steps.branch.outputs.target }}
+        run: |
+          git merge ${{ steps.branch.outputs.upstream }} -m "Auto-merge ${{ steps.branch.outputs.upstream }}"
       - name: Install lxd
         run: |
           sudo snap refresh lxd --channel 5.21/stable
@@ -35,9 +48,6 @@ jobs:
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
-      - name: Apply ${{ matrix.patch }} patch
-        run: |
-          ./build-scripts/patches/${{ matrix.patch }}/apply
       - name: Build snap
         run: |
           sg lxd -c 'snapcraft --use-lxd'
@@ -58,8 +68,25 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-20.04
     steps:
+      - name: Figure out target branch
+        # ${{ steps.branch.outputs.upstream }} == "main", "release-1.30"
+        # ${{ steps.branch.outputs.target }} == "moonray/main", "moonray/release-1.30"
+        id: branch
+        run: |
+          NAME=${${{ github.ref }}#refs/heads/}  # strip off refs/heads/ if it exists
+          echo "upstream=$NAME" >> "$GITHUB_OUTPUT"
+          echo "target=${{ matrix.patch }}/$NAME" >> "$GITHUB_OUTPUT"
+      - name: Checking out repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.branch.outputs.target }}
+      - name: Merge ${{ steps.branch.outputs.upstream }} into ${{ steps.branch.outputs.target }}
+        run: |
+          git merge ${{ steps.branch.outputs.upstream }} -m "Auto-merge ${{ steps.branch.outputs.upstream }}"
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.branch.outputs.target }}
       - name: Setup Python
         uses: actions/setup-python@v5
         with:

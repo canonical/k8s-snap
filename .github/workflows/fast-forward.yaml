@@ -1,0 +1,53 @@
+name: Create fast-forward PRs
+
+on:
+  push:
+    branches:
+      - main
+      - 'release-[0-9]+.[0-9]+'
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    name: "${{ matrix.patch }}"
+    permissions:
+      contents: write # for peter-evans/create-pull-request to create branch
+      pull-requests: write # for peter-evans/create-pull-request to create a PR
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        patch: ["strict", "moonray"]
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - name: Figure out target branch
+        # ${{ steps.branch.outputs.upstream }} == "main", "release-1.30"
+        # ${{ steps.branch.outputs.target }} == "moonray/main", "moonray/release-1.30"
+        id: branch
+        run: |
+          NAME=${${{ github.ref }}#refs/heads/}  # strip off refs/heads/ if it exists
+          echo "upstream=$NAME" >> "$GITHUB_OUTPUT"
+          echo "target=${{ matrix.patch }}/$NAME" >> "$GITHUB_OUTPUT"
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: "${{ steps.branch.outputs.target }}"
+          ssh-key: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
+      - name: Merge ${{ steps.branch.outputs.upstream }} into ${{ steps.branch.outputs.target }}
+        run: |
+          git merge ${{ steps.branch.outputs.upstream }} -m "Auto-merge ${{ steps.branch.outputs.upstream }}"
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          git-token: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
+          commit-message: "[${{ steps.branch.outputs.target }}] Fast forward from ${{ steps.branch.outputs.upstream }}"
+          title: "[${{ steps.branch.outputs.target }}] Fast forward from ${{ steps.branch.outputs.upstream }}"
+          body: "[${{ steps.branch.outputs.target }}] Fast forward from ${{ steps.branch.outputs.upstream }}"
+          branch: "autoupdate/sync/${{ steps.branch.outputs.target }}"
+          delete-branch: true
+          base: ${{ steps.branch.outputs.target }}
