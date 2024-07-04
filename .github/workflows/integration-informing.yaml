@@ -43,7 +43,7 @@ jobs:
 
           git fetch origin
 
-          git merge origin/${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
+          git merge ${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Install lxd
         run: |
           sudo snap refresh lxd --channel 5.21/stable
@@ -91,7 +91,7 @@ jobs:
 
           git fetch origin
 
-          git merge origin/${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
+          git merge ${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Check out code
         uses: actions/checkout@v4
         with:
