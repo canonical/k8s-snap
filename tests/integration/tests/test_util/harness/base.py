@@ -46,7 +46,7 @@ class Harness:
         """Creates a new instance on the infrastructure and returns an object
         which can be used to interact with it.
 
-        dualstack: If True, the instance will be created with an IPv6 address.
+        dualstack: If True, the instance will be created with dualstack support.
 
         If the operation fails, a HarnessError is raised.
         """

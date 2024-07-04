@@ -112,7 +112,6 @@ class LXDHarness(Harness):
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"Failed to create LXD container {instance_id}") from e
 
-        # TODO: why does this block/timeout?
         self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
         return Instance(self, instance_id)
 
