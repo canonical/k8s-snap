@@ -34,8 +34,6 @@ jobs:
           echo "target=${{ matrix.patch }}/${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
       - name: Checking out repo
         uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.branch.outputs.target }}
       - name: Merge ${{ github.head_ref }} into ${{ steps.branch.outputs.target }}
         run: |
           git config user.name k8s-bot
@@ -45,6 +43,14 @@ jobs:
 
           git checkout ${{ github.head_ref }}
           git checkout ${{ steps.branch.outputs.target }}
+
+          echo ===main===
+          git log --oneline main | head -20
+          echo ===head_ref===
+          git log --oneline  ${{ github.head_ref }} | head -20
+          echo ===target===
+          git log --oneline ${{ steps.branch.outputs.target }} | head -20
+
           git merge ${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Install lxd
         run: |
@@ -84,8 +90,6 @@ jobs:
           echo "target=${{ matrix.patch }}/${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
       - name: Checking out repo
         uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.branch.outputs.target }}
       - name: Merge ${{ github.head_ref }} into ${{ steps.branch.outputs.target }}
         run: |
           git config user.name k8s-bot
@@ -95,6 +99,13 @@ jobs:
 
           git checkout ${{ github.head_ref }}
           git checkout ${{ steps.branch.outputs.target }}
+
+          echo ===main===
+          git log --oneline main | head -20
+          echo ===head_ref===
+          git log --oneline  ${{ github.head_ref }} | head -20
+          echo ===target===
+          git log --oneline ${{ steps.branch.outputs.target }} | head -20
           git merge ${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Check out code
         uses: actions/checkout@v4
