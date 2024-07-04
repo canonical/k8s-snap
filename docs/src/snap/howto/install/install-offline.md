@@ -34,14 +34,15 @@ For more information on channels visit the
 ```
 
 ```{note}
-With updates to the snap the base core is subject to change in the future.
+Future updates to the `k8s` snap may require a different version of the core
+snap.
 ```
 
 ### Network Requirements
 
 Air-gap deployments are typically associated with a number of constraints and
 restrictions when it comes to the networking connectivity of the machines.
-Below we discuss the requirements that the deployment needs to fulfill.
+Below we discuss the requirements that the deployment needs to fulfil.
 
 #### Cluster node communication
 
@@ -55,9 +56,9 @@ ports used by Canonical Kubernetes.  -->
 #### Default Gateway
 
 In cases where the air-gap environment does not have a default gateway,
-add a dummy default route on interface eth0 using the following command:
+add a dummy default route on the `eth0` interface using the following command:
 
-```bash
+```
 ip route add default dev eth0
 ```
 
@@ -66,11 +67,9 @@ Ensure that `eth0` is the name of the default network interface used for
 pod-to-pod communication.
 ```
 
-```{note} 
 The dummy gateway will only be used by the Kubernetes services to 
 know which interface to use, actual connectivity to the internet is not 
 required. Ensure that the dummy gateway rule survives a node reboot.
-```
 
 #### Ensure proxy access
 
@@ -89,11 +88,11 @@ curl -v https://registry-1.docker.io/v2
 
 ### Images
 
-All workloads in a Kubernetes cluster are running as an OCI image.
+All workloads in a Kubernetes cluster are run as an OCI image.
 Kubernetes needs to be able to fetch these images and load them
-into the container runtime, in order to run workloads.
-For a Canonical Kubernetes deployment, it is necessary to fetch the images used
-by its features (network, dns, etc) as well as any images that are
+into the container runtime.
+For Canonical Kubernetes, it is also necessary to fetch the images used
+by its features (network, dns, etc.) as well as any images that are
 needed to run specific workloads.
 
 ```{note} 
@@ -107,7 +106,7 @@ It may be helpful to combine these options for different scenarios.
 If the `k8s` snap is already installed,
 list the images in use with the following command:
 
-```bash
+```
 ubuntu@demo:~$ k8s list-images
 ghcr.io/canonical/cilium-operator-generic:1.15.2-ck2
 ghcr.io/canonical/cilium:1.15.2-ck2
@@ -174,7 +173,7 @@ registry.
 After creating the `sync-images.yaml` file, use [regsync][regsync] to sync the
 images. Assuming your registry mirror is at http://10.10.10.10:5050, run:
 
-```bash
+```
 USERNAME="$username" PASSWORD="$password" MIRROR="10.10.10.10:5050" \
 ./src/k8s/tools/regsync.sh once -c path/to/sync-images.yaml
 ```
@@ -192,7 +191,7 @@ into the container runtime, so that they do not have to be fetched at runtime.
 To create a bundle of images, use the [regctl][regctl] tool
 or simply invoke the [regctl.sh][regctl.sh] script:
 
-```bash
+```
 ./src/k8s/tools/regctl.sh image export ghcr.io/canonical/k8s-snap/pause:3.10 \
 --platform=local > pause.tar
 ```
@@ -210,7 +209,7 @@ air-gapped cluster, it is time to deploy it.
 Copy the `k8s.snap`, `k8s.assert`, `core20.snap` and `core20.assert` files into
 the target node, then install the k8s snap by running:
 
-```bash
+```
 sudo snap ack core20.assert && sudo snap install ./core20.snap
 sudo snap ack k8s.assert && sudo snap install ./k8s.snap --classic
 ```
@@ -277,7 +276,7 @@ on each cluster node.
 Now, bootstrap the cluster and replace `MY-NODE-IP` with the IP of the node
 by running the command:
 
-```bash
+```
 sudo k8s bootstrap --address MY-NODE-IP
 ```
 
