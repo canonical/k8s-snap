@@ -31,7 +31,6 @@ def check_gateway_service_and_port(p):
                 gateway_http_port = port["nodePort"]
                 break
         if gateway_http_port:
-            print(f"Found gateway service with nodePort: {gateway_http_port}") #TODO: remove print
             return gateway_http_port
     return None
 
@@ -68,9 +67,6 @@ def test_gateway(session_instance: harness.Instance):
         lambda p: check_gateway_service_and_port(p) is not None
     ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
     gateway_http_port = check_gateway_service_and_port(result)
-
-    print(f"Gateway nodePort: {gateway_http_port}") #TODO: remove print
-
 
     assert gateway_http_port is not None, "No ingress nodePort found."
 
