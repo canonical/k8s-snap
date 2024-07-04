@@ -42,7 +42,7 @@ class Harness:
 
     name: str
 
-    def new_instance(self, dualstack: bool =False) -> Instance:
+    def new_instance(self, dualstack: bool = False) -> Instance:
         """Creates a new instance on the infrastructure and returns an object
         which can be used to interact with it.
 

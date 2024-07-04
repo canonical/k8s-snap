@@ -7,7 +7,7 @@ import shlex
 import subprocess
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Union, Dict
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from tenacity import (
     RetryCallState,
@@ -248,7 +248,10 @@ def get_default_ip(instance: harness.Instance):
     )
     return p.stdout.decode().split(" ")[8]
 
-def configure_lxd_profile(profile_name: str, profile_config: str, template_overwrites: Dict[str, str] = {}):
+
+def configure_lxd_profile(
+    profile_name: str, profile_config: str, template_overwrites: Dict[str, str] = {}
+):
     LOG.debug("Checking for LXD profile %s", profile_name)
     try:
         run(["lxc", "profile", "show", profile_name])

@@ -1,8 +1,8 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
-from ipaddress import ip_address, IPv6Address, IPv4Address
 import logging
+from ipaddress import IPv4Address, IPv6Address, ip_address
 from pathlib import Path
 
 import pytest
@@ -55,4 +55,6 @@ def test_dualstack(h: harness.Harness, tmp_path: Path):
             pytest.fail(f"Unknown IP address type: {addr}")
 
         # need to shell out otherwise this runs into permission errors
-        util.stubbornly(retries=3, delay_s=1).on(main).exec(["curl", address], shell=True)
+        util.stubbornly(retries=3, delay_s=1).on(main).exec(
+            ["curl", address], shell=True
+        )

@@ -53,7 +53,7 @@ class JujuHarness(Harness):
                 self.constraints,
             )
 
-    def new_instance(self, dualstack: bool=False) -> Instance:
+    def new_instance(self, dualstack: bool = False) -> Instance:
         if dualstack:
             raise HarnessError("Dualstack is currently not supported by Juju harness")
 
