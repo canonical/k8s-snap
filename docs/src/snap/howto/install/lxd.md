@@ -32,7 +32,8 @@ wget https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/integration
 ```
 <!-- markdownlint-restore -->
 
-```{note} For an explanation of the settings in this file, [see below](explain-rules)
+```{note} For an explanation of the settings in this file, [see below]
+(explain-rules)
 ```
 
 To pipe the content of the file into the k8s LXD profile, run:
@@ -70,7 +71,7 @@ lxc exec k8s -- sudo snap install k8s --classic --channel=latest/edge
 ```{note}
 Substitute your desired channel in the above command. Find the
 available channels with `snap info k8s` and see the [channels][]
-explanation page for more details on channels, tracks and versions.  
+explanation page for more details on channels, tracks and versions.
 ```
 
 ## Access Canonical Kubernetes services within LXD
@@ -117,7 +118,8 @@ lxc exec k8s -- sudo k8s bootstrap
 Now, let’s deploy Microbot (please note this image only works on `x86_64`).
 
 ```
-lxc exec k8s -- sudo k8s kubectl create deployment microbot --image=dontrebootme/microbot:v1
+lxc exec k8s -- sudo k8s kubectl create deployment \
+  microbot --image=dontrebootme/microbot:v1
 ```
 
 Then check that the deployment has come up.
