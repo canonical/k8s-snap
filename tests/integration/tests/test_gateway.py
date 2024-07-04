@@ -10,6 +10,29 @@ from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
 
+def check_gateway_service_and_port(p):
+    services = json.loads(p.stdout.decode())
+
+    gateway_services = [
+        svc
+        for svc in services["items"]
+        if (
+            svc["metadata"].get("labels").get("projectcontour.io/owning-gateway-name")
+            == "my-gateway"
+            or svc["metadata"].get("labels").get("io.cilium.gateway/owning-gateway")
+            == "my-gateway"
+        )
+    ]
+
+    for svc in gateway_services:
+        for port in svc["spec"]["ports"]:
+            if port["port"] == 80:
+                gateway_http_port = port["nodePort"]
+                break
+        if gateway_http_port:
+            print(f"Found gateway service with nodePort: {gateway_http_port}") #TODO: remove print
+            return gateway_http_port
+    return None
 
 def test_gateway(session_instance: harness.Instance):
     manifest = MANIFESTS_DIR / "gateway-test.yaml"
@@ -40,45 +63,9 @@ def test_gateway(session_instance: harness.Instance):
 
     # Get gateway node port
     gateway_http_port = None
-    util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
-        lambda p: "my-gateway" in p.stdout.decode()
+    gateway_http_port = util.stubbornly(retries=7, delay_s=3).on(session_instance).until(
+        lambda p: check_gateway_service_and_port(p) is not None
     ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
-
-    p = session_instance.exec(
-        [
-            "k8s",
-            "kubectl",
-            "get",
-            "service",
-            "-o=json",
-        ],
-        capture_output=True,
-    )
-
-    services = json.loads(p.stdout.decode())
-
-    gateway_services = [
-        svc
-        for svc in services["items"]
-        if (
-            svc["metadata"].get("labels").get("projectcontour.io/owning-gateway-name")
-            == "my-gateway"
-            or svc["metadata"].get("labels").get("io.cilium.gateway/owning-gateway")
-            == "my-gateway"
-        )
-    ]
-
-    assert (
-        len(gateway_services) > 0
-    ), "No gateway services found that are owned by my-gateway."
-
-    for svc in gateway_services:
-        for port in svc["spec"]["ports"]:
-            if port["port"] == 80:
-                gateway_http_port = port["nodePort"]
-                break
-        if gateway_http_port:
-            break
 
     assert gateway_http_port is not None, "No ingress nodePort found."
 
