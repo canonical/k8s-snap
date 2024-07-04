@@ -79,13 +79,12 @@ class LXDHarness(Harness):
             instance_id,
             "-p",
             "default",
+            "-p",
+            self.profile,
         ]
 
         if dualstack:
             launch_lxd_command.extend(["-p", self.dualstack_profile])
-        else:
-            launch_lxd_command.extend(["-p", self.profile])
-
 
         try:
             stubbornly(retries=3, delay_s=1).exec(launch_lxd_command)
