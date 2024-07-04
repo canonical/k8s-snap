@@ -40,7 +40,7 @@ jobs:
           ssh-key: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
       - name: Merge ${{ steps.branch.outputs.upstream }} into ${{ steps.branch.outputs.target }}
         run: |
-          git merge ${{ steps.branch.outputs.upstream }} -m "Auto-merge ${{ steps.branch.outputs.upstream }}"
+          git merge origin/${{ steps.branch.outputs.upstream }} -m "Auto-merge ${{ steps.branch.outputs.upstream }}"
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
