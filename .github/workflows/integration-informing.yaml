@@ -1,12 +1,12 @@
 name: Informing Integration Tests
 
 on:
-  push:
-    # TODO(neoaggelos): needs updating the "Figure out target branch" below
-    # branches:
-    #   - main
-    #   - 'release-[0-9]+.[0-9]+'
-    #   - 'autoupdate/sync/**'
+  # TODO(neoaggelos): needs updating the "Figure out target branch" below
+  # push:
+  #   branches:
+  #     - main
+  #     - 'release-[0-9]+.[0-9]+'
+  #     - 'autoupdate/sync/**'
   pull_request:
 
 permissions:
