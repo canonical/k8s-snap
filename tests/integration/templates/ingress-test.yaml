@@ -37,7 +37,7 @@ kind: Ingress
 metadata:
   name: minimal-ingress
 spec:
-  ingressClassName: ck-ingress
+  ingressClassName: cilium
   rules:
   - host: "foo.bar.com"
     http:
