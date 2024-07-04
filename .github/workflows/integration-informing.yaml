@@ -38,7 +38,7 @@ jobs:
           ref: ${{ steps.branch.outputs.target }}
       - name: Merge ${{ github.ref }} into ${{ steps.branch.outputs.target }}
         run: |
-          git merge origin/${{ github.ref }} -m "Auto-merge ${{ github.ref }}"
+          git merge ${{ github.ref }} -m "Auto-merge ${{ github.ref }}"
       - name: Install lxd
         run: |
           sudo snap refresh lxd --channel 5.21/stable
@@ -81,7 +81,7 @@ jobs:
           ref: ${{ steps.branch.outputs.target }}
       - name: Merge ${{ steps.branch.outputs.upstream }} into ${{ steps.branch.outputs.target }}
         run: |
-          git merge origin/${{ steps.branch.outputs.upstream }} -m "Auto-merge ${{ steps.branch.outputs.upstream }}"
+          git merge ${{ steps.branch.outputs.upstream }} -m "Auto-merge ${{ steps.branch.outputs.upstream }}"
       - name: Check out code
         uses: actions/checkout@v4
         with:
