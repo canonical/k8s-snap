@@ -41,7 +41,7 @@ jobs:
           git config user.name k8s-bot
           git config user.email k8s-bot@canonical.com
 
-          git fetch --all origin
+          git fetch origin
 
           git merge origin/${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Install lxd
@@ -89,7 +89,7 @@ jobs:
           git config user.name k8s-bot
           git config user.email k8s-bot@canonical.com
 
-          git fetch --all origin
+          git fetch origin
 
           git merge origin/${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Check out code
