@@ -155,7 +155,7 @@ This requires three steps:
    described in the [Configure registry mirrors](
       #Container-Runtime-Option-B:-Configure-registry-mirrors) section.
 
-In order to load images into the private registry, a machine os needed with
+In order to load images into the private registry, a machine is needed with
 access to both any upstream registries (e.g. `docker.io`)
 and the private mirror.
 
@@ -186,10 +186,10 @@ Instructions for this are described in
 #### Images Option C: Side-load images
 
 Image side-loading is the process of loading all required OCI images directly
-into the container runtime, so that they do not have to be fetched at runtime.
+into the container runtime, so they do not have to be fetched at runtime.
 
 To create a bundle of images, use the [regctl][regctl] tool
-or simply invoke the [regctl.sh][regctl.sh] script:
+or invoke the [regctl.sh][regctl.sh] script:
 
 ```
 ./src/k8s/tools/regctl.sh image export ghcr.io/canonical/k8s-snap/pause:3.10 \
@@ -201,13 +201,19 @@ Upon choosing this option, place all images under
 
 ## Deploy Canonical Kubernetes
 
-After fulfilling all steps in preparation for your
-air-gapped cluster, it is time to deploy it.
+Once you've completed all the preparatory steps for your air-gapped cluster,
+you can proceed with the deployment.
 
 ### Step 1: Install Canonical Kubernetes
 
-Copy the `k8s.snap`, `k8s.assert`, `core20.snap` and `core20.assert` files into
-the target node, then install the k8s snap by running:
+Transfer the following files to the target node:
+
+- `k8s.snap`
+- `k8s.assert`
+- `core20.snap`
+- `core20.assert`
+
+On the target node, run the following command to install the Kubernetes snap:
 
 ```
 sudo snap ack core20.assert && sudo snap install ./core20.snap
@@ -218,12 +224,13 @@ Repeat the above for all nodes of the cluster.
 
 ### Step 2: Container Runtime
 
-The container runtime needs to be configured to be able to fetch images.
+The container runtime must be configured to fetch images properly.
+Choose one of the following options:
 
 #### Container Runtime Option A: Configure HTTP proxy for registries
 
-Edit `/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`
-on each node and set the appropriate http_proxy, https_proxy and
+Edit the `/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`
+file on each node and set the appropriate http_proxy, https_proxy and
 no_proxy variables as described in the
 [adding proxy configuration section][proxy].
 
@@ -233,9 +240,8 @@ This requires having already set up a registry mirror,
 as explained in the preparation section on the private registry mirror.
 Complete the following instructions on all nodes.
 For each upstream registry that needs mirroring, create a `hosts.toml` file.
-
-This example configured `http://10.100.100.100:5000` as a mirror for
-`ghcr.io`.
+Here's an example that configures `http://10.100.100.100:5000` as a mirror for 
+`ghcr.io`:
 
 ##### HTTP registry
 
