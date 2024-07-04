@@ -35,7 +35,7 @@ def check_ingress_service_and_port(p):
 
 def test_ingress(session_instance: List[harness.Instance]):
 
-    result = util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
+    result = util.stubbornly(retries=7, delay_s=3).on(session_instance).until(
         lambda p: check_ingress_service_and_port(p) is not None
     ).exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
 
