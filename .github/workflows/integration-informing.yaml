@@ -38,7 +38,10 @@ jobs:
           ref: ${{ steps.branch.outputs.target }}
       - name: Merge ${{ github.head_ref }} into ${{ steps.branch.outputs.target }}
         run: |
-          git merge ${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
+          git config user.name k8s-bot
+          git config user.email k8s-bot@canonical.com
+
+          git merge origin/${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Install lxd
         run: |
           sudo snap refresh lxd --channel 5.21/stable
@@ -81,7 +84,10 @@ jobs:
           ref: ${{ steps.branch.outputs.target }}
       - name: Merge ${{ github.head_ref }} into ${{ steps.branch.outputs.target }}
         run: |
-          git merge ${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
+          git config user.name k8s-bot
+          git config user.email k8s-bot@canonical.com
+
+          git merge origin/${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Check out code
         uses: actions/checkout@v4
         with:
