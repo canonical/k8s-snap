@@ -24,7 +24,6 @@ def test_dualstack(h: harness.Harness, tmp_path: Path):
             "ipv4.nat=true",
             "ipv6.nat=true",
         ],
-        check=False,
     )
 
     snap_path = (tmp_path / "k8s.snap").as_posix()
