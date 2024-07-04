@@ -30,9 +30,8 @@ jobs:
         # ${{ steps.branch.outputs.target }} == "moonray/main", "moonray/release-1.30"
         id: branch
         run: |
-          NAME=${${{ github.base_ref }}#refs/heads/}  # strip off refs/heads/ if it exists
-          echo "upstream=$NAME" >> "$GITHUB_OUTPUT"
-          echo "target=${{ matrix.patch }}/$NAME" >> "$GITHUB_OUTPUT"
+          echo "upstream=${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
+          echo "target=${{ matrix.patch }}/${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
       - name: Checking out repo
         uses: actions/checkout@v4
         with:
