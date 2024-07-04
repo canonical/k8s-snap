@@ -43,6 +43,8 @@ jobs:
 
           git fetch origin
 
+          git checkout ${{ github.head_ref }}
+          git checkout ${{ steps.branch.outputs.target }}
           git merge ${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Install lxd
         run: |
@@ -91,6 +93,8 @@ jobs:
 
           git fetch origin
 
+          git checkout ${{ github.head_ref }}
+          git checkout ${{ steps.branch.outputs.target }}
           git merge ${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Check out code
         uses: actions/checkout@v4
