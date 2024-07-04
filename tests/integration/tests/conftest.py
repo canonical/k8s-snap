@@ -50,6 +50,7 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers",
         "node_count: Mark a test to specify how many instance nodes need to be created\n"
+        "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that."
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n",
     )
 
