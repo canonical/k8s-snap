@@ -11,6 +11,7 @@ from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
 
+
 def check_ingress_service_and_port(p):
     ingress_http_port = None
     services = json.loads(p.stdout.decode())
@@ -33,11 +34,15 @@ def check_ingress_service_and_port(p):
             return ingress_http_port
     return None
 
+
 def test_ingress(session_instance: List[harness.Instance]):
 
-    result = util.stubbornly(retries=7, delay_s=3).on(session_instance).until(
-        lambda p: check_ingress_service_and_port(p) is not None
-    ).exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
+    result = (
+        util.stubbornly(retries=7, delay_s=3)
+        .on(session_instance)
+        .until(lambda p: check_ingress_service_and_port(p) is not None)
+        .exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
+    )
 
     ingress_http_port = check_ingress_service_and_port(result)
 
