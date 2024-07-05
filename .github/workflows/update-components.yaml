@@ -15,13 +15,13 @@ jobs:
       pull-requests: write # for peter-evans/create-pull-request to create a PR
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         branch:
           # Keep main branch up to date
           - main
           # Supported stable release branches
           - release-1.30
+      fail-fast: false
 
     steps:
       - name: Harden Runner
