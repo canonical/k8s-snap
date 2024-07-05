@@ -26,11 +26,6 @@ type ControlPlaneNodeJoinConfig struct {
 	KubeletClientCert *string `json:"kubelet-client-crt,omitempty" yaml:"kubelet-client-crt,omitempty"`
 	KubeletClientKey  *string `json:"kubelet-client-key,omitempty" yaml:"kubelet-client-key,omitempty"`
 
-	EtcdServerCert     *string `json:"etcd-server-crt,omitempty" yaml:"etcd-server-crt,omitempty"`
-	EtcdServerKey      *string `json:"etcd-server-key,omitempty" yaml:"etcd-server-key,omitempty"`
-	EtcdServerPeerCert *string `json:"etcd-peer-crt,omitempty" yaml:"etcd-peer-crt,omitempty"`
-	EtcdServerPeerKey  *string `json:"etcd-peer-key,omitempty" yaml:"etcd-peer-key,omitempty"`
-
 	// ExtraNodeConfigFiles will be written to /var/snap/k8s/common/args/conf.d
 	ExtraNodeConfigFiles map[string]string `json:"extra-node-config-files,omitempty" yaml:"extra-node-config-files,omitempty"`
 
@@ -95,14 +90,6 @@ func (c *ControlPlaneNodeJoinConfig) GetKubeletClientCert() string {
 }
 func (c *ControlPlaneNodeJoinConfig) GetKubeletClientKey() string {
 	return getField(c.KubeletClientKey)
-}
-func (b *ControlPlaneNodeJoinConfig) GetEtcdServerCert() string { return getField(b.EtcdServerCert) }
-func (b *ControlPlaneNodeJoinConfig) GetEtcdServerKey() string  { return getField(b.EtcdServerKey) }
-func (b *ControlPlaneNodeJoinConfig) GetEtcdServerPeerCert() string {
-	return getField(b.EtcdServerPeerCert)
-}
-func (b *ControlPlaneNodeJoinConfig) GetEtcdServerPeerKey() string {
-	return getField(b.EtcdServerPeerKey)
 }
 
 func (w *WorkerNodeJoinConfig) GetKubeletCert() string       { return getField(w.KubeletCert) }

@@ -17,7 +17,7 @@ Overview <self>
 install/index
 networking/index
 storage
-datastore/index
+external-datastore
 proxy
 contribute
 support

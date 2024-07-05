@@ -14,7 +14,6 @@ Overview <self>
 about
 channels
 clustering
-datastore/index
 ingress
 /snap/explanation/security
 ```

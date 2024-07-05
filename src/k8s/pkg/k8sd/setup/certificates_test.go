@@ -161,48 +161,6 @@ func TestExtDatastorePKI(t *testing.T) {
 	}
 }
 
-func TestEtcdPKI(t *testing.T) {
-	g := NewWithT(t)
-	etcdPKI := t.TempDir()
-	kubePKI := t.TempDir()
-	mock := &mock.Snap{
-		Mock: mock.Mock{
-			KubernetesPKIDir: kubePKI,
-			EtcdPKIDir:       etcdPKI,
-			UID:              os.Getuid(),
-			GID:              os.Getgid(),
-		},
-	}
-	certificates := &pki.EtcdPKI{
-		CACert:              "ca_cert",
-		CAKey:               "ca_key",
-		ServerCert:          "server_cert",
-		ServerKey:           "server_key",
-		ServerPeerCert:      "server_peer_cert",
-		ServerPeerKey:       "server_peer_key",
-		APIServerClientCert: "client_cert",
-		APIServerClientKey:  "client_key",
-	}
-
-	_, err := setup.EnsureEtcdPKI(mock, certificates)
-	g.Expect(err).To(BeNil())
-
-	expectedFiles := []string{
-		filepath.Join(etcdPKI, "ca.crt"),
-		filepath.Join(etcdPKI, "server.crt"),
-		filepath.Join(etcdPKI, "server.key"),
-		filepath.Join(etcdPKI, "peer.crt"),
-		filepath.Join(etcdPKI, "peer.key"),
-		filepath.Join(kubePKI, "apiserver-etcd-client.crt"),
-		filepath.Join(kubePKI, "apiserver-etcd-client.key"),
-	}
-
-	for _, file := range expectedFiles {
-		_, err := os.Stat(file)
-		g.Expect(err).To(BeNil())
-	}
-}
-
 // Check that a file passed to Ensure*PKI is deleted if the corresponding
 // certificate content is empty.
 func TestEmptyCert(t *testing.T) {
