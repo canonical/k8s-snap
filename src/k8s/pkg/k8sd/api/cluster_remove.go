@@ -71,8 +71,10 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
 	}
-	if _, err := client.CoreV1().Nodes().Get(ctx, req.Name, v1.GetOptions{}); err != nil {
+	if node, err := client.CoreV1().Nodes().Get(ctx, req.Name, v1.GetOptions{}); err != nil {
 		return NodeUnavailable(fmt.Errorf("node %q is not part of the cluster: %w", req.Name, err))
+	} else if v, ok := node.Labels["k8sd.io/role"]; !ok || v != "worker" {
+		return NodeUnavailable(fmt.Errorf("node %q is missing k8sd.io/role=worker label", req.Name))
 	}
 
 	if err := client.DeleteNode(ctx, req.Name); err != nil {
