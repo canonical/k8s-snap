@@ -11,7 +11,7 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
-def check_gateway_service_and_port(p):
+def get_gateway_service_node_port(p):
     gateway_http_port = None
     services = json.loads(p.stdout.decode())
 
@@ -68,10 +68,10 @@ def test_gateway(session_instance: harness.Instance):
     result = (
         util.stubbornly(retries=7, delay_s=3)
         .on(session_instance)
-        .until(lambda p: check_gateway_service_and_port(p) is not None)
+        .until(lambda p: get_gateway_service_node_port(p) is not None)
         .exec(["k8s", "kubectl", "get", "service", "-o", "json"])
     )
-    gateway_http_port = check_gateway_service_and_port(result)
+    gateway_http_port = get_gateway_service_node_port(result)
 
     assert gateway_http_port is not None, "No ingress nodePort found."
 
