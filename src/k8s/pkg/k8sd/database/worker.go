@@ -13,11 +13,6 @@ import (
 
 var (
 	workerStmts = map[string]int{
-		"insert-node":    MustPrepareStatement("worker-nodes", "insert.sql"),
-		"select-node":    MustPrepareStatement("worker-nodes", "select.sql"),
-		"select-by-name": MustPrepareStatement("worker-nodes", "select-by-name.sql"),
-		"delete-node":    MustPrepareStatement("worker-nodes", "delete.sql"),
-
 		"insert-token": MustPrepareStatement("worker-tokens", "insert.sql"),
 		"select-token": MustPrepareStatement("worker-tokens", "select.sql"),
 		"delete-token": MustPrepareStatement("worker-tokens", "delete-by-token.sql"),
@@ -65,70 +60,6 @@ func DeleteWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string) err
 	}
 	if _, err := deleteTxStmt.ExecContext(ctx, nodeName); err != nil {
 		return fmt.Errorf("delete token query failed: %w", err)
-	}
-	return nil
-}
-
-// AddWorkerNode adds a new worker node entry on the database.
-func AddWorkerNode(ctx context.Context, tx *sql.Tx, name string) error {
-	insertTxStmt, err := cluster.Stmt(tx, workerStmts["insert-node"])
-	if err != nil {
-		return fmt.Errorf("failed to prepare insert statement: %w", err)
-	}
-	if _, err := insertTxStmt.ExecContext(ctx, name); err != nil {
-		return fmt.Errorf("insert worker node query failed: %w", err)
-	}
-	return nil
-}
-
-// CheckWorkerExists returns true if a worker node entry for this name exists.
-func CheckWorkerExists(ctx context.Context, tx *sql.Tx, name string) (exists bool, err error) {
-	selectTxStmt, err := cluster.Stmt(tx, workerStmts["select-by-name"])
-	if err != nil {
-		return false, fmt.Errorf("failed to prepare select statement: %w", err)
-	}
-
-	row := selectTxStmt.QueryRowContext(ctx, name)
-	if err := row.Scan(new(string)); err != nil {
-		if err == sql.ErrNoRows {
-			return false, nil
-		}
-		return false, fmt.Errorf("select worker node %q query failed: %w", name, err)
-	}
-
-	return true, nil
-}
-
-// ListWorkerNodes lists the known worker nodes on the database.
-func ListWorkerNodes(ctx context.Context, tx *sql.Tx) ([]string, error) {
-	selectTxStmt, err := cluster.Stmt(tx, workerStmts["select-node"])
-	if err != nil {
-		return nil, fmt.Errorf("failed to prepare select statement: %w", err)
-	}
-	rows, err := selectTxStmt.QueryContext(ctx)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("select worker nodes query failed: %w", err)
-	}
-	var nodes []string
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			return nil, fmt.Errorf("failed to parse row: %w", err)
-		}
-		nodes = append(nodes, name)
-	}
-
-	return nodes, nil
-}
-
-// DeleteWorkerNode deletes a worker node from the database.
-func DeleteWorkerNode(ctx context.Context, tx *sql.Tx, name string) error {
-	deleteTxStmt, err := cluster.Stmt(tx, workerStmts["delete-node"])
-	if err != nil {
-		return fmt.Errorf("failed to prepare delete statement: %w", err)
-	}
-	if _, err := deleteTxStmt.ExecContext(ctx, name); err != nil {
-		return fmt.Errorf("insert worker node query failed: %w", err)
 	}
 	return nil
 }

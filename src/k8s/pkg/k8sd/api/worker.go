@@ -58,12 +58,6 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		return response.InternalError(fmt.Errorf("failed to retrieve list of known kube-apiserver endpoints: %w", err))
 	}
 
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-		return database.AddWorkerNode(ctx, tx, workerName)
-	}); err != nil {
-		return response.InternalError(fmt.Errorf("add worker node transaction failed: %w", err))
-	}
-
 	workerToken := r.Header.Get("worker-token")
 	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 		return database.DeleteWorkerNodeToken(ctx, tx, workerToken)
