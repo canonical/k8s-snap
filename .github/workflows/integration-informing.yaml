@@ -1,12 +1,11 @@
 name: Informing Integration Tests
 
 on:
-  # TODO(neoaggelos): needs updating the "Figure out target branch" below
-  # push:
-  #   branches:
-  #     - main
-  #     - 'release-[0-9]+.[0-9]+'
-  #     - 'autoupdate/sync/**'
+  push:
+    branches:
+      - main
+      - 'release-[0-9]+.[0-9]+'
+      - 'autoupdate/sync/**'
   pull_request:
 
 permissions:
@@ -25,26 +24,8 @@ jobs:
         uses: step-security/harden-runner@v2
         with:
           egress-policy: audit
-      - name: Figure out target branch
-        # ${{ steps.branch.outputs.upstream }} == "main", "release-1.30"
-        # ${{ steps.branch.outputs.target }} == "moonray/main", "moonray/release-1.30"
-        id: branch
-        run: |
-          echo "upstream=${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
-          echo "target=${{ matrix.patch }}/${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
       - name: Checking out repo
         uses: actions/checkout@v4
-      - name: Merge ${{ github.head_ref }} into ${{ steps.branch.outputs.target }}
-        run: |
-          git config user.name k8s-bot
-          git config user.email k8s-bot@canonical.com
-
-          git fetch origin
-
-          git checkout ${{ github.head_ref }}
-          git checkout ${{ steps.branch.outputs.target }}
-
-          git merge ${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Install lxd
         run: |
           sudo snap refresh lxd --channel 5.21/stable
@@ -54,6 +35,9 @@ jobs:
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
+      - name: Apply ${{ matrix.patch }} patch
+        run: |
+          ./build-scripts/patches/${{ matrix.patch }}/apply
       - name: Build snap
         run: |
           sg lxd -c 'snapcraft --use-lxd'
@@ -74,30 +58,8 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-20.04
     steps:
-      - name: Figure out target branch
-        # ${{ steps.branch.outputs.upstream }} == "main", "release-1.30"
-        # ${{ steps.branch.outputs.target }} == "moonray/main", "moonray/release-1.30"
-        id: branch
-        run: |
-          echo "upstream=${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
-          echo "target=${{ matrix.patch }}/${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
-      - name: Checking out repo
-        uses: actions/checkout@v4
-      - name: Merge ${{ github.head_ref }} into ${{ steps.branch.outputs.target }}
-        run: |
-          git config user.name k8s-bot
-          git config user.email k8s-bot@canonical.com
-
-          git fetch origin
-
-          git checkout ${{ github.head_ref }}
-          git checkout ${{ steps.branch.outputs.target }}
-
-          git merge ${{ github.head_ref }} -m "Auto-merge ${{ github.head_ref }}"
       - name: Check out code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.branch.outputs.target }}
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -115,6 +77,9 @@ jobs:
         with:
           name: k8s-${{ matrix.patch }}.snap
           path: build
+      - name: Apply ${{ matrix.patch }} patch
+        run: |
+          ./build-scripts/patches/${{ matrix.patch }}/apply
       - name: Run end to end tests
         run: |
           export TEST_SNAP="$PWD/build/k8s-${{ matrix.patch }}.snap"
