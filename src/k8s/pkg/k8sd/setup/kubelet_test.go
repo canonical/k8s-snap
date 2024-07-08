@@ -14,8 +14,8 @@ import (
 
 // These values are hard-coded and need to be updated if the
 // implementation changes.
-var expectedControlPlaneLabels = "node-role.kubernetes.io/control-plane=,node-role.kubernetes.io/worker="
-var expectedWorkerLabels = "node-role.kubernetes.io/worker="
+var expectedControlPlaneLabels = "node-role.kubernetes.io/control-plane=,node-role.kubernetes.io/worker=,k8sd.io/role=control-plane"
+var expectedWorkerLabels = "node-role.kubernetes.io/worker=,k8sd.io/role=worker"
 
 var kubeletTLSCipherSuites = "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384"
 

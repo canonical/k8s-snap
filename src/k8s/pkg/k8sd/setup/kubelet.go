@@ -11,28 +11,33 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-var kubeletTLSCipherSuites = []string{
-	"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
-	"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
-	"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
-	"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-	"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
-	"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
-	"TLS_RSA_WITH_AES_128_GCM_SHA256",
-	"TLS_RSA_WITH_AES_256_GCM_SHA384",
-}
+var (
+	kubeletTLSCipherSuites = []string{
+		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+		"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+		"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
+		"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+		"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+		"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
+		"TLS_RSA_WITH_AES_128_GCM_SHA256",
+		"TLS_RSA_WITH_AES_256_GCM_SHA384",
+	}
 
-var kubeletControlPlaneLabels = []string{
-	"node-role.kubernetes.io/control-plane=",
-}
+	kubeletControlPlaneLabels = []string{
+		"node-role.kubernetes.io/control-plane=", // mark node with role "control-plane"
+		"node-role.kubernetes.io/worker=",        // mark node with role "worker"
+		"k8sd.io/role=control-plane",             // mark as k8sd control plane node
+	}
 
-var kubeletWorkerLabels = []string{
-	"node-role.kubernetes.io/worker=",
-}
+	kubeletWorkerLabels = []string{
+		"node-role.kubernetes.io/worker=", // mark node with role "worker"
+		"k8sd.io/role=worker",             // mark as k8sd worker node
+	}
+)
 
 // KubeletControlPlane configures kubelet on a control plane node.
 func KubeletControlPlane(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, registerWithTaints []string, extraArgs map[string]*string) error {
-	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, registerWithTaints, append(kubeletControlPlaneLabels, kubeletWorkerLabels...), extraArgs)
+	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, registerWithTaints, kubeletControlPlaneLabels, extraArgs)
 }
 
 // KubeletWorker configures kubelet on a worker node.
