@@ -115,13 +115,22 @@ The steps are to be followed in-order, each task must be completed by the person
   - `git checkout -b strict/release-1.xx`
   - `git push origin strict/release-1.xx`
 - [ ] **Reviewer**: Ensure `strict/release-1.xx` branch is based on latest changes on `strict/main` at the time of the release cut.
-- [ ] **Owner**: Create PRs to initialize `release-1.xx`, `moonray/release-1.xx` and `strict/release-1.xx` branches:
+- [ ] **Owner**: Create PR to initialize `release-1.xx` branch:
   - [ ] Update `KUBERNETES_RELEASE_MARKER` to `stable-1.xx` in [/build-scripts/hack/update-component-versions.py][]
   - [ ] Update `master` to `release-1.xx` in [/build-scripts/components/k8s-dqlite/version][]
   - [ ] Update `"main"` to `"release-1.xx"` in [/build-scripts/hack/generate-sbom.py][]
   - [ ] `git commit -m 'Release 1.xx'`
-  - [ ] Create PRs against `release-1.xx`, `moonray/release-1.xx` and `strict/release-1.xx` with the changes and request review from **Reviewer**. Make sure to update the issue `Information` section with links to the PRs.
-- [ ] **Reviewer**: Review and merge PRs to initialize the release branches.
+  - [ ] Create PRs against `release-1.xx` with the changes and request review from **Reviewer**. Make sure to update the issue `Information` section with link to the PR.
+- [ ] **Reviewer**: Ensure `release-1.xx` PR is merged and builds Kubernetes 1.xx.
+- [ ] **Owner**: Create PRs to initialize `moonray/release-1.xx` branch.
+  - [ ] `git checkout moonray/release-1.xx`
+  - [ ] `git merge release-1.xx`
+  - [ ] Create PR against `moonray/release-1.xx` with the changes and request review from **Reviewer**. Make sure to update the issue `Information` section with link to the PR.
+- [ ] **Owner**: Create PRs to initialize `strict/release-1.xx` branch.
+  - [ ] `git checkout strict/release-1.xx`
+  - [ ] `git merge release-1.xx`
+  - [ ] Create PR against `strict/release-1.xx` with the changes and request review from **Reviewer**. Make sure to update the issue `Information` section with link to the PR.
+- [ ] **Reviewer**: Review and merge PRs to initialize the release branches for `moonray/release-1.xx` and `strict/release-1.xx`.
 - [ ] **Owner**: Create PR to initialize `update-components.yaml` job for `release-1.xx` branch:
   - [ ] Add `release-1.xx` in [.github/workflows/update-components.yaml][]
   - [ ] Remove unsupported releases from the list (if applicable, consult with **Reviewer**)
