@@ -123,18 +123,3 @@ func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) (bool, err
 		path.Join(snap.KubernetesPKIDir(), "kubelet.key"):   certificates.KubeletKey,
 	})
 }
-
-// EnsureEtcdPKI ensures the etcd PKI files are present.
-// and have the correct content, permissions and ownership.
-// It returns true if one or more files were updated and any error that occured.
-func EnsureEtcdPKI(snap snap.Snap, certificates *pki.EtcdPKI) (bool, error) {
-	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
-		path.Join(snap.EtcdPKIDir(), "ca.crt"):                          certificates.CACert,
-		path.Join(snap.EtcdPKIDir(), "server.crt"):                      certificates.ServerCert,
-		path.Join(snap.EtcdPKIDir(), "server.key"):                      certificates.ServerKey,
-		path.Join(snap.EtcdPKIDir(), "peer.crt"):                        certificates.ServerPeerCert,
-		path.Join(snap.EtcdPKIDir(), "peer.key"):                        certificates.ServerPeerKey,
-		path.Join(snap.KubernetesPKIDir(), "apiserver-etcd-client.crt"): certificates.APIServerClientCert,
-		path.Join(snap.KubernetesPKIDir(), "apiserver-etcd-client.key"): certificates.APIServerClientKey,
-	})
-}

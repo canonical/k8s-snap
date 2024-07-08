@@ -50,7 +50,7 @@ func TestStartControlPlaneServices(t *testing.T) {
 	})
 }
 
-func TestStartK8sDBService(t *testing.T) {
+func TestStartK8sDqliteServices(t *testing.T) {
 	mock := &mock.Snap{
 		Mock: mock.Mock{},
 	}
@@ -60,13 +60,13 @@ func TestStartK8sDBService(t *testing.T) {
 
 	t.Run("ServiceStartSuccess", func(t *testing.T) {
 		mock.StartServiceErr = nil
-		g.Expect(StartK8sDBService(context.Background(), mock)).To(Succeed())
+		g.Expect(StartK8sDqliteServices(context.Background(), mock)).To(Succeed())
 		g.Expect(mock.StartServiceCalledWith).To(ConsistOf("k8s-dqlite"))
 	})
 
 	t.Run("ServiceStartFailure", func(t *testing.T) {
 		mock.StartServiceErr = fmt.Errorf("service start failed")
-		g.Expect(StartK8sDBService(context.Background(), mock)).NotTo(Succeed())
+		g.Expect(StartK8sDqliteServices(context.Background(), mock)).NotTo(Succeed())
 	})
 }
 
@@ -90,7 +90,7 @@ func TestStopControlPlaneServices(t *testing.T) {
 	})
 }
 
-func TestStopK8sDBService(t *testing.T) {
+func TestStopK8sDqliteServices(t *testing.T) {
 	mock := &mock.Snap{
 		Mock: mock.Mock{},
 	}
@@ -100,13 +100,13 @@ func TestStopK8sDBService(t *testing.T) {
 
 	t.Run("ServiceStopSuccess", func(t *testing.T) {
 		mock.StopServiceErr = nil
-		g.Expect(StopK8sDBService(context.Background(), mock)).To(Succeed())
+		g.Expect(StopK8sDqliteServices(context.Background(), mock)).To(Succeed())
 		g.Expect(mock.StopServiceCalledWith).To(ConsistOf("k8s-dqlite"))
 	})
 
 	t.Run("ServiceStopFailure", func(t *testing.T) {
 		mock.StopServiceErr = fmt.Errorf("service stop failed")
-		g.Expect(StopK8sDBService(context.Background(), mock)).NotTo(Succeed())
+		g.Expect(StopK8sDqliteServices(context.Background(), mock)).NotTo(Succeed())
 	})
 }
 

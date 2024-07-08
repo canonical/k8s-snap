@@ -48,7 +48,7 @@ var (
 )
 
 // KubeAPIServer configures kube-apiserver on the local node.
-func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string, nodeIP string, extraArgs map[string]*string) error {
+func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string, extraArgs map[string]*string) error {
 	authTokenWebhookConfigFile := path.Join(snap.ServiceExtraConfigDir(), "auth-token-webhook.conf")
 	authTokenWebhookFile, err := os.OpenFile(authTokenWebhookConfigFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
@@ -87,12 +87,12 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 	}
 
 	switch datastore.GetType() {
-	case "k8s-dqlite", "external", "etcd":
+	case "k8s-dqlite", "external":
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore.GetType(), SupportedDatastores)
 	}
 
-	datastoreUpdateArgs, deleteArgs := datastore.ToKubeAPIServerArguments(snap, []string{nodeIP})
+	datastoreUpdateArgs, deleteArgs := datastore.ToKubeAPIServerArguments(snap)
 	for key, val := range datastoreUpdateArgs {
 		args[key] = val
 	}

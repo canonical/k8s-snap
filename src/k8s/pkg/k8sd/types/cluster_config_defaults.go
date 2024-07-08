@@ -29,12 +29,6 @@ func (c *ClusterConfig) SetDefaults() {
 	if c.Datastore.GetK8sDqlitePort() == 0 {
 		c.Datastore.K8sDqlitePort = utils.Pointer(9000)
 	}
-	if c.Datastore.GetEtcdPort() == 0 {
-		c.Datastore.EtcdPort = utils.Pointer(2379)
-	}
-	if c.Datastore.GetEtcdPeerPort() == 0 {
-		c.Datastore.EtcdPeerPort = utils.Pointer(2380)
-	}
 	// kubelet
 	if c.Kubelet.GetClusterDomain() == "" {
 		c.Kubelet.ClusterDomain = utils.Pointer("cluster.local")

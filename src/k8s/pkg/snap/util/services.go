@@ -48,8 +48,8 @@ func StartControlPlaneServices(ctx context.Context, snap snap.Snap) error {
 	return nil
 }
 
-// StartK8sDBService starts the managed datastore service.
-func StartK8sDBService(ctx context.Context, snap snap.Snap) error {
+// StartK8sDqliteServices starts the k8s-dqlite datastore service.
+func StartK8sDqliteServices(ctx context.Context, snap snap.Snap) error {
 	if err := snap.StartService(ctx, "k8s-dqlite"); err != nil {
 		return fmt.Errorf("failed to start service %s: %w", "k8s-dqlite", err)
 	}
@@ -78,8 +78,9 @@ func StopControlPlaneServices(ctx context.Context, snap snap.Snap) error {
 	return nil
 }
 
-// StopK8sDBService stops the managed datastore service.
-func StopK8sDBService(ctx context.Context, snap snap.Snap) error {
+// StopK8sDqliteServices stops the control plane services.
+// StopK8sDqliteServices will return on the first failing service.
+func StopK8sDqliteServices(ctx context.Context, snap snap.Snap) error {
 	if err := snap.StopService(ctx, "k8s-dqlite"); err != nil {
 		return fmt.Errorf("failed to stop service %s: %w", "k8s-dqlite", err)
 	}
