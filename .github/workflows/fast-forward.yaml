@@ -40,13 +40,12 @@ jobs:
           ssh-key: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
       - name: Checkout branches
         run: |
-          git fetch origin
           git checkout ${{ steps.branch.outputs.upstream }}
           git checkout ${{ steps.branch.outputs.target }}
       - name: Merge ${{ steps.branch.outputs.upstream }} into ${{ steps.branch.outputs.target }}
         run: |
           git checkout ${{ steps.branch.outputs.target }}
-          git merge ${{ steps.branch.outputs.upstream }} -m "Auto-merge ${{ steps.branch.outputs.upstream }}"
+          git merge origin/${{ steps.branch.outputs.upstream }} -m "Auto-merge ${{ steps.branch.outputs.upstream }}"
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
