@@ -65,6 +65,8 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 		if err := c.DeleteClusterMember(ctx, req.Name, req.Force); err != nil {
 			return response.InternalError(fmt.Errorf("failed to delete cluster member %s: %w", req.Name, err))
 		}
+
+		return nil
 	}
 
 	client, err := snap.KubernetesClient("")
