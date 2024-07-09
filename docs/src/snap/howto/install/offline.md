@@ -229,7 +229,8 @@ Choose one of the following options:
 
 #### Container Runtime Option A: Configure HTTP proxy for registries
 
-Edit the `/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`
+Create or edit the
+`/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`
 file on each node and set the appropriate http_proxy, https_proxy and
 no_proxy variables as described in the
 [adding proxy configuration section][proxy].
@@ -240,7 +241,7 @@ This requires having already set up a registry mirror,
 as explained in the preparation section on the private registry mirror.
 Complete the following instructions on all nodes.
 For each upstream registry that needs mirroring, create a `hosts.toml` file.
-Here's an example that configures `http://10.100.100.100:5000` as a mirror for 
+Here's an example that configures `http://10.10.10.10:5050` as a mirror for 
 `ghcr.io`:
 
 ##### HTTP registry
@@ -249,7 +250,7 @@ In `/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/hosts.toml`
 add the configuration:
 
 ```
-[host."http://10.100.100.100:5000"]
+[host."http://10.10.10.10:5050"]
 capabilities = ["pull", "resolve"]
 ```
 
@@ -262,7 +263,7 @@ Then add the configuration in
 `/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/hosts.toml`:
 
 ```
-[host."https://10.100.100.100:5000"]
+[host."https://10.10.10.10:5050"]
 capabilities = ["pull", "resolve"]
 ca = "/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt"
 ```
@@ -274,8 +275,8 @@ This is only required if choosing to
 Make sure that the directory `/var/snap/k8s/common/images` directory exists,
 then copy all `$image.tar` to that directory, such that containerd automatically
 picks them up and imports them when it starts.
-Copy the `images.tar` file(s) to `/var/snap/k8s/common/images`
-on each cluster node.
+Copy the `images.tar` file(s) to `/var/snap/k8s/common/images`.
+Repeat this step for all cluster nodes.
 
 ### Step 3: Bootstrap cluster
 

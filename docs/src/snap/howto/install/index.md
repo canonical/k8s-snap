@@ -15,5 +15,5 @@ the current How-to guides below.
 snap
 multipass
 lxd
-install-offline
+offline
 ```
