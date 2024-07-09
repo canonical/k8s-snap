@@ -6,6 +6,7 @@ from ipaddress import IPv4Address, IPv6Address, ip_address
 from pathlib import Path
 
 import pytest
+import yaml
 from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
@@ -16,22 +17,24 @@ def test_dualstack(h: harness.Harness, tmp_path: Path):
     snap_path = (tmp_path / "k8s.snap").as_posix()
     main = h.new_instance(dualstack=True)
     util.setup_k8s_snap(main, snap_path)
-    bootstrap_dualstack_config_path = "/home/ubuntu/bootstrap-dualstack.yaml"
-    main.send_file(
-        (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").as_posix(),
-        bootstrap_dualstack_config_path,
-    )
 
-    main.exec(["k8s", "bootstrap", "--file", bootstrap_dualstack_config_path])
+    with open(config.MANIFESTS_DIR / "bootstrap-dualstack.yaml", "r") as file:
+        bootstrap_config = yaml.safe_load(file)
+
+    main.exec(
+        ["k8s", "bootstrap", "--file", "-"],
+        input=str.encode(bootstrap_config),
+    )
     util.wait_until_k8s_ready(main, [main])
 
+    with open(config.MANIFESTS_DIR / "nginx-dualstack.yaml", "r") as file:
+        dualstack_config = yaml.safe_load(file)
+
     # Deploy nginx with dualstack service
-    main.send_file(
-        (config.MANIFESTS_DIR / "nginx-dualstack.yaml").as_posix(),
-        "/home/ubuntu/nginx-dualstack.yaml",
+    main.exec(
+        ["k8s", "kubectl", "apply", "-f", "-"], input=str.encode(dualstack_config)
     )
-    main.exec(["k8s", "kubectl", "apply", "-f", "/home/ubuntu/nginx-dualstack.yaml"])
-    clusterIps = (
+    addresses = (
         util.stubbornly(retries=5, delay_s=3)
         .on(main)
         .exec(
@@ -50,7 +53,7 @@ def test_dualstack(h: harness.Harness, tmp_path: Path):
         .stdout
     )
 
-    for ip in clusterIps.split():
+    for ip in addresses.split():
         addr = ip_address(ip.strip("'"))
         if isinstance(addr, IPv6Address):
             address = f"http://[{str(addr)}]"
