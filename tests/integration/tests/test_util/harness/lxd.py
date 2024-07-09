@@ -9,7 +9,7 @@ from pathlib import Path
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
-from test_util.util import configure_lxd_profile, run, stubbornly
+from test_util.util import run, stubbornly
 
 LOG = logging.getLogger(__name__)
 

@@ -7,7 +7,7 @@ import shlex
 import subprocess
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 from tenacity import (
     RetryCallState,
