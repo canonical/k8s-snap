@@ -268,7 +268,6 @@ def configure_lxd_profile(
     # Apply template overwrites before configuring the profile
     for key, value in template_overwrites.items():
         profile_config = profile_config.replace(key, value)
-        print(profile_config)
 
     try:
         LOG.debug("Configuring LXD profile %s", profile_name)

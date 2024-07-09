@@ -31,7 +31,7 @@ def test_dualstack(h: harness.Harness, tmp_path: Path):
         "/home/ubuntu/nginx-dualstack.yaml",
     )
     main.exec(["k8s", "kubectl", "apply", "-f", "/home/ubuntu/nginx-dualstack.yaml"])
-    clusterIps = main.exec(
+    clusterIps = util.stubbornly(retries=5, delay_s=3).on(main).exec(
         [
             "k8s",
             "kubectl",
