@@ -31,19 +31,24 @@ def test_dualstack(h: harness.Harness, tmp_path: Path):
         "/home/ubuntu/nginx-dualstack.yaml",
     )
     main.exec(["k8s", "kubectl", "apply", "-f", "/home/ubuntu/nginx-dualstack.yaml"])
-    clusterIps = util.stubbornly(retries=5, delay_s=3).on(main).exec(
-        [
-            "k8s",
-            "kubectl",
-            "get",
-            "svc",
-            "nginx-dualstack",
-            "-o",
-            "jsonpath='{.spec.clusterIPs[*]}'",
-        ],
-        text=True,
-        capture_output=True,
-    ).stdout
+    clusterIps = (
+        util.stubbornly(retries=5, delay_s=3)
+        .on(main)
+        .exec(
+            [
+                "k8s",
+                "kubectl",
+                "get",
+                "svc",
+                "nginx-dualstack",
+                "-o",
+                "jsonpath='{.spec.clusterIPs[*]}'",
+            ],
+            text=True,
+            capture_output=True,
+        )
+        .stdout
+    )
 
     for ip in clusterIps.split():
         addr = ip_address(ip.strip("'"))
