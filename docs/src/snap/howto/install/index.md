@@ -15,4 +15,5 @@ the current How-to guides below.
 snap
 multipass
 lxd
+offline
 ```

@@ -2,6 +2,7 @@ package setup
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"path"
 	"strings"
@@ -48,7 +49,7 @@ var (
 )
 
 // KubeAPIServer configures kube-apiserver on the local node.
-func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string, extraArgs map[string]*string) error {
+func KubeAPIServer(snap snap.Snap, nodeIP net.IP, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string, extraArgs map[string]*string) error {
 	authTokenWebhookConfigFile := path.Join(snap.ServiceExtraConfigDir(), "auth-token-webhook.conf")
 	authTokenWebhookFile, err := os.OpenFile(authTokenWebhookConfigFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
@@ -84,6 +85,10 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--tls-cert-file":                            path.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
 		"--tls-cipher-suites":                        strings.Join(apiserverTLSCipherSuites, ","),
 		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
+	}
+
+	if nodeIP != nil && !nodeIP.IsLoopback() {
+		args["--advertise-address"] = nodeIP.String()
 	}
 
 	switch datastore.GetType() {
