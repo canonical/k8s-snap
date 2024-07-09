@@ -11,7 +11,7 @@ in such environments.
 ## Prepare for Deployment
 
 In preparation for the offline deployment download the Canonical
-Kubernetes snap, fulfill the networking requirements based on your scenario and
+Kubernetes snap, fulfil the networking requirements based on your scenario and
 handle images for workloads and Canonical Kubernetes features.
 
 ### Download the Canonical Kubernetes snap
@@ -107,7 +107,12 @@ If the `k8s` snap is already installed,
 list the images in use with the following command:
 
 ```
-ubuntu@demo:~$ k8s list-images
+k8s list-images
+```
+
+The output will look similar to the following:
+
+```
 ghcr.io/canonical/cilium-operator-generic:1.15.2-ck2
 ghcr.io/canonical/cilium:1.15.2-ck2
 ghcr.io/canonical/coredns:1.11.1-ck4
@@ -120,7 +125,7 @@ ghcr.io/canonical/metrics-server:0.7.0-ck0
 ghcr.io/canonical/rawfile-localpv:0.8.0-ck5
 ```
 
-A list of images can be found in the `images.txt` file when unsquashing the
+A list of images can also be found in the `images.txt` file when unsquashing the
 downloaded k8s snap.
 
 Please ensure that the images used by workloads are tracked as well.
@@ -156,7 +161,7 @@ This requires three steps:
       #Container-Runtime-Option-B:-Configure-registry-mirrors) section.
 
 In order to load images into the private registry, a machine is needed with
-access to both any upstream registries (e.g. `docker.io`)
+access to any upstream registries (e.g. `docker.io`)
 and the private mirror.
 
 ##### Load images with regsync
