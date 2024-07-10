@@ -6,7 +6,6 @@ from ipaddress import IPv4Address, IPv6Address, ip_address
 from pathlib import Path
 
 import pytest
-import yaml
 from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
