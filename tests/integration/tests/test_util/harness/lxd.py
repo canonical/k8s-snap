@@ -6,6 +6,7 @@ import os
 import shlex
 import subprocess
 from pathlib import Path
+from typing import List
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
@@ -36,17 +37,12 @@ class LXDHarness(Harness):
 
         self._configure_profile(self.profile, config.LXD_PROFILE)
 
-        run(
-            [
-                "lxc",
-                "network",
-                "create",
-                config.LXD_DUALSTACK_NETWORK,
-                "ipv4.address=auto",
-                "ipv6.address=auto",
-                "ipv4.nat=true",
-                "ipv6.nat=true",
-            ],
+        self._configure_network(
+            config.LXD_DUALSTACK_NETWORK,
+            "ipv4.address=auto",
+            "ipv6.address=auto",
+            "ipv4.nat=true",
+            "ipv6.nat=true",
         )
         self.dualstack_profile = config.LXD_DUALSTACK_PROFILE_NAME
         self._configure_profile(
@@ -134,6 +130,20 @@ class LXDHarness(Harness):
             )
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"Failed to configure LXD profile {profile_name}") from e
+
+    def _configure_network(self, network_name: str, *network_args: List[str]):
+        LOG.debug("Checking for LXD network %s", network_name)
+        try:
+            run(["lxc", "network", "show", network_name])
+        except subprocess.CalledProcessError:
+            try:
+                LOG.debug("Creating LXD network %s", network_name)
+                run(["lxc", "network", "create", network_name, *network_args])
+
+            except subprocess.CalledProcessError as e:
+                raise HarnessError(
+                    f"Failed to create LXD network {network_name}"
+                ) from e
 
     def send_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
