@@ -25,7 +25,7 @@ def test_dualstack(h: harness.Harness, tmp_path: Path):
     )
     util.wait_until_k8s_ready(main, [main])
 
-    dualstack_config = (config.MANIFESTS_DIR / "nginx-dualstack.yaml", "r").read_text()
+    dualstack_config = (config.MANIFESTS_DIR / "nginx-dualstack.yaml").read_text()
 
     # Deploy nginx with dualstack service
     main.exec(
