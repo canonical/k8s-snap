@@ -135,7 +135,6 @@ more fields are shown:
 
 ```bash
 $ k8s status
-ready: true
 status: ready
 high-availability: no
 datastore:
