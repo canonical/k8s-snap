@@ -39,6 +39,18 @@ charm/explanation/index
 charm/reference/index
 ```
 
+```{toctree}
+:hidden:
+:caption: Deploy with Cluster API (WIP)
+:titlesonly:
+:glob:
+Overview <capi/index>
+capi/tutorial/index
+capi/howto/index
+capi/explanation/index
+capi/reference/index
+```
+
 ---
 
 ````{grid} 1 1 2 2
