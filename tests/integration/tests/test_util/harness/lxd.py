@@ -6,6 +6,7 @@ import os
 import shlex
 import subprocess
 from pathlib import Path
+from typing import List
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
@@ -29,53 +30,52 @@ class LXDHarness(Harness):
         self._next_id = 0
 
         self.profile = config.LXD_PROFILE_NAME
+        self.dualstack_profile = None
         self.sideload_images_dir = config.LXD_SIDELOAD_IMAGES_DIR
         self.image = config.LXD_IMAGE
         self.instances = set()
 
-        LOG.debug("Checking for LXD profile %s", self.profile)
-        try:
-            run(["lxc", "profile", "show", self.profile])
-        except subprocess.CalledProcessError:
-            try:
-                LOG.debug("Creating LXD profile %s", self.profile)
-                run(["lxc", "profile", "create", self.profile])
+        self._configure_profile(self.profile, config.LXD_PROFILE)
 
-            except subprocess.CalledProcessError as e:
-                raise HarnessError(
-                    f"Failed to create LXD profile {self.profile}"
-                ) from e
-
-        try:
-            LOG.debug("Configuring LXD profile %s", self.profile)
-            run(
-                ["lxc", "profile", "edit", self.profile],
-                input=config.LXD_PROFILE.encode(),
-            )
-        except subprocess.CalledProcessError as e:
-            raise HarnessError(f"Failed to configure LXD profile {self.profile}") from e
+        self._configure_network(
+            config.LXD_DUALSTACK_NETWORK,
+            "ipv4.address=auto",
+            "ipv6.address=auto",
+            "ipv4.nat=true",
+            "ipv6.nat=true",
+        )
+        self.dualstack_profile = config.LXD_DUALSTACK_PROFILE_NAME
+        self._configure_profile(
+            self.dualstack_profile,
+            config.LXD_DUALSTACK_PROFILE.replace(
+                "LXD_DUALSTACK_NETWORK", config.LXD_DUALSTACK_NETWORK
+            ),
+        )
 
         LOG.debug(
             "Configured LXD substrate (profile %s, image %s)", self.profile, self.image
         )
 
-    def new_instance(self) -> Instance:
+    def new_instance(self, dualstack: bool = False) -> Instance:
         instance_id = f"k8s-integration-{os.urandom(3).hex()}-{self.next_id()}"
 
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
+        launch_lxd_command = [
+            "lxc",
+            "launch",
+            self.image,
+            instance_id,
+            "-p",
+            "default",
+            "-p",
+            self.profile,
+        ]
+
+        if dualstack:
+            launch_lxd_command.extend(["-p", self.dualstack_profile])
+
         try:
-            stubbornly(retries=3, delay_s=1).exec(
-                [
-                    "lxc",
-                    "launch",
-                    self.image,
-                    instance_id,
-                    "-p",
-                    "default",
-                    "-p",
-                    self.profile,
-                ]
-            )
+            stubbornly(retries=3, delay_s=1).exec(launch_lxd_command)
             self.instances.add(instance_id)
 
             if self.sideload_images_dir:
@@ -107,6 +107,43 @@ class LXDHarness(Harness):
 
         self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
         return Instance(self, instance_id)
+
+    def _configure_profile(self, profile_name: str, profile_config: str):
+        LOG.debug("Checking for LXD profile %s", profile_name)
+        try:
+            run(["lxc", "profile", "show", profile_name])
+        except subprocess.CalledProcessError:
+            try:
+                LOG.debug("Creating LXD profile %s", profile_name)
+                run(["lxc", "profile", "create", profile_name])
+
+            except subprocess.CalledProcessError as e:
+                raise HarnessError(
+                    f"Failed to create LXD profile {profile_name}"
+                ) from e
+
+        try:
+            LOG.debug("Configuring LXD profile %s", profile_name)
+            run(
+                ["lxc", "profile", "edit", profile_name],
+                input=profile_config.encode(),
+            )
+        except subprocess.CalledProcessError as e:
+            raise HarnessError(f"Failed to configure LXD profile {profile_name}") from e
+
+    def _configure_network(self, network_name: str, *network_args: List[str]):
+        LOG.debug("Checking for LXD network %s", network_name)
+        try:
+            run(["lxc", "network", "show", network_name])
+        except subprocess.CalledProcessError:
+            try:
+                LOG.debug("Creating LXD network %s", network_name)
+                run(["lxc", "network", "create", network_name, *network_args])
+
+            except subprocess.CalledProcessError as e:
+                raise HarnessError(
+                    f"Failed to create LXD network {network_name}"
+                ) from e
 
     def send_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
