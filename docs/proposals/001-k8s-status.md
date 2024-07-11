@@ -145,19 +145,14 @@ datastore:
   spare-nodes: none
 network:
   enabled: true
-  message: Cilium is deployed
 dns:
   enabled: true
-  message: CoreDNS is deployed
 ingress:
   enabled: false
-  message: ""
 load-balancer:
-  enabled: true
-  message: Cilium configured for LoadBalancer services
+  enabled: false
 local-storage:
   enabled: true
-  message: Rawfile LocalPV is deployed
 gateway:
   enabled: false
   message: Cilium GatewayAPI support could not be enabled, error was "..."
@@ -202,6 +197,9 @@ The `message` field is the only information that will be presented to the user.
 We should be explicit that this field is only meant to be informative, users
 should not try to programmatically parse it to extract meaningful information
 about the feature.
+
+In case things are working as expected, the message could be empty (such that
+the output of `k8s status` remains concise).
 
 It is out-of-scope for this proposal to provide any sort of _structured_
 fields into the output of `k8s status` command.
