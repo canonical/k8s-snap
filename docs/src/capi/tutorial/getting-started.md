@@ -1,10 +1,15 @@
 # Cluster provisioning with CAPI and Canonical K8s
 
-This guide covers how to deploy a Canonical Kubernetes multi-node cluster using Cluster API (CAPI).
+This guide covers how to deploy a Canonical Kubernetes multi-node cluster
+using Cluster API (CAPI).
 
 ## Install `clusterctl`
 
-The `clusterctl` CLI tool manages the lifecycle of a Cluster API management cluster. To install it, follow the [upstream instructions]. Typically, this involves fetching the executable that matches your hardware architecture and placing it in your PATH. For example, at the time this guide was written, for `amd64` you would run:
+The `clusterctl` CLI tool manages the lifecycle of a Cluster API management
+cluster. To install it, follow the [upstream instructions]. Typically, this
+involves fetching the executable that matches your hardware architecture and
+placing it in your PATH. For example, at the time this guide was written,
+for `amd64` you would run:
 
 ```sh
 curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.3/clusterctl-linux-amd64 -o clusterctl
@@ -13,7 +18,9 @@ sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 
 ### Configure clusterctl
 
-`clusterctl` contains a list of default providers. Right now, Canonical Kubernetes is not yet part of that list. To make `clusterctl` aware of the Canonical K8s providers, we need to add a clusterctl configuration file.
+`clusterctl` contains a list of default providers. Right now, Canonical
+Kubernetes is not yet part of that list. To make `clusterctl` aware of the
+Canonical K8s providers, we need to add a clusterctl configuration file.
 
 ```sh
 mkdir -p ~/.config/cluster-api
@@ -22,8 +29,8 @@ curl -L https://raw.githubusercontent.com/canonical/cluster-api-k8s/main/cluster
 
 ### Set up a management cluster
 
-The management cluster hosts the CAPI providers. You can use Canonical Kubernetes
-  as a management cluster:
+The management cluster hosts the CAPI providers. You can use Canonical
+Kubernetes as a management cluster:
 
 ```sh
 sudo snap install k8s --classic --edge
