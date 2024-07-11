@@ -22,7 +22,8 @@ curl -L https://raw.githubusercontent.com/canonical/cluster-api-k8s/main/cluster
 
 ### Set up a management cluster
 
-The management cluster hosts the CAPI providers. You can use Canonical Kubernetes  as a management cluster:
+The management cluster hosts the CAPI providers. You can use Canonical Kubernetes
+  as a management cluster:
 
 ```sh
 sudo snap install k8s --classic --edge
@@ -32,18 +33,23 @@ mkdir -p ~/.kube/
 sudo k8s config > ~/.kube/config
 ```
 
-When setting up the management cluster, place its kubeconfig under `~/.kube/config` so other tools such as `clusterctl` can discover and interact with it.
+When setting up the management cluster, place its kubeconfig under
+`~/.kube/config` so other tools such as `clusterctl` can discover and interact
+with it.
 
 ### Prepare the Infrastructure Provider
 
-Before generating a cluster, you need to configure the infrastructure provider. Each provider has its own prerequisites. Please follow the instructions for your provider:
+Before generating a cluster, you need to configure the infrastructure provider.
+Each provider has its own prerequisites. Please follow the instructions
+for your provider:
 
 * [aws][aws-provider]
 <!-- TO BE EXTENDED -->
 
 ### Initialize the Management Cluster
 
-To initialize the management cluster with the latest released version of the providers and the infrastructure of your choice:
+To initialize the management cluster with the latest released version of the
+providers and the infrastructure of your choice:
 
 ```sh
 clusterctl init --bootstrap ck8s --control-plane ck8s -i <infra-provider-of-choice>
@@ -51,9 +57,14 @@ clusterctl init --bootstrap ck8s --control-plane ck8s -i <infra-provider-of-choi
 
 ### Generate a Cluster Spec Manifest
 
-Once the bootstrap and control-plane controllers are up and running, you can apply the cluster manifests with the specifications of the cluster you want to provision.
+Once the bootstrap and control-plane controllers are up and running, you can
+apply the cluster manifests with the specifications of the cluster you want to
+provision.
 
-You can generate a cluster manifest for a selected set of commonly used infrastructures via templates provided by the Canonical Kubernetes team. Ensure you have initialized the desired infrastructure provider and fetch the Canonical Kubernetes provider repository:
+You can generate a cluster manifest for a selected set of commonly used
+infrastructures via templates provided by the Canonical Kubernetes team.
+Ensure you have initialized the desired infrastructure provider and fetch
+the Canonical Kubernetes provider repository:
 
 ```sh
 git clone https://github.com/canonical/cluster-api-k8s
@@ -66,14 +77,18 @@ cd cluster-api-k8s
 clusterctl generate cluster <cluster-name> --from ./templates/<infrastructure-provider>/cluster-template.yaml --list-variables
 ```
 
-Set the respective environment variables by editing the rc file as needed before sourcing it. Then generate the cluster manifest:
+Set the respective environment variables by editing the rc file as needed
+before sourcing it. Then generate the cluster manifest:
 
 ```sh
 source ./templates/<infrastructure-provider>/template-variables.rc
 clusterctl generate cluster <cluster-name> --from ./templates/<infrastructure-provider>/cluster-template.yaml > cluster.yaml
 ```
 
-Each provisioned node is associated with a `CK8sConfig`, through which you can set the cluster’s properties. Review the available options in the respective definitions file and edit the cluster manifest (`cluster.yaml` above) to match your needs.
+Each provisioned node is associated with a `CK8sConfig`, through which you can
+set the cluster’s properties. Review the available options in the respective
+definitions file and edit the cluster manifest (`cluster.yaml` above) to match
+your needs.
 
 ### Deploy the Cluster
 
@@ -101,7 +116,8 @@ To see the deployed machines:
 sudo k8s kubectl get machine
 ```
 
-After the first control plane node is provisioned, you can get the kubeconfig of the workload cluster:
+After the first control plane node is provisioned, you can get the kubeconfig
+of the workload cluster:
 
 ```sh
 clusterctl get kubeconfig <cluster-name> > kubeconfig
