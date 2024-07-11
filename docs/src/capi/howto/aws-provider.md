@@ -14,7 +14,7 @@ sudo mv clusterawsadm /usr/local/bin
 ```
 
 `clusterawsadm` helps you bootstrapping the AWS environment that CAPI will use
-and set the necessary permissions.
+. It will also create the necessary IAM roles for you.
 
 Start by setting up environment variables defining the AWS account to use, if
 these are not already defined:
@@ -31,14 +31,14 @@ If you are using multi-factor authentication, you will also need:
 export AWS_SESSION_TOKEN=<session-token>
 ```
 
-clusterawsadm` uses these details to create a CloudFormation stack in your AWS
+`clusterawsadm` uses these details to create a CloudFormation stack in your AWS
 account with the correct IAM resources:
 
 ```sh
 clusterawsadm bootstrap iam create-cloudformation-stack
 ```
 
-The credentials should also be encoded and stored as a Kubernetes secret:
+The credentials need to be encoded and stored as a Kubernetes secret:
 
 ```sh
 export AWS_B64ENCODED_CREDENTIALS=$(clusterawsadm bootstrap credentials encode-as-profile)
