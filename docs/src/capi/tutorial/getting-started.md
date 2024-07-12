@@ -53,6 +53,24 @@ for your provider:
 * [aws][aws-provider]
 <!-- TO BE EXTENDED -->
 
+````{tabs}
+```{group-tab} AWS
+
+AWS instructions
+```
+
+```{group-tab} GCP
+Something something something
+```
+
+```{group-tab} MAAS
+
+MAAS related things
+```
+````
+
+
+
 ### Initialize the Management Cluster
 
 To initialize the management cluster with the latest released version of the
