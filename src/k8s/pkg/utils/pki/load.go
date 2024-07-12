@@ -1,4 +1,4 @@
-package pki
+package pkiutil
 
 import (
 	"crypto/rsa"
@@ -7,10 +7,10 @@ import (
 	"fmt"
 )
 
-// loadCertificate parses the PEM blocks and returns the certificate and private key.
-// loadCertificate will fail if certPEM is not a valid certificate.
-// loadCertificate will return a nil private key if keyPEM is empty, but will fail if it is not valid.
-func loadCertificate(certPEM string, keyPEM string) (*x509.Certificate, *rsa.PrivateKey, error) {
+// LoadCertificate parses the PEM blocks and returns the certificate and private key.
+// LoadCertificate will fail if certPEM is not a valid certificate.
+// LoadCertificate will return a nil private key if keyPEM is empty, but will fail if it is not valid.
+func LoadCertificate(certPEM string, keyPEM string) (*x509.Certificate, *rsa.PrivateKey, error) {
 	decodedCert, _ := pem.Decode([]byte(certPEM))
 	if decodedCert == nil {
 		return nil, nil, fmt.Errorf("failed to parse certificate PEM")

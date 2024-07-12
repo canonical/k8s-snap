@@ -1,4 +1,4 @@
-package pki
+package pkiutil
 
 import (
 	"crypto/rand"
@@ -12,8 +12,8 @@ import (
 	"time"
 )
 
-// generateSerialNumber returns a random number that can be used for the SerialNumber field in an x509 certificate.
-func generateSerialNumber() (*big.Int, error) {
+// GenerateSerialNumber returns a random number that can be used for the SerialNumber field in an x509 certificate.
+func GenerateSerialNumber() (*big.Int, error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
@@ -22,8 +22,8 @@ func generateSerialNumber() (*big.Int, error) {
 	return serialNumber, nil
 }
 
-func generateCertificate(subject pkix.Name, years int, ca bool, dnsSANs []string, ipSANs []net.IP) (*x509.Certificate, error) {
-	serialNumber, err := generateSerialNumber()
+func GenerateCertificate(subject pkix.Name, years int, ca bool, dnsSANs []string, ipSANs []net.IP) (*x509.Certificate, error) {
+	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for certificate template: %w", err)
 	}
@@ -49,8 +49,8 @@ func generateCertificate(subject pkix.Name, years int, ca bool, dnsSANs []string
 	return cert, nil
 }
 
-func generateSelfSignedCA(subject pkix.Name, years int, bits int) (string, string, error) {
-	cert, err := generateCertificate(subject, years, true, nil, nil)
+func GenerateSelfSignedCA(subject pkix.Name, years int, bits int) (string, string, error) {
+	cert, err := GenerateCertificate(subject, years, true, nil, nil)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate certificate: %w", err)
 	}
@@ -75,7 +75,7 @@ func generateSelfSignedCA(subject pkix.Name, years int, bits int) (string, strin
 	return string(crtPEM), string(keyPEM), nil
 }
 
-func signCertificate(certificate *x509.Certificate, bits int, parent *x509.Certificate, pub any, priv any) (string, string, error) {
+func SignCertificate(certificate *x509.Certificate, bits int, parent *x509.Certificate, pub any, priv any) (string, string, error) {
 	key, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate RSA private key: %w", err)
@@ -102,7 +102,7 @@ func signCertificate(certificate *x509.Certificate, bits int, parent *x509.Certi
 	return string(crtPEM), string(keyPEM), nil
 }
 
-func generateRSAKey(bits int) (string, string, error) {
+func GenerateRSAKey(bits int) (string, string, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate RSA private key: %w", err)

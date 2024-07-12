@@ -8,9 +8,9 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
-	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -26,7 +26,7 @@ func (a *App) onStart(s *state.State) error {
 				return nil, fmt.Errorf("failed to load RSA key from configuration: %w", err)
 			}
 			keyPEM := cfg.Certificates.GetK8sdPublicKey()
-			key, err := pki.LoadRSAPublicKey(cfg.Certificates.GetK8sdPublicKey())
+			key, err := pkiutil.LoadRSAPublicKey(cfg.Certificates.GetK8sdPublicKey())
 			if err != nil && keyPEM != "" {
 				return nil, fmt.Errorf("failed to load RSA key: %w", err)
 			}

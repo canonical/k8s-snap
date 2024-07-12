@@ -4,6 +4,8 @@ import (
 	"crypto/x509/pkix"
 	"fmt"
 	"net"
+
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 )
 
 // K8sDqlitePKI is a list of certificates required by the k8s-dqlite datastore.
@@ -57,11 +59,11 @@ func (c *K8sDqlitePKI) CompleteCertificates() error {
 			return fmt.Errorf("k8s-dqlite certificate not specified and generating self-signed certificates is not allowed")
 		}
 
-		template, err := generateCertificate(pkix.Name{CommonName: "k8s"}, c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
+		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "k8s"}, c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
 		if err != nil {
 			return fmt.Errorf("failed to generate k8s-dqlite certificate: %w", err)
 		}
-		cert, key, err := signCertificate(template, 2048, template, nil, nil)
+		cert, key, err := pkiutil.SignCertificate(template, 2048, template, nil, nil)
 		if err != nil {
 			return fmt.Errorf("failed to self-sign k8s-dqlite certificate: %w", err)
 		}
