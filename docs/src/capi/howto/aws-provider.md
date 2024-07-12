@@ -13,7 +13,7 @@ chmod +x clusterawsadm
 sudo mv clusterawsadm /usr/local/bin
 ```
 
-`clusterawsadm` helps you bootstrapping the AWS environment that CAPI will use
+`clusterawsadm` helps you bootstrapping the AWS environment that CAPI will use.
 . It will also create the necessary IAM roles for you.
 
 Start by setting up environment variables defining the AWS account to use, if
