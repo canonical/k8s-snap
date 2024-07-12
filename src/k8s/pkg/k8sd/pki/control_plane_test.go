@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	. "github.com/onsi/gomega"
 )
 
@@ -38,9 +39,9 @@ func TestControlPlaneCertificates(t *testing.T) {
 	t.Run("K8sdKey", func(t *testing.T) {
 		g := NewWithT(t)
 
-		priv, err := pki.LoadRSAPrivateKey(c.K8sdPrivateKey)
+		priv, err := pkiutil.LoadRSAPrivateKey(c.K8sdPrivateKey)
 		g.Expect(err).ToNot(HaveOccurred())
-		pub, err := pki.LoadRSAPublicKey(c.K8sdPublicKey)
+		pub, err := pkiutil.LoadRSAPublicKey(c.K8sdPublicKey)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		// generate a hash to sign

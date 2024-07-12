@@ -4,6 +4,8 @@ import (
 	"crypto/x509/pkix"
 	"fmt"
 	"net"
+
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 )
 
 // ControlPlanePKI is a list of all certificates we require for a control plane node.
@@ -105,7 +107,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		if !c.allowSelfSignedCA {
 			return fmt.Errorf("kubernetes CA not specified and generating self-signed CA not allowed")
 		}
-		cert, key, err := generateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, c.years, 2048)
+		cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, c.years, 2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate kubernetes CA: %w", err)
 		}
@@ -118,7 +120,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		if !c.allowSelfSignedCA {
 			return fmt.Errorf("kubernetes client CA not specified and generating self-signed CA not allowed")
 		}
-		cert, key, err := generateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca-client"}, c.years, 2048)
+		cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca-client"}, c.years, 2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate kubernetes client CA: %w", err)
 		}
@@ -126,12 +128,12 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		c.ClientCAKey = key
 	}
 
-	serverCACert, serverCAKey, err := loadCertificate(c.CACert, c.CAKey)
+	serverCACert, serverCAKey, err := pkiutil.LoadCertificate(c.CACert, c.CAKey)
 	if err != nil {
 		return fmt.Errorf("failed to parse kubernetes CA: %w", err)
 	}
 
-	clientCACert, clientCAKey, err := loadCertificate(c.ClientCACert, c.ClientCAKey)
+	clientCACert, clientCAKey, err := pkiutil.LoadCertificate(c.ClientCACert, c.ClientCAKey)
 	if err != nil {
 		return fmt.Errorf("failed to parse kubernetes CA: %w", err)
 	}
@@ -141,7 +143,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		if !c.allowSelfSignedCA {
 			return fmt.Errorf("front-proxy CA not specified and generating self-signed CA not allowed")
 		}
-		cert, key, err := generateSelfSignedCA(pkix.Name{CommonName: "front-proxy-ca"}, c.years, 2048)
+		cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "front-proxy-ca"}, c.years, 2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate front-proxy CA: %w", err)
 		}
@@ -151,7 +153,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 	// Generate front proxy client certificate (ok to override)
 	if c.FrontProxyClientCert == "" || c.FrontProxyClientKey == "" {
-		frontProxyCACert, frontProxyCAKey, err := loadCertificate(c.FrontProxyCACert, c.FrontProxyCAKey)
+		frontProxyCACert, frontProxyCAKey, err := pkiutil.LoadCertificate(c.FrontProxyCACert, c.FrontProxyCAKey)
 		switch {
 		case err != nil:
 			return fmt.Errorf("failed to parse front proxy CA: %w", err)
@@ -159,11 +161,11 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			return fmt.Errorf("using an external front proxy CA without providing the front-proxy-client certificate is not possible")
 		}
 
-		template, err := generateCertificate(pkix.Name{CommonName: "front-proxy-client"}, c.years, false, nil, nil)
+		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "front-proxy-client"}, c.years, false, nil, nil)
 		if err != nil {
 			return fmt.Errorf("failed to generate front-proxy-client certificate: %w", err)
 		}
-		cert, key, err := signCertificate(template, 2048, frontProxyCACert, &frontProxyCAKey.PublicKey, frontProxyCAKey)
+		cert, key, err := pkiutil.SignCertificate(template, 2048, frontProxyCACert, &frontProxyCAKey.PublicKey, frontProxyCAKey)
 		if err != nil {
 			return fmt.Errorf("failed to sign front-proxy-client certificate: %w", err)
 		}
@@ -178,7 +180,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			return fmt.Errorf("service account signing key not specified and generating new key is not allowed")
 		}
 
-		key, _, err := generateRSAKey(2048)
+		key, _, err := pkiutil.GenerateRSAKey(2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate service account key: %w", err)
 		}
@@ -192,14 +194,14 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			return fmt.Errorf("using an external kubernetes CA without providing the kubelet certificate is not possible")
 		}
 
-		template, err := generateCertificate(
+		template, err := pkiutil.GenerateCertificate(
 			pkix.Name{CommonName: fmt.Sprintf("system:node:%s", c.hostname), Organization: []string{"system:nodes"}},
 			c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, machineIPs...),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to generate kubelet certificate: %w", err)
 		}
-		cert, key, err := signCertificate(template, 2048, serverCACert, &serverCAKey.PublicKey, serverCAKey)
+		cert, key, err := pkiutil.SignCertificate(template, 2048, serverCACert, &serverCAKey.PublicKey, serverCAKey)
 		if err != nil {
 			return fmt.Errorf("failed to sign kubelet certificate: %w", err)
 		}
@@ -214,11 +216,11 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			return fmt.Errorf("using an external kubernetes CA without providing the apiserver-kubelet-client certificate is not possible")
 		}
 
-		template, err := generateCertificate(pkix.Name{CommonName: "apiserver-kubelet-client", Organization: []string{"system:masters"}}, c.years, false, nil, nil)
+		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "apiserver-kubelet-client", Organization: []string{"system:masters"}}, c.years, false, nil, nil)
 		if err != nil {
 			return fmt.Errorf("failed to generate apiserver-kubelet-client certificate: %w", err)
 		}
-		cert, key, err := signCertificate(template, 2048, clientCACert, &clientCAKey.PublicKey, clientCAKey)
+		cert, key, err := pkiutil.SignCertificate(template, 2048, clientCACert, &clientCAKey.PublicKey, clientCAKey)
 		if err != nil {
 			return fmt.Errorf("failed to sign apiserver-kubelet-client certificate: %w", err)
 		}
@@ -233,7 +235,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			return fmt.Errorf("using an external kubernetes CA without providing the apiserver certificate is not possible")
 		}
 
-		template, err := generateCertificate(
+		template, err := pkiutil.GenerateCertificate(
 			pkix.Name{CommonName: "kube-apiserver"},
 			c.years,
 			false,
@@ -241,7 +243,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		if err != nil {
 			return fmt.Errorf("failed to generate apiserver certificate: %w", err)
 		}
-		cert, key, err := signCertificate(template, 2048, serverCACert, &serverCAKey.PublicKey, serverCAKey)
+		cert, key, err := pkiutil.SignCertificate(template, 2048, serverCACert, &serverCAKey.PublicKey, serverCAKey)
 		if err != nil {
 			return fmt.Errorf("failed to sign apiserver certificate: %w", err)
 		}
@@ -268,12 +270,12 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 				return fmt.Errorf("using an external kubernetes CA client without providing the %s certificate is not possible", i.name)
 			}
 
-			template, err := generateCertificate(pkix.Name{CommonName: i.cn, Organization: i.o}, c.years, false, nil, nil)
+			template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: i.cn, Organization: i.o}, c.years, false, nil, nil)
 			if err != nil {
 				return fmt.Errorf("failed to generate %s client certificate: %w", i.name, err)
 			}
 
-			cert, key, err := signCertificate(template, 2048, clientCACert, &clientCAKey.PublicKey, clientCAKey)
+			cert, key, err := pkiutil.SignCertificate(template, 2048, clientCACert, &clientCAKey.PublicKey, clientCAKey)
 			if err != nil {
 				return fmt.Errorf("failed to sign %s client certificate: %w", i.name, err)
 			}
@@ -289,7 +291,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			return fmt.Errorf("cluster keypair not specified and generating new key is not allowed")
 		}
 
-		priv, pub, err := generateRSAKey(2048)
+		priv, pub, err := pkiutil.GenerateRSAKey(2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate cluster keypair: %w", err)
 		}

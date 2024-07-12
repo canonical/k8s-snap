@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
-	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 )
 
 // UpdateNodeConfigurationController asynchronously performs updates of the cluster config.
@@ -98,7 +98,7 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 
 func (c *UpdateNodeConfigurationController) reconcile(ctx context.Context, client *kubernetes.Client, config types.ClusterConfig) error {
 	keyPEM := config.Certificates.GetK8sdPrivateKey()
-	key, err := pki.LoadRSAPrivateKey(keyPEM)
+	key, err := pkiutil.LoadRSAPrivateKey(keyPEM)
 	if err != nil && keyPEM != "" {
 		return fmt.Errorf("failed to load cluster RSA key: %w", err)
 	}
