@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/pprof"
 	"sync"
@@ -12,6 +11,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/client"
 	"github.com/canonical/microcluster/config"
@@ -103,7 +103,7 @@ func New(cfg Config) (*App, error) {
 			app.readyWg.Wait,
 		)
 	} else {
-		log.Println("node-config-controller disabled via config")
+		log.L().Info("node-config-controller disabled via config")
 	}
 
 	if !cfg.DisableControlPlaneConfigController {
@@ -113,7 +113,7 @@ func New(cfg Config) (*App, error) {
 			time.NewTicker(10*time.Second).C,
 		)
 	} else {
-		log.Println("control-plane-config-controller disabled via config")
+		log.L().Info("control-plane-config-controller disabled via config")
 	}
 
 	app.triggerUpdateNodeConfigControllerCh = make(chan struct{}, 1)
@@ -125,7 +125,7 @@ func New(cfg Config) (*App, error) {
 			app.triggerUpdateNodeConfigControllerCh,
 		)
 	} else {
-		log.Println("update-node-config-controller disabled via config")
+		log.L().Info("update-node-config-controller disabled via config")
 	}
 
 	app.triggerFeatureControllerNetworkCh = make(chan struct{}, 1)
@@ -149,9 +149,8 @@ func New(cfg Config) (*App, error) {
 			TriggerMetricsServerCh: app.triggerFeatureControllerMetricsServerCh,
 		})
 	} else {
-		log.Println("feature-controller disabled via config")
+		log.L().Info("feature-controller disabled via config")
 	}
-
 	return app, nil
 }
 
@@ -180,9 +179,11 @@ func (a *App) Run(ctx context.Context, customHooks *config.Hooks) error {
 		}
 	}
 
+	log := log.FromContext(ctx)
+
 	// start profiling server
 	if a.profilingAddress != "" {
-		log.Printf("Enable pprof endpoint at http://%s", a.profilingAddress)
+		log.WithValues("address", fmt.Sprintf("http://%s", a.profilingAddress)).Info("Enable pprof endpoint")
 
 		go func() {
 			mux := http.NewServeMux()
@@ -193,7 +194,7 @@ func (a *App) Run(ctx context.Context, customHooks *config.Hooks) error {
 			mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
 			if err := http.ListenAndServe(a.profilingAddress, mux); err != nil {
-				log.Printf("ERROR: Failed to serve pprof endpoint: %v", err)
+				log.Error(err, "Failed to serve pprof endpoint")
 			}
 		}()
 	}

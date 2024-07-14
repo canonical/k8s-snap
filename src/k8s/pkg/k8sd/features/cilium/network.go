@@ -3,10 +3,10 @@ package cilium
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
@@ -102,7 +102,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 		if p == "private" {
 			onLXD, err := snap.OnLXD(ctx)
 			if err != nil {
-				log.Printf("failed to check if on LXD: %v", err)
+				log.FromContext(ctx).Error(err, "Failed to check if running on LXD")
 			}
 			if onLXD {
 				return fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")

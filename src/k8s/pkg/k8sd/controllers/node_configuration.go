@@ -4,11 +4,11 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	v1 "k8s.io/api/core/v1"
@@ -45,16 +45,19 @@ func (c *NodeConfigurationController) Run(ctx context.Context, getRSAKey func(co
 	// wait for microcluster node to be ready
 	c.waitReady()
 
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "nodeconfiguration"))
+	log := log.FromContext(ctx)
+
 	for {
 		client, err := c.retryNewK8sClient(ctx)
 		if err != nil {
-			log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
+			log.Error(err, "Failed to create a Kubernetes client")
 		}
 
 		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap, getRSAKey) }); err != nil {
 			// This also can fail during bootstrapping/start up when api-server is not ready
 			// So the watch requests get connection refused replies
-			log.Println(fmt.Errorf("failed to watch configmap: %w", err))
+			log.WithValues("name", "k8sd-config", "namespace", "kube-system").Error(err, "Failed to watch configmap")
 		}
 
 		select {

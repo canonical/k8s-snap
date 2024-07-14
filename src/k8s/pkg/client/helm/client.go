@@ -5,9 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"path"
 
+	"github.com/canonical/k8s/pkg/log"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/storage/driver"
@@ -31,10 +31,13 @@ func NewClient(manifestsBaseDir string, restClientGetter func(string) genericcli
 	}
 }
 
-func (h *client) newActionConfiguration(namespace string) (*action.Configuration, error) {
+func (h *client) newActionConfiguration(ctx context.Context, namespace string) (*action.Configuration, error) {
 	actionConfig := new(action.Configuration)
 
-	if err := actionConfig.Init(h.restClientGetter(namespace), namespace, "", log.Printf); err != nil {
+	log := log.FromContext(ctx).WithName("helm")
+	if err := actionConfig.Init(h.restClientGetter(namespace), namespace, "", func(format string, v ...interface{}) {
+		log.Info(fmt.Sprintf(format, v...))
+	}); err != nil {
 		return nil, fmt.Errorf("failed to initialize: %w", err)
 	}
 	return actionConfig, nil
@@ -42,7 +45,7 @@ func (h *client) newActionConfiguration(namespace string) (*action.Configuration
 
 // Apply implements the Client interface.
 func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, values map[string]any) (bool, error) {
-	cfg, err := h.newActionConfiguration(c.Namespace)
+	cfg, err := h.newActionConfiguration(ctx, c.Namespace)
 	if err != nil {
 		return false, fmt.Errorf("failed to create action configuration: %w", err)
 	}

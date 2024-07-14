@@ -3,12 +3,12 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
@@ -39,6 +39,9 @@ func NewControlPlaneConfigurationController(snap snap.Snap, waitReady func(), tr
 func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) {
 	c.waitReady()
 
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "controlplaneconfiguration"))
+	log := log.FromContext(ctx)
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -47,21 +50,21 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 		}
 
 		if isWorker, err := snaputil.IsWorker(c.snap); err != nil {
-			log.Println(fmt.Errorf("failed to check if this is a worker node: %w", err))
+			log.Error(err, "Failed to check if running on a worker node")
 			continue
 		} else if isWorker {
-			log.Println("Stopping control plane controller as this is a worker node")
+			log.Info("Stopping on worker node")
 			return
 		}
 
 		config, err := getClusterConfig(ctx)
 		if err != nil {
-			log.Println(fmt.Errorf("failed to retrieve cluster config: %w", err))
+			log.Error(err, "Failed to retrieve cluster configuration")
 			continue
 		}
 
 		if err := c.reconcile(ctx, config); err != nil {
-			log.Println(fmt.Errorf("failed to reconcile control plane configuration: %w", err))
+			log.Error(err, "Failed to reconcile control plane configuration")
 		}
 	}
 }
@@ -111,7 +114,7 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 	// snapd
 	if meta, _, err := snapdconfig.ParseMeta(ctx, c.snap); err == nil && meta.Orb != "none" {
 		if err := snapdconfig.SetSnapdFromK8sd(ctx, config.ToUserFacing(), c.snap); err != nil {
-			log.Printf("Warning: failed to update snapd configuration: %v", err)
+			log.FromContext(ctx).Error(err, "Failed to update snapd configuration")
 		}
 	}
 

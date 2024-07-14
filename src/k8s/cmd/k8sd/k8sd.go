@@ -3,12 +3,14 @@ package k8sd
 import (
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/k8sd/app"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/spf13/cobra"
 )
 
 var rootCmdOpts struct {
 	logDebug                            bool
 	logVerbose                          bool
+	logLevel                            int
 	stateDir                            string
 	pprofAddress                        string
 	disableNodeConfigController         bool
@@ -22,6 +24,12 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:   "k8sd",
 		Short: "Canonical Kubernetes orchestrator and clustering daemon",
 		Run: func(cmd *cobra.Command, args []string) {
+			// configure logging
+			log.Configure(log.Options{
+				LogLevel:     rootCmdOpts.logLevel,
+				AddDirHeader: true,
+			})
+
 			app, err := app.New(app.Config{
 				Debug:                               rootCmdOpts.logDebug,
 				Verbose:                             rootCmdOpts.logVerbose,
@@ -51,6 +59,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.SetOut(env.Stdout)
 	cmd.SetErr(env.Stderr)
 
+	cmd.PersistentFlags().IntVarP(&rootCmdOpts.logLevel, "log-level", "l", 0, "k8sd log level")
 	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
 	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
