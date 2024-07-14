@@ -35,6 +35,11 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			config := apiv1.UserFacingClusterConfig{}
 
+			if opts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", opts.timeout, minTimeout, minTimeout)
+				opts.timeout = minTimeout
+			}
+
 			for _, arg := range args {
 				if err := updateConfigMapstructure(&config, arg); err != nil {
 					cmd.PrintErrf("Error: Invalid option %q.\n\nThe error was: %v\n", arg, err)
