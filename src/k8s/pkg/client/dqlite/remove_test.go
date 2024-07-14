@@ -57,7 +57,7 @@ func TestRemoveNodeByAddress(t *testing.T) {
 			g.Expect(memberToRemove.Role).To(Equal(dqlite.Voter))
 			g.Expect(remainingNode.Role).To(Equal(dqlite.Spare))
 
-			// Removing the last voter should succeed and leadership should be transfered.
+			// Removing the last voter should succeed and leadership should be transferred.
 			g.Expect(client.RemoveNodeByAddress(ctx, memberToRemove.Address)).To(Succeed())
 
 			members, err = client.ListMembers(ctx)

@@ -14,7 +14,7 @@ import (
 // It will delete the file if contents parameter is an empty string. Trying to ensure a inexistent file
 // with an empty contents parameter does not result in an error.
 // It returns true if any of these is true: the file's content changed, it was created or it was deleted.
-// It also returns any error that occured.
+// It also returns any error that occurred.
 func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (bool, error) {
 	if contents == "" {
 		if err := os.Remove(fname); err != nil {
@@ -56,7 +56,7 @@ func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (
 }
 
 // ensureFiles calls ensureFile for many files.
-// It returns true if one or more files were updated and any error that occured.
+// It returns true if one or more files were updated and any error that occurred.
 func ensureFiles(uid, gid int, mode fs.FileMode, files map[string]string) (bool, error) {
 	var changed bool
 	for fname, content := range files {
@@ -71,7 +71,7 @@ func ensureFiles(uid, gid int, mode fs.FileMode, files map[string]string) (bool,
 
 // EnsureExtDatastorePKI ensures the external datastore PKI files are present
 // and have the correct content, permissions and ownership.
-// It returns true if one or more files were updated and any error that occured.
+// It returns true if one or more files were updated and any error that occurred.
 func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePKI) (bool, error) {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
 		path.Join(snap.EtcdPKIDir(), "ca.crt"):     certificates.DatastoreCACert,
@@ -82,7 +82,7 @@ func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePK
 
 // EnsureK8sDqlitePKI ensures the k8s dqlite PKI files are present
 // and have the correct content, permissions and ownership.
-// It returns true if one or more files were updated and any error that occured.
+// It returns true if one or more files were updated and any error that occurred.
 func EnsureK8sDqlitePKI(snap snap.Snap, certificates *pki.K8sDqlitePKI) (bool, error) {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
 		path.Join(snap.K8sDqliteStateDir(), "cluster.crt"): certificates.K8sDqliteCert,
@@ -92,7 +92,7 @@ func EnsureK8sDqlitePKI(snap snap.Snap, certificates *pki.K8sDqlitePKI) (bool, e
 
 // EnsureControlPlanePKI ensures the control plane PKI files are present
 // and have the correct content, permissions and ownership.
-// It returns true if one or more files were updated and any error that occured.
+// It returns true if one or more files were updated and any error that occurred.
 func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (bool, error) {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
 		path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"): certificates.APIServerKubeletClientCert,
@@ -114,7 +114,7 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (b
 
 // EnsureWorkerPKI ensures the worker PKI files are present
 // and have the correct content, permissions and ownership.
-// It returns true if one or more files were updated and any error that occured.
+// It returns true if one or more files were updated and any error that occurred.
 func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) (bool, error) {
 	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
 		path.Join(snap.KubernetesPKIDir(), "ca.crt"):        certificates.CACert,
