@@ -58,7 +58,7 @@ func (c *UpdateNodeConfigurationController) retryNewK8sClient(ctx context.Contex
 func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) {
 	c.waitReady()
 
-	log := log.FromContext(ctx).WithValues("controller", "updatenodeconfiguration")
+	log := log.FromContext(ctx).WithValues("controller", "update-node-configuration")
 
 	for {
 		select {

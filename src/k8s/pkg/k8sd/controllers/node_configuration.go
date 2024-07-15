@@ -45,7 +45,7 @@ func (c *NodeConfigurationController) Run(ctx context.Context, getRSAKey func(co
 	// wait for microcluster node to be ready
 	c.waitReady()
 
-	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "nodeconfiguration"))
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "node-configuration"))
 	log := log.FromContext(ctx)
 
 	for {

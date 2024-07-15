@@ -39,7 +39,7 @@ func NewControlPlaneConfigurationController(snap snap.Snap, waitReady func(), tr
 func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) {
 	c.waitReady()
 
-	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "controlplaneconfiguration"))
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "control-plane-configuration"))
 	log := log.FromContext(ctx)
 
 	for {
