@@ -7,7 +7,6 @@ import (
 	certv1 "k8s.io/api/certificates/v1"
 )
 
-
 func validateCSR(obj *certv1.CertificateSigningRequest) error {
 	csr, err := pkiutil.LoadCertificateRequest(string(obj.Spec.Request))
 	if err != nil {
