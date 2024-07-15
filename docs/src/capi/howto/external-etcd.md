@@ -114,11 +114,11 @@ To confirm the secrets are created, run:
 kubectl get secrets
 ```
 
-## Update Cluster Template
+## Etcd Cluster Template
 
-The new control plane resource `CK8sControlPlane` needs to be configured to
-store the kubernetes state. This is done by editing the cluster template and
-adding this additional configuration:
+The new control plane resource `CK8sControlPlane` is configured to
+store the kubernetes state in etcd. The cluster template `c1-external-etcd.yaml`
+contains the following additional configuration:
 
 ```
 controlPlane:
@@ -126,7 +126,6 @@ controlPlane:
   datastoreServersSecretRef:
     name: ${CLUSTER_NAME}-etcd-servers
     key: servers
-
 ```
 
 ## Deploy the Workload Cluster
