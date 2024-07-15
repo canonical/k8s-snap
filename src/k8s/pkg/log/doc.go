@@ -25,7 +25,7 @@
 // Log messages include the file name and line number of the log message. In case
 // of utility functions, you can print the line number of the caller instead with:
 //
-// 	log.FromContext(ctx).WithCallDepth(1).Error(err, "Failed to format JSON output")
+//	log.FromContext(ctx).WithCallDepth(1).Error(err, "Failed to format JSON output")
 //
 // To configure the logger behaviour, you can use this in the main package:
 //
