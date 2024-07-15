@@ -137,15 +137,17 @@ proxy][proxy].
 
 The configuration of the proxy is out of the scope of this documentation.
 
+<!-- markdownlint-disable MD022 -->
 (private-registry)=
 #### Images Option B: private registry mirror
+<!-- markdownlint-enable MD022 -->
 
 In case regulations and/or network constraints do not permit the cluster nodes
 to access any upstream image registry, it is typical to deploy a private
 registry mirror. This is an image registry service that contains all the
 required OCI Images (e.g.
 [registry](https://distribution.github.io/distribution/),
-[harbor](https://goharbor.io/) or any other OCI registry) and is reachable from
+[Harbor](https://goharbor.io/) or any other OCI registry) and is reachable from
 all cluster nodes.
 
 This requires three steps:
@@ -184,8 +186,10 @@ An alternative to configuring a registry mirror is to download all necessary
 OCI images, and then manually add them to all cluster nodes. Instructions for
 this are described in [Side-load images](#side-load).
 
+<!-- markdownlint-disable MD022 -->
 (side-load)=
 #### Images Option C: Side-load images
+<!-- markdownlint-enable MD022 -->
 
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so they do not have to be fetched at runtime.
