@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	nodeutil "github.com/canonical/k8s/pkg/utils/node"
@@ -32,29 +32,32 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 		defer cancel()
 	}
 
+	log := log.FromContext(s.Context).WithValues("name", req.Name)
+
 	isControlPlane, err := nodeutil.IsControlPlaneNode(ctx, s, req.Name)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to check if node is control-plane: %w", err))
 	}
 	if isControlPlane {
-		log.Printf("Waiting for node to not be pending")
+		log.Info("Waiting for node to not be pending")
 		control.WaitUntilReady(ctx, func() (bool, error) {
 			var notPending bool
 			if err := s.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				member, err := cluster.GetInternalClusterMember(ctx, tx, req.Name)
 				if err != nil {
-					log.Printf("Failed to get member: %v", err)
+					log.Error(err, "Failed to get member")
 					return nil
 				}
-				log.Printf("Node %s is %s", member.Name, member.Role)
+				log.WithValues("role", member.Role).Info("Current node role")
 				notPending = member.Role != cluster.Pending
 				return nil
 			}); err != nil {
-				log.Printf("Transaction to check cluster member role failed: %v", err)
+				log.Error(err, "Transaction to check cluster member role failed")
 			}
 			return notPending, nil
 		})
-		log.Printf("Starting node deletion")
+
+		log.Info("Starting node deletion")
 
 		// Remove control plane via microcluster API.
 		// The postRemove hook will take care of cleaning up kubernetes.

@@ -3,7 +3,6 @@ package impl
 import (
 	"context"
 	"fmt"
-	"log"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/snap"
@@ -46,22 +45,15 @@ func GetLocalNodeStatus(ctx context.Context, s *state.State, snap snap.Snap) (ap
 	if err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to check if node is a worker: %w", err)
 	}
+
 	if isWorker {
 		clusterRole = apiv1.ClusterRoleWorker
-	} else {
-		node, err := nodeutil.GetControlPlaneNode(ctx, s, s.Name())
-		if err != nil {
-			// The node is likely in a joining or leaving phase where the role is not yet settled.
-			// Use the unknown role but still log this incident for debugging.
-			log.Printf("Failed to check if node is control-plane. This is expected if the node is in a joining/leaving phase. %v", err)
-			clusterRole = apiv1.ClusterRoleUnknown
-		} else {
-			if node != nil {
-				return *node, nil
-			}
-		}
-
+	} else if node, err := nodeutil.GetControlPlaneNode(ctx, s, s.Name()); err != nil {
+		clusterRole = apiv1.ClusterRoleUnknown
+	} else if node != nil {
+		return *node, nil
 	}
+
 	return apiv1.NodeStatus{
 		Name:        s.Name(),
 		Address:     s.Address().Hostname(),

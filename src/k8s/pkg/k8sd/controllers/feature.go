@@ -3,11 +3,11 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 )
@@ -71,6 +71,7 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 
 func (c *FeatureController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error), notifyDNSChangedIP func(ctx context.Context, dnsIP string) error) {
 	c.waitReady()
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 
 	go c.reconcileLoop(ctx, getClusterConfig, "network", c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) error {
 		return features.Implementation.ApplyNetwork(ctx, c.snap, cfg.Network, cfg.Annotations)
@@ -127,7 +128,7 @@ func (c *FeatureController) reconcileLoop(ctx context.Context, getClusterConfig 
 			return
 		case <-triggerCh:
 			if err := c.reconcile(ctx, getClusterConfig, apply); err != nil {
-				log.Printf("failed to reconcile %s configuration, will retry in 5 seconds: %v", componentName, err)
+				log.FromContext(ctx).WithValues("feature", componentName).Error(err, "Failed to apply feature configuration")
 
 				// notify triggerCh after 5 seconds to retry
 				time.AfterFunc(5*time.Second, func() { utils.MaybeNotify(triggerCh) })
