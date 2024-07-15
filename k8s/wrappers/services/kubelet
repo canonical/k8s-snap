@@ -5,6 +5,7 @@
 k8s::common::setup_env
 
 k8s::common::is_strict && k8s::kubelet::ensure_shared_root_dir
+k8s::common::is_strict || k8s::kubelet::ensure_cgroup_delegate
 
 k8s::util::wait_containerd_socket
 k8s::util::wait_kube_apiserver
