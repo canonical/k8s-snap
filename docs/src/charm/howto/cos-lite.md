@@ -1,18 +1,23 @@
 # Integrating with COS Lite
 
-It is often advisable to have a monitoring solution which will run whether the cluster itself is running or not. It may also be useful to integrate monitoring into existing setups.
+It is often advisable to have a monitoring solution which will run whether the
+cluster itself is running or not. It may also be useful to integrate monitoring
+into existing setups.
 
 To make monitoring your cluster a delightful experience, Canonical provides
 first-class integration between Canonical Kubernetes and COS Lite (Canonical
 Observability Stack). This guide will help you integrate a COS Lite
 deployment with a Canonical Kubernetes deployment.
 
-This document assumes you have a controller with an installation of
-Canonical Kubernetes. If you have not yet installed Canonical Kubernetes, please see ["Installing Canonical Kubernetes"][how-to-install].
+This document assumes you have a controller with an installation of Canonical
+Kubernetes. If you have not yet installed Canonical Kubernetes, please see
+["Installing Canonical Kubernetes"][how-to-install].
 
 ## Preparing a platform for COS Lite
 
-If you are unfamiliar with Juju models, the documentation can be found [here][juju-models]. In this section, we'll be adding a new model to keep observability separate from the Kubernetes model.
+If you are unfamiliar with Juju models, the documentation can be found
+[here][juju-models]. In this section, we'll be adding a new model to keep
+observability separate from the Kubernetes model.
 
 First, create a MicroK8s model to act as a deployment cloud for COS Lite:
 
@@ -30,13 +35,15 @@ juju deploy ubuntu microk8s --series=focal --constraints="mem=8G cores=4 root-di
 ```
 
 Deploy MicroK8s on Ubuntu by accessing the unit you created at the last step
-with `juju ssh microk8s/0` and following the [Install Microk8s][how-to-install-microk8s]
-guide for configuration.
+with `juju ssh microk8s/0` and following the 
+[Install Microk8s][how-to-install-microk8s] guide for configuration.
 
-```{note} Make sure to enable the hostpath-storage and MetalLB addons for Microk8s.
+```{note} Make sure to enable the hostpath-storage and MetalLB addons for 
+Microk8s.
 ```
 
-Export the Microk8s kubeconfig file to your current directory after configuration:
+Export the Microk8s kubeconfig file to your current directory after
+configuration:
 
 ```
 juju ssh microk8s/0 -- microk8s config > microk8s-config.yaml
@@ -59,7 +66,8 @@ juju add-model cos-lite microk8s-cloud
 juju deploy cos-lite
 ```
 
-Make COS Lite’s endpoints available for [cross-model integration][cross-model-integration]:
+Make COS Lite’s endpoints available for 
+[cross-model integration][cross-model-integration]:
 
 ```
 juju offer grafana:grafana-dashboard
@@ -131,7 +139,7 @@ you can head over to the [COS Lite documentation][cos-lite-docs].
 
 <!-- LINKS -->
 
-[how-to-install]: install/index
+[how-to-install]: ../howto/charm
 [add-k8s]: https://juju.is/docs/juju/juju-add-k8s
 [cos-lite-docs]: https://charmhub.io/topics/canonical-observability-stack
 [juju-models]: https://juju.is/docs/juju/model
