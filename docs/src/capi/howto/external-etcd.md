@@ -1,25 +1,32 @@
 # CAPI External Etcd
 
-To replace the built-in [dqlite][dqlite] database with an external etcd to manage the kubernetes state in the CAPI workload cluster follow this `how-to guide`.
+To replace the built-in [dqlite][dqlite] database with an external etcd to
+manage the kubernetes state in the CAPI workload cluster follow this
+`how-to guide`.
 
 ## Prerequisites
 
 To follow this guide, you will need:
 
+- Clusterctl
 - A CAPI management cluster
 - Initialize ClusterAPI
 - Installed CRDs
 
-<!-- Change this to getting started or whatever we come up with -->
-Please refer to the [Development Guide](development.md) for instructions.
+Please refer to the [getting-started][getting-started] for instructions.
 
-## Etcd Certificates
+## Copy capi-etcd directory
 
-This example shows how to create the certificates for a 3-node etcd cluster
-with self-signed certificates.
+This example shows how to create a 3-node workload cluster with an external
+etcd. To follow along with the example copy the [capi-etcd][capi-etcd]
+directory from github. 
 
-To create the etcd certificates, use the `cfssl` tool. To install [cfssl][cfssl]
-on `linux-amd64` run the following commands:
+### Install cfssl
+
+To install cfssl, follow the [upstream instructions][cfssl]. Typically, this
+involves fetching the executable that matches your hardware architecture and
+placing it in your PATH. For example, at the time this guide was written,
+for `linux-amd64` you would run:
 
 ```
 mkdir ~/bin
@@ -29,27 +36,25 @@ chmod +x ~/bin/{cfssl,cfssljson}
 export PATH=$PATH:~/bin
 ```
 
-You need the following certificates in one directory:
+### Create Certificates
 
-- root ca certificate
-- root ca key
-- gencert configuration
-- etcd ca for each etcd node
+In the copied [capi-etcd][capi-etcd]
+directory you will find the following certificate files:
 
-Replace the certificates directory with the path to the directory where you have the certificates.
+- root ca certificate `etcd-root-ca-csr.json`
+- root ca key `etcd-root-ca-csr.pem`
+- gencert configuration `etcd-gencert.json`
+- etcd ca for each etcd node `etcd-1-ca-csr.json`, `etcd-2-ca-csr.json`,
+  `etcd-3-ca-csr.json`
+
+Optionally, you can edit the certificates to match your requirements. Export
+the directory where the certificates are stored as `CERTS_DIR` and run the
+[generate-etc-certs][generate-etcd-certs] script:
 
 ```
 export CERTS_DIR="$PWD"
-cfssl gencert --initca=true "$CERTS_DIR/etcd-root-ca-csr.json" | cfssljson --bare "$CERTS_DIR/etcd-root-ca"
-
+$CERTS_DIR/generate-etcd-certs.sh
 ```
-
-cfssl gencert \
-  --ca "$CERTS_DIR/etcd-root-ca.pem" \
-  --ca-key "$CERTS_DIR/etcd-root-ca-key.pem" \
-  --config "$CERTS_DIR/etcd-gencert.json" \
-  "$CERTS_DIR/etcd-1-ca-csr.json" | cfssljson --bare "$CERTS_DIR/etcd-1"
-
 
 ## Run Etcd services via docker-compose
 
@@ -57,15 +62,22 @@ To run the etcd services via docker-compose, run:
 
 ```
 export CERTS_DIR=/replace/me
-docker-compose -f /replace/me/docker-compose.yaml up 
+docker-compose -f $CERTS_DIR/docker-compose.yaml up 
 ```
 
+## Create Kubernetes Secrets
 
-## Create Secrets
+Create three kubernetes secrets:
 
-Create kubernetes secrets for the etcd certificates:
+- {cluster-name}-etcd-servers
+- {cluster-name}-etcd
+- {cluster-name}-apiserver-etcd-client
 
-<!-- TODO: put these in a namespace? -->
+```{note}
+Replace {cluster-name} with the name of your cluster.
+It is important to follow this naming convention since the providers will be looking for these names.
+Please note that this example uses `c1` for the cluster name.
+```
 
 Create the secret for the etcd servers:
 
@@ -89,7 +101,7 @@ kubectl create secret generic c1-etcd \
   --from-file=ca.crt="$CERTS_DIR/etcd-root-ca.pem"
 ```
 
-Create the secret for the etcd client:
+Create the `c1-apiserver-etcd-client` secret:
 
 ```
 kubectl create secret tls c1-apiserver-etcd-client \
@@ -123,7 +135,8 @@ controlPlane:
 To deploy the workload cluster, run:
 
 ```
-clusterctl generate cluster c1 --from ./templates/docker/cluster-template.yaml --kubernetes-version v1.30.1 > c1.yaml
+export KIND_IMAGE=k8s-snap:dev
+clusterctl generate cluster c1 --from $CERTS_DIR/c1-external-etcd.yaml --kubernetes-version v1.30.1 > c1.yaml
 ```
 
 Create the cluster:
@@ -135,10 +148,12 @@ kubectl create -f c1.yaml
 To check the status of the cluster, run:
 
 ```
-kubectl get cluster,machine,ck8scontrolplane,secrets
+clusterctl describe cluster c1 
 ```
 
 <!-- LINKS -->
-
+[getting-started]: ../tutorial/getting-started.md
 [cfssl]: https://github.com/cloudflare/cfssl
 [dqlite]: https://dqlite.io/
+[generate-etcd-certs]: https://raw.githubusercontent.com/canonical/k8s-snap/main/capi-ext-etcd/docs/src/assets/capi-etcd/generate-etcd-certs.sh
+[capi-etcd]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/capi-etcd/
