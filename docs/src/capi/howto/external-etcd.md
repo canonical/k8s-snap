@@ -48,12 +48,12 @@ directory you will find the following certificate files:
   `etcd-3-ca-csr.json`
 
 Optionally, you can edit the certificates to match your requirements. Export
-the directory where the certificates are stored as `CERTS_DIR` and run the
+the directory where the certificates are stored as `EXT_ETCD_DIR` and run the
 [generate-etc-certs][generate-etcd-certs] script:
 
 ```
-export CERTS_DIR="$PWD"
-$CERTS_DIR/generate-etcd-certs.sh
+export EXT_ETCD_DIR=/path/to/capi-etcd
+$EXT_ETCD_DIR/generate-etcd-certs.sh
 ```
 
 ## Run Etcd services via docker-compose
@@ -61,8 +61,7 @@ $CERTS_DIR/generate-etcd-certs.sh
 To run the etcd services via docker-compose, run:
 
 ```
-export CERTS_DIR=/replace/me
-docker-compose -f $CERTS_DIR/docker-compose.yaml up 
+docker-compose -f $EXT_ETCD_DIR/docker-compose.yaml up 
 ```
 
 ## Create Kubernetes Secrets
@@ -98,14 +97,14 @@ Create the secret for the etcd root ca:
 
 ```
 kubectl create secret generic c1-etcd \
-  --from-file=ca.crt="$CERTS_DIR/etcd-root-ca.pem"
+  --from-file=ca.crt="$EXT_ETCD_DIR/etcd-root-ca.pem"
 ```
 
 Create the `c1-apiserver-etcd-client` secret:
 
 ```
 kubectl create secret tls c1-apiserver-etcd-client \
-  --cert=$CERTS_DIR/etcd-1.pem --key=$CERTS_DIR/etcd-1-key.pem 
+  --cert=$EXT_ETCD_DIR/etcd-1.pem --key=$EXT_ETCD_DIR/etcd-1-key.pem 
 ```
 <!-- Why etcd-1 only? -->
 
@@ -136,7 +135,7 @@ To deploy the workload cluster, run:
 
 ```
 export KIND_IMAGE=k8s-snap:dev
-clusterctl generate cluster c1 --from $CERTS_DIR/c1-external-etcd.yaml --kubernetes-version v1.30.1 > c1.yaml
+clusterctl generate cluster c1 --from $EXT_ETCD_DIR/c1-external-etcd.yaml --kubernetes-version v1.30.1 > c1.yaml
 ```
 
 Create the cluster:
