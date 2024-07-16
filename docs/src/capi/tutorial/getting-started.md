@@ -52,12 +52,49 @@ for your provider:
 
 ````{tabs}
 ```{group-tab} AWS
-```{include} ../../_parts/capi_infra_providers/aws.md
+
+The AWS infrastructure provider requires the `clusterawsadm` tool to be
+installed:
+
+```sh
+curl -L https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v2.5.2/clusterawsadm-linux-amd64 -o clusterawsadm
+chmod +x clusterawsadm
+sudo mv clusterawsadm /usr/local/bin
 ```
+
+`clusterawsadm` helps you bootstrapping the AWS environment that CAPI will use
+It will also create the necessary IAM roles for you.
+
+Start by setting up environment variables defining the AWS account to use, if
+these are not already defined:
+
+```sh
+export AWS_REGION=<your-region-eg-us-east-1>
+export AWS_ACCESS_KEY_ID=<your-access-key>
+export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
 ```
-```{group-tab} AWS
-```{include} ../../_parts/capi_infra_providers/aws.md
+
+If you are using multi-factor authentication, you will also need:
+
+```sh
+export AWS_SESSION_TOKEN=<session-token>
 ```
+
+`clusterawsadm` uses these details to create a [CloudFormation] stack in your
+AWS account with the correct [IAM] resources:
+
+```sh
+clusterawsadm bootstrap iam create-cloudformation-stack
+```
+
+The credentials need to be encoded and stored as a Kubernetes secret:
+
+```sh
+export AWS_B64ENCODED_CREDENTIALS=$(clusterawsadm bootstrap credentials encode-as-profile)
+```
+
+You are now all set to deploy the AWS CAPI infrastructure provider.
+
 ```
 ````
 
@@ -154,4 +191,6 @@ sudo k8s kubectl delete cluster <cluster-name>
 
 <!-- Links -->
 [upstream instructions]: https://cluster-api.sigs.k8s.io/user/quick-start#install-clusterctl
-[aws-provider]: ../howto/aws-provider.md
+[getting-started]: ../tutorial/getting-started.md
+[CloudFormation]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html
+[IAM]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html
