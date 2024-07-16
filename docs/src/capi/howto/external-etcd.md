@@ -12,6 +12,7 @@ To follow this guide, you will need:
 - A CAPI management cluster
 - Initialize ClusterAPI
 - Installed CRDs
+- Secured etcd deployment
 
 Please refer to the [getting-started][getting-started] for instructions.
 
@@ -21,39 +22,8 @@ This example shows how to create a 3-node workload cluster with an external
 etcd. To follow along with the example copy the [capi-etcd][capi-etcd]
 directory from github. 
 
-### Install cfssl
-
-To install cfssl, follow the [upstream instructions][cfssl]. Typically, this
-involves fetching the executable that matches your hardware architecture and
-placing it in your PATH. For example, at the time this guide was written,
-for `linux-amd64` you would run:
-
 ```
-mkdir ~/bin
-curl -s -L -o ~/bin/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
-curl -s -L -o ~/bin/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
-chmod +x ~/bin/{cfssl,cfssljson}
-export PATH=$PATH:~/bin
-```
-
-### Create Certificates
-
-In the copied [capi-etcd][capi-etcd]
-directory you will find the following certificate files:
-
-- root ca certificate `etcd-root-ca-csr.json`
-- root ca key `etcd-root-ca-csr.pem`
-- gencert configuration `etcd-gencert.json`
-- etcd ca for each etcd node `etcd-1-ca-csr.json`, `etcd-2-ca-csr.json`,
-  `etcd-3-ca-csr.json`
-
-Optionally, you can edit the certificates to match your requirements. Export
-the directory where the certificates are stored as `EXT_ETCD_DIR` and run the
-[generate-etc-certs][generate-etcd-certs] script:
-
-```
-export EXT_ETCD_DIR=/path/to/capi-etcd
-$EXT_ETCD_DIR/generate-etcd-certs.sh
+export EXT_ETCD_DIR=/full-path/to/capi-etcd
 ```
 
 ## Run Etcd services via docker-compose
@@ -93,20 +63,25 @@ data:
 EOF
 ```
 
+Please export the path to your etcd certs directory:
+
+```
+export CERTS_DIR=path/to/etcd-certs
+```
+
 Create the secret for the etcd root ca:
 
 ```
 kubectl create secret generic c1-etcd \
-  --from-file=ca.crt="$EXT_ETCD_DIR/etcd-root-ca.pem"
+  --from-file=ca.crt="$CERTS_DIR/etcd-root-ca.pem"
 ```
 
 Create the `c1-apiserver-etcd-client` secret:
 
 ```
 kubectl create secret tls c1-apiserver-etcd-client \
-  --cert=$EXT_ETCD_DIR/etcd-1.pem --key=$EXT_ETCD_DIR/etcd-1-key.pem 
+  --cert=$CERTS_DIR/etcd-1.pem --key=$EXT_ETCD_DIR/etcd-1-key.pem 
 ```
-<!-- Why etcd-1 only? -->
 
 To confirm the secrets are created, run:
 
