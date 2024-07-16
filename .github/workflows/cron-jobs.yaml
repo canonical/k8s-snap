@@ -11,7 +11,6 @@ jobs:
   TICS:
     permissions:
       contents: read
-      security-events: write 
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -67,14 +66,6 @@ jobs:
           go build -a ./...
 
           TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $HOME/work/k8s-snap/k8s-snap/
-          tar -cvzf tics-logs.tar.gz /tmp/tics
-          mv tics-logs.tar.gz ../../
-
-      - name: Uploading TICS logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: tics-logs.tar.gz
-          path: tics-logs.tar.gz
 
   Trivy:
     permissions:
