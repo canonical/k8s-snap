@@ -3,6 +3,8 @@
 To replace the built-in [dqlite][dqlite] database with an external etcd to
 manage the kubernetes state in the CAPI workload cluster follow this
 `how-to guide`.
+This example shows how to create a 3-node workload cluster with an external
+etcd. 
 
 ## Prerequisites
 
@@ -12,27 +14,9 @@ To follow this guide, you will need:
 - A CAPI management cluster
 - Initialize ClusterAPI
 - Installed CRDs
-- Secured etcd deployment
+- Secured 3-node etcd deployment
 
 Please refer to the [getting-started][getting-started] for instructions.
-
-## Copy capi-etcd directory
-
-This example shows how to create a 3-node workload cluster with an external
-etcd. To follow along with the example copy the [capi-etcd][capi-etcd]
-directory from github. 
-
-```
-export EXT_ETCD_DIR=/full-path/to/capi-etcd
-```
-
-## Run Etcd services via docker-compose
-
-To run the etcd services via docker-compose, run:
-
-```
-docker-compose -f $EXT_ETCD_DIR/docker-compose.yaml up 
-```
 
 ## Create Kubernetes Secrets
 
@@ -109,7 +93,8 @@ To deploy the workload cluster, run:
 
 ```
 export KIND_IMAGE=k8s-snap:dev
-clusterctl generate cluster c1 --from $EXT_ETCD_DIR/c1-external-etcd.yaml --kubernetes-version v1.30.1 > c1.yaml
+export CLUSTER_TEMPLATE_DIR=https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/c1-external-etcd.yaml
+clusterctl generate cluster c1 --from $CLUSTER_TEMPLATE_DIR/c1-external-etcd.yaml --kubernetes-version v1.30.1 > c1.yaml
 ```
 
 Create the cluster:
