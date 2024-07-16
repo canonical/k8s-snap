@@ -180,8 +180,6 @@ call in order.
 
 ```go
 type RefreshCertificatesInitRequest struct {
-  // ExpirationTime is the duration of the requested certificates.
-  ExpirationTime time.Duration
 }
 
 type RefreshCertificatesInitResponse struct {
@@ -201,16 +199,79 @@ refreshes on the current node.
 It returns a `seed` that must be passed to `POST /refresh-certs/run`. For worker
 nodes, it also returns a list of names of CertificateSigningRequest objects that
 will need to be approved and signed. This can be used by the CLI to print a
-helpful message and request that the certificates are signed.
+helpful message and request that the certificates be signed.
+
+This method call is purely informative and does not have any side-effect on the
+cluster.
 
 ### `POST /refresh-certs/run`
+
+```go
+type RefreshCertificatesRunRequest struct {
+  // Seed must match the seed from the received RefreshCertificatesInitResponse.
+  Seed int
+  // ExpirationDuration is the duration of the requested certificates.
+  ExpirationDuration time.Duration
+}
+
+type RefreshCertificatesRunResponse struct {
+  // ExpirationDuration is the duration of the new certificates.
+  ExpirationDuration time.Duration
+}
+```
+
+#### Worker nodes
+
+Worker nodes will create the required CSRs, and wait for them to be signed. This
+comprises of two steps: first they must be approved (see below), and then the
+csrsigning controller will sign them. The worker node will block until the CSRs
+are dealt with:
+
+- If any CSR becomes Failed or Denied, then we fail and return the result.
+- If any CSR does not become Approved or Issued in time, we time out.
+
+After getting the new certificates, we apply them on the node, do any service
+restarts that may be required and return response.
+
+#### Control plane nodes
+
+Control plane nodes can ignore the seed argument. They already have access to
+the CA certificates and keys, therefore can simply generate and sign new
+certificates, apply them on the node, do any service restarts necessary and
+return the response.
 
 ## CLI Changes
 <!--
 This section MUST mention any changes to the k8s CLI, e.g. new arguments,
 different outputs.
 -->
-none
+
+### `k8s refresh-certs` command
+
+#### For worker nodes
+
+```
+root@worker:~$ k8s refresh-certs --ttl 30d --timeout 30s
+The following CertificateSigningRequests should be approved. Run the following
+commands on any of the control plane nodes of the cluster:
+
+  $ k8s kubectl certificate approve k8sd-seed-worker-kubelet-client
+  $ k8s kubectl certificate approve k8sd-seed-worker-kubelet-serving
+  $ k8s kubectl certificate approve k8sd-seed-worker-kube-proxy-client
+
+Waiting for certificates to be created....
+
+<-- CSRs are approved -->
+
+Certificates have been refreshed, and will expire at $date.
+```
+
+#### For control plane nodes
+
+```
+root@node:~$ k8s refresh-certs --ttl 30d --timeout 30s
+Certificates have been refreshed, and will expire at $date.
+```
 
 ## Database Changes
 <!--
@@ -224,7 +285,29 @@ none
 This section MUST mention any new configuration options or service arguments
 that are introduced.
 -->
-none
+
+The changes include a `csrsigning` controller, which watches the cluster for
+`CertificateSigningRequest` objects coming from the worker nodes. After they are
+approved, it will sign the certificates.
+
+### k8sd `--disable-csrsigning-controller`
+
+In line with the rest of the `--disable-$foo-controller` flags, this flag can be
+used to completely disable the csrsigning controller on a node.
+
+### annotation `k8sd/v1alpha1/csrsigning/auto-approve=true`
+
+In order to make operations simpler for cases where administrators are not too
+strict about security, we can add an annotation that allows the `csrsigning`
+controller to automatically approve CertificateSigningRequests that originate
+from worker nodes.
+
+This can be configured as:
+
+```bash
+$ k8s set annotations=k8sd/v1alpha1/csrsigning/auto-approve=true      # enable
+$ k8s set annotations=k8sd/v1alpha1/csrsigning/auto-approve=false     # disable
+```
 
 ## Documentation Changes
 <!--
@@ -235,7 +318,13 @@ Explanation page.
 In this section, it is useful to think about any existing pages that need to be
 updated (e.g. command outputs).
 -->
-none
+
+1. We need an explanation page that talks about certificate refreshes. What it
+   is, what it is used for and how it helps with cluster security.
+2. We need a how-to that describes how to refresh certificates on a cluster with
+   N control plane nodes and M worker nodes.
+3. We need a reference page with the used cluster certificates, their subject,
+   their usage, their path on the disk, as well as what they are used for.
 
 ## Testing
 <!--
@@ -251,6 +340,7 @@ this feature. Some examples:
 - In case of a changed API endpoint, how do existing clients handle it?
 - etc
 -->
+none
 
 ## Implementation notes and guidelines
 <!--
