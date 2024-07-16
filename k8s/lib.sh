@@ -161,28 +161,3 @@ k8s::kubelet::ensure_shared_root_dir() {
     mount -o remount --make-rshared "$SNAP_COMMON/var/lib/kubelet" /var/lib/kubelet
   fi
 }
-
-# Ensure /etc/systemd/system/snap.k8s.kubelet.service.d/delegate.conf has delegate config
-# Example: 'k8s::common::is_strict || k8s::kubelet::ensure_cgroup_delegate'
-k8s::kubelet::ensure_cgroup_delegate() {
-  k8s::common::setup_env
-
-  if (systemctl show snap.k8s.kubelet -p NRestarts | grep -qv "NRestarts=0") &&
-     (grep -qv cpuset /sys/fs/cgroup/cgroup.subtree_control) &&
-     [ ! -e /etc/systemd/system/snap.k8s.kubelet.service.d/delegate.conf ]
-  then
-    mkdir -p /etc/systemd/system/snap.k8s.kubelet.service.d
-    tee /etc/systemd/system/snap.k8s.kubelet.service.d/delegate.conf > /dev/null <<EOF
-[Service]
-Delegate=yes
-EOF
-    systemctl daemon-reload || true
-    snap restart k8s || true
-  fi
-}
-
-
-# Ensure /etc/systemd/system/snap.k8s.kubelet.service.d is removed
-k8s::kubelet::remove() {
-  rm -rf /etc/systemd/system/snap.k8s.kubelet.service.d || true
-}

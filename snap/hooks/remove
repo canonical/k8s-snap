@@ -7,5 +7,3 @@ k8s::common::setup_env
 k8s::remove::containers
 
 k8s::remove::network
-
-k8s::remove::kubelet
