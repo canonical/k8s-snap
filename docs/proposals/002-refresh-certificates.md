@@ -302,11 +302,12 @@ strict about security, we can add an annotation that allows the `csrsigning`
 controller to automatically approve CertificateSigningRequests that originate
 from worker nodes.
 
-This can be configured as:
+This can be configured by setting the annotation as bootstrap config, or
+dynamically with:
 
 ```bash
-$ k8s set annotations=k8sd/v1alpha1/csrsigning/auto-approve=true      # enable
-$ k8s set annotations=k8sd/v1alpha1/csrsigning/auto-approve=false     # disable
+k8s set annotations=k8sd/v1alpha1/csrsigning/auto-approve=true      # enable
+k8s set annotations=k8sd/v1alpha1/csrsigning/auto-approve=false     # disable
 ```
 
 ## Documentation Changes
