@@ -1,5 +1,3 @@
-# Setting up the AWS Infrastructure provider
-
 The AWS infrastructure provider requires some initial steps to setup.
 
 ## Install clusterawsadm
@@ -13,8 +11,8 @@ chmod +x clusterawsadm
 sudo mv clusterawsadm /usr/local/bin
 ```
 
-`clusterawsadm` helps you bootstrapping the AWS environment that CAPI will use.
-. It will also create the necessary IAM roles for you.
+`clusterawsadm` helps you bootstrapping the AWS environment that CAPI will use
+It will also create the necessary IAM roles for you.
 
 Start by setting up environment variables defining the AWS account to use, if
 these are not already defined:
@@ -31,8 +29,8 @@ If you are using multi-factor authentication, you will also need:
 export AWS_SESSION_TOKEN=<session-token>
 ```
 
-`clusterawsadm` uses these details to create a CloudFormation stack in your AWS
-account with the correct IAM resources:
+`clusterawsadm` uses these details to create a [CloudFormation] stack in your
+AWS account with the correct [IAM] resources:
 
 ```sh
 clusterawsadm bootstrap iam create-cloudformation-stack
@@ -49,3 +47,5 @@ Visit [getting-started] for next steps.
 
 <!-- Links -->
 [getting-started]: ../tutorial/getting-started.md
+[CloudFormation]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html
+[IAM]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html

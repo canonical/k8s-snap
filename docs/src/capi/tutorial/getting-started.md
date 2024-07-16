@@ -50,26 +50,16 @@ Before generating a cluster, you need to configure the infrastructure provider.
 Each provider has its own prerequisites. Please follow the instructions
 for your provider:
 
-* [aws][aws-provider]
-<!-- TO BE EXTENDED -->
-
 ````{tabs}
 ```{group-tab} AWS
-
-AWS instructions
+```{include} ../../_parts/capi_infra_providers/aws.md
 ```
-
-```{group-tab} GCP
-Something something something
 ```
-
-```{group-tab} MAAS
-
-MAAS related things
+```{group-tab} AWS
+```{include} ../../_parts/capi_infra_providers/aws.md
+```
 ```
 ````
-
-
 
 ### Initialize the Management Cluster
 
@@ -145,7 +135,7 @@ After the first control plane node is provisioned, you can get the kubeconfig
 of the workload cluster:
 
 ```sh
-clusterctl get kubeconfig <cluster-name> > kubeconfig
+clusterctl get kubeconfig <cluster-name> > <cluster-name>-kubeconfig
 ```
 
 You can then see the workload nodes using:
