@@ -18,7 +18,6 @@ var rootCmdOpts struct {
 	disableFeatureController            bool
 	disableUpdateNodeConfigController   bool
 	disableCSRSigningController         bool
-	csrSigningControllerAutoApprove     bool
 }
 
 func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
@@ -43,7 +42,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				DisableUpdateNodeConfigController:   rootCmdOpts.disableUpdateNodeConfigController,
 				DisableFeatureController:            rootCmdOpts.disableFeatureController,
 				DisableCSRSigningController:         rootCmdOpts.disableCSRSigningController,
-				CSRSigningControllerAutoApprove:     rootCmdOpts.csrSigningControllerAutoApprove,
 			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to initialize k8sd: %v", err)
@@ -73,7 +71,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableUpdateNodeConfigController, "disable-update-node-config-controller", false, "Disable the Update Node Config Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableFeatureController, "disable-feature-controller", false, "Disable the Feature Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableCSRSigningController, "disable-csrsigning-controller", false, "Disable the CSR signing controller")
-	cmd.PersistentFlags().BoolVar(&rootCmdOpts.csrSigningControllerAutoApprove, "csrsigning-controller-auto-approve", false, "Auto-approve valid CSRs in the csrsigning controller")
 
 	cmd.Flags().Uint("port", 0, "Default port for the HTTP API")
 	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")

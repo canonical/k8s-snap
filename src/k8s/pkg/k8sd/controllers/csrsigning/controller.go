@@ -21,7 +21,6 @@ type Controller struct {
 	snap      snap.Snap
 	waitReady func()
 
-	autoApprove    bool
 	leaderElection bool
 }
 
@@ -29,7 +28,6 @@ type Options struct {
 	Snap      snap.Snap
 	WaitReady func()
 
-	AutoApprove    bool
 	LeaderElection bool
 }
 
@@ -38,7 +36,6 @@ func New(opts Options) *Controller {
 		snap:      opts.Snap,
 		waitReady: opts.WaitReady,
 
-		autoApprove:    opts.AutoApprove,
 		leaderElection: opts.LeaderElection,
 	}
 }
@@ -95,7 +92,6 @@ func (c *Controller) Run(ctx context.Context, getClusterConfig func(context.Cont
 		Logger:  mgr.GetLogger(),
 		Client:  mgr.GetClient(),
 
-		autoApprove:      c.autoApprove,
 		getClusterConfig: getClusterConfig,
 	}).SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("failed to setup csrsigning controller: %w", err)

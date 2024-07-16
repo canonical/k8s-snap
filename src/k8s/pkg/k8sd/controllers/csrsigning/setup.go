@@ -17,7 +17,6 @@ type csrSigningReconciler struct {
 	Logger  logr.Logger
 	Client  client.Client
 
-	autoApprove      bool
 	getClusterConfig func(context.Context) (types.ClusterConfig, error)
 }
 

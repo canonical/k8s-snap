@@ -42,8 +42,6 @@ type Config struct {
 	DisableFeatureController bool
 	// DisableCSRSigningController is a bool flag to disable csrsigning controller.
 	DisableCSRSigningController bool
-	// CSRSigningControllerAutoApprove is a bool flag to automatically approve valid CSRs in the csrsigning controller.
-	CSRSigningControllerAutoApprove bool
 }
 
 // App is the k8sd microcluster instance.
@@ -164,7 +162,6 @@ func New(cfg Config) (*App, error) {
 		app.csrsigningController = csrsigning.New(csrsigning.Options{
 			Snap:           cfg.Snap,
 			WaitReady:      app.readyWg.Wait,
-			AutoApprove:    cfg.CSRSigningControllerAutoApprove,
 			LeaderElection: true,
 		})
 	} else {

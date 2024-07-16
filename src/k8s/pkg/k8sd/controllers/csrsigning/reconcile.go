@@ -49,9 +49,17 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
+	config, err := r.getClusterConfig(ctx)
+	if err != nil {
+		log.Error(err, "Failed to retrieve k8sd cluster configuration")
+		return ctrl.Result{}, err
+	}
+	internal := internalConfigFromAnnotations(config.Annotations)
+
 	if !approved {
 		log.Info("CSR is not approved")
-		if r.autoApprove {
+		if internal.autoApprove {
+			log.V(1).Info("CSR auto-approval is enabled")
 			return r.reconcileAutoApprove(ctx, log, obj)
 		}
 
@@ -59,12 +67,6 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{RequeueAfter: requeueAfterWaitingForApproved}, nil
 	}
 	log.Info("CSR is approved")
-
-	config, err := r.getClusterConfig(ctx)
-	if err != nil {
-		log.Error(err, "Failed to retrieve k8sd cluster configuration")
-		return ctrl.Result{}, err
-	}
 
 	certRequest, err := pkiutil.LoadCertificateRequest(string(obj.Spec.Request))
 	if err != nil {
