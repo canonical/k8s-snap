@@ -1,12 +1,11 @@
 # Installing Canonical Kubernetes in air-gapped environments
 
 There are situations where it is necessary or desirable to run Canonical
-Kubernetes on a machine that is not connected to the internet.
-Based on different degrees of separation from the network,
-different solutions are offered to accomplish this goal.
-This guide documents any necessary extra preparation for air-gap deployments,
-as well the steps that are needed to successfully deploy Canonical Kubernetes
-in such environments.
+Kubernetes on a machine that is not connected to the internet. Based on
+different degrees of separation from the network, different solutions are
+offered to accomplish this goal. This guide documents any necessary extra
+preparation for air-gap deployments, as well the steps that are needed to
+successfully deploy Canonical Kubernetes in such environments.
 
 ## Prepare for Deployment
 
@@ -96,8 +95,8 @@ by its features (network, dns, etc.) as well as any images that are
 needed to run specific workloads.
 
 ```{note} 
-The image options are presented in the order of
-increasing complexity of implementation.
+The image options are presented in the order of increasing complexity
+of implementation.
 It may be helpful to combine these options for different scenarios.
 ```
 
@@ -132,48 +131,48 @@ Please ensure that the images used by workloads are tracked as well.
 
 #### Images Option A: via an HTTP proxy
 
-In many cases, the nodes of the air-gap deployment may not have direct access to
-upstream registries, but can reach them through the
-[use of an HTTP proxy][proxy].
+In many cases, the nodes of the air-gap deployment may not have direct access
+to upstream registries, but can reach them through the [use of an HTTP
+proxy][proxy].
 
 The configuration of the proxy is out of the scope of this documentation.
 
+<!-- markdownlint-disable MD022 -->
+(private-registry)=
 #### Images Option B: private registry mirror
+<!-- markdownlint-enable MD022 -->
 
-In case regulations and/or network constraints do not allow the cluster nodes
-to access any upstream image registry,
-it is typical to deploy a private registry mirror.
-This is an image registry service that contains all the required OCI Images
-(e.g. [registry](https://distribution.github.io/distribution/),
-[harbor](https://goharbor.io/) or any other OCI registry) and
-is reachable from all cluster nodes.
+In case regulations and/or network constraints do not permit the cluster nodes
+to access any upstream image registry, it is typical to deploy a private
+registry mirror. This is an image registry service that contains all the
+required OCI Images (e.g.
+[registry](https://distribution.github.io/distribution/),
+[Harbor](https://goharbor.io/) or any other OCI registry) and is reachable from
+all cluster nodes.
 
 This requires three steps:
 
-1. Deploy and secure the registry service.
-   Please follow the instructions for the desired registry deployment.
+1. Deploy and secure the registry service. Please follow the instructions for
+   the desired registry deployment.
 2. Using [regsync][regsync], load all images from the upstream source and
    push to your registry mirror.
 3. Configure the Canonical Kubernetes container runtime (`containerd`) to load
-   images from
-   the private registry mirror instead of the upstream source. This will be
-   described in the [Configure registry mirrors](
-      #Container-Runtime-Option-B:-Configure-registry-mirrors) section.
+   images from the private registry mirror instead of the upstream source. This
+   will be described in the [Configure registry mirrors](#private-registry)
+   section.
 
-In order to load images into the private registry, a machine is needed with
-access to any upstream registries (e.g. `docker.io`)
-and the private mirror.
+To load images into the private registry, a machine is needed with access to
+any upstream registries (e.g. `docker.io`) and the private mirror.
 
 ##### Load images with regsync
 
-We recommend using [regsync][regsync] to copy images
-from the upstream registry to your private registry. Refer to the
-[sync-images.yaml][sync-images-yaml] file that contains the configuration for
-syncing images from the upstream registry to the private registry. Using the
-output from `k8s list-images` update the images in the
-[sync-images.yaml][sync-images-yaml] file if necessary. Update the file with the
-appropriate mirror, and specify a mirror for ghcr.io that points to the
-registry.
+We recommend using [regsync][regsync] to copy images from the upstream registry
+to your private registry. Refer to the [sync-images.yaml][sync-images-yaml]
+file that contains the configuration for syncing images from the upstream
+registry to the private registry. Using the output from `k8s list-images`
+update the images in the [sync-images.yaml][sync-images-yaml] file if
+necessary. Update the file with the appropriate mirror, and specify a mirror
+for ghcr.io that points to the registry.
 
 After creating the `sync-images.yaml` file, use [regsync][regsync] to sync the
 images. Assuming your registry mirror is at http://10.10.10.10:5050, run:
@@ -184,17 +183,19 @@ USERNAME="$username" PASSWORD="$password" MIRROR="10.10.10.10:5050" \
 ```
 
 An alternative to configuring a registry mirror is to download all necessary
-OCI images, and then manually add them to all cluster nodes.
-Instructions for this are described in
-[Side-load images](#images-option-c-side-load-images).
+OCI images, and then manually add them to all cluster nodes. Instructions for
+this are described in [Side-load images](#side-load).
 
+<!-- markdownlint-disable MD022 -->
+(side-load)=
 #### Images Option C: Side-load images
+<!-- markdownlint-enable MD022 -->
 
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so they do not have to be fetched at runtime.
 
-To create a bundle of images, use the [regctl][regctl] tool
-or invoke the [regctl.sh][regctl.sh] script:
+To create a bundle of images, use the [regctl][regctl] tool or invoke the
+[regctl.sh][regctl.sh] script:
 
 ```
 ./src/k8s/tools/regctl.sh image export ghcr.io/canonical/k8s-snap/pause:3.10 \
@@ -242,12 +243,11 @@ no_proxy variables as described in the
 
 #### Container Runtime Option B: Configure registry mirrors
 
-This requires having already set up a registry mirror,
-as explained in the preparation section on the private registry mirror.
-Complete the following instructions on all nodes.
-For each upstream registry that needs mirroring, create a `hosts.toml` file.
-Here's an example that configures `http://10.10.10.10:5050` as a mirror for 
-`ghcr.io`:
+This requires having already set up a registry mirror, as explained in the
+preparation section on the private registry mirror. Complete the following
+instructions on all nodes. For each upstream registry that needs mirroring,
+create a `hosts.toml` file. Here's an example that configures
+`http://10.10.10.10:5050` as a mirror for `ghcr.io`:
 
 ##### HTTP registry
 
@@ -275,13 +275,11 @@ ca = "/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt"
 
 #### Container Runtime Option C: Side-load images
 
-This is only required if choosing to
-[side-load images](#images-option-c-side-load-images).
-Make sure that the directory `/var/snap/k8s/common/images` directory exists,
-then copy all `$image.tar` to that directory, such that containerd automatically
-picks them up and imports them when it starts.
-Copy the `images.tar` file(s) to `/var/snap/k8s/common/images`.
-Repeat this step for all cluster nodes.
+This is only required if choosing to [side-load images](#side-load). Make sure
+that the directory `/var/snap/k8s/common/images` directory exists, then copy
+all `$image.tar` to that directory, such that containerd automatically picks
+them up and imports them when it starts. Copy the `images.tar` file(s) to
+`/var/snap/k8s/common/images`. Repeat this step for all cluster nodes.
 
 ### Step 3: Bootstrap cluster
 
@@ -295,8 +293,8 @@ sudo k8s bootstrap --address MY-NODE-IP
 Add and remove nodes as described in the
 [add-and-remove-nodes tutorial][nodes].
 
-After a while, confirm that all the cluster nodes show up in
-the output of the `sudo k8s kubectl get node` command.
+After a while, confirm that all the cluster nodes show up in the output of the
+`sudo k8s kubectl get node` command.
 
 <!-- LINKS -->
 
