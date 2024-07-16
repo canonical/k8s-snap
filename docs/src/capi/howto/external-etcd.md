@@ -93,7 +93,7 @@ To deploy the workload cluster, run:
 
 ```
 export KIND_IMAGE=k8s-snap:dev
-export CLUSTER_TEMPLATE_DIR=https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/c1-external-etcd.yaml
+export CLUSTER_TEMPLATE_DIR=https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets
 clusterctl generate cluster c1 --from $CLUSTER_TEMPLATE_DIR/c1-external-etcd.yaml --kubernetes-version v1.30.1 > c1.yaml
 ```
 
