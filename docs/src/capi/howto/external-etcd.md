@@ -11,9 +11,8 @@ etcd.
 To follow this guide, you will need:
 
 - Clusterctl
-- A CAPI management cluster
-- Initialize ClusterAPI
-- Installed CRDs
+- A CAPI management cluster initialized with the infrastructure, bootstrap and
+  control plane providers of your choice
 - Secured 3-node etcd deployment
 
 Please refer to the [getting-started][getting-started] for instructions.
@@ -28,7 +27,7 @@ Create three kubernetes secrets:
 
 ```{note}
 Replace {cluster-name} with the name of your cluster.
-It is important to follow this naming convention since the providers will be looking for these names.
+It is important to follow this naming convention for the secrets since the providers will be looking for these names.
 Please note that this example uses `c1` for the cluster name.
 ```
 
