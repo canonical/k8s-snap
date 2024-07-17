@@ -131,7 +131,7 @@ To backup the `workloads` namespace we use the `--include-namespaces` argument:
 velero backup create workloads-backup --include-namespaces=workloads
 ```
 
-```{note} **Note:** Please see the 
+```{note} Please see the 
 [official Velero documentation](https://velero.io/docs/v1.14/file-system-backup/#to-back-up)
 for details on how to backup persistent volumes and the supported volume types.
 ```
