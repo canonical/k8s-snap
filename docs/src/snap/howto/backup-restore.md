@@ -16,7 +16,7 @@ an S3 compatible object store.
 
 - A running Canonical Kubernetes with DNS enabled
 - MinIO (install described below) or other S3 bucket
-- Velero (install described below))
+- Velero (install described below)
 - An example workload
 
 ### Enabling required components
