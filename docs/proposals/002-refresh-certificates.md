@@ -176,24 +176,24 @@ To accomodate this need, while also ensuring that the `k8s refresh-certs` can be
 straightforward to implement, two API calls are introduced, which clients should
 call in order.
 
-### `POST /refresh-certs/init`
+### `POST /refresh-certs/plan`
 
 ```go
-type RefreshCertificatesInitRequest struct {
+type RefreshCertificatesPlanRequest struct {
 }
 
-type RefreshCertificatesInitResponse struct {
+type RefreshCertificatesPlanResponse struct {
   // Seed needs to be passed to `/refresh-certs/run` to ensure that CSR
   // names are valid.
   Seed int
-  // RequiredCertificateApprovals is a list of CSRs (kubectl get csr) that need
+  // CertificateSigningRequests is a list of CSRs (kubectl get csr) that need
   // to be manually approved when `/refresh-certs/run` is used. This list will
   // be empty for control plane nodes.
-  RequiredCertificateApprovals []string
+  CertificateSigningRequests []string
 }
 ```
 
-`POST /refresh-certs/init` performs any necessary preparations for certificate
+`POST /refresh-certs/plan` performs any necessary preparations for certificate
 refreshes on the current node.
 
 It returns a `seed` that must be passed to `POST /refresh-certs/run`. For worker
@@ -208,15 +208,15 @@ cluster.
 
 ```go
 type RefreshCertificatesRunRequest struct {
-  // Seed must match the seed from the received RefreshCertificatesInitResponse.
+  // Seed must match the seed from the received RefreshCertificatesPlanResponse.
   Seed int
-  // ExpirationDuration is the duration of the requested certificates.
-  ExpirationDuration time.Duration
+  // ExpirationSeconds is the duration (in seconds) of the requested certificates.
+  ExpirationSeconds int
 }
 
 type RefreshCertificatesRunResponse struct {
-  // ExpirationDuration is the duration of the new certificates.
-  ExpirationDuration time.Duration
+  // ExpirationSeconds is the duration (in seconds) of the new certificates.
+  ExpirationSeconds int
 }
 ```
 
@@ -252,16 +252,19 @@ different outputs.
 
 ```
 root@worker:~$ k8s refresh-certs --ttl 30d --timeout 30s
+<-- POST /refresh-certs/plan -->
 The following CertificateSigningRequests should be approved. Run the following
 commands on any of the control plane nodes of the cluster:
 
-  $ k8s kubectl certificate approve k8sd-seed-worker-kubelet-client
-  $ k8s kubectl certificate approve k8sd-seed-worker-kubelet-serving
-  $ k8s kubectl certificate approve k8sd-seed-worker-kube-proxy-client
+    k8s kubectl certificate approve k8sd-seed-worker-kubelet-client
+    k8s kubectl certificate approve k8sd-seed-worker-kubelet-serving
+    k8s kubectl certificate approve k8sd-seed-worker-kube-proxy-client
 
 Waiting for certificates to be created....
 
-<-- CSRs are approved -->
+<-- POST /refresh-certs/run -->
+<-- Server: wait for CSRs to be approved -->
+<-- Server: wait for CSRs to be signed -->
 
 Certificates have been refreshed, and will expire at $date.
 ```
