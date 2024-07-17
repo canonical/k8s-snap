@@ -47,24 +47,27 @@ data:
 EOF
 ```
 
-Please export the path to your etcd certs directory:
+To export the path to your etcd certs directory, use this command:
 
 ```
 export CERTS_DIR=path/to/etcd-certs
 ```
 
+Replace /path/to/etcd-certs with the actual path where you generated or stored
+your etcd certificates.
+
 Create the secret for the etcd root ca:
 
 ```
 kubectl create secret generic c1-etcd \
-  --from-file=ca.crt="$CERTS_DIR/etcd-root-ca.pem"
+  --from-file=tls.crt="$CERTS_DIR/etcd-root-ca.pem"
 ```
 
 Create the `c1-apiserver-etcd-client` secret:
 
 ```
 kubectl create secret tls c1-apiserver-etcd-client \
-  --cert=$CERTS_DIR/etcd-1.pem --key=$EXT_ETCD_DIR/etcd-1-key.pem 
+  --cert=$CERTS_DIR/etcd-1.pem --key=$CERTS_DIR/etcd-1-key.pem 
 ```
 
 To confirm the secrets are created, run:
@@ -75,7 +78,7 @@ kubectl get secrets
 
 ## Etcd Cluster Template
 
-The new control plane resource `CK8sControlPlane` is configured to
+The control plane resource `CK8sControlPlane` is configured to
 store the kubernetes state in etcd. The cluster template `c1-external-etcd.yaml`
 contains the following additional configuration:
 
@@ -107,6 +110,14 @@ To check the status of the cluster, run:
 
 ```
 clusterctl describe cluster c1 
+```
+
+## Optional: Delete workload cluster
+
+To delete the workload cluster, run:
+
+```bash
+kubectl delete cluster c1
 ```
 
 <!-- LINKS -->
