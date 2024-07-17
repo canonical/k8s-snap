@@ -1,25 +1,24 @@
-# CAPI External Etcd
+# Use external etcd with Cluster API
 
 To replace the built-in [dqlite][dqlite] database with an external etcd to
-manage the kubernetes state in the CAPI workload cluster follow this
-`how-to guide`.
-This example shows how to create a 3-node workload cluster with an external
-etcd. 
+manage the Kubernetes state in the Cluster API (CAPI) workload cluster follow
+this `how-to guide`. This example shows how to create a 3-node workload cluster
+with an external etcd. 
 
 ## Prerequisites
 
 To follow this guide, you will need:
 
 - Clusterctl
-- A CAPI management cluster initialized with the infrastructure, bootstrap and
+- A CAPI management cluster initialised with the infrastructure, bootstrap and
   control plane providers of your choice
 - Secured 3-node etcd deployment
 
 Please refer to the [getting-started][getting-started] for instructions.
 
-## Create Kubernetes Secrets
+## Create Kubernetes secrets
 
-Create three kubernetes secrets:
+Create three Kubernetes secrets:
 
 - {cluster-name}-etcd-servers
 - {cluster-name}-etcd
@@ -75,10 +74,10 @@ To confirm the secrets are created, run:
 kubectl get secrets
 ```
 
-## Etcd Cluster Template
+## Create etcd cluster template
 
 The control plane resource `CK8sControlPlane` is configured to
-store the kubernetes state in etcd. The cluster template `c1-external-etcd.yaml`
+store the Kubernetes state in etcd. The cluster template `c1-external-etcd.yaml`
 contains the following additional configuration:
 
 ```
@@ -89,7 +88,7 @@ controlPlane:
     key: servers
 ```
 
-## Deploy the Workload Cluster
+## Deploy the workload cluster
 
 To deploy the workload cluster, run:
 
