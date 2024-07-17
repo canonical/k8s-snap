@@ -135,27 +135,16 @@ more fields are shown:
 
 ```
 $ k8s status
-status: ready
-high-availability: no
-datastore:
-  type: k8s-dqlite
-  voter-nodes:
-    - 10.87.24.119:6400
-  standby-nodes: none
-  spare-nodes: none
-network:
-  enabled: true
-dns:
-  enabled: true
-ingress:
-  enabled: false
-load-balancer:
-  enabled: false
-local-storage:
-  enabled: true
-gateway:
-  enabled: false
-  message: Cilium GatewayAPI support could not be enabled, error was "..."
+cluster status:         ready/not ready
+control plane nodes:    10.0.0.10 (voter), 10.0.0.20 (voter), 10.0.0.30 (standby)
+high availability:      yes/no
+datastore:              k8s-dqlite running/k8s-dqlite not running/external
+network:                enabled/disabled
+dns:                    enabled/disabled at 10.152.183.10
+ingress:                enabled/disabled
+load-balancer:          enabled/disabled, L2/BGP mode
+local-storage:          enabled/disabled at /var/snap/k8s/common/rawfile-storage
+gateway:                enabled/disabled
 ```
 
 When the output format is `json` or `yaml`, more fields may be shown:
@@ -165,7 +154,7 @@ $ k8s status --output-format=yaml
 ...
 network:
   enabled: true
-  message: Cilium is deployed
+  message: enabled
   timestamp: 2020-01-01 10:00:00
   version: v1.15.2
 ...
