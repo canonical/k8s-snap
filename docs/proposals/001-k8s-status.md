@@ -54,7 +54,7 @@ Instead, we want the `k8s status` command to return meaningful information about
 the current _deployment status_ of each feature. We want to replace the
 following output (taking the `dns` feature as an example):
 
-```bash
+```
 $ k8s status
 ...
 dns:
@@ -65,7 +65,7 @@ dns:
 
 With something like this:
 
-```bash
+```
 $ k8s status
 ...
 dns:
@@ -87,7 +87,7 @@ The output format of `k8s status` will change.
 
 #### Old output
 
-```bash
+```
 $ k8s status
 status: ready
 high-availability: no
@@ -133,7 +133,7 @@ gateway:
 With `--output-format=plain`, a simple overview is shown, with `yaml` or `json`
 more fields are shown:
 
-```bash
+```
 $ k8s status
 status: ready
 high-availability: no
@@ -160,7 +160,7 @@ gateway:
 
 When the output format is `json` or `yaml`, more fields may be shown:
 
-```bash
+```
 $ k8s status --output-format=yaml
 ...
 network:
