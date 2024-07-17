@@ -2,7 +2,7 @@ package snaputil_test
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/snap/mock"
@@ -20,7 +20,7 @@ func TestIsWorker(t *testing.T) {
 	t.Run("WorkerFileExists", func(t *testing.T) {
 		g := NewWithT(t)
 
-		fname := path.Join(mock.LockFilesDir(), "worker")
+		fname := filepath.Join(mock.LockFilesDir(), "worker")
 		lock, err := os.Create(fname)
 		g.Expect(err).ToNot(HaveOccurred())
 		lock.Close()
@@ -54,7 +54,7 @@ func TestMarkAsWorkerNode(t *testing.T) {
 		err := snaputil.MarkAsWorkerNode(mock, true)
 		g.Expect(err).To(BeNil())
 
-		workerFile := path.Join(mock.LockFilesDir(), "worker")
+		workerFile := filepath.Join(mock.LockFilesDir(), "worker")
 		g.Expect(workerFile).To(BeAnExistingFile())
 
 		// Clean up
@@ -64,7 +64,7 @@ func TestMarkAsWorkerNode(t *testing.T) {
 
 	t.Run("UnmarkWorker", func(t *testing.T) {
 		g := NewWithT(t)
-		workerFile := path.Join(mock.LockFilesDir(), "worker")
+		workerFile := filepath.Join(mock.LockFilesDir(), "worker")
 		_, err := os.Create(workerFile)
 		g.Expect(err).To(BeNil())
 

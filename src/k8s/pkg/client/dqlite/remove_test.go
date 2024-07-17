@@ -2,7 +2,7 @@ package dqlite_test
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
@@ -14,7 +14,7 @@ func TestRemoveNodeByAddress(t *testing.T) {
 		withDqliteCluster(t, 2, func(ctx context.Context, dirs []string) {
 			g := NewWithT(t)
 			client, err := dqlite.NewClient(ctx, dqlite.ClientOpts{
-				ClusterYAML: path.Join(dirs[0], "cluster.yaml"),
+				ClusterYAML: filepath.Join(dirs[0], "cluster.yaml"),
 			})
 			g.Expect(err).To(BeNil())
 			g.Expect(client).NotTo(BeNil())
@@ -39,7 +39,7 @@ func TestRemoveNodeByAddress(t *testing.T) {
 		withDqliteCluster(t, 2, func(ctx context.Context, dirs []string) {
 			g := NewWithT(t)
 			client, err := dqlite.NewClient(ctx, dqlite.ClientOpts{
-				ClusterYAML: path.Join(dirs[0], "cluster.yaml"),
+				ClusterYAML: filepath.Join(dirs[0], "cluster.yaml"),
 			})
 			g.Expect(err).To(BeNil())
 			g.Expect(client).NotTo(BeNil())

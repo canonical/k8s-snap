@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
@@ -105,15 +104,15 @@ func (s *snap) Hostname() string {
 }
 
 func (s *snap) ContainerdConfigDir() string {
-	return path.Join(s.snapCommonDir, "etc", "containerd")
+	return filepath.Join(s.snapCommonDir, "etc", "containerd")
 }
 
 func (s *snap) ContainerdRootDir() string {
-	return path.Join(s.snapCommonDir, "var", "lib", "containerd")
+	return filepath.Join(s.snapCommonDir, "var", "lib", "containerd")
 }
 
 func (s *snap) ContainerdSocketDir() string {
-	return path.Join(s.snapCommonDir, "run")
+	return filepath.Join(s.snapCommonDir, "run")
 }
 
 func (s *snap) ContainerdStateDir() string {
@@ -129,7 +128,7 @@ func (s *snap) CNIBinDir() string {
 }
 
 func (s *snap) CNIPluginsBinary() string {
-	return path.Join(s.snapDir, "bin", "cni")
+	return filepath.Join(s.snapDir, "bin", "cni")
 }
 
 func (s *snap) CNIPlugins() []string {
@@ -170,31 +169,31 @@ func (s *snap) KubeletRootDir() string {
 }
 
 func (s *snap) K8sdStateDir() string {
-	return path.Join(s.snapCommonDir, "var", "lib", "k8sd", "state")
+	return filepath.Join(s.snapCommonDir, "var", "lib", "k8sd", "state")
 }
 
 func (s *snap) K8sDqliteStateDir() string {
-	return path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite")
+	return filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite")
 }
 
 func (s *snap) ServiceArgumentsDir() string {
-	return path.Join(s.snapCommonDir, "args")
+	return filepath.Join(s.snapCommonDir, "args")
 }
 
 func (s *snap) ServiceExtraConfigDir() string {
-	return path.Join(s.snapCommonDir, "args", "conf.d")
+	return filepath.Join(s.snapCommonDir, "args", "conf.d")
 }
 
 func (s *snap) LockFilesDir() string {
-	return path.Join(s.snapCommonDir, "lock")
+	return filepath.Join(s.snapCommonDir, "lock")
 }
 
 func (s *snap) ContainerdExtraConfigDir() string {
-	return path.Join(s.snapCommonDir, "etc", "containerd", "conf.d")
+	return filepath.Join(s.snapCommonDir, "etc", "containerd", "conf.d")
 }
 
 func (s *snap) ContainerdRegistryConfigDir() string {
-	return path.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
+	return filepath.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
 }
 
 func (s *snap) restClientGetter(path string, namespace string) genericclioptions.RESTClientGetter {
@@ -208,27 +207,27 @@ func (s *snap) restClientGetter(path string, namespace string) genericclioptions
 }
 
 func (s *snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {
-	return kubernetes.NewClient(s.restClientGetter(path.Join(s.KubernetesConfigDir(), "admin.conf"), namespace))
+	return kubernetes.NewClient(s.restClientGetter(filepath.Join(s.KubernetesConfigDir(), "admin.conf"), namespace))
 }
 
 func (s *snap) KubernetesNodeClient(namespace string) (*kubernetes.Client, error) {
-	return kubernetes.NewClient(s.restClientGetter(path.Join(s.KubernetesConfigDir(), "kubelet.conf"), namespace))
+	return kubernetes.NewClient(s.restClientGetter(filepath.Join(s.KubernetesConfigDir(), "kubelet.conf"), namespace))
 }
 
 func (s *snap) HelmClient() helm.Client {
 	return helm.NewClient(
 		filepath.Join(s.snapDir, "k8s", "manifests"),
 		func(namespace string) genericclioptions.RESTClientGetter {
-			return s.restClientGetter(path.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
+			return s.restClientGetter(filepath.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
 		},
 	)
 }
 
 func (s *snap) K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) {
 	client, err := dqlite.NewClient(ctx, dqlite.ClientOpts{
-		ClusterYAML: path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.yaml"),
-		ClusterCert: path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.crt"),
-		ClusterKey:  path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.key"),
+		ClusterYAML: filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.yaml"),
+		ClusterCert: filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.crt"),
+		ClusterKey:  filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.key"),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create default k8s-dqlite client: %w", err)

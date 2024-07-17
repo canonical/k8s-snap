@@ -1,7 +1,7 @@
 package metallb
 
 import (
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
@@ -11,14 +11,14 @@ var (
 	chartMetalLB = helm.InstallableChart{
 		Name:         "metallb",
 		Namespace:    "metallb-system",
-		ManifestPath: path.Join("charts", "metallb-0.14.5.tgz"),
+		ManifestPath: filepath.Join("charts", "metallb-0.14.5.tgz"),
 	}
 
 	// chartMetalLBLoadBalancer represents manifests to deploy MetalLB L2 or BGP resources.
 	chartMetalLBLoadBalancer = helm.InstallableChart{
 		Name:         "metallb-loadbalancer",
 		Namespace:    "metallb-system",
-		ManifestPath: path.Join("charts", "ck-loadbalancer"),
+		ManifestPath: filepath.Join("charts", "ck-loadbalancer"),
 	}
 
 	// controllerImageRepo is the image to use for metallb-controller.

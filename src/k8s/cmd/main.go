@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"path"
+	"path/filepath"
 	"syscall"
 
 	"github.com/canonical/k8s/cmd/k8s"
@@ -29,7 +29,7 @@ func main() {
 	cobra.EnableTraverseRunHooks = true
 
 	// choose command based on the binary name
-	base := path.Base(os.Args[0])
+	base := filepath.Base(os.Args[0])
 	switch base {
 	case "k8s-apiserver-proxy":
 		k8s_apiserver_proxy.NewRootCmd(env).ExecuteContext(ctx)

@@ -2,7 +2,7 @@ package setup_test
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -14,9 +14,9 @@ import (
 
 func setKubeControllerManagerMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
-		ServiceArgumentsDir: path.Join(dir, "args"),
-		KubernetesConfigDir: path.Join(dir, "k8s-config"),
-		KubernetesPKIDir:    path.Join(dir, "k8s-pki"),
+		ServiceArgumentsDir: filepath.Join(dir, "args"),
+		KubernetesConfigDir: filepath.Join(dir, "k8s-config"),
+		KubernetesPKIDir:    filepath.Join(dir, "k8s-pki"),
 	}
 }
 
@@ -28,7 +28,7 @@ func TestKubeControllerManager(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeControllerManagerMock)
 
 		// Create ca.key so that cluster-signing-cert-file and cluster-signing-key-file are added to the arguments
-		os.Create(path.Join(s.Mock.KubernetesPKIDir, "ca.key"))
+		os.Create(filepath.Join(s.Mock.KubernetesPKIDir, "ca.key"))
 
 		// Call the kube controller manager setup function
 		g.Expect(setup.KubeControllerManager(s, nil)).To(BeNil())
@@ -38,18 +38,18 @@ func TestKubeControllerManager(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
-			{key: "--authentication-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
-			{key: "--authorization-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
-			{key: "--kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--authentication-kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--authorization-kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
 			{key: "--leader-elect-lease-duration", expectedVal: "30s"},
 			{key: "--leader-elect-renew-deadline", expectedVal: "15s"},
 			{key: "--profiling", expectedVal: "false"},
-			{key: "--root-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
-			{key: "--service-account-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
+			{key: "--root-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
+			{key: "--service-account-private-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
 			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
 			{key: "--use-service-account-credentials", expectedVal: "true"},
-			{key: "--cluster-signing-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
-			{key: "--cluster-signing-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.key")},
+			{key: "--cluster-signing-cert-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
+			{key: "--cluster-signing-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.key")},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
@@ -61,7 +61,7 @@ func TestKubeControllerManager(t *testing.T) {
 		}
 
 		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
-		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
+		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 
@@ -86,14 +86,14 @@ func TestKubeControllerManager(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
-			{key: "--authentication-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
-			{key: "--authorization-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
-			{key: "--kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--authentication-kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--authorization-kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
 			{key: "--leader-elect-lease-duration", expectedVal: "30s"},
 			{key: "--leader-elect-renew-deadline", expectedVal: "15s"},
 			{key: "--profiling", expectedVal: "false"},
-			{key: "--root-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
-			{key: "--service-account-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
+			{key: "--root-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
+			{key: "--service-account-private-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
 			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
 			{key: "--use-service-account-credentials", expectedVal: "true"},
 		}
@@ -107,7 +107,7 @@ func TestKubeControllerManager(t *testing.T) {
 		}
 
 		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
-		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
+		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 
@@ -125,7 +125,7 @@ func TestKubeControllerManager(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeControllerManagerMock)
 
 		// Create ca.key so that cluster-signing-cert-file and cluster-signing-key-file are added to the arguments
-		os.Create(path.Join(s.Mock.KubernetesPKIDir, "ca.key"))
+		os.Create(filepath.Join(s.Mock.KubernetesPKIDir, "ca.key"))
 
 		extraArgs := map[string]*string{
 			"--leader-elect-lease-duration": nil,
@@ -140,17 +140,17 @@ func TestKubeControllerManager(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
-			{key: "--authentication-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
-			{key: "--authorization-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
-			{key: "--kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--authentication-kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--authorization-kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
+			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "controller.conf")},
 			{key: "--leader-elect-renew-deadline", expectedVal: "15s"},
 			{key: "--profiling", expectedVal: "true"},
-			{key: "--root-ca-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
-			{key: "--service-account-private-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
+			{key: "--root-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
+			{key: "--service-account-private-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
 			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
 			{key: "--use-service-account-credentials", expectedVal: "true"},
-			{key: "--cluster-signing-cert-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
-			{key: "--cluster-signing-key-file", expectedVal: path.Join(s.Mock.KubernetesPKIDir, "ca.key")},
+			{key: "--cluster-signing-cert-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
+			{key: "--cluster-signing-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.key")},
 			{key: "--my-extra-arg", expectedVal: "my-extra-val"},
 		}
 		for _, tc := range tests {
@@ -168,7 +168,7 @@ func TestKubeControllerManager(t *testing.T) {
 		g.Expect(val).To(BeZero())
 
 		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
-		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
+		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 

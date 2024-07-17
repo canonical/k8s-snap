@@ -3,18 +3,18 @@ package snaputil
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 )
 
 func IsWorker(snap snap.Snap) (bool, error) {
-	return utils.FileExists(path.Join(snap.LockFilesDir(), "worker"))
+	return utils.FileExists(filepath.Join(snap.LockFilesDir(), "worker"))
 }
 
 func MarkAsWorkerNode(snap snap.Snap, mark bool) error {
-	fname := path.Join(snap.LockFilesDir(), "worker")
+	fname := filepath.Join(snap.LockFilesDir(), "worker")
 
 	if mark {
 		lock, err := os.Create(fname)

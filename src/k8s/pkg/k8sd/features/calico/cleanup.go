@@ -6,7 +6,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -45,7 +45,7 @@ func CleanupNetwork(ctx context.Context, snap snap.Snap) error {
 
 	for _, entry := range entries {
 		if strings.HasPrefix(entry.Name(), "cali-") {
-			nsPath := path.Join(netnsDir, entry.Name())
+			nsPath := filepath.Join(netnsDir, entry.Name())
 
 			if err := unix.Unmount(nsPath, unix.MNT_DETACH); err != nil {
 				return fmt.Errorf("failed to unmount network namespace %s: %w", entry.Name(), err)

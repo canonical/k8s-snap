@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -45,7 +45,7 @@ func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[strin
 
 	switch c.GetType() {
 	case "k8s-dqlite":
-		updateArgs["--etcd-servers"] = fmt.Sprintf("unix://%s", path.Join(p.K8sDqliteStateDir(), "k8s-dqlite.sock"))
+		updateArgs["--etcd-servers"] = fmt.Sprintf("unix://%s", filepath.Join(p.K8sDqliteStateDir(), "k8s-dqlite.sock"))
 		deleteArgs = []string{"--etcd-cafile", "--etcd-certfile", "--etcd-keyfile"}
 	case "external":
 		updateArgs["--etcd-servers"] = strings.Join(c.GetExternalServers(), ",")
@@ -61,7 +61,7 @@ func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[strin
 			{cert: c.GetExternalClientKey(), arg: "--etcd-keyfile", path: "client.key"},
 		} {
 			if loop.cert != "" {
-				updateArgs[loop.arg] = path.Join(p.EtcdPKIDir(), loop.path)
+				updateArgs[loop.arg] = filepath.Join(p.EtcdPKIDir(), loop.path)
 			} else {
 				deleteArgs = append(deleteArgs, loop.arg)
 			}

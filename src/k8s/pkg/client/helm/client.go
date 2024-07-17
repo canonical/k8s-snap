@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/log"
 	"helm.sh/helm/v3/pkg/action"
@@ -80,7 +80,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		install.Namespace = c.Namespace
 		install.CreateNamespace = true
 
-		chart, err := loader.Load(path.Join(h.manifestsBaseDir, c.ManifestPath))
+		chart, err := loader.Load(filepath.Join(h.manifestsBaseDir, c.ManifestPath))
 		if err != nil {
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
 		}
@@ -95,7 +95,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		upgrade.Namespace = c.Namespace
 		upgrade.ReuseValues = true
 
-		chart, err := loader.Load(path.Join(h.manifestsBaseDir, c.ManifestPath))
+		chart, err := loader.Load(filepath.Join(h.manifestsBaseDir, c.ManifestPath))
 		if err != nil {
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
 		}
