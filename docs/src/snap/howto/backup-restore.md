@@ -1,22 +1,21 @@
 # Backup and restore
 
-[Velero][] is a popular open source backup solution for Kubernetes.
-Its core implementation is a controller running in the cluster that oversees
-the backup and restore operations. The administrator is given a CLI tool to
-schedule operations and/or perform on-demand backup and restores. This CLI
-tool creates Kubernetes resources that the in-cluster Velero controller acts
-upon. During installation the controller needs to 
-be [configured with a repository (called a 'provider')][providers], where
-the backup files are stored.
+[Velero][] is a popular open source backup solution for Kubernetes. Its core
+implementation is a controller running in the cluster that oversees the backup
+and restore operations. The administrator is given a CLI tool to schedule
+operations and/or perform on-demand backup and restores. This CLI tool creates
+Kubernetes resources that the in-cluster Velero controller acts upon. During
+installation the controller needs to be [configured with a repository (called a
+'provider')][providers], where the backup files are stored.
 
-This document describes how to setup Velero with the MinIO provider acting
-as an S3 compatible object store.
+This document describes how to setup Velero with the MinIO provider acting as
+an S3 compatible object store.
 
 
 ## What you will need
 
 - A running Canonical Kubernetes with DNS enabled
-- MinIO (install described below)
+- MinIO (install described below) or other S3 bucket
 - Velero (install described below))
 - An example workload
 
@@ -31,8 +30,8 @@ sudo k8s enable dns
 ### Install MinIO
 
 [MinIO][] provides an S3 compatible interface over storage provisioned by
-Kubernetes. For the purposes of this guide, the `local storage` component
-is used to satisfy the persistent volume claims:
+Kubernetes. For the purposes of this guide, the `local storage` component is
+used to satisfy the persistent volume claims:
 
 ```bash
 sudo k8s enable local-storage
@@ -43,15 +42,6 @@ Helm is used to setup [MinIO][MinIO Charts] under the `velero` namespace:
 ```bash
 sudo k8s helm repo add minio https://charts.min.io
 sudo k8s kubectl create namespace velero
-
-# TOY MODE
-sudo k8s helm install -n velero \
---set resources.requests.memory=512Mi \
---set replicas=1 \
---set persistence.enabled=false \
---set mode=standalone \
---set buckets[0].name=velero,buckets[0].policy=none,buckets[0].purge=false \
---generate-name minio/minio
 
 # PRODUCTION MODE
 sudo k8s helm install -n velero \
@@ -85,15 +75,18 @@ sudo chown root:root velero-v1.14.0-linux-amd64/velero
 sudo mv velero-v1.14.0-linux-amd64/velero /usr/local/bin/velero
 ```
 
-Before installing Velero, we export the kubeconfig file using the `config`
-command.
+Before installing Velero into the cluster, we export the kubeconfig file using
+the `config` command.
 
 ```bash
 mkdir -p $HOME/.kube
 sudo k8s kubectl config view --raw > $HOME/.kube/config
 ```
 
-We also export the MinIO credentials so we can provide them to Velero.
+We also export the MinIO credentials so we can provide them to Velero. Be aware
+that MinIO is used as an S3 bucket replacement for AWS S3, hence the
+credentials look like they require aws values. This is merely the nomenclature
+for accessing the S3 bucket in MinIO.
 
 ```bash
 ACCESS_KEY=$(sudo k8s kubectl -n velero get secret -l app=minio -o jsonpath="{.items[0].data.rootUser}" | base64 --decode)
@@ -106,20 +99,20 @@ cat <<EOF > credentials-velero
 EOF
 ```
 
-We are now ready to install Velero, with the aws 
-[plugin matching][aws-plugin-matching] the velero release:
+We are now ready to install Velero into the cluster, with an aws plugin that
+[matches][aws-plugin-matching] the velero release:
 
 ```bash
 SERVICE_URL="http://${SERVICE}.velero.svc:9000"
 BUCKET=velero
 REGION=minio
 velero install \
-    --provider aws \
-    --plugins velero/velero-plugin-for-aws:v1.10.0 \
-    --bucket $BUCKET \
-    --backup-location-config region=$REGION,s3ForcePathStyle="true",s3Url=$SERVICE_URL \
-    --snapshot-location-config region=$REGION \
-    --secret-file ./credentials-velero
+--provider aws \
+--plugins velero/velero-plugin-for-aws:v1.10.0 \
+--bucket $BUCKET \
+--backup-location-config region=$REGION,s3ForcePathStyle="true",s3Url=$SERVICE_URL \
+--snapshot-location-config region=$REGION \
+--secret-file ./credentials-velero
 ```
 
 
