@@ -19,6 +19,7 @@ networking/index
 storage/index
 external-datastore
 proxy
+backup-restore
 contribute
 support
 ```
