@@ -332,6 +332,17 @@ updated (e.g. command outputs).
 This section MUST explain how the new feature will be tested.
 -->
 
+1. An e2e test with 1 control plane and 1 worker node. We should be able to
+   refresh their certificates and see that the cluster is up and running. For
+   the needs of the test, we can enable auto-approval.
+2. Unit tests for csrsigning controller reconcile loop, where we test how it
+   handles individual CSR objects.
+3. (stretch) Investigate and add integration tests for the csrsigning controller
+   (perhaps using controller-runtime's envtest package).
+4. Unit tests for CSR object validations.
+5. Unit tests for CSR object creation from the worker nodes.
+6. Unit tests for any helper utility we need to add for signing certificates.
+
 ## Considerations for backwards compatibility
 <!--
 In this section, you MUST mention any breaking changes that are introduced by
