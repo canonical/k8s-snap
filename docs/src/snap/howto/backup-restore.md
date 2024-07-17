@@ -1,3 +1,5 @@
+# Backup and restore
+
 [Velero][] is a popular open source backup solution for Kubernetes.
 Its core implementation is a controller running in the cluster that oversees
 the backup and restore operations. The administrator is given a CLI tool to
@@ -11,7 +13,12 @@ This document describes how to setup Velero with the MinIO provider acting
 as an S3 compatible object store.
 
 
-## Prerequisites
+## What you will need
+
+- A running Canonical Kubernetes with DNS enabled
+- MinIO (install described below)
+- Velero (install described below))
+- An example workload
 
 ### Enabling required components
 
@@ -64,11 +71,11 @@ sudo k8s kubectl expose deployment nginx -n workloads --port 80
 ```
 
 
-## Installing Velero
+## Install Velero
 
-To install Velero we get the a binary from the [releases page on
-github][releases] and place it in our `PATH`. In this case we install the
-v1.14.1 Linux binary for AMD64 under `/usr/local/bin`:
+Download the Velero binary from the 
+[releases page on github][releases] and place it in our `PATH`. In this case we
+install the v1.14.1 Linux binary for AMD64 under `/usr/local/bin`:
 
 ```bash
 wget https://github.com/vmware-tanzu/velero/releases/download/v1.14.0/velero-v1.14.0-linux-amd64.tar.gz 
@@ -78,14 +85,15 @@ sudo chown root:root velero-v1.14.0-linux-amd64/velero
 sudo mv velero-v1.14.0-linux-amd64/velero /usr/local/bin/velero
 ```
 
-Before installing Velero, we export the kubeconfig file from MicroK8s.
+Before installing Velero, we export the kubeconfig file using the `config`
+command.
 
 ```bash
 mkdir -p $HOME/.kube
 sudo k8s kubectl config view --raw > $HOME/.kube/config
 ```
 
-We also export the MinIO credentials so we can feed them to Velero.
+We also export the MinIO credentials so we can provide them to Velero.
 
 ```bash
 ACCESS_KEY=$(sudo k8s kubectl -n velero get secret -l app=minio -o jsonpath="{.items[0].data.rootUser}" | base64 --decode)
@@ -98,8 +106,8 @@ cat <<EOF > credentials-velero
 EOF
 ```
 
-We are now ready to install Velero, with the aws [plugin
-matching][aws-plugin-matching] the velero release:
+We are now ready to install Velero, with the aws 
+[plugin matching][aws-plugin-matching] the velero release:
 
 ```bash
 SERVICE_URL="http://${SERVICE}.velero.svc:9000"
@@ -123,9 +131,10 @@ To backup the `workloads` namespace we use the `--include-namespaces` argument:
 velero backup create workloads-backup --include-namespaces=workloads
 ```
 
-> ⓘ **Note:** Please, consult the [official Velero
-> documentation](https://velero.io/docs/v1.14/file-system-backup/#to-back-up) on
-> how to backup persistent volumes and the supported volume types.
+```{note} **Note:** Please see the 
+[official Velero documentation](https://velero.io/docs/v1.14/file-system-backup/#to-back-up)
+for details on how to backup persistent volumes and the supported volume types.
+```
 
 To check the progress of a backup operation we use `describe`, providing the
 backup name:
