@@ -2,9 +2,8 @@ package controllers_test
 
 import (
 	"context"
-	"github.com/canonical/k8s/pkg/utils"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -33,8 +33,8 @@ func TestControlPlaneConfigController(t *testing.T) {
 
 		s := &mock.Snap{
 			Mock: mock.Mock{
-				EtcdPKIDir:          path.Join(dir, "etcd-pki"),
-				ServiceArgumentsDir: path.Join(dir, "args"),
+				EtcdPKIDir:          filepath.Join(dir, "etcd-pki"),
+				ServiceArgumentsDir: filepath.Join(dir, "args"),
 				UID:                 os.Getuid(),
 				GID:                 os.Getgid(),
 			},
@@ -74,9 +74,9 @@ func TestControlPlaneConfigController(t *testing.T) {
 					"--etcd-servers": "http://127.0.0.1:2379",
 				},
 				expectFilesToExist: map[string]bool{
-					path.Join(dir, "etcd-pki", "ca.crt"):     false,
-					path.Join(dir, "etcd-pki", "client.crt"): false,
-					path.Join(dir, "etcd-pki", "client.key"): false,
+					filepath.Join(dir, "etcd-pki", "ca.crt"):     false,
+					filepath.Join(dir, "etcd-pki", "client.crt"): false,
+					filepath.Join(dir, "etcd-pki", "client.key"): false,
 				},
 				expectServiceRestarts: []string{"kube-apiserver"},
 			},
@@ -93,14 +93,14 @@ func TestControlPlaneConfigController(t *testing.T) {
 				},
 				expectKubeAPIServerArgs: map[string]string{
 					"--etcd-servers":  "https://127.0.0.1:2379",
-					"--etcd-cafile":   path.Join(dir, "etcd-pki", "ca.crt"),
-					"--etcd-certfile": path.Join(dir, "etcd-pki", "client.crt"),
-					"--etcd-keyfile":  path.Join(dir, "etcd-pki", "client.key"),
+					"--etcd-cafile":   filepath.Join(dir, "etcd-pki", "ca.crt"),
+					"--etcd-certfile": filepath.Join(dir, "etcd-pki", "client.crt"),
+					"--etcd-keyfile":  filepath.Join(dir, "etcd-pki", "client.key"),
 				},
 				expectFilesToExist: map[string]bool{
-					path.Join(dir, "etcd-pki", "ca.crt"):     true,
-					path.Join(dir, "etcd-pki", "client.crt"): true,
-					path.Join(dir, "etcd-pki", "client.key"): true,
+					filepath.Join(dir, "etcd-pki", "ca.crt"):     true,
+					filepath.Join(dir, "etcd-pki", "client.crt"): true,
+					filepath.Join(dir, "etcd-pki", "client.key"): true,
 				},
 				expectServiceRestarts: []string{"kube-apiserver"},
 			},
@@ -132,14 +132,14 @@ func TestControlPlaneConfigController(t *testing.T) {
 				},
 				expectKubeAPIServerArgs: map[string]string{
 					"--etcd-servers":  "https://127.0.0.1:2379",
-					"--etcd-cafile":   path.Join(dir, "etcd-pki", "ca.crt"),
-					"--etcd-certfile": path.Join(dir, "etcd-pki", "client.crt"),
-					"--etcd-keyfile":  path.Join(dir, "etcd-pki", "client.key"),
+					"--etcd-cafile":   filepath.Join(dir, "etcd-pki", "ca.crt"),
+					"--etcd-certfile": filepath.Join(dir, "etcd-pki", "client.crt"),
+					"--etcd-keyfile":  filepath.Join(dir, "etcd-pki", "client.key"),
 				},
 				expectFilesToExist: map[string]bool{
-					path.Join(dir, "etcd-pki", "ca.crt"):     true,
-					path.Join(dir, "etcd-pki", "client.crt"): true,
-					path.Join(dir, "etcd-pki", "client.key"): true,
+					filepath.Join(dir, "etcd-pki", "ca.crt"):     true,
+					filepath.Join(dir, "etcd-pki", "client.crt"): true,
+					filepath.Join(dir, "etcd-pki", "client.key"): true,
 				},
 				expectKubeControllerManagerArgs: map[string]string{
 					"--cloud-provider": "external",
@@ -163,9 +163,9 @@ func TestControlPlaneConfigController(t *testing.T) {
 					"--etcd-keyfile":  "",
 				},
 				expectFilesToExist: map[string]bool{
-					path.Join(dir, "etcd-pki", "ca.crt"):     false,
-					path.Join(dir, "etcd-pki", "client.crt"): false,
-					path.Join(dir, "etcd-pki", "client.key"): false,
+					filepath.Join(dir, "etcd-pki", "ca.crt"):     false,
+					filepath.Join(dir, "etcd-pki", "client.crt"): false,
+					filepath.Join(dir, "etcd-pki", "client.key"): false,
 				},
 				expectKubeControllerManagerArgs: map[string]string{
 					"--cloud-provider": "",
@@ -217,7 +217,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 
 				t.Run("Certs", func(t *testing.T) {
 					for file, mustExist := range tc.expectFilesToExist {
-						t.Run(path.Base(file), func(t *testing.T) {
+						t.Run(filepath.Base(file), func(t *testing.T) {
 							g := NewWithT(t)
 
 							_, err := os.Stat(file)
@@ -238,9 +238,9 @@ func TestControlPlaneConfigController(t *testing.T) {
 
 		s := &mock.Snap{
 			Mock: mock.Mock{
-				EtcdPKIDir:          path.Join(dir, "etcd-pki"),
-				ServiceArgumentsDir: path.Join(dir, "args"),
-				LockFilesDir:        path.Join(dir, "locks"),
+				EtcdPKIDir:          filepath.Join(dir, "etcd-pki"),
+				ServiceArgumentsDir: filepath.Join(dir, "args"),
+				LockFilesDir:        filepath.Join(dir, "locks"),
 				UID:                 os.Getuid(),
 				GID:                 os.Getgid(),
 			},
@@ -310,7 +310,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 				t.Run(cert, func(t *testing.T) {
 					g := NewWithT(t)
 
-					_, err := os.Stat(path.Join(dir, "etcd-pki", cert))
+					_, err := os.Stat(filepath.Join(dir, "etcd-pki", cert))
 					g.Expect(err).To(MatchError(os.ErrNotExist))
 				})
 			}

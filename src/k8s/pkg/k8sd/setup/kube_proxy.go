@@ -3,7 +3,7 @@ package setup
 import (
 	"context"
 	"fmt"
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -16,7 +16,7 @@ func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR str
 	serviceArgs := map[string]string{
 		"--cluster-cidr":         podCIDR,
 		"--healthz-bind-address": "127.0.0.1",
-		"--kubeconfig":           path.Join(snap.KubernetesConfigDir(), "proxy.conf"),
+		"--kubeconfig":           filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"),
 		"--profiling":            "false",
 	}
 

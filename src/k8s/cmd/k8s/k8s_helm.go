@@ -2,7 +2,7 @@ package k8s
 
 import (
 	"os/exec"
-	"path"
+	"path/filepath"
 	"syscall"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -44,7 +44,7 @@ func newHelmCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			command := append([]string{"helm"}, args...)
 			environ := cmdutil.EnvironWithDefaults(
 				env.Environ,
-				"KUBECONFIG", path.Join(env.Snap.KubernetesConfigDir(), "admin.conf"),
+				"KUBECONFIG", filepath.Join(env.Snap.KubernetesConfigDir(), "admin.conf"),
 			)
 			if err := syscall.Exec(binary, command, environ); err != nil {
 				cmd.PrintErrf("Failed to run %s.\n\nThe error was: %v\n", command, err)

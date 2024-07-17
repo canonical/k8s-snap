@@ -1,7 +1,7 @@
 package setup_test
 
 import (
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -13,8 +13,8 @@ import (
 
 func setKubeSchedulerMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
-		ServiceArgumentsDir: path.Join(dir, "args"),
-		KubernetesConfigDir: path.Join(dir, "k8s-config"),
+		ServiceArgumentsDir: filepath.Join(dir, "args"),
+		KubernetesConfigDir: filepath.Join(dir, "k8s-config"),
 	}
 }
 
@@ -33,9 +33,9 @@ func TestKubeScheduler(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
-			{key: "--authentication-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
-			{key: "--authorization-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
-			{key: "--kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
+			{key: "--authentication-kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
+			{key: "--authorization-kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
+			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
 			{key: "--leader-elect-lease-duration", expectedVal: "30s"},
 			{key: "--leader-elect-renew-deadline", expectedVal: "15s"},
 			{key: "--profiling", expectedVal: "false"},
@@ -50,7 +50,7 @@ func TestKubeScheduler(t *testing.T) {
 		}
 
 		// Ensure the kube scheduler arguments file has exactly the expected number of arguments
-		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-scheduler"))
+		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-scheduler"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 
@@ -75,9 +75,9 @@ func TestKubeScheduler(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
-			{key: "--authentication-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
-			{key: "--authorization-kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
-			{key: "--kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
+			{key: "--authentication-kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
+			{key: "--authorization-kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
+			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
 			{key: "--leader-elect-renew-deadline", expectedVal: "15s"},
 			{key: "--profiling", expectedVal: "true"},
 			{key: "--my-extra-arg", expectedVal: "my-extra-val"},
@@ -97,7 +97,7 @@ func TestKubeScheduler(t *testing.T) {
 		g.Expect(val).To(BeZero())
 
 		// Ensure the kube scheduler arguments file has exactly the expected number of arguments
-		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "kube-scheduler"))
+		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-scheduler"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 

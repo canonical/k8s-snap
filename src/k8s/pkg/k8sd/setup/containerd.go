@@ -4,7 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/k8sd/images"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -117,7 +117,7 @@ func containerdHostConfig(registry types.ContainerdRegistry) containerdHostsConf
 // Containerd configures configuration and arguments for containerd on the local node.
 // Optionally, a number of registry mirrors and auths can be configured.
 func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs map[string]*string) error {
-	configToml, err := os.OpenFile(path.Join(snap.ContainerdConfigDir(), "config.toml"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	configToml, err := os.OpenFile(filepath.Join(snap.ContainerdConfigDir(), "config.toml"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open config.toml: %w", err)
 	}
@@ -133,8 +133,8 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs
 	}
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "containerd", map[string]string{
-		"--address": path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
-		"--config":  path.Join(snap.ContainerdConfigDir(), "config.toml"),
+		"--address": filepath.Join(snap.ContainerdSocketDir(), "containerd.sock"),
+		"--config":  filepath.Join(snap.ContainerdConfigDir(), "config.toml"),
 		"--root":    snap.ContainerdRootDir(),
 		"--state":   snap.ContainerdStateDir(),
 	}, nil); err != nil {
@@ -147,7 +147,7 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
 
-	cniBinary := path.Join(snap.CNIBinDir(), "cni")
+	cniBinary := filepath.Join(snap.CNIBinDir(), "cni")
 	if err := utils.CopyFile(snap.CNIPluginsBinary(), cniBinary); err != nil {
 		return fmt.Errorf("failed to copy cni plugin binary: %w", err)
 	}
@@ -160,7 +160,7 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs
 
 	// for each of the CNI plugins, ensure they are a symlink to the "cni" binary
 	for _, plugin := range snap.CNIPlugins() {
-		pluginInstallPath := path.Join(snap.CNIBinDir(), plugin)
+		pluginInstallPath := filepath.Join(snap.CNIBinDir(), plugin)
 
 		// if the destination file is already a symlink to "cni", we don't have to do anything
 		// if not, then attempt to remove the existing file
@@ -186,7 +186,7 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs
 			return fmt.Errorf("failed to marshal registry auth configurations: %w", err)
 		}
 
-		if err := os.WriteFile(path.Join(snap.ContainerdExtraConfigDir(), "k8sd-auths.toml"), b, 0600); err != nil {
+		if err := os.WriteFile(filepath.Join(snap.ContainerdExtraConfigDir(), "k8sd-auths.toml"), b, 0600); err != nil {
 			return fmt.Errorf("failed to write registry auth configurations: %w", err)
 		}
 	}
@@ -199,11 +199,11 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs
 				return fmt.Errorf("failed to render registry mirrors for %s: %w", registry.Host, err)
 			}
 
-			dir := path.Join(snap.ContainerdRegistryConfigDir(), registry.Host)
+			dir := filepath.Join(snap.ContainerdRegistryConfigDir(), registry.Host)
 			if err := os.Mkdir(dir, 0700); err != nil && !os.IsExist(err) {
 				return fmt.Errorf("failed to create directory for registry %s: %w", registry.Host, err)
 			}
-			if err := os.WriteFile(path.Join(dir, "hosts.toml"), b, 0600); err != nil {
+			if err := os.WriteFile(filepath.Join(dir, "hosts.toml"), b, 0600); err != nil {
 				return fmt.Errorf("failed to write hosts.toml for registry %s: %w", registry.Host, err)
 			}
 		}

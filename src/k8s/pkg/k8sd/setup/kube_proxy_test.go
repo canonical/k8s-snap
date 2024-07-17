@@ -3,7 +3,6 @@ package setup_test
 import (
 	"context"
 	"os"
-	"path"
 	"path/filepath"
 	"testing"
 
@@ -21,8 +20,8 @@ func TestKubeProxy(t *testing.T) {
 
 	s := &mock.Snap{
 		Mock: mock.Mock{
-			KubernetesConfigDir: path.Join(dir, "kubernetes"),
-			ServiceArgumentsDir: path.Join(dir, "args"),
+			KubernetesConfigDir: filepath.Join(dir, "kubernetes"),
+			ServiceArgumentsDir: filepath.Join(dir, "args"),
 			OnLXD:               false,
 			UID:                 os.Getuid(),
 			GID:                 os.Getgid(),
@@ -37,7 +36,7 @@ func TestKubeProxy(t *testing.T) {
 		for key, expectedVal := range map[string]string{
 			"--cluster-cidr":           "10.1.0.0/16",
 			"--hostname-override":      "myhostname",
-			"--kubeconfig":             path.Join(dir, "kubernetes", "proxy.conf"),
+			"--kubeconfig":             filepath.Join(dir, "kubernetes", "proxy.conf"),
 			"--profiling":              "false",
 			"--conntrack-max-per-core": "",
 		} {
@@ -61,7 +60,7 @@ func TestKubeProxy(t *testing.T) {
 		for key, expectedVal := range map[string]string{
 			"--cluster-cidr":           "10.1.0.0/16",
 			"--hostname-override":      "myoverriddenhostname",
-			"--kubeconfig":             path.Join(dir, "kubernetes", "proxy.conf"),
+			"--kubeconfig":             filepath.Join(dir, "kubernetes", "proxy.conf"),
 			"--profiling":              "false",
 			"--conntrack-max-per-core": "",
 			"--my-extra-arg":           "my-extra-val",

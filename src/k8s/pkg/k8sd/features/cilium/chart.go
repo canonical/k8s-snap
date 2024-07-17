@@ -1,7 +1,7 @@
 package cilium
 
 import (
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
@@ -11,28 +11,28 @@ var (
 	chartCilium = helm.InstallableChart{
 		Name:         "ck-network",
 		Namespace:    "kube-system",
-		ManifestPath: path.Join("charts", "cilium-1.15.2.tgz"),
+		ManifestPath: filepath.Join("charts", "cilium-1.15.2.tgz"),
 	}
 
 	// chartCiliumLoadBalancer represents manifests to deploy Cilium LoadBalancer resources.
 	chartCiliumLoadBalancer = helm.InstallableChart{
 		Name:         "ck-loadbalancer",
 		Namespace:    "kube-system",
-		ManifestPath: path.Join("charts", "ck-loadbalancer"),
+		ManifestPath: filepath.Join("charts", "ck-loadbalancer"),
 	}
 
 	// chartGateway represents manifests to deploy Gateway API CRDs.
 	chartGateway = helm.InstallableChart{
 		Name:         "ck-gateway",
 		Namespace:    "kube-system",
-		ManifestPath: path.Join("charts", "gateway-api-1.0.0.tgz"),
+		ManifestPath: filepath.Join("charts", "gateway-api-1.0.0.tgz"),
 	}
 
 	//chartGatewayClass represents a manifest to deploy a GatewayClass called ck-gateway.
 	chartGatewayClass = helm.InstallableChart{
 		Name:         "ck-gateway-class",
 		Namespace:    "default",
-		ManifestPath: path.Join("charts", "ck-gateway-cilium"),
+		ManifestPath: filepath.Join("charts", "ck-gateway-cilium"),
 	}
 
 	// ciliumAgentImageRepo represents the image to use for cilium-agent.

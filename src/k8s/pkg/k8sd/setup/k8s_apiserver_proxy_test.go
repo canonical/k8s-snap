@@ -3,7 +3,7 @@ package setup_test
 import (
 	"encoding/json"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -16,8 +16,8 @@ import (
 
 func setK8sApiServerMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
-		ServiceArgumentsDir:   path.Join(dir, "args"),
-		ServiceExtraConfigDir: path.Join(dir, "args/conf.d"),
+		ServiceArgumentsDir:   filepath.Join(dir, "args"),
+		ServiceExtraConfigDir: filepath.Join(dir, "args/conf.d"),
 	}
 }
 
@@ -33,8 +33,8 @@ func TestK8sApiServerProxy(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
-			{key: "--endpoints", expectedVal: path.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json")},
-			{key: "--kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "kubelet.conf")},
+			{key: "--endpoints", expectedVal: filepath.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json")},
+			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "kubelet.conf")},
 			{key: "--listen", expectedVal: "127.0.0.1:6443"},
 		}
 		for _, tc := range tests {
@@ -46,7 +46,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 			})
 		}
 
-		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "k8s-apiserver-proxy"))
+		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "k8s-apiserver-proxy"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
@@ -67,8 +67,8 @@ func TestK8sApiServerProxy(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
-			{key: "--endpoints", expectedVal: path.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json")},
-			{key: "--kubeconfig", expectedVal: path.Join(s.Mock.KubernetesConfigDir, "overridden-kubelet.conf")},
+			{key: "--endpoints", expectedVal: filepath.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json")},
+			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "overridden-kubelet.conf")},
 			{key: "--my-extra-arg", expectedVal: "my-extra-val"},
 		}
 		for _, tc := range tests {
@@ -87,7 +87,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 			g.Expect(val).To(BeZero())
 		})
 
-		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "k8s-apiserver-proxy"))
+		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "k8s-apiserver-proxy"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
@@ -116,7 +116,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		endpoints := []string{"192.168.0.1", "192.168.0.2", "192.168.0.3"}
-		fileName := path.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json")
+		fileName := filepath.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json")
 
 		g.Expect(setup.K8sAPIServerProxy(s, endpoints, nil)).To(Succeed())
 

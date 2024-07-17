@@ -1,7 +1,7 @@
 package metrics_server
 
 import (
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
@@ -11,7 +11,7 @@ var (
 	chart = helm.InstallableChart{
 		Name:         "metrics-server",
 		Namespace:    "kube-system",
-		ManifestPath: path.Join("charts", "metrics-server-3.12.0.tgz"),
+		ManifestPath: filepath.Join("charts", "metrics-server-3.12.0.tgz"),
 	}
 
 	// imageRepo is the image to use for metrics-server.

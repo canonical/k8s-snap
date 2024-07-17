@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -118,7 +118,7 @@ func TestConfigPropagation(t *testing.T) {
 
 	s := &mock.Snap{
 		Mock: mock.Mock{
-			ServiceArgumentsDir:  path.Join(t.TempDir(), "args"),
+			ServiceArgumentsDir:  filepath.Join(t.TempDir(), "args"),
 			UID:                  os.Getuid(),
 			GID:                  os.Getgid(),
 			KubernetesNodeClient: &kubernetes.Client{Interface: clientset},

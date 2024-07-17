@@ -3,7 +3,7 @@ package setup_test
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -15,8 +15,8 @@ import (
 
 func setK8sDqliteMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
-		ServiceArgumentsDir: path.Join(dir, "args"),
-		K8sDqliteStateDir:   path.Join(dir, "k8s-dqlite"),
+		ServiceArgumentsDir: filepath.Join(dir, "args"),
+		K8sDqliteStateDir:   filepath.Join(dir, "k8s-dqlite"),
 	}
 }
 
@@ -35,7 +35,7 @@ func TestK8sDqlite(t *testing.T) {
 			key         string
 			expectedVal string
 		}{
-			{key: "--listen", expectedVal: fmt.Sprintf("unix://%s", path.Join(s.Mock.K8sDqliteStateDir, "k8s-dqlite.sock"))},
+			{key: "--listen", expectedVal: fmt.Sprintf("unix://%s", filepath.Join(s.Mock.K8sDqliteStateDir, "k8s-dqlite.sock"))},
 			{key: "--storage-dir", expectedVal: s.Mock.K8sDqliteStateDir},
 		}
 		for _, tc := range tests {
@@ -48,7 +48,7 @@ func TestK8sDqlite(t *testing.T) {
 		}
 
 		// Ensure the K8sDqlite arguments file has exactly the expected number of arguments
-		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "k8s-dqlite"))
+		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "k8s-dqlite"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
@@ -93,7 +93,7 @@ func TestK8sDqlite(t *testing.T) {
 		})
 
 		// Ensure the K8sDqlite arguments file has exactly the expected number of arguments
-		args, err := utils.ParseArgumentFile(path.Join(s.Mock.ServiceArgumentsDir, "k8s-dqlite"))
+		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "k8s-dqlite"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(len(args)).To(Equal(len(tests)))
 	})
@@ -114,7 +114,7 @@ func TestK8sDqlite(t *testing.T) {
 
 		g.Expect(setup.K8sDqlite(s, "192.168.0.1:1234", cluster, nil)).To(BeNil())
 
-		b, err := os.ReadFile(path.Join(s.Mock.K8sDqliteStateDir, "init.yaml"))
+		b, err := os.ReadFile(filepath.Join(s.Mock.K8sDqliteStateDir, "init.yaml"))
 		g.Expect(err).To(BeNil())
 		g.Expect(string(b)).To(Equal(expectedYaml))
 	})
