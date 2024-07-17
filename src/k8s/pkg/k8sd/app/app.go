@@ -58,6 +58,7 @@ type App struct {
 
 	nodeConfigController         *controllers.NodeConfigurationController
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
+	csrsigningController         *csrsigning.Controller
 
 	// updateNodeConfigController
 	triggerUpdateNodeConfigControllerCh chan struct{}
@@ -72,9 +73,6 @@ type App struct {
 	triggerFeatureControllerMetricsServerCh chan struct{}
 	triggerFeatureControllerDNSCh           chan struct{}
 	featureController                       *controllers.FeatureController
-
-	// csrsigningController
-	csrsigningController *csrsigning.Controller
 }
 
 // New initializes a new microcluster instance from configuration.

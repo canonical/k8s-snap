@@ -35,6 +35,11 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, nil
 	}
 
+	// skip CSRs with an unknown signerName.
+	if _, ok := managedSignerNames[obj.Spec.SignerName]; !ok {
+		return ctrl.Result{}, nil
+	}
+
 	var approved bool
 	for _, condition := range obj.Status.Conditions {
 		switch condition.Type {
@@ -172,6 +177,7 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	default:
 		// NOTE(neoaggelos): this should never happen
+		log.V(1).Info("Ignoring CSR with invalid signerName")
 		return ctrl.Result{}, nil
 	}
 
