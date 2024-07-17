@@ -1,26 +1,24 @@
-From 3d0636d0ad86c9050da190b50bc01387d71dc80a Mon Sep 17 00:00:00 2001
-From: MicroK8s builder bot <microk8s-builder-bot@canonical.com>
-Date: Sun, 12 Feb 2023 13:34:45 +0000
-Subject: [PATCH] single entrypoint for cni tools
+From d3963bff8a147eae9598c2d5613e4d30860619e8 Mon Sep 17 00:00:00 2001
+From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
+Date: Wed, 17 Jul 2024 10:34:49 +0300
+Subject: [PATCH] single entrypoint for cni plugins
 
 ---
- cni.go | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ cni.go | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
  create mode 100644 cni.go
 
 diff --git a/cni.go b/cni.go
 new file mode 100644
-index 0000000..93828f9
+index 0000000..bab5b3e
 --- /dev/null
 +++ b/cni.go
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,64 @@
 +package main
 +
 +import (
 +	"os"
 +	"path/filepath"
-+
-+	"github.com/docker/docker/pkg/reexec"
 +
 +	ipam_dhcp "github.com/containernetworking/plugins/plugins/ipam/dhcp"
 +	ipam_host_local "github.com/containernetworking/plugins/plugins/ipam/host-local"
@@ -43,30 +41,42 @@ index 0000000..93828f9
 +)
 +
 +func main() {
-+	os.Args[0] = filepath.Base(os.Args[0])
-+	if reexec.Init() {
-+		return
++	switch filepath.Base(os.Args[0]) {
++	case "dhcp":
++		ipam_dhcp.Main()
++	case "host-local":
++		ipam_host_local.Main()
++	case "static":
++		ipam_static.Main()
++	case "bridge":
++		main_bridge.Main()
++	case "host-device":
++		main_host_device.Main()
++	case "ipvlan":
++		main_ipvlan.Main()
++	case "loopback":
++		main_loopback.Main()
++	case "macvlan":
++		main_macvlan.Main()
++	case "ptp":
++		main_ptp.Main()
++	case "vlan":
++		main_vlan.Main()
++	case "bandwidth":
++		meta_bandwidth.Main()
++	case "firewall":
++		meta_firewall.Main()
++	case "portmap":
++		meta_portmap.Main()
++	case "sbr":
++		meta_sbr.Main()
++	case "tuning":
++		meta_tuning.Main()
++	case "vrf":
++		meta_vrf.Main()
++	default:
++		panic("invalid entrypoint name")
 +	}
-+	panic("invalid entrypoint name")
 +}
-+
-+func init() {
-+	reexec.Register("dhcp", ipam_dhcp.Main)
-+	reexec.Register("host-local", ipam_host_local.Main)
-+	reexec.Register("static", ipam_static.Main)
-+	reexec.Register("bridge", main_bridge.Main)
-+	reexec.Register("host-device", main_host_device.Main)
-+	reexec.Register("ipvlan", main_ipvlan.Main)
-+	reexec.Register("loopback", main_loopback.Main)
-+	reexec.Register("macvlan", main_macvlan.Main)
-+	reexec.Register("ptp", main_ptp.Main)
-+	reexec.Register("vlan", main_vlan.Main)
-+	reexec.Register("bandwidth", meta_bandwidth.Main)
-+	reexec.Register("firewall", meta_firewall.Main)
-+	reexec.Register("portmap", meta_portmap.Main)
-+	reexec.Register("sbr", meta_sbr.Main)
-+	reexec.Register("tuning", meta_tuning.Main)
-+	reexec.Register("vrf", meta_vrf.Main)
-+}
--- 
-2.25.1
+--
+2.34.1
