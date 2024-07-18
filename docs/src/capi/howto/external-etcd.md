@@ -91,13 +91,12 @@ the following additional configuration:
 #   namespace: default
 # spec:
 #   spec:
-#     airGapped: true
 #     controlPlane:
       datastoreType: external
       datastoreServersSecretRef:
         name: ${CLUSTER_NAME}-etcd-servers
         key: servers
-#  machineTemplate:
+
 ```
 
 ## Deploy the workload cluster
