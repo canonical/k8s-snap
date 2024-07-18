@@ -5,7 +5,7 @@
 - **Index**: 001
 
 <!-- Status -->
-- **Status**: **DRAFTING**
+- **Status**: **ACCEPTED**
 
 <!-- Short description for the feature -->
 - **Name**: Expose feature status in `k8s status` command
