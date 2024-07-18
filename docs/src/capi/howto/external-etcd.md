@@ -84,14 +84,15 @@ store the Kubernetes state in etcd. Add the following additional configuration
 to the cluster template `cluster-template.yaml`:
 
 ```
-# apiVersion: controlplane.cluster.x-k8s.io/v1beta2
-# kind: CK8sControlPlane
-# metadata:
-#   name: ${CLUSTER_NAME}-control-plane
-#   namespace: default
-# spec:
-#   spec:
-#     controlPlane:
+apiVersion: controlplane.cluster.x-k8s.io/v1beta2
+kind: CK8sControlPlane
+metadata:
+  name: ${CLUSTER_NAME}-control-plane
+spec:
+  # ...
+  spec:
+    # ...
+    controlPlane:
       datastoreType: external
       datastoreServersSecretRef:
         name: ${CLUSTER_NAME}-etcd-servers
