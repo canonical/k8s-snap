@@ -84,11 +84,20 @@ store the Kubernetes state in etcd. The cluster template `peaches.yaml` contains
 the following additional configuration:
 
 ```
-controlPlane:
-  datastoreType: external
-  datastoreServersSecretRef:
-    name: peaches-etcd-servers
-    key: servers
+# apiVersion: controlplane.cluster.x-k8s.io/v1beta2
+# kind: CK8sControlPlane
+# metadata:
+#   name: ${CLUSTER_NAME}-control-plane
+#   namespace: default
+# spec:
+#   spec:
+#     airGapped: true
+#     controlPlane:
+      datastoreType: external
+      datastoreServersSecretRef:
+        name: ${CLUSTER_NAME}-etcd-servers
+        key: servers
+#  machineTemplate:
 ```
 
 ## Deploy the workload cluster
