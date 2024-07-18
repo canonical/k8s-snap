@@ -53,7 +53,7 @@ To export the path to your etcd certs directory, use this command:
 export CERTS_DIR=path/to/etcd-certs
 ```
 
-Replace /path/to/etcd-certs with the actual path where you generated or stored
+Replace `/path/to/etcd-certs` with the actual path where you generated or stored
 your etcd certificates.
 
 Create the secret for the etcd root ca:
@@ -80,8 +80,8 @@ kubectl get secrets
 
 Please refer to [capi-templates][capi-templates] for the latest templates.
 Update the control plane resource `CK8sControlPlane` so that it is configured to
-store the Kubernetes state in etcd. The cluster template `peaches.yaml` contains
-the following additional configuration:
+store the Kubernetes state in etcd. The cluster template `cluster-template.yaml`
+ contains the following additional configuration:
 
 ```
 # apiVersion: controlplane.cluster.x-k8s.io/v1beta2
