@@ -1,0 +1,55 @@
+From c59036481c53398b8aa029b8219f5f5f2a7a1498 Mon Sep 17 00:00:00 2001
+From: eaudetcobello <etienne.audet-cobello@canonical.com>
+Date: Thu, 18 Jul 2024 19:09:02 -0400
+Subject: [PATCH] standard_init_linux: change AppArmor profile as late as 
+ possible
+
+---
+ libcontainer/standard_init_linux.go | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/libcontainer/standard_init_linux.go b/libcontainer/standard_init_linux.go
+index ec2e8143..12490abe 100644
+--- a/libcontainer/standard_init_linux.go
++++ b/libcontainer/standard_init_linux.go
+@@ -127,9 +127,6 @@ func (l *linuxStandardInit) Init() error {
+ 			return &os.SyscallError{Syscall: "setdomainname", Err: err}
+ 		}
+ 	}
+-	if err := apparmor.ApplyProfile(l.config.AppArmorProfile); err != nil {
+-		return fmt.Errorf("unable to apply apparmor profile: %w", err)
+-	}
+ 
+ 	for key, value := range l.config.Config.Sysctl {
+ 		if err := writeSystemProperty(key, value); err != nil {
+@@ -150,11 +147,6 @@ func (l *linuxStandardInit) Init() error {
+ 	if err != nil {
+ 		return fmt.Errorf("can't get pdeath signal: %w", err)
+ 	}
+-	if l.config.NoNewPrivileges {
+-		if err := unix.Prctl(unix.PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0); err != nil {
+-			return &os.SyscallError{Syscall: "prctl(SET_NO_NEW_PRIVS)", Err: err}
+-		}
+-	}
+ 
+ 	if l.config.Config.Scheduler != nil {
+ 		if err := setupScheduler(l.config.Config); err != nil {
+@@ -173,6 +165,15 @@ func (l *linuxStandardInit) Init() error {
+ 	if err := syncParentReady(l.pipe); err != nil {
+ 		return fmt.Errorf("sync ready: %w", err)
+ 	}
++	if err := apparmor.ApplyProfile(l.config.AppArmorProfile); err != nil {
++		return fmt.Errorf("unable to apply apparmor profile: %w", err)
++	}
++	if l.config.NoNewPrivileges {
++		if err := unix.Prctl(unix.PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0); err != nil {
++			return &os.SyscallError{Syscall: "prctl(SET_NO_NEW_PRIVS)", Err: err}
++		}
++	}
++
+ 	if err := selinux.SetExecLabel(l.config.ProcessLabel); err != nil {
+ 		return fmt.Errorf("can't set process label: %w", err)
+ 	}
+-- 
+2.43.0
+
