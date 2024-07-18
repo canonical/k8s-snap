@@ -96,7 +96,6 @@ the following additional configuration:
       datastoreServersSecretRef:
         name: ${CLUSTER_NAME}-etcd-servers
         key: servers
-
 ```
 
 ## Deploy the workload cluster
