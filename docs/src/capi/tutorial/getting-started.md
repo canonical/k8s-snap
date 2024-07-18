@@ -107,7 +107,7 @@ providers and the infrastructure of your choice:
 clusterctl init --bootstrap ck8s --control-plane ck8s -i <infra-provider-of-choice>
 ```
 
-### Generate a Cluster Spec Manifest
+### Generate a cluster spec manifest
 
 Once the bootstrap and control-plane controllers are up and running, you can
 apply the cluster manifests with the specifications of the cluster you want to
@@ -142,7 +142,7 @@ set the cluster’s properties. Review the available options in the respective
 definitions file and edit the cluster manifest (`cluster.yaml` above) to match
 your needs.
 
-### Deploy the Cluster
+### Deploy the cluster
 
 To deploy the cluster, run:
 
