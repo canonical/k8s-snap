@@ -1,7 +1,7 @@
 From c59036481c53398b8aa029b8219f5f5f2a7a1498 Mon Sep 17 00:00:00 2001
 From: eaudetcobello <etienne.audet-cobello@canonical.com>
 Date: Thu, 18 Jul 2024 19:09:02 -0400
-Subject: [PATCH] standard_init_linux: change AppArmor profile as late as 
+Subject: [PATCH 3/3] standard_init_linux: change AppArmor profile as late as 
  possible
 
 ---
