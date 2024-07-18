@@ -11,10 +11,9 @@ To follow this guide, you will need:
 
 - [Clusterctl][clusterctl] installed
 - A CAPI management cluster initialised with the infrastructure, bootstrap and
-  control plane providers of your choice
+  control plane providers of your choice. Please refer to the
+  [getting-started guide][getting-started] for instructions.
 - Secured 3-node etcd deployment
-
-Please refer to the [getting-started][getting-started] for instructions.
 
 ## Create Kubernetes secrets
 
@@ -79,6 +78,7 @@ kubectl get secrets
 
 ## Update etcd cluster template
 
+Please refer to [capi-templates][capi-templates] for the latest templates.
 Update the control plane resource `CK8sControlPlane` so that it is configured to
 store the Kubernetes state in etcd. The cluster template `peaches.yaml` contains
 the following additional configuration:
@@ -87,7 +87,7 @@ the following additional configuration:
 controlPlane:
   datastoreType: external
   datastoreServersSecretRef:
-    name: ${CLUSTER_NAME}-etcd-servers
+    name: peaches-etcd-servers
     key: servers
 ```
 
@@ -96,7 +96,7 @@ controlPlane:
 To deploy the workload cluster, run:
 
 ```
-clusterctl generate cluster peaches --from peaches.yaml --kubernetes-version v1.30.1 > peaches.yaml
+clusterctl generate cluster peaches --from ./cluster-template.yaml --kubernetes-version v1.30.1 > peaches.yaml
 ```
 
 Create the cluster:
@@ -114,6 +114,7 @@ clusterctl describe cluster peaches
 <!-- LINKS -->
 [getting-started]: ../tutorial/getting-started.md
 [capi-etcd]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/capi-etcd/
+[capi-templates]: https://github.com/canonical/cluster-api-k8s/tree/main/templates
 [cfssl]: https://github.com/cloudflare/cfssl
 [clusterctl]: https://cluster-api.sigs.k8s.io/clusterctl/overview
 [dqlite]: https://dqlite.io/
