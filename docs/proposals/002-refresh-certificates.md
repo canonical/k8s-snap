@@ -9,7 +9,7 @@ fill out the sections below.
 - **Index**: 002
 
 <!-- Status -->
-- **Status**: **DRAFTING** <!-- **DRAFTING**/**ACCEPTED**/**REJECTED** -->
+- **Status**: **ACCEPTED** <!-- **DRAFTING**/**ACCEPTED**/**REJECTED** -->
 
 <!-- Short description for the feature -->
 - **Name**: Refresh certificates
