@@ -80,8 +80,8 @@ kubectl get secrets
 
 Please refer to [capi-templates][capi-templates] for the latest templates.
 Update the control plane resource `CK8sControlPlane` so that it is configured to
-store the Kubernetes state in etcd. The cluster template `cluster-template.yaml`
- contains the following additional configuration:
+store the Kubernetes state in etcd. Add the following additional configuration
+to the cluster template `cluster-template.yaml`:
 
 ```
 # apiVersion: controlplane.cluster.x-k8s.io/v1beta2
@@ -120,9 +120,5 @@ clusterctl describe cluster peaches
 
 <!-- LINKS -->
 [getting-started]: ../tutorial/getting-started.md
-[capi-etcd]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/capi-etcd/
 [capi-templates]: https://github.com/canonical/cluster-api-k8s/tree/main/templates
-[cfssl]: https://github.com/cloudflare/cfssl
 [clusterctl]: https://cluster-api.sigs.k8s.io/clusterctl/overview
-[dqlite]: https://dqlite.io/
-[generate-etcd-certs]: https://raw.githubusercontent.com/canonical/k8s-snap/main/capi-ext-etcd/docs/src/assets/capi-etcd/generate-etcd-certs.sh
