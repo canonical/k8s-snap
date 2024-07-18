@@ -44,7 +44,7 @@ When setting up the management cluster, place its kubeconfig under
 `~/.kube/config` so other tools such as `clusterctl` can discover and interact
 with it.
 
-### Prepare the Infrastructure Provider
+### Prepare the infrastructure provider
 
 Before generating a cluster, you need to configure the infrastructure provider.
 Each provider has its own prerequisites. Please follow the instructions
@@ -98,9 +98,9 @@ You are now all set to deploy the AWS CAPI infrastructure provider.
 ```
 ````
 
-### Initialize the Management Cluster
+### Initialise the management cluster
 
-To initialize the management cluster with the latest released version of the
+To initialise the management cluster with the latest released version of the
 providers and the infrastructure of your choice:
 
 ```sh
@@ -150,7 +150,7 @@ To deploy the cluster, run:
 sudo k8s kubectl apply -f cluster.yaml
 ```
 
-For a overview of the cluster status, run:
+For an overview of the cluster status, run:
 
 ```sh
 clusterctl describe cluster <cluster-name>
@@ -181,7 +181,7 @@ You can then see the workload nodes using:
 KUBECONFIG=./kubeconfig sudo k8s kubectl get node
 ```
 
-### Delete the Cluster
+### Delete the cluster
 
 To delete a cluster:
 
