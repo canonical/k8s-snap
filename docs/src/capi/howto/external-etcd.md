@@ -1,6 +1,6 @@
 # Use external etcd with Cluster API
 
-To replace the built-in [dqlite][dqlite] database with an external etcd to
+To replace the built-in datastore with an external etcd to
 manage the Kubernetes state in the Cluster API (CAPI) workload cluster follow
 this `how-to guide`. This example shows how to create a 3-node workload cluster
 with an external etcd. 
@@ -9,7 +9,7 @@ with an external etcd.
 
 To follow this guide, you will need:
 
-- Clusterctl
+- [Clusterctl][clusterctl] installed
 - A CAPI management cluster initialised with the infrastructure, bootstrap and
   control plane providers of your choice
 - Secured 3-node etcd deployment
@@ -20,14 +20,13 @@ Please refer to the [getting-started][getting-started] for instructions.
 
 Create three Kubernetes secrets:
 
-- {cluster-name}-etcd-servers
-- {cluster-name}-etcd
-- {cluster-name}-apiserver-etcd-client
+- peaches-etcd-servers
+- peaches-etcd
+- peaches-apiserver-etcd-client
 
 ```{note}
-Replace {cluster-name} with the name of your cluster.
+Replace `peaches` with the name of your cluster.
 It is important to follow this naming convention for the secrets since the providers will be looking for these names.
-Please note that this example uses `c1` for the cluster name.
 ```
 
 Create the secret for the etcd servers:
@@ -37,12 +36,16 @@ kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
-  name: c1-etcd-servers
+  name: peaches-etcd-servers
   namespace: default
 
-data:
-  servers: $(echo -n "https://etcd-1:2379,https://etcd-2:2379,https://etcd-3:2379" | base64 -w0)
+stringData:
+  servers: https://etcd-1:2379,https://etcd-2:2379,https://etcd-3:2379
 EOF
+```
+
+```{note}
+Replace `https://etcd-1:2379,https://etcd-2:2379,https://etcd-3:2379` with the actual etcd server addresses.
 ```
 
 To export the path to your etcd certs directory, use this command:
@@ -57,14 +60,14 @@ your etcd certificates.
 Create the secret for the etcd root ca:
 
 ```
-kubectl create secret generic c1-etcd \
+kubectl create secret generic peaches-etcd \
   --from-file=tls.crt="$CERTS_DIR/etcd-root-ca.pem"
 ```
 
-Create the `c1-apiserver-etcd-client` secret:
+Create the `peaches-apiserver-etcd-client` secret:
 
 ```
-kubectl create secret tls c1-apiserver-etcd-client \
+kubectl create secret tls peaches-apiserver-etcd-client \
   --cert=$CERTS_DIR/etcd-1.pem --key=$CERTS_DIR/etcd-1-key.pem 
 ```
 
@@ -74,11 +77,11 @@ To confirm the secrets are created, run:
 kubectl get secrets
 ```
 
-## Create etcd cluster template
+## Update etcd cluster template
 
-The control plane resource `CK8sControlPlane` is configured to
-store the Kubernetes state in etcd. The cluster template `c1-external-etcd.yaml`
-contains the following additional configuration:
+Update the control plane resource `CK8sControlPlane` so that it is configured to
+store the Kubernetes state in etcd. The cluster template `peaches.yaml` contains
+the following additional configuration:
 
 ```
 controlPlane:
@@ -93,34 +96,25 @@ controlPlane:
 To deploy the workload cluster, run:
 
 ```
-export KIND_IMAGE=k8s-snap:dev
-export CLUSTER_TEMPLATE_DIR=https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets
-clusterctl generate cluster c1 --from $CLUSTER_TEMPLATE_DIR/c1-external-etcd.yaml --kubernetes-version v1.30.1 > c1.yaml
+clusterctl generate cluster peaches --from peaches.yaml --kubernetes-version v1.30.1 > peaches.yaml
 ```
 
 Create the cluster:
 
 ```
-kubectl create -f c1.yaml
+kubectl create -f peaches.yaml
 ```
 
 To check the status of the cluster, run:
 
 ```
-clusterctl describe cluster c1 
-```
-
-## Optional: Delete workload cluster
-
-To delete the workload cluster, run:
-
-```bash
-kubectl delete cluster c1
+clusterctl describe cluster peaches 
 ```
 
 <!-- LINKS -->
 [getting-started]: ../tutorial/getting-started.md
+[capi-etcd]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/capi-etcd/
 [cfssl]: https://github.com/cloudflare/cfssl
+[clusterctl]: https://cluster-api.sigs.k8s.io/clusterctl/overview
 [dqlite]: https://dqlite.io/
 [generate-etcd-certs]: https://raw.githubusercontent.com/canonical/k8s-snap/main/capi-ext-etcd/docs/src/assets/capi-etcd/generate-etcd-certs.sh
-[capi-etcd]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/capi-etcd/
