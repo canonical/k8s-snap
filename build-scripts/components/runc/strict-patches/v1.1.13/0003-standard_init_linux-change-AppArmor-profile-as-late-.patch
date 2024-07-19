@@ -1,28 +1,29 @@
-From c59036481c53398b8aa029b8219f5f5f2a7a1498 Mon Sep 17 00:00:00 2001
+From 7fc0138605e1a4c6da32db9abbaeba313d30b960 Mon Sep 17 00:00:00 2001
 From: eaudetcobello <etienne.audet-cobello@canonical.com>
-Date: Thu, 18 Jul 2024 19:09:02 -0400
-Subject: [PATCH 3/3] standard_init_linux: change AppArmor profile as late as 
+Date: Fri, 19 Jul 2024 09:28:24 -0400
+Subject: [PATCH 3/3] standard_init_linux: change AppArmor profile as late as  
  possible
 
 ---
- libcontainer/standard_init_linux.go | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ libcontainer/standard_init_linux.go | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
 diff --git a/libcontainer/standard_init_linux.go b/libcontainer/standard_init_linux.go
-index ec2e8143..12490abe 100644
+index d9a6a224..1ee95988 100644
 --- a/libcontainer/standard_init_linux.go
 +++ b/libcontainer/standard_init_linux.go
-@@ -127,9 +127,6 @@ func (l *linuxStandardInit) Init() error {
- 			return &os.SyscallError{Syscall: "setdomainname", Err: err}
+@@ -127,10 +127,6 @@ func (l *linuxStandardInit) Init() error {
+ 			return &os.SyscallError{Syscall: "sethostname", Err: err}
  		}
  	}
 -	if err := apparmor.ApplyProfile(l.config.AppArmorProfile); err != nil {
 -		return fmt.Errorf("unable to apply apparmor profile: %w", err)
 -	}
- 
+-
  	for key, value := range l.config.Config.Sysctl {
  		if err := writeSystemProperty(key, value); err != nil {
-@@ -150,11 +147,6 @@ func (l *linuxStandardInit) Init() error {
+ 			return err
+@@ -150,18 +146,20 @@ func (l *linuxStandardInit) Init() error {
  	if err != nil {
  		return fmt.Errorf("can't get pdeath signal: %w", err)
  	}
@@ -31,10 +32,10 @@ index ec2e8143..12490abe 100644
 -			return &os.SyscallError{Syscall: "prctl(SET_NO_NEW_PRIVS)", Err: err}
 -		}
 -	}
- 
- 	if l.config.Config.Scheduler != nil {
- 		if err := setupScheduler(l.config.Config); err != nil {
-@@ -173,6 +165,15 @@ func (l *linuxStandardInit) Init() error {
+-
+ 	// Tell our parent that we're ready to exec. This must be done before the
+ 	// Seccomp rules have been applied, because we need to be able to read and
+ 	// write to a socket.
  	if err := syncParentReady(l.pipe); err != nil {
  		return fmt.Errorf("sync ready: %w", err)
  	}
@@ -46,7 +47,6 @@ index ec2e8143..12490abe 100644
 +			return &os.SyscallError{Syscall: "prctl(SET_NO_NEW_PRIVS)", Err: err}
 +		}
 +	}
-+
  	if err := selinux.SetExecLabel(l.config.ProcessLabel); err != nil {
  		return fmt.Errorf("can't set process label: %w", err)
  	}
