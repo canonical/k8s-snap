@@ -27,10 +27,6 @@ def test_wrong_token_race(instances: List[harness.Instance]):
 
     another_join_token = util.get_join_token(cluster_node, instances[2])
 
-    print(f"new_join_token: {json.dumps(json.loads(base64.b64decode(new_join_token)), indent=2)}")
-    print({json.dumps(json.loads(base64.b64decode(new_join_token)), indent=2)})
-    print("-" * 80)
-    print(f"another_join_token: {another_join_token}")
-    print(f"another_join_token: {json.dumps(json.loads(base64.b64decode(another_join_token)), indent=2)}")
-
+    # The join token should have changed after the node was removed as it contains the ip addresses of all cluster nodes.
+    assert new_join_token != another_join_token
     util.join_cluster(instances[2], new_join_token)
