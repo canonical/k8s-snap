@@ -1,25 +1,26 @@
-From 5351ef6f5b592472e077512714b2516cdbae1b51 Mon Sep 17 00:00:00 2001
-From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
-Date: Thu, 1 Feb 2024 11:23:08 +0200
-Subject: [PATCH 2/3] setns_init_linux: set the NNP flag after changing the
+From 36fca252c746022e4e2273092ed21e2e4efe33f8 Mon Sep 17 00:00:00 2001
+From: eaudetcobello <etienne.audet-cobello@canonical.com>
+Date: Fri, 19 Jul 2024 09:42:31 -0400
+Subject: [PATCH 2/3] setns_init_linux: set the NNP flag after changing the  
  apparmor profile
 
 With the current version of the AppArmor kernel module, it's not
 possible to switch the AppArmor profile if the NoNewPrivileges flag is
 set. So, we invert the order of the two operations.
 
-Adjusts the previous patch for runc version v1.1.12
+Adjusts the previous patch for runc version v1.1.13
 
 Co-Authored-By: Alberto Mardegan <mardy@users.sourceforge.net>
+Co-Authored-By: Angelos Kolaitis <angelos.kolaitis@canonical.com>
 ---
- libcontainer/setns_init_linux.go | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ libcontainer/setns_init_linux.go | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
 diff --git a/libcontainer/setns_init_linux.go b/libcontainer/setns_init_linux.go
-index d1bb122..00407ce 100644
+index bb358901..b496c81e 100644
 --- a/libcontainer/setns_init_linux.go
 +++ b/libcontainer/setns_init_linux.go
-@@ -56,11 +56,6 @@ func (l *linuxSetnsInit) Init() error {
+@@ -57,12 +57,6 @@ func (l *linuxSetnsInit) Init() error {
  			return err
  		}
  	}
@@ -28,20 +29,23 @@ index d1bb122..00407ce 100644
 -			return err
 -		}
 -	}
- 	if err := selinux.SetExecLabel(l.config.ProcessLabel); err != nil {
- 		return err
- 	}
-@@ -84,6 +79,11 @@ func (l *linuxSetnsInit) Init() error {
+-
+ 	// Tell our parent that we're ready to exec. This must be done before the
+ 	// Seccomp rules have been applied, because we need to be able to read and
+ 	// write to a socket.
+@@ -93,7 +87,11 @@ func (l *linuxSetnsInit) Init() error {
  	if err := apparmor.ApplyProfile(l.config.AppArmorProfile); err != nil {
  		return err
  	}
+-
 +	if l.config.NoNewPrivileges {
 +		if err := unix.Prctl(unix.PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0); err != nil {
 +			return err
 +		}
 +	}
-
  	// Check for the arg before waiting to make sure it exists and it is
  	// returned as a create time error.
---
-2.34.1
+ 	name, err := exec.LookPath(l.config.Args[0])
+-- 
+2.43.0
+
