@@ -78,3 +78,21 @@ func LoadRSAPublicKey(keyPEM string) (*rsa.PublicKey, error) {
 	}
 	return nil, fmt.Errorf("unknown public key block type %q", pb.Type)
 }
+
+// LoadCertificateRequest parses the PEM blocks and returns the certificate request.
+// LoadCertificateRequest will fail if csrPEM is not a valid certificate signing request.
+func LoadCertificateRequest(csrPEM string) (*x509.CertificateRequest, error) {
+	pb, _ := pem.Decode([]byte(csrPEM))
+	if pb == nil {
+		return nil, fmt.Errorf("failed to parse certificate request PEM")
+	}
+	switch pb.Type {
+	case "CERTIFICATE REQUEST":
+		parsed, err := x509.ParseCertificateRequest(pb.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse certificate request: %w", err)
+		}
+		return parsed, nil
+	}
+	return nil, fmt.Errorf("unknown certificate request block type %q", pb.Type)
+}

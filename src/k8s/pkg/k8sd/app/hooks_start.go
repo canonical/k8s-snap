@@ -75,5 +75,15 @@ func (a *App) onStart(s *state.State) error {
 		)
 	}
 
+	// start csrsigning controller
+	if a.csrsigningController != nil {
+		go a.csrsigningController.Run(
+			s.Context,
+			func(ctx context.Context) (types.ClusterConfig, error) {
+				return databaseutil.GetClusterConfig(ctx, s)
+			},
+		)
+	}
+
 	return nil
 }

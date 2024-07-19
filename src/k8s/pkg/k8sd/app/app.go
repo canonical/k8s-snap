@@ -10,6 +10,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
+	"github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -39,6 +40,8 @@ type Config struct {
 	DisableUpdateNodeConfigController bool
 	// DisableFeatureController is a bool flag to disable feature controller
 	DisableFeatureController bool
+	// DisableCSRSigningController is a bool flag to disable csrsigning controller.
+	DisableCSRSigningController bool
 }
 
 // App is the k8sd microcluster instance.
@@ -55,6 +58,7 @@ type App struct {
 
 	nodeConfigController         *controllers.NodeConfigurationController
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
+	csrsigningController         *csrsigning.Controller
 
 	// updateNodeConfigController
 	triggerUpdateNodeConfigControllerCh chan struct{}
@@ -151,6 +155,17 @@ func New(cfg Config) (*App, error) {
 	} else {
 		log.L().Info("feature-controller disabled via config")
 	}
+
+	if !cfg.DisableCSRSigningController {
+		app.csrsigningController = csrsigning.New(csrsigning.Options{
+			Snap:           cfg.Snap,
+			WaitReady:      app.readyWg.Wait,
+			LeaderElection: true,
+		})
+	} else {
+		log.L().Info("csrsigning-controller disabled via config")
+	}
+
 	return app, nil
 }
 
