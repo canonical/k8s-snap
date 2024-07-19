@@ -93,6 +93,10 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			log.Error(err, "Failed to load CA certificate and key")
 			return ctrl.Result{}, err
 		}
+		if caKey == nil {
+			log.Error(err, "Cannot sign certificate as CA private key is not available")
+			return ctrl.Result{}, nil
+		}
 		cert := &x509.Certificate{
 			SerialNumber: serialNumber,
 			Subject: pkix.Name{
@@ -124,6 +128,10 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			log.Error(err, "Failed to load client CA certificate and key")
 			return ctrl.Result{}, err
 		}
+		if caKey == nil {
+			log.Error(err, "Cannot sign certificate as client CA private key is not available")
+			return ctrl.Result{}, nil
+		}
 		cert := &x509.Certificate{
 			SerialNumber: serialNumber,
 			Subject: pkix.Name{
@@ -152,6 +160,10 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if err != nil {
 			log.Error(err, "Failed to load client CA certificate and key")
 			return ctrl.Result{}, err
+		}
+		if caKey == nil {
+			log.Error(err, "Cannot sign certificate as client CA private key is not available")
+			return ctrl.Result{}, nil
 		}
 		cert := &x509.Certificate{
 			SerialNumber: serialNumber,
