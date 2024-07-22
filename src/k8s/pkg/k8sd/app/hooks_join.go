@@ -21,13 +21,13 @@ import (
 
 // onPostJoin is called when a control plane node joins the cluster.
 // onPostJoin retrieves the cluster config from the database and configures local services.
-func (a *App) onPostJoin(s *state.State, initConfig map[string]string) (rerr error) {
+func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[string]string) (rerr error) {
 	snap := a.Snap()
 
-	log := log.FromContext(s.Context).WithValues("hook", "join")
+	log := log.FromContext(ctx).WithValues("hook", "join")
 
 	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
-	ctx, cancel := context.WithCancel(s.Context)
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	if t := utils.MicroclusterTimeoutFromConfig(initConfig); t != 0 {
 		ctx, cancel = context.WithTimeout(ctx, t)
@@ -54,10 +54,10 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) (rerr err
 			log.Error(rerr, "Failed to join cluster")
 
 			log.Info("Waiting for node to finish microcluster join before removing")
-			control.WaitUntilReady(s.Context, func() (bool, error) {
+			control.WaitUntilReady(ctx, func() (bool, error) {
 				var notPending bool
-				if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-					member, err := cluster.GetInternalClusterMember(ctx, tx, s.Name())
+				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+					member, err := cluster.GetCoreClusterMember(ctx, tx, s.Name())
 					if err != nil {
 						log.Error(err, "Failed to get member")
 						return nil
@@ -73,20 +73,20 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) (rerr err
 			log.Info("Cleaning up")
 			for i := len(cleanups) - 1; i >= 0; i-- {
 				// run cleanup functions in reverse order
-				if err := cleanups[i](s.Context); err != nil {
+				if err := cleanups[i](ctx); err != nil {
 					log.Error(err, fmt.Sprintf("Cleanup hook %d/%d failed", i, len(cleanups)))
 				}
 			}
 			log.Info("All cleanup hooks finished, removing node from microcluster")
 
 			// NOTE(neoaggelos): this also runs the pre-remove hook and resets the cluster member
-			control.WaitUntilReady(s.Context, func() (bool, error) {
+			control.WaitUntilReady(ctx, func() (bool, error) {
 				client, err := s.Leader()
 				if err != nil {
 					log.Error(err, "Failed to create client to dqlite leader")
 					return false, nil
 				}
-				if err := client.DeleteClusterMember(s.Context, s.Name(), true); err != nil {
+				if err := client.DeleteClusterMember(ctx, s.Name(), true); err != nil {
 					log.Error(err, "Failed to DeleteClusterMember")
 					return false, nil
 				}
@@ -292,10 +292,10 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) (rerr err
 	return nil
 }
 
-func (a *App) onPreRemove(s *state.State, force bool) (rerr error) {
+func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr error) {
 	snap := a.Snap()
 
-	log := log.FromContext(s.Context).WithValues("hook", "preremove")
+	log := log.FromContext(ctx).WithValues("hook", "preremove")
 
 	// NOTE(neoaggelos): When the pre-remove hook fails, the microcluster node will
 	// be removed from the cluster members, but remains in the microcluster dqlite database.
@@ -308,7 +308,7 @@ func (a *App) onPreRemove(s *state.State, force bool) (rerr error) {
 		rerr = nil
 	}()
 
-	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
+	cfg, err := databaseutil.GetClusterConfig(ctx, s)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve k8sd cluster config: %w", err)
 	}
@@ -316,13 +316,13 @@ func (a *App) onPreRemove(s *state.State, force bool) (rerr error) {
 	// configure datastore
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
-		client, err := snap.K8sDqliteClient(s.Context)
+		client, err := snap.K8sDqliteClient(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to create k8s-dqlite client: %w", err)
 		}
 
 		nodeAddress := net.JoinHostPort(s.Address().Hostname(), fmt.Sprintf("%d", cfg.Datastore.GetK8sDqlitePort()))
-		if err := client.RemoveNodeByAddress(s.Context, nodeAddress); err != nil {
+		if err := client.RemoveNodeByAddress(ctx, nodeAddress); err != nil {
 			return fmt.Errorf("failed to remove node with address %s from k8s-dqlite cluster: %w", nodeAddress, err)
 		}
 	case "external":
@@ -334,7 +334,7 @@ func (a *App) onPreRemove(s *state.State, force bool) (rerr error) {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
-	if err := c.DeleteNode(s.Context, s.Name()); err != nil {
+	if err := c.DeleteNode(ctx, s.Name()); err != nil {
 		return fmt.Errorf("failed to remove k8s node %q: %w", s.Name(), err)
 	}
 
