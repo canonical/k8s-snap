@@ -26,10 +26,10 @@ import (
 
 // onBootstrap is called after we bootstrap the first cluster node.
 // onBootstrap configures local services then writes the cluster config on the database.
-func (a *App) onBootstrap(s *state.State, initConfig map[string]string) error {
+func (a *App) onBootstrap(ctx context.Context, s state.State, initConfig map[string]string) error {
 
 	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
-	ctx, cancel := context.WithCancel(s.Context)
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	if t := utils.MicroclusterTimeoutFromConfig(initConfig); t != 0 {
 		ctx, cancel = context.WithTimeout(ctx, t)
@@ -52,7 +52,7 @@ func (a *App) onBootstrap(s *state.State, initConfig map[string]string) error {
 	return a.onBootstrapControlPlane(ctx, s, bootstrapConfig)
 }
 
-func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encodedToken string, joinConfig apiv1.WorkerNodeJoinConfig) (rerr error) {
+func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedToken string, joinConfig apiv1.WorkerNodeJoinConfig) (rerr error) {
 	snap := a.Snap()
 
 	log := log.FromContext(ctx).WithValues("hook", "join")
@@ -78,13 +78,13 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encoded
 			log.Info("Cleaning up")
 			for i := len(cleanups) - 1; i >= 0; i-- {
 				// run cleanup functions in reverse order
-				if err := cleanups[i](s.Context); err != nil {
+				if err := cleanups[i](ctx); err != nil {
 					log.Error(err, fmt.Sprintf("Cleanup hook %d/%d failed", i, len(cleanups)))
 				}
 			}
 			log.Info("All cleanup hooks finished, resetting microcluster state")
 
-			if err := a.client.ResetClusterMember(s.Context, s.Name(), true); err != nil {
+			if err := a.client.ResetClusterMember(ctx, s.Name(), true); err != nil {
 				log.Error(err, "Failed to ResetClusterMember")
 			}
 		}()
@@ -238,7 +238,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encoded
 		return fmt.Errorf("pre-init checks failed for worker node: %w", err)
 	}
 
-	if err := s.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := database.SetClusterConfig(ctx, tx, cfg); err != nil {
 			return fmt.Errorf("failed to write cluster configuration: %w", err)
 		}
@@ -300,7 +300,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s *state.State, encoded
 	return nil
 }
 
-func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, bootstrapConfig apiv1.BootstrapConfig) (rerr error) {
+func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootstrapConfig apiv1.BootstrapConfig) (rerr error) {
 	snap := a.Snap()
 
 	log := log.FromContext(ctx).WithValues("hook", "bootstrap")
@@ -326,13 +326,13 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, boots
 			log.Info("Cleaning up")
 			for i := len(cleanups) - 1; i >= 0; i-- {
 				// run cleanup functions in reverse order
-				if err := cleanups[i](s.Context); err != nil {
+				if err := cleanups[i](ctx); err != nil {
 					log.Error(err, fmt.Sprintf("Cleanup hook %d/%d failed", i, len(cleanups)))
 				}
 			}
 			log.Info("All cleanup hooks finished, resetting microcluster state")
 
-			if err := a.client.ResetClusterMember(s.Context, s.Name(), true); err != nil {
+			if err := a.client.ResetClusterMember(ctx, s.Name(), true); err != nil {
 				log.Error(err, "Failed to ResetClusterMember")
 			}
 		}()
@@ -533,7 +533,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s *state.State, boots
 	}
 
 	// Write cluster configuration to dqlite
-	if err := s.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := database.SetClusterConfig(ctx, tx, cfg); err != nil {
 			return fmt.Errorf("failed to write cluster configuration: %w", err)
 		}

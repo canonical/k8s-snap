@@ -9,7 +9,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func (e *Endpoints) getNodeStatus(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) getNodeStatus(s state.State, r *http.Request) response.Response {
 	snap := e.provider.Snap()
 
 	status, err := impl.GetLocalNodeStatus(r.Context(), s, snap)
