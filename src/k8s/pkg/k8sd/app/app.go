@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning"
@@ -80,8 +81,7 @@ func New(cfg Config) (*App, error) {
 		cfg.StateDir = cfg.Snap.K8sdStateDir()
 	}
 	cluster, err := microcluster.App(microcluster.Args{
-		// TODO(ben): Properly manage this new required version parameter.
-		Version:  "1.0",
+		Version:  string(apiv1.K8sdAPIVersion),
 		Verbose:  cfg.Verbose,
 		Debug:    cfg.Debug,
 		StateDir: cfg.StateDir,
@@ -215,7 +215,7 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 		}()
 	}
 
-	a.cluster.AddServers(api.New(a))
+	a.cluster.AddServers(api.New(ctx, a))
 
 	err := a.cluster.Start(ctx, database.SchemaExtensions, []string{}, hooks)
 	if err != nil {

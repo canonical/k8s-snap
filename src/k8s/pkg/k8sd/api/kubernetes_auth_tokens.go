@@ -8,10 +8,9 @@ import (
 	"fmt"
 	"net/http"
 
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
-
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
