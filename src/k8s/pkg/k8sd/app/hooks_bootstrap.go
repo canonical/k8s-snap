@@ -71,7 +71,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
 
 	// Get remote certificate from the cluster member. We only need one node to be reachable for this.
-	// One might fail becuase the node is not part of the cluster anymore but was at the time the token was created.
+	// One might fail because the node is not part of the cluster anymore but was at the time the token was created.
 	var cert *x509.Certificate
 	var address string
 	var err error
