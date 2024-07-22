@@ -73,8 +73,9 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	// Get remote certificate from the cluster member. We only need one node to be reachable for this.
 	// One might fail becuase the node is not part of the cluster anymore but was at the time the token was created.
 	var cert *x509.Certificate
+	var address string
 	var err error
-	for _, address := range token.JoinAddresses {
+	for _, address = range token.JoinAddresses {
 		cert, err = utils.GetRemoteCertificate(address)
 		if err == nil {
 			break
@@ -87,7 +88,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	// verify that the fingerprint of the certificate matches the fingerprint of the token
 	fingerprint := utils.CertFingerprint(cert)
 	if fingerprint != token.Fingerprint {
-		return fmt.Errorf("fingerprint from token (%q) does not match fingerprint of node %q (%q)", token.Fingerprint, token.JoinAddresses[0], fingerprint)
+		return fmt.Errorf("fingerprint from token (%q) does not match fingerprint of node %q (%q)", token.Fingerprint, address, fingerprint)
 	}
 
 	// Create the http client with trusted certificate
@@ -112,7 +113,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		return fmt.Errorf("failed to prepare worker info request: %w", err)
 	}
 
-	httpRequest, err := http.NewRequest("POST", fmt.Sprintf("https://%s/1.0/k8sd/worker/info", token.JoinAddresses[0]), bytes.NewBuffer(requestBody))
+	httpRequest, err := http.NewRequest("POST", fmt.Sprintf("https://%s/1.0/k8sd/worker/info", address), bytes.NewBuffer(requestBody))
 	if err != nil {
 		return fmt.Errorf("failed to prepare HTTP request: %w", err)
 	}
