@@ -3,6 +3,7 @@ package apiv1
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v2"
 )
@@ -42,6 +43,18 @@ type NodeStatus struct {
 	DatastoreRole DatastoreRole `json:"datastore-role,omitempty"`
 }
 
+// FeatureStatus encapsulates the deployment status of a feature.
+type FeatureStatus struct {
+	// Enabled shows whether or not the deployment of manifests for a status was successful.
+	Enabled bool
+	// Message contains information about the status of a feature. It is only supposed to be human readable and informative and should not be programmatically parsed.
+	Message string
+	// Version shows the version of the deployed feature.
+	Version string
+	// Timestamp shows when the last update was done.
+	Timestamp time.Time
+}
+
 type Datastore struct {
 	Type    string   `json:"type,omitempty"`
 	Servers []string `json:"servers,omitempty" yaml:"servers,omitempty"`
@@ -54,6 +67,14 @@ type ClusterStatus struct {
 	Members   []NodeStatus            `json:"members,omitempty"`
 	Config    UserFacingClusterConfig `json:"config,omitempty"`
 	Datastore Datastore               `json:"datastore,omitempty"`
+
+	DNS           FeatureStatus `json:"dns,omitempty"`
+	Network       FeatureStatus `json:"network,omitempty"`
+	LoadBalancer  FeatureStatus `json:"load-balancer,omitempty"`
+	Ingress       FeatureStatus `json:"ingress,omitempty"`
+	Gateway       FeatureStatus `json:"gateway,omitempty"`
+	MetricsServer FeatureStatus `json:"metrics-server,omitempty"`
+	LocalStorage  FeatureStatus `json:"local-storage,omitempty"`
 }
 
 // HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
