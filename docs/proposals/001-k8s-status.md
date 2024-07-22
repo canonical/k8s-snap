@@ -155,7 +155,7 @@ $ k8s status --output-format=yaml
 network:
   enabled: true
   message: enabled
-  timestamp: 2020-01-01 10:00:00
+  updated: 2020-01-01 10:00:00
   version: v1.15.2
 ...
 ```
