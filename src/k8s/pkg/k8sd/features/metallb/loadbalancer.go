@@ -10,18 +10,42 @@ import (
 	"github.com/canonical/k8s/pkg/utils/control"
 )
 
-func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) error {
+const (
+	enabledMsg          = "enabled"
+	disabledMsg         = "disabled"
+	deleteFailedMsgTmpl = "Failed to delete MetalLB, the error was: %v"
+	deployFailedMsgTmpl = "Failed to deploy MetalLB, the error was: %v"
+)
+
+// ApplyLoadBalancer will always return a FeatureStatus indicating the current status of the
+// deployment.
+// ApplyLoadBalancer returns an error if anything fails. The error is also wrapped in the .Message field of the
+// returned FeatureStatus.
+func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+	status := types.FeatureStatus{
+		Version: controllerImageTag,
+		Enabled: loadbalancer.GetEnabled(),
+	}
+
 	if !loadbalancer.GetEnabled() {
 		if err := disableLoadBalancer(ctx, snap, network); err != nil {
-			return fmt.Errorf("failed to disable LoadBalancer: %w", err)
+			disableErr := fmt.Errorf("failed to disable LoadBalancer: %w", err)
+			status.Message = fmt.Sprintf(deleteFailedMsgTmpl, disableErr)
+			return status, disableErr
 		}
-		return nil
+		status.Message = disabledMsg
+		status.Version = ""
+		return status, nil
 	}
 
 	if err := enableLoadBalancer(ctx, snap, loadbalancer, network); err != nil {
-		return fmt.Errorf("failed to enable LoadBalancer: %w", err)
+		enableErr := fmt.Errorf("failed to enable LoadBalancer: %w", err)
+		status.Message = fmt.Sprintf(deployFailedMsgTmpl, enableErr)
+		return status, enableErr
 	}
-	return nil
+
+	status.Message = enabledMsg
+	return status, nil
 }
 
 func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Network) error {

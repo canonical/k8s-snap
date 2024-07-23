@@ -10,28 +10,51 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
+const (
+	enabledMsg          = "enabled"
+	disabledMsg         = "disabled"
+	deployFailedMsgTmpl = "Failed to deploy Calico, the error was: %v"
+	deleteFailedMsgTmpl = "Failed to delete Calico, the error was: %v"
+)
+
 // ApplyNetwork will deploy Calico when cfg.Enabled is true.
 // ApplyNetwork will remove Calico when cfg.Enabled is false.
-// ApplyNetwork returns an error if anything fails.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annotations types.Annotations) error {
+// ApplyNetwork will always return a FeatureStatus indicating the current status of the
+// deployment.
+// ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
+// returned FeatureStatus.
+func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
+	status := types.FeatureStatus{
+		Version: calicoTag,
+		Enabled: cfg.GetEnabled(),
+	}
+
 	m := snap.HelmClient()
 
 	if !cfg.GetEnabled() {
 		if _, err := m.Apply(ctx, chartCalico, helm.StateDeleted, nil); err != nil {
-			return fmt.Errorf("failed to uninstall network: %w", err)
+			applyErr := fmt.Errorf("failed to uninstall network: %w", err)
+			status.Message = fmt.Sprintf(deleteFailedMsgTmpl, applyErr)
+			return status, applyErr
 		}
-		return nil
+		status.Version = ""
+		status.Message = disabledMsg
+		return status, nil
 	}
 
 	config, err := internalConfig(annotations)
 	if err != nil {
-		return fmt.Errorf("failed to parse annotations: %w", err)
+		cfgErr := fmt.Errorf("failed to parse annotations: %w", err)
+		status.Message = fmt.Sprintf(deployFailedMsgTmpl, cfgErr)
+		return status, cfgErr
 	}
 
 	podIpPools := []map[string]any{}
 	ipv4PodCIDR, ipv6PodCIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
 	if err != nil {
-		return fmt.Errorf("invalid pod cidr: %v", err)
+		cidrErr := fmt.Errorf("invalid pod cidr: %v", err)
+		status.Message = fmt.Sprintf(deployFailedMsgTmpl, cidrErr)
+		return status, cidrErr
 	}
 	if ipv4PodCIDR != "" {
 		podIpPools = append(podIpPools, map[string]any{
@@ -51,7 +74,9 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	serviceCIDRs := []string{}
 	ipv4ServiceCIDR, ipv6ServiceCIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
 	if err != nil {
-		return fmt.Errorf("invalid service cidr: %v", err)
+		cidrErr := fmt.Errorf("invalid service cidr: %v", err)
+		status.Message = fmt.Sprintf(deployFailedMsgTmpl, cidrErr)
+		return status, cidrErr
 	}
 	if ipv4ServiceCIDR != "" {
 		serviceCIDRs = append(serviceCIDRs, ipv4ServiceCIDR)
@@ -93,8 +118,11 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	}
 
 	if _, err := m.Apply(ctx, chartCalico, helm.StatePresent, values); err != nil {
-		return fmt.Errorf("failed to enable network: %w", err)
+		enableErr := fmt.Errorf("failed to enable network: %w", err)
+		status.Message = fmt.Sprintf(deployFailedMsgTmpl, enableErr)
+		return status, enableErr
 	}
 
-	return nil
+	status.Message = enabledMsg
+	return status, nil
 }

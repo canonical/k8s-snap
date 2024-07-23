@@ -69,65 +69,96 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 	}
 }
 
-func (c *FeatureController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error), notifyDNSChangedIP func(ctx context.Context, dnsIP string) error) {
+func (c *FeatureController) Run(
+	ctx context.Context,
+	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+	notifyDNSChangedIP func(ctx context.Context, dnsIP string) error,
+	setFeatureStatus func(ctx context.Context, name string, featureStatus types.FeatureStatus) error,
+) {
 	c.waitReady()
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 
-	go c.reconcileLoop(ctx, getClusterConfig, "network", c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) error {
+	go c.reconcileLoop(ctx, getClusterConfig, "network", c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyNetwork(ctx, c.snap, cfg.Network, cfg.Annotations)
-	})
+	}, setFeatureStatus)
 
-	go c.reconcileLoop(ctx, getClusterConfig, "gateway", c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) error {
+	go c.reconcileLoop(ctx, getClusterConfig, "gateway", c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
-	})
+	}, setFeatureStatus)
 
-	go c.reconcileLoop(ctx, getClusterConfig, "ingress", c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) error {
+	go c.reconcileLoop(ctx, getClusterConfig, "ingress", c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
-	})
+	}, setFeatureStatus)
 
-	go c.reconcileLoop(ctx, getClusterConfig, "load balancer", c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) error {
+	go c.reconcileLoop(ctx, getClusterConfig, "load-balancer", c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
-	})
+	}, setFeatureStatus)
 
-	go c.reconcileLoop(ctx, getClusterConfig, "local storage", c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) error {
+	go c.reconcileLoop(ctx, getClusterConfig, "local-storage", c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyLocalStorage(ctx, c.snap, cfg.LocalStorage, cfg.Annotations)
-	})
+	}, setFeatureStatus)
 
-	go c.reconcileLoop(ctx, getClusterConfig, "metrics server", c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) error {
+	go c.reconcileLoop(ctx, getClusterConfig, "metrics-server", c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyMetricsServer(ctx, c.snap, cfg.MetricsServer, cfg.Annotations)
-	})
+	}, setFeatureStatus)
 
-	go c.reconcileLoop(ctx, getClusterConfig, "DNS", c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) error {
-		if dnsIP, err := features.Implementation.ApplyDNS(ctx, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations); err != nil {
-			return fmt.Errorf("failed to apply DNS configuration: %w", err)
+	go c.reconcileLoop(ctx, getClusterConfig, "dns", c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		featureStatus, dnsIP, err := features.Implementation.ApplyDNS(ctx, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
+
+		if err != nil {
+			return featureStatus, fmt.Errorf("failed to apply DNS configuration: %w", err)
 		} else if dnsIP != "" {
 			if err := notifyDNSChangedIP(ctx, dnsIP); err != nil {
-				return fmt.Errorf("failed to update DNS IP address to %s: %w", dnsIP, err)
+				// we already have featureStatus.Message which contains wrapped error of the Apply<Feature>
+				// (or empty if no error occurs). we further wrap the error to add the DNS IP change error to the message
+				changeErr := fmt.Errorf("failed to update DNS IP address to %s: %w", dnsIP, err)
+				featureStatus.Message = fmt.Sprintf("%s: %v", featureStatus.Message, changeErr)
+				return featureStatus, changeErr
 			}
 		}
-		return nil
-	})
+		return featureStatus, nil
+	}, setFeatureStatus)
 }
 
-func (c *FeatureController) reconcile(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error), apply func(cfg types.ClusterConfig) error) error {
+func (c *FeatureController) reconcile(
+	ctx context.Context,
+	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
+	componentName string,
+	setFeatureStatus func(context.Context, string, types.FeatureStatus) error,
+) error {
 	cfg, err := getClusterConfig(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve cluster configuration: %w", err)
 	}
 
-	if err := apply(cfg); err != nil {
+	featureStatus, err := apply(cfg)
+	if err != nil {
 		return fmt.Errorf("failed to apply configuration: %w", err)
 	}
+
+	if err := setFeatureStatus(ctx, componentName, featureStatus); err != nil {
+		return fmt.Errorf("failed to set feature status for '%s': %w", err)
+	}
+
 	return nil
 }
 
-func (c *FeatureController) reconcileLoop(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error), componentName string, triggerCh chan struct{}, reconciledCh chan<- struct{}, apply func(cfg types.ClusterConfig) error) {
+func (c *FeatureController) reconcileLoop(
+	ctx context.Context,
+	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+	componentName string,
+	triggerCh chan struct{},
+	reconciledCh chan<- struct{},
+	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
+	setFeatureStatus func(ctx context.Context, name string, status types.FeatureStatus) error,
+) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-triggerCh:
-			if err := c.reconcile(ctx, getClusterConfig, apply); err != nil {
+			if err := c.reconcile(ctx, getClusterConfig, apply, componentName, setFeatureStatus); err != nil {
 				log.FromContext(ctx).WithValues("feature", componentName).Error(err, "Failed to apply feature configuration")
 
 				// notify triggerCh after 5 seconds to retry

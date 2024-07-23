@@ -10,23 +10,43 @@ import (
 	"github.com/canonical/k8s/pkg/utils/control"
 )
 
+const (
+	lbDeleteFailedMsgTmpl = "Failed to delete Cilium Load Balancer, the error was: %v"
+	lbDeployFailedMsgTmpl = "Failed to deploy Cilium Load Balancer, the error was: %v"
+)
+
 // ApplyLoadBalancer assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
 // ApplyLoadBalancer will configure Cilium to enable L2 or BGP mode, and deploy necessary CRs for announcing the LoadBalancer external IPs when loadbalancer.Enabled is true.
 // ApplyLoadBalancer will disable L2 and BGP on Cilium, and remove any previously created CRs when loadbalancer.Enabled is false.
 // ApplyLoadBalancer will rollout restart the Cilium pods in case any Cilium configuration was changed.
-// ApplyLoadBalancer returns an error if anything fails.
-func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) error {
+// ApplyLoadBalancer will always return a FeatureStatus indicating the current status of the
+// deployment.
+// ApplyLoadBalancer returns an error if anything fails. The error is also wrapped in the .Message field of the
+// returned FeatureStatus.
+func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+	status := types.FeatureStatus{
+		Version: ciliumAgentImageTag,
+		Enabled: loadbalancer.GetEnabled(),
+	}
+
 	if !loadbalancer.GetEnabled() {
 		if err := disableLoadBalancer(ctx, snap, network); err != nil {
-			return fmt.Errorf("failed to disable LoadBalancer: %w", err)
+			disErr := fmt.Errorf("failed to disable LoadBalancer: %w", err)
+			status.Message = fmt.Sprintf(lbDeleteFailedMsgTmpl, disErr)
+			return status, disErr
 		}
-		return nil
+		status.Message = disabledMsg
+		status.Version = ""
+		return status, nil
 	}
 
 	if err := enableLoadBalancer(ctx, snap, loadbalancer, network); err != nil {
-		return fmt.Errorf("failed to enable LoadBalancer: %w", err)
+		enableErr := fmt.Errorf("failed to enable LoadBalancer: %w", err)
+		status.Message = fmt.Sprintf(lbDeployFailedMsgTmpl, enableErr)
+		return status, enableErr
 	}
-	return nil
+	status.Message = enabledMsg
+	return status, nil
 }
 
 func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Network) error {

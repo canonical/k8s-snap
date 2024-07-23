@@ -2,16 +2,31 @@ package metrics_server
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
 
+const (
+	enabledMsg          = "enabled"
+	disabledMsg         = "disabled"
+	deleteFailedMsgTmpl = "Failed to delete Metrics Server, the error was: %v"
+	deployFailedMsgTmpl = "Failed to deploy Metrics Server, the error was: %v"
+)
+
 // ApplyMetricsServer deploys metrics-server when cfg.Enabled is true.
 // ApplyMetricsServer removes metrics-server when cfg.Enabled is false.
-// ApplyMetricsServer returns an error if anything fails.
-func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsServer, annotations types.Annotations) error {
+// ApplyMetricsServer will always return a FeatureStatus indicating the current status of the
+// deployment.
+// ApplyMetricsServer returns an error if anything fails. The error is also wrapped in the .Message field of the
+// returned FeatureStatus.
+func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsServer, annotations types.Annotations) (types.FeatureStatus, error) {
+	status := types.FeatureStatus{
+		Version: imageTag,
+		Enabled: cfg.GetEnabled(),
+	}
 	m := snap.HelmClient()
 
 	config := internalConfig(annotations)
@@ -28,5 +43,23 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsSe
 	}
 
 	_, err := m.Apply(ctx, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
-	return err
+	if err != nil {
+		if cfg.GetEnabled() {
+			enableErr := fmt.Errorf("failed to install metrics server chart: %w", err)
+			status.Message = fmt.Sprintf(deployFailedMsgTmpl, enableErr)
+			return status, enableErr
+		} else {
+			disableErr := fmt.Errorf("failed to delete metrics server chart: %w", err)
+			status.Message = fmt.Sprintf(deleteFailedMsgTmpl, disableErr)
+			return status, disableErr
+		}
+	} else {
+		if cfg.GetEnabled() {
+			status.Message = enabledMsg
+			return status, nil
+		} else {
+			status.Message = disabledMsg
+			return status, nil
+		}
+	}
 }
