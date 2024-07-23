@@ -138,7 +138,7 @@ func (c *FeatureController) reconcile(
 	}
 
 	if err := setFeatureStatus(ctx, componentName, featureStatus); err != nil {
-		return fmt.Errorf("failed to set feature status for '%s': %w", err)
+		return fmt.Errorf("failed to set feature status for '%s': %w", componentName, err)
 	}
 
 	return nil

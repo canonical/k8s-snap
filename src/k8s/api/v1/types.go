@@ -53,6 +53,16 @@ type FeatureStatus struct {
 	UpdatedAt time.Time
 }
 
+func (f FeatureStatus) GetMessage() string {
+	if f.Message != "" {
+		return f.Message
+	}
+	if f.Enabled {
+		return "enabled"
+	}
+	return "disabled"
+}
+
 type Datastore struct {
 	Type    string   `json:"type,omitempty"`
 	Servers []string `json:"servers,omitempty" yaml:"servers,omitempty"`
@@ -93,16 +103,19 @@ func (c ClusterStatus) HaClusterFormed() bool {
 func (c ClusterStatus) String() string {
 	result := strings.Builder{}
 
+	// longer than the longest key (eye-balled), make the output left aligned
+	maxLen := 25
+
 	// Status
 	if c.Ready {
-		result.WriteString("cluster status: ready")
+		result.WriteString(fmt.Sprintf("%-*s %s", maxLen, "cluster status:", "ready"))
 	} else {
-		result.WriteString("cluster status: not ready")
+		result.WriteString(fmt.Sprintf("%-*s %s", maxLen, "cluster status:", "not ready"))
 	}
 	result.WriteString("\n")
 
 	// Control Plane Nodes
-	result.WriteString("control plane nodes: ")
+	result.WriteString(fmt.Sprintf("%-*s ", maxLen, "control plane nodes:"))
 	addrMap := c.getCPNodeAddrToRoleMap()
 	nodes := make([]string, len(addrMap))
 	i := 0
@@ -110,11 +123,15 @@ func (c ClusterStatus) String() string {
 		nodes[i] = fmt.Sprintf("%s (%s)", addr, role)
 		i++
 	}
-	result.WriteString(strings.Join(nodes, ", "))
+	if len(nodes) > 0 {
+		result.WriteString(strings.Join(nodes, ", "))
+	} else {
+		result.WriteString("none")
+	}
 	result.WriteString("\n")
 
 	// High availability
-	result.WriteString("high-availability: ")
+	result.WriteString(fmt.Sprintf("%-*s ", maxLen, "high availability:"))
 	if c.HaClusterFormed() {
 		result.WriteString("yes")
 	} else {
@@ -123,25 +140,30 @@ func (c ClusterStatus) String() string {
 	result.WriteString("\n")
 
 	// Datastore
-	result.WriteString(fmt.Sprintf("datastore: %s\n", c.Datastore.Type))
+	// TODO: how to understand if the ds is running or not?
+	if c.Datastore.Type != "" {
+		result.WriteString(fmt.Sprintf("%-*s %s\n", maxLen, "datastore:", c.Datastore.Type))
+	} else {
+		result.WriteString(fmt.Sprintf("%-*s %s\n", maxLen, "datastore:", "disabled"))
+	}
 
 	// Network
-	result.WriteString(fmt.Sprintf("network: %s\n", c.Network.Message))
+	result.WriteString(fmt.Sprintf("%-*s %s\n", maxLen, "network:", c.Network.GetMessage()))
 
 	// DNS
-	result.WriteString(fmt.Sprintf("dns: %s\n", c.DNS.Message))
+	result.WriteString(fmt.Sprintf("%-*s %s\n", maxLen, "dns:", c.DNS.GetMessage()))
 
 	// Ingress
-	result.WriteString(fmt.Sprintf("ingress: %s\n", c.Ingress.Message))
+	result.WriteString(fmt.Sprintf("%-*s %s\n", maxLen, "ingress:", c.Ingress.GetMessage()))
 
 	// Load Balancer
-	result.WriteString(fmt.Sprintf("load-balancer: %s\n", c.LoadBalancer.Message))
+	result.WriteString(fmt.Sprintf("%-*s %s\n", maxLen, "load-balancer:", c.LoadBalancer.GetMessage()))
 
 	// Local Storage
-	result.WriteString(fmt.Sprintf("local-storage: %s\n", c.LocalStorage.Message))
+	result.WriteString(fmt.Sprintf("%-*s %s\n", maxLen, "local-storage:", c.LocalStorage.GetMessage()))
 
 	// Gateway
-	result.WriteString(fmt.Sprintf("gateway: %s\n", c.Gateway.Message))
+	result.WriteString(fmt.Sprintf("%-*s %s\n", maxLen, "gateway", c.Gateway.GetMessage()))
 
 	return result.String()
 }
