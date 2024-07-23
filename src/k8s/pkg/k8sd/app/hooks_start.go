@@ -76,9 +76,9 @@ func (a *App) onStart(s *state.State) error {
 			func(ctx context.Context, name string, featureStatus types.FeatureStatus) error {
 				if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
 					// we set timestamp here in order to reduce the clutter. otherwise we will need to
-					// set .Timestamp field in a lot of places for every event/error.
+					// set .UpdatedAt field in a lot of places for every event/error.
 					// this is not 100% accurate but should be good enough
-					featureStatus.Timestamp = time.Now()
+					featureStatus.UpdatedAt = time.Now()
 					if err := database.SetFeatureStatus(ctx, tx, name, featureStatus); err != nil {
 						return fmt.Errorf("failed to set feature status in db for '%s': %w", name, err)
 					}

@@ -6,11 +6,16 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 )
 
+// FeatureStatus encapsulates the deployment status of a feature.
 type FeatureStatus struct {
-	Enabled   bool
-	Message   string
-	Version   string
-	Timestamp time.Time
+	// Enabled shows whether or not the deployment of manifests for a status was successful.
+	Enabled bool
+	// Message contains information about the status of a feature. It is only supposed to be human readable and informative and should not be programmatically parsed.
+	Message string
+	// Version shows the version of the deployed feature.
+	Version string
+	// UpdatedAt shows when the last update was done.
+	UpdatedAt time.Time
 }
 
 func (f FeatureStatus) ToAPI() (apiv1.FeatureStatus, error) {
@@ -18,7 +23,7 @@ func (f FeatureStatus) ToAPI() (apiv1.FeatureStatus, error) {
 		Enabled:   f.Enabled,
 		Message:   f.Message,
 		Version:   f.Version,
-		Timestamp: f.Timestamp,
+		UpdatedAt: f.UpdatedAt,
 	}, nil
 }
 
@@ -27,6 +32,6 @@ func FeatureStatusFromAPI(apiFS apiv1.FeatureStatus) (FeatureStatus, error) {
 		Enabled:   apiFS.Enabled,
 		Message:   apiFS.Message,
 		Version:   apiFS.Version,
-		Timestamp: apiFS.Timestamp,
+		UpdatedAt: apiFS.UpdatedAt,
 	}, nil
 }

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"gopkg.in/yaml.v2"
 )
 
 type ClusterRole string
@@ -51,8 +49,8 @@ type FeatureStatus struct {
 	Message string
 	// Version shows the version of the deployed feature.
 	Version string
-	// Timestamp shows when the last update was done.
-	Timestamp time.Time
+	// UpdatedAt shows when the last update was done.
+	UpdatedAt time.Time
 }
 
 type Datastore struct {
@@ -90,63 +88,6 @@ func (c ClusterStatus) HaClusterFormed() bool {
 
 // TICS -COV_GO_SUPPRESSED_ERROR
 // we are just formatting the output for the k8s status command, it is ok to ignore failures from result.WriteString()
-func (c ClusterStatus) datastoreToString() string {
-	result := strings.Builder{}
-
-	// Datastore
-	if c.Datastore.Type != "" {
-		result.WriteString(fmt.Sprintf("  type: %s\n", c.Datastore.Type))
-		// Datastore URL for external only
-		if c.Datastore.Type == "external" {
-			result.WriteString(fmt.Sprintln("  servers:"))
-			for _, serverURL := range c.Datastore.Servers {
-				result.WriteString(fmt.Sprintf("    - %s\n", serverURL))
-			}
-			return result.String()
-		}
-	}
-
-	// Datastore roles for dqlite
-	voters := make([]NodeStatus, 0, len(c.Members))
-	standBys := make([]NodeStatus, 0, len(c.Members))
-	spares := make([]NodeStatus, 0, len(c.Members))
-	for _, node := range c.Members {
-		switch node.DatastoreRole {
-		case DatastoreRoleVoter:
-			voters = append(voters, node)
-		case DatastoreRoleStandBy:
-			standBys = append(standBys, node)
-		case DatastoreRoleSpare:
-			spares = append(spares, node)
-		}
-	}
-	if len(voters) > 0 {
-		result.WriteString("  voter-nodes:\n")
-		for _, voter := range voters {
-			result.WriteString(fmt.Sprintf("    - %s\n", voter.Address))
-		}
-	} else {
-		result.WriteString("  voter-nodes: none\n")
-	}
-	if len(standBys) > 0 {
-		result.WriteString("  standby-nodes:\n")
-		for _, standBy := range standBys {
-			result.WriteString(fmt.Sprintf("    - %s\n", standBy.Address))
-		}
-	} else {
-		result.WriteString("  standby-nodes: none\n")
-	}
-	if len(spares) > 0 {
-		result.WriteString("  spare-nodes:\n")
-		for _, spare := range spares {
-			result.WriteString(fmt.Sprintf("    - %s\n", spare.Address))
-		}
-	} else {
-		result.WriteString("  spare-nodes: none\n")
-	}
-
-	return result.String()
-}
 
 // TODO: Print k8s version. However, multiple nodes can run different version, so we would need to query all nodes.
 func (c ClusterStatus) String() string {
@@ -154,10 +95,22 @@ func (c ClusterStatus) String() string {
 
 	// Status
 	if c.Ready {
-		result.WriteString("status: ready")
+		result.WriteString("cluster status: ready")
 	} else {
-		result.WriteString("status: not ready")
+		result.WriteString("cluster status: not ready")
 	}
+	result.WriteString("\n")
+
+	// Control Plane Nodes
+	result.WriteString("control plane nodes: ")
+	addrMap := c.getCPNodeAddrToRoleMap()
+	nodes := make([]string, len(addrMap))
+	i := 0
+	for addr, role := range addrMap {
+		nodes[i] = fmt.Sprintf("%s (%s)", addr, role)
+		i++
+	}
+	result.WriteString(strings.Join(nodes, ", "))
 	result.WriteString("\n")
 
 	// High availability
@@ -167,18 +120,41 @@ func (c ClusterStatus) String() string {
 	} else {
 		result.WriteString("no")
 	}
+	result.WriteString("\n")
 
 	// Datastore
-	result.WriteString("\n")
-	result.WriteString("datastore:\n")
-	result.WriteString(c.datastoreToString())
+	result.WriteString(fmt.Sprintf("datastore: %s\n", c.Datastore.Type))
 
-	// Config
-	if !c.Config.Empty() {
-		b, _ := yaml.Marshal(c.Config)
-		result.WriteString(string(b))
-	}
+	// Network
+	result.WriteString(fmt.Sprintf("network: %s\n", c.Network.Message))
+
+	// DNS
+	result.WriteString(fmt.Sprintf("dns: %s\n", c.DNS.Message))
+
+	// Ingress
+	result.WriteString(fmt.Sprintf("ingress: %s\n", c.Ingress.Message))
+
+	// Load Balancer
+	result.WriteString(fmt.Sprintf("load-balancer: %s\n", c.LoadBalancer.Message))
+
+	// Local Storage
+	result.WriteString(fmt.Sprintf("local-storage: %s\n", c.LocalStorage.Message))
+
+	// Gateway
+	result.WriteString(fmt.Sprintf("gateway: %s\n", c.Gateway.Message))
+
 	return result.String()
 }
 
 // TICS +COV_GO_SUPPRESSED_ERROR
+
+func (c ClusterStatus) getCPNodeAddrToRoleMap() map[string]string {
+	m := make(map[string]string)
+	for _, n := range c.Members {
+		if n.ClusterRole == ClusterRoleControlPlane {
+			m[n.Address] = string(n.DatastoreRole)
+		}
+	}
+
+	return m
+}

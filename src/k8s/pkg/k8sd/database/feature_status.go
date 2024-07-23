@@ -29,7 +29,7 @@ func SetFeatureStatus(ctx context.Context, tx *sql.Tx, name string, status types
 		name,
 		status.Message,
 		status.Version,
-		status.Timestamp.Format(time.RFC3339),
+		status.UpdatedAt.Format(time.RFC3339),
 		status.Enabled,
 	); err != nil {
 		return fmt.Errorf("failed to execute upsert statement: %w", err)
@@ -63,7 +63,7 @@ func GetFeatureStatuses(ctx context.Context, tx *sql.Tx) (map[string]types.Featu
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
-		typ.Timestamp, err = time.Parse(time.RFC3339, ts)
+		typ.UpdatedAt, err = time.Parse(time.RFC3339, ts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse timestamp: %w", err)
 		}

@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	lbEnabledMsgTmpl      = "enabled, %s mode"
 	lbDeleteFailedMsgTmpl = "Failed to delete Cilium Load Balancer, the error was: %v"
 	lbDeployFailedMsgTmpl = "Failed to deploy Cilium Load Balancer, the error was: %v"
 )
@@ -45,7 +46,15 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 		status.Message = fmt.Sprintf(lbDeployFailedMsgTmpl, enableErr)
 		return status, enableErr
 	}
-	status.Message = enabledMsg
+
+	if loadbalancer.GetBGPMode() {
+		status.Message = fmt.Sprintf(lbEnabledMsgTmpl, "BGP")
+	} else if loadbalancer.GetL2Mode() {
+		status.Message = fmt.Sprintf(lbEnabledMsgTmpl, "L2")
+	} else {
+		status.Message = fmt.Sprintf(lbEnabledMsgTmpl, "Unknown")
+	}
+
 	return status, nil
 }
 

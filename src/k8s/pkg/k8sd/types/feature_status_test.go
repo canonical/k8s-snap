@@ -16,7 +16,7 @@ func TestK8sdFeatureStatusToAPI(t *testing.T) {
 		Enabled:   true,
 		Message:   "message",
 		Version:   "version",
-		Timestamp: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	apiFS, err := k8sdFS.ToAPI()
@@ -24,7 +24,7 @@ func TestK8sdFeatureStatusToAPI(t *testing.T) {
 	assert.Equal(t, k8sdFS.Enabled, apiFS.Enabled)
 	assert.Equal(t, k8sdFS.Message, apiFS.Message)
 	assert.Equal(t, k8sdFS.Version, apiFS.Version)
-	assert.Equal(t, k8sdFS.Timestamp, apiFS.Timestamp)
+	assert.Equal(t, k8sdFS.UpdatedAt, apiFS.UpdatedAt)
 }
 
 func TestAPIFeatureStatusToK8sd(t *testing.T) {
@@ -32,7 +32,7 @@ func TestAPIFeatureStatusToK8sd(t *testing.T) {
 		Enabled:   true,
 		Message:   "message",
 		Version:   "version",
-		Timestamp: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	k8sdFS, err := types.FeatureStatusFromAPI(apiFS)
@@ -40,5 +40,5 @@ func TestAPIFeatureStatusToK8sd(t *testing.T) {
 	assert.Equal(t, apiFS.Enabled, k8sdFS.Enabled)
 	assert.Equal(t, apiFS.Message, k8sdFS.Message)
 	assert.Equal(t, apiFS.Version, k8sdFS.Version)
-	assert.Equal(t, apiFS.Timestamp, k8sdFS.Timestamp)
+	assert.Equal(t, apiFS.UpdatedAt, k8sdFS.UpdatedAt)
 }

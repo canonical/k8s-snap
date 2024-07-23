@@ -55,11 +55,11 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 	if err != nil {
 		if network.GetEnabled() {
 			enableErr := fmt.Errorf("failed to enable ingress: %w", err)
-			status.Message = fmt.Sprint(ingressDeployFailedMsgTmpl, enableErr)
+			status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, enableErr)
 			return status, enableErr
 		} else {
 			disableErr := fmt.Errorf("failed to disable ingress: %w", err)
-			status.Message = fmt.Sprint(ingressDeleteFailedMsgTmpl, disableErr)
+			status.Message = fmt.Sprintf(ingressDeleteFailedMsgTmpl, disableErr)
 			return status, disableErr
 		}
 	}

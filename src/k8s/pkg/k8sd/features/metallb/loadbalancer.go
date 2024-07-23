@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	enabledMsg          = "enabled"
+	enabledMsgTmpl      = "enabled, %s mode"
 	disabledMsg         = "disabled"
 	deleteFailedMsgTmpl = "Failed to delete MetalLB, the error was: %v"
 	deployFailedMsgTmpl = "Failed to deploy MetalLB, the error was: %v"
@@ -44,7 +44,14 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 		return status, enableErr
 	}
 
-	status.Message = enabledMsg
+	if loadbalancer.GetBGPMode() {
+		status.Message = fmt.Sprintf(enabledMsgTmpl, "BGP")
+	} else if loadbalancer.GetL2Mode() {
+		status.Message = fmt.Sprintf(enabledMsgTmpl, "L2")
+	} else {
+		status.Message = fmt.Sprintf(enabledMsgTmpl, "Unknown")
+	}
+
 	return status, nil
 }
 

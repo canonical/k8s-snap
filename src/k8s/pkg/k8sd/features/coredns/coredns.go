@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	enabledMsg          = "enabled"
+	enabledMsgTmpl      = "enabled at %s"
 	disabledMsg         = "disabled"
 	deleteFailedMsgTmpl = "Failed to delete DNS, the error was: %v"
 	deployFailedMsgTmpl = "Failed to deploy DNS, the error was: %v"
@@ -98,6 +98,6 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 		return status, "", retErr
 	}
 
-	status.Message = enabledMsg
+	status.Message = fmt.Sprintf(enabledMsgTmpl, dnsIP)
 	return status, dnsIP, nil
 }

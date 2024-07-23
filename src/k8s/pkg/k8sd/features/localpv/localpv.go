@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	enabledMsg          = "enabled"
+	enabledMsg          = "enabled at %s"
 	disabledMsg         = "disabled"
 	deployFailedMsgTmpl = "Failed to deploy Local Storage, the error was: %v"
 	deleteFailedMsgTmpl = "Failed to delete Local Storage, the error was: %v"
@@ -75,7 +75,7 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 		}
 	} else {
 		if cfg.GetEnabled() {
-			status.Message = enabledMsg
+			status.Message = fmt.Sprintf(enabledMsg, cfg.GetLocalPath())
 			return status, nil
 		} else {
 			status.Version = ""
