@@ -52,18 +52,17 @@ func GetFeatureStatuses(ctx context.Context, tx *sql.Tx) (map[string]types.Featu
 
 	for rows.Next() {
 		var (
-			name string
-			ts   string
+			name   string
+			ts     string
+			status types.FeatureStatus
 		)
-		status := types.FeatureStatus{}
 
 		if err := rows.Scan(&name, &status.Message, &status.Version, &ts, &status.Enabled); err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
-		status.UpdatedAt, err = time.Parse(time.RFC3339, ts)
-		if err != nil {
-			log.L().Error(err, "failed to parse time", "original", ts)
+		if status.UpdatedAt, err = time.Parse(time.RFC3339, ts); err != nil {
+			log.FromContext(ctx).Error(err, "failed to parse time", "original", ts)
 		}
 
 		result[name] = status

@@ -1,7 +1,6 @@
 package apiv1_test
 
 import (
-	"fmt"
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -137,7 +136,6 @@ gateway                   disabled
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
-			fmt.Println(tc.clusterStatus.String())
 			g.Expect(tc.clusterStatus.String()).To(Equal(tc.expectedOutput))
 		})
 	}

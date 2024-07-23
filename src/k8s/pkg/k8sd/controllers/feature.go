@@ -134,9 +134,7 @@ func (c *FeatureController) reconcile(
 	featureStatus, err := apply(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to apply configuration: %w", err)
-	}
-
-	if err := updateFeatureStatus(ctx, featureStatus); err != nil {
+	} else if err := updateFeatureStatus(ctx, featureStatus); err != nil {
 		return fmt.Errorf("failed to update feature status: %w", err)
 	}
 
