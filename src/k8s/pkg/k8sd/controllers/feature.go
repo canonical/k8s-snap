@@ -123,9 +123,8 @@ func (c *FeatureController) Run(
 func (c *FeatureController) reconcile(
 	ctx context.Context,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
-	setFeatureStatus func(context.Context, string, types.FeatureStatus) error,
 	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
-	componentName string,
+	updateFeatureStatus func(context.Context, types.FeatureStatus) error,
 ) error {
 	cfg, err := getClusterConfig(ctx)
 	if err != nil {
@@ -137,8 +136,8 @@ func (c *FeatureController) reconcile(
 		return fmt.Errorf("failed to apply configuration: %w", err)
 	}
 
-	if err := setFeatureStatus(ctx, componentName, featureStatus); err != nil {
-		return fmt.Errorf("failed to set feature status for '%s': %w", componentName, err)
+	if err := updateFeatureStatus(ctx, featureStatus); err != nil {
+		return fmt.Errorf("failed to update feature status: %w", err)
 	}
 
 	return nil
@@ -158,7 +157,9 @@ func (c *FeatureController) reconcileLoop(
 		case <-ctx.Done():
 			return
 		case <-triggerCh:
-			if err := c.reconcile(ctx, getClusterConfig, setFeatureStatus, apply, componentName); err != nil {
+			if err := c.reconcile(ctx, getClusterConfig, apply, func(ctx context.Context, status types.FeatureStatus) error {
+				return setFeatureStatus(ctx, componentName, status)
+			}); err != nil {
 				log.FromContext(ctx).WithValues("feature", componentName).Error(err, "Failed to apply feature configuration")
 
 				// notify triggerCh after 5 seconds to retry
