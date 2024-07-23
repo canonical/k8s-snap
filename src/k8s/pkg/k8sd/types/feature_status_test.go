@@ -4,8 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	. "github.com/onsi/gomega"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -19,12 +18,12 @@ func TestK8sdFeatureStatusToAPI(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	apiFS, err := k8sdFS.ToAPI()
-	require.NoError(t, err)
-	assert.Equal(t, k8sdFS.Enabled, apiFS.Enabled)
-	assert.Equal(t, k8sdFS.Message, apiFS.Message)
-	assert.Equal(t, k8sdFS.Version, apiFS.Version)
-	assert.Equal(t, k8sdFS.UpdatedAt, apiFS.UpdatedAt)
+	apiFS := k8sdFS.ToAPI()
+	g := NewWithT(t)
+	g.Expect(apiFS.Enabled).To(Equal(k8sdFS.Enabled))
+	g.Expect(apiFS.Message).To(Equal(k8sdFS.Message))
+	g.Expect(apiFS.Version).To(Equal(k8sdFS.Version))
+	g.Expect(apiFS.UpdatedAt).To(Equal(k8sdFS.UpdatedAt))
 }
 
 func TestAPIFeatureStatusToK8sd(t *testing.T) {
@@ -35,10 +34,10 @@ func TestAPIFeatureStatusToK8sd(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	k8sdFS, err := types.FeatureStatusFromAPI(apiFS)
-	require.NoError(t, err)
-	assert.Equal(t, apiFS.Enabled, k8sdFS.Enabled)
-	assert.Equal(t, apiFS.Message, k8sdFS.Message)
-	assert.Equal(t, apiFS.Version, k8sdFS.Version)
-	assert.Equal(t, apiFS.UpdatedAt, k8sdFS.UpdatedAt)
+	k8sdFS := types.FeatureStatusFromAPI(apiFS)
+	g := NewWithT(t)
+	g.Expect(k8sdFS.Enabled).To(Equal(apiFS.Enabled))
+	g.Expect(k8sdFS.Message).To(Equal(apiFS.Message))
+	g.Expect(k8sdFS.Version).To(Equal(apiFS.Version))
+	g.Expect(k8sdFS.UpdatedAt).To(Equal(apiFS.UpdatedAt))
 }

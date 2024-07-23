@@ -116,15 +116,12 @@ func (c ClusterStatus) String() string {
 
 	// Control Plane Nodes
 	result.WriteString(fmt.Sprintf("%-*s ", maxLen, "control plane nodes:"))
-	addrMap := c.getCPNodeAddrToRoleMap()
-	nodes := make([]string, len(addrMap))
-	i := 0
-	for addr, role := range addrMap {
-		nodes[i] = fmt.Sprintf("%s (%s)", addr, role)
-		i++
-	}
-	if len(nodes) > 0 {
-		result.WriteString(strings.Join(nodes, ", "))
+	if len(c.Members) > 0 {
+		for _, m := range c.Members {
+			if m.ClusterRole == ClusterRoleControlPlane {
+				result.WriteString(fmt.Sprintf("%s (%s)  ", m.Address, m.DatastoreRole))
+			}
+		}
 	} else {
 		result.WriteString("none")
 	}
@@ -169,14 +166,3 @@ func (c ClusterStatus) String() string {
 }
 
 // TICS +COV_GO_SUPPRESSED_ERROR
-
-func (c ClusterStatus) getCPNodeAddrToRoleMap() map[string]string {
-	m := make(map[string]string)
-	for _, n := range c.Members {
-		if n.ClusterRole == ClusterRoleControlPlane {
-			m[n.Address] = string(n.DatastoreRole)
-		}
-	}
-
-	return m
-}

@@ -7,20 +7,18 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/microcluster/cluster"
 )
 
-var featureStatusStmts = struct {
-	select_ int
-	upsert_ int
-}{
-	select_: MustPrepareStatement("feature-status", "select.sql"),
-	upsert_: MustPrepareStatement("feature-status", "upsert.sql"),
+var featureStatusStmts = map[string]int{
+	"select": MustPrepareStatement("feature-status", "select.sql"),
+	"upsert": MustPrepareStatement("feature-status", "upsert.sql"),
 }
 
 // SetFeatureStatus updates the status of the given feature.
 func SetFeatureStatus(ctx context.Context, tx *sql.Tx, name string, status types.FeatureStatus) error {
-	upsertTxStmt, err := cluster.Stmt(tx, featureStatusStmts.upsert_)
+	upsertTxStmt, err := cluster.Stmt(tx, featureStatusStmts["upsert"])
 	if err != nil {
 		return fmt.Errorf("failed to prepare upsert statement: %w", err)
 	}
@@ -40,7 +38,7 @@ func SetFeatureStatus(ctx context.Context, tx *sql.Tx, name string, status types
 
 // GetFeatureStatuses returns a map of feature names to their status.
 func GetFeatureStatuses(ctx context.Context, tx *sql.Tx) (map[string]types.FeatureStatus, error) {
-	selectTxStmt, err := cluster.Stmt(tx, featureStatusStmts.select_)
+	selectTxStmt, err := cluster.Stmt(tx, featureStatusStmts["select"])
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare select statement: %w", err)
 	}
@@ -50,30 +48,30 @@ func GetFeatureStatuses(ctx context.Context, tx *sql.Tx) (map[string]types.Featu
 		return nil, fmt.Errorf("failed to execute select statement: %w", err)
 	}
 
-	fsMap := make(map[string]types.FeatureStatus)
+	result := make(map[string]types.FeatureStatus)
 
 	for rows.Next() {
 		var (
 			name string
 			ts   string
 		)
-		typ := types.FeatureStatus{}
+		status := types.FeatureStatus{}
 
-		if err := rows.Scan(&name, &typ.Message, &typ.Version, &ts, &typ.Enabled); err != nil {
+		if err := rows.Scan(&name, &status.Message, &status.Version, &ts, &status.Enabled); err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
-		typ.UpdatedAt, err = time.Parse(time.RFC3339, ts)
+		status.UpdatedAt, err = time.Parse(time.RFC3339, ts)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse timestamp: %w", err)
+			log.L().Error(err, "failed to parse time", "original", ts)
 		}
 
-		fsMap[name] = typ
+		result[name] = status
 	}
 
 	if rows.Err() != nil {
 		return nil, fmt.Errorf("failed to read rows: %w", err)
 	}
 
-	return fsMap, nil
+	return result, nil
 }

@@ -6,20 +6,21 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/onsi/gomega"
+
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestFeatureStatus(t *testing.T) {
 	WithDB(t, func(ctx context.Context, db DB) {
 		_ = db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+			g := NewWithT(t)
 			t0, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 			// initial get should return nothing
 			ss, err := database.GetFeatureStatuses(ctx, tx)
-			require.NoError(t, err)
-			assert.Len(t, ss, 0)
+			g.Expect(err).To(BeNil())
+			g.Expect(len(ss)).To(Equal(0))
 
 			networkS := types.FeatureStatus{
 				Enabled:   true,
@@ -35,24 +36,24 @@ func TestFeatureStatus(t *testing.T) {
 			}
 			// setting new values
 			err = database.SetFeatureStatus(ctx, tx, "network", networkS)
-			require.NoError(t, err)
+			g.Expect(err).To(BeNil())
 			err = database.SetFeatureStatus(ctx, tx, "dns", dnsS)
-			require.NoError(t, err)
+			g.Expect(err).To(BeNil())
 
 			// getting new values
 			ss, err = database.GetFeatureStatuses(ctx, tx)
-			require.NoError(t, err)
-			assert.Len(t, ss, 2)
+			g.Expect(err).To(BeNil())
+			g.Expect(len(ss)).To(Equal(2))
 
-			assert.Equal(t, networkS.Enabled, ss["network"].Enabled)
-			assert.Equal(t, networkS.Message, ss["network"].Message)
-			assert.Equal(t, networkS.Version, ss["network"].Version)
-			assert.Equal(t, networkS.UpdatedAt, ss["network"].UpdatedAt)
+			g.Expect(ss["network"].Enabled).To(Equal(networkS.Enabled))
+			g.Expect(ss["network"].Message).To(Equal(networkS.Message))
+			g.Expect(ss["network"].Version).To(Equal(networkS.Version))
+			g.Expect(ss["network"].UpdatedAt).To(Equal(networkS.UpdatedAt))
 
-			assert.Equal(t, dnsS.Enabled, ss["dns"].Enabled)
-			assert.Equal(t, dnsS.Message, ss["dns"].Message)
-			assert.Equal(t, dnsS.Version, ss["dns"].Version)
-			assert.Equal(t, dnsS.UpdatedAt, ss["dns"].UpdatedAt)
+			g.Expect(ss["dns"].Enabled).To(Equal(dnsS.Enabled))
+			g.Expect(ss["dns"].Message).To(Equal(dnsS.Message))
+			g.Expect(ss["dns"].Version).To(Equal(dnsS.Version))
+			g.Expect(ss["dns"].UpdatedAt).To(Equal(dnsS.UpdatedAt))
 
 			// updating old values and adding new ones
 			dnsS2 := types.FeatureStatus{
@@ -69,36 +70,36 @@ func TestFeatureStatus(t *testing.T) {
 			}
 			// setting the old value for network again
 			err = database.SetFeatureStatus(ctx, tx, "network", networkS)
-			require.NoError(t, err)
+			g.Expect(err).To(BeNil())
 			// updating dns with new value
 			err = database.SetFeatureStatus(ctx, tx, "dns", dnsS2)
-			require.NoError(t, err)
+			g.Expect(err).To(BeNil())
 			// adding new status
 			err = database.SetFeatureStatus(ctx, tx, "gateway", gatewayS)
-			require.NoError(t, err)
+			g.Expect(err).To(BeNil())
 
 			// checking the new values
 			ss, err = database.GetFeatureStatuses(ctx, tx)
-			require.NoError(t, err)
-			assert.Len(t, ss, 3)
+			g.Expect(err).To(BeNil())
+			g.Expect(len(ss)).To(Equal(3))
 
 			// network stayed the same
-			assert.Equal(t, networkS.Enabled, ss["network"].Enabled)
-			assert.Equal(t, networkS.Message, ss["network"].Message)
-			assert.Equal(t, networkS.Version, ss["network"].Version)
-			assert.Equal(t, networkS.UpdatedAt, ss["network"].UpdatedAt)
+			g.Expect(ss["network"].Enabled).To(Equal(networkS.Enabled))
+			g.Expect(ss["network"].Message).To(Equal(networkS.Message))
+			g.Expect(ss["network"].Version).To(Equal(networkS.Version))
+			g.Expect(ss["network"].UpdatedAt).To(Equal(networkS.UpdatedAt))
 
 			// dns is updated
-			assert.Equal(t, dnsS2.Enabled, ss["dns"].Enabled)
-			assert.Equal(t, dnsS2.Message, ss["dns"].Message)
-			assert.Equal(t, dnsS2.Version, ss["dns"].Version)
-			assert.Equal(t, dnsS2.UpdatedAt, ss["dns"].UpdatedAt)
+			g.Expect(ss["dns"].Enabled).To(Equal(dnsS2.Enabled))
+			g.Expect(ss["dns"].Message).To(Equal(dnsS2.Message))
+			g.Expect(ss["dns"].Version).To(Equal(dnsS2.Version))
+			g.Expect(ss["dns"].UpdatedAt).To(Equal(dnsS2.UpdatedAt))
 
 			// gateway is added
-			assert.Equal(t, gatewayS.Enabled, ss["gateway"].Enabled)
-			assert.Equal(t, gatewayS.Message, ss["gateway"].Message)
-			assert.Equal(t, gatewayS.Version, ss["gateway"].Version)
-			assert.Equal(t, gatewayS.UpdatedAt, ss["gateway"].UpdatedAt)
+			g.Expect(ss["gateway"].Enabled).To(Equal(gatewayS.Enabled))
+			g.Expect(ss["gateway"].Message).To(Equal(gatewayS.Message))
+			g.Expect(ss["gateway"].Version).To(Equal(gatewayS.Version))
+			g.Expect(ss["gateway"].UpdatedAt).To(Equal(gatewayS.UpdatedAt))
 
 			return nil
 		})
