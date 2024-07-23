@@ -1,6 +1,7 @@
 package apiv1_test
 
 import (
+	"fmt"
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
@@ -77,7 +78,7 @@ func TestString(t *testing.T) {
 				Gateway:      apiv1.FeatureStatus{Message: "enabled"},
 			},
 			expectedOutput: `cluster status:           ready
-control plane nodes:      192.168.0.1 (voter)  192.168.0.2 (voter)  192.168.0.3 (stand-by)  
+control plane nodes:      192.168.0.1 (voter), 192.168.0.2 (voter), 192.168.0.3 (stand-by)
 high availability:        no
 datastore:                k8s-dqlite
 network:                  enabled
@@ -100,7 +101,7 @@ gateway                   enabled
 				DNS:       apiv1.FeatureStatus{Message: "enabled at 192.168.0.10"},
 			},
 			expectedOutput: `cluster status:           ready
-control plane nodes:      192.168.0.1 (voter)  
+control plane nodes:      192.168.0.1 (voter)
 high availability:        no
 datastore:                external
 network:                  enabled
@@ -136,6 +137,7 @@ gateway                   disabled
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
+			fmt.Println(tc.clusterStatus.String())
 			g.Expect(tc.clusterStatus.String()).To(Equal(tc.expectedOutput))
 		})
 	}

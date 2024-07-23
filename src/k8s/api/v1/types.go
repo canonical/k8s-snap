@@ -117,11 +117,13 @@ func (c ClusterStatus) String() string {
 	// Control Plane Nodes
 	result.WriteString(fmt.Sprintf("%-*s ", maxLen, "control plane nodes:"))
 	if len(c.Members) > 0 {
+		members := make([]string, 0, len(c.Members))
 		for _, m := range c.Members {
 			if m.ClusterRole == ClusterRoleControlPlane {
-				result.WriteString(fmt.Sprintf("%s (%s)  ", m.Address, m.DatastoreRole))
+				members = append(members, fmt.Sprintf("%s (%s)", m.Address, m.DatastoreRole))
 			}
 		}
+		result.WriteString(strings.Join(members, ", "))
 	} else {
 		result.WriteString("none")
 	}
