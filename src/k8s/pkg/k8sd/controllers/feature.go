@@ -78,31 +78,31 @@ func (c *FeatureController) Run(
 	c.waitReady()
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 
-	go c.reconcileLoop(ctx, getClusterConfig, "network", c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, "network", c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyNetwork(ctx, c.snap, cfg.Network, cfg.Annotations)
-	}, setFeatureStatus)
+	})
 
-	go c.reconcileLoop(ctx, getClusterConfig, "gateway", c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, "gateway", c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
-	}, setFeatureStatus)
+	})
 
-	go c.reconcileLoop(ctx, getClusterConfig, "ingress", c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, "ingress", c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
-	}, setFeatureStatus)
+	})
 
-	go c.reconcileLoop(ctx, getClusterConfig, "load-balancer", c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, "load-balancer", c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
-	}, setFeatureStatus)
+	})
 
-	go c.reconcileLoop(ctx, getClusterConfig, "local-storage", c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, "local-storage", c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyLocalStorage(ctx, c.snap, cfg.LocalStorage, cfg.Annotations)
-	}, setFeatureStatus)
+	})
 
-	go c.reconcileLoop(ctx, getClusterConfig, "metrics-server", c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, "metrics-server", c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return features.Implementation.ApplyMetricsServer(ctx, c.snap, cfg.MetricsServer, cfg.Annotations)
-	}, setFeatureStatus)
+	})
 
-	go c.reconcileLoop(ctx, getClusterConfig, "dns", c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, "dns", c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		featureStatus, dnsIP, err := features.Implementation.ApplyDNS(ctx, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
 
 		if err != nil {
@@ -117,15 +117,15 @@ func (c *FeatureController) Run(
 			}
 		}
 		return featureStatus, nil
-	}, setFeatureStatus)
+	})
 }
 
 func (c *FeatureController) reconcile(
 	ctx context.Context,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+	setFeatureStatus func(context.Context, string, types.FeatureStatus) error,
 	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
 	componentName string,
-	setFeatureStatus func(context.Context, string, types.FeatureStatus) error,
 ) error {
 	cfg, err := getClusterConfig(ctx)
 	if err != nil {
@@ -147,18 +147,18 @@ func (c *FeatureController) reconcile(
 func (c *FeatureController) reconcileLoop(
 	ctx context.Context,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+	setFeatureStatus func(ctx context.Context, name string, status types.FeatureStatus) error,
 	componentName string,
 	triggerCh chan struct{},
 	reconciledCh chan<- struct{},
 	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
-	setFeatureStatus func(ctx context.Context, name string, status types.FeatureStatus) error,
 ) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-triggerCh:
-			if err := c.reconcile(ctx, getClusterConfig, apply, componentName, setFeatureStatus); err != nil {
+			if err := c.reconcile(ctx, getClusterConfig, setFeatureStatus, apply, componentName); err != nil {
 				log.FromContext(ctx).WithValues("feature", componentName).Error(err, "Failed to apply feature configuration")
 
 				// notify triggerCh after 5 seconds to retry
