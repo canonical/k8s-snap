@@ -88,6 +88,17 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 				AccessHandler:  ValidateWorkerInfoAccessHandler("worker-name", "worker-token"),
 			},
 		},
+		// Certificates
+		{
+			Name: "RefreshCerts/Plan",
+			Path: "k8sd/refresh-certs/plan",
+			Post: rest.EndpointAction{Handler: e.postRefreshCertsPlan},
+		},
+		{
+			Name: "RefreshCerts/Run",
+			Path: "k8sd/refresh-certs/run",
+			Post: rest.EndpointAction{Handler: e.postRefreshCertsRun},
+		},
 		// Kubeconfig
 		{
 			Name: "Kubeconfig",
