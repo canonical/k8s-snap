@@ -137,8 +137,10 @@ def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
 
 
 def wait_until_k8s_ready(
-    control_node: harness.Instance, instances: List[harness.Instance],
-    retries: int = 15, delay_s: int = 5,
+    control_node: harness.Instance,
+    instances: List[harness.Instance],
+    retries: int = 15,
+    delay_s: int = 5,
 ):
     """
     Validates that the K8s node is in Ready state.

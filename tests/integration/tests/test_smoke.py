@@ -2,8 +2,8 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import json
-import re
 import logging
+import re
 from typing import List
 
 import pytest
@@ -109,5 +109,4 @@ def test_smoke(instances: List[harness.Instance]):
         r"gateway\s*enabled",
     ]
     for line, pattern in zip(result.stdout.decode().split("\n"), patterns):
-        assert re.search(pattern, line), "%s did not match %s".format(line, pattern)
-        
+        assert re.search(pattern, line)
