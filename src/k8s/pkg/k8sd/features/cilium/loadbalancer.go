@@ -44,6 +44,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 	if err := enableLoadBalancer(ctx, snap, loadbalancer, network); err != nil {
 		enableErr := fmt.Errorf("failed to enable LoadBalancer: %w", err)
 		status.Message = fmt.Sprintf(lbDeployFailedMsgTmpl, enableErr)
+		status.Enabled = false
 		return status, enableErr
 	}
 

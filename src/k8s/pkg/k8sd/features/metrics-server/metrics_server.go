@@ -47,6 +47,7 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsSe
 		if cfg.GetEnabled() {
 			enableErr := fmt.Errorf("failed to install metrics server chart: %w", err)
 			status.Message = fmt.Sprintf(deployFailedMsgTmpl, enableErr)
+			status.Enabled = false
 			return status, enableErr
 		} else {
 			disableErr := fmt.Errorf("failed to delete metrics server chart: %w", err)

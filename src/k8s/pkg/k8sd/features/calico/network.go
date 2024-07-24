@@ -46,6 +46,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	if err != nil {
 		cfgErr := fmt.Errorf("failed to parse annotations: %w", err)
 		status.Message = fmt.Sprintf(deployFailedMsgTmpl, cfgErr)
+		status.Enabled = false
 		return status, cfgErr
 	}
 
@@ -54,6 +55,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	if err != nil {
 		cidrErr := fmt.Errorf("invalid pod cidr: %v", err)
 		status.Message = fmt.Sprintf(deployFailedMsgTmpl, cidrErr)
+		status.Enabled = false
 		return status, cidrErr
 	}
 	if ipv4PodCIDR != "" {
@@ -76,6 +78,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	if err != nil {
 		cidrErr := fmt.Errorf("invalid service cidr: %v", err)
 		status.Message = fmt.Sprintf(deployFailedMsgTmpl, cidrErr)
+		status.Enabled = false
 		return status, cidrErr
 	}
 	if ipv4ServiceCIDR != "" {
@@ -120,6 +123,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	if _, err := m.Apply(ctx, chartCalico, helm.StatePresent, values); err != nil {
 		enableErr := fmt.Errorf("failed to enable network: %w", err)
 		status.Message = fmt.Sprintf(deployFailedMsgTmpl, enableErr)
+		status.Enabled = false
 		return status, enableErr
 	}
 

@@ -33,6 +33,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		if gateway.GetEnabled() {
 			enableErr := fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 			status.Message = fmt.Sprintf(gatewayDeployFailedMsgTmpl, enableErr)
+			status.Enabled = false
 			return status, enableErr
 		} else {
 			disableErr := fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
@@ -46,6 +47,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		if gateway.GetEnabled() {
 			enableErr := fmt.Errorf("failed to install Gateway API GatewayClass: %w", err)
 			status.Message = fmt.Sprintf(gatewayDeployFailedMsgTmpl, enableErr)
+			status.Enabled = false
 			return status, enableErr
 		} else {
 			disableErr := fmt.Errorf("failed to install Gateway API GatewayClass: %w", err)
@@ -59,6 +61,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		if gateway.GetEnabled() {
 			enableErr := fmt.Errorf("failed to apply Gateway API cilium configuration: %w", err)
 			status.Message = fmt.Sprintf(gatewayDeployFailedMsgTmpl, enableErr)
+			status.Enabled = false
 			return status, enableErr
 		} else {
 			disableErr := fmt.Errorf("failed to apply Gateway API cilium configuration: %w", err)
@@ -86,6 +89,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	if err := rolloutRestartCilium(ctx, snap, 3); err != nil {
 		resErr := fmt.Errorf("failed to rollout restart cilium to apply Gateway API: %w", err)
 		status.Message = fmt.Sprintf(gatewayDeployFailedMsgTmpl, resErr)
+		status.Enabled = false
 		return status, resErr
 	}
 

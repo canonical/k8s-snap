@@ -56,6 +56,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 		if network.GetEnabled() {
 			enableErr := fmt.Errorf("failed to enable ingress: %w", err)
 			status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, enableErr)
+			status.Enabled = false
 			return status, enableErr
 		} else {
 			disableErr := fmt.Errorf("failed to disable ingress: %w", err)
@@ -84,6 +85,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 	if err := rolloutRestartCilium(ctx, snap, 3); err != nil {
 		restartErr := fmt.Errorf("failed to rollout restart cilium to apply ingress: %w", err)
 		status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, restartErr)
+		status.Enabled = false
 		return status, restartErr
 	}
 

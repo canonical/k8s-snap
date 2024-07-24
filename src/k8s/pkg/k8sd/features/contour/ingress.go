@@ -47,12 +47,14 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	if err := applyCommonContourCRDS(ctx, snap, true); err != nil {
 		crdErr := fmt.Errorf("failed to apply common contour CRDS: %w", err)
 		status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, crdErr)
+		status.Enabled = false
 		return status, crdErr
 	}
 
 	if err := waitForRequiredContourCommonCRDs(ctx, snap); err != nil {
 		waitErr := fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
 		status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, waitErr)
+		status.Enabled = false
 		return status, waitErr
 	}
 
@@ -92,6 +94,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	if err != nil {
 		enableErr := fmt.Errorf("failed to enable ingress: %w", err)
 		status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, enableErr)
+		status.Enabled = false
 		return status, enableErr
 	}
 
@@ -99,6 +102,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		if err := rolloutRestartContour(ctx, snap, 3); err != nil {
 			resErr := fmt.Errorf("failed to rollout restart contour to apply ingress: %w", err)
 			status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, resErr)
+			status.Enabled = false
 			return status, resErr
 		}
 	}
@@ -113,6 +117,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		if _, err := m.Apply(ctx, chartDefaultTLS, helm.StatePresent, values); err != nil {
 			tlsErr := fmt.Errorf("failed to install the delegation resource for default TLS secret: %w", err)
 			status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, tlsErr)
+			status.Enabled = false
 			return status, tlsErr
 		}
 		status.Message = enabledMsg
@@ -122,6 +127,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	if _, err := m.Apply(ctx, chartDefaultTLS, helm.StateDeleted, nil); err != nil {
 		tlsErr := fmt.Errorf("failed to uninstall the delegation resource for default TLS secret: %w", err)
 		status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, tlsErr)
+		status.Enabled = false
 		return status, tlsErr
 
 	}

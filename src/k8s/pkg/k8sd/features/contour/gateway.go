@@ -46,12 +46,14 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	if err := applyCommonContourCRDS(ctx, snap, true); err != nil {
 		crdErr := fmt.Errorf("failed to apply common contour CRDS: %w", err)
 		status.Message = fmt.Sprintf(gatewayDeployFailedMsgTmpl, crdErr)
+		status.Enabled = false
 		return status, crdErr
 	}
 
 	if err := waitForRequiredContourCommonCRDs(ctx, snap); err != nil {
 		waitErr := fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
 		status.Message = fmt.Sprintf(gatewayDeployFailedMsgTmpl, waitErr)
+		status.Enabled = false
 		return status, waitErr
 	}
 
@@ -73,6 +75,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, values); err != nil {
 		installErr := fmt.Errorf("failed to install the contour gateway chart: %w", err)
 		status.Message = fmt.Sprintf(gatewayDeployFailedMsgTmpl, installErr)
+		status.Enabled = false
 		return status, installErr
 	}
 

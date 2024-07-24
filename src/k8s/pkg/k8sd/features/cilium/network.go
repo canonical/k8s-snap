@@ -47,6 +47,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 	if err != nil {
 		cidrErr := fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", err)
 		status.Message = fmt.Sprintf(networkDeployFailedMsgTmpl, cidrErr)
+		status.Enabled = false
 		return status, cidrErr
 	}
 
@@ -94,6 +95,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 		if err != nil {
 			mntErr := fmt.Errorf("failed to get bpf mount path: %w", err)
 			status.Message = fmt.Sprintf(networkDeployFailedMsgTmpl, mntErr)
+			status.Enabled = false
 			return status, mntErr
 		}
 
@@ -101,6 +103,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 		if err != nil {
 			cgrpErr := fmt.Errorf("failed to get cgroup2 mount path: %w", err)
 			status.Message = fmt.Sprintf(networkDeployFailedMsgTmpl, cgrpErr)
+			status.Enabled = false
 			return status, cgrpErr
 		}
 
@@ -121,6 +124,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 		if err != nil {
 			mntErr := fmt.Errorf("failed to get mount propagation for %s: %w", p, err)
 			status.Message = fmt.Sprintf(networkDeployFailedMsgTmpl, mntErr)
+			status.Enabled = false
 			return status, mntErr
 		}
 		if p == "private" {
@@ -131,11 +135,13 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 			if onLXD {
 				lxdErr := fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
 				status.Message = fmt.Sprintf(networkDeployFailedMsgTmpl, lxdErr)
+				status.Enabled = false
 				return status, lxdErr
 			}
 
 			sysErr := fmt.Errorf("/sys is not a shared mount")
 			status.Message = fmt.Sprintf(networkDeployFailedMsgTmpl, sysErr)
+			status.Enabled = false
 			return status, sysErr
 		}
 	}
@@ -143,6 +149,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 	if _, err := m.Apply(ctx, chartCilium, helm.StatePresent, values); err != nil {
 		enableErr := fmt.Errorf("failed to enable network: %w", err)
 		status.Message = fmt.Sprintf(networkDeployFailedMsgTmpl, enableErr)
+		status.Enabled = false
 		return status, enableErr
 	}
 

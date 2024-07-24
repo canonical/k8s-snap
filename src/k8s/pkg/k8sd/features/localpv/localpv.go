@@ -67,6 +67,7 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 		if cfg.GetEnabled() {
 			enableErr := fmt.Errorf("failed to install rawfile-csi helm package: %w", err)
 			status.Message = fmt.Sprintf(deployFailedMsgTmpl, enableErr)
+			status.Enabled = false
 			return status, enableErr
 		} else {
 			disableErr := fmt.Errorf("failed to delete rawfile-csi helm package: %w", err)
