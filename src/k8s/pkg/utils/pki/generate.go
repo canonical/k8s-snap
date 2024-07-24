@@ -122,3 +122,36 @@ func GenerateRSAKey(bits int) (string, string, error) {
 
 	return string(privPEM), string(pubPEM), nil
 }
+
+func GenerateCSR(subject pkix.Name, bits int, priv any, dnsSANs []string, ipSANs []net.IP) (string, string, error) {
+	key, err := rsa.GenerateKey(rand.Reader, bits)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate RSA private key: %w", err)
+	}
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+	if keyPEM == nil {
+		return "", "", fmt.Errorf("failed to encode private key PEM")
+	}
+
+	if priv == nil {
+		priv = key
+	}
+
+	csrKubeletServingTemplate := &x509.CertificateRequest{
+		Subject:     subject,
+		DNSNames:    dnsSANs,
+		IPAddresses: ipSANs,
+	}
+
+	csrBytes, err := x509.CreateCertificateRequest(rand.Reader, csrKubeletServingTemplate, key)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to create certificate request: %w", err)
+	}
+
+	csrPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrBytes})
+	if csrPEM == nil {
+		return "", "", fmt.Errorf("failed to encode certificate request PEM")
+	}
+
+	return string(csrPEM), string(keyPEM), nil
+}
