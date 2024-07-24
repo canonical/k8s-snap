@@ -85,8 +85,7 @@ dns:                      enabled at 192.168.0.10
 ingress:                  enabled
 load-balancer:            enabled, L2 mode
 local-storage:            enabled at /var/snap/k8s/common/rawfile-storage
-gateway                   enabled
-`,
+gateway                   enabled`,
 		},
 		{
 			name: "External Datastore",
@@ -108,8 +107,7 @@ dns:                      enabled at 192.168.0.10
 ingress:                  disabled
 load-balancer:            disabled
 local-storage:            disabled
-gateway                   disabled
-`,
+gateway                   disabled`,
 		},
 		{
 			name: "Cluster not ready, HA not formed, no nodes",
@@ -128,8 +126,7 @@ dns:                      disabled
 ingress:                  disabled
 load-balancer:            disabled
 local-storage:            disabled
-gateway                   disabled
-`,
+gateway                   disabled`,
 		},
 	}
 

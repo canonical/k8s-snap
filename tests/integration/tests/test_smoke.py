@@ -2,6 +2,7 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import json
+import re
 import logging
 from typing import List
 
@@ -23,7 +24,7 @@ def test_smoke(instances: List[harness.Instance]):
     )
 
     instance.exec(["k8s", "bootstrap", "--file", bootstrap_smoke_config_path])
-    util.wait_until_k8s_ready(instance, [instance])
+    util.wait_until_k8s_ready(instance, [instance], retries=120, delay_s=10)
 
     # Verify the functionality of the k8s config command during the smoke test.
     # It would be excessive to deploy a cluster solely for this purpose.
@@ -92,3 +93,21 @@ def test_smoke(instances: List[harness.Instance]):
     assert (
         metadata.get("token") is not None
     ), "Token not found in the generate-join-token response."
+
+    # Verify output of the k8s status
+    result = instance.exec(["k8s", "status"], capture_output=True)
+    patterns = [
+        r"cluster status:\s*ready",
+        r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
+        r"high availability:\s*no",
+        r"datastore:\s*k8s-dqlite",
+        r"network:\s*enabled",
+        r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
+        r"ingress:\s*enabled",
+        r"load-balancer:\s*enabled, Unknown mode",
+        r"local-storage:\s*enabled at /var/snap/k8s/common/rawfile-storage",
+        r"gateway\s*enabled",
+    ]
+    for line, pattern in zip(result.stdout.decode().split("\n"), patterns):
+        assert re.search(pattern, line), "%s did not match %s".format(line, pattern)
+        

@@ -2,6 +2,7 @@
 /stage/
 /prime/
 .vscode/
+env/
 
 
 **.snap

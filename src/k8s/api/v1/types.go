@@ -146,7 +146,7 @@ func (c ClusterStatus) String() string {
 	result.WriteString(fmt.Sprintf("%-25s %s\n", "ingress:", c.Ingress))
 	result.WriteString(fmt.Sprintf("%-25s %s\n", "load-balancer:", c.LoadBalancer))
 	result.WriteString(fmt.Sprintf("%-25s %s\n", "local-storage:", c.LocalStorage))
-	result.WriteString(fmt.Sprintf("%-25s %s\n", "gateway", c.Gateway))
+	result.WriteString(fmt.Sprintf("%-25s %s", "gateway", c.Gateway))
 
 	return result.String()
 }

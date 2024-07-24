@@ -136,14 +136,17 @@ def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
     instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
 
 
-# Validates that the K8s node is in Ready state.
 def wait_until_k8s_ready(
-    control_node: harness.Instance, instances: List[harness.Instance]
+    control_node: harness.Instance, instances: List[harness.Instance],
+    retries: int = 15, delay_s: int = 5,
 ):
+    """
+    Validates that the K8s node is in Ready state.
+    """
     for instance in instances:
         host = hostname(instance)
         result = (
-            stubbornly(retries=15, delay_s=5)
+            stubbornly(retries=retries, delay_s=delay_s)
             .on(control_node)
             .until(lambda p: " Ready" in p.stdout.decode())
             .exec(["k8s", "kubectl", "get", "node", host, "--no-headers"])
