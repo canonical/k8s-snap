@@ -2,9 +2,12 @@ package snap
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 
+	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 )
 
@@ -50,6 +53,30 @@ func (s *pebble) StopService(ctx context.Context, name string) error {
 // RestartService restarts a k8s service. The name can be either prefixed or not.
 func (s *pebble) RestartService(ctx context.Context, name string) error {
 	return s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", "pebble"), "restart", name})
+}
+
+func (s *pebble) Refresh(ctx context.Context, to types.RefreshOpts) error {
+	switch {
+	case to.Revision != "":
+		return fmt.Errorf("pebble does not support refreshing to a revision, only a local path")
+	case to.Channel != "":
+		return fmt.Errorf("pebble does not support refreshing to a channel, only a local path")
+	case to.LocalPath != "":
+		// replace the "kubernetes" binary with the new source.
+		// "cp -f" will replace the binary in case it's currently in use.
+		if err := s.runCommand(ctx, []string{"cp", "-f", to.LocalPath, filepath.Join(s.snapDir, "bin", "kubernetes")}); err != nil {
+			return fmt.Errorf("failed to update the kubernetes binary: %w", err)
+		}
+		// restart services if already running.
+		for _, service := range []string{"kube-apiserver", "kubelet", "kube-controller-manager", "kube-proxy", "kube-scheduler"} {
+			if err := s.RestartService(ctx, service); err != nil {
+				log.FromContext(ctx).WithValues("service", service).Error(err, "Warning: failed to restart after updating kubernetes binary")
+			}
+		}
+		return nil
+	default:
+		return fmt.Errorf("empty refresh options")
+	}
 }
 
 func (s *pebble) Strict() bool {

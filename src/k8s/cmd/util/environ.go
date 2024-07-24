@@ -33,8 +33,9 @@ func DefaultExecutionEnvironment() ExecutionEnvironment {
 	switch os.Getenv("K8SD_RUNTIME_ENVIRONMENT") {
 	case "", "snap":
 		s = snap.NewSnap(snap.SnapOpts{
-			SnapDir:       os.Getenv("SNAP"),
-			SnapCommonDir: os.Getenv("SNAP_COMMON"),
+			SnapDir:          os.Getenv("SNAP"),
+			SnapCommonDir:    os.Getenv("SNAP_COMMON"),
+			SnapInstanceName: os.Getenv("SNAP_INSTANCE_NAME"),
 		})
 	case "pebble":
 		s = snap.NewPebble(snap.PebbleOpts{

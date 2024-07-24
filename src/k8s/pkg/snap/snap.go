@@ -21,16 +21,18 @@ import (
 )
 
 type SnapOpts struct {
-	SnapDir       string
-	SnapCommonDir string
-	RunCommand    func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+	SnapInstanceName string
+	SnapDir          string
+	SnapCommonDir    string
+	RunCommand       func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
 }
 
 // snap implements the Snap interface.
 type snap struct {
-	snapDir       string
-	snapCommonDir string
-	runCommand    func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+	snapDir          string
+	snapCommonDir    string
+	snapInstanceName string
+	runCommand       func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
 }
 
 // NewSnap creates a new interface with the K8s snap.
@@ -65,6 +67,24 @@ func (s *snap) StopService(ctx context.Context, name string) error {
 func (s *snap) RestartService(ctx context.Context, name string) error {
 	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Restarting service", "service", name)
 	return s.runCommand(ctx, []string{"snapctl", "restart", serviceName(name)})
+}
+
+// Refresh refreshes the snap to a different track, revision or custom snap.
+func (s *snap) Refresh(ctx context.Context, to types.RefreshOpts) error {
+	if s.Strict() {
+		return fmt.Errorf("refresh operation not available on strictly confined deployments")
+	}
+
+	switch {
+	case to.Channel != "":
+		return s.runCommand(ctx, []string{"snap", "refresh", s.snapInstanceName, "--amend", "--channel", to.Channel})
+	case to.Revision != "":
+		return s.runCommand(ctx, []string{"snap", "refresh", s.snapInstanceName, "--amend", "--revision", to.Revision})
+	case to.LocalPath != "":
+		return s.runCommand(ctx, []string{"snap", "install", to.LocalPath, "--classic", "--dangerous", "--name", s.snapInstanceName})
+	default:
+		return fmt.Errorf("empty refresh options")
+	}
 }
 
 type snapcraftYml struct {
