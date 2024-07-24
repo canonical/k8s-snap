@@ -55,6 +55,9 @@ type Snap struct {
 	RestartServiceCalledWith []string
 	RestartServiceErr        error
 
+	RefreshCalledWith []types.RefreshOpts
+	RefreshErr        error
+
 	SnapctlSetCalledWith [][]string
 	SnapctlSetErr        error
 	SnapctlGetCalledWith [][]string
@@ -89,6 +92,14 @@ func (s *Snap) RestartService(ctx context.Context, name string) error {
 		s.RestartServiceCalledWith = append(s.RestartServiceCalledWith, name)
 	}
 	return s.RestartServiceErr
+}
+func (s *Snap) Refresh(ctx context.Context, opts types.RefreshOpts) error {
+	if len(s.RefreshCalledWith) == 0 {
+		s.RefreshCalledWith = []types.RefreshOpts{opts}
+	} else {
+		s.RefreshCalledWith = append(s.RefreshCalledWith, opts)
+	}
+	return s.RefreshErr
 }
 
 func (s *Snap) Strict() bool {
