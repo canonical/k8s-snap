@@ -105,5 +105,12 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Path: "x/capi/remove-node",
 			Post: rest.EndpointAction{Handler: e.postClusterRemove, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
 		},
+		// Snap refreshes
+		{
+			Name: "SnapRefresh",
+			Path: "snap/refresh",
+			// TODO: authentication
+			Post: rest.EndpointAction{Handler: e.postSnapRefresh},
+		},
 	}
 }
