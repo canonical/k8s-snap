@@ -1,8 +1,6 @@
 /parts/
 /stage/
 /prime/
-.vscode/
-env/
 
 
 **.snap
