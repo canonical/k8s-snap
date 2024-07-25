@@ -11,7 +11,7 @@ involves fetching the executable that matches your hardware architecture and
 placing it in your PATH. For example, at the time this guide was written,
 for `amd64` you would run:
 
-```sh
+```
 curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.3/clusterctl-linux-amd64 -o clusterctl
 sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 ```
@@ -22,7 +22,7 @@ sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 Kubernetes is not yet part of that list. To make `clusterctl` aware of the
 Canonical K8s providers, we need to add a clusterctl configuration file.
 
-```sh
+```
 mkdir -p ~/.config/cluster-api
 curl -L https://raw.githubusercontent.com/canonical/cluster-api-k8s/main/clusterctl.yaml -o ~/.config/cluster-api/clusterctl.yaml
 ```
@@ -32,7 +32,7 @@ curl -L https://raw.githubusercontent.com/canonical/cluster-api-k8s/main/cluster
 The management cluster hosts the CAPI providers. You can use Canonical
 Kubernetes as a management cluster:
 
-```sh
+```
 sudo snap install k8s --classic --edge
 sudo k8s bootstrap
 sudo k8s status --wait-ready
@@ -50,13 +50,13 @@ Before generating a cluster, you need to configure the infrastructure provider.
 Each provider has its own prerequisites. Please follow the instructions
 for your provider:
 
-````{tabs}
-```{group-tab} AWS
+`````{tabs}
+````{group-tab} AWS
 
 The AWS infrastructure provider requires the `clusterawsadm` tool to be
 installed:
 
-```sh
+```
 curl -L https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v2.5.2/clusterawsadm-linux-amd64 -o clusterawsadm
 chmod +x clusterawsadm
 sudo mv clusterawsadm /usr/local/bin
@@ -68,7 +68,7 @@ It will also create the necessary IAM roles for you.
 Start by setting up environment variables defining the AWS account to use, if
 these are not already defined:
 
-```sh
+```
 export AWS_REGION=<your-region-eg-us-east-1>
 export AWS_ACCESS_KEY_ID=<your-access-key>
 export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
@@ -76,34 +76,34 @@ export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
 
 If you are using multi-factor authentication, you will also need:
 
-```sh
+```
 export AWS_SESSION_TOKEN=<session-token>
 ```
 
 `clusterawsadm` uses these details to create a [CloudFormation] stack in your
 AWS account with the correct [IAM] resources:
 
-```sh
+```
 clusterawsadm bootstrap iam create-cloudformation-stack
 ```
 
 The credentials need to be encoded and stored as a Kubernetes secret:
 
-```sh
+```
 export AWS_B64ENCODED_CREDENTIALS=$(clusterawsadm bootstrap credentials encode-as-profile)
 ```
 
 You are now all set to deploy the AWS CAPI infrastructure provider.
 
-```
 ````
+`````
 
 ### Initialise the management cluster
 
 To initialise the management cluster with the latest released version of the
 providers and the infrastructure of your choice:
 
-```sh
+```
 clusterctl init --bootstrap ck8s --control-plane ck8s -i <infra-provider-of-choice>
 ```
 
@@ -118,23 +118,24 @@ infrastructures via templates provided by the Canonical Kubernetes team.
 Ensure you have initialized the desired infrastructure provider and fetch
 the Canonical Kubernetes provider repository:
 
-```sh
+```
 git clone https://github.com/canonical/cluster-api-k8s
 ```
 
 Review the list of variables needed for the cluster template:
 
-```sh
+```
 cd cluster-api-k8s
-clusterctl generate cluster <cluster-name> --from ./templates/<infrastructure-provider>/cluster-template.yaml --list-variables
+export CLUSTER_NAME=yourk8scluster
+clusterctl generate cluster ${CLUSTER_NAME} --from ./templates/<infrastructure-provider>/cluster-template.yaml --list-variables
 ```
 
 Set the respective environment variables by editing the rc file as needed
 before sourcing it. Then generate the cluster manifest:
 
-```sh
+```
 source ./templates/<infrastructure-provider>/template-variables.rc
-clusterctl generate cluster <cluster-name> --from ./templates/<infrastructure-provider>/cluster-template.yaml > cluster.yaml
+clusterctl generate cluster ${CLUSTER_NAME} --from ./templates/<infrastructure-provider>/cluster-template.yaml > cluster.yaml
 ```
 
 Each provisioned node is associated with a `CK8sConfig`, through which you can
@@ -146,38 +147,38 @@ your needs.
 
 To deploy the cluster, run:
 
-```sh
+```
 sudo k8s kubectl apply -f cluster.yaml
 ```
 
 For an overview of the cluster status, run:
 
-```sh
-clusterctl describe cluster <cluster-name>
+```
+clusterctl describe cluster ${CLUSTER_NAME}
 ```
 
 To get the list of provisioned clusters:
 
-```sh
+```
 sudo k8s kubectl get clusters
 ```
 
 To see the deployed machines:
 
-```sh
+```
 sudo k8s kubectl get machine
 ```
 
 After the first control plane node is provisioned, you can get the kubeconfig
 of the workload cluster:
 
-```sh
-clusterctl get kubeconfig <cluster-name> > <cluster-name>-kubeconfig
+```
+clusterctl get kubeconfig ${CLUSTER_NAME} ${CLUSTER_NAME}-kubeconfig
 ```
 
 You can then see the workload nodes using:
 
-```sh
+```
 KUBECONFIG=./kubeconfig sudo k8s kubectl get node
 ```
 
@@ -185,8 +186,8 @@ KUBECONFIG=./kubeconfig sudo k8s kubectl get node
 
 To delete a cluster:
 
-```sh
-sudo k8s kubectl delete cluster <cluster-name>
+```
+sudo k8s kubectl delete cluster ${CLUSTER_NAME}
 ```
 
 <!-- Links -->
