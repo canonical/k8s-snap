@@ -24,7 +24,7 @@ def test_smoke(instances: List[harness.Instance]):
     )
 
     instance.exec(["k8s", "bootstrap", "--file", bootstrap_smoke_config_path])
-    util.wait_until_k8s_ready(instance, [instance], retries=120, delay_s=10)
+    util.wait_until_k8s_ready(instance, [instance])
 
     # Verify the functionality of the k8s config command during the smoke test.
     # It would be excessive to deploy a cluster solely for this purpose.
