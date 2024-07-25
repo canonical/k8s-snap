@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
 	"os"
@@ -11,6 +12,8 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/log"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils/control"
+	"github.com/canonical/microcluster/cluster"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -22,6 +25,23 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 
 	log := log.FromContext(ctx).WithValues("hook", "preremove")
 	log.Info("Running preremove hook")
+
+	log.Info("Waiting for node to finish microcluster join before removing")
+	control.WaitUntilReady(ctx, func() (bool, error) {
+		var notPending bool
+		if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+			member, err := cluster.GetCoreClusterMember(ctx, tx, s.Name())
+			if err != nil {
+				log.Error(err, "Failed to get member")
+				return nil
+			}
+			notPending = member.Role != cluster.Pending
+			return nil
+		}); err != nil {
+			log.Error(err, "Failed database transaction to check cluster member role")
+		}
+		return notPending, nil
+	})
 
 	cfg, clusterConfigErr := databaseutil.GetClusterConfig(ctx, s)
 	if clusterConfigErr == nil {
