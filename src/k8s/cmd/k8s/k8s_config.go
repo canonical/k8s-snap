@@ -32,11 +32,7 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if _, err := client.NodeStatus(cmd.Context()); err != nil {
-				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
-				env.Exit(1)
-				return
-			}
+			_ = GetNodeStatus(client, cmd, env)
 
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
