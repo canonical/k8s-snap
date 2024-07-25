@@ -99,12 +99,6 @@ github.com/canonical/go-dqlite v1.21.0 h1:4gLDdV2GF+vg0yv9Ff+mfZZNQ1JGhnQ3GnS2Ge
 github.com/canonical/go-dqlite v1.21.0/go.mod h1:Uvy943N8R4CFUAs59A1NVaziWY9nJ686lScY7ywurfg=
 github.com/canonical/lxd v0.0.0-20240709081608-9df996e36bac h1:WqXeS0uyAAmFB9aflCucb/pPZzIdivO9uG4tWw7CEAw=
 github.com/canonical/lxd v0.0.0-20240709081608-9df996e36bac/go.mod h1:S2MXobHv9Wh6cpr3biLo2Kq0vqK2/PxpFuE/8ZsNDic=
-github.com/canonical/microcluster v0.0.0-20240722073116-183d7507f23d h1:th1ltweHrEhL5pnudhUf1xM8OWPt/0CDeH9zjYuVY74=
-github.com/canonical/microcluster v0.0.0-20240722073116-183d7507f23d/go.mod h1:ldDJ32PQhoc7sTSkQnUs2CQPnjUOkkXrzlbUaq9EIPI=
-github.com/canonical/microcluster v0.0.0-20240724075211-f187a3a3f80a h1:4dkjukX/df6MF0AuEKrv0p2Jf7vPMmnF6aJr3IDvnAc=
-github.com/canonical/microcluster v0.0.0-20240724075211-f187a3a3f80a/go.mod h1:lNqWvK6yu9NZuZs7kvYsRlpK/lmOTEJsOxplgfzyais=
-github.com/canonical/microcluster v0.0.0-20240724145117-e7fce6564cbe h1:lEp7DabzOm+1bxfXkFa7ayb+B72ZwloJy6qzrwjQoxc=
-github.com/canonical/microcluster v0.0.0-20240724145117-e7fce6564cbe/go.mod h1:lNqWvK6yu9NZuZs7kvYsRlpK/lmOTEJsOxplgfzyais=
 github.com/canonical/microcluster v0.0.0-20240725000112-da36ecbd845e h1:a/YDYYSWFO/Z1AJAKnfkVLBunLLSauuCBRU23Jzd/Do=
 github.com/canonical/microcluster v0.0.0-20240725000112-da36ecbd845e/go.mod h1:lNqWvK6yu9NZuZs7kvYsRlpK/lmOTEJsOxplgfzyais=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
