@@ -13,6 +13,10 @@ import (
 	"github.com/canonical/lxd/shared/api"
 )
 
+// GetNodeStatus retrieves the NodeStatus from k8sd client.
+// If the daemon is not initialized, it exits with an error
+// describing that the cluster should be bootstrapped.
+// In case of any other errors it exits and shows the error.
 func GetNodeStatus(client k8sd.Client, cmd *cobra.Command, env cmdutil.ExecutionEnvironment) apiv1.NodeStatus {
 	status, err := client.NodeStatus(cmd.Context())
 	if err == nil {
