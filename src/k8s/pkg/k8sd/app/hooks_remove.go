@@ -18,7 +18,7 @@ import (
 )
 
 // NOTE(ben): the pre-remove performs a series of cleanup steps on a best-effort basis.
-// If any of the steps fail, the error is logged and the cleanup continues, with depdent tasks being skipped.
+// If any step fails, the error is logged, and the cleanup continues, skipping dependent tasks.
 // All steps need to be blocking as the context is cancelled after the hook returned.
 func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr error) {
 	snap := a.Snap()
