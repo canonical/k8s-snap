@@ -24,7 +24,15 @@ func newKubectlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if status := GetNodeStatus(client, cmd, env); status.ClusterRole == apiv1.ClusterRoleWorker {
+			if status, isBootstrapped, err := cmdutil.GetNodeStatus(cmd.Context(), client, env); !isBootstrapped {
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				env.Exit(1)
+				return
+			} else if err != nil {
+				cmd.PrintErrf("Error: Failed to retrieve the node status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			} else if status.ClusterRole == apiv1.ClusterRoleWorker {
 				cmd.PrintErrln("Error: k8s kubectl commands are not allowed on worker nodes.")
 				env.Exit(1)
 				return
