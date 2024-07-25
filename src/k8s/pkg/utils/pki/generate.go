@@ -123,6 +123,7 @@ func GenerateRSAKey(bits int) (string, string, error) {
 	return string(privPEM), string(pubPEM), nil
 }
 
+// GenerateCSR generates a certificate signing request (CSR) and private key for the given subject.
 func GenerateCSR(subject pkix.Name, bits int, priv any, dnsSANs []string, ipSANs []net.IP) (string, string, error) {
 	key, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
