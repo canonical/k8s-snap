@@ -14,7 +14,7 @@ func (e *Endpoints) getNodeStatus(s *state.State, r *http.Request) response.Resp
 
 	status, err := impl.GetLocalNodeStatus(r.Context(), s, snap)
 	if err != nil {
-		response.InternalError(err)
+		return response.InternalError(err)
 	}
 
 	result := apiv1.GetNodeStatusResponse{
