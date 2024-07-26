@@ -4,6 +4,7 @@
 import json
 import logging
 import re
+import time
 from typing import List
 
 import pytest
@@ -95,7 +96,7 @@ def test_smoke(instances: List[harness.Instance]):
     ), "Token not found in the generate-join-token response."
 
     # Verify output of the k8s status
-    result = instance.exec(["k8s", "status"], capture_output=True)
+    result = instance.exec(["k8s", "status", "--wait-ready"], capture_output=True)
     patterns = [
         r"cluster status:\s*ready",
         r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
@@ -108,5 +109,25 @@ def test_smoke(instances: List[harness.Instance]):
         r"local-storage:\s*enabled at /var/snap/k8s/common/rawfile-storage",
         r"gateway\s*enabled",
     ]
-    for line, pattern in zip(result.stdout.decode().split("\n"), patterns):
-        assert re.search(pattern, line)
+    assert len(result.stdout.decode().strip().split("\n")) == len(patterns)
+
+    for i in range(len(patterns)):
+        timeout = 120  # seconds
+        t0 = time.time()
+        while (
+            time.time() - t0 < timeout
+        ):  # because some features might take time to get enabled
+            result_lines = (
+                instance.exec(["k8s", "status", "--wait-ready"], capture_output=True)
+                .stdout.decode().strip()
+                .split("\n")
+            )
+            line, pattern = result_lines[i], patterns[i]
+            if re.search(pattern, line) is not None:
+                break
+            LOG.info(f"Waiting for \"{line}\" to change...")
+            time.sleep(10)
+        else:
+            assert (
+                re.search(pattern, line) is not None
+            ), f'"Wait timed out. {pattern}" not found in "{line}"'
