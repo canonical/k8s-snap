@@ -119,13 +119,14 @@ def test_smoke(instances: List[harness.Instance]):
         ):  # because some features might take time to get enabled
             result_lines = (
                 instance.exec(["k8s", "status", "--wait-ready"], capture_output=True)
-                .stdout.decode().strip()
+                .stdout.decode()
+                .strip()
                 .split("\n")
             )
             line, pattern = result_lines[i], patterns[i]
             if re.search(pattern, line) is not None:
                 break
-            LOG.info(f"Waiting for \"{line}\" to change...")
+            LOG.info(f'Waiting for "{line}" to change...')
             time.sleep(10)
         else:
             assert (
