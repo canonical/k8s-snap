@@ -16,15 +16,12 @@ CILIUM_CLI_ARCH_MAP = {"aarch64": "arm64", "x86_64": "amd64"}
 CILIUM_CLI_VERSION = "v0.16.3"
 CILIUM_CLI_TAR_GZ = f"https://github.com/cilium/cilium-cli/releases/download/{CILIUM_CLI_VERSION}/cilium-linux-{CILIUM_CLI_ARCH_MAP.get(ARCH)}.tar.gz"  # noqa
 
-print("-----------------")
-print(os.environ)
-print("-----------------")
 
 @pytest.mark.skipif(
     ARCH not in CILIUM_CLI_ARCH_MAP, reason=f"Platform {ARCH} not supported"
 )
 @pytest.mark.skipif(
-    os.environ.get("GITHUB_ACTIONS", False),
+    os.getenv("GITHUB_ACTIONS") == "true",
     reason="Test is known to be flaky on GitHub Actions",
 )
 def test_cilium_e2e(instances: List[harness.Instance]):
