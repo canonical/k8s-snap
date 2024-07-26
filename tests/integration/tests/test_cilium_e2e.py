@@ -21,7 +21,7 @@ CILIUM_CLI_TAR_GZ = f"https://github.com/cilium/cilium-cli/releases/download/{CI
     ARCH not in CILIUM_CLI_ARCH_MAP, reason=f"Platform {ARCH} not supported"
 )
 @pytest.mark.skipif(
-    os.getenv("RUN_CILIUM_E2E_TEST") == "true",
+    os.getenv("TEST_CILIUM_E2E") == "true",
     reason="Test is known to be flaky on GitHub Actions",
 )
 def test_cilium_e2e(instances: List[harness.Instance]):
