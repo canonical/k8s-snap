@@ -23,10 +23,6 @@ const (
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
-	status := types.FeatureStatus{
-		Version: ciliumAgentImageTag,
-		Enabled: ingress.GetEnabled(),
-	}
 	m := snap.HelmClient()
 
 	var values map[string]any
@@ -54,41 +50,58 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
 	if err != nil {
 		if network.GetEnabled() {
-			enableErr := fmt.Errorf("failed to enable ingress: %w", err)
-			status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, enableErr)
-			status.Enabled = false
-			return status, enableErr
+			err = fmt.Errorf("failed to enable ingress: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ciliumAgentImageTag,
+				Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+			}, err
 		} else {
-			disableErr := fmt.Errorf("failed to disable ingress: %w", err)
-			status.Message = fmt.Sprintf(ingressDeleteFailedMsgTmpl, disableErr)
-			return status, disableErr
+			err = fmt.Errorf("failed to disable ingress: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ciliumAgentImageTag,
+				Message: fmt.Sprintf(ingressDeleteFailedMsgTmpl, err),
+			}, err
 		}
 	}
 
 	if !changed {
 		if ingress.GetEnabled() {
-			status.Message = enabledMsg
-			return status, nil
+			return types.FeatureStatus{
+				Enabled: true,
+				Version: ciliumAgentImageTag,
+				Message: enabledMsg,
+			}, nil
 		} else {
-			status.Message = disabledMsg
-			status.Version = ""
-			return status, nil
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ciliumAgentImageTag,
+				Message: disabledMsg,
+			}, nil
 		}
 	}
 
 	if !ingress.GetEnabled() {
-		status.Message = disabledMsg
-		status.Version = ""
-		return status, nil
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: disabledMsg,
+		}, nil
 	}
 
 	if err := rolloutRestartCilium(ctx, snap, 3); err != nil {
-		restartErr := fmt.Errorf("failed to rollout restart cilium to apply ingress: %w", err)
-		status.Message = fmt.Sprintf(ingressDeployFailedMsgTmpl, restartErr)
-		status.Enabled = false
-		return status, restartErr
+		err = fmt.Errorf("failed to rollout restart cilium to apply ingress: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+		}, err
 	}
 
-	status.Message = enabledMsg
-	return status, nil
+	return types.FeatureStatus{
+		Enabled: true,
+		Version: ciliumAgentImageTag,
+		Message: enabledMsg,
+	}, nil
 }

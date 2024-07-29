@@ -25,36 +25,41 @@ const (
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
-	status := types.FeatureStatus{
-		Version: contourGatewayProvisionerContourImageTag,
-		Enabled: gateway.GetEnabled(),
-	}
 	m := snap.HelmClient()
 
 	if !gateway.GetEnabled() {
 		if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
-			delErr := fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
-			status.Message = fmt.Sprintf(gatewayDeleteFailedMsgTmpl, delErr)
-			return status, delErr
+			err = fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: contourGatewayProvisionerContourImageTag,
+				Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+			}, err
 		}
-		status.Message = disabledMsg
-		status.Version = ""
-		return status, nil
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourGatewayProvisionerContourImageTag,
+			Message: disabledMsg,
+		}, nil
 	}
 
 	// Apply common contour CRDS, these are shared with ingress
 	if err := applyCommonContourCRDS(ctx, snap, true); err != nil {
-		crdErr := fmt.Errorf("failed to apply common contour CRDS: %w", err)
-		status.Message = fmt.Sprintf(gatewayDeployFailedMsgTmpl, crdErr)
-		status.Enabled = false
-		return status, crdErr
+		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourGatewayProvisionerContourImageTag,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
 	}
 
 	if err := waitForRequiredContourCommonCRDs(ctx, snap); err != nil {
-		waitErr := fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
-		status.Message = fmt.Sprintf(gatewayDeployFailedMsgTmpl, waitErr)
-		status.Enabled = false
-		return status, waitErr
+		err = fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourGatewayProvisionerContourImageTag,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
 	}
 
 	values := map[string]any{
@@ -73,14 +78,19 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	}
 
 	if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, values); err != nil {
-		installErr := fmt.Errorf("failed to install the contour gateway chart: %w", err)
-		status.Message = fmt.Sprintf(gatewayDeployFailedMsgTmpl, installErr)
-		status.Enabled = false
-		return status, installErr
+		err = fmt.Errorf("failed to install the contour gateway chart: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourGatewayProvisionerContourImageTag,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
 	}
 
-	status.Message = enabledMsg
-	return status, nil
+	return types.FeatureStatus{
+		Enabled: true,
+		Version: contourGatewayProvisionerContourImageTag,
+		Message: enabledMsg,
+	}, nil
 }
 
 // waitForRequiredContourCommonCRDs waits for the required contour CRDs to be available

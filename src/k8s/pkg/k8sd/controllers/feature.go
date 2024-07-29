@@ -131,8 +131,7 @@ func (c *FeatureController) reconcile(
 		return fmt.Errorf("failed to retrieve cluster configuration: %w", err)
 	}
 
-	featureStatus, err := apply(cfg)
-	if err != nil {
+	if featureStatus, err := apply(cfg); err != nil {
 		return fmt.Errorf("failed to apply configuration: %w", err)
 	} else if err := updateFeatureStatus(ctx, featureStatus); err != nil {
 		return fmt.Errorf("failed to update feature status: %w", err)

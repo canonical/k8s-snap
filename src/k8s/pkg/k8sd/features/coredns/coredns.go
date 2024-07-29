@@ -26,21 +26,22 @@ const (
 // ApplyDNS returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.Kubelet, _ types.Annotations) (types.FeatureStatus, string, error) {
-	status := types.FeatureStatus{
-		Version: imageTag,
-		Enabled: dns.GetEnabled(),
-	}
 	m := snap.HelmClient()
 
 	if !dns.GetEnabled() {
 		if _, err := m.Apply(ctx, chart, helm.StateDeleted, nil); err != nil {
-			delErr := fmt.Errorf("failed to uninstall coredns: %w", err)
-			status.Message = fmt.Sprintf(deleteFailedMsgTmpl, delErr)
-			return status, "", delErr
+			err = fmt.Errorf("failed to uninstall coredns: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: imageTag,
+				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
+			}, "", err
 		}
-		status.Message = disabledMsg
-		status.Version = ""
-		return status, "", nil
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: disabledMsg,
+		}, "", nil
 	}
 
 	values := map[string]any{
@@ -82,27 +83,36 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 	}
 
 	if _, err := m.Apply(ctx, chart, helm.StatePresent, values); err != nil {
-		applyErr := fmt.Errorf("failed to apply coredns: %w", err)
-		status.Message = fmt.Sprintf(deployFailedMsgTmpl, applyErr)
-		status.Enabled = false
-		return status, "", applyErr
+		err = fmt.Errorf("failed to apply coredns: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, "", err
 	}
 
 	client, err := snap.KubernetesClient("")
 	if err != nil {
-		clientErr := fmt.Errorf("failed to create kubernetes client: %w", err)
-		status.Message = fmt.Sprintf(deployFailedMsgTmpl, clientErr)
-		status.Enabled = false
-		return status, "", clientErr
+		err = fmt.Errorf("failed to create kubernetes client: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, "", err
 	}
 	dnsIP, err := client.GetServiceClusterIP(ctx, "coredns", "kube-system")
 	if err != nil {
-		retErr := fmt.Errorf("failed to retrieve the coredns service: %w", err)
-		status.Message = fmt.Sprintf(deployFailedMsgTmpl, retErr)
-		status.Enabled = false
-		return status, "", retErr
+		err = fmt.Errorf("failed to retrieve the coredns service: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, "", err
 	}
 
-	status.Message = fmt.Sprintf(enabledMsgTmpl, dnsIP)
-	return status, dnsIP, nil
+	return types.FeatureStatus{
+		Enabled: true,
+		Version: imageTag,
+		Message: fmt.Sprintf(enabledMsgTmpl, dnsIP),
+	}, dnsIP, err
 }

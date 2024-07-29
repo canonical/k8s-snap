@@ -23,10 +23,6 @@ const (
 // ApplyMetricsServer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsServer, annotations types.Annotations) (types.FeatureStatus, error) {
-	status := types.FeatureStatus{
-		Version: imageTag,
-		Enabled: cfg.GetEnabled(),
-	}
 	m := snap.HelmClient()
 
 	config := internalConfig(annotations)
@@ -45,22 +41,33 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsSe
 	_, err := m.Apply(ctx, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
 	if err != nil {
 		if cfg.GetEnabled() {
-			enableErr := fmt.Errorf("failed to install metrics server chart: %w", err)
-			status.Message = fmt.Sprintf(deployFailedMsgTmpl, enableErr)
-			status.Enabled = false
-			return status, enableErr
+			err = fmt.Errorf("failed to install metrics server chart: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: imageTag,
+				Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+			}, err
 		} else {
-			disableErr := fmt.Errorf("failed to delete metrics server chart: %w", err)
-			status.Message = fmt.Sprintf(deleteFailedMsgTmpl, disableErr)
-			return status, disableErr
+			err = fmt.Errorf("failed to delete metrics server chart: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: imageTag,
+				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
+			}, err
 		}
 	} else {
 		if cfg.GetEnabled() {
-			status.Message = enabledMsg
-			return status, nil
+			return types.FeatureStatus{
+				Enabled: true,
+				Version: imageTag,
+				Message: enabledMsg,
+			}, nil
 		} else {
-			status.Message = disabledMsg
-			return status, nil
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: imageTag,
+				Message: disabledMsg,
+			}, nil
 		}
 	}
 }

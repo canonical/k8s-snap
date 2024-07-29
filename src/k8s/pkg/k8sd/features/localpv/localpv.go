@@ -23,10 +23,6 @@ const (
 // ApplyLocalStorage returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStorage, _ types.Annotations) (types.FeatureStatus, error) {
-	status := types.FeatureStatus{
-		Version: imageTag,
-		Enabled: cfg.GetEnabled(),
-	}
 	m := snap.HelmClient()
 
 	values := map[string]any{
@@ -62,26 +58,35 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 		},
 	}
 
-	_, err := m.Apply(ctx, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
-	if err != nil {
+	if _, err := m.Apply(ctx, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values); err != nil {
 		if cfg.GetEnabled() {
-			enableErr := fmt.Errorf("failed to install rawfile-csi helm package: %w", err)
-			status.Message = fmt.Sprintf(deployFailedMsgTmpl, enableErr)
-			status.Enabled = false
-			return status, enableErr
+			err = fmt.Errorf("failed to install rawfile-csi helm package: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: imageTag,
+				Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+			}, err
 		} else {
-			disableErr := fmt.Errorf("failed to delete rawfile-csi helm package: %w", err)
-			status.Message = fmt.Sprintf(deleteFailedMsgTmpl, disableErr)
-			return status, disableErr
+			err = fmt.Errorf("failed to delete rawfile-csi helm package: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: imageTag,
+				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
+			}, err
 		}
+	}
+
+	if cfg.GetEnabled() {
+		return types.FeatureStatus{
+			Enabled: true,
+			Version: imageTag,
+			Message: fmt.Sprintf(enabledMsg, cfg.GetLocalPath()),
+		}, nil
 	} else {
-		if cfg.GetEnabled() {
-			status.Message = fmt.Sprintf(enabledMsg, cfg.GetLocalPath())
-			return status, nil
-		} else {
-			status.Version = ""
-			status.Message = disabledMsg
-			return status, nil
-		}
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: disabledMsg,
+		}, nil
 	}
 }
