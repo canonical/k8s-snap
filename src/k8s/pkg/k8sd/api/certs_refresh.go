@@ -137,30 +137,55 @@ func refreshCertsPlanWorker(s *state.State, r *http.Request, snap snap.Snap) res
 	}
 
 	log.Info("Writing new private keys")
-	err = os.WriteFile(filepath.Join(snap.KubernetesPKIDir(), "kubelet.key.new"), []byte(pKeyKubeletServing), 0600)
+	operations := []utils.FileOperations{
+		{
+			SourcePath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.key.tmp"),
+			Content:     []byte(pKeyKubeletServing),
+			Permissions: 0600,
+		},
+		{
+			SourcePath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet-client.key.tmp"),
+			Content:     []byte(pKeyKubeletClient),
+			Permissions: 0600,
+		},
+		{
+			SourcePath:  filepath.Join(snap.KubernetesPKIDir(), "kube-proxy.key.tmp"),
+			Content:     []byte(pKeyKubeProxy),
+			Permissions: 0600,
+		},
+	}
+
+	err = utils.WriteFiles(operations)
 	if err != nil {
 		return response.InternalError(err)
 	}
-	err = os.WriteFile(filepath.Join(snap.KubernetesPKIDir(), "kubelet-client.key.new"), []byte(pKeyKubeletClient), 0600)
-	if err != nil {
-		return response.InternalError(err)
-	}
-	err = os.WriteFile(filepath.Join(snap.KubernetesPKIDir(), "kube-proxy.key.new"), []byte(pKeyKubeProxy), 0600)
-	if err != nil {
-		return response.InternalError(err)
-	}
+
 	return response.SyncResponse(true, &result)
 
 }
 
 func (e *Endpoints) postRefreshCertsRun(s *state.State, r *http.Request) response.Response {
-	// TODO: Control Plane refresh
+	snap := e.provider.Snap()
+	isWorker, err := snaputil.IsWorker(snap)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to check if node is a worker: %w", err))
+	}
+	if isWorker {
+		return refreshCertsRunWorker(r, snap)
+
+	} else {
+		// TODO: Control Plane refresh
+		return response.InternalError(fmt.Errorf("not implemented yet"))
+	}
+}
+
+// refreshCertsRunWorker refreshes the certificates for a worker node
+func refreshCertsRunWorker(r *http.Request, snap snap.Snap) response.Response {
 	log := log.FromContext(r.Context())
 	req := apiv1.RefreshCertificatesRunRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
-	snap := e.provider.Snap()
 
 	client, err := snap.KubernetesNodeClient("")
 	if err != nil {
@@ -174,6 +199,32 @@ func (e *Endpoints) postRefreshCertsRun(s *state.State, r *http.Request) respons
 
 	certificates := pki.WorkerNodePKI{}
 
+	operations := []utils.FileOperations{
+		{
+			SourcePath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
+			BackupPath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt.bak"),
+			Permissions: 0600,
+		},
+		{
+			SourcePath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.key"),
+			BackupPath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.key.bak"),
+			Permissions: 0600,
+		},
+		{
+			SourcePath:  filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
+			BackupPath:  filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf.bak"),
+			Permissions: 0600,
+		},
+		{
+			SourcePath:  filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"),
+			BackupPath:  filepath.Join(snap.KubernetesConfigDir(), "proxy.conf.bak"),
+			Permissions: 0600,
+		},
+	}
+
+	log.Info("Backing up kubelet and kube-proxy certificates and configurations")
+	utils.BackupFiles(operations)
+
 	log.Info("Checking if the CSRs have been approved and issued")
 	for _, csrName := range csrNames {
 		csr, err := client.GetCertificateSigningRequest(r.Context(), csrName)
@@ -181,7 +232,7 @@ func (e *Endpoints) postRefreshCertsRun(s *state.State, r *http.Request) respons
 			return response.InternalError(err)
 		}
 
-		if !isCertificateSigningRequestApproved(csr.Status.Conditions) {
+		if !isCertificateSigningRequestApproved(csr) {
 			log.Error(fmt.Errorf("CSR %s has not been approved", csrName), "CSR has not been approved")
 			return response.InternalError(fmt.Errorf("CSR %s has not been approved", csrName))
 		}
@@ -221,17 +272,17 @@ func (e *Endpoints) postRefreshCertsRun(s *state.State, r *http.Request) respons
 	}
 
 	// Read the new private keys
-	bytesKubeletKey, err := os.ReadFile(filepath.Join(snap.KubernetesPKIDir(), "kubelet.key.new"))
+	bytesKubeletKey, err := os.ReadFile(filepath.Join(snap.KubernetesPKIDir(), "kubelet.key.tmp"))
 	if err != nil {
 		return response.InternalError(err)
 	}
 
-	bytesKubeletClientKey, err := os.ReadFile(filepath.Join(snap.KubernetesPKIDir(), "kubelet-client.key.new"))
+	bytesKubeletClientKey, err := os.ReadFile(filepath.Join(snap.KubernetesPKIDir(), "kubelet-client.key.tmp"))
 	if err != nil {
 		return response.InternalError(err)
 	}
 
-	bytesKubeProxyKey, err := os.ReadFile(filepath.Join(snap.KubernetesPKIDir(), "kube-proxy.key.new"))
+	bytesKubeProxyKey, err := os.ReadFile(filepath.Join(snap.KubernetesPKIDir(), "kube-proxy.key.tmp"))
 	if err != nil {
 		return response.InternalError(err)
 	}
@@ -267,13 +318,13 @@ func (e *Endpoints) postRefreshCertsRun(s *state.State, r *http.Request) respons
 
 	// Remove the new private keys
 	log.Info("Removing temporal private keys")
-	if err := os.Remove(filepath.Join(snap.KubernetesPKIDir(), "kubelet.key.new")); err != nil {
+	if err := os.Remove(filepath.Join(snap.KubernetesPKIDir(), "kubelet.key.tmp")); err != nil {
 		return response.InternalError(err)
 	}
-	if err := os.Remove(filepath.Join(snap.KubernetesPKIDir(), "kubelet-client.key.new")); err != nil {
+	if err := os.Remove(filepath.Join(snap.KubernetesPKIDir(), "kubelet-client.key.tmp")); err != nil {
 		return response.InternalError(err)
 	}
-	if err := os.Remove(filepath.Join(snap.KubernetesPKIDir(), "kube-proxy.key.new")); err != nil {
+	if err := os.Remove(filepath.Join(snap.KubernetesPKIDir(), "kube-proxy.key.tmp")); err != nil {
 		return response.InternalError(err)
 	}
 
@@ -282,8 +333,8 @@ func (e *Endpoints) postRefreshCertsRun(s *state.State, r *http.Request) respons
 }
 
 // isCertificateSigningRequestApproved checks if the certificate signing request is approved.
-func isCertificateSigningRequestApproved(conditions []v1.CertificateSigningRequestCondition) bool {
-	for _, condition := range conditions {
+func isCertificateSigningRequestApproved(csr *v1.CertificateSigningRequest) bool {
+	for _, condition := range csr.Status.Conditions {
 		if condition.Type == v1.CertificateApproved && condition.Status == corev1.ConditionTrue {
 			return true
 		}
