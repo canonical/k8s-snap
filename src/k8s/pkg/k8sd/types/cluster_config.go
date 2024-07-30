@@ -3,6 +3,7 @@ package types
 type ClusterConfig struct {
 	Certificates Certificates `json:"certificates,omitempty"`
 	Datastore    Datastore    `json:"datastore,omitempty"`
+	K8sd         K8sd         `json:"k8sd,omitempty"`
 	APIServer    APIServer    `json:"apiserver,omitempty"`
 	Kubelet      Kubelet      `json:"kubelet,omitempty"`
 	Containerd   Containerd   `json:"containerd,omitempty"`

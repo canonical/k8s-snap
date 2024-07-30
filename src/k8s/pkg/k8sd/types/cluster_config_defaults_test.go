@@ -1,8 +1,9 @@
 package types_test
 
 import (
-	"github.com/canonical/k8s/pkg/utils"
 	"testing"
+
+	"github.com/canonical/k8s/pkg/utils"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	. "github.com/onsi/gomega"
@@ -26,6 +27,9 @@ func TestSetDefaults(t *testing.T) {
 		Datastore: types.Datastore{
 			Type:          utils.Pointer("k8s-dqlite"),
 			K8sDqlitePort: utils.Pointer(9000),
+		},
+		K8sd: types.K8sd{
+			ShouldRemoveK8sNode: utils.Pointer(false),
 		},
 		Kubelet: types.Kubelet{
 			ClusterDomain: utils.Pointer("cluster.local"),

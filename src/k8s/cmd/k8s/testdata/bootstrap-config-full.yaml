@@ -29,6 +29,7 @@ disable-rbac: false
 secure-port: 6443
 k8s-dqlite-port: 9090
 datastore-type: k8s-dqlite
+should-remove-k8s-node: true
 extra-sans:
 - custom.kubernetes
 extra-node-config-files:

@@ -75,14 +75,18 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Error(clusterConfigErr, "Failed to retrieve cluster config")
 	}
 
-	c, err := snap.KubernetesClient("")
-	if err != nil {
-		log.Error(err, "Failed to create Kubernetes client", err)
-	}
+	if cfg.K8sd.GetShouldRemoveK8sNode() {
+		c, err := snap.KubernetesClient("")
+		if err != nil {
+			log.Error(err, "Failed to create Kubernetes client", err)
+		}
 
-	log.Info("Deleting node from Kubernetes cluster")
-	if err := c.DeleteNode(ctx, s.Name()); err != nil {
-		log.Error(err, "Failed to remove k8s node %q: %w", s.Name(), err)
+		log.Info("Deleting node from Kubernetes cluster")
+		if err := c.DeleteNode(ctx, s.Name()); err != nil {
+			log.Error(err, "Failed to remove k8s node %q: %w", s.Name(), err)
+		}
+	} else {
+		log.Info("Skip removing k8s node")
 	}
 
 	for _, dir := range []string{snap.ServiceArgumentsDir()} {
