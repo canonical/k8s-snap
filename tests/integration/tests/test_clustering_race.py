@@ -22,5 +22,5 @@ def test_wrong_token_race(instances: List[harness.Instance]):
 
     # The join token should have changed after the node was removed as
     # it contains the ip addresses of all cluster nodes.
-    assert new_join_token != another_join_token
+    assert new_join_token != another_join_token, "join token is not updated after node removal"
     util.join_cluster(instances[2], new_join_token)
