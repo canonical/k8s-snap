@@ -117,7 +117,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 
 	if clusterConfigErr == nil {
 		log.Info("Stopping control plane services")
-		if err := stopControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
+		if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
 			log.Error(err, "Failed to stop control-plane services")
 		}
 	}
