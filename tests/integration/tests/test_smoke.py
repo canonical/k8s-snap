@@ -14,18 +14,9 @@ LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(1)
-@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.bootstrap_config(config.MANIFESTS_DIR / "bootstrap-smoke.yaml")
 def test_smoke(instances: List[harness.Instance]):
     instance = instances[0]
-
-    bootstrap_smoke_config_path = "/home/ubuntu/bootstrap-smoke.yaml"
-    instance.send_file(
-        (config.MANIFESTS_DIR / "bootstrap-smoke.yaml").as_posix(),
-        bootstrap_smoke_config_path,
-    )
-
-    instance.exec(["k8s", "bootstrap", "--file", bootstrap_smoke_config_path])
-    util.wait_until_k8s_ready(instance, [instance])
 
     # Verify the functionality of the k8s config command during the smoke test.
     # It would be excessive to deploy a cluster solely for this purpose.

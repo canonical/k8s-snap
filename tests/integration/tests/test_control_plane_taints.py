@@ -7,27 +7,19 @@ from typing import List
 
 import pytest
 import yaml
-from test_util import harness, util
+from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(1)
-@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.bootstrap_config(
+    config.MANIFESTS_DIR / "bootstrap-control-plane-taints.yaml"
+)
 def test_control_plane_taints(instances: List[harness.Instance]):
     k8s_instance = instances[0]
-
-    bootstrap_conf = yaml.safe_dump(
-        {"control-plane-taints": ["node-role.kubernetes.io/control-plane:NoSchedule"]}
-    )
-
-    k8s_instance.exec(
-        ["dd", "of=/root/config.yaml"],
-        input=str.encode(bootstrap_conf),
-    )
-
-    k8s_instance.exec(["k8s", "bootstrap", "--file", "/root/config.yaml"])
     retries = 10
+
     while retries and not (nodes := util.get_nodes(k8s_instance)):
         LOG.info("Waiting for Nodes")
         time.sleep(3)
