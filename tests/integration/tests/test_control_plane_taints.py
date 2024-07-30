@@ -6,7 +6,6 @@ import time
 from typing import List
 
 import pytest
-import yaml
 from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)

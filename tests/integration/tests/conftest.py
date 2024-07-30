@@ -53,7 +53,7 @@ def pytest_configure(config):
         "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.\n"
         "dualstack: Support dualstack on the instances.\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
-        "node_count: Mark a test to specify how many instance nodes need to be created\n"
+        "node_count: Mark a test to specify how many instance nodes need to be created\n",
     )
 
 

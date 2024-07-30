@@ -3,7 +3,6 @@
 #
 import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address
-from pathlib import Path
 
 import pytest
 from test_util import config, harness, util
