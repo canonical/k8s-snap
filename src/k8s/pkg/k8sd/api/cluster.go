@@ -41,9 +41,9 @@ func (e *Endpoints) getClusterStatus(s state.State, r *http.Request) response.Re
 	}
 
 	var statuses map[string]types.FeatureStatus
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database().Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		statuses, err = database.GetFeatureStatuses(s.Context, tx)
+		statuses, err = database.GetFeatureStatuses(r.Context(), tx)
 		if err != nil {
 			return fmt.Errorf("failed to get feature statuses: %w", err)
 		}

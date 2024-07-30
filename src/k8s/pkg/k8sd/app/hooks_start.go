@@ -74,7 +74,7 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 				return nil
 			},
 			func(ctx context.Context, name string, featureStatus types.FeatureStatus) error {
-				if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 					// we set timestamp here in order to reduce the clutter. otherwise we will need to
 					// set .UpdatedAt field in a lot of places for every event/error.
 					// this is not 100% accurate but should be good enough
