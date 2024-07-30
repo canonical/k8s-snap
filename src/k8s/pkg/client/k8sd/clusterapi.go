@@ -9,7 +9,7 @@ import (
 )
 
 func (c *k8sd) SetClusterAPIAuthToken(ctx context.Context, request apiv1.SetClusterAPIAuthTokenRequest) error {
-	if err := c.client.Query(ctx, "POST", api.NewURL().Path("x", "capi", "set-auth-token"), request, nil); err != nil {
+	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path("x", "capi", "set-auth-token"), request, nil); err != nil {
 		return fmt.Errorf("failed to POST /x/capi/set-auth-token: %w", err)
 	}
 	return nil

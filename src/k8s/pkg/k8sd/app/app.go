@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning"
@@ -15,7 +16,6 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/client"
-	"github.com/canonical/microcluster/config"
 	"github.com/canonical/microcluster/microcluster"
 	"github.com/canonical/microcluster/state"
 )
@@ -81,6 +81,7 @@ func New(cfg Config) (*App, error) {
 		cfg.StateDir = cfg.Snap.K8sdStateDir()
 	}
 	cluster, err := microcluster.App(microcluster.Args{
+		Version:  string(apiv1.K8sdAPIVersion),
 		Verbose:  cfg.Verbose,
 		Debug:    cfg.Debug,
 		StateDir: cfg.StateDir,
@@ -171,9 +172,9 @@ func New(cfg Config) (*App, error) {
 
 // Run starts the microcluster node and waits until it terminates.
 // any non-nil customHooks override the default hooks.
-func (a *App) Run(ctx context.Context, customHooks *config.Hooks) error {
+func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 	// TODO: consider improving API for overriding hooks.
-	hooks := &config.Hooks{
+	hooks := &state.Hooks{
 		PostBootstrap: a.onBootstrap,
 		PostJoin:      a.onPostJoin,
 		PreRemove:     a.onPreRemove,
@@ -214,16 +215,18 @@ func (a *App) Run(ctx context.Context, customHooks *config.Hooks) error {
 		}()
 	}
 
-	err := a.cluster.Start(ctx, api.New(a).Endpoints(), database.SchemaExtensions, hooks)
+	a.cluster.AddServers(api.New(ctx, a))
+
+	err := a.cluster.Start(ctx, database.SchemaExtensions, []string{}, hooks)
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
 	}
 	return nil
 }
 
-func (a *App) markNodeReady(ctx context.Context, s *state.State) {
+func (a *App) markNodeReady(ctx context.Context, s state.State) {
 	for {
-		if s.Database.IsOpen() {
+		if err := s.Database().IsOpen(ctx); err == nil {
 			a.readyWg.Done()
 			return
 		}

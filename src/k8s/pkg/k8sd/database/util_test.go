@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/app"
-	"github.com/canonical/microcluster/config"
 	"github.com/canonical/microcluster/state"
 )
 
@@ -67,12 +66,12 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 
 	// app.Run() is blocking, so we get the database handle through a channel
 	go func() {
-		doneCh <- app.Run(ctx, &config.Hooks{
-			PostBootstrap: func(s *state.State, initConfig map[string]string) error {
-				databaseCh <- s.Database
+		doneCh <- app.Run(ctx, &state.Hooks{
+			PostBootstrap: func(ctx context.Context, s state.State, initConfig map[string]string) error {
+				databaseCh <- s.Database()
 				return nil
 			},
-			OnStart: func(s *state.State) error {
+			OnStart: func(ctx context.Context, s state.State) error {
 				return nil
 			},
 		})

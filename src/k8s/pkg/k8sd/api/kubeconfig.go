@@ -12,7 +12,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func (e *Endpoints) getKubeconfig(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) getKubeconfig(s state.State, r *http.Request) response.Response {
 	req := apiv1.GetKubeConfigRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))

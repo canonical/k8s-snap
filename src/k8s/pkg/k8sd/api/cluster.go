@@ -15,17 +15,17 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) getClusterStatus(s state.State, r *http.Request) response.Response {
 	// fail if node is not initialized yet
-	if !s.Database.IsOpen() {
+	if err := s.Database().IsOpen(r.Context()); err != nil {
 		return response.Unavailable(fmt.Errorf("daemon not yet initialized"))
 	}
 
-	members, err := impl.GetClusterMembers(s.Context, s)
+	members, err := impl.GetClusterMembers(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster members: %w", err))
 	}
-	config, err := databaseutil.GetClusterConfig(s.Context, s)
+	config, err := databaseutil.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
@@ -35,15 +35,15 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
 	}
 
-	ready, err := client.HasReadyNodes(s.Context)
+	ready, err := client.HasReadyNodes(r.Context())
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to check if cluster has ready nodes: %w", err))
 	}
 
 	var statuses map[string]types.FeatureStatus
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database().Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		statuses, err = database.GetFeatureStatuses(s.Context, tx)
+		statuses, err = database.GetFeatureStatuses(r.Context(), tx)
 		if err != nil {
 			return fmt.Errorf("failed to get feature statuses: %w", err)
 		}

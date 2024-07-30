@@ -15,7 +15,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) putClusterConfig(s state.State, r *http.Request) response.Response {
 	var req api.UpdateClusterConfigRequest
 
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
@@ -30,7 +30,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 		return response.BadRequest(fmt.Errorf("failed to parse datastore config: %w", err))
 	}
 
-	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database().Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := database.SetClusterConfig(ctx, tx, requestedConfig); err != nil {
 			return fmt.Errorf("failed to update cluster configuration: %w", err)
 		}
@@ -53,7 +53,7 @@ func (e *Endpoints) putClusterConfig(s *state.State, r *http.Request) response.R
 	return response.SyncResponse(true, &api.UpdateClusterConfigResponse{})
 }
 
-func (e *Endpoints) getClusterConfig(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) getClusterConfig(s state.State, r *http.Request) response.Response {
 	config, err := databaseutil.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
