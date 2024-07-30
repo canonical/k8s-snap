@@ -19,7 +19,7 @@ type FileOperations struct {
 func BackupFiles(operations []FileOperations) error {
 	for _, op := range operations {
 		if err := backupFile(op.SourcePath, op.BackupPath); err != nil {
-			return fmt.Errorf("backup failed: %w", err)
+			return fmt.Errorf("failed to backup file %s to %s: %w", op.SourcePath, op.BackupPath, err)
 		}
 	}
 	return nil
@@ -29,7 +29,7 @@ func BackupFiles(operations []FileOperations) error {
 func WriteFiles(operations []FileOperations) error {
 	for _, op := range operations {
 		if err := os.WriteFile(op.SourcePath, op.Content, op.Permissions); err != nil {
-			return fmt.Errorf("failed to write file: %w", err)
+			return fmt.Errorf("failed to write file %s: %w", op.SourcePath, err)
 		}
 	}
 	return nil
@@ -44,7 +44,7 @@ func backupFile(sourcePath, backupPath string) error {
 	return nil
 }
 
-// CopyFiles copies the files in the operations slice perserving the permissions.
+// CopyFiles copies the files in the operations slice preserving the permissions.
 func copyFile(sourcePath, destinationPath string) error {
 	in, err := os.Open(sourcePath)
 	if err != nil {
@@ -63,7 +63,9 @@ func copyFile(sourcePath, destinationPath string) error {
 	}
 	defer out.Close()
 
-	os.Chmod(destinationPath, sourceInfo.Mode())
+	if err := os.Chmod(destinationPath, sourceInfo.Mode()); err != nil {
+		return fmt.Errorf("failed to set permissions on destination file: %w", err)
+	}
 
 	if _, err := io.Copy(in, out); err != nil {
 		return fmt.Errorf("failed to copy file: %w", err)

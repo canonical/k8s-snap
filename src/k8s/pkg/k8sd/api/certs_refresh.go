@@ -32,7 +32,6 @@ func (e *Endpoints) postRefreshCertsPlan(s *state.State, r *http.Request) respon
 	}
 	if isWorker {
 		return refreshCertsPlanWorker(s, r, snap)
-
 	} else {
 		// TODO: Control Plane refresh
 		return response.InternalError(fmt.Errorf("not implemented yet"))
@@ -172,7 +171,6 @@ func (e *Endpoints) postRefreshCertsRun(s *state.State, r *http.Request) respons
 	}
 	if isWorker {
 		return refreshCertsRunWorker(r, snap)
-
 	} else {
 		// TODO: Control Plane refresh
 		return response.InternalError(fmt.Errorf("not implemented yet"))
@@ -202,22 +200,22 @@ func refreshCertsRunWorker(r *http.Request, snap snap.Snap) response.Response {
 	operations := []utils.FileOperations{
 		{
 			SourcePath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
-			BackupPath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt.bak"),
+			BackupPath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt.old"),
 			Permissions: 0600,
 		},
 		{
 			SourcePath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.key"),
-			BackupPath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.key.bak"),
+			BackupPath:  filepath.Join(snap.KubernetesPKIDir(), "kubelet.key.old"),
 			Permissions: 0600,
 		},
 		{
 			SourcePath:  filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
-			BackupPath:  filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf.bak"),
+			BackupPath:  filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf.old"),
 			Permissions: 0600,
 		},
 		{
 			SourcePath:  filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"),
-			BackupPath:  filepath.Join(snap.KubernetesConfigDir(), "proxy.conf.bak"),
+			BackupPath:  filepath.Join(snap.KubernetesConfigDir(), "proxy.conf.old"),
 			Permissions: 0600,
 		},
 	}
@@ -237,7 +235,7 @@ func refreshCertsRunWorker(r *http.Request, snap snap.Snap) response.Response {
 			return response.InternalError(fmt.Errorf("CSR %s has not been approved", csrName))
 		}
 
-		if len(csr.Status.Certificate) == 0 {
+		if !isCertificateSigningRequestIssued(csr) {
 			log.Error(fmt.Errorf("CSR %s has not been issued", csrName), "CSR has not been issued")
 			return response.InternalError(fmt.Errorf("CSR %s has not been issued", csrName))
 		}
@@ -340,4 +338,9 @@ func isCertificateSigningRequestApproved(csr *v1.CertificateSigningRequest) bool
 		}
 	}
 	return false
+}
+
+// isCertificateSigningRequestIssued checks if the certificate signing request is issued.
+func isCertificateSigningRequestIssued(csr *v1.CertificateSigningRequest) bool {
+	return len(csr.Status.Certificate) > 0
 }
