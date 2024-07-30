@@ -14,6 +14,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/net v0.27.0
 	golang.org/x/sys v0.22.0
+	golang.org/x/sync v0.7.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.15.3
 	k8s.io/api v0.30.1
@@ -150,7 +151,6 @@ require (
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/term v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
