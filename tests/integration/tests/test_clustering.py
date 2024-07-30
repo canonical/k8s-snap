@@ -64,3 +64,28 @@ def test_worker_nodes(instances: List[harness.Instance]):
     ] and other_joining_node.id in [
         node["metadata"]["name"] for node in nodes
     ], f"only {cluster_node.id} should be left in cluster"
+
+@pytest.mark.node_count(3)
+def test_no_remove(instances: List[harness.Instance]):
+    cluster_node = instances[0]
+    joining_cp = instances[1]
+    joining_worker = instances[2]
+
+    join_token = util.get_join_token(cluster_node, joining_cp)
+    join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
+    util.join_cluster(joining_cp, join_token)
+    util.join_cluster(joining_worker, join_token)
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "node should have joined cluster"
+
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_cp)
+
+    cluster_node.exec(["k8s", "remove-node", joining_cp.id])
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 1, "node should have been removed from cluster"
+    assert (
+        nodes[0]["metadata"]["name"] == cluster_node.id
+    ), f"only {cluster_node.id} should be left in cluster"
