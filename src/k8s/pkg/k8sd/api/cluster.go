@@ -1,12 +1,16 @@
 package api
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
+	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/state"
 )
@@ -36,6 +40,18 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to check if cluster has ready nodes: %w", err))
 	}
 
+	var statuses map[string]types.FeatureStatus
+	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		statuses, err = database.GetFeatureStatuses(s.Context, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get feature statuses: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return response.InternalError(fmt.Errorf("database transaction failed: %w", err))
+	}
+
 	result := apiv1.GetClusterStatusResponse{
 		ClusterStatus: apiv1.ClusterStatus{
 			Ready:   ready,
@@ -45,6 +61,13 @@ func (e *Endpoints) getClusterStatus(s *state.State, r *http.Request) response.R
 				Type:    config.Datastore.GetType(),
 				Servers: config.Datastore.GetExternalServers(),
 			},
+			DNS:           statuses["dns"].ToAPI(),
+			Network:       statuses["network"].ToAPI(),
+			LoadBalancer:  statuses["load-balancer"].ToAPI(),
+			Ingress:       statuses["ingress"].ToAPI(),
+			Gateway:       statuses["gateway"].ToAPI(),
+			MetricsServer: statuses["metrics-server"].ToAPI(),
+			LocalStorage:  statuses["local-storage"].ToAPI(),
 		},
 	}
 
