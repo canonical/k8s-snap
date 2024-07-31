@@ -3,7 +3,7 @@
 #
 import logging
 from pathlib import Path
-from typing import Generator, List
+from typing import Generator, List, Union
 
 import pytest
 from test_util import config, harness, util
