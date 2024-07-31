@@ -66,7 +66,7 @@ def test_worker_nodes(instances: List[harness.Instance]):
     ], f"only {cluster_node.id} should be left in cluster"
 
 @pytest.mark.node_count(3)
-@pytest.mark.bootstrap_config(config.MANIFESTS_DIR / "bootstrap-no-k8s-node-remove.yaml")
+@pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-no-k8s-node-remove.yaml").read_text())
 def test_no_remove(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp = instances[1]
