@@ -27,7 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (e *Endpoints) postRefreshCertsPlan(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) response.Response {
 	log := log.FromContext(r.Context())
 
 	log.Info("Generating random seed for certificates refresh")
@@ -56,7 +56,7 @@ func (e *Endpoints) postRefreshCertsPlan(s *state.State, r *http.Request) respon
 
 }
 
-func (e *Endpoints) postRefreshCertsRun(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postRefreshCertsRun(s state.State, r *http.Request) response.Response {
 	snap := e.provider.Snap()
 	isWorker, err := snaputil.IsWorker(snap)
 	if err != nil {
@@ -70,7 +70,7 @@ func (e *Endpoints) postRefreshCertsRun(s *state.State, r *http.Request) respons
 }
 
 // refreshCertsRunWorker refreshes the certificates for a worker node
-func refreshCertsRunWorker(s *state.State, r *http.Request, snap snap.Snap) response.Response {
+func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) response.Response {
 	log := log.FromContext(r.Context())
 
 	req := apiv1.RefreshCertificatesRunRequest{}
