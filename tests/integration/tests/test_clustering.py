@@ -5,7 +5,7 @@ import logging
 from typing import List
 
 import pytest
-from test_util import harness, util, config
+from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
 
@@ -65,8 +65,11 @@ def test_worker_nodes(instances: List[harness.Instance]):
         node["metadata"]["name"] for node in nodes
     ], f"only {cluster_node.id} should be left in cluster"
 
+
 @pytest.mark.node_count(3)
-@pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-no-k8s-node-remove.yaml").read_text())
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-no-k8s-node-remove.yaml").read_text()
+)
 def test_no_remove(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp = instances[1]
