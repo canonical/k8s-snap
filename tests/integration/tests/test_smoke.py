@@ -4,13 +4,26 @@
 import json
 import logging
 import re
-import time
+import subprocess
 from typing import List
 
 import pytest
 from test_util import config, harness
 
 LOG = logging.getLogger(__name__)
+
+STATUS_PATTERNS = [
+    r"cluster status:\s*ready",
+    r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
+    r"high availability:\s*no",
+    r"datastore:\s*k8s-dqlite",
+    r"network:\s*enabled",
+    r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
+    r"ingress:\s*enabled",
+    r"load-balancer:\s*enabled, Unknown mode",
+    r"local-storage:\s*enabled at /var/snap/k8s/common/rawfile-storage",
+    r"gateway\s*enabled",
+]
 
 
 @pytest.mark.node_count(1)
@@ -88,40 +101,23 @@ def test_smoke(instances: List[harness.Instance]):
         metadata.get("token") is not None
     ), "Token not found in the generate-join-token response."
 
-    # Verify output of the k8s status
-    result = instance.exec(["k8s", "status", "--wait-ready"], capture_output=True)
-    patterns = [
-        r"cluster status:\s*ready",
-        r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
-        r"high availability:\s*no",
-        r"datastore:\s*k8s-dqlite",
-        r"network:\s*enabled",
-        r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
-        r"ingress:\s*enabled",
-        r"load-balancer:\s*enabled, Unknown mode",
-        r"local-storage:\s*enabled at /var/snap/k8s/common/rawfile-storage",
-        r"gateway\s*enabled",
-    ]
-    assert len(result.stdout.decode().strip().split("\n")) == len(patterns)
-
-    for i in range(len(patterns)):
-        timeout = 120  # seconds
-        t0 = time.time()
-        while (
-            time.time() - t0 < timeout
-        ):  # because some features might take time to get enabled
-            result_lines = (
-                instance.exec(["k8s", "status", "--wait-ready"], capture_output=True)
-                .stdout.decode()
-                .strip()
-                .split("\n")
+    def status_output_matches(p: subprocess.CompletedProcess) -> bool:
+        result_lines = p.stdout.decode().strip().split("\n")
+        if len(result_lines) != len(STATUS_PATTERNS):
+            LOG.info(
+                f"wrong number of results lines, expected {len(STATUS_PATTERNS)}, got {len(result_lines)}"
             )
-            line, pattern = result_lines[i], patterns[i]
-            if re.search(pattern, line) is not None:
-                break
-            LOG.info(f'Waiting for "{line}" to change...')
-            time.sleep(10)
-        else:
-            assert (
-                re.search(pattern, line) is not None
-            ), f'"Wait timed out. {pattern}" not found in "{line}"'
+            return False
+
+        for i in range(len(result_lines)):
+            line, pattern = result_lines[i], STATUS_PATTERNS[i]
+            if re.search(pattern, line) is None:
+                LOG.info(f"could not match `{line.strip()}` with `{pattern}`")
+                return False
+
+        return True
+
+    LOG.info("Verifying the output of `k8s status`")
+    util.stubbornly(retries=10, delay_s=10).on(instance).until(
+        condition=status_output_matches,
+    ).exec(["k8s", "status", "--wait-ready"])
