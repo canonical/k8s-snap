@@ -229,7 +229,15 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		return response.InternalError(err)
 	}
 
-	return response.SyncResponse(true, nil)
+	cert, _, err := pkiutil.LoadCertificate(certificates.KubeletCert, "")
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to load kubelet certificate: %w", err))
+	}
+
+	expirationDuration := cert.NotAfter.Sub(cert.NotBefore)
+	return response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
+		ExpirationSeconds: int(expirationDuration.Seconds()),
+	})
 
 }
 
