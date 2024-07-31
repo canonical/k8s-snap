@@ -12,7 +12,7 @@ import (
 )
 
 // GetClusterMembers retrieves information about the members of the cluster.
-func GetClusterMembers(ctx context.Context, s *state.State) ([]apiv1.NodeStatus, error) {
+func GetClusterMembers(ctx context.Context, s state.State) ([]apiv1.NodeStatus, error) {
 	c, err := s.Leader()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get leader client: %w", err)
@@ -38,7 +38,7 @@ func GetClusterMembers(ctx context.Context, s *state.State) ([]apiv1.NodeStatus,
 
 // GetLocalNodeStatus retrieves the status of the local node, including its roles within the cluster.
 // Unlike "GetClusterMembers" this also works on a worker node.
-func GetLocalNodeStatus(ctx context.Context, s *state.State, snap snap.Snap) (apiv1.NodeStatus, error) {
+func GetLocalNodeStatus(ctx context.Context, s state.State, snap snap.Snap) (apiv1.NodeStatus, error) {
 	// Determine cluster role.
 	clusterRole := apiv1.ClusterRoleUnknown
 	isWorker, err := snaputil.IsWorker(snap)

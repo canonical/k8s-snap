@@ -20,6 +20,10 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 		return fmt.Errorf("failed to retrieve cluster nodes")
 	}
 
+	if len(members) == 1 {
+		return fmt.Errorf("only node in cluster cannot be removed")
+	}
+
 	var (
 		memberExists, clusterHasOtherVoters bool
 		memberToRemove                      NodeInfo

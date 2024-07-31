@@ -10,18 +10,62 @@ import (
 	"github.com/canonical/k8s/pkg/utils/control"
 )
 
-func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) error {
+const (
+	enabledMsgTmpl      = "enabled, %s mode"
+	disabledMsg         = "disabled"
+	deleteFailedMsgTmpl = "Failed to delete MetalLB, the error was: %v"
+	deployFailedMsgTmpl = "Failed to deploy MetalLB, the error was: %v"
+)
+
+// ApplyLoadBalancer will always return a FeatureStatus indicating the current status of the
+// deployment.
+// ApplyLoadBalancer returns an error if anything fails. The error is also wrapped in the .Message field of the
+// returned FeatureStatus.
+func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	if !loadbalancer.GetEnabled() {
 		if err := disableLoadBalancer(ctx, snap, network); err != nil {
-			return fmt.Errorf("failed to disable LoadBalancer: %w", err)
+			err = fmt.Errorf("failed to disable LoadBalancer: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: controllerImageTag,
+				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
+			}, err
 		}
-		return nil
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: controllerImageTag,
+			Message: disabledMsg,
+		}, nil
 	}
 
 	if err := enableLoadBalancer(ctx, snap, loadbalancer, network); err != nil {
-		return fmt.Errorf("failed to enable LoadBalancer: %w", err)
+		err = fmt.Errorf("failed to enable LoadBalancer: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: controllerImageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
 	}
-	return nil
+
+	if loadbalancer.GetBGPMode() {
+		return types.FeatureStatus{
+			Enabled: true,
+			Version: controllerImageTag,
+			Message: fmt.Sprintf(enabledMsgTmpl, "BGP"),
+		}, nil
+	} else if loadbalancer.GetL2Mode() {
+		return types.FeatureStatus{
+			Enabled: true,
+			Version: controllerImageTag,
+			Message: fmt.Sprintf(enabledMsgTmpl, "L2"),
+		}, nil
+	} else {
+		return types.FeatureStatus{
+			Enabled: true,
+			Version: controllerImageTag,
+			Message: fmt.Sprintf(enabledMsgTmpl, "Unknown"),
+		}, nil
+	}
 }
 
 func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Network) error {

@@ -16,6 +16,7 @@ var (
 		schemaApplyMigration("kubernetes-auth-tokens", "000-create.sql"),
 		schemaApplyMigration("cluster-configs", "000-create.sql"),
 		schemaApplyMigration("worker-tokens", "000-create.sql"),
+		schemaApplyMigration("feature-status", "000-feature-status.sql"),
 	}
 
 	//go:embed sql/migrations

@@ -9,6 +9,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	disabledMsg = "disabled"
+	enabledMsg  = "enabled"
+)
+
 func CheckNetwork(ctx context.Context, snap snap.Snap) error {
 	client, err := snap.KubernetesClient("kube-system")
 	if err != nil {

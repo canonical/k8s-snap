@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -65,57 +64,50 @@ func TestString(t *testing.T) {
 			clusterStatus: apiv1.ClusterStatus{
 				Ready: true,
 				Members: []apiv1.NodeStatus{
-					{Name: "node1", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.1"},
-					{Name: "node2", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.2"},
-					{Name: "node3", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.3"},
+					{Name: "node1", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.1", ClusterRole: apiv1.ClusterRoleControlPlane},
+					{Name: "node2", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.2", ClusterRole: apiv1.ClusterRoleControlPlane},
+					{Name: "node3", DatastoreRole: apiv1.DatastoreRoleStandBy, Address: "192.168.0.3", ClusterRole: apiv1.ClusterRoleControlPlane},
 				},
-				Config: apiv1.UserFacingClusterConfig{
-					Network: apiv1.NetworkConfig{Enabled: utils.Pointer(true)},
-					DNS:     apiv1.DNSConfig{Enabled: utils.Pointer(true)},
-				},
-				Datastore: apiv1.Datastore{Type: "k8s-dqlite"},
+				Datastore:    apiv1.Datastore{Type: "k8s-dqlite"},
+				Network:      apiv1.FeatureStatus{Message: "enabled"},
+				DNS:          apiv1.FeatureStatus{Message: "enabled at 192.168.0.10"},
+				Ingress:      apiv1.FeatureStatus{Message: "enabled"},
+				LoadBalancer: apiv1.FeatureStatus{Message: "enabled, L2 mode"},
+				LocalStorage: apiv1.FeatureStatus{Message: "enabled at /var/snap/k8s/common/rawfile-storage"},
+				Gateway:      apiv1.FeatureStatus{Message: "enabled"},
 			},
-			expectedOutput: `status: ready
-high-availability: yes
-datastore:
-  type: k8s-dqlite
-  voter-nodes:
-    - 192.168.0.1
-    - 192.168.0.2
-    - 192.168.0.3
-  standby-nodes: none
-  spare-nodes: none
-network:
-  enabled: true
-dns:
-  enabled: true
-`,
+			expectedOutput: `cluster status:           ready
+control plane nodes:      192.168.0.1 (voter), 192.168.0.2 (voter), 192.168.0.3 (stand-by)
+high availability:        no
+datastore:                k8s-dqlite
+network:                  enabled
+dns:                      enabled at 192.168.0.10
+ingress:                  enabled
+load-balancer:            enabled, L2 mode
+local-storage:            enabled at /var/snap/k8s/common/rawfile-storage
+gateway                   enabled`,
 		},
 		{
 			name: "External Datastore",
 			clusterStatus: apiv1.ClusterStatus{
 				Ready: true,
 				Members: []apiv1.NodeStatus{
-					{Name: "node1", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.1"},
-				},
-				Config: apiv1.UserFacingClusterConfig{
-					Network: apiv1.NetworkConfig{Enabled: utils.Pointer(true)},
-					DNS:     apiv1.DNSConfig{Enabled: utils.Pointer(true)},
+					{Name: "node1", DatastoreRole: apiv1.DatastoreRoleVoter, Address: "192.168.0.1", ClusterRole: apiv1.ClusterRoleControlPlane},
 				},
 				Datastore: apiv1.Datastore{Type: "external", Servers: []string{"etcd-url1", "etcd-url2"}},
+				Network:   apiv1.FeatureStatus{Message: "enabled"},
+				DNS:       apiv1.FeatureStatus{Message: "enabled at 192.168.0.10"},
 			},
-			expectedOutput: `status: ready
-high-availability: no
-datastore:
-  type: external
-  servers:
-    - etcd-url1
-    - etcd-url2
-network:
-  enabled: true
-dns:
-  enabled: true
-`,
+			expectedOutput: `cluster status:           ready
+control plane nodes:      192.168.0.1 (voter)
+high availability:        no
+datastore:                external
+network:                  enabled
+dns:                      enabled at 192.168.0.10
+ingress:                  disabled
+load-balancer:            disabled
+local-storage:            disabled
+gateway                   disabled`,
 		},
 		{
 			name: "Cluster not ready, HA not formed, no nodes",
@@ -125,13 +117,16 @@ dns:
 				Config:    apiv1.UserFacingClusterConfig{},
 				Datastore: apiv1.Datastore{},
 			},
-			expectedOutput: `status: not ready
-high-availability: no
-datastore:
-  voter-nodes: none
-  standby-nodes: none
-  spare-nodes: none
-`,
+			expectedOutput: `cluster status:           not ready
+control plane nodes:      none
+high availability:        no
+datastore:                disabled
+network:                  disabled
+dns:                      disabled
+ingress:                  disabled
+load-balancer:            disabled
+local-storage:            disabled
+gateway                   disabled`,
 		},
 	}
 

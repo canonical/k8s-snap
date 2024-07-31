@@ -3,8 +3,7 @@ package apiv1
 import (
 	"fmt"
 	"strings"
-
-	"gopkg.in/yaml.v2"
+	"time"
 )
 
 type ClusterRole string
@@ -42,6 +41,28 @@ type NodeStatus struct {
 	DatastoreRole DatastoreRole `json:"datastore-role,omitempty"`
 }
 
+// FeatureStatus encapsulates the deployment status of a feature.
+type FeatureStatus struct {
+	// Enabled shows whether or not the deployment of manifests for a status was successful.
+	Enabled bool
+	// Message contains information about the status of a feature. It is only supposed to be human readable and informative and should not be programmatically parsed.
+	Message string
+	// Version shows the version of the deployed feature.
+	Version string
+	// UpdatedAt shows when the last update was done.
+	UpdatedAt time.Time
+}
+
+func (f FeatureStatus) String() string {
+	if f.Message != "" {
+		return f.Message
+	}
+	if f.Enabled {
+		return "enabled"
+	}
+	return "disabled"
+}
+
 type Datastore struct {
 	Type    string   `json:"type,omitempty"`
 	Servers []string `json:"servers,omitempty" yaml:"servers,omitempty"`
@@ -54,6 +75,14 @@ type ClusterStatus struct {
 	Members   []NodeStatus            `json:"members,omitempty"`
 	Config    UserFacingClusterConfig `json:"config,omitempty"`
 	Datastore Datastore               `json:"datastore,omitempty"`
+
+	DNS           FeatureStatus `json:"dns,omitempty"`
+	Network       FeatureStatus `json:"network,omitempty"`
+	LoadBalancer  FeatureStatus `json:"load-balancer,omitempty"`
+	Ingress       FeatureStatus `json:"ingress,omitempty"`
+	Gateway       FeatureStatus `json:"gateway,omitempty"`
+	MetricsServer FeatureStatus `json:"metrics-server,omitempty"`
+	LocalStorage  FeatureStatus `json:"local-storage,omitempty"`
 }
 
 // HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
@@ -69,63 +98,6 @@ func (c ClusterStatus) HaClusterFormed() bool {
 
 // TICS -COV_GO_SUPPRESSED_ERROR
 // we are just formatting the output for the k8s status command, it is ok to ignore failures from result.WriteString()
-func (c ClusterStatus) datastoreToString() string {
-	result := strings.Builder{}
-
-	// Datastore
-	if c.Datastore.Type != "" {
-		result.WriteString(fmt.Sprintf("  type: %s\n", c.Datastore.Type))
-		// Datastore URL for external only
-		if c.Datastore.Type == "external" {
-			result.WriteString(fmt.Sprintln("  servers:"))
-			for _, serverURL := range c.Datastore.Servers {
-				result.WriteString(fmt.Sprintf("    - %s\n", serverURL))
-			}
-			return result.String()
-		}
-	}
-
-	// Datastore roles for dqlite
-	voters := make([]NodeStatus, 0, len(c.Members))
-	standBys := make([]NodeStatus, 0, len(c.Members))
-	spares := make([]NodeStatus, 0, len(c.Members))
-	for _, node := range c.Members {
-		switch node.DatastoreRole {
-		case DatastoreRoleVoter:
-			voters = append(voters, node)
-		case DatastoreRoleStandBy:
-			standBys = append(standBys, node)
-		case DatastoreRoleSpare:
-			spares = append(spares, node)
-		}
-	}
-	if len(voters) > 0 {
-		result.WriteString("  voter-nodes:\n")
-		for _, voter := range voters {
-			result.WriteString(fmt.Sprintf("    - %s\n", voter.Address))
-		}
-	} else {
-		result.WriteString("  voter-nodes: none\n")
-	}
-	if len(standBys) > 0 {
-		result.WriteString("  standby-nodes:\n")
-		for _, standBy := range standBys {
-			result.WriteString(fmt.Sprintf("    - %s\n", standBy.Address))
-		}
-	} else {
-		result.WriteString("  standby-nodes: none\n")
-	}
-	if len(spares) > 0 {
-		result.WriteString("  spare-nodes:\n")
-		for _, spare := range spares {
-			result.WriteString(fmt.Sprintf("    - %s\n", spare.Address))
-		}
-	} else {
-		result.WriteString("  spare-nodes: none\n")
-	}
-
-	return result.String()
-}
 
 // TODO: Print k8s version. However, multiple nodes can run different version, so we would need to query all nodes.
 func (c ClusterStatus) String() string {
@@ -133,30 +105,49 @@ func (c ClusterStatus) String() string {
 
 	// Status
 	if c.Ready {
-		result.WriteString("status: ready")
+		result.WriteString(fmt.Sprintf("%-25s %s", "cluster status:", "ready"))
 	} else {
-		result.WriteString("status: not ready")
+		result.WriteString(fmt.Sprintf("%-25s %s", "cluster status:", "not ready"))
+	}
+	result.WriteString("\n")
+
+	// Control Plane Nodes
+	result.WriteString(fmt.Sprintf("%-25s ", "control plane nodes:"))
+	if len(c.Members) > 0 {
+		members := make([]string, 0, len(c.Members))
+		for _, m := range c.Members {
+			members = append(members, fmt.Sprintf("%s (%s)", m.Address, m.DatastoreRole))
+		}
+		result.WriteString(strings.Join(members, ", "))
+	} else {
+		result.WriteString("none")
 	}
 	result.WriteString("\n")
 
 	// High availability
-	result.WriteString("high-availability: ")
+	result.WriteString(fmt.Sprintf("%-25s ", "high availability:"))
 	if c.HaClusterFormed() {
 		result.WriteString("yes")
 	} else {
 		result.WriteString("no")
 	}
+	result.WriteString("\n")
 
 	// Datastore
-	result.WriteString("\n")
-	result.WriteString("datastore:\n")
-	result.WriteString(c.datastoreToString())
-
-	// Config
-	if !c.Config.Empty() {
-		b, _ := yaml.Marshal(c.Config)
-		result.WriteString(string(b))
+	// TODO: how to understand if the ds is running or not?
+	if c.Datastore.Type != "" {
+		result.WriteString(fmt.Sprintf("%-25s %s\n", "datastore:", c.Datastore.Type))
+	} else {
+		result.WriteString(fmt.Sprintf("%-25s %s\n", "datastore:", "disabled"))
 	}
+
+	result.WriteString(fmt.Sprintf("%-25s %s\n", "network:", c.Network))
+	result.WriteString(fmt.Sprintf("%-25s %s\n", "dns:", c.DNS))
+	result.WriteString(fmt.Sprintf("%-25s %s\n", "ingress:", c.Ingress))
+	result.WriteString(fmt.Sprintf("%-25s %s\n", "load-balancer:", c.LoadBalancer))
+	result.WriteString(fmt.Sprintf("%-25s %s\n", "local-storage:", c.LocalStorage))
+	result.WriteString(fmt.Sprintf("%-25s %s", "gateway", c.Gateway))
+
 	return result.String()
 }
 

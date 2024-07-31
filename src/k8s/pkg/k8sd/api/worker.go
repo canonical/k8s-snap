@@ -16,7 +16,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Response {
 	snap := e.provider.Snap()
 
 	req := apiv1.WorkerNodeInfoRequest{}
@@ -31,7 +31,7 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		return response.BadRequest(fmt.Errorf("failed to parse node IP address %s", req.Address))
 	}
 
-	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
+	cfg, err := databaseutil.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
@@ -50,16 +50,16 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
 	}
-	if err := client.WaitKubernetesEndpointAvailable(s.Context); err != nil {
+	if err := client.WaitKubernetesEndpointAvailable(r.Context()); err != nil {
 		return response.InternalError(fmt.Errorf("kubernetes endpoints not ready yet: %w", err))
 	}
-	servers, err := client.GetKubeAPIServerEndpoints(s.Context)
+	servers, err := client.GetKubeAPIServerEndpoints(r.Context())
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve list of known kube-apiserver endpoints: %w", err))
 	}
 
 	workerToken := r.Header.Get("worker-token")
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database().Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		return database.DeleteWorkerNodeToken(ctx, tx, workerToken)
 	}); err != nil {
 		return response.InternalError(fmt.Errorf("delete worker node token transaction failed: %w", err))

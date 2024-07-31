@@ -3,6 +3,8 @@
 #
 import json
 import logging
+import re
+import time
 from typing import List
 
 import pytest
@@ -92,3 +94,41 @@ def test_smoke(instances: List[harness.Instance]):
     assert (
         metadata.get("token") is not None
     ), "Token not found in the generate-join-token response."
+
+    # Verify output of the k8s status
+    result = instance.exec(["k8s", "status", "--wait-ready"], capture_output=True)
+    patterns = [
+        r"cluster status:\s*ready",
+        r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
+        r"high availability:\s*no",
+        r"datastore:\s*k8s-dqlite",
+        r"network:\s*enabled",
+        r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
+        r"ingress:\s*enabled",
+        r"load-balancer:\s*enabled, Unknown mode",
+        r"local-storage:\s*enabled at /var/snap/k8s/common/rawfile-storage",
+        r"gateway\s*enabled",
+    ]
+    assert len(result.stdout.decode().strip().split("\n")) == len(patterns)
+
+    for i in range(len(patterns)):
+        timeout = 120  # seconds
+        t0 = time.time()
+        while (
+            time.time() - t0 < timeout
+        ):  # because some features might take time to get enabled
+            result_lines = (
+                instance.exec(["k8s", "status", "--wait-ready"], capture_output=True)
+                .stdout.decode()
+                .strip()
+                .split("\n")
+            )
+            line, pattern = result_lines[i], patterns[i]
+            if re.search(pattern, line) is not None:
+                break
+            LOG.info(f'Waiting for "{line}" to change...')
+            time.sleep(10)
+        else:
+            assert (
+                re.search(pattern, line) is not None
+            ), f'"Wait timed out. {pattern}" not found in "{line}"'

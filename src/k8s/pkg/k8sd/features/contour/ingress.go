@@ -10,30 +10,57 @@ import (
 	"github.com/canonical/k8s/pkg/utils/control"
 )
 
+const (
+	ingressDeleteFailedMsgTmpl = "Failed to delete Contour Ingress, the error was: %v"
+	ingressDeployFailedMsgTmpl = "Failed to deploy Contour Ingress, the error was: %v"
+)
+
 // ApplyIngress will install the contour helm chart when ingress.Enabled is true.
 // ApplyIngress will uninstall the contour helm chart when ingress.Disabled is false.
 // ApplyIngress will rollout restart the Contour pods in case any Contour configuration was changed.
 // ApplyIngress will install a delegation resource via helm chart
 // for the default TLS secret if ingress.DefaultTLSSecret is set.
-// ApplyIngress returns an error if anything fails.
+// ApplyIngress will always return a FeatureStatus indicating the current status of the
+// deployment.
+// ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
+// returned FeatureStatus.
 // Contour CRDS are applied through a ck-contour common chart (Overlap with gateway)
-func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ types.Network, _ types.Annotations) error {
+func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
 	if !ingress.GetEnabled() {
 		if _, err := m.Apply(ctx, chartContour, helm.StateDeleted, nil); err != nil {
-			return fmt.Errorf("failed to uninstall ingress: %w", err)
+			err = fmt.Errorf("failed to uninstall ingress: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: contourIngressContourImageTag,
+				Message: fmt.Sprintf(ingressDeleteFailedMsgTmpl, err),
+			}, err
 		}
-		return nil
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourIngressContourImageTag,
+			Message: disabledMsg,
+		}, nil
 	}
 
 	// Apply common contour CRDS, these are shared with gateway
 	if err := applyCommonContourCRDS(ctx, snap, true); err != nil {
-		return fmt.Errorf("failed to apply common contour CRDS: %w", err)
+		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourIngressContourImageTag,
+			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+		}, err
 	}
 
 	if err := waitForRequiredContourCommonCRDs(ctx, snap); err != nil {
-		return fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
+		err = fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourIngressContourImageTag,
+			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+		}, err
 	}
 
 	var values map[string]any
@@ -70,12 +97,22 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 
 	changed, err := m.Apply(ctx, chartContour, helm.StatePresent, values)
 	if err != nil {
-		return fmt.Errorf("failed to enable ingress: %w", err)
+		err = fmt.Errorf("failed to enable ingress: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourIngressContourImageTag,
+			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+		}, err
 	}
 
 	if changed {
 		if err := rolloutRestartContour(ctx, snap, 3); err != nil {
-			return fmt.Errorf("failed to rollout restart contour to apply ingress: %w", err)
+			err = fmt.Errorf("failed to rollout restart contour to apply ingress: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: contourIngressContourImageTag,
+				Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+			}, err
 		}
 	}
 
@@ -87,17 +124,35 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 			"defaultTLSSecret": ingress.GetDefaultTLSSecret(),
 		}
 		if _, err := m.Apply(ctx, chartDefaultTLS, helm.StatePresent, values); err != nil {
-			return fmt.Errorf("failed to install the delegation resource for default TLS secret: %w", err)
+			err = fmt.Errorf("failed to install the delegation resource for default TLS secret: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: contourIngressContourImageTag,
+				Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+			}, err
 		}
-		return nil
+		return types.FeatureStatus{
+			Enabled: true,
+			Version: contourIngressContourImageTag,
+			Message: enabledMsg,
+		}, nil
 	}
 
 	if _, err := m.Apply(ctx, chartDefaultTLS, helm.StateDeleted, nil); err != nil {
-		return fmt.Errorf("failed to uninstall the delegation resource for default TLS secret: %w", err)
+		err = fmt.Errorf("failed to uninstall the delegation resource for default TLS secret: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourIngressContourImageTag,
+			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+		}, err
 
 	}
 
-	return nil
+	return types.FeatureStatus{
+		Enabled: true,
+		Version: contourIngressContourImageTag,
+		Message: enabledMsg,
+	}, nil
 }
 
 // applyCommonContourCRDS will install the common contour CRDS when enabled is true.

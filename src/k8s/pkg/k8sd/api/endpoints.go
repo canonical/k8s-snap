@@ -2,16 +2,41 @@
 package api
 
 import (
+	"context"
+
+	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/microcluster/rest"
 )
 
 type Endpoints struct {
+	context  context.Context
 	provider Provider
 }
 
-// New creates a new Endpoints instance.
-func New(provider Provider) *Endpoints {
-	return &Endpoints{provider: provider}
+// New creates a new API server instance.
+// Context is the context to use for the API servers endpoints.
+func New(ctx context.Context, provider Provider) map[string]rest.Server {
+	k8sd := &Endpoints{
+		context:  ctx,
+		provider: provider,
+	}
+	return map[string]rest.Server{
+		"k8sd": {
+			CoreAPI:   true,
+			ServeUnix: true,
+			PreInit:   true,
+			Resources: []rest.Resources{
+				{
+					PathPrefix: apiv1.K8sdAPIVersion,
+					Endpoints:  k8sd.Endpoints(),
+				},
+			},
+		},
+	}
+}
+
+func (e *Endpoints) Context() context.Context {
+	return e.context
 }
 
 // Endpoints returns the list of endpoints for a given microcluster app.

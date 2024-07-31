@@ -17,7 +17,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.Response {
 	snap := e.provider.Snap()
 
 	req := apiv1.RemoveNodeRequest{}
@@ -32,7 +32,7 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 		defer cancel()
 	}
 
-	log := log.FromContext(s.Context).WithValues("name", req.Name)
+	log := log.FromContext(ctx).WithValues("name", req.Name)
 
 	isControlPlane, err := nodeutil.IsControlPlaneNode(ctx, s, req.Name)
 	if err != nil {
@@ -42,8 +42,8 @@ func (e *Endpoints) postClusterRemove(s *state.State, r *http.Request) response.
 		log.Info("Waiting for node to not be pending")
 		control.WaitUntilReady(ctx, func() (bool, error) {
 			var notPending bool
-			if err := s.Database.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-				member, err := cluster.GetInternalClusterMember(ctx, tx, req.Name)
+			if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+				member, err := cluster.GetCoreClusterMember(ctx, tx, req.Name)
 				if err != nil {
 					log.Error(err, "Failed to get member")
 					return nil

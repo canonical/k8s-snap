@@ -18,6 +18,7 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "status",
 		Short:  "Retrieve the current status of the cluster",
+		Long:   "Retrieve the current status of the cluster as well as deployment status of core features.",
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			if opts.timeout < minTimeout {
@@ -35,8 +36,12 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			if _, err := client.NodeStatus(cmd.Context()); err != nil {
+			if _, isBootstrapped, err := cmdutil.GetNodeStatus(cmd.Context(), client, env); !isBootstrapped {
 				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				env.Exit(1)
+				return
+			} else if err != nil {
+				cmd.PrintErrf("Error: Failed to retrieve the node status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}

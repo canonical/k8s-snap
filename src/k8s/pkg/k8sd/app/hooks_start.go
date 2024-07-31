@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
@@ -14,13 +15,13 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func (a *App) onStart(s *state.State) error {
+func (a *App) onStart(ctx context.Context, s state.State) error {
 	// start a goroutine to mark the node as running
-	go a.markNodeReady(s.Context, s)
+	go a.markNodeReady(ctx, s)
 
 	// start node config controller
 	if a.nodeConfigController != nil {
-		go a.nodeConfigController.Run(s.Context, func(ctx context.Context) (*rsa.PublicKey, error) {
+		go a.nodeConfigController.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) {
 			cfg, err := databaseutil.GetClusterConfig(ctx, s)
 			if err != nil {
 				return nil, fmt.Errorf("failed to load RSA key from configuration: %w", err)
@@ -36,14 +37,14 @@ func (a *App) onStart(s *state.State) error {
 
 	// start control plane config controller
 	if a.controlPlaneConfigController != nil {
-		go a.controlPlaneConfigController.Run(s.Context, func(ctx context.Context) (types.ClusterConfig, error) {
+		go a.controlPlaneConfigController.Run(ctx, func(ctx context.Context) (types.ClusterConfig, error) {
 			return databaseutil.GetClusterConfig(ctx, s)
 		})
 	}
 
 	// start update node config controller
 	if a.updateNodeConfigController != nil {
-		go a.updateNodeConfigController.Run(s.Context, func(ctx context.Context) (types.ClusterConfig, error) {
+		go a.updateNodeConfigController.Run(ctx, func(ctx context.Context) (types.ClusterConfig, error) {
 			return databaseutil.GetClusterConfig(ctx, s)
 		})
 	}
@@ -51,12 +52,12 @@ func (a *App) onStart(s *state.State) error {
 	// start feature controller
 	if a.featureController != nil {
 		go a.featureController.Run(
-			s.Context,
+			ctx,
 			func(ctx context.Context) (types.ClusterConfig, error) {
 				return databaseutil.GetClusterConfig(ctx, s)
 			},
 			func(ctx context.Context, dnsIP string) error {
-				if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 					if _, err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
 						Kubelet: types.Kubelet{ClusterDNS: utils.Pointer(dnsIP)},
 					}); err != nil {
@@ -72,13 +73,28 @@ func (a *App) onStart(s *state.State) error {
 
 				return nil
 			},
+			func(ctx context.Context, name string, featureStatus types.FeatureStatus) error {
+				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+					// we set timestamp here in order to reduce the clutter. otherwise we will need to
+					// set .UpdatedAt field in a lot of places for every event/error.
+					// this is not 100% accurate but should be good enough
+					featureStatus.UpdatedAt = time.Now()
+					if err := database.SetFeatureStatus(ctx, tx, name, featureStatus); err != nil {
+						return fmt.Errorf("failed to set feature status in db for %q: %w", name, err)
+					}
+					return nil
+				}); err != nil {
+					return fmt.Errorf("database transaction to set feature status failed: %w", err)
+				}
+				return nil
+			},
 		)
 	}
 
 	// start csrsigning controller
 	if a.csrsigningController != nil {
 		go a.csrsigningController.Run(
-			s.Context,
+			ctx,
 			func(ctx context.Context) (types.ClusterConfig, error) {
 				return databaseutil.GetClusterConfig(ctx, s)
 			},

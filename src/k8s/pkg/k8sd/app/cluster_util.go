@@ -12,7 +12,7 @@ import (
 	"github.com/canonical/microcluster/state"
 )
 
-func setupKubeconfigs(s *state.State, kubeConfigDir string, securePort int, pki pki.ControlPlanePKI) error {
+func setupKubeconfigs(s state.State, kubeConfigDir string, securePort int, pki pki.ControlPlanePKI) error {
 	// Generate kubeconfigs
 	for _, kubeconfig := range []struct {
 		file string

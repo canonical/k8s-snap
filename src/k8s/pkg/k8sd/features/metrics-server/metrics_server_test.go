@@ -43,7 +43,7 @@ func TestApplyMetricsServer(t *testing.T) {
 				},
 			}
 
-			err := metrics_server.ApplyMetricsServer(context.Background(), s, tc.config, nil)
+			status, err := metrics_server.ApplyMetricsServer(context.Background(), s, tc.config, nil)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(h.ApplyCalledWith).To(ConsistOf(SatisfyAll(
@@ -51,6 +51,11 @@ func TestApplyMetricsServer(t *testing.T) {
 				HaveField("Chart.Namespace", Equal("kube-system")),
 				HaveField("State", Equal(tc.expectState)),
 			)))
+			if tc.config.GetEnabled() {
+				g.Expect(status.Message).To(Equal("enabled"))
+			} else {
+				g.Expect(status.Message).To(Equal("disabled"))
+			}
 		})
 	}
 
@@ -71,11 +76,12 @@ func TestApplyMetricsServer(t *testing.T) {
 			"k8sd/v1alpha1/metrics-server/image-tag":  "custom-tag",
 		}
 
-		err := metrics_server.ApplyMetricsServer(context.Background(), s, cfg, annotations)
+		status, err := metrics_server.ApplyMetricsServer(context.Background(), s, cfg, annotations)
 		g.Expect(err).To(BeNil())
 		g.Expect(h.ApplyCalledWith).To(ConsistOf(HaveField("Values", HaveKeyWithValue("image", SatisfyAll(
 			HaveKeyWithValue("repository", "custom-image"),
 			HaveKeyWithValue("tag", "custom-tag"),
 		)))))
+		g.Expect(status.Message).To(Equal("enabled"))
 	})
 }
