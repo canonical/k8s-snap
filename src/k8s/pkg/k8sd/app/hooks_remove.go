@@ -85,8 +85,6 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		if err := c.DeleteNode(ctx, s.Name()); err != nil {
 			log.Error(err, "Failed to remove k8s node %q: %w", s.Name(), err)
 		}
-	} else {
-		log.Info("Skip removing k8s node")
 	}
 
 	for _, dir := range []string{snap.ServiceArgumentsDir()} {
