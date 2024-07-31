@@ -6,14 +6,14 @@ import time
 from typing import List
 
 import pytest
-from test_util import config, harness, util
+from test_util import harness, util
 
 LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(1)
 @pytest.mark.bootstrap_config(
-    "control-plane-taints: [\"node-role.kubernetes.io/control-plane:NoSchedule\"]"
+    'control-plane-taints: ["node-role.kubernetes.io/control-plane:NoSchedule"]'
 )
 def test_control_plane_taints(instances: List[harness.Instance]):
     k8s_instance = instances[0]

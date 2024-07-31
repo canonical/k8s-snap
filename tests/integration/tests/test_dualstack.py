@@ -11,7 +11,9 @@ LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(1)
-@pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text())
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
+)
 @pytest.mark.dualstack
 def test_dualstack(instances: list[harness.Instance]):
     main = instances[0]
