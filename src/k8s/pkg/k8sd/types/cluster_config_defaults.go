@@ -31,7 +31,7 @@ func (c *ClusterConfig) SetDefaults() {
 	}
 	// k8sd
 	if c.K8sd.ShouldRemoveK8sNode == nil {
-		c.K8sd.ShouldRemoveK8sNode = utils.Pointer(false)
+		c.K8sd.ShouldRemoveK8sNode = utils.Pointer(true)
 	}
 	// kubelet
 	if c.Kubelet.GetClusterDomain() == "" {

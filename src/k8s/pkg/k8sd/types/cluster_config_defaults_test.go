@@ -29,7 +29,7 @@ func TestSetDefaults(t *testing.T) {
 			K8sDqlitePort: utils.Pointer(9000),
 		},
 		K8sd: types.K8sd{
-			ShouldRemoveK8sNode: utils.Pointer(false),
+			ShouldRemoveK8sNode: utils.Pointer(true),
 		},
 		Kubelet: types.Kubelet{
 			ClusterDomain: utils.Pointer("cluster.local"),
