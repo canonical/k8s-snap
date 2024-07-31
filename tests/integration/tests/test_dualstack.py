@@ -3,7 +3,7 @@
 #
 import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address
-from pathlib import Path
+from typing import List
 
 import pytest
 from test_util import config, harness, util
@@ -12,19 +12,12 @@ LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(1)
-def test_dualstack(h: harness.Harness, tmp_path: Path):
-    snap_path = (tmp_path / "k8s.snap").as_posix()
-    main = h.new_instance(dualstack=True)
-    util.setup_k8s_snap(main, snap_path)
-
-    bootstrap_config = (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
-
-    main.exec(
-        ["k8s", "bootstrap", "--file", "-"],
-        input=str.encode(bootstrap_config),
-    )
-    util.wait_until_k8s_ready(main, [main])
-
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
+)
+@pytest.mark.dualstack()
+def test_dualstack(instances: List[harness.Instance]):
+    main = instances[0]
     dualstack_config = (config.MANIFESTS_DIR / "nginx-dualstack.yaml").read_text()
 
     # Deploy nginx with dualstack service

@@ -3,7 +3,7 @@
 #
 import logging
 from pathlib import Path
-from typing import Generator, List
+from typing import Generator, List, Union
 
 import pytest
 from test_util import config, harness, util
@@ -49,9 +49,11 @@ def h() -> harness.Harness:
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
-        "node_count: Mark a test to specify how many instance nodes need to be created\n"
+        "bootstrap_config: Provide a custom bootstrap config to the bootstrapping node.\n"
         "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.\n"
-        "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n",
+        "dualstack: Support dualstack on the instances.\n"
+        "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
+        "node_count: Mark a test to specify how many instance nodes need to be created\n",
     )
 
 
@@ -65,13 +67,32 @@ def node_count(request) -> int:
 
 
 @pytest.fixture(scope="function")
-def disable_k8s_bootstrapping(request) -> int:
+def disable_k8s_bootstrapping(request) -> bool:
     return bool(request.node.get_closest_marker("disable_k8s_bootstrapping"))
 
 
 @pytest.fixture(scope="function")
+def bootstrap_config(request) -> Union[str, None]:
+    bootstrap_config_marker = request.node.get_closest_marker("bootstrap_config")
+    if not bootstrap_config_marker:
+        return None
+    config, *_ = bootstrap_config_marker.args
+    return config
+
+
+@pytest.fixture(scope="function")
+def dualstack(request) -> bool:
+    return bool(request.node.get_closest_marker("dualstack"))
+
+
+@pytest.fixture(scope="function")
 def instances(
-    h: harness.Harness, node_count: int, tmp_path: Path, disable_k8s_bootstrapping: bool
+    h: harness.Harness,
+    node_count: int,
+    tmp_path: Path,
+    disable_k8s_bootstrapping: bool,
+    bootstrap_config: Union[str, None],
+    dualstack: bool,
 ) -> Generator[List[harness.Instance], None, None]:
     """Construct instances for a cluster.
 
@@ -90,13 +111,20 @@ def instances(
 
     for _ in range(node_count):
         # Create <node_count> instances and setup the k8s snap in each.
-        instance = h.new_instance()
+        instance = h.new_instance(dualstack=dualstack)
         instances.append(instance)
         util.setup_k8s_snap(instance, snap_path)
 
     if not disable_k8s_bootstrapping:
         first_node, *_ = instances
-        first_node.exec(["k8s", "bootstrap"])
+
+        if bootstrap_config is not None:
+            first_node.exec(
+                ["k8s", "bootstrap", "--file", "-"],
+                input=str.encode(bootstrap_config),
+            )
+        else:
+            first_node.exec(["k8s", "bootstrap"])
 
     yield instances
 
