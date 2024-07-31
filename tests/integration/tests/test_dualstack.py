@@ -3,6 +3,7 @@
 #
 import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address
+from typing import List
 
 import pytest
 from test_util import config, harness, util
@@ -15,7 +16,7 @@ LOG = logging.getLogger(__name__)
     (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
 )
 @pytest.mark.dualstack()
-def test_dualstack(instances: list[harness.Instance]):
+def test_dualstack(instances: List[harness.Instance]):
     main = instances[0]
     dualstack_config = (config.MANIFESTS_DIR / "nginx-dualstack.yaml").read_text()
 
