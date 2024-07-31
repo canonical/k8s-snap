@@ -91,7 +91,7 @@ def instances(
     node_count: int,
     tmp_path: Path,
     disable_k8s_bootstrapping: bool,
-    bootstrap_config: Path | None,
+    bootstrap_config: str | None,
     dualstack: bool,
 ) -> Generator[List[harness.Instance], None, None]:
     """Construct instances for a cluster.
