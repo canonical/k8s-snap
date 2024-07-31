@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
 )
-@pytest.mark.dualstack
+@pytest.mark.dualstack()
 def test_dualstack(instances: list[harness.Instance]):
     main = instances[0]
     dualstack_config = (config.MANIFESTS_DIR / "nginx-dualstack.yaml").read_text()
