@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.node_count(1)
 @pytest.mark.bootstrap_config(
-    config.MANIFESTS_DIR / "bootstrap-control-plane-taints.yaml"
+    "control-plane-taints: [\"node-role.kubernetes.io/control-plane:NoSchedule\"]"
 )
 def test_control_plane_taints(instances: List[harness.Instance]):
     k8s_instance = instances[0]

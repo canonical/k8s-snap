@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(1)
-@pytest.mark.bootstrap_config(config.MANIFESTS_DIR / "bootstrap-smoke.yaml")
+@pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-smoke.yaml").read_text())
 def test_smoke(instances: List[harness.Instance]):
     instance = instances[0]
 

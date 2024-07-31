@@ -72,12 +72,12 @@ def disable_k8s_bootstrapping(request) -> bool:
 
 
 @pytest.fixture(scope="function")
-def bootstrap_config(request) -> Union[Path, None]:
+def bootstrap_config(request) -> Union[str, None]:
     bootstrap_config_marker = request.node.get_closest_marker("bootstrap_config")
     if not bootstrap_config_marker:
         return None
     config, *_ = bootstrap_config_marker.args
-    return Path(config)
+    return config
 
 
 @pytest.fixture(scope="function")
@@ -121,7 +121,7 @@ def instances(
         if bootstrap_config is not None:
             first_node.exec(
                 ["k8s", "bootstrap", "--file", "-"],
-                input=str.encode(bootstrap_config.read_text()),
+                input=str.encode(bootstrap_config),
             )
         else:
             first_node.exec(["k8s", "bootstrap"])

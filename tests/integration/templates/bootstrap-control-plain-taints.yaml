@@ -1,1 +1,0 @@
-control-plane-taints: ["node-role.kubernetes.io/control-plane:NoSchedule"]
