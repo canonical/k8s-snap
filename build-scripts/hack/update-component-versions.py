@@ -29,6 +29,7 @@ CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
 #
 # - "https://dl.k8s.io/release/stable.txt"
 # - "https://dl.k8s.io/release/stable-1.xx.txt"
+# - "https://dl.k8s.io/release/latest-1.xx.txt" (e.g. for release candidate builds)
 KUBERNETES_VERSION_MARKER = "https://dl.k8s.io/release/stable.txt"
 
 # Containerd release branch to track. The most recent tag in the branch will be used.
