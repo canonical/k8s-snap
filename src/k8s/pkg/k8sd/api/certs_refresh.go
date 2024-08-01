@@ -25,6 +25,7 @@ import (
 	v1 "k8s.io/api/certificates/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	watch "k8s.io/apimachinery/pkg/watch"
 )
 
 func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) response.Response {
@@ -141,7 +142,6 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 					Organization: csr.organization,
 				},
 				2048,
-				nil,
 				csr.hostnames,
 				csr.ips,
 			)
@@ -161,8 +161,10 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			}, metav1.CreateOptions{}); err != nil {
 				return fmt.Errorf("failed to create CSR for %s: %w", csr.name, err)
 			}
+
 			watcher, err := client.CertificatesV1().CertificateSigningRequests().Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: csr.name}))
 			if err != nil {
+				log.V(1).Error(err, "failed to watch CSR")
 				return fmt.Errorf("failed to watch CSR %s: %w", csr.name, err)
 			}
 
@@ -203,7 +205,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	}
 
 	if err := g.Wait(); err != nil {
-		return response.InternalError(fmt.Errorf("failed to generate worker CSRs: %w", err))
+		return response.InternalError(fmt.Errorf("failed to get worker node certificates: %w", err))
 	}
 
 	if _, err = setup.EnsureWorkerPKI(snap, &certificates); err != nil {
@@ -219,7 +221,6 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	}
 
 	// Restart the services
-	log.Info("Restarting kubelet and kube-proxy")
 	if err := snap.RestartService(r.Context(), "kubelet"); err != nil {
 		return response.InternalError(err)
 	}
