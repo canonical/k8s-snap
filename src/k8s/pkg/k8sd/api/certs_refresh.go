@@ -7,10 +7,10 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
-	"os"
 	"path/filepath"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/log"
@@ -81,20 +81,17 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	}
 
 	certificates := pki.WorkerNodePKI{}
-	// Read the CA and client CA
-	ca, err := os.ReadFile(filepath.Join(snap.KubernetesPKIDir(), "ca.crt"))
-	if err != nil {
-		return response.InternalError(err)
-	}
-	clientCA, err := os.ReadFile(filepath.Join(snap.KubernetesPKIDir(), "client-ca.crt"))
-	if err != nil {
-		return response.InternalError(err)
+
+	clusterConfig, err := databaseutil.GetClusterConfig(r.Context(), s)
+
+	if clusterConfig.Certificates.CACert == nil || clusterConfig.Certificates.ClientCACert == nil {
+		return response.InternalError(fmt.Errorf("missing CA certificates"))
 	}
 
-	certificates.CACert = string(ca)
-	certificates.ClientCACert = string(clientCA)
+	certificates.CACert = *clusterConfig.Certificates.CACert
+	certificates.ClientCACert = *clusterConfig.Certificates.ClientCACert
 
-	g, errGroupCTX := errgroup.WithContext(r.Context())
+	g, ctx := errgroup.WithContext(r.Context())
 
 	for _, csr := range []struct {
 		name         string
@@ -152,7 +149,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 				return fmt.Errorf("failed to generate CSR for %s: %w", csr.name, err)
 			}
 
-			if _, err = client.CertificatesV1().CertificateSigningRequests().Create(errGroupCTX, &certificatesv1.CertificateSigningRequest{
+			if _, err = client.CertificatesV1().CertificateSigningRequests().Create(ctx, &certificatesv1.CertificateSigningRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: csr.name,
 				},
@@ -164,7 +161,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			}, metav1.CreateOptions{}); err != nil {
 				return fmt.Errorf("failed to create CSR for %s: %w", csr.name, err)
 			}
-			watcher, err := client.CertificatesV1().CertificateSigningRequests().Watch(errGroupCTX, metav1.SingleObject(metav1.ObjectMeta{Name: csr.name}))
+			watcher, err := client.CertificatesV1().CertificateSigningRequests().Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: csr.name}))
 			if err != nil {
 				return fmt.Errorf("failed to watch CSR %s: %w", csr.name, err)
 			}
@@ -173,7 +170,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 
 			for {
 				select {
-				case <-errGroupCTX.Done():
+				case <-ctx.Done():
 					return nil
 				case evt, ok := <-watcher.ResultChan():
 					if !ok {
@@ -192,7 +189,8 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 
 					if approved && isCertificateSigningRequestIssued(request) {
 						if _, _, err = pkiutil.LoadCertificate(string(request.Status.Certificate), ""); err != nil {
-							log.Error(err, fmt.Sprintf("failed to load certificate for CSR %s", csr.name))
+							log.WithValues("csr", csr.name).Error(err, "CertificateSigningRequest failed")
+							return fmt.Errorf("CertificateSigningRequest failed: %w", err)
 						}
 						*csr.certificate = string(request.Status.Certificate)
 						*csr.key = string(keyPEM)
