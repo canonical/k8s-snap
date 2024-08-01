@@ -78,20 +78,24 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
-	if cfg.K8sd.GetShouldRemoveK8sNode() {
-		client, err := snap.KubernetesClient("")
-		if err != nil {
-			return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
-		}
-		if node, err := client.CoreV1().Nodes().Get(ctx, req.Name, metav1.GetOptions{}); err != nil {
-			return NodeUnavailable(fmt.Errorf("node %q is not part of the cluster: %w", req.Name, err))
-		} else if v, ok := node.Labels["k8sd.io/role"]; !ok || v != "worker" {
-			return NodeUnavailable(fmt.Errorf("node %q is missing k8sd.io/role=worker label", req.Name))
-		}
+	if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; ok {
+		// Explicitly skip removing the node from Kubernetes.
+		log.Info("Skipping Kubernetes worker node removal")
+		return response.SyncResponse(true, nil)
+	}
 
-		if err := client.DeleteNode(ctx, req.Name); err != nil {
-			return response.InternalError(fmt.Errorf("failed to remove k8s node %q: %w", req.Name, err))
-		}
+	client, err := snap.KubernetesClient("")
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
+	}
+	if node, err := client.CoreV1().Nodes().Get(ctx, req.Name, metav1.GetOptions{}); err != nil {
+		return NodeUnavailable(fmt.Errorf("node %q is not part of the cluster: %w", req.Name, err))
+	} else if v, ok := node.Labels["k8sd.io/role"]; !ok || v != "worker" {
+		return NodeUnavailable(fmt.Errorf("node %q is missing k8sd.io/role=worker label", req.Name))
+	}
+
+	if err := client.DeleteNode(ctx, req.Name); err != nil {
+		return response.InternalError(fmt.Errorf("failed to remove k8s node %q: %w", req.Name, err))
 	}
 
 	return response.SyncResponse(true, nil)

@@ -47,7 +47,6 @@ func TestBootstrapConfigToMicrocluster(t *testing.T) {
 		SecurePort:                         utils.Pointer(6443),
 		K8sDqlitePort:                      utils.Pointer(9090),
 		DatastoreType:                      utils.Pointer("k8s-dqlite"),
-		ShouldRemoveK8sNode:                utils.Pointer(false),
 		ExtraSANs:                          []string{"custom.kubernetes"},
 		ExtraNodeConfigFiles:               map[string]string{"extra-node-config-file": "file-content"},
 		ExtraNodeKubeAPIServerArgs:         map[string]*string{"--extra-kube-apiserver-arg": utils.Pointer("extra-kube-apiserver-value")},

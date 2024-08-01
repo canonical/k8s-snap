@@ -22,7 +22,6 @@ type BootstrapConfig struct {
 	DatastoreCACert     *string  `json:"datastore-ca-crt,omitempty" yaml:"datastore-ca-crt,omitempty"`
 	DatastoreClientCert *string  `json:"datastore-client-crt,omitempty" yaml:"datastore-client-crt,omitempty"`
 	DatastoreClientKey  *string  `json:"datastore-client-key,omitempty" yaml:"datastore-client-key,omitempty"`
-	ShouldRemoveK8sNode *bool    `json:"should-remove-k8s-node,omitempty" yaml:"should-remove-k8s-node,omitempty"`
 
 	// Seed configuration for certificates
 	ExtraSANs []string `json:"extra-sans,omitempty" yaml:"extra-sans,omitempty"`

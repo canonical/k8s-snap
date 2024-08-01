@@ -88,8 +88,9 @@ def test_no_remove(instances: List[harness.Instance]):
     assert "control-plane" in util.get_local_node_status(joining_cp)
     assert "worker" in util.get_local_node_status(joining_worker)
 
-    cluster_node.exec(["k8s", "remove-node", joining_cp.id])
-    cluster_node.exec(["k8s", "remove-node", joining_worker.id])
     nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 3, "node should not have been removed from cluster"
-    assert len(nodes) == 3, "node should not have been removed from cluster"
+
+    cluster_node.exec(["k8s", "remove-node", joining_cp.id])
+    assert len(nodes) == 3, "cp node should not have been removed from cluster"
+    cluster_node.exec(["k8s", "remove-node", joining_worker.id])
+    assert len(nodes) == 3, "worker node should not have been removed from cluster"

@@ -29,7 +29,6 @@ disable-rbac: false
 secure-port: 6443
 k8s-dqlite-port: 9090
 datastore-type: k8s-dqlite
-should-remove-k8s-node: true
 extra-sans:
 - custom.kubernetes
 extra-node-config-files:
@@ -48,3 +47,5 @@ extra-node-containerd-args:
   --extra-containerd-arg: extra-containerd-value
 extra-node-k8s-dqlite-args:
   --extra-k8s-dqlite-arg: extra-k8s-dqlite-value
+annotations:
+  k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove: true

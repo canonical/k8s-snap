@@ -60,9 +60,6 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 		return ClusterConfig{}, fmt.Errorf("unknown datastore type specified in bootstrap config %q", b.GetDatastoreType())
 	}
 
-	// K8sd
-	config.K8sd.ShouldRemoveK8sNode = b.ShouldRemoveK8sNode
-
 	// Network
 	config.Network.PodCIDR = b.PodCIDR
 	config.Network.ServiceCIDR = b.ServiceCIDR

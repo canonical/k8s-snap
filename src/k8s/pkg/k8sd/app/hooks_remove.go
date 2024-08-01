@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 
+	apiv1 "github.com/canonical/k8s/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -75,18 +76,6 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Error(clusterConfigErr, "Failed to retrieve cluster config")
 	}
 
-	if cfg.K8sd.GetShouldRemoveK8sNode() {
-		c, err := snap.KubernetesClient("")
-		if err != nil {
-			log.Error(err, "Failed to create Kubernetes client", err)
-		}
-
-		log.Info("Deleting node from Kubernetes cluster")
-		if err := c.DeleteNode(ctx, s.Name()); err != nil {
-			log.Error(err, "Failed to remove k8s node %q: %w", s.Name(), err)
-		}
-	}
-
 	for _, dir := range []string{snap.ServiceArgumentsDir()} {
 		log.WithValues("directory", dir).Info("Cleaning up config files", dir)
 		if err := os.RemoveAll(dir); err != nil {
@@ -122,6 +111,22 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
 			log.Error(err, "Failed to stop control-plane services")
 		}
+	}
+
+	if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; ok {
+		// Explicitly skip removing the node from Kubernetes.
+		log.Info("Skipping Kubernetes control-plane node removal")
+		return nil
+	}
+
+	c, err := snap.KubernetesClient("")
+	if err != nil {
+		log.Error(err, "Failed to create Kubernetes client", err)
+	}
+
+	log.Info("Deleting node from Kubernetes cluster")
+	if err := c.DeleteNode(ctx, s.Name()); err != nil {
+		log.Error(err, "Failed to remove k8s node %q: %w", s.Name(), err)
 	}
 
 	return nil
