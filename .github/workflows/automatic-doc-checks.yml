@@ -1,0 +1,14 @@
+name: Core Documentation Checks
+
+on:
+  - workflow_dispatch
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  documentation-checks:
+    uses: canonical/documentation-workflows/.github/workflows/documentation-checks.yaml@main
+    with:
+      working-directory: 'docs/moonray'
