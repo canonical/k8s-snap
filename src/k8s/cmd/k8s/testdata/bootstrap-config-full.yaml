@@ -21,6 +21,8 @@ cluster-config:
   metrics-server:
     enabled: true
   cloud-provider: external
+  annotations:
+    k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove: true
 control-plane-taints:
 - node-role.kubernetes.io/control-plane:NoSchedule
 pod-cidr: 10.100.0.0/16
@@ -47,5 +49,3 @@ extra-node-containerd-args:
   --extra-containerd-arg: extra-containerd-value
 extra-node-k8s-dqlite-args:
   --extra-k8s-dqlite-arg: extra-k8s-dqlite-value
-annotations:
-  k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove: true
