@@ -24,7 +24,7 @@ import (
 func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr error) {
 	snap := a.Snap()
 
-	log := log.FromContext(ctx).WithValues("hook", "preremove")
+	log := log.FromContext(ctx).WithValues("hook", "preremove", "node", s.Name())
 	log.Info("Running preremove hook")
 
 	log.Info("Waiting for node to finish microcluster join before removing")
@@ -46,6 +46,18 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 
 	cfg, clusterConfigErr := databaseutil.GetClusterConfig(ctx, s)
 	if clusterConfigErr == nil {
+		if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; !ok {
+			c, err := snap.KubernetesClient("")
+			if err != nil {
+				log.Error(err, "Failed to create Kubernetes client", err)
+			}
+
+			log.Info("Deleting node from Kubernetes cluster")
+			if err := c.DeleteNode(ctx, s.Name()); err != nil {
+				log.Error(err, "Failed to remove k8s node %q: %w", s.Name(), err)
+			}
+		}
+
 		switch cfg.Datastore.GetType() {
 		case "k8s-dqlite":
 			client, err := snap.K8sDqliteClient(ctx)
@@ -111,22 +123,6 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
 			log.Error(err, "Failed to stop control-plane services")
 		}
-	}
-
-	if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; ok {
-		// Explicitly skip removing the node from Kubernetes.
-		log.Info("Skipping Kubernetes control-plane node removal")
-		return nil
-	}
-
-	c, err := snap.KubernetesClient("")
-	if err != nil {
-		log.Error(err, "Failed to create Kubernetes client", err)
-	}
-
-	log.Info("Deleting node from Kubernetes cluster")
-	if err := c.DeleteNode(ctx, s.Name()); err != nil {
-		log.Error(err, "Failed to remove k8s node %q: %w", s.Name(), err)
 	}
 
 	return nil
