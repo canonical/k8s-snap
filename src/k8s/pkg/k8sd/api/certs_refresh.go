@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
@@ -25,7 +26,6 @@ import (
 	v1 "k8s.io/api/certificates/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	watch "k8s.io/apimachinery/pkg/watch"
 )
 
 func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) response.Response {
@@ -162,44 +162,59 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 				return fmt.Errorf("failed to create CSR for %s: %w", csr.name, err)
 			}
 
-			watcher, err := client.CertificatesV1().CertificateSigningRequests().Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: csr.name}))
-			if err != nil {
-				log.V(1).Error(err, "failed to watch CSR")
-				return fmt.Errorf("failed to watch CSR %s: %w", csr.name, err)
-			}
-
-			defer watcher.Stop()
-
 			for {
 				select {
 				case <-ctx.Done():
-					return nil
-				case evt, ok := <-watcher.ResultChan():
-					if !ok {
-						return fmt.Errorf("watch closed for CSR %s", csr.name)
-					}
+					return ctx.Err()
+				default:
 
-					request, ok := evt.Object.(*v1.CertificateSigningRequest)
-					if !ok {
-						return fmt.Errorf("expected a CertificateSigningRequest but received %#v", evt.Object)
-					}
-
-					approved, err := isCertificateSigningRequestApproved(request)
+					watcher, err := client.CertificatesV1().CertificateSigningRequests().Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: csr.name}))
 					if err != nil {
-						return fmt.Errorf("csr is in an invalid state: %w", err)
+						log.WithValues("csr", csr.name).V(1).Error(err, "failed to watch CSR")
+						time.Sleep(3 * time.Second)
+						continue
 					}
 
-					if approved && isCertificateSigningRequestIssued(request) {
-						if _, _, err = pkiutil.LoadCertificate(string(request.Status.Certificate), ""); err != nil {
-							log.WithValues("csr", csr.name).Error(err, "CertificateSigningRequest failed")
-							return fmt.Errorf("CertificateSigningRequest failed: %w", err)
+					defer watcher.Stop()
+
+					watchClosed := false
+					for !watchClosed {
+						select {
+						case <-ctx.Done():
+							return nil
+						case evt, ok := <-watcher.ResultChan():
+							if !ok {
+								log.WithValues("csr", csr.name).V(1).Info("watch closed")
+								watchClosed = true
+							}
+
+							request, ok := evt.Object.(*v1.CertificateSigningRequest)
+							if !ok {
+								log.WithValues("csr", csr.name).Error(fmt.Errorf("expected a CertificateSigningRequest but received %#v", evt.Object), "unexpected object")
+								continue
+							}
+
+							approved, err := isCertificateSigningRequestApproved(request)
+							if err != nil {
+								return fmt.Errorf("csr is in an invalid state: %w", err)
+							}
+
+							if approved && isCertificateSigningRequestIssued(request) {
+								if _, _, err = pkiutil.LoadCertificate(string(request.Status.Certificate), ""); err != nil {
+									log.WithValues("csr", csr.name).Error(err, "CertificateSigningRequest failed")
+									return fmt.Errorf("CertificateSigningRequest failed: %w", err)
+								}
+								*csr.certificate = string(request.Status.Certificate)
+								*csr.key = string(keyPEM)
+								return nil
+							}
 						}
-						*csr.certificate = string(request.Status.Certificate)
-						*csr.key = string(keyPEM)
-						return nil
 					}
+					time.Sleep(3 * time.Second)
 				}
+
 			}
+
 		})
 
 	}
