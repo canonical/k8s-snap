@@ -1,0 +1,9 @@
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+  metrics-server:
+    enabled: true
+  annotations:
+    k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove: true

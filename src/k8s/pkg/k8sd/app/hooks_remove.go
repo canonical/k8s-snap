@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 
+	apiv1 "github.com/canonical/k8s/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -23,7 +24,7 @@ import (
 func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr error) {
 	snap := a.Snap()
 
-	log := log.FromContext(ctx).WithValues("hook", "preremove")
+	log := log.FromContext(ctx).WithValues("hook", "preremove", "node", s.Name())
 	log.Info("Running preremove hook")
 
 	log.Info("Waiting for node to finish microcluster join before removing")
@@ -43,8 +44,19 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		return notPending, nil
 	})
 
-	cfg, clusterConfigErr := databaseutil.GetClusterConfig(ctx, s)
-	if clusterConfigErr == nil {
+	if cfg, err := databaseutil.GetClusterConfig(ctx, s); err == nil {
+		if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; !ok {
+			c, err := snap.KubernetesClient("")
+			if err != nil {
+				log.Error(err, "Failed to create Kubernetes client", err)
+			}
+
+			log.Info("Deleting node from Kubernetes cluster")
+			if err := c.DeleteNode(ctx, s.Name()); err != nil {
+				log.Error(err, "Failed to remove k8s node %q: %w", s.Name(), err)
+			}
+		}
+
 		switch cfg.Datastore.GetType() {
 		case "k8s-dqlite":
 			client, err := snap.K8sDqliteClient(ctx)
@@ -72,17 +84,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		default:
 		}
 	} else {
-		log.Error(clusterConfigErr, "Failed to retrieve cluster config")
-	}
-
-	c, err := snap.KubernetesClient("")
-	if err != nil {
-		log.Error(err, "Failed to create Kubernetes client", err)
-	}
-
-	log.Info("Deleting node from Kubernetes cluster")
-	if err := c.DeleteNode(ctx, s.Name()); err != nil {
-		log.Error(err, "Failed to remove k8s node %q: %w", s.Name(), err)
+		log.Error(err, "Failed to retrieve cluster config")
 	}
 
 	for _, dir := range []string{snap.ServiceArgumentsDir()} {
@@ -115,11 +117,9 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Error(err, "failed to cleanup control plane certificates")
 	}
 
-	if clusterConfigErr == nil {
-		log.Info("Stopping control plane services")
-		if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
-			log.Error(err, "Failed to stop control-plane services")
-		}
+	log.Info("Stopping control plane services")
+	if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
+		log.Error(err, "Failed to stop control-plane services")
 	}
 
 	return nil

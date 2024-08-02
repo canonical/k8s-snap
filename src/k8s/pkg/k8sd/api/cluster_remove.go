@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
@@ -69,6 +70,17 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 			return response.InternalError(fmt.Errorf("failed to delete cluster member %s: %w", req.Name, err))
 		}
 
+		return response.SyncResponse(true, nil)
+	}
+
+	cfg, err := databaseutil.GetClusterConfig(ctx, s)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
+	}
+
+	if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; ok {
+		// Explicitly skip removing the node from Kubernetes.
+		log.Info("Skipping Kubernetes worker node removal")
 		return response.SyncResponse(true, nil)
 	}
 
