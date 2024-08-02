@@ -27,4 +27,4 @@ formats:
 # Optionally declare the Python requirements required to build your docs
 python:
    install:
-   - requirements: sp-docs/.sphinx/requirements.txt
+   - requirements: docs/moonray/.sphinx/requirements.txt
