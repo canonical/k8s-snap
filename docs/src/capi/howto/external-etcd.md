@@ -3,7 +3,7 @@
 To replace the built-in datastore with an external etcd to
 manage the Kubernetes state in the Cluster API (CAPI) workload cluster follow
 this `how-to guide`. This example shows how to create a 3-node workload cluster
-with an external etcd. 
+with an external etcd.
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ It is important to follow this naming convention for the secrets since the provi
 Create the secret for the etcd servers:
 
 ```
-kubectl apply -f - <<EOF 
+kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -67,7 +67,7 @@ Create the `peaches-apiserver-etcd-client` secret:
 
 ```
 kubectl create secret tls peaches-apiserver-etcd-client \
-  --cert=$CERTS_DIR/etcd-1.pem --key=$CERTS_DIR/etcd-1-key.pem 
+  --cert=$CERTS_DIR/etcd-1.pem --key=$CERTS_DIR/etcd-1-key.pem
 ```
 
 To confirm the secrets are created, run:
@@ -116,10 +116,5 @@ kubectl create -f peaches.yaml
 To check the status of the cluster, run:
 
 ```
-clusterctl describe cluster peaches 
+clusterctl describe cluster peaches
 ```
-
-<!-- LINKS -->
-[getting-started]: ../tutorial/getting-started.md
-[capi-templates]: https://github.com/canonical/cluster-api-k8s/tree/main/templates
-[clusterctl]: https://cluster-api.sigs.k8s.io/clusterctl/overview
