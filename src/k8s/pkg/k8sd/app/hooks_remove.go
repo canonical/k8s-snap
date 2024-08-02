@@ -44,8 +44,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		return notPending, nil
 	})
 
-	cfg, clusterConfigErr := databaseutil.GetClusterConfig(ctx, s)
-	if clusterConfigErr == nil {
+	if cfg, err := databaseutil.GetClusterConfig(ctx, s); err == nil {
 		if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; !ok {
 			c, err := snap.KubernetesClient("")
 			if err != nil {
@@ -85,7 +84,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		default:
 		}
 	} else {
-		log.Error(clusterConfigErr, "Failed to retrieve cluster config")
+		log.Error(err, "Failed to retrieve cluster config")
 	}
 
 	for _, dir := range []string{snap.ServiceArgumentsDir()} {
@@ -118,11 +117,9 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Error(err, "failed to cleanup control plane certificates")
 	}
 
-	if clusterConfigErr == nil {
-		log.Info("Stopping control plane services")
-		if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
-			log.Error(err, "Failed to stop control-plane services")
-		}
+	log.Info("Stopping control plane services")
+	if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
+		log.Error(err, "Failed to stop control-plane services")
 	}
 
 	return nil
