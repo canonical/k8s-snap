@@ -1,19 +1,19 @@
-# Installing Canonical Kubernetes in air-gapped environments
+# Installing {{product}} in air-gapped environments
 
 There are situations where it is necessary or desirable to run Canonical
 Kubernetes on a machine that is not connected to the internet. Based on
 different degrees of separation from the network, different solutions are
 offered to accomplish this goal. This guide documents any necessary extra
 preparation for air-gap deployments, as well the steps that are needed to
-successfully deploy Canonical Kubernetes in such environments.
+successfully deploy {{product}} in such environments.
 
 ## Prepare for Deployment
 
 In preparation for the offline deployment download the Canonical
 Kubernetes snap, fulfil the networking requirements based on your scenario and
-handle images for workloads and Canonical Kubernetes features.
+handle images for workloads and {{product}} features.
 
-### Download the Canonical Kubernetes snap
+### Download the {{product}} snap
 
 From a machine with access to the internet download the
 `k8s` and `core20` snap with:
@@ -50,7 +50,7 @@ Below we discuss the requirements that the deployment needs to fulfil.
 Ensure that all cluster nodes are reachable from each other.
 
 <!-- Refer to [Services and ports][svc-ports] used for a list of all network
-ports used by Canonical Kubernetes.  -->
+ports used by {{product}}.  -->
 
 #### Default Gateway
 
@@ -90,7 +90,7 @@ curl -v https://registry-1.docker.io/v2
 All workloads in a Kubernetes cluster are run as an OCI image.
 Kubernetes needs to be able to fetch these images and load them
 into the container runtime.
-For Canonical Kubernetes, it is also necessary to fetch the images used
+For {{product}}, it is also necessary to fetch the images used
 by its features (network, dns, etc.) as well as any images that are
 needed to run specific workloads.
 
@@ -156,7 +156,7 @@ This requires three steps:
    the desired registry deployment.
 2. Using [regsync][regsync], load all images from the upstream source and
    push to your registry mirror.
-3. Configure the Canonical Kubernetes container runtime (`containerd`) to load
+3. Configure the {{product}} container runtime (`containerd`) to load
    images from the private registry mirror instead of the upstream source. This
    will be described in the [Configure registry mirrors](#private-registry)
    section.
@@ -205,12 +205,12 @@ To create a bundle of images, use the [regctl][regctl] tool or invoke the
 Upon choosing this option, place all images under
 `/var/snap/k8s/common/images` and they will be picked up by containerd.
 
-## Deploy Canonical Kubernetes
+## Deploy {{product}}
 
 Once you've completed all the preparatory steps for your air-gapped cluster,
 you can proceed with the deployment.
 
-### Step 1: Install Canonical Kubernetes
+### Step 1: Install {{product}}
 
 Transfer the following files to the target node:
 

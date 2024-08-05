@@ -1,6 +1,6 @@
 # Troubleshooting
 
-This page provides techniques for troubleshooting common Canonical Kubernetes
+This page provides techniques for troubleshooting common {{product}}
 issues.
 
 

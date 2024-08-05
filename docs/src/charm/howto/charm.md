@@ -1,6 +1,6 @@
-# Install Canonical Kubernetes from a charm
+# Install {{product}} from a charm
 
-Canonical Kubernetes is packaged as a [charm], available from Charmhub for all
+{{product}} is packaged as a [charm], available from Charmhub for all
 supported platforms.
 
 ## What you'll need

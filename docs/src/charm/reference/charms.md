@@ -1,6 +1,6 @@
-# Canonical Kubernetes charms
+# {{product}} charms
 
-Canonical Kubernetes can be deployed via [Juju][] with the following charms:
+{{product}} can be deployed via [Juju][] with the following charms:
 
 - **k8s**, which deploys a complete Kubernetes implementation
 - **k8s-worker**, which deploys Kubernetes without the control plane for units

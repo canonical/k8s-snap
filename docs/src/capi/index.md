@@ -1,8 +1,6 @@
-# Canonical Kubernetes 
+# Installing {{product}} with Cluster API
 
-XxxxxX XXXxx Xxxxxxxxx xxxxx xxxx xx xxxxxxxx xxxx xxx xxx xxx xxxxxxxxxx xx
-xxx xxxxxx xxx XXX. Xxxx x xxxxx xx xxxxx xxxxx Xxxxxxx xx xxxx xxxxxx
-xxxxxxxxxxx xxx xxx xx xxxx x xxxxxxx xxx xxxxxxxx.
+Cluster API (CAPI) is a Kubernetes project focused on providing declarative APIs and tooling to simplify provisioning, upgrading, and operating multiple Kubernetes clusters. The supporting infrastructure, like virtual machines, networks, load balancers, and VPCs, as well as the cluster configuration are all defined in the same way that cluster operators are already familiar with. {{product}} supports deploying and operating Kubernetes through CAPI.
 
 ![Illustration depicting working on components and clouds][logo]
 
@@ -12,7 +10,7 @@ xxxxxxxxxxx xxx xxx xx xxxx x xxxxxxx xxx xxxxxxxx.
 
 ```{grid-item-card} [Tutorial](tutorial/index)
 
-**Start here!** A hands-on introduction to Canonical K8s for new users
+**Start here!** A hands-on introduction to {{product}} for new users
 ```
 
 ```{grid-item-card} [How-to guides](howto/index)
@@ -41,7 +39,7 @@ xxxxxxxxxxx xxx xxx xx xxxx x xxxxxxx xxx xxxxxxxx.
 
 ## Project and community
 
-Canonical Kubernetes is a member of the Ubuntu family. It's an open source
+{{product}} is a member of the Ubuntu family. It's an open source
 project which welcomes community involvement, contributions, suggestions, fixes
 and constructive feedback.
 

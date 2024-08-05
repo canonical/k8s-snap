@@ -3,23 +3,23 @@
 In Kubernetes, understanding how inbound traffic is managed inside of your
 cluster can be complex.
 This explanation provides you with the essentials
-to successfully manage your Canonical Kubernetes cluster.
+to successfully manage your {{product}} cluster.
 
 ## Network
 
-When you install Canonical Kubernetes, the default Network is automatically enabled.
+When you install {{product}}, the default Network is automatically enabled.
 This is also a requirement for the default Ingress to function.
 
 Since upstream Kubernetes comes without a network provider,
 it requires the use of a [network plugin][network plugin].
 This network plugin facilitates communication between pods,
 services, and external resources, ensuring smooth traffic flow within the cluster.
-The current implementation of Canonical Kubernetes leverages a widely adopted
+The current implementation of {{product}} leverages a widely adopted
 CNI (Container Network Interface) called [Cilium][Cilium].
 If you wish to use a different network plugin
 the implementation and configuration falls under your responsibility.
 
-Learn how to use the Canonical Kubernetes default network in the [networking HowTo guide][Network].
+Learn how to use the {{product}} default network in the [networking HowTo guide][Network].
 
 ## Kubernetes Pods and Services
 
@@ -57,7 +57,7 @@ which operates at layer 4 and routes traffic directly to individual pods.
 ```{kroki} ../../assets/ingress.puml
 ```
 
-With Canonical Kubernetes, enabling Ingress is easy:
+With {{product}}, enabling Ingress is easy:
 See the [default Ingress guide][Ingress].
 Once enabled, you will have a working
 [Ingress Controller][Cilium Ingress Controller] in your cluster.

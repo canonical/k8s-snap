@@ -1,6 +1,6 @@
 # Explanation
 
-For a better understanding of how Canonical Kubernetes works and related
+For a better understanding of how {{product}} works and related
 topics such as security, these pages will help expand your knowledge and
 get the most out of Kubernetes.
 
@@ -24,7 +24,7 @@ ingress
 
 If you are just getting started, the [Tutorials section] contains
 step-by-step tutorials to help guide you through exploring and using
-Canonical Kubernetes.
+{{product}}.
 
 If you have a specific goal our [How-to guides] have more in-depth
 detail than tutorials and can be applied to a broader set of applications.

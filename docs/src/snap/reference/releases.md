@@ -2,7 +2,7 @@
 
 ## Rolling preview release
 
-In advance of a GA release of Canonical Kubernetes, you can still install and
+In advance of a GA release of {{product}}, you can still install and
 try out the newest distribution of Kubernetes.
 
 You need two commands to get a single node cluster, one for installation and
@@ -14,16 +14,16 @@ sudo snap install k8s --channel=1.30-classic/beta --classic
 sudo k8s bootstrap
 ```
 
-Currently Canonical Kubernetes is working towards general availability, but you
+Currently {{product}} is working towards general availability, but you
 can install it now to try:
 
 - **Clustering** - need high availability or just an army of worker nodes?
-  Canonical Kubernetes is emminently scaleable, see the [tutorial on adding
+  {{product}} is emminently scaleable, see the [tutorial on adding
   more nodes][nodes]. 
 - **Networking** - Our built-in network component allows cluster administrators
   to automatically scale and secure network policies across the cluster. Find
   out more in our [how-to guides][networking].
-- **Observability** - Canonical Kubernetes ships with [COS Lite], so you never
+- **Observability** - {{product}} ships with [COS Lite], so you never
   need to wonder what your cluster is actually doing. See the [observability
   documentation] for more details.
 

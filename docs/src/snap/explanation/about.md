@@ -1,6 +1,6 @@
-# What is Canonical Kubernetes?
+# What is {{product}}?
 
-At its core, Canonical Kubernetes is a full implementation of upstream
+At its core, {{product}} is a full implementation of upstream
 [Kubernetes] delivered in a compact, secure, reliable [snap] package. As the
 upstream Kubernetes services are not all that is required for a fully
 functional cluster, additional services and features are built in. You can
@@ -17,7 +17,7 @@ maintain and easy to upgrade.
 ## What else comes with it?
 
 In addition to the upstream Kubernetes services, 
-Canonical Kubernetes also includes:
+{{product}} also includes:
 
 - a DNS service for the node
 - a CNI for the node/cluster
@@ -29,7 +29,7 @@ Canonical Kubernetes also includes:
 
 ## Where can I install it?
 
-The Canonical Kubernetes snap can be installed on a Linux OS, wherever it may
+The {{product}} snap can be installed on a Linux OS, wherever it may
 be: run it in several local containers or VMs for example, or use it on
 public/private cloud instances. 
 For deploying with [Juju], a machine [charm] to deploy
@@ -37,7 +37,7 @@ the snap is also available.
 
 ## Can I use it to make a cluster?
 
-Yes. Canonical Kubernetes is designed to be eminently scalable. You can start
+Yes. {{product}} is designed to be eminently scalable. You can start
 with a single node and add more as and when the need arises. Scale up or down
 at any time. Systems with more than three nodes will automatically become
 Highly Available.

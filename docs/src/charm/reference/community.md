@@ -1,4 +1,4 @@
-# Welcome to the Canonical Kubernetes community
+# Welcome to the {{product}} community
 ```{include} ../../snap/reference/community.md
-:start-after: '# Welcome to the Canonical Kubernetes community'
+:start-after: '# Welcome to the {{product}} community'
 ```

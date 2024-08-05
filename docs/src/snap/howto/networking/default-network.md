@@ -1,6 +1,6 @@
 # How to use the default Network
 
-Canonical Kubernetes includes a high-performance, advanced network plugin
+{{product}} includes a high-performance, advanced network plugin
 called Cilium. The network component allows cluster administrators to leverage
 software-defined networking to automatically scale and secure network policies
 across their cluster.
@@ -10,7 +10,7 @@ across their cluster.
 This guide assumes the following:
 
 - You have root or sudo access to the machine.
-- You have a bootstrapped Canonical Kubernetes cluster (see the [Getting
+- You have a bootstrapped {{product}} cluster (see the [Getting
   Started][getting-started-guide] guide).
 
 ## Check Network status

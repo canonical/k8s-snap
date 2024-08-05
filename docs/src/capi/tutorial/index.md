@@ -1,7 +1,7 @@
 # Tutorials
 
 This section contains a step-by-step guide to help you start exploring how to
-install and use Canonical Kubernetes.
+install and use {{product}}.
 
 ```{toctree}
 :hidden:
@@ -23,7 +23,7 @@ tutorials and can be applied to a broader set of applications. They’ll help yo
 achieve an end-result but may require you to understand and adapt the steps to
 fit your specific requirements.
 
-For a better understanding of how Canonical Kubernetes works and related topics
+For a better understanding of how {{product}} works and related topics
 such as security, our [Explanation section] helps you to expand your knowledge
 and get the most out of Kubernetes.
 

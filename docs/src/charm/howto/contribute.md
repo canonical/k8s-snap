@@ -1,12 +1,12 @@
-# How to contribute to Canonical Kubernetes
+# How to contribute to {{product}}
 
-Canonical Kubernetes is proudly open source, published under the GPLv3 license.
+{{product}} is proudly open source, published under the GPLv3 license.
 We welcome and encourage contributions to the code and the documentation. See
 the [community page][] for ways to get in touch and provide feedback.
 
 ## Contribute to the code
 
-Canonical Kubernetes is shipped as a snap package. To contribute to the code,
+{{product}} is shipped as a snap package. To contribute to the code,
 you should first make sure you can build and test the snap locally.
 
 ### Build the snap
@@ -68,18 +68,18 @@ lxc delete snapcraft-k8s
 
 ### Contribute changes
 
-We welcome any improvements and bug-fixes to the Canonical Kubernetes code.
+We welcome any improvements and bug-fixes to the {{product}} code.
 Once you have tested your changes, please make a pull request on the [code
 repository][code repo] and we will review it as soon as possible.
 
 ## Contribute to the documentation
 
 Our aim is to provide easy-to-understand documentation on all aspects of
-Canonical Kubernetes, so we greatly appreciate your feedback and contributions.
+{{product}}, so we greatly appreciate your feedback and contributions.
 See our [community page][] for ways of getting in touch.
 
 The source of the documentation and the system used to build it are included in
-the [main repository for the Canonical Kubernetes snap][code repo].
+the [main repository for the {{product}} snap][code repo].
 
 ### Documentation framework
 

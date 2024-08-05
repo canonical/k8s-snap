@@ -1,6 +1,6 @@
 # Configure proxy settings for K8s
 
-Canonical Kubernetes packages a number of utilities (eg curl, helm) which need
+{{product}} packages a number of utilities (eg curl, helm) which need
 to fetch resources they expect to find on the internet. In a constrained
 network environment, such access is usually controlled through proxies.
 

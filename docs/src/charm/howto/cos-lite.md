@@ -5,13 +5,13 @@ cluster itself is running or not. It may also be useful to integrate monitoring
 into existing setups.
 
 To make monitoring your cluster a delightful experience, Canonical provides
-first-class integration between Canonical Kubernetes and COS Lite (Canonical
+first-class integration between {{product}} and COS Lite (Canonical
 Observability Stack). This guide will help you integrate a COS Lite
-deployment with a Canonical Kubernetes deployment.
+deployment with a {{product}} deployment.
 
 This document assumes you have a controller with an installation of Canonical
-Kubernetes. If you have not yet installed Canonical Kubernetes, please see
-["Installing Canonical Kubernetes"][how-to-install].
+Kubernetes. If you have not yet installed {{product}}, please see
+["Installing {{product}}"][how-to-install].
 
 ## Preparing a platform for COS Lite
 
@@ -81,9 +81,9 @@ At this point, you’ve established a MicroK8s model on Ubuntu and incorporated
 it into Juju as a Kubernetes cloud. You then used this cloud as a substrate for
 the COS Lite deployment. You therefore have 2 models on the same controller.
 
-## Integrating COS Lite with Canonical Kubernetes
+## Integrating COS Lite with {{product}}
 
-Switch to your Canonical Kubernetes model (if you forgot the name of your model,
+Switch to your {{product}} model (if you forgot the name of your model,
 you can run `juju models` to see a list of available models):
 
 ```

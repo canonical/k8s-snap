@@ -3,7 +3,7 @@
 Distributed, redundant storage is a must-have when you want to develop reliable
 applications. [Ceph] is a storage solution which provides exactly that, and is
 built with distributed clusters in mind. In this tutorial, we'll be looking at
-how to integrate Canonical Kubernetes with a Ceph cluster. Specifically, by the
+how to integrate {{product}} with a Ceph cluster. Specifically, by the
 end of this tutorial you'll have a Kubernetes pod with a mounted RBD-backed
 volume. RBD stands for RADOS Block Device and it is the abstraction used by Ceph
 to provide reliable and distributed storage. This how-to guide is adapted from
@@ -14,7 +14,7 @@ to provide reliable and distributed storage. This how-to guide is adapted from
 This guide assumes the following:
 
 - You have root or sudo access to the machine
-- You have a bootstrapped Canonical Kubernetes cluster (see the
+- You have a bootstrapped {{product}} cluster (see the
   [getting-started-guide])
 - You have a running Ceph cluster
 

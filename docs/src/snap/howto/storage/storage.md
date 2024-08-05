@@ -1,6 +1,6 @@
 # How to use default storage
 
-Canonical Kubernetes offers a local-storage option to quickly set up and run a
+{{product}} offers a local-storage option to quickly set up and run a
 cluster, especially for single-node support. This guide walks you through
 enabling and configuring this feature.
 
@@ -9,7 +9,7 @@ enabling and configuring this feature.
 This guide assumes the following:
 
 - You have root or sudo access to the machine
-- You have a bootstrapped Canonical Kubernetes cluster (see the
+- You have a bootstrapped {{product}} cluster (see the
   [getting-started-guide])
 
 ## Enable Local Storage
