@@ -75,7 +75,8 @@ the desired version.
 ## Update the MachineDeployment resource
 
 After upgrading the control plane, proceed with upgrading the worker nodes
-in a similar fashion by updating the `MachineDeployment` resource.
+in a similar fashion by updating the `MachineDeployment` resource. For
+instance, we will be updating the `c1-worker-md`.
 
 ```
 kubectl edit machinedeployment c1-worker-md
