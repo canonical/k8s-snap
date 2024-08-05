@@ -1,4 +1,6 @@
 import sys
+import os
+import yaml
 
 sys.path.append('./')
 from custom_conf import *
@@ -138,3 +140,11 @@ html_js_files = ['header-nav.js']
 if 'github_issues' in html_context and html_context['github_issues'] and not disable_feedback_button:
     html_js_files.append('github_issue_links.js')
 html_js_files.extend(custom_html_js_files)
+
+
+############################################################
+### Myst configuration
+############################################################
+if os.path.exists('./reuse/substitutions.yaml'):
+  with open('./reuse/substitutions.yaml', 'r') as fd:
+      myst_substitutions = yaml.safe_load(fd.read())
