@@ -23,7 +23,6 @@ import (
 	"github.com/canonical/microcluster/state"
 	"golang.org/x/sync/errgroup"
 	certificatesv1 "k8s.io/api/certificates/v1"
-	v1 "k8s.io/api/certificates/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -78,12 +77,15 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 
 	client, err := snap.KubernetesNodeClient("")
 	if err != nil {
-		return response.InternalError(err)
+		return response.InternalError(fmt.Errorf("failed to get Kubernetes client: %w", err))
 	}
 
 	certificates := pki.WorkerNodePKI{}
 
 	clusterConfig, err := databaseutil.GetClusterConfig(r.Context(), s)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to get cluster configuration: %w", err))
+	}
 
 	if clusterConfig.Certificates.CACert == nil || clusterConfig.Certificates.ClientCACert == nil {
 		return response.InternalError(fmt.Errorf("missing CA certificates"))
@@ -98,7 +100,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		name         string
 		commonName   string
 		organization []string
-		usages       []v1.KeyUsage
+		usages       []certificatesv1.KeyUsage
 		hostnames    []string
 		ips          []net.IP
 		signerName   string
@@ -109,7 +111,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			name:         fmt.Sprintf("k8sd-%d-worker-kubelet-serving", req.Seed),
 			commonName:   fmt.Sprintf("system:node:%s", snap.Hostname()),
 			organization: []string{"system:nodes"},
-			usages:       []v1.KeyUsage{v1.UsageDigitalSignature, v1.UsageKeyEncipherment, v1.UsageServerAuth},
+			usages:       []certificatesv1.KeyUsage{certificatesv1.UsageDigitalSignature, certificatesv1.UsageKeyEncipherment, certificatesv1.UsageServerAuth},
 			hostnames:    []string{snap.Hostname()},
 			ips:          []net.IP{net.ParseIP(s.Address().Hostname())},
 			signerName:   "k8sd.io/kubelet-serving",
@@ -120,7 +122,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			name:         fmt.Sprintf("k8sd-%d-worker-kubelet-client", req.Seed),
 			commonName:   fmt.Sprintf("system:node:%s", snap.Hostname()),
 			organization: []string{"system:nodes"},
-			usages:       []v1.KeyUsage{v1.UsageDigitalSignature, v1.UsageKeyEncipherment, v1.UsageClientAuth},
+			usages:       []certificatesv1.KeyUsage{certificatesv1.UsageDigitalSignature, certificatesv1.UsageKeyEncipherment, certificatesv1.UsageClientAuth},
 			signerName:   "k8sd.io/kubelet-client",
 			certificate:  &certificates.KubeletClientCert,
 			key:          &certificates.KubeletClientKey,
@@ -128,7 +130,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		{
 			name:        fmt.Sprintf("k8sd-%d-worker-kube-proxy-client", req.Seed),
 			commonName:  "system:kube-proxy",
-			usages:      []v1.KeyUsage{v1.UsageDigitalSignature, v1.UsageKeyEncipherment, v1.UsageClientAuth},
+			usages:      []certificatesv1.KeyUsage{certificatesv1.UsageDigitalSignature, certificatesv1.UsageKeyEncipherment, certificatesv1.UsageClientAuth},
 			signerName:  "k8sd.io/kube-proxy-client",
 			certificate: &certificates.KubeProxyClientCert,
 			key:         &certificates.KubeProxyClientKey,
@@ -188,7 +190,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 								watchClosed = true
 							}
 
-							request, ok := evt.Object.(*v1.CertificateSigningRequest)
+							request, ok := evt.Object.(*certificatesv1.CertificateSigningRequest)
 							if !ok {
 								log.WithValues("csr", csr.name).Error(fmt.Errorf("expected a CertificateSigningRequest but received %#v", evt.Object), "unexpected object")
 								continue
@@ -224,7 +226,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	}
 
 	if _, err = setup.EnsureWorkerPKI(snap, &certificates); err != nil {
-		return response.InternalError(err)
+		return response.InternalError(fmt.Errorf("failed to write worker PKI: %w", err))
 	}
 
 	// Kubeconfigs
@@ -237,10 +239,10 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 
 	// Restart the services
 	if err := snap.RestartService(r.Context(), "kubelet"); err != nil {
-		return response.InternalError(err)
+		return response.InternalError(fmt.Errorf("failed to restart kubelet: %w", err))
 	}
 	if err := snap.RestartService(r.Context(), "kube-proxy"); err != nil {
-		return response.InternalError(err)
+		return response.InternalError(fmt.Errorf("failed to restart kube-proxy: %w", err))
 	}
 
 	cert, _, err := pkiutil.LoadCertificate(certificates.KubeletCert, "")
@@ -258,15 +260,15 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 // isCertificateSigningRequestApproved checks if the certificate signing request is approved.
 // It returns true if the CSR is approved, false if it is pending, and an error if it is denied
 // or failed.
-func isCertificateSigningRequestApproved(csr *v1.CertificateSigningRequest) (bool, error) {
+func isCertificateSigningRequestApproved(csr *certificatesv1.CertificateSigningRequest) (bool, error) {
 	for _, condition := range csr.Status.Conditions {
-		if condition.Type == v1.CertificateApproved && condition.Status == corev1.ConditionTrue {
+		if condition.Type == certificatesv1.CertificateApproved && condition.Status == corev1.ConditionTrue {
 			return true, nil
 		}
-		if condition.Type == v1.CertificateDenied && condition.Status == corev1.ConditionTrue {
+		if condition.Type == certificatesv1.CertificateDenied && condition.Status == corev1.ConditionTrue {
 			return false, fmt.Errorf("CSR %s was denied: %s", csr.Name, condition.Reason)
 		}
-		if condition.Type == v1.CertificateFailed && condition.Status == corev1.ConditionTrue {
+		if condition.Type == certificatesv1.CertificateFailed && condition.Status == corev1.ConditionTrue {
 			return false, fmt.Errorf("CSR %s failed: %s", csr.Name, condition.Reason)
 		}
 	}
@@ -274,6 +276,6 @@ func isCertificateSigningRequestApproved(csr *v1.CertificateSigningRequest) (boo
 }
 
 // isCertificateSigningRequestIssued checks if the certificate signing request is issued.
-func isCertificateSigningRequestIssued(csr *v1.CertificateSigningRequest) bool {
+func isCertificateSigningRequestIssued(csr *certificatesv1.CertificateSigningRequest) bool {
 	return len(csr.Status.Certificate) > 0
 }
