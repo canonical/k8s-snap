@@ -38,7 +38,8 @@ kubectl --kubeconfig c1-kubeconfig.yaml get nodes -o wide
 ## Update the CK8sControlPlane resource
 
 The first step in upgrading the control plane is to update the CK8sControlPlane
-resource with the new Kubernetes version.
+resource with the new Kubernetes version. In this example, the control plane
+is called `c1-control-plane`.
 
 ```
 kubectl edit ck8scontrolplane c1-control-plane
