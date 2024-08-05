@@ -61,7 +61,6 @@ reference/index
 contributions, suggestions, fixes and constructive feedback.
 
 - Our [Code of Conduct]
-- How to [contribute]
 
 
 <!-- IMAGES -->
@@ -72,5 +71,4 @@ contributions, suggestions, fixes and constructive feedback.
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
 
-[overview page]: /explanation/about
 
