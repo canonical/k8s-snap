@@ -13,6 +13,7 @@ Overview <self>
 ```{toctree}
 :glob:
 :titlesonly:
+install
 
 ```
 
