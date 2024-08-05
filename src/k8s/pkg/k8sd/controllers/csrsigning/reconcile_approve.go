@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/log"
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	certv1 "k8s.io/api/certificates/v1"
 	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -12,7 +13,20 @@ import (
 
 func (r *csrSigningReconciler) reconcileAutoApprove(ctx context.Context, log log.Logger, csr *certv1.CertificateSigningRequest) (ctrl.Result, error) {
 	var result certv1.RequestConditionType
-	if err := validateCSR(csr); err != nil {
+
+	config, err := r.getClusterConfig(ctx)
+	if err != nil {
+		log.Error(err, "Failed to retrieve k8sd cluster configuration")
+		return ctrl.Result{}, err
+	}
+
+	keyPEM := config.Certificates.GetK8sdPrivateKey()
+	priv, err := pkiutil.LoadRSAPrivateKey(keyPEM)
+	if err != nil && keyPEM != "" {
+		return ctrl.Result{}, fmt.Errorf("failed to load cluster RSA key: %w", err)
+	}
+
+	if err := validateCSR(csr, priv); err != nil {
 		log.Error(err, "CSR is not valid")
 
 		result = certv1.CertificateDenied
