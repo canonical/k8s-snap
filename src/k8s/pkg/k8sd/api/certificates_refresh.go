@@ -2,6 +2,7 @@ package api
 
 import (
 	"crypto/x509/pkix"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -25,6 +26,11 @@ import (
 	certificatesv1 "k8s.io/api/certificates/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+var (
+	// errInvalidCSR is returned when the Kubernetes CSR is in an invalid state.
+	errInvalidCSR = errors.New("csr is in an invalid state")
 )
 
 func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) response.Response {
@@ -165,56 +171,29 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			}
 
 			for {
+				err := client.WatchCertificateSigningRequest(
+					ctx,
+					csr.name,
+					func(request *certificatesv1.CertificateSigningRequest) (bool, error) {
+						return verifyCSRAndSetPKI(request, keyPEM, csr.certificate, csr.key)
+					})
+
+				if err == nil {
+					return nil
+				}
+
+				// Check if error is non-recoverable
+				if errors.Is(err, errInvalidCSR) {
+					return fmt.Errorf("certificate signing request failed: %w", err)
+				}
+
+				log.WithValues("name", "k8sd").Error(err, "Failed to watch CSR")
+
 				select {
 				case <-ctx.Done():
 					return ctx.Err()
-				default:
-
-					watcher, err := client.CertificatesV1().CertificateSigningRequests().Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: csr.name}))
-					if err != nil {
-						log.WithValues("csr", csr.name).V(1).Error(err, "failed to watch CSR")
-						time.Sleep(3 * time.Second)
-						continue
-					}
-
-					defer watcher.Stop()
-
-					watchClosed := false
-					for !watchClosed {
-						select {
-						case <-ctx.Done():
-							return nil
-						case evt, ok := <-watcher.ResultChan():
-							if !ok {
-								log.WithValues("csr", csr.name).V(1).Info("watch closed")
-								watchClosed = true
-							}
-
-							request, ok := evt.Object.(*certificatesv1.CertificateSigningRequest)
-							if !ok {
-								log.WithValues("csr", csr.name).Error(fmt.Errorf("expected a CertificateSigningRequest but received %#v", evt.Object), "unexpected object")
-								continue
-							}
-
-							approved, err := isCertificateSigningRequestApproved(request)
-							if err != nil {
-								return fmt.Errorf("csr is in an invalid state: %w", err)
-							}
-
-							if approved && isCertificateSigningRequestIssued(request) {
-								if _, _, err = pkiutil.LoadCertificate(string(request.Status.Certificate), ""); err != nil {
-									log.WithValues("csr", csr.name).Error(err, "CertificateSigningRequest failed")
-									return fmt.Errorf("CertificateSigningRequest failed: %w", err)
-								}
-								*csr.certificate = string(request.Status.Certificate)
-								*csr.key = string(keyPEM)
-								return nil
-							}
-						}
-					}
-					time.Sleep(3 * time.Second)
+				case <-time.After(3 * time.Second):
 				}
-
 			}
 
 		})
@@ -257,16 +236,18 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 
 }
 
-// isCertificateSigningRequestApproved checks if the certificate signing request is approved.
-// It returns true if the CSR is approved, false if it is pending, and an error if it is denied
+// isCertificateSigningRequestApprovedAndIssued checks if the certificate
+// signing request is approved and issued. It returns true if the CSR is
+// approved and issued, false if it is pending, and an error if it is denied
 // or failed.
-func isCertificateSigningRequestApproved(csr *certificatesv1.CertificateSigningRequest) (bool, error) {
+func isCertificateSigningRequestApprovedAndIssued(csr *certificatesv1.CertificateSigningRequest) (bool, error) {
 	for _, condition := range csr.Status.Conditions {
 		if condition.Type == certificatesv1.CertificateApproved && condition.Status == corev1.ConditionTrue {
-			return true, nil
+			return len(csr.Status.Certificate) > 0, nil
+
 		}
 		if condition.Type == certificatesv1.CertificateDenied && condition.Status == corev1.ConditionTrue {
-			return false, fmt.Errorf("CSR %s was denied: %s", csr.Name, condition.Reason)
+			return false, fmt.Errorf(":CSR %s was denied: %s", csr.Name, condition.Reason)
 		}
 		if condition.Type == certificatesv1.CertificateFailed && condition.Status == corev1.ConditionTrue {
 			return false, fmt.Errorf("CSR %s failed: %s", csr.Name, condition.Reason)
@@ -275,7 +256,23 @@ func isCertificateSigningRequestApproved(csr *certificatesv1.CertificateSigningR
 	return false, nil
 }
 
-// isCertificateSigningRequestIssued checks if the certificate signing request is issued.
-func isCertificateSigningRequestIssued(csr *certificatesv1.CertificateSigningRequest) bool {
-	return len(csr.Status.Certificate) > 0
+// verifyCSRAndSetPKI verifies the certificate signing request and sets the
+// certificate and key if the CSR is approved.
+func verifyCSRAndSetPKI(csr *certificatesv1.CertificateSigningRequest, keyPEM string, certificate, key *string) (bool, error) {
+	approved, err := isCertificateSigningRequestApprovedAndIssued(csr)
+	if err != nil {
+		return false, fmt.Errorf("%w: failed to validate csr: %w", errInvalidCSR, err)
+	}
+
+	if !approved {
+		return false, nil
+	}
+
+	if _, _, err = pkiutil.LoadCertificate(string(csr.Status.Certificate), ""); err != nil {
+		return false, fmt.Errorf("%w: failed to load certificate: %w", errInvalidCSR, err)
+	}
+
+	*certificate = string(csr.Status.Certificate)
+	*key = keyPEM
+	return true, nil
 }
