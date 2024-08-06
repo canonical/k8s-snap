@@ -9,7 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 func setupKubeconfigs(s state.State, kubeConfigDir string, securePort int, pki pki.ControlPlanePKI) error {

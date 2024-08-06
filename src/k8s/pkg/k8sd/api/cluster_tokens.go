@@ -5,14 +5,15 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/microcluster"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v2/microcluster"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 func (e *Endpoints) postClusterJoinTokens(s state.State, r *http.Request) response.Response {
@@ -54,7 +55,8 @@ func getOrCreateJoinToken(ctx context.Context, m *microcluster.MicroCluster, tok
 	}
 
 	// if token does not exist, create a new one
-	token, err := m.NewJoinToken(ctx, tokenName)
+	// TODO(ben): make token expiry configurable
+	token, err := m.NewJoinToken(ctx, tokenName, time.Duration(24*time.Hour))
 	if err != nil {
 		return "", fmt.Errorf("failed to generate a new microcluster join token: %w", err)
 	}

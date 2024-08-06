@@ -5,7 +5,7 @@ import (
 	"context"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
-	"github.com/canonical/microcluster/rest"
+	"github.com/canonical/microcluster/v2/rest"
 )
 
 type Endpoints struct {
