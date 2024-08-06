@@ -12,3 +12,4 @@ jobs:
     uses: canonical/documentation-workflows/.github/workflows/documentation-checks.yaml@main
     with:
       working-directory: 'docs/moonray'
+      
