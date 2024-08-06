@@ -1,6 +1,6 @@
 # Upgrade the Kubernetes version of a cluster
 
-This guide will walk you through the steps to rollout an upgrade for a
+This guide walks you through the steps to rollout an upgrade for a
 Cluster API managed Kubernetes cluster. The upgrade process includes updating
 the Kubernetes version of the control plane and worker nodes.
 
