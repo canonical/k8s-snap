@@ -15,7 +15,8 @@ To follow this guide, you will need:
 - The workload cluster kubeconfig. We will refer to it as `c1-kubeconfig.yaml`
   in the following steps.
 
-Please refer to the [getting-started guide][getting-started] for further details on the required setup.
+Please refer to the [getting-started guide][getting-started] for further
+details on the required setup.
 This guide refers to the workload cluster as `c1` and its
 kubeconfig as `c1-kubeconfig.yaml`.
 
@@ -28,11 +29,17 @@ state.
 kubectl get nodes -o wide
 ```
 
-Confirm that the Kubernetes version of the workload cluster:
+Confirm the Kubernetes version of the workload cluster:
 
 ```
 kubectl --kubeconfig c1-kubeconfig.yaml get nodes -o wide
 ```
+
+```{note} For rollout upgrades, only the minor version should be updated.
+```
+<!-- TODO(ben): add reference to in-place upgrades once we have those docs. ->
+
+
 
 ## Update the Control Plane
 
@@ -55,7 +62,8 @@ Please safe your changes.
 
 ## Monitor the control plane upgrade
 
-Watch CAPI handle the rolling upgrade of control plane nodes, by running the following command:
+Watch CAPI handle the rolling upgrade of control plane nodes, by running the
+following command:
 
 ```
 kubectl get ck8scontrolplane c1-control-plane -w
