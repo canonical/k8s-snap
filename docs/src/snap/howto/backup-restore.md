@@ -14,7 +14,7 @@ an S3 compatible object store.
 
 ## What you will need
 
-- A running Canonical Kubernetes with DNS enabled
+- A running {{product}} with DNS enabled
 - MinIO (install described below) or other S3 bucket
 - Velero (install described below)
 - An example workload

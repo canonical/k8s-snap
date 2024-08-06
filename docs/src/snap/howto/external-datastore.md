@@ -1,6 +1,6 @@
 # How to use an external datastore
 
-Canonical Kubernetes supports using an external datastore such as etcd
+{{product}} supports using an external datastore such as etcd
 instead of the bundled dqlite datastore.
 This guide walks you through configuring an external etcd datastore.
 
@@ -10,9 +10,9 @@ This guide assumes the following:
 
 - You have root or sudo access to the machine
 - You have an external etcd cluster
-- You have installed the Canonical Kubernetes snap
-  (see How-to [Install Canonical Kubernetes from a snap][snap-install-howto]).
-- You have not bootstrapped the Canonical Kubernetes cluster yet
+- You have installed the {{product}} snap
+  (see How-to [Install {{product}} from a snap][snap-install-howto]).
+- You have not bootstrapped the {{product}} cluster yet
 
 ```{warning}
 The selection of the backing datastore can only be changed during the bootstrap process.

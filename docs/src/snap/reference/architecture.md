@@ -3,11 +3,11 @@
 A system architecture document is the starting point for many interested
 participants in a project, whether you intend contributing or simply want to
 understand how the software is structured. This documentation lays out the
-current design of Canonical Kubernetes, following the [C4 model].
+current design of {{product}}, following the [C4 model].
 
 ## System context
 
-This overview of Canonical Kubernetes demonstrates the interactions of
+This overview of {{product}} demonstrates the interactions of
 Kubernetes with users and with other systems.
 
 ```{kroki} ../../assets/overview.puml
@@ -138,7 +138,7 @@ The `k8s` charm also supports the integration of other compatible charms,
 enabling integrations such as connectivity with an external `etcd` datastore
 and the sharing of observability data with the [`Canonical Observability Stack
 (COS)`][COS docs]. This modular and integrated approach facilitates a robust
-and flexible Canonical Kubernetes deployment managed through Juju.
+and flexible {{product}} deployment managed through Juju.
 
 
 <!-- LINKS -->

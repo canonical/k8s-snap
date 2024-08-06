@@ -1,6 +1,6 @@
 # How to use the default load-balancer
 
-Canonical Kubernetes includes a default load-balancer. As this is not an
+{{product}} includes a default load-balancer. As this is not an
 essential service for all deployments, it is not enabled by default. This guide
 explains how to configure and enable the load-balancer.
 
@@ -9,7 +9,7 @@ explains how to configure and enable the load-balancer.
 This guide assumes the following:
 
 - You have root or sudo access to the machine.
-- You have a bootstraped Canonical Kubernetes cluster (see the [Getting
+- You have a bootstraped {{product}} cluster (see the [Getting
   Started][getting-started-guide] guide).
 
 ## Check the status and configuration

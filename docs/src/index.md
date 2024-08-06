@@ -1,10 +1,10 @@
-# Canonical Kubernetes documentation
+# {{product}} documentation
 
-Canonical Kubernetes is a performant, lightweight, secure and
+{{product}} is a performant, lightweight, secure and
 opinionated distribution of **Kubernetes** which includes everything needed to
 create and manage a scalable cluster suitable for all use cases.
 
-You can find out more about Canonical Kubernetes on this [overview page] or
+You can find out more about {{product}} on this [overview page] or
 see a more detailed explanation in our [architecture documentation].
 
 ![Illustration depicting working on components and clouds][logo]
@@ -60,7 +60,7 @@ capi/reference/index
 ### [Install K8s from a snap ›](snap/index)
 ^^^
 Our tutorials, How To guides and other pages will explain how to install,
- configure and use the Canonical Kubernetes 'k8s' snap.
+ configure and use the {{product}} 'k8s' snap.
 ```
 
 ```{grid-item-card}
@@ -68,7 +68,7 @@ Our tutorials, How To guides and other pages will explain how to install,
 ### [Deploy K8s using Juju ›](charm/index)
 ^^^
 Our tutorials, How To guides and other pages will explain how to install,
- configure and use the Canonical Kubernetes 'k8s' charm.
+ configure and use the {{product}} 'k8s' charm.
 ```
 
 ````
@@ -76,7 +76,7 @@ Our tutorials, How To guides and other pages will explain how to install,
 
 ## Project and community
 
-Canonical Kubernetes is a member of the Ubuntu family. It's an open source
+{{product}} is a member of the Ubuntu family. It's an open source
 project which welcomes community involvement, contributions, suggestions, fixes
 and constructive feedback.
 

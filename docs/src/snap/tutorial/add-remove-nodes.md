@@ -6,7 +6,7 @@ availability and resilience.
 
 This tutorial simplifies the concept by creating a cluster within a controlled
 environment using two Multipass VMs. The approach here allows us to focus on
-the foundational aspects of clustering using Canonical Kubernetes without the
+the foundational aspects of clustering using {{product}} without the
 complexities of a full-scale, production setup. If your nodes are already
 installed, you can skip the multipass setup and go to [step 2](step2).
 
@@ -45,7 +45,7 @@ multipass shell control-plane
 This will behave as a local terminal session on the virtual machine, so you can
 run commands.
 
-Install Canonical Kubernetes on both VMs with the following command:
+Install {{product}} on both VMs with the following command:
 
 ```
 sudo snap install --classic --edge k8s
@@ -62,7 +62,7 @@ Bootstrap the control plane node:
 sudo k8s bootstrap
 ```
 
-Canonical Kubernetes allows you to create two types of nodes: control plane and
+{{product}} allows you to create two types of nodes: control plane and
 worker nodes. In this example, we're creating a worker node.
 
 Generate the token required for the worker node to join the cluster by executing
@@ -142,7 +142,7 @@ multipass purge
 ## Next Steps
 
 - Discover how to enable and configure Ingress resources [Ingress][Ingress]
-- Keep mastering Canonical Kubernetes with kubectl [How to use
+- Keep mastering {{product}} with kubectl [How to use
   kubectl][Kubectl]
 - Explore Kubernetes commands with our [Command Reference
   Guide][Command Reference]

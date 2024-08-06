@@ -1,4 +1,4 @@
-# Welcome to the Canonical Kubernetes community
+# Welcome to the {{product}} community
 
 This rapidly growing community is a diverse bunch of people - developers,
 Kubernetes admins, inventors, researchers, students… and we all share the joy
@@ -8,7 +8,7 @@ the project as a whole and how valuable your contributions are.
 
 ## Do you have questions?
 
-Do you have questions about Canonical Kubernetes? Perhaps you want some ideas
+Do you have questions about {{product}}? Perhaps you want some ideas
 on how to best achieve a certain goal or maybe some aspect of your Kubernetes
 doesn't behave the way you expect. Perhaps you'd just like some advice from
 more experienced users. There are a number of ways to get in touch:
@@ -34,7 +34,7 @@ aim to triage all bug reports within three working days.
 
 ## Contributing to the code?
 
-Canonical Kubernetes is proudly open source, published under the GPLv3 license.
+{{product}} is proudly open source, published under the GPLv3 license.
 We welcome and encourage contributions to the code. Please see the [Developer
 guide] for more information on contributing.
 

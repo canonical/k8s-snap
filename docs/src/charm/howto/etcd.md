@@ -1,9 +1,9 @@
-# How to integrate Canonical Kubernetes with etcd
+# How to integrate {{product}} with etcd
 
-Integrating **etcd** with your Canonical Kubernetes deployment provides a
+Integrating **etcd** with your {{product}} deployment provides a
 robust, distributed key-value store that is essential for storing critical
 data needed for Kubernetes' clustering operations. This guide will walk you
-through the process of deploying Canonical Kubernetes with an external etcd
+through the process of deploying {{product}} with an external etcd
 cluster.
 
 ## What you will need
@@ -11,7 +11,7 @@ cluster.
 - A Juju controller with access to a cloud environment (see the [Juju setup]
   guide for more information).
 
-```{warning} Once you deploy your Canonical Kubernetes cluster with a
+```{warning} Once you deploy your {{product}} cluster with a
 particular datastore, you cannot switch to a different datastore
 post-deployment. Planning for your datastore needs ahead of time is
 crucial, particularly if you opt for an external datastore like **etcd**.
@@ -20,7 +20,7 @@ crucial, particularly if you opt for an external datastore like **etcd**.
 ## Preparing the Deployment
 
 1. **Creating the Deployment Model**:
-  Begin by creating a Juju model specifically for your Canonical Kubernetes
+  Begin by creating a Juju model specifically for your {{product}}
   cluster deployment.
 
   ```bash
@@ -64,21 +64,21 @@ crucial, particularly if you opt for an external datastore like **etcd**.
 
 Now you have to integrate etcd with your certificate authority; this will issue
 the required certificates for secure communication between etcd and your
-Canonical Kubernetes cluster:
+{{product}} cluster:
 
 ```bash
 juju integrate etcd easyrsa
 ```
 
-## Deploying Canonical Kubernetes
+## Deploying {{product}}
 
-Deploy the control plane units of Canonical Kubernetes with the command:
+Deploy the control plane units of {{product}} with the command:
 
 ```bash
 juju deploy k8s --config datastore=etcd -n 3
 ```
 
-This command deploys 3 units of the Canonical Kubernetes control plane (`k8s`)
+This command deploys 3 units of the {{product}} control plane (`k8s`)
 and configures them to use **etcd** as the backing datastore, ensuring high
 availability.
 
@@ -87,7 +87,7 @@ Remember to run `juju expose k8s`. This will open the required
 ports to reach your cluster from outside.
 ```
 
-## Integrating Canonical Kubernetes with etcd
+## Integrating {{product}} with etcd
 
 Now that we have both the etcd datastore deployed alongside our Canonical
 Kubernetes cluster, it is time to integrate our cluster with our etcd datastore.

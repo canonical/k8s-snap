@@ -9,7 +9,7 @@ tool.
 
 Before you begin, make sure you have the following:
 
-- A bootstrapped Canonical Kubernetes cluster (See
+- A bootstrapped {{product}} cluster (See
   [Getting Started])
 - You are using the built-in `kubectl` command from the snap.
 
@@ -18,7 +18,7 @@ Before you begin, make sure you have the following:
 The `kubectl` command communicates with the
 [Kubernetes API server][kubernetes-api-server].
 
-The `kubectl` command included with Canonical Kubernetes is built from the
+The `kubectl` command included with {{product}} is built from the
 original upstream source into the `k8s` snap you have installed.
 
 ### 2. How To Use Kubectl
@@ -34,7 +34,7 @@ sudo k8s kubectl <command>
 
 ### 3. Configuration
 
-In Canonical Kubernetes, the `kubeconfig` file that is being read to display
+In {{product}}, the `kubeconfig` file that is being read to display
 the configuration when you run `kubectl config view` lives at
 `/etc/kubernetes/admin.conf`. You can change this by setting a
 `KUBECONFIG` environment variable or passing the `--kubeconfig` flag to a

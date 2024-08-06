@@ -3,7 +3,7 @@
 Kubernetes clustering allows you to manage a group of hosts as a single entity.
 This enables applications to be deployed across a cluster of machines without
 tying them specifically to one host, providing high availability and
-scalability. In Canonical Kubernetes the addition of `k8sd` to the Kubernetes
+scalability. In {{product}} the addition of `k8sd` to the Kubernetes
 ecosystem introduces enhanced capabilities for cluster coordination and
 management.
 
@@ -11,19 +11,19 @@ management.
 
 A Kubernetes cluster consists of at least one control plane node and multiple
 worker nodes. Each node is a server (physical or virtual) that runs
-[Kubernetes components]. In Canonical Kubernetes, the components are bundled
+[Kubernetes components]. In {{product}}, the components are bundled
 inside the `k8s-snap`. The cluster's topology divides responsibilities between
 the control plane node(s) and the worker nodes, ensuring efficient management
 and scheduling of workloads.
 
-This is the overview of a Canonical Kubernetes cluster:
+This is the overview of a {{product}} cluster:
 
 ```{kroki} ../../assets/ck-cluster.puml
 ```
 
 ## The Role of `k8sd` in Kubernetes Clustering
 
-`k8sd` plays a vital role in the Canonical Kubernetes architecture, enhancing
+`k8sd` plays a vital role in the {{product}} architecture, enhancing
 the functionality of both the Control Plane and Worker nodes through the use
 of [microcluster]. This component simplifies cluster management tasks, such as
 adding or removing nodes and integrating them into the cluster. It also
@@ -32,7 +32,7 @@ streamlining the entire process for a more efficient operation.
 
 ## Integration into the Kubernetes Cluster Topology
 
-For Canonical Kubernetes, the detailed view of the two types of node is as
+For {{product}}, the detailed view of the two types of node is as
 follows:
 
 ### Control Plane Node
@@ -67,7 +67,7 @@ entire life-cycle. Their components include:
     by the user.
 - **Kube-Proxy (kube-proxy)**: Manages network communication within the cluster.
 - **Container Runtime**: The software responsible for running containers. In
-    Canonical Kubernetes the runtime is `containerd`.
+    {{product}} the runtime is `containerd`.
 
 <!-- LINKS -->
 

@@ -1,6 +1,6 @@
-# Canonical Kubernetes charm documentation
+# {{product}} charm documentation
 
-The Canonical Kubernetes charm, `k8s`, is an operator: software which wraps an
+The {{product}} charm, `k8s`, is an operator: software which wraps an
 application and contains all of the instructions necessary for deploying,
 configuring, scaling, integrating the application on any cloud supported by
 [Juju][].
@@ -9,7 +9,7 @@ The `k8s` charm takes care of installing and configuring the [k8s snap
 package][] on cloud instances managed by Juju. Operating Kubernetes through
 this charm makes it significantly easier to manage at scale, on remote cloud
 instances and also to integrate other operators to enhance or customise your
-Kubernetes deployment. You can find out more about Canonical Kubernetes on this
+Kubernetes deployment. You can find out more about {{product}} on this
 [overview page][] or see a more detailed explanation in our [architecture
 documentation][arch].
 
@@ -50,7 +50,7 @@ documentation][arch].
 
 ## Project and community
 
-Canonical Kubernetes is a member of the Ubuntu family. It's an open source
+{{product}} is a member of the Ubuntu family. It's an open source
 project which welcomes community involvement, contributions, suggestions, fixes
 and constructive feedback.
 

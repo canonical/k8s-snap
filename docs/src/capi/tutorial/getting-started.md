@@ -1,6 +1,6 @@
 # Cluster provisioning with CAPI and Canonical K8s
 
-This guide covers how to deploy a Canonical Kubernetes multi-node cluster
+This guide covers how to deploy a {{product}} multi-node cluster
 using Cluster API (CAPI).
 
 ## Install `clusterctl`
@@ -114,9 +114,9 @@ apply the cluster manifests with the specifications of the cluster you want to
 provision.
 
 You can generate a cluster manifest for a selected set of commonly used
-infrastructures via templates provided by the Canonical Kubernetes team.
+infrastructures via templates provided by the {{product}} team.
 Ensure you have initialized the desired infrastructure provider and fetch
-the Canonical Kubernetes provider repository:
+the {{product}} provider repository:
 
 ```
 git clone https://github.com/canonical/cluster-api-k8s

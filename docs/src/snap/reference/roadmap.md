@@ -1,6 +1,6 @@
 # Roadmap
 
-The Canonical Kubernetes team enthusiastically supports the idea of a public
+The {{product}} team enthusiastically supports the idea of a public
 roadmap, letting everyone know the headline features we are working on and the
 future direction and priorities of the project.
 
@@ -10,7 +10,7 @@ release cycle of Kubernetes versions, so please consult the [release notes] for
 specifics of whatfeatures have been delivered.
 
 
-``` {csv-table} Canonical Kubernetes public roadmap
+``` {csv-table} {{product}} public roadmap
    :file: ../../assets/roadmap.csv
    :widths: 30, 30
    :header-rows: 1

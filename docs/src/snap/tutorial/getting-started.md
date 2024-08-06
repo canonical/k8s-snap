@@ -1,6 +1,6 @@
 # Getting started
 
-Installing Canonical Kubernetes should only take a few minutes. This tutorial
+Installing {{product}} should only take a few minutes. This tutorial
 explains how to install the snap package and some typical operations.
 
 ## What you will need
@@ -11,9 +11,9 @@ explains how to install the snap package and some typical operations.
 - System Requirements: Your machine should have at least 40G disk space
   and 4G of memory
 
-### 1. Install Canonical Kubernetes
+### 1. Install {{product}}
 
-Install the Canonical Kubernetes snap with:
+Install the {{product}} snap with:
 
 ```
 sudo snap install k8s --edge --classic
@@ -57,7 +57,7 @@ You will observe at least three pods running:
 - **Network operator**: Manages the life-cycle of the networking solution.
 - **Network agent**: Facilitates network management.
 
-Confirm that Canonical Kubernetes has transitioned to the `k8s is ready` state
+Confirm that {{product}} has transitioned to the `k8s is ready` state
 by running:
 
 ```
@@ -68,7 +68,7 @@ sudo k8s status --wait-ready
 
 The standard tool for deploying and managing workloads on Kubernetes
 is [kubectl](https://kubernetes.io/docs/reference/kubectl/).
-For convenience, Canonical Kubernetes bundles a version of
+For convenience, {{product}} bundles a version of
 kubectl for you to use with no extra setup or configuration.
 For example, to view your node you can run the command:
 
@@ -128,7 +128,7 @@ sudo k8s kubectl get pods
 In scenarios where you need to preserve application data beyond the
 life-cycle of the pod, Kubernetes provides persistent volumes.
 
-With Canonical Kubernetes, you can enable local-storage to configure
+With {{product}}, you can enable local-storage to configure
 your storage solutions:
 
 ```
@@ -180,9 +180,9 @@ Next, disable the local storage:
 sudo k8s disable local-storage
 ```
 
-### 10. Remove Canonical Kubernetes (Optional)
+### 10. Remove {{product}} (Optional)
 
-To uninstall the Canonical Kubernetes snap, execute:
+To uninstall the {{product}} snap, execute:
 
 ```
 sudo snap remove k8s
@@ -202,7 +202,7 @@ This option ensures complete removal of the snap and its associated data.
 
 ## Next Steps
 
-- Keep mastering Canonical Kubernetes with kubectl: [How to use kubectl]
+- Keep mastering {{product}} with kubectl: [How to use kubectl]
 - Explore Kubernetes commands with our [Command Reference Guide]
 - Learn how to set up a multi-node environment [Setting up a K8s cluster]
 - Configure storage options [Storage]

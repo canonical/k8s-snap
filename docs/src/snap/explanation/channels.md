@@ -1,18 +1,18 @@
 # Channels
 
-Canonical Kubernetes uses the concept of `channels` to make sure you always get
+{{product}} uses the concept of `channels` to make sure you always get
 the version of Kubernetes you are expecting, and that future upgrades can be
 handled with minimum, if any, disruption.
 
 ## Choosing the right channel
 
-When installing or updating Canonical Kubernetes you can (and should in most
+When installing or updating {{product}} you can (and should in most
 cases) specify a channel. The channel specified is made up of two components;
 the **track** and the **risk level**.
 
 The track matches the minor version of upstream Kubernetes. For example,
 specifying the `1.30` track will match upstream releases of the same minor
-version ("1.30.0", "1.30.1", "1.30.x" etc.). Releases of Canonical Kubernetes
+version ("1.30.0", "1.30.1", "1.30.x" etc.). Releases of {{product}}
 closely follow the upstream releases and usually follow within 24 hours.
 
 The 'risk level' component of the channel is one of the following:
@@ -79,7 +79,7 @@ Use `--channel=<next_release>/beta` for beta releases.
 
 Use `--channel=<next_release>/candidate` for candidate releases.
 
-- **I am waiting to test a bug fix on Canonical Kubernetes**
+- **I am waiting to test a bug fix on {{product}}**
 
 Use `--channel=<release>/edge`.
 
