@@ -76,13 +76,13 @@ type ClusterStatus struct {
 	Config    UserFacingClusterConfig `json:"config,omitempty"`
 	Datastore Datastore               `json:"datastore,omitempty"`
 
-	DNS           FeatureStatus `json:"dns,omitempty"`
-	Network       FeatureStatus `json:"network,omitempty"`
-	LoadBalancer  FeatureStatus `json:"load-balancer,omitempty"`
-	Ingress       FeatureStatus `json:"ingress,omitempty"`
-	Gateway       FeatureStatus `json:"gateway,omitempty"`
-	MetricsServer FeatureStatus `json:"metrics-server,omitempty"`
-	LocalStorage  FeatureStatus `json:"local-storage,omitempty"`
+	DNS           FeatureStatus `json:"dns,omitempty" yaml:"dns,omitempty"`
+	Network       FeatureStatus `json:"network,omitempty" yaml:"network,omitempty"`
+	LoadBalancer  FeatureStatus `json:"load-balancer,omitempty" yaml:"load-balancer,omitempty"`
+	Ingress       FeatureStatus `json:"ingress,omitempty" yaml:"ingress,omitempty"`
+	Gateway       FeatureStatus `json:"gateway,omitempty" yaml:"gateway,omitempty"`
+	MetricsServer FeatureStatus `json:"metrics-server,omitempty" yaml:"metrics-server,omitempty"`
+	LocalStorage  FeatureStatus `json:"local-storage,omitempty" yaml:"local-storage,omitempty"`
 }
 
 // HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).
