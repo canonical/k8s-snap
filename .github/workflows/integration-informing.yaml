@@ -30,7 +30,6 @@ jobs:
         run: |
           sudo snap install lxd --channel 5.21/stable
           sudo lxd init --auto
-          sudo usermod --append --groups lxd $USER
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
@@ -39,7 +38,7 @@ jobs:
           ./build-scripts/patches/${{ matrix.patch }}/apply
       - name: Build snap
         run: |
-          sg lxd -c 'snapcraft --use-lxd'
+          sudo snapcraft --use-lxd
           mv k8s_*.snap k8s-${{ matrix.patch }}.snap
       - name: Uploading snap
         uses: actions/upload-artifact@v4
