@@ -118,3 +118,7 @@ To check the status of the cluster, run:
 ```
 clusterctl describe cluster peaches
 ```
+<!-- LINKS -->
+[getting-started]: ../tutorial/getting-started.md
+[capi-templates]: https://github.com/canonical/cluster-api-k8s/tree/main/templates
+[clusterctl]: https://cluster-api.sigs.k8s.io/clusterctl/overview

@@ -37,9 +37,7 @@ kubectl --kubeconfig c1-kubeconfig.yaml get nodes -o wide
 
 ```{note} For rollout upgrades, only the minor version should be updated.
 ```
-<!-- TODO(ben): add reference to in-place upgrades once we have those docs. ->
-
-
+<!-- TODO(ben): add reference to in-place upgrades once we have those docs. -->
 
 ## Update the Control Plane
 
