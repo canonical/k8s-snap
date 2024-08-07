@@ -12,6 +12,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning"
+	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/v2/client"
@@ -218,6 +219,7 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 		Verbose:          a.config.Verbose,
 		Debug:            a.config.Debug,
 		Hooks:            hooks,
+		ExtensionsSchema: database.SchemaExtensions,
 		ExtensionServers: api.New(ctx, a),
 	})
 	if err != nil {
