@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"fmt"
 	"time"
 
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
@@ -65,7 +66,17 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		log.Info("CSR is not approved")
 		if internal.autoApprove {
 			log.V(1).Info("CSR auto-approval is enabled")
-			return r.reconcileAutoApprove(ctx, log, obj, config)
+			keyPEM := config.Certificates.GetK8sdPrivateKey()
+
+			if keyPEM == "" {
+				return ctrl.Result{}, fmt.Errorf("cluster RSA key not set")
+			}
+
+			priv, err := pkiutil.LoadRSAPrivateKey(keyPEM)
+			if err != nil {
+				return ctrl.Result{}, fmt.Errorf("failed to load cluster RSA key: %w", err)
+			}
+			return r.reconcileAutoApprove(ctx, log, obj, priv)
 		}
 
 		log.Info("Requeue while waiting for CSR to be approved")

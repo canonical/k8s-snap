@@ -154,12 +154,12 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 				return fmt.Errorf("failed to generate CSR for %s: %w", csr.name, err)
 			}
 
-			k8sdPublicKey := clusterConfig.Certificates.GetK8sdPublicKey()
-			if k8sdPublicKey == "" {
+			publicKeyPEM := clusterConfig.Certificates.GetK8sdPublicKey()
+			if publicKeyPEM == "" {
 				return fmt.Errorf("k8sd public key not set")
 			}
 
-			pubKey, err := pkiutil.LoadRSAPublicKey(k8sdPublicKey)
+			publicKey, err := pkiutil.LoadRSAPublicKey(publicKeyPEM)
 			if err != nil {
 				return fmt.Errorf("failed to load k8sd public key: %w", err)
 			}
@@ -171,7 +171,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			}
 
 			// encrypt the hash with the public cluster RSA key
-			signature, err := rsa.EncryptPKCS1v15(rand.Reader, pubKey, hash.Sum(nil))
+			signature, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, hash.Sum(nil))
 			if err != nil {
 				return fmt.Errorf("failed to encrypt csr signature: %w", err)
 			}

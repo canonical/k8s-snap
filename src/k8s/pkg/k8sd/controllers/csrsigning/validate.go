@@ -3,6 +3,7 @@ package csrsigning
 import (
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/subtle"
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/utils"
@@ -11,6 +12,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
+// validateCSR checks the CSR for common requirements and returns an error if it fails.
+// validateCSR is used to validate CSRs that are auto-approved.
+// validateCSR expects a valid private key.
 func validateCSR(obj *certv1.CertificateSigningRequest, priv *rsa.PrivateKey) error {
 	csr, err := pkiutil.LoadCertificateRequest(string(obj.Spec.Request))
 	if err != nil {
@@ -29,7 +33,7 @@ func validateCSR(obj *certv1.CertificateSigningRequest, priv *rsa.PrivateKey) er
 		return fmt.Errorf("failed to compute sha256: %w", err)
 	}
 
-	if !(string(h.Sum(nil)) == string(signature)) {
+	if subtle.ConstantTimeCompare(h.Sum(nil), signature) == 0 {
 		return fmt.Errorf("CSR signature does not match")
 	}
 
