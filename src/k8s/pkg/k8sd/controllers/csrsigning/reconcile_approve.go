@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	certv1 "k8s.io/api/certificates/v1"
@@ -11,18 +12,17 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *csrSigningReconciler) reconcileAutoApprove(ctx context.Context, log log.Logger, csr *certv1.CertificateSigningRequest) (ctrl.Result, error) {
+func (r *csrSigningReconciler) reconcileAutoApprove(ctx context.Context, log log.Logger, csr *certv1.CertificateSigningRequest, clusterConfig types.ClusterConfig) (ctrl.Result, error) {
 	var result certv1.RequestConditionType
 
-	config, err := r.getClusterConfig(ctx)
-	if err != nil {
-		log.Error(err, "Failed to retrieve k8sd cluster configuration")
-		return ctrl.Result{}, err
+	keyPEM := clusterConfig.Certificates.GetK8sdPrivateKey()
+
+	if keyPEM == "" {
+		return ctrl.Result{}, fmt.Errorf("cluster RSA key not set")
 	}
 
-	keyPEM := config.Certificates.GetK8sdPrivateKey()
 	priv, err := pkiutil.LoadRSAPrivateKey(keyPEM)
-	if err != nil && keyPEM != "" {
+	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to load cluster RSA key: %w", err)
 	}
 
