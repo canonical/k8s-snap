@@ -31,26 +31,26 @@ const (
 type NodeStatus struct {
 	// Name is the name for this cluster member that was when joining the cluster.
 	// This is typically the hostname of the node.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 	// Address is the IP address of the node.
-	Address string `json:"address,omitempty"`
+	Address string `json:"address,omitempty" yaml:"address,omitempty"`
 	// ClusterRole is the role that the node has within the k8s cluster.
-	ClusterRole ClusterRole `json:"cluster-role,omitempty"`
+	ClusterRole ClusterRole `json:"cluster-role,omitempty" yaml:"cluster-role,omitempty"`
 	// DatastoreRole is the role that the node has within the datastore cluster.
 	// Only applicable for control-plane nodes, empty for workers.
-	DatastoreRole DatastoreRole `json:"datastore-role,omitempty"`
+	DatastoreRole DatastoreRole `json:"datastore-role,omitempty" yaml:"datastore-role,omitempty"`
 }
 
 // FeatureStatus encapsulates the deployment status of a feature.
 type FeatureStatus struct {
 	// Enabled shows whether or not the deployment of manifests for a status was successful.
-	Enabled bool
+	Enabled bool `json:"enabled" yaml:"enabled"`
 	// Message contains information about the status of a feature. It is only supposed to be human readable and informative and should not be programmatically parsed.
-	Message string
+	Message string `json:"message" yaml:"message"`
 	// Version shows the version of the deployed feature.
-	Version string
+	Version string `json:"version" yaml:"version"`
 	// UpdatedAt shows when the last update was done.
-	UpdatedAt time.Time
+	UpdatedAt time.Time `json:"updated-at" yaml:"updated-at"`
 }
 
 func (f FeatureStatus) String() string {
@@ -76,13 +76,13 @@ type ClusterStatus struct {
 	Config    UserFacingClusterConfig `json:"config,omitempty"`
 	Datastore Datastore               `json:"datastore,omitempty"`
 
-	DNS           FeatureStatus `json:"dns,omitempty"`
-	Network       FeatureStatus `json:"network,omitempty"`
-	LoadBalancer  FeatureStatus `json:"load-balancer,omitempty"`
-	Ingress       FeatureStatus `json:"ingress,omitempty"`
-	Gateway       FeatureStatus `json:"gateway,omitempty"`
-	MetricsServer FeatureStatus `json:"metrics-server,omitempty"`
-	LocalStorage  FeatureStatus `json:"local-storage,omitempty"`
+	DNS           FeatureStatus `json:"dns,omitempty" yaml:"dns,omitempty"`
+	Network       FeatureStatus `json:"network,omitempty" yaml:"network,omitempty"`
+	LoadBalancer  FeatureStatus `json:"load-balancer,omitempty" yaml:"load-balancer,omitempty"`
+	Ingress       FeatureStatus `json:"ingress,omitempty" yaml:"ingress,omitempty"`
+	Gateway       FeatureStatus `json:"gateway,omitempty" yaml:"gateway,omitempty"`
+	MetricsServer FeatureStatus `json:"metrics-server,omitempty" yaml:"metrics-server,omitempty"`
+	LocalStorage  FeatureStatus `json:"local-storage,omitempty" yaml:"local-storage,omitempty"`
 }
 
 // HaClusterFormed returns true if the cluster is in high-availability mode (more than two voter nodes).

@@ -53,8 +53,8 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			status.Config.MetricsServer = apiv1.MetricsServerConfig{}
-			status.Config.CloudProvider = nil
+			// silence the config, this should be retrieved with "k8s get".
+			status.Config = apiv1.UserFacingClusterConfig{}
 
 			outputFormatter.Print(status)
 		},
