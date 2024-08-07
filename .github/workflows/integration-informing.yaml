@@ -14,7 +14,7 @@ permissions:
 jobs:
   build:
     name: Build ${{ matrix.patch }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         patch: ["strict", "moonray"]
@@ -31,7 +31,6 @@ jobs:
           sudo snap refresh lxd --channel 5.21/stable
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
-          sg lxd -c 'lxc version'
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
@@ -53,10 +52,10 @@ jobs:
     name: Test ${{ matrix.patch }} ${{ matrix.os }}
     strategy:
       matrix:
-        os: ["ubuntu:20.04"]
+        os: ["ubuntu:24.04"]
         patch: ["strict", "moonray"]
       fail-fast: false
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code
         uses: actions/checkout@v4
