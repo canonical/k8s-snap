@@ -219,8 +219,8 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 		Verbose:          a.config.Verbose,
 		Debug:            a.config.Debug,
 		Hooks:            hooks,
-		ExtensionsSchema: database.SchemaExtensions,
 		ExtensionServers: api.New(ctx, a),
+		ExtensionsSchema: database.SchemaExtensions,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
