@@ -26,9 +26,11 @@ jobs:
           egress-policy: audit
       - name: Checking out repo
         uses: actions/checkout@v4
-      - name: Install multipass
+      - name: Install LXD
         run: |
-          sudo snap install multipass
+          sudo snap install lxd --channel 5.21/stable
+          sudo lxd init --auto
+          sudo usermod -a -G lxd $USER
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
@@ -37,7 +39,8 @@ jobs:
           ./build-scripts/patches/${{ matrix.patch }}/apply
       - name: Build snap
         run: |
-          sudo snapcraft
+          lxc version
+          snapcraft --use-lxd
           mv k8s_*.snap k8s-${{ matrix.patch }}.snap
       - name: Uploading snap
         uses: actions/upload-artifact@v4
