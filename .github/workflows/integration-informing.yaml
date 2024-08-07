@@ -38,7 +38,7 @@ jobs:
           ./build-scripts/patches/${{ matrix.patch }}/apply
       - name: Build snap
         run: |
-          sudo snapcraft --use-lxd
+          snapcraft --use-lxd
           mv k8s_*.snap k8s-${{ matrix.patch }}.snap
       - name: Uploading snap
         uses: actions/upload-artifact@v4
