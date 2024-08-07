@@ -56,7 +56,7 @@ func getOrCreateJoinToken(ctx context.Context, m *microcluster.MicroCluster, tok
 
 	// if token does not exist, create a new one
 	// TODO(ben): make token expiry configurable
-	token, err := m.NewJoinToken(ctx, tokenName, time.Duration(24*time.Hour))
+	token, err := m.NewJoinToken(ctx, tokenName, 24*time.Hour)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate a new microcluster join token: %w", err)
 	}
