@@ -53,7 +53,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 
 			log.Info("Deleting node from Kubernetes cluster")
 			if err := c.DeleteNode(ctx, s.Name()); err != nil {
-				log.Error(err, "Failed to remove k8s node %q: %w", s.Name(), err)
+				log.Error(err, fmt.Sprintf("Failed to remove k8s node %q: %v", s.Name(), err))
 			}
 		}
 
