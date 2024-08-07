@@ -5,7 +5,7 @@ go 1.22.5
 require (
 	github.com/canonical/go-dqlite v1.22.0
 	github.com/canonical/lxd v0.0.0-20240730172021-8e39e5d4f55f
-	github.com/canonical/microcluster/v2 v2.0.0
+	github.com/canonical/microcluster/v2 v2.0.2
 	github.com/go-logr/logr v1.4.2
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/sys/mountinfo v0.7.1
