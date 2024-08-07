@@ -8,7 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/canonical/microcluster/cluster"
+	"github.com/canonical/microcluster/v2/cluster"
 )
 
 var (
