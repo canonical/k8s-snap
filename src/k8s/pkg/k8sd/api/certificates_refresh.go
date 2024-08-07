@@ -154,7 +154,12 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 				return fmt.Errorf("failed to generate CSR for %s: %w", csr.name, err)
 			}
 
-			pubKey, err := pkiutil.LoadRSAPublicKey(clusterConfig.Certificates.GetK8sdPublicKey())
+			k8sdPublicKey := clusterConfig.Certificates.GetK8sdPublicKey()
+			if k8sdPublicKey == "" {
+				return fmt.Errorf("k8sd public key not set")
+			}
+
+			pubKey, err := pkiutil.LoadRSAPublicKey(k8sdPublicKey)
 			if err != nil {
 				return fmt.Errorf("failed to load k8sd public key: %w", err)
 			}

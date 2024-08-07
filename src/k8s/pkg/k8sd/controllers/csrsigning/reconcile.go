@@ -65,7 +65,7 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		log.Info("CSR is not approved")
 		if internal.autoApprove {
 			log.V(1).Info("CSR auto-approval is enabled")
-			return r.reconcileAutoApprove(ctx, log, obj)
+			return r.reconcileAutoApprove(ctx, log, obj, config)
 		}
 
 		log.Info("Requeue while waiting for CSR to be approved")
