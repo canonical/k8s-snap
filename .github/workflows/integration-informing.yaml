@@ -39,6 +39,7 @@ jobs:
       - name: Build snap
         run: |
           lxc version
+          sudo snap services lxd
           snapcraft --use-lxd
           mv k8s_*.snap k8s-${{ matrix.patch }}.snap
       - name: Uploading snap
