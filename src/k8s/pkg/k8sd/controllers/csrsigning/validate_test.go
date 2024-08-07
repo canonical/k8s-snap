@@ -31,10 +31,10 @@ func TestValidateCSREncryption(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	tests := []struct {
-		name               string
-		csr                *certv1.CertificateSigningRequest
-		expectErr          bool
-		expectedErrMessage string
+		name             string
+		csr              *certv1.CertificateSigningRequest
+		expectErr        bool
+		expectErrMessage string
 	}{
 		{
 			name: "Valid CSR",
@@ -72,8 +72,8 @@ func TestValidateCSREncryption(t *testing.T) {
 					Usages:     []certv1.KeyUsage{certv1.UsageServerAuth, certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment},
 				},
 			},
-			expectErr:          true,
-			expectedErrMessage: "CSR signature does not match",
+			expectErr:        true,
+			expectErrMessage: "CSR signature does not match",
 		},
 		{
 			name: "Invalid Signature",
@@ -92,8 +92,8 @@ func TestValidateCSREncryption(t *testing.T) {
 					Usages:     []certv1.KeyUsage{certv1.UsageServerAuth, certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment},
 				},
 			},
-			expectErr:          true,
-			expectedErrMessage: "failed to decrypt signature",
+			expectErr:        true,
+			expectErrMessage: "failed to decrypt signature",
 		},
 		{
 			name: "Missing Signature",
@@ -111,8 +111,8 @@ func TestValidateCSREncryption(t *testing.T) {
 					Usages:     []certv1.KeyUsage{certv1.UsageServerAuth, certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment},
 				},
 			},
-			expectErr:          true,
-			expectedErrMessage: "failed to decrypt signature",
+			expectErr:        true,
+			expectErrMessage: "failed to decrypt signature",
 		},
 		{
 			name: "Missing k8sd.io/node annotation",
@@ -130,8 +130,8 @@ func TestValidateCSREncryption(t *testing.T) {
 					Usages:     []certv1.KeyUsage{certv1.UsageServerAuth, certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment},
 				},
 			},
-			expectErr:          true,
-			expectedErrMessage: "k8sd.io/node annotation missing from CSR object",
+			expectErr:        true,
+			expectErrMessage: "k8sd.io/node annotation missing from CSR object",
 		},
 		{
 			name: "Invalid node name in CSR",
@@ -150,8 +150,8 @@ func TestValidateCSREncryption(t *testing.T) {
 					Usages:     []certv1.KeyUsage{certv1.UsageServerAuth, certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment},
 				},
 			},
-			expectErr:          true,
-			expectedErrMessage: "CSR has invalid node name",
+			expectErr:        true,
+			expectErrMessage: "CSR has invalid node name",
 		},
 		{
 			name: "Invalid Signer Name",
@@ -170,8 +170,8 @@ func TestValidateCSREncryption(t *testing.T) {
 					Usages:     []certv1.KeyUsage{certv1.UsageServerAuth, certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment},
 				},
 			},
-			expectErr:          true,
-			expectedErrMessage: "CSR has unknown signerName",
+			expectErr:        true,
+			expectErrMessage: "CSR has unknown signerName",
 		},
 		{
 			name: "Invalid Usages",
@@ -190,8 +190,8 @@ func TestValidateCSREncryption(t *testing.T) {
 					Usages:     []certv1.KeyUsage{certv1.UsageClientAuth}, // Invalid usages
 				},
 			},
-			expectErr:          true,
-			expectedErrMessage: "CSR usages",
+			expectErr:        true,
+			expectErrMessage: "CSR usages",
 		},
 	}
 
@@ -201,7 +201,7 @@ func TestValidateCSREncryption(t *testing.T) {
 			err := validateCSR(tt.csr, key)
 			if tt.expectErr {
 				g.Expect(err).To(HaveOccurred())
-				g.Expect(err.Error()).To(ContainSubstring(tt.expectedErrMessage))
+				g.Expect(err.Error()).To(ContainSubstring(tt.expectErrMessage))
 			} else {
 				g.Expect(err).NotTo(HaveOccurred())
 			}
