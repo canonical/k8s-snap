@@ -2,7 +2,6 @@ package api
 
 import (
 	"crypto/x509/pkix"
-	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -26,11 +25,6 @@ import (
 	certificatesv1 "k8s.io/api/certificates/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-var (
-	// errInvalidCSR is returned when the Kubernetes CSR is in an invalid state.
-	errInvalidCSR = errors.New("csr is in an invalid state")
 )
 
 func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) response.Response {
@@ -171,23 +165,24 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			}
 
 			for {
-				err := client.WatchCertificateSigningRequest(
+				retry, err := client.WatchCertificateSigningRequest(
 					ctx,
 					csr.name,
 					func(request *certificatesv1.CertificateSigningRequest) (bool, error) {
 						return verifyCSRAndSetPKI(request, keyPEM, csr.certificate, csr.key)
-					})
+					},
+				)
 
 				if err == nil {
 					return nil
 				}
 
 				// Check if error is non-recoverable
-				if errors.Is(err, errInvalidCSR) {
+				if retry == false {
 					return fmt.Errorf("certificate signing request failed: %w", err)
 				}
 
-				log.WithValues("name", "k8sd").Error(err, "Failed to watch CSR")
+				log.Error(err, "Failed to watch CSR")
 
 				select {
 				case <-ctx.Done():
@@ -261,7 +256,7 @@ func isCertificateSigningRequestApprovedAndIssued(csr *certificatesv1.Certificat
 func verifyCSRAndSetPKI(csr *certificatesv1.CertificateSigningRequest, keyPEM string, certificate, key *string) (bool, error) {
 	approved, err := isCertificateSigningRequestApprovedAndIssued(csr)
 	if err != nil {
-		return false, fmt.Errorf("%w: failed to validate csr: %w", errInvalidCSR, err)
+		return false, fmt.Errorf("failed to validate csr: %w", err)
 	}
 
 	if !approved {
@@ -269,7 +264,7 @@ func verifyCSRAndSetPKI(csr *certificatesv1.CertificateSigningRequest, keyPEM st
 	}
 
 	if _, _, err = pkiutil.LoadCertificate(string(csr.Status.Certificate), ""); err != nil {
-		return false, fmt.Errorf("%w: failed to load certificate: %w", errInvalidCSR, err)
+		return false, fmt.Errorf("failed to load certificate: %w", err)
 	}
 
 	*certificate = string(csr.Status.Certificate)
