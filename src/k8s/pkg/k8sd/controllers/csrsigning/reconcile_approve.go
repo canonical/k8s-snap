@@ -2,29 +2,17 @@ package csrsigning
 
 import (
 	"context"
+	"crypto/rsa"
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
-	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	certv1 "k8s.io/api/certificates/v1"
 	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *csrSigningReconciler) reconcileAutoApprove(ctx context.Context, log log.Logger, csr *certv1.CertificateSigningRequest, clusterConfig types.ClusterConfig) (ctrl.Result, error) {
+func (r *csrSigningReconciler) reconcileAutoApprove(ctx context.Context, log log.Logger, csr *certv1.CertificateSigningRequest, priv *rsa.PrivateKey) (ctrl.Result, error) {
 	var result certv1.RequestConditionType
-
-	keyPEM := clusterConfig.Certificates.GetK8sdPrivateKey()
-
-	if keyPEM == "" {
-		return ctrl.Result{}, fmt.Errorf("cluster RSA key not set")
-	}
-
-	priv, err := pkiutil.LoadRSAPrivateKey(keyPEM)
-	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to load cluster RSA key: %w", err)
-	}
 
 	if err := validateCSR(csr, priv); err != nil {
 		log.Error(err, "CSR is not valid")
