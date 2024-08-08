@@ -76,7 +76,7 @@ jobs:
           path: build
       - name: Generate inspection report
         run: |
-          k8s/scripts/inspect.sh
+          sudo k8s/scripts/inspect.sh
       - name: Upload inspection report artifact
         uses: actions/upload-artifact@v4
         with:
@@ -91,7 +91,7 @@ jobs:
       - name: Generate inspection report
         if: failure()
         run: |
-          k8s/scripts/inspect.sh
+          sudo k8s/scripts/inspect.sh
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
