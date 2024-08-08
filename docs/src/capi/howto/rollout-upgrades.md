@@ -76,7 +76,7 @@ kubectl --kubeconfig c1-kubeconfig.yaml get nodes -o wide
 The machines will be replaced in turn until all machines run on
 the desired version.
 
-## Update the Worker nodes
+## Update the worker nodes
 
 After upgrading the control plane, proceed with upgrading the worker nodes
 by updating the `MachineDeployment` resource. For
