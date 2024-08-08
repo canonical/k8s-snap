@@ -3,7 +3,9 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/canonical/k8s/pkg/log"
 	certificatesv1 "k8s.io/api/certificates/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -12,10 +14,6 @@ import (
 // given name and calls a verify function on each event.
 // WatchCertificateSigningRequest will continue watching the CSR until the
 // verify function returns true or an non-retriable error occurs.
-// WatchCertificateSigningRequest will return true and a wrapped error if the
-// error is retriable.
-// WatchCertificateSigningRequest will return false and a wrapped error if the
-// error is not retriable.
 //
 // The verify function should return true if the CSR is valid and processing
 // should stop.
@@ -23,32 +21,48 @@ import (
 // processing should continue.
 // The verify function should return an error if the CSR is in an invalid state
 // (e.g., failed or denied) or the issued certificate is invalid.
-func (c *Client) WatchCertificateSigningRequest(ctx context.Context, name string, verify func(csr *certificatesv1.CertificateSigningRequest) (bool, error)) (bool, error) {
-	w, err := c.CertificatesV1().CertificateSigningRequests().Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: name}))
-	if err != nil {
-		return true, fmt.Errorf("failed to watch CSR %s: %w", name, err)
-	}
-	defer w.Stop()
+func (c *Client) WatchCertificateSigningRequest(ctx context.Context, name string, verify func(csr *certificatesv1.CertificateSigningRequest) (bool, error)) error {
+	log := log.FromContext(ctx)
 	for {
+		w, err := c.CertificatesV1().CertificateSigningRequests().Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: name}))
+		if err != nil {
+			log.V(1).Info("Failed to watch CSR", "error", err)
+			continue
+		}
+		defer w.Stop()
+		watchClosed := false
+		for !watchClosed {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case evt, ok := <-w.ResultChan():
+				if !ok {
+					log.V(1).Info("Watch closed")
+					watchClosed = true
+					continue
+				}
+
+				csr, ok := evt.Object.(*certificatesv1.CertificateSigningRequest)
+				if !ok {
+					log.V(1).Info("Expected a CertificateSigningRequest but received something else", "object", evt.Object)
+					watchClosed = true
+					continue
+				}
+
+				if valid, err := verify(csr); err != nil {
+					return fmt.Errorf("failed to verify CSR %s: %w", name, err)
+				} else if valid {
+					return nil
+				}
+
+			}
+		}
+		log.V(1).Info("Retrying to watch CSR")
+
 		select {
 		case <-ctx.Done():
-			return false, ctx.Err()
-		case evt, ok := <-w.ResultChan():
-			if !ok {
-				return true, fmt.Errorf("watch closed")
-			}
-
-			csr, ok := evt.Object.(*certificatesv1.CertificateSigningRequest)
-			if !ok {
-				return true, fmt.Errorf("expected a CertificateSigningRequest but received %#v", evt.Object)
-			}
-
-			if valid, err := verify(csr); err != nil {
-				return false, fmt.Errorf("failed to verify CSR %s: %w", name, err)
-			} else if valid {
-				return false, nil
-			}
-
+			return ctx.Err()
+		case <-time.After(3 * time.Second):
 		}
 	}
 }
