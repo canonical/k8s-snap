@@ -56,7 +56,7 @@ spec:
   version: v1.30.3
 ```
 
-Please safe your changes.
+Please save your changes.
 
 ## Monitor the control plane upgrade
 
