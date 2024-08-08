@@ -8,7 +8,7 @@
 
 **Canonical Kubernetes** is the fastest, easiest way to deploy a fully-conformant Kubernetes cluster. Harnessing pure upstream Kubernetes, this distribution adds the missing pieces (e.g. ingress, dns, networking) for a zero-ops experience.
 
-For more information and instructions, please see the official documentation at: https://ubuntu.com/kubernetes
+For more information and instructions, please see the official documentation at: [https://documentation.ubuntu.com/canonical-kubernetes](https://documentation.ubuntu.com/canonical-kubernetes/)
 
 ## Quickstart
 
