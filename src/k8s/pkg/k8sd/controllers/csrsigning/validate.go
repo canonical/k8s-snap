@@ -13,7 +13,7 @@ import (
 )
 
 // validateCSR checks the CSR for common requirements and returns an error if it fails.
-// validateCSR is used to validate CSRs that are auto-approved.
+// validateCSR also checks if the encrypted signature of the CSR.
 // validateCSR expects a valid private key.
 func validateCSR(obj *certv1.CertificateSigningRequest, priv *rsa.PrivateKey) error {
 	csr, err := pkiutil.LoadCertificateRequest(string(obj.Spec.Request))
