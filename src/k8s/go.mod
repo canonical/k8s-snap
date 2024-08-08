@@ -3,7 +3,7 @@ module github.com/canonical/k8s
 go 1.22.5
 
 require (
-	github.com/canonical/go-dqlite v1.21.0
+	github.com/canonical/go-dqlite v1.22.0
 	github.com/canonical/lxd v0.0.0-20240709081608-9df996e36bac
 	github.com/canonical/microcluster v0.0.0-20240725000112-da36ecbd845e
 	github.com/go-logr/logr v1.4.2
