@@ -12,10 +12,10 @@ MANIFESTS_DIR = DIR / ".." / ".." / "templates"
 ETCD_DIR = MANIFESTS_DIR / "etcd"
 
 # ETCD_URL is the url from which the etcd binaries should be downloaded.
-ETCD_URL = os.getenv("ETCD_URL") or "https://github.com/etcd-io/etcd/releases/download"
+ETCD_URL = os.getenv("TEST_ETCD_URL") or "https://github.com/etcd-io/etcd/releases/download"
 
 # ETCD_VERSION is the version of etcd to use.
-ETCD_VERSION = os.getenv("ETCD_VERSION") or "v3.3.8"
+ETCD_VERSION = os.getenv("TEST_ETCD_VERSION") or "v3.3.8"
 
 # SNAP is the absolute path to the snap against which we run the integration tests.
 SNAP = os.getenv("TEST_SNAP")
@@ -27,6 +27,10 @@ SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "local"
 # SKIP_CLEANUP can be used to prevent machines to be automatically destroyed
 # after the tests complete.
 SKIP_CLEANUP = (os.getenv("TEST_SKIP_CLEANUP") or "") == "1"
+
+# INSPECTION_REPORTS_DIR is the directory where inspection reports are stored.
+# If empty, no reports are generated.
+INSPECTION_REPORTS_DIR = os.getenv("TEST_INSPECTION_REPORTS_DIR")
 
 # LXD_PROFILE_NAME is the profile name to use for LXD containers.
 LXD_PROFILE_NAME = os.getenv("TEST_LXD_PROFILE_NAME") or "k8s-integration"
