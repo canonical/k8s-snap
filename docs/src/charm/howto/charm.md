@@ -95,4 +95,4 @@ Use `juju status` to watch these units approach the active/idle state.
 [credentials]:   https://juju.is/docs/juju/credentials
 [juju]:          https://juju.is/docs/juju/install-juju
 [charm]:         https://juju.is/docs/juju/charmed-operator
-[localhost]:     /charm/howto/install-lxd
+[localhost]:     ../howto/install-lxd
