@@ -39,7 +39,7 @@ kubectl --kubeconfig c1-kubeconfig.yaml get nodes -o wide
 ```
 <!-- TODO(ben): add reference to in-place upgrades once we have those docs. -->
 
-## Update the Control Plane
+## Update the control plane
 
 In this first step, update the CK8sControlPlane
 resource with the new Kubernetes version. In this example, the control plane
