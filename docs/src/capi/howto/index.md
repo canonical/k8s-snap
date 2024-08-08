@@ -15,6 +15,7 @@ Overview <self>
 :titlesonly:
 
 external-etcd
+rollout-upgrades
 ```
 
 ---
