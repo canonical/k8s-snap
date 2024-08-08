@@ -8,7 +8,6 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
-	"time"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
@@ -163,28 +162,18 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 				return fmt.Errorf("failed to create CSR for %s: %w", csr.name, err)
 			}
 
-			for {
-				if retry, err := client.WatchCertificateSigningRequest(
-					ctx,
-					csr.name,
-					func(request *certificatesv1.CertificateSigningRequest) (bool, error) {
-						return verifyCSRAndSetPKI(request, keyPEM, csr.certificate, csr.key)
-					},
-				); err == nil {
-					return nil
-				} else if !retry {
-					log.Error(err, "Failed to watch CSR")
-					return fmt.Errorf("certificate signing request failed: %w", err)
-				}
-
-				log.V(1).Info("Retrying to watch CSR")
-
-				select {
-				case <-ctx.Done():
-					return ctx.Err()
-				case <-time.After(3 * time.Second):
-				}
+			if err := client.WatchCertificateSigningRequest(
+				ctx,
+				csr.name,
+				func(request *certificatesv1.CertificateSigningRequest) (bool, error) {
+					return verifyCSRAndSetPKI(request, keyPEM, csr.certificate, csr.key)
+				},
+			); err != nil {
+				log.Error(err, "Failed to watch CSR")
+				return fmt.Errorf("certificate signing request failed: %w", err)
 			}
+
+			return nil
 
 		})
 
