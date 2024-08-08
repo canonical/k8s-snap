@@ -43,8 +43,7 @@ func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) respons
 				fmt.Sprintf("k8sd-%d-worker-kubelet-client", seed),
 				fmt.Sprintf("k8sd-%d-worker-kube-proxy-client", seed),
 			},
-		},
-		)
+		})
 	}
 
 	return response.SyncResponse(true, apiv1.RefreshCertificatesPlanResponse{
@@ -80,7 +79,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		return response.InternalError(fmt.Errorf("failed to get Kubernetes client: %w", err))
 	}
 
-	certificates := pki.WorkerNodePKI{}
+	var certificates pki.WorkerNodePKI
 
 	clusterConfig, err := databaseutil.GetClusterConfig(r.Context(), s)
 	if err != nil {
@@ -91,8 +90,8 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		return response.InternalError(fmt.Errorf("missing CA certificates"))
 	}
 
-	certificates.CACert = *clusterConfig.Certificates.CACert
-	certificates.ClientCACert = *clusterConfig.Certificates.ClientCACert
+	certificates.CACert = clusterConfig.Certificates.GetCACert()
+	certificates.ClientCACert = clusterConfig.Certificates.GetClientCACert()
 
 	g, ctx := errgroup.WithContext(r.Context())
 
@@ -165,24 +164,20 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			}
 
 			for {
-				retry, err := client.WatchCertificateSigningRequest(
+				if retry, err := client.WatchCertificateSigningRequest(
 					ctx,
 					csr.name,
 					func(request *certificatesv1.CertificateSigningRequest) (bool, error) {
 						return verifyCSRAndSetPKI(request, keyPEM, csr.certificate, csr.key)
 					},
-				)
-
-				if err == nil {
+				); err == nil {
 					return nil
-				}
-
-				// Check if error is non-recoverable
-				if retry == false {
+				} else if !retry {
+					log.Error(err, "Failed to watch CSR")
 					return fmt.Errorf("certificate signing request failed: %w", err)
 				}
 
-				log.Error(err, "Failed to watch CSR")
+				log.V(1).Info("Retrying to watch CSR")
 
 				select {
 				case <-ctx.Done():
