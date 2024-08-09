@@ -255,10 +255,8 @@ are the key architectural components and their roles:
 -  **Performance Tuning**: Additional performance tuning can be achieved by
    isolating CPU cores at the OS level and configuring kernel parameters to
    minimise interference from other processes. This includes setting CPU
-   isolation and nohz\_full parameters  
- <!--TODO> * Note: nohz\_full=\<list of isolated cpus\> reduces the number
- of scheduling-clock interrupts, improving energy efficiency and reducing
- OS jitter.-->
+   isolation and nohz\_full parameters (reduces the number of scheduling-clock
+   interrupts, improving energy efficiency and [reducing OS jitter][no_hz]).
 
 ## NUMA topology awareness 
 
@@ -543,3 +541,8 @@ components and their roles:
 -  **Isolation and Security**: Ensure that DPDK applications run in isolated
    and secure environments. Use security contexts to provide the necessary
    privileges while maintaining security best practices.
+
+
+<!-- LINKS -->
+
+[no_hz]: https://www.kernel.org/doc/Documentation/timers/NO_HZ.txt
