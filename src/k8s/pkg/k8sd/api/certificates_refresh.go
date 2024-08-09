@@ -1,10 +1,13 @@
 package api
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509/pkix"
 	"fmt"
 	"math"
-	"math/rand"
+	mathrand "math/rand"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -27,7 +30,7 @@ import (
 )
 
 func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) response.Response {
-	seed := rand.Intn(math.MaxInt)
+	seed := mathrand.Intn(math.MaxInt)
 
 	snap := e.provider.Snap()
 	isWorker, err := snaputil.IsWorker(snap)
@@ -149,9 +152,34 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 				return fmt.Errorf("failed to generate CSR for %s: %w", csr.name, err)
 			}
 
+			publicKeyPEM := clusterConfig.Certificates.GetK8sdPublicKey()
+			if publicKeyPEM == "" {
+				return fmt.Errorf("k8sd public key not set")
+			}
+
+			publicKey, err := pkiutil.LoadRSAPublicKey(publicKeyPEM)
+			if err != nil {
+				return fmt.Errorf("failed to load k8sd public key: %w", err)
+			}
+
+			// calculate sha256 sum of CSR request
+			hash := sha256.New()
+			if _, err := hash.Write([]byte(csrPEM)); err != nil {
+				return fmt.Errorf("failed to compute sha256: %w", err)
+			}
+
+			// encrypt the hash with the public cluster RSA key
+			signature, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, hash.Sum(nil))
+			if err != nil {
+				return fmt.Errorf("failed to encrypt csr signature: %w", err)
+			}
+
 			if _, err = client.CertificatesV1().CertificateSigningRequests().Create(ctx, &certificatesv1.CertificateSigningRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: csr.name,
+					Annotations: map[string]string{
+						"k8sd.io/signature": string(signature),
+					},
 				},
 				Spec: certificatesv1.CertificateSigningRequestSpec{
 					Request:    []byte(csrPEM),
