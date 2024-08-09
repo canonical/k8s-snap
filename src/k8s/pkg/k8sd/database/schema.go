@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/canonical/lxd/lxd/db/schema"
-	"github.com/canonical/microcluster/cluster"
+	"github.com/canonical/microcluster/v2/cluster"
 )
 
 var (

@@ -3,8 +3,8 @@ package k8sd
 import (
 	"fmt"
 
-	"github.com/canonical/microcluster/client"
-	"github.com/canonical/microcluster/microcluster"
+	"github.com/canonical/microcluster/v2/client"
+	"github.com/canonical/microcluster/v2/microcluster"
 )
 
 // k8sd implements Client.

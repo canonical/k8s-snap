@@ -15,9 +15,9 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/microcluster/client"
-	"github.com/canonical/microcluster/microcluster"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v2/client"
+	"github.com/canonical/microcluster/v2/microcluster"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 // Config defines configuration for the k8sd app.
@@ -46,6 +46,7 @@ type Config struct {
 
 // App is the k8sd microcluster instance.
 type App struct {
+	config  Config
 	cluster *microcluster.MicroCluster
 	client  *client.Client
 	snap    snap.Snap
@@ -81,9 +82,6 @@ func New(cfg Config) (*App, error) {
 		cfg.StateDir = cfg.Snap.K8sdStateDir()
 	}
 	cluster, err := microcluster.App(microcluster.Args{
-		Version:  string(apiv1.K8sdAPIVersion),
-		Verbose:  cfg.Verbose,
-		Debug:    cfg.Debug,
 		StateDir: cfg.StateDir,
 	})
 	if err != nil {
@@ -95,6 +93,7 @@ func New(cfg Config) (*App, error) {
 	}
 
 	app := &App{
+		config:           cfg,
 		cluster:          cluster,
 		client:           client,
 		snap:             cfg.Snap,
@@ -215,9 +214,14 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 		}()
 	}
 
-	a.cluster.AddServers(api.New(ctx, a))
-
-	err := a.cluster.Start(ctx, database.SchemaExtensions, []string{}, hooks)
+	err := a.cluster.Start(ctx, microcluster.DaemonArgs{
+		Version:          string(apiv1.K8sdAPIVersion),
+		Verbose:          a.config.Verbose,
+		Debug:            a.config.Debug,
+		Hooks:            hooks,
+		ExtensionServers: api.New(ctx, a),
+		ExtensionsSchema: database.SchemaExtensions,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
 	}

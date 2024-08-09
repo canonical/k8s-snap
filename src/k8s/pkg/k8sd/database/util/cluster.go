@@ -7,7 +7,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 // GetClusterConfig is a convenience wrapper around the database call to get the cluster config.
