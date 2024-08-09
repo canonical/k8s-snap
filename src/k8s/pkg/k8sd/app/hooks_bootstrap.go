@@ -189,6 +189,8 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	// Worker nodes only use a subset of the ClusterConfig struct. At the moment, these are:
 	// - Network.PodCIDR and Network.ClusterCIDR: informative
 	// - Certificates.K8sdPublicKey: used to verify the signature of the k8sd-config configmap.
+	// - Certificates.CACert: kubernetes CA certificate.
+	// - Certificates.ClientCACert: kubernetes client CA certificate.
 	//
 	// TODO(neoaggelos): We should be explicit here and try to avoid having worker nodes use
 	// or set other cluster configuration keys by accident.
@@ -199,6 +201,8 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		},
 		Certificates: types.Certificates{
 			K8sdPublicKey: utils.Pointer(response.K8sdPublicKey),
+			CACert:        utils.Pointer(response.CACert),
+			ClientCACert:  utils.Pointer(response.ClientCACert),
 		},
 	}
 
