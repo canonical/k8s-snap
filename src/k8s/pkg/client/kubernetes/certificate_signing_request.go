@@ -8,6 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	certificatesv1 "k8s.io/api/certificates/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 )
 
 // WatchCertificateSigningRequest watches a CertificateSigningRequest with the
@@ -29,32 +30,11 @@ func (c *Client) WatchCertificateSigningRequest(ctx context.Context, name string
 			log.V(1).Info("Failed to watch CSR", "error", err)
 			continue
 		}
-		watchClosed := false
-		for !watchClosed {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case evt, ok := <-w.ResultChan():
-				if !ok {
-					log.V(1).Info("Watch closed")
-					watchClosed = true
-					continue
-				}
 
-				csr, ok := evt.Object.(*certificatesv1.CertificateSigningRequest)
-				if !ok {
-					log.V(1).Info("Expected a CertificateSigningRequest but received something else", "object", evt.Object)
-					watchClosed = true
-					continue
-				}
-
-				if valid, err := verify(csr); err != nil {
-					return fmt.Errorf("failed to verify CSR %s: %w", name, err)
-				} else if valid {
-					return nil
-				}
-
-			}
+		if retry, err := c.watchCertificateSigningRequestEvents(ctx, w, name, verify); err != nil {
+			return fmt.Errorf("failed to watch CSR %s: %w", name, err)
+		} else if !retry {
+			return nil
 		}
 
 		w.Stop()
@@ -64,6 +44,36 @@ func (c *Client) WatchCertificateSigningRequest(ctx context.Context, name string
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-time.After(3 * time.Second):
+		}
+	}
+}
+
+func (c *Client) watchCertificateSigningRequestEvents(ctx context.Context, w watch.Interface, name string, verify func(csr *certificatesv1.CertificateSigningRequest) (bool, error)) (bool, error) {
+	log := log.FromContext(ctx)
+	for {
+		select {
+		case <-ctx.Done():
+			return false, ctx.Err()
+		case evt, ok := <-w.ResultChan():
+			if !ok {
+				log.V(1).Info("Watch closed")
+				// Retry
+				return true, nil
+			}
+
+			csr, ok := evt.Object.(*certificatesv1.CertificateSigningRequest)
+			if !ok {
+				log.V(1).Info("Expected a CertificateSigningRequest but received something else", "object", evt.Object)
+				// Retry
+				return true, nil
+			}
+
+			if valid, err := verify(csr); err != nil {
+				// Stop watching and return the error
+				return false, fmt.Errorf("failed to verify CSR %s: %w", name, err)
+			} else if valid {
+				return false, nil
+			}
 		}
 	}
 }
