@@ -29,7 +29,6 @@ func (c *Client) WatchCertificateSigningRequest(ctx context.Context, name string
 			log.V(1).Info("Failed to watch CSR", "error", err)
 			continue
 		}
-		defer w.Stop()
 		watchClosed := false
 		for !watchClosed {
 			select {
@@ -57,6 +56,8 @@ func (c *Client) WatchCertificateSigningRequest(ctx context.Context, name string
 
 			}
 		}
+
+		w.Stop()
 		log.V(1).Info("Retrying to watch CSR")
 
 		select {
