@@ -22,8 +22,8 @@ func newLocalNodeStatusCommand(env cmdutil.ExecutionEnvironment) *cobra.Command 
 				return
 			}
 
-			status, isBootstrapped, err := cmdutil.GetNodeStatus(cmd.Context(), client, env)
-			if !isBootstrapped {
+			status, initialized, err := client.NodeStatus(cmd.Context())
+			if !initialized {
 				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
 				env.Exit(1)
 				return
