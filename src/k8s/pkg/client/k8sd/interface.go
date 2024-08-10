@@ -21,7 +21,8 @@ type ClusterClient interface {
 // StatusClient implements methods for retrieving the current status of the cluster.
 type StatusClient interface {
 	// NodeStatus retrieves the current status of the local node.
-	NodeStatus(ctx context.Context) (apiv1.NodeStatus, error)
+	// The second return value is false if the node is not part of a cluster.
+	NodeStatus(ctx context.Context) (apiv1.NodeStatus, bool, error)
 	// ClusterStatus retrieves the current status of the Kubernetes cluster.
 	ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error)
 }
