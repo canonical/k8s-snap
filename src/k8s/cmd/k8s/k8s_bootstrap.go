@@ -86,7 +86,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
-				cmd.PrintErrf("Error: Failed to check current node status.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			} else if initialized {
