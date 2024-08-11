@@ -31,7 +31,7 @@ func (c *k8sd) JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest
 	ctx, cancel := context.WithTimeout(ctx, request.Timeout+30*time.Second)
 	defer cancel()
 
-	_, err := query[any](ctx, c, "POST", apiv1.JoinClusterRPC, request, nil)
+	_, err := query(ctx, c, "POST", apiv1.JoinClusterRPC, request, &apiv1.JoinClusterResponse{})
 	return err
 }
 
@@ -41,7 +41,7 @@ func (c *k8sd) RemoveNode(ctx context.Context, request apiv1.RemoveNodeRequest) 
 	ctx, cancel := context.WithTimeout(ctx, request.Timeout+30*time.Second)
 	defer cancel()
 
-	_, err := query[any](ctx, c, "POST", apiv1.RemoveNodeRPC, request, nil)
+	_, err := query(ctx, c, "POST", apiv1.RemoveNodeRPC, request, &apiv1.RemoveNodeResponse{})
 	return err
 }
 

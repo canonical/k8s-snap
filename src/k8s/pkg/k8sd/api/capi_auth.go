@@ -25,5 +25,5 @@ func (e *Endpoints) postSetClusterAPIAuthToken(s state.State, r *http.Request) r
 		return response.InternalError(err)
 	}
 
-	return response.SyncResponse(true, nil)
+	return response.SyncResponse(true, &apiv1.SetClusterConfigResponse{})
 }

@@ -70,7 +70,7 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 			return response.InternalError(fmt.Errorf("failed to delete cluster member %s: %w", req.Name, err))
 		}
 
-		return response.SyncResponse(true, nil)
+		return response.SyncResponse(true, &apiv1.RemoveNodeResponse{})
 	}
 
 	cfg, err := databaseutil.GetClusterConfig(ctx, s)
@@ -98,5 +98,5 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to remove k8s node %q: %w", req.Name, err))
 	}
 
-	return response.SyncResponse(true, nil)
+	return response.SyncResponse(true, &apiv1.RemoveNodeResponse{})
 }
