@@ -3,13 +3,13 @@ package k8sd
 import (
 	"context"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 )
 
 // ClusterClient implements methods for managing the cluster members.
 type ClusterClient interface {
 	// BootstrapCluster initializes a new cluster using the provided configuration.
-	BootstrapCluster(context.Context, apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error)
+	BootstrapCluster(context.Context, apiv1.BootstrapClusterRequest) (apiv1.NodeStatus, error)
 	// GetJoinToken generates a token for nodes to join the cluster.
 	GetJoinToken(context.Context, apiv1.GetJoinTokenRequest) (apiv1.GetJoinTokenResponse, error)
 	// JoinCluster joins an existing cluster.
@@ -32,19 +32,19 @@ type ConfigClient interface {
 	// GetClusterConfig retrieves the k8sd cluster configuration.
 	GetClusterConfig(context.Context) (apiv1.UserFacingClusterConfig, error)
 	// SetClusterConfig updates the k8sd cluster configuration.
-	SetClusterConfig(context.Context, apiv1.UpdateClusterConfigRequest) error
+	SetClusterConfig(context.Context, apiv1.SetClusterConfigRequest) error
 }
 
 // UserClient implements methods to enable accessing the cluster.
 type UserClient interface {
 	// KubeConfig retrieves a kubeconfig file that can be used to access the cluster.
-	KubeConfig(context.Context, apiv1.GetKubeConfigRequest) (string, error)
+	KubeConfig(context.Context, apiv1.KubeConfigRequest) (string, error)
 }
 
 // ClusterAPIClient implements methods related to ClusterAPI endpoints.
 type ClusterAPIClient interface {
 	// SetClusterAPIAuthToken sets the well-known token that can be used authenticating requests to the ClusterAPI related endpoints.
-	SetClusterAPIAuthToken(context.Context, apiv1.SetClusterAPIAuthTokenRequest) error
+	SetClusterAPIAuthToken(context.Context, apiv1.ClusterAPISetAuthTokenRequest) error
 }
 
 type Client interface {

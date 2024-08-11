@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
@@ -52,7 +52,7 @@ func (e *Endpoints) getClusterStatus(s state.State, r *http.Request) response.Re
 		return response.InternalError(fmt.Errorf("database transaction failed: %w", err))
 	}
 
-	result := apiv1.GetClusterStatusResponse{
+	return response.SyncResponse(true, &apiv1.ClusterStatusResponse{
 		ClusterStatus: apiv1.ClusterStatus{
 			Ready:   ready,
 			Members: members,
@@ -69,7 +69,5 @@ func (e *Endpoints) getClusterStatus(s state.State, r *http.Request) response.Re
 			MetricsServer: statuses["metrics-server"].ToAPI(),
 			LocalStorage:  statuses["local-storage"].ToAPI(),
 		},
-	}
-
-	return response.SyncResponse(true, &result)
+	})
 }

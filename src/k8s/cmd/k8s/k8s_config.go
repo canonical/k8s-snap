@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
@@ -45,7 +45,7 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			config, err := client.KubeConfig(ctx, apiv1.GetKubeConfigRequest{Server: opts.server})
+			config, err := client.KubeConfig(ctx, apiv1.KubeConfigRequest{Server: opts.server})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to generate an admin kubeconfig for %q.\n\nThe error was: %v\n", opts.server, err)
 				env.Exit(1)

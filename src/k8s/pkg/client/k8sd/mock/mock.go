@@ -3,14 +3,14 @@ package mock
 import (
 	"context"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/k8s/pkg/client/k8sd"
 )
 
 // Mock is a mock implementation of k8sd.Client.
 type Mock struct {
 	// k8sd.ClusterClient
-	BootstrapClusterCalledWith apiv1.PostClusterBootstrapRequest
+	BootstrapClusterCalledWith apiv1.BootstrapClusterRequest
 	BootstrapClusterResult     apiv1.NodeStatus
 	BootstrapClusterErr        error
 	GetJoinTokenCalledWith     apiv1.GetJoinTokenRequest
@@ -31,20 +31,20 @@ type Mock struct {
 	// k8sd.ConfigClient
 	GetClusterConfigResult     apiv1.UserFacingClusterConfig
 	GetClusterConfigErr        error
-	SetClusterConfigCalledWith apiv1.UpdateClusterConfigRequest
+	SetClusterConfigCalledWith apiv1.SetClusterConfigRequest
 	SetClusterConfigErr        error
 
 	// k8sd.UserClient
-	KubeConfigCalledWith apiv1.GetKubeConfigRequest
+	KubeConfigCalledWith apiv1.KubeConfigRequest
 	KubeConfigResult     string
 	KubeConfigErr        error
 
 	// k8sd.ClusterAPIClient
-	SetClusterAPIAuthTokenCalledWith apiv1.SetClusterAPIAuthTokenRequest
+	SetClusterAPIAuthTokenCalledWith apiv1.ClusterAPISetAuthTokenRequest
 	SetClusterAPIAuthTokenErr        error
 }
 
-func (m *Mock) BootstrapCluster(_ context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error) {
+func (m *Mock) BootstrapCluster(_ context.Context, request apiv1.BootstrapClusterRequest) (apiv1.NodeStatus, error) {
 	m.BootstrapClusterCalledWith = request
 	return m.BootstrapClusterResult, m.BootstrapClusterErr
 }
@@ -71,17 +71,17 @@ func (m *Mock) ClusterStatus(_ context.Context, waitReady bool) (apiv1.ClusterSt
 func (m *Mock) GetClusterConfig(_ context.Context) (apiv1.UserFacingClusterConfig, error) {
 	return m.GetClusterConfigResult, m.GetClusterConfigErr
 }
-func (m *Mock) SetClusterConfig(_ context.Context, request apiv1.UpdateClusterConfigRequest) error {
+func (m *Mock) SetClusterConfig(_ context.Context, request apiv1.SetClusterConfigRequest) error {
 	m.SetClusterConfigCalledWith = request
 	return m.SetClusterConfigErr
 }
 
-func (m *Mock) KubeConfig(_ context.Context, request apiv1.GetKubeConfigRequest) (string, error) {
+func (m *Mock) KubeConfig(_ context.Context, request apiv1.KubeConfigRequest) (string, error) {
 	m.KubeConfigCalledWith = request
 	return m.KubeConfigResult, m.KubeConfigErr
 }
 
-func (m *Mock) SetClusterAPIAuthToken(_ context.Context, request apiv1.SetClusterAPIAuthTokenRequest) error {
+func (m *Mock) SetClusterAPIAuthToken(_ context.Context, request apiv1.ClusterAPISetAuthTokenRequest) error {
 	m.SetClusterAPIAuthTokenCalledWith = request
 	return m.SetClusterAPIAuthTokenErr
 }

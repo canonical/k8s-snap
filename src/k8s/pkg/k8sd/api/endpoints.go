@@ -4,7 +4,7 @@ package api
 import (
 	"context"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/microcluster/v2/rest"
 )
 
@@ -116,7 +116,6 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		{
 			Name:   "KubernetesAuthTokens",
 			Path:   "kubernetes/auth/tokens",
-			Get:    rest.EndpointAction{Handler: e.getKubernetesAuthTokens, AllowUntrusted: true},
 			Post:   rest.EndpointAction{Handler: e.postKubernetesAuthTokens},
 			Delete: rest.EndpointAction{Handler: e.deleteKubernetesAuthTokens},
 		},

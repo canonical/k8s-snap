@@ -6,20 +6,20 @@ import (
 	"net/http"
 	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
 )
 
 func (e *Endpoints) postClusterBootstrap(_ state.State, r *http.Request) response.Response {
-	req := apiv1.PostClusterBootstrapRequest{}
+	req := apiv1.BootstrapClusterRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
 
-	//Convert Bootstrap config to map
-	config, err := req.Config.ToMicrocluster()
+	// Convert Bootstrap config to map
+	config, err := utils.MicroclusterMapWithBootstrapConfig(nil, req.Config)
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("failed to prepare bootstrap config: %w", err))
 	}
@@ -41,17 +41,15 @@ func (e *Endpoints) postClusterBootstrap(_ state.State, r *http.Request) respons
 	defer cancel()
 
 	// NOTE(neoaggelos): pass the timeout as a config option, so that the context cancel will propagate errors.
-	config = utils.MicroclusterConfigWithTimeout(config, req.Timeout)
+	config = utils.MicroclusterMapWithTimeout(config, req.Timeout)
 
 	// Bootstrap the cluster
 	if err := e.provider.MicroCluster().NewCluster(ctx, hostname, req.Address, config); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to bootstrap new cluster: %w", err))
 	}
 
-	result := apiv1.NodeStatus{
+	return response.SyncResponse(true, &apiv1.NodeStatus{
 		Name:    hostname,
 		Address: req.Address,
-	}
-
-	return response.SyncResponse(true, &result)
+	})
 }

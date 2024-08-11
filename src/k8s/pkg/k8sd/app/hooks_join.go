@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -22,12 +21,12 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	if t := utils.MicroclusterTimeoutFromConfig(initConfig); t != 0 {
+	if t := utils.MicroclusterTimeoutFromMap(initConfig); t != 0 {
 		ctx, cancel = context.WithTimeout(ctx, t)
 		defer cancel()
 	}
 
-	joinConfig, err := apiv1.ControlPlaneJoinConfigFromMicrocluster(initConfig)
+	joinConfig, err := utils.MicroclusterControlPlaneJoinConfigFromMap(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal control plane join config: %w", err)
 	}

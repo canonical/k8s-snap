@@ -13,7 +13,7 @@ func TestMicroclusterTimeout(t *testing.T) {
 		g := NewWithT(t)
 
 		m := map[string]string{}
-		g.Expect(utils.MicroclusterTimeoutFromConfig(m)).To(BeZero())
+		g.Expect(utils.MicroclusterTimeoutFromMap(m)).To(BeZero())
 	})
 
 	t.Run("Normal", func(t *testing.T) {
@@ -22,7 +22,7 @@ func TestMicroclusterTimeout(t *testing.T) {
 		timeout := 5 * time.Second
 		m := map[string]string{}
 
-		mWithTimeout := utils.MicroclusterConfigWithTimeout(m, timeout)
-		g.Expect(utils.MicroclusterTimeoutFromConfig(mWithTimeout)).To(Equal(timeout))
+		mWithTimeout := utils.MicroclusterMapWithTimeout(m, timeout)
+		g.Expect(utils.MicroclusterTimeoutFromMap(mWithTimeout)).To(Equal(timeout))
 	})
 }

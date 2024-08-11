@@ -1,10 +1,11 @@
 package types_test
 
 import (
-	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/utils"
+
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	. "github.com/onsi/gomega"
 )
