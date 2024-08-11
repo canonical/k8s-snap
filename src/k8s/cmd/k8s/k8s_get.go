@@ -39,12 +39,13 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			config, err := client.GetClusterConfig(ctx)
+			response, err := client.GetClusterConfig(ctx)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to get the current cluster configuration.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
+			config := response.Config
 
 			config.MetricsServer = apiv1.MetricsServerConfig{}
 			config.CloudProvider = nil

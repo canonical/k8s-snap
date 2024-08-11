@@ -58,7 +58,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					env.Exit(1)
 					return
 				}
-				if err := snapdconfig.SetSnapdFromK8sd(cmd.Context(), config, env.Snap); err != nil {
+				if err := snapdconfig.SetSnapdFromK8sd(cmd.Context(), config.Config, env.Snap); err != nil {
 					cmd.PrintErrf("Error: failed to update snapd state: %v\n", err)
 					env.Exit(1)
 					return
