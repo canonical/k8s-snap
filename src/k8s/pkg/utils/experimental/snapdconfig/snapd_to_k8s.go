@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/snap"
@@ -31,7 +31,7 @@ func SetK8sdFromSnapd(ctx context.Context, client k8sd.Client, snap snap.Snap) e
 		return fmt.Errorf("failed to parse snapd configuration: %w", err)
 	}
 
-	if err := client.SetClusterConfig(ctx, apiv1.UpdateClusterConfigRequest{Config: config}); err != nil {
+	if err := client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config}); err != nil {
 		return fmt.Errorf("failed to update k8s configuration: %w", err)
 	}
 

@@ -7,10 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/utils"
-
-	apiv1 "github.com/canonical/k8s/api/v1"
 	. "github.com/onsi/gomega"
 )
 

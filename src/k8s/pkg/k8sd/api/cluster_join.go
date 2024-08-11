@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
@@ -35,7 +35,7 @@ func (e *Endpoints) postClusterJoin(s state.State, r *http.Request) response.Res
 	defer cancel()
 
 	// NOTE(neoaggelos): pass the timeout as a config option, so that the context cancel will propagate errors.
-	config = utils.MicroclusterConfigWithTimeout(config, req.Timeout)
+	config = utils.MicroclusterMapWithTimeout(config, req.Timeout)
 
 	internalToken := types.InternalWorkerNodeToken{}
 	// Check if token is worker token

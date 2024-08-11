@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/lxd/shared/api"
 )
 
-func (c *k8sd) BootstrapCluster(ctx context.Context, request apiv1.PostClusterBootstrapRequest) (apiv1.NodeStatus, error) {
+func (c *k8sd) BootstrapCluster(ctx context.Context, request apiv1.BootstrapClusterRequest) (apiv1.NodeStatus, error) {
 	if err := c.app.Ready(ctx); err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("k8sd is not ready: %w", err)
 	}

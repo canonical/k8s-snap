@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/k8s/cmd/k8s"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	k8sdmock "github.com/canonical/k8s/pkg/client/k8sd/mock"
@@ -18,7 +18,7 @@ func TestK8sEnableCmd(t *testing.T) {
 	tests := []struct {
 		name           string
 		funcs          []string
-		expectedCall   apiv1.UpdateClusterConfigRequest
+		expectedCall   apiv1.SetClusterConfigRequest
 		expectedCode   int
 		expectedStdout string
 		expectedStderr string
@@ -32,7 +32,7 @@ func TestK8sEnableCmd(t *testing.T) {
 		{
 			name:  "one",
 			funcs: []string{string(features.Gateway)},
-			expectedCall: apiv1.UpdateClusterConfigRequest{
+			expectedCall: apiv1.SetClusterConfigRequest{
 				Config: apiv1.UserFacingClusterConfig{
 					Gateway: apiv1.GatewayConfig{Enabled: utils.Pointer(true)},
 				},
@@ -42,7 +42,7 @@ func TestK8sEnableCmd(t *testing.T) {
 		{
 			name:  "multiple",
 			funcs: []string{string(features.LoadBalancer), string(features.Gateway)},
-			expectedCall: apiv1.UpdateClusterConfigRequest{
+			expectedCall: apiv1.SetClusterConfigRequest{
 				Config: apiv1.UserFacingClusterConfig{
 					Gateway:      apiv1.GatewayConfig{Enabled: utils.Pointer(true)},
 					LoadBalancer: apiv1.LoadBalancerConfig{Enabled: utils.Pointer(true)},

@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -30,20 +30,20 @@ func (a *App) onBootstrap(ctx context.Context, s state.State, initConfig map[str
 	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	if t := utils.MicroclusterTimeoutFromConfig(initConfig); t != 0 {
+	if t := utils.MicroclusterTimeoutFromMap(initConfig); t != 0 {
 		ctx, cancel = context.WithTimeout(ctx, t)
 		defer cancel()
 	}
 
 	if workerToken, ok := initConfig["workerToken"]; ok {
-		workerConfig, err := apiv1.WorkerJoinConfigFromMicrocluster(initConfig)
+		workerConfig, err := utils.MicroclusterWorkerJoinConfigFromMap(initConfig)
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal worker join config: %w", err)
 		}
 		return a.onBootstrapWorkerNode(ctx, s, workerToken, workerConfig)
 	}
 
-	bootstrapConfig, err := apiv1.BootstrapConfigFromMicrocluster(initConfig)
+	bootstrapConfig, err := utils.MicroclusterBootstrapConfigFromMap(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
 	}
@@ -51,7 +51,7 @@ func (a *App) onBootstrap(ctx context.Context, s state.State, initConfig map[str
 	return a.onBootstrapControlPlane(ctx, s, bootstrapConfig)
 }
 
-func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedToken string, joinConfig apiv1.WorkerNodeJoinConfig) (rerr error) {
+func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedToken string, joinConfig apiv1.WorkerJoinConfig) (rerr error) {
 	snap := a.Snap()
 
 	log := log.FromContext(ctx).WithValues("hook", "join")
@@ -104,11 +104,11 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	}
 
 	type wrappedResponse struct {
-		Error    string                       `json:"error"`
-		Metadata apiv1.WorkerNodeInfoResponse `json:"metadata"`
+		Error    string                          `json:"error"`
+		Metadata apiv1.GetWorkerJoinInfoResponse `json:"metadata"`
 	}
 
-	requestBody, err := json.Marshal(apiv1.WorkerNodeInfoRequest{Address: nodeIP.String()})
+	requestBody, err := json.Marshal(apiv1.GetWorkerJoinInfoRequest{Address: nodeIP.String()})
 	if err != nil {
 		return fmt.Errorf("failed to prepare worker info request: %w", err)
 	}

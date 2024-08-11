@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"net/http"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
 )
 
 func (e *Endpoints) postSetClusterAPIAuthToken(s state.State, r *http.Request) response.Response {
-	request := apiv1.SetClusterAPIAuthTokenRequest{}
+	request := apiv1.ClusterAPISetAuthTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
