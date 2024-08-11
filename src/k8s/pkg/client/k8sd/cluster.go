@@ -3,6 +3,7 @@ package k8sd
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
@@ -20,7 +21,7 @@ func (c *k8sd) BootstrapCluster(ctx context.Context, request apiv1.BootstrapClus
 	defer cancel()
 
 	var response apiv1.NodeStatus
-	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path("k8sd", "cluster"), request, &response); err != nil {
+	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path(strings.Split(apiv1.BootstrapClusterRPC, "/")...), request, &response); err != nil {
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to POST /k8sd/cluster: %w", err)
 	}
 
@@ -37,7 +38,7 @@ func (c *k8sd) JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest
 	ctx, cancel := context.WithTimeout(ctx, request.Timeout+30*time.Second)
 	defer cancel()
 
-	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path("k8sd", "cluster", "join"), request, nil); err != nil {
+	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path(strings.Split(apiv1.JoinClusterRPC, "/")...), request, nil); err != nil {
 		return fmt.Errorf("failed to POST /k8sd/cluster/join: %w", err)
 	}
 
@@ -50,7 +51,7 @@ func (c *k8sd) RemoveNode(ctx context.Context, request apiv1.RemoveNodeRequest) 
 	ctx, cancel := context.WithTimeout(ctx, request.Timeout+30*time.Second)
 	defer cancel()
 
-	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path("k8sd", "cluster", "remove"), request, nil); err != nil {
+	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path(strings.Split(apiv1.RemoveNodeRPC, "/")...), request, nil); err != nil {
 		return fmt.Errorf("failed to POST /k8sd/cluster/remove: %w", err)
 	}
 	return nil
@@ -58,7 +59,7 @@ func (c *k8sd) RemoveNode(ctx context.Context, request apiv1.RemoveNodeRequest) 
 
 func (c *k8sd) GetJoinToken(ctx context.Context, request apiv1.GetJoinTokenRequest) (apiv1.GetJoinTokenResponse, error) {
 	var response apiv1.GetJoinTokenResponse
-	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path("k8sd", "cluster", "tokens"), request, &response); err != nil {
+	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path(strings.Split(apiv1.GetJoinTokenRPC, "/")...), request, &response); err != nil {
 		return apiv1.GetJoinTokenResponse{}, fmt.Errorf("failed to POST /k8sd/cluster/tokens: %w", err)
 	}
 	return response, nil
