@@ -6,6 +6,7 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
+	"gopkg.in/yaml.v2"
 )
 
 // MicroclusterMapWithTimeout adds a "timeout" configuration value to the config struct.
@@ -67,17 +68,18 @@ func MicroclusterMapWithControlPlaneJoinConfig(m map[string]string, controlPlane
 // MicroclusterControlPlaneJoinConfigFromMap returns an apiv1.ControlPlaneJoinConfig from the config struct.
 func MicroclusterControlPlaneJoinConfigFromMap(m map[string]string) (apiv1.ControlPlaneJoinConfig, error) {
 	var config apiv1.ControlPlaneJoinConfig
-	if err := json.Unmarshal([]byte(m["controlPlaneJoinConfig"]), &config); err != nil {
+	if err := yaml.UnmarshalStrict([]byte(m["controlPlaneJoinConfig"]), &config); err != nil {
 		return apiv1.ControlPlaneJoinConfig{}, fmt.Errorf("failed to unmarshal control plane join config: %w", err)
 	}
 	return config, nil
 }
 
 // MicroclusterMapWithWorkerJoinConfig adds (a JSON formatted) apiv1.WorkerJoinConfig to the config struct.
-func MicroclusterMapWithWorkerJoinConfig(m map[string]string, workerJoinConfigJSON string) map[string]string {
+func MicroclusterMapWithWorkerJoinConfig(m map[string]string, token string, workerJoinConfigJSON string) map[string]string {
 	if m == nil {
 		m = make(map[string]string)
 	}
+	m["workerToken"] = token
 	m["workerJoinConfig"] = workerJoinConfigJSON
 	return m
 }
@@ -85,7 +87,7 @@ func MicroclusterMapWithWorkerJoinConfig(m map[string]string, workerJoinConfigJS
 // MicroclusterWorkerJoinConfigFromMap returns an apiv1.WorkerJoinConfig from the config struct.
 func MicroclusterWorkerJoinConfigFromMap(m map[string]string) (apiv1.WorkerJoinConfig, error) {
 	var config apiv1.WorkerJoinConfig
-	if err := json.Unmarshal([]byte(m["workerJoinConfig"]), &config); err != nil {
+	if err := yaml.UnmarshalStrict([]byte(m["workerJoinConfig"]), &config); err != nil {
 		return apiv1.WorkerJoinConfig{}, fmt.Errorf("failed to unmarshal worker join config: %w", err)
 	}
 	return config, nil
