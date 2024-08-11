@@ -5,6 +5,7 @@ go 1.22.6
 require (
 	dario.cat/mergo v1.0.0
 	github.com/canonical/go-dqlite v1.22.0
+	github.com/canonical/k8s-snap-api v0.0.1-test.3
 	github.com/canonical/lxd v0.0.0-20240730172021-8e39e5d4f55f
 	github.com/canonical/microcluster/v2 v2.0.2
 	github.com/go-logr/logr v1.4.2
@@ -40,7 +41,6 @@ require (
 	github.com/armon/go-proxyproto v0.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/canonical/k8s-snap-api-v1 v0.0.1-test.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/containerd/containerd v1.7.13 // indirect

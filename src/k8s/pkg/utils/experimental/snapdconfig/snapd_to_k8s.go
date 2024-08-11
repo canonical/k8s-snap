@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/snap"

@@ -7,7 +7,7 @@ import (
 	"net"
 	"net/http"
 
-	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"

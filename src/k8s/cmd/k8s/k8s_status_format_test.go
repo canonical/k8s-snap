@@ -3,7 +3,7 @@ package k8s_test
 import (
 	"testing"
 
-	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/cmd/k8s"
 	. "github.com/onsi/gomega"
 )

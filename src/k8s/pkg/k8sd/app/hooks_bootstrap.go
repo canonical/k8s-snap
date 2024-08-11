@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	apiv1 "github.com/canonical/k8s-snap-api-v1/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
