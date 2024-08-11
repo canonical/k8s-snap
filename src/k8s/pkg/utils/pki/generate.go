@@ -134,13 +134,13 @@ func GenerateCSR(subject pkix.Name, bits int, dnsSANs []string, ipSANs []net.IP)
 		return "", "", fmt.Errorf("failed to encode private key PEM")
 	}
 
-	csrKubeletServingTemplate := &x509.CertificateRequest{
+	csrTemplate := &x509.CertificateRequest{
 		Subject:     subject,
 		DNSNames:    dnsSANs,
 		IPAddresses: ipSANs,
 	}
 
-	csrBytes, err := x509.CreateCertificateRequest(rand.Reader, csrKubeletServingTemplate, key)
+	csrBytes, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to create certificate request: %w", err)
 	}
