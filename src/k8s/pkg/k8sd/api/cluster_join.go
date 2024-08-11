@@ -55,5 +55,5 @@ func (e *Endpoints) postClusterJoin(s state.State, r *http.Request) response.Res
 		}
 	}
 
-	return response.SyncResponse(true, nil)
+	return response.SyncResponse(true, &apiv1.JoinClusterResponse{})
 }

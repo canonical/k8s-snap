@@ -48,7 +48,7 @@ func (e *Endpoints) postClusterBootstrap(_ state.State, r *http.Request) respons
 		return response.BadRequest(fmt.Errorf("failed to bootstrap new cluster: %w", err))
 	}
 
-	return response.SyncResponse(true, &apiv1.NodeStatus{
+	return response.SyncResponse(true, &apiv1.BootstrapClusterResponse{
 		Name:    hostname,
 		Address: req.Address,
 	})

@@ -7,7 +7,7 @@ import (
 )
 
 func (c *k8sd) SetClusterConfig(ctx context.Context, request apiv1.SetClusterConfigRequest) error {
-	_, err := query[any](ctx, c, "PUT", apiv1.SetClusterConfigRPC, request, nil)
+	_, err := query(ctx, c, "PUT", apiv1.SetClusterConfigRPC, request, &apiv1.SetClusterConfigResponse{})
 	return err
 }
 

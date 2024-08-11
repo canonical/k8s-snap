@@ -7,6 +7,6 @@ import (
 )
 
 func (c *k8sd) SetClusterAPIAuthToken(ctx context.Context, request apiv1.ClusterAPISetAuthTokenRequest) error {
-	_, err := query[any](ctx, c, "POST", apiv1.ClusterAPISetAuthTokenRPC, request, nil)
+	_, err := query(ctx, c, "POST", apiv1.ClusterAPISetAuthTokenRPC, request, &apiv1.ClusterAPIGetJoinTokenResponse{})
 	return err
 }
