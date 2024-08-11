@@ -3,16 +3,14 @@ package k8sd
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
-	"github.com/canonical/lxd/shared/api"
 )
 
-func (c *k8sd) BootstrapCluster(ctx context.Context, request apiv1.BootstrapClusterRequest) (apiv1.NodeStatus, error) {
+func (c *k8sd) BootstrapCluster(ctx context.Context, request apiv1.BootstrapClusterRequest) (apiv1.BootstrapClusterResponse, error) {
 	if err := c.app.Ready(ctx); err != nil {
-		return apiv1.NodeStatus{}, fmt.Errorf("k8sd is not ready: %w", err)
+		return apiv1.BootstrapClusterResponse{}, fmt.Errorf("k8sd is not ready: %w", err)
 	}
 
 	// NOTE(neoaggelos): microcluster adds an arbitrary 30 second timeout in case no context deadline is set.
@@ -20,12 +18,7 @@ func (c *k8sd) BootstrapCluster(ctx context.Context, request apiv1.BootstrapClus
 	ctx, cancel := context.WithTimeout(ctx, request.Timeout+30*time.Second)
 	defer cancel()
 
-	var response apiv1.NodeStatus
-	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path(strings.Split(apiv1.BootstrapClusterRPC, "/")...), request, &response); err != nil {
-		return apiv1.NodeStatus{}, fmt.Errorf("failed to POST /k8sd/cluster: %w", err)
-	}
-
-	return response, nil
+	return query(ctx, c, "POST", apiv1.BootstrapClusterRPC, request, &apiv1.BootstrapClusterResponse{})
 }
 
 func (c *k8sd) JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest) error {
@@ -38,11 +31,8 @@ func (c *k8sd) JoinCluster(ctx context.Context, request apiv1.JoinClusterRequest
 	ctx, cancel := context.WithTimeout(ctx, request.Timeout+30*time.Second)
 	defer cancel()
 
-	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path(strings.Split(apiv1.JoinClusterRPC, "/")...), request, nil); err != nil {
-		return fmt.Errorf("failed to POST /k8sd/cluster/join: %w", err)
-	}
-
-	return nil
+	_, err := query[any](ctx, c, "POST", apiv1.JoinClusterRPC, request, nil)
+	return err
 }
 
 func (c *k8sd) RemoveNode(ctx context.Context, request apiv1.RemoveNodeRequest) error {
@@ -51,16 +41,10 @@ func (c *k8sd) RemoveNode(ctx context.Context, request apiv1.RemoveNodeRequest) 
 	ctx, cancel := context.WithTimeout(ctx, request.Timeout+30*time.Second)
 	defer cancel()
 
-	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path(strings.Split(apiv1.RemoveNodeRPC, "/")...), request, nil); err != nil {
-		return fmt.Errorf("failed to POST /k8sd/cluster/remove: %w", err)
-	}
-	return nil
+	_, err := query[any](ctx, c, "POST", apiv1.RemoveNodeRPC, request, nil)
+	return err
 }
 
 func (c *k8sd) GetJoinToken(ctx context.Context, request apiv1.GetJoinTokenRequest) (apiv1.GetJoinTokenResponse, error) {
-	var response apiv1.GetJoinTokenResponse
-	if err := c.client.Query(ctx, "POST", apiv1.K8sdAPIVersion, api.NewURL().Path(strings.Split(apiv1.GetJoinTokenRPC, "/")...), request, &response); err != nil {
-		return apiv1.GetJoinTokenResponse{}, fmt.Errorf("failed to POST /k8sd/cluster/tokens: %w", err)
-	}
-	return response, nil
+	return query(ctx, c, "POST", apiv1.GetJoinTokenRPC, request, &apiv1.GetJoinTokenResponse{})
 }
