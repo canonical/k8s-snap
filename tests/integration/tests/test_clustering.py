@@ -107,34 +107,44 @@ def test_replacing_control_plane_nodes(instances: List[harness.Instance]):
     # initial 3 node setup
     join_token_2 = util.get_join_token(cp1, cp2)
     util.join_cluster(cp2, join_token_2)
-    join_token_3 = util.get_join_token(cp1, cp3)   
+    join_token_3 = util.get_join_token(cp1, cp3)
     util.join_cluster(cp3, join_token_3)
     util.wait_until_k8s_ready(cp1, instances[:3])
     nodes = util.ready_nodes(cp1)
-    assert len(nodes) == 3, f"initial nodes should have joined the cluster, expected 3, got {len(nodes)}"
+    assert (
+        len(nodes) == 3
+    ), f"initial nodes should have joined the cluster, expected 3, got {len(nodes)}"
 
     # adding the first new node
     join_token_4 = util.get_join_token(cp1, new_cp4)
     util.join_cluster(new_cp4, join_token_4)
     util.wait_until_k8s_ready(cp1, instances[:4])
     nodes = util.ready_nodes(cp1)
-    assert len(nodes) == 4, f"first new node should have joined the cluster, expected 4, got {len(nodes)}"
+    assert (
+        len(nodes) == 4
+    ), f"first new node should have joined the cluster, expected 4, got {len(nodes)}"
 
     # removing the first old node
     cp3.exec(["k8s", "remove-node", cp1.id])
     util.wait_until_k8s_ready(cp3, instances[1:4])
     nodes = util.ready_nodes(cp3)
-    assert len(nodes) == 3, f"first old node should have been removed from the cluster, expected 3, got {len(nodes)}"
+    assert (
+        len(nodes) == 3
+    ), f"first old node should have been removed from the cluster, expected 3, got {len(nodes)}"
 
     # adding the second new node
     join_token_5 = util.get_join_token(cp3, new_cp5)
     util.join_cluster(new_cp5, join_token_5)
     util.wait_until_k8s_ready(cp3, instances[1:5])
     nodes = util.ready_nodes(cp3)
-    assert len(nodes) == 4, f"second new node should have joined cluster, expected 4, got {len(nodes)}"
+    assert (
+        len(nodes) == 4
+    ), f"second new node should have joined cluster, expected 4, got {len(nodes)}"
 
     # removing the second old node
     cp3.exec(["k8s", "remove-node", cp2.id])
     util.wait_until_k8s_ready(cp3, instances[2:5])
     nodes = util.ready_nodes(cp3)
-    assert len(nodes) == 3, f"second old node should have been removed from the cluster, expected 3, got {len(nodes)}"
+    assert (
+        len(nodes) == 3
+    ), f"second old node should have been removed from the cluster, expected 3, got {len(nodes)}"
