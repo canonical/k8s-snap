@@ -21,7 +21,7 @@ import (
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
 	"golang.org/x/sync/errgroup"
-	certificatesv1 "k8s.io/api/certificates/v1"
+	certv1 "k8s.io/api/certificates/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -98,7 +98,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		name         string
 		commonName   string
 		organization []string
-		usages       []certificatesv1.KeyUsage
+		usages       []certv1.KeyUsage
 		hostnames    []string
 		ips          []net.IP
 		signerName   string
@@ -109,7 +109,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			name:         fmt.Sprintf("k8sd-%d-worker-kubelet-serving", req.Seed),
 			commonName:   fmt.Sprintf("system:node:%s", snap.Hostname()),
 			organization: []string{"system:nodes"},
-			usages:       []certificatesv1.KeyUsage{certificatesv1.UsageDigitalSignature, certificatesv1.UsageKeyEncipherment, certificatesv1.UsageServerAuth},
+			usages:       []certv1.KeyUsage{certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment, certv1.UsageServerAuth},
 			hostnames:    []string{snap.Hostname()},
 			ips:          []net.IP{net.ParseIP(s.Address().Hostname())},
 			signerName:   "k8sd.io/kubelet-serving",
@@ -120,7 +120,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			name:         fmt.Sprintf("k8sd-%d-worker-kubelet-client", req.Seed),
 			commonName:   fmt.Sprintf("system:node:%s", snap.Hostname()),
 			organization: []string{"system:nodes"},
-			usages:       []certificatesv1.KeyUsage{certificatesv1.UsageDigitalSignature, certificatesv1.UsageKeyEncipherment, certificatesv1.UsageClientAuth},
+			usages:       []certv1.KeyUsage{certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment, certv1.UsageClientAuth},
 			signerName:   "k8sd.io/kubelet-client",
 			certificate:  &certificates.KubeletClientCert,
 			key:          &certificates.KubeletClientKey,
@@ -128,7 +128,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		{
 			name:        fmt.Sprintf("k8sd-%d-worker-kube-proxy-client", req.Seed),
 			commonName:  "system:kube-proxy",
-			usages:      []certificatesv1.KeyUsage{certificatesv1.UsageDigitalSignature, certificatesv1.UsageKeyEncipherment, certificatesv1.UsageClientAuth},
+			usages:      []certv1.KeyUsage{certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment, certv1.UsageClientAuth},
 			signerName:  "k8sd.io/kube-proxy-client",
 			certificate: &certificates.KubeProxyClientCert,
 			key:         &certificates.KubeProxyClientKey,
@@ -149,11 +149,11 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 				return fmt.Errorf("failed to generate CSR for %s: %w", csr.name, err)
 			}
 
-			if _, err = client.CertificatesV1().CertificateSigningRequests().Create(ctx, &certificatesv1.CertificateSigningRequest{
+			if _, err = client.CertificatesV1().CertificateSigningRequests().Create(ctx, &certv1.CertificateSigningRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: csr.name,
 				},
-				Spec: certificatesv1.CertificateSigningRequestSpec{
+				Spec: certv1.CertificateSigningRequestSpec{
 					Request:    []byte(csrPEM),
 					Usages:     csr.usages,
 					SignerName: csr.signerName,
@@ -165,7 +165,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			if err := client.WatchCertificateSigningRequest(
 				ctx,
 				csr.name,
-				func(request *certificatesv1.CertificateSigningRequest) (bool, error) {
+				func(request *certv1.CertificateSigningRequest) (bool, error) {
 					return verifyCSRAndSetPKI(request, keyPEM, csr.certificate, csr.key)
 				},
 			); err != nil {
@@ -219,16 +219,16 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 // signing request is approved and issued. It returns true if the CSR is
 // approved and issued, false if it is pending, and an error if it is denied
 // or failed.
-func isCertificateSigningRequestApprovedAndIssued(csr *certificatesv1.CertificateSigningRequest) (bool, error) {
+func isCertificateSigningRequestApprovedAndIssued(csr *certv1.CertificateSigningRequest) (bool, error) {
 	for _, condition := range csr.Status.Conditions {
-		if condition.Type == certificatesv1.CertificateApproved && condition.Status == corev1.ConditionTrue {
+		if condition.Type == certv1.CertificateApproved && condition.Status == corev1.ConditionTrue {
 			return len(csr.Status.Certificate) > 0, nil
 
 		}
-		if condition.Type == certificatesv1.CertificateDenied && condition.Status == corev1.ConditionTrue {
+		if condition.Type == certv1.CertificateDenied && condition.Status == corev1.ConditionTrue {
 			return false, fmt.Errorf(":CSR %s was denied: %s", csr.Name, condition.Reason)
 		}
-		if condition.Type == certificatesv1.CertificateFailed && condition.Status == corev1.ConditionTrue {
+		if condition.Type == certv1.CertificateFailed && condition.Status == corev1.ConditionTrue {
 			return false, fmt.Errorf("CSR %s failed: %s", csr.Name, condition.Reason)
 		}
 	}
@@ -237,7 +237,7 @@ func isCertificateSigningRequestApprovedAndIssued(csr *certificatesv1.Certificat
 
 // verifyCSRAndSetPKI verifies the certificate signing request and sets the
 // certificate and key if the CSR is approved.
-func verifyCSRAndSetPKI(csr *certificatesv1.CertificateSigningRequest, keyPEM string, certificate, key *string) (bool, error) {
+func verifyCSRAndSetPKI(csr *certv1.CertificateSigningRequest, keyPEM string, certificate, key *string) (bool, error) {
 	approved, err := isCertificateSigningRequestApprovedAndIssued(csr)
 	if err != nil {
 		return false, fmt.Errorf("failed to validate csr: %w", err)

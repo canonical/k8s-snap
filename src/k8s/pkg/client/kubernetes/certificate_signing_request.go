@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/log"
-	certificatesv1 "k8s.io/api/certificates/v1"
+	certv1 "k8s.io/api/certificates/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -21,7 +21,7 @@ import (
 // processing should continue.
 // The verify function should return an error if the CSR is in an invalid state
 // (e.g., failed or denied) or the issued certificate is invalid.
-func (c *Client) WatchCertificateSigningRequest(ctx context.Context, name string, verify func(csr *certificatesv1.CertificateSigningRequest) (bool, error)) error {
+func (c *Client) WatchCertificateSigningRequest(ctx context.Context, name string, verify func(csr *certv1.CertificateSigningRequest) (bool, error)) error {
 	for {
 		if retry, err := c.watchCertificateSigningRequestEvents(ctx, name, verify); err != nil {
 			return fmt.Errorf("failed to watch CSR %s: %w", name, err)
@@ -37,7 +37,7 @@ func (c *Client) WatchCertificateSigningRequest(ctx context.Context, name string
 	}
 }
 
-func (c *Client) watchCertificateSigningRequestEvents(ctx context.Context, name string, verify func(csr *certificatesv1.CertificateSigningRequest) (bool, error)) (bool, error) {
+func (c *Client) watchCertificateSigningRequestEvents(ctx context.Context, name string, verify func(csr *certv1.CertificateSigningRequest) (bool, error)) (bool, error) {
 	log := log.FromContext(ctx)
 	w, err := c.CertificatesV1().CertificateSigningRequests().Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: name}))
 	if err != nil {
@@ -58,7 +58,7 @@ func (c *Client) watchCertificateSigningRequestEvents(ctx context.Context, name 
 				return true, nil
 			}
 
-			csr, ok := evt.Object.(*certificatesv1.CertificateSigningRequest)
+			csr, ok := evt.Object.(*certv1.CertificateSigningRequest)
 			if !ok {
 				log.V(1).Info("Expected a CertificateSigningRequest but received something else", "object", evt.Object)
 				// Retry
