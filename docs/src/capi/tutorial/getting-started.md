@@ -113,12 +113,12 @@ The management cluster needs to resolve dns records from the MAAS domain, theref
 Define further environment variables for the machine image and minimum compute resources of the control plane and worker nodes:
 
 ```
-export CONTROL_PLANE_MACHINE_MINCPU="2"
-export CONTROL_PLANE_MACHINE_MINMEMORY="4096"
+export CONTROL_PLANE_MACHINE_MINCPU="1"
+export CONTROL_PLANE_MACHINE_MINMEMORY="2048"
 export CONTROL_PLANE_MACHINE_IMAGE="ubuntu"
 
-export WORKER_MACHINE_MINCPU="2"
-export WORKER_MACHINE_MINMEMORY="4096"
+export WORKER_MACHINE_MINCPU="1"
+export WORKER_MACHINE_MINMEMORY="2048"
 export WORKER_MACHINE_IMAGE="ubuntu"
 ```
 
