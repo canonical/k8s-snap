@@ -131,16 +131,14 @@ func (c *FeatureController) reconcile(
 		return fmt.Errorf("failed to retrieve cluster configuration: %w", err)
 	}
 
-	featureStatus, err := apply(cfg)
-	if err != nil {
-		if err := updateFeatureStatus(ctx, featureStatus); err != nil {
-			log.FromContext(ctx).WithValues("message", featureStatus.Message).Error(err, "Failed to update feature status after failed apply")
-		}
-		return fmt.Errorf("failed to apply configuration: %w", err)
+	status, applyErr := apply(cfg)
+	if err := updateFeatureStatus(ctx, status); err != nil {
+		// NOTE (hue): status update errors are not returned but only logged. we might need some retry logic in the future.
+		log.FromContext(ctx).WithValues("message", status.Message, "applied-successfully", applyErr == nil).Error(err, "Failed to update feature status")
 	}
 
-	if err := updateFeatureStatus(ctx, featureStatus); err != nil {
-		log.FromContext(ctx).WithValues("message", featureStatus.Message).Error(err, "Failed to update feature status after successful apply")
+	if applyErr != nil {
+		return fmt.Errorf("failed to apply configuration: %w", applyErr)
 	}
 
 	return nil
