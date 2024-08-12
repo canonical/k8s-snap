@@ -53,7 +53,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 				Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
 			}, err
 		} else {
-			err = fmt.Errorf("failed to install Gateway API GatewayClass: %w", err)
+			err = fmt.Errorf("failed to delete Gateway API GatewayClass: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: ciliumAgentImageTag,
@@ -65,14 +65,14 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), map[string]any{"gatewayAPI": map[string]any{"enabled": gateway.GetEnabled()}})
 	if err != nil {
 		if gateway.GetEnabled() {
-			err = fmt.Errorf("failed to apply Gateway API cilium configuration: %w", err)
+			err = fmt.Errorf("failed to upgrade Gateway API cilium configuration: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: ciliumAgentImageTag,
 				Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
 			}, err
 		} else {
-			err = fmt.Errorf("failed to apply Gateway API cilium configuration: %w", err)
+			err = fmt.Errorf("failed to delete Gateway API cilium configuration: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: ciliumAgentImageTag,
