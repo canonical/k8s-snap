@@ -122,6 +122,10 @@ export WORKER_MACHINE_MINMEMORY="4096"
 export WORKER_MACHINE_IMAGE="ubuntu"
 ```
 
+```{note}
+The minimum resource variables are used for selecting machines that have resources more than or equal to the provided values.
+```
+
 Optional environment variables can be defined for specifying resource pools and machine tags:
 
 ```
