@@ -97,8 +97,7 @@ You are now all set to deploy the AWS CAPI infrastructure provider.
 ````
 
 ````{group-tab} MAAS
-Start by setting up environment variables defining the MAAS credentials, if
-these are not already defined:
+Start by setting up environment variables to allow access to MAAS:
 
 ```
 export MAAS_API_KEY="<maas-api-key>"
@@ -108,11 +107,10 @@ export MAAS_DNS_DOMAIN="<maas-dns-domain>"
 The MAAS infrastructure provider uses these credentials to deploy machines, create DNS records and perform various other operations for workload clusters.
 
 ```{warning}
-The management cluster needs to be able to resolve dns records from the MAAS domain.
-This usually means the management cluster also needs to be deployed on a MAAS machine.
+The management cluster needs to resolve dns records from the MAAS domain, therefore it should be deployed on a MAAS machine.
 ```
 
-Continue with setting up environment variables defining the machine image and minimum compute resources of the control plane and worker nodes:
+Define further environment variables for the machine image and minimum compute resources of the control plane and worker nodes:
 
 ```
 export CONTROL_PLANE_MACHINE_MINCPU="2"
@@ -124,7 +122,7 @@ export WORKER_MACHINE_MINMEMORY="4096"
 export WORKER_MACHINE_IMAGE="ubuntu"
 ```
 
-Optional environment variables can be defined for specifying resource pools and machine tags like:
+Optional environment variables can be defined for specifying resource pools and machine tags:
 
 ```
 # (optional) Configure resource pools for control plane and worker machines
