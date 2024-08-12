@@ -187,17 +187,17 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 	)
 	for _, component := range strings.FieldsFunc(components, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }) {
 		switch component {
-		case features.Network:
+		case string(features.Network):
 			config.ClusterConfig.Network.Enabled = utils.Pointer(true)
-		case features.DNS:
+		case string(features.DNS):
 			config.ClusterConfig.DNS.Enabled = utils.Pointer(true)
-		case features.Ingress:
+		case string(features.Ingress):
 			config.ClusterConfig.Ingress.Enabled = utils.Pointer(true)
-		case features.LoadBalancer:
+		case string(features.LoadBalancer):
 			config.ClusterConfig.LoadBalancer.Enabled = utils.Pointer(true)
-		case features.Gateway:
+		case string(features.Gateway):
 			config.ClusterConfig.Gateway.Enabled = utils.Pointer(true)
-		case features.LocalStorage:
+		case string(features.LocalStorage):
 			config.ClusterConfig.LocalStorage.Enabled = utils.Pointer(true)
 		}
 	}

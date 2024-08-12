@@ -31,7 +31,7 @@ func TestDisableCmd(t *testing.T) {
 		},
 		{
 			name:  "one",
-			funcs: []string{features.Gateway},
+			funcs: []string{string(features.Gateway)},
 			expectedCall: apiv1.UpdateClusterConfigRequest{
 				Config: apiv1.UserFacingClusterConfig{
 					Gateway: apiv1.GatewayConfig{Enabled: utils.Pointer(false)},
@@ -41,7 +41,7 @@ func TestDisableCmd(t *testing.T) {
 		},
 		{
 			name:  "multiple",
-			funcs: []string{features.LoadBalancer, features.Gateway},
+			funcs: []string{string(features.LoadBalancer), string(features.Gateway)},
 			expectedCall: apiv1.UpdateClusterConfigRequest{
 				Config: apiv1.UserFacingClusterConfig{
 					Gateway:      apiv1.GatewayConfig{Enabled: utils.Pointer(false)},

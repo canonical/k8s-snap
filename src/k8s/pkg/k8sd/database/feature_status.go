@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/microcluster/v2/cluster"
@@ -17,7 +18,7 @@ var featureStatusStmts = map[string]int{
 }
 
 // SetFeatureStatus updates the status of the given feature.
-func SetFeatureStatus(ctx context.Context, tx *sql.Tx, name string, status types.FeatureStatus) error {
+func SetFeatureStatus(ctx context.Context, tx *sql.Tx, name features.FeatureName, status types.FeatureStatus) error {
 	upsertTxStmt, err := cluster.Stmt(tx, featureStatusStmts["upsert"])
 	if err != nil {
 		return fmt.Errorf("failed to prepare upsert statement: %w", err)
@@ -37,7 +38,7 @@ func SetFeatureStatus(ctx context.Context, tx *sql.Tx, name string, status types
 }
 
 // GetFeatureStatuses returns a map of feature names to their status.
-func GetFeatureStatuses(ctx context.Context, tx *sql.Tx) (map[string]types.FeatureStatus, error) {
+func GetFeatureStatuses(ctx context.Context, tx *sql.Tx) (map[features.FeatureName]types.FeatureStatus, error) {
 	selectTxStmt, err := cluster.Stmt(tx, featureStatusStmts["select"])
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare select statement: %w", err)
@@ -48,7 +49,7 @@ func GetFeatureStatuses(ctx context.Context, tx *sql.Tx) (map[string]types.Featu
 		return nil, fmt.Errorf("failed to execute select statement: %w", err)
 	}
 
-	result := make(map[string]types.FeatureStatus)
+	result := make(map[features.FeatureName]types.FeatureStatus)
 
 	for rows.Next() {
 		var (
@@ -65,7 +66,7 @@ func GetFeatureStatuses(ctx context.Context, tx *sql.Tx) (map[string]types.Featu
 			log.FromContext(ctx).Error(err, "failed to parse time", "original", ts)
 		}
 
-		result[name] = status
+		result[features.FeatureName(name)] = status
 	}
 
 	if rows.Err() != nil {

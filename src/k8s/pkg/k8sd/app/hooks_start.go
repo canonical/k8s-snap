@@ -9,6 +9,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
@@ -73,7 +74,7 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 
 				return nil
 			},
-			func(ctx context.Context, name string, featureStatus types.FeatureStatus) error {
+			func(ctx context.Context, name features.FeatureName, featureStatus types.FeatureStatus) error {
 				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 					// we set timestamp here in order to reduce the clutter. otherwise we will need to
 					// set .UpdatedAt field in a lot of places for every event/error.

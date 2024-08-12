@@ -59,17 +59,17 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			switch key {
 			case "":
 				output = config
-			case features.Network:
+			case string(features.Network):
 				output = config.Network
-			case features.DNS:
+			case string(features.DNS):
 				output = config.DNS
-			case features.Gateway:
+			case string(features.Gateway):
 				output = config.Gateway
-			case features.Ingress:
+			case string(features.Ingress):
 				output = config.Ingress
-			case features.LocalStorage:
+			case string(features.LocalStorage):
 				output = config.LocalStorage
-			case features.LoadBalancer:
+			case string(features.LoadBalancer):
 				output = config.LoadBalancer
 			case fmt.Sprintf("%s.enabled", features.Network):
 				output = config.Network.GetEnabled()

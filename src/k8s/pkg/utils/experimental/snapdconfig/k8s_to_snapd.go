@@ -14,13 +14,13 @@ import (
 func SetSnapdFromK8sd(ctx context.Context, config apiv1.UserFacingClusterConfig, snap snap.Snap) error {
 	var sets []string
 	for key, cfg := range map[string]any{
-		"meta":                Meta{Orb: "snapd", APIVersion: "1.30"},
-		features.DNS:          config.DNS,
-		features.Network:      config.Network,
-		features.LocalStorage: config.LocalStorage,
-		features.LoadBalancer: config.LoadBalancer,
-		features.Ingress:      config.Ingress,
-		features.Gateway:      config.Gateway,
+		"meta":                        Meta{Orb: "snapd", APIVersion: "1.30"},
+		string(features.DNS):          config.DNS,
+		string(features.Network):      config.Network,
+		string(features.LocalStorage): config.LocalStorage,
+		string(features.LoadBalancer): config.LoadBalancer,
+		string(features.Ingress):      config.Ingress,
+		string(features.Gateway):      config.Gateway,
 	} {
 		b, err := json.Marshal(cfg)
 		if err != nil {

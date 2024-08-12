@@ -15,7 +15,7 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		timeout time.Duration
 	}
 	waitForDNSCmd := &cobra.Command{
-		Use:   features.DNS,
+		Use:   string(features.DNS),
 		Short: "Wait for DNS to be ready",
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
@@ -35,7 +35,7 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	waitForDNSCmd.Flags().DurationVar(&opts.timeout, "timeout", 5*time.Minute, "maximum time to wait")
 
 	waitForNetworkCmd := &cobra.Command{
-		Use:   features.Network,
+		Use:   string(features.Network),
 		Short: "Wait for Network to be ready",
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)

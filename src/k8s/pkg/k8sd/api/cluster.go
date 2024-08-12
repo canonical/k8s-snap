@@ -41,7 +41,7 @@ func (e *Endpoints) getClusterStatus(s state.State, r *http.Request) response.Re
 		return response.InternalError(fmt.Errorf("failed to check if cluster has ready nodes: %w", err))
 	}
 
-	var statuses map[string]types.FeatureStatus
+	var statuses map[features.FeatureName]types.FeatureStatus
 	if err := s.Database().Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		statuses, err = database.GetFeatureStatuses(r.Context(), tx)

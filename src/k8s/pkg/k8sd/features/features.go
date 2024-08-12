@@ -1,11 +1,13 @@
 package features
 
+type FeatureName string
+
 const (
-	DNS           string = "dns"
-	Network       string = "network"
-	Gateway       string = "gateway"
-	Ingress       string = "ingress"
-	LoadBalancer  string = "load-balancer"
-	LocalStorage  string = "local-storage"
-	MetricsServer string = "metrics-server"
+	DNS           FeatureName = "dns"
+	Network       FeatureName = "network"
+	Gateway       FeatureName = "gateway"
+	Ingress       FeatureName = "ingress"
+	LoadBalancer  FeatureName = "load-balancer"
+	LocalStorage  FeatureName = "local-storage"
+	MetricsServer FeatureName = "metrics-server"
 )

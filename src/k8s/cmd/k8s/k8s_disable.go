@@ -43,31 +43,31 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			for _, feature := range args {
 				switch feature {
-				case features.Network:
+				case string(features.Network):
 					config.Network = api.NetworkConfig{
 						Enabled: utils.Pointer(false),
 					}
-				case features.DNS:
+				case string(features.DNS):
 					config.DNS = api.DNSConfig{
 						Enabled: utils.Pointer(false),
 					}
-				case features.Gateway:
+				case string(features.Gateway):
 					config.Gateway = api.GatewayConfig{
 						Enabled: utils.Pointer(false),
 					}
-				case features.Ingress:
+				case string(features.Ingress):
 					config.Ingress = api.IngressConfig{
 						Enabled: utils.Pointer(false),
 					}
-				case features.LocalStorage:
+				case string(features.LocalStorage):
 					config.LocalStorage = api.LocalStorageConfig{
 						Enabled: utils.Pointer(false),
 					}
-				case features.LoadBalancer:
+				case string(features.LoadBalancer):
 					config.LoadBalancer = api.LoadBalancerConfig{
 						Enabled: utils.Pointer(false),
 					}
-				case features.MetricsServer:
+				case string(features.MetricsServer):
 					config.MetricsServer = api.MetricsServerConfig{
 						Enabled: utils.Pointer(false),
 					}
