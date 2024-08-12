@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
@@ -61,13 +62,13 @@ func (e *Endpoints) getClusterStatus(s state.State, r *http.Request) response.Re
 				Type:    config.Datastore.GetType(),
 				Servers: config.Datastore.GetExternalServers(),
 			},
-			DNS:           statuses["dns"].ToAPI(),
-			Network:       statuses["network"].ToAPI(),
-			LoadBalancer:  statuses["load-balancer"].ToAPI(),
-			Ingress:       statuses["ingress"].ToAPI(),
-			Gateway:       statuses["gateway"].ToAPI(),
-			MetricsServer: statuses["metrics-server"].ToAPI(),
-			LocalStorage:  statuses["local-storage"].ToAPI(),
+			DNS:           statuses[features.DNS].ToAPI(),
+			Network:       statuses[features.Network].ToAPI(),
+			LoadBalancer:  statuses[features.LoadBalancer].ToAPI(),
+			Ingress:       statuses[features.Ingress].ToAPI(),
+			Gateway:       statuses[features.Gateway].ToAPI(),
+			MetricsServer: statuses[features.MetricsServer].ToAPI(),
+			LocalStorage:  statuses[features.LocalStorage].ToAPI(),
 		},
 	}
 

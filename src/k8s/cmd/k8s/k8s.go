@@ -4,11 +4,12 @@ import (
 	"time"
 
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/spf13/cobra"
 )
 
 var (
-	featureList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer"}
+	featureList = []string{features.Network, features.DNS, features.Gateway, features.Ingress, features.LocalStorage, features.LoadBalancer}
 
 	outputFormatter cmdutil.Formatter
 )

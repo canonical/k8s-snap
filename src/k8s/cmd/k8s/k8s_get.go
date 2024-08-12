@@ -8,6 +8,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/spf13/cobra"
 )
 
@@ -58,61 +59,61 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			switch key {
 			case "":
 				output = config
-			case "network":
+			case features.Network:
 				output = config.Network
-			case "dns":
+			case features.DNS:
 				output = config.DNS
-			case "gateway":
+			case features.Gateway:
 				output = config.Gateway
-			case "ingress":
+			case features.Ingress:
 				output = config.Ingress
-			case "local-storage":
+			case features.LocalStorage:
 				output = config.LocalStorage
-			case "load-balancer":
+			case features.LoadBalancer:
 				output = config.LoadBalancer
-			case "network.enabled":
+			case fmt.Sprintf("%s.enabled", features.Network):
 				output = config.Network.GetEnabled()
-			case "dns.enabled":
+			case fmt.Sprintf("%s.enabled", features.DNS):
 				output = config.DNS.GetEnabled()
-			case "dns.upstream-nameservers":
+			case fmt.Sprintf("%s.upstream-nameservers", features.DNS):
 				output = config.DNS.GetUpstreamNameservers()
-			case "dns.cluster-domain":
+			case fmt.Sprintf("%s.cluster-domain", features.DNS):
 				output = config.DNS.GetClusterDomain()
-			case "dns.service-ip":
+			case fmt.Sprintf("%s.service-ip", features.DNS):
 				output = config.DNS.GetServiceIP()
-			case "gateway.enabled":
+			case fmt.Sprintf("%s.enabled", features.Gateway):
 				output = config.Gateway.GetEnabled()
-			case "ingress.enabled":
+			case fmt.Sprintf("%s.enabled", features.Ingress):
 				output = config.Ingress.GetEnabled()
-			case "ingress.default-tls-secret":
+			case fmt.Sprintf("%s.default-tls-secret", features.Ingress):
 				output = config.Ingress.GetDefaultTLSSecret()
-			case "ingress.enable-proxy-protocol":
+			case fmt.Sprintf("%s.enable-proxy-protocol", features.Ingress):
 				output = config.Ingress.GetEnableProxyProtocol()
-			case "local-storage.enabled":
+			case fmt.Sprintf("%s.enabled", features.LocalStorage):
 				output = config.LocalStorage.GetEnabled()
-			case "local-storage.local-path":
+			case fmt.Sprintf("%s.local-path", features.LocalStorage):
 				output = config.LocalStorage.GetLocalPath()
-			case "local-storage.reclaim-policy":
+			case fmt.Sprintf("%s.reclaim-policy", features.LocalStorage):
 				output = config.LocalStorage.GetReclaimPolicy()
-			case "local-storage.default":
+			case fmt.Sprintf("%s.default", features.LocalStorage):
 				output = config.LocalStorage.GetDefault()
-			case "load-balancer.enabled":
+			case fmt.Sprintf("%s.enabled", features.LoadBalancer):
 				output = config.LoadBalancer.GetEnabled()
-			case "load-balancer.cidrs":
+			case fmt.Sprintf("%s.cidrs", features.LoadBalancer):
 				output = config.LoadBalancer.GetCIDRs()
-			case "load-balancer.l2-mode":
+			case fmt.Sprintf("%s.l2-mode", features.LoadBalancer):
 				output = config.LoadBalancer.GetL2Mode()
-			case "load-balancer.l2-interfaces":
+			case fmt.Sprintf("%s.l2-interfaces", features.LoadBalancer):
 				output = config.LoadBalancer.GetL2Interfaces()
-			case "load-balancer.bgp-mode":
+			case fmt.Sprintf("%s.bgp-mode", features.LoadBalancer):
 				output = config.LoadBalancer.GetBGPMode()
-			case "load-balancer.bgp-local-asn":
+			case fmt.Sprintf("%s.bgp-local-asn", features.LoadBalancer):
 				output = config.LoadBalancer.GetBGPLocalASN()
-			case "load-balancer.bgp-peer-address":
+			case fmt.Sprintf("%s.bgp-peer-address", features.LoadBalancer):
 				output = config.LoadBalancer.GetBGPPeerAddress()
-			case "load-balancer.bgp-peer-port":
+			case fmt.Sprintf("%s.bgp-peer-port", features.LoadBalancer):
 				output = config.LoadBalancer.GetBGPPeerPort()
-			case "load-balancer.bgp-peer-asn":
+			case fmt.Sprintf("%s.bgp-peer-asn", features.LoadBalancer):
 				output = config.LoadBalancer.GetBGPPeerASN()
 			default:
 				cmd.PrintErrf("Error: Unknown config key %q.\n", key)

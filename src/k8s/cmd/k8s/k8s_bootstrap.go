@@ -14,6 +14,7 @@ import (
 	apiv1 "github.com/canonical/k8s/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -186,17 +187,17 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 	)
 	for _, component := range strings.FieldsFunc(components, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }) {
 		switch component {
-		case "network":
+		case features.Network:
 			config.ClusterConfig.Network.Enabled = utils.Pointer(true)
-		case "dns":
+		case features.DNS:
 			config.ClusterConfig.DNS.Enabled = utils.Pointer(true)
-		case "ingress":
+		case features.Ingress:
 			config.ClusterConfig.Ingress.Enabled = utils.Pointer(true)
-		case "load-balancer":
+		case features.LoadBalancer:
 			config.ClusterConfig.LoadBalancer.Enabled = utils.Pointer(true)
-		case "gateway":
+		case features.Gateway:
 			config.ClusterConfig.Gateway.Enabled = utils.Pointer(true)
-		case "local-storage":
+		case features.LocalStorage:
 			config.ClusterConfig.LocalStorage.Enabled = utils.Pointer(true)
 		}
 	}
