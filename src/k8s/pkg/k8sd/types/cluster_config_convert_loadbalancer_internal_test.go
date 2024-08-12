@@ -1,9 +1,9 @@
 package types
 
 import (
-	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
