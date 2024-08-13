@@ -7,7 +7,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/utils/control"
-	"github.com/hashicorp/consul/api"
+	"github.com/canonical/lxd/shared/api"
 )
 
 func (c *k8sd) NodeStatus(ctx context.Context) (apiv1.NodeStatusResponse, bool, error) {
