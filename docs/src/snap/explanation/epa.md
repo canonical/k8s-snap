@@ -2,17 +2,17 @@
 
 Enhanced Platform Awareness (EPA) is a methodology and a set of
 enhancements across various layers of the orchestration stack, aimed at
-optimising platform capability, configuration, and capacity usage. For
+optimising platform capability, configuration and capacity usage. For
 telecommunications service providers using virtual network functions (VNFs) to
 deliver services, EPA offers enhanced application performance, increased
-input/output throughput, and improved determinism.
+input/output throughput and improved determinism.
 
-EPA focuses on three key objectives: discovering, scheduling, and isolating
+EPA focuses on three key objectives: discovering, scheduling and isolating
 server hardware capabilities. This document provides a detailed description of
 EPA capabilities and its integration into {{product}}. These capabilities are:
 
 -  **HugePage support**: In GA from Kubernetes v1.14, this feature enables the
-   discovery, scheduling, and allocation of HugePages as a first-class
+   discovery, scheduling and allocation of HugePages as a first-class
    resource.  
 -  **Real-time kernel**: Ensures that high-priority tasks are run within a
    predictable time frame, providing the low latency and high determinism
@@ -34,7 +34,7 @@ This document provides detailed instructions for setting up and installing the
 aforementioned technologies. It is designed for developers and architects
 looking to integrate these new technologies into their {{product}}-based
 networking solutions. The goal is to achieve enhanced network I/O,
-deterministic compute performance, and optimised server platform sharing.
+deterministic compute performance and optimised server platform sharing.
 
 ## HugePages 
 
@@ -60,13 +60,13 @@ memory access.
    higher throughput due to reduced page faults and better memory access
    patterns.  
 -  **Support for High-Performance Workloads**: Ideal for high-performance
-   computing (HPC) applications, databases, and other memory-intensive
+   computing (HPC) applications, databases and other memory-intensive
    workloads that demand efficient and fast memory access.  
 -  **Native Kubernetes Integration**: Starting from Kubernetes v1.14, HugePages
    are supported as a native, first-class resource, enabling their
-   discovery, scheduling, and allocation within Kubernetes environments.
+   discovery, scheduling and allocation within Kubernetes environments.
 
-### Kubernetes considerations
+### Application to Kubernetes
 
 The architecture for HugePages on Kubernetes integrates the management and
 allocation of large memory pages into the Kubernetes orchestration system. Here
@@ -95,7 +95,7 @@ are the key architectural components and their roles:
 -  **Monitoring and Metrics**: Kubernetes provides tools and integrations
    (e.g., Prometheus, Grafana) to monitor and visualise HugePages usage across
    the cluster. This helps in tracking resource utilisation and performance.
-   Metrics can include HugePages allocation, usage, and availability on each
+   Metrics can include HugePages allocation, usage and availability on each
    node, aiding in capacity planning and optimization.
 
 ## Real-time kernel 
@@ -134,7 +134,7 @@ determinism.
 These features make a real-time kernel ideal for applications requiring precise
 timing and high reliability.
 
-### Kubernetes considerations
+### Application to Kubernetes
 
 The architecture for integrating a real-time kernel into Kubernetes involves
 several components and configurations to ensure that high-priority, low-latency
@@ -169,7 +169,7 @@ key architectural components and their roles:
    across namespaces. This helps manage and isolate resource usage effectively.
 -  **Monitoring and Metrics**: Monitoring tools such as Prometheus and Grafana
    can be used to track the performance and resource utilisation of real-time
-   workloads. Metrics include CPU usage, latency, and task scheduling times,
+   workloads. Metrics include CPU usage, latency and task scheduling times,
    which help in optimising and troubleshooting real-time applications.  
 -  **Security and Isolation**: Security contexts and isolation mechanisms
    ensure that real-time workloads are protected and run in a controlled
@@ -209,7 +209,7 @@ time, which reduces context switching and cache invalidation.
    CPUs to containers. This ensures that containers with high CPU demands have
    the necessary resources.
 
-### Kubernetes considerations
+### Application to Kubernetes
 
 The architecture for CPU pinning in Kubernetes involves several components and
 configurations to ensure that specific CPU cores can be dedicated to particular
@@ -245,7 +245,7 @@ are the key architectural components and their roles:
    This helps in managing and isolating resource usage effectively.  
 -  **Monitoring and Metrics**: Monitoring tools such as Prometheus and Grafana
    can be used to track the performance and resource utilisation of CPU-pinned
-   workloads. Metrics include CPU usage, core allocation, and task scheduling
+   workloads. Metrics include CPU usage, core allocation and task scheduling
    times, which help in optimising and troubleshooting performance-sensitive
    applications.  
 -  **Isolation and Security**: Security contexts and isolation mechanisms
@@ -316,7 +316,7 @@ allocated from a minimum number of NUMA nodes.
    policies, allowing administrators to configure how resources should be
    allocated based on the NUMA architecture, providing flexibility and control.
 
-### Kubernetes considerations
+### Application to Kubernetes
 
 The architecture for NUMA topology awareness in Kubernetes involves several
 components and configurations to ensure that CPU and memory allocations are
@@ -400,12 +400,12 @@ require direct access to the network hardware.
 -  **Compatibility with Network Functions Virtualization (NFV)**: SR-IOV is
    widely used in NFV deployments to meet the high-performance networking
    requirements of virtual network functions (VNFs), such as firewalls,
-   routers, and load balancers.  
+   routers and load balancers.  
 -  **Reduced Network Latency**: As network packets can bypass the
    hypervisor's virtual switch, SR-IOV significantly reduces network latency,
    making it ideal for latency-sensitive applications.
 
-### Kubernetes considerations
+### Application to Kubernetes
 
 The architecture for SR-IOV (Single Root I/O Virtualization) in Kubernetes
 involves several components and configurations to ensure that virtual functions
@@ -458,7 +458,7 @@ fast packet processing. It is designed to run in user space, so that
 applications can achieve high-speed packet processing by bypassing the kernel.
 DPDK is used to optimise network performance and reduce latency, making it
 ideal for applications that require high-throughput and low-latency networking,
-such as telecommunications, cloud data centres, and network functions
+such as telecommunications, cloud data centres and network functions
 virtualisation (NFV).
 
 ### Key features
@@ -502,7 +502,7 @@ cores. This is suitable for scenarios where each pipeline must be mapped to a
 specific application thread or when multiple pipelines must be mapped to the
 same thread. 
 
-### Kubernetes considerations
+### Application to Kubernetes
 
 The architecture for integrating the Data Plane Development Kit (DPDK) into
 Kubernetes involves several components and configurations to ensure high-speed
@@ -534,7 +534,7 @@ components and their roles:
    pinning, to place pods appropriately on nodes with sufficient resources.  
 -  **Monitoring and Metrics**: Use monitoring tools like Prometheus and Grafana
    to track the performance of DPDK applications, including network throughput,
-   latency, and CPU usage.  
+   latency and CPU usage.  
 -  **Resource Quotas and Limits**: Define resource quotas and limits to control
    the allocation of resources for DPDK applications across namespaces,
    ensuring fair resource distribution and preventing resource contention.  
