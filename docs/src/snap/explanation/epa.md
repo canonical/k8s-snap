@@ -45,7 +45,7 @@ memory access.
 
 ### Key features
 
--  **Larger Memory Pages**: HugePages provide larger memory pages (e.g., 2MB or
+-  **Larger memory pages**: HugePages provide larger memory pages (e.g., 2MB or
    1GB) compared to the standard 4KB pages, reducing the number of pages the
    system must manage.  
 -  **Reduced Overhead**: By using fewer, larger pages, the system reduces the
