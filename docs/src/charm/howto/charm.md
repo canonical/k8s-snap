@@ -12,6 +12,8 @@ This guide assumes the following:
 - If you still need to do this, please take a look at the quickstart
   instructions, or, for custom clouds (OpenStack, MAAS), please consult the
   [Juju documentation][juju].
+- You are not using the Juju 'localhost' cloud (see [localhost
+  instructions][localhost] for this).
 
 ```{note}
 If you cannot meet these requirements, please see the [Installing][] page for
@@ -93,3 +95,4 @@ Use `juju status` to watch these units approach the active/idle state.
 [credentials]:   https://juju.is/docs/juju/credentials
 [juju]:          https://juju.is/docs/juju/install-juju
 [charm]:         https://juju.is/docs/juju/charmed-operator
+[localhost]:     ../howto/install-lxd
