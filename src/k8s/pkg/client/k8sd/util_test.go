@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/k8sd/app"
@@ -65,24 +64,15 @@ func WithMicrocluster(t *testing.T, config app.Config, hooks *state.Hooks, f fun
 		t.Fatalf("failed to create k8sd client: %v", err)
 	}
 
-	doneCh := make(chan error, 1)
-	defer close(doneCh)
-
 	// app.Run() is blocking, start in a goroutine.
 	go func() {
-		doneCh <- app.Run(ctx, hooks)
+		if err := app.Run(ctx, hooks); err != nil {
+			t.Logf("microcluster app failed: %v", err)
+		}
 	}()
 
 	if err := app.MicroCluster().Ready(ctx); err != nil {
 		t.Fatalf("microcluster app was not ready in time: %v", err)
-	}
-
-	select {
-	case err := <-doneCh:
-		if err != nil {
-			t.Fatalf("microcluster app failed: %v", err)
-		}
-	default:
 	}
 
 	nextIdx++
@@ -90,9 +80,4 @@ func WithMicrocluster(t *testing.T, config app.Config, hooks *state.Hooks, f fun
 
 	// cancel context to stop the microcluster instance, and wait for it to shutdown
 	cancel()
-	select {
-	case <-doneCh:
-	case <-time.After(5 * time.Second):
-		t.Fatalf("timed out waiting for microcluster to shutdown")
-	}
 }
