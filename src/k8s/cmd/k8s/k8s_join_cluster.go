@@ -68,7 +68,11 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if _, err := client.NodeStatus(cmd.Context()); err == nil {
+			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
+				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			} else if initialized {
 				cmd.PrintErrln("Error: The node is already part of a cluster")
 				env.Exit(1)
 				return

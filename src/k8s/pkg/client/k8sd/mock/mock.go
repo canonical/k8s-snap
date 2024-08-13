@@ -22,10 +22,11 @@ type Mock struct {
 	RemoveNodeErr              error
 
 	// k8sd.StatusClient
-	NodeStatusResult    apiv1.NodeStatus
-	NodeStatusErr       error
-	ClusterStatusResult apiv1.ClusterStatus
-	ClusterStatusErr    error
+	NodeStatusResult      apiv1.NodeStatus
+	NodeStatusInitialized bool
+	NodeStatusErr         error
+	ClusterStatusResult   apiv1.ClusterStatus
+	ClusterStatusErr      error
 
 	// k8sd.ConfigClient
 	GetClusterConfigResult     apiv1.UserFacingClusterConfig
@@ -60,8 +61,8 @@ func (m *Mock) RemoveNode(_ context.Context, request apiv1.RemoveNodeRequest) er
 	return m.RemoveNodeErr
 }
 
-func (m *Mock) NodeStatus(_ context.Context) (apiv1.NodeStatus, error) {
-	return m.NodeStatusResult, m.NodeStatusErr
+func (m *Mock) NodeStatus(_ context.Context) (apiv1.NodeStatus, bool, error) {
+	return m.NodeStatusResult, m.NodeStatusInitialized, m.NodeStatusErr
 }
 func (m *Mock) ClusterStatus(_ context.Context, waitReady bool) (apiv1.ClusterStatus, error) {
 	return m.ClusterStatusResult, m.ClusterStatusErr

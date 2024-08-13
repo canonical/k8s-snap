@@ -36,12 +36,12 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			if _, isBootstrapped, err := cmdutil.GetNodeStatus(cmd.Context(), client, env); !isBootstrapped {
-				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
+				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
-			} else if err != nil {
-				cmd.PrintErrf("Error: Failed to retrieve the node status.\n\nThe error was: %v\n", err)
+			} else if !initialized {
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
 				env.Exit(1)
 				return
 			}
