@@ -1,6 +1,6 @@
 # Enhanced Platform Awareness
 
-Enhanced Platform Awareness (EPA) represents a methodology and a set of
+Enhanced Platform Awareness (EPA) is a methodology and a set of
 enhancements across various layers of the orchestration stack, aimed at
 optimising platform capability, configuration, and capacity usage. For
 telecommunications service providers using virtual network functions (VNFs) to
