@@ -20,6 +20,17 @@ var rootCmdOpts struct {
 	disableCSRSigningController         bool
 }
 
+func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Command) {
+	if group != nil {
+		root.AddGroup(group)
+		for _, command := range commands {
+			command.GroupID = group.ID
+		}
+	}
+
+	root.AddCommand(commands...)
+}
+
 func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "k8sd",
@@ -76,6 +87,12 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")
 
 	cmd.AddCommand(newSqlCmd(env))
+
+	addCommands(
+		cmd,
+		&cobra.Group{ID: "cluster", Title: "K8sd clustering commands:"},
+		newClusterRecoverCmd(),
+	)
 
 	return cmd
 }

@@ -5,6 +5,7 @@ DIR="$(realpath `dirname "${0}"`)"
 . "${DIR}/static-dqlite.sh"
 
 go build \
+  -gcflags=all="-N -l" \
   -tags dqlite,libsqlite3 \
-  -ldflags '-s -w -linkmode "external" -extldflags "-static"' \
+  -ldflags '--linkmode "external" -extldflags "-static"' \
   "${@}"
