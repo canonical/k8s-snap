@@ -144,7 +144,7 @@ func (c *FeatureController) reconcileLoop(
 	ctx context.Context,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
 	setFeatureStatus func(ctx context.Context, name features.FeatureName, status types.FeatureStatus) error,
-	componentName features.FeatureName,
+	featureName features.FeatureName,
 	triggerCh chan struct{},
 	reconciledCh chan<- struct{},
 	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
@@ -155,9 +155,9 @@ func (c *FeatureController) reconcileLoop(
 			return
 		case <-triggerCh:
 			if err := c.reconcile(ctx, getClusterConfig, apply, func(ctx context.Context, status types.FeatureStatus) error {
-				return setFeatureStatus(ctx, componentName, status)
+				return setFeatureStatus(ctx, featureName, status)
 			}); err != nil {
-				log.FromContext(ctx).WithValues("feature", componentName).Error(err, "Failed to apply feature configuration")
+				log.FromContext(ctx).WithValues("feature", featureName).Error(err, "Failed to apply feature configuration")
 
 				// notify triggerCh after 5 seconds to retry
 				time.AfterFunc(5*time.Second, func() { utils.MaybeNotify(triggerCh) })
