@@ -22,7 +22,7 @@ func newLocalNodeStatusCommand(env cmdutil.ExecutionEnvironment) *cobra.Command 
 				return
 			}
 
-			status, initialized, err := client.NodeStatus(cmd.Context())
+			resp, initialized, err := client.NodeStatus(cmd.Context())
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
@@ -33,7 +33,7 @@ func newLocalNodeStatusCommand(env cmdutil.ExecutionEnvironment) *cobra.Command 
 				return
 			}
 
-			outputFormatter.Print(status)
+			outputFormatter.Print(resp.NodeStatus)
 		},
 	}
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")
