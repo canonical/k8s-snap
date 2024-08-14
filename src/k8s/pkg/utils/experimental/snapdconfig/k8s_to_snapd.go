@@ -7,6 +7,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/features"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
 
@@ -14,7 +15,7 @@ import (
 func SetSnapdFromK8sd(ctx context.Context, config apiv1.UserFacingClusterConfig, snap snap.Snap) error {
 	var sets []string
 
-	for key, cfg := range map[features.FeatureName]any{
+	for key, cfg := range map[types.FeatureName]any{
 		"meta":                Meta{Orb: "snapd", APIVersion: "1.30"},
 		features.DNS:          config.DNS,
 		features.Network:      config.Network,

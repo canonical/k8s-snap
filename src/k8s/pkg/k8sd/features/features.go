@@ -1,13 +1,13 @@
 package features
 
-type FeatureName string
+import "github.com/canonical/k8s/pkg/k8sd/types"
 
 const (
-	DNS           FeatureName = "dns"
-	Network       FeatureName = "network"
-	Gateway       FeatureName = "gateway"
-	Ingress       FeatureName = "ingress"
-	LoadBalancer  FeatureName = "load-balancer"
-	LocalStorage  FeatureName = "local-storage"
-	MetricsServer FeatureName = "metrics-server"
+	DNS           types.FeatureName = "dns"
+	Network       types.FeatureName = "network"
+	Gateway       types.FeatureName = "gateway"
+	Ingress       types.FeatureName = "ingress"
+	LoadBalancer  types.FeatureName = "load-balancer"
+	LocalStorage  types.FeatureName = "local-storage"
+	MetricsServer types.FeatureName = "metrics-server"
 )

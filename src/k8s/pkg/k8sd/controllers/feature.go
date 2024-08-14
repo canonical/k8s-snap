@@ -73,7 +73,7 @@ func (c *FeatureController) Run(
 	ctx context.Context,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
 	notifyDNSChangedIP func(ctx context.Context, dnsIP string) error,
-	setFeatureStatus func(ctx context.Context, name features.FeatureName, featureStatus types.FeatureStatus) error,
+	setFeatureStatus func(ctx context.Context, name types.FeatureName, featureStatus types.FeatureStatus) error,
 ) {
 	c.waitReady()
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
@@ -143,8 +143,8 @@ func (c *FeatureController) reconcile(
 func (c *FeatureController) reconcileLoop(
 	ctx context.Context,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
-	setFeatureStatus func(ctx context.Context, name features.FeatureName, status types.FeatureStatus) error,
-	featureName features.FeatureName,
+	setFeatureStatus func(ctx context.Context, name types.FeatureName, status types.FeatureStatus) error,
+	featureName types.FeatureName,
 	triggerCh chan struct{},
 	reconciledCh chan<- struct{},
 	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
