@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -37,7 +37,7 @@ func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) respons
 	if isWorker {
 		return response.SyncResponse(true, apiv1.RefreshCertificatesPlanResponse{
 			Seed: seed,
-			CertificatesSigningRequests: []string{
+			CertificateSigningRequests: []string{
 				fmt.Sprintf("k8sd-%d-worker-kubelet-serving", seed),
 				fmt.Sprintf("k8sd-%d-worker-kubelet-client", seed),
 				fmt.Sprintf("k8sd-%d-worker-kube-proxy-client", seed),
