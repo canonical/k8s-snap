@@ -182,7 +182,7 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 		stdin, stdout, stderr,
 		"Which features would you like to enable?",
 		featureList,
-		"network, dns, gateway, local-storage",
+		fmt.Sprintf("%s, %s, %s, %s", features.Network, features.DNS, features.Gateway, features.LocalStorage),
 		nil,
 	)
 	for _, component := range strings.FieldsFunc(components, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }) {
