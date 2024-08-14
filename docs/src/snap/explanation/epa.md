@@ -1,15 +1,11 @@
 # Enhanced Platform Awareness
 
-Enhanced Platform Awareness (EPA) is a methodology and a set of
-enhancements across various layers of the orchestration stack, aimed at
-optimising platform capability, configuration and capacity usage. For
-telecommunications service providers using virtual network functions (VNFs) to
-deliver services, EPA offers enhanced application performance, increased
-input/output throughput and improved determinism.
+Enhanced Platform Awareness (EPA) is a methodology and a set of enhancements
+across various layers of the orchestration stack.
 
-EPA focuses on three key objectives: discovering, scheduling and isolating
-server hardware capabilities. This document provides a detailed description of
-EPA capabilities and its integration into {{product}}. These capabilities are:
+EPA focuses on discovering, scheduling and isolating server hardware
+capabilities. This document provides a detailed guide of how EPA applies to
+{{product}}, which centre around the following technologies:
 
 -  **HugePage support**: In GA from Kubernetes v1.14, this feature enables the
    discovery, scheduling and allocation of HugePages as a first-class
@@ -30,11 +26,10 @@ EPA capabilities and its integration into {{product}}. These capabilities are:
    fast packet processing, designed to run in user space, optimising network
    performance and reducing latency.
 
-This document provides detailed instructions for setting up and installing the
-aforementioned technologies. It is designed for developers and architects
-looking to integrate these new technologies into their {{product}}-based
-networking solutions. The goal is to achieve enhanced network I/O,
-deterministic compute performance and optimised server platform sharing.
+This document provides relevant links to detailed instructions for setting up
+and installing these technologies. It is designed for developers
+and architects who wish to integrate these new technologies into their
+{{product}}-based networking solutions. 
 
 ## HugePages 
 
