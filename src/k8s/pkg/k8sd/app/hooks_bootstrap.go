@@ -221,7 +221,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	}
 
 	// Worker node services
-	if err := setup.Containerd(snap, nil, joinConfig.ExtraNodeContainerdArgs); err != nil {
+	if err := setup.Containerd(snap, joinConfig.ExtraNodeContainerdConfig, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
 	if err := setup.KubeletWorker(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs); err != nil {
@@ -394,7 +394,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	}
 
 	// Configure services
-	if err := setup.Containerd(snap, nil, bootstrapConfig.ExtraNodeContainerdArgs); err != nil {
+	if err := setup.Containerd(snap, bootstrapConfig.ExtraNodeContainerdConfig, bootstrapConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), bootstrapConfig.ExtraNodeKubeletArgs); err != nil {

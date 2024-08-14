@@ -160,7 +160,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	}
 
 	// Configure services
-	if err := setup.Containerd(snap, nil, joinConfig.ExtraNodeContainerdArgs); err != nil {
+	if err := setup.Containerd(snap, joinConfig.ExtraNodeContainerdConfig, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), joinConfig.ExtraNodeKubeletArgs); err != nil {
