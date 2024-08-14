@@ -55,6 +55,7 @@ func TestContainerd(t *testing.T) {
 		b, err := os.ReadFile(filepath.Join(dir, "containerd", "config.toml"))
 		g.Expect(err).To(BeNil())
 		g.Expect(string(b)).To(SatisfyAll(
+			ContainSubstring("version = 3"),
 			ContainSubstring(fmt.Sprintf(`imports = ["%s/*.toml", "/custom/imports/*.toml"]`, filepath.Join(dir, "containerd-confd"))),
 			ContainSubstring(fmt.Sprintf(`conf_dir = "%s"`, filepath.Join(dir, "cni-netd"))),
 			ContainSubstring(fmt.Sprintf(`bin_dir = "%s"`, filepath.Join(dir, "opt-cni-bin"))),

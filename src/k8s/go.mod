@@ -8,7 +8,6 @@ require (
 	github.com/canonical/lxd v0.0.0-20240730172021-8e39e5d4f55f
 	github.com/canonical/microcluster/v2 v2.0.2
 	github.com/go-logr/logr v1.4.2
-	github.com/imdario/mergo v0.3.13
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/sys/mountinfo v0.7.1
 	github.com/onsi/gomega v1.32.0
@@ -90,6 +89,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
+	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmoiron/sqlx v1.3.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
