@@ -95,14 +95,14 @@ are the key architectural components and their roles:
 
 ## Real-time kernel 
 
-A real-time kernel ensures that high-priority tasks are executed within a
+A real-time kernel ensures that high-priority tasks are run within a
 predictable timeframe, crucial for applications requiring low latency and high
 determinism.
 
 ### Key features
 
 -  **Predictable task execution**: A real-time kernel ensures that
-   high-priority tasks are executed within a predictable and bounded timeframe,
+   high-priority tasks are run within a predictable and bounded timeframe,
    reducing the variability in task execution time.  
 -  **Low latency**: The kernel is optimised to minimise the time it takes to
    respond to high-priority tasks, which is crucial for applications that
@@ -136,7 +136,7 @@ several components and configurations to ensure that high-priority, low-latency
 tasks can be managed effectively within a Kubernetes environment. Here are the
 key architectural components and their roles:
 
--  **Real-Time Kernel installation**: Each Kubernetes node must run a real-time
+-  **Real-time kernel installation**: Each Kubernetes node must run a real-time
    kernel. This involves installing a real-time kernel package and configuring
    the system to use it.  
 -  **Kernel boot parameters**: The kernel boot parameters must be configured to
@@ -149,7 +149,7 @@ key architectural components and their roles:
    through resource requests and limits. Pods can request dedicated CPU cores
    and other resources to ensure they meet real-time requirements.  
 -  **CPU Manager**: Kubernetes’ CPU Manager is a critical component for
-   real-time workloads. It allows for the static allocation of CPUs to
+   real-time workloads. It enables the static allocation of CPUs to
    containers, ensuring that specific CPU cores are dedicated to particular
    workloads.  
 -  **Scheduler awareness**: The Kubernetes scheduler must be aware of real-time
@@ -211,13 +211,13 @@ configurations to ensure that specific CPU cores can be dedicated to particular
 processes or containers, thereby enhancing performance and predictability. Here
 are the key architectural components and their roles:
 
--  **Kubelet configuration**: The kubelet on each node must be configured to
-   enable CPU pinning. This involves setting specific kubelet flags to activate
+-  **Kubelet configuration**: The `kubelet` on each node must be configured to
+   enable CPU pinning. This involves setting specific `kubelet` flags to activate
    the CPU Manager.  
 -  **CPU manager**: Kubernetes’ CPU Manager is a critical component for CPU
    pinning. It allows for the static allocation of CPUs to containers, ensuring
    that specific CPU cores are dedicated to particular workloads. The CPU
-   Manager can be configured to either static or none. Static policy allows for
+   Manager can be configured to either static or none. Static policy enables
    exclusive CPU core allocation to Guaranteed QoS (Quality of Service) pods.  
 -  **Pod specification**: Pods must be specified to request dedicated CPU
    resources. This is done through resource requests and limits in the pod
@@ -235,7 +235,7 @@ are the key architectural components and their roles:
 -  **Node Feature Discovery (NFD)**: Node Feature Discovery can be used to
    label nodes with their CPU capabilities, including the availability of
    isolated and reserved CPU cores.  
--  **Resource quotas and limits**: Kubernetes allows defining resource quotas
+-  **Resource quotas and limits**: Kubernetes can define resource quotas
    and limits to control the allocation of CPU resources across namespaces.
    This helps in managing and isolating resource usage effectively.  
 -  **Monitoring and metrics**: Monitoring tools such as Prometheus and Grafana
@@ -250,7 +250,7 @@ are the key architectural components and their roles:
 -  **Performance Tuning**: Additional performance tuning can be achieved by
    isolating CPU cores at the OS level and configuring kernel parameters to
    minimise interference from other processes. This includes setting CPU
-   isolation and nohz_full parameters (reduces the number of scheduling-clock
+   isolation and `nohz_full` parameters (reduces the number of scheduling-clock
    interrupts, improving energy efficiency and [reducing OS jitter][no_hz]).
 
 ## NUMA topology awareness 
@@ -261,7 +261,7 @@ reduce memory latency and increase performance for memory-intensive
 applications.
 
 The Kubernetes Memory Manager enables the feature of guaranteed memory (and
-hugepages) allocation for pods in the Guaranteed QoS (Quality of Service)
+HugePages) allocation for pods in the Guaranteed QoS (Quality of Service)
 class.
 
 The Memory Manager employs hint generation protocol to yield the most suitable
@@ -308,7 +308,7 @@ allocated from a minimum number of NUMA nodes.
    performance characteristics, crucial for real-time and latency-sensitive
    workloads.  
 -  **Policy-Based Management**: NUMA topology awareness can be managed through
-   policies, allowing administrators to configure how resources should be
+   policies so that administrators can configure how resources should be
    allocated based on the NUMA architecture, providing flexibility and control.
 
 ### Application to Kubernetes
@@ -322,9 +322,9 @@ architectural components and their roles:
 -  **Node configuration**: Each Kubernetes node must have NUMA-aware hardware.
    The system's NUMA topology can be inspected using tools such as `lscpu` or
    `numactl`.  
--  **Kubelet configuration**: The kubelet on each node must be configured to
-   enable NUMA topology awareness. This involves setting specific kubelet flags
-   to activate the Topology Manager.  
+-  **Kubelet configuration**: The `kubelet` on each node must be configured to
+   enable NUMA topology awareness. This involves setting specific `kubelet`
+   flags to activate the Topology Manager.  
 -  **Topology Manager**: The Topology Manager is a critical component that
    coordinates resource allocation based on NUMA topology. It receives NUMA
    affinity hints from other managers (e.g., CPU Manager, Device Manager) and
