@@ -104,13 +104,16 @@ export MAAS_API_KEY="<maas-api-key>"
 export MAAS_ENDPOINT="http://<maas-endpoint>/MAAS"
 export MAAS_DNS_DOMAIN="<maas-dns-domain>"
 ```
-The MAAS infrastructure provider uses these credentials to deploy machines, create DNS records and perform various other operations for workload clusters.
+The MAAS infrastructure provider uses these credentials to deploy machines,
+create DNS records and perform various other operations for workload clusters.
 
 ```{warning}
-The management cluster needs to resolve dns records from the MAAS domain, therefore it should be deployed on a MAAS machine.
+The management cluster needs to resolve DNS records from the MAAS domain, 
+therefore it should be deployed on a MAAS machine.
 ```
 
-Define further environment variables for the machine image and minimum compute resources of the control plane and worker nodes:
+Define further environment variables for the machine image and minimum compute
+resources of the control plane and worker nodes:
 
 ```
 export CONTROL_PLANE_MACHINE_MINCPU="1"
@@ -123,10 +126,12 @@ export WORKER_MACHINE_IMAGE="ubuntu"
 ```
 
 ```{note}
-The minimum resource variables are used for selecting machines that have resources more than or equal to the provided values.
+The minimum resource variables are used to select machines with resources more
+than or equal to the provided values.
 ```
 
-Optional environment variables can be defined for specifying resource pools and machine tags:
+Optional environment variables can be defined for specifying resource pools
+and machine tags:
 
 ```
 # (optional) Configure resource pools for control plane and worker machines
