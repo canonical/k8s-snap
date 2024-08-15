@@ -9,7 +9,14 @@ import (
 )
 
 var (
-	featureList = features.Public()
+	featureList = []string{
+		string(features.Network),
+		string(features.DNS),
+		string(features.Gateway),
+		string(features.Ingress),
+		string(features.LocalStorage),
+		string(features.LoadBalancer),
+	}
 
 	outputFormatter cmdutil.Formatter
 )

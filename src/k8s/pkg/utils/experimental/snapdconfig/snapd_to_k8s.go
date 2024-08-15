@@ -13,9 +13,14 @@ import (
 
 // SetK8sdFromSnapd updates the k8sd cluster configuration from the current local snapd configuration.
 func SetK8sdFromSnapd(ctx context.Context, client k8sd.Client, snap snap.Snap) error {
-	args := append([]string{"-d"}, features.Public()...)
 	b, err := snap.SnapctlGet(
-		ctx, args...,
+		ctx, "-d",
+		string(features.DNS),
+		string(features.Network),
+		string(features.LocalStorage),
+		string(features.LoadBalancer),
+		string(features.Ingress),
+		string(features.Gateway),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve snapd configuration: %w", err)
