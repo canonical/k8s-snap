@@ -1,6 +1,9 @@
 package csrsigning
 
 import (
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/subtle"
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/utils"
@@ -9,19 +12,30 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-func validateCSR(obj *certv1.CertificateSigningRequest) error {
+// validateCSR checks the CSR for common requirements and returns an error if it fails.
+// validateCSR also checks if the encrypted signature of the CSR.
+// validateCSR expects a valid private key.
+func validateCSR(obj *certv1.CertificateSigningRequest, priv *rsa.PrivateKey) error {
 	csr, err := pkiutil.LoadCertificateRequest(string(obj.Spec.Request))
 	if err != nil {
 		return fmt.Errorf("failed to parse x509 certificate request: %w", err)
 	}
 
-	_ = csr
+	encryptedSignature := obj.Annotations["k8sd.io/signature"]
+	signature, err := rsa.DecryptPKCS1v15(nil, priv, []byte(encryptedSignature))
+	if err != nil {
+		return fmt.Errorf("failed to decrypt signature: %w", err)
+	}
 
-	// TODO(neoaggelos): validate requests have been encrypted using the k8sd public key:
-	// encryptedSignature = obj.Annotations["k8sd.io/signature"]
-	// signature = RSA_DECRYPT(k8sdPrivateKey, encryptedSignature)
-	// hash = SHA256(obj.Spec.Request)
-	// assert hash == signature
+	// calculate sha256 sum of CSR request
+	h := sha256.New()
+	if _, err := h.Write(obj.Spec.Request); err != nil {
+		return fmt.Errorf("failed to compute sha256: %w", err)
+	}
+
+	if subtle.ConstantTimeCompare(h.Sum(nil), signature) == 0 {
+		return fmt.Errorf("CSR signature does not match")
+	}
 
 	// COMMON ASSERTIONS
 	hostname := obj.GetAnnotations()["k8sd.io/node"]

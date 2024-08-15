@@ -2,6 +2,7 @@ package csrsigning
 
 import (
 	"context"
+	"crypto/rsa"
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/log"
@@ -10,9 +11,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *csrSigningReconciler) reconcileAutoApprove(ctx context.Context, log log.Logger, csr *certv1.CertificateSigningRequest) (ctrl.Result, error) {
+func (r *csrSigningReconciler) reconcileAutoApprove(ctx context.Context, log log.Logger, csr *certv1.CertificateSigningRequest, priv *rsa.PrivateKey) (ctrl.Result, error) {
 	var result certv1.RequestConditionType
-	if err := validateCSR(csr); err != nil {
+
+	if err := validateCSR(csr, priv); err != nil {
 		log.Error(err, "CSR is not valid")
 
 		result = certv1.CertificateDenied
