@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"dario.cat/mergo"
 	"github.com/canonical/k8s/pkg/k8sd/images"
-	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
@@ -16,119 +16,96 @@ import (
 
 const defaultPauseImage = "ghcr.io/canonical/k8s-snap/pause:3.10"
 
-var (
-	containerdConfigTomlTemplate = mustTemplate("containerd", "config.toml")
-)
+func defaultContainerdConfig(
+	cniConfDir string,
+	cniBinDir string,
+	importsDir string,
+	registryConfigDir string,
+	pauseImage string,
+) map[string]any {
+	return map[string]any{
+		"version":   2,
+		"oom_score": 0,
+		"imports":   []string{filepath.Join(importsDir, "*.toml")},
 
-type containerdConfigTomlConfig struct {
-	CNIConfDir        string
-	CNIBinDir         string
-	ImportsDir        string
-	RegistryConfigDir string
-	PauseImage        string
-}
+		"grpc": map[string]any{
+			"uid":                   0,
+			"gid":                   0,
+			"max_recv_message_size": 16777216,
+			"max_send_message_size": 16777216,
+		},
 
-type containerdConfig struct {
-	Version int                     `toml:"version"`
-	Plugins containerdConfigPlugins `toml:"plugins,omitempty"`
-}
+		"debug": map[string]any{
+			"uid":     0,
+			"gid":     0,
+			"address": "",
+			"level":   "",
+		},
 
-type containerdConfigPlugins struct {
-	CRI containerdConfigPluginsCRI `toml:"io.containerd.grpc.v1.cri,omitempty"`
-}
+		"metrics": map[string]any{
+			"address":        "",
+			"grpc_histogram": false,
+		},
 
-type containerdConfigPluginsCRI struct {
-	Registry containerdConfigPluginsCRIRegistry `toml:"registry,omitempty"`
-}
+		"cgroup": map[string]any{
+			"path": "",
+		},
 
-type containerdConfigPluginsCRIRegistry struct {
-	Configs map[string]containerdConfigPluginsCRIRegistryConfig `toml:"configs,omitempty"`
-}
+		"plugins": map[string]any{
+			"io.containerd.grpc.v1.cri": map[string]any{
+				"stream_server_address":       "127.0.0.1",
+				"stream_server_port":          "0",
+				"enable_selinux":              false,
+				"sandbox_image":               pauseImage,
+				"stats_collect_period":        10,
+				"enable_tls_streaming":        false,
+				"max_container_log_line_size": 16384,
 
-type containerdConfigPluginsCRIRegistryConfig struct {
-	Auth containerdConfigPluginsCRIRegistryConfigAuth `toml:"auth,omitempty"`
-}
+				"containerd": map[string]any{
+					"no_pivot":             false,
+					"default_runtime_name": "runc",
 
-type containerdConfigPluginsCRIRegistryConfigAuth struct {
-	Username string `toml:"username,omitempty"`
-	Password string `toml:"password,omitempty"`
-	Token    string `toml:"token,omitempty"`
-}
-
-type containerdHostsConfig struct {
-	Server string                               `toml:"server,omitempty"`
-	Host   map[string]containerdHostsConfigHost `toml:"hosts,omitempty"`
-}
-
-type containerdHostsConfigHost struct {
-	Capabilities []string `toml:"capabilities,omitempty"`
-	SkipVerify   bool     `toml:"skip_verify,omitempty"`
-	OverridePath bool     `toml:"override_path,omitempty"`
-}
-
-func containerdAuthConfig(registries []types.ContainerdRegistry) containerdConfig {
-	authConfigs := make(map[string]containerdConfigPluginsCRIRegistryConfig, len(registries))
-	for _, registry := range registries {
-		if registry.Username != "" || registry.Password != "" || registry.Token != "" {
-			for _, url := range registry.URLs {
-				authConfigs[url] = containerdConfigPluginsCRIRegistryConfig{
-					Auth: containerdConfigPluginsCRIRegistryConfigAuth{
-						Username: registry.Username,
-						Password: registry.Password,
-						Token:    registry.Token,
+					"runtimes": map[string]any{
+						"runc": map[string]any{
+							"runtime_type": "io.containerd.runc.v2",
+						},
 					},
-				}
-			}
-		}
-	}
+				},
 
-	return containerdConfig{
-		Version: 2,
-		Plugins: containerdConfigPlugins{
-			CRI: containerdConfigPluginsCRI{
-				Registry: containerdConfigPluginsCRIRegistry{
-					Configs: authConfigs,
+				"cni": map[string]any{
+					"bin_dir":  cniBinDir,
+					"conf_dir": cniConfDir,
+				},
+
+				"registry": map[string]any{
+					"config_path": registryConfigDir,
 				},
 			},
 		},
 	}
 }
 
-func containerdHostConfig(registry types.ContainerdRegistry) containerdHostsConfig {
-	if len(registry.URLs) == 0 {
-		return containerdHostsConfig{}
-	}
-
-	hosts := make(map[string]containerdHostsConfigHost, len(registry.URLs))
-	for _, url := range registry.URLs {
-		hosts[url] = containerdHostsConfigHost{
-			Capabilities: []string{"pull", "resolve"},
-			SkipVerify:   registry.SkipVerify,
-			OverridePath: registry.OverridePath,
-		}
-	}
-
-	return containerdHostsConfig{
-		Server: registry.URLs[0],
-		Host:   hosts,
-	}
-}
-
 // Containerd configures configuration and arguments for containerd on the local node.
 // Optionally, a number of registry mirrors and auths can be configured.
-func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs map[string]*string) error {
-	configToml, err := os.OpenFile(filepath.Join(snap.ContainerdConfigDir(), "config.toml"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return fmt.Errorf("failed to open config.toml: %w", err)
+func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs map[string]*string) error {
+	configToml := defaultContainerdConfig(
+		snap.CNIConfDir(),
+		snap.CNIBinDir(),
+		snap.ContainerdExtraConfigDir(),
+		snap.ContainerdRegistryConfigDir(),
+		defaultPauseImage,
+	)
+
+	if err := mergo.Merge(&configToml, extraContainerdConfig, mergo.WithAppendSlice, mergo.WithOverride); err != nil {
+		return fmt.Errorf("failed to merge containerd config.toml overrides: %w", err)
 	}
-	defer configToml.Close()
-	if err := containerdConfigTomlTemplate.Execute(configToml, containerdConfigTomlConfig{
-		CNIConfDir:        snap.CNIConfDir(),
-		CNIBinDir:         snap.CNIBinDir(),
-		ImportsDir:        snap.ContainerdExtraConfigDir(),
-		RegistryConfigDir: snap.ContainerdRegistryConfigDir(),
-		PauseImage:        defaultPauseImage,
-	}); err != nil {
+
+	b, err := toml.Marshal(configToml)
+	if err != nil {
+		return fmt.Errorf("failed to render containerd config.toml: %w", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(snap.ContainerdConfigDir(), "config.toml"), b, 0600); err != nil {
 		return fmt.Errorf("failed to write config.toml: %w", err)
 	}
 
@@ -176,36 +153,6 @@ func Containerd(snap snap.Snap, registries []types.ContainerdRegistry, extraArgs
 		// add plugin as a symlink for the "cni" binary
 		if err := os.Symlink("cni", pluginInstallPath); err != nil {
 			return fmt.Errorf("failed to symlink cni plugin %s: %w", plugin, err)
-		}
-	}
-
-	// registry auths
-	if authConfig := containerdAuthConfig(registries); len(authConfig.Plugins.CRI.Registry.Configs) > 0 {
-		b, err := toml.Marshal(authConfig)
-		if err != nil {
-			return fmt.Errorf("failed to marshal registry auth configurations: %w", err)
-		}
-
-		if err := os.WriteFile(filepath.Join(snap.ContainerdExtraConfigDir(), "k8sd-auths.toml"), b, 0600); err != nil {
-			return fmt.Errorf("failed to write registry auth configurations: %w", err)
-		}
-	}
-
-	// registry mirrors
-	for _, registry := range registries {
-		if hostConfig := containerdHostConfig(registry); len(hostConfig.Host) > 0 {
-			b, err := toml.Marshal(hostConfig)
-			if err != nil {
-				return fmt.Errorf("failed to render registry mirrors for %s: %w", registry.Host, err)
-			}
-
-			dir := filepath.Join(snap.ContainerdRegistryConfigDir(), registry.Host)
-			if err := os.Mkdir(dir, 0700); err != nil && !os.IsExist(err) {
-				return fmt.Errorf("failed to create directory for registry %s: %w", registry.Host, err)
-			}
-			if err := os.WriteFile(filepath.Join(dir, "hosts.toml"), b, 0600); err != nil {
-				return fmt.Errorf("failed to write hosts.toml for registry %s: %w", registry.Host, err)
-			}
 		}
 	}
 

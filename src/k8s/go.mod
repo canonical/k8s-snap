@@ -3,6 +3,7 @@ module github.com/canonical/k8s
 go 1.22.5
 
 require (
+	dario.cat/mergo v1.0.0
 	github.com/canonical/go-dqlite v1.22.0
 	github.com/canonical/lxd v0.0.0-20240730172021-8e39e5d4f55f
 	github.com/canonical/microcluster/v2 v2.0.2
