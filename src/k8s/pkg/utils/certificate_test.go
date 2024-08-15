@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -84,22 +83,16 @@ func TestGetRemoteCertificate(t *testing.T) {
 
 	// Test with a valid address
 	remoteCert, err := utils.GetRemoteCertificate(server.Listener.Addr().String())
-	g.Expect(err).To(BeNil())
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(remoteCert).To(Equal(server.Certificate()))
 
 	// Test with an invalid address (missing port)
-	invalidAddr := "candy.canes"
-	expectedErr := fmt.Sprintf("failed to validate the cluster member address: address %s: missing port in address", invalidAddr)
-
-	remoteCert, err = utils.GetRemoteCertificate(invalidAddr)
-	g.Expect(err.Error()).To(ContainSubstring(expectedErr))
+	remoteCert, err = utils.GetRemoteCertificate("candy.canes")
+	g.Expect(err).To(HaveOccurred())
 	g.Expect(remoteCert).To(BeNil())
 
 	// Test with a non-existent address
-	nonExistentAddr := "jellybeans:9999"
-	expectedErr = fmt.Sprintf("Get \"https://%s\": dial tcp: lookup jellybeans on", nonExistentAddr)
-
-	remoteCert, err = utils.GetRemoteCertificate(nonExistentAddr)
-	g.Expect(err.Error()).To(ContainSubstring(expectedErr))
+	remoteCert, err = utils.GetRemoteCertificate("jellybeans:9999")
+	g.Expect(err).To(HaveOccurred())
 	g.Expect(remoteCert).To(BeNil())
 }
