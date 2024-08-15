@@ -99,8 +99,6 @@ github.com/bugsnag/panicwrap v0.0.0-20151223152923-e2c28503fcd0 h1:nvj0OLI3YqYXe
 github.com/bugsnag/panicwrap v0.0.0-20151223152923-e2c28503fcd0/go.mod h1:D/8v3kj0zr8ZAKg1AQ6crr+5VwKN5eIywRkfhyM/+dE=
 github.com/canonical/go-dqlite v1.22.0 h1:DuJmfcREl4gkQJyvZzjl2GHFZROhbPyfdjDRQXpkOyw=
 github.com/canonical/go-dqlite v1.22.0/go.mod h1:Uvy943N8R4CFUAs59A1NVaziWY9nJ686lScY7ywurfg=
-github.com/canonical/k8s-snap-api v1.0.1 h1:eKjyTKxq+LXOx/YXB2h9XqnZk+Qzb9IfU21jurTevDs=
-github.com/canonical/k8s-snap-api v1.0.1/go.mod h1:LDPoIYCeYnfgOFrwVPJ/4edGU264w7BB7g0GsVi36AY=
 github.com/canonical/k8s-snap-api v1.0.2 h1:9tyIneGQ6dPouX/8DH/HBqQIk+PF+MtQB3Qwt43Cuu4=
 github.com/canonical/k8s-snap-api v1.0.2/go.mod h1:LDPoIYCeYnfgOFrwVPJ/4edGU264w7BB7g0GsVi36AY=
 github.com/canonical/lxd v0.0.0-20240730172021-8e39e5d4f55f h1:bTaF5FmQk66wI8ILr+pzelTY6iNLXE9c2Ks2HG4Sp5U=
