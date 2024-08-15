@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 )
 
@@ -52,40 +53,40 @@ func TestFeatureStatus(t *testing.T) {
 			t.Run("SettingNewStatus", func(t *testing.T) {
 				g := NewWithT(t)
 
-				err := database.SetFeatureStatus(ctx, tx, "network", networkStatus)
+				err := database.SetFeatureStatus(ctx, tx, features.Network, networkStatus)
 				g.Expect(err).To(BeNil())
-				err = database.SetFeatureStatus(ctx, tx, "dns", dnsStatus)
+				err = database.SetFeatureStatus(ctx, tx, features.DNS, dnsStatus)
 				g.Expect(err).To(BeNil())
 
 				ss, err := database.GetFeatureStatuses(ctx, tx)
 				g.Expect(err).To(BeNil())
 				g.Expect(ss).To(HaveLen(2))
 
-				g.Expect(ss["network"].Enabled).To(Equal(networkStatus.Enabled))
-				g.Expect(ss["network"].Message).To(Equal(networkStatus.Message))
-				g.Expect(ss["network"].Version).To(Equal(networkStatus.Version))
-				g.Expect(ss["network"].UpdatedAt).To(Equal(networkStatus.UpdatedAt))
+				g.Expect(ss[features.Network].Enabled).To(Equal(networkStatus.Enabled))
+				g.Expect(ss[features.Network].Message).To(Equal(networkStatus.Message))
+				g.Expect(ss[features.Network].Version).To(Equal(networkStatus.Version))
+				g.Expect(ss[features.Network].UpdatedAt).To(Equal(networkStatus.UpdatedAt))
 
-				g.Expect(ss["dns"].Enabled).To(Equal(dnsStatus.Enabled))
-				g.Expect(ss["dns"].Message).To(Equal(dnsStatus.Message))
-				g.Expect(ss["dns"].Version).To(Equal(dnsStatus.Version))
-				g.Expect(ss["dns"].UpdatedAt).To(Equal(dnsStatus.UpdatedAt))
+				g.Expect(ss[features.DNS].Enabled).To(Equal(dnsStatus.Enabled))
+				g.Expect(ss[features.DNS].Message).To(Equal(dnsStatus.Message))
+				g.Expect(ss[features.DNS].Version).To(Equal(dnsStatus.Version))
+				g.Expect(ss[features.DNS].UpdatedAt).To(Equal(dnsStatus.UpdatedAt))
 
 			})
 			t.Run("UpdatingStatus", func(t *testing.T) {
 				g := NewWithT(t)
 
-				err := database.SetFeatureStatus(ctx, tx, "network", networkStatus)
+				err := database.SetFeatureStatus(ctx, tx, features.Network, networkStatus)
 				g.Expect(err).To(BeNil())
-				err = database.SetFeatureStatus(ctx, tx, "dns", dnsStatus)
+				err = database.SetFeatureStatus(ctx, tx, features.DNS, dnsStatus)
 				g.Expect(err).To(BeNil())
 
 				// set and update
-				err = database.SetFeatureStatus(ctx, tx, "network", networkStatus)
+				err = database.SetFeatureStatus(ctx, tx, features.Network, networkStatus)
 				g.Expect(err).To(BeNil())
-				err = database.SetFeatureStatus(ctx, tx, "dns", dnsStatus2)
+				err = database.SetFeatureStatus(ctx, tx, features.DNS, dnsStatus2)
 				g.Expect(err).To(BeNil())
-				err = database.SetFeatureStatus(ctx, tx, "gateway", gatewayStatus)
+				err = database.SetFeatureStatus(ctx, tx, features.Gateway, gatewayStatus)
 				g.Expect(err).To(BeNil())
 
 				ss, err := database.GetFeatureStatuses(ctx, tx)
@@ -93,22 +94,22 @@ func TestFeatureStatus(t *testing.T) {
 				g.Expect(ss).To(HaveLen(3))
 
 				// network stayed the same
-				g.Expect(ss["network"].Enabled).To(Equal(networkStatus.Enabled))
-				g.Expect(ss["network"].Message).To(Equal(networkStatus.Message))
-				g.Expect(ss["network"].Version).To(Equal(networkStatus.Version))
-				g.Expect(ss["network"].UpdatedAt).To(Equal(networkStatus.UpdatedAt))
+				g.Expect(ss[features.Network].Enabled).To(Equal(networkStatus.Enabled))
+				g.Expect(ss[features.Network].Message).To(Equal(networkStatus.Message))
+				g.Expect(ss[features.Network].Version).To(Equal(networkStatus.Version))
+				g.Expect(ss[features.Network].UpdatedAt).To(Equal(networkStatus.UpdatedAt))
 
 				// dns is updated
-				g.Expect(ss["dns"].Enabled).To(Equal(dnsStatus2.Enabled))
-				g.Expect(ss["dns"].Message).To(Equal(dnsStatus2.Message))
-				g.Expect(ss["dns"].Version).To(Equal(dnsStatus2.Version))
-				g.Expect(ss["dns"].UpdatedAt).To(Equal(dnsStatus2.UpdatedAt))
+				g.Expect(ss[features.DNS].Enabled).To(Equal(dnsStatus2.Enabled))
+				g.Expect(ss[features.DNS].Message).To(Equal(dnsStatus2.Message))
+				g.Expect(ss[features.DNS].Version).To(Equal(dnsStatus2.Version))
+				g.Expect(ss[features.DNS].UpdatedAt).To(Equal(dnsStatus2.UpdatedAt))
 
 				// gateway is added
-				g.Expect(ss["gateway"].Enabled).To(Equal(gatewayStatus.Enabled))
-				g.Expect(ss["gateway"].Message).To(Equal(gatewayStatus.Message))
-				g.Expect(ss["gateway"].Version).To(Equal(gatewayStatus.Version))
-				g.Expect(ss["gateway"].UpdatedAt).To(Equal(gatewayStatus.UpdatedAt))
+				g.Expect(ss[features.Gateway].Enabled).To(Equal(gatewayStatus.Enabled))
+				g.Expect(ss[features.Gateway].Message).To(Equal(gatewayStatus.Message))
+				g.Expect(ss[features.Gateway].Version).To(Equal(gatewayStatus.Version))
+				g.Expect(ss[features.Gateway].UpdatedAt).To(Equal(gatewayStatus.UpdatedAt))
 			})
 
 			return nil

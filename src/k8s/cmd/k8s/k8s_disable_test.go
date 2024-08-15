@@ -8,6 +8,7 @@ import (
 	"github.com/canonical/k8s/cmd/k8s"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	k8sdmock "github.com/canonical/k8s/pkg/client/k8sd/mock"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
 	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
@@ -30,7 +31,7 @@ func TestDisableCmd(t *testing.T) {
 		},
 		{
 			name:  "one",
-			funcs: []string{"gateway"},
+			funcs: []string{string(features.Gateway)},
 			expectedCall: apiv1.UpdateClusterConfigRequest{
 				Config: apiv1.UserFacingClusterConfig{
 					Gateway: apiv1.GatewayConfig{Enabled: utils.Pointer(false)},
@@ -40,7 +41,7 @@ func TestDisableCmd(t *testing.T) {
 		},
 		{
 			name:  "multiple",
-			funcs: []string{"load-balancer", "gateway"},
+			funcs: []string{string(features.LoadBalancer), string(features.Gateway)},
 			expectedCall: apiv1.UpdateClusterConfigRequest{
 				Config: apiv1.UserFacingClusterConfig{
 					Gateway:      apiv1.GatewayConfig{Enabled: utils.Pointer(false)},

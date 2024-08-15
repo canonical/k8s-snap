@@ -6,20 +6,23 @@ import (
 	"fmt"
 
 	apiv1 "github.com/canonical/k8s/api/v1"
+	"github.com/canonical/k8s/pkg/k8sd/features"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 )
 
 // SetSnapdFromK8sd uses snapctl to update the local snapd configuration with the new k8sd cluster configuration.
 func SetSnapdFromK8sd(ctx context.Context, config apiv1.UserFacingClusterConfig, snap snap.Snap) error {
 	var sets []string
-	for key, cfg := range map[string]any{
-		"meta":          Meta{Orb: "snapd", APIVersion: "1.30"},
-		"dns":           config.DNS,
-		"network":       config.Network,
-		"local-storage": config.LocalStorage,
-		"load-balancer": config.LoadBalancer,
-		"ingress":       config.Ingress,
-		"gateway":       config.Gateway,
+
+	for key, cfg := range map[types.FeatureName]any{
+		"meta":                Meta{Orb: "snapd", APIVersion: "1.30"},
+		features.DNS:          config.DNS,
+		features.Network:      config.Network,
+		features.LocalStorage: config.LocalStorage,
+		features.LoadBalancer: config.LoadBalancer,
+		features.Ingress:      config.Ingress,
+		features.Gateway:      config.Gateway,
 	} {
 		b, err := json.Marshal(cfg)
 		if err != nil {

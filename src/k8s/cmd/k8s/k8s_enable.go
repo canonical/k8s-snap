@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/utils"
 
 	api "github.com/canonical/k8s/api/v1"
@@ -42,31 +43,31 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			for _, feature := range args {
 				switch feature {
-				case "network":
+				case string(features.Network):
 					config.Network = api.NetworkConfig{
 						Enabled: utils.Pointer(true),
 					}
-				case "dns":
+				case string(features.DNS):
 					config.DNS = api.DNSConfig{
 						Enabled: utils.Pointer(true),
 					}
-				case "gateway":
+				case string(features.Gateway):
 					config.Gateway = api.GatewayConfig{
 						Enabled: utils.Pointer(true),
 					}
-				case "ingress":
+				case string(features.Ingress):
 					config.Ingress = api.IngressConfig{
 						Enabled: utils.Pointer(true),
 					}
-				case "local-storage":
+				case string(features.LocalStorage):
 					config.LocalStorage = api.LocalStorageConfig{
 						Enabled: utils.Pointer(true),
 					}
-				case "load-balancer":
+				case string(features.LoadBalancer):
 					config.LoadBalancer = api.LoadBalancerConfig{
 						Enabled: utils.Pointer(true),
 					}
-				case "metrics-server":
+				case string(features.MetricsServer):
 					config.MetricsServer = api.MetricsServerConfig{
 						Enabled: utils.Pointer(true),
 					}
