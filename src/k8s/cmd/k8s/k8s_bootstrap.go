@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/k8sd/features"
@@ -129,7 +129,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
 
-			node, err := client.BootstrapCluster(cmd.Context(), apiv1.PostClusterBootstrapRequest{
+			response, err := client.BootstrapCluster(cmd.Context(), apiv1.BootstrapClusterRequest{
 				Name:    opts.name,
 				Address: address,
 				Config:  bootstrapConfig,
@@ -141,7 +141,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			outputFormatter.Print(BootstrapResult{Node: node})
+			outputFormatter.Print(BootstrapResult{Node: apiv1.NodeStatus(response)})
 		},
 	}
 

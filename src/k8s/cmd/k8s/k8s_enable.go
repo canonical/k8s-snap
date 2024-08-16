@@ -6,11 +6,10 @@ import (
 	"strings"
 	"time"
 
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/utils"
-
-	api "github.com/canonical/k8s/api/v1"
-	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +33,7 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Args:   cmdutil.MinimumNArgs(env, 1),
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
-			config := api.UserFacingClusterConfig{}
+			config := apiv1.UserFacingClusterConfig{}
 
 			if opts.timeout < minTimeout {
 				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", opts.timeout, minTimeout, minTimeout)
@@ -44,31 +43,31 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			for _, feature := range args {
 				switch feature {
 				case string(features.Network):
-					config.Network = api.NetworkConfig{
+					config.Network = apiv1.NetworkConfig{
 						Enabled: utils.Pointer(true),
 					}
 				case string(features.DNS):
-					config.DNS = api.DNSConfig{
+					config.DNS = apiv1.DNSConfig{
 						Enabled: utils.Pointer(true),
 					}
 				case string(features.Gateway):
-					config.Gateway = api.GatewayConfig{
+					config.Gateway = apiv1.GatewayConfig{
 						Enabled: utils.Pointer(true),
 					}
 				case string(features.Ingress):
-					config.Ingress = api.IngressConfig{
+					config.Ingress = apiv1.IngressConfig{
 						Enabled: utils.Pointer(true),
 					}
 				case string(features.LocalStorage):
-					config.LocalStorage = api.LocalStorageConfig{
+					config.LocalStorage = apiv1.LocalStorageConfig{
 						Enabled: utils.Pointer(true),
 					}
 				case string(features.LoadBalancer):
-					config.LoadBalancer = api.LoadBalancerConfig{
+					config.LoadBalancer = apiv1.LoadBalancerConfig{
 						Enabled: utils.Pointer(true),
 					}
 				case string(features.MetricsServer):
-					config.MetricsServer = api.MetricsServerConfig{
+					config.MetricsServer = apiv1.MetricsServerConfig{
 						Enabled: utils.Pointer(true),
 					}
 				default:
@@ -77,10 +76,6 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					return
 				}
 			}
-			request := api.UpdateClusterConfigRequest{
-				Config: config,
-			}
-
 			client, err := env.Snap.K8sdClient("")
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
@@ -91,7 +86,7 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.PrintErrf("Enabling %s on the cluster. This may take a few seconds, please wait.\n", strings.Join(args, ", "))
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
-			if err := client.SetClusterConfig(ctx, request); err != nil {
+			if err := client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config}); err != nil {
 				cmd.PrintErrf("Error: Failed to enable %s on the cluster.\n\nThe error was: %v\n", strings.Join(args, ", "), err)
 				env.Exit(1)
 				return

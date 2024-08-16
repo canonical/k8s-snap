@@ -7,7 +7,7 @@ import (
 	"net"
 	"net/http"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
@@ -19,7 +19,7 @@ import (
 func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Response {
 	snap := e.provider.Snap()
 
-	req := apiv1.WorkerNodeInfoRequest{}
+	req := apiv1.GetWorkerJoinInfoRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -65,7 +65,7 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 		return response.InternalError(fmt.Errorf("delete worker node token transaction failed: %w", err))
 	}
 
-	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
+	return response.SyncResponse(true, &apiv1.GetWorkerJoinInfoResponse{
 		CACert:              cfg.Certificates.GetCACert(),
 		ClientCACert:        cfg.Certificates.GetClientCACert(),
 		APIServers:          servers,

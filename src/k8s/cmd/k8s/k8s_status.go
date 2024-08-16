@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
@@ -46,17 +46,18 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			status, err := client.ClusterStatus(ctx, opts.waitReady)
+			response, err := client.ClusterStatus(ctx, opts.waitReady)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to retrieve the cluster status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
+			status := response.ClusterStatus
 
 			// silence the config, this should be retrieved with "k8s get".
 			status.Config = apiv1.UserFacingClusterConfig{}
 
-			outputFormatter.Print(status)
+			outputFormatter.Print(ClusterStatus(status))
 		},
 	}
 

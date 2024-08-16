@@ -8,29 +8,13 @@ import (
 	"fmt"
 	"net/http"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
 )
-
-func (e *Endpoints) getKubernetesAuthTokens(s state.State, r *http.Request) response.Response {
-	token := r.Header.Get("token")
-
-	var username string
-	var groups []string
-	if err := s.Database().Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
-		var err error
-		username, groups, err = database.CheckToken(ctx, tx, token)
-		return err
-	}); err != nil {
-		return response.NotFound(err)
-	}
-
-	return response.SyncResponse(true, apiv1.CheckKubernetesAuthTokenResponse{Username: username, Groups: groups})
-}
 
 func (e *Endpoints) postKubernetesAuthTokens(s state.State, r *http.Request) response.Response {
 	request := apiv1.GenerateKubernetesAuthTokenRequest{}
@@ -43,7 +27,7 @@ func (e *Endpoints) postKubernetesAuthTokens(s state.State, r *http.Request) res
 		return response.InternalError(err)
 	}
 
-	return response.SyncResponse(true, apiv1.CreateKubernetesAuthTokenResponse{Token: token})
+	return response.SyncResponse(true, apiv1.GenerateKubernetesAuthTokenResponse{Token: token})
 }
 
 func (e *Endpoints) deleteKubernetesAuthTokens(s state.State, r *http.Request) response.Response {

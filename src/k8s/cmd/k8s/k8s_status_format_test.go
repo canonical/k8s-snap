@@ -1,59 +1,14 @@
-package apiv1_test
+package k8s_test
 
 import (
 	"testing"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
+	"github.com/canonical/k8s/cmd/k8s"
 	. "github.com/onsi/gomega"
 )
 
-func TestHaClusterFormed(t *testing.T) {
-	g := NewWithT(t)
-
-	testCases := []struct {
-		name           string
-		members        []apiv1.NodeStatus
-		expectedResult bool
-	}{
-		{
-			name: "Less than 3 voters",
-			members: []apiv1.NodeStatus{
-				{DatastoreRole: apiv1.DatastoreRoleVoter},
-				{DatastoreRole: apiv1.DatastoreRoleVoter},
-				{DatastoreRole: apiv1.DatastoreRoleStandBy},
-			},
-			expectedResult: false,
-		},
-		{
-			name: "Exactly 3 voters",
-			members: []apiv1.NodeStatus{
-				{DatastoreRole: apiv1.DatastoreRoleVoter},
-				{DatastoreRole: apiv1.DatastoreRoleVoter},
-				{DatastoreRole: apiv1.DatastoreRoleVoter},
-			},
-			expectedResult: true,
-		},
-		{
-			name: "More than 3 voters",
-			members: []apiv1.NodeStatus{
-				{DatastoreRole: apiv1.DatastoreRoleVoter},
-				{DatastoreRole: apiv1.DatastoreRoleVoter},
-				{DatastoreRole: apiv1.DatastoreRoleVoter},
-				{DatastoreRole: apiv1.DatastoreRoleVoter},
-				{DatastoreRole: apiv1.DatastoreRoleStandBy},
-			},
-			expectedResult: true,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			g.Expect(apiv1.ClusterStatus{Members: tc.members}.HaClusterFormed()).To(Equal(tc.expectedResult))
-		})
-	}
-}
-
-func TestString(t *testing.T) {
+func TestClusterStatusFormat(t *testing.T) {
 	testCases := []struct {
 		name           string
 		clusterStatus  apiv1.ClusterStatus
@@ -133,7 +88,7 @@ gateway                   disabled`,
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
-			g.Expect(tc.clusterStatus.String()).To(Equal(tc.expectedOutput))
+			g.Expect(k8s.ClusterStatus(tc.clusterStatus).String()).To(Equal(tc.expectedOutput))
 		})
 	}
 }

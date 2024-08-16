@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
@@ -35,25 +35,24 @@ func (e *Endpoints) postClusterJoin(s state.State, r *http.Request) response.Res
 	defer cancel()
 
 	// NOTE(neoaggelos): pass the timeout as a config option, so that the context cancel will propagate errors.
-	config = utils.MicroclusterConfigWithTimeout(config, req.Timeout)
+	config = utils.MicroclusterMapWithTimeout(config, req.Timeout)
 
 	internalToken := types.InternalWorkerNodeToken{}
 	// Check if token is worker token
 	if internalToken.Decode(req.Token) == nil {
 		// valid worker node token - let's join the cluster
 		// The validation of the token is done when fetching the cluster information.
-		config["workerToken"] = req.Token
-		config["workerJoinConfig"] = req.Config
+		config = utils.MicroclusterMapWithWorkerJoinConfig(config, req.Token, req.Config)
 		if err := e.provider.MicroCluster().NewCluster(ctx, hostname, req.Address, config); err != nil {
 			return response.InternalError(fmt.Errorf("failed to join k8sd cluster as worker: %w", err))
 		}
 	} else {
 		// Is not a worker token. let microcluster check if it is a valid control-plane token.
-		config["controlPlaneJoinConfig"] = req.Config
+		config = utils.MicroclusterMapWithControlPlaneJoinConfig(config, req.Config)
 		if err := e.provider.MicroCluster().JoinCluster(ctx, hostname, req.Address, req.Token, config); err != nil {
 			return response.InternalError(fmt.Errorf("failed to join k8sd cluster as control plane: %w", err))
 		}
 	}
 
-	return response.SyncResponse(true, nil)
+	return response.SyncResponse(true, &apiv1.JoinClusterResponse{})
 }

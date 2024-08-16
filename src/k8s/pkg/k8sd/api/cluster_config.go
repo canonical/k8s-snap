@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	api "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -16,7 +16,7 @@ import (
 )
 
 func (e *Endpoints) putClusterConfig(s state.State, r *http.Request) response.Response {
-	var req api.UpdateClusterConfigRequest
+	var req apiv1.SetClusterConfigRequest
 
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to decode request: %w", err))
@@ -50,7 +50,7 @@ func (e *Endpoints) putClusterConfig(s state.State, r *http.Request) response.Re
 		!requestedConfig.DNS.Empty() || !requestedConfig.Kubelet.Empty(),
 	)
 
-	return response.SyncResponse(true, &api.UpdateClusterConfigResponse{})
+	return response.SyncResponse(true, &apiv1.SetClusterConfigResponse{})
 }
 
 func (e *Endpoints) getClusterConfig(s state.State, r *http.Request) response.Response {
@@ -59,8 +59,7 @@ func (e *Endpoints) getClusterConfig(s state.State, r *http.Request) response.Re
 		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
 	}
 
-	result := api.GetClusterConfigResponse{
+	return response.SyncResponse(true, &apiv1.GetClusterConfigResponse{
 		Config: config.ToUserFacing(),
-	}
-	return response.SyncResponse(true, &result)
+	})
 }

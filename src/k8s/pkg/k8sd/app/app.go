@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	nodeutil "github.com/canonical/k8s/pkg/utils/node"

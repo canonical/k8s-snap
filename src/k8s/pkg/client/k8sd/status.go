@@ -3,40 +3,41 @@ package k8sd
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/lxd/shared/api"
 )
 
-func (c *k8sd) NodeStatus(ctx context.Context) (apiv1.NodeStatus, bool, error) {
-	var response apiv1.GetNodeStatusResponse
-	if err := c.client.Query(ctx, "GET", apiv1.K8sdAPIVersion, api.NewURL().Path("k8sd", "node"), nil, &response); err != nil {
-
+func (c *k8sd) NodeStatus(ctx context.Context) (apiv1.NodeStatusResponse, bool, error) {
+	response, err := query(ctx, c, "GET", apiv1.NodeStatusRPC, nil, &apiv1.NodeStatusResponse{})
+	if err != nil {
 		// Error 503 means the node is not initialized yet
 		var statusErr api.StatusError
 		if errors.As(err, &statusErr) {
 			if statusErr.Status() == http.StatusServiceUnavailable {
-				return apiv1.NodeStatus{}, false, nil
+				return apiv1.NodeStatusResponse{}, false, nil
 			}
 		}
 
-		return apiv1.NodeStatus{}, false, fmt.Errorf("failed to GET /k8sd/node: %w", err)
+		return apiv1.NodeStatusResponse{}, false, err
 	}
-	return response.NodeStatus, true, nil
+
+	return response, true, nil
 }
 
-func (c *k8sd) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatus, error) {
-	var response apiv1.GetClusterStatusResponse
+func (c *k8sd) ClusterStatus(ctx context.Context, waitReady bool) (apiv1.ClusterStatusResponse, error) {
+	var response apiv1.ClusterStatusResponse
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
-		if err := c.client.Query(ctx, "GET", apiv1.K8sdAPIVersion, api.NewURL().Path("k8sd", "cluster"), nil, &response); err != nil {
-			return false, fmt.Errorf("failed to GET /k8sd/cluster: %w", err)
+		var err error
+		response, err = query(ctx, c, "GET", apiv1.ClusterStatusRPC, nil, &apiv1.ClusterStatusResponse{})
+		if err != nil {
+			return false, err
 		}
 		return !waitReady || response.ClusterStatus.Ready, nil
 	}); err != nil {
-		return apiv1.ClusterStatus{}, err
+		return apiv1.ClusterStatusResponse{}, err
 	}
-	return response.ClusterStatus, nil
+	return response, nil
 }

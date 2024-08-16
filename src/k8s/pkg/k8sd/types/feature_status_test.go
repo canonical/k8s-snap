@@ -4,10 +4,9 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/gomega"
-
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	. "github.com/onsi/gomega"
 )
 
 func TestK8sdFeatureStatusToAPI(t *testing.T) {
