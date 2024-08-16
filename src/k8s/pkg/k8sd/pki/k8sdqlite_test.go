@@ -99,7 +99,7 @@ m5cIDhPBuZSCs7ZnhWCHF0WMztl6fqNVp2GuFGbDM+LjAZT2YOdP0Ts=
 			pki: &K8sDqlitePKI{
 				allowSelfSignedCA: true,
 				hostname:          "localhost",
-				years:             1,
+				seconds:           3600,
 				ipSANs:            []net.IP{net.ParseIP("127.0.0.1")},
 				dnsSANs:           []string{"localhost"},
 			},
@@ -110,7 +110,7 @@ m5cIDhPBuZSCs7ZnhWCHF0WMztl6fqNVp2GuFGbDM+LjAZT2YOdP0Ts=
 			pki: &K8sDqlitePKI{
 				allowSelfSignedCA: true,
 				hostname:          "localhost",
-				years:             1,
+				seconds:           3600,
 				ipSANs:            []net.IP{},
 				dnsSANs:           []string{"localhost"},
 			},
@@ -145,7 +145,7 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 			},
 			expectedPki: &K8sDqlitePKI{
 				hostname: "localhost",
-				years:    1,
+				seconds:  86400,
 			},
 		},
 		{
@@ -154,15 +154,15 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 				Hostname:          "localhost",
 				DNSSANs:           []string{"localhost"},
 				IPSANs:            []net.IP{net.ParseIP("127.0.0.1")},
-				Years:             2,
+				Seconds:           3600,
 				AllowSelfSignedCA: true,
 				Datastore:         "k8s-dqlite",
 			},
 			expectedPki: &K8sDqlitePKI{
 				hostname:          "localhost",
-				years:             2,
 				ipSANs:            []net.IP{net.ParseIP("127.0.0.1")},
 				dnsSANs:           []string{"localhost"},
+				seconds:           3600,
 				allowSelfSignedCA: true,
 			},
 		},

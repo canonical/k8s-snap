@@ -30,8 +30,9 @@ type K8sDqlitePKIOpts struct {
 }
 
 func NewK8sDqlitePKI(opts K8sDqlitePKIOpts) *K8sDqlitePKI {
+	// NOTE: Default to 1 day
 	if opts.Seconds == 0 {
-		opts.Seconds = 365 * 24 * 60 * 60
+		opts.Seconds = 86400
 	}
 
 	return &K8sDqlitePKI{

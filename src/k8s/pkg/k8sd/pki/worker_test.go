@@ -102,7 +102,7 @@ func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
-			cp := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Years: 10})
+			cp := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Seconds: 3600})
 			tc.withCerts(cp)
 
 			pki, err := cp.CompleteWorkerNodePKI("worker", net.IP{10, 0, 0, 1}, 2048)
