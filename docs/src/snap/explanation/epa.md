@@ -97,7 +97,8 @@ are the key architectural components and their roles:
 
 A real-time kernel ensures that high-priority tasks are run within a
 predictable timeframe, crucial for applications requiring low latency and high
-determinism.
+determinism. Note that this can also impede applications which were not
+designed with these considerations. 
 
 ### Key features
 
