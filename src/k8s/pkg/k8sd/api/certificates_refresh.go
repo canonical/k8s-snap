@@ -88,10 +88,9 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 	extraIPs, extraNames := utils.SplitIPAndDNSSANs(req.ExtraSANs)
 
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
-		Hostname: s.Name(),
-		IPSANs:   append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
-		// TODO: Modify the expiration time to be configurable as a duration.
-		Years:                     20,
+		Hostname:                  s.Name(),
+		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
+		Seconds:                   req.ExpirationSeconds,
 		DNSSANs:                   extraNames,
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,

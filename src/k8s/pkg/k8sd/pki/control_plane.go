@@ -15,7 +15,7 @@ type ControlPlanePKI struct {
 	hostname                  string   // node name
 	ipSANs                    []net.IP // IP SANs for generated certificates
 	dnsSANs                   []string // DNS SANs for the certificates below
-	years                     int      // how many years the generated certificates will be valid for
+	seconds                   int      // how many seconds the generated certificates will be valid for
 
 	CACert, CAKey                             string // CN=kubernetes-ca (self-signed)
 	ClientCACert, ClientCAKey                 string // CN=kubernetes-ca-client (self-signed)
@@ -55,19 +55,19 @@ type ControlPlanePKIOpts struct {
 	Hostname                  string
 	DNSSANs                   []string
 	IPSANs                    []net.IP
-	Years                     int
+	Seconds                   int
 	AllowSelfSignedCA         bool
 	IncludeMachineAddressSANs bool
 }
 
 func NewControlPlanePKI(opts ControlPlanePKIOpts) *ControlPlanePKI {
-	if opts.Years == 0 {
-		opts.Years = 1
+	if opts.Seconds == 0 {
+		opts.Seconds = 365 * 24 * 60 * 60
 	}
 
 	return &ControlPlanePKI{
 		hostname:                  opts.Hostname,
-		years:                     opts.Years,
+		seconds:                   opts.Seconds,
 		ipSANs:                    opts.IPSANs,
 		dnsSANs:                   opts.DNSSANs,
 		allowSelfSignedCA:         opts.AllowSelfSignedCA,
@@ -107,7 +107,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		if !c.allowSelfSignedCA {
 			return fmt.Errorf("kubernetes CA not specified and generating self-signed CA not allowed")
 		}
-		cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, c.years, 2048)
+		cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, c.seconds, 2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate kubernetes CA: %w", err)
 		}
@@ -120,7 +120,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		if !c.allowSelfSignedCA {
 			return fmt.Errorf("kubernetes client CA not specified and generating self-signed CA not allowed")
 		}
-		cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca-client"}, c.years, 2048)
+		cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca-client"}, c.seconds, 2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate kubernetes client CA: %w", err)
 		}
@@ -143,7 +143,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		if !c.allowSelfSignedCA {
 			return fmt.Errorf("front-proxy CA not specified and generating self-signed CA not allowed")
 		}
-		cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "front-proxy-ca"}, c.years, 2048)
+		cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "front-proxy-ca"}, c.seconds, 2048)
 		if err != nil {
 			return fmt.Errorf("failed to generate front-proxy CA: %w", err)
 		}
@@ -161,7 +161,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			return fmt.Errorf("using an external front proxy CA without providing the front-proxy-client certificate is not possible")
 		}
 
-		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "front-proxy-client"}, c.years, false, nil, nil)
+		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "front-proxy-client"}, c.seconds, false, nil, nil)
 		if err != nil {
 			return fmt.Errorf("failed to generate front-proxy-client certificate: %w", err)
 		}
@@ -196,7 +196,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 		template, err := pkiutil.GenerateCertificate(
 			pkix.Name{CommonName: fmt.Sprintf("system:node:%s", c.hostname), Organization: []string{"system:nodes"}},
-			c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, machineIPs...),
+			c.seconds, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, machineIPs...),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to generate kubelet certificate: %w", err)
@@ -216,7 +216,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			return fmt.Errorf("using an external kubernetes CA without providing the apiserver-kubelet-client certificate is not possible")
 		}
 
-		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "apiserver-kubelet-client", Organization: []string{"system:masters"}}, c.years, false, nil, nil)
+		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "apiserver-kubelet-client", Organization: []string{"system:masters"}}, c.seconds, false, nil, nil)
 		if err != nil {
 			return fmt.Errorf("failed to generate apiserver-kubelet-client certificate: %w", err)
 		}
@@ -237,7 +237,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 		template, err := pkiutil.GenerateCertificate(
 			pkix.Name{CommonName: "kube-apiserver"},
-			c.years,
+			c.seconds,
 			false,
 			append(c.dnsSANs, "kubernetes", "kubernetes.default", "kubernetes.default.svc", "kubernetes.default.svc.cluster", "kubernetes.default.svc.cluster.local"), append(c.ipSANs, machineIPs...))
 		if err != nil {
@@ -270,7 +270,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 				return fmt.Errorf("using an external kubernetes CA client without providing the %s certificate is not possible", i.name)
 			}
 
-			template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: i.cn, Organization: i.o}, c.years, false, nil, nil)
+			template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: i.cn, Organization: i.o}, c.seconds, false, nil, nil)
 			if err != nil {
 				return fmt.Errorf("failed to generate %s client certificate: %w", i.name, err)
 			}

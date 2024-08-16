@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
@@ -36,7 +37,10 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
-	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Years: 10})
+	// NOTE: Default certificate expiration is set to 10 years.
+	defaultExpiration := int(time.Now().AddDate(10, 0, 0).Sub(time.Now()) / time.Second)
+
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Seconds: defaultExpiration})
 	certificates.CACert = cfg.Certificates.GetCACert()
 	certificates.CAKey = cfg.Certificates.GetCAKey()
 	certificates.ClientCACert = cfg.Certificates.GetClientCACert()

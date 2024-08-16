@@ -22,7 +22,7 @@ func GenerateSerialNumber() (*big.Int, error) {
 	return serialNumber, nil
 }
 
-func GenerateCertificate(subject pkix.Name, years int, ca bool, dnsSANs []string, ipSANs []net.IP) (*x509.Certificate, error) {
+func GenerateCertificate(subject pkix.Name, seconds int, ca bool, dnsSANs []string, ipSANs []net.IP) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for certificate template: %w", err)
@@ -32,7 +32,7 @@ func GenerateCertificate(subject pkix.Name, years int, ca bool, dnsSANs []string
 		SerialNumber:          serialNumber,
 		Subject:               subject,
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(years, 0, 0),
+		NotAfter:              time.Now().Add(time.Duration(seconds) * time.Second),
 		IPAddresses:           ipSANs,
 		DNSNames:              dnsSANs,
 		BasicConstraintsValid: true,
@@ -49,8 +49,8 @@ func GenerateCertificate(subject pkix.Name, years int, ca bool, dnsSANs []string
 	return cert, nil
 }
 
-func GenerateSelfSignedCA(subject pkix.Name, years int, bits int) (string, string, error) {
-	cert, err := GenerateCertificate(subject, years, true, nil, nil)
+func GenerateSelfSignedCA(subject pkix.Name, seconds int, bits int) (string, string, error) {
+	cert, err := GenerateCertificate(subject, seconds, true, nil, nil)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate certificate: %w", err)
 	}
