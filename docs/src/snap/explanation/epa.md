@@ -213,8 +213,8 @@ processes or containers, thereby enhancing performance and predictability. Here
 are the key architectural components and their roles:
 
 -  **Kubelet configuration**: The `kubelet` on each node must be configured to
-   enable CPU pinning. This involves setting specific `kubelet` flags to activate
-   the CPU Manager.  
+   enable CPU pinning. This involves setting specific `kubelet` flags to
+   activate the CPU Manager.  
 -  **CPU manager**: Kubernetes’ CPU Manager is a critical component for CPU
    pinning. It allows for the static allocation of CPUs to containers, ensuring
    that specific CPU cores are dedicated to particular workloads. The CPU
