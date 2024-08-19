@@ -6,7 +6,7 @@ import os
 import shlex
 import subprocess
 from pathlib import Path
-from typing import List
+from typing import List, Set
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
@@ -107,6 +107,9 @@ class LXDHarness(Harness):
 
         self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
         return Instance(self, instance_id)
+
+    def get_instances(self) -> Set[str]:
+        return self.instances
 
     def _configure_profile(self, profile_name: str, profile_config: str):
         LOG.debug("Checking for LXD profile %s", profile_name)

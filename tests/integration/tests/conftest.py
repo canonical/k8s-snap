@@ -27,12 +27,15 @@ def _harness_clean(h: harness.Harness):
 
 
 def _generate_inspection_reports(h: harness.Harness):
-    for instance_id in h.instances:
+    for instance_id in h.get_instances():
         LOG.debug("Generating inspection report for %s", instance_id)
-        h.exec(instance_id, ["/snap/k8s/current/k8s/scripts/inspect.sh", "./inspection-report.tar.gz"])
+        home_dir = Path(h.exec(instance_id, ["echo", "$HOME"], capture_output=True, text=True, shell=True).stdout)
+        print(home_dir.as_posix())
+        h.exec(instance_id, ["/snap/k8s/current/k8s/scripts/inspect.sh", (home_dir / "inspection-report.tar.gz").as_posix()])
+        h.exec(instance_id, ["ls", "-l", home_dir.as_posix()])
         h.pull_file(
             instance_id,
-            "inspection-report.tar.gz",
+            (home_dir / "inspection-report.tar.gz").as_posix(),
             Path(config.INSPECTION_REPORTS_DIR) / f"{instance_id}.tar.gz",
         )
 

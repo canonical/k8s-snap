@@ -7,6 +7,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
+from typing import Set
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
 from test_util.util import run
@@ -92,6 +93,9 @@ class JujuHarness(Harness):
 
         self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
         return Instance(self, instance_id)
+
+    def get_instances(self) -> Set[str]:
+        return self.instances
 
     def send_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
