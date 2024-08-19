@@ -27,6 +27,9 @@ require (
 	sigs.k8s.io/controller-runtime v0.18.4
 )
 
+// We are switching to the microcluster fork temporarily which removes the join name verification to unblock CAPI work.
+// This will be reverted once a proper solution that addresses CAPI requirements is merged upstream.
+// https://github.com/canonical/microcluster/issues/234
 replace github.com/canonical/microcluster/v2 v2.0.2 => github.com/canonical/k8s-microcluster/v2 v2.1.0
 
 require (
