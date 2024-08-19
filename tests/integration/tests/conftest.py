@@ -2,6 +2,7 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
+import os
 from pathlib import Path
 from typing import Generator, List, Union
 
@@ -25,6 +26,17 @@ def _harness_clean(h: harness.Harness):
         h.cleanup()
 
 
+def _generate_inspection_reports(h: harness.Harness):
+    for instance_id in h.instances:
+        LOG.debug("Generating inspection report for %s", instance_id)
+        h.exec(instance_id, ["/snap/k8s/current/k8s/scripts/inspect.sh", "./inspection-report.tar.gz"])
+        h.pull_file(
+            instance_id,
+            "inspection-report.tar.gz",
+            Path(config.INSPECTION_REPORTS_DIR) / f"{instance_id}.tar.gz",
+        )
+
+
 @pytest.fixture(scope="session")
 def h() -> harness.Harness:
     LOG.debug("Create harness for %s", config.SUBSTRATE)
@@ -42,6 +54,10 @@ def h() -> harness.Harness:
         )
 
     yield h
+
+    if config.INSPECTION_REPORTS_DIR is not None:
+        LOG.debug("Generating inspection reports")
+        _generate_inspection_reports(h)
 
     _harness_clean(h)
 

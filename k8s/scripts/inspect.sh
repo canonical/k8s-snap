@@ -82,7 +82,7 @@ function collect_service_diagnostics {
   systemctl status "snap.$service" &>"$status_file"
 
   local n_restarts
-  n_restarts=$(systemctl show "snap.$service" -p NRestarts | cut -d'=' -f2) 
+  n_restarts=$(systemctl show "snap.$service" -p NRestarts | cut -d'=' -f2)
 
   printf -- "%s -> %s\n" "$service" "$n_restarts" >> "$INSPECT_DUMP/nrestarts.log"
 
@@ -122,12 +122,19 @@ function check_expected_services {
 }
 
 function build_report_tarball {
+  local output_file
   local now_is
   now_is=$(date +"%Y%m%d_%H%M%S")
 
-  tar -C "$(pwd)" -cf "$(pwd)/inspection-report-${now_is}.tar" inspection-report &>/dev/null
-  gzip "$(pwd)/inspection-report-${now_is}.tar"
-  log_success "Report tarball is at $(pwd)/inspection-report-$now_is.tar.gz"
+  if [ -n "$1" ]; then
+    output_file="$1"
+  else
+    output_file="$(pwd)/inspection-report-${now_is}.tar.gz"
+  fi
+
+  tar -C "$(pwd)" -cf "${output_file%.gz}" inspection-report &>/dev/null
+  gzip "${output_file%.gz}"
+  log_success "Report tarball is at $output_file"
 }
 
 if [ "$EUID" -ne 0 ]; then
