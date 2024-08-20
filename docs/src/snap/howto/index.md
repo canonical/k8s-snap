@@ -18,6 +18,7 @@ install/index
 networking/index
 storage/index
 external-datastore
+dualstack
 proxy
 backup-restore
 contribute
