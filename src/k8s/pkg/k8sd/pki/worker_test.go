@@ -4,6 +4,7 @@ import (
 	"crypto/x509/pkix"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
@@ -14,9 +15,9 @@ import (
 func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
 
 	g := NewWithT(t)
-	serverCACert, serverCAKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, 1, 2048)
+	serverCACert, serverCAKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, time.Now().AddDate(1, 0, 0), 2048)
 	g.Expect(err).ToNot(HaveOccurred())
-	clientCACert, clientCAKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca-client"}, 1, 2048)
+	clientCACert, clientCAKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca-client"}, time.Now().AddDate(1, 0, 0), 2048)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	for _, tc := range []struct {
@@ -102,7 +103,7 @@ func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
-			cp := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Seconds: 3600})
+			cp := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{ExpirationDate: time.Now().AddDate(1, 0, 0)})
 			tc.withCerts(cp)
 
 			pki, err := cp.CompleteWorkerNodePKI("worker", net.IP{10, 0, 0, 1}, 2048)

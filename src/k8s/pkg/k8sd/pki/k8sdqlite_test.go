@@ -3,6 +3,7 @@ package pki
 import (
 	"net"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 )
@@ -99,7 +100,7 @@ m5cIDhPBuZSCs7ZnhWCHF0WMztl6fqNVp2GuFGbDM+LjAZT2YOdP0Ts=
 			pki: &K8sDqlitePKI{
 				allowSelfSignedCA: true,
 				hostname:          "localhost",
-				seconds:           3600,
+				expirationDate:    time.Now().AddDate(1, 0, 0),
 				ipSANs:            []net.IP{net.ParseIP("127.0.0.1")},
 				dnsSANs:           []string{"localhost"},
 			},
@@ -110,7 +111,7 @@ m5cIDhPBuZSCs7ZnhWCHF0WMztl6fqNVp2GuFGbDM+LjAZT2YOdP0Ts=
 			pki: &K8sDqlitePKI{
 				allowSelfSignedCA: true,
 				hostname:          "localhost",
-				seconds:           3600,
+				expirationDate:    time.Now().AddDate(1, 0, 0),
 				ipSANs:            []net.IP{},
 				dnsSANs:           []string{"localhost"},
 			},
@@ -133,6 +134,7 @@ m5cIDhPBuZSCs7ZnhWCHF0WMztl6fqNVp2GuFGbDM+LjAZT2YOdP0Ts=
 }
 
 func TestNewK8sDqlitePKI(t *testing.T) {
+	now := time.Now()
 	tests := []struct {
 		name        string
 		opts        K8sDqlitePKIOpts
@@ -141,11 +143,12 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 		{
 			name: "NewK8sDqlitePKI with default values",
 			opts: K8sDqlitePKIOpts{
-				Hostname: "localhost",
+				Hostname:       "localhost",
+				ExpirationDate: now.AddDate(1, 0, 0),
 			},
 			expectedPki: &K8sDqlitePKI{
-				hostname: "localhost",
-				seconds:  86400,
+				hostname:       "localhost",
+				expirationDate: now.AddDate(1, 0, 0),
 			},
 		},
 		{
@@ -154,7 +157,7 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 				Hostname:          "localhost",
 				DNSSANs:           []string{"localhost"},
 				IPSANs:            []net.IP{net.ParseIP("127.0.0.1")},
-				Seconds:           3600,
+				ExpirationDate:    now.AddDate(2, 0, 0),
 				AllowSelfSignedCA: true,
 				Datastore:         "k8s-dqlite",
 			},
@@ -162,7 +165,7 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 				hostname:          "localhost",
 				ipSANs:            []net.IP{net.ParseIP("127.0.0.1")},
 				dnsSANs:           []string{"localhost"},
-				seconds:           3600,
+				expirationDate:    now.AddDate(2, 0, 0),
 				allowSelfSignedCA: true,
 			},
 		},

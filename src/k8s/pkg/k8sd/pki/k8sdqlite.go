@@ -4,17 +4,18 @@ import (
 	"crypto/x509/pkix"
 	"fmt"
 	"net"
+	"time"
 
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 )
 
 // K8sDqlitePKI is a list of certificates required by the k8s-dqlite datastore.
 type K8sDqlitePKI struct {
-	allowSelfSignedCA bool     // create self-signed CA certificates if missing
-	hostname          string   // node name
-	ipSANs            []net.IP // IP SANs for generated certificates
-	dnsSANs           []string // DNS SANs for the certificates below
-	seconds           int      // how many seconds the generated certificates will be valid for
+	allowSelfSignedCA bool      // create self-signed CA certificates if missing
+	hostname          string    // node name
+	ipSANs            []net.IP  // IP SANs for generated certificates
+	dnsSANs           []string  // DNS SANs for the certificates below
+	expirationDate    time.Time // expiration date for the generated certificates
 
 	// CN=k8s-dqlite, DNS=hostname, IP=127.0.0.1 (self-signed)
 	K8sDqliteCert, K8sDqliteKey string
@@ -24,21 +25,17 @@ type K8sDqlitePKIOpts struct {
 	Hostname          string
 	DNSSANs           []string
 	IPSANs            []net.IP
-	Seconds           int
+	ExpirationDate    time.Time
 	AllowSelfSignedCA bool
 	Datastore         string
 }
 
 func NewK8sDqlitePKI(opts K8sDqlitePKIOpts) *K8sDqlitePKI {
-	// NOTE: Default to 1 day
-	if opts.Seconds == 0 {
-		opts.Seconds = 86400
-	}
 
 	return &K8sDqlitePKI{
 		allowSelfSignedCA: opts.AllowSelfSignedCA,
 		hostname:          opts.Hostname,
-		seconds:           opts.Seconds,
+		expirationDate:    opts.ExpirationDate,
 		ipSANs:            opts.IPSANs,
 		dnsSANs:           opts.DNSSANs,
 	}
@@ -60,7 +57,7 @@ func (c *K8sDqlitePKI) CompleteCertificates() error {
 			return fmt.Errorf("k8s-dqlite certificate not specified and generating self-signed certificates is not allowed")
 		}
 
-		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "k8s"}, c.seconds, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
+		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "k8s"}, c.expirationDate, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
 		if err != nil {
 			return fmt.Errorf("failed to generate k8s-dqlite certificate: %w", err)
 		}

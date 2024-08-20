@@ -38,9 +38,9 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 	}
 
 	// NOTE: Default certificate expiration is set to 10 years.
-	defaultExpiration := int(time.Now().AddDate(10, 0, 0).Sub(time.Now()) / time.Second)
+	defaultExpiration := time.Now().AddDate(10, 0, 0)
 
-	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Seconds: defaultExpiration})
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{ExpirationDate: defaultExpiration})
 	certificates.CACert = cfg.Certificates.GetCACert()
 	certificates.CAKey = cfg.Certificates.GetCAKey()
 	certificates.ClientCACert = cfg.Certificates.GetClientCACert()

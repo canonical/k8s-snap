@@ -8,8 +8,10 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
+	clusterutil "github.com/canonical/k8s/pkg/k8sd/app/util"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -90,7 +92,7 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
-		Seconds:                   req.ExpirationSeconds,
+		ExpirationDate:            utils.SecondsToExpirationDate(time.Now(), req.ExpirationSeconds),
 		DNSSANs:                   extraNames,
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
@@ -114,27 +116,9 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		return response.InternalError(fmt.Errorf("failed to write control plane certificates: %w", err))
 	}
 
-	// Generate kubeconfigs
-	for _, kubeconfig := range []struct {
-		file string
-		crt  string
-		key  string
-	}{
-		{file: "admin.conf", crt: certificates.AdminClientCert, key: certificates.AdminClientKey},
-		{file: "controller.conf", crt: certificates.KubeControllerManagerClientCert, key: certificates.KubeControllerManagerClientKey},
-		{file: "proxy.conf", crt: certificates.KubeProxyClientCert, key: certificates.KubeProxyClientKey},
-		{file: "scheduler.conf", crt: certificates.KubeSchedulerClientCert, key: certificates.KubeSchedulerClientKey},
-		{file: "kubelet.conf", crt: certificates.KubeletClientCert, key: certificates.KubeletClientKey},
-	} {
-		if err := setup.Kubeconfig(
-			filepath.Join(snap.KubernetesConfigDir(), kubeconfig.file),
-			fmt.Sprintf("127.0.0.1:%d", *clusterConfig.APIServer.SecurePort),
-			certificates.CACert,
-			kubeconfig.crt,
-			kubeconfig.key,
-		); err != nil {
-			return response.InternalError(fmt.Errorf("failed to generate kubeconfig %s: %w", kubeconfig.file, err))
-		}
+	if err := clusterutil.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
+		return response.InternalError(fmt.Errorf("failed to generate control plane kubeconfigs: %w", err))
+
 	}
 
 	if err := snaputil.RestartControlPlaneServices(r.Context(), snap); err != nil {

@@ -26,8 +26,8 @@ var (
 	}
 )
 
-// RestartWorkerServices restarts the control plane services.
-// RestartWorkerServices will return on the first failing service.
+// RestartControlPlaneServices restarts the control plane services.
+// RestartControlPlaneServices will return on the first failing service.
 func RestartControlPlaneServices(ctx context.Context, snap snap.Snap) error {
 	for _, service := range controlPlaneServices {
 		if err := snap.RestartService(ctx, service); err != nil {

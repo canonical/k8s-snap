@@ -3,13 +3,14 @@ package pkiutil_test
 import (
 	"crypto/x509/pkix"
 	"testing"
+	"time"
 
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	. "github.com/onsi/gomega"
 )
 
 func TestGenerateSelfSignedCA(t *testing.T) {
-	cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "test-cert"}, 10, 2048)
+	cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "test-cert"}, time.Now().AddDate(10, 0, 0), 2048)
 
 	g := NewWithT(t)
 	g.Expect(err).To(BeNil())

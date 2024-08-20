@@ -13,6 +13,7 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
+	clusterutil "github.com/canonical/k8s/pkg/k8sd/app/util"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -282,12 +283,12 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		// NOTE: Default certificate expiration is set to 20 years.
-		defaultDuration := int(time.Now().AddDate(20, 0, 0).Sub(time.Now()) / time.Second)
+		defaultDuration := time.Now().AddDate(20, 0, 0)
 
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname:          s.Name(),
 			IPSANs:            []net.IP{{127, 0, 0, 1}},
-			Seconds:           defaultDuration,
+			ExpirationDate:    defaultDuration,
 			AllowSelfSignedCA: true,
 		})
 		if err := certificates.CompleteCertificates(); err != nil {
@@ -316,7 +317,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	}
 
 	// NOTE: Default certificate expiration is set to 20 years.
-	defaultDuration := int(time.Now().AddDate(20, 0, 0).Sub(time.Now()) / time.Second)
+	defaultDuration := time.Now().AddDate(20, 0, 0)
 
 	// Certificates
 	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
@@ -324,7 +325,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
 		DNSSANs:                   extraNames,
-		Seconds:                   defaultDuration,
+		ExpirationDate:            defaultDuration,
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
 	})
@@ -385,7 +386,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	}
 
 	// Generate kubeconfigs
-	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := clusterutil.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
