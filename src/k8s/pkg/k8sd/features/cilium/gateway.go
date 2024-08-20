@@ -25,20 +25,13 @@ const (
 func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
-	if _, err := m.Apply(ctx, chartGateway, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {
-		if gateway.GetEnabled() {
+	if gateway.GetEnabled() {
+		if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, nil); err != nil {
 			err = fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: ciliumAgentImageTag,
 				Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
-			}, err
-		} else {
-			err = fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
-			return types.FeatureStatus{
-				Enabled: false,
-				Version: ciliumAgentImageTag,
-				Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
 			}, err
 		}
 	}
@@ -73,6 +66,19 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 			}, err
 		} else {
 			err = fmt.Errorf("failed to delete Gateway API cilium configuration: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ciliumAgentImageTag,
+				Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+			}, err
+		}
+	}
+
+	// Remove Gateway CRDs if the Gateway feature is disabled.
+	// This is done after the Cilium update as cilium requires the CRDs to be present for cleanups.
+	if !gateway.GetEnabled() {
+		if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
+			err = fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: ciliumAgentImageTag,
