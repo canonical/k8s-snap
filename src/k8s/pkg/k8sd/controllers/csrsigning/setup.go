@@ -21,9 +21,7 @@ type csrSigningReconciler struct {
 	managedSignerNames map[string]struct{}
 
 	getClusterConfig     func(context.Context) (types.ClusterConfig, error)
-	reconcileAutoApprove func(context.Context, log.Logger, *certv1.CertificateSigningRequest,
-		*rsa.PrivateKey, client.Client,
-		func(*certv1.CertificateSigningRequest, *rsa.PrivateKey) error) (ctrl.Result, error)
+	reconcileAutoApprove func(context.Context, log.Logger, *certv1.CertificateSigningRequest, *rsa.PrivateKey, client.Client) (ctrl.Result, error)
 }
 
 var managedSignerNames = map[string]struct{}{

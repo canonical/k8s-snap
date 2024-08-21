@@ -76,7 +76,7 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			if err != nil {
 				return ctrl.Result{}, fmt.Errorf("failed to load cluster RSA key: %w", err)
 			}
-			return r.reconcileAutoApprove(ctx, log, obj, priv, r.Client, validateCSR)
+			return r.reconcileAutoApprove(ctx, log, obj, priv, r.Client)
 		}
 
 		log.Info("Requeue while waiting for CSR to be approved")

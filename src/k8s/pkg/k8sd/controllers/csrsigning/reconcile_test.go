@@ -16,7 +16,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	k8smock "github.com/canonical/k8s/pkg/client/k8s/mock"
+	k8smock "github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning/test"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
@@ -304,7 +304,7 @@ func TestNotApprovedCSR(t *testing.T) {
 					},
 				}, nil
 			},
-			reconcileAutoApprove: func(ctx context.Context, l log.Logger, csr *certv1.CertificateSigningRequest, pk *rsa.PrivateKey, c client.Client, f func(*certv1.CertificateSigningRequest, *rsa.PrivateKey) error) (ctrl.Result, error) {
+			reconcileAutoApprove: func(ctx context.Context, l log.Logger, csr *certv1.CertificateSigningRequest, pk *rsa.PrivateKey, c client.Client) (ctrl.Result, error) {
 				called = true
 				return ctrl.Result{}, nil
 			},
