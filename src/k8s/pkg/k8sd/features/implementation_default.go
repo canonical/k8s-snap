@@ -4,6 +4,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/features/coredns"
 	"github.com/canonical/k8s/pkg/k8sd/features/localpv"
+	"github.com/canonical/k8s/pkg/k8sd/features/metallb"
 	metrics_server "github.com/canonical/k8s/pkg/k8sd/features/metrics-server"
 )
 
@@ -15,7 +16,7 @@ import (
 var Implementation Interface = &implementation{
 	applyDNS:           coredns.ApplyDNS,
 	applyNetwork:       cilium.ApplyNetwork,
-	applyLoadBalancer:  cilium.ApplyLoadBalancer,
+	applyLoadBalancer:  metallb.ApplyLoadBalancer,
 	applyIngress:       cilium.ApplyIngress,
 	applyGateway:       cilium.ApplyGateway,
 	applyMetricsServer: metrics_server.ApplyMetricsServer,

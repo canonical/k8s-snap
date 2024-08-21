@@ -61,7 +61,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 			"useDigest":  false,
 		},
 		"socketLB": map[string]any{
-			"enabled": true,
+			"enabled": false,
 		},
 		"cni": map[string]any{
 			"confPath": "/etc/cni/net.d",
