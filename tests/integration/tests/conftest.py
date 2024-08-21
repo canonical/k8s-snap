@@ -26,7 +26,6 @@ def _harness_clean(h: harness.Harness):
 
 
 def _generate_inspection_report(h: harness.Harness, instance_id: str):
-    """Generate inspection reports for all instances."""
     LOG.debug("Generating inspection report for %s", instance_id)
 
     inspection_path = Path(config.INSPECTION_REPORTS_DIR)
