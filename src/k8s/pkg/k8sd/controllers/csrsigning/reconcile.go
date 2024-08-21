@@ -37,7 +37,7 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	// skip CSRs with an unknown signerName.
-	if _, ok := managedSignerNames[obj.Spec.SignerName]; !ok {
+	if _, ok := r.managedSignerNames[obj.Spec.SignerName]; !ok {
 		return ctrl.Result{}, nil
 	}
 
@@ -76,7 +76,7 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			if err != nil {
 				return ctrl.Result{}, fmt.Errorf("failed to load cluster RSA key: %w", err)
 			}
-			return r.reconcileAutoApprove(ctx, log, obj, priv)
+			return r.reconcileAutoApprove(ctx, log, obj, priv, r.Client, validateCSR)
 		}
 
 		log.Info("Requeue while waiting for CSR to be approved")

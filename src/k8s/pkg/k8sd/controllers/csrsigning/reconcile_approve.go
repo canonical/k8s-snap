@@ -9,9 +9,12 @@ import (
 	certv1 "k8s.io/api/certificates/v1"
 	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (r *csrSigningReconciler) reconcileAutoApprove(ctx context.Context, log log.Logger, csr *certv1.CertificateSigningRequest, priv *rsa.PrivateKey) (ctrl.Result, error) {
+func reconcileAutoApprove(ctx context.Context, log log.Logger, csr *certv1.CertificateSigningRequest,
+	priv *rsa.PrivateKey, client client.Client,
+	validateCSR func(obj *certv1.CertificateSigningRequest, priv *rsa.PrivateKey) error) (ctrl.Result, error) {
 	var result certv1.RequestConditionType
 
 	if err := validateCSR(csr, priv); err != nil {
@@ -39,7 +42,7 @@ func (r *csrSigningReconciler) reconcileAutoApprove(ctx context.Context, log log
 	}
 
 	log = log.WithValues("result", result)
-	if err := r.Client.SubResource("approval").Update(ctx, csr); err != nil {
+	if err := client.SubResource("approval").Update(ctx, csr); err != nil {
 		log.Error(err, "Failed to update CSR approval status")
 		return ctrl.Result{}, err
 	}

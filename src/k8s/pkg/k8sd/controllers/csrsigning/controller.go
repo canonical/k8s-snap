@@ -88,11 +88,13 @@ func (c *Controller) Run(ctx context.Context, getClusterConfig func(context.Cont
 	}
 
 	if err := (&csrSigningReconciler{
-		Manager: mgr,
-		Logger:  mgr.GetLogger(),
-		Client:  mgr.GetClient(),
+		Manager:            mgr,
+		Logger:             mgr.GetLogger(),
+		Client:             mgr.GetClient(),
+		managedSignerNames: managedSignerNames,
 
-		getClusterConfig: getClusterConfig,
+		getClusterConfig:     getClusterConfig,
+		reconcileAutoApprove: reconcileAutoApprove,
 	}).SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("failed to setup csrsigning controller: %w", err)
 	}
