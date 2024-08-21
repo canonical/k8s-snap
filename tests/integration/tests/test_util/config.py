@@ -12,12 +12,10 @@ MANIFESTS_DIR = DIR / ".." / ".." / "templates"
 ETCD_DIR = MANIFESTS_DIR / "etcd"
 
 # ETCD_URL is the url from which the etcd binaries should be downloaded.
-ETCD_URL = (
-    os.getenv("TEST_ETCD_URL") or "https://github.com/etcd-io/etcd/releases/download"
-)
+ETCD_URL = os.getenv("ETCD_URL") or "https://github.com/etcd-io/etcd/releases/download"
 
 # ETCD_VERSION is the version of etcd to use.
-ETCD_VERSION = os.getenv("TEST_ETCD_VERSION") or "v3.3.8"
+ETCD_VERSION = os.getenv("ETCD_VERSION") or "v3.3.8"
 
 # SNAP is the absolute path to the snap against which we run the integration tests.
 SNAP = os.getenv("TEST_SNAP")

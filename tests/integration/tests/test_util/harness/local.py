@@ -8,7 +8,6 @@ import shutil
 import socket
 import subprocess
 from pathlib import Path
-from typing import Set
 
 from test_util.harness import Harness, HarnessError, Instance
 from test_util.util import run
@@ -23,31 +22,26 @@ class LocalHarness(Harness):
 
     def __init__(self):
         super(LocalHarness, self).__init__()
-        self.instance = None
+        self.initialized = False
         self.hostname = socket.gethostname().lower()
 
         LOG.debug("Configured local substrate")
 
     def new_instance(self, dualstack: bool = False) -> Instance:
-        if self.instance is not None:
+        if self.initialized:
             raise HarnessError("local substrate only supports up to one instance")
 
         if dualstack:
             raise HarnessError("Dualstack is currently not supported by Local harness")
 
+        self.initialized = True
         LOG.debug("Initializing instance")
         try:
             self.exec(self.hostname, ["snap", "wait", "system", "seed.loaded"])
         except subprocess.CalledProcessError as e:
             raise HarnessError("failed to wait for snapd seed") from e
 
-        self.instance = self.hostname
         return Instance(self, self.hostname)
-
-    def get_instances(self) -> Set[str]:
-        if self.instance is None:
-            return set()
-        return set(self.instance)
 
     def send_file(self, _: str, source: str, destination: str):
         if not self.initialized:

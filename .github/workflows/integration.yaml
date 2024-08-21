@@ -74,14 +74,6 @@ jobs:
         with:
           name: k8s.snap
           path: build
-      - name: Generate inspection report
-        run: |
-          sudo k8s/scripts/inspect.sh
-      - name: Upload inspection report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: inspection-report
-          path: ./inspection-report-*.tar.gz
       - name: Run end to end tests
         run: |
           export TEST_SNAP="$PWD/build/k8s.snap"

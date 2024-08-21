@@ -3,7 +3,6 @@
 #
 import subprocess
 from functools import partial
-from typing import Set
 
 
 class HarnessError(Exception):
@@ -48,13 +47,6 @@ class Harness:
         which can be used to interact with it.
 
         dualstack: If True, the instance will be created with dualstack support.
-
-        If the operation fails, a HarnessError is raised.
-        """
-        raise NotImplementedError
-
-    def get_instances(self) -> Set[str]:
-        """Returns a list of instance ids that were created by new_instance().
 
         If the operation fails, a HarnessError is raised.
         """

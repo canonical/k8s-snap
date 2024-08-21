@@ -7,7 +7,7 @@
 # elevated permissions (sudo).
 #
 # Usage:
-#   ./script.sh [output_file]
+#   ./inspect.sh [output_file]
 #
 # Arguments:
 #   output_file  (Optional) The full path and filename for the generated tarball.
@@ -142,7 +142,7 @@ function check_expected_services {
 function build_report_tarball {
   local output_file
   local now_is
-  now_is=$(date +"%Y%m%d_%H%M%S")
+  now_is="$(date +'%Y%m%d_%H%M%S')"
 
   if [ -z "$1" ]; then
     output_file="$(pwd)/inspection-report-${now_is}.tar.gz"

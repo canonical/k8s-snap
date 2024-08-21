@@ -25,30 +25,27 @@ def _harness_clean(h: harness.Harness):
         h.cleanup()
 
 
-def _generate_inspection_reports(h: harness.Harness):
+def _generate_inspection_report(h: harness.Harness, instance_id: str):
     """Generate inspection reports for all instances."""
+    LOG.debug("Generating inspection report for %s", instance_id)
+
     inspection_path = Path(config.INSPECTION_REPORTS_DIR)
+    result = h.exec(
+        instance_id,
+        ["/snap/k8s/current/k8s/scripts/inspect.sh", "/inspection-report.tar.gz"],
+        capture_output=True,
+        text=True,
+    )
 
-    for instance_id in h.get_instances():
-        LOG.debug("Generating inspection report for %s", instance_id)
-        result = h.exec(
-            instance_id,
-            ["/snap/k8s/current/k8s/scripts/inspect.sh", "/inspection-report.tar.gz"],
-            capture_output=True,
-            text=True,
-        )
+    (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
+    with open(inspection_path / instance_id / "inspection_report_logs.txt", "w") as f:
+        f.write(result.stdout)
 
-        (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
-        with open(
-            inspection_path / instance_id / "inspection_report_logs.txt", "w"
-        ) as f:
-            f.write(result.stdout)
-
-        h.pull_file(
-            instance_id,
-            "/inspection-report.tar.gz",
-            (inspection_path / instance_id / "inspection_report.tar.gz").as_posix(),
-        )
+    h.pull_file(
+        instance_id,
+        "/inspection-report.tar.gz",
+        (inspection_path / instance_id / "inspection_report.tar.gz").as_posix(),
+    )
 
 
 @pytest.fixture(scope="session")
@@ -70,8 +67,9 @@ def h() -> harness.Harness:
     yield h
 
     if config.INSPECTION_REPORTS_DIR is not None:
-        LOG.debug("Generating inspection reports for session instances")
-        _generate_inspection_reports(h)
+        for instance_id in h.instances:
+            LOG.debug("Generating inspection reports for session instances")
+            _generate_inspection_report(h, instance_id)
 
     _harness_clean(h)
 
@@ -166,11 +164,11 @@ def instances(
     # We cannot execute _harness_clean() here as this would also
     # remove the session_instance. The harness ensures that everything is cleaned up
     # at the end of the test session.
-    if config.INSPECTION_REPORTS_DIR is not None:
-        LOG.debug("Generating inspection reports for test instances")
-        _generate_inspection_reports(h)
-
     for instance in instances:
+        if config.INSPECTION_REPORTS_DIR is not None:
+            LOG.debug("Generating inspection reports for test instances")
+            _generate_inspection_report(h, instance.id)
+
         h.delete_instance(instance.id)
 
 
