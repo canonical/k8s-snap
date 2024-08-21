@@ -27,17 +27,24 @@ def _harness_clean(h: harness.Harness):
 
 
 def _generate_inspection_reports(h: harness.Harness):
+    """Generate inspection reports for all instances."""
+    inspection_path = Path(config.INSPECTION_REPORTS_DIR)
+
     for instance_id in h.get_instances():
         LOG.debug("Generating inspection report for %s", instance_id)
-        home_dir = Path(h.exec(instance_id, ["echo", "$HOME"], capture_output=True, text=True, shell=True).stdout)
-        print(home_dir.as_posix())
-        h.exec(instance_id, ["/snap/k8s/current/k8s/scripts/inspect.sh", (home_dir / "inspection-report.tar.gz").as_posix()])
-        h.exec(instance_id, ["ls", "-l", home_dir.as_posix()])
+        result = h.exec(instance_id, ["/snap/k8s/current/k8s/scripts/inspect.sh", "/inspection-report.tar.gz"], capture_output=True, text=True)
+
+        (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
+        with open(inspection_path / instance_id / "inspection_report_logs.txt", "w") as f:
+            f.write(result.stdout)
+
         h.pull_file(
             instance_id,
-            (home_dir / "inspection-report.tar.gz").as_posix(),
-            Path(config.INSPECTION_REPORTS_DIR) / f"{instance_id}.tar.gz",
+            "/inspection-report.tar.gz",
+            (inspection_path / instance_id / f"inspection_report.tar.gz").as_posix(),
         )
+
+
 
 
 @pytest.fixture(scope="session")
@@ -156,6 +163,7 @@ def instances(
     # remove the session_instance. The harness ensures that everything is cleaned up
     # at the end of the test session.
     for instance in instances:
+        _generate_inspection_reports(h)
         h.delete_instance(instance.id)
 
 
