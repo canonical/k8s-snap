@@ -85,12 +85,13 @@ jobs:
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C $HOME inspection-reports
+          ls
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: inspection-reports-{{ matrix.os }}
-          path: $HOME/inspection-reports.tar.gz
+          path: inspection-reports.tar.gz
 
   security-scan:
     permissions:
