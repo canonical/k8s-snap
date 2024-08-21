@@ -285,13 +285,11 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		// NOTE: Default certificate expiration is set to 20 years.
-		defaultDuration := notBefore.AddDate(20, 0, 0)
-
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname:          s.Name(),
 			IPSANs:            []net.IP{{127, 0, 0, 1}},
 			NotBefore:         notBefore,
-			NotAfter:          defaultDuration,
+			NotAfter:          notBefore.AddDate(20, 0, 0),
 			AllowSelfSignedCA: true,
 		})
 		if err := certificates.CompleteCertificates(); err != nil {
@@ -319,17 +317,15 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
 
-	// NOTE: Default certificate expiration is set to 20 years.
-	defaultDuration := notBefore.AddDate(20, 0, 0)
-
 	// Certificates
+	// NOTE: Default certificate expiration is set to 20 years.
 	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
 		DNSSANs:                   extraNames,
 		NotBefore:                 notBefore,
-		NotAfter:                  defaultDuration,
+		NotAfter:                  notBefore.AddDate(20, 0, 0),
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
 	})

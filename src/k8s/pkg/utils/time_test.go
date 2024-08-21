@@ -40,9 +40,9 @@ func TestSecondsToExpirationDate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := NewGomegaWithT(t)
+			g := NewWithT(t)
 			got := utils.SecondsToExpirationDate(now, tt.seconds)
-			g.Expect(got).To(BeTemporally("==", tt.want))
+			g.Expect(got).To(Equal(tt.want))
 		})
 
 	}
@@ -64,8 +64,14 @@ func TestTTLToSeconds(t *testing.T) {
 		},
 		{
 			name:    "Test Month",
-			ttl:     "1m",
+			ttl:     "1mo",
 			want:    2592000,
+			wantErr: false,
+		},
+		{
+			name:    "Test 10 Minutes",
+			ttl:     "10m",
+			want:    600,
 			wantErr: false,
 		},
 		{
@@ -75,8 +81,26 @@ func TestTTLToSeconds(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "Test Invalid Unit",
+			name:    "Test Default ParseDuration",
 			ttl:     "1h",
+			want:    3600,
+			wantErr: false,
+		},
+		{
+			name:    "Test Invalid Unit",
+			ttl:     "1ftn",
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "Test Invalid Month",
+			ttl:     "10mod",
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "Test Invalid Month Suffix",
+			ttl:     "10xmo",
 			want:    0,
 			wantErr: true,
 		},
@@ -96,7 +120,7 @@ func TestTTLToSeconds(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := NewGomegaWithT(t)
+			g := NewWithT(t)
 			got, err := utils.TTLToSeconds(tt.ttl)
 			if tt.wantErr {
 				g.Expect(err).To(HaveOccurred())

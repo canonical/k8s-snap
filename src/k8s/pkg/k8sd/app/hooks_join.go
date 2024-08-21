@@ -58,13 +58,11 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		// NOTE: Default certificate expiration is set to 20 years.
-		defaultDuration := notBefore.AddDate(20, 0, 0)
-
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname:  s.Name(),
 			IPSANs:    []net.IP{{127, 0, 0, 1}},
 			NotBefore: notBefore,
-			NotAfter:  defaultDuration,
+			NotAfter:  notBefore.AddDate(20, 0, 0),
 		})
 		certificates.K8sDqliteCert = cfg.Datastore.GetK8sDqliteCert()
 		certificates.K8sDqliteKey = cfg.Datastore.GetK8sDqliteKey()
@@ -90,17 +88,15 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
 	}
 
-	// NOTE: Default certificate expiration is set to 20 years.
-	defaultDuration := notBefore.AddDate(20, 0, 0)
-
 	// Certificates
+	// NOTE: Default certificate expiration is set to 20 years.
 	extraIPs, extraNames := utils.SplitIPAndDNSSANs(joinConfig.ExtraSANS)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
 		DNSSANs:                   extraNames,
 		NotBefore:                 notBefore,
-		NotAfter:                  defaultDuration,
+		NotAfter:                  notBefore.AddDate(20, 0, 0),
 		IncludeMachineAddressSANs: true,
 	})
 
