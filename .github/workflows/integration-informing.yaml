@@ -95,5 +95,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: inspection-reports-${{ matrix.os }}-${{ matrix.patch }}
+          name: inspection-reports-${{ matrix.os.replace(':', '-') }}-${{ matrix.patch }}
           path: inspection-reports.tar.gz
