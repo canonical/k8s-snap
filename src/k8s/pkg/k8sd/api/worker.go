@@ -37,10 +37,12 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
+	// NOTE: Set the notBefore certificate time to the current time.
+	notBefore := time.Now()
 	// NOTE: Default certificate expiration is set to 10 years.
-	defaultExpiration := time.Now().AddDate(10, 0, 0)
+	defaultExpiration := notBefore.AddDate(10, 0, 0)
 
-	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{ExpirationDate: defaultExpiration})
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{NotBefore: notBefore, NotAfter: defaultExpiration})
 	certificates.CACert = cfg.Certificates.GetCACert()
 	certificates.CAKey = cfg.Certificates.GetCAKey()
 	certificates.ClientCACert = cfg.Certificates.GetClientCACert()

@@ -10,7 +10,8 @@ import (
 )
 
 func TestGenerateSelfSignedCA(t *testing.T) {
-	cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "test-cert"}, time.Now().AddDate(10, 0, 0), 2048)
+	notBefore := time.Now()
+	cert, key, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "test-cert"}, notBefore, notBefore.AddDate(10, 0, 0), 2048)
 
 	g := NewWithT(t)
 	g.Expect(err).To(BeNil())

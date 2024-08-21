@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	clusterutil "github.com/canonical/k8s/pkg/k8sd/app/util"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -19,6 +18,9 @@ import (
 // onPostJoin retrieves the cluster config from the database and configures local services.
 func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[string]string) (rerr error) {
 	snap := a.Snap()
+
+	// NOTE: Set the notBefore certificate time to the current time.
+	notBefore := time.Now()
 
 	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
 	ctx, cancel := context.WithCancel(ctx)
@@ -56,12 +58,13 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		// NOTE: Default certificate expiration is set to 20 years.
-		defaultDuration := time.Now().AddDate(20, 0, 0)
+		defaultDuration := notBefore.AddDate(20, 0, 0)
 
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
-			Hostname:       s.Name(),
-			IPSANs:         []net.IP{{127, 0, 0, 1}},
-			ExpirationDate: defaultDuration,
+			Hostname:  s.Name(),
+			IPSANs:    []net.IP{{127, 0, 0, 1}},
+			NotBefore: notBefore,
+			NotAfter:  defaultDuration,
 		})
 		certificates.K8sDqliteCert = cfg.Datastore.GetK8sDqliteCert()
 		certificates.K8sDqliteKey = cfg.Datastore.GetK8sDqliteKey()
@@ -88,7 +91,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	}
 
 	// NOTE: Default certificate expiration is set to 20 years.
-	defaultDuration := time.Now().AddDate(20, 0, 0)
+	defaultDuration := notBefore.AddDate(20, 0, 0)
 
 	// Certificates
 	extraIPs, extraNames := utils.SplitIPAndDNSSANs(joinConfig.ExtraSANS)
@@ -96,7 +99,8 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
 		DNSSANs:                   extraNames,
-		ExpirationDate:            defaultDuration,
+		NotBefore:                 notBefore,
+		NotAfter:                  defaultDuration,
 		IncludeMachineAddressSANs: true,
 	})
 
@@ -136,7 +140,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
 
-	if err := clusterutil.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 

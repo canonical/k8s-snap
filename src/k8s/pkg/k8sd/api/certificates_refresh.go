@@ -11,7 +11,6 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
-	clusterutil "github.com/canonical/k8s/pkg/k8sd/app/util"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -89,10 +88,14 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 
 	extraIPs, extraNames := utils.SplitIPAndDNSSANs(req.ExtraSANs)
 
+	// NOTE: Set the notBefore certificate time to the current time.
+	notBefore := time.Now()
+
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
-		ExpirationDate:            utils.SecondsToExpirationDate(time.Now(), req.ExpirationSeconds),
+		NotBefore:                 notBefore,
+		NotAfter:                  utils.SecondsToExpirationDate(notBefore, req.ExpirationSeconds),
 		DNSSANs:                   extraNames,
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
@@ -116,7 +119,7 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		return response.InternalError(fmt.Errorf("failed to write control plane certificates: %w", err))
 	}
 
-	if err := clusterutil.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate control plane kubeconfigs: %w", err))
 
 	}

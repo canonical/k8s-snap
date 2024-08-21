@@ -9,6 +9,8 @@ import (
 )
 
 func TestK8sDqlitePKI_CompleteCertificates(t *testing.T) {
+	notBefore := time.Now()
+
 	cert := `
 -----BEGIN CERTIFICATE-----
 MIIDtTCCAp2gAwIBAgIQOPOTOjxvIVlC5ev8EzrnITANBgkqhkiG9w0BAQsFADAY
@@ -100,7 +102,8 @@ m5cIDhPBuZSCs7ZnhWCHF0WMztl6fqNVp2GuFGbDM+LjAZT2YOdP0Ts=
 			pki: &K8sDqlitePKI{
 				allowSelfSignedCA: true,
 				hostname:          "localhost",
-				expirationDate:    time.Now().AddDate(1, 0, 0),
+				notBefore:         notBefore,
+				notAfter:          notBefore.AddDate(1, 0, 0),
 				ipSANs:            []net.IP{net.ParseIP("127.0.0.1")},
 				dnsSANs:           []string{"localhost"},
 			},
@@ -111,7 +114,8 @@ m5cIDhPBuZSCs7ZnhWCHF0WMztl6fqNVp2GuFGbDM+LjAZT2YOdP0Ts=
 			pki: &K8sDqlitePKI{
 				allowSelfSignedCA: true,
 				hostname:          "localhost",
-				expirationDate:    time.Now().AddDate(1, 0, 0),
+				notBefore:         notBefore,
+				notAfter:          notBefore.AddDate(1, 0, 0),
 				ipSANs:            []net.IP{},
 				dnsSANs:           []string{"localhost"},
 			},
@@ -134,7 +138,7 @@ m5cIDhPBuZSCs7ZnhWCHF0WMztl6fqNVp2GuFGbDM+LjAZT2YOdP0Ts=
 }
 
 func TestNewK8sDqlitePKI(t *testing.T) {
-	now := time.Now()
+	notBefore := time.Now()
 	tests := []struct {
 		name        string
 		opts        K8sDqlitePKIOpts
@@ -143,12 +147,13 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 		{
 			name: "NewK8sDqlitePKI with default values",
 			opts: K8sDqlitePKIOpts{
-				Hostname:       "localhost",
-				ExpirationDate: now.AddDate(1, 0, 0),
+				Hostname:  "localhost",
+				NotBefore: notBefore,
 			},
 			expectedPki: &K8sDqlitePKI{
-				hostname:       "localhost",
-				expirationDate: now.AddDate(1, 0, 0),
+				hostname:  "localhost",
+				notBefore: notBefore,
+				notAfter:  notBefore.AddDate(1, 0, 0),
 			},
 		},
 		{
@@ -157,7 +162,8 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 				Hostname:          "localhost",
 				DNSSANs:           []string{"localhost"},
 				IPSANs:            []net.IP{net.ParseIP("127.0.0.1")},
-				ExpirationDate:    now.AddDate(2, 0, 0),
+				NotBefore:         notBefore,
+				NotAfter:          notBefore.AddDate(2, 0, 0),
 				AllowSelfSignedCA: true,
 				Datastore:         "k8s-dqlite",
 			},
@@ -165,7 +171,8 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 				hostname:          "localhost",
 				ipSANs:            []net.IP{net.ParseIP("127.0.0.1")},
 				dnsSANs:           []string{"localhost"},
-				expirationDate:    now.AddDate(2, 0, 0),
+				notBefore:         notBefore,
+				notAfter:          notBefore.AddDate(2, 0, 0),
 				allowSelfSignedCA: true,
 			},
 		},

@@ -39,7 +39,18 @@ func (c *ControlPlanePKI) CompleteWorkerNodePKI(hostname string, nodeIP net.IP, 
 
 	// we have a cluster CA key, sign the kubelet server certificate
 	if serverCAKey != nil {
-		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: fmt.Sprintf("system:node:%s", hostname), Organization: []string{"system:nodes"}}, c.expirationDate, false, []string{hostname}, []net.IP{{127, 0, 0, 1}, nodeIP})
+		template, err := pkiutil.GenerateCertificate(
+			pkix.Name{
+				CommonName:   fmt.Sprintf("system:node:%s", hostname),
+				Organization: []string{"system:nodes"},
+			},
+			c.notBefore,
+			c.notAfter,
+			false,
+			[]string{hostname},
+			[]net.IP{{127, 0, 0, 1},
+				nodeIP,
+			})
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate kubelet certificate for hostname=%s address=%s: %w", hostname, nodeIP.String(), err)
 		}
@@ -64,7 +75,7 @@ func (c *ControlPlanePKI) CompleteWorkerNodePKI(hostname string, nodeIP net.IP, 
 			{name: "kubelet", cn: fmt.Sprintf("system:node:%s", hostname), o: []string{"system:nodes"}, cert: &pki.KubeletClientCert, key: &pki.KubeletClientKey},
 		} {
 			if *i.cert == "" || *i.key == "" {
-				template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: i.cn, Organization: i.o}, c.expirationDate, false, nil, nil)
+				template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: i.cn, Organization: i.o}, c.notBefore, c.notAfter, false, nil, nil)
 				if err != nil {
 					return nil, fmt.Errorf("failed to generate %s client certificate: %w", i.name, err)
 				}

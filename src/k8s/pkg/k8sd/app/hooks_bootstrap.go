@@ -13,7 +13,6 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
-	clusterutil "github.com/canonical/k8s/pkg/k8sd/app/util"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -280,15 +279,19 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.GetServiceCIDR(), err)
 	}
 
+	// NOTE: Set the notBefore certificate time to the current time.
+	notBefore := time.Now()
+
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		// NOTE: Default certificate expiration is set to 20 years.
-		defaultDuration := time.Now().AddDate(20, 0, 0)
+		defaultDuration := notBefore.AddDate(20, 0, 0)
 
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname:          s.Name(),
 			IPSANs:            []net.IP{{127, 0, 0, 1}},
-			ExpirationDate:    defaultDuration,
+			NotBefore:         notBefore,
+			NotAfter:          defaultDuration,
 			AllowSelfSignedCA: true,
 		})
 		if err := certificates.CompleteCertificates(); err != nil {
@@ -317,7 +320,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	}
 
 	// NOTE: Default certificate expiration is set to 20 years.
-	defaultDuration := time.Now().AddDate(20, 0, 0)
+	defaultDuration := notBefore.AddDate(20, 0, 0)
 
 	// Certificates
 	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
@@ -325,7 +328,8 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
 		DNSSANs:                   extraNames,
-		ExpirationDate:            defaultDuration,
+		NotBefore:                 notBefore,
+		NotAfter:                  defaultDuration,
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
 	})
@@ -386,7 +390,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	}
 
 	// Generate kubeconfigs
-	if err := clusterutil.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
