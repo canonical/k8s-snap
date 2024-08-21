@@ -2,7 +2,6 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
-import os
 from pathlib import Path
 from typing import Generator, List, Union
 
@@ -32,19 +31,24 @@ def _generate_inspection_reports(h: harness.Harness):
 
     for instance_id in h.get_instances():
         LOG.debug("Generating inspection report for %s", instance_id)
-        result = h.exec(instance_id, ["/snap/k8s/current/k8s/scripts/inspect.sh", "/inspection-report.tar.gz"], capture_output=True, text=True)
+        result = h.exec(
+            instance_id,
+            ["/snap/k8s/current/k8s/scripts/inspect.sh", "/inspection-report.tar.gz"],
+            capture_output=True,
+            text=True,
+        )
 
         (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
-        with open(inspection_path / instance_id / "inspection_report_logs.txt", "w") as f:
+        with open(
+            inspection_path / instance_id / "inspection_report_logs.txt", "w"
+        ) as f:
             f.write(result.stdout)
 
         h.pull_file(
             instance_id,
             "/inspection-report.tar.gz",
-            (inspection_path / instance_id / f"inspection_report.tar.gz").as_posix(),
+            (inspection_path / instance_id / "inspection_report.tar.gz").as_posix(),
         )
-
-
 
 
 @pytest.fixture(scope="session")
@@ -66,7 +70,7 @@ def h() -> harness.Harness:
     yield h
 
     if config.INSPECTION_REPORTS_DIR is not None:
-        LOG.debug("Generating inspection reports")
+        LOG.debug("Generating inspection reports for session instances")
         _generate_inspection_reports(h)
 
     _harness_clean(h)
@@ -162,8 +166,11 @@ def instances(
     # We cannot execute _harness_clean() here as this would also
     # remove the session_instance. The harness ensures that everything is cleaned up
     # at the end of the test session.
-    for instance in instances:
+    if config.INSPECTION_REPORTS_DIR is not None:
+        LOG.debug("Generating inspection reports for test instances")
         _generate_inspection_reports(h)
+
+    for instance in instances:
         h.delete_instance(instance.id)
 
 

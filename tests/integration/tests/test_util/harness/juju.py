@@ -6,8 +6,8 @@ import logging
 import shlex
 import subprocess
 from pathlib import Path
-
 from typing import Set
+
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
 from test_util.util import run

@@ -44,7 +44,6 @@ class LocalHarness(Harness):
         self.instance = self.hostname
         return Instance(self, self.hostname)
 
-
     def get_instances(self) -> Set[str]:
         if self.instance is None:
             return set()
