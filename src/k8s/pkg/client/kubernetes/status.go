@@ -20,6 +20,16 @@ func (c *Client) WaitKubernetesEndpointAvailable(ctx context.Context) error {
 	})
 }
 
+func (c *Client) CheckKubernetesEndpoint(ctx context.Context) error {
+	if endpoint, err := c.CoreV1().Endpoints("default").Get(ctx, "kubernetes", metav1.GetOptions{}); err != nil {
+		return fmt.Errorf("failed to get kubernetes endpoint: %w", err)
+	} else if endpoint == nil {
+		return fmt.Errorf("kubernetes endpoint not found")
+	}
+
+	return nil
+}
+
 // HasReadyNodes checks the status of all nodes in the Kubernetes cluster.
 // HasReadyNodes returns true if there is at least one Ready node in the cluster, false otherwise.
 func (c *Client) HasReadyNodes(ctx context.Context) (bool, error) {
