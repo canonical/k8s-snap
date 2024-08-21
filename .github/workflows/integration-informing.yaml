@@ -80,27 +80,20 @@ jobs:
       - name: Apply ${{ matrix.patch }} patch
         run: |
           ./build-scripts/patches/${{ matrix.patch }}/apply
-      - name: Generate inspection report
-        run: |
-          sudo k8s/scripts/inspect.sh
-      - name: Upload inspection report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: inspection-report
-          path: ./inspection-report-*.tar.gz
       - name: Run end to end tests
         run: |
           export TEST_SNAP="$PWD/build/k8s-${{ matrix.patch }}.snap"
           export TEST_SUBSTRATE=lxd
           export TEST_LXD_IMAGE=${{ matrix.os }}
           cd tests/integration && sg lxd -c 'tox -e integration'
-      - name: Generate inspection report
+      - name: Compress inspection reports
         if: failure()
         run: |
-          sudo k8s/scripts/inspect.sh
+          tar -czvf inspection-reports.tar.gz -C $HOME inspection-reports
+          ls
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: inspection-report
-          path: ./inspection-report-*.tar.gz
+          name: inspection-reports-${{ matrix.os }}-${{ matrix.patch }}
+          path: inspection-reports.tar.gz
