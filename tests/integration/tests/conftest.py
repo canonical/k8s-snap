@@ -37,7 +37,7 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
     )
 
     (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
-    Path(inspection_path / instance_id / "inspection_report_logs.txt", "w").write_text(result.stdout)
+    (inspection_path / instance_id / "inspection_report_logs.txt").write_text(result.stdout)
 
     h.pull_file(
         instance_id,
