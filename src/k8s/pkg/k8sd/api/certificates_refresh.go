@@ -121,7 +121,6 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 
 	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate control plane kubeconfigs: %w", err))
-
 	}
 
 	if err := snaputil.RestartControlPlaneServices(r.Context(), snap); err != nil {
@@ -302,7 +301,7 @@ func isCertificateSigningRequestApprovedAndIssued(csr *certv1.CertificateSigning
 
 		}
 		if condition.Type == certv1.CertificateDenied && condition.Status == corev1.ConditionTrue {
-			return false, fmt.Errorf(":CSR %s was denied: %s", csr.Name, condition.Reason)
+			return false, fmt.Errorf("CSR %s was denied: %s", csr.Name, condition.Reason)
 		}
 		if condition.Type == certv1.CertificateFailed && condition.Status == corev1.ConditionTrue {
 			return false, fmt.Errorf("CSR %s failed: %s", csr.Name, condition.Reason)

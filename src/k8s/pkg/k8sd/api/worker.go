@@ -39,10 +39,9 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 
 	// NOTE: Set the notBefore certificate time to the current time.
 	notBefore := time.Now()
-	// NOTE: Default certificate expiration is set to 10 years.
-	defaultExpiration := notBefore.AddDate(10, 0, 0)
 
-	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{NotBefore: notBefore, NotAfter: defaultExpiration})
+	// NOTE: Default certificate expiration is set to 10 years.
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{NotBefore: notBefore, NotAfter: notBefore.AddDate(10, 0, 0)})
 	certificates.CACert = cfg.Certificates.GetCACert()
 	certificates.CAKey = cfg.Certificates.GetCAKey()
 	certificates.ClientCACert = cfg.Certificates.GetClientCACert()
