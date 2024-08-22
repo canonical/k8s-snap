@@ -42,11 +42,14 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
         result.stdout
     )
 
-    h.pull_file(
-        instance_id,
-        "/inspection-report.tar.gz",
-        (inspection_path / instance_id / "inspection_report.tar.gz").as_posix(),
-    )
+    try:
+        h.pull_file(
+            instance_id,
+            "/inspection-report.tar.gz",
+            (inspection_path / instance_id / "inspection_report.tar.gz").as_posix(),
+        )
+    except harness.HarnessError as e:
+        LOG.warning("Failed to pull inspection report: %s", e)
 
 
 @pytest.fixture(scope="session")
