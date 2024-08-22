@@ -85,4 +85,16 @@ jobs:
           export TEST_SNAP="$PWD/build/k8s-${{ matrix.patch }}.snap"
           export TEST_SUBSTRATE=lxd
           export TEST_LXD_IMAGE=${{ matrix.os }}
+          export TEST_INSPECTION_REPORTS_DIR="$HOME/inspection-reports"
           cd tests/integration && sg lxd -c 'tox -e integration'
+      - name: Prepare inspection reports
+        if: failure()
+        run: |
+          tar -czvf inspection-reports.tar.gz -C $HOME inspection-reports
+          echo "artifact_name=inspection-reports-${{ matrix.os }}-${{ matrix.patch }}" | sed 's/:/-/g' >> $GITHUB_ENV
+      - name: Upload inspection report artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: inspection-reports.tar.gz

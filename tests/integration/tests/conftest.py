@@ -25,6 +25,33 @@ def _harness_clean(h: harness.Harness):
         h.cleanup()
 
 
+def _generate_inspection_report(h: harness.Harness, instance_id: str):
+    LOG.debug("Generating inspection report for %s", instance_id)
+
+    inspection_path = Path(config.INSPECTION_REPORTS_DIR)
+    result = h.exec(
+        instance_id,
+        ["/snap/k8s/current/k8s/scripts/inspect.sh", "/inspection-report.tar.gz"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
+    (inspection_path / instance_id / "inspection_report_logs.txt").write_text(
+        result.stdout
+    )
+
+    try:
+        h.pull_file(
+            instance_id,
+            "/inspection-report.tar.gz",
+            (inspection_path / instance_id / "inspection_report.tar.gz").as_posix(),
+        )
+    except harness.HarnessError as e:
+        LOG.warning("Failed to pull inspection report: %s", e)
+
+
 @pytest.fixture(scope="session")
 def h() -> harness.Harness:
     LOG.debug("Create harness for %s", config.SUBSTRATE)
@@ -42,6 +69,11 @@ def h() -> harness.Harness:
         )
 
     yield h
+
+    if config.INSPECTION_REPORTS_DIR is not None:
+        for instance_id in h.instances:
+            LOG.debug("Generating inspection reports for session instances")
+            _generate_inspection_report(h, instance_id)
 
     _harness_clean(h)
 
@@ -137,6 +169,10 @@ def instances(
     # remove the session_instance. The harness ensures that everything is cleaned up
     # at the end of the test session.
     for instance in instances:
+        if config.INSPECTION_REPORTS_DIR is not None:
+            LOG.debug("Generating inspection reports for test instances")
+            _generate_inspection_report(h, instance.id)
+
         h.delete_instance(instance.id)
 
 

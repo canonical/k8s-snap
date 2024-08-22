@@ -1,4 +1,22 @@
 #!/usr/bin/env bash
+#
+# This script collects diagnostics and other relevant information from a Kubernetes
+# node (either control-plane or worker node) and compiles them into a tarball report.
+# The collected data includes service arguments, Kubernetes cluster info, SBOM, system
+# diagnostics, network diagnostics, and more. The script needs to be run with
+# elevated permissions (sudo).
+#
+# Usage:
+#   ./inspect.sh [output_file]
+#
+# Arguments:
+#   output_file  (Optional) The full path and filename for the generated tarball.
+#                If not provided, a default filename based on the current date
+#                and time will be used.
+#
+# Example:
+#   ./inspect.sh /path/to/output.tar.gz
+#   ./inspect.sh  # This will generate a tarball with a default name.
 
 INSPECT_DUMP=$(pwd)/inspection-report
 
@@ -82,7 +100,7 @@ function collect_service_diagnostics {
   systemctl status "snap.$service" &>"$status_file"
 
   local n_restarts
-  n_restarts=$(systemctl show "snap.$service" -p NRestarts | cut -d'=' -f2) 
+  n_restarts=$(systemctl show "snap.$service" -p NRestarts | cut -d'=' -f2)
 
   printf -- "%s -> %s\n" "$service" "$n_restarts" >> "$INSPECT_DUMP/nrestarts.log"
 
@@ -122,12 +140,19 @@ function check_expected_services {
 }
 
 function build_report_tarball {
+  local output_file
   local now_is
-  now_is=$(date +"%Y%m%d_%H%M%S")
+  now_is="$(date +'%Y%m%d_%H%M%S')"
 
-  tar -C "$(pwd)" -cf "$(pwd)/inspection-report-${now_is}.tar" inspection-report &>/dev/null
-  gzip "$(pwd)/inspection-report-${now_is}.tar"
-  log_success "Report tarball is at $(pwd)/inspection-report-$now_is.tar.gz"
+  if [ -z "$1" ]; then
+    output_file="$(pwd)/inspection-report-${now_is}.tar.gz"
+  else
+    output_file="$1"
+  fi
+
+  tar -C "$(pwd)" -cf "${output_file%.gz}" inspection-report &>/dev/null
+  gzip "${output_file%.gz}" -f
+  log_success "Report tarball is at $output_file"
 }
 
 if [ "$EUID" -ne 0 ]; then
@@ -181,4 +206,4 @@ if [ -n "$matches" ]; then
 fi
 
 printf -- 'Building the report tarball\n'
-build_report_tarball
+build_report_tarball "$1"
