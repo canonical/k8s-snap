@@ -85,12 +85,15 @@ jobs:
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C $HOME inspection-reports
-          ls
+      - name: Set inspection report artifact name
+        run: |
+          echo "artifact_name=inspection-reports-${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
+          echo ${{ env.artifact_name }}
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: inspection-reports-${{ matrix.os.replace(':', '-') }}
+          name: ${{ env.artifact_name }}
           path: inspection-reports.tar.gz
 
   security-scan:
