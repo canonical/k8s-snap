@@ -11,9 +11,7 @@ LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(2)
-@pytest.mark.disable_k8s_bootstrapping()
 def test_control_plane_nodes(instances: List[harness.Instance]):
-    assert False
     cluster_node = instances[0]
     joining_node = instances[1]
 
