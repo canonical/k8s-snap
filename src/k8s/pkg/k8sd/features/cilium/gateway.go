@@ -71,7 +71,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 	}
 
 	if err := rolloutRestartCilium(ctx, snap, 3); err != nil {
-		err = fmt.Errorf("failed to rollout restart cilium to apply Gateway API: %w", err)
+		err = fmt.Errorf("failed to rollout restart cilium to enable Gateway API: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ciliumAgentImageTag,
@@ -126,6 +126,15 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 			Version: ciliumAgentImageTag,
 			Message: disabledMsg,
 		}, nil
+	}
+
+	if err := rolloutRestartCilium(ctx, snap, 3); err != nil {
+		err = fmt.Errorf("failed to rollout restart cilium to disable Gateway API: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
 	}
 
 	return types.FeatureStatus{
