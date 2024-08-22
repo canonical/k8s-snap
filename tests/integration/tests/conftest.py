@@ -34,6 +34,7 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
         ["/snap/k8s/current/k8s/scripts/inspect.sh", "/inspection-report.tar.gz"],
         capture_output=True,
         text=True,
+        check=False,
     )
 
     (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
