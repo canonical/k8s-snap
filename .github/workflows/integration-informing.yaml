@@ -86,12 +86,10 @@ jobs:
           export TEST_SUBSTRATE=lxd
           export TEST_LXD_IMAGE=${{ matrix.os }}
           cd tests/integration && sg lxd -c 'tox -e integration'
-      - name: Compress inspection reports
+      - name: Prepare inspection reports
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C $HOME inspection-reports
-      - name: Set inspection report artifact name
-        run: |
           echo "artifact_name=inspection-reports-${{ matrix.os }}-${{ matrix.patch }}" | sed 's/:/-/g' >> $GITHUB_ENV
           echo ${{ env.artifact_name }}
       - name: Upload inspection report artifact
