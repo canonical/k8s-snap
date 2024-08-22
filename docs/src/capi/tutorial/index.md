@@ -1,7 +1,7 @@
 # Tutorials
 
 This section contains a step-by-step guide to help you start exploring how to
-install and use {{product}}.
+install and use {{product}} with Cluster API.
 
 ```{toctree}
 :hidden:
