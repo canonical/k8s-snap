@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
@@ -60,8 +61,82 @@ func (e *Endpoints) postRefreshCertsRun(s state.State, r *http.Request) response
 	if isWorker {
 		return refreshCertsRunWorker(s, r, snap)
 	}
-	// TODO: Control Plane refresh
-	return response.InternalError(fmt.Errorf("not implemented yet"))
+	return refreshCertsRunControlPlane(s, r, snap)
+}
+
+// refreshCertsRunControlPlane refreshes the certificates for a control plane node.
+func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap) response.Response {
+	req := apiv1.RefreshCertificatesRunRequest{}
+	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
+		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
+	}
+
+	clusterConfig, err := databaseutil.GetClusterConfig(r.Context(), s)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to recover cluster config: %w", err))
+	}
+
+	nodeIP := net.ParseIP(s.Address().Hostname())
+	if nodeIP == nil {
+		return response.InternalError(fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname()))
+	}
+
+	serviceIPs, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(clusterConfig.Network.GetServiceCIDR())
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", clusterConfig.Network.GetServiceCIDR(), err))
+	}
+
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(req.ExtraSANs)
+
+	// NOTE: Set the notBefore certificate time to the current time.
+	notBefore := time.Now()
+
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
+		Hostname:                  s.Name(),
+		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
+		NotBefore:                 notBefore,
+		NotAfter:                  utils.SecondsToExpirationDate(notBefore, req.ExpirationSeconds),
+		DNSSANs:                   extraNames,
+		AllowSelfSignedCA:         true,
+		IncludeMachineAddressSANs: true,
+	})
+
+	certificates.CACert = clusterConfig.Certificates.GetCACert()
+	certificates.CAKey = clusterConfig.Certificates.GetCAKey()
+	certificates.ClientCACert = clusterConfig.Certificates.GetClientCACert()
+	certificates.ClientCAKey = clusterConfig.Certificates.GetClientCAKey()
+	certificates.FrontProxyCACert = clusterConfig.Certificates.GetFrontProxyCACert()
+	certificates.FrontProxyCAKey = clusterConfig.Certificates.GetFrontProxyCAKey()
+	certificates.K8sdPrivateKey = clusterConfig.Certificates.GetK8sdPrivateKey()
+	certificates.K8sdPublicKey = clusterConfig.Certificates.GetK8sdPublicKey()
+	certificates.ServiceAccountKey = clusterConfig.Certificates.GetServiceAccountKey()
+
+	if err := certificates.CompleteCertificates(); err != nil {
+		return response.InternalError(fmt.Errorf("failed to generate new control plane certificates: %w", err))
+	}
+
+	if _, err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
+		return response.InternalError(fmt.Errorf("failed to write control plane certificates: %w", err))
+	}
+
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
+		return response.InternalError(fmt.Errorf("failed to generate control plane kubeconfigs: %w", err))
+	}
+
+	if err := snaputil.RestartControlPlaneServices(r.Context(), snap); err != nil {
+		return response.InternalError(fmt.Errorf("failed to restart control plane services: %w", err))
+	}
+
+	kubeletCert, _, err := pkiutil.LoadCertificate(certificates.KubeletCert, "")
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to read kubelet certificate: %w", err))
+	}
+
+	expirationDuration := kubeletCert.NotAfter.Sub(kubeletCert.NotBefore)
+
+	return response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
+		ExpirationSeconds: int(expirationDuration.Seconds()),
+	})
 }
 
 // refreshCertsRunWorker refreshes the certificates for a worker node
@@ -226,7 +301,7 @@ func isCertificateSigningRequestApprovedAndIssued(csr *certv1.CertificateSigning
 
 		}
 		if condition.Type == certv1.CertificateDenied && condition.Status == corev1.ConditionTrue {
-			return false, fmt.Errorf(":CSR %s was denied: %s", csr.Name, condition.Reason)
+			return false, fmt.Errorf("CSR %s was denied: %s", csr.Name, condition.Reason)
 		}
 		if condition.Type == certv1.CertificateFailed && condition.Status == corev1.ConditionTrue {
 			return false, fmt.Errorf("CSR %s failed: %s", csr.Name, condition.Reason)

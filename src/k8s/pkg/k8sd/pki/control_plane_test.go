@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
@@ -25,9 +26,11 @@ func mustReadTestData(t *testing.T, filename string) string {
 }
 
 func TestControlPlaneCertificates(t *testing.T) {
+	notBefore := time.Now()
 	c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:          "h1",
-		Years:             10,
+		NotBefore:         notBefore,
+		NotAfter:          notBefore.AddDate(1, 0, 0),
 		AllowSelfSignedCA: true,
 	})
 
@@ -61,8 +64,9 @@ func TestControlPlaneCertificates(t *testing.T) {
 
 	t.Run("MissingCAKey", func(t *testing.T) {
 		c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
-			Hostname: "h1",
-			Years:    10,
+			Hostname:  "h1",
+			NotBefore: notBefore,
+			NotAfter:  notBefore.AddDate(1, 0, 0),
 		})
 
 		c.CACert = mustReadTestData(t, "ca.pem")
@@ -74,7 +78,8 @@ func TestControlPlaneCertificates(t *testing.T) {
 	t.Run("ApiServerCertSANs", func(t *testing.T) {
 		c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 			Hostname:          "h1",
-			Years:             10,
+			NotBefore:         notBefore,
+			NotAfter:          notBefore.AddDate(1, 0, 0),
 			AllowSelfSignedCA: true,
 			IPSANs:            []net.IP{net.ParseIP("192.168.2.123")},
 			DNSSANs:           []string{"cluster.local"},
@@ -107,7 +112,8 @@ func TestControlPlaneCertificates(t *testing.T) {
 	t.Run("KubeletCertSANs", func(t *testing.T) {
 		c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 			Hostname:          "h1",
-			Years:             10,
+			NotBefore:         notBefore,
+			NotAfter:          notBefore.AddDate(1, 0, 0),
 			AllowSelfSignedCA: true,
 			IPSANs:            []net.IP{net.ParseIP("192.168.2.123")},
 			DNSSANs:           []string{"cluster.local"},
