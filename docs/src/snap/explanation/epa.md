@@ -485,7 +485,7 @@ applications. Other libraries, outside of EAL, including the Hash, Longest
 Prefix Match (LPM) and rings libraries are also provided. Sample applications
 are provided to help show the user how to use various features of the DPDK.
 
-The DPDK implements a run to completion model for packet processing, where all
+The DPDK implements a run-to-completion model for packet processing, where all
 resources must be allocated prior to calling data plane applications, running
 as execution units on logical processing cores. The model does not support a
 scheduler and all devices are accessed by polling. The primary reason for not
