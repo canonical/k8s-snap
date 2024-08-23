@@ -357,7 +357,7 @@ architectural components and their roles:
    environment. This includes setting privileged containers and configuring
    namespaces to avoid resource contention.  
 -  **Performance tuning**: Additional performance tuning can be achieved by
-   configuring kernel parameters and using tools like numactl to bind processes
+   configuring kernel parameters and using tools like `numactl` to bind processes
    to specific NUMA nodes.
 
 ## SR-IOV (Single Root I/O Virtualization)
