@@ -34,6 +34,8 @@ be: run it in several local containers or VMs for example, or use it on
 public/private cloud instances. 
 For deploying with [Juju], a machine [charm] to deploy
 the snap is also available.
+For deployment using Cluster API, additional resources have also been
+created.
 
 ## Can I use it to make a cluster?
 
