@@ -70,8 +70,8 @@ are the key architectural components and their roles:
 -  **Node configuration**: Each Kubernetes node must be configured to reserve
    HugePages. This involves setting the number of HugePages in the node's
    kernel boot parameters.  
--  **Kubelet configuration**: The kubelet on each node must be configured to
-   recognise and manage HugePages. This is typically done through the kubelet
+-  **Kubelet configuration**: The `kubelet` on each node must be configured to
+   recognise and manage HugePages. This is typically done through the `kubelet`
    configuration file, specifying the size and number of HugePages.  
 -  **Pod specification**: HugePages are requested and allocated at the pod
    level through resource requests and limits in the pod specification. Pods
