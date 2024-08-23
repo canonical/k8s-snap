@@ -29,7 +29,7 @@ func (e *Endpoints) postClusterJoinTokens(s state.State, r *http.Request) respon
 
 	var token string
 	if req.Worker {
-		token, err = getOrCreateWorkerToken(r.Context(), s, hostname)
+		token, err = getOrCreateWorkerToken(r.Context(), s, hostname, req.TTL)
 	} else {
 		token, err = getOrCreateJoinToken(r.Context(), e.provider.MicroCluster(), hostname, req.TTL)
 	}
@@ -65,11 +65,11 @@ func getOrCreateJoinToken(ctx context.Context, m *microcluster.MicroCluster, tok
 	return token, nil
 }
 
-func getOrCreateWorkerToken(ctx context.Context, s state.State, nodeName string) (string, error) {
+func getOrCreateWorkerToken(ctx context.Context, s state.State, nodeName string, ttl time.Duration) (string, error) {
 	var token string
 	if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		token, err = database.GetOrCreateWorkerNodeToken(ctx, tx, nodeName)
+		token, err = database.GetOrCreateWorkerNodeToken(ctx, tx, nodeName, time.Now().Add(ttl))
 		if err != nil {
 			return fmt.Errorf("failed to create worker node token: %w", err)
 		}

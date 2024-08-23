@@ -2,6 +2,8 @@ module github.com/canonical/k8s
 
 go 1.22.6
 
+replace github.com/canonical/k8s-snap-api => /home/benjamin/work/k8s-snap-api
+
 require (
 	dario.cat/mergo v1.0.0
 	github.com/canonical/go-dqlite v1.22.0

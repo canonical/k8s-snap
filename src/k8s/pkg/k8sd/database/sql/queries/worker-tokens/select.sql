@@ -1,5 +1,5 @@
 SELECT
-    t.name
+    t.name, t.expiry
 FROM
     worker_tokens AS t
 WHERE

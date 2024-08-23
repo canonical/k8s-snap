@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"time"
 
 	"github.com/canonical/microcluster/v2/cluster"
 )
@@ -20,21 +21,24 @@ var (
 )
 
 // CheckWorkerNodeToken returns true if the specified token can be used to join the specified node on the cluster.
+// CheckWorkerNodeToken will return true if the token is empty or if the token is associated with the specified node
+// and has not expired.
 func CheckWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string, token string) (bool, error) {
 	selectTxStmt, err := cluster.Stmt(tx, workerStmts["select-token"])
 	if err != nil {
 		return false, fmt.Errorf("failed to prepare select statement: %w", err)
 	}
 	var tokenNodeName string
-	if selectTxStmt.QueryRowContext(ctx, token).Scan(&tokenNodeName) == nil {
-		return tokenNodeName == "" || subtle.ConstantTimeCompare([]byte(nodeName), []byte(tokenNodeName)) == 1, nil
+	var expiry time.Time
+	if selectTxStmt.QueryRowContext(ctx, token).Scan(&tokenNodeName, &expiry) == nil {
+		return (tokenNodeName == "" || subtle.ConstantTimeCompare([]byte(nodeName), []byte(tokenNodeName)) == 1) && time.Now().Before(expiry), nil
 	}
 	return false, nil
 }
 
 // GetOrCreateWorkerNodeToken returns a token that can be used to join a worker node on the cluster.
 // GetOrCreateWorkerNodeToken will return the existing token, if one already exists for the node.
-func GetOrCreateWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string) (string, error) {
+func GetOrCreateWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string, expiry time.Time) (string, error) {
 	insertTxStmt, err := cluster.Stmt(tx, workerStmts["insert-token"])
 	if err != nil {
 		return "", fmt.Errorf("failed to prepare insert statement: %w", err)
@@ -46,7 +50,7 @@ func GetOrCreateWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string
 		return "", fmt.Errorf("is the system entropy low? failed to get random bytes: %w", err)
 	}
 	token := fmt.Sprintf("worker::%s", hex.EncodeToString(b))
-	if _, err := insertTxStmt.ExecContext(ctx, nodeName, token); err != nil {
+	if _, err := insertTxStmt.ExecContext(ctx, nodeName, token, expiry); err != nil {
 		return "", fmt.Errorf("insert token query failed: %w", err)
 	}
 	return token, nil
