@@ -71,6 +71,14 @@ Our tutorials, How To guides and other pages will explain how to install,
  configure and use the {{product}} 'k8s' charm.
 ```
 
+
+```{grid-item-card}
+:link: capi/
+### [Deploy K8s using Cluster API ›](capi/index)
+^^^
+Our tutorials, guides and other pages will explain how to install,
+ configure and use {{product}} through CAPI.
+```
 ````
 
 ---
