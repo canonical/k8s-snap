@@ -48,8 +48,8 @@ will find the latest features but you may also experience instability.
 
 ## Bootstrap the cluster
 
-Installing the k8s charm sets up all the parts required to run Kubernetes. One may
-watch it progress using juju status:
+Installing the `k8s` charm sets up all the parts required to run Kubernetes.
+You can watch it progress using juju status:
 
 ```
 juju status --watch 1s
