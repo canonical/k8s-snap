@@ -23,89 +23,55 @@ const (
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+	if gateway.GetEnabled() {
+		return enableGateway(ctx, snap)
+	}
+	return disableGateway(ctx, snap, network)
+}
+
+func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
-	if _, err := m.Apply(ctx, chartGateway, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {
-		if gateway.GetEnabled() {
-			err = fmt.Errorf("failed to install Gateway API CRDs: %w", err)
-			return types.FeatureStatus{
-				Enabled: false,
-				Version: ciliumAgentImageTag,
-				Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
-			}, err
-		} else {
-			err = fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
-			return types.FeatureStatus{
-				Enabled: false,
-				Version: ciliumAgentImageTag,
-				Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
-			}, err
-		}
-	}
-
-	// Apply our GatewayClass named ck-gateway
-	if _, err := m.Apply(ctx, chartGatewayClass, helm.StatePresentOrDeleted(gateway.GetEnabled()), nil); err != nil {
-		if gateway.GetEnabled() {
-			err = fmt.Errorf("failed to install Gateway API GatewayClass: %w", err)
-			return types.FeatureStatus{
-				Enabled: false,
-				Version: ciliumAgentImageTag,
-				Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
-			}, err
-		} else {
-			err = fmt.Errorf("failed to delete Gateway API GatewayClass: %w", err)
-			return types.FeatureStatus{
-				Enabled: false,
-				Version: ciliumAgentImageTag,
-				Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
-			}, err
-		}
-	}
-
-	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), map[string]any{"gatewayAPI": map[string]any{"enabled": gateway.GetEnabled()}})
-	if err != nil {
-		if gateway.GetEnabled() {
-			err = fmt.Errorf("failed to upgrade Gateway API cilium configuration: %w", err)
-			return types.FeatureStatus{
-				Enabled: false,
-				Version: ciliumAgentImageTag,
-				Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
-			}, err
-		} else {
-			err = fmt.Errorf("failed to delete Gateway API cilium configuration: %w", err)
-			return types.FeatureStatus{
-				Enabled: false,
-				Version: ciliumAgentImageTag,
-				Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
-			}, err
-		}
-	}
-
-	if !changed {
-		if gateway.GetEnabled() {
-			return types.FeatureStatus{
-				Enabled: true,
-				Version: ciliumAgentImageTag,
-				Message: enabledMsg,
-			}, nil
-		} else {
-			return types.FeatureStatus{
-				Enabled: false,
-				Version: ciliumAgentImageTag,
-				Message: disabledMsg,
-			}, nil
-		}
-	}
-
-	if !gateway.GetEnabled() {
+	// Install Gateway API CRDs
+	if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, nil); err != nil {
+		err = fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ciliumAgentImageTag,
-			Message: disabledMsg,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	// Apply our GatewayClass named ck-gateway
+	if _, err := m.Apply(ctx, chartGatewayClass, helm.StatePresent, nil); err != nil {
+		err = fmt.Errorf("failed to install Gateway API GatewayClass: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnly, map[string]any{"gatewayAPI": map[string]any{"enabled": true}})
+	if err != nil {
+		err = fmt.Errorf("failed to upgrade Gateway API cilium configuration: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	if !changed {
+		return types.FeatureStatus{
+			Enabled: true,
+			Version: ciliumAgentImageTag,
+			Message: enabledMsg,
 		}, nil
 	}
+
 	if err := rolloutRestartCilium(ctx, snap, 3); err != nil {
-		err = fmt.Errorf("failed to rollout restart cilium to apply Gateway API: %w", err)
+		err = fmt.Errorf("failed to rollout restart cilium to enable Gateway API: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ciliumAgentImageTag,
@@ -117,5 +83,63 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		Enabled: true,
 		Version: ciliumAgentImageTag,
 		Message: enabledMsg,
+	}, nil
+}
+
+func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) (types.FeatureStatus, error) {
+	m := snap.HelmClient()
+
+	// Delete our GatewayClass named ck-gateway
+	if _, err := m.Apply(ctx, chartGatewayClass, helm.StateDeleted, nil); err != nil {
+		err = fmt.Errorf("failed to delete Gateway API GatewayClass: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+		}, err
+	}
+
+	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), map[string]any{"gatewayAPI": map[string]any{"enabled": false}})
+	if err != nil {
+		err = fmt.Errorf("failed to delete Gateway API cilium configuration: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+		}, err
+	}
+
+	// Remove Gateway CRDs if the Gateway feature is disabled.
+	// This is done after the Cilium update as cilium requires the CRDs to be present for cleanups.
+	if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
+		err = fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+		}, err
+	}
+
+	if !changed {
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: disabledMsg,
+		}, nil
+	}
+
+	if err := rolloutRestartCilium(ctx, snap, 3); err != nil {
+		err = fmt.Errorf("failed to rollout restart cilium to disable Gateway API: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	return types.FeatureStatus{
+		Enabled: false,
+		Version: ciliumAgentImageTag,
+		Message: disabledMsg,
 	}, nil
 }
