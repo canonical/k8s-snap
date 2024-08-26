@@ -6,8 +6,8 @@ require (
 	dario.cat/mergo v1.0.0
 	github.com/canonical/go-dqlite v1.22.0
 	github.com/canonical/k8s-snap-api v1.0.3
-	github.com/canonical/microcluster/v3 v3.0.0-20240823162448-e533f3c654af
 	github.com/canonical/lxd v0.0.0-20240822122218-e7b2a7a83230
+	github.com/canonical/microcluster/v3 v3.0.0-20240823162448-e533f3c654af
 	github.com/go-logr/logr v1.4.2
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/sys/mountinfo v0.7.1
@@ -28,11 +28,6 @@ require (
 	sigs.k8s.io/controller-runtime v0.18.4
 )
 
-// We are switching to the microcluster fork temporarily which removes the join name verification to unblock CAPI work.
-// This will be reverted once a proper solution that addresses CAPI requirements is merged upstream.
-// https://github.com/canonical/microcluster/issues/234
-replace github.com/canonical/microcluster/v2 v2.0.2 => github.com/canonical/k8s-microcluster/v2 v2.1.0
-
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
@@ -47,7 +42,6 @@ require (
 	github.com/armon/go-proxyproto v0.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/canonical/microcluster/v3 v3.0.0-20240823162448-e533f3c654af // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/containerd/containerd v1.7.13 // indirect
