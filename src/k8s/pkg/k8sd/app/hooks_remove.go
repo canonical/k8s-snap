@@ -28,7 +28,13 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 	log.Info("Running preremove hook")
 
 	log.Info("Waiting for node to finish microcluster join before removing")
-	control.WaitUntilReady(ctx, func() (bool, error) {
+	// NOTE (hue): in microcluster v2, PreRemove hook is also called if something goes wrong on
+	// `bootstrap` and `join-cluster`. It is possible that we get stuck in this loop forever which causes
+	// the `bootstrap` and `join-cluster` commands to hang and finally return an uninformative `context deadline exceeded` error
+	// we optimistically stop trying after a fixed number of retries.
+	maxRetries := 10
+	var txnRetries int
+	if err := control.WaitUntilReady(ctx, func() (bool, error) {
 		var notPending bool
 		if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 			member, err := cluster.GetCoreClusterMember(ctx, tx, s.Name())
@@ -40,9 +46,18 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 			return nil
 		}); err != nil {
 			log.Error(err, "Failed database transaction to check cluster member role")
+			txnRetries++
 		}
+
+		if txnRetries >= maxRetries {
+			log.Info("Reached maximum number of retries for database transactions on pre-remove hook, continuing cleanup", "max_retries", maxRetries)
+			return true, nil
+		}
+
 		return notPending, nil
-	})
+	}); err != nil {
+		log.Error(err, "Failed to wait for node to finish microcluster join before removing. Continuing with the cleanup...")
+	}
 
 	if cfg, err := databaseutil.GetClusterConfig(ctx, s); err == nil {
 		if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; !ok {
