@@ -6,7 +6,6 @@ both IPv4 and IPv6 addresses, allowing them to communicate over either protocol.
 This document will guide you through enabling dual-stack, including necessary
 configurations, known limitations, and common issues.
 
-
 ### Prerequisites
 
 Before enabling dual-stack, ensure that your environment supports IPv6, and
