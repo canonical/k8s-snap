@@ -120,7 +120,7 @@ cluster bootstrap process. The key configuration parameters are:
    kube-system   metrics-server                      ClusterIP   10.152.183.108   <none>        443/TCP         4m11s
    ```
 
-   Test connectivity to the deployed application using the IPv6 address:
+   Test the connectivity to the deployed application using the IPv6 address from the retrieved output:
 
    ```sh
    curl http://[fd98::7534]/
