@@ -107,7 +107,7 @@ cluster bootstrap process. The key configuration parameters are:
    sudo k8s kubectl get service -A
    ```
 
-   The output should be similar to
+   The output should be similar to:
    ```
    root@k8s-dualstack:/k8s-snap# sudo k8s kubectl get svc -A
    NAMESPACE     NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)         AGE
