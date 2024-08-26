@@ -101,8 +101,8 @@ github.com/canonical/go-dqlite v1.22.0 h1:DuJmfcREl4gkQJyvZzjl2GHFZROhbPyfdjDRQX
 github.com/canonical/go-dqlite v1.22.0/go.mod h1:Uvy943N8R4CFUAs59A1NVaziWY9nJ686lScY7ywurfg=
 github.com/canonical/k8s-microcluster/v2 v2.1.0 h1:zoK/fYzEkhCKAWf6NcZHG6+3U2c4PqkDTUVtwju951I=
 github.com/canonical/k8s-microcluster/v2 v2.1.0/go.mod h1:09N/J8tuijpAJdOER+e8IVWpn9cjzw9KzZvIunii/pA=
-github.com/canonical/k8s-snap-api v1.0.2 h1:9tyIneGQ6dPouX/8DH/HBqQIk+PF+MtQB3Qwt43Cuu4=
-github.com/canonical/k8s-snap-api v1.0.2/go.mod h1:LDPoIYCeYnfgOFrwVPJ/4edGU264w7BB7g0GsVi36AY=
+github.com/canonical/k8s-snap-api v1.0.3 h1:unMuIdLgdjlYj3bhkTQoHzphNrJG54IV23mAi1EBB38=
+github.com/canonical/k8s-snap-api v1.0.3/go.mod h1:LDPoIYCeYnfgOFrwVPJ/4edGU264w7BB7g0GsVi36AY=
 github.com/canonical/lxd v0.0.0-20240730172021-8e39e5d4f55f h1:bTaF5FmQk66wI8ILr+pzelTY6iNLXE9c2Ks2HG4Sp5U=
 github.com/canonical/lxd v0.0.0-20240730172021-8e39e5d4f55f/go.mod h1:BVyKLSsJLTLX3o6WW0f5YDOO+J5HE3Np2WwYVrug0sY=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=

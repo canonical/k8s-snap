@@ -31,7 +31,7 @@ func (e *Endpoints) postClusterJoinTokens(s state.State, r *http.Request) respon
 	if req.Worker {
 		token, err = getOrCreateWorkerToken(r.Context(), s, hostname)
 	} else {
-		token, err = getOrCreateJoinToken(r.Context(), e.provider.MicroCluster(), hostname)
+		token, err = getOrCreateJoinToken(r.Context(), e.provider.MicroCluster(), hostname, req.TTL)
 	}
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create token: %w", err))
@@ -40,7 +40,7 @@ func (e *Endpoints) postClusterJoinTokens(s state.State, r *http.Request) respon
 	return response.SyncResponse(true, &apiv1.GetJoinTokenResponse{EncodedToken: token})
 }
 
-func getOrCreateJoinToken(ctx context.Context, m *microcluster.MicroCluster, tokenName string) (string, error) {
+func getOrCreateJoinToken(ctx context.Context, m *microcluster.MicroCluster, tokenName string, ttl time.Duration) (string, error) {
 	// grab token if it exists and return it
 	records, err := m.ListJoinTokens(ctx)
 	if err != nil {
@@ -54,9 +54,11 @@ func getOrCreateJoinToken(ctx context.Context, m *microcluster.MicroCluster, tok
 		fmt.Println("No token exists yet. Creating a new token.")
 	}
 
-	// if token does not exist, create a new one
-	// TODO(ben): make token expiry configurable
-	token, err := m.NewJoinToken(ctx, tokenName, 24*time.Hour)
+	if ttl == 0 {
+		ttl = 24 * time.Hour
+	}
+
+	token, err := m.NewJoinToken(ctx, tokenName, ttl)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate a new microcluster join token: %w", err)
 	}
