@@ -9,8 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const minTokenTTL = 3 * time.Second
-
 func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
 		worker  bool
@@ -31,11 +29,6 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			if opts.timeout < minTimeout {
 				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", opts.timeout, minTimeout, minTimeout)
 				opts.timeout = minTimeout
-			}
-
-			if opts.ttl < minTokenTTL {
-				cmd.PrintErrf("Token expiration time %v is less than minimum of %v. Using the minimum %v instead.\n", opts.ttl, minTokenTTL, minTokenTTL)
-				opts.ttl = minTokenTTL
 			}
 
 			client, err := env.Snap.K8sdClient("")
