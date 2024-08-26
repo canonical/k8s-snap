@@ -21,22 +21,10 @@ cluster bootstrap process. The key configuration parameters are:
 - **Pod CIDR**: Defines the IP range for pods.
 - **Service CIDR**: Defines the IP range for services.
 
+
 1. **Bootstrap Kubernetes with Dual-Stack CIDRs**
 
-   Start by creating a new container (e.g., using LXC) and ensure that IPv6
-   is enabled.
-
-   ```
-   lxc launch ubuntu:22.04 k8s-dualstack -p default -p k8s-integration
-   ```
-
-   Shell into the container:
-
-   ```
-   lxc shell k8s-dualstack bash
-   ```
-
-   Now, bootstrap the cluster in interactive mode and set both IPv4 and
+   Bootstrap the cluster in interactive mode and set both IPv4 and
    IPv6 CIDRs:
 
    ```
@@ -50,7 +38,20 @@ cluster bootstrap process. The key configuration parameters are:
    Please set the Service CIDR: [10.152.183.0/24]: 10.152.183.0/24,fd98::/108
    ```
 
-2. **Verify Pod and Service Creation**
+   Alternatively, the CIDRs can be configured in a bootstrap configuration file:
+
+   ```yaml
+   pod-cidr: 10.1.0.0/16,fd01::/108
+   service-cidr: 10.152.183.0/24,fd98::/108
+   ```
+
+   and applied when bootstrapping the cluster:
+   ```
+   sudo k8s bootstrap --file bootstrap-config.yaml
+   ```
+
+
+1. **Verify Pod and Service Creation**
 
    Once the cluster is up and running, verify that all pods are running:
 
@@ -101,12 +102,25 @@ cluster bootstrap process. The key configuration parameters are:
 
    ```
 
-3. **Check IPv6 Connectivity**
+1. **Check IPv6 Connectivity**
 
    Retrieve the service details and ensure that an IPv6 address is assigned:
 
    ```sh
-   sudo k8s kubectl get svc -A
+   sudo k8s kubectl get service -A
+   ```
+
+   The output should be similar to
+   ```
+   root@k8s-dualstack:/k8s-snap# sudo k8s kubectl get svc -A
+   NAMESPACE     NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)         AGE
+   default       kubernetes                          ClusterIP   10.152.183.1     <none>        443/TCP         4m12s
+   default       nginx6                              NodePort    fd98::7534       <none>        80:32748/TCP    8s
+   kube-system   ck-storage-rawfile-csi-controller   ClusterIP   None             <none>        <none>          4m11s
+   kube-system   ck-storage-rawfile-csi-node         ClusterIP   10.152.183.172   <none>        9100/TCP        4m11s
+   kube-system   coredns                             ClusterIP   10.152.183.69    <none>        53/UDP,53/TCP   4m12s
+   kube-system   hubble-peer                         ClusterIP   10.152.183.217   <none>        443/TCP         4m11s
+   kube-system   metrics-server                      ClusterIP   10.152.183.108   <none>        443/TCP         4m11s
    ```
 
    Test connectivity to the deployed application using the IPv6 address:
@@ -128,6 +142,3 @@ limitations regarding CIDR size:
 - **/64 is too large for the Service CIDR**: Using a `/64` CIDR for services
 may cause issues like failure to initialize the IPv6 allocator. This is due
 to the CIDR size being too large for Kubernetes to handle efficiently.
-
-- **Recommended CIDR Size**: A CIDR of `/108` works correctly and should be
-used for both Pod and Service CIDRs in a dual-stack setup.

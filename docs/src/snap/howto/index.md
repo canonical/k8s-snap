@@ -16,9 +16,9 @@ Overview <self>
 
 install/index
 networking/index
+networking/dualstack
 storage/index
 external-datastore
-dualstack
 proxy
 backup-restore
 contribute
