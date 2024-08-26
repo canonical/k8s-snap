@@ -13,8 +13,8 @@ import (
 	"github.com/canonical/k8s/pkg/utils/control"
 	nodeutil "github.com/canonical/k8s/pkg/utils/node"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/v2/cluster"
-	"github.com/canonical/microcluster/v2/state"
+	"github.com/canonical/microcluster/v3/cluster"
+	"github.com/canonical/microcluster/v3/state"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
