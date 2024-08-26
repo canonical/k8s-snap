@@ -43,7 +43,9 @@ cluster bootstrap process. The key configuration parameters are:
    service-cidr: 10.152.183.0/24,fd98::/108
    ```
 
-   This configuration file, here called `bootstrap-config.yaml`, can then be applied during the cluster bootstrapping process:
+   This configuration file, here called `bootstrap-config.yaml`, can then be
+   applied during the cluster bootstrapping process:
+
    ```
    sudo k8s bootstrap --file bootstrap-config.yaml
    ```
@@ -120,7 +122,8 @@ cluster bootstrap process. The key configuration parameters are:
    kube-system   metrics-server                      ClusterIP   10.152.183.108   <none>        443/TCP         4m11s
    ```
 
-   Test the connectivity to the deployed application using the IPv6 address from the retrieved output:
+   Test the connectivity to the deployed application using the IPv6 address
+   from the retrieved output:
 
    ```sh
    curl http://[fd98::7534]/
