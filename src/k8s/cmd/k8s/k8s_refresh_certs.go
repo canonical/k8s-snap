@@ -13,7 +13,7 @@ import (
 func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
 		extraSANs []string
-		ttl       string
+		expiresIn string
 		timeout   time.Duration
 	}
 	cmd := &cobra.Command{
@@ -21,7 +21,7 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Short:  "Refresh the certificates of the running node",
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
-			ttl, err := utils.TTLToSeconds(opts.ttl)
+			ttl, err := utils.TTLToSeconds(opts.expiresIn)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to parse TTL. \n\nThe error was: %v\n", err)
 			}
@@ -64,14 +64,14 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			// TODO: Should we print the expiration time in a human-readable format? Should we return the UNIX epoch in the response?
-			cmd.Printf("Certificates have been successfully refreshed, and will expire at %d.\n", runResponse.ExpirationSeconds)
+			expiryTimeUNIX := time.Unix(int64(runResponse.ExpirationSeconds), 0)
+			cmd.Printf("Certificates have been successfully refreshed, and will expire at %v.\n", expiryTimeUNIX)
 		},
 	}
-	cmd.Flags().StringVar(&opts.ttl, "ttl", "", "the time-to-live for the certificates.")
+	cmd.Flags().StringVar(&opts.expiresIn, "expires-in", "", "the time until the certificates expire")
 	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 	cmd.Flags().StringArrayVar(&opts.extraSANs, "extra-sans", []string{}, "extra SANs to add to the certificates.")
 
-	cmd.MarkFlagRequired("ttl")
+	cmd.MarkFlagRequired("expires-in")
 	return cmd
 }

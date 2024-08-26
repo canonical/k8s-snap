@@ -9,10 +9,10 @@ k8s refresh-certs [flags]
 ### Options
 
 ```
+      --expires-in string        the time until the certificates expire
       --extra-sans stringArray   extra SANs to add to the certificates.
   -h, --help                     help for refresh-certs
       --timeout duration         the max time to wait for the command to execute (default 1m30s)
-      --ttl string               the time-to-live for the certificates.
 ```
 
 ### SEE ALSO

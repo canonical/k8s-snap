@@ -132,10 +132,10 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		return response.InternalError(fmt.Errorf("failed to read kubelet certificate: %w", err))
 	}
 
-	expirationDuration := kubeletCert.NotAfter.Sub(kubeletCert.NotBefore)
+	expirationTimeUNIX := kubeletCert.NotAfter.Unix()
 
 	return response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
-		ExpirationSeconds: int(expirationDuration.Seconds()),
+		ExpirationSeconds: int(expirationTimeUNIX),
 	})
 }
 
@@ -283,9 +283,9 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		return response.InternalError(fmt.Errorf("failed to load kubelet certificate: %w", err))
 	}
 
-	expirationDuration := cert.NotAfter.Sub(cert.NotBefore)
+	expirationTimeUNIX := cert.NotAfter.Unix()
 	return response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
-		ExpirationSeconds: int(expirationDuration.Seconds()),
+		ExpirationSeconds: int(expirationTimeUNIX),
 	})
 
 }
