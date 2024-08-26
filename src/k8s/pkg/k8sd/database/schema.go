@@ -12,10 +12,16 @@ import (
 )
 
 var (
+	// SchemaExtensions defines the schema updates for the database.
+	// SchemaExtensions are apply only.
+	// Note(ben): Never change the order or remove a migration as this would break the internal microcluster counter!
 	SchemaExtensions = []schema.Update{
 		schemaApplyMigration("kubernetes-auth-tokens", "000-create.sql"),
 		schemaApplyMigration("cluster-configs", "000-create.sql"),
+
 		schemaApplyMigration("worker-tokens", "000-create.sql"),
+		schemaApplyMigration("worker-tokens", "001-add-expiry.sql"),
+
 		schemaApplyMigration("feature-status", "000-feature-status.sql"),
 	}
 

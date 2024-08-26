@@ -28,10 +28,17 @@ func (e *Endpoints) postClusterJoinTokens(s state.State, r *http.Request) respon
 	}
 
 	var token string
+
+	ttl := req.TTL
+	if ttl == 0 {
+		// Set the default token lifetime to 24 hours.
+		ttl = 24 * time.Hour
+	}
+
 	if req.Worker {
-		token, err = getOrCreateWorkerToken(r.Context(), s, hostname)
+		token, err = getOrCreateWorkerToken(r.Context(), s, hostname, ttl)
 	} else {
-		token, err = getOrCreateJoinToken(r.Context(), e.provider.MicroCluster(), hostname, req.TTL)
+		token, err = getOrCreateJoinToken(r.Context(), e.provider.MicroCluster(), hostname, ttl)
 	}
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create token: %w", err))
@@ -54,10 +61,6 @@ func getOrCreateJoinToken(ctx context.Context, m *microcluster.MicroCluster, tok
 		fmt.Println("No token exists yet. Creating a new token.")
 	}
 
-	if ttl == 0 {
-		ttl = 24 * time.Hour
-	}
-
 	token, err := m.NewJoinToken(ctx, tokenName, ttl)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate a new microcluster join token: %w", err)
@@ -65,11 +68,11 @@ func getOrCreateJoinToken(ctx context.Context, m *microcluster.MicroCluster, tok
 	return token, nil
 }
 
-func getOrCreateWorkerToken(ctx context.Context, s state.State, nodeName string) (string, error) {
+func getOrCreateWorkerToken(ctx context.Context, s state.State, nodeName string, ttl time.Duration) (string, error) {
 	var token string
 	if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		token, err = database.GetOrCreateWorkerNodeToken(ctx, tx, nodeName)
+		token, err = database.GetOrCreateWorkerNodeToken(ctx, tx, nodeName, time.Now().Add(ttl))
 		if err != nil {
 			return fmt.Errorf("failed to create worker node token: %w", err)
 		}
