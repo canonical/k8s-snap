@@ -6,6 +6,7 @@ import (
 	"crypto/x509/pkix"
 	"errors"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 	certv1 "k8s.io/api/certificates/v1"
@@ -452,7 +453,7 @@ func TestUpdateCSRFailed(t *testing.T) {
 		nil,
 	)
 
-	caCert, caKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, 10, 2048)
+	caCert, caKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, time.Now(), time.Now().AddDate(10, 0, 0), 2048)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	reconciler := &csrSigningReconciler{
@@ -513,7 +514,7 @@ func TestUpdateCSRSucceed(t *testing.T) {
 		nil,
 	)
 
-	caCert, caKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, 10, 2048)
+	caCert, caKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, time.Now(), time.Now().AddDate(10, 0, 0), 2048)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	reconciler := &csrSigningReconciler{
