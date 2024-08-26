@@ -43,7 +43,7 @@ cluster bootstrap process. The key configuration parameters are:
    service-cidr: 10.152.183.0/24,fd98::/108
    ```
 
-   and applied when bootstrapping the cluster:
+   This configuration file, here called `bootstrap-config.yaml`, can then be applied during the cluster bootstrapping process:
    ```
    sudo k8s bootstrap --file bootstrap-config.yaml
    ```
