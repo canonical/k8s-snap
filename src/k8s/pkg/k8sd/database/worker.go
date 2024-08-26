@@ -33,7 +33,6 @@ func CheckWorkerNodeToken(ctx context.Context, tx *sql.Tx, nodeName string, toke
 	if selectTxStmt.QueryRowContext(ctx, token).Scan(&tokenNodeName, &expiry) == nil {
 		isValidToken := tokenNodeName == "" || subtle.ConstantTimeCompare([]byte(nodeName), []byte(tokenNodeName)) == 1
 		notExpired := time.Now().Before(expiry)
-		fmt.Printf("isValidToken: %v, notExpired: %v\n", isValidToken, notExpired)
 		return isValidToken && notExpired, nil
 	}
 	return false, nil
