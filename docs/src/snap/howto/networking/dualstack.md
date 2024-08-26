@@ -20,7 +20,6 @@ cluster bootstrap process. The key configuration parameters are:
 - **Pod CIDR**: Defines the IP range for pods.
 - **Service CIDR**: Defines the IP range for services.
 
-
 1. **Bootstrap Kubernetes with Dual-Stack CIDRs**
 
    Bootstrap the cluster in interactive mode and set both IPv4 and
@@ -48,7 +47,6 @@ cluster bootstrap process. The key configuration parameters are:
    ```
    sudo k8s bootstrap --file bootstrap-config.yaml
    ```
-
 
 1. **Verify Pod and Service Creation**
 
