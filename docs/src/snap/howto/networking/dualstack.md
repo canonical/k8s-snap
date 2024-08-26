@@ -129,7 +129,6 @@ cluster bootstrap process. The key configuration parameters are:
    You should see a response from the Nginx server, confirming that IPv6 is
    working.
 
-## Known Limitations and Issues
 
 ### CIDR Size Limitations
 
