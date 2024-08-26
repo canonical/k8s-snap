@@ -61,6 +61,6 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.Flags().BoolVar(&opts.worker, "worker", false, "generate a join token for a worker node")
 	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 	// The CLI uses verbose names for flags instead of abbreviations. Internally and for the API, the common TTL (time-to-live) name is used.
-	cmd.Flags().DurationVar(&opts.ttl, "expires-in", time.Hour, "the time until the token expires")
+	cmd.Flags().DurationVar(&opts.ttl, "expires-in", 24*time.Hour, "the time until the token expires")
 	return cmd
 }
