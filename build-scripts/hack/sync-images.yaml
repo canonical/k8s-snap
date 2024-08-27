@@ -26,6 +26,6 @@ sync:
   - source: ghcr.io/canonical/metrics-server:0.7.0-ck1
     target: '{{ env "MIRROR" }}/canonical/metrics-server:0.7.0-ck1'
     type: image
-  - source: ghcr.io/canonical/rawfile-localpv:0.8.0-ck5
-    target: '{{ env "MIRROR" }}/canonical/rawfile-localpv:0.8.0-ck5'
+  - source: ghcr.io/canonical/rawfile-localpv:0.8.0-ck4
+    target: '{{ env "MIRROR" }}/canonical/rawfile-localpv:0.8.0-ck4'
     type: image
