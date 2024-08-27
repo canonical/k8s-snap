@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	"github.com/canonical/microcluster/v2/state"
@@ -17,7 +18,11 @@ import (
 
 func (a *App) onStart(ctx context.Context, s state.State) error {
 	// start a goroutine to mark the node as running
-	go a.markNodeReady(ctx, s)
+	go func() {
+		if err := a.markNodeReady(ctx, s); err != nil {
+			log.FromContext(ctx).Error(err, "Failed to mark node as ready")
+		}
+	}()
 
 	// start node config controller
 	if a.nodeConfigController != nil {

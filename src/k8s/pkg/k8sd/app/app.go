@@ -15,6 +15,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/microcluster/v2/client"
 	"github.com/canonical/microcluster/v2/microcluster"
 	"github.com/canonical/microcluster/v2/state"
@@ -228,17 +229,28 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 	return nil
 }
 
-func (a *App) markNodeReady(ctx context.Context, s state.State) {
-	for {
-		if err := s.Database().IsOpen(ctx); err == nil {
-			a.readyWg.Done()
-			return
-		}
-
-		select {
-		case <-ctx.Done():
-			return
-		case <-time.After(3 * time.Second):
-		}
+func (a *App) markNodeReady(ctx context.Context, s state.State) error {
+	// wait for the database to be open
+	if err := control.WaitUntilReady(ctx, func() (bool, error) {
+		return s.Database().IsOpen(ctx) == nil, nil
+	}); err != nil {
+		return fmt.Errorf("failed to wait for database to be open: %w", err)
 	}
+
+	// check kubernetes endpoint
+	if err := control.WaitUntilReady(ctx, func() (bool, error) {
+		client, err := a.snap.KubernetesNodeClient("")
+		if err != nil {
+			return false, nil
+		}
+		if err := client.CheckKubernetesEndpoint(ctx); err != nil {
+			return false, nil
+		}
+		return true, nil
+	}); err != nil {
+		return fmt.Errorf("failed to wait for kubernetes endpoint: %w", err)
+	}
+
+	a.readyWg.Done()
+	return nil
 }
