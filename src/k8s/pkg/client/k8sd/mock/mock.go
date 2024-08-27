@@ -34,7 +34,7 @@ type Mock struct {
 	SetClusterConfigCalledWith apiv1.SetClusterConfigRequest
 	SetClusterConfigErr        error
 
-	// k8sd.MaintenanceClient
+	// k8sd.ClusterMaintenanceClient
 	RefreshCertificatesPlanCalledWith apiv1.RefreshCertificatesPlanRequest
 	RefreshCertificatesPlanResponse   apiv1.RefreshCertificatesPlanResponse
 	RefreshCertificatesPlanErr        error

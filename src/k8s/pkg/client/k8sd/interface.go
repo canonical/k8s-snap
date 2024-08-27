@@ -35,8 +35,8 @@ type ConfigClient interface {
 	SetClusterConfig(context.Context, apiv1.SetClusterConfigRequest) error
 }
 
-// MaintenanceClient implements methods to manage the cluster.
-type MaintenanceClient interface {
+// ClusterMaintenanceClient implements methods to manage the cluster.
+type ClusterMaintenanceClient interface {
 	// RefreshCertificatesPlan generates a plan to refresh the Kubernetes certificates of the node.
 	RefreshCertificatesPlan(context.Context, apiv1.RefreshCertificatesPlanRequest) (apiv1.RefreshCertificatesPlanResponse, error)
 	// RefreshCertificatesRun refreshes the Kubernetes certificates of the node.
@@ -59,7 +59,7 @@ type Client interface {
 	ClusterClient
 	StatusClient
 	ConfigClient
-	MaintenanceClient
+	ClusterMaintenanceClient
 	UserClient
 	ClusterAPIClient
 }

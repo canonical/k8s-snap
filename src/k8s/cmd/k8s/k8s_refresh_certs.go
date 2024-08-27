@@ -68,7 +68,7 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.Printf("Certificates have been successfully refreshed, and will expire at %v.\n", expiryTimeUNIX)
 		},
 	}
-	cmd.Flags().StringVar(&opts.expiresIn, "expires-in", "", "the time until the certificates expire")
+	cmd.Flags().StringVar(&opts.expiresIn, "expires-in", "", "the time until the certificates expire, e.g., 1h, 2d, 4mo, 5y. Aditionally, any valid time unit for ParseDuration is accepted.")
 	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 	cmd.Flags().StringArrayVar(&opts.extraSANs, "extra-sans", []string{}, "extra SANs to add to the certificates.")
 
