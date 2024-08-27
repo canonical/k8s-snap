@@ -103,8 +103,8 @@ github.com/canonical/k8s-snap-api v1.0.3 h1:unMuIdLgdjlYj3bhkTQoHzphNrJG54IV23mA
 github.com/canonical/k8s-snap-api v1.0.3/go.mod h1:LDPoIYCeYnfgOFrwVPJ/4edGU264w7BB7g0GsVi36AY=
 github.com/canonical/lxd v0.0.0-20240822122218-e7b2a7a83230 h1:YOqZ+/14OPZ+/TOXpRHIX3KLT0C+wZVpewKIwlGUmW0=
 github.com/canonical/lxd v0.0.0-20240822122218-e7b2a7a83230/go.mod h1:YVGI7HStOKsV+cMyXWnJ7RaMPaeWtrkxyIPvGWbgACc=
-github.com/canonical/microcluster/v3 v3.0.0-20240823162448-e533f3c654af h1:URrACr9xk52ZWuw72XR/S5dsrumAlFh88pwRWy5oJTk=
-github.com/canonical/microcluster/v3 v3.0.0-20240823162448-e533f3c654af/go.mod h1:dl0Zu8Fb6HCR2mVoEo9VNORFyTO8YykZlxBiuTuoTNs=
+github.com/canonical/microcluster/v3 v3.0.0-20240827143335-f7a4d3984970 h1:UrnpglbXELlxtufdk6DGDytu2JzyzuS3WTsOwPrkQLI=
+github.com/canonical/microcluster/v3 v3.0.0-20240827143335-f7a4d3984970/go.mod h1:dl0Zu8Fb6HCR2mVoEo9VNORFyTO8YykZlxBiuTuoTNs=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=

@@ -7,7 +7,7 @@ require (
 	github.com/canonical/go-dqlite v1.22.0
 	github.com/canonical/k8s-snap-api v1.0.3
 	github.com/canonical/lxd v0.0.0-20240822122218-e7b2a7a83230
-	github.com/canonical/microcluster/v3 v3.0.0-20240823162448-e533f3c654af
+	github.com/canonical/microcluster/v3 v3.0.0-20240827143335-f7a4d3984970
 	github.com/go-logr/logr v1.4.2
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/sys/mountinfo v0.7.1
