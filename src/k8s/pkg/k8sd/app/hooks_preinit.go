@@ -14,22 +14,17 @@ import (
 
 // onPreInit is called before we bootstrap or join a node.
 func (a *App) onPreInit(ctx context.Context, s state.State, bootstrap bool, initConfig map[string]string) error {
-	var extraSANs []string
 	if bootstrap {
-		bootstrapConfig, err := utils.MicroclusterBootstrapConfigFromMap(initConfig)
-		if err != nil {
-			return fmt.Errorf("failed to get bootstrap config: %w", err)
-		}
-		extraSANs = bootstrapConfig.ExtraSANs
-	} else {
-		controlPlaneJoinConfig, err := utils.MicroclusterControlPlaneJoinConfigFromMap(initConfig)
-		if err != nil {
-			return fmt.Errorf("failed to get control plane join config: %w", err)
-		}
-		extraSANs = controlPlaneJoinConfig.ExtraSANS
+		return nil
 	}
 
-	err := os.Remove(filepath.Join(s.FileSystem().StateDir, "server.crt"))
+	controlPlaneJoinConfig, err := utils.MicroclusterControlPlaneJoinConfigFromMap(initConfig)
+	if err != nil {
+		return fmt.Errorf("failed to get control plane join config, boostrap %v: %w", bootstrap, err)
+	}
+	extraSANs := controlPlaneJoinConfig.ExtraSANS
+
+	err = os.Remove(filepath.Join(s.FileSystem().StateDir, "server.crt"))
 	if err != nil {
 		return fmt.Errorf("failed to remove server.crt: %w", err)
 	}
@@ -46,7 +41,7 @@ func (a *App) onPreInit(ctx context.Context, s state.State, bootstrap bool, init
 		shared.CertOptions{
 			AddHosts:                true,
 			CommonName:              s.Name(),
-			SubjectAlternativeNames: append(extraSANs, s.Name()),
+			SubjectAlternativeNames: extraSANs,
 		})
 	if err != nil {
 		return err
