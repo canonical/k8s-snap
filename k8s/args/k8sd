@@ -1,1 +1,2 @@
 --state-dir=${SNAP_COMMON}/var/lib/k8sd/state
+--log-level 1
