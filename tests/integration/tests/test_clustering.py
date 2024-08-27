@@ -118,7 +118,9 @@ extra-sans:
         text=True,
     )
 
-    util.wait_until_k8s_ready(cluster_node, instances, node_names={joining_cp.id: "my-node"})
+    util.wait_until_k8s_ready(
+        cluster_node, instances, node_names={joining_cp.id: "my-node"}
+    )
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "nodes should have joined cluster"
 
