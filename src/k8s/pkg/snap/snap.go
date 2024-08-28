@@ -43,9 +43,10 @@ func NewSnap(opts SnapOpts) *snap {
 		runCommand = opts.RunCommand
 	}
 	s := &snap{
-		snapDir:       opts.SnapDir,
-		snapCommonDir: opts.SnapCommonDir,
-		runCommand:    runCommand,
+		snapDir:          opts.SnapDir,
+		snapCommonDir:    opts.SnapCommonDir,
+		snapInstanceName: opts.SnapInstanceName,
+		runCommand:       runCommand,
 	}
 
 	return s
@@ -213,7 +214,7 @@ func (s *snap) LockFilesDir() string {
 }
 
 func (s *snap) NodeTokenFile() string {
-	return filepath.Join(s.snapCommonDir, "node-access-token")
+	return filepath.Join(s.snapCommonDir, "node-token")
 }
 
 func (s *snap) ContainerdExtraConfigDir() string {

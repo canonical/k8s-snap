@@ -142,8 +142,8 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		},
 		// Snap refreshes
 		{
-			Name: "SnapRefresh",
-			Path: "snap/refresh",
+			Name: "Snap/Refresh",
+			Path: apiv1.SnapRefreshRPC,
 			Post: rest.EndpointAction{Handler: e.postSnapRefresh, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
 		},
 	}

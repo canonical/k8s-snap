@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 )
 
 // RefreshOpts controls the target version of the snap during a refresh.

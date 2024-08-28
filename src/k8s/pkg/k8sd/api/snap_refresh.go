@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"net/http"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
-func (e *Endpoints) postSnapRefresh(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postSnapRefresh(s state.State, r *http.Request) response.Response {
 	req := apiv1.SnapRefreshRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
@@ -22,7 +22,7 @@ func (e *Endpoints) postSnapRefresh(s *state.State, r *http.Request) response.Re
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("invalid refresh options: %w", err))
 	}
-	log := log.FromContext(s.Context).WithValues("to", refreshOpts)
+	log := log.FromContext(e.Context()).WithValues("to", refreshOpts)
 
 	readyCh := make(chan error)
 	go func() {
@@ -33,7 +33,7 @@ func (e *Endpoints) postSnapRefresh(s *state.State, r *http.Request) response.Re
 		}
 
 		log.Info("Refreshing snap")
-		if err := e.provider.Snap().Refresh(s.Context, refreshOpts); err != nil {
+		if err := e.provider.Snap().Refresh(e.Context(), refreshOpts); err != nil {
 			log.Error(err, "Failed to refresh snap")
 		}
 	}()
