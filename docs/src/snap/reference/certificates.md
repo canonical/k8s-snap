@@ -1,6 +1,6 @@
-### Kubernetes Cluster Certificates Reference Page
+### Cluster Certificates
 
-#### 1. **Root CAs**
+#### 1. **CertificateAuthorities (CA)**
 
 | **Common Name**         | **Usage**                            | **Path on Disk**                     | **Used For**                              |
 |------------------------------|--------------------------------------|--------------------------------------|-------------------------------------------|
@@ -8,24 +8,24 @@
 | `kubernetes-front-proxy-ca`   | CA for front-end proxy              | `/etc/kubernetes/pki/front-proxy-ca.crt` | Signing certificates for the front-proxy |
 | `client-ca`                   | CA for client certificates          | `/etc/kubernetes/pki/client-ca.crt` | Signing certificates for the client |
 
-#### 3. **Certificates Used by the API Server**
 
-| **Common Name (CN)**            | **Usage**                     | **Path on Disk**                       | **Used For**                              |
-|---------------------------------|-------------------------------|----------------------------------------|-------------------------------------------|
-| `kube-apiserver`                | Server                        | `/etc/kubernetes/pki/apiserver.crt`    | Securing the API server endpoint          |
-| `kube-apiserver-kubelet-client` | Client                        | `/etc/kubernetes/pki/apiserver-kubelet-client.crt` | API server communication with kubelets    |
-| `kube-apiserver-etcd-client`    | Client                        | `/etc/kubernetes/pki/apiserver-etcd-client.crt` | API server communication with etcd        |
-| `front-proxy-client`            | Client                        | `/etc/kubernetes/pki/front-proxy-client.crt` | API server communication with the front-proxy |
+#### 2. **Certificates**
 
-#### 4. **Certificates Used by etcd**
+| **Common Name**                       | **Usage** | **Path on Disk**                                     | **Used For**                                                     | **Signed By**               |
+|--------------------------------------------|-----------|------------------------------------------------------|------------------------------------------------------------------|-----------------------------|
+| `kube-apiserver`                           | Server    | `/etc/kubernetes/pki/apiserver.crt`                  | Securing the API server endpoint                                 | `kubernetes-ca`             |
+| `kube-apiserver-kubelet-client`            | Client    | `/etc/kubernetes/pki/apiserver-kubelet-client.crt`   | API server communication with kubelets                           | `kubernetes-ca-client`      |
+| `kube-apiserver-etcd-client`               | Client    | `/etc/kubernetes/pki/apiserver-etcd-client.crt`      | API server communication with etcd                               | `kubernetes-ca-client`      |
+| `front-proxy-client`                       | Client    | `/etc/kubernetes/pki/front-proxy-client.crt`         | API server communication with the front-proxy                    | `kubernetes-front-proxy-ca` |
+| `kube-controller-manager`                  | Client    | `/etc/kubernetes/pki/controller-manager.crt`         | Communication between the controller manager and the API server  | `kubernetes-ca-client`      |
+| `kube-scheduler`                           | Client    | `/etc/kubernetes/pki/scheduler.crt`                  | Communication between the scheduler and the API server           | `kubernetes-ca-client`      |
+| `kube-proxy`                               | Client    | `/etc/kubernetes/pki/proxy.crt`                      | Communication between kube-proxy and the API server              | `kubernetes-ca-client`      |
+| `system:node:$hostname`                    | Client    | `/etc/kubernetes/pki/kubelet-client.crt`             | Authentication of kubelets to the API server                     | `kubernetes-ca-client`      |
+| `k8s-dqlite`             | Client    | `/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt`             | Communication between k8s-dqlite nodes and API server | `self-signed`      |
+| `root@$hostname`             | Client    | `/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt`             | Communication between k8sd nodes | `self-signed`      |
 
-| **Common Name (CN)**        | **Usage**              | **Path on Disk**                         | **Used For**                               |
-|-----------------------------|------------------------|------------------------------------------|--------------------------------------------|
-| `kube-etcd`                 | Server, Client         | `/etc/kubernetes/pki/etcd/server.crt`    | Securing communication with etcd           |
-| `kube-etcd-peer`            | Server, Client         | `/etc/kubernetes/pki/etcd/peer.crt`      | Securing communication between etcd peers  |
-| `kube-etcd-healthcheck-client` | Client               | `/etc/kubernetes/pki/etcd/healthcheck-client.crt` | Health checks on etcd |
 
-#### 5. **Certificates for Kubernetes Components**
+#### 5. **Configurations for Kubernetes Components**
 
 | **Config File**                    | **Usage**                              | **Path on Disk**                           | **Used For**                                 |
 |------------------------------------|----------------------------------------|--------------------------------------------|----------------------------------------------|
