@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
-	"reflect"
 	"sync"
 	"time"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/microcluster/v3/client"
 	"github.com/canonical/microcluster/v3/microcluster"
@@ -267,18 +267,16 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	}
 
 	// wait for all snap services to be ready
-	log.V(1).Info("Waiting for snap services to be readyz")
+	log.V(1).Info("Waiting for snap services to be ready")
 	controlPlaneServices := snaputil.ControlPlaneServices
-	log.V(1).Info("blub")
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
-		log.V(1).Info("Checking snap services")
 		activeServices, err := snaputil.GetActiveServices(ctx, a.snap)
 		if err != nil {
 			return false, fmt.Errorf("failed to get active services: %w", err)
 		}
 
-		log.V(1).WithValues("activeServices", activeServices, "cps", controlPlaneServices, "eq", reflect.DeepEqual(activeServices, controlPlaneServices)).Info("Waiting for snap services to be ready")
-		return util.IsSubSlice(activeServices, controlPlaneServices), nil
+		// activeServices also contains e.g. k8sd which are not in control-plane services.
+		return utils.ContainsAll(activeServices, controlPlaneServices), nil
 	}); err != nil {
 		return fmt.Errorf("failed to wait for snap services to be ready: %w", err)
 	}

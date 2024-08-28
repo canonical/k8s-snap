@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestIsSubSlice(t *testing.T) {
+func TestContainsAll(t *testing.T) {
 	intTests := []struct {
 		name     string
 		slice    []int
@@ -42,7 +42,7 @@ func TestIsSubSlice(t *testing.T) {
 	for _, tt := range intTests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewWithT(t)
-			result := IsSubSlice(tt.slice, tt.sub)
+			result := ContainsAll(tt.slice, tt.sub)
 			g.Expect(result).To(Equal(tt.expected), "Test failed: %s", tt.name)
 		})
 	}
@@ -51,7 +51,7 @@ func TestIsSubSlice(t *testing.T) {
 	for _, tt := range stringTests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewWithT(t)
-			result := IsSubSlice(tt.slice, tt.sub)
+			result := ContainsAll(tt.slice, tt.sub)
 			g.Expect(result).To(Equal(tt.expected), "Test failed: %s", tt.name)
 		})
 	}
