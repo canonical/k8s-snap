@@ -63,7 +63,9 @@ jobs:
 
       - name: go test
         working-directory: src/k8s
-        run: make go.unit
+        # NOTE: there are a handful of tests checking/setting
+        # root ownership so the tests must be run as root:
+        run: sudo make go.unit
 
   test-binary:
     name: Binaries
