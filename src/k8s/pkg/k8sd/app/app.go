@@ -268,18 +268,23 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	}
 
 	// wait for all snap services to be ready
-	log.V(1).Info("Waiting for snap services to be ready")
+	log.V(1).Info("Waiting for snap services to be readyz")
+	controlPlaneServices := snaputil.ControlPlaneServices
+	slices.Sort(controlPlaneServices)
+	log.V(1).Info("blub")
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
+		log.V(1).Info("Checking snap services")
 		activeServices, err := snaputil.GetActiveServices(ctx, a.snap)
 		if err != nil {
 			return false, fmt.Errorf("failed to get active services: %w", err)
 		}
-		if len(activeServices) != len(snaputil.ControlPlaneServices) {
+		log.V(1).WithValues("activeServices", activeServices, "cps", controlPlaneServices, "eq", reflect.DeepEqual(activeServices, controlPlaneServices)).Info("length check")
+		if len(activeServices) != len(controlPlaneServices) {
 			return false, nil
 		}
 
-		slices.Sort(snaputil.ControlPlaneServices)
-		return reflect.DeepEqual(activeServices, snaputil.ControlPlaneServices), nil
+		log.V(1).WithValues("activeServices", activeServices, "cps", controlPlaneServices, "eq", reflect.DeepEqual(activeServices, controlPlaneServices)).Info("Waiting for snap services to be ready")
+		return reflect.DeepEqual(activeServices, controlPlaneServices), nil
 	}); err != nil {
 		return fmt.Errorf("failed to wait for snap services to be ready: %w", err)
 	}
