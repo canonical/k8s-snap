@@ -3,7 +3,7 @@
 To keep your {{product}} cluster secure and functional, it is essential
 to regularly refresh its certificates. Certificates in Kubernetes ensure
 secure communication between the various components of the cluster. Expired
-certificates lead to communication failures, disrupted services, and potential 
+certificates lead to communication failures, disrupted services, and potential
 security risks. This how-to will walk you through
 the steps to refresh the certificates for both control plane and worker
 nodes in your {{product}} cluster.
@@ -29,14 +29,22 @@ sudo k8s refresh-certs --expires-in 1y --extra-sans mynode.local
 ```
 
 This command refreshes the certificates for the control plane node, adding an
-extra Subject Alternative Name (SAN) to the certificate. The `--expires-in`
-flag sets the certificate's validity duration, which can be specified in years,
-months, days, or any unit accepted by the [ParseDuration][] function in Go.
+extra [Subject Alternative Name][] (SAN) to the certificate. Checking the
+current SANs on your node can be done by running the following command:
 
-```{note} Ensure that you provide the same SANs that were used when the cluster
-was bootstrapped. If you don't, the control plane may fail to communicate with
-other nodes in the cluster.
 ```
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text | grep -A 1 "Subject Alternative Name"
+```
+
+```{note} If your node setup includes additional SANs, be sure to provide the
+specific SANs for each node as needed using the `--extra-sans` flag. While this
+isn't required, omitting them could impact your node's ability to communicate
+with other components in the cluster.
+```
+
+The `--expires-in`flag sets the certificate's validity duration, which can
+be specified in years, months, days, or any unit accepted by the
+[ParseDuration][] function in Go.
 
 3. The cluster will automatically update the certificates in the control plane
 node and restart the necessary services. The new expiration date will be
@@ -60,12 +68,13 @@ sudo k8s refresh-certs --expires-in 10y --timeout 10m
 ```
 
 This command refreshes the certificates for the worker node. The `--expires-in`
-flag specifies the certificate's validity period, which can be set using any units 
-accepted by the [ParseDuration][] function in Go, such as years, months, or days.
+flag specifies the certificate's validity period, which can be set using any
+units accepted by the [ParseDuration][] function in Go, such as years, months,
+or days.
 
-3. During the certificate refresh, multiple Certificate Signing Requests (CSRs) are
-created. Follow the instructions in the command output to approve the CSRs on any
-control plane node in the cluster.
+3. During the certificate refresh, multiple Certificate Signing Requests (CSRs)
+are created. Follow the instructions in the command output to approve the CSRs
+on any control plane node in the cluster.
 
 ```
 sudo k8s refresh-certs --expires-in 10y --timeout 10s
@@ -76,7 +85,8 @@ k8s kubectl certificate approve k8sd-3974895791729870959-worker-kube-proxy-clien
 Waiting for certificates to be created...
 ```
 
-4. Approve the CSRs by running the commands from the previous output on any control plane node:
+4. Approve the CSRs by running the commands from the previous output on any
+control plane node:
 
 ```
 k8s kubectl certificate approve k8sd-3974895791729870959-worker-kubelet-serving
@@ -99,3 +109,4 @@ Certificates have been successfully refreshed, and will expire at 2034-08-27 21:
 <!-- Links -->
 
 [ParseDuration]: https://pkg.go.dev/time#ParseDuration
+[Subject Alternative Name]: https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.6
