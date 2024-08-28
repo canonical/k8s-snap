@@ -66,9 +66,11 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 				log.Error(err, "Failed to create Kubernetes client", err)
 			}
 
-			log.Info("Deleting node from Kubernetes cluster")
-			if err := c.DeleteNode(ctx, s.Name()); err != nil {
-				log.Error(err, "Failed to remove Kubernetes node")
+			if c != nil {
+				log.Info("Deleting node from Kubernetes cluster")
+				if err := c.DeleteNode(ctx, s.Name()); err != nil {
+					log.Error(err, "Failed to remove Kubernetes node")
+				}
 			}
 		}
 

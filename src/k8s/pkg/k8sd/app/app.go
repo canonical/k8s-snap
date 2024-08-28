@@ -175,12 +175,16 @@ func New(cfg Config) (*App, error) {
 func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 	// TODO: consider improving API for overriding hooks.
 	hooks := &state.Hooks{
+		PreInit:       a.onPreInit,
 		PostBootstrap: a.onBootstrap,
 		PostJoin:      a.onPostJoin,
 		PreRemove:     a.onPreRemove,
 		OnStart:       a.onStart,
 	}
 	if customHooks != nil {
+		if customHooks.PreInit != nil {
+			hooks.PreInit = customHooks.PreInit
+		}
 		if customHooks.PostBootstrap != nil {
 			hooks.PostBootstrap = customHooks.PostBootstrap
 		}

@@ -21,6 +21,10 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		PreRun: chainPreRunHooks(hookRequireRoot(env)),
 		Args:   cmdutil.MaximumNArgs(env, 1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if !opts.worker && len(args) == 0 {
+				cmd.PrintErrln("Error: A node name is required for control-plane nodes.")
+			}
+
 			var name string
 			if len(args) == 1 {
 				name = args[0]
