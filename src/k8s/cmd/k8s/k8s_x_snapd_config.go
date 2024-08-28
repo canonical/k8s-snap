@@ -71,7 +71,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 				return err == nil, nil
 			}); err != nil {
-				cmd.PrintErrf("Error: Node did not come up in time: %v\n", err)
+				cmd.PrintErrf("Error: k8sd did not come up in time: %v\n", err)
 				env.Exit(1)
 			}
 
