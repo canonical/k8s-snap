@@ -66,7 +66,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			if err := control.WaitUntilReady(ctx, func() (bool, error) {
 				_, partOfCluster, err := client.NodeStatus(cmd.Context())
 				if !partOfCluster {
-					cmd.PrintErrf("Node is not part of a cluster: %v\n", err.Error())
+					cmd.PrintErrf("Node is not part of a cluster: %v\n", err)
 					env.Exit(1)
 				}
 				return err == nil, nil
