@@ -1,12 +1,20 @@
 package k8s
 
 import (
+	"context"
+	"time"
+
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/spf13/cobra"
 )
 
 func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
+	var opts struct {
+		timeout time.Duration
+	}
+
 	disableCmd := &cobra.Command{
 		Use:   "disable",
 		Short: "Disable the use of snap get/set to manage the cluster configuration",
@@ -41,17 +49,34 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			switch mode.Orb {
-			case "none":
+			if mode.Orb == "none" {
 				cmd.PrintErrln("Warning: meta.orb is none, skipping reconcile actions")
 				return
-			case "k8sd":
-				client, err := env.Snap.K8sdClient("")
-				if err != nil {
-					cmd.PrintErrf("Error: failed to create k8sd client: %v\n", err)
+			}
+
+			client, err := env.Snap.K8sdClient("")
+			if err != nil {
+				cmd.PrintErrf("Error: failed to create k8sd client: %v\n", err)
+				env.Exit(1)
+				return
+			}
+
+			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
+			defer cancel()
+			if err := control.WaitUntilReady(ctx, func() (bool, error) {
+				_, partOfCluster, err := client.NodeStatus(cmd.Context())
+				if !partOfCluster {
+					cmd.PrintErrf("Node is not part of a cluster: %v\n", err)
 					env.Exit(1)
-					return
 				}
+				return err == nil, nil
+			}); err != nil {
+				cmd.PrintErrf("Error: k8sd did not come up in time: %v\n", err)
+				env.Exit(1)
+			}
+
+			switch mode.Orb {
+			case "k8sd":
 				response, err := client.GetClusterConfig(cmd.Context())
 				if err != nil {
 					cmd.PrintErrf("Error: failed to retrieve cluster configuration: %v\n", err)
@@ -64,12 +89,6 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					return
 				}
 			case "snapd":
-				client, err := env.Snap.K8sdClient("")
-				if err != nil {
-					cmd.PrintErrf("Error: failed to create k8sd client: %v\n", err)
-					env.Exit(1)
-					return
-				}
 				if err := snapdconfig.SetK8sdFromSnapd(cmd.Context(), client, env.Snap); err != nil {
 					cmd.PrintErrf("Error: failed to update k8sd state: %v\n", err)
 					env.Exit(1)
@@ -85,6 +104,8 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 		},
 	}
+	reconcileCmd.Flags().DurationVar(&opts.timeout, "timeout", 1*time.Minute, "maximum time to wait")
+
 	cmd := &cobra.Command{
 		Use:    "x-snapd-config",
 		Short:  "Manage snapd configuration",
