@@ -59,6 +59,7 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 	c.waitReady()
 
 	log := log.FromContext(ctx).WithValues("controller", "update-node-configuration")
+	log.Info("Starting update node configuration controller")
 
 	for {
 		select {
@@ -99,6 +100,9 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 }
 
 func (c *UpdateNodeConfigurationController) reconcile(ctx context.Context, client *kubernetes.Client, config types.ClusterConfig) error {
+	log := log.FromContext(ctx).WithValues("controller", "update-node-configuration")
+	log.Info("Reconciling node configuration")
+
 	keyPEM := config.Certificates.GetK8sdPrivateKey()
 	key, err := pkiutil.LoadRSAPrivateKey(keyPEM)
 	if err != nil && keyPEM != "" {
