@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
+	"reflect"
+	"slices"
 	"sync"
 	"time"
 
@@ -15,6 +17,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/microcluster/v3/client"
 	"github.com/canonical/microcluster/v3/microcluster"
@@ -233,11 +236,16 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 	return nil
 }
 
+// markNodeReady will decrement the readyWg counter to signal that the node is ready.
+// The node is ready if:
+// - the microcluster database is accessible
+// - the kubernetes endpoint is reachable
+// - all snap services are ready
 func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	log := log.FromContext(ctx).WithValues("startup", "markNodeReady")
 
 	// wait for the database to be open
-	log.Info("Waiting for database to be open")
+	log.V(1).Info("Waiting for database to be open")
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
 		return s.Database().IsOpen(ctx) == nil, nil
 	}); err != nil {
@@ -245,7 +253,7 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	}
 
 	// check kubernetes endpoint
-	log.Info("Waiting for kubernetes endpoint")
+	log.V(1).Info("Waiting for kubernetes endpoint")
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
 		client, err := a.snap.KubernetesNodeClient("")
 		if err != nil {
@@ -259,7 +267,24 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 		return fmt.Errorf("failed to wait for kubernetes endpoint: %w", err)
 	}
 
-	log.Info("Marking node as ready")
+	// wait for all snap services to be ready
+	log.V(1).Info("Waiting for snap services to be ready")
+	if err := control.WaitUntilReady(ctx, func() (bool, error) {
+		activeServices, err := snaputil.GetActiveServices(ctx, a.snap)
+		if err != nil {
+			return false, fmt.Errorf("failed to get active services: %w", err)
+		}
+		if len(activeServices) != len(snaputil.ControlPlaneServices) {
+			return false, nil
+		}
+
+		slices.Sort(snaputil.ControlPlaneServices)
+		return reflect.DeepEqual(activeServices, snaputil.ControlPlaneServices), nil
+	}); err != nil {
+		return fmt.Errorf("failed to wait for snap services to be ready: %w", err)
+	}
+
+	log.V(1).Info("Marking node as ready")
 	a.readyWg.Done()
 	return nil
 }

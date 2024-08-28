@@ -41,7 +41,7 @@ func TestStartControlPlaneServices(t *testing.T) {
 	t.Run("AllServicesStartSuccess", func(t *testing.T) {
 		mock.StartServiceErr = nil
 		g.Expect(StartControlPlaneServices(context.Background(), mock)).To(Succeed())
-		g.Expect(mock.StartServiceCalledWith).To(ConsistOf(controlPlaneServices))
+		g.Expect(mock.StartServiceCalledWith).To(ConsistOf(ControlPlaneServices))
 	})
 
 	t.Run("ServiceStartFailure", func(t *testing.T) {
@@ -81,7 +81,7 @@ func TestStopControlPlaneServices(t *testing.T) {
 	t.Run("AllServicesStopSuccess", func(t *testing.T) {
 		mock.StopServiceErr = nil
 		g.Expect(StopControlPlaneServices(context.Background(), mock)).To(Succeed())
-		g.Expect(mock.StopServiceCalledWith).To(ConsistOf(controlPlaneServices))
+		g.Expect(mock.StopServiceCalledWith).To(ConsistOf(ControlPlaneServices))
 	})
 
 	t.Run("ServiceStopFailure", func(t *testing.T) {

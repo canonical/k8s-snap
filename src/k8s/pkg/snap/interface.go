@@ -19,9 +19,10 @@ type Snap interface {
 	GID() int         // GID is the group ID to set on config files.
 	Hostname() string // Hostname is the name of the node.
 
-	StartService(ctx context.Context, serviceName string) error   // snapctl start $service
-	StopService(ctx context.Context, serviceName string) error    // snapctl stop $service
-	RestartService(ctx context.Context, serviceName string) error // snapctl restart $service
+	StartService(ctx context.Context, serviceName string) error         // snapctl start $service
+	StopService(ctx context.Context, serviceName string) error          // snapctl stop $service
+	RestartService(ctx context.Context, serviceName string) error       // snapctl restart $service
+	GetServiceStatuses(ctx context.Context) ([]string, []string, error) // snapctl services
 
 	SnapctlGet(ctx context.Context, args ...string) ([]byte, error) // snapctl get $args...
 	SnapctlSet(ctx context.Context, args ...string) error           // snapctl set $args...
