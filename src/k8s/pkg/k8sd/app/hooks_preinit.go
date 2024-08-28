@@ -24,13 +24,11 @@ func (a *App) onPreInit(ctx context.Context, s state.State, bootstrap bool, init
 	}
 	extraSANs := controlPlaneJoinConfig.ExtraSANS
 
-	err = os.Remove(filepath.Join(s.FileSystem().StateDir, "server.crt"))
-	if err != nil {
+	if err = os.Remove(filepath.Join(s.FileSystem().StateDir, "server.crt")); err != nil {
 		return fmt.Errorf("failed to remove server.crt: %w", err)
 	}
 
-	err = os.Remove(filepath.Join(s.FileSystem().StateDir, "server.key"))
-	if err != nil {
+	if err = os.Remove(filepath.Join(s.FileSystem().StateDir, "server.key")); err != nil {
 		return fmt.Errorf("failed to remove server.key: %w", err)
 	}
 
@@ -47,11 +45,10 @@ func (a *App) onPreInit(ctx context.Context, s state.State, bootstrap bool, init
 		return err
 	}
 
-	err = a.client.UpdateCertificate(ctx, microclusterTypes.ServerCertificateName, microclusterTypes.KeyPair{
+	if err = a.client.UpdateCertificate(ctx, microclusterTypes.ServerCertificateName, microclusterTypes.KeyPair{
 		Cert: string(cert.PublicKey()),
 		Key:  string(cert.PrivateKey()),
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("failed to update certificate %s: %w", microclusterTypes.ServerCertificateName, err)
 	}
 

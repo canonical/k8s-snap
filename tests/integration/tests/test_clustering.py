@@ -96,10 +96,11 @@ def test_no_remove(instances: List[harness.Instance]):
     assert len(nodes) == 3, "worker node should not have been removed from cluster"
 
 
-@pytest.mark.node_count(2)
-def test_join_with_non_hostname_name(instances: List[harness.Instance]):
+@pytest.mark.node_count(3)
+def test_join_with_custom_token_name(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp = instances[1]
+    joining_cp_with_hostname = instances[2]
 
     out = cluster_node.exec(
         ["k8s", "get-join-token", "my-token"],
@@ -118,12 +119,33 @@ extra-sans:
         text=True,
     )
 
+    out = cluster_node.exec(
+        ["k8s", "get-join-token", "my-token-2"],
+        capture_output=True,
+        text=True,
+    )
+    join_token_2 = out.stdout.strip()
+
+    join_config_2 = """
+extra-sans:
+- my-token-2
+"""
+    joining_cp_with_hostname.exec(
+        ["k8s", "join-cluster", join_token_2, "--file", "-"],
+        input=join_config_2,
+        text=True,
+    )
+
     util.wait_until_k8s_ready(
         cluster_node, instances, node_names={joining_cp.id: "my-node"}
     )
     nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 2, "nodes should have joined cluster"
+    assert len(nodes) == 3, "nodes should have joined cluster"
 
     cluster_node.exec(["k8s", "remove-node", "my-node"])
     nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 1, "cp node should be removed from the cluster"
+    assert len(nodes) == 2, "cp node should be removed from the cluster"
+
+    cluster_node.exec(["k8s", "remove-node", joining_cp_with_hostname.id])
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 1, "cp node with hostname should be removed from the cluster"
