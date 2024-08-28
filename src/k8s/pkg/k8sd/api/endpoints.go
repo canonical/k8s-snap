@@ -144,8 +144,7 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		{
 			Name: "SnapRefresh",
 			Path: "snap/refresh",
-			// TODO: authentication
-			Post: rest.EndpointAction{Handler: e.postSnapRefresh},
+			Post: rest.EndpointAction{Handler: e.postSnapRefresh, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
 		},
 	}
 }

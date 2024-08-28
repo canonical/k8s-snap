@@ -212,6 +212,10 @@ func (s *snap) LockFilesDir() string {
 	return filepath.Join(s.snapCommonDir, "lock")
 }
 
+func (s *snap) NodeTokenFile() string {
+	return filepath.Join(s.snapCommonDir, "node-access-token")
+}
+
 func (s *snap) ContainerdExtraConfigDir() string {
 	return filepath.Join(s.snapCommonDir, "etc", "containerd", "conf.d")
 }

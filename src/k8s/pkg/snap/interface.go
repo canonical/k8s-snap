@@ -53,6 +53,8 @@ type Snap interface {
 
 	LockFilesDir() string // /var/snap/k8s/common/lock
 
+	NodeTokenFile() string // /var/snap/k8s/common/node-token
+
 	KubernetesClient(namespace string) (*kubernetes.Client, error)     // admin kubernetes client
 	KubernetesNodeClient(namespace string) (*kubernetes.Client, error) // node kubernetes client
 

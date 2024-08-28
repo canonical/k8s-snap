@@ -38,6 +38,7 @@ type Mock struct {
 	ServiceArgumentsDir         string
 	ServiceExtraConfigDir       string
 	LockFilesDir                string
+	NodeTokenFile               string
 	KubernetesClient            *kubernetes.Client
 	KubernetesNodeClient        *kubernetes.Client
 	HelmClient                  helm.Client
@@ -173,6 +174,9 @@ func (s *Snap) ServiceExtraConfigDir() string {
 }
 func (s *Snap) LockFilesDir() string {
 	return s.Mock.LockFilesDir
+}
+func (s *Snap) NodeTokenFile() string {
+	return s.Mock.NodeTokenFile
 }
 func (s *Snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {
 	return s.Mock.KubernetesClient, nil
