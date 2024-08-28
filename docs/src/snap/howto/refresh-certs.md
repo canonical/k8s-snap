@@ -1,14 +1,14 @@
 # Refreshing Kubernetes Certificates
 
-Keeping your {{product}} cluster secure and functional requires
-regularly refreshing its certificates. Certificates in Kubernetes ensure
-secure communication between the various components of the cluster. If
-these certificates expire, it can lead to communication failures, disrupted
-services, and potential security risks. This how-to will walk you through
+To keep your {{product}} cluster secure and functional, it is essential
+to regularly refresh its certificates. Certificates in Kubernetes ensure
+secure communication between the various components of the cluster. Expired
+certificates lead to communication failures, disrupted services, and potential 
+security risks. This how-to will walk you through
 the steps to refresh the certificates for both control plane and worker
 nodes in your {{product}} cluster.
 
-## What you will need
+## Prerequisites
 
 - A running {{product}} cluster
 
@@ -39,8 +39,8 @@ other nodes in the cluster.
 ```
 
 3. The cluster will automatically update the certificates in the control plane
-node and restart the necessary services. The command output will show the new
-expiration date:
+node and restart the necessary services. The new expiration date will be
+displayed in the command output:
 
 ```
 Certificates have been successfully refreshed, and will expire at 2025-08-27 21:00:00 +0000 UTC.
@@ -60,12 +60,11 @@ sudo k8s refresh-certs --expires-in 10y --timeout 10m
 ```
 
 This command refreshes the certificates for the worker node. The `--expires-in`
-flag specifies the certificate's validity period. As mentioned in the control
-plane section, this duration can be set using any unit accepted by the
-[ParseDuration][] function in Go, in addition to years, months, or days.
+flag specifies the certificate's validity period, which can be set using any units 
+accepted by the [ParseDuration][] function in Go, such as years, months, or days.
 
-3. During this process, multiple Certificate Signing Requests (CSRs) are
-created. The command output will guide you on how to approve the CSRs on any
+3. During the certificate refresh, multiple Certificate Signing Requests (CSRs) are
+created. Follow the instructions in the command output to approve the CSRs on any
 control plane node in the cluster.
 
 ```
@@ -77,7 +76,7 @@ k8s kubectl certificate approve k8sd-3974895791729870959-worker-kube-proxy-clien
 Waiting for certificates to be created...
 ```
 
-4. On any control plane node, run the commands provided in the output:
+4. Approve the CSRs by running the commands from the previous output on any control plane node:
 
 ```
 k8s kubectl certificate approve k8sd-3974895791729870959-worker-kubelet-serving
@@ -91,8 +90,7 @@ certificatesigningrequest.certificates.k8s.io/k8sd-3974895791729870959-worker-ku
 This command approves the CSRs, allowing the certificates to be created.
 
 5. After approving all the requested CSRs, the worker node will automatically
-refresh its the certificates and restart the necessary services. You should see
-a confirmation message similar to the following:
+refresh its certificates and restart the necessary services:
 
 ```
 Certificates have been successfully refreshed, and will expire at 2034-08-27 21:00:00 +0000 UTC.
