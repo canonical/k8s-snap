@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/canonical/microcluster/v2/cluster"
+	"github.com/canonical/microcluster/v3/cluster"
 )
 
 var (

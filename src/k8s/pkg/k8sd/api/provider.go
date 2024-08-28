@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/microcluster/v2/microcluster"
+	"github.com/canonical/microcluster/v3/microcluster"
 )
 
 // Provider is an interface for state that the API endpoints need access to.

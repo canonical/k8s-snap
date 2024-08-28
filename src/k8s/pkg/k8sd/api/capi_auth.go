@@ -10,7 +10,7 @@ import (
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/v2/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
 func (e *Endpoints) postSetClusterAPIAuthToken(s state.State, r *http.Request) response.Response {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
-	"github.com/canonical/microcluster/v2/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
 // GetControlPlaneNode returns the node information if the given node name
