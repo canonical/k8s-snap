@@ -42,11 +42,14 @@ func (c *NodeConfigurationController) retryNewK8sClient(ctx context.Context) (*k
 }
 
 func (c *NodeConfigurationController) Run(ctx context.Context, getRSAKey func(context.Context) (*rsa.PublicKey, error)) {
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "node-configuration"))
+	log := log.FromContext(ctx)
+
+	log.Info("Waiting for node to be ready")
 	// wait for microcluster node to be ready
 	c.waitReady()
 
-	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "node-configuration"))
-	log := log.FromContext(ctx)
+	log.Info("Starting node configuration controller")
 
 	for {
 		client, err := c.retryNewK8sClient(ctx)

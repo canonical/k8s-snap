@@ -254,6 +254,8 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootstrapConfig apiv1.BootstrapConfig) (rerr error) {
 	snap := a.Snap()
 
+	log := log.FromContext(ctx).WithValues("hook", "bootstrap")
+
 	cfg, err := types.ClusterConfigFromBootstrapConfig(bootstrapConfig)
 	if err != nil {
 		return fmt.Errorf("invalid bootstrap config: %w", err)
@@ -445,9 +447,11 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	}
 
 	// Wait until Kube-API server is ready
+	log.Info("Waiting for kube-apiserver to become ready")
 	if err := waitApiServerReady(ctx, snap); err != nil {
 		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
+	log.Info("API server is ready - notify controllers")
 
 	a.NotifyFeatureController(
 		cfg.Network.GetEnabled(),

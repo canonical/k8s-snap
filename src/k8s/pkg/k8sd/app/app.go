@@ -234,7 +234,10 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 }
 
 func (a *App) markNodeReady(ctx context.Context, s state.State) error {
+	log := log.FromContext(ctx).WithValues("startup", "markNodeReady")
+
 	// wait for the database to be open
+	log.Info("Waiting for database to be open")
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
 		return s.Database().IsOpen(ctx) == nil, nil
 	}); err != nil {
@@ -242,6 +245,7 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	}
 
 	// check kubernetes endpoint
+	log.Info("Waiting for kubernetes endpoint")
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
 		client, err := a.snap.KubernetesNodeClient("")
 		if err != nil {
@@ -255,6 +259,7 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 		return fmt.Errorf("failed to wait for kubernetes endpoint: %w", err)
 	}
 
+	log.Info("Marking node as ready")
 	a.readyWg.Done()
 	return nil
 }
