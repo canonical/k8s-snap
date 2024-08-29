@@ -16,21 +16,18 @@ nodes in your {{product}} cluster.
 initially set up with self-signed certificates during the bootstrap process.
 ```
 
-### Refreshing Control Plane Node Certificates
+### Refresh Control Plane Node Certificates
 
-To refresh the certificates on control plane nodes, perform the following steps
-on each control plane node in your cluster:
-
-1. Access each control plane node in your cluster.
-2. Run the `refresh-certs` command:
+1. To refresh the certificates on control plane nodes, perform the following
+steps on each control plane node in your cluster:
 
 ```
 sudo k8s refresh-certs --expires-in 1y --extra-sans mynode.local
 ```
 
 This command refreshes the certificates for the control plane node, adding an
-extra [Subject Alternative Name][] (SAN) to the certificate. Checking the
-current SANs on your node can be done by running the following command:
+extra [Subject Alternative Name][] (SAN) to the certificate. Check the
+current SANs on your node by running the following command:
 
 ```
 openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text | grep -A 1 "Subject Alternative Name"
@@ -38,15 +35,15 @@ openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text | grep -A 1 "Sub
 
 ```{note} If your node setup includes additional SANs, be sure to provide the
 specific SANs for each node as needed using the `--extra-sans` flag. While this
-isn't required, omitting them could impact your node's ability to communicate
+is not required, omitting them could impact your node's ability to communicate
 with other components in the cluster.
 ```
 
-The `--expires-in`flag sets the certificate's validity duration, which can
-be specified in years, months, days, or any unit accepted by the
+The `--expires-in` flag sets the certificate's validity duration, which can
+be specified in years, months, days, or any other unit accepted by the
 [ParseDuration][] function in Go.
 
-3. The cluster will automatically update the certificates in the control plane
+The cluster will automatically update the certificates in the control plane
 node and restart the necessary services. The new expiration date will be
 displayed in the command output:
 
@@ -54,14 +51,10 @@ displayed in the command output:
 Certificates have been successfully refreshed, and will expire at 2025-08-27 21:00:00 +0000 UTC.
 ```
 
-### Refreshing Worker Node Certificates
+### Refresh Worker Node Certificates
 
-To refresh the certificates on worker nodes, perform the following steps on
+1. To refresh the certificates on worker nodes, perform the following steps on
 each worker node in your cluster:
-
-1. Access each worker node in your cluster.
-
-2. Run the `refresh-certs` command:
 
 ```
 sudo k8s refresh-certs --expires-in 10y --timeout 10m
@@ -72,7 +65,7 @@ flag specifies the certificate's validity period, which can be set using any
 units accepted by the [ParseDuration][] function in Go, such as years, months,
 or days.
 
-3. During the certificate refresh, multiple Certificate Signing Requests (CSRs)
+2. During the certificate refresh, multiple Certificate Signing Requests (CSRs)
 are created. Follow the instructions in the command output to approve the CSRs
 on any control plane node in the cluster.
 
@@ -85,8 +78,8 @@ k8s kubectl certificate approve k8sd-3974895791729870959-worker-kube-proxy-clien
 Waiting for certificates to be created...
 ```
 
-4. Approve the CSRs by running the commands from the previous output on any
-control plane node:
+3. Approve the CSRs by running the following commands on any control plane
+node, which allows the certificates to be created:
 
 ```
 k8s kubectl certificate approve k8sd-3974895791729870959-worker-kubelet-serving
@@ -97,9 +90,7 @@ certificatesigningrequest.certificates.k8s.io/k8sd-3974895791729870959-worker-ku
 certificatesigningrequest.certificates.k8s.io/k8sd-3974895791729870959-worker-kube-proxy-client approved
 ```
 
-This command approves the CSRs, allowing the certificates to be created.
-
-5. After approving all the requested CSRs, the worker node will automatically
+4. After approving all the requested CSRs, the worker node will automatically
 refresh its certificates and restart the necessary services:
 
 ```
