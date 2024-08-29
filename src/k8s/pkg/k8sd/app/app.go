@@ -15,8 +15,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
-	snaputil "github.com/canonical/k8s/pkg/snap/util"
-	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/microcluster/v3/client"
 	"github.com/canonical/microcluster/v3/microcluster"
@@ -264,21 +262,6 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 		return true, nil
 	}); err != nil {
 		return fmt.Errorf("failed to wait for kubernetes endpoint: %w", err)
-	}
-
-	// wait for all snap services to be ready
-	log.V(1).Info("Waiting for snap services to be ready")
-	controlPlaneServices := snaputil.ControlPlaneServices
-	if err := control.WaitUntilReady(ctx, func() (bool, error) {
-		activeServices, err := snaputil.GetActiveServices(ctx, a.snap)
-		if err != nil {
-			return false, fmt.Errorf("failed to get active services: %w", err)
-		}
-
-		// activeServices also contains e.g. k8sd which are not in control-plane services.
-		return utils.ContainsAll(activeServices, controlPlaneServices), nil
-	}); err != nil {
-		return fmt.Errorf("failed to wait for snap services to be ready: %w", err)
 	}
 
 	log.V(1).Info("Marking node as ready")
