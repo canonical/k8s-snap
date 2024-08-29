@@ -22,6 +22,7 @@ external-datastore
 proxy
 backup-restore
 refresh-certs
+restore-quorum
 contribute
 support
 ```
