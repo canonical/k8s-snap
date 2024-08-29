@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/helm"
@@ -17,7 +16,6 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/moby/sys/mountinfo"
-	"github.com/snapcore/snapd/client"
 	"gopkg.in/yaml.v2"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
@@ -67,33 +65,6 @@ func (s *snap) StopService(ctx context.Context, name string) error {
 func (s *snap) RestartService(ctx context.Context, name string) error {
 	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Restarting service", "service", name)
 	return s.runCommand(ctx, []string{"snapctl", "restart", serviceName(name)})
-}
-
-// GetServicesStatuses returns the list of active and inactive k8s services.
-// The names are not prefixed.
-// The service lists are sorted alphabetically.
-func (s *snap) GetServiceStatuses(ctx context.Context) ([]string, []string, error) {
-	// TODO(ben): Use the snapd REST API instead of the CLI for the other snapctl commands
-	// and refactor this client creation to a shared function.
-	c := client.New(nil)
-	snapName := "k8s"
-	snapInfo, _, err := c.Snap(snapName)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get snap info for %q: %w", snapName, err)
-	}
-
-	activeServices := []string{}
-	inActiveServices := []string{}
-	for _, app := range snapInfo.Apps {
-		if app.Active {
-			activeServices = append(activeServices, appName(app.Name))
-		} else {
-			inActiveServices = append(inActiveServices, appName(app.Name))
-		}
-	}
-	slices.Sort(activeServices)
-	slices.Sort(inActiveServices)
-	return activeServices, inActiveServices, nil
 }
 
 type snapcraftYml struct {

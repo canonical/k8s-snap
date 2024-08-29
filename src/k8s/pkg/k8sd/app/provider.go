@@ -2,7 +2,6 @@ package app
 
 import (
 	"github.com/canonical/k8s/pkg/k8sd/api"
-	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/microcluster/v3/microcluster"
@@ -17,7 +16,6 @@ func (a *App) Snap() snap.Snap {
 }
 
 func (a *App) NotifyUpdateNodeConfigController() {
-	log.L().Info("Notifying update node config controller")
 	utils.MaybeNotify(a.triggerUpdateNodeConfigControllerCh)
 }
 

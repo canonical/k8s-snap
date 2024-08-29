@@ -15,8 +15,8 @@ var (
 		"kubelet",
 		"kube-proxy",
 	}
-	// ControlPlaneServices contains all k8s services that run on a control plane except of k8sd.
-	ControlPlaneServices = []string{
+	// controlPlaneServices contains all k8s services that run on a control plane except of k8sd.
+	controlPlaneServices = []string{
 		"containerd",
 		"kube-controller-manager",
 		"kube-proxy",
@@ -29,7 +29,7 @@ var (
 // RestartControlPlaneServices restarts the control plane services.
 // RestartControlPlaneServices will return on the first failing service.
 func RestartControlPlaneServices(ctx context.Context, snap snap.Snap) error {
-	for _, service := range ControlPlaneServices {
+	for _, service := range controlPlaneServices {
 		if err := snap.RestartService(ctx, service); err != nil {
 			return fmt.Errorf("failed to restart service %s: %w", service, err)
 		}
@@ -51,7 +51,7 @@ func StartWorkerServices(ctx context.Context, snap snap.Snap) error {
 // StartControlPlaneServices starts the control plane services.
 // StartControlPlaneServices will return on the first failing service.
 func StartControlPlaneServices(ctx context.Context, snap snap.Snap) error {
-	for _, service := range ControlPlaneServices {
+	for _, service := range controlPlaneServices {
 		if err := snap.StartService(ctx, service); err != nil {
 			return fmt.Errorf("failed to start service %s: %w", service, err)
 		}
@@ -81,7 +81,7 @@ func StopWorkerServices(ctx context.Context, snap snap.Snap) error {
 // StopControlPlaneServices stops the control plane services.
 // StopControlPlaneServices will return on the first failing service.
 func StopControlPlaneServices(ctx context.Context, snap snap.Snap) error {
-	for _, service := range ControlPlaneServices {
+	for _, service := range controlPlaneServices {
 		if err := snap.StopService(ctx, service); err != nil {
 			return fmt.Errorf("failed to stop service %s: %w", service, err)
 		}
@@ -96,14 +96,6 @@ func StopK8sDqliteServices(ctx context.Context, snap snap.Snap) error {
 		return fmt.Errorf("failed to stop service %s: %w", "k8s-dqlite", err)
 	}
 	return nil
-}
-
-func GetActiveServices(ctx context.Context, snap snap.Snap) ([]string, error) {
-	activeServices, _, err := snap.GetServiceStatuses(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get active services: %w", err)
-	}
-	return activeServices, nil
 }
 
 // ServiceArgsFromMap processes a map of string pointers and categorizes them into update and delete lists.

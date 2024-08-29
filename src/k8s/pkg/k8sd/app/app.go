@@ -237,9 +237,8 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 // The node is ready if:
 // - the microcluster database is accessible
 // - the kubernetes endpoint is reachable
-// - all snap services are ready
 func (a *App) markNodeReady(ctx context.Context, s state.State) error {
-	log := log.FromContext(ctx).WithValues("startup", "markNodeReady")
+	log := log.FromContext(ctx).WithValues("startup", "waitForReady")
 
 	// wait for the database to be open
 	log.V(1).Info("Waiting for database to be open")

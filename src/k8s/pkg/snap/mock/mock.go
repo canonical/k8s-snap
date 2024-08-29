@@ -63,10 +63,6 @@ type Snap struct {
 	PreInitChecksCalledWith []types.ClusterConfig
 	PreInitChecksErr        error
 
-	GetServiceStatusesActiveServices   []string
-	GetServiceStatusesInactiveServices []string
-	GetServiceStatusesErr              error
-
 	Mock Mock
 }
 
@@ -93,10 +89,6 @@ func (s *Snap) RestartService(ctx context.Context, name string) error {
 		s.RestartServiceCalledWith = append(s.RestartServiceCalledWith, name)
 	}
 	return s.RestartServiceErr
-}
-
-func (s *Snap) GetServiceStatuses(ctx context.Context) ([]string, []string, error) {
-	return s.GetServiceStatusesActiveServices, s.GetServiceStatusesInactiveServices, s.GetServiceStatusesErr
 }
 
 func (s *Snap) Strict() bool {
