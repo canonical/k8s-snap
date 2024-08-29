@@ -76,7 +76,7 @@ Our tutorials, How To guides and other pages will explain how to install,
 :link: capi/
 ### [Deploy K8s using Cluster API ›](capi/index)
 ^^^
-Our tutorials, guides and other pages will explain how to install,
+Our tutorials, guides and explanation pages will explain how to install,
  configure and use {{product}} through CAPI.
 ```
 ````
