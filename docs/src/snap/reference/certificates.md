@@ -14,7 +14,7 @@
 | **Common Name**                            | **Usage** | **Path on Disk**                                     | **Used For**                                                     | **Signed By**               |
 |--------------------------------------------|-----------|------------------------------------------------------|------------------------------------------------------------------|-----------------------------|
 | `kube-apiserver`                           | Server    | `/etc/kubernetes/pki/apiserver.crt`                  | Securing the API server endpoint                                 | `kubernetes-ca`             |
-| `kube-apiserver-kubelet-client`            | Client    | `/etc/kubernetes/pki/apiserver-kubelet-client.crt`   | API server communication with kubelets                           | `kubernetes-ca-client`      |
+| `apiserver-kubelet-client`            | Client    | `/etc/kubernetes/pki/apiserver-kubelet-client.crt`   | API server communication with kubelets                           | `kubernetes-ca-client`      |
 | `kube-apiserver-etcd-client`               | Client    | `/etc/kubernetes/pki/apiserver-etcd-client.crt`      | API server communication with etcd                               | `kubernetes-ca-client`      |
 | `front-proxy-client`                       | Client    | `/etc/kubernetes/pki/front-proxy-client.crt`         | API server communication with the front-proxy                    | `kubernetes-front-proxy-ca` |
 | `kube-controller-manager`                  | Client    | `/etc/kubernetes/pki/controller-manager.crt`         | Communication between the controller manager and the API server  | `kubernetes-ca-client`      |
