@@ -18,7 +18,7 @@ type K8sDqlitePKI struct {
 	notBefore         time.Time // notBefore date for the generated certificates
 	notAfter          time.Time // not after date (expiration date) for the generated certificates
 
-	// CN=k8s-dqlite, DNS=hostname, IP=127.0.0.1 (self-signed)
+	// CN=k8s, DNS=hostname, IP=127.0.0.1 (self-signed)
 	K8sDqliteCert, K8sDqliteKey string
 }
 
