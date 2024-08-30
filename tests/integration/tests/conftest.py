@@ -83,6 +83,7 @@ def pytest_configure(config):
         "markers",
         "bootstrap_config: Provide a custom bootstrap config to the bootstrapping node.\n"
         "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.\n"
+        "no_setup: No setup steps (pushing snap, bootstrapping etc.) are performed on any node for this test.\n"
         "dualstack: Support dualstack on the instances.\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
         "node_count: Mark a test to specify how many instance nodes need to be created\n",
@@ -102,6 +103,9 @@ def node_count(request) -> int:
 def disable_k8s_bootstrapping(request) -> bool:
     return bool(request.node.get_closest_marker("disable_k8s_bootstrapping"))
 
+@pytest.fixture(scope="function")
+def no_setup(request) -> bool:
+    return bool(request.node.get_closest_marker("no_setup"))
 
 @pytest.fixture(scope="function")
 def bootstrap_config(request) -> Union[str, None]:
@@ -123,6 +127,7 @@ def instances(
     node_count: int,
     tmp_path: Path,
     disable_k8s_bootstrapping: bool,
+    no_setup: bool,
     bootstrap_config: Union[str, None],
     dualstack: bool,
 ) -> Generator[List[harness.Instance], None, None]:
@@ -145,9 +150,10 @@ def instances(
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(dualstack=dualstack)
         instances.append(instance)
-        util.setup_k8s_snap(instance, snap_path)
+        if not no_setup:
+            util.setup_k8s_snap(instance, snap_path)
 
-    if not disable_k8s_bootstrapping:
+    if not disable_k8s_bootstrapping and not no_setup:
         first_node, *_ = instances
 
         if bootstrap_config is not None:
