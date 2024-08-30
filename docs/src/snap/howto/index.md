@@ -20,6 +20,7 @@ storage/index
 external-datastore
 proxy
 backup-restore
+refresh-certs
 contribute
 support
 ```
