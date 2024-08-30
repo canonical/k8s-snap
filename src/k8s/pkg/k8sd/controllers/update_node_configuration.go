@@ -3,14 +3,14 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
-	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 )
 
 // UpdateNodeConfigurationController asynchronously performs updates of the cluster config.
@@ -56,7 +56,12 @@ func (c *UpdateNodeConfigurationController) retryNewK8sClient(ctx context.Contex
 // Run accepts a function that retrieves the current cluster configuration.
 // Run will loop everytime the TriggerCh is triggered.
 func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) {
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "update-node-configuration"))
+	log := log.FromContext(ctx)
+
+	log.V(1).Info("Waiting for node to be ready")
 	c.waitReady()
+	log.V(1).Info("Starting update node configuration controller")
 
 	for {
 		select {
@@ -66,26 +71,26 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 		}
 
 		if isWorker, err := snaputil.IsWorker(c.snap); err != nil {
-			log.Println(fmt.Errorf("failed to check if this is a worker node: %w", err))
+			log.Error(err, "Failed to check if running on a worker node")
 			continue
 		} else if isWorker {
-			log.Println("Stopping UpdateClusterConfig controller as this is a worker node")
+			log.Info("Stopping on worker node")
 			return
 		}
 
 		config, err := getClusterConfig(ctx)
 		if err != nil {
-			log.Println(fmt.Errorf("failed to retrieve cluster config: %w", err))
+			log.Error(err, "Failed to retrieve cluster configuration")
 			continue
 		}
 
 		client, err := c.retryNewK8sClient(ctx)
 		if err != nil {
-			log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
+			log.Error(err, "Failed to create Kubernetes client")
 		}
 
 		if err := c.reconcile(ctx, client, config); err != nil {
-			log.Println(fmt.Errorf("failed to reconcile cluster configuration: %w", err))
+			log.Error(err, "Failed to reconcile cluster configuration")
 		}
 
 		// notify downstream that the reconciliation loop is done.
@@ -97,8 +102,11 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 }
 
 func (c *UpdateNodeConfigurationController) reconcile(ctx context.Context, client *kubernetes.Client, config types.ClusterConfig) error {
+	log := log.FromContext(ctx)
+	log.V(1).Info("Reconciling node configuration")
+
 	keyPEM := config.Certificates.GetK8sdPrivateKey()
-	key, err := pki.LoadRSAPrivateKey(keyPEM)
+	key, err := pkiutil.LoadRSAPrivateKey(keyPEM)
 	if err != nil && keyPEM != "" {
 		return fmt.Errorf("failed to load cluster RSA key: %w", err)
 	}

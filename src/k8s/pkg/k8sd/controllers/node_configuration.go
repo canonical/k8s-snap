@@ -4,13 +4,14 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils/control"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -42,19 +43,25 @@ func (c *NodeConfigurationController) retryNewK8sClient(ctx context.Context) (*k
 }
 
 func (c *NodeConfigurationController) Run(ctx context.Context, getRSAKey func(context.Context) (*rsa.PublicKey, error)) {
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "node-configuration"))
+	log := log.FromContext(ctx)
+
+	log.Info("Waiting for node to be ready")
 	// wait for microcluster node to be ready
 	c.waitReady()
+
+	log.Info("Starting node configuration controller")
 
 	for {
 		client, err := c.retryNewK8sClient(ctx)
 		if err != nil {
-			log.Println(fmt.Errorf("failed to create a Kubernetes client: %w", err))
+			log.Error(err, "Failed to create a Kubernetes client")
 		}
 
 		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap, getRSAKey) }); err != nil {
 			// This also can fail during bootstrapping/start up when api-server is not ready
 			// So the watch requests get connection refused replies
-			log.Println(fmt.Errorf("failed to watch configmap: %w", err))
+			log.WithValues("name", "k8sd-config", "namespace", "kube-system").Error(err, "Failed to watch configmap")
 		}
 
 		select {
@@ -104,8 +111,14 @@ func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *
 	}
 
 	if mustRestartKubelet {
-		if err := c.snap.RestartService(ctx, "kubelet"); err != nil {
-			return fmt.Errorf("failed to restart kubelet to apply node configuration: %w", err)
+		// This may fail if other controllers try to restart the services at the same time, hence the retry.
+		if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+			if err := c.snap.RestartService(ctx, "kubelet"); err != nil {
+				return fmt.Errorf("failed to restart kubelet to apply node configuration: %w", err)
+			}
+			return nil
+		}); err != nil {
+			return fmt.Errorf("failed after retry: %w", err)
 		}
 	}
 

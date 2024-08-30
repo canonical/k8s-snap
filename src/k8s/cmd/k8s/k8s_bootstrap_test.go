@@ -7,10 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/utils"
-
-	apiv1 "github.com/canonical/k8s/api/v1"
 	. "github.com/onsi/gomega"
 )
 
@@ -63,6 +62,7 @@ var testCases = []testCase{
 					Enabled: utils.Pointer(true),
 				},
 				CloudProvider: utils.Pointer("external"),
+				Annotations:   map[string]string{apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove: "true"},
 			},
 			ControlPlaneTaints:                 []string{"node-role.kubernetes.io/control-plane:NoSchedule"},
 			PodCIDR:                            utils.Pointer("10.100.0.0/16"),
@@ -93,7 +93,7 @@ var testCases = []testCase{
 	{
 		name:          "InvalidKeys",
 		yamlConfig:    bootstrapConfigInvalidKeys,
-		expectedError: "field cluster-cidr not found in type v1.BootstrapConfig",
+		expectedError: "field cluster-cidr not found in type apiv1.BootstrapConfig",
 	},
 	{
 		name:          "InvalidYAML",

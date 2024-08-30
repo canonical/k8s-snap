@@ -3,9 +3,9 @@ package setup
 import (
 	"context"
 	"fmt"
-	"log"
-	"path"
+	"path/filepath"
 
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
@@ -16,7 +16,7 @@ func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR str
 	serviceArgs := map[string]string{
 		"--cluster-cidr":         podCIDR,
 		"--healthz-bind-address": "127.0.0.1",
-		"--kubeconfig":           path.Join(snap.KubernetesConfigDir(), "proxy.conf"),
+		"--kubeconfig":           filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"),
 		"--profiling":            "false",
 	}
 
@@ -25,7 +25,7 @@ func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR str
 	}
 	onLXD, err := snap.OnLXD(ctx)
 	if err != nil {
-		log.Printf("failed to check if on lxd: %v", err)
+		log.FromContext(ctx).Error(err, "Failed to check if running on LXD")
 	}
 	if onLXD {
 		// A container cannot set this sysctl config in LXD. So, we disable it by setting it to "0".

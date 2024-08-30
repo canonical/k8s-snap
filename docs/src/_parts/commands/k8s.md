@@ -18,6 +18,7 @@ Canonical Kubernetes CLI
 * [k8s get-join-token](k8s_get-join-token.md)	 - Create a token for a node to join the cluster
 * [k8s join-cluster](k8s_join-cluster.md)	 - Join a cluster using the provided token
 * [k8s kubectl](k8s_kubectl.md)	 - Integrated Kubernetes kubectl client
+* [k8s refresh-certs](k8s_refresh-certs.md)	 - Refresh the certificates of the running node
 * [k8s remove-node](k8s_remove-node.md)	 - Remove a node from the cluster
 * [k8s set](k8s_set.md)	 - Set cluster configuration
 * [k8s status](k8s_status.md)	 - Retrieve the current status of the cluster

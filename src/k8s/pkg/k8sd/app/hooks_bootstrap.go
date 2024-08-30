@@ -9,40 +9,54 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"path"
+	"path/filepath"
+	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
 // onBootstrap is called after we bootstrap the first cluster node.
 // onBootstrap configures local services then writes the cluster config on the database.
-func (a *App) onBootstrap(s *state.State, initConfig map[string]string) error {
+func (a *App) onBootstrap(ctx context.Context, s state.State, initConfig map[string]string) error {
+
+	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	if t := utils.MicroclusterTimeoutFromMap(initConfig); t != 0 {
+		ctx, cancel = context.WithTimeout(ctx, t)
+		defer cancel()
+	}
+
 	if workerToken, ok := initConfig["workerToken"]; ok {
-		workerConfig, err := apiv1.WorkerJoinConfigFromMicrocluster(initConfig)
+		workerConfig, err := utils.MicroclusterWorkerJoinConfigFromMap(initConfig)
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal worker join config: %w", err)
 		}
-		return a.onBootstrapWorkerNode(s, workerToken, workerConfig)
+		return a.onBootstrapWorkerNode(ctx, s, workerToken, workerConfig)
 	}
 
-	bootstrapConfig, err := apiv1.BootstrapConfigFromMicrocluster(initConfig)
+	bootstrapConfig, err := utils.MicroclusterBootstrapConfigFromMap(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal bootstrap config: %w", err)
 	}
 
-	return a.onBootstrapControlPlane(s, bootstrapConfig)
+	return a.onBootstrapControlPlane(ctx, s, bootstrapConfig)
 }
 
-func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinConfig apiv1.WorkerNodeJoinConfig) error {
+func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedToken string, joinConfig apiv1.WorkerJoinConfig) (rerr error) {
 	snap := a.Snap()
+
+	log := log.FromContext(ctx).WithValues("hook", "join")
 
 	token := &types.InternalWorkerNodeToken{}
 	if err := token.Decode(encodedToken); err != nil {
@@ -58,8 +72,17 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	}
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
 
-	// Get remote certificate from the cluster member
-	cert, err := utils.GetRemoteCertificate(token.JoinAddresses[0])
+	// Get remote certificate from the cluster member. We only need one node to be reachable for this.
+	// One might fail because the node is not part of the cluster anymore but was at the time the token was created.
+	var cert *x509.Certificate
+	var address string
+	var err error
+	for _, address = range token.JoinAddresses {
+		cert, err = utils.GetRemoteCertificate(address)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return fmt.Errorf("failed to get certificate of cluster member: %w", err)
 	}
@@ -67,7 +90,7 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	// verify that the fingerprint of the certificate matches the fingerprint of the token
 	fingerprint := utils.CertFingerprint(cert)
 	if fingerprint != token.Fingerprint {
-		return fmt.Errorf("fingerprint from token (%q) does not match fingerprint of node %q (%q)", token.Fingerprint, token.JoinAddresses[0], fingerprint)
+		return fmt.Errorf("fingerprint from token (%q) does not match fingerprint of node %q (%q)", token.Fingerprint, address, fingerprint)
 	}
 
 	// Create the http client with trusted certificate
@@ -83,16 +106,16 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	}
 
 	type wrappedResponse struct {
-		Error    string                       `json:"error"`
-		Metadata apiv1.WorkerNodeInfoResponse `json:"metadata"`
+		Error    string                          `json:"error"`
+		Metadata apiv1.GetWorkerJoinInfoResponse `json:"metadata"`
 	}
 
-	requestBody, err := json.Marshal(apiv1.WorkerNodeInfoRequest{Address: nodeIP.String()})
+	requestBody, err := json.Marshal(apiv1.GetWorkerJoinInfoRequest{Address: nodeIP.String()})
 	if err != nil {
 		return fmt.Errorf("failed to prepare worker info request: %w", err)
 	}
 
-	httpRequest, err := http.NewRequest("POST", fmt.Sprintf("https://%s/1.0/k8sd/worker/info", token.JoinAddresses[0]), bytes.NewBuffer(requestBody))
+	httpRequest, err := http.NewRequest("POST", fmt.Sprintf("https://%s/1.0/k8sd/worker/info", address), bytes.NewBuffer(requestBody))
 	if err != nil {
 		return fmt.Errorf("failed to prepare HTTP request: %w", err)
 	}
@@ -150,15 +173,16 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize worker node certificates: %w", err)
 	}
+
 	if _, err := setup.EnsureWorkerPKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write worker node certificates: %w", err)
 	}
 
 	// Kubeconfigs
-	if err := setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), "kubelet.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
 		return fmt.Errorf("failed to generate kubelet kubeconfig: %w", err)
 	}
-	if err := setup.Kubeconfig(path.Join(snap.KubernetesConfigDir(), "proxy.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
 		return fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err)
 	}
 
@@ -167,6 +191,8 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	// Worker nodes only use a subset of the ClusterConfig struct. At the moment, these are:
 	// - Network.PodCIDR and Network.ClusterCIDR: informative
 	// - Certificates.K8sdPublicKey: used to verify the signature of the k8sd-config configmap.
+	// - Certificates.CACert: kubernetes CA certificate.
+	// - Certificates.ClientCACert: kubernetes client CA certificate.
 	//
 	// TODO(neoaggelos): We should be explicit here and try to avoid having worker nodes use
 	// or set other cluster configuration keys by accident.
@@ -177,15 +203,17 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 		},
 		Certificates: types.Certificates{
 			K8sdPublicKey: utils.Pointer(response.K8sdPublicKey),
+			CACert:        utils.Pointer(response.CACert),
+			ClientCACert:  utils.Pointer(response.ClientCACert),
 		},
 	}
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(s.Context, cfg); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg); err != nil {
 		return fmt.Errorf("pre-init checks failed for worker node: %w", err)
 	}
 
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := database.SetClusterConfig(ctx, tx, cfg); err != nil {
 			return fmt.Errorf("failed to write cluster configuration: %w", err)
 		}
@@ -195,13 +223,13 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 	}
 
 	// Worker node services
-	if err := setup.Containerd(snap, nil, joinConfig.ExtraNodeContainerdArgs); err != nil {
+	if err := setup.Containerd(snap, joinConfig.ExtraNodeContainerdConfig, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
 	if err := setup.KubeletWorker(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), response.PodCIDR, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.K8sAPIServerProxy(snap, response.APIServers, joinConfig.ExtraNodeK8sAPIServerProxyArgs); err != nil {
@@ -211,21 +239,29 @@ func (a *App) onBootstrapWorkerNode(s *state.State, encodedToken string, joinCon
 		return fmt.Errorf("failed to write extra node config files: %w", err)
 	}
 
-	// TODO(berkayoz): remove the lock on cleanup
 	if err := snaputil.MarkAsWorkerNode(snap, true); err != nil {
 		return fmt.Errorf("failed to mark node as worker: %w", err)
 	}
 
 	// Start services
-	if err := snaputil.StartWorkerServices(s.Context, snap); err != nil {
-		return fmt.Errorf("failed to start worker services: %w", err)
+	// This may fail if the node controllers try to restart the services at the same time, hence the retry.
+	log.Info("Starting worker services")
+	if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+		if err := snaputil.StartWorkerServices(ctx, snap); err != nil {
+			return fmt.Errorf("failed to start worker services: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed after retry: %w", err)
 	}
 
 	return nil
 }
 
-func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.BootstrapConfig) error {
+func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootstrapConfig apiv1.BootstrapConfig) (rerr error) {
 	snap := a.Snap()
+
+	log := log.FromContext(ctx).WithValues("hook", "bootstrap")
 
 	cfg, err := types.ClusterConfigFromBootstrapConfig(bootstrapConfig)
 	if err != nil {
@@ -252,12 +288,17 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.GetServiceCIDR(), err)
 	}
 
+	// NOTE: Set the notBefore certificate time to the current time.
+	notBefore := time.Now()
+
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
+		// NOTE: Default certificate expiration is set to 20 years.
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname:          s.Name(),
 			IPSANs:            []net.IP{{127, 0, 0, 1}},
-			Years:             20,
+			NotBefore:         notBefore,
+			NotAfter:          notBefore.AddDate(20, 0, 0),
 			AllowSelfSignedCA: true,
 		})
 		if err := certificates.CompleteCertificates(); err != nil {
@@ -286,12 +327,14 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	}
 
 	// Certificates
+	// NOTE: Default certificate expiration is set to 20 years.
 	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
 		DNSSANs:                   extraNames,
-		Years:                     20,
+		NotBefore:                 notBefore,
+		NotAfter:                  notBefore.AddDate(20, 0, 0),
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
 	})
@@ -326,6 +369,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	if err := certificates.CompleteCertificates(); err != nil {
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
+
 	if _, err := setup.EnsureControlPlanePKI(snap, certificates); err != nil {
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
@@ -346,12 +390,12 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	cfg.Certificates.K8sdPrivateKey = utils.Pointer(certificates.K8sdPrivateKey)
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(s.Context, cfg); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg); err != nil {
 		return fmt.Errorf("pre-init checks failed for bootstrap node: %w", err)
 	}
 
 	// Generate kubeconfigs
-	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
@@ -367,13 +411,13 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	}
 
 	// Configure services
-	if err := setup.Containerd(snap, nil, bootstrapConfig.ExtraNodeContainerdArgs); err != nil {
+	if err := setup.Containerd(snap, bootstrapConfig.ExtraNodeContainerdConfig, bootstrapConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), bootstrapConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.GetPodCIDR(), bootstrapConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), bootstrapConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap, bootstrapConfig.ExtraNodeKubeControllerManagerArgs); err != nil {
@@ -382,7 +426,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	if err := setup.KubeScheduler(snap, bootstrapConfig.ExtraNodeKubeSchedulerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
-	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), bootstrapConfig.ExtraNodeKubeAPIServerArgs); err != nil {
+	if err := setup.KubeAPIServer(snap, nodeIP, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), bootstrapConfig.ExtraNodeKubeAPIServerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 
@@ -391,7 +435,7 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 	}
 
 	// Write cluster configuration to dqlite
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := database.SetClusterConfig(ctx, tx, cfg); err != nil {
 			return fmt.Errorf("failed to write cluster configuration: %w", err)
 		}
@@ -400,19 +444,28 @@ func (a *App) onBootstrapControlPlane(s *state.State, bootstrapConfig apiv1.Boot
 		return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
 	}
 
-	if err := snapdconfig.SetSnapdFromK8sd(s.Context, cfg.ToUserFacing(), snap); err != nil {
+	if err := snapdconfig.SetSnapdFromK8sd(ctx, cfg.ToUserFacing(), snap); err != nil {
 		return fmt.Errorf("failed to set snapd configuration from k8sd: %w", err)
 	}
 
 	// Start services
-	if err := startControlPlaneServices(s.Context, snap, cfg.Datastore.GetType()); err != nil {
-		return fmt.Errorf("failed to start services: %w", err)
+	// This may fail if the node controllers try to restart the services at the same time, hence the retry.
+	log.Info("Starting control-plane services")
+	if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+		if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
+			return fmt.Errorf("failed to start services: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed after retry: %w", err)
 	}
 
 	// Wait until Kube-API server is ready
-	if err := waitApiServerReady(s.Context, snap); err != nil {
+	log.Info("Waiting for kube-apiserver to become ready")
+	if err := waitApiServerReady(ctx, snap); err != nil {
 		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
+	log.Info("API server is ready - notify controllers")
 
 	a.NotifyFeatureController(
 		cfg.Network.GetEnabled(),

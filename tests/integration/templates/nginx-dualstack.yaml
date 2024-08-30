@@ -21,7 +21,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx6
+  name: nginx-dualstack
   labels:
     run: nginxdualstack
 spec:

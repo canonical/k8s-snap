@@ -8,8 +8,9 @@ import (
 
 func init() {
 	images.Register(
-		fmt.Sprintf("%s:%s", envoyImageRepo, envoyImageTag),
-		fmt.Sprintf("%s:%s", contourImageRepo, contourImageTag),
-		fmt.Sprintf("%s:%s", contourGatewayImageRepo, contourGatewayImageTag),
+		fmt.Sprintf("%s:%s", contourIngressEnvoyImageRepo, contourIngressEnvoyImageTag),
+		fmt.Sprintf("%s:%s", contourIngressContourImageRepo, contourIngressContourImageTag),
+		fmt.Sprintf("%s:%s", contourGatewayProvisionerContourImageRepo, contourGatewayProvisionerContourImageTag),
+		fmt.Sprintf("%s:%s", contourGatewayProvisionerEnvoyImageRepo, contourGatewayProvisionerEnvoyImageTag),
 	)
 }

@@ -6,8 +6,6 @@ INSTALL="${1}/bin"
 mkdir -p "${INSTALL}"
 
 # these would very tedious to apply with a patch
-go get github.com/docker/docker/pkg/reexec
-go mod vendor
 sed -i 's/^package main/package plugin_main/' plugins/*/*/*.go
 sed -i 's/^func main()/func Main()/' plugins/*/*/*.go
 

@@ -3,6 +3,8 @@
 #
 import json
 import logging
+import re
+import subprocess
 from typing import List
 
 import pytest
@@ -10,20 +12,26 @@ from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
 
+STATUS_PATTERNS = [
+    r"cluster status:\s*ready",
+    r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
+    r"high availability:\s*no",
+    r"datastore:\s*k8s-dqlite",
+    r"network:\s*enabled",
+    r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
+    r"ingress:\s*enabled",
+    r"load-balancer:\s*enabled, Unknown mode",
+    r"local-storage:\s*enabled at /var/snap/k8s/common/rawfile-storage",
+    r"gateway\s*enabled",
+]
+
 
 @pytest.mark.node_count(1)
-@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-smoke.yaml").read_text()
+)
 def test_smoke(instances: List[harness.Instance]):
     instance = instances[0]
-
-    bootstrap_smoke_config_path = "/home/ubuntu/bootstrap-smoke.yaml"
-    instance.send_file(
-        (config.MANIFESTS_DIR / "bootstrap-smoke.yaml").as_posix(),
-        bootstrap_smoke_config_path,
-    )
-
-    instance.exec(["k8s", "bootstrap", "--file", bootstrap_smoke_config_path])
-    util.wait_until_k8s_ready(instance, [instance])
 
     # Verify the functionality of the k8s config command during the smoke test.
     # It would be excessive to deploy a cluster solely for this purpose.
@@ -92,3 +100,24 @@ def test_smoke(instances: List[harness.Instance]):
     assert (
         metadata.get("token") is not None
     ), "Token not found in the generate-join-token response."
+
+    def status_output_matches(p: subprocess.CompletedProcess) -> bool:
+        result_lines = p.stdout.decode().strip().split("\n")
+        if len(result_lines) != len(STATUS_PATTERNS):
+            LOG.info(
+                f"wrong number of results lines, expected {len(STATUS_PATTERNS)}, got {len(result_lines)}"
+            )
+            return False
+
+        for i in range(len(result_lines)):
+            line, pattern = result_lines[i], STATUS_PATTERNS[i]
+            if re.search(pattern, line) is None:
+                LOG.info(f"could not match `{line.strip()}` with `{pattern}`")
+                return False
+
+        return True
+
+    LOG.info("Verifying the output of `k8s status`")
+    util.stubbornly(retries=10, delay_s=10).on(instance).until(
+        condition=status_output_matches,
+    ).exec(["k8s", "status", "--wait-ready"])

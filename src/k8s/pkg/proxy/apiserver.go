@@ -3,9 +3,10 @@ package proxy
 import (
 	"context"
 	"fmt"
-	"log"
 	"reflect"
 	"time"
+
+	"github.com/canonical/k8s/pkg/log"
 )
 
 // APIServerProxy is a TCP proxy that forwards requests to the API Servers of the cluster.
@@ -27,6 +28,8 @@ type APIServerProxy struct {
 
 // Run starts the proxy.
 func (p *APIServerProxy) Run(ctx context.Context) error {
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithName("apiserver-proxy"))
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -48,12 +51,13 @@ func (p *APIServerProxy) Run(ctx context.Context) error {
 
 func (p *APIServerProxy) startProxy(ctx context.Context, cancel func(), endpoints []string) {
 	if err := startProxy(ctx, p.ListenAddress, endpoints); err != nil {
-		log.Println(fmt.Errorf("apiserver proxy failed: %w", err))
+		log.FromContext(ctx).Error(err, "Failed to start")
 	}
 	cancel()
 }
 
 func (p *APIServerProxy) watchForNewEndpoints(ctx context.Context, cancel func(), endpoints []string) {
+	log := log.FromContext(ctx).WithValues("controller", "watchendpoints")
 	if p.RefreshCh == nil {
 		return
 	}
@@ -68,18 +72,19 @@ func (p *APIServerProxy) watchForNewEndpoints(ctx context.Context, cancel func()
 		newEndpoints, err := getKubernetesEndpoints(ctx, p.KubeconfigFile)
 		switch {
 		case err != nil:
-			log.Println(fmt.Errorf("failed to retrieve kubernetes endpoints: %w", err))
+			log.Error(err, "Failed to retrieve Kubernetes endpoints")
 			continue
 		case len(newEndpoints) == 0:
-			log.Println("warning: empty list of endpoints, skipping update")
+			log.Info("Warning: empty list of endpoints, skipping update")
 			continue
 		case len(newEndpoints) == len(endpoints) && reflect.DeepEqual(newEndpoints, endpoints):
 			continue
 		}
-		log.Println("updating endpoints")
+		log = log.WithValues("endpoints", endpoints)
+		log.Info("Updating endpoints")
 
 		if err := WriteEndpointsConfig(newEndpoints, p.EndpointsConfigFile); err != nil {
-			log.Printf("failed to update configuration file with new endpoints: %s", err)
+			log.Error(err, "Failed to update configuration file with new endpoints")
 			continue
 		}
 

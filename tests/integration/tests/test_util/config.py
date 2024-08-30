@@ -28,6 +28,10 @@ SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "local"
 # after the tests complete.
 SKIP_CLEANUP = (os.getenv("TEST_SKIP_CLEANUP") or "") == "1"
 
+# INSPECTION_REPORTS_DIR is the directory where inspection reports are stored.
+# If empty, no reports are generated.
+INSPECTION_REPORTS_DIR = os.getenv("TEST_INSPECTION_REPORTS_DIR")
+
 # LXD_PROFILE_NAME is the profile name to use for LXD containers.
 LXD_PROFILE_NAME = os.getenv("TEST_LXD_PROFILE_NAME") or "k8s-integration"
 
@@ -37,8 +41,26 @@ LXD_PROFILE = (
     or (DIR / ".." / ".." / "lxd-profile.yaml").read_text()
 )
 
+# LXD_DUALSTACK_NETWORK is the network to use for LXD containers with dualstack configured.
+LXD_DUALSTACK_NETWORK = os.getenv("TEST_LXD_DUALSTACK_NETWORK") or "dualstack-br0"
+
+# LXD_DUALSTACK_PROFILE_NAME is the profile name to use for LXD containers with dualstack configured.
+LXD_DUALSTACK_PROFILE_NAME = (
+    os.getenv("TEST_LXD_DUALSTACK_PROFILE_NAME") or "k8s-integration-dualstack"
+)
+
+# LXD_DUALSTACK_PROFILE is the profile to use for LXD containers with dualstack configured.
+LXD_DUALSTACK_PROFILE = (
+    os.getenv("TEST_LXD_DUALSTACK_PROFILE")
+    or (DIR / ".." / ".." / "lxd-dualstack-profile.yaml").read_text()
+)
+
 # LXD_IMAGE is the image to use for LXD containers.
 LXD_IMAGE = os.getenv("TEST_LXD_IMAGE") or "ubuntu:22.04"
+
+# LXD_SIDELOAD_IMAGES_DIR is an optional directory with OCI images from the host
+# that will be mounted at /var/snap/k8s/common/images on the LXD containers.
+LXD_SIDELOAD_IMAGES_DIR = os.getenv("TEST_LXD_SIDELOAD_IMAGES_DIR") or ""
 
 # MULTIPASS_IMAGE is the image to use for Multipass VMs.
 MULTIPASS_IMAGE = os.getenv("TEST_MULTIPASS_IMAGE") or "22.04"

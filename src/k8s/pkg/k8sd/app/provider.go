@@ -4,11 +4,11 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/microcluster/microcluster"
+	"github.com/canonical/microcluster/v3/microcluster"
 )
 
 func (a *App) MicroCluster() *microcluster.MicroCluster {
-	return a.microCluster
+	return a.cluster
 }
 
 func (a *App) Snap() snap.Snap {

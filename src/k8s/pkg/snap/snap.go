@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/moby/sys/mountinfo"
 	"gopkg.in/yaml.v2"
@@ -50,16 +51,19 @@ func NewSnap(opts SnapOpts) *snap {
 
 // StartService starts a k8s service. The name can be either prefixed or not.
 func (s *snap) StartService(ctx context.Context, name string) error {
+	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Starting service", "service", name)
 	return s.runCommand(ctx, []string{"snapctl", "start", "--enable", serviceName(name)})
 }
 
 // StopService stops a k8s service. The name can be either prefixed or not.
 func (s *snap) StopService(ctx context.Context, name string) error {
+	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Stopping service", "service", name)
 	return s.runCommand(ctx, []string{"snapctl", "stop", "--disable", serviceName(name)})
 }
 
 // RestartService restarts a k8s service. The name can be either prefixed or not.
 func (s *snap) RestartService(ctx context.Context, name string) error {
+	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Restarting service", "service", name)
 	return s.runCommand(ctx, []string{"snapctl", "restart", serviceName(name)})
 }
 
@@ -104,15 +108,15 @@ func (s *snap) Hostname() string {
 }
 
 func (s *snap) ContainerdConfigDir() string {
-	return path.Join(s.snapCommonDir, "etc", "containerd")
+	return filepath.Join(s.snapCommonDir, "etc", "containerd")
 }
 
 func (s *snap) ContainerdRootDir() string {
-	return path.Join(s.snapCommonDir, "var", "lib", "containerd")
+	return filepath.Join(s.snapCommonDir, "var", "lib", "containerd")
 }
 
 func (s *snap) ContainerdSocketDir() string {
-	return path.Join(s.snapCommonDir, "run")
+	return filepath.Join(s.snapCommonDir, "run")
 }
 
 func (s *snap) ContainerdStateDir() string {
@@ -128,7 +132,7 @@ func (s *snap) CNIBinDir() string {
 }
 
 func (s *snap) CNIPluginsBinary() string {
-	return path.Join(s.snapDir, "bin", "cni")
+	return filepath.Join(s.snapDir, "bin", "cni")
 }
 
 func (s *snap) CNIPlugins() []string {
@@ -169,31 +173,31 @@ func (s *snap) KubeletRootDir() string {
 }
 
 func (s *snap) K8sdStateDir() string {
-	return path.Join(s.snapCommonDir, "var", "lib", "k8sd", "state")
+	return filepath.Join(s.snapCommonDir, "var", "lib", "k8sd", "state")
 }
 
 func (s *snap) K8sDqliteStateDir() string {
-	return path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite")
+	return filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite")
 }
 
 func (s *snap) ServiceArgumentsDir() string {
-	return path.Join(s.snapCommonDir, "args")
+	return filepath.Join(s.snapCommonDir, "args")
 }
 
 func (s *snap) ServiceExtraConfigDir() string {
-	return path.Join(s.snapCommonDir, "args", "conf.d")
+	return filepath.Join(s.snapCommonDir, "args", "conf.d")
 }
 
 func (s *snap) LockFilesDir() string {
-	return path.Join(s.snapCommonDir, "lock")
+	return filepath.Join(s.snapCommonDir, "lock")
 }
 
 func (s *snap) ContainerdExtraConfigDir() string {
-	return path.Join(s.snapCommonDir, "etc", "containerd", "conf.d")
+	return filepath.Join(s.snapCommonDir, "etc", "containerd", "conf.d")
 }
 
 func (s *snap) ContainerdRegistryConfigDir() string {
-	return path.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
+	return filepath.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
 }
 
 func (s *snap) restClientGetter(path string, namespace string) genericclioptions.RESTClientGetter {
@@ -207,32 +211,36 @@ func (s *snap) restClientGetter(path string, namespace string) genericclioptions
 }
 
 func (s *snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {
-	return kubernetes.NewClient(s.restClientGetter(path.Join(s.KubernetesConfigDir(), "admin.conf"), namespace))
+	return kubernetes.NewClient(s.restClientGetter(filepath.Join(s.KubernetesConfigDir(), "admin.conf"), namespace))
 }
 
 func (s *snap) KubernetesNodeClient(namespace string) (*kubernetes.Client, error) {
-	return kubernetes.NewClient(s.restClientGetter(path.Join(s.KubernetesConfigDir(), "kubelet.conf"), namespace))
+	return kubernetes.NewClient(s.restClientGetter(filepath.Join(s.KubernetesConfigDir(), "kubelet.conf"), namespace))
 }
 
 func (s *snap) HelmClient() helm.Client {
 	return helm.NewClient(
 		filepath.Join(s.snapDir, "k8s", "manifests"),
 		func(namespace string) genericclioptions.RESTClientGetter {
-			return s.restClientGetter(path.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
+			return s.restClientGetter(filepath.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
 		},
 	)
 }
 
 func (s *snap) K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) {
 	client, err := dqlite.NewClient(ctx, dqlite.ClientOpts{
-		ClusterYAML: path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.yaml"),
-		ClusterCert: path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.crt"),
-		ClusterKey:  path.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.key"),
+		ClusterYAML: filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.yaml"),
+		ClusterCert: filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.crt"),
+		ClusterKey:  filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite", "cluster.key"),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create default k8s-dqlite client: %w", err)
 	}
 	return client, nil
+}
+
+func (s *snap) K8sdClient(address string) (k8sd.Client, error) {
+	return k8sd.New(filepath.Join(s.snapCommonDir, "var", "lib", "k8sd", "state"), address)
 }
 
 func (s *snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {

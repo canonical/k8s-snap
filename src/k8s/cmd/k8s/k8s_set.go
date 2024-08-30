@@ -6,8 +6,9 @@ import (
 	"strings"
 	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
@@ -35,6 +36,11 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			config := apiv1.UserFacingClusterConfig{}
 
+			if opts.timeout < minTimeout {
+				cmd.PrintErrf("Timeout %v is less than minimum of %v. Using the minimum %v instead.\n", opts.timeout, minTimeout, minTimeout)
+				opts.timeout = minTimeout
+			}
+
 			for _, arg := range args {
 				if err := updateConfigMapstructure(&config, arg); err != nil {
 					cmd.PrintErrf("Error: Invalid option %q.\n\nThe error was: %v\n", arg, err)
@@ -42,21 +48,17 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient("")
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			request := apiv1.UpdateClusterConfigRequest{
-				Config: config,
-			}
-
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			if err := client.UpdateClusterConfig(ctx, request); err != nil {
+			if err := client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config}); err != nil {
 				cmd.PrintErrf("Error: Failed to apply requested cluster configuration changes.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
@@ -73,31 +75,31 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 }
 
 var knownSetKeys = map[string]struct{}{
-	"annotations":                    {},
-	"cloud-provider":                 {},
-	"dns.cluster-domain":             {},
-	"dns.enabled":                    {},
-	"dns.service-ip":                 {},
-	"dns.upstream-nameservers":       {},
-	"gateway.enabled":                {},
-	"ingress.default-tls-secret":     {},
-	"ingress.enable-proxy-protocol":  {},
-	"ingress.enabled":                {},
-	"load-balancer.bgp-local-asn":    {},
-	"load-balancer.bgp-mode":         {},
-	"load-balancer.bgp-peer-address": {},
-	"load-balancer.bgp-peer-asn":     {},
-	"load-balancer.bgp-peer-port":    {},
-	"load-balancer.cidrs":            {},
-	"load-balancer.enabled":          {},
-	"load-balancer.l2-interfaces":    {},
-	"load-balancer.l2-mode":          {},
-	"local-storage.default":          {},
-	"local-storage.enabled":          {},
-	"local-storage.local-path":       {},
-	"local-storage.reclaim-policy":   {},
-	"metrics-server.enabled":         {},
-	"network.enabled":                {},
+	"annotations":    {},
+	"cloud-provider": {},
+	fmt.Sprintf("%s.cluster-domain", features.DNS):            {},
+	fmt.Sprintf("%s.enabled", features.DNS):                   {},
+	fmt.Sprintf("%s.service-ip", features.DNS):                {},
+	fmt.Sprintf("%s.upstream-nameservers", features.DNS):      {},
+	fmt.Sprintf("%s.enabled", features.Gateway):               {},
+	fmt.Sprintf("%s.default-tls-secret", features.Ingress):    {},
+	fmt.Sprintf("%s.enable-proxy-protocol", features.Ingress): {},
+	fmt.Sprintf("%s.enabled", features.Ingress):               {},
+	fmt.Sprintf("%s.bgp-local-asn", features.LoadBalancer):    {},
+	fmt.Sprintf("%s.bgp-mode", features.LoadBalancer):         {},
+	fmt.Sprintf("%s.bgp-peer-address", features.LoadBalancer): {},
+	fmt.Sprintf("%s.bgp-peer-asn", features.LoadBalancer):     {},
+	fmt.Sprintf("%s.bgp-peer-port", features.LoadBalancer):    {},
+	fmt.Sprintf("%s.cidrs", features.LoadBalancer):            {},
+	fmt.Sprintf("%s.enabled", features.LoadBalancer):          {},
+	fmt.Sprintf("%s.l2-interfaces", features.LoadBalancer):    {},
+	fmt.Sprintf("%s.l2-mode", features.LoadBalancer):          {},
+	fmt.Sprintf("%s.default", features.LocalStorage):          {},
+	fmt.Sprintf("%s.enabled", features.LocalStorage):          {},
+	fmt.Sprintf("%s.local-path", features.LocalStorage):       {},
+	fmt.Sprintf("%s.reclaim-policy", features.LocalStorage):   {},
+	fmt.Sprintf("%s.enabled", features.MetricsServer):         {},
+	fmt.Sprintf("%s.enabled", features.Network):               {},
 }
 
 func updateConfigMapstructure(config *apiv1.UserFacingClusterConfig, arg string) error {

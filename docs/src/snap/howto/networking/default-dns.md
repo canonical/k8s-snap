@@ -1,6 +1,6 @@
 # How to use default DNS
 
-Canonical Kubernetes includes a default DNS (Domain Name System) which is
+{{product}} includes a default DNS (Domain Name System) which is
 essential for internal cluster communication. When enabled, the DNS facilitates
 service discovery by assigning each service a DNS name. When disabled, you can
 integrate a custom DNS solution into your cluster.
@@ -10,7 +10,7 @@ integrate a custom DNS solution into your cluster.
 This guide assumes the following:
 
 - You have root or sudo access to the machine.
-- You have a bootstrapped Canonical Kubernetes cluster (see the [Getting
+- You have a bootstrapped {{product}} cluster (see the [Getting
   Started][getting-started-guide] guide).
 
 ## Check DNS status
@@ -74,7 +74,7 @@ desired values for your DNS configuration.
 
 ## Disable DNS
 
-Canonical Kubernetes also allows you to disable the built-in DNS,
+{{product}} also allows you to disable the built-in DNS,
 if you desire a custom solution:
 
 ``` {warning} Disabling DNS will disrupt internal cluster communication. Ensure

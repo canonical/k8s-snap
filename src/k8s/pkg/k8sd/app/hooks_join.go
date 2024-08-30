@@ -1,29 +1,45 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net"
+	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
 // onPostJoin is called when a control plane node joins the cluster.
 // onPostJoin retrieves the cluster config from the database and configures local services.
-func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
+func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[string]string) (rerr error) {
+	log := log.FromContext(ctx).WithValues("hook", "postJoin")
+
 	snap := a.Snap()
 
-	joinConfig, err := apiv1.ControlPlaneJoinConfigFromMicrocluster(initConfig)
+	// NOTE: Set the notBefore certificate time to the current time.
+	notBefore := time.Now()
+
+	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	if t := utils.MicroclusterTimeoutFromMap(initConfig); t != 0 {
+		ctx, cancel = context.WithTimeout(ctx, t)
+		defer cancel()
+	}
+
+	joinConfig, err := utils.MicroclusterControlPlaneJoinConfigFromMap(initConfig)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal control plane join config: %w", err)
 	}
 
-	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
+	cfg, err := databaseutil.GetClusterConfig(ctx, s)
 	if err != nil {
 		return fmt.Errorf("failed to get cluster config: %w", err)
 	}
@@ -45,10 +61,12 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
+		// NOTE: Default certificate expiration is set to 20 years.
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
-			Hostname: s.Name(),
-			IPSANs:   []net.IP{{127, 0, 0, 1}},
-			Years:    20,
+			Hostname:  s.Name(),
+			IPSANs:    []net.IP{{127, 0, 0, 1}},
+			NotBefore: notBefore,
+			NotAfter:  notBefore.AddDate(20, 0, 0),
 		})
 		certificates.K8sDqliteCert = cfg.Datastore.GetK8sDqliteCert()
 		certificates.K8sDqliteKey = cfg.Datastore.GetK8sDqliteKey()
@@ -75,12 +93,14 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Certificates
+	// NOTE: Default certificate expiration is set to 20 years.
 	extraIPs, extraNames := utils.SplitIPAndDNSSANs(joinConfig.ExtraSANS)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
 		DNSSANs:                   extraNames,
-		Years:                     20,
+		NotBefore:                 notBefore,
+		NotAfter:                  notBefore.AddDate(20, 0, 0),
 		IncludeMachineAddressSANs: true,
 	})
 
@@ -111,7 +131,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(s.Context, cfg); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg); err != nil {
 		return fmt.Errorf("pre-init checks failed for joining node: %w", err)
 	}
 
@@ -120,18 +140,19 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
 
-	if err := setupKubeconfigs(s, snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
 	// Configure datastore
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
+		// TODO(neoaggelos): use cluster.GetInternalClusterMembers() instead
 		leader, err := s.Leader()
 		if err != nil {
 			return fmt.Errorf("failed to get dqlite leader: %w", err)
 		}
-		members, err := leader.GetClusterMembers(s.Context)
+		members, err := leader.GetClusterMembers(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get microcluster members: %w", err)
 		}
@@ -150,13 +171,13 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	}
 
 	// Configure services
-	if err := setup.Containerd(snap, nil, joinConfig.ExtraNodeContainerdArgs); err != nil {
+	if err := setup.Containerd(snap, joinConfig.ExtraNodeContainerdConfig, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(s.Context, snap, s.Name(), cfg.Network.GetPodCIDR(), joinConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), joinConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap, joinConfig.ExtraNodeKubeControllerManagerArgs); err != nil {
@@ -165,7 +186,7 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 	if err := setup.KubeScheduler(snap, joinConfig.ExtraNodeKubeSchedulerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
-	if err := setup.KubeAPIServer(snap, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), joinConfig.ExtraNodeKubeAPIServerArgs); err != nil {
+	if err := setup.KubeAPIServer(snap, nodeIP, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), joinConfig.ExtraNodeKubeAPIServerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 
@@ -173,54 +194,25 @@ func (a *App) onPostJoin(s *state.State, initConfig map[string]string) error {
 		return fmt.Errorf("failed to write extra node config files: %w", err)
 	}
 
-	if err := snapdconfig.SetSnapdFromK8sd(s.Context, cfg.ToUserFacing(), snap); err != nil {
+	if err := snapdconfig.SetSnapdFromK8sd(ctx, cfg.ToUserFacing(), snap); err != nil {
 		return fmt.Errorf("failed to set snapd configuration from k8sd: %w", err)
 	}
 
 	// Start services
-	if err := startControlPlaneServices(s.Context, snap, cfg.Datastore.GetType()); err != nil {
-		return fmt.Errorf("failed to start services: %w", err)
+	// This may fail if the node controllers try to restart the services at the same time, hence the retry.
+	log.Info("Starting control-plane services")
+	if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+		if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
+			return fmt.Errorf("failed to start services: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed after retry: %w", err)
 	}
 
 	// Wait until Kube-API server is ready
-	if err := waitApiServerReady(s.Context, snap); err != nil {
+	if err := waitApiServerReady(ctx, snap); err != nil {
 		return fmt.Errorf("failed to wait for kube-apiserver to become ready: %w", err)
-	}
-
-	return nil
-}
-
-func (a *App) onPreRemove(s *state.State, force bool) error {
-	snap := a.Snap()
-
-	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
-	if err != nil {
-		return fmt.Errorf("failed to retrieve k8sd cluster config: %w", err)
-	}
-
-	// configure datastore
-	switch cfg.Datastore.GetType() {
-	case "k8s-dqlite":
-		client, err := snap.K8sDqliteClient(s.Context)
-		if err != nil {
-			return fmt.Errorf("failed to create k8s-dqlite client: %w", err)
-		}
-
-		nodeAddress := net.JoinHostPort(s.Address().Hostname(), fmt.Sprintf("%d", cfg.Datastore.GetK8sDqlitePort()))
-		if err := client.RemoveNodeByAddress(s.Context, nodeAddress); err != nil {
-			return fmt.Errorf("failed to remove node with address %s from k8s-dqlite cluster: %w", nodeAddress, err)
-		}
-	case "external":
-	default:
-	}
-
-	c, err := snap.KubernetesClient("")
-	if err != nil {
-		return fmt.Errorf("failed to create Kubernetes client: %w", err)
-	}
-
-	if err := c.DeleteNode(s.Context, s.Name()); err != nil {
-		return fmt.Errorf("failed to remove k8s node %q: %w", s.Name(), err)
 	}
 
 	return nil

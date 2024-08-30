@@ -12,24 +12,7 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
-def test_ingress(session_instance: List[harness.Instance]):
-
-    util.stubbornly(retries=5, delay_s=2).on(session_instance).until(
-        lambda p: "ingress" in p.stdout.decode()
-    ).exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
-
-    p = session_instance.exec(
-        [
-            "k8s",
-            "kubectl",
-            "get",
-            "service",
-            "-A",
-            "-o=json",
-        ],
-        capture_output=True,
-    )
-
+def get_ingress_service_node_port(p):
     ingress_http_port = None
     services = json.loads(p.stdout.decode())
 
@@ -42,15 +25,26 @@ def test_ingress(session_instance: List[harness.Instance]):
         )
     ]
 
-    assert len(ingress_services) > 0, "No ingress services found."
-
     for svc in ingress_services:
         for port in svc["spec"]["ports"]:
             if port["port"] == 80:
                 ingress_http_port = port["nodePort"]
                 break
         if ingress_http_port:
-            break
+            return ingress_http_port
+    return None
+
+
+def test_ingress(session_instance: List[harness.Instance]):
+
+    result = (
+        util.stubbornly(retries=7, delay_s=3)
+        .on(session_instance)
+        .until(lambda p: get_ingress_service_node_port(p) is not None)
+        .exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
+    )
+
+    ingress_http_port = get_ingress_service_node_port(result)
 
     assert ingress_http_port is not None, "No ingress nodePort found."
 

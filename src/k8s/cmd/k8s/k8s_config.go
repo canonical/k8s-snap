@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
 )
@@ -25,14 +25,18 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				opts.timeout = minTimeout
 			}
 
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient("")
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			if !client.IsBootstrapped(cmd.Context()) {
+			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
+				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			} else if !initialized {
 				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
 				env.Exit(1)
 				return
@@ -41,14 +45,14 @@ func newKubeConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			config, err := client.KubeConfig(ctx, apiv1.GetKubeConfigRequest{Server: opts.server})
+			response, err := client.KubeConfig(ctx, apiv1.KubeConfigRequest{Server: opts.server})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to generate an admin kubeconfig for %q.\n\nThe error was: %v\n", opts.server, err)
 				env.Exit(1)
 				return
 			}
 
-			cmd.Println(config)
+			cmd.Println(response.KubeConfig)
 		},
 	}
 	cmd.Flags().StringVar(&opts.server, "server", "", "custom cluster server address")

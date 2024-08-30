@@ -4,7 +4,8 @@
 
 k8s::common::setup_env
 
-# disable snap set/get by default
+# disable snap set/get on startup as k8sd is not up yet.
+# the sync will be enabled in the bootstrap hook.
 k8s::cmd::k8s x-snapd-config disable
 
 # k8s has a REST interface to initialize a cluster.

@@ -2,7 +2,7 @@ package setup
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
@@ -12,9 +12,9 @@ import (
 // KubeScheduler configures kube-scheduler on the local node.
 func KubeScheduler(snap snap.Snap, extraArgs map[string]*string) error {
 	if _, err := snaputil.UpdateServiceArguments(snap, "kube-scheduler", map[string]string{
-		"--authentication-kubeconfig":   path.Join(snap.KubernetesConfigDir(), "scheduler.conf"),
-		"--authorization-kubeconfig":    path.Join(snap.KubernetesConfigDir(), "scheduler.conf"),
-		"--kubeconfig":                  path.Join(snap.KubernetesConfigDir(), "scheduler.conf"),
+		"--authentication-kubeconfig":   filepath.Join(snap.KubernetesConfigDir(), "scheduler.conf"),
+		"--authorization-kubeconfig":    filepath.Join(snap.KubernetesConfigDir(), "scheduler.conf"),
+		"--kubeconfig":                  filepath.Join(snap.KubernetesConfigDir(), "scheduler.conf"),
 		"--leader-elect-lease-duration": "30s",
 		"--leader-elect-renew-deadline": "15s",
 		"--profiling":                   "false",

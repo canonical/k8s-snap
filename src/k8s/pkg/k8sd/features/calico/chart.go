@@ -1,7 +1,7 @@
 package calico
 
 import (
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
@@ -11,7 +11,7 @@ var (
 	chartCalico = helm.InstallableChart{
 		Name:         "ck-network",
 		Namespace:    "tigera-operator",
-		ManifestPath: path.Join("charts", "tigera-operator-v3.28.0.tgz"),
+		ManifestPath: filepath.Join("charts", "tigera-operator-v3.28.0.tgz"),
 	}
 
 	// Note: Tigera is the company behind Calico and the tigera-operator is the operator for Calico.
@@ -35,4 +35,10 @@ var (
 	calicoCtlImage = "ghcr.io/canonical/k8s-snap/calico/ctl"
 	// calicoCtlTag represents the tag to use for the calicoctl image.
 	calicoCtlTag = "v3.28.0"
+
+	// defaultEncapsulation represents the default defaultEncapsulation method to use for Calico.
+	defaultEncapsulation = "VXLAN"
+
+	// defaultAPIServerEnabled determines if the Calico API server should be enabled.
+	defaultAPIServerEnabled = false
 )

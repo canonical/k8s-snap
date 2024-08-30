@@ -15,21 +15,25 @@ func newLocalNodeStatusCommand(env cmdutil.ExecutionEnvironment) *cobra.Command 
 		Hidden: true,
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient("")
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			status, err := client.LocalNodeStatus(cmd.Context())
+			response, initialized, err := client.NodeStatus(cmd.Context())
 			if err != nil {
-				cmd.PrintErrf("Error: Failed to get the status of the local node.\n\nThe error was: %v\n", err)
+				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			} else if !initialized {
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
 				env.Exit(1)
 				return
 			}
 
-			outputFormatter.Print(status)
+			outputFormatter.Print(response.NodeStatus)
 		},
 	}
 	cmd.Flags().StringVar(&opts.outputFormat, "output-format", "plain", "set the output format to one of plain, json or yaml")

@@ -2,6 +2,10 @@
 
 Retrieve the current status of the cluster
 
+### Synopsis
+
+Retrieve the current status of the cluster as well as deployment status of core features.
+
 ```
 k8s status [flags]
 ```

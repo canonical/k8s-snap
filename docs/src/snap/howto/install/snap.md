@@ -1,6 +1,6 @@
-# Install Canonical Kubernetes from a snap
+# Install {{product}} from a snap
 
-Canonical Kubernetes is packaged as a [snap], available from the
+{{product}} is packaged as a [snap], available from the
 snap store for all supported platforms.
 
 ## What you'll need

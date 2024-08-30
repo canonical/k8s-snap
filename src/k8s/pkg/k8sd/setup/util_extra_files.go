@@ -3,7 +3,7 @@ package setup
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/snap"
@@ -18,7 +18,7 @@ func ExtraNodeConfigFiles(snap snap.Snap, files map[string]string) error {
 			return fmt.Errorf("file name %q must not contain any slashes (possible path-traversal prevented)", filename)
 		}
 
-		filePath := path.Join(snap.ServiceExtraConfigDir(), filename)
+		filePath := filepath.Join(snap.ServiceExtraConfigDir(), filename)
 		// Write the content to the file
 		if err := os.WriteFile(filePath, []byte(content), 0400); err != nil {
 			return fmt.Errorf("failed to write to file %s: %w", filePath, err)

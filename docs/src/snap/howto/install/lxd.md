@@ -1,7 +1,7 @@
-# Install Canonical Kubernetes in LXD
+# Install {{product}} in LXD
 
-Canonical Kubernetes can also be installed inside an LXD container. This is a
-great way, for example, to test out clustered Canonical Kubernetes without the
+{{product}} can also be installed inside an LXD container. This is a
+great way, for example, to test out clustered {{product}} without the
 need for multiple physical hosts.
 
 ## Installing LXD
@@ -13,9 +13,9 @@ sudo snap install lxd
 sudo lxd init
 ```
 
-## Add the Canonical Kubernetes LXD profile
+## Add the {{product}} LXD profile
 
-Canonical Kubernetes requires some specific settings to work within LXD (these
+{{product}} requires some specific settings to work within LXD (these
 are explained in more detail below). These can be applied using a custom
 profile. The first step is to create a new profile:
 
@@ -32,7 +32,8 @@ wget https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/integration
 ```
 <!-- markdownlint-restore -->
 
-```{note} For an explanation of the settings in this file, [see below](explain-rules)
+```{note} For an explanation of the settings in this file, [see below]
+(explain-rules)
 ```
 
 To pipe the content of the file into the k8s LXD profile, run:
@@ -47,9 +48,9 @@ Remove the copied content from your directory:
 rm k8s.profile
 ```
 
-## Start an LXD container for Canonical Kubernetes
+## Start an LXD container for {{product}}
 
-We can now create the container that Canonical Kubernetes will run in.
+We can now create the container that {{product}} will run in.
 
 ```
 lxc launch -p default -p k8s ubuntu:22.04 k8s
@@ -59,9 +60,9 @@ This command uses the `default` profile created by LXD for any
 existing system settings (networking, storage, etc.), before
 also applying the `k8s` profile - the order is important.
 
-## Install Canonical Kubernetes in an LXD container
+## Install {{product}} in an LXD container
 
-First, we’ll need to install Canonical Kubernetes within the container.
+First, we’ll need to install {{product}} within the container.
 
 ```
 lxc exec k8s -- sudo snap install k8s --classic --channel=latest/edge
@@ -70,14 +71,14 @@ lxc exec k8s -- sudo snap install k8s --classic --channel=latest/edge
 ```{note}
 Substitute your desired channel in the above command. Find the
 available channels with `snap info k8s` and see the [channels][]
-explanation page for more details on channels, tracks and versions.  
+explanation page for more details on channels, tracks and versions.
 ```
 
-## Access Canonical Kubernetes services within LXD
+## Access {{product}} services within LXD
 
 Assuming you accepted the [default bridged
 networking][default-bridged-networking] when you initially setup LXD, there is
-minimal effort required to access Canonical Kubernetes services inside the LXD
+minimal effort required to access {{product}} services inside the LXD
 container.
 
 Simply note the `eth0` interface IP address from the command:
@@ -117,7 +118,8 @@ lxc exec k8s -- sudo k8s bootstrap
 Now, let’s deploy Microbot (please note this image only works on `x86_64`).
 
 ```
-lxc exec k8s -- sudo k8s kubectl create deployment microbot --image=dontrebootme/microbot:v1
+lxc exec k8s -- sudo k8s kubectl create deployment \
+  microbot --image=dontrebootme/microbot:v1
 ```
 
 Then check that the deployment has come up.
@@ -194,9 +196,6 @@ lxc delete k8s
 (explain-rules)=
 
 ## Explanation of custom LXD rules
-
-**boot.autostart: “true”**: Always start the container when LXD starts. This is
-needed to start the container when the host boots.
 
 **linux.kernel_modules**: Comma separated list of kernel modules to load before
 starting the container

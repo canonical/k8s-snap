@@ -1,10 +1,13 @@
-package pki
+package pki_test
 
 import (
 	"crypto/x509/pkix"
 	"net"
 	"testing"
+	"time"
 
+	"github.com/canonical/k8s/pkg/k8sd/pki"
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
 )
@@ -12,20 +15,21 @@ import (
 func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
 
 	g := NewWithT(t)
-	serverCACert, serverCAKey, err := generateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, 1, 2048)
+	notBefore := time.Now()
+	serverCACert, serverCAKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, notBefore, notBefore.AddDate(1, 0, 0), 2048)
 	g.Expect(err).ToNot(HaveOccurred())
-	clientCACert, clientCAKey, err := generateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca-client"}, 1, 2048)
+	clientCACert, clientCAKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca-client"}, notBefore, notBefore.AddDate(1, 0, 0), 2048)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	for _, tc := range []struct {
 		name        string
-		withCerts   func(*ControlPlanePKI)
+		withCerts   func(*pki.ControlPlanePKI)
 		expectErr   bool
 		expectPKITo types.GomegaMatcher
 	}{
 		{
 			name: "WithCACertAndKeys",
-			withCerts: func(pki *ControlPlanePKI) {
+			withCerts: func(pki *pki.ControlPlanePKI) {
 				pki.CACert = serverCACert
 				pki.CAKey = serverCAKey
 				pki.ClientCACert = clientCACert
@@ -44,26 +48,26 @@ func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
 		},
 		{
 			name:      "WithoutCerts",
-			withCerts: func(pki *ControlPlanePKI) {},
+			withCerts: func(pki *pki.ControlPlanePKI) {},
 			expectErr: true,
 		},
 		{
 			name: "WithoutCACert",
-			withCerts: func(pki *ControlPlanePKI) {
+			withCerts: func(pki *pki.ControlPlanePKI) {
 				pki.ClientCACert = clientCACert
 			},
 			expectErr: true,
 		},
 		{
 			name: "WithoutClientCACert",
-			withCerts: func(pki *ControlPlanePKI) {
+			withCerts: func(pki *pki.ControlPlanePKI) {
 				pki.CACert = serverCACert
 			},
 			expectErr: true,
 		},
 		{
 			name: "OnlyServerCAKey",
-			withCerts: func(pki *ControlPlanePKI) {
+			withCerts: func(pki *pki.ControlPlanePKI) {
 				pki.CACert = serverCACert
 				pki.CAKey = serverCAKey
 				pki.ClientCACert = clientCACert
@@ -81,7 +85,7 @@ func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
 		},
 		{
 			name: "OnlyClientCAKey",
-			withCerts: func(pki *ControlPlanePKI) {
+			withCerts: func(pki *pki.ControlPlanePKI) {
 				pki.CACert = serverCACert
 				pki.ClientCACert = clientCACert
 				pki.ClientCAKey = clientCAKey
@@ -100,7 +104,7 @@ func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
-			cp := NewControlPlanePKI(ControlPlanePKIOpts{Years: 10})
+			cp := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{NotBefore: notBefore, NotAfter: notBefore.AddDate(1, 0, 0)})
 			tc.withCerts(cp)
 
 			pki, err := cp.CompleteWorkerNodePKI("worker", net.IP{10, 0, 0, 1}, 2048)

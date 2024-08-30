@@ -3,33 +3,55 @@ package cilium
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
+)
+
+const (
+	networkDeleteFailedMsgTmpl = "Failed to delete Cilium Network, the error was: %v"
+	networkDeployFailedMsgTmpl = "Failed to deploy Cilium Network, the error was: %v"
 )
 
 // ApplyNetwork will deploy Cilium when cfg.Enabled is true.
 // ApplyNetwork will remove Cilium when cfg.Enabled is false.
 // ApplyNetwork requires that bpf and cgroups2 are already mounted and available when running under strict snap confinement. If they are not, it will fail (since Cilium will not have the required permissions to mount them).
 // ApplyNetwork requires that `/sys` is mounted as a shared mount when running under classic snap confinement. This is to ensure that Cilium will be able to automatically mount bpf and cgroups2 on the pods.
-// ApplyNetwork returns an error if anything fails.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ types.Annotations) error {
+// ApplyNetwork will always return a FeatureStatus indicating the current status of the
+// deployment.
+// ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
+// returned FeatureStatus.
+func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
 	if !cfg.GetEnabled() {
 		if _, err := m.Apply(ctx, chartCilium, helm.StateDeleted, nil); err != nil {
-			return fmt.Errorf("failed to uninstall network: %w", err)
+			err = fmt.Errorf("failed to uninstall network: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ciliumAgentImageTag,
+				Message: fmt.Sprintf(networkDeleteFailedMsgTmpl, err),
+			}, err
 		}
-		return nil
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: disabledMsg,
+		}, nil
 	}
 
 	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
 	if err != nil {
-		return fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", err)
+		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+		}, err
 	}
 
 	values := map[string]any{
@@ -74,12 +96,22 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 	if snap.Strict() {
 		bpfMnt, err := utils.GetMountPath("bpf")
 		if err != nil {
-			return fmt.Errorf("failed to get bpf mount path: %w", err)
+			err = fmt.Errorf("failed to get bpf mount path: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ciliumAgentImageTag,
+				Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+			}, err
 		}
 
 		cgrMnt, err := utils.GetMountPath("cgroup2")
 		if err != nil {
-			return fmt.Errorf("failed to get cgroup2 mount path: %w", err)
+			err = fmt.Errorf("failed to get cgroup2 mount path: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ciliumAgentImageTag,
+				Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+			}, err
 		}
 
 		values["bpf"] = map[string]any{
@@ -97,25 +129,50 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 	} else {
 		p, err := utils.GetMountPropagation("/sys")
 		if err != nil {
-			return fmt.Errorf("failed to get mount propagation for %s: %w", p, err)
+			err = fmt.Errorf("failed to get mount propagation for %s: %w", p, err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ciliumAgentImageTag,
+				Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+			}, err
 		}
 		if p == "private" {
 			onLXD, err := snap.OnLXD(ctx)
 			if err != nil {
-				log.Printf("failed to check if on LXD: %v", err)
+				log.FromContext(ctx).Error(err, "Failed to check if running on LXD")
 			}
 			if onLXD {
-				return fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
+				err := fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
+				return types.FeatureStatus{
+					Enabled: false,
+					Version: ciliumAgentImageTag,
+					Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+				}, err
 			}
-			return fmt.Errorf("/sys is not a shared mount")
+
+			err = fmt.Errorf("/sys is not a shared mount")
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ciliumAgentImageTag,
+				Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+			}, err
 		}
 	}
 
 	if _, err := m.Apply(ctx, chartCilium, helm.StatePresent, values); err != nil {
-		return fmt.Errorf("failed to enable network: %w", err)
+		err = fmt.Errorf("failed to enable network: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ciliumAgentImageTag,
+			Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+		}, err
 	}
 
-	return nil
+	return types.FeatureStatus{
+		Enabled: true,
+		Version: ciliumAgentImageTag,
+		Message: enabledMsg,
+	}, nil
 }
 
 func rolloutRestartCilium(ctx context.Context, snap snap.Snap, attempts int) error {

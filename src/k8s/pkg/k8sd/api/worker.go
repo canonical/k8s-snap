@@ -6,20 +6,21 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"time"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
-func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Response {
 	snap := e.provider.Snap()
 
-	req := apiv1.WorkerNodeInfoRequest{}
+	req := apiv1.GetWorkerJoinInfoRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -31,12 +32,16 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 		return response.BadRequest(fmt.Errorf("failed to parse node IP address %s", req.Address))
 	}
 
-	cfg, err := databaseutil.GetClusterConfig(s.Context, s)
+	cfg, err := databaseutil.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
-	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{Years: 10})
+	// NOTE: Set the notBefore certificate time to the current time.
+	notBefore := time.Now()
+
+	// NOTE: Default certificate expiration is set to 10 years.
+	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{NotBefore: notBefore, NotAfter: notBefore.AddDate(10, 0, 0)})
 	certificates.CACert = cfg.Certificates.GetCACert()
 	certificates.CAKey = cfg.Certificates.GetCAKey()
 	certificates.ClientCACert = cfg.Certificates.GetClientCACert()
@@ -50,28 +55,22 @@ func (e *Endpoints) postWorkerInfo(s *state.State, r *http.Request) response.Res
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create kubernetes client: %w", err))
 	}
-	if err := client.WaitKubernetesEndpointAvailable(s.Context); err != nil {
+	if err := client.WaitKubernetesEndpointAvailable(r.Context()); err != nil {
 		return response.InternalError(fmt.Errorf("kubernetes endpoints not ready yet: %w", err))
 	}
-	servers, err := client.GetKubeAPIServerEndpoints(s.Context)
+	servers, err := client.GetKubeAPIServerEndpoints(r.Context())
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve list of known kube-apiserver endpoints: %w", err))
 	}
 
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
-		return database.AddWorkerNode(ctx, tx, workerName)
-	}); err != nil {
-		return response.InternalError(fmt.Errorf("add worker node transaction failed: %w", err))
-	}
-
 	workerToken := r.Header.Get("worker-token")
-	if err := s.Database.Transaction(s.Context, func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database().Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		return database.DeleteWorkerNodeToken(ctx, tx, workerToken)
 	}); err != nil {
 		return response.InternalError(fmt.Errorf("delete worker node token transaction failed: %w", err))
 	}
 
-	return response.SyncResponse(true, &apiv1.WorkerNodeInfoResponse{
+	return response.SyncResponse(true, &apiv1.GetWorkerJoinInfoResponse{
 		CACert:              cfg.Certificates.GetCACert(),
 		ClientCACert:        cfg.Certificates.GetClientCACert(),
 		APIServers:          servers,

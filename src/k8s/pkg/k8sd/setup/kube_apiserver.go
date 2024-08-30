@@ -2,8 +2,9 @@ package setup
 
 import (
 	"fmt"
+	"net"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -48,8 +49,8 @@ var (
 )
 
 // KubeAPIServer configures kube-apiserver on the local node.
-func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string, extraArgs map[string]*string) error {
-	authTokenWebhookConfigFile := path.Join(snap.ServiceExtraConfigDir(), "auth-token-webhook.conf")
+func KubeAPIServer(snap snap.Snap, nodeIP net.IP, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string, extraArgs map[string]*string) error {
+	authTokenWebhookConfigFile := filepath.Join(snap.ServiceExtraConfigDir(), "auth-token-webhook.conf")
 	authTokenWebhookFile, err := os.OpenFile(authTokenWebhookConfigFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open auth-token-webhook.conf: %w", err)
@@ -57,7 +58,7 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 
 	if err := apiserverAuthTokenWebhookTemplate.Execute(authTokenWebhookFile, apiserverAuthTokenWebhookTemplateConfig{
 		URL:    authWebhookURL,
-		CAPath: path.Join(snap.K8sdStateDir(), "cluster.crt"),
+		CAPath: filepath.Join(snap.K8sdStateDir(), "cluster.crt"),
 	}); err != nil {
 		return fmt.Errorf("failed to write auth-token-webhook.conf: %w", err)
 	}
@@ -68,22 +69,26 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 		"--allow-privileged":                         "true",
 		"--authentication-token-webhook-config-file": authTokenWebhookConfigFile,
 		"--authorization-mode":                       authorizationMode,
-		"--client-ca-file":                           path.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
+		"--client-ca-file":                           filepath.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
 		"--enable-admission-plugins":                 "NodeRestriction",
-		"--kubelet-certificate-authority":            path.Join(snap.KubernetesPKIDir(), "ca.crt"),
-		"--kubelet-client-certificate":               path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"),
-		"--kubelet-client-key":                       path.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"),
+		"--kubelet-certificate-authority":            filepath.Join(snap.KubernetesPKIDir(), "ca.crt"),
+		"--kubelet-client-certificate":               filepath.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"),
+		"--kubelet-client-key":                       filepath.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"),
 		"--kubelet-preferred-address-types":          "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP",
 		"--profiling":                                "false",
 		"--request-timeout":                          "300s",
 		"--secure-port":                              "6443",
 		"--service-account-issuer":                   "https://kubernetes.default.svc",
-		"--service-account-key-file":                 path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
-		"--service-account-signing-key-file":         path.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
+		"--service-account-key-file":                 filepath.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
+		"--service-account-signing-key-file":         filepath.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
 		"--service-cluster-ip-range":                 serviceCIDR,
-		"--tls-cert-file":                            path.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
+		"--tls-cert-file":                            filepath.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
 		"--tls-cipher-suites":                        strings.Join(apiserverTLSCipherSuites, ","),
-		"--tls-private-key-file":                     path.Join(snap.KubernetesPKIDir(), "apiserver.key"),
+		"--tls-private-key-file":                     filepath.Join(snap.KubernetesPKIDir(), "apiserver.key"),
+	}
+
+	if nodeIP != nil && !nodeIP.IsLoopback() {
+		args["--advertise-address"] = nodeIP.String()
 	}
 
 	switch datastore.GetType() {
@@ -98,13 +103,13 @@ func KubeAPIServer(snap snap.Snap, serviceCIDR string, authWebhookURL string, en
 	}
 
 	if enableFrontProxy {
-		args["--requestheader-client-ca-file"] = path.Join(snap.KubernetesPKIDir(), "front-proxy-ca.crt")
+		args["--requestheader-client-ca-file"] = filepath.Join(snap.KubernetesPKIDir(), "front-proxy-ca.crt")
 		args["--requestheader-allowed-names"] = "front-proxy-client"
 		args["--requestheader-extra-headers-prefix"] = "X-Remote-Extra-"
 		args["--requestheader-group-headers"] = "X-Remote-Group"
 		args["--requestheader-username-headers"] = "X-Remote-User"
-		args["--proxy-client-cert-file"] = path.Join(snap.KubernetesPKIDir(), "front-proxy-client.crt")
-		args["--proxy-client-key-file"] = path.Join(snap.KubernetesPKIDir(), "front-proxy-client.key")
+		args["--proxy-client-cert-file"] = filepath.Join(snap.KubernetesPKIDir(), "front-proxy-client.crt")
+		args["--proxy-client-key-file"] = filepath.Join(snap.KubernetesPKIDir(), "front-proxy-client.key")
 	}
 	if _, err := snaputil.UpdateServiceArguments(snap, "kube-apiserver", args, deleteArgs); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)

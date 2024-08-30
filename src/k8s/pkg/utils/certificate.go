@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 )
@@ -18,7 +17,6 @@ func SplitIPAndDNSSANs(extraSANs []string) ([]net.IP, []string) {
 
 	for _, san := range extraSANs {
 		if san == "" {
-			log.Println("Skipping empty SAN")
 			continue
 		}
 

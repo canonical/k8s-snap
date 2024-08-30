@@ -3,7 +3,6 @@ package k8s
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -12,9 +11,10 @@ import (
 	"time"
 	"unicode"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/config"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -79,14 +79,18 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			client, err := env.Client(cmd.Context())
+			client, err := env.Snap.K8sdClient("")
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			if client.IsBootstrapped(cmd.Context()) {
+			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
+				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			} else if initialized {
 				cmd.PrintErrln("Error: The node is already part of a cluster")
 				env.Exit(1)
 				return
@@ -125,23 +129,19 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
 
-			request := apiv1.PostClusterBootstrapRequest{
+			response, err := client.BootstrapCluster(cmd.Context(), apiv1.BootstrapClusterRequest{
 				Name:    opts.name,
 				Address: address,
 				Config:  bootstrapConfig,
-			}
-
-			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
-			cobra.OnFinalize(cancel)
-
-			node, err := client.Bootstrap(ctx, request)
+				Timeout: opts.timeout,
+			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to bootstrap the cluster.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			outputFormatter.Print(BootstrapResult{Node: node})
+			outputFormatter.Print(BootstrapResult{Node: apiv1.NodeStatus(response)})
 		},
 	}
 
@@ -186,22 +186,22 @@ func getConfigInteractively(stdin io.Reader, stdout io.Writer, stderr io.Writer)
 		stdin, stdout, stderr,
 		"Which features would you like to enable?",
 		featureList,
-		"network, dns, gateway, local-storage",
+		fmt.Sprintf("%s, %s, %s, %s", features.Network, features.DNS, features.Gateway, features.LocalStorage),
 		nil,
 	)
 	for _, component := range strings.FieldsFunc(components, func(r rune) bool { return unicode.IsSpace(r) || r == ',' }) {
 		switch component {
-		case "network":
+		case string(features.Network):
 			config.ClusterConfig.Network.Enabled = utils.Pointer(true)
-		case "dns":
+		case string(features.DNS):
 			config.ClusterConfig.DNS.Enabled = utils.Pointer(true)
-		case "ingress":
+		case string(features.Ingress):
 			config.ClusterConfig.Ingress.Enabled = utils.Pointer(true)
-		case "load-balancer":
+		case string(features.LoadBalancer):
 			config.ClusterConfig.LoadBalancer.Enabled = utils.Pointer(true)
-		case "gateway":
+		case string(features.Gateway):
 			config.ClusterConfig.Gateway.Enabled = utils.Pointer(true)
-		case "local-storage":
+		case string(features.LocalStorage):
 			config.ClusterConfig.LocalStorage.Enabled = utils.Pointer(true)
 		}
 	}

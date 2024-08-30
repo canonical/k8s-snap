@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/microcluster/cluster"
+	"github.com/canonical/microcluster/v3/cluster"
 )
 
 var (

@@ -7,7 +7,7 @@ import shlex
 import subprocess
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Mapping, Optional, Union
 
 from tenacity import (
     RetryCallState,
@@ -136,17 +136,31 @@ def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
     instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
 
 
-# Validates that the K8s node is in Ready state.
 def wait_until_k8s_ready(
-    control_node: harness.Instance, instances: List[harness.Instance]
+    control_node: harness.Instance,
+    instances: List[harness.Instance],
+    retries: int = 30,
+    delay_s: int = 5,
+    node_names: Mapping[str, str] = {},
 ):
+    """
+    Validates that the K8s node is in Ready state.
+
+    By default, the hostname of the instances is used as the node name.
+    If the instance name is different from the hostname, the instance name should be passed to the
+    node_names dictionary, e.g. {"instance_id": "node_name"}.
+    """
     for instance in instances:
-        host = hostname(instance)
+        if instance.id in node_names:
+            node_name = node_names[instance.id]
+        else:
+            node_name = hostname(instance)
+
         result = (
-            stubbornly(retries=15, delay_s=5)
+            stubbornly(retries=retries, delay_s=delay_s)
             .on(control_node)
             .until(lambda p: " Ready" in p.stdout.decode())
-            .exec(["k8s", "kubectl", "get", "node", host, "--no-headers"])
+            .exec(["k8s", "kubectl", "get", "node", node_name, "--no-headers"])
         )
     LOG.info("Kubelet registered successfully!")
     LOG.info("%s", result.stdout.decode())

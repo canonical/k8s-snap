@@ -4,11 +4,19 @@ import (
 	"time"
 
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/spf13/cobra"
 )
 
 var (
-	featureList = []string{"network", "dns", "gateway", "ingress", "local-storage", "load-balancer"}
+	featureList = []string{
+		string(features.Network),
+		string(features.DNS),
+		string(features.Gateway),
+		string(features.Ingress),
+		string(features.LocalStorage),
+		string(features.LoadBalancer),
+	}
 
 	outputFormatter cmdutil.Formatter
 )
@@ -79,6 +87,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		&cobra.Group{ID: "management", Title: "Management Commands:"},
 		newEnableCmd(env),
 		newDisableCmd(env),
+		newRefreshCertsCmd(env),
 		newSetCmd(env),
 		newGetCmd(env),
 	)
@@ -87,9 +96,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	addCommands(
 		cmd,
 		nil,
-		newGenerateAuthTokenCmd(env),
 		newLocalNodeStatusCommand(env),
-		newRevokeAuthTokenCmd(env),
 		newGenerateDocsCmd(env),
 		newHelmCmd(env),
 		xPrintShimPidsCmd,

@@ -1,7 +1,7 @@
 package localpv
 
 import (
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
@@ -11,13 +11,13 @@ var (
 	chart = helm.InstallableChart{
 		Name:         "ck-storage",
 		Namespace:    "kube-system",
-		ManifestPath: path.Join("charts", "rawfile-csi-0.9.0.tgz"),
+		ManifestPath: filepath.Join("charts", "rawfile-csi-0.9.0.tgz"),
 	}
 
 	// imageRepo is the repository to use for Rawfile LocalPV CSI.
 	imageRepo = "ghcr.io/canonical/rawfile-localpv"
 	// imageTag is the image tag to use for Rawfile LocalPV CSI.
-	imageTag = "0.8.0-ck5"
+	imageTag = "0.8.0-ck4"
 
 	// csiNodeDriverImage is the image to use for the CSI node driver.
 	csiNodeDriverImage = "ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1"

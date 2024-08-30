@@ -2,7 +2,7 @@ package setup
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -13,7 +13,7 @@ func TestEnsureFile(t *testing.T) {
 		g := NewWithT(t)
 
 		tempDir := t.TempDir()
-		fname := path.Join(tempDir, "test")
+		fname := filepath.Join(tempDir, "test")
 		updated, err := ensureFile(fname, "test", os.Getuid(), os.Getgid(), 0777)
 		g.Expect(err).To(BeNil())
 		g.Expect(updated).To(BeTrue())
@@ -25,7 +25,7 @@ func TestEnsureFile(t *testing.T) {
 	t.Run("DeleteFile", func(t *testing.T) {
 		g := NewWithT(t)
 		tempDir := t.TempDir()
-		fname := path.Join(tempDir, "test")
+		fname := filepath.Join(tempDir, "test")
 
 		// Create a file with some content.
 		updated, err := ensureFile(fname, "test", os.Getuid(), os.Getgid(), 0777)
@@ -44,7 +44,7 @@ func TestEnsureFile(t *testing.T) {
 	t.Run("ChangeContent", func(t *testing.T) {
 		g := NewWithT(t)
 		tempDir := t.TempDir()
-		fname := path.Join(tempDir, "test")
+		fname := filepath.Join(tempDir, "test")
 
 		// Create a file with some content.
 		updated, err := ensureFile(fname, "test", os.Getuid(), os.Getgid(), 0777)
@@ -73,7 +73,7 @@ func TestEnsureFile(t *testing.T) {
 	t.Run("NotExist", func(t *testing.T) {
 		g := NewWithT(t)
 		tempDir := t.TempDir()
-		fname := path.Join(tempDir, "test")
+		fname := filepath.Join(tempDir, "test")
 
 		// ensureFile on inexistent file with empty content should return that the file was not updated.
 		updated, err := ensureFile(fname, "", os.Getuid(), os.Getgid(), 0777)

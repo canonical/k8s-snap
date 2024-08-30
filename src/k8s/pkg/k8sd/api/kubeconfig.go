@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"net/http"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
-func (e *Endpoints) getKubeconfig(s *state.State, r *http.Request) response.Response {
-	req := apiv1.GetKubeConfigRequest{}
+func (e *Endpoints) getKubeconfig(s state.State, r *http.Request) response.Response {
+	req := apiv1.KubeConfigRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -32,8 +32,8 @@ func (e *Endpoints) getKubeconfig(s *state.State, r *http.Request) response.Resp
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get kubeconfig: %w", err))
 	}
-	result := apiv1.GetKubeConfigResponse{
+
+	return response.SyncResponse(true, &apiv1.KubeConfigResponse{
 		KubeConfig: kubeconfig,
-	}
-	return response.SyncResponse(true, &result)
+	})
 }

@@ -28,6 +28,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Install lxd
         run: |
+          sudo snap refresh lxd --channel 5.21/stable
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
@@ -47,8 +48,9 @@ jobs:
   test-integration:
     name: Test ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: ["ubuntu:20.04", "ubuntu:22.04"]
+        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
     runs-on: ubuntu-20.04
     needs: build
 
@@ -63,7 +65,7 @@ jobs:
         run: pip install tox
       - name: Install lxd
         run: |
-          sudo snap refresh lxd --channel 5.19/stable
+          sudo snap refresh lxd --channel 5.21/stable
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
@@ -77,7 +79,19 @@ jobs:
           export TEST_SNAP="$PWD/build/k8s.snap"
           export TEST_SUBSTRATE=lxd
           export TEST_LXD_IMAGE=${{ matrix.os }}
-          cd tests/integration && sg lxd -c 'tox -e integration'
+          export TEST_INSPECTION_REPORTS_DIR="$HOME/inspection-reports"
+          cd tests/integration && sg lxd -c 'tox -e integration -- -k test_control_plane_nodes'
+      - name: Prepare inspection reports
+        if: failure()
+        run: |
+          tar -czvf inspection-reports.tar.gz -C $HOME inspection-reports
+          echo "artifact_name=inspection-reports-${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
+      - name: Upload inspection report artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: inspection-reports.tar.gz
 
   security-scan:
     permissions:

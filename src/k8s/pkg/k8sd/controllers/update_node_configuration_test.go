@@ -3,7 +3,7 @@ package controllers_test
 import (
 	"context"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -67,8 +67,8 @@ func TestUpdateNodeConfigurationController(t *testing.T) {
 
 			s := &mock.Snap{
 				Mock: mock.Mock{
-					EtcdPKIDir:          path.Join(dir, "etcd-pki"),
-					ServiceArgumentsDir: path.Join(dir, "args"),
+					EtcdPKIDir:          filepath.Join(dir, "etcd-pki"),
+					ServiceArgumentsDir: filepath.Join(dir, "args"),
 					UID:                 os.Getuid(),
 					GID:                 os.Getgid(),
 					KubernetesClient:    &kubernetes.Client{Interface: clientset},

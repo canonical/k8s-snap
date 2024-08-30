@@ -2,7 +2,7 @@
 
 **Multipass** <https://multipass.run/> is a simple way to run Ubuntu in a
 virtual machine, no matter what your underlying OS. It is the recommended way
-to run Canonical Kubernetes on Windows and macOS systems, and is equally useful
+to run {{product}} on Windows and macOS systems, and is equally useful
 for running multiple instances of the `k8s` snap on Ubuntu too.
 
 ## Install Multipass
@@ -82,7 +82,7 @@ enter will be executed on the Ubuntu instance you created.
 
 You can now use this terminal to install the `k8s` snap, following the standard
 [install instructions][], or following along with the [Getting started][]
-tutorial if you are new to Canonical Kubernetes.
+tutorial if you are new to {{product}}.
 
 To end the shell session on the instance, enter:
 

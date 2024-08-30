@@ -3,7 +3,7 @@ package setup
 import (
 	"fmt"
 	"net"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/snap"
@@ -11,28 +11,33 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-var kubeletTLSCipherSuites = []string{
-	"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
-	"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
-	"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
-	"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-	"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
-	"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
-	"TLS_RSA_WITH_AES_128_GCM_SHA256",
-	"TLS_RSA_WITH_AES_256_GCM_SHA384",
-}
+var (
+	kubeletTLSCipherSuites = []string{
+		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+		"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+		"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
+		"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+		"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+		"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
+		"TLS_RSA_WITH_AES_128_GCM_SHA256",
+		"TLS_RSA_WITH_AES_256_GCM_SHA384",
+	}
 
-var kubeletControlPlaneLabels = []string{
-	"node-role.kubernetes.io/control-plane=",
-}
+	kubeletControlPlaneLabels = []string{
+		"node-role.kubernetes.io/control-plane=", // mark node with role "control-plane"
+		"node-role.kubernetes.io/worker=",        // mark node with role "worker"
+		"k8sd.io/role=control-plane",             // mark as k8sd control plane node
+	}
 
-var kubeletWorkerLabels = []string{
-	"node-role.kubernetes.io/worker=",
-}
+	kubeletWorkerLabels = []string{
+		"node-role.kubernetes.io/worker=", // mark node with role "worker"
+		"k8sd.io/role=worker",             // mark as k8sd worker node
+	}
+)
 
 // KubeletControlPlane configures kubelet on a control plane node.
 func KubeletControlPlane(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, registerWithTaints []string, extraArgs map[string]*string) error {
-	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, registerWithTaints, append(kubeletControlPlaneLabels, kubeletWorkerLabels...), extraArgs)
+	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, registerWithTaints, kubeletControlPlaneLabels, extraArgs)
 }
 
 // KubeletWorker configures kubelet on a worker node.
@@ -46,20 +51,20 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 		"--authorization-mode":           "Webhook",
 		"--anonymous-auth":               "false",
 		"--authentication-token-webhook": "true",
-		"--client-ca-file":               path.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
-		"--container-runtime-endpoint":   path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
-		"--containerd":                   path.Join(snap.ContainerdSocketDir(), "containerd.sock"),
+		"--client-ca-file":               filepath.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
+		"--container-runtime-endpoint":   filepath.Join(snap.ContainerdSocketDir(), "containerd.sock"),
+		"--containerd":                   filepath.Join(snap.ContainerdSocketDir(), "containerd.sock"),
 		"--eviction-hard":                "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'",
 		"--fail-swap-on":                 "false",
-		"--kubeconfig":                   path.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
+		"--kubeconfig":                   filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
 		"--node-labels":                  strings.Join(labels, ","),
 		"--read-only-port":               "0",
 		"--register-with-taints":         strings.Join(taints, ","),
 		"--root-dir":                     snap.KubeletRootDir(),
 		"--serialize-image-pulls":        "false",
 		"--tls-cipher-suites":            strings.Join(kubeletTLSCipherSuites, ","),
-		"--tls-cert-file":                path.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
-		"--tls-private-key-file":         path.Join(snap.KubernetesPKIDir(), "kubelet.key"),
+		"--tls-cert-file":                filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
+		"--tls-private-key-file":         filepath.Join(snap.KubernetesPKIDir(), "kubelet.key"),
 	}
 
 	if hostname != snap.Hostname() {

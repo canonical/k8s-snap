@@ -2,7 +2,7 @@ package setup
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/proxy"
 	"github.com/canonical/k8s/pkg/snap"
@@ -12,14 +12,14 @@ import (
 
 // K8sAPIServerProxy prepares configuration for k8s-apiserver-proxy.
 func K8sAPIServerProxy(snap snap.Snap, servers []string, extraArgs map[string]*string) error {
-	configFile := path.Join(snap.ServiceExtraConfigDir(), "k8s-apiserver-proxy.json")
+	configFile := filepath.Join(snap.ServiceExtraConfigDir(), "k8s-apiserver-proxy.json")
 	if err := proxy.WriteEndpointsConfig(servers, configFile); err != nil {
 		return fmt.Errorf("failed to write proxy configuration file: %w", err)
 	}
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "k8s-apiserver-proxy", map[string]string{
 		"--endpoints":  configFile,
-		"--kubeconfig": path.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
+		"--kubeconfig": filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
 		"--listen":     "127.0.0.1:6443",
 	}, nil); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)

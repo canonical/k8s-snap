@@ -1,13 +1,13 @@
-# Canonical Kubernetes snap documentation
+# {{product}} snap documentation
 
-The Canonical Kubernetes snap is a performant, lightweight, secure and
+The {{product}} snap is a performant, lightweight, secure and
 opinionated distribution of **Kubernetes** which includes everything needed to
 create and manage a scalable cluster suitable for all use cases.
 
-You can find out more about Canonical Kubernetes on this [overview page] or
+You can find out more about {{product}} on this [overview page] or
 see a more detailed explanation in our [architecture documentation].
 
-For deployment at scale, Canonical Kubernetes is also available as a 
+For deployment at scale, {{product}} is also available as a 
 [Juju charm][]
 
 ![Illustration depicting working on components and clouds][logo]
@@ -49,7 +49,7 @@ For deployment at scale, Canonical Kubernetes is also available as a
 
 ## Project and community
 
-Canonical Kubernetes is a member of the Ubuntu family. It's an open source
+{{product}} is a member of the Ubuntu family. It's an open source
 project which welcomes community involvement, contributions, suggestions, fixes
 and constructive feedback.
 

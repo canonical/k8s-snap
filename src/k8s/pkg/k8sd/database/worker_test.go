@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	. "github.com/onsi/gomega"
@@ -12,17 +13,18 @@ import (
 func TestWorkerNodeToken(t *testing.T) {
 	WithDB(t, func(ctx context.Context, db DB) {
 		_ = db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+			tokenExpiry := time.Now().Add(time.Hour)
 			t.Run("Default", func(t *testing.T) {
 				g := NewWithT(t)
 				exists, err := database.CheckWorkerNodeToken(ctx, tx, "somenode", "sometoken")
 				g.Expect(err).To(BeNil())
 				g.Expect(exists).To(BeFalse())
 
-				token, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "somenode")
+				token, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "somenode", tokenExpiry)
 				g.Expect(err).To(BeNil())
 				g.Expect(token).To(HaveLen(48))
 
-				othertoken, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "someothernode")
+				othertoken, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "someothernode", tokenExpiry)
 				g.Expect(err).To(BeNil())
 				g.Expect(othertoken).To(HaveLen(48))
 				g.Expect(othertoken).NotTo(Equal(token))
@@ -46,15 +48,39 @@ func TestWorkerNodeToken(t *testing.T) {
 				g.Expect(err).To(BeNil())
 				g.Expect(valid).To(BeFalse())
 
-				newToken, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "somenode")
+				newToken, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "somenode", tokenExpiry)
 				g.Expect(err).To(BeNil())
 				g.Expect(newToken).To(HaveLen(48))
 				g.Expect(newToken).ToNot(Equal(token))
 			})
 
+			t.Run("Expiry", func(t *testing.T) {
+				t.Run("Valid", func(t *testing.T) {
+					g := NewWithT(t)
+					token, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "nodeExpiry1", time.Now().Add(time.Hour))
+					g.Expect(err).To(BeNil())
+					g.Expect(token).To(HaveLen(48))
+
+					valid, err := database.CheckWorkerNodeToken(ctx, tx, "nodeExpiry1", token)
+					g.Expect(err).To(BeNil())
+					g.Expect(valid).To(BeTrue())
+				})
+
+				t.Run("Expired", func(t *testing.T) {
+					g := NewWithT(t)
+					token, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "nodeExpiry2", time.Now().Add(-time.Hour))
+					g.Expect(err).To(BeNil())
+					g.Expect(token).To(HaveLen(48))
+
+					valid, err := database.CheckWorkerNodeToken(ctx, tx, "nodeExpiry2", token)
+					g.Expect(err).To(BeNil())
+					g.Expect(valid).To(BeFalse())
+				})
+			})
+
 			t.Run("AnyNodeName", func(t *testing.T) {
 				g := NewWithT(t)
-				token, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "")
+				token, err := database.GetOrCreateWorkerNodeToken(ctx, tx, "", tokenExpiry)
 				g.Expect(err).To(BeNil())
 				g.Expect(token).To(HaveLen(48))
 
@@ -70,105 +96,5 @@ func TestWorkerNodeToken(t *testing.T) {
 			})
 			return nil
 		})
-	})
-}
-
-func TestWorkerNodes(t *testing.T) {
-	WithDB(t, func(ctx context.Context, db DB) {
-		g := NewWithT(t)
-		err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-			t.Run("Empty", func(t *testing.T) {
-				g := NewWithT(t)
-
-				nodes, err := database.ListWorkerNodes(ctx, tx)
-				g.Expect(err).To(BeNil())
-				g.Expect(nodes).To(BeEmpty())
-			})
-
-			t.Run("AddOne", func(t *testing.T) {
-				g := NewWithT(t)
-
-				err := database.AddWorkerNode(ctx, tx, "w1")
-				g.Expect(err).To(BeNil())
-
-				nodes, err := database.ListWorkerNodes(ctx, tx)
-				g.Expect(err).To(BeNil())
-				g.Expect(nodes).To(ConsistOf("w1"))
-
-				exists, err := database.CheckWorkerExists(ctx, tx, "w1")
-				g.Expect(err).To(BeNil())
-				g.Expect(exists).To(BeTrue())
-			})
-
-			t.Run("AddTwo", func(t *testing.T) {
-				g := NewWithT(t)
-
-				err := database.AddWorkerNode(ctx, tx, "w2")
-				g.Expect(err).To(BeNil())
-
-				nodes, err := database.ListWorkerNodes(ctx, tx)
-				g.Expect(err).To(BeNil())
-				g.Expect(nodes).To(ConsistOf("w1", "w2"))
-
-				exists, err := database.CheckWorkerExists(ctx, tx, "w1")
-				g.Expect(err).To(BeNil())
-				g.Expect(exists).To(BeTrue())
-
-				exists, err = database.CheckWorkerExists(ctx, tx, "w2")
-				g.Expect(err).To(BeNil())
-				g.Expect(exists).To(BeTrue())
-			})
-
-			t.Run("AddDuplicateFails", func(t *testing.T) {
-				g := NewWithT(t)
-
-				err := database.AddWorkerNode(ctx, tx, "w1")
-				g.Expect(err).To(HaveOccurred())
-
-				nodes, err := database.ListWorkerNodes(ctx, tx)
-				g.Expect(err).To(BeNil())
-				g.Expect(nodes).To(ConsistOf("w1", "w2"))
-			})
-
-			t.Run("Delete", func(t *testing.T) {
-				g := NewWithT(t)
-
-				err := database.DeleteWorkerNode(ctx, tx, "w1")
-				g.Expect(err).To(BeNil())
-
-				nodes, err := database.ListWorkerNodes(ctx, tx)
-				g.Expect(err).To(BeNil())
-				g.Expect(nodes).To(ConsistOf("w2"))
-
-				exists, err := database.CheckWorkerExists(ctx, tx, "w1")
-				g.Expect(err).To(BeNil())
-				g.Expect(exists).To(BeFalse())
-
-				exists, err = database.CheckWorkerExists(ctx, tx, "w2")
-				g.Expect(err).To(BeNil())
-				g.Expect(exists).To(BeTrue())
-			})
-
-			t.Run("ReuseName", func(t *testing.T) {
-				g := NewWithT(t)
-
-				err := database.AddWorkerNode(ctx, tx, "w1")
-				g.Expect(err).To(BeNil())
-
-				nodes, err := database.ListWorkerNodes(ctx, tx)
-				g.Expect(err).To(BeNil())
-				g.Expect(nodes).To(ConsistOf("w1", "w2"))
-
-				exists, err := database.CheckWorkerExists(ctx, tx, "w1")
-				g.Expect(err).To(BeNil())
-				g.Expect(exists).To(BeTrue())
-
-				exists, err = database.CheckWorkerExists(ctx, tx, "w2")
-				g.Expect(err).To(BeNil())
-				g.Expect(exists).To(BeTrue())
-			})
-			return nil
-		})
-		g.Expect(err).To(BeNil())
 	})
 }

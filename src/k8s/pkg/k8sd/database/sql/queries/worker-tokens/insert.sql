@@ -1,4 +1,4 @@
 INSERT INTO
-    worker_tokens(name, token)
+    worker_tokens(name, token, expiry)
 VALUES
-    ( ?, ? )
+    ( ?, ?, ? )

@@ -10,34 +10,87 @@ import (
 	"github.com/canonical/k8s/pkg/utils/control"
 )
 
+const (
+	enabledMsg                 = "enabled"
+	disabledMsg                = "disabled"
+	gatewayDeployFailedMsgTmpl = "Failed to deploy Contour Gateway, the error was: %v"
+	gatewayDeleteFailedMsgTmpl = "Failed to delete Contour Gateway, the error was: %v"
+)
+
 // ApplyGateway will install a helm chart for contour-gateway-provisioner on the cluster when gateway.Enabled is true.
 // ApplyGateway will uninstall the helm chart for contour-gateway-provisioner from the cluster when gateway.Enabled is false.
-// ApplyGateway returns an error if anything fails.
 // ApplyGateway will apply common contour CRDS, these are shared with ingress.
-func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) error {
+// ApplyGateway will always return a FeatureStatus indicating the current status of the
+// deployment.
+// ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
+// returned FeatureStatus.
+func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
 	if !gateway.GetEnabled() {
 		if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
-			return fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
+			err = fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: contourGatewayProvisionerContourImageTag,
+				Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+			}, err
 		}
-		return nil
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourGatewayProvisionerContourImageTag,
+			Message: disabledMsg,
+		}, nil
 	}
 
 	// Apply common contour CRDS, these are shared with ingress
 	if err := applyCommonContourCRDS(ctx, snap, true); err != nil {
-		return fmt.Errorf("failed to apply common contour CRDS: %w", err)
+		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourGatewayProvisionerContourImageTag,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
 	}
 
 	if err := waitForRequiredContourCommonCRDs(ctx, snap); err != nil {
-		return fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
+		err = fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourGatewayProvisionerContourImageTag,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
 	}
 
-	if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, nil); err != nil {
-		return fmt.Errorf("failed to install the contour gateway chart: %w", err)
+	values := map[string]any{
+		"projectcontour": map[string]any{
+			"image": map[string]any{
+				"repository": contourGatewayProvisionerContourImageRepo,
+				"tag":        contourGatewayProvisionerContourImageTag,
+			},
+		},
+		"envoyproxy": map[string]any{
+			"image": map[string]any{
+				"repository": contourGatewayProvisionerEnvoyImageRepo,
+				"tag":        contourGatewayProvisionerEnvoyImageTag,
+			},
+		},
 	}
 
-	return nil
+	if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, values); err != nil {
+		err = fmt.Errorf("failed to install the contour gateway chart: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: contourGatewayProvisionerContourImageTag,
+			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	return types.FeatureStatus{
+		Enabled: true,
+		Version: contourGatewayProvisionerContourImageTag,
+		Message: enabledMsg,
+	}, nil
 }
 
 // waitForRequiredContourCommonCRDs waits for the required contour CRDs to be available

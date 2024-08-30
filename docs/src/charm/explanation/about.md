@@ -1,5 +1,5 @@
-# What is Canonical Kubernetes?
+# What is {{product}}?
 
 ```{include} ../../snap/explanation/about.md
-:start-after: '# What is Canonical Kubernetes?'
+:start-after: '# What is {{product}}?'
 ```

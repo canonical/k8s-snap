@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 )
 
 // DatastoreConfigFromUserFacing converts UserFacingDatastoreConfig from public API into a Datastore config.

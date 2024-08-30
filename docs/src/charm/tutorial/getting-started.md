@@ -1,6 +1,6 @@
 # Getting started
 
-The Canonical Kubernetes `k8s` charm takes care of installing and configuring
+The {{product}} `k8s` charm takes care of installing and configuring
 Kubernetes on cloud instances managed by Juju. Operating Kubernetes through
 this charm makes it significantly easier to manage at scale, on remote cloud
 instances and also to integrate other operators to enhance or customise your
@@ -9,7 +9,7 @@ Kubernetes and some common first steps.
 
 ## What you will learn
 
-- How to install Canonical Kubernetes
+- How to install {{product}}
 - Making a cluster
 - Deploying extra workers
 - Using Kubectl
@@ -79,7 +79,7 @@ juju status --watch 2s
 ```
 
 When the status reports that K8s is "idle/ready" you have successfully deployed
-a Canonical Kubernetes control-plane using Juju.
+a {{product}} control-plane using Juju.
 
 ```{note} For High Availability you will need at least three units of the k8s 
    charm. Scaling the deployment is covered below.
@@ -231,7 +231,7 @@ kube-system   metrics-server-6f66c6cc48-wdxxk    1/1     Running   0          35
 
 Congratulations - you now have a functional Kubernetes cluster! In the near
 future more charms are on the way to simplify usage and extend the base
-functionality of Canonical Kubernetes. Bookmark the [releases page] to keep
+functionality of {{product}}. Bookmark the [releases page] to keep
 informed of updates.
 
 <!-- LINKS -->

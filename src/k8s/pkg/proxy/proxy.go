@@ -3,11 +3,12 @@ package proxy
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/canonical/k8s/pkg/log"
 )
 
 func startProxy(ctx context.Context, listenURL string, endpointURLs []string) error {
@@ -41,10 +42,15 @@ func startProxy(ctx context.Context, listenURL string, endpointURLs []string) er
 		MonitorInterval: time.Minute,
 	}
 
-	log.Println("Starting proxy at", listenURL)
+	log := log.FromContext(ctx).WithValues(
+		"controller", "proxy",
+		"address", listenURL,
+		"endpoints", endpointURLs,
+	)
+	log.Info("Starting proxy")
 	go func() {
 		if err := p.Run(); err != nil {
-			log.Printf("proxy failed: %v\n", err)
+			log.Error(err, "Proxy failed")
 		}
 	}()
 

@@ -6,33 +6,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"net/http"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
-func (e *Endpoints) getKubernetesAuthTokens(s *state.State, r *http.Request) response.Response {
-	token := r.Header.Get("token")
-
-	var username string
-	var groups []string
-	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
-		var err error
-		username, groups, err = database.CheckToken(ctx, tx, token)
-		return err
-	}); err != nil {
-		return response.NotFound(err)
-	}
-
-	return response.SyncResponse(true, apiv1.CheckKubernetesAuthTokenResponse{Username: username, Groups: groups})
-}
-
-func (e *Endpoints) postKubernetesAuthTokens(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postKubernetesAuthTokens(s state.State, r *http.Request) response.Response {
 	request := apiv1.GenerateKubernetesAuthTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
@@ -43,10 +27,10 @@ func (e *Endpoints) postKubernetesAuthTokens(s *state.State, r *http.Request) re
 		return response.InternalError(err)
 	}
 
-	return response.SyncResponse(true, apiv1.CreateKubernetesAuthTokenResponse{Token: token})
+	return response.SyncResponse(true, apiv1.GenerateKubernetesAuthTokenResponse{Token: token})
 }
 
-func (e *Endpoints) deleteKubernetesAuthTokens(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) deleteKubernetesAuthTokens(s state.State, r *http.Request) response.Response {
 	request := apiv1.RevokeKubernetesAuthTokenRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
@@ -62,7 +46,7 @@ func (e *Endpoints) deleteKubernetesAuthTokens(s *state.State, r *http.Request) 
 
 // postKubernetesAuthWebhook is used by kube-apiserver to handle TokenReview objects.
 // Note that we do not use the normal response.SyncResponse here, because it breaks the response format that kube-apiserver expects.
-func (e *Endpoints) postKubernetesAuthWebhook(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) postKubernetesAuthWebhook(s state.State, r *http.Request) response.Response {
 	review := apiv1.TokenReview{
 		APIVersion: "authentication.k8s.io/v1",
 		Kind:       "TokenReview",
@@ -96,7 +80,7 @@ func (e *Endpoints) postKubernetesAuthWebhook(s *state.State, r *http.Request) r
 	// check token
 	var username string
 	var groups []string
-	if err := s.Database.Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
+	if err := s.Database().Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		username, groups, err = database.CheckToken(ctx, tx, review.Spec.Token)
 		return err

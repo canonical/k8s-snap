@@ -20,6 +20,10 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 		return fmt.Errorf("failed to retrieve cluster nodes")
 	}
 
+	if len(members) == 1 {
+		return fmt.Errorf("only node in cluster cannot be removed")
+	}
+
 	var (
 		memberExists, clusterHasOtherVoters bool
 		memberToRemove                      NodeInfo
@@ -52,7 +56,7 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 			return fmt.Errorf("cannot transfer dqlite leadership as there is no remaining spare node")
 		}
 
-		// Leadership can only be transfered to a voter or standby node.
+		// Leadership can only be transferred to a voter or standby node.
 		// Therefore the remaining node in the cluster needs to be promoted first.
 		if err := client.Assign(ctx, freeSpareNode.ID, Voter); err != nil {
 			return fmt.Errorf("failed to assign voter role to %d: %w", freeSpareNode.ID, err)

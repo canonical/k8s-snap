@@ -4,15 +4,19 @@ import (
 	"crypto/x509/pkix"
 	"fmt"
 	"net"
+	"time"
+
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 )
 
 // K8sDqlitePKI is a list of certificates required by the k8s-dqlite datastore.
 type K8sDqlitePKI struct {
-	allowSelfSignedCA bool     // create self-signed CA certificates if missing
-	hostname          string   // node name
-	ipSANs            []net.IP // IP SANs for generated certificates
-	dnsSANs           []string // DNS SANs for the certificates below
-	years             int      // how many years the generated certificates will be valid for
+	allowSelfSignedCA bool      // create self-signed CA certificates if missing
+	hostname          string    // node name
+	ipSANs            []net.IP  // IP SANs for generated certificates
+	dnsSANs           []string  // DNS SANs for the certificates below
+	notBefore         time.Time // notBefore date for the generated certificates
+	notAfter          time.Time // not after date (expiration date) for the generated certificates
 
 	// CN=k8s-dqlite, DNS=hostname, IP=127.0.0.1 (self-signed)
 	K8sDqliteCert, K8sDqliteKey string
@@ -22,20 +26,23 @@ type K8sDqlitePKIOpts struct {
 	Hostname          string
 	DNSSANs           []string
 	IPSANs            []net.IP
-	Years             int
+	NotBefore         time.Time
+	NotAfter          time.Time
 	AllowSelfSignedCA bool
 	Datastore         string
 }
 
 func NewK8sDqlitePKI(opts K8sDqlitePKIOpts) *K8sDqlitePKI {
-	if opts.Years == 0 {
-		opts.Years = 1
+	// NOTE: Default NotAfter is 1 year from the NotBefore date
+	if opts.NotAfter.IsZero() {
+		opts.NotAfter = opts.NotBefore.AddDate(1, 0, 0)
 	}
 
 	return &K8sDqlitePKI{
 		allowSelfSignedCA: opts.AllowSelfSignedCA,
 		hostname:          opts.Hostname,
-		years:             opts.Years,
+		notBefore:         opts.NotBefore,
+		notAfter:          opts.NotAfter,
 		ipSANs:            opts.IPSANs,
 		dnsSANs:           opts.DNSSANs,
 	}
@@ -57,11 +64,11 @@ func (c *K8sDqlitePKI) CompleteCertificates() error {
 			return fmt.Errorf("k8s-dqlite certificate not specified and generating self-signed certificates is not allowed")
 		}
 
-		template, err := generateCertificate(pkix.Name{CommonName: "k8s"}, c.years, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
+		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "k8s"}, c.notBefore, c.notAfter, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
 		if err != nil {
 			return fmt.Errorf("failed to generate k8s-dqlite certificate: %w", err)
 		}
-		cert, key, err := signCertificate(template, 2048, template, nil, nil)
+		cert, key, err := pkiutil.SignCertificate(template, 2048, template, nil, nil)
 		if err != nil {
 			return fmt.Errorf("failed to self-sign k8s-dqlite certificate: %w", err)
 		}

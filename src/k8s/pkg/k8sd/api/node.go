@@ -3,23 +3,21 @@ package api
 import (
 	"net/http"
 
-	apiv1 "github.com/canonical/k8s/api/v1"
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api/impl"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
-func (e *Endpoints) getNodeStatus(s *state.State, r *http.Request) response.Response {
+func (e *Endpoints) getNodeStatus(s state.State, r *http.Request) response.Response {
 	snap := e.provider.Snap()
 
 	status, err := impl.GetLocalNodeStatus(r.Context(), s, snap)
 	if err != nil {
-		response.InternalError(err)
+		return response.InternalError(err)
 	}
 
-	result := apiv1.GetNodeStatusResponse{
+	return response.SyncResponse(true, &apiv1.NodeStatusResponse{
 		NodeStatus: status,
-	}
-
-	return response.SyncResponse(true, &result)
+	})
 }
