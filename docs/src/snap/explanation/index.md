@@ -14,6 +14,7 @@ Overview <self>
 about
 channels
 clustering
+refresh-certs
 ingress
 /snap/explanation/security
 ```
