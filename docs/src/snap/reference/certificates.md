@@ -1,5 +1,6 @@
 # Cluster Certificates
-
+This reference page provides an overview of certificate authorities (CAs), certificates and 
+configuration directories in use by a {{ product }} cluster. 
 ## **CertificateAuthorities (CA)**
 
 | **Common Name**              | **Usage**                            | **Path on Disk**                         | **Used For**                                |
