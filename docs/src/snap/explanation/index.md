@@ -12,9 +12,9 @@ Overview <self>
 ```{toctree}
 :titlesonly:
 about
+certificates
 channels
 clustering
-refresh-certs
 ingress
 /snap/explanation/security
 ```
