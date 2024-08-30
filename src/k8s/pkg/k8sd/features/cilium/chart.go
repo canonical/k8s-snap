@@ -35,8 +35,8 @@ var (
 		ManifestPath: filepath.Join("charts", "ck-gateway-cilium"),
 	}
 
-	// CiliumAgentImageRepo represents the image to use for cilium-agent.
-	CiliumAgentImageRepo = "ghcr.io/canonical/cilium"
+	// ciliumAgentImageRepo represents the image to use for cilium-agent.
+	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
 
 	// CiliumAgentImageTag is the tag to use for the cilium-agent image.
 	CiliumAgentImageTag = "1.15.2-ck2"

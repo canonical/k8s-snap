@@ -56,7 +56,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 
 	values := map[string]any{
 		"image": map[string]any{
-			"repository": CiliumAgentImageRepo,
+			"repository": ciliumAgentImageRepo,
 			"tag":        CiliumAgentImageTag,
 			"useDigest":  false,
 		},
