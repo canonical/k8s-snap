@@ -11,6 +11,10 @@ Overview <self>
 
 ```{toctree}
 :titlesonly:
+:globs:
+
+about
+security
 
 ```
 

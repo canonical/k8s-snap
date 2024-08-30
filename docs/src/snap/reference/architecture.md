@@ -59,8 +59,8 @@ The `k8s` snap distribution includes the following:
 
 - **Kubectl**: through which users and other systems interact with Kubernetes
   and drive the cluster operations.
-- **K8s services**: These are all the Kubernetes services as well as core workloads
-  built from upstream and shipped in the snap.
+- **K8s services**: These are all the Kubernetes services as well as core
+  workloads built from upstream and shipped in the snap.
 - State is backed up by **dqlite** by default, which keeps that state of the
   Kubernetes cluster as well as the state we maintain for the needs of the
   cluster operations. The cluster state may optionally be stored in a

@@ -1,8 +1,10 @@
 # Installing to localhost/LXD
 
-The main [install instructions][install] work for most circumstances when you
-want to install Canonical Kubernetes from a charm. There are a couple of
-scenarios which require some extra steps however. These are:
+The main [install instructions][install] cover most situations for installing
+{{product}} using a charm. However, there are a few scenarios that require
+additional steps. These include: want to install {{product}} from a charm.
+There are a couple of scenarios which require some extra steps however. These
+are:
 
 - deploying to the 'localhost' cloud
 - deploying to a container on a machine (i.e. when installing a bundle or using
@@ -13,7 +15,7 @@ controlling the container, needs to have a particular configuration in order
 for the Kubernetes components to operate properly.
 
 
-## Apply the Canonical Kubernetes LXD profile
+## Apply the {{product}} LXD profile
 
 On the machine running the 'localhost' cloud, we can determine the existing
 profiles by running the command:
@@ -42,8 +44,8 @@ and edit the profiles easily by using `lxc` commands.
 
 ## Fetching the profile
 
-A working LXD profile is kept in the source repository for the Canonical
-Kubernetes 'k8s' snap. You can retrieve this profile by running the command:
+A working LXD profile is kept in the source repository for the {{product}}
+'k8s' snap. You can retrieve this profile by running the command:
 
 <!-- markdownlint-disable -->
 ```
@@ -70,12 +72,13 @@ process, but you can confirm the contents have changed by running:
 lxc profile show juju-myk8s
 ```
 
-```{note} For an explanation of the settings in this file, [see below](explain-rules)
+```{note} For an explanation of the settings in this file,
+   [see below](explain-rules)
 ```
 
 ## Deploying to a container
 
-We can now deploy Canonical Kubernetes into the lxd based model as described in
+We can now deploy {{product}} into the LXD-based model as described in
 the [charm][] guide.
 
 (explain-rules)=
@@ -125,3 +128,4 @@ need to access for example storage devices (See comment in [^5]).
 
 [AppArmor]: https://apparmor.net/
 [charm]:    ./charm
+[install]:  ./charm

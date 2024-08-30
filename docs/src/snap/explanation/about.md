@@ -29,11 +29,12 @@ In addition to the upstream Kubernetes services,
 
 ## Where can I install it?
 
-The {{product}} snap can be installed on a Linux OS, wherever it may
-be: run it in several local containers or VMs for example, or use it on
-public/private cloud instances. 
-For deploying with [Juju], a machine [charm] to deploy
-the snap is also available.
+The {{product}} snap can be installed on a Linux OS, wherever it may be: run it
+in several local containers or VMs for example, or use it on public/private
+cloud instances. For deploying with [Juju], a machine [charm] to deploy the
+snap is also available. 
+For deployment using Cluster API, a Bootstrap and
+Control-plane provider have also been created.
 
 ## Can I use it to make a cluster?
 
