@@ -1,4 +1,4 @@
-# Certificate Refreshes in Kubernetes
+# Certificates
 
 ## What Are Certificates in Kubernetes?
 
@@ -17,46 +17,38 @@ cluster's components.
 A certificate refresh in {{product}} refers to the process of renewing or
 rotating certificates before they expire. Kubernetes certificates have
 a specific validity period, after which they expire and are no longer
-considered valid. If an expired certificate is used, it can lead to failures
-in communication between cluster components, potentially disrupting the entire
-cluster functionality.
+considered valid. Expired certificates lead to failures in communication
+between cluster components, potentially disrupting the entire cluster
+functionality.
 
-Certificate refreshes ensure that the certificates in use are always valid and
-secure, preventing unauthorized access or communication failures due to expired
-certificates.
+Regular certificate refreshes ensure that the certificates in use are valid and
+secure, preventing unauthorized access or communication failures.
 
-## Why Refreshing Certificates Is Important
+## Importance of Certificate Refreshes
 
 ### Maintaining Cluster Security
 
-Certificates play a critical role in securing Kubernetes clusters by ensuring
-that communication between components are encrypted and authenticated. When
-a certificate expires, if not promptly renewed, it can leave the cluster
-vulnerable to security risks. An expired certificate may not be able to
-establish secure communication, potentially exposing the cluster to
-unauthorized access.
-
-Regular certificate refreshes mitigate this risk by ensuring that only valid
-certificates are used, maintaining the security of the cluster.
+Certificates are crucial for securing Kubernetes clusters, ensuring encrypted
+and authenticated communication between components. If a certificate expires
+and isn't promptly renewed, it can leave the cluster vulnerable to security
+risks, potentially exposing it to unauthorized access. Regular certificate
+refreshes prevent this by ensuring only valid certificates are used,
+maintaining the cluster's security.
 
 ### Preventing Downtime
 
-As previously mentioned, Kubernetes relies on certificates for internal
-communication between components. If these certificates expire and are not
-renewed, critical components like kubelet, API server, or the datastore may
-fail to communicate, leading to operational issues such as cluster downtime
-or disruptions to specific workloads.
-
-Proactively refreshing certificates before they expire ensures that Kubernetes
-maintains continuous and uninterrupted operation of the cluster its workloads.
+Kubernetes relies on certificates for internal communication between critical
+components, such as the kubelet, API server, and datastore. Expired
+certificates can hinder this communication, leading to potential downtime and
+workload disruptions. Proactively refreshing certificates before they expire
+helps maintain uninterrupted cluster operations.
 
 ### Security Compliance
 
 Security standards, such as [CIS][], often require the regular rotation of
 credentials, including certificates. Periodically renewing Kubernetes
-certificates not only aligns with best practices for security and
-organizational policies but also ensures that the cluster meets security
-standards and compliance requirements.
+certificates ensures that the cluster meets security standards and compliance
+requirements.
 
 <!-- LINKS -->
 
