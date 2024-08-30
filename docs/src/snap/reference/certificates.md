@@ -39,6 +39,9 @@ their issuance.
 
 ## Configuration Files for Kubernetes Components
 
+The following tables provide an overview of the configuration files used to
+communicate with the cluster services.
+
 ### Control-plane node
 
 Control-plane nodes use the following configuration files.
