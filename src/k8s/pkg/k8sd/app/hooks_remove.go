@@ -61,13 +61,14 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 
 	if cfg, err := databaseutil.GetClusterConfig(ctx, s); err == nil {
 		if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; !ok {
+			log.Info("k8sd - pre remove: could not find SkipCleanup annotation")
 			c, err := snap.KubernetesClient("")
 			if err != nil {
 				log.Error(err, "Failed to create Kubernetes client", err)
 			}
 
 			if c != nil {
-				log.Info("Deleting node from Kubernetes cluster")
+				log.Info("Deleting node from Kubernetes cluster", "name", s.Name())
 				if err := c.DeleteNode(ctx, s.Name()); err != nil {
 					log.Error(err, "Failed to remove Kubernetes node")
 				}
@@ -78,8 +79,8 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		case "k8s-dqlite":
 			client, err := snap.K8sDqliteClient(ctx)
 			if err == nil {
-				log.Info("Removing node from k8s-dqlite cluster")
 				nodeAddress := net.JoinHostPort(s.Address().Hostname(), fmt.Sprintf("%d", cfg.Datastore.GetK8sDqlitePort()))
+				log.Info("Removing node from k8s-dqlite cluster", "nodeAddress", nodeAddress)
 				if err := client.RemoveNodeByAddress(ctx, nodeAddress); err != nil {
 					// Removing the node might fail (e.g. if it is the only one in the cluster).
 					// We still want to continue with the file cleanup, hence we only log the error.
