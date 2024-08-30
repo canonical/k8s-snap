@@ -139,21 +139,29 @@ func GetMountPath(fsType string) (string, error) {
 	return mounts[0].Mountpoint, nil
 }
 
-// GetMountPropagation returns the propagation type (shared or private)
-// GetMountPropagation returns ErrUnkownMount if the mount path does not exist.
-func GetMountPropagation(path string) (string, error) {
+type MountPropagationType string
+
+const (
+	MountPropagationShared  MountPropagationType = "shared"
+	MountPropagationPrivate MountPropagationType = "private"
+	MountPropagationUnknown MountPropagationType = "unknown"
+)
+
+// GetMountPropagationType returns the propagation type (shared or private)
+// GetMountPropagationType returns ErrUnkownMount if the mount path does not exist.
+func GetMountPropagationType(path string) (MountPropagationType, error) {
 	mounts, err := mountinfo.GetMounts(mountinfo.SingleEntryFilter(path))
 	if err != nil {
-		return "", fmt.Errorf("failed to get mounts: %w", err)
+		return MountPropagationUnknown, fmt.Errorf("failed to get mounts: %w", err)
 	}
 
 	if len(mounts) == 0 {
-		return "", ErrUnknownMount
+		return MountPropagationUnknown, ErrUnknownMount
 	}
 
 	mount := mounts[0]
-	if strings.Contains(mount.Optional, "shared") {
-		return "shared", nil
+	if strings.Contains(mount.Optional, string(MountPropagationShared)) {
+		return MountPropagationShared, nil
 	}
-	return "private", nil
+	return MountPropagationPrivate, nil
 }

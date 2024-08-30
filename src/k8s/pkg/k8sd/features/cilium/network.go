@@ -127,16 +127,16 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 			"hostRoot": cgrMnt,
 		}
 	} else {
-		p, err := utils.GetMountPropagation("/sys")
+		pt, err := utils.GetMountPropagationType("/sys")
 		if err != nil {
-			err = fmt.Errorf("failed to get mount propagation for %s: %w", p, err)
+			err = fmt.Errorf("failed to get mount propagation type for /sys: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: ciliumAgentImageTag,
 				Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
 			}, err
 		}
-		if p == "private" {
+		if pt == utils.MountPropagationPrivate {
 			onLXD, err := snap.OnLXD(ctx)
 			if err != nil {
 				log.FromContext(ctx).Error(err, "Failed to check if running on LXD")
