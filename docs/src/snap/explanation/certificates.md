@@ -1,12 +1,10 @@
 # Certificates
 
-## What Are Certificates in Kubernetes?
-
 Certificates are a crucial part of Kubernetes' security infrastructure, serving
 to authenticate and secure communication within the cluster. They play a key
 role in ensuring that communication between various components (such as the
 API server, kubelets, and the datastore) is both encrypted and restricted to
-authorized components only.
+authorised components only.
 
 In Kubernetes, [X.509][] certificates are primarily used for
 [Transport Layer Security][] (TLS), securing the communication between the
@@ -18,20 +16,24 @@ A certificate refresh in {{product}} refers to the process of renewing or
 rotating certificates before they expire. Kubernetes certificates have
 a specific validity period, after which they expire and are no longer
 considered valid. Expired certificates lead to failures in communication
-between cluster components, potentially disrupting the entire cluster
-functionality.
+between cluster components, potentially disrupting the functionality of the
+entire cluster.
 
 Regular certificate refreshes ensure that the certificates in use are valid and
-secure, preventing unauthorized access or communication failures.
+secure, preventing unauthorised access or communication failures.
 
 ## Importance of Certificate Refreshes
+
+Regularly refreshing certificates in Kubernetes is essential for maintaining
+the reliability of the cluster. Here are some reasons why certificate refreshes
+are important:
 
 ### Maintaining Cluster Security
 
 Certificates are crucial for securing Kubernetes clusters, ensuring encrypted
 and authenticated communication between components. If a certificate expires
 and isn't promptly renewed, it can leave the cluster vulnerable to security
-risks, potentially exposing it to unauthorized access. Regular certificate
+risks, potentially exposing it to unauthorised access. Regular certificate
 refreshes prevent this by ensuring only valid certificates are used,
 maintaining the cluster's security.
 
