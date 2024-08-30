@@ -79,7 +79,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	}
 
 	serviceCIDRs := []string{}
-	ipv4ServiceCIDR, ipv6ServiceCIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
+	ipv4ServiceCIDR, ipv6ServiceCIDR, err := utils.ParseCIDRs(cfg.GetServiceCIDR())
 	if err != nil {
 		err = fmt.Errorf("invalid service cidr: %v", err)
 		return types.FeatureStatus{
