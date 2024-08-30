@@ -30,14 +30,14 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 			err = fmt.Errorf("failed to disable LoadBalancer: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: ciliumAgentImageTag,
+				Version: CiliumAgentImageTag,
 				Message: fmt.Sprintf(lbDeleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ciliumAgentImageTag,
-			Message: disabledMsg,
+			Version: CiliumAgentImageTag,
+			Message: DisabledMsg,
 		}, nil
 	}
 
@@ -45,7 +45,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 		err = fmt.Errorf("failed to enable LoadBalancer: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ciliumAgentImageTag,
+			Version: CiliumAgentImageTag,
 			Message: fmt.Sprintf(lbDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -53,19 +53,19 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 	if loadbalancer.GetBGPMode() {
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: ciliumAgentImageTag,
+			Version: CiliumAgentImageTag,
 			Message: fmt.Sprintf(lbEnabledMsgTmpl, "BGP"),
 		}, nil
 	} else if loadbalancer.GetL2Mode() {
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: ciliumAgentImageTag,
+			Version: CiliumAgentImageTag,
 			Message: fmt.Sprintf(lbEnabledMsgTmpl, "L2"),
 		}, nil
 	} else {
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: ciliumAgentImageTag,
+			Version: CiliumAgentImageTag,
 			Message: fmt.Sprintf(lbEnabledMsgTmpl, "Unknown"),
 		}, nil
 	}
@@ -96,7 +96,7 @@ func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Netw
 		},
 	}
 
-	if _, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values); err != nil {
+	if _, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values); err != nil {
 		return fmt.Errorf("failed to refresh network to apply LoadBalancer configuration: %w", err)
 	}
 	return nil
@@ -123,7 +123,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 		},
 	}
 
-	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), networkValues)
+	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), networkValues)
 	if err != nil {
 		return fmt.Errorf("failed to update Cilium configuration for LoadBalancer: %w", err)
 	}

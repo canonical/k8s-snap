@@ -47,20 +47,20 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 		}
 	}
 
-	changed, err := m.Apply(ctx, chartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
+	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
 	if err != nil {
 		if network.GetEnabled() {
 			err = fmt.Errorf("failed to enable ingress: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: ciliumAgentImageTag,
+				Version: CiliumAgentImageTag,
 				Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
 			}, err
 		} else {
 			err = fmt.Errorf("failed to disable ingress: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: ciliumAgentImageTag,
+				Version: CiliumAgentImageTag,
 				Message: fmt.Sprintf(ingressDeleteFailedMsgTmpl, err),
 			}, err
 		}
@@ -70,14 +70,14 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 		if ingress.GetEnabled() {
 			return types.FeatureStatus{
 				Enabled: true,
-				Version: ciliumAgentImageTag,
-				Message: enabledMsg,
+				Version: CiliumAgentImageTag,
+				Message: EnabledMsg,
 			}, nil
 		} else {
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: ciliumAgentImageTag,
-				Message: disabledMsg,
+				Version: CiliumAgentImageTag,
+				Message: DisabledMsg,
 			}, nil
 		}
 	}
@@ -85,8 +85,8 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 	if !ingress.GetEnabled() {
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ciliumAgentImageTag,
-			Message: disabledMsg,
+			Version: CiliumAgentImageTag,
+			Message: DisabledMsg,
 		}, nil
 	}
 
@@ -94,14 +94,14 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 		err = fmt.Errorf("failed to rollout restart cilium to apply ingress: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ciliumAgentImageTag,
+			Version: CiliumAgentImageTag,
 			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
 		}, err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
-		Version: ciliumAgentImageTag,
-		Message: enabledMsg,
+		Version: CiliumAgentImageTag,
+		Message: EnabledMsg,
 	}, nil
 }

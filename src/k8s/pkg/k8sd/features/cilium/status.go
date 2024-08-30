@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	disabledMsg = "disabled"
-	enabledMsg  = "enabled"
+	DisabledMsg = "disabled"
+	EnabledMsg  = "enabled"
 )
 
 func CheckNetwork(ctx context.Context, snap snap.Snap) error {
