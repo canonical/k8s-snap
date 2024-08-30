@@ -19,7 +19,7 @@ sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 ### Configure clusterctl
 
 `clusterctl` contains a list of default providers. Right now, {{product}} is
-not part of that list. To make `clusterctl` aware of the Canonical K8s
+not part of that list. To make `clusterctl` aware of the new 
 providers, we need to add a clusterctl configuration file.
 
 ```
