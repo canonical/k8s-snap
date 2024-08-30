@@ -1,8 +1,10 @@
 # Installing to localhost/LXD
 
-The main [install instructions][install] cover most situations for installing {{product}} using a charm. However, there are a few scenarios that require additional steps. These include:
-want to install {{product}} from a charm. There are a couple of
-scenarios which require some extra steps however. These are:
+The main [install instructions][install] cover most situations for installing
+{{product}} using a charm. However, there are a few scenarios that require
+additional steps. These include: want to install {{product}} from a charm.
+There are a couple of scenarios which require some extra steps however. These
+are:
 
 - deploying to the 'localhost' cloud
 - deploying to a container on a machine (i.e. when installing a bundle or using
@@ -70,7 +72,8 @@ process, but you can confirm the contents have changed by running:
 lxc profile show juju-myk8s
 ```
 
-```{note} For an explanation of the settings in this file, [see below](explain-rules)
+```{note} For an explanation of the settings in this file,
+   [see below](explain-rules)
 ```
 
 ## Deploying to a container
