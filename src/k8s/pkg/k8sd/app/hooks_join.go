@@ -201,12 +201,14 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	// Start services
 	// This may fail if the node controllers try to restart the services at the same time, hence the retry.
 	log.Info("Starting control-plane services")
-	control.RetryFor(ctx, 5, 5*time.Second, func() error {
+	if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
 		if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
 			return fmt.Errorf("failed to start services: %w", err)
 		}
 		return nil
-	})
+	}); err != nil {
+		return fmt.Errorf("failed after retry: %w", err)
+	}
 
 	// Wait until Kube-API server is ready
 	if err := waitApiServerReady(ctx, snap); err != nil {

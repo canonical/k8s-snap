@@ -11,6 +11,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils/control"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -110,8 +111,14 @@ func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *
 	}
 
 	if mustRestartKubelet {
-		if err := c.snap.RestartService(ctx, "kubelet"); err != nil {
-			return fmt.Errorf("failed to restart kubelet to apply node configuration: %w", err)
+		// This may fail if other controllers try to restart the services at the same time, hence the retry.
+		if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+			if err := c.snap.RestartService(ctx, "kubelet"); err != nil {
+				return fmt.Errorf("failed to restart kubelet to apply node configuration: %w", err)
+			}
+			return nil
+		}); err != nil {
+			return fmt.Errorf("failed after retry: %w", err)
 		}
 	}
 

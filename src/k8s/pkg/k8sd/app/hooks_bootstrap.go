@@ -246,12 +246,14 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	// Start services
 	// This may fail if the node controllers try to restart the services at the same time, hence the retry.
 	log.Info("Starting worker services")
-	control.RetryFor(ctx, 5, 5*time.Second, func() error {
+	if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
 		if err := snaputil.StartWorkerServices(ctx, snap); err != nil {
 			return fmt.Errorf("failed to start worker services: %w", err)
 		}
 		return nil
-	})
+	}); err != nil {
+		return fmt.Errorf("failed after retry: %w", err)
+	}
 
 	return nil
 }
@@ -449,12 +451,14 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	// Start services
 	// This may fail if the node controllers try to restart the services at the same time, hence the retry.
 	log.Info("Starting control-plane services")
-	control.RetryFor(ctx, 5, 5*time.Second, func() error {
+	if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
 		if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
 			return fmt.Errorf("failed to start services: %w", err)
 		}
 		return nil
-	})
+	}); err != nil {
+		return fmt.Errorf("failed after retry: %w", err)
+	}
 
 	// Wait until Kube-API server is ready
 	log.Info("Waiting for kube-apiserver to become ready")
