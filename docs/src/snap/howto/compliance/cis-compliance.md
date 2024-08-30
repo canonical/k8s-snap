@@ -21,7 +21,7 @@ to achieve full compliance.
 
 ## Single node etcd setup
 
-This reference requires single node **etcd** cluster to be used as the datastore
+This reference requires a single node **etcd** cluster to be used as the datastore
 for Canonical Kubernetes. The **etcd** cluster must be installed on the same node
 as the Kubernetes control plane. 
 
