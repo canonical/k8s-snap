@@ -233,8 +233,15 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 	return nil
 }
 
+// markNodeReady will decrement the readyWg counter to signal that the node is ready.
+// The node is ready if:
+// - the microcluster database is accessible
+// - the kubernetes endpoint is reachable
 func (a *App) markNodeReady(ctx context.Context, s state.State) error {
+	log := log.FromContext(ctx).WithValues("startup", "waitForReady")
+
 	// wait for the database to be open
+	log.V(1).Info("Waiting for database to be open")
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
 		return s.Database().IsOpen(ctx) == nil, nil
 	}); err != nil {
@@ -242,6 +249,7 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	}
 
 	// check kubernetes endpoint
+	log.V(1).Info("Waiting for kubernetes endpoint")
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
 		client, err := a.snap.KubernetesNodeClient("")
 		if err != nil {
@@ -255,6 +263,7 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 		return fmt.Errorf("failed to wait for kubernetes endpoint: %w", err)
 	}
 
+	log.V(1).Info("Marking node as ready")
 	a.readyWg.Done()
 	return nil
 }

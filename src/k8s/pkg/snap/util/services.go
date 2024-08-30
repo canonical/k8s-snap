@@ -15,14 +15,14 @@ var (
 		"kubelet",
 		"kube-proxy",
 	}
-	// ControlPlaneServices contains all k8s services that run on a control plane except of k8sd.
+	// controlPlaneServices contains all k8s services that run on a control plane except of k8sd.
 	controlPlaneServices = []string{
 		"containerd",
-		"kube-apiserver",
 		"kube-controller-manager",
 		"kube-proxy",
 		"kube-scheduler",
 		"kubelet",
+		"kube-apiserver",
 	}
 )
 

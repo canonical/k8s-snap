@@ -9,7 +9,9 @@ import (
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/canonical/microcluster/v3/state"
 )
@@ -17,6 +19,8 @@ import (
 // onPostJoin is called when a control plane node joins the cluster.
 // onPostJoin retrieves the cluster config from the database and configures local services.
 func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[string]string) (rerr error) {
+	log := log.FromContext(ctx).WithValues("hook", "postJoin")
+
 	snap := a.Snap()
 
 	// NOTE: Set the notBefore certificate time to the current time.
@@ -195,8 +199,15 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	}
 
 	// Start services
-	if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
-		return fmt.Errorf("failed to start services: %w", err)
+	// This may fail if the node controllers try to restart the services at the same time, hence the retry.
+	log.Info("Starting control-plane services")
+	if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+		if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
+			return fmt.Errorf("failed to start services: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed after retry: %w", err)
 	}
 
 	// Wait until Kube-API server is ready
