@@ -85,6 +85,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
+github.com/berkayoz/k8s-snap-api v1.0.5-0.20240901200911-5379ab6be5fa h1:rDsXpwecV3u9TOQDRYfacEXNi0Z4yzOjkKcTPDVN1YU=
+github.com/berkayoz/k8s-snap-api v1.0.5-0.20240901200911-5379ab6be5fa/go.mod h1:LDPoIYCeYnfgOFrwVPJ/4edGU264w7BB7g0GsVi36AY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bketelsen/crypt v0.0.4/go.mod h1:aI6NrJ0pMGgvZKL1iVgXLnfIFJtfV+bKCoqOes/6LfM=
 github.com/bmatcuk/doublestar/v4 v4.6.1 h1:FH9SifrbvJhnlQpztAx++wlkk70QBf0iBWDwNy7PA4I=
@@ -99,8 +101,6 @@ github.com/bugsnag/panicwrap v0.0.0-20151223152923-e2c28503fcd0 h1:nvj0OLI3YqYXe
 github.com/bugsnag/panicwrap v0.0.0-20151223152923-e2c28503fcd0/go.mod h1:D/8v3kj0zr8ZAKg1AQ6crr+5VwKN5eIywRkfhyM/+dE=
 github.com/canonical/go-dqlite v1.22.0 h1:DuJmfcREl4gkQJyvZzjl2GHFZROhbPyfdjDRQXpkOyw=
 github.com/canonical/go-dqlite v1.22.0/go.mod h1:Uvy943N8R4CFUAs59A1NVaziWY9nJ686lScY7ywurfg=
-github.com/canonical/k8s-snap-api v1.0.4 h1:VLG+eAExC6gozs2OrSc+clKDy+YMtNiVFgD50ddfQB0=
-github.com/canonical/k8s-snap-api v1.0.4/go.mod h1:LDPoIYCeYnfgOFrwVPJ/4edGU264w7BB7g0GsVi36AY=
 github.com/canonical/lxd v0.0.0-20240822122218-e7b2a7a83230 h1:YOqZ+/14OPZ+/TOXpRHIX3KLT0C+wZVpewKIwlGUmW0=
 github.com/canonical/lxd v0.0.0-20240822122218-e7b2a7a83230/go.mod h1:YVGI7HStOKsV+cMyXWnJ7RaMPaeWtrkxyIPvGWbgACc=
 github.com/canonical/microcluster/v3 v3.0.0-20240827143335-f7a4d3984970 h1:UrnpglbXELlxtufdk6DGDytu2JzyzuS3WTsOwPrkQLI=

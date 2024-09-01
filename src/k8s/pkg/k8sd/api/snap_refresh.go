@@ -6,7 +6,6 @@ import (
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v3/state"
@@ -22,40 +21,11 @@ func (e *Endpoints) postSnapRefresh(s state.State, r *http.Request) response.Res
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("invalid refresh options: %w", err))
 	}
-	log := log.FromContext(e.Context()).WithValues("to", refreshOpts)
 
-	readyCh := make(chan error)
-	go func() {
-		// block until we have flushed the response
-		if err := <-readyCh; err != nil {
-			log.Error(err, "Cancel refresh")
-			return
-		}
+	id, err := e.provider.Snap().Refresh(e.Context(), refreshOpts)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to refresh snap: %w", err))
+	}
 
-		log.Info("Refreshing snap")
-		if err := e.provider.Snap().Refresh(e.Context(), refreshOpts); err != nil {
-			log.Error(err, "Failed to refresh snap")
-		}
-	}()
-
-	return response.ManualResponse(func(w http.ResponseWriter) (rerr error) {
-		defer func() {
-			readyCh <- rerr
-			close(readyCh)
-		}()
-
-		err := response.EmptySyncResponse.Render(w)
-		if err != nil {
-			return err
-		}
-
-		// Send the response before replacing the LXD daemon process.
-		f, ok := w.(http.Flusher)
-		if !ok {
-			return fmt.Errorf("ResponseWriter is not type http.Flusher")
-		}
-
-		f.Flush()
-		return nil
-	})
+	return response.SyncResponse(true, apiv1.SnapRefreshResponse{ChangeID: id})
 }

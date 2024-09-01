@@ -28,6 +28,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.18.4
 )
 
+replace github.com/canonical/k8s-snap-api v1.0.4 => github.com/berkayoz/k8s-snap-api v1.0.5-0.20240901200911-5379ab6be5fa
+
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect

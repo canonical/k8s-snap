@@ -26,7 +26,8 @@ type Snap interface {
 	SnapctlGet(ctx context.Context, args ...string) ([]byte, error) // snapctl get $args...
 	SnapctlSet(ctx context.Context, args ...string) error           // snapctl set $args...
 
-	Refresh(ctx context.Context, to types.RefreshOpts) error // snap refresh [k8s --channel $track | k8s --revision $revision | $path ]
+	Refresh(ctx context.Context, to types.RefreshOpts) (string, error)                // snap refresh --no-wait [k8s --channel $track | k8s --revision $revision | $path ]
+	RefreshStatus(ctx context.Context, changeID string) (*types.RefreshStatus, error) // snap tasks $changeID
 
 	CNIConfDir() string       // /etc/cni/net.d
 	CNIBinDir() string        // /opt/cni/bin

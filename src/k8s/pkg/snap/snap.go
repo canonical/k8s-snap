@@ -7,11 +7,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/client/snapd"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
@@ -71,21 +73,51 @@ func (s *snap) RestartService(ctx context.Context, name string) error {
 }
 
 // Refresh refreshes the snap to a different track, revision or custom snap.
-func (s *snap) Refresh(ctx context.Context, to types.RefreshOpts) error {
+func (s *snap) Refresh(ctx context.Context, to types.RefreshOpts) (string, error) {
 	if s.Strict() {
-		return fmt.Errorf("refresh operation not available on strictly confined deployments")
+		return "", fmt.Errorf("refresh operation not available on strictly confined deployments")
 	}
+
+	var out []byte
+	var err error
 
 	switch {
 	case to.Channel != "":
-		return s.runCommand(ctx, []string{"snap", "refresh", s.snapInstanceName, "--amend", "--channel", to.Channel})
+		out, err = exec.CommandContext(ctx, "snap", "refresh", s.snapInstanceName, "--amend", "--channel", to.Channel, "--no-wait").Output()
 	case to.Revision != "":
-		return s.runCommand(ctx, []string{"snap", "refresh", s.snapInstanceName, "--amend", "--revision", to.Revision})
+		out, err = exec.CommandContext(ctx, "snap", "refresh", s.snapInstanceName, "--amend", "--revision", to.Revision, "--no-wait").Output()
 	case to.LocalPath != "":
-		return s.runCommand(ctx, []string{"snap", "install", to.LocalPath, "--classic", "--dangerous", "--name", s.snapInstanceName})
+		out, err = exec.CommandContext(ctx, "snap", "install", to.LocalPath, "--classic", "--dangerous", "--name", s.snapInstanceName, "--no-wait").Output()
 	default:
-		return fmt.Errorf("empty refresh options")
+		return "", fmt.Errorf("empty refresh options")
 	}
+
+	if err != nil {
+		return "", fmt.Errorf("failed to refresh snap: %w", err)
+	}
+
+	changeID := strings.TrimSpace(string(out))
+
+	return changeID, nil
+}
+
+// RefreshStatus returns the status of a refresh operation.
+func (s *snap) RefreshStatus(ctx context.Context, changeID string) (*types.RefreshStatus, error) {
+	if s.Strict() {
+		return nil, fmt.Errorf("refresh status operation not available on strictly confined deployments")
+	}
+
+	client, err := snapd.NewClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create snapd client: %w", err)
+	}
+
+	status, err := client.GetRefreshStatus(changeID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get snapd refresh status: %w", err)
+	}
+
+	return status, nil
 }
 
 type snapcraftYml struct {

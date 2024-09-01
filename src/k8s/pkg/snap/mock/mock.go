@@ -94,15 +94,17 @@ func (s *Snap) RestartService(ctx context.Context, name string) error {
 	}
 	return s.RestartServiceErr
 }
-func (s *Snap) Refresh(ctx context.Context, opts types.RefreshOpts) error {
+func (s *Snap) Refresh(ctx context.Context, opts types.RefreshOpts) (string, error) {
 	if len(s.RefreshCalledWith) == 0 {
 		s.RefreshCalledWith = []types.RefreshOpts{opts}
 	} else {
 		s.RefreshCalledWith = append(s.RefreshCalledWith, opts)
 	}
-	return s.RefreshErr
+	return "", s.RefreshErr
 }
-
+func (s *Snap) RefreshStatus(ctx context.Context, changeID string) (*types.RefreshStatus, error) {
+	return nil, nil
+}
 func (s *Snap) Strict() bool {
 	return s.Mock.Strict
 }
