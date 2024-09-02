@@ -21,6 +21,8 @@ import (
 
 func TestDisabled(t *testing.T) {
 	t.Run("HelmApplyFails", func(t *testing.T) {
+		g := NewWithT(t)
+
 		applyErr := errors.New("failed to apply")
 		helmM := &helmmock.Mock{
 			ApplyErr: applyErr,
@@ -36,7 +38,6 @@ func TestDisabled(t *testing.T) {
 
 		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
 
-		g := NewWithT(t)
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
@@ -49,6 +50,8 @@ func TestDisabled(t *testing.T) {
 		g.Expect(callArgs.Values).To(BeNil())
 	})
 	t.Run("Success", func(t *testing.T) {
+		g := NewWithT(t)
+
 		helmM := &helmmock.Mock{}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
@@ -61,7 +64,6 @@ func TestDisabled(t *testing.T) {
 
 		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
 
-		g := NewWithT(t)
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
@@ -77,6 +79,8 @@ func TestDisabled(t *testing.T) {
 
 func TestEnabled(t *testing.T) {
 	t.Run("InvalidCIDR", func(t *testing.T) {
+		g := NewWithT(t)
+
 		helmM := &helmmock.Mock{}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
@@ -90,13 +94,14 @@ func TestEnabled(t *testing.T) {
 
 		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
 
-		g := NewWithT(t)
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
 	})
 	t.Run("Strict", func(t *testing.T) {
+		g := NewWithT(t)
+
 		helmM := &helmmock.Mock{}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
@@ -111,7 +116,6 @@ func TestEnabled(t *testing.T) {
 
 		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
 
-		g := NewWithT(t)
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
@@ -124,6 +128,8 @@ func TestEnabled(t *testing.T) {
 		validateValues(t, callArgs.Values, cfg, snapM)
 	})
 	t.Run("HelmApplyFails", func(t *testing.T) {
+		g := NewWithT(t)
+
 		applyErr := errors.New("failed to apply")
 		helmM := &helmmock.Mock{
 			ApplyErr: applyErr,
@@ -140,7 +146,6 @@ func TestEnabled(t *testing.T) {
 
 		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
 
-		g := NewWithT(t)
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
