@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	// chartCilium represents manifests to deploy Cilium.
-	chartCilium = helm.InstallableChart{
+	// ChartCilium represents manifests to deploy Cilium.
+	ChartCilium = helm.InstallableChart{
 		Name:         "ck-network",
 		Namespace:    "kube-system",
 		ManifestPath: filepath.Join("charts", "cilium-1.15.2.tgz"),
@@ -38,8 +38,8 @@ var (
 	// ciliumAgentImageRepo represents the image to use for cilium-agent.
 	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
 
-	// ciliumAgentImageTag is the tag to use for the cilium-agent image.
-	ciliumAgentImageTag = "1.15.2-ck2"
+	// CiliumAgentImageTag is the tag to use for the cilium-agent image.
+	CiliumAgentImageTag = "1.15.2-ck2"
 
 	// ciliumOperatorImageRepo is the image to use for cilium-operator.
 	ciliumOperatorImageRepo = "ghcr.io/canonical/cilium-operator"
