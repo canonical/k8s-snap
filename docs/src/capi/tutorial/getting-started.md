@@ -23,7 +23,6 @@ not yet part of that list. To make `clusterctl` aware of the new
 providers, we need to add canonical providers to configuration
 file. Edit `~/.cluster-api/clusterctl.yaml` and add the following:
 
-
 ```
 providers:
   - name: ck8s
