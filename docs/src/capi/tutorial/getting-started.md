@@ -20,11 +20,18 @@ sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 
 `clusterctl` contains a list of default providers. Right now, Canonical
 Kubernetes is not yet part of that list. To make `clusterctl` aware of the
-Canonical K8s providers, we need to add a clusterctl configuration file.
+Canonical K8s providers, we need to add canonical providers to configuration file.
+Edit `~/.cluster-api/clusterctl.yaml` and add the following:
 
 ```
-mkdir -p ~/.config/cluster-api
-curl -L https://raw.githubusercontent.com/canonical/cluster-api-k8s/main/clusterctl.yaml -o ~/.config/cluster-api/clusterctl.yaml
+providers:
+  - name: ck8s
+    type: BootstrapProvider
+    url: "https://github.com/canonical/cluster-api-k8s/releases/latest/download/bootstrap-components.yaml"
+  - name: ck8s
+    type: ControlPlaneProvider
+    url: "https://github.com/canonical/cluster-api-k8s/releases/latest/download/control-plane-components.yaml"
+    type: "ControlPlaneProvider"
 ```
 
 ### Set up a management cluster
