@@ -12,6 +12,7 @@ Overview <self>
 ```{toctree}
 :titlesonly:
 about
+certificates
 channels
 clustering
 ingress
