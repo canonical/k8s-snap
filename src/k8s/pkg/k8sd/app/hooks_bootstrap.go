@@ -20,6 +20,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/canonical/microcluster/v3/state"
 )
@@ -243,9 +244,15 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	}
 
 	// Start services
+	// This may fail if the node controllers try to restart the services at the same time, hence the retry.
 	log.Info("Starting worker services")
-	if err := snaputil.StartWorkerServices(ctx, snap); err != nil {
-		return fmt.Errorf("failed to start worker services: %w", err)
+	if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+		if err := snaputil.StartWorkerServices(ctx, snap); err != nil {
+			return fmt.Errorf("failed to start worker services: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed after retry: %w", err)
 	}
 
 	return nil
@@ -253,6 +260,8 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 
 func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootstrapConfig apiv1.BootstrapConfig) (rerr error) {
 	snap := a.Snap()
+
+	log := log.FromContext(ctx).WithValues("hook", "bootstrap")
 
 	cfg, err := types.ClusterConfigFromBootstrapConfig(bootstrapConfig)
 	if err != nil {
@@ -440,14 +449,23 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	}
 
 	// Start services
-	if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
-		return fmt.Errorf("failed to start services: %w", err)
+	// This may fail if the node controllers try to restart the services at the same time, hence the retry.
+	log.Info("Starting control-plane services")
+	if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+		if err := startControlPlaneServices(ctx, snap, cfg.Datastore.GetType()); err != nil {
+			return fmt.Errorf("failed to start services: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed after retry: %w", err)
 	}
 
 	// Wait until Kube-API server is ready
+	log.Info("Waiting for kube-apiserver to become ready")
 	if err := waitApiServerReady(ctx, snap); err != nil {
 		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
+	log.Info("API server is ready - notify controllers")
 
 	a.NotifyFeatureController(
 		cfg.Network.GetEnabled(),

@@ -56,9 +56,12 @@ func (c *UpdateNodeConfigurationController) retryNewK8sClient(ctx context.Contex
 // Run accepts a function that retrieves the current cluster configuration.
 // Run will loop everytime the TriggerCh is triggered.
 func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) {
-	c.waitReady()
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "update-node-configuration"))
+	log := log.FromContext(ctx)
 
-	log := log.FromContext(ctx).WithValues("controller", "update-node-configuration")
+	log.V(1).Info("Waiting for node to be ready")
+	c.waitReady()
+	log.V(1).Info("Starting update node configuration controller")
 
 	for {
 		select {
@@ -99,6 +102,9 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 }
 
 func (c *UpdateNodeConfigurationController) reconcile(ctx context.Context, client *kubernetes.Client, config types.ClusterConfig) error {
+	log := log.FromContext(ctx)
+	log.V(1).Info("Reconciling node configuration")
+
 	keyPEM := config.Certificates.GetK8sdPrivateKey()
 	key, err := pkiutil.LoadRSAPrivateKey(keyPEM)
 	if err != nil && keyPEM != "" {

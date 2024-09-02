@@ -10,7 +10,8 @@ Overview <self>
 
 ```{toctree}
 :titlesonly:
-
+releases
+community
 
 ```
 

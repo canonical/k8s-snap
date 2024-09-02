@@ -1,7 +1,6 @@
 package utils_test
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -172,14 +171,14 @@ func TestFileExists(t *testing.T) {
 	g.Expect(fileExists).To(BeFalse())
 }
 
-func TestGetMountPropagation(t *testing.T) {
+func TestGetMountPropagationType(t *testing.T) {
 	g := NewWithT(t)
 
-	mountType, err := utils.GetMountPropagation("/randommount")
-	g.Expect(errors.Is(err, utils.ErrUnknownMount)).To(BeTrue())
-	g.Expect(mountType).To(Equal(""))
+	mountType, err := utils.GetMountPropagationType("/randommount")
+	g.Expect(err).To(MatchError(utils.ErrUnknownMount))
+	g.Expect(mountType).To(Equal(utils.MountPropagationUnknown))
 
-	mountType, err = utils.GetMountPropagation("/sys")
-	g.Expect(err).To(BeNil())
-	g.Expect(mountType).To(Equal("shared"))
+	mountType, err = utils.GetMountPropagationType("/sys")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(mountType).To(Equal(utils.MountPropagationShared))
 }

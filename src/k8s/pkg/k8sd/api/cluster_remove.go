@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
@@ -66,7 +67,15 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to create client to cluster leader: %w", err))
 		}
-		if err := c.DeleteClusterMember(ctx, req.Name, req.Force); err != nil {
+
+		// NOTE(hue): node removal process in CAPI might fail, we figured that the context passed to
+		// `DeleteClusterMember` is somehow getting canceled but couldn't figure out why or by which component.
+		// The cancellation happens after the `RunPreRemoveHook` call and before the `DeleteCoreClusterMember` call
+		// in `clusterMemberDelete` endpoint of microcluster. This is a workaround to avoid the cancellation.
+		// keep in mind that this failure is flaky and might not happen in every run.
+		deleteCtx, deleteCancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer deleteCancel()
+		if err := c.DeleteClusterMember(deleteCtx, req.Name, req.Force); err != nil {
 			return response.InternalError(fmt.Errorf("failed to delete cluster member %s: %w", req.Name, err))
 		}
 

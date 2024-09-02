@@ -18,10 +18,11 @@ sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 
 ### Configure clusterctl
 
-`clusterctl` contains a list of default providers. Right now, Canonical
-Kubernetes is not yet part of that list. To make `clusterctl` aware of the
-Canonical K8s providers, we need to add canonical providers to configuration
+`clusterctl` contains a list of default providers. Right now, {{product}} is 
+not yet part of that list. To make `clusterctl` aware of the new
+providers, we need to add canonical providers to configuration
 file. Edit `~/.cluster-api/clusterctl.yaml` and add the following:
+
 
 ```
 providers:
@@ -248,6 +249,5 @@ sudo k8s kubectl delete cluster ${CLUSTER_NAME}
 
 <!-- Links -->
 [upstream instructions]: https://cluster-api.sigs.k8s.io/user/quick-start#install-clusterctl
-[getting-started]: ../tutorial/getting-started.md
 [CloudFormation]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html
 [IAM]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html

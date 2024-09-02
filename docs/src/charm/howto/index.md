@@ -15,6 +15,7 @@ Overview <self>
 :titlesonly:
 
 charm
+install-lxd
 etcd
 proxy
 cos-lite
