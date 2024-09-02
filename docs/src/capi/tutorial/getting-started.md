@@ -191,7 +191,7 @@ Set the respective environment variables by editing the rc file as needed
 before sourcing it. Then generate the cluster manifest:
 
 ```
-source ./templates/<infrastructure-provider>/cluster-template.rc
+source ./templates/<infrastructure-provider>/template-variables.rc
 clusterctl generate cluster ${CLUSTER_NAME} --from ./templates/<infrastructure-provider>/cluster-template.yaml > cluster.yaml
 ```
 
