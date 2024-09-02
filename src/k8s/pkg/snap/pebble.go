@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
@@ -62,18 +63,26 @@ func (s *pebble) Refresh(ctx context.Context, to types.RefreshOpts) (string, err
 	case to.Channel != "":
 		return "", fmt.Errorf("pebble does not support refreshing to a channel, only a local path")
 	case to.LocalPath != "":
-		// replace the "kubernetes" binary with the new source.
-		// "cp -f" will replace the binary in case it's currently in use.
-		if err := s.runCommand(ctx, []string{"cp", "-f", to.LocalPath, filepath.Join(s.snapDir, "bin", "kubernetes")}); err != nil {
-			return "", fmt.Errorf("failed to update the kubernetes binary: %w", err)
-		}
-		// restart services if already running.
-		for _, service := range []string{"kube-apiserver", "kubelet", "kube-controller-manager", "kube-proxy", "kube-scheduler"} {
-			if err := s.RestartService(ctx, service); err != nil {
-				log.FromContext(ctx).WithValues("service", service).Error(err, "Warning: failed to restart after updating kubernetes binary")
+		go func() {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(5 * time.Second):
+				log.FromContext(ctx).Info("Refreshing kubernetes snap")
 			}
-		}
-		return "", nil
+			// replace the "kubernetes" binary with the new source.
+			// "cp -f" will replace the binary in case it's currently in use.
+			if err := s.runCommand(ctx, []string{"cp", "-f", to.LocalPath, filepath.Join(s.snapDir, "bin", "kubernetes")}); err != nil {
+				log.FromContext(ctx).Error(err, "Warning: failed to update the kubernetes binary")
+			}
+			// restart services if already running.
+			for _, service := range []string{"kube-apiserver", "kubelet", "kube-controller-manager", "kube-proxy", "kube-scheduler"} {
+				if err := s.RestartService(ctx, service); err != nil {
+					log.FromContext(ctx).WithValues("service", service).Error(err, "Warning: failed to restart after updating kubernetes binary")
+				}
+			}
+		}()
+		return "0", nil
 	default:
 		return "", fmt.Errorf("empty refresh options")
 	}
