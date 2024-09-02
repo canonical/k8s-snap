@@ -36,9 +36,10 @@ datastore-client-crt: |
 datastore-client-key: |
   <etcd-client-key>
 ```
-
+<!-- markdownlint-disable -->
 * `datastore-url` expects a comma seperated list of addresses
   (e.g. `https://10.42.254.192:2379,https://10.42.254.193:2379,https://10.42.254.194:2379`)
+<!-- markdownlint-restore -->
 * `datastore-ca-crt` expects a certificate for the CA in PEM format
 * `datastore-client-crt` expects a certificate that's signed by the root CA
   for the client in PEM format
