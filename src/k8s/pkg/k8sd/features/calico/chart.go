@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	// chartCalico represents manifests to deploy Calico.
-	chartCalico = helm.InstallableChart{
+	// ChartCalico represents manifests to deploy Calico.
+	ChartCalico = helm.InstallableChart{
 		Name:         "ck-network",
 		Namespace:    "tigera-operator",
 		ManifestPath: filepath.Join("charts", "tigera-operator-v3.28.0.tgz"),
@@ -21,8 +21,8 @@ var (
 
 	// calicoImageRepo represents the repo to fetch the calico images.
 	calicoImageRepo = "ghcr.io/canonical/k8s-snap/calico"
-	// calicoTag represents the tag to use for the calico images.
-	calicoTag = "v3.28.0"
+	// CalicoTag represents the tag to use for the calico images.
+	CalicoTag = "v3.28.0"
 
 	// tigeraOperatorImage represents the image to fetch for calico.
 	tigeraOperatorImage = "tigera/operator"

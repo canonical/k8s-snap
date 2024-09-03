@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	enabledMsg          = "enabled"
-	disabledMsg         = "disabled"
+	EnabledMsg          = "enabled"
+	DisabledMsg         = "disabled"
 	deployFailedMsgTmpl = "Failed to deploy Calico, the error was: %v"
 	deleteFailedMsgTmpl = "Failed to delete Calico, the error was: %v"
 )
@@ -27,19 +27,19 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	m := snap.HelmClient()
 
 	if !cfg.GetEnabled() {
-		if _, err := m.Apply(ctx, chartCalico, helm.StateDeleted, nil); err != nil {
+		if _, err := m.Apply(ctx, ChartCalico, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall network: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: calicoTag,
+				Version: CalicoTag,
 				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
 			}, err
 		}
 
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: calicoTag,
-			Message: disabledMsg,
+			Version: CalicoTag,
+			Message: DisabledMsg,
 		}, nil
 	}
 
@@ -48,7 +48,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 		err = fmt.Errorf("failed to parse annotations: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: calicoTag,
+			Version: CalicoTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, err
 	}
@@ -56,10 +56,10 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	podIpPools := []map[string]any{}
 	ipv4PodCIDR, ipv6PodCIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
 	if err != nil {
-		err = fmt.Errorf("invalid pod cidr: %v", err)
+		err = fmt.Errorf("invalid pod cidr: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: calicoTag,
+			Version: CalicoTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, err
 	}
@@ -84,7 +84,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 		err = fmt.Errorf("invalid service cidr: %v", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: calicoTag,
+			Version: CalicoTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, err
 	}
@@ -127,18 +127,18 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 		"serviceCIDRs": serviceCIDRs,
 	}
 
-	if _, err := m.Apply(ctx, chartCalico, helm.StatePresent, values); err != nil {
+	if _, err := m.Apply(ctx, ChartCalico, helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to enable network: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: calicoTag,
+			Version: CalicoTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
-		Version: calicoTag,
-		Message: enabledMsg,
+		Version: CalicoTag,
+		Message: EnabledMsg,
 	}, nil
 }
