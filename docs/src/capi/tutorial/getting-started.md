@@ -27,10 +27,10 @@ file. Edit `~/.cluster-api/clusterctl.yaml` and add the following:
 providers:
   - name: ck8s
     type: BootstrapProvider
-    url: "https://github.com/canonical/cluster-api-k8s/releases/latest/download/bootstrap-components.yaml"
+    url: "https://github.com/canonical/cluster-api-k8s/releases/latest/bootstrap-components.yaml"
   - name: ck8s
     type: ControlPlaneProvider
-    url: "https://github.com/canonical/cluster-api-k8s/releases/latest/download/control-plane-components.yaml"
+    url: "https://github.com/canonical/cluster-api-k8s/releases/latest/control-plane-components.yaml"
     type: "ControlPlaneProvider"
 ```
 
