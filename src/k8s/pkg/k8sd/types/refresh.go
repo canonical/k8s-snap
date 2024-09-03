@@ -17,7 +17,23 @@ type RefreshOpts struct {
 }
 
 func RefreshOptsFromAPI(req apiv1.SnapRefreshRequest) (RefreshOpts, error) {
-	// TODO(neoaggelos): fail if more than one of channel, revision or path are specified.
+	var optsMap = map[string]string{
+		"localPath": req.LocalPath,
+		"channel":   req.Channel,
+		"revision":  req.Revision,
+	}
+
+	// Make sure only one of the options is set.
+	alreadySet := false
+	for _, v := range optsMap {
+		if alreadySet && v != "" {
+			return RefreshOpts{}, fmt.Errorf("only one of localPath, channel or revision can be specified")
+		}
+		if v != "" {
+			alreadySet = true
+		}
+	}
+
 	switch {
 	case req.LocalPath != "":
 		return RefreshOpts{LocalPath: req.LocalPath}, nil
