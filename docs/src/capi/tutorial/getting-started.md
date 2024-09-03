@@ -20,7 +20,7 @@ sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 
 `clusterctl` contains a list of default providers. Right now, {{product}} is 
 not yet part of that list. To make `clusterctl` aware of the new
-providers, we need to add canonical providers to configuration
+providers we need to add them to the configuration
 file. Edit `~/.cluster-api/clusterctl.yaml` and add the following:
 
 ```
