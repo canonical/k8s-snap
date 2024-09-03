@@ -160,7 +160,6 @@ func TestEnabled(t *testing.T) {
 }
 
 func validateValues(t *testing.T, values map[string]any, cfg types.Network, snap snap.Snap) {
-	t.Helper()
 	g := NewWithT(t)
 
 	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
