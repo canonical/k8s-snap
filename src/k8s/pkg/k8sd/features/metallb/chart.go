@@ -7,15 +7,15 @@ import (
 )
 
 var (
-	// chartMetalLB represents manifests to deploy MetalLB speaker and controller.
-	chartMetalLB = helm.InstallableChart{
+	// ChartMetalLB represents manifests to deploy MetalLB speaker and controller.
+	ChartMetalLB = helm.InstallableChart{
 		Name:         "metallb",
 		Namespace:    "metallb-system",
 		ManifestPath: filepath.Join("charts", "metallb-0.14.5.tgz"),
 	}
 
-	// chartMetalLBLoadBalancer represents manifests to deploy MetalLB L2 or BGP resources.
-	chartMetalLBLoadBalancer = helm.InstallableChart{
+	// ChartMetalLBLoadBalancer represents manifests to deploy MetalLB L2 or BGP resources.
+	ChartMetalLBLoadBalancer = helm.InstallableChart{
 		Name:         "metallb-loadbalancer",
 		Namespace:    "metallb-system",
 		ManifestPath: filepath.Join("charts", "ck-loadbalancer"),
@@ -24,8 +24,8 @@ var (
 	// controllerImageRepo is the image to use for metallb-controller.
 	controllerImageRepo = "ghcr.io/canonical/k8s-snap/metallb/controller"
 
-	// controllerImageTag is the tag to use for metallb-controller.
-	controllerImageTag = "v0.14.5"
+	// ControllerImageTag is the tag to use for metallb-controller.
+	ControllerImageTag = "v0.14.5"
 
 	// speakerImageRepo is the image to use for metallb-speaker.
 	speakerImageRepo = "ghcr.io/canonical/k8s-snap/metallb/speaker"

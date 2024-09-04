@@ -12,7 +12,7 @@ import (
 
 const (
 	enabledMsgTmpl      = "enabled, %s mode"
-	disabledMsg         = "disabled"
+	DisabledMsg         = "disabled"
 	deleteFailedMsgTmpl = "Failed to delete MetalLB, the error was: %v"
 	deployFailedMsgTmpl = "Failed to deploy MetalLB, the error was: %v"
 )
@@ -27,14 +27,14 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 			err = fmt.Errorf("failed to disable LoadBalancer: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: controllerImageTag,
+				Version: ControllerImageTag,
 				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: controllerImageTag,
-			Message: disabledMsg,
+			Version: ControllerImageTag,
+			Message: DisabledMsg,
 		}, nil
 	}
 
@@ -42,7 +42,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 		err = fmt.Errorf("failed to enable LoadBalancer: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: controllerImageTag,
+			Version: ControllerImageTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, err
 	}
@@ -50,19 +50,19 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 	if loadbalancer.GetBGPMode() {
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: controllerImageTag,
+			Version: ControllerImageTag,
 			Message: fmt.Sprintf(enabledMsgTmpl, "BGP"),
 		}, nil
 	} else if loadbalancer.GetL2Mode() {
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: controllerImageTag,
+			Version: ControllerImageTag,
 			Message: fmt.Sprintf(enabledMsgTmpl, "L2"),
 		}, nil
 	} else {
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: controllerImageTag,
+			Version: ControllerImageTag,
 			Message: fmt.Sprintf(enabledMsgTmpl, "Unknown"),
 		}, nil
 	}
@@ -71,11 +71,11 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Network) error {
 	m := snap.HelmClient()
 
-	if _, err := m.Apply(ctx, chartMetalLBLoadBalancer, helm.StateDeleted, nil); err != nil {
+	if _, err := m.Apply(ctx, ChartMetalLBLoadBalancer, helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall MetalLB LoadBalancer chart: %w", err)
 	}
 
-	if _, err := m.Apply(ctx, chartMetalLB, helm.StateDeleted, nil); err != nil {
+	if _, err := m.Apply(ctx, ChartMetalLB, helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall MetalLB chart: %w", err)
 	}
 	return nil
@@ -88,7 +88,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 		"controller": map[string]any{
 			"image": map[string]any{
 				"repository": controllerImageRepo,
-				"tag":        controllerImageTag,
+				"tag":        ControllerImageTag,
 			},
 		},
 		"speaker": map[string]any{
@@ -107,7 +107,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 			},
 		},
 	}
-	if _, err := m.Apply(ctx, chartMetalLB, helm.StatePresent, metalLBValues); err != nil {
+	if _, err := m.Apply(ctx, ChartMetalLB, helm.StatePresent, metalLBValues); err != nil {
 		return fmt.Errorf("failed to apply MetalLB configuration: %w", err)
 	}
 
@@ -145,7 +145,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 		},
 	}
 
-	if _, err := m.Apply(ctx, chartMetalLBLoadBalancer, helm.StatePresent, values); err != nil {
+	if _, err := m.Apply(ctx, ChartMetalLBLoadBalancer, helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to apply MetalLB LoadBalancer configuration: %w", err)
 	}
 
