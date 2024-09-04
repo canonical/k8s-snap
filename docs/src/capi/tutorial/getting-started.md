@@ -31,7 +31,6 @@ providers:
   - name: ck8s
     type: ControlPlaneProvider
     url: "https://github.com/canonical/cluster-api-k8s/releases/latest/control-plane-components.yaml"
-    type: "ControlPlaneProvider"
 ```
 
 ### Set up a management cluster
