@@ -19,7 +19,7 @@ import (
 
 // NOTE(hue): status.Message is not checked sometimes to avoid unnecessary complexity
 
-func TestDisabled(t *testing.T) {
+func TestNetworkDisabled(t *testing.T) {
 	t.Run("HelmApplyFails", func(t *testing.T) {
 		g := NewWithT(t)
 
@@ -77,7 +77,7 @@ func TestDisabled(t *testing.T) {
 	})
 }
 
-func TestEnabled(t *testing.T) {
+func TestNetworkEnabled(t *testing.T) {
 	t.Run("InvalidCIDR", func(t *testing.T) {
 		g := NewWithT(t)
 
@@ -125,7 +125,7 @@ func TestEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-		validateValues(t, callArgs.Values, cfg, snapM)
+		validateNetworkValues(t, callArgs.Values, cfg, snapM)
 	})
 	t.Run("HelmApplyFails", func(t *testing.T) {
 		g := NewWithT(t)
@@ -155,11 +155,12 @@ func TestEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-		validateValues(t, callArgs.Values, cfg, snapM)
+		validateNetworkValues(t, callArgs.Values, cfg, snapM)
 	})
 }
 
-func validateValues(t *testing.T, values map[string]any, cfg types.Network, snap snap.Snap) {
+func validateNetworkValues(t *testing.T, values map[string]any, cfg types.Network, snap snap.Snap) {
+	t.Helper()
 	g := NewWithT(t)
 
 	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())

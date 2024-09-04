@@ -74,7 +74,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Network) error {
 	m := snap.HelmClient()
 
-	if _, err := m.Apply(ctx, chartCiliumLoadBalancer, helm.StateDeleted, nil); err != nil {
+	if _, err := m.Apply(ctx, ChartCiliumLoadBalancer, helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall LoadBalancer manifests: %w", err)
 	}
 
@@ -161,7 +161,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 			},
 		},
 	}
-	if _, err := m.Apply(ctx, chartCiliumLoadBalancer, helm.StatePresent, values); err != nil {
+	if _, err := m.Apply(ctx, ChartCiliumLoadBalancer, helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to apply LoadBalancer configuration: %w", err)
 	}
 

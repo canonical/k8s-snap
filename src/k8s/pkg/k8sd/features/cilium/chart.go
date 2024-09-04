@@ -14,8 +14,8 @@ var (
 		ManifestPath: filepath.Join("charts", "cilium-1.15.2.tgz"),
 	}
 
-	// chartCiliumLoadBalancer represents manifests to deploy Cilium LoadBalancer resources.
-	chartCiliumLoadBalancer = helm.InstallableChart{
+	// ChartCiliumLoadBalancer represents manifests to deploy Cilium LoadBalancer resources.
+	ChartCiliumLoadBalancer = helm.InstallableChart{
 		Name:         "ck-loadbalancer",
 		Namespace:    "kube-system",
 		ManifestPath: filepath.Join("charts", "ck-loadbalancer"),
