@@ -46,7 +46,7 @@ type ControlPlanePKI struct {
 	// [client] CN=system:node:$hostname, O=system:nodes (signed by kubernetes-ca-client)
 	KubeletClientCert, KubeletClientKey string
 
-	// [client] CN=kube-apiserver-kubelet-client, O=system:masters (signed by kubernetes-ca-client)
+	// [client] CN=apiserver-kubelet-client, O=system:masters (signed by kubernetes-ca-client)
 	APIServerKubeletClientCert, APIServerKubeletClientKey string
 
 	// Keypair used to verify authenticity of cluster messages (e.g. for configmap/k8sd-config)
