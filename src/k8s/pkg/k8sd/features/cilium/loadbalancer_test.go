@@ -200,7 +200,7 @@ func TestLoadBalancerEnabled(t *testing.T) {
 		secondCallArgs := helmM.ApplyCalledWith[1]
 		g.Expect(secondCallArgs.Chart).To(Equal(cilium.ChartCiliumLoadBalancer))
 		g.Expect(secondCallArgs.State).To(Equal(helm.StatePresent))
-		validateLBValues(t, secondCallArgs.Values, lbCfg)
+		validateLoadBalancerValues(t, secondCallArgs.Values, lbCfg)
 
 		// check if cilium-operator and cilium daemonset are restarted
 		deployment, err := clientset.AppsV1().Deployments("kube-system").Get(context.Background(), "cilium-operator", metav1.GetOptions{})
@@ -212,7 +212,7 @@ func TestLoadBalancerEnabled(t *testing.T) {
 	})
 }
 
-func validateLBValues(t *testing.T, values map[string]interface{}, lbCfg types.LoadBalancer) {
+func validateLoadBalancerValues(t *testing.T, values map[string]interface{}, lbCfg types.LoadBalancer) {
 	g := NewWithT(t)
 
 	l2 := values["l2"].(map[string]any)
