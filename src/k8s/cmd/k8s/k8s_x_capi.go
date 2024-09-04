@@ -1,6 +1,8 @@
 package k8s
 
 import (
+	"os"
+
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/spf13/cobra"
@@ -34,6 +36,26 @@ func newXCAPICmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 		},
 	}
+	setNodeToken := &cobra.Command{
+		Use:   "set-node-token <token>",
+		Short: "Set the node token to authenticate with per-node k8sd endpoints",
+		Args:  cmdutil.ExactArgs(env, 1),
+		Run: func(cmd *cobra.Command, args []string) {
+			token := args[0]
+			if token == "" {
+				cmd.PrintErrf("Error: The token must be provided.\n")
+				env.Exit(1)
+				return
+			}
+
+			err := os.WriteFile(env.Snap.NodeTokenFile(), []byte(token), 0600)
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to write the node token to file.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			}
+		},
+	}
 
 	cmd := &cobra.Command{
 		Use:    "x-capi",
@@ -42,6 +64,7 @@ func newXCAPICmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 
 	cmd.AddCommand(setAuthTokenCmd)
+	cmd.AddCommand(setNodeToken)
 
 	return cmd
 }
