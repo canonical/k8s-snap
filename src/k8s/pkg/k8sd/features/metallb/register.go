@@ -8,7 +8,7 @@ import (
 
 func init() {
 	images.Register(
-		fmt.Sprintf("%s:%s", controllerImageRepo, controllerImageTag),
+		fmt.Sprintf("%s:%s", controllerImageRepo, ControllerImageTag),
 		fmt.Sprintf("%s:%s", speakerImageRepo, speakerImageTag),
 		fmt.Sprintf("%s:%s", frrImageRepo, frrImageTag),
 	)
