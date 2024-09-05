@@ -11,6 +11,7 @@ Overview <self>
 ```{toctree}
 :titlesonly:
 
+annotations
 releases
 commands
 certificates
