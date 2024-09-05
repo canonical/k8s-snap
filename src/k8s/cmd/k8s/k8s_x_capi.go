@@ -48,8 +48,7 @@ func newXCAPICmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			err := os.WriteFile(env.Snap.NodeTokenFile(), []byte(token), 0600)
-			if err != nil {
+			if err := os.WriteFile(env.Snap.NodeTokenFile(), []byte(token), 0600); err != nil {
 				cmd.PrintErrf("Error: Failed to write the node token to file.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
