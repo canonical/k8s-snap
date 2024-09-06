@@ -5,7 +5,7 @@ go 1.22.6
 require (
 	dario.cat/mergo v1.0.0
 	github.com/canonical/go-dqlite v1.22.0
-	github.com/canonical/k8s-snap-api v1.0.4
+	github.com/canonical/k8s-snap-api v1.0.5
 	github.com/canonical/lxd v0.0.0-20240822122218-e7b2a7a83230
 	github.com/canonical/microcluster/v3 v3.0.0-20240827143335-f7a4d3984970
 	github.com/go-logr/logr v1.4.2
@@ -27,8 +27,6 @@ require (
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
 	sigs.k8s.io/controller-runtime v0.18.4
 )
-
-replace github.com/canonical/k8s-snap-api v1.0.4 => github.com/berkayoz/k8s-snap-api v1.0.5-0.20240901200911-5379ab6be5fa
 
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
