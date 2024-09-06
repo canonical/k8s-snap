@@ -7,11 +7,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/client/snapd"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
@@ -21,16 +23,18 @@ import (
 )
 
 type SnapOpts struct {
-	SnapDir       string
-	SnapCommonDir string
-	RunCommand    func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+	SnapInstanceName string
+	SnapDir          string
+	SnapCommonDir    string
+	RunCommand       func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
 }
 
 // snap implements the Snap interface.
 type snap struct {
-	snapDir       string
-	snapCommonDir string
-	runCommand    func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+	snapDir          string
+	snapCommonDir    string
+	snapInstanceName string
+	runCommand       func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
 }
 
 // NewSnap creates a new interface with the K8s snap.
@@ -41,9 +45,10 @@ func NewSnap(opts SnapOpts) *snap {
 		runCommand = opts.RunCommand
 	}
 	s := &snap{
-		snapDir:       opts.SnapDir,
-		snapCommonDir: opts.SnapCommonDir,
-		runCommand:    runCommand,
+		snapDir:          opts.SnapDir,
+		snapCommonDir:    opts.SnapCommonDir,
+		snapInstanceName: opts.SnapInstanceName,
+		runCommand:       runCommand,
 	}
 
 	return s
@@ -65,6 +70,54 @@ func (s *snap) StopService(ctx context.Context, name string) error {
 func (s *snap) RestartService(ctx context.Context, name string) error {
 	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Restarting service", "service", name)
 	return s.runCommand(ctx, []string{"snapctl", "restart", serviceName(name)})
+}
+
+// Refresh refreshes the snap to a different track, revision or custom snap.
+func (s *snap) Refresh(ctx context.Context, to types.RefreshOpts) (string, error) {
+	if s.Strict() {
+		return "", fmt.Errorf("refresh operation not available on strictly confined deployments")
+	}
+
+	var out []byte
+	var err error
+
+	switch {
+	case to.Channel != "":
+		out, err = exec.CommandContext(ctx, "snap", "refresh", s.snapInstanceName, "--amend", "--channel", to.Channel, "--no-wait").Output()
+	case to.Revision != "":
+		out, err = exec.CommandContext(ctx, "snap", "refresh", s.snapInstanceName, "--amend", "--revision", to.Revision, "--no-wait").Output()
+	case to.LocalPath != "":
+		out, err = exec.CommandContext(ctx, "snap", "install", to.LocalPath, "--classic", "--dangerous", "--name", s.snapInstanceName, "--no-wait").Output()
+	default:
+		return "", fmt.Errorf("empty refresh options")
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("failed to refresh snap: %w", err)
+	}
+
+	changeID := strings.TrimSpace(string(out))
+
+	return changeID, nil
+}
+
+// RefreshStatus returns the status of a refresh operation.
+func (s *snap) RefreshStatus(ctx context.Context, changeID string) (*types.RefreshStatus, error) {
+	if s.Strict() {
+		return nil, fmt.Errorf("refresh status operation not available on strictly confined deployments")
+	}
+
+	client, err := snapd.NewClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create snapd client: %w", err)
+	}
+
+	status, err := client.GetRefreshStatus(changeID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get snapd refresh status: %w", err)
+	}
+
+	return status, nil
 }
 
 type snapcraftYml struct {
@@ -190,6 +243,10 @@ func (s *snap) ServiceExtraConfigDir() string {
 
 func (s *snap) LockFilesDir() string {
 	return filepath.Join(s.snapCommonDir, "lock")
+}
+
+func (s *snap) NodeTokenFile() string {
+	return filepath.Join(s.snapCommonDir, "node-token")
 }
 
 func (s *snap) ContainerdExtraConfigDir() string {

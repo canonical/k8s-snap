@@ -26,6 +26,9 @@ type Snap interface {
 	SnapctlGet(ctx context.Context, args ...string) ([]byte, error) // snapctl get $args...
 	SnapctlSet(ctx context.Context, args ...string) error           // snapctl set $args...
 
+	Refresh(ctx context.Context, to types.RefreshOpts) (string, error)                // snap refresh --no-wait [k8s --channel $track | k8s --revision $revision | $path ]
+	RefreshStatus(ctx context.Context, changeID string) (*types.RefreshStatus, error) // snap tasks $changeID
+
 	CNIConfDir() string       // /etc/cni/net.d
 	CNIBinDir() string        // /opt/cni/bin
 	CNIPluginsBinary() string // /snap/k8s/current/bin/cni
@@ -50,6 +53,8 @@ type Snap interface {
 	ServiceExtraConfigDir() string // /var/snap/k8s/common/args/conf.d
 
 	LockFilesDir() string // /var/snap/k8s/common/lock
+
+	NodeTokenFile() string // /var/snap/k8s/common/node-token
 
 	KubernetesClient(namespace string) (*kubernetes.Client, error)     // admin kubernetes client
 	KubernetesNodeClient(namespace string) (*kubernetes.Client, error) // node kubernetes client

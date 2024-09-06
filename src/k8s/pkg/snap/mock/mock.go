@@ -38,6 +38,7 @@ type Mock struct {
 	ServiceArgumentsDir         string
 	ServiceExtraConfigDir       string
 	LockFilesDir                string
+	NodeTokenFile               string
 	KubernetesClient            *kubernetes.Client
 	KubernetesNodeClient        *kubernetes.Client
 	HelmClient                  helm.Client
@@ -54,6 +55,9 @@ type Snap struct {
 	StopServiceErr           error
 	RestartServiceCalledWith []string
 	RestartServiceErr        error
+
+	RefreshCalledWith []types.RefreshOpts
+	RefreshErr        error
 
 	SnapctlSetCalledWith [][]string
 	SnapctlSetErr        error
@@ -90,7 +94,17 @@ func (s *Snap) RestartService(ctx context.Context, name string) error {
 	}
 	return s.RestartServiceErr
 }
-
+func (s *Snap) Refresh(ctx context.Context, opts types.RefreshOpts) (string, error) {
+	if len(s.RefreshCalledWith) == 0 {
+		s.RefreshCalledWith = []types.RefreshOpts{opts}
+	} else {
+		s.RefreshCalledWith = append(s.RefreshCalledWith, opts)
+	}
+	return "", s.RefreshErr
+}
+func (s *Snap) RefreshStatus(ctx context.Context, changeID string) (*types.RefreshStatus, error) {
+	return nil, nil
+}
 func (s *Snap) Strict() bool {
 	return s.Mock.Strict
 }
@@ -162,6 +176,9 @@ func (s *Snap) ServiceExtraConfigDir() string {
 }
 func (s *Snap) LockFilesDir() string {
 	return s.Mock.LockFilesDir
+}
+func (s *Snap) NodeTokenFile() string {
+	return s.Mock.NodeTokenFile
 }
 func (s *Snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {
 	return s.Mock.KubernetesClient, nil
