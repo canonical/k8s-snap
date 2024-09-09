@@ -16,6 +16,9 @@ Overview <self>
 
 external-etcd
 rollout-upgrades
+upgrade-providers
+migrate-management
+custom-ck8s
 ```
 
 ---
