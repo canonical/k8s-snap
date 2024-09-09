@@ -966,13 +966,15 @@ EOF
 ```
 
 Finally, describe the pod to confirm the DPDK network assignment and also the
-virtual function PCI ID (in this case, 0000:98:1f.2) that was assigned
-automatically to the net1 interface:
+virtual function PCI ID (in this case, `0000:98:1f.2`) that was assigned
+automatically to the `net1` interface:
 
 ```
-$ sudo k8s kubectl describe pod sriov-test-pod
+sudo k8s kubectl describe pod sriov-test-pod
+```
 
-### Expected Output ###
+
+```
 ...
                   k8s.v1.cni.cncf.io/network-status:
                     [{
@@ -1002,7 +1004,7 @@ $ sudo k8s kubectl describe pod sriov-test-pod
 
 
 
-## References 
+## Further reading
 
 * [How to enable Real-time Ubuntu](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/enable\_realtime\_kernel/\#how-to-enable-real-time-ubuntu)  
 * [Manage HugePages](https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/)  
