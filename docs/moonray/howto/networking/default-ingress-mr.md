@@ -46,7 +46,7 @@ sudo k8s get ingress
 
 You should see three options:
 
-- `enabled`: If set to true, Ingress is enabled
+
 - `default-tls-secret`: Name of the TLS (Transport Layer Security) Secret that
   will be used as the default Ingress certificate. The
   `TLSCertificateDelegation` is created in the `projectcontour-root` namespace.
@@ -61,9 +61,7 @@ You should see three options:
 
 You can create a TLS secret by following the official
 [Kubernetes documentation][kubectl-create-secret-tls/].
-```{note}
 Please remember to use `sudo k8s kubectl` (See the [kubectl-guide]).
-```
 
 Tell Ingress to use your new Ingress certificate:
 
