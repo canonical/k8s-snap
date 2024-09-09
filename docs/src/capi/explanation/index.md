@@ -15,6 +15,7 @@ Overview <self>
 
 about
 security
+capi-ck8s.md
 
 ```
 
