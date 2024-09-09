@@ -51,7 +51,8 @@ You should see three options:
   `TLSCertificateDelegation` is created in the `projectcontour-root` namespace.
   When defining an Ingress object, specify this secret as the default
   certificate by setting the `secretName` field under `spec.tls`.
-- `enable-proxy-protocol`: If set, proxy protocol will be enabled for the Ingress
+- `enable-proxy-protocol`: If set, proxy protocol will be enabled for the
+  Ingress.
 
 ### TLS Secret
 
