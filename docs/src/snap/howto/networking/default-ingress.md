@@ -20,7 +20,7 @@ Find out whether Ingress is enabled or disabled with the following command:
 sudo k8s status
 ```
 
-The default state for the cluster is `ingress disabled`.
+Please ensure that Ingress is enabled on your cluster.
 
 ## Enable Ingress
 
@@ -46,6 +46,7 @@ sudo k8s get ingress
 
 You should see three options:
 
+- `enabled`: If set to true, Ingress is enabled
 - `default-tls-secret`: Name of the TLS (Transport Layer Security) Secret in
   the kube-system namespace that will be used as the default Ingress
   certificate
@@ -53,8 +54,11 @@ You should see three options:
 
 ### TLS Secret
 
-You can create a TLS secret by following the official [Kubernetes documentation][kubectl-create-secret-tls/].
-Note: remember to use `sudo k8s kubectl` (See the [kubectl-guide]).
+You can create a TLS secret by following the official
+[Kubernetes documentation][kubectl-create-secret-tls/].
+```{note}
+Please remember to use `sudo k8s kubectl` (See the [kubectl-guide]).
+```
 
 Tell Ingress to use your new Ingress certificate:
 
@@ -62,14 +66,16 @@ Tell Ingress to use your new Ingress certificate:
 sudo k8s set ingress.default-tls-secret=<new-default-tls-secret>
 ```
 
-Replace `<new-default-tls-secret>` with the desired value for your Ingress configuration.
+Replace `<new-default-tls-secret>` with the desired value for your Ingress
+configuration.
 
 ### Proxy Protocol
 
 Enabling the proxy protocol allows passing client connection information to the
 backend service.
 
-Consult the official [Kubernetes documentation on the proxy protocol][proxy-protocol].
+Consult the official
+[Kubernetes documentation on the proxy protocol][proxy-protocol].
 
 Use the following command to enable the proxy protocol:
 
@@ -77,7 +83,8 @@ Use the following command to enable the proxy protocol:
 sudo k8s set ingress.enable-proxy-protocol=<new-enable-proxy-protocol>
 ```
 
-Adjust the value of `<new-enable-proxy-protocol>` with your proxy protocol requirements.
+Adjust the value of `<new-enable-proxy-protocol>` with your proxy protocol
+requirements.
 
 ## Disable Ingress
 
