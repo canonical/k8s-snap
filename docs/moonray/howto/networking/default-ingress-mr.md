@@ -46,15 +46,16 @@ sudo k8s get ingress
 
 You should see three options:
 
-- `default-tls-secret`: Name of the TLS (Transport Layer Security) Secret that will be used as the default Ingress
-  certificate. The `TLSCertificateDelegation` is created in the `projectcontour-root` namespace.
-  When defining an Ingress object, specify this secret as the default certificate by setting the `secretName`
-  field under `spec.tls`.
+- `default-tls-secret`: Name of the TLS (Transport Layer Security) Secret that will be used
+  as the default Ingress certificate. The `TLSCertificateDelegation` is created in the
+  `projectcontour-root` namespace. When defining an Ingress object, specify this secret as
+  the default certificate by setting the `secretName` field under `spec.tls`.
 - `enable-proxy-protocol`: If set, proxy protocol will be enabled for the Ingress
 
 ### TLS Secret
 
-You can create a TLS secret by following the official [Kubernetes documentation][kubectl-create-secret-tls/].
+You can create a TLS secret by following the official
+[Kubernetes documentation][kubectl-create-secret-tls/].
 Note: remember to use `sudo k8s kubectl` (See the [kubectl-guide]).
 
 Tell Ingress to use your new Ingress certificate:
@@ -63,14 +64,16 @@ Tell Ingress to use your new Ingress certificate:
 sudo k8s set ingress.default-tls-secret=<new-default-tls-secret>
 ```
 
-Replace `<new-default-tls-secret>` with the desired value for your Ingress configuration.
+Replace `<new-default-tls-secret>` with the desired value for your Ingress
+configuration.
 
 ### Proxy Protocol
 
 Enabling the proxy protocol allows passing client connection information to the
 backend service.
 
-Consult the official [Kubernetes documentation on the proxy protocol][proxy-protocol].
+Consult the official
+[Kubernetes documentation on the proxy protocol][proxy-protocol].
 
 Use the following command to enable the proxy protocol:
 
@@ -78,7 +81,8 @@ Use the following command to enable the proxy protocol:
 sudo k8s set ingress.enable-proxy-protocol=<new-enable-proxy-protocol>
 ```
 
-Adjust the value of `<new-enable-proxy-protocol>` with your proxy protocol requirements.
+Adjust the value of `<new-enable-proxy-protocol>` with your proxy protocol
+requirements.
 
 ## Disable Ingress
 
