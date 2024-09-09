@@ -46,10 +46,11 @@ sudo k8s get ingress
 
 You should see three options:
 
-- `default-tls-secret`: Name of the TLS (Transport Layer Security) Secret that will be used
-  as the default Ingress certificate. The `TLSCertificateDelegation` is created in the
-  `projectcontour-root` namespace. When defining an Ingress object, specify this secret as
-  the default certificate by setting the `secretName` field under `spec.tls`.
+- `default-tls-secret`: Name of the TLS (Transport Layer Security) Secret that
+  will be used as the default Ingress certificate. The
+  `TLSCertificateDelegation` is created in the `projectcontour-root` namespace.
+  When defining an Ingress object, specify this secret as the default
+  certificate by setting the `secretName` field under `spec.tls`.
 - `enable-proxy-protocol`: If set, proxy protocol will be enabled for the Ingress
 
 ### TLS Secret
