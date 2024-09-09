@@ -10,7 +10,7 @@ In the [Cluster provisioning with CAPI and {{product}} tutorial] we showed how t
 
 ## Install the same set of providers to the provisioned cluster
 
-Before migrating a cluster, we must make sure that both the target and source management clusters run the same version of providers (infrastructure, bootstrap, control plane). To do so `clusterctl init` should be called against he target cluster:
+Before migrating a cluster, we must make sure that both the target and source management clusters run the same version of providers (infrastructure, bootstrap, control plane). To do so, `clusterctl init` should be called against the target cluster:
 
 ```
 clusterctl get kubeconfig <provisioned-cluster> > targetconfig

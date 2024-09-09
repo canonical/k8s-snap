@@ -1,6 +1,6 @@
 # Providers Configurations
 
-{{product}} bootstrap and control plane provideres (CABPCK and CACPCK) can be configured to aid the cluster admin reach the desired state for the workload cluster. In this section we will go through different configurations that each one of these providers expose.
+{{product}} bootstrap and control plane providers (CABPCK and CACPCK) can be configured to aid the cluster admin in reaching the desired state for the workload cluster. In this section we will go through different configurations that each one of these providers expose.
 
 ## Common Configurations
 
@@ -218,7 +218,7 @@ spec:
 
 <!-- LINKS -->
 [Install custom {{product}} on machines]: ../howto/custom-ck8s.md
-[etcd best practices]: https://etcd.io/docs/v3.3.12/faq/#why-an-odd-number-of-cluster-members
+[etcd best practices]: https://etcd.io/docs/v3.5/faq/#why-an-odd-number-of-cluster-members
 
 
 

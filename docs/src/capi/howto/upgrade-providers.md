@@ -1,10 +1,10 @@
-# Uprading the providers of a management cluster
+# Upgrading the providers of a management cluster
 
 In this guide we will go through the process of upgrading providers of a management cluster.
 
 ## Prerequisites
 
-We assume we already have a management cluster and the infrastructure provider configured as described in the [Cluster provisioning with CAPI and {{product}} tutorial]. The selected infrastructure provider is AWS. We have not yet called clusterctl init to initialise the cluster.
+We assume we already have a management cluster and the infrastructure provider configured as described in the [Cluster provisioning with CAPI and {{product}} tutorial]. The selected infrastructure provider is AWS. We have not yet called `clusterctl init` to initialise the cluster.
 
 ## Initialise the cluster
 
@@ -18,7 +18,7 @@ clusterctl init --bootstrap ck8s:v0.1.2 --control-plane ck8s:v0.1.2 --infrastruc
 
 ## Check for updates
 
-With clusterctl we can check if there are any new versions on the running providers:
+With `clusterctl` we can check if there are any new versions of the running providers:
 
 ```
 clusterctl upgrade plan
@@ -36,7 +36,7 @@ infrastructure-aws   capa-system     InfrastructureProvider   v2.6.1            
 
 ## Trigger providers upgrade
 
-To apply the upgrade plan recommended by clusterctl upgrade plan simply:
+To apply the upgrade plan recommended by `clusterctl upgrade plan`, simply:
 
 ```
 clusterctl upgrade apply --contract v1beta1
