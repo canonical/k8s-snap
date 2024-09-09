@@ -20,6 +20,7 @@ networking/dualstack
 storage/index
 external-datastore
 proxy
+epa
 backup-restore
 refresh-certs
 restore-quorum
