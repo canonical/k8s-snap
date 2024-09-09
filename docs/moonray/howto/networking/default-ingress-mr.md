@@ -51,6 +51,8 @@ You should see three options:
   `TLSCertificateDelegation` is created in the `projectcontour-root` namespace.
   When defining an Ingress object, specify this secret as the default
   certificate by setting the `secretName` field under `spec.tls`.
+  For further information, see the
+  [TLS Certificate Delegation guide][tls-delegation] guide.
 - `enable-proxy-protocol`: If set, proxy protocol will be enabled for the
   Ingress.
 
@@ -111,3 +113,4 @@ sudo k8s help disable
 [proxy-protocol]: https://kubernetes.io/docs/reference/networking/service-protocols/#protocol-proxy-special
 [getting-started-guide]: /snap/tutorial/getting-started
 [kubectl-guide]: /snap/tutorial/kubectl
+[tls-delegation]: https://projectcontour.io/docs/main/config/tls-delegation/
