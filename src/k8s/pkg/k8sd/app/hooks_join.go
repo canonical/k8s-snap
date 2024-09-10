@@ -158,10 +158,16 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		}
 		cluster := make([]string, len(members))
 		for _, member := range members {
-			cluster = append(cluster, fmt.Sprintf("%s:%d", member.Address.Addr(), cfg.Datastore.GetK8sDqlitePort()))
+			var address string
+			if member.Address.Addr().Is6() {
+				address = fmt.Sprintf("[%s]", member.Address.Addr().String())
+			} else {
+				address = member.Address.Addr().String()
+			}
+			cluster = append(cluster, fmt.Sprintf("%s:%d", address, cfg.Datastore.GetK8sDqlitePort()))
 		}
 
-		address := fmt.Sprintf("%s:%d", nodeIP.String(), cfg.Datastore.GetK8sDqlitePort())
+		address := fmt.Sprintf("%s:%d", utils.ToIPString(nodeIP), cfg.Datastore.GetK8sDqlitePort())
 		if err := setup.K8sDqlite(snap, address, cluster, joinConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
