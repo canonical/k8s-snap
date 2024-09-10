@@ -69,7 +69,7 @@ func SetupControlPlaneKubeconfigs(kubeConfigDir string, securePort int, pki pki.
 		{file: "scheduler.conf", crt: pki.KubeSchedulerClientCert, key: pki.KubeSchedulerClientKey},
 		{file: "kubelet.conf", crt: pki.KubeletClientCert, key: pki.KubeletClientKey},
 	} {
-		if err := Kubeconfig(filepath.Join(kubeConfigDir, kubeconfig.file), fmt.Sprintf("127.0.0.1:%d", securePort), pki.CACert, kubeconfig.crt, kubeconfig.key); err != nil {
+		if err := Kubeconfig(filepath.Join(kubeConfigDir, kubeconfig.file), fmt.Sprintf("[::1]:%d", securePort), pki.CACert, kubeconfig.crt, kubeconfig.key); err != nil {
 			return fmt.Errorf("failed to write kubeconfig %s: %w", kubeconfig.file, err)
 		}
 	}

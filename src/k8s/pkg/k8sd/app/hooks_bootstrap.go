@@ -179,10 +179,10 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	}
 
 	// Kubeconfigs
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), "[::1]:6443", certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
 		return fmt.Errorf("failed to generate kubelet kubeconfig: %w", err)
 	}
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), "[::1]:6443", certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
 		return fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err)
 	}
 
@@ -296,7 +296,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		// NOTE: Default certificate expiration is set to 20 years.
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname:          s.Name(),
-			IPSANs:            []net.IP{{127, 0, 0, 1}},
+			IPSANs:            []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
 			NotBefore:         notBefore,
 			NotAfter:          notBefore.AddDate(20, 0, 0),
 			AllowSelfSignedCA: true,
@@ -402,7 +402,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	// Configure datastore
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
-		if err := setup.K8sDqlite(snap, fmt.Sprintf("%s:%d", nodeIP.String(), cfg.Datastore.GetK8sDqlitePort()), nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
+		if err := setup.K8sDqlite(snap, fmt.Sprintf("[%s]:%d", nodeIP.String(), cfg.Datastore.GetK8sDqlitePort()), nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite: %w", err)
 		}
 	case "external":

@@ -15,7 +15,7 @@ import (
 func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR string, extraArgs map[string]*string) error {
 	serviceArgs := map[string]string{
 		"--cluster-cidr":         podCIDR,
-		"--healthz-bind-address": "127.0.0.1",
+		"--healthz-bind-address": "[::1]:10256",
 		"--kubeconfig":           filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"),
 		"--profiling":            "false",
 	}

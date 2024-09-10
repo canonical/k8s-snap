@@ -53,7 +53,7 @@ func defaultContainerdConfig(
 
 		"plugins": map[string]any{
 			"io.containerd.grpc.v1.cri": map[string]any{
-				"stream_server_address":       "127.0.0.1",
+				"stream_server_address":       "::1",
 				"stream_server_port":          "0",
 				"enable_selinux":              false,
 				"sandbox_image":               pauseImage,

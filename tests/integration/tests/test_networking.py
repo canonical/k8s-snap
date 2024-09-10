@@ -63,13 +63,17 @@ def test_dualstack(instances: List[harness.Instance]):
     (config.MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
 )
 @pytest.mark.dualstack()
-def test_dualstack(instances: List[harness.Instance]):
+def test_ipv6_only(instances: List[harness.Instance]):
     main = instances[0]
-    dualstack_config = (config.MANIFESTS_DIR / "nginx-dualstack.yaml").read_text()
+    ipv6_config = (config.MANIFESTS_DIR / "nginx-ipv6-only.yaml").read_text()
 
-    # Deploy nginx with dualstack service
+    # TODO: add --address <ipv6> to the `--address` flag
+    # TODO: Disable ipv4 for this lxc containe
+
+
+    # Deploy nginx with ipv6 service
     main.exec(
-        ["k8s", "kubectl", "apply", "-f", "-"], input=str.encode(dualstack_config)
+        ["k8s", "kubectl", "apply", "-f", "-"], input=str.encode(ipv6_config)
     )
     addresses = (
         util.stubbornly(retries=5, delay_s=3)
@@ -80,7 +84,7 @@ def test_dualstack(instances: List[harness.Instance]):
                 "kubectl",
                 "get",
                 "svc",
-                "nginx-dualstack",
+                "nginx-ipv6",
                 "-o",
                 "jsonpath='{.spec.clusterIPs[*]}'",
             ],
@@ -95,7 +99,7 @@ def test_dualstack(instances: List[harness.Instance]):
         if isinstance(addr, IPv6Address):
             address = f"http://[{str(addr)}]"
         elif isinstance(addr, IPv4Address):
-            address = f"http://{str(addr)}"
+            assert False, "IPv4 address found in IPv6-only cluster"
         else:
             pytest.fail(f"Unknown IP address type: {addr}")
 

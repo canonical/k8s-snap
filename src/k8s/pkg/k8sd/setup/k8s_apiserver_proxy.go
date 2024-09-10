@@ -20,7 +20,7 @@ func K8sAPIServerProxy(snap snap.Snap, servers []string, extraArgs map[string]*s
 	if _, err := snaputil.UpdateServiceArguments(snap, "k8s-apiserver-proxy", map[string]string{
 		"--endpoints":  configFile,
 		"--kubeconfig": filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
-		"--listen":     "127.0.0.1:6443",
+		"--listen":     "[::1]:6443",
 	}, nil); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
