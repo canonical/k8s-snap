@@ -744,7 +744,9 @@ Get the pod logs to verify that the test is running:
 ```
 sudo k8s kubectl logs realtime-kernel-test -f
 
-### Expected Output ###
+```
+
+```
 ...
 # /dev/cpu_dma_latency set to 0us
 policy: fifo: loadavg: 7.92 8.34 9.32 1/3698 2965
@@ -754,15 +756,15 @@ T: 0 ( 2965) P:80 I:1000 C: 241486 Min:      3 Act:    4 Avg:    3 Max:      18
 
 ```{dropdown} Explanation of output
 
-* /dev/cpu\_dma\_latency set to 0us: This line indicates that the CPU DMA (Direct Memory Access) latency has been set to 0 microseconds. This setting is relevant for real-time systems as it controls how long a device can hold the CPU bus during a DMA transfer.  
-* policy: fifo: This means the scheduling policy for the cyclictest thread is set to FIFO (First In, First Out). In FIFO scheduling, the highest priority task that is ready to run gets the CPU first and continues running until it is blocked or voluntarily yields the CPU.  
-* loadavg: 7.92 8.34 9.32 1/3698 2965: This shows the load average of your system over the last 1, 5, and 15 minutes. The numbers are quite high, indicating that your system is under significant load. This can potentially affect the latency measurements.  
-* T: 0 ( 2965\) P:80 I:1000 C: 241486:  
-  * T: 0: The number of the CPU core the test was run on (CPU 0 in this case).  
-  * (2965): The PID (Process ID) of the cyclictest process.  
-  * P:80: The priority of the cyclictest thread.  
-  * I:1000: The number of iterations (loops) the test ran for (1000 in this case).  
-  * C: 241486: The number of cycles per second that the test has aimed for.  
+- `/dev/cpu_dma\_latency set to 0us`: This line indicates that the CPU DMA (Direct Memory Access) latency has been set to 0 microseconds. This setting is relevant for real-time systems as it controls how long a device can hold the CPU bus during a DMA transfer.  
+- `policy: fifo`: This means the scheduling policy for the cyclictest thread is set to FIFO (First In, First Out). In FIFO scheduling, the highest priority task that is ready to run gets the CPU first and continues running until it is blocked or voluntarily yields the CPU.  
+- `loadavg: 7.92 8.34 9.32 1/3698 2965:` This shows the load average of your system over the last 1, 5, and 15 minutes. The numbers are quite high, indicating that your system is under significant load. This can potentially affect the latency measurements.  
+- `T: 0 ( 2965) P:80 I:1000 C: 241486`:  
+  - T: 0: The number of the CPU core the test was run on (CPU 0 in this case).  
+  - (2965): The PID (Process ID) of the cyclictest process.  
+  - P:80: The priority of the cyclictest thread.  
+  - I:1000: The number of iterations (loops) the test ran for (1000 in this case).  
+  - C: 241486: The number of cycles per second that the test has aimed for.  
 * Min: 3 Act: 4 Avg: 3 Max: 18: These are the key latency statistics in microseconds (us):  
   * Min: The minimum latency observed during the test (3 us).  
   * Act: The actual average latency (4 us).  
