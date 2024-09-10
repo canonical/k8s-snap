@@ -205,7 +205,7 @@ virtual functions.
 ```
 
 
-* Now let’s enable DPDK, first by cloning the DPDK repo, and then placing the script that will bind the VFs to the VFIO-PCI driver in the location that will run automatically each time the system boots up, so the VFIO (Virtual Function I/O) bindings are applied consistently:
+Now let’s enable DPDK, first by cloning the DPDK repo, and then placing the script that will bind the VFs to the VFIO-PCI driver in the location that will run automatically each time the system boots up, so the VFIO (Virtual Function I/O) bindings are applied consistently:
 
 ```
 git clone https://github.com/DPDK/dpdk.git /home/ubuntu/dpdk
