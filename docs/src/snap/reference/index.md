@@ -13,6 +13,7 @@ Overview <self>
 
 releases
 commands
+annotations
 certificates
 bootstrap-config-reference
 proxy
