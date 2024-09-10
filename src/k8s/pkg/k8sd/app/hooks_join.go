@@ -64,7 +64,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		// NOTE: Default certificate expiration is set to 20 years.
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname:  s.Name(),
-			IPSANs:    []net.IP{{127, 0, 0, 1}},
+			IPSANs:    []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
 			NotBefore: notBefore,
 			NotAfter:  notBefore.AddDate(20, 0, 0),
 		})
