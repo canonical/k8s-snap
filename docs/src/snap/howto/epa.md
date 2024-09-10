@@ -597,20 +597,27 @@ sudo k8s kubectl create -f ./dpdk-nad.yaml
 
 ## Testing
 
-## Testing HugePages in {{product}} 
+It is important to verify that all of these enabled features are working as
+expected before relying on them. This section deals with how to verify
+everything is working as expected.
 
-Verify that HugePages are allocated on your Kubernetes nodes. You can do this by checking the node's capacity and allocatable resources:
+### Testing HugePages 
+
+Verify that HugePages are allocated on your Kubernetes nodes. You can do this
+by checking the node's capacity and allocatable resources:
 
 ```
-$ sudo k8s kubectl get nodes
+sudo k8s kubectl get nodes
+```
 
-### Expected Output ###
+```
+```
 NAME          STATUS   ROLES                  AGE   VERSION
 pc6b-rb4-n1   Ready    control-plane,worker   22h   v1.30.2
 pc6b-rb4-n3   Ready    worker                 22h   v1.30.2
-$ sudo k8s kubectl describe node pc6b-rb4-n3 | grep -E 'hugepages'
+```
 
-### Expected Output ###
+```
   hugepages-1Gi:      1000Gi
   hugepages-2Mi:      0
   hugepages-1Gi:      1000Gi
@@ -871,7 +878,7 @@ Based on the output, the sleep infinity process (PID 1\) is indeed being pinned
 to specific CPU cores (0 and 32). This indicates that the CPU pinning is
 working correctly. 
 
-## Testing SR-IOV & DPDK in {{product}} 
+### Testing SR-IOV & DPDK
 
 First check if SR-IOV Device Plugin pod is running and healthy in the cluster,
 if SR-IOV is allocatable in the worker node and the PCI IDs of the VFs
@@ -879,14 +886,24 @@ available in the node (describing one of them to get further details):
 
 ```
 sudo k8s kubectl get pods -n kube-system | grep sriov-device-plugin
+```
 
-### Expected Output ###
+This should indicate some running pods:
+
+```
 kube-sriov-device-plugin-7mxz5        1/1     Running   0          7m31s
 kube-sriov-device-plugin-fjzgt        1/1     Running   0          7m31s
+```
 
+Now check the VFs:
+
+```
 sudo k8s kubectl describe node pc6b-rb4-n3
+```
 
-### Expected Output ###
+This should indicate the presence of the SRIOV device:
+
+```
 ...
 Allocatable:
   cpu:                              96
@@ -898,8 +915,15 @@ Allocatable:
   memory:                           1064530020Ki
   pods:                             110
 ....
+```
 
+The virtual functions should also appear on th 
+
+```
 lspci | grep Virtual
+```
+
+```
 98:11.0 Ethernet controller: Intel Corporation Ethernet Adaptive Virtual Function (rev 02)
 98:11.1 Ethernet controller: Intel Corporation Ethernet Adaptive Virtual Function (rev 02)
 98:11.2 Ethernet controller: Intel Corporation Ethernet Adaptive Virtual Function (rev 02)
@@ -907,8 +931,10 @@ lspci | grep Virtual
 99:00.5 Ethernet controller: Intel Corporation Ethernet Adaptive Virtual Function (rev 02)
 99:00.6 Ethernet controller: Intel Corporation Ethernet Adaptive Virtual Function (rev 02)
 99:00.7 Ethernet controller: Intel Corporation Ethernet Adaptive Virtual Function (rev 02)
+```
 
-$ lspci -s 98:1f.2 -vv
+```
+lspci -s 98:1f.2 -vv
 98:1f.2 Ethernet controller: Intel Corporation Ethernet Adaptive Virtual Function (rev 02)
 	Subsystem: Intel Corporation Ethernet Adaptive Virtual Function
 	Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
@@ -922,10 +948,10 @@ $ lspci -s 98:1f.2 -vv
 	Kernel modules: iavf
 ```
 
-Now, let’s create a test pod that will claim a network interface from the DPDK network:
+Now, create a test pod that will claim a network interface from the DPDK network:
 
 ```
-$ cat <<EOF | sudo k8s kubectl apply -f -
+cat <<EOF | sudo k8s kubectl apply -f -
 apiVersion: v1
 kind: Pod
 metadata:
@@ -1001,6 +1027,7 @@ sudo k8s kubectl describe pod sriov-test-pod
 ...
 
 ```
+
 
 
 
