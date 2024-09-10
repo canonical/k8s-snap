@@ -58,20 +58,27 @@ def test_dualstack(instances: List[harness.Instance]):
         )
 
 
-@pytest.mark.node_count(1)
-@pytest.mark.bootstrap_config(
-    (config.MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
-)
+@pytest.mark.node_count(2)
+@pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.dualstack()
 def test_ipv6_only(instances: List[harness.Instance]):
     main = instances[0]
-    ipv6_config = (config.MANIFESTS_DIR / "nginx-ipv6-only.yaml").read_text()
+    joining_cp = instances[1]
+
+    ipv6_bootstrap_config = (config.MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
+
+    main.exec(["k8s", "bootstrap", "--file", "-", "--address", ipv6_address], input=str.encode(ipv6_bootstrap_config))
+
+    join_token = util.get_join_token(main, joining_cp)
+
+    joining_cp.exec(["k8s", "join-cluster", join_token, "--address", ipv6_address])
 
     # TODO: add --address <ipv6> to the `--address` flag
     # TODO: Disable ipv4 for this lxc containe
 
 
     # Deploy nginx with ipv6 service
+    ipv6_config = (config.MANIFESTS_DIR / "nginx-ipv6-only.yaml").read_text()
     main.exec(
         ["k8s", "kubectl", "apply", "-f", "-"], input=str.encode(ipv6_config)
     )
