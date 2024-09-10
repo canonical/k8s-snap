@@ -11,7 +11,7 @@ SR-IOV/DPDK.
 ## What you'll need
 
 - An Ubuntu Pro subscription (required for real-time kernel)
-- Ubuntu instances **or** a MAAS environment to run {product} on 
+- Ubuntu instances **or** a MAAS environment to run {{product}} on 
 
 
 ## Prepare the Environment 
