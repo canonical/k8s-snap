@@ -11,6 +11,7 @@ Overview <self>
 ```{toctree}
 :titlesonly:
 releases
+annotations
 community
 configs
 
