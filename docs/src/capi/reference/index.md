@@ -10,8 +10,8 @@ Overview <self>
 
 ```{toctree}
 :titlesonly:
-annotations
 releases
+annotations
 community
 
 ```
