@@ -1,6 +1,6 @@
 # How to set up Enhanced Platform Awareness
 
-This section explains how to set up the EPA features in a {{product}} cluster. 
+This section explains how to set up the Enhanced Platform Awareness (EPA) features in a {{product}} cluster. 
 
 The content starts with the setup of the environment (including steps for using
 [MAAS][MAAS]). Then the setup of {{product}}, including the Multus & SR-IOV/DPDK
