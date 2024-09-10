@@ -2,7 +2,11 @@
 
 This section explains how to set up the EPA features in a {{product}} cluster. 
 
-The content starts with the setup of the environment (including steps for using [MAAS][]). Then the setup of {{product}}, including the Multus & SR-IOV/DPDK networking components. Finally, the steps needed to test every EPA feature: HugePages, Real-time Kernel, CPU Pinning / Numa Topology Awareness and SR-IOV/DPDK. 
+The content starts with the setup of the environment (including steps for using
+[MAAS][MAAS]). Then the setup of {{product}}, including the Multus & SR-IOV/DPDK
+networking components. Finally, the steps needed to test every EPA feature:
+HugePages, Real-time Kernel, CPU Pinning / Numa Topology Awareness and
+SR-IOV/DPDK. 
 
 ## What you'll need
 
@@ -386,19 +390,28 @@ Notes:
 
 ## {{product}} setup 
 
-{{product}} is delivered as a [snap](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/). 
+{{product}} is delivered as a 
+[snap](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/).
 
-This chapter explains how to set up a dual node {{product}} cluster for testing EPA capabilities.
+This section explains how to set up a dual node {{product}} cluster for testing
+EPA capabilities.
 
 ### Control plane and worker node 
 
-1. [Install the snap](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/snap/) from the moonray track. The [beta channel](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/explanation/channels/) is used at this point as the end configuration of the k8s snap is not finalised yet.
+1. [Install the
+   snap](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/snap/)
+   from the moonray track. The [beta
+   channel](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/explanation/channels/)
+   is used at this point as the end configuration of the k8s snap is not
+   finalised yet.
 
 ```
 sudo snap install k8s --classic --channel=1.30-moonray/beta
 ```
 
-2. Create a file called *configuration.yaml*. In this configuration file we let  the snap start with its default CNI (calico), with CoreDNS deployed and we also point k8s to the external etcd. 
+2. Create a file called *configuration.yaml*. In this configuration file we let
+   the snap start with its default CNI (calico), with CoreDNS deployed and we
+   also point k8s to the external etcd. 
 
 ```
 cluster-config:
@@ -617,6 +630,7 @@ pc6b-rb4-n1   Ready    control-plane,worker   22h   v1.30.2
 pc6b-rb4-n3   Ready    worker                 22h   v1.30.2
 ```
 
+
 ```
   hugepages-1Gi:      1000Gi
   hugepages-2Mi:      0
@@ -703,10 +717,10 @@ The output of cyclictest will provide statistics like:
 
 Create a pod that will run cyclictest tool with specific options:
 
-* -l 1000000: Sets the number of test iterations to 1 million.  
-* -m: Measures the maximum latency.  
-* -p 80: Sets the real-time scheduling priority to 80 (a high priority, typically used for real-time tasks).  
-* -t 1: Specifies CPU core 1 to be used for the test.
+- `-l 1000000`: Sets the number of test iterations to 1 million.  
+- `-m`: Measures the maximum latency.  
+- `-p 80`: Sets the real-time scheduling priority to 80 (a high priority, typically used for real-time tasks).  
+- `-t 1`: Specifies CPU core 1 to be used for the test.
 
 ```
 cat <<EOF | sudo k8s kubectl apply -f -
