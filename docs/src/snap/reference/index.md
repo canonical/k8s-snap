@@ -11,9 +11,9 @@ Overview <self>
 ```{toctree}
 :titlesonly:
 
-annotations
 releases
 commands
+annotations
 certificates
 bootstrap-config-reference
 proxy
