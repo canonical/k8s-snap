@@ -68,6 +68,9 @@ func defaultContainerdConfig(
 					"runtimes": map[string]any{
 						"runc": map[string]any{
 							"runtime_type": "io.containerd.runc.v2",
+							"options": map[string]any{
+								"SystemdCgroup": true,
+							},
 						},
 					},
 				},
