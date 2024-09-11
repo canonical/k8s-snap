@@ -358,7 +358,7 @@ func ReportRequiredResources() {
 			errMsg = append(errMsg, err.Error())
 		} else if lxd {
 			errMsg = append(errMsg, "For running k8s inside LXD container refer to "+
-				"https://documentation.ubuntu.com/canonica-l-kubernetes/latest/snap/howto/install/lxd/")
+				"https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/lxd/")
 		}
 		for _, msg := range errMsg {
 			log.L().Info(fmt.Sprintf("Warning: %s", msg))
