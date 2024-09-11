@@ -26,6 +26,8 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	// NOTE: Set the notBefore certificate time to the current time.
 	notBefore := time.Now()
 
+	utils.ReportRequiredResources()
+
 	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
