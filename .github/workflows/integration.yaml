@@ -45,6 +45,22 @@ jobs:
           name: k8s.snap
           path: k8s.snap
 
+  test-branches:
+    name: Test Branch Management
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+      - name: Install tox
+        run: pip install tox
+      - name: Run branch_management tests
+        run: |
+          tox -c tests/branch_management -e integration
+
   test-integration:
     name: Test ${{ matrix.os }}
     strategy:
