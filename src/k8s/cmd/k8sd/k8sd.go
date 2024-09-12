@@ -33,8 +33,9 @@ func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Com
 
 func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "k8sd",
-		Short: "Canonical Kubernetes orchestrator and clustering daemon",
+		Use:    "k8sd",
+		Short:  "Canonical Kubernetes orchestrator and clustering daemon",
+		PreRun: cmdutil.HookVerifyResources(true),
 		Run: func(cmd *cobra.Command, args []string) {
 			// configure logging
 			log.Configure(log.Options{

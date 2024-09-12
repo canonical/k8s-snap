@@ -9,13 +9,11 @@ import (
 	"io"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
-	"syscall"
 
 	"github.com/moby/sys/mountinfo"
 
@@ -259,110 +257,4 @@ func CreateTarball(tarballPath string, rootDir string, walkDir string, excludeFi
 	}
 
 	return nil
-}
-
-func getOwnership(path string) (int, int, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return 0, 0, fmt.Errorf("%s do not exist", path)
-		} else {
-			return 0, 0, err
-		}
-	}
-
-	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-		return int(stat.Uid), int(stat.Gid), nil
-	} else {
-		return 0, 0, fmt.Errorf("cannot access %s", path)
-	}
-}
-
-// validateRootOwnership checks if given path owner root and root group.
-func validateRootOwnership(path string) error {
-
-	UID, GID, err := getOwnership(path)
-	if err != nil {
-		return err
-	}
-	if UID != 0 {
-
-		return fmt.Errorf("owner of %s is user with UID %d expected 0", path, UID)
-	}
-	if GID != 0 {
-		return fmt.Errorf("owner of %s is group with GID %d expected 0", path, GID)
-	}
-	return nil
-}
-
-const initialProcesEnvironmentVariables = "/proc/1/environ"
-
-// validateLXD checks if k8s runs in lxd container if so returns link to documentation
-func validateLXD() (bool, error) {
-	// can be replaced by Snap.OnLXD()?
-	dat, err := os.ReadFile(initialProcesEnvironmentVariables)
-	if err != nil {
-		if os.IsPermission(err) {
-			return false, fmt.Errorf("permission denied to %s", initialProcesEnvironmentVariables)
-		}
-		return false, err
-	}
-	env := string(dat)
-	if strings.Contains(env, "container=lxc") {
-
-		return true, nil
-	}
-	return false, nil
-}
-
-// checkAppArmor checks AppArmor status.
-func checkAppArmor() error {
-	//todo move to proper file
-	cmd := exec.Command("journalctl", "-u", "apparmor")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return err
-	}
-	output := string(out)
-	// AppArmor configured for container or service not present
-	if strings.Contains(output, "Not starting AppArmor in container") || strings.Contains(output, "-- No entries --") {
-		return nil
-		// cannot read status of AppArmor
-	} else if strings.Contains(output, "Users in groups 'adm', 'systemd-journal' can see all messages.") {
-		return fmt.Errorf("could not validate AppArmor status")
-	}
-
-	return fmt.Errorf("AppArmor may block hosting of nested containers")
-}
-
-var pathsOwnershipCheck = []string{"/sys", "/proc", "/dev/kmsg"}
-
-func ReportRequiredResources() {
-	var errMsg []string
-
-	// check ownership of required dirs
-	for _, pathToCheck := range pathsOwnershipCheck {
-		if err := validateRootOwnership(pathToCheck); err != nil {
-			errMsg = append(errMsg, err.Error())
-		}
-	}
-
-	// check App Armor
-	if err := checkAppArmor(); err != nil {
-		errMsg = append(errMsg, err.Error())
-	}
-
-	// printing report
-	if len(errMsg) > 0 {
-		if lxd, err := validateLXD(); err != nil {
-			errMsg = append(errMsg, err.Error())
-		} else if lxd {
-			errMsg = append(errMsg, "For running k8s inside LXD container refer to "+
-				"https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/lxd/")
-		}
-		for _, msg := range errMsg {
-			log.L().Info(fmt.Sprintf("Warning: %s", msg))
-		}
-	}
-
 }

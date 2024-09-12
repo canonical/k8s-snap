@@ -263,8 +263,6 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 
 	log := log.FromContext(ctx).WithValues("hook", "bootstrap")
 
-	utils.ReportRequiredResources()
-
 	cfg, err := types.ClusterConfigFromBootstrapConfig(bootstrapConfig)
 	if err != nil {
 		return fmt.Errorf("invalid bootstrap config: %w", err)
