@@ -91,10 +91,6 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 			"enabled": true,
 		},
 		"disableEnvoyVersionCheck": true,
-		/* 		"routingMode":              "native",
-		   		"enableIpMasqAgent":        false,
-		   		"enableIpv6Masquerade":     true,
-		   		"ipv6NativeRoutingCIDR":    ipv6CIDR, */
 	}
 
 	if snap.Strict() {
