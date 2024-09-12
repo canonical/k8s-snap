@@ -2,6 +2,7 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
+import os
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import List
 
@@ -61,6 +62,10 @@ def test_dualstack(instances: List[harness.Instance]):
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.dualstack()
+@pytest.mark.skipif(
+    os.getenv("TEST_IPV6_ONLY") in ["false", None],
+    reason="IPv6 is currently only supported for moonray/calico",
+)
 def test_ipv6_only(instances: List[harness.Instance]):
     main = instances[0]
     joining_cp = instances[1]

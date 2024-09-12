@@ -86,6 +86,8 @@ jobs:
           export TEST_SUBSTRATE=lxd
           export TEST_LXD_IMAGE=${{ matrix.os }}
           export TEST_INSPECTION_REPORTS_DIR="$HOME/inspection-reports"
+          # IPv6-only is only supported on moonray
+          [[ ${{ matrix.patch }}== "moonray" ]] && export TEST_IPV6_ONLY="true"
           cd tests/integration && sg lxd -c 'tox -e integration'
       - name: Prepare inspection reports
         if: failure()
