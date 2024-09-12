@@ -58,30 +58,37 @@ def test_dualstack(instances: List[harness.Instance]):
         )
 
 
-@pytest.mark.node_count(2)
+@pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.dualstack()
 def test_ipv6_only(instances: List[harness.Instance]):
     main = instances[0]
     joining_cp = instances[1]
+    joining_worker = instances[2]
 
-    ipv6_bootstrap_config = (config.MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
+    ipv6_bootstrap_config = (
+        config.MANIFESTS_DIR / "bootstrap-ipv6-only.yaml"
+    ).read_text()
 
-    main.exec(["k8s", "bootstrap", "--file", "-", "--address", ipv6_address], input=str.encode(ipv6_bootstrap_config))
+    ipv6_address = util.get_global_unicast_ipv6(main)
+    main.exec(
+        ["k8s", "bootstrap", "--file", "-", "--address", ipv6_address],
+        input=str.encode(ipv6_bootstrap_config),
+    )
 
     join_token = util.get_join_token(main, joining_cp)
-
+    ipv6_address = util.get_global_unicast_ipv6(joining_cp)
     joining_cp.exec(["k8s", "join-cluster", join_token, "--address", ipv6_address])
 
-    # TODO: add --address <ipv6> to the `--address` flag
-    # TODO: Disable ipv4 for this lxc containe
-
+    join_token_worker = util.get_join_token(main, joining_worker, "--worker")
+    ipv6_address = util.get_global_unicast_ipv6(joining_worker)
+    joining_worker.exec(
+        ["k8s", "join-cluster", join_token_worker, "--address", ipv6_address]
+    )
 
     # Deploy nginx with ipv6 service
     ipv6_config = (config.MANIFESTS_DIR / "nginx-ipv6-only.yaml").read_text()
-    main.exec(
-        ["k8s", "kubectl", "apply", "-f", "-"], input=str.encode(ipv6_config)
-    )
+    main.exec(["k8s", "kubectl", "apply", "-f", "-"], input=str.encode(ipv6_config))
     addresses = (
         util.stubbornly(retries=5, delay_s=3)
         .on(main)
@@ -114,3 +121,6 @@ def test_ipv6_only(instances: List[harness.Instance]):
         util.stubbornly(retries=3, delay_s=1).on(main).exec(
             ["curl", address], shell=True
         )
+
+    # This might take a while
+    util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(main) == 3)

@@ -164,3 +164,73 @@ func TestParseCIDRs(t *testing.T) {
 		})
 	}
 }
+
+func TestGetLocalhostAddress(t *testing.T) {
+	tests := []struct {
+		podCIDR     string
+		serviceCIDR string
+		expected    string
+		expectErr   bool
+	}{
+		{"192.168.0.0/16", "10.96.0.0/12", "127.0.0.1", false},
+		{"192.168.0.0/16", "", "127.0.0.1", false},
+		{"", "10.96.0.0/12", "127.0.0.1", false},
+		{"fd01::/10", "fd98::/108", "[::1]", false},
+		{"fd01::/10", "", "[::1]", false},
+		{"", "fd98::/108", "[::1]", false},
+		{"", "", "", true},                      // Empty podCIDR and serviceCIDR
+		{"invalid", "10.96.0.0/12", "", true},   // Invalid podCIDR
+		{"192.168.0.0/16", "invalid", "", true}, // Invalid serviceCIDR
+	}
+
+	for _, tc := range tests {
+		g := NewWithT(t)
+		addr, err := utils.GetLocalhostAddress(tc.podCIDR, tc.serviceCIDR)
+
+		if tc.expectErr {
+			g.Expect(err).To(HaveOccurred())
+		} else {
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(addr).To(Equal(tc.expected))
+		}
+	}
+}
+
+func TestIsIPv4(t *testing.T) {
+	RegisterTestingT(t)
+
+	tests := []struct {
+		address  string
+		expected bool
+	}{
+		{"192.168.1.1:80", true},
+		{"127.0.0.1", true},
+		{"::1", false},
+		{"[fe80::1%eth0]:80", false},
+		{"256.256.256.256", false}, // Invalid IPv4 address
+	}
+
+	for _, tc := range tests {
+		result := utils.IsIPv4(tc.address)
+		Expect(result).To(Equal(tc.expected))
+	}
+}
+
+func TestToIPString(t *testing.T) {
+	RegisterTestingT(t)
+
+	tests := []struct {
+		ip       net.IP
+		expected string
+	}{
+		{net.ParseIP("192.168.1.1"), "192.168.1.1"},
+		{net.ParseIP("::1"), "[::1]"},
+		{net.ParseIP("fe80::1"), "[fe80::1]"},
+		{net.ParseIP("127.0.0.1"), "127.0.0.1"},
+	}
+
+	for _, tc := range tests {
+		result := utils.ToIPString(tc.ip)
+		Expect(result).To(Equal(tc.expected))
+	}
+}

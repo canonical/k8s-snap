@@ -129,6 +129,10 @@ func ParseCIDRs(CIDRstring string) (string, string, error) {
 // GetLocalhostAddress returns the localhost address based on the given pod and service CIDRs.
 // In IPv6-only mode, the IPv6 localhost address is returned. Otherwise the IPv4 localhost address is returned.
 func GetLocalhostAddress(podCIDR string, serviceCIDR string) (string, error) {
+	if podCIDR == "" && serviceCIDR == "" {
+		return "", fmt.Errorf("both pod and service CIDRs are empty")
+	}
+
 	var podIPv4, serviceIPv4 string
 	var err error
 
