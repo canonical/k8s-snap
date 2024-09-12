@@ -17,10 +17,8 @@ func K8sAPIServerProxy(snap snap.Snap, servers []string, extraArgs map[string]*s
 		return fmt.Errorf("failed to write proxy configuration file: %w", err)
 	}
 
-	var localhostAddress string
-	if utils.IsIPv4(servers[0]) {
-		localhostAddress = "127.0.0.1"
-	} else {
+	localhostAddress := "127.0.0.1"
+	if len(servers) > 0 && !utils.IsIPv4(servers[0]) {
 		localhostAddress = "[::1]"
 	}
 
