@@ -808,20 +808,22 @@ ps -ef | grep /snap/k8s/678/bin/kubelet
 root        9139       1  1 Jul17 ?        00:20:03 /snap/k8s/678/bin/kubelet --anonymous-auth=false --authentication-token-webhook=true --authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/client-ca.crt --cluster-dns=10.152.183.97 --cluster-domain=cluster.local --container-runtime-endpoint=/var/snap/k8s/common/run/containerd.sock --containerd=/var/snap/k8s/common/run/containerd.sock --cpu-manager-policy=static --eviction-hard=memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi --fail-swap-on=false --kubeconfig=/etc/kubernetes/kubelet.conf --node-ip=10.18.2.153 --node-labels=node-role.kubernetes.io/worker=,k8sd.io/role=worker --read-only-port=0 --register-with-taints= --reserved-cpus=0-31 --root-dir=/var/lib/kubelet --serialize-image-pulls=false --tls-cert-file=/etc/kubernetes/pki/kubelet.crt --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384 --tls-private-key-file=/etc/kubernetes/pki/kubelet.key --topology-manager-policy=best-effort
 ```
 
-Breakdown:
+```{dropdown} Explanation of output
 
 * \--cpu-manager-policy=static : This flag within the Kubelet command line arguments explicitly tells us that the CPU Manager is active and using the static policy. Here's what this means:  
   * CPU Manager:  This is a component of Kubelet that manages how CPU resources are allocated to pods running on a node.  
   * Static Policy:  This policy is designed to provide stricter control over CPU allocation. With the static policy, you can request integer CPUs for your containers (e.g., 1, 2, etc.), and {{product}} will try to assign them to dedicated CPU cores on the node, providing a greater degree of isolation and predictability.  
 * \--reserved-cpus=0-31: This line indicates that no CPUs are reserved for the Kubelet or system processes. This implies that all CPUs might be available for pod scheduling, depending on the cluster's overall resource allocation strategy.  
 * \--topology-manager-policy=best-effort: This flag sets the topology manager policy to "best-effort." The topology manager helps optimise pod placement on nodes by considering factors like NUMA nodes, CPU cores, and devices. The "best-effort" policy tries to place pods optimally, but it doesn't enforce strict requirements.
+```
 
 You can also confirm the total number of NUMA CPUs available in the worker node:
 
 ```
 lscpu
+```
 
-### Expected Output ###
+```
 ....
 NUMA:
   NUMA node(s):           2
