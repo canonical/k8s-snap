@@ -630,7 +630,7 @@ It is important to verify that all of these enabled features are working as
 expected before relying on them. This section confirms that
 everything is working as expected.
 
-### Testing HugePages 
+### Test HugePages 
 
 Verify that HugePages are allocated on your Kubernetes nodes. You can do this
 by checking the node's capacity and allocatable resources:
@@ -708,7 +708,7 @@ The output should reflect the HugePage request:
 
 ```
 
-## Test the real-time kernel
+### Test the real-time kernel
 
 First, verify that real-time kernel is enabled in the worker node by checking
 if “PREEMPT RT” appears after running the `uname -a` command:
@@ -796,7 +796,7 @@ T: 0 ( 2965) P:80 I:1000 C: 241486 Min:      3 Act:    4 Avg:    3 Max:      18
 
 ```
 
-## Testing CPU Pinning and NUMA Topology Awareness in {{product}}
+### Test CPU Pinning and NUMA 
 
 First check if CPU Manager and NUMA Topology Manager is set up in the worker node:
 
@@ -835,9 +835,13 @@ Now let’s label the node with information about the available CPU/NUMA nodes, 
 ```
 sudo k8s kubectl label node pc6b-rb4-n3 topology.kubernetes.io/zone=NUMA
 
-### Expected Output ###
-node/pc6b-rb4-n3 labeled
+```
 
+```
+node/pc6b-rb4-n3 labeled
+```
+
+```
 $ cat <<EOF | sudo k8s kubectl apply -f -
 apiVersion: v1
 kind: Pod
@@ -883,7 +887,7 @@ sudo k8s kubectl describe node pc6b-rb4-n3
 sudo k8s kubectl describe pod cpu-pinning-test
 ```
 
-### Expected Output ###
+```
 ...
     Limits:
       cpu:     2
@@ -892,7 +896,11 @@ sudo k8s kubectl describe pod cpu-pinning-test
       cpu:        2
       memory:     512Mi
 ...
+```
 
+<!-- this needs to be explained -->
+
+```
 sudo k8s kubectl exec -ti cpu-pinning-test -- /bin/bash
 root@cpu-pinning-test:/# ps -ef
 UID          PID    PPID  C STIME TTY          TIME CMD
@@ -914,7 +922,7 @@ Based on the output, the sleep infinity process (PID 1\) is indeed being pinned
 to specific CPU cores (0 and 32). This indicates that the CPU pinning is
 working correctly. 
 
-### Testing SR-IOV & DPDK
+### Test SR-IOV & DPDK
 
 First check if SR-IOV Device Plugin pod is running and healthy in the cluster,
 if SR-IOV is allocatable in the worker node and the PCI IDs of the VFs
@@ -1066,7 +1074,6 @@ sudo k8s kubectl describe pod sriov-test-pod
 
 
 
-
 ## Further reading
 
 * [How to enable Real-time Ubuntu](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/enable\_realtime\_kernel/\#how-to-enable-real-time-ubuntu)  
@@ -1078,4 +1085,4 @@ sudo k8s kubectl describe pod sriov-test-pod
 
 <!-- LINKS -->
 
-[MAAS]: maas.io
+[MAAS]: https://maas.io
