@@ -21,6 +21,7 @@ jobs:
           # Keep main branch up to date
           - main
           # Supported stable release branches
+          - release-1.31
           - release-1.30
 
     steps:
