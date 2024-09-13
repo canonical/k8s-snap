@@ -611,7 +611,7 @@ sudo k8s kubectl create -f ./dpdk-nad.yaml
 ## Testing
 
 It is important to verify that all of these enabled features are working as
-expected before relying on them. This section deals with how to verify
+expected before relying on them. This section confirms that
 everything is working as expected.
 
 ### Testing HugePages 
@@ -623,7 +623,8 @@ by checking the node's capacity and allocatable resources:
 sudo k8s kubectl get nodes
 ```
 
-```
+This should return the available nodes
+
 ```
 NAME          STATUS   ROLES                  AGE   VERSION
 pc6b-rb4-n1   Ready    control-plane,worker   22h   v1.30.2
@@ -640,9 +641,9 @@ pc6b-rb4-n3   Ready    worker                 22h   v1.30.2
   hugepages-2Mi      0 (0%)      0 (0%)
 ```
 
-So we have 1000 huge pages of 1Gi size each and we have a worker node labelled
-properly. Then you can create a Pod that explicitly requests one 1G Huge Page
-in its resource limits:
+So this example has 1000 huge pages of 1Gi size each and we have a worker node
+labelled properly. Then you can create a Pod that explicitly requests one 1G
+Huge Page in its resource limits:
 
 ```
 cat <<EOF | sudo k8s kubectl apply -f -
@@ -664,17 +665,20 @@ spec:
 EOF
 ```
 
-Note: To ensure proper resource management and prevent conflicts, Kubernetes
+```{note} 
+To ensure proper resource management and prevent conflicts, Kubernetes
 enforces that a pod requesting HugePages also explicitly requests a minimum
-amount of either CPU or standard memory resources.
+Now, ensure that the `1Gi` HugePage is allocated in the pod:
+```
 
-Now, let’s check if the 1 Gi HugePage was allocated in the pod:
+Now ensure that the 1Gi HugePage is allocated in the pod:
 
 ```
 sudo k8s kubectl describe pod hugepage-test-ubuntu
 ``` 
 
-This should produce output indicating the request:
+The output should reflect the HugePage request:
+
 
 ```
 ....
@@ -688,7 +692,7 @@ This should produce output indicating the request:
 
 ```
 
-## Testthe real-time kernel
+## Test the real-time kernel
 
 First, verify that real-time kernel is enabled in the worker node by checking
 if “PREEMPT RT” appears after running the `uname -a` command:
