@@ -107,7 +107,7 @@ func validateRootOwnership(path string) error {
 	return nil
 }
 
-// inLXDContainer checks if k8s runs in lxd container if so returns link to documentation
+// inLXDContainer checks if k8s runs in lxd container.
 func inLXDContainer() (bool, error) {
 	content, err := os.ReadFile(initialProcessEnvironmentVariables)
 	if err != nil {
