@@ -49,6 +49,8 @@ membind: 0 1
 
 ### Enable the real-time kernel
 
+The real-time kernel enablement requires an ubuntu pro subscription and some additional tools to be available.
+
 ```
 sudo pro attach
 sudo apt update && sudo apt install ubuntu-advantage-tools
@@ -135,6 +137,7 @@ Once the reboot has taken place, ensure the HugePages configuration has been app
 ```
 grep HugePages /proc/meminfo
 ```
+
 This should  generate output indicating the number of pages allocated
 
 ```
@@ -148,19 +151,20 @@ HugePages_Surp:        0
 Next, create a configuration file to configure the network interface 
 to use SR-IOV (so it can create virtual functions afterwards) using 
 Netplan. In the example below the file is created first, then the configuration is
-applied and then the 128 virtual functions are available for use in the environment:
+applied, making  128 virtual functions available for use in the environment:
 
 ```
 cat <<EOF > /etc/netplan/99-sriov_vfs.yaml
-      network:
-          ethernets:
-              enp152s0f1:
-                  virtual-function-count: 128
+  network:
+    ethernets:
+      enp152s0f1:
+        virtual-function-count: 128
 EOF
 sudo chmod 0600 /etc/netplan/99-sriov_vfs.yaml
 sudo netplan apply
 ip link show enp152s0f1
 ```
+
 The output of the last command should indicate the device is working and has generated the expected
 virtual functions.
 
@@ -175,6 +179,7 @@ virtual functions.
     vf 126     link/ether 66:fe:ad:f2:d3:05 brd ff:ff:ff:ff:ff:ff, spoof checking on, link-state auto, trust off
     vf 127     link/ether ca:20:00:c6:83:dd brd ff:ff:ff:ff:ff:ff, spoof checking on, link-state auto, trust off
 ```
+
 ```{dropdown} Explanation of steps
   * Breakdown of the content of the file /etc/netplan/99-sriov\_vfs.yaml :  
     * path: /etc/netplan/99-sriov\_vfs.yaml: This specifies the location of the configuration file. The "99" prefix in the filename usually indicates that it will be processed last, potentially overriding other configurations.  
@@ -205,7 +210,10 @@ virtual functions.
 ```
 
 
-Now let’s enable DPDK, first by cloning the DPDK repo, and then placing the script that will bind the VFs to the VFIO-PCI driver in the location that will run automatically each time the system boots up, so the VFIO (Virtual Function I/O) bindings are applied consistently:
+Now enable DPDK, first by cloning the DPDK repo, and then placing the script which
+will bind the VFs to the VFIO-PCI driver in the location that will run
+automatically each time the system boots up, so the VFIO
+(Virtual Function I/O) bindings are applied consistently:
 
 ```
 git clone https://github.com/DPDK/dpdk.git /home/ubuntu/dpdk
@@ -218,6 +226,7 @@ cat <<EOF > /var/lib/cloud/scripts/per-boot/dpdk_bind.sh
       fi
 sudo chmod 0755 /var/lib/cloud/scripts/per-boot/dpdk_bind.sh
 ```
+
 ```{dropdown} Explanation 
   * Load VFIO Module (modprobe vfio-pci): If the DPDK directory exists, the script loads the VFIO-PCI kernel module. This module is necessary for the VFIO driver to function.  
   * The script uses the dpdk-devbind.py tool (included with DPDK) to list the available network devices and their drivers.  
@@ -262,17 +271,19 @@ Network devices using DPDK-compatible driver
 
 With these preparation steps we have enabled the features of EPA:
 
-* NUMA and CPU Pinning are available to the first 32 CPUs  
-* Real-Time Kernel is enabled  
-* HugePages are enabled and 1000 1G huge pages are available   
-* SRIOV is enabled in the enp152s0f1 interface, with 128 virtual function interfaces bound to the vfio-pci driver (that could also use the iavf driver)  
-* DPDK is enabled in all the 128 virtual function interfaces
+- NUMA and CPU Pinning are available to the first 32 CPUs  
+- Real-Time Kernel is enabled  
+- HugePages are enabled and 1000 1G huge pages are available   
+- SRIOV is enabled in the enp152s0f1 interface, with 128 virtual 
+  function interfaces bound to the vfio-pci driver (that could also use the iavf driver)  
+- DPDK is enabled in all the 128 virtual function interfaces
 
 ````
 
 ````{group-tab} MAAS
 
-To prepare a machine for CPU isolation, Hugepages, real-time kernel, SRIOV and DPDK we leverage cloud-init through MAAS.
+To prepare a machine for CPU isolation, Hugepages, real-time kernel, 
+SRIOV and DPDK we leverage cloud-init through MAAS.
 
 ```
 #cloud-config
@@ -400,7 +411,7 @@ EPA capabilities.
 
 1. [Install the
    snap](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/snap/)
-   from the moonray track. The [beta
+   from the relevant track, currently `{{track}}`. The [beta
    channel](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/explanation/channels/)
    is used at this point as the end configuration of the k8s snap is not
    finalised yet.
@@ -413,12 +424,13 @@ sudo snap install k8s --classic --channel=1.30-moonray/beta
    the snap start with its default CNI (calico), with CoreDNS deployed and we
    also point k8s to the external etcd. 
 
-```
+```yaml
 cluster-config:
   network:
     enabled: true
   dns:
-    enabled: true  local-storage:
+    enabled: true
+  local-storage:
     enabled: true
 extra-node-kubelet-args:
   --reserved-cpus: "0-31"
@@ -497,45 +509,47 @@ the thin flavor)
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/master/deployments/multus-daemonset-thick.yml
 ```
 
-Note: the memory limits for the multus pod spec in the DaemonSet should be
+```{note} 
+The memory limits for the multus pod spec in the DaemonSet should be
 increased (i.e. to 500Mi instead 50Mi) to avoid OOM issues when deploying
 multiple workload pods in parallel.
+```
 
 #### SRIOV Network Device Plugin 
 
-* Create sriov-dp.yaml configMap
+Create sriov-dp.yaml configMap:
 
 ```
 cat <<EOF | tee sriov-dp.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
- name: sriovdp-config
- namespace: kube-system
+  name: sriovdp-config
+  namespace: kube-system
 data:
- config.json: |
-   {
-       "resourceList": [{
-               "resourceName": "intel_sriov_netdevice",
-               "selectors": [{
-                   "vendors": ["8086"],
-                   "devices": ["1889"],
-                   "drivers": ["iavf"]
-               }]
-           },
-           {
-               "resourceName": "intel_sriov_dpdk",
-               "resourcePrefix": "intel.com",
-               "selectors": [{
-                   "vendors": ["8086"],
-                   "devices": ["1889"],
-                   "drivers": ["vfio-pci"],
-                   "pfNames": ["enp152s0f1"],
-                   "needVhostNet": true
-               }]
-           }
-       ]
-   }
+  config.json: |
+    {
+      "resourceList": [{
+        "resourceName": "intel_sriov_netdevice",
+        "selectors": [{
+          "vendors": ["8086"],
+          "devices": ["1889"],
+          "drivers": ["iavf"]
+          }]
+        },
+        {
+        "resourceName": "intel_sriov_dpdk",
+        "resourcePrefix": "intel.com",
+        "selectors": [{
+            "vendors": ["8086"],
+            "devices": ["1889"],
+            "drivers": ["vfio-pci"],
+            "pfNames": ["enp152s0f1"],
+            "needVhostNet": true
+            }]
+        }
+      ]
+    }
 EOF
 ```
 
@@ -553,13 +567,15 @@ sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg
 
 #### SRIOV CNI 
 
+Install the SRIOV CNI daemonset:
+
 ```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/sriov-cni/master/images/sriov-cni-daemonset.yaml
 ```
 
 #### Multus NetworkAttachmentDefinition 
 
-Create the sriov-nad.yaml NetworkAttachmentDefinition
+Create the sriov-nad.yaml NetworkAttachmentDefinition:
 
 ```
 cat <<EOF | tee sriov-nad.yaml
@@ -719,7 +735,7 @@ The output of cyclictest will provide statistics like:
 * Minimum latency: The shortest observed cycle time.  
 * Maximum latency: The longest observed cycle time.
 
-Create a pod that will run cyclictest tool with specific options:
+Create a pod that will run the cyclictest tool with specific options:
 
 - `-l 1000000`: Sets the number of test iterations to 1 million.  
 - `-m`: Measures the maximum latency.  
