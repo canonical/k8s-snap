@@ -452,7 +452,7 @@ After a few seconds you can query the API server with:
 sudo k8s kubectl get all -A
 ```
 
-### Second k8s node as worker 
+### Add second k8s node as worker 
 
 1. Install the k8s snap on the second node
 
@@ -483,7 +483,7 @@ sudo k8s join-cluster --file configuration.yaml <token-generated-on-the-control-
 ```
 
 
-### Verify the two node cluster is ready 
+#### Verify the two node cluster is ready 
 
 After a few seconds the second worker node will register with the control
 plane. You can query the available workers from the first node:
@@ -729,11 +729,11 @@ it takes for a thread to cycle between high and low priority states, giving you
 an indication of the system's responsiveness to real-time events.  Lower
 latencies typically indicate better real-time performance.
 
-The output of cyclictest will provide statistics like:
+The output of cyclictest will provide statistics including:
 
-* Average latency: The average time taken for a cycle.  
-* Minimum latency: The shortest observed cycle time.  
-* Maximum latency: The longest observed cycle time.
+- Average latency: The average time taken for a cycle.  
+- Minimum latency: The shortest observed cycle time.  
+- Maximum latency: The longest observed cycle time.
 
 Create a pod that will run the cyclictest tool with specific options:
 
@@ -759,7 +759,7 @@ spec:
 EOF
 ```
 
-Get the pod logs to verify that the test is running:
+Confirm that the test is running by checking the pod's logs:
 
 ```
 sudo k8s kubectl logs realtime-kernel-test -f
@@ -780,19 +780,19 @@ T: 0 ( 2965) P:80 I:1000 C: 241486 Min:      3 Act:    4 Avg:    3 Max:      18
 - `policy: fifo`: This means the scheduling policy for the cyclictest thread is set to FIFO (First In, First Out). In FIFO scheduling, the highest priority task that is ready to run gets the CPU first and continues running until it is blocked or voluntarily yields the CPU.  
 - `loadavg: 7.92 8.34 9.32 1/3698 2965:` This shows the load average of your system over the last 1, 5, and 15 minutes. The numbers are quite high, indicating that your system is under significant load. This can potentially affect the latency measurements.  
 - `T: 0 ( 2965) P:80 I:1000 C: 241486`:  
-  - T: 0: The number of the CPU core the test was run on (CPU 0 in this case).  
-  - (2965): The PID (Process ID) of the cyclictest process.  
-  - P:80: The priority of the cyclictest thread.  
-  - I:1000: The number of iterations (loops) the test ran for (1000 in this case).  
-  - C: 241486: The number of cycles per second that the test has aimed for.  
-* Min: 3 Act: 4 Avg: 3 Max: 18: These are the key latency statistics in microseconds (us):  
-  * Min: The minimum latency observed during the test (3 us).  
-  * Act: The actual average latency (4 us).  
-  * Avg: The expected average latency (3us).  
-  * Max: The maximum latency observed during the test (18 us).  
-* In this case, the results suggest the following:  
-  * Low Latencies: The minimum, average, and maximum latencies are all very low (3-18 us), which is a good sign for real-time performance. It indicates that your real-time kernel is responding promptly to events.  
-  * High Load: The high load average indicates that your system is busy, but even under this load, the real-time kernel is maintaining low latencies for the high-priority cyclictest thread.
+  - `T: 0`: The number of the CPU core the test was run on (CPU 0 in this case).  
+  - `(2965)`: The PID (Process ID) of the cyclictest process.  
+  - `P:80`: The priority of the cyclictest thread.  
+  - `I:1000`: The number of iterations (loops) the test ran for (1000 in this case).  
+  - `C: 241486`: The number of cycles per second that the test has aimed for.  
+- `Min: 3 Act: 4 Avg: 3 Max: 18`: These are the key latency statistics in microseconds (us):  
+  - `Min`: The minimum latency observed during the test (3 us).  
+  - `Act`: The actual average latency (4 us).  
+  - `Avg`: The expected average latency (3us).  
+  - `Max`: The maximum latency observed during the test (18 us).  
+- In this case, the results suggest the following:  
+  - Low Latencies: The minimum, average, and maximum latencies are all very low (3-18 us), which is a good sign for real-time performance. It indicates that your real-time kernel is responding promptly to events.  
+  - High Load: The high load average indicates that your system is busy, but even under this load, the real-time kernel is maintaining low latencies for the high-priority cyclictest thread.
 
 ```
 
