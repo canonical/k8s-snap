@@ -14,29 +14,26 @@ const initialProcesEnvironmentVariables = "/proc/1/environ"
 // paths to validate if root in the owner
 var pathsOwnershipCheck = []string{"/sys", "/proc", "/dev/kmsg"}
 
-// HookVerifyResources checks ownership of dirs required for k8s to run.
-// HookVerifyResources if verbose true prints out list of potenital issues.
+// HookCheckLXD checks ownership of dirs required for k8s to run.
+// HookCheckLXD if verbose true prints out list of potenital issues.
 // If potential issue found pops up warning for user.
-func HookVerifyResources(verbose bool) func(*cobra.Command, []string) {
+func HookCheckLXD(verbose bool) func(*cobra.Command, []string) {
 	return func(cmd *cobra.Command, args []string) {
-		errMsgs := VerifyPaths()
-
-		// printing report
-		if len(errMsgs) > 0 {
-			if verbose {
-				cmd.PrintErrln("Warning: When validating required resources potential issues found:")
-				for _, errMsg := range errMsgs {
-					cmd.PrintErrln("\t", errMsg)
+		if lxd, err := inLXDContainer(); lxd {
+			errMsgs := VerifyPaths()
+			if len(errMsgs) > 0 {
+				if verbose {
+					cmd.PrintErrln("Warning: When validating required resources potential issues found:")
+					for _, errMsg := range errMsgs {
+						cmd.PrintErrln("\t", errMsg)
+					}
 				}
-			}
-			if lxd, err := validateLXD(); lxd {
-				cmd.PrintErrln("The lxc profile for MicroK8s might be missing.")
+				cmd.PrintErrln("The lxc profile for Canonical Kubernetes might be missing.")
 				cmd.PrintErrln("For running k8s inside LXD container refer to " +
 					"https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/lxd/")
-			} else if err != nil {
-				cmd.PrintErrf(err.Error())
-
 			}
+		} else if err != nil {
+			cmd.PrintErrf(err.Error())
 		}
 	}
 }
@@ -83,8 +80,8 @@ func validateRootOwnership(path string) error {
 	return nil
 }
 
-// validateLXD checks if k8s runs in lxd container if so returns link to documentation
-func validateLXD() (bool, error) {
+// inLXDContainer checks if k8s runs in lxd container if so returns link to documentation
+func inLXDContainer() (bool, error) {
 	dat, err := os.ReadFile(initialProcesEnvironmentVariables)
 	if err != nil {
 		// if permission to file is missing we still want to display info about lxd
