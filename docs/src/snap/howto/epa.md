@@ -370,7 +370,7 @@ write_files:
 # install the snap
 snap:
   commands:
-    00: 'snap install k8s --classic --channel=1.30-moonray/beta'
+    00: 'snap install k8s --classic --channel=1.31/beta'
 
 runcmd:
 # fetch dpdk driver binding script
@@ -411,40 +411,43 @@ EPA capabilities.
 
 1. [Install the
    snap](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/snap/)
-   from the relevant track, currently `{{track}}`. The [beta
-   channel](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/explanation/channels/)
-   is used at this point as the end configuration of the k8s snap is not
-   finalised yet.
+   from the relevant [channel][channel]. 
+   ```{note}
+   A pre-release channel is required currently until there is a finalised release of {{product}}.
+   ```
 
-```
-sudo snap install k8s --classic --channel=1.30-moonray/beta
-```
+   For example:
+
+   <!-- This uses a generic include for this branch to insert the standard 
+   install command-->
+   ```{include} ../../_parts/install.md
+   ```
 
 2. Create a file called *configuration.yaml*. In this configuration file we let
    the snap start with its default CNI (calico), with CoreDNS deployed and we
    also point k8s to the external etcd. 
 
-```yaml
-cluster-config:
-  network:
-    enabled: true
-  dns:
-    enabled: true
-  local-storage:
-    enabled: true
-extra-node-kubelet-args:
-  --reserved-cpus: "0-31"
-  --cpu-manager-policy: "static"
-  --topology-manager-policy: "best-effort"
-```
+   ```yaml
+   cluster-config:
+     network:
+       enabled: true
+     dns:
+       enabled: true
+     local-storage:
+       enabled: true
+   extra-node-kubelet-args:
+     --reserved-cpus: "0-31"
+     --cpu-manager-policy: "static"
+     --topology-manager-policy: "best-effort"
+   ```
 
 3. Bootstrap {{product}} using the above configuration file.
 
-```
-sudo k8s bootstrap --file configuration.yaml
-```
+   ```
+   sudo k8s bootstrap --file configuration.yaml
+   ```
 
-#### Verify control plane node is up
+#### Verify the control plane node is running
 
 After a few seconds you can query the API server with:
 
@@ -452,35 +455,34 @@ After a few seconds you can query the API server with:
 sudo k8s kubectl get all -A
 ```
 
-### Add second k8s node as worker 
+### Add a second k8s node as a worker 
 
 1. Install the k8s snap on the second node
 
-```
-sudo snap install k8s --classic --channel=1.30-moonray/beta
-```
+   ```{include} ../../_parts/install.md
+   ```
 
 2. On the control plane node generate a join token to be used for joining the
    second node
 
-```
-sudo k8s get-join-token --worker
-```
+   ```
+   sudo k8s get-join-token --worker
+   ```
 
 3. On the worker node create the configuration.yaml file
 
-```
-extra-node-kubelet-args:
-  --reserved-cpus: "0-31"
-  --cpu-manager-policy: "static"
-  --topology-manager-policy: "best-effort"
-```
+   ```
+   extra-node-kubelet-args:
+     --reserved-cpus: "0-31"
+     --cpu-manager-policy: "static"
+     --topology-manager-policy: "best-effort"
+   ```
 
 4. On the worker node use the token to join the cluster
 
-```
-sudo k8s join-cluster --file configuration.yaml <token-generated-on-the-control-plane-node>
-```
+   ```
+   sudo k8s join-cluster --file configuration.yaml <token-generated-on-the-control-plane-node>
+   ```
 
 
 #### Verify the two node cluster is ready 
@@ -496,8 +498,8 @@ The output should list the connected nodes:
 
 ```
 NAME          STATUS   ROLES                  AGE   VERSION
-pc6b-rb4-n1   Ready    control-plane,worker   22h   v1.30.2
-pc6b-rb4-n3   Ready    worker                 22h   v1.30.2
+pc6b-rb4-n1   Ready    control-plane,worker   22h   v1.31.0
+pc6b-rb4-n3   Ready    worker                 22h   v1.31.0
 ```
 
 ### Multus and SRIOV setup 
@@ -844,7 +846,7 @@ node/pc6b-rb4-n3 labeled
 ```
 
 ```
-$ cat <<EOF | sudo k8s kubectl apply -f -
+cat <<EOF | sudo k8s kubectl apply -f -
 apiVersion: v1
 kind: Pod
 metadata:
@@ -1045,6 +1047,8 @@ automatically to the `net1` interface:
 sudo k8s kubectl describe pod sriov-test-pod
 ```
 
+The output (shown truncated below) should indicate the interface and
+the correct PCI address:
 
 ```
 ...
@@ -1078,7 +1082,7 @@ sudo k8s kubectl describe pod sriov-test-pod
 
 ## Further reading
 
-* [How to enable Real-time Ubuntu](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/enable\_realtime\_kernel/\#how-to-enable-real-time-ubuntu)  
+* [How to enable real-time Ubuntu](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/enable\_realtime\_kernel/\#how-to-enable-real-time-ubuntu)  
 * [Manage HugePages](https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/)  
 * [Utilising the NUMA-aware Memory Manager](https://kubernetes.io/docs/tasks/administer-cluster/memory-manager/)  
 * [SR-IOV Network Device Plugin for Kubernetes](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin)  
@@ -1088,3 +1092,4 @@ sudo k8s kubectl describe pod sriov-test-pod
 <!-- LINKS -->
 
 [MAAS]: https://maas.io
+[channel]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/explanation/channels/
