@@ -1,6 +1,7 @@
 # How to set up Enhanced Platform Awareness
 
-This section explains how to set up the Enhanced Platform Awareness (EPA) features in a {{product}} cluster. 
+This section explains how to set up the Enhanced Platform Awareness (EPA)
+features in a {{product}} cluster. 
 
 The content starts with the setup of the environment (including steps for using
 [MAAS][MAAS]). Then the setup of {{product}}, including the Multus & SR-IOV/DPDK
@@ -741,7 +742,8 @@ Create a pod that will run the cyclictest tool with specific options:
 
 - `-l 1000000`: Sets the number of test iterations to 1 million.  
 - `-m`: Measures the maximum latency.  
-- `-p 80`: Sets the real-time scheduling priority to 80 (a high priority, typically used for real-time tasks).  
+- `-p 80`: Sets the real-time scheduling priority to 80 (a high priority, 
+  typically used for real-time tasks).  
 - `-t 1`: Specifies CPU core 1 to be used for the test.
 
 ```
@@ -800,7 +802,8 @@ T: 0 ( 2965) P:80 I:1000 C: 241486 Min:      3 Act:    4 Avg:    3 Max:      18
 
 ### Test CPU Pinning and NUMA 
 
-First check if CPU Manager and NUMA Topology Manager is set up in the worker node:
+First check if CPU Manager and NUMA Topology Manager is set up in the worker
+node:
 
 ```
 ps -ef | grep /snap/k8s/678/bin/kubelet
@@ -834,7 +837,8 @@ NUMA:
 ...
 ```
 
-Now let’s label the node with information about the available CPU/NUMA nodes, and then create a pod selecting that label:
+Now let’s label the node with information about the available CPU/NUMA nodes,
+and then create a pod selecting that label:
 
 ```
 sudo k8s kubectl label node pc6b-rb4-n3 topology.kubernetes.io/zone=NUMA
@@ -996,7 +1000,8 @@ lspci -s 98:1f.2 -vv
 	Kernel modules: iavf
 ```
 
-Now, create a test pod that will claim a network interface from the DPDK network:
+Now, create a test pod that will claim a network interface from the DPDK
+network:
 
 ```
 cat <<EOF | sudo k8s kubectl apply -f -
