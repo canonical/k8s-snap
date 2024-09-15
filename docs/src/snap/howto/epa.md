@@ -388,11 +388,13 @@ power_state:
   mode: reboot
 ```
 
-Notes:
+```{note}
 
-* In the above, realtime kernel 6.8 is installed from a private ppa. It was recently backported from 24.04 to 22.04 and is still going through some validation stages. Once it is officially released, it will be installable via the Ubuntu Pro cli.
-
-
+In the above file, the realtime kernel 6.8 is installed from a private PPA.
+It was recently backported from 24.04 to 22.04 and is still going through
+some validation stages. Once it is officially released, it will be
+installable via the Ubuntu Pro cli.
+```
 ````
 `````
 
