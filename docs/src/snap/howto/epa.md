@@ -928,7 +928,7 @@ working correctly.
 
 ### Test SR-IOV & DPDK
 
-First check if SR-IOV Device Plugin pod is running and healthy in the cluster,
+Ensure that the SR-IOV Device Plugin pod is running and healthy in the cluster,
 if SR-IOV is allocatable in the worker node and the PCI IDs of the VFs
 available in the node (describing one of them to get further details):
 
