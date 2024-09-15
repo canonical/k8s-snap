@@ -501,8 +501,8 @@ pc6b-rb4-n3   Ready    worker                 22h   v1.31.0
 
 ### Multus and SRIOV setup 
 
-Get the thick plugin (in case of resource scarcity we can consider deploying
-the thin flavor)
+Apply the 'thick' Multus plugin (in case of resource scarcity we can consider 
+deploying the thin flavour)
 
 ```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/master/deployments/multus-daemonset-thick.yml
@@ -710,7 +710,7 @@ The output should reflect the HugePage request:
 ### Test the real-time kernel
 
 First, verify that real-time kernel is enabled in the worker node by checking
-if “PREEMPT RT” appears after running the `uname -a` command:
+the output from the `uname -a` command:
 
 ```
 uname -a
@@ -722,7 +722,7 @@ The output should show the “PREEMPT RT” identifier:
 Linux pc6b-rb4-n3 6.8.1-1004-realtime #4~22.04.1-Ubuntu SMP PREEMPT_RT Mon Jun 24 16:45:51 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux
 ```
 
-The test will use cyclictest, commonly used to assess the real-time performance
+The test will use [cyclictest][], commonly used to assess the real-time performance
 of a system, especially when running a real-time kernel. It measures the time
 it takes for a thread to cycle between high and low priority states, giving you
 an indication of the system's responsiveness to real-time events.  Lower
@@ -811,18 +811,21 @@ root        9139       1  1 Jul17 ?        00:20:03 /snap/k8s/678/bin/kubelet --
 
 ```{dropdown} Explanation of output
 
-* \--cpu-manager-policy=static : This flag within the Kubelet command line arguments explicitly tells us that the CPU Manager is active and using the static policy. Here's what this means:  
-  * CPU Manager:  This is a component of Kubelet that manages how CPU resources are allocated to pods running on a node.  
-  * Static Policy:  This policy is designed to provide stricter control over CPU allocation. With the static policy, you can request integer CPUs for your containers (e.g., 1, 2, etc.), and {{product}} will try to assign them to dedicated CPU cores on the node, providing a greater degree of isolation and predictability.  
-* \--reserved-cpus=0-31: This line indicates that no CPUs are reserved for the Kubelet or system processes. This implies that all CPUs might be available for pod scheduling, depending on the cluster's overall resource allocation strategy.  
-* \--topology-manager-policy=best-effort: This flag sets the topology manager policy to "best-effort." The topology manager helps optimise pod placement on nodes by considering factors like NUMA nodes, CPU cores, and devices. The "best-effort" policy tries to place pods optimally, but it doesn't enforce strict requirements.
+   - `--cpu-manager-policy=static` : This flag within the Kubelet command line arguments explicitly tells us that the CPU Manager is active and using the static policy. Here's what this means:  
+      - `CPU Manager`:  This is a component of Kubelet that manages how CPU resources are allocated to pods running on a node.  
+      - `Static Policy`:  This policy is designed to provide stricter control over CPU allocation. With the static policy, you can request integer CPUs for your containers (e.g., 1, 2, etc.), and {{product}} will try to assign them to dedicated CPU cores on the node, providing a greater degree of isolation and predictability.  
+   - `--reserved-cpus=0-31`: This line indicates that no CPUs are reserved for the Kubelet or system processes. This implies that all CPUs might be available for pod scheduling, depending on the cluster's overall resource allocation strategy.  
+   - `--topology-manager-policy=best-effort`: This flag sets the topology manager policy to "best-effort." The topology manager helps optimise pod placement on nodes by considering factors like NUMA nodes, CPU cores, and devices. The "best-effort" policy tries to place pods optimally, but it doesn't enforce strict requirements.
 ```
 
-You can also confirm the total number of NUMA CPUs available in the worker node:
+You can also confirm the total number of NUMA CPUs available in the worker node.
+Run the command:
 
 ```
 lscpu
 ```
+
+The ouptut should include information on the CPUs like this example:
 
 ```
 ....
@@ -833,17 +836,20 @@ NUMA:
 ...
 ```
 
-Now let’s label the node with information about the available CPU/NUMA nodes,
-and then create a pod selecting that label:
+Label the node with information about the available CPU/NUMA nodes:
 
 ```
 sudo k8s kubectl label node pc6b-rb4-n3 topology.kubernetes.io/zone=NUMA
 
 ```
 
+The output should indicate the label has been applied:
+
 ```
 node/pc6b-rb4-n3 labeled
 ```
+
+Now create a pod applying that label:
 
 ```
 cat <<EOF | sudo k8s kubectl apply -f -
@@ -868,8 +874,8 @@ spec:
 EOF
 ```
 
-Finally, describing the node and the pod will confirm that the pod is running
-on the intended node and that its CPU requests are being met; also running
+Dscribing the node and the pod will confirm that the pod is running
+on the intended node and that its CPU requests are being met. Running
 taskset inside the pod will identify the pod pinned to the process running
 inside the pod:
 
@@ -1083,11 +1089,11 @@ the correct PCI address:
 
 ## Further reading
 
-* [How to enable real-time Ubuntu](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/enable\_realtime\_kernel/\#how-to-enable-real-time-ubuntu)  
-* [Manage HugePages](https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/)  
-* [Utilising the NUMA-aware Memory Manager](https://kubernetes.io/docs/tasks/administer-cluster/memory-manager/)  
-* [SR-IOV Network Device Plugin for Kubernetes](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin)  
-* [VMware Telco Cloud Automation \- EPA](https://docs.vmware.com/en/VMware-Telco-Cloud-Automation/3.1.1/com-vmware-tca-userguide/GUID-3F4BA111-D344-4022-A635-7D5774385EF8.html)
+- [How to enable real-time Ubuntu](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/enable\_realtime\_kernel/\#how-to-enable-real-time-ubuntu)  
+- [Manage HugePages](https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/)  
+- [Utilising the NUMA-aware Memory Manager](https://kubernetes.io/docs/tasks/administer-cluster/memory-manager/)  
+- [SR-IOV Network Device Plugin for Kubernetes](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin)  
+- [VMware Telco Cloud Automation \- EPA](https://docs.vmware.com/en/VMware-Telco-Cloud-Automation/3.1.1/com-vmware-tca-userguide/GUID-3F4BA111-D344-4022-A635-7D5774385EF8.html)
 
 
 <!-- LINKS -->
@@ -1096,3 +1102,4 @@ the correct PCI address:
 [channel]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/explanation/channels/
 [install-link]: /snap/howto/install/snap
 [snap]: https://snapcraft.io/docs
+[cyclictest]: https://github.com/jlelli/rt-tests
