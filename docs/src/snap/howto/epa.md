@@ -398,23 +398,17 @@ installable via the Ubuntu Pro cli.
 ````
 `````
 
-
-
-
-
 ## {{product}} setup 
 
-{{product}} is delivered as a 
-[snap](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/).
+{{product}} is delivered as a [snap][].
 
 This section explains how to set up a dual node {{product}} cluster for testing
 EPA capabilities.
 
 ### Control plane and worker node 
 
-1. [Install the
-   snap](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/snap/)
-   from the relevant [channel][channel]. 
+1. [Install the snap][install-link] from the relevant [channel][channel]. 
+   
    ```{note}
    A pre-release channel is required currently until there is a finalised release of {{product}}.
    ```
@@ -1100,3 +1094,5 @@ the correct PCI address:
 
 [MAAS]: https://maas.io
 [channel]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/explanation/channels/
+[install-link]: /snap/howto/install/snap
+[snap]: https://snapcraft.io/docs
