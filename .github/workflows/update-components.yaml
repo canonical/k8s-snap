@@ -56,5 +56,9 @@ jobs:
           title: "[${{ matrix.branch }}] Update component versions"
           body: "[${{ matrix.branch }}] Update component versions"
           branch: "autoupdate/sync/${{ matrix.branch }}"
+          labels: |
+            automerge
+            automated pr
+            component update
           delete-branch: true
           base: ${{ matrix.branch }}
