@@ -9,7 +9,7 @@ import (
 func init() {
 	images.Register(
 		// Rawfile LocalPV CSI driver images
-		fmt.Sprintf("%s:%s", imageRepo, imageTag),
+		fmt.Sprintf("%s:%s", imageRepo, ImageTag),
 		// CSI images
 		csiNodeDriverImage,
 		csiProvisionerImage,
