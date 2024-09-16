@@ -18,6 +18,7 @@ for pr in $(echo "$prs" | jq -r '.[] | @base64'); do
 
 if [[ "$checks_passed" == "true" ]]; then
     echo "All status checks passed for PR #$pr_number. Proceeding with merge..."
+    gh pr review $pr_number --approve -b "All status checks passed for PR #$pr_number."
     gh pr merge $pr_number --auto --squash
 else
     echo "Status checks have not passed for PR #$pr_number. Skipping merge."
