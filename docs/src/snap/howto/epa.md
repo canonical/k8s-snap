@@ -395,6 +395,11 @@ It was recently backported from 24.04 to 22.04 and is still going through
 some validation stages. Once it is officially released, it will be
 installable via the Ubuntu Pro cli.
 ```
+
+<!--VERSION:
+The MAAS setup is inextricably linked to particular versions and will need to be
+updated for these -->
+
 ````
 `````
 
