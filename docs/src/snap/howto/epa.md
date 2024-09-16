@@ -766,6 +766,8 @@ sudo k8s kubectl logs realtime-kernel-test -f
 
 ```
 
+This should produce output including:
+
 ```
 ...
 # /dev/cpu_dma_latency set to 0us
@@ -804,6 +806,8 @@ node:
 ```
 ps -ef | grep /snap/k8s/678/bin/kubelet
 ``` 
+
+The process output will indicate the arguments used when running the kubelet:
 
 ```
 root        9139       1  1 Jul17 ?        00:20:03 /snap/k8s/678/bin/kubelet --anonymous-auth=false --authentication-token-webhook=true --authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/client-ca.crt --cluster-dns=10.152.183.97 --cluster-domain=cluster.local --container-runtime-endpoint=/var/snap/k8s/common/run/containerd.sock --containerd=/var/snap/k8s/common/run/containerd.sock --cpu-manager-policy=static --eviction-hard=memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi --fail-swap-on=false --kubeconfig=/etc/kubernetes/kubelet.conf --node-ip=10.18.2.153 --node-labels=node-role.kubernetes.io/worker=,k8sd.io/role=worker --read-only-port=0 --register-with-taints= --reserved-cpus=0-31 --root-dir=/var/lib/kubelet --serialize-image-pulls=false --tls-cert-file=/etc/kubernetes/pki/kubelet.crt --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384 --tls-private-key-file=/etc/kubernetes/pki/kubelet.key --topology-manager-policy=best-effort
