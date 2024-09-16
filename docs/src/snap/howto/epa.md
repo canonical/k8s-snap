@@ -874,7 +874,7 @@ spec:
 EOF
 ```
 
-Dscribing the node and the pod will confirm that the pod is running
+Describing the node and the pod will confirm that the pod is running
 on the intended node and that its CPU requests are being met. Running
 taskset inside the pod will identify the pod pinned to the process running
 inside the pod:
@@ -893,9 +893,13 @@ sudo k8s kubectl describe node pc6b-rb4-n3
   ....
 ```
 
+We can then describe the pod itself:
+
 ```
 sudo k8s kubectl describe pod cpu-pinning-test
 ```
+
+The output should confirm the limits and requests:
 
 ```
 ...
@@ -908,16 +912,37 @@ sudo k8s kubectl describe pod cpu-pinning-test
 ...
 ```
 
-<!-- this needs to be explained -->
+To determine the CPUS in use are valid, open a shell on the pod:
 
 ```
 sudo k8s kubectl exec -ti cpu-pinning-test -- /bin/bash
+```
+
+On this shell, confirm the running processes:
+
+```
 root@cpu-pinning-test:/# ps -ef
+```
+
+which will list the running commands:
+
+```
 UID          PID    PPID  C STIME TTY          TIME CMD
 root           1       0  0 08:51 ?        00:00:00 sleep infinity
 root          17       0  0 08:58 pts/0    00:00:00 /bin/bash
 root          25      17  0 08:58 pts/0    00:00:00 ps -ef
+```
+
+The first of these is the `sleep` command we instructed the pod to run. We then
+use `taskset` in the pod:
+
+```
 root@cpu-pinning-test:/# taskset -p 1
+```
+
+This returns the current affinity mask:
+
+```
 pid 1's current affinity mask: 1000000000000000100000000
 ```
 
