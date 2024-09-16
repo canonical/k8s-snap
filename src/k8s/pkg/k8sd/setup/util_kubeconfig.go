@@ -57,7 +57,7 @@ func KubeconfigString(url string, caPEM string, crtPEM string, keyPEM string) (s
 }
 
 // SetupControlPlaneKubeconfigs writes kubeconfig files for the control plane components.
-func SetupControlPlaneKubeconfigs(kubeConfigDir string, securePort int, pki pki.ControlPlanePKI) error {
+func SetupControlPlaneKubeconfigs(kubeConfigDir string, securePort int, pki pki.ControlPlanePKI, localhostAddress string) error {
 	for _, kubeconfig := range []struct {
 		file string
 		crt  string
@@ -69,7 +69,7 @@ func SetupControlPlaneKubeconfigs(kubeConfigDir string, securePort int, pki pki.
 		{file: "scheduler.conf", crt: pki.KubeSchedulerClientCert, key: pki.KubeSchedulerClientKey},
 		{file: "kubelet.conf", crt: pki.KubeletClientCert, key: pki.KubeletClientKey},
 	} {
-		if err := Kubeconfig(filepath.Join(kubeConfigDir, kubeconfig.file), fmt.Sprintf("[::1]:%d", securePort), pki.CACert, kubeconfig.crt, kubeconfig.key); err != nil {
+		if err := Kubeconfig(filepath.Join(kubeConfigDir, kubeconfig.file), fmt.Sprintf("%s:%d", localhostAddress, securePort), pki.CACert, kubeconfig.crt, kubeconfig.key); err != nil {
 			return fmt.Errorf("failed to write kubeconfig %s: %w", kubeconfig.file, err)
 		}
 	}

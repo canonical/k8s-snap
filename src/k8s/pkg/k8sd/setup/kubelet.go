@@ -80,7 +80,7 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 		args["--cluster-domain"] = clusterDomain
 	}
 	if nodeIP != nil && !nodeIP.IsLoopback() {
-		args["--node-ip"] = nodeIP.String()
+		args["--node-ip"] = utils.ToIPString(nodeIP)
 	}
 	if _, err := snaputil.UpdateServiceArguments(snap, "kubelet", args, nil); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)

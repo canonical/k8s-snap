@@ -178,12 +178,11 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		return fmt.Errorf("failed to write worker node certificates: %w", err)
 	}
 
-	// We don't have the CIDRs on the workers, hence we check the address type of the control-plane node.
 	var localhostAddress string
-	if utils.IsIPv4(address) {
-		localhostAddress = "127.0.0.1"
-	} else {
+	if nodeIP.To4() == nil {
 		localhostAddress = "[::1]"
+	} else {
+		localhostAddress = "127.0.0.1"
 	}
 
 	// Kubeconfigs
@@ -237,10 +236,10 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	if err := setup.KubeletWorker(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, localhostAddress, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
-	if err := setup.K8sAPIServerProxy(snap, response.APIServers, joinConfig.ExtraNodeK8sAPIServerProxyArgs); err != nil {
+	if err := setup.K8sAPIServerProxy(snap, response.APIServers, localhostAddress, joinConfig.ExtraNodeK8sAPIServerProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure k8s-apiserver-proxy: %w", err)
 	}
 	if err := setup.ExtraNodeConfigFiles(snap, joinConfig.ExtraNodeConfigFiles); err != nil {
@@ -283,6 +282,13 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	nodeIP := net.ParseIP(s.Address().Hostname())
 	if nodeIP == nil {
 		return fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
+	}
+
+	var localhostAddress string
+	if nodeIP.To4() == nil {
+		localhostAddress = "[::1]"
+	} else {
+		localhostAddress = "127.0.0.1"
 	}
 
 	// Create directories
@@ -403,7 +409,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	}
 
 	// Generate kubeconfigs
-	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates, localhostAddress); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
@@ -426,7 +432,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), bootstrapConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), bootstrapConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), localhostAddress, bootstrapConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap, bootstrapConfig.ExtraNodeKubeControllerManagerArgs); err != nil {

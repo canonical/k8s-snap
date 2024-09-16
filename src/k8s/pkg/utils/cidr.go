@@ -126,41 +126,10 @@ func ParseCIDRs(CIDRstring string) (string, string, error) {
 	return ipv4CIDR, ipv6CIDR, nil
 }
 
-// GetLocalhostAddress returns the localhost address based on the given pod and service CIDRs.
-// In IPv6-only mode, the IPv6 localhost address is returned. Otherwise the IPv4 localhost address is returned.
-func GetLocalhostAddress(podCIDR string, serviceCIDR string) (string, error) {
-	if podCIDR == "" && serviceCIDR == "" {
-		return "", fmt.Errorf("both pod and service CIDRs are empty")
-	}
-
-	var podIPv4, serviceIPv4 string
-	var err error
-
-	if podCIDR != "" {
-		podIPv4, _, err = ParseCIDRs(podCIDR)
-		if err != nil {
-			return "", fmt.Errorf("failed to parse pod CIDR: %w", err)
-		}
-	}
-
-	if serviceCIDR != "" {
-		serviceIPv4, _, err = ParseCIDRs(serviceCIDR)
-		if err != nil {
-			return "", fmt.Errorf("failed to parse service CIDR: %w", err)
-		}
-	}
-
-	if (podCIDR == "" || podIPv4 != "") && (serviceCIDR == "" || serviceIPv4 != "") {
-		return "127.0.0.1", nil
-	}
-
-	return "[::1]", nil
-}
-
 // IsIPv4 returns true if the address is a valid IPv4 address, false otherwise.
+// The address may contain a port number.
 func IsIPv4(address string) bool {
-	ipPort := strings.Split(address, ":")
-	ip := ipPort[0]
+	ip := strings.Split(address, ":")[0]
 	parsedIP := net.ParseIP(ip)
 	return parsedIP != nil && parsedIP.To4() != nil
 }

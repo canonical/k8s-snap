@@ -31,7 +31,7 @@ func TestKubeProxy(t *testing.T) {
 	g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
 
 	t.Run("Args", func(t *testing.T) {
-		g.Expect(setup.KubeProxy(context.Background(), s, "myhostname", "10.1.0.0/16", nil)).To(BeNil())
+		g.Expect(setup.KubeProxy(context.Background(), s, "myhostname", "10.1.0.0/16", "127.0.0.1", nil)).To(BeNil())
 
 		for key, expectedVal := range map[string]string{
 			"--cluster-cidr":           "10.1.0.0/16",
@@ -55,7 +55,7 @@ func TestKubeProxy(t *testing.T) {
 			"--healthz-bind-address": nil,
 			"--my-extra-arg":         utils.Pointer("my-extra-val"),
 		}
-		g.Expect(setup.KubeProxy(context.Background(), s, "myhostname", "10.1.0.0/16", extraArgs)).To(BeNil())
+		g.Expect(setup.KubeProxy(context.Background(), s, "myhostname", "10.1.0.0/16", "127.0.0.1", extraArgs)).To(BeNil())
 
 		for key, expectedVal := range map[string]string{
 			"--cluster-cidr":           "10.1.0.0/16",
@@ -80,7 +80,7 @@ func TestKubeProxy(t *testing.T) {
 
 	s.Mock.OnLXD = true
 	t.Run("ArgsOnLXD", func(t *testing.T) {
-		g.Expect(setup.KubeProxy(context.Background(), s, "myhostname", "10.1.0.0/16", nil)).To(BeNil())
+		g.Expect(setup.KubeProxy(context.Background(), s, "myhostname", "10.1.0.0/16", "127.0.0.1", nil)).To(BeNil())
 
 		for key, expectedVal := range map[string]string{
 			"--conntrack-max-per-core": "0",
@@ -103,7 +103,7 @@ func TestKubeProxy(t *testing.T) {
 		s.Mock.ServiceArgumentsDir = filepath.Join(dir, "k8s")
 
 		g.Expect(setup.EnsureAllDirectories(s)).To(BeNil())
-		g.Expect(setup.KubeProxy(context.Background(), s, "dev", "10.1.0.0/16", nil)).To(BeNil())
+		g.Expect(setup.KubeProxy(context.Background(), s, "dev", "10.1.0.0/16", "127.0.0.1", nil)).To(BeNil())
 
 		val, err := snaputil.GetServiceArgument(s, "kube-proxy", "--hostname-override")
 		g.Expect(err).To(BeNil())

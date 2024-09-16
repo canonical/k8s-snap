@@ -165,40 +165,7 @@ func TestParseCIDRs(t *testing.T) {
 	}
 }
 
-func TestGetLocalhostAddress(t *testing.T) {
-	tests := []struct {
-		podCIDR     string
-		serviceCIDR string
-		expected    string
-		expectErr   bool
-	}{
-		{"192.168.0.0/16", "10.96.0.0/12", "127.0.0.1", false},
-		{"192.168.0.0/16", "", "127.0.0.1", false},
-		{"", "10.96.0.0/12", "127.0.0.1", false},
-		{"fd01::/10", "fd98::/108", "[::1]", false},
-		{"fd01::/10", "", "[::1]", false},
-		{"", "fd98::/108", "[::1]", false},
-		{"", "", "", true},                      // Empty podCIDR and serviceCIDR
-		{"invalid", "10.96.0.0/12", "", true},   // Invalid podCIDR
-		{"192.168.0.0/16", "invalid", "", true}, // Invalid serviceCIDR
-	}
-
-	for _, tc := range tests {
-		g := NewWithT(t)
-		addr, err := utils.GetLocalhostAddress(tc.podCIDR, tc.serviceCIDR)
-
-		if tc.expectErr {
-			g.Expect(err).To(HaveOccurred())
-		} else {
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(addr).To(Equal(tc.expected))
-		}
-	}
-}
-
 func TestIsIPv4(t *testing.T) {
-	RegisterTestingT(t)
-
 	tests := []struct {
 		address  string
 		expected bool
@@ -206,19 +173,20 @@ func TestIsIPv4(t *testing.T) {
 		{"192.168.1.1:80", true},
 		{"127.0.0.1", true},
 		{"::1", false},
-		{"[fe80::1%eth0]:80", false},
+		{"[fe80::1]:80", false},
 		{"256.256.256.256", false}, // Invalid IPv4 address
 	}
 
 	for _, tc := range tests {
-		result := utils.IsIPv4(tc.address)
-		Expect(result).To(Equal(tc.expected))
+		t.Run(tc.address, func(t *testing.T) {
+			g := NewWithT(t)
+			result := utils.IsIPv4(tc.address)
+			g.Expect(result).To(Equal(tc.expected))
+		})
 	}
 }
 
 func TestToIPString(t *testing.T) {
-	RegisterTestingT(t)
-
 	tests := []struct {
 		ip       net.IP
 		expected string
@@ -230,7 +198,10 @@ func TestToIPString(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		result := utils.ToIPString(tc.ip)
-		Expect(result).To(Equal(tc.expected))
+		t.Run(tc.expected, func(t *testing.T) {
+			g := NewWithT(t)
+			result := utils.ToIPString(tc.ip)
+			g.Expect(result).To(Equal(tc.expected))
+		})
 	}
 }
