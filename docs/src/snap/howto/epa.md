@@ -722,11 +722,11 @@ The output should show the “PREEMPT RT” identifier:
 Linux pc6b-rb4-n3 6.8.1-1004-realtime #4~22.04.1-Ubuntu SMP PREEMPT_RT Mon Jun 24 16:45:51 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux
 ```
 
-The test will use [cyclictest][], commonly used to assess the real-time performance
-of a system, especially when running a real-time kernel. It measures the time
-it takes for a thread to cycle between high and low priority states, giving you
-an indication of the system's responsiveness to real-time events.  Lower
-latencies typically indicate better real-time performance.
+The test will use [cyclictest][], commonly used to assess the real-time
+performance of a system, especially when running a real-time kernel. It
+measures the time it takes for a thread to cycle between high and low priority
+states, giving you an indication of the system's responsiveness to real-time
+events.  Lower latencies typically indicate better real-time performance.
 
 The output of cyclictest will provide statistics including:
 
@@ -971,11 +971,13 @@ Allocatable:
 ....
 ```
 
-The virtual functions should also appear on th 
+The virtual functions are created on the PCI bus, which can also be verified:
 
 ```
 lspci | grep Virtual
 ```
+
+...should list the presence of the virtual functions:
 
 ```
 98:11.0 Ethernet controller: Intel Corporation Ethernet Adaptive Virtual Function (rev 02)
@@ -987,8 +989,15 @@ lspci | grep Virtual
 99:00.7 Ethernet controller: Intel Corporation Ethernet Adaptive Virtual Function (rev 02)
 ```
 
+Examine a specific VF from the list:
+
 ```
 lspci -s 98:1f.2 -vv
+```
+
+The output should confirm the correct kernel drivers in use:
+
+```
 98:1f.2 Ethernet controller: Intel Corporation Ethernet Adaptive Virtual Function (rev 02)
 	Subsystem: Intel Corporation Ethernet Adaptive Virtual Function
 	Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
@@ -1084,8 +1093,6 @@ the correct PCI address:
 ...
 
 ```
-
-
 
 ## Further reading
 
