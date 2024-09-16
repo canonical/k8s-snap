@@ -3,8 +3,11 @@
 DIR="$(realpath "$(dirname "${0}")")"
 
 # Configure git author
-git config user.email k8s-bot@canonical.com
-git config user.name k8s-bot
+git_email=$(git config --default "" user.email)
+if [ -z "${git_email}" ]; then
+    git config user.email k8s-team-ci@canonical.com
+    git config user.name 'k8s-team-ci (CDK Bot)'
+fi
 
 # Apply strict patch
 git am "${DIR}/0001-Strict-patch.patch"
