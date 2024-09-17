@@ -20,10 +20,10 @@ jobs:
           egress-policy: audit
       - name: Checking out repo
         uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
 
         # Fetch open pull requests and check for status checks on automerge PRs
       - name: Auto-merge pull requests if all status checks pass
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
         run: |
             build-scripts/hack/auto-merge-successful-prs.sh
