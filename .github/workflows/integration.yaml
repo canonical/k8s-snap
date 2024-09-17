@@ -93,12 +93,17 @@ jobs:
           name: k8s.snap
           path: build
       - name: Run end to end tests
+        env:
+          TEST_SNAP: ${{ matrix.patch }}
+          TEST_SUBSTRATE: lxd
+          TEST_LXD_IMAGE: ${{ matrix.os }}
+          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
+          TEST_VERSION_UPGRADE_CHANNELS: |
+            # TODO(ben): Use candidate/stable
+            1.30-classic/edge
+            1.31-classic/edge
         run: |
-          export TEST_SNAP="$PWD/build/k8s.snap"
-          export TEST_SUBSTRATE=lxd
-          export TEST_LXD_IMAGE=${{ matrix.os }}
-          export TEST_INSPECTION_REPORTS_DIR="$HOME/inspection-reports"
-          cd tests/integration && sg lxd -c 'tox -e integration'
+          cd tests/integration && sg lxd -c 'tox -e integration
       - name: Prepare inspection reports
         if: failure()
         run: |

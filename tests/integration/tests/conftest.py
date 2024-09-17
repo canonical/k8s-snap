@@ -103,9 +103,11 @@ def node_count(request) -> int:
 def disable_k8s_bootstrapping(request) -> bool:
     return bool(request.node.get_closest_marker("disable_k8s_bootstrapping"))
 
+
 @pytest.fixture(scope="function")
 def no_setup(request) -> bool:
     return bool(request.node.get_closest_marker("no_setup"))
+
 
 @pytest.fixture(scope="function")
 def bootstrap_config(request) -> Union[str, None]:
