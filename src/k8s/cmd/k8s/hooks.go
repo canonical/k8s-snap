@@ -1,21 +1,10 @@
 package k8s
 
 import (
-	"fmt"
-	"os"
-	"strings"
-	"syscall"
-
 	cmdutil "github.com/canonical/k8s/cmd/util"
 
 	"github.com/spf13/cobra"
 )
-
-// initialProcessEnvironmentVariables environment variables of initial process
-const initialProcessEnvironmentVariables = "/proc/1/environ"
-
-// pathsOwnershipCheck paths to validate root is the ownership
-var pathsOwnershipCheck = []string{"/sys", "/proc", "/dev/kmsg"}
 
 func chainPreRunHooks(hooks ...func(*cobra.Command, []string)) func(*cobra.Command, []string) {
 	return func(cmd *cobra.Command, args []string) {
@@ -47,14 +36,21 @@ func hookInitializeFormatter(env cmdutil.ExecutionEnvironment, format *string) f
 	}
 }
 
-// hookCheckLXD checks ownership of directories required for k8s to run.
-// If potential issue found pops up warning for user.
+// hookCheckLXD verifies the ownership of directories needed for Kubernetes to function.
+// If a potential issue is detected, it displays a warning to the user.
 func hookCheckLXD() func(*cobra.Command, []string) {
 	return func(cmd *cobra.Command, args []string) {
-		if lxd, err := inLXDContainer(); lxd {
+		// pathsOwnershipCheck paths to validate root is the owner
+		var pathsOwnershipCheck = []string{"/sys", "/proc", "/dev/kmsg"}
+		inLXD, err := cmdutil.InLXDContainer()
+		if err != nil {
+			cmd.PrintErrf("Failed to check if running inside LXD container: %w", err)
+			return
+		}
+		if inLXD {
 			var errMsgs []string
 			for _, pathToCheck := range pathsOwnershipCheck {
-				if err2 := validateRootOwnership(pathToCheck); err2 != nil {
+				if err2 := cmdutil.ValidateRootOwnership(pathToCheck); err2 != nil {
 					errMsgs = append(errMsgs, err2.Error())
 				}
 			}
@@ -69,57 +65,7 @@ func hookCheckLXD() func(*cobra.Command, []string) {
 				cmd.PrintErrln("For running k8s inside LXD container refer to " +
 					"https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/lxd/")
 			}
-		} else if err != nil {
-			cmd.PrintErrf(err.Error())
 		}
+		return
 	}
-}
-
-// getOwnership given path of file returns UID, GID and error.
-func getOwnership(path string) (int, int, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return 0, 0, fmt.Errorf("%s do not exist", path)
-		} else {
-			return 0, 0, err
-		}
-	}
-	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-		return int(stat.Uid), int(stat.Gid), nil
-	} else {
-		return 0, 0, fmt.Errorf("cannot access %s", path)
-	}
-}
-
-// validateRootOwnership checks if given path owner root and root group.
-func validateRootOwnership(path string) error {
-	UID, GID, err := getOwnership(path)
-	if err != nil {
-		return err
-	}
-	if UID != 0 {
-		return fmt.Errorf("owner of %s is user with UID %d expected 0", path, UID)
-	}
-	if GID != 0 {
-		return fmt.Errorf("owner of %s is group with GID %d expected 0", path, GID)
-	}
-	return nil
-}
-
-// inLXDContainer checks if k8s runs in lxd container.
-func inLXDContainer() (bool, error) {
-	content, err := os.ReadFile(initialProcessEnvironmentVariables)
-	if err != nil {
-		// if permission to file is missing we still want to display info about lxd
-		if os.IsPermission(err) {
-			return true, err
-		}
-		return false, err
-	}
-	env := string(content)
-	if strings.Contains(env, "container=lxc") {
-		return true, nil
-	}
-	return false, nil
 }
