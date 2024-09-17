@@ -3,14 +3,14 @@ name: Auto-merge Successful PRs
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/15 * * * *"  # Every 15 minutes
+    - cron: "0 */4 * * *"  # Every 4 hours
 
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  find_and_merge:
+  merge-successful-prs:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,8 +22,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.BOT_SSH_KEY }}
-
-        # Fetch open pull requests and check for status checks on automerge PRs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Auto-merge pull requests if all status checks pass
         run: |
-            build-scripts/hack/auto-merge-successful-prs.sh
+            build-scripts/hack/auto-merge-successful-prs.py
