@@ -44,7 +44,7 @@ func hookCheckLXD() func(*cobra.Command, []string) {
 		var pathsOwnershipCheck = []string{"/sys", "/proc", "/dev/kmsg"}
 		inLXD, err := cmdutil.InLXDContainer()
 		if err != nil {
-			cmd.PrintErrf("Failed to check if running inside LXD container: %w", err)
+			cmd.PrintErrf("Failed to check if running inside LXD container: %s", err.Error())
 			return
 		}
 		if inLXD {
