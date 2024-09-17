@@ -51,6 +51,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -59,7 +61,7 @@ jobs:
         run: pip install tox
       - name: Run branch_management tests
         run: |
-          tox -c tests/branch_management -e integration
+          tox -c tests/branch_management -e test
 
   test-integration:
     name: Test ${{ matrix.os }}
