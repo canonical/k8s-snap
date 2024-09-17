@@ -23,7 +23,7 @@ func getFileOwnerAndGroup(filePath string) (uid, gid uint32, err error) {
 	return stat.Uid, stat.Gid, nil
 }
 
-// ValidateRootOwnership checks if given path owner root and root group.
+// ValidateRootOwnership checks if the specified path is owned by the root user and root group.
 func ValidateRootOwnership(path string) (err error) {
 	UID, GID, err := getFileOwnerAndGroup(path)
 	if err != nil {
@@ -38,9 +38,8 @@ func ValidateRootOwnership(path string) (err error) {
 	return nil
 }
 
-// InLXDContainer checks if k8s runs in lxd container.
+// InLXDContainer checks if k8s runs in a lxd container.
 func InLXDContainer() (isLXD bool, err error) {
-
 	initialProcessEnvironmentVariables := "/proc/1/environ"
 	content, err := os.ReadFile(initialProcessEnvironmentVariables)
 	if err != nil {

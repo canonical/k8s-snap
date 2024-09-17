@@ -50,8 +50,8 @@ func hookCheckLXD() func(*cobra.Command, []string) {
 		if inLXD {
 			var errMsgs []string
 			for _, pathToCheck := range pathsOwnershipCheck {
-				if err2 := cmdutil.ValidateRootOwnership(pathToCheck); err2 != nil {
-					errMsgs = append(errMsgs, err2.Error())
+				if err = cmdutil.ValidateRootOwnership(pathToCheck); err != nil {
+					errMsgs = append(errMsgs, err.Error())
 				}
 			}
 			if len(errMsgs) > 0 {
