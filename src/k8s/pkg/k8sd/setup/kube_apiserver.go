@@ -88,7 +88,7 @@ func KubeAPIServer(snap snap.Snap, nodeIP net.IP, serviceCIDR string, authWebhoo
 	}
 
 	if nodeIP != nil && !nodeIP.IsLoopback() {
-		args["--advertise-address"] = utils.ToIPString(nodeIP)
+		args["--advertise-address"] = nodeIP.String()
 	}
 
 	switch datastore.GetType() {
