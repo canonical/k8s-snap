@@ -415,7 +415,7 @@ EPA capabilities.
 1. [Install the snap][install-link] from the relevant [channel][channel]. 
    
    ```{note}
-   A pre-release channel is required currently until there is a finalised release of {{product}}.
+   A pre-release channel is required currently until there is a stable release of {{product}}.
    ```
 
    For example:
@@ -1102,28 +1102,28 @@ the correct PCI address:
 
 ```
 ...
-                  k8s.v1.cni.cncf.io/network-status:
-                    [{
-                        "name": "k8s-pod-network",
-                        "ips": [
-                            "10.1.17.141"
-                        ],
-                        "default": true,
-                        "dns": {}
-                    },{
-                        "name": "default/dpdk-net1",
-                        "interface": "net1",
-                        "mac": "26:e4:aa:f4:ce:ba",
-                        "dns": {},
-                        "device-info": {
-                            "type": "pci",
-                            "version": "1.1.0",
-                            "pci": {
-                                "pci-address": "0000:98:1f.2"
-                            }
-                        }
-                    }]
-                  k8s.v1.cni.cncf.io/networks: dpdk-net1
+    k8s.v1.cni.cncf.io/network-status:
+      [{
+          "name": "k8s-pod-network",
+          "ips": [
+              "10.1.17.141"
+          ],
+          "default": true,
+          "dns": {}
+      },{
+          "name": "default/dpdk-net1",
+          "interface": "net1",
+          "mac": "26:e4:aa:f4:ce:ba",
+          "dns": {},
+          "device-info": {
+              "type": "pci",
+              "version": "1.1.0",
+              "pci": {
+                  "pci-address": "0000:98:1f.2"
+              }
+          }
+      }]
+    k8s.v1.cni.cncf.io/networks: dpdk-net1
 ...
 
 ```
