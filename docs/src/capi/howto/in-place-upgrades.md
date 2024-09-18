@@ -1,7 +1,7 @@
 # Perform an in-place upgrade for a machine
 
 This guide walks you through the steps to perform an in-place upgrade for a
-Cluster API managed Machine.
+Cluster API managed machine.
 
 ## Prerequisites
 
