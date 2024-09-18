@@ -96,6 +96,36 @@ def test_no_remove(instances: List[harness.Instance]):
     assert len(nodes) == 3, "worker node should not have been removed from cluster"
 
 
+@pytest.mark.node_count(2)
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-skip-service-stop.yaml").read_text()
+)
+def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
+    cluster_node = instances[0]
+    joining_cp = instances[1]
+
+    join_token = util.get_join_token(cluster_node, joining_cp)
+    util.join_cluster(joining_cp, join_token)
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "nodes should have joined cluster"
+
+    cluster_node.exec(["k8s", "remove-node", joining_cp.id])
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "cp node should not have been removed from cluster"
+    services = joining_cp.exec(
+        ["snap", "services", "k8s"], capture_output=True, text=True
+    ).split("\n")[1:]
+    for service in services:
+        if "k8s-apiserver-proxy" in service:
+            assert (
+                " inactive " in service
+            ), "apiserver proxy should be inactive on control-plane"
+        else:
+            assert " active " in service, "service should be active"
+
+
 @pytest.mark.node_count(3)
 def test_join_with_custom_token_name(instances: List[harness.Instance]):
     cluster_node = instances[0]
