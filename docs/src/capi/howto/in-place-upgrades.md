@@ -44,30 +44,40 @@ kubectl annotate machine c1-control-plane-xyzbw "v1beta2.k8sd.io/in-place-upgrad
 ```
 
 `<upgrade-option>` can be one of:
-* `channel=<snap-channel>` which refreshes k8s to the given snap channel. e.g. `channel=1.30-classic/stable`
-* `revision=<revision>` which refreshes k8s to the given revision. e.g. `revision=123`
-* `localPath=<path>` which refreshes k8s with the snap file from the given absolute path. `localPath=full/path/to/k8s.snap`
 
-Please refer to the [ClusterAPI Annotations Reference][capi-annotations-reference] for further
-details on these options.
+* `channel=<snap-channel>` which refreshes k8s to the given snap channel.
+  e.g. `channel=1.30-classic/stable`
+* `revision=<revision>` which refreshes k8s to the given revision.
+  e.g. `revision=123`
+* `localPath=<path>` which refreshes k8s with the snap file from 
+  the given absolute path. e.g. `localPath=full/path/to/k8s.snap`
+
+Please refer to the [ClusterAPI Annotations Reference][annotations-reference]
+for further details on these options.
 
 ## Monitor the in-place upgrade
 
-Watch the status of the in-place upgrade for the machine, by running the
-following command and checking the `v1beta2.k8sd.io/in-place-upgrade-status` annotation:
+Watch the status of the in-place upgrade for the machine,
+by running the following command and checking the
+`v1beta2.k8sd.io/in-place-upgrade-status` annotation:
 
 ```
 kubectl get machine c1-control-plane-xyzbw -o yaml
 ```
 
 On a successful upgrade:
-* Value of the `v1beta2.k8sd.io/in-place-upgrade-status` annotation will be changed to `done`
-* Value of the `v1beta2.k8sd.io/in-place-upgrade-release` annotation will be changed to the `<upgrade-option>` used to perform the upgrade.
+
+* Value of the `v1beta2.k8sd.io/in-place-upgrade-status` annotation
+  will be changed to `done`
+* Value of the `v1beta2.k8sd.io/in-place-upgrade-release` annotation
+  will be changed to the `<upgrade-option>` used to perform the upgrade.
 
 ## Cancelling a failing upgrade
+
 The upgrade is retried periodically if the operation was unsuccessful.
 
-The upgrade can be cancelled by running the following commands that remove the annotations:
+The upgrade can be cancelled by running the following commands
+that remove the annotations:
 
 ```
 kubectl annotate machine c1-control-plane-xyzbw "v1beta2.k8sd.io/in-place-upgrade-to-"
@@ -85,4 +95,4 @@ kubectl --kubeconfig c1-kubeconfig.yaml get nodes -o wide
 
 <!-- LINKS -->
 [getting-started]: ../tutorial/getting-started.md
-[capi-annotations-reference]: ../reference/annotations.md
+[annotations-reference]: ../reference/annotations.md
