@@ -1,6 +1,6 @@
-# Perform an in place upgrade for a machine
+# Perform an in-place upgrade for a machine
 
-This guide walks you through the steps to perform an in place upgrade for a
+This guide walks you through the steps to perform an in-place upgrade for a
 Cluster API managed Machine.
 
 ## Prerequisites
@@ -11,8 +11,7 @@ To follow this guide, you will need:
   and configured.
 - A target workload cluster managed by CAPI.
 - `kubectl` installed and configured to access your management cluster.
-- The workload cluster kubeconfig. We will refer to it as `c1-kubeconfig.yaml`
-  in the following steps.
+- The workload cluster kubeconfig.
 
 Please refer to the [getting-started guide][getting-started] for further
 details on the required setup.
@@ -37,7 +36,7 @@ kubectl --kubeconfig c1-kubeconfig.yaml get nodes -o wide
 ## Annotate the machine
 
 In this first step, annotate the Machine resource with 
-the in place upgrade annotation. In this example, the machine
+the in-place upgrade annotation. In this example, the machine
 is called `c1-control-plane-xyzbw`.
 
 ```
@@ -50,11 +49,11 @@ kubectl annotate machine c1-control-plane-xyzbw "v1beta2.k8sd.io/in-place-upgrad
 * `localPath=<path>` which refreshes k8s with the snap file from the given absolute path. `localPath=full/path/to/k8s.snap`
 
 Please refer to the [ClusterAPI Annotations Reference][capi-annotations-reference] for further
-details on the options.
+details on these options.
 
-## Monitor the in place upgrade
+## Monitor the in-place upgrade
 
-Watch the status of the in place upgrade for the machine, by running the
+Watch the status of the in-place upgrade for the machine, by running the
 following command and checking the `v1beta2.k8sd.io/in-place-upgrade-status` annotation:
 
 ```
