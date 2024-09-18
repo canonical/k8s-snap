@@ -1,7 +1,7 @@
 # How to set up Enhanced Platform Awareness
 
 This section explains how to set up the Enhanced Platform Awareness (EPA)
-features in a {{product}} cluster. 
+features in a {{product}} cluster. Please see the [EPA explanation page][explain-epa] for details about how EPA applies to {{product}}.
 
 The content starts with the setup of the environment (including steps for using
 [MAAS][MAAS]). Then the setup of {{product}}, including the Multus & SR-IOV/DPDK
@@ -1144,3 +1144,4 @@ the correct PCI address:
 [install-link]: /snap/howto/install/snap
 [snap]: https://snapcraft.io/docs
 [cyclictest]: https://github.com/jlelli/rt-tests
+[explain-epa]: /snap/explanation/epa
