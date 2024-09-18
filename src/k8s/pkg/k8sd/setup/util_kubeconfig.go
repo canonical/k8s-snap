@@ -57,7 +57,7 @@ func KubeconfigString(url string, caPEM string, crtPEM string, keyPEM string) (s
 }
 
 // SetupControlPlaneKubeconfigs writes kubeconfig files for the control plane components.
-func SetupControlPlaneKubeconfigs(kubeConfigDir string, securePort int, pki pki.ControlPlanePKI, localhostAddress string) error {
+func SetupControlPlaneKubeconfigs(kubeConfigDir string, localhostAddress string, securePort int, pki pki.ControlPlanePKI) error {
 	for _, kubeconfig := range []struct {
 		file string
 		crt  string
