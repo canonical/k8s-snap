@@ -107,14 +107,14 @@ jobs:
       - name: Prepare inspection reports
         if: failure()
         run: |
-          tar -czvf inspection-reports.tar.gz -C $HOME inspection-reports
+          tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
           echo "artifact_name=inspection-reports-${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.artifact_name }}
-          path: inspection-reports.tar.gz
+          path: ${{ github.workspace }}/inspection-reports.tar.gz
 
   security-scan:
     permissions:
