@@ -12,10 +12,10 @@ import (
 )
 
 // KubeProxy configures kube-proxy on the local node.
-func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR string, extraArgs map[string]*string) error {
+func KubeProxy(ctx context.Context, snap snap.Snap, hostname string, podCIDR string, localhostAddress string, extraArgs map[string]*string) error {
 	serviceArgs := map[string]string{
 		"--cluster-cidr":         podCIDR,
-		"--healthz-bind-address": "127.0.0.1",
+		"--healthz-bind-address": fmt.Sprintf("%s:10256", localhostAddress),
 		"--kubeconfig":           filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"),
 		"--profiling":            "false",
 	}

@@ -81,6 +81,13 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		return response.InternalError(fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname()))
 	}
 
+	var localhostAddress string
+	if nodeIP.To4() == nil {
+		localhostAddress = "[::1]"
+	} else {
+		localhostAddress = "127.0.0.1"
+	}
+
 	serviceIPs, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(clusterConfig.Network.GetServiceCIDR())
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", clusterConfig.Network.GetServiceCIDR(), err))
@@ -119,7 +126,7 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		return response.InternalError(fmt.Errorf("failed to write control plane certificates: %w", err))
 	}
 
-	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), localhostAddress, clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate control plane kubeconfigs: %w", err))
 	}
 
@@ -262,11 +269,23 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		return response.InternalError(fmt.Errorf("failed to write worker PKI: %w", err))
 	}
 
+	nodeIP := net.ParseIP(s.Address().Hostname())
+	if nodeIP == nil {
+		return response.InternalError(fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname()))
+	}
+
+	var localhostAddress string
+	if nodeIP.To4() == nil {
+		localhostAddress = "[::1]"
+	} else {
+		localhostAddress = "127.0.0.1"
+	}
+
 	// Kubeconfigs
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), fmt.Sprintf("%s:6443", localhostAddress), certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate kubelet kubeconfig: %w", err))
 	}
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), fmt.Sprintf("%s:6443", localhostAddress), certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err))
 	}
 

@@ -125,3 +125,20 @@ func ParseCIDRs(CIDRstring string) (string, string, error) {
 	}
 	return ipv4CIDR, ipv6CIDR, nil
 }
+
+// IsIPv4 returns true if the address is a valid IPv4 address, false otherwise.
+// The address may contain a port number.
+func IsIPv4(address string) bool {
+	ip := strings.Split(address, ":")[0]
+	parsedIP := net.ParseIP(ip)
+	return parsedIP != nil && parsedIP.To4() != nil
+}
+
+// ToIPString returns the string representation of an IP address.
+// If the IP address is an IPv6 address, it is enclosed in square brackets.
+func ToIPString(ip net.IP) string {
+	if ip.To4() != nil {
+		return ip.String()
+	}
+	return "[" + ip.String() + "]"
+}

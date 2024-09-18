@@ -48,6 +48,13 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
 	}
 
+	var localhostAddress string
+	if nodeIP.To4() == nil {
+		localhostAddress = "[::1]"
+	} else {
+		localhostAddress = "127.0.0.1"
+	}
+
 	// Create directories
 	if err := setup.EnsureAllDirectories(snap); err != nil {
 		return fmt.Errorf("failed to create directories: %w", err)
@@ -64,7 +71,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		// NOTE: Default certificate expiration is set to 20 years.
 		certificates := pki.NewK8sDqlitePKI(pki.K8sDqlitePKIOpts{
 			Hostname:  s.Name(),
-			IPSANs:    []net.IP{{127, 0, 0, 1}},
+			IPSANs:    []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
 			NotBefore: notBefore,
 			NotAfter:  notBefore.AddDate(20, 0, 0),
 		})
@@ -140,7 +147,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
 
-	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), localhostAddress, cfg.APIServer.GetSecurePort(), *certificates); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
@@ -158,10 +165,16 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		}
 		cluster := make([]string, len(members))
 		for _, member := range members {
-			cluster = append(cluster, fmt.Sprintf("%s:%d", member.Address.Addr(), cfg.Datastore.GetK8sDqlitePort()))
+			var address string
+			if member.Address.Addr().Is6() {
+				address = fmt.Sprintf("[%s]", member.Address.Addr())
+			} else {
+				address = member.Address.Addr().String()
+			}
+			cluster = append(cluster, fmt.Sprintf("%s:%d", address, cfg.Datastore.GetK8sDqlitePort()))
 		}
 
-		address := fmt.Sprintf("%s:%d", nodeIP.String(), cfg.Datastore.GetK8sDqlitePort())
+		address := fmt.Sprintf("%s:%d", utils.ToIPString(nodeIP), cfg.Datastore.GetK8sDqlitePort())
 		if err := setup.K8sDqlite(snap, address, cluster, joinConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
@@ -177,7 +190,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), joinConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), localhostAddress, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap, joinConfig.ExtraNodeKubeControllerManagerArgs); err != nil {

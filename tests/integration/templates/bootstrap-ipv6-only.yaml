@@ -1,0 +1,16 @@
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+    cluster-domain: cluster.local
+  local-storage:
+    enabled: true
+    local-path: /storage/path
+    default: false
+  gateway:
+    enabled: true
+  metrics-server:
+    enabled: true
+pod-cidr: fd01::/108
+service-cidr: fd98::/108

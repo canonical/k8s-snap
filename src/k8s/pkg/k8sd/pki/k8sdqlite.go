@@ -64,7 +64,7 @@ func (c *K8sDqlitePKI) CompleteCertificates() error {
 			return fmt.Errorf("k8s-dqlite certificate not specified and generating self-signed certificates is not allowed")
 		}
 
-		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "k8s"}, c.notBefore, c.notAfter, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.IP{127, 0, 0, 1}))
+		template, err := pkiutil.GenerateCertificate(pkix.Name{CommonName: "k8s"}, c.notBefore, c.notAfter, false, append(c.dnsSANs, c.hostname), append(c.ipSANs, net.ParseIP("127.0.0.1"), net.ParseIP("::1")))
 		if err != nil {
 			return fmt.Errorf("failed to generate k8s-dqlite certificate: %w", err)
 		}

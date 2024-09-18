@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginxipv6
+spec:
+  selector:
+    matchLabels:
+      run: nginxipv6
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: nginxipv6
+    spec:
+      containers:
+      - name: nginxipv6
+        image: rocks.canonical.com/cdk/diverdane/nginxdualstack:1.0.0
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ipv6
+  labels:
+    run: nginxipv6
+spec:
+  type: NodePort
+  ipFamilies:
+  - IPv6
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    run: nginxipv6

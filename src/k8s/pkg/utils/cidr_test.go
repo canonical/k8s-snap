@@ -164,3 +164,44 @@ func TestParseCIDRs(t *testing.T) {
 		})
 	}
 }
+
+func TestIsIPv4(t *testing.T) {
+	tests := []struct {
+		address  string
+		expected bool
+	}{
+		{"192.168.1.1:80", true},
+		{"127.0.0.1", true},
+		{"::1", false},
+		{"[fe80::1]:80", false},
+		{"256.256.256.256", false}, // Invalid IPv4 address
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.address, func(t *testing.T) {
+			g := NewWithT(t)
+			result := utils.IsIPv4(tc.address)
+			g.Expect(result).To(Equal(tc.expected))
+		})
+	}
+}
+
+func TestToIPString(t *testing.T) {
+	tests := []struct {
+		ip       net.IP
+		expected string
+	}{
+		{net.ParseIP("192.168.1.1"), "192.168.1.1"},
+		{net.ParseIP("::1"), "[::1]"},
+		{net.ParseIP("fe80::1"), "[fe80::1]"},
+		{net.ParseIP("127.0.0.1"), "127.0.0.1"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.expected, func(t *testing.T) {
+			g := NewWithT(t)
+			result := utils.ToIPString(tc.ip)
+			g.Expect(result).To(Equal(tc.expected))
+		})
+	}
+}

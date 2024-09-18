@@ -27,6 +27,8 @@ import (
 	"net"
 	"sync"
 	"time"
+
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 type remote struct {
@@ -78,7 +80,8 @@ func (tp *tcpproxy) Run() error {
 		tp.MonitorInterval = 5 * time.Minute
 	}
 	for _, srv := range tp.Endpoints {
-		addr := fmt.Sprintf("%s:%d", srv.Target, srv.Port)
+		ip := net.ParseIP(srv.Target)
+		addr := fmt.Sprintf("%s:%d", utils.ToIPString(ip), srv.Port)
 		tp.remotes = append(tp.remotes, &remote{srv: srv, addr: addr})
 	}
 
