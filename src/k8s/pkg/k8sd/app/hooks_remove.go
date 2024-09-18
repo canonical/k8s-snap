@@ -124,20 +124,20 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Error(err, "Failed to unmark node as worker")
 	}
 
-	log.Info("Stopping worker services")
-	if err := snaputil.StopWorkerServices(ctx, snap); err != nil {
-		log.Error(err, "Failed to stop worker services")
-	}
+	/* 	log.Info("Stopping worker services")
+	   	if err := snaputil.StopWorkerServices(ctx, snap); err != nil {
+	   		log.Error(err, "Failed to stop worker services")
+	   	} */
 
 	log.Info("Cleaning up control plane certificates")
 	if _, err := setup.EnsureControlPlanePKI(snap, &pki.ControlPlanePKI{}); err != nil {
 		log.Error(err, "failed to cleanup control plane certificates")
 	}
 
-	log.Info("Stopping control plane services")
-	if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
-		log.Error(err, "Failed to stop control-plane services")
-	}
+	/* 	log.Info("Stopping control plane services")
+	   	if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
+	   		log.Error(err, "Failed to stop control-plane services")
+	   	} */
 
 	return nil
 }
