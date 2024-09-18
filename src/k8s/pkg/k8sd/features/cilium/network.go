@@ -60,9 +60,6 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 			"tag":        CiliumAgentImageTag,
 			"useDigest":  false,
 		},
-		"socketLB": map[string]any{
-			"enabled": true,
-		},
 		"cni": map[string]any{
 			"confPath": "/etc/cni/net.d",
 			"binPath":  "/opt/cni/bin",
@@ -87,10 +84,10 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 				"clusterPoolIPv6PodCIDRList": ipv6CIDR,
 			},
 		},
-		"nodePort": map[string]any{
-			"enabled": true,
-		},
 		"disableEnvoyVersionCheck": true,
+		"kubeProxyReplacement":     true,
+		"k8sServiceHost":           "127.0.0.1",
+		"k8sServicePort":           6443,
 	}
 
 	if snap.Strict() {
