@@ -91,7 +91,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: k8s.snap
-          path: build
+          path: ${{ github.workspace }}/build
       - name: Run end to end tests
         env:
           TEST_SNAP: ${{ github.workspace }}/build/k8s.snap
