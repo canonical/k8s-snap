@@ -89,8 +89,8 @@ jobs:
           # TODO(ben): Use candidate/stable
           # -strict suffix is removed from the channel name in the run script
           TEST_VERSION_UPGRADE_CHANNELS: |
-              1.30-{{ matrix.patch }}/edge
-              1.31-{{ matrix.patch }}/edge
+              1.30-${{ matrix.patch }}/edge
+              1.31-${{ matrix.patch }}/edge
         run: |
           # IPv6-only is only supported on moonray
           if [[ "${{ matrix.patch }}" == "moonray" ]]; then
