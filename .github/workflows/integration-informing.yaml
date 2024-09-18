@@ -41,12 +41,12 @@ jobs:
       - name: Build snap
         run: |
           sg lxd -c 'snapcraft --use-lxd'
-          mv k8s_*.snap k8s.snap
+          mv k8s_*.snap k8s-${{ matrix.patch }}.snap
       - name: Uploading snap
         uses: actions/upload-artifact@v4
         with:
-          name: k8s.snap
-          path: k8s.snap
+          name: k8s-${{ matrix.patch }}.snap
+          path: k8s-${{ matrix.patch }}.snap
 
   test-integration:
     needs: [ build ]
@@ -76,7 +76,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: k8s.snap
-          path: ${{ github.workspace }}/build
+          path: ${{ github.workspace }}/build/k8s.snap
       - name: Apply ${{ matrix.patch }} patch
         run: |
           ./build-scripts/patches/${{ matrix.patch }}/apply
