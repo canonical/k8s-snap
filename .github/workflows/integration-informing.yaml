@@ -75,7 +75,7 @@ jobs:
       - name: Download snap
         uses: actions/download-artifact@v4
         with:
-          name: k8s.snap
+          name: k8s-${{ matrix.patch }}.snap
           path: ${{ github.workspace }}/build/k8s.snap
       - name: Apply ${{ matrix.patch }} patch
         run: |
