@@ -137,7 +137,13 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     ).stdout.split("\n")[1:-1]
     print(services)
     for service in services:
-        for expected_active_service in ["containerd", "k8sd", "kubelet", "kube-proxy", "k8s-apiserver-proxy"]:
+        for expected_active_service in [
+            "containerd",
+            "k8sd",
+            "kubelet",
+            "kube-proxy",
+            "k8s-apiserver-proxy",
+        ]:
             if expected_active_service in service:
                 assert (
                     " active " in service
