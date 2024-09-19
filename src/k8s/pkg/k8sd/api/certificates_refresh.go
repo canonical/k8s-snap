@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"crypto/x509/pkix"
 	"fmt"
 	"math"
@@ -66,6 +67,8 @@ func (e *Endpoints) postRefreshCertsRun(s state.State, r *http.Request) response
 
 // refreshCertsRunControlPlane refreshes the certificates for a control plane node.
 func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap) response.Response {
+	log := log.FromContext(r.Context())
+
 	req := apiv1.RefreshCertificatesRunRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
@@ -130,20 +133,50 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		return response.InternalError(fmt.Errorf("failed to generate control plane kubeconfigs: %w", err))
 	}
 
-	if err := snaputil.RestartControlPlaneServices(r.Context(), snap); err != nil {
-		return response.InternalError(fmt.Errorf("failed to restart control plane services: %w", err))
-	}
+	readyCh := make(chan error)
+	go func() {
+		// Create a new context with a timeout of 1 minute.
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
 
-	kubeletCert, _, err := pkiutil.LoadCertificate(certificates.KubeletCert, "")
+		if err := <-readyCh; err != nil {
+			log.Error(err, "Failed to refresh certificates")
+			return
+		}
+		if err := snaputil.RestartControlPlaneServices(ctx, snap); err != nil {
+			log.Error(err, "Failed to restart control plane services")
+		}
+	}()
+
+	apiServerCert, _, err := pkiutil.LoadCertificate(certificates.APIServerCert, "")
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to read kubelet certificate: %w", err))
 	}
 
-	expirationTimeUNIX := kubeletCert.NotAfter.Unix()
+	expirationTimeUNIX := apiServerCert.NotAfter.Unix()
 
-	return response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
-		ExpirationSeconds: int(expirationTimeUNIX),
+	return response.ManualResponse(func(w http.ResponseWriter) (rerr error) {
+		defer func() {
+			readyCh <- rerr
+			close(readyCh)
+		}()
+
+		err := response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
+			ExpirationSeconds: int(expirationTimeUNIX),
+		}).Render(w)
+		if err != nil {
+			return err
+		}
+
+		f, ok := w.(http.Flusher)
+		if !ok {
+			return fmt.Errorf("ResponseWriter is not type http.Flusher")
+		}
+
+		f.Flush()
+		return nil
 	})
+
 }
 
 // refreshCertsRunWorker refreshes the certificates for a worker node

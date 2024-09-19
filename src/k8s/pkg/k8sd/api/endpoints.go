@@ -91,12 +91,12 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		// Certificates
 		{
 			Name: "RefreshCerts/Plan",
-			Path: "k8sd/refresh-certs/plan",
+			Path: apiv1.RefreshCertificatesPlanRPC,
 			Post: rest.EndpointAction{Handler: e.postRefreshCertsPlan},
 		},
 		{
 			Name: "RefreshCerts/Run",
-			Path: "k8sd/refresh-certs/run",
+			Path: apiv1.RefreshCertificatesRunRPC,
 			Post: rest.EndpointAction{Handler: e.postRefreshCertsRun},
 		},
 		// Kubeconfig
@@ -143,7 +143,17 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		{
 			Name: "ClusterAPI/CertificatesExpiry",
 			Path: apiv1.ClusterAPICertificatesExpiryRPC,
-			Post: rest.EndpointAction{Handler: e.postCertificatesExpiry, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postCertificatesExpiry, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
+		},
+		{
+			Name: "ClusterAPI/RefreshCerts/Plan",
+			Path: "x/capi/refresh-certs/plan",
+			Post: rest.EndpointAction{Handler: e.postRefreshCertsPlan, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
+		},
+		{
+			Name: "ClusterAPI/RefreshCerts/Run",
+			Path: "x/capi/refresh-certs/run",
+			Post: rest.EndpointAction{Handler: e.postRefreshCertsRun, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
 		},
 		// Snap refreshes
 		{
