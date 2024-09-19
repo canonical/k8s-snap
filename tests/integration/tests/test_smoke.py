@@ -89,7 +89,6 @@ def test_smoke(instances: List[harness.Instance]):
         capture_output=True,
     )
     response = json.loads(resp.stdout.decode())
-
     assert (
         response["error_code"] == 0
     ), "Failed to generate join token using CAPI endpoints."
@@ -100,6 +99,32 @@ def test_smoke(instances: List[harness.Instance]):
     assert (
         metadata.get("token") is not None
     ), "Token not found in the generate-join-token response."
+
+    resp = instance.exec(
+        [
+            "curl",
+            "-XPOST",
+            "-H",
+            "Content-Type: application/json",
+            "-H",
+            "capi-auth-token: my-secret-token",
+            "--unix-socket",
+            "/var/snap/k8s/common/var/lib/k8sd/state/control.socket",
+            "http://localhost/1.0/x/capi/certificates-expiry",
+        ],
+        capture_output=True,
+    )
+    response = json.loads(resp.stdout.decode())
+    assert (
+        response["error_code"] == 0
+    ), "Failed to get certificate expiry using CAPI endpoints."
+    metadata = response.get("metadata")
+    assert (
+        metadata is not None
+    ), "Metadata not found in the certificate expiry response."
+    assert util.is_valid_rfc3339(
+        metadata.get("expiry")
+    ), "Token not found in the certificate expiry response."
 
     def status_output_matches(p: subprocess.CompletedProcess) -> bool:
         result_lines = p.stdout.decode().strip().split("\n")

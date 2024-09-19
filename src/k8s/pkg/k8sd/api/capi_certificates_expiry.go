@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
-	"github.com/canonical/k8s/pkg/utils"
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v3/state"
 )
@@ -23,12 +24,33 @@ func (e *Endpoints) postCertificatesExpiry(s state.State, r *http.Request) respo
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
-	expiry, err := utils.GetCertExpiry(config.Certificates.GetAdminClientCert())
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to get certificate expiry: %w", err))
+	certificates := []string{
+		config.Certificates.GetCACert(),
+		config.Certificates.GetClientCACert(),
+		config.Certificates.GetAdminClientCert(),
+		config.Certificates.GetAPIServerKubeletClientCert(),
+		config.Certificates.GetFrontProxyCACert(),
+	}
+
+	var earliestExpiry time.Time
+	// Find the earliest expiry certificate
+	// They should all be about the same but better double-check this.
+	for _, cert := range certificates {
+		if cert == "" {
+			continue
+		}
+
+		cert, _, err := pkiutil.LoadCertificate(cert, "")
+		if err != nil {
+			return response.InternalError(fmt.Errorf("failed to load certificate: %w", err))
+		}
+
+		if earliestExpiry.IsZero() || cert.NotAfter.Before(earliestExpiry) {
+			earliestExpiry = cert.NotAfter
+		}
 	}
 
 	return response.SyncResponse(true, &apiv1.ClusterAPICertificatesExpiryResponse{
-		Expiry: expiry,
+		Expiry: earliestExpiry.Format(time.RFC3339),
 	})
 }

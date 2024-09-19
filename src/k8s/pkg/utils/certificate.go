@@ -4,11 +4,9 @@ import (
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"net"
 	"net/http"
-	"time"
 )
 
 // SplitIPAndDNSSANs splits a list of SANs into IP and DNS SANs
@@ -99,22 +97,4 @@ func GetRemoteCertificate(address string) (*x509.Certificate, error) {
 // CertFingerprint returns the SHA256 fingerprint of a certificate
 func CertFingerprint(cert *x509.Certificate) string {
 	return fmt.Sprintf("%x", sha256.Sum256(cert.Raw))
-}
-
-// GetCertExpiry returns the expiration date of a certificate in RFC3339 format.
-func GetCertExpiry(certPEM string) (string, error) {
-	// Decode the PEM certificate
-	block, _ := pem.Decode([]byte(certPEM))
-	if block == nil {
-		return "", fmt.Errorf("failed to parse certificate PEM")
-	}
-
-	// Parse the certificate
-	cert, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse certificate: %v", err)
-	}
-
-	// Return the expiration date formatted as RFC3339
-	return cert.NotAfter.Format(time.RFC3339), nil
 }
