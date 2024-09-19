@@ -23,7 +23,7 @@ func (e *Endpoints) postCertificatesExpiry(s state.State, r *http.Request) respo
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
-	expiry, err := utils.GetCertExpiry(config.Certificates.GetCACert())
+	expiry, err := utils.GetCertExpiry(config.Certificates.GetAdminClientCert())
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get certificate expiry: %w", err))
 	}
