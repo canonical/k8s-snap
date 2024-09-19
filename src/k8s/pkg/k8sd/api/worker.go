@@ -86,5 +86,6 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 		KubeProxyClientCert: workerCertificates.KubeProxyClientCert,
 		KubeProxyClientKey:  workerCertificates.KubeProxyClientKey,
 		K8sdPublicKey:       cfg.Certificates.GetK8sdPublicKey(),
+		Annotations:         cfg.Annotations,
 	})
 }
