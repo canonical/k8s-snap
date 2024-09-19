@@ -43,8 +43,7 @@ def test_version_upgrades(instances: List[harness.Instance]):
                 f"Upgrading {instance.id} from {current_channel} to channel {channel}"
             )
             # Log the current snap version on the node.
-            # instance.exec(["snap", "info", "k8s"])
-            # instance.exec(["k8s", "status", "--wait-ready"])
+            instance.exec(["snap", "info", "k8s"])
 
             # note: the `--classic` flag will be ignored by snapd for strict snaps.
             instance.exec(
