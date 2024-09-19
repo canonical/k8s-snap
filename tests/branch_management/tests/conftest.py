@@ -12,34 +12,31 @@ STABLE_URL = "https://dl.k8s.io/release/stable.txt"
 RELEASE_URL = "https://dl.k8s.io/release/stable-{}.{}.txt"
 
 
-def _upstream_release_exists(ver: semver.Version) -> Optional[semver.Version]:
-    """Return true if the major.minor release exists"""
+def _upstream_release(ver: semver.Version) -> Optional[semver.Version]:
+    """Semver of the major.minor release if it exists"""
     r = requests.get(RELEASE_URL.format(ver.major, ver.minor))
     if r.status_code == 200:
         return semver.Version.parse(r.content.decode().lstrip("v"))
 
 
-def _get_max_minor(rev: semver.Version) -> semver.Version:
+def _get_max_minor(ver: semver.Version) -> semver.Version:
     """
-    Get the latest minor release of the provided major.
+    Get the latest patch release based on the provided major.
 
-    For example if you use 1 as major you will get back X where X gives you latest 1.XX release.
+    e.g. 1.<any>.<any> could yield 1.31.4 if 1.31 is the latest stable release on that maj channel
+    e.g. 2.<any>.<any> could yield 2.12.1 if 2.12 is the latest stable release on that maj channel
     """
-    out = semver.Version(rev.major, 0, 0)
-    while rev := _upstream_release_exists(rev):
-        out = rev
-        rev = semver.Version(rev.major, rev.minor + 1, 0)
+    out = semver.Version(ver.major, 0, 0)
+    while ver := _upstream_release(ver):
+        out, ver = ver, semver.Version(ver.major, ver.minor + 1, 0)
     return out
 
 
 def _previous_release(ver: semver.Version) -> semver.Version:
+    """Return the prior release version based on the provided version ignoring patch"""
     if ver.minor != 0:
-        ver = semver.Version(ver.major, ver.minor - 1, 0)
-        ver = _upstream_release_exists(ver)
-    else:
-        ver = semver.Version(ver.major, 0, 0)
-        ver = _get_max_minor(ver)
-    return ver
+        return _upstream_release(semver.Version(ver.major, ver.minor - 1, 0))
+    return _get_max_minor(semver.Version(ver.major, 0, 0))
 
 
 @pytest.fixture(scope="session")
