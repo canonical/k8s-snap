@@ -62,7 +62,10 @@ var testCases = []testCase{
 					Enabled: utils.Pointer(true),
 				},
 				CloudProvider: utils.Pointer("external"),
-				Annotations:   map[string]string{apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove: "true"},
+				Annotations: map[string]string{
+					apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove: "true",
+					apiv1.AnnotationSkipStopServicesOnRemove:          "true",
+				},
 			},
 			ControlPlaneTaints:                 []string{"node-role.kubernetes.io/control-plane:NoSchedule"},
 			PodCIDR:                            utils.Pointer("10.100.0.0/16"),
