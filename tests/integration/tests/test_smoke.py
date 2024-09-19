@@ -123,7 +123,7 @@ def test_smoke(instances: List[harness.Instance]):
         metadata is not None
     ), "Metadata not found in the certificate expiry response."
     assert util.is_valid_rfc3339(
-        metadata.get("expiry")
+        metadata.get("expiry-date")
     ), "Token not found in the certificate expiry response."
 
     def status_output_matches(p: subprocess.CompletedProcess) -> bool:

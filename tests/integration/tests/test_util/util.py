@@ -1,7 +1,7 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
-import datetime
+from datetime import datetime
 import json
 import logging
 import re
