@@ -96,3 +96,64 @@ func TestGetRemoteCertificate(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(remoteCert).To(BeNil())
 }
+
+func TestGetCertExpiry(t *testing.T) {
+	certPEM := `-----BEGIN CERTIFICATE-----
+MIIDkzCCAnugAwIBAgIUHjmfFK9cfwsJ9wVeay77DUxGfsQwDQYJKoZIhvcNAQEL
+BQAwWTELMAkGA1UEBhMCVVMxDjAMBgNVBAgMBVN0YXRlMQ0wCwYDVQQHDARDaXR5
+MRUwEwYDVQQKDAxPcmdhbml6YXRpb24xFDASBgNVBAMMC2V4YW1wbGUuY29tMB4X
+DTI0MDMyMTE5MTE1NVoXDTM0MDMxOTE5MTE1NVowWTELMAkGA1UEBhMCVVMxDjAM
+BgNVBAgMBVN0YXRlMQ0wCwYDVQQHDARDaXR5MRUwEwYDVQQKDAxPcmdhbml6YXRp
+b24xFDASBgNVBAMMC2V4YW1wbGUuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+MIIBCgKCAQEAqiI/f/IWAk+2I3uxoTxB20RxrwUvPglAmsvXpkT40PbCHZ9pqI4I
+GQoY5mR4bQMx4s3TQNIMGIIha9IvLXVgQb6WxZNc7lLWOg/VHAw+0tUkGnO2o89v
+loRNJj2+ZcFu9UZQDLa/cr5pKGnFI4O3rR8DcQxt9rPtSY62ICLFwqU2Hw3fjyHI
+FITKmTrZNccmcWKBuOfj4DkFaFT9+jZ72W8DHBXMjAm7qZC3ar9ZlzhHT8mI942i
+LuNd0r47yrzga/kLCtjHDYXjBGBareIsfAZDJ+1WV9wVShL42brTwchZhBVcxY66
+by8PZJPD97c22zvVyCKIUGGcFKxvWb2fBQIDAQABo1MwUTAdBgNVHQ4EFgQU3LTT
+fZ/8wUZhUj856yEniIkE6xwwHwYDVR0jBBgwFoAU3LTTfZ/8wUZhUj856yEniIkE
+6xwwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEABRNgwMKqA5Y8
+7wfa+X3RsoG0BVOF/+GYCtyXBwH3lXzlOrkTbkL4e9rYGmPx67VCpsnCEAhipta3
+FqjGyZFhMsaaIDlhJjm+K7MTGA7aSfo6NIBmpPRKjIQFL2rhmqs1r7riafwvvDrU
+CzhIi7rODCf7NAzoISU1EzowzKdKNgGYMNvIpv1pMd7p7WHQNK+W+gvQJZ93UpDY
+o9fgMdo44Am9bsiiPi7LAWU5qzbdUErrgFslI+inwD3dOxIwBGfEfD0ngz2nF+Jh
+S63GKldmH7KYVE4sdB2BvfgiraDTTHRIDNre930YIhVI+XLHIhtJ+BSpFO4w/idC
+xjvgVUetag==
+-----END CERTIFICATE-----`
+
+	testCases := []struct {
+		name          string
+		input         string
+		expected      string
+		expectedError bool
+	}{
+		{
+			name:     "Valid certificate",
+			input:    certPEM,
+			expected: "2034-03-19T19:11:55Z",
+		},
+		{
+			name:          "Invalid certificate content",
+			input:         "-----BEGIN CERTIFICATE-----\ninvalid\n-----END CERTIFICATE-----",
+			expectedError: true,
+		},
+		{
+			name:          "Empty PEM block",
+			input:         "",
+			expectedError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+			actual, err := utils.GetCertExpiry(tc.input)
+			if tc.expectedError {
+				g.Expect(err).To(HaveOccurred())
+			} else {
+				g.Expect(err).To(BeNil())
+				g.Expect(actual).To(Equal(tc.expected))
+			}
+		})
+	}
+}
