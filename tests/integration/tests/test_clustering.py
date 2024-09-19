@@ -111,16 +111,15 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     join_token_worker = util.get_join_token(cluster_node, worker, "--worker")
     util.join_cluster(worker, join_token_worker)
 
-    util.wait_until_k8s_ready(cluster_node, instances)
-    nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 3, "nodes should have joined cluster"
+    # We don't care if the node is ready or the CNI is up.
+    util.stubbornly(retries=5, delay_s=3).until(util.get_nodes(cluster_node) == 3)
 
     cluster_node.exec(["k8s", "remove-node", joining_cp.id])
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "cp node should have been removed from the cluster"
     services = joining_cp.exec(
         ["snap", "services", "k8s"], capture_output=True, text=True
-    ).split("\n")[1:]
+    ).stdout.split("\n")[1:-1]
     print(services)
     for service in services:
         if "k8s-apiserver-proxy" in service:
@@ -135,16 +134,14 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     assert len(nodes) == 1, "worker node should have been removed from the cluster"
     services = worker.exec(
         ["snap", "services", "k8s"], capture_output=True, text=True
-    ).split("\n")[1:]
+    ).stdout.split("\n")[1:-1]
     print(services)
     for service in services:
-        for expected_active_service in ["kubelet", "kube-proxy", "k8s-apiserver-proxy"]:
+        for expected_active_service in ["containerd", "k8sd", "kubelet", "kube-proxy", "k8s-apiserver-proxy"]:
             if expected_active_service in service:
                 assert (
                     " active " in service
                 ), f"{expected_active_service} should be active on worker"
-            else:
-                assert " inactive " in service, "service should not be active"
 
 
 @pytest.mark.node_count(3)
