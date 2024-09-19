@@ -1,12 +1,12 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
-from datetime import datetime
 import json
 import logging
 import re
 import shlex
 import subprocess
+from datetime import datetime
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable, List, Mapping, Optional, Union
