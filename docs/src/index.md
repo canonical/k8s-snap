@@ -106,3 +106,5 @@ and constructive feedback.
 [roadmap]: snap/reference/roadmap
 [overview page]: snap/explanation/about
 [architecture documentation]: snap/reference/architecture
+
+<!-- test -->
