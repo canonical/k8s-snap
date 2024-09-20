@@ -89,13 +89,6 @@ JUJU_BASE = os.getenv("TEST_JUJU_BASE") or "ubuntu@22.04"
 # JUJU_MACHINES is a list of existing Juju machines to use.
 JUJU_MACHINES = os.getenv("TEST_JUJU_MACHINES") or ""
 
-# A list of newline-separated channels for which the upgrade tests should be run in sequential order.
+# A list of space-separated channels for which the upgrade tests should be run in sequential order.
 # First entry is the bootstrap channel. Afterwards, upgrades are done in order.
-# Note(ben): Need to decode the environment variable like this to avoid escaped newline issues.
-VERSION_UPGRADE_CHANNELS = (
-    os.environ.get("TEST_VERSION_UPGRADE_CHANNELS")
-    .encode("latin1")
-    .decode("unicode_escape")
-    if os.getenv("TEST_VERSION_UPGRADE_CHANNELS") is not None
-    else None
-)
+VERSION_UPGRADE_CHANNELS = os.environ.get("TEST_VERSION_UPGRADE_CHANNELS").strip().split()

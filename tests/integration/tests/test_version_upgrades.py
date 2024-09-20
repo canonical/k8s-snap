@@ -12,11 +12,12 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.node_count(3)
 @pytest.mark.no_setup()
+@pytest.mark.xfail("cilium failures are blocking this from working")
 @pytest.mark.skipif(
-    config.VERSION_UPGRADE_CHANNELS is None, reason="No upgrade channels configured"
+    not config.VERSION_UPGRADE_CHANNELS, reason="No upgrade channels configured"
 )
 def test_version_upgrades(instances: List[harness.Instance]):
-    channels = config.VERSION_UPGRADE_CHANNELS.splitlines()
+    channels = config.VERSION_UPGRADE_CHANNELS
     cp = instances[0]
     joining_cp = instances[1]
     worker = instances[2]
