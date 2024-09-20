@@ -64,11 +64,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			defer cancel()
 			if err := control.WaitUntilReady(ctx, func() (bool, error) {
-				_, partOfCluster, err := client.NodeStatus(cmd.Context())
-				if !partOfCluster {
-					cmd.PrintErrf("Node is not part of a cluster: %v\n", err)
-					env.Exit(1)
-				}
+				_, _, err := client.NodeStatus(cmd.Context())
 				return err == nil, nil
 			}); err != nil {
 				cmd.PrintErrf("Error: k8sd did not come up in time: %v\n", err)
