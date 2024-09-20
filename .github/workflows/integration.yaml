@@ -2,6 +2,8 @@ name: Integration Tests
 
 on:
   push:
+    paths-ignore:
+      - 'docs/**'
     branches:
       - main
       - autoupdate/strict
@@ -10,6 +12,8 @@ on:
       - 'autoupdate/release-[0-9]+.[0-9]+-strict'
       - 'autoupdate/sync/**'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
 
 permissions:
   contents: read
