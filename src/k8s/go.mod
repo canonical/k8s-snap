@@ -2,6 +2,7 @@ module github.com/canonical/k8s
 
 go 1.22.6
 
+
 require (
 	dario.cat/mergo v1.0.0
 	github.com/canonical/go-dqlite v1.22.0
