@@ -8,6 +8,6 @@ import (
 
 func init() {
 	images.Register(
-		fmt.Sprintf("%s:%s", imageRepo, imageTag),
+		fmt.Sprintf("%s:%s", imageRepo, ImageTag),
 	)
 }
