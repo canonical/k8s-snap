@@ -101,7 +101,7 @@ jobs:
           # Test the latest (up to) 6 releases
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
         run: |
-          cd tests/integration && sg lxd -c 'tox -e integration
+          cd tests/integration && sg lxd -c 'tox -e integration -- -k test_version_upgrades'
       - name: Prepare inspection reports
         if: failure()
         run: |
