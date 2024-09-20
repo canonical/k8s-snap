@@ -3,6 +3,7 @@ package coredns_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -49,6 +50,8 @@ func TestDisabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(coredns.Chart))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
+		g.Expect(callArgs.Values).To(BeNil())
+
 	})
 	t.Run("Success", func(t *testing.T) {
 		g := NewWithT(t)
@@ -76,6 +79,7 @@ func TestDisabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(coredns.Chart))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
+		g.Expect(callArgs.Values).To(BeNil())
 	})
 }
 
@@ -109,6 +113,7 @@ func TestEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(coredns.Chart))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
+		validateValues(g, callArgs.Values, dns, kubelet)
 	})
 	t.Run("HelmApplySuccessServiceFails", func(t *testing.T) {
 		g := NewWithT(t)
@@ -138,6 +143,7 @@ func TestEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(coredns.Chart))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
+		validateValues(g, callArgs.Values, dns, kubelet)
 	})
 	t.Run("Success", func(t *testing.T) {
 		g := NewWithT(t)
@@ -177,5 +183,16 @@ func TestEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(coredns.Chart))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
+		validateValues(g, callArgs.Values, dns, kubelet)
 	})
+}
+
+func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet types.Kubelet) {
+	service := values["service"].(map[string]any)
+	g.Expect(service["clusterIP"]).To(Equal(kubelet.GetClusterDNS()))
+
+	servers := values["servers"].([]map[string]any)
+	plugins := servers[0]["plugins"].([]map[string]any)
+	g.Expect(plugins[3]["parameters"]).To(ContainSubstring(kubelet.GetClusterDomain()))
+	g.Expect(plugins[5]["parameters"]).To(ContainSubstring(strings.Join(dns.GetUpstreamNameservers(), " ")))
 }
