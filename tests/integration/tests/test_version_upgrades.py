@@ -5,7 +5,7 @@ import logging
 from typing import List
 
 import pytest
-from test_util import config, harness, util
+from test_util import config, harness, snap, util
 
 LOG = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ def test_version_upgrades(instances: List[harness.Instance]):
             )
         num_channels = int(channels[1])
         flavour = channels[2]
-        channels = util.get_latest_channels(num_channels, flavour)
+        channels = snap.get_latest_channels(num_channels, flavour)
 
     LOG.info(
         f"Bootstrap node on {channels[0]} and upgrade through channels: {channels[1:]}"
