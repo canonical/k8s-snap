@@ -97,6 +97,60 @@ def test_no_remove(instances: List[harness.Instance]):
 
 
 @pytest.mark.node_count(3)
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-skip-service-stop.yaml").read_text()
+)
+def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
+    cluster_node = instances[0]
+    joining_cp = instances[1]
+    worker = instances[2]
+
+    join_token = util.get_join_token(cluster_node, joining_cp)
+    util.join_cluster(joining_cp, join_token)
+
+    join_token_worker = util.get_join_token(cluster_node, worker, "--worker")
+    util.join_cluster(worker, join_token_worker)
+
+    # We don't care if the node is ready or the CNI is up.
+    util.stubbornly(retries=5, delay_s=3).until(util.get_nodes(cluster_node) == 3)
+
+    cluster_node.exec(["k8s", "remove-node", joining_cp.id])
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "cp node should have been removed from the cluster"
+    services = joining_cp.exec(
+        ["snap", "services", "k8s"], capture_output=True, text=True
+    ).stdout.split("\n")[1:-1]
+    print(services)
+    for service in services:
+        if "k8s-apiserver-proxy" in service:
+            assert (
+                " inactive " in service
+            ), "apiserver proxy should be inactive on control-plane"
+        else:
+            assert " active " in service, "service should be active"
+
+    cluster_node.exec(["k8s", "remove-node", worker.id])
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 1, "worker node should have been removed from the cluster"
+    services = worker.exec(
+        ["snap", "services", "k8s"], capture_output=True, text=True
+    ).stdout.split("\n")[1:-1]
+    print(services)
+    for service in services:
+        for expected_active_service in [
+            "containerd",
+            "k8sd",
+            "kubelet",
+            "kube-proxy",
+            "k8s-apiserver-proxy",
+        ]:
+            if expected_active_service in service:
+                assert (
+                    " active " in service
+                ), f"{expected_active_service} should be active on worker"
+
+
+@pytest.mark.node_count(3)
 def test_join_with_custom_token_name(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp = instances[1]

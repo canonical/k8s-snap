@@ -28,7 +28,6 @@ import (
 // onBootstrap is called after we bootstrap the first cluster node.
 // onBootstrap configures local services then writes the cluster config on the database.
 func (a *App) onBootstrap(ctx context.Context, s state.State, initConfig map[string]string) error {
-
 	// NOTE(neoaggelos): context timeout is passed over configuration, so that hook failures are propagated to the client
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -213,6 +212,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 			CACert:        utils.Pointer(response.CACert),
 			ClientCACert:  utils.Pointer(response.ClientCACert),
 		},
+		Annotations: response.Annotations,
 	}
 
 	// Pre-init checks
