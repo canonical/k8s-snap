@@ -10,51 +10,44 @@ from test_util import config, harness, util
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.node_count(3)
+@pytest.mark.node_count(1)
 @pytest.mark.no_setup()
-@pytest.mark.xfail("cilium failures are blocking this from working")
+#@pytest.mark.xfail("cilium failures are blocking this from working")
 @pytest.mark.skipif(
     not config.VERSION_UPGRADE_CHANNELS, reason="No upgrade channels configured"
 )
 def test_version_upgrades(instances: List[harness.Instance]):
     channels = config.VERSION_UPGRADE_CHANNELS
     cp = instances[0]
-    joining_cp = instances[1]
-    worker = instances[2]
+
+    if channels[0].lower() == "recent":
+        if len(channel) != 3:
+            pytest.fail("'recent' requires the number of releases as second argument and the flavour as third argument")
+        num_channels = int(channels[1])
+        flavour = channels[2]
+        channels = util.get_latest_channels(num_channels, flavour)
+
+
+    LOG.info(f"Bootstrap node on {channels[0]} and upgrade through channels: {channels[1:]}")
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     cp.exec(["snap", "install", "k8s", "--channel", channels[0]])
     cp.exec(["k8s", "bootstrap"])
 
-    # Create an initial cluster
-    joining_cp.exec(["snap", "install", "k8s", "--channel", channels[0]])
-    joining_cp_token = util.get_join_token(cp, joining_cp)
-    joining_cp.exec(["k8s", "join-cluster", joining_cp_token])
-
-    worker.exec(["snap", "install", "k8s", "--channel", channels[0]])
-    worker_token = util.get_join_token(cp, worker, "--worker")
-    worker.exec(["k8s", "join-cluster", worker_token])
-
-    util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(cp) == 3)
+    util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(cp) == 1)
 
     current_channel = channels[0]
     for channel in channels[1:]:
-        for instance in instances:
-            LOG.info(
-                f"Upgrading {instance.id} from {current_channel} to channel {channel}"
-            )
-            # Log the current snap version on the node.
-            instance.exec(["snap", "info", "k8s"])
+        LOG.info(
+            f"Upgrading {cp.id} from {current_channel} to channel {channel}"
+        )
+        # Log the current snap version on the node.
+        cp.exec(["snap", "info", "k8s"])
 
-            # note: the `--classic` flag will be ignored by snapd for strict snaps.
-            instance.exec(
-                ["snap", "refresh", "k8s", "--channel", channel, "--classic", "--amend"]
-            )
+        # note: the `--classic` flag will be ignored by snapd for strict snaps.
+        cp.exec(
+            ["snap", "refresh", "k8s", "--channel", channel, "--classic", "--amend"]
+        )
 
-            # After the refresh, do not wait until all nodes are up.
-            # Microcluster expects other nodes to upgrade before continuing,
-            # hence the node does not come up until all nodes are upgraded.
-
-        # After each full upgrade, verify that all nodes are up (again)
         util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(cp) == 3)
-        LOG.info(f"Upgraded {instance.id} to channel {channel}")
+        LOG.info(f"Upgraded {cp.id} to channel {channel}")

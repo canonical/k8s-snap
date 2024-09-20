@@ -86,17 +86,13 @@ jobs:
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ matrix.os }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
-          # TODO(ben): Use candidate/stable
-          # -strict suffix is removed from the channel name in the run script
-          TEST_VERSION_UPGRADE_CHANNELS: |
-              1.30-${{ matrix.patch }}/edge
-              1.31-${{ matrix.patch }}/edge
+          # Test the latest (up to) 6 releases for the flavour
+          TEST_VERSION_UPGRADE_CHANNELS: "recent 6 ${{ matrix.patch }}"
         run: |
           # IPv6-only is only supported on moonray
           if [[ "${{ matrix.patch }}" == "moonray" ]]; then
             export TEST_IPV6_ONLY="true"
           fi
-          export TEST_VERSION_UPGRADE_CHANNELS=${TEST_VERSION_UPGRADE_CHANNELS//-strict/}
           cd tests/integration && sg lxd -c 'tox -e integration'
       - name: Prepare inspection reports
         if: failure()
