@@ -140,6 +140,11 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Path: apiv1.ClusterAPIRemoveNodeRPC,
 			Post: rest.EndpointAction{Handler: e.postClusterRemove, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
 		},
+		{
+			Name: "ClusterAPI/CertificatesExpiry",
+			Path: apiv1.ClusterAPICertificatesExpiryRPC,
+			Post: rest.EndpointAction{Handler: e.postCertificatesExpiry, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
+		},
 		// Snap refreshes
 		{
 			Name: "Snap/Refresh",

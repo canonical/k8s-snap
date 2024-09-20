@@ -6,6 +6,7 @@ import logging
 import re
 import shlex
 import subprocess
+from datetime import datetime
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable, List, Mapping, Optional, Union
@@ -283,3 +284,13 @@ def get_global_unicast_ipv6(instance: harness.Instance, interface="eth0") -> str
     if match:
         return match.group(1)
     return None
+
+
+# Checks if a datastring is a valid RFC3339 date.
+def is_valid_rfc3339(date_str):
+    try:
+        # Attempt to parse the string according to the RFC3339 format
+        datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S%z")
+        return True
+    except ValueError:
+        return False
