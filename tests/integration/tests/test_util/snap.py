@@ -1,9 +1,12 @@
+#
+# Copyright 2024 Canonical, Ltd.
+#
 import json
 import logging
 import re
-from typing import List
 import urllib.error
 import urllib.request
+from typing import List
 
 LOG = logging.getLogger(__name__)
 
