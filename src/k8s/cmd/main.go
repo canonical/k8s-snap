@@ -30,14 +30,26 @@ func main() {
 
 	// choose command based on the binary name
 	base := filepath.Base(os.Args[0])
+	var err error
 	switch base {
 	case "k8s-apiserver-proxy":
-		k8s_apiserver_proxy.NewRootCmd(env).ExecuteContext(ctx)
+		err = k8s_apiserver_proxy.NewRootCmd(env).ExecuteContext(ctx)
 	case "k8sd":
-		k8sd.NewRootCmd(env).ExecuteContext(ctx)
+		err = k8sd.NewRootCmd(env).ExecuteContext(ctx)
 	case "k8s":
-		k8s.NewRootCmd(env).ExecuteContext(ctx)
+		err = k8s.NewRootCmd(env).ExecuteContext(ctx)
 	default:
 		panic(fmt.Errorf("invalid entrypoint name %q", base))
+	}
+
+	// Although k8s commands typically use Run instead of RunE and handle
+	// errors directly within the command execution, this acts as a safeguard in
+	// case any are overlooked.
+	//
+	// Furthermore, the Cobra framework may not invoke the "Run*" entry points
+	// at all in case of argument parsing errors, in which case we *need* to
+	// handle the errors here.
+	if err != nil {
+		env.Exit(1)
 	}
 }
