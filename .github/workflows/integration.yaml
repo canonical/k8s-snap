@@ -98,10 +98,8 @@ jobs:
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ matrix.os }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
-          # Test the latest (up to) 6 releases
-          TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
         run: |
-          cd tests/integration && sg lxd -c 'tox -e integration -- -k test_version_upgrades'
+          cd tests/integration && sg lxd -c 'tox -e integration'
       - name: Prepare inspection reports
         if: failure()
         run: |
