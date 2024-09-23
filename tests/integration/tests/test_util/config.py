@@ -93,5 +93,5 @@ JUJU_MACHINES = os.getenv("TEST_JUJU_MACHINES") or ""
 # First entry is the bootstrap channel. Afterwards, upgrades are done in order.
 # Alternatively, use 'recent <num> <flavour>' to get the latest <num> channels for <flavour>.
 VERSION_UPGRADE_CHANNELS = (
-    os.environ.get("TEST_VERSION_UPGRADE_CHANNELS").strip().split()
+    os.environ.get("TEST_VERSION_UPGRADE_CHANNELS", "").strip().split()
 )
