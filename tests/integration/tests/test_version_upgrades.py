@@ -36,7 +36,7 @@ def test_version_upgrades(instances: List[harness.Instance]):
     )
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
-    cp.exec(["snap", "install", "k8s", "--channel", channels[0], "--classic", "--amend"])
+    cp.exec(["snap", "install", "k8s", "--channel", channels[0], "--classic"])
     cp.exec(["k8s", "bootstrap"])
 
     util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(cp) == 1)
@@ -49,7 +49,7 @@ def test_version_upgrades(instances: List[harness.Instance]):
 
         # note: the `--classic` flag will be ignored by snapd for strict snaps.
         cp.exec(
-            ["snap", "refresh", "k8s", "--channel", channel, "--classic", "--amend"]
+            ["snap", "refresh", "k8s", "--channel", channel, "--classic"]
         )
 
         util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(cp) == 1)
