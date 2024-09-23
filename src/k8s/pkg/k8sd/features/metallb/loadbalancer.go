@@ -170,13 +170,13 @@ func waitForRequiredLoadBalancerCRDs(ctx context.Context, snap snap.Snap, bgpMod
 			return false, nil
 		}
 
-		requiredCRDs := map[string]bool{
-			"metallb.io/v1beta1:ipaddresspools":   true,
-			"metallb.io/v1beta1:l2advertisements": true,
+		requiredCRDs := map[string]struct{}{
+			"metallb.io/v1beta1:ipaddresspools":   {},
+			"metallb.io/v1beta1:l2advertisements": {},
 		}
 		if bgpMode {
-			requiredCRDs["metallb.io/v1beta2:bgppeers"] = true
-			requiredCRDs["metallb.io/v1beta1:bgpadvertisements"] = true
+			requiredCRDs["metallb.io/v1beta2:bgppeers"] = struct{}{}
+			requiredCRDs["metallb.io/v1beta1:bgpadvertisements"] = struct{}{}
 		}
 
 		requiredCount := len(requiredCRDs)
