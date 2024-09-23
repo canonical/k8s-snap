@@ -25,7 +25,7 @@ def test_version_upgrades(instances: List[harness.Instance]):
             pytest.fail(
                 "'recent' requires the number of releases as second argument and the flavour as third argument"
             )
-        _, num_channels, flavour = channels[1:]
+        _, num_channels, flavour = channels
         arch = cp.exec(["dpkg", "--print-architecture"]).strip()
         channels = snap.get_latest_channels(num_channels, flavour, arch)
 
