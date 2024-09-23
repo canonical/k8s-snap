@@ -23,7 +23,9 @@ RISK_LEVELS = ["stable", "candidate", "beta", "edge"]
 
 def get_snap_info(snap_name=SNAP_NAME):
     """Get the snap info from the Snap Store API."""
-    req = urllib.request.Request(SNAPSTORE_INFO_API + snap_name, headers=SNAPSTORE_HEADERS)
+    req = urllib.request.Request(
+        SNAPSTORE_INFO_API + snap_name, headers=SNAPSTORE_HEADERS
+    )
     try:
         with urllib.request.urlopen(req) as response:  # nosec
             return json.loads(response.read().decode())
@@ -49,7 +51,11 @@ def get_latest_channels(
 
     # Extract channel information
     channels = snap_info.get("channel-map", [])
-    available_channels = [ch["channel"]["name"] for ch in channels if ch["channel"]["architecture"] == arch]
+    available_channels = [
+        ch["channel"]["name"]
+        for ch in channels
+        if ch["channel"]["architecture"] == arch
+    ]
 
     # Define regex pattern to match channels in the format 'major.minor-flavour'
     if flavor == "strict":
