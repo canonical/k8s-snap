@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 SNAP_NAME = "k8s"
 
 # For Snap Store API request
-SNAPSTORE_API = "https://api.snapcraft.io/v2/snaps/info/"
+SNAPSTORE_INFO_API = "https://api.snapcraft.io/v2/snaps/info/"
 SNAPSTORE_HEADERS = {
     "Snap-Device-Series": "16",
     "User-Agent": "Mozilla/5.0",
@@ -23,7 +23,7 @@ RISK_LEVELS = ["stable", "candidate", "beta", "edge"]
 
 def get_snap_info(snap_name=SNAP_NAME):
     """Get the snap info from the Snap Store API."""
-    req = urllib.request.Request(SNAPSTORE_API + snap_name, headers=SNAPSTORE_HEADERS)
+    req = urllib.request.Request(SNAPSTORE_INFO_API + snap_name, headers=SNAPSTORE_HEADERS)
     try:
         with urllib.request.urlopen(req) as response:  # nosec
             return json.loads(response.read().decode())
@@ -36,7 +36,7 @@ def get_snap_info(snap_name=SNAP_NAME):
 
 
 def get_latest_channels(
-    num_of_channels: int, flavor: str, include_latest=True
+    num_of_channels: int, flavor: str, arch: str, include_latest=True
 ) -> List[str]:
     """Get an ascending list of latest channels based on the number of channels and flavour.
 
@@ -49,7 +49,7 @@ def get_latest_channels(
 
     # Extract channel information
     channels = snap_info.get("channel-map", [])
-    available_channels = [ch["channel"]["name"] for ch in channels]
+    available_channels = [ch["channel"]["name"] for ch in channels if ch["channel"]["architecture"] == arch]
 
     # Define regex pattern to match channels in the format 'major.minor-flavour'
     if flavor == "strict":

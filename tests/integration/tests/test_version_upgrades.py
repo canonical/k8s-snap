@@ -25,16 +25,16 @@ def test_version_upgrades(instances: List[harness.Instance]):
             pytest.fail(
                 "'recent' requires the number of releases as second argument and the flavour as third argument"
             )
-        num_channels = int(channels[1])
-        flavour = channels[2]
-        channels = snap.get_latest_channels(num_channels, flavour)
+        _, num_channels, flavour = channels[1:]
+        arch = cp.exec(["dpkg", "--print-architecture"]).strip()
+        channels = snap.get_latest_channels(num_channels, flavour, arch)
 
     LOG.info(
         f"Bootstrap node on {channels[0]} and upgrade through channels: {channels[1:]}"
     )
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
-    cp.exec(["snap", "install", "k8s", "--channel", channels[0]])
+    cp.exec(["snap", "install", "k8s", "--channel", channels[0]], "--classic")
     cp.exec(["k8s", "bootstrap"])
 
     util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(cp) == 1)
@@ -50,5 +50,5 @@ def test_version_upgrades(instances: List[harness.Instance]):
             ["snap", "refresh", "k8s", "--channel", channel, "--classic", "--amend"]
         )
 
-        util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(cp) == 3)
+        util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(cp) == 1)
         LOG.info(f"Upgraded {cp.id} to channel {channel}")
