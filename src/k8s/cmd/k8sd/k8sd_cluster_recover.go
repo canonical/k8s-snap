@@ -24,6 +24,7 @@ import (
 	"golang.org/x/sys/unix"
 	"gopkg.in/yaml.v2"
 
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 )
@@ -100,26 +101,28 @@ func logDebugf(format string, args ...interface{}) {
 
 }
 
-func newClusterRecoverCmd() *cobra.Command {
+func newClusterRecoverCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster-recover",
 		Short: "Recover the cluster from this member if quorum is lost",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			log.Configure(log.Options{
 				LogLevel:     rootCmdOpts.logLevel,
 				AddDirHeader: true,
 			})
 
 			if err := recoveryCmdPrechecks(cmd.Context()); err != nil {
-				return err
+				cmd.PrintErrf("Recovery precheck failed: %v\n", err)
+				env.Exit(1)
 			}
 
 			if clusterRecoverOpts.SkipK8sd {
-				cmd.Printf("Skipping k8sd recovery.")
+				cmd.Printf("Skipping k8sd recovery.\n")
 			} else {
 				k8sdTarballPath, err := recoverK8sd()
 				if err != nil {
-					return fmt.Errorf("failed to recover k8sd, error: %w", err)
+					cmd.PrintErrf("Failed to recover k8sd, error: %v\n", err)
+					env.Exit(1)
 				}
 				cmd.Printf("K8sd cluster changes applied.\n")
 				cmd.Printf("New database state saved to %s\n", k8sdTarballPath)
@@ -130,15 +133,15 @@ func newClusterRecoverCmd() *cobra.Command {
 			}
 
 			if clusterRecoverOpts.SkipK8sDqlite {
-				cmd.Printf("Skipping k8s-dqlite recovery.")
+				cmd.Printf("Skipping k8s-dqlite recovery.\n")
 			} else {
 				k8sDqlitePreRecoveryTarball, k8sDqlitePostRecoveryTarball, err := recoverK8sDqlite()
 				if err != nil {
-					return fmt.Errorf(
-						"failed to recover k8s-dqlite, error: %w, "+
-							"pre-recovery backup: %s",
-						err, k8sDqlitePreRecoveryTarball,
-					)
+					cmd.PrintErrf(
+						"Failed to recover k8s-dqlite, error: %v, "+
+							"pre-recovery backup: %s\n",
+						err, k8sDqlitePreRecoveryTarball)
+					env.Exit(1)
 				}
 				cmd.Printf("K8s-dqlite cluster changes applied.\n")
 				cmd.Printf("New database state saved to %s\n",
@@ -148,8 +151,6 @@ func newClusterRecoverCmd() *cobra.Command {
 					k8sDqlitePostRecoveryTarball, clusterRecoverOpts.K8sDqliteStateDir)
 				cmd.Printf("Pre-recovery database backup: %s\n\n", k8sDqlitePreRecoveryTarball)
 			}
-
-			return nil
 		},
 	}
 
