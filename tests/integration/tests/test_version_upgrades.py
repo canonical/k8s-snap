@@ -48,9 +48,7 @@ def test_version_upgrades(instances: List[harness.Instance]):
         cp.exec(["snap", "info", "k8s"])
 
         # note: the `--classic` flag will be ignored by snapd for strict snaps.
-        cp.exec(
-            ["snap", "refresh", "k8s", "--channel", channel, "--classic"]
-        )
+        cp.exec(["snap", "refresh", "k8s", "--channel", channel, "--classic"])
 
         util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(cp) == 1)
         LOG.info(f"Upgraded {cp.id} to channel {channel}")
