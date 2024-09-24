@@ -142,3 +142,18 @@ func ToIPString(ip net.IP) string {
 	}
 	return "[" + ip.String() + "]"
 }
+
+func CIDRsOverlap(cidr1, cidr2 string) (bool, error) {
+	_, ipNet1, err1 := net.ParseCIDR(cidr1)
+	_, ipNet2, err2 := net.ParseCIDR(cidr2)
+
+	if err1 != nil || err2 != nil {
+		return false, fmt.Errorf("invalid CIDR blocks")
+	}
+
+	if ipNet1.Contains(ipNet2.IP) || ipNet2.Contains(ipNet1.IP) {
+		return true, nil
+	}
+
+	return false, nil
+}

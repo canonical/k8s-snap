@@ -127,6 +127,50 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
+			var podIPv4CIDR, podIPv6CIDR string
+			if bootstrapConfig.PodCIDR != nil {
+				podIPv4CIDR, podIPv6CIDR, err = utils.ParseCIDRs(*bootstrapConfig.PodCIDR)
+				if err != nil {
+					cmd.PrintErrf("Error: Failed to parse the Pod CIDR %q.\n\nThe error was: %v\n", *bootstrapConfig.PodCIDR, err)
+					env.Exit(1)
+					return
+				}
+			}
+
+			var svcIPv4CIDR, svcIPv6CIDR string
+			if bootstrapConfig.ServiceCIDR != nil {
+				svcIPv4CIDR, svcIPv6CIDR, err = utils.ParseCIDRs(*bootstrapConfig.ServiceCIDR)
+				if err != nil {
+					cmd.PrintErrf("Error: Failed to parse the Pod CIDR %q.\n\nThe error was: %v\n", *bootstrapConfig.PodCIDR, err)
+					env.Exit(1)
+					return
+				}
+			}
+
+			if podIPv4CIDR != "" && svcIPv4CIDR != "" {
+				if overlap, err := utils.CIDRsOverlap(podIPv4CIDR, svcIPv4CIDR); err != nil {
+					cmd.PrintErrf("Error: Failed to check if the Pod CIDR %q and Service CIDR %q overlap.\n\nThe error was: %v\n", podIPv4CIDR, svcIPv4CIDR, err)
+					env.Exit(1)
+					return
+				} else if overlap {
+					cmd.PrintErrf("Error: The Pod CIDR %q and Service CIDR %q overlap.\n", podIPv4CIDR, svcIPv4CIDR)
+					env.Exit(1)
+					return
+				}
+			}
+
+			if podIPv6CIDR != "" && svcIPv6CIDR != "" {
+				if overlap, err := utils.CIDRsOverlap(podIPv6CIDR, svcIPv6CIDR); err != nil {
+					cmd.PrintErrf("Error: Failed to check if the Pod CIDR %q and Service CIDR %q overlap.\n\nThe error was: %v\n", podIPv6CIDR, svcIPv6CIDR, err)
+					env.Exit(1)
+					return
+				} else if overlap {
+					cmd.PrintErrf("Error: The Pod CIDR %q and Service CIDR %q overlap.\n", podIPv6CIDR, svcIPv6CIDR)
+					env.Exit(1)
+					return
+				}
+			}
+
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
 
 			response, err := client.BootstrapCluster(cmd.Context(), apiv1.BootstrapClusterRequest{
