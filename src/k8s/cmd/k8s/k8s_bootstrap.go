@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"slices"
 	"strings"
@@ -127,48 +128,10 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
-			var podIPv4CIDR, podIPv6CIDR string
-			if bootstrapConfig.PodCIDR != nil {
-				podIPv4CIDR, podIPv6CIDR, err = utils.ParseCIDRs(*bootstrapConfig.PodCIDR)
-				if err != nil {
-					cmd.PrintErrf("Error: Failed to parse the Pod CIDR %q.\n\nThe error was: %v\n", *bootstrapConfig.PodCIDR, err)
-					env.Exit(1)
-					return
-				}
-			}
-
-			var svcIPv4CIDR, svcIPv6CIDR string
-			if bootstrapConfig.ServiceCIDR != nil {
-				svcIPv4CIDR, svcIPv6CIDR, err = utils.ParseCIDRs(*bootstrapConfig.ServiceCIDR)
-				if err != nil {
-					cmd.PrintErrf("Error: Failed to parse the Pod CIDR %q.\n\nThe error was: %v\n", *bootstrapConfig.PodCIDR, err)
-					env.Exit(1)
-					return
-				}
-			}
-
-			if podIPv4CIDR != "" && svcIPv4CIDR != "" {
-				if overlap, err := utils.CIDRsOverlap(podIPv4CIDR, svcIPv4CIDR); err != nil {
-					cmd.PrintErrf("Error: Failed to check if the Pod CIDR %q and Service CIDR %q overlap.\n\nThe error was: %v\n", podIPv4CIDR, svcIPv4CIDR, err)
-					env.Exit(1)
-					return
-				} else if overlap {
-					cmd.PrintErrf("Error: The Pod CIDR %q and Service CIDR %q overlap.\n", podIPv4CIDR, svcIPv4CIDR)
-					env.Exit(1)
-					return
-				}
-			}
-
-			if podIPv6CIDR != "" && svcIPv6CIDR != "" {
-				if overlap, err := utils.CIDRsOverlap(podIPv6CIDR, svcIPv6CIDR); err != nil {
-					cmd.PrintErrf("Error: Failed to check if the Pod CIDR %q and Service CIDR %q overlap.\n\nThe error was: %v\n", podIPv6CIDR, svcIPv6CIDR, err)
-					env.Exit(1)
-					return
-				} else if overlap {
-					cmd.PrintErrf("Error: The Pod CIDR %q and Service CIDR %q overlap.\n", podIPv6CIDR, svcIPv6CIDR)
-					env.Exit(1)
-					return
-				}
+			if err = validateCIDROverlapAndSize(*bootstrapConfig.PodCIDR, *bootstrapConfig.ServiceCIDR); err != nil {
+				cmd.PrintErrf("Error: Failed to validate the CIDR configuration.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
@@ -312,4 +275,60 @@ func askQuestion(stdin io.Reader, stdout io.Writer, stderr io.Writer, question s
 		}
 		return s
 	}
+}
+
+func validateCIDROverlapAndSize(podCIDR string, serviceCIDR string) error {
+	// Parse the CIDRs
+	var err error
+
+	var podIPv4CIDR, podIPv6CIDR string
+	if podCIDR != "" {
+		podIPv4CIDR, podIPv6CIDR, err = utils.ParseCIDRs(podCIDR)
+		if err != nil {
+			return err
+		}
+	}
+
+	var svcIPv4CIDR, svcIPv6CIDR string
+	if serviceCIDR != "" {
+		svcIPv4CIDR, svcIPv6CIDR, err = utils.ParseCIDRs(serviceCIDR)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Check for overlap
+	if podIPv4CIDR != "" && svcIPv4CIDR != "" {
+		if overlap, err := utils.CIDRsOverlap(podIPv4CIDR, svcIPv4CIDR); err != nil {
+			return err
+		} else if overlap {
+			return fmt.Errorf("pod CIDR %q and service CIDR %q overlap", podCIDR, serviceCIDR)
+		}
+	}
+
+	if podIPv6CIDR != "" && svcIPv6CIDR != "" {
+		if overlap, err := utils.CIDRsOverlap(podIPv6CIDR, svcIPv6CIDR); err != nil {
+			return err
+		} else if overlap {
+			return fmt.Errorf("pod CIDR %q and service CIDR %q overlap", podCIDR, serviceCIDR)
+		}
+	}
+
+	// Check CIDR size
+	// Ref: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/networking/dualstack/#cidr-size-limitations
+	if svcIPv6CIDR != "" {
+		_, ipv6Net, err := net.ParseCIDR(svcIPv6CIDR)
+		if err != nil {
+			// Should not happen, as we already parsed the CIDR
+			return fmt.Errorf("invalid service CIDR %q: %w", svcIPv6CIDR, err)
+		}
+
+		prefixLength, _ := ipv6Net.Mask.Size()
+
+		if prefixLength >= 64 {
+			return fmt.Errorf("service CIDR %q cannot have a prefix length of 64 or more", svcIPv6CIDR)
+		}
+	}
+
+	return nil
 }
