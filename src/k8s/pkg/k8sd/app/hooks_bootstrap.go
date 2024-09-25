@@ -291,6 +291,8 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		localhostAddress = "127.0.0.1"
 	}
 
+	cfg.Network.LocalhostAddress = utils.Pointer(localhostAddress)
+
 	// Create directories
 	if err := setup.EnsureAllDirectories(snap); err != nil {
 		return fmt.Errorf("failed to create directories: %w", err)

@@ -88,9 +88,12 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 			},
 		},
 		"nodePort": map[string]any{
-			"enabled": true,
+			"enabled":           true,
+			"enableHealthCheck": false,
 		},
 		"disableEnvoyVersionCheck": true,
+		"k8sServiceHost":           cfg.GetLocalhostAddress(),
+		"k8sServicePort":           6443,
 	}
 
 	if snap.Strict() {
