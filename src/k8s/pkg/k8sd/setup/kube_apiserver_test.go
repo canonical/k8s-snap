@@ -253,7 +253,6 @@ func TestKubeAPIServer(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 		s.Mock.Hostname = "dev"
 
-		// Call the kubelet control plane setup function
 		g.Expect(setup.KubeAPIServer(s, net.ParseIP("2001:db8::"), "fd98::/108", "https://auth-webhook.url", false, types.Datastore{Type: utils.Pointer("k8s-dqlite")}, "Node,RBAC", nil)).To(Succeed())
 
 		tests := []struct {

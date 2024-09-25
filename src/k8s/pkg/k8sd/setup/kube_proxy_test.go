@@ -117,7 +117,6 @@ func TestKubeProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 		s.Mock.Hostname = "dev"
 
-		// Call the kubelet control plane setup function
 		g.Expect(setup.KubeProxy(context.Background(), s, "dev", "fd98::/108", "[::1]", nil)).To(BeNil())
 
 		tests := []struct {

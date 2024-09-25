@@ -138,7 +138,6 @@ func TestK8sApiServerProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 		s.Mock.Hostname = "dev"
 
-		// Call the kubelet control plane setup function
 		g.Expect(setup.K8sAPIServerProxy(s, nil, "[2001:db8::]", nil)).To(Succeed())
 
 		tests := []struct {
