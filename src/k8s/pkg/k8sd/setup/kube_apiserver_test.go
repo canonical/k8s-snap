@@ -245,4 +245,31 @@ func TestKubeAPIServer(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(ContainSubstring("unsupported datastore")))
 	})
+
+	t.Run("IPv6", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// Create a mock snap
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
+		s.Mock.Hostname = "dev"
+
+		// Call the kubelet control plane setup function
+		g.Expect(setup.KubeAPIServer(s, net.ParseIP("2001:db8::"), "fd98::/108", "https://auth-webhook.url", false, types.Datastore{Type: utils.Pointer("k8s-dqlite")}, "Node,RBAC", nil)).To(Succeed())
+
+		tests := []struct {
+			key         string
+			expectedVal string
+		}{
+			{key: "--advertise-address", expectedVal: "2001:db8::"},
+			{key: "--service-cluster-ip-range", expectedVal: "fd98::/108"},
+		}
+		for _, tc := range tests {
+			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
+				val, err := snaputil.GetServiceArgument(s, "kube-apiserver", tc.key)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(tc.expectedVal).To(Equal(val))
+			})
+		}
+	})
 }
