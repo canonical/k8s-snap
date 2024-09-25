@@ -6,6 +6,9 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gstruct"
+	gtypes "github.com/onsi/gomega/types"
+	"k8s.io/utils/ptr"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
@@ -14,67 +17,128 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
 	"github.com/canonical/k8s/pkg/utils"
-	"k8s.io/utils/ptr"
 )
 
 // NOTE(hue): status.Message is not checked sometimes to avoid unnecessary complexity
+type (
+	given struct {
+		config      types.Network
+		expectState helm.State
+		helmError   error
+	}
+	expect struct {
+		// tests for error
+		err []gtypes.GomegaMatcher
+		// tests for status
+		status []gtypes.GomegaMatcher
+		//	tests for helm
+		helm []gtypes.GomegaMatcher
+	}
+)
 
-func TestNetworkDisabled(t *testing.T) {
-	t.Run("HelmApplyFails", func(t *testing.T) {
-		g := NewWithT(t)
-
-		applyErr := errors.New("failed to apply")
-		helmM := &helmmock.Mock{
-			ApplyErr: applyErr,
-		}
-		snapM := &snapmock.Snap{
-			Mock: snapmock.Mock{
-				HelmClient: helmM,
+func TestNetwork(t *testing.T) {
+	helmErr := errors.New("failed to apply")
+	for _, tc := range []struct {
+		name   string
+		given  given
+		expect expect
+	}{
+		{
+			name: "NetworkDisabledHelmApplyFails",
+			given: given{
+				config:      types.Network{},
+				expectState: 0,
+				helmError:   helmErr,
 			},
-		}
-		cfg := types.Network{
-			Enabled: ptr.To(false),
-		}
-
-		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
-
-		g.Expect(err).To(MatchError(applyErr))
-		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
-
-		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
-		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
-		g.Expect(callArgs.Values).To(BeNil())
-	})
-	t.Run("Success", func(t *testing.T) {
-		g := NewWithT(t)
-
-		helmM := &helmmock.Mock{}
-		snapM := &snapmock.Snap{
-			Mock: snapmock.Mock{
-				HelmClient: helmM,
+			expect: expect{
+				err: []gtypes.GomegaMatcher{
+					MatchError(helmErr),
+				},
+				status: []gtypes.GomegaMatcher{
+					MatchAllFields(Fields{
+						"Enabled":   BeFalse(),
+						"Message":   ContainSubstring(helmErr.Error()),
+						"Version":   Equal(cilium.CiliumAgentImageTag),
+						"UpdatedAt": Ignore(),
+					}),
+				},
+				helm: []gtypes.GomegaMatcher{
+					MatchFields(IgnoreExtras, Fields{
+						"ApplyCalledWith": HaveLen(1),
+					}),
+					MatchFields(IgnoreExtras, Fields{
+						"ApplyCalledWith": MatchElementsWithIndex(IndexIdentity, IgnoreExtras, Elements{
+							"0": MatchFields(IgnoreExtras, Fields{
+								"Chart":  Equal(cilium.ChartCilium),
+								"State":  Equal(helm.StateDeleted),
+								"Values": BeNil(),
+							}),
+						}),
+					}),
+				},
 			},
-		}
-		cfg := types.Network{
-			Enabled: ptr.To(false),
-		}
+		},
+		{
+			name: "NetworkDisabledSuccess",
+			given: given{
+				config: types.Network{
+					Enabled: ptr.To(false),
+				},
+				expectState: 0,
+			},
+			expect: expect{
+				err: []gtypes.GomegaMatcher{
+					Not(HaveOccurred()),
+				},
+				status: []gtypes.GomegaMatcher{
+					MatchAllFields(Fields{
+						"Enabled":   BeFalse(),
+						"Message":   Equal(cilium.DisabledMsg),
+						"Version":   Equal(cilium.CiliumAgentImageTag),
+						"UpdatedAt": Ignore(),
+					}),
+				},
+				helm: []gtypes.GomegaMatcher{
+					MatchFields(IgnoreExtras, Fields{
+						"ApplyCalledWith": HaveLen(1),
+					}),
+					MatchFields(IgnoreExtras, Fields{
+						"ApplyCalledWith": MatchElementsWithIndex(IndexIdentity, IgnoreExtras, Elements{
+							"0": MatchFields(IgnoreExtras, Fields{
+								"Chart":  Equal(cilium.ChartCilium),
+								"State":  Equal(helm.StateDeleted),
+								"Values": BeNil(),
+							}),
+						}),
+					}),
+				},
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
 
-		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
+			helmM := &helmmock.Mock{
+				ApplyErr: tc.given.helmError,
+			}
+			snapM := &snapmock.Snap{
+				Mock: snapmock.Mock{
+					HelmClient: helmM,
+				},
+			}
 
-		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
-
-		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
-		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
-		g.Expect(callArgs.Values).To(BeNil())
-	})
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, tc.given.config, nil)
+			for _, matcher := range tc.expect.err {
+				g.Expect(err).To(matcher)
+			}
+			for _, matcher := range tc.expect.status {
+				g.Expect(status).To(matcher)
+			}
+			for _, matcher := range tc.expect.helm {
+				g.Expect(*helmM).To(matcher)
+			}
+		})
+	}
 }
 
 func TestNetworkEnabled(t *testing.T) {
@@ -125,7 +189,7 @@ func TestNetworkEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-		validateNetworkValues(t, callArgs.Values, cfg, snapM)
+		validateNetworkValues(g, callArgs.Values, cfg, snapM)
 	})
 	t.Run("HelmApplyFails", func(t *testing.T) {
 		g := NewWithT(t)
@@ -155,13 +219,11 @@ func TestNetworkEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-		validateNetworkValues(t, callArgs.Values, cfg, snapM)
+		validateNetworkValues(g, callArgs.Values, cfg, snapM)
 	})
 }
 
-func validateNetworkValues(t *testing.T, values map[string]any, cfg types.Network, snap snap.Snap) {
-	t.Helper()
-	g := NewWithT(t)
+func validateNetworkValues(g Gomega, values map[string]any, cfg types.Network, snap snap.Snap) {
 
 	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
 	g.Expect(err).ToNot(HaveOccurred())
