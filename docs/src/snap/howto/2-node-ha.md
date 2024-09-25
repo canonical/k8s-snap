@@ -1,37 +1,38 @@
-# 2-Node Active-Active HA using Dqlite
+# 2-Node Active-Active High-Availability using Dqlite
 
 ## Rationale
 
-High availability is a mandatory requirement for most production-grade
+High availability (HA) is a mandatory requirement for most production-grade
 Kubernetes deployments, usually implying three or more nodes.
 
-However, 2-node HA clusters are desired in some situations due to cost saving
-and operational efficiency considerations. Follow this guide to learn how
-Canonical Kubernetes can achieve high availability with just two nodes
-while using the default datastore, Dqlite.
+2-node HA clusters are sometimes preferred for cost savings and operational
+efficiency considerations. Follow this guide to learn how Canonical Kubernetes
+can achieve high availability with just two nodes while using the default
+datastore, Dqlite.
 
 Dqlite cannot achieve Raft quorum with less than three nodes. This means that
 Dqlite will not be able to replicate data and the secondaries will simply
 forward the queries to the primary node.
 
-In the event of a node failure, the database will have to be recovered by
-following the steps outlined in the [Dqlite recovery guide].
+In the event of a node failure, database recovery will require following the
+steps in the [Dqlite recovery guide].
 
 ## Proposed solution
 
 Since Dqlite data replication is not available in this situation, we propose
-using synchronous block level replication through DRBD.
+using synchronous block level replication through
+[Distributed Replicated Block Device] (DRBD).
 
 The cluster monitoring and failover process will be handled by Pacemaker and
-Corosync. In the event of a node failure, the DRBD volume will be mounted on
-the replica, which can then access the most recent version of the Dqlite database.
+Corosync. After a node failure, the DRBD volume will be mounted on the standby
+node, allowing access to the latest Dqlite database version.
 
 Additional recovery steps are automated and invoked through Pacemaker.
 
 ## Alternatives
 
-Another possible approach is to use PostgreSQL with Kine and logical replication.
-However, it is outside the scope of this document.
+Another possible approach is to use PostgreSQL with Kine and logical
+replication. However, it is outside the scope of this document.
 
 See the [external datastore guide] for more information on how Canonical
 Kubernetes can be configured to use other datastores.
@@ -40,30 +41,20 @@ Kubernetes can be configured to use other datastores.
 
 ### Prerequisites
 
-Make sure that:
-
-* Both nodes have joined the Kubernetes cluster.
+* Ensure both nodes are part of the Kubernetes cluster.
   See the [getting started] and [add/remove nodes] guides.
 * The user associated with the HA service has SSH access to the peer node and
   passwordless sudo configured. For simplicity, the default "ubuntu" user can
   be used.
 * We recommend using static IP configuration.
 
-The [2ha.sh script] automates most operations related to the 2-node HA scenario.
-Retrieve it like so:
-
-```
-sudo mkdir -p /var/snap/k8s/common
-repo=https://raw.githubusercontent.com/petrutlucian94/k8s-snap
-sudo curl $repo/refs/heads/KU-1606/2ha_script/k8s/hack/2ha.sh \
-    -o /var/snap/k8s/common/2ha.sh
-sudo chmod a+rx /var/snap/k8s/common/2ha.sh
-```
+The [2ha.sh script] automates most operations related to the 2-node HA scenario
+and is included in the snap.
 
 The first step is to install the required packages:
 
 ```
-/var/snap/k8s/common/2ha.sh install_packages
+/snap/k8s/current/k8s/hack/2ha.sh install_packages
 ```
 
 ### DRBD
@@ -112,7 +103,7 @@ sudo systemctl start rc-local.service
 ```
 
 Let's configure the DRBD block device that will hold the Dqlite data.
-Make sure to use the right node addresses.
+Ensure the correct node addresses are used.
 
 ```
 # Disable the DRBD service, it will be managed through Pacemaker.
@@ -143,8 +134,8 @@ sudo drbdadm status
 ```
 
 Let's create a mount point for the DRBD block device. Non-default mount points
-need to be passed to the 2ha.sh script mentioned above, see the script for the
-full list of configurable parameters.
+need to be passed to the ``2ha.sh`` script mentioned above, see the script for
+the full list of configurable parameters.
 
 ```
 DRBD_MOUNT_DIR=/mnt/drbd0
@@ -231,7 +222,7 @@ Let's define a Pacemaker resource for the DRBD block device, which
 ensures that the block device will be mounted on the replica in case of a
 primary node failure.
 
-Pacemaker fencing (stonith) configuration is environment specific and thus
+[Pacemaker fencing] (stonith) configuration is environment specific and thus
 outside the scope of this guide. However, we highly recommend using fencing
 if possible to reduce the risk of cluster split-brain situations.
 
@@ -257,8 +248,8 @@ EOF
 Before moving forward, let's ensure that the DRBD Pacemaker resource runs on
 the primary (voter) Dqlite node.
 
-Remember that in our case only the primary node contains the latest Dqlite data,
-which will be transfered to the DRBD device once the clustered service starts.
+In this setup, only the primary node holds the latest Dqlite data, which will
+be transferred to the DRBD device once the clustered service starts.
 This is automatically handled by the ``2ha_k8s.sh start_service`` command.
 
 ```
@@ -280,7 +271,7 @@ sudo crm resource clear fs_res
 ### Kubernetes services
 
 We can now turn our attention to the Kubernetes services. Ensure that the k8s
-snap services no longer start automatically. Instead, they will be manged by a
+snap services no longer start automatically. Instead, they will be managed by a
 wrapper service.
 
 ```
@@ -291,8 +282,9 @@ done
 ```
 
 The next step is to define the wrapper service. Add the following to
-``/etc/systemd/system/2ha_k8s.service``. Note that the sample uses the ``ubuntu``
-user, feel free to use a different one as long as the prerequisites are met.
+``/etc/systemd/system/2ha_k8s.service``. Note that the sample uses the
+``ubuntu`` user, feel free to use a different one as long as the prerequisites
+are met.
 
 ```
 [Unit]
@@ -303,7 +295,7 @@ After=network.target pacemaker.service
 User=ubuntu
 Group=ubuntu
 Type=oneshot
-ExecStart=/bin/bash /var/snap/k8s/common/2ha.sh start_service
+ExecStart=/bin/bash /snap/k8s/current/k8s/hack/2ha.sh start_service
 ExecStop=/bin/bash sudo snap stop k8s
 RemainAfterExit=true
 
@@ -313,15 +305,15 @@ WantedBy=multi-user.target
 
 ```{note}
 The ``2ha.sh start_service`` command used by the service wrapper automatically
-detects the expected Dqlite role based on the DRBD state and takes the necessary
-steps to bootstrap the Dqlite state directories, synchronize with the peer node
-(if available) and recover the database.
+detects the expected Dqlite role based on the DRBD state and takes the
+necessary steps to bootstrap the Dqlite state directories, synchronize with the
+peer node (if available) and recover the database.
 ```
 
 We need the ``2ha_k8s`` service to be restarted once a DRBD failover occurs.
 For that, we are going to define a separate service that will be invoked by
-Pacemaker. Create a file called ``/etc/systemd/system/2ha_k8s_failover.service``
-containing the following:
+Pacemaker. Create a file called
+``/etc/systemd/system/2ha_k8s_failover.service`` containing the following:
 
 ```
 [Unit]
@@ -416,8 +408,10 @@ sudo drbdadm connect r0
 ```
 
 <!--LINKS -->
+[Distributed Replicated Block Device]: https://ubuntu.com/server/docs/distributed-replicated-block-device-drbd
 [Dqlite recovery guide]: restore-quorum
 [external datastore guide]: external-datastore
 [2ha.sh script]: https://github.com/canonical/k8s-snap/blob/main/k8s/hack/2ha.sh
 [getting started]: ../tutorial/getting-started
 [add/remove nodes]: ../tutorial/add-remove-nodes
+[Pacemaker fencing]: https://clusterlabs.org/pacemaker/doc/2.1/Pacemaker_Explained/html/fencing.html

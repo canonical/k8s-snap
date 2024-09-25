@@ -1,10 +1,13 @@
 #!/bin/bash
 
+# This script automates various operations on 2-node HA A-A Canonical K8s
+# clusters that use the default datastore, Dqlite.
+#
 # Prerequisites:
 # * required packages installed using the "install_packages" command.
-# * initialized k8s cluster, both nodes joined
+# * initialized K8s cluster, both nodes joined
 # * the current user has ssh access to the peer node.
-#   - used to handle k8s services and transfer dqlite data
+#   - used to handle K8s services and transfer Dqlite data
 # * the current user has passwordless sudo enabled.
 sourced=0
 
