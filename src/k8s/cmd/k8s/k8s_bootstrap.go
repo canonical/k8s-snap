@@ -128,10 +128,12 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
-			if err = validateCIDROverlapAndSize(*bootstrapConfig.PodCIDR, *bootstrapConfig.ServiceCIDR); err != nil {
-				cmd.PrintErrf("Error: Failed to validate the CIDR configuration.\n\nThe error was: %v\n", err)
-				env.Exit(1)
-				return
+			if bootstrapConfig.PodCIDR != nil && bootstrapConfig.ServiceCIDR != nil {
+				if err = validateCIDROverlapAndSize(*bootstrapConfig.PodCIDR, *bootstrapConfig.ServiceCIDR); err != nil {
+					cmd.PrintErrf("Error: Failed to validate the CIDR configuration.\n\nThe error was: %v\n", err)
+					env.Exit(1)
+					return
+				}
 			}
 
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
@@ -277,27 +279,22 @@ func askQuestion(stdin io.Reader, stdout io.Writer, stderr io.Writer, question s
 	}
 }
 
+// validateCIDROverlapAndSize checks for overlap and size constraints between pod and service CIDRs.
+// It parses the provided podCIDR and serviceCIDR strings, checks for IPv4 and IPv6 overlaps, and ensures
+// that the service IPv6 CIDR does not have a prefix length of 64 or more.
 func validateCIDROverlapAndSize(podCIDR string, serviceCIDR string) error {
 	// Parse the CIDRs
-	var err error
-
-	var podIPv4CIDR, podIPv6CIDR string
-	if podCIDR != "" {
-		podIPv4CIDR, podIPv6CIDR, err = utils.ParseCIDRs(podCIDR)
-		if err != nil {
-			return err
-		}
+	podIPv4CIDR, podIPv6CIDR, err := utils.ParseCIDRs(podCIDR)
+	if err != nil {
+		return err
 	}
 
-	var svcIPv4CIDR, svcIPv6CIDR string
-	if serviceCIDR != "" {
-		svcIPv4CIDR, svcIPv6CIDR, err = utils.ParseCIDRs(serviceCIDR)
-		if err != nil {
-			return err
-		}
+	svcIPv4CIDR, svcIPv6CIDR, err := utils.ParseCIDRs(serviceCIDR)
+	if err != nil {
+		return err
 	}
 
-	// Check for overlap
+	// Check for IPv4 overlap
 	if podIPv4CIDR != "" && svcIPv4CIDR != "" {
 		if overlap, err := utils.CIDRsOverlap(podIPv4CIDR, svcIPv4CIDR); err != nil {
 			return err
@@ -306,6 +303,7 @@ func validateCIDROverlapAndSize(podCIDR string, serviceCIDR string) error {
 		}
 	}
 
+	// Check for IPv6 overlap
 	if podIPv6CIDR != "" && svcIPv6CIDR != "" {
 		if overlap, err := utils.CIDRsOverlap(podIPv6CIDR, svcIPv6CIDR); err != nil {
 			return err

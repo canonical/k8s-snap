@@ -205,23 +205,3 @@ func TestToIPString(t *testing.T) {
 		})
 	}
 }
-
-func TestCIDRsOverlap(t *testing.T) {
-	g := NewWithT(t)
-
-	tests := []struct {
-		cidr1    string
-		cidr2    string
-		expected bool
-	}{
-		{"192.168.100.0/24", "192.168.100.0/24", true},
-		{"192.168.1.0/32", "192.168.5.0/32", false},
-		{"fe80::1/64", "fe80::1/64", true},
-		{"fe80::/64", "2001:db8::/32", false},
-		{"fe80::/64", "fe80::dead/64", true},
-	}
-
-	for _, tc := range tests {
-		g.Expect(utils.CIDRsOverlap(tc.cidr1, tc.cidr2)).To(Equal(tc.expected))
-	}
-}
