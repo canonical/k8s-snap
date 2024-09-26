@@ -39,11 +39,14 @@ func TestDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.Network{
+		network := types.Network{
 			Enabled: ptr.To(false),
 		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
+		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, cfg, nil)
+		status, err := calico.ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -65,11 +68,14 @@ func TestDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.Network{
+		network := types.Network{
 			Enabled: ptr.To(false),
 		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
+		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, cfg, nil)
+		status, err := calico.ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -94,12 +100,15 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.Network{
+		network := types.Network{
 			Enabled: ptr.To(true),
 			PodCIDR: ptr.To("invalid-cidr"),
 		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
+		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, cfg, defaultAnnotations)
+		status, err := calico.ApplyNetwork(context.Background(), snapM, apiserver, network, defaultAnnotations)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -115,13 +124,16 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.Network{
+		network := types.Network{
 			Enabled:     ptr.To(true),
 			PodCIDR:     ptr.To("192.0.2.0/24,2001:db8::/32"),
 			ServiceCIDR: ptr.To("invalid-cidr"),
 		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
+		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, cfg, defaultAnnotations)
+		status, err := calico.ApplyNetwork(context.Background(), snapM, apiserver, network, defaultAnnotations)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -140,13 +152,16 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.Network{
+		network := types.Network{
 			Enabled:     ptr.To(true),
 			PodCIDR:     ptr.To("192.0.2.0/24,2001:db8::/32"),
 			ServiceCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
 		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
+		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, cfg, defaultAnnotations)
+		status, err := calico.ApplyNetwork(context.Background(), snapM, apiserver, network, defaultAnnotations)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -157,7 +172,7 @@ func TestEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(calico.ChartCalico))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-		validateValues(t, callArgs.Values, cfg)
+		validateValues(t, callArgs.Values, network)
 	})
 	t.Run("Success", func(t *testing.T) {
 		g := NewWithT(t)
@@ -168,13 +183,16 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.Network{
+		network := types.Network{
 			Enabled:     ptr.To(true),
 			PodCIDR:     ptr.To("192.0.2.0/24,2001:db8::/32"),
 			ServiceCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
 		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
+		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, cfg, defaultAnnotations)
+		status, err := calico.ApplyNetwork(context.Background(), snapM, apiserver, network, defaultAnnotations)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -185,17 +203,17 @@ func TestEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(calico.ChartCalico))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-		validateValues(t, callArgs.Values, cfg)
+		validateValues(t, callArgs.Values, network)
 	})
 }
 
-func validateValues(t *testing.T, values map[string]any, cfg types.Network) {
+func validateValues(t *testing.T, values map[string]any, network types.Network) {
 	g := NewWithT(t)
 
-	podIPv4CIDR, podIPv6CIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
+	podIPv4CIDR, podIPv6CIDR, err := utils.ParseCIDRs(network.GetPodCIDR())
 	g.Expect(err).ToNot(HaveOccurred())
 
-	svcIPv4CIDR, svcIPv6CIDR, err := utils.ParseCIDRs(cfg.GetServiceCIDR())
+	svcIPv4CIDR, svcIPv6CIDR, err := utils.ParseCIDRs(network.GetServiceCIDR())
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// calico network
