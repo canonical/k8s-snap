@@ -147,12 +147,12 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		},
 		{
 			Name: "ClusterAPI/RefreshCerts/Plan",
-			Path: "x/capi/refresh-certs/plan",
+			Path: apiv1.ClusterAPICertificatesPlanRPC,
 			Post: rest.EndpointAction{Handler: e.postRefreshCertsPlan, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
 		},
 		{
 			Name: "ClusterAPI/RefreshCerts/Run",
-			Path: "x/capi/refresh-certs/run",
+			Path: apiv1.ClusterAPICertificatesRunRPC,
 			Post: rest.EndpointAction{Handler: e.postRefreshCertsRun, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
 		},
 		// Snap refreshes

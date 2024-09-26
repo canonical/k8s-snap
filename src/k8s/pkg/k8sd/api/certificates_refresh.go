@@ -135,7 +135,8 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 
 	readyCh := make(chan error)
 	go func() {
-		// Create a new context with a timeout of 1 minute.
+		// NOTE: Create a new context independent of the request context to ensure
+		// the restart process is not cancelled by the client.
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
 
@@ -165,7 +166,7 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 			ExpirationSeconds: int(expirationTimeUNIX),
 		}).Render(w)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to render response: %w", err)
 		}
 
 		f, ok := w.(http.Flusher)
