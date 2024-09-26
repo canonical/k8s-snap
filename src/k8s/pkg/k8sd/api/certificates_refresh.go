@@ -133,6 +133,9 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		return response.InternalError(fmt.Errorf("failed to generate control plane kubeconfigs: %w", err))
 	}
 
+	// NOTE: Restart the control plane services in a separate goroutine to avoid
+	// restarting the API server, which would break the k8sd proxy connection
+	// and cause missed responses in the proxy side.
 	readyCh := make(chan error)
 	go func() {
 		// NOTE: Create a new context independent of the request context to ensure
