@@ -66,6 +66,7 @@ def test_smoke(instances: List[harness.Instance]):
 
     LOG.info("Verify the functionality of the CAPI endpoints.")
     instance.exec("k8s x-capi set-auth-token my-secret-token".split())
+    instance.exec("k8s x-capi set-node-token my-node-token".split())
 
     body = {
         "name": "my-node",
@@ -107,7 +108,7 @@ def test_smoke(instances: List[harness.Instance]):
             "-H",
             "Content-Type: application/json",
             "-H",
-            "capi-auth-token: my-secret-token",
+            "node-token: my-node-token",
             "--unix-socket",
             "/var/snap/k8s/common/var/lib/k8sd/state/control.socket",
             "http://localhost/1.0/x/capi/certificates-expiry",
