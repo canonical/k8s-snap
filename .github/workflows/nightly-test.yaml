@@ -3,47 +3,47 @@ name: Nightly Latest/Edge Tests
 on:
   schedule:
     - cron: '0 0 * * *' # Runs every midnight
+  pull_request:
 
 permissions:
   contents: read
 
 jobs:
   test-integration:
-    name: Integration Test ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.releases }}
+    name: Integration Test ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.release }}
     strategy:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        releases: ["latest/edge"]
+        release: ["latest/edge"]
       fail-fast: false # TODO: remove once arm64 works
 
-    runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-20.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-22.04' }}
 
     steps:
       - name: Checking out repo
         uses: actions/checkout@v4
-      - name: Setup Python
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install lxd and tox
         run: |
           sudo apt update
-          sudo apt install -y python3 python3-pip
-      - name: Install tox
-        run: |
-          pip3 install tox==4.13
-      - name: Install lxd
-        run: |
+          sudo apt install -y tox
           sudo snap refresh lxd --channel 5.21/stable
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
       - name: Create build directory
         run: mkdir -p build
-      - name: Install $${ matrix.releases }} k8s snap
+      - name: Install ${{ matrix.release }} k8s snap
         run: |
           cd build
-          snap download k8s --channel=${{ matrix.releases }} --basename k8s
+          snap download k8s --channel=${{ matrix.release }} --basename k8s
       - name: Run end to end tests # tox path needs to be specified for arm64
         env:
-          TEST_SNAP: ${{ github.workspace }}/build/k8s-${{ matrix.patch }}.snap
+          TEST_SNAP: ${{ github.workspace }}/build/k8s.snap
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ matrix.os }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
@@ -52,4 +52,15 @@ jobs:
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
         run: |
           export PATH="/home/runner/.local/bin:$PATH"
-          cd tests/integration && sg lxd -c 'tox -e integration'
+          cd tests/integration && sg lxd -c 'tox -vve integration'
+      - name: Prepare inspection reports
+        if: failure()
+        run: |
+          tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
+          echo "artifact_name=inspection-reports-${{ matrix.os }}-${{ matrix.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
+      - name: Upload inspection report artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: ${{ github.workspace }}/inspection-reports.tar.gz
