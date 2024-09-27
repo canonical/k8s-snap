@@ -130,4 +130,29 @@ func TestK8sApiServerProxy(t *testing.T) {
 		// Compare the expected endpoints with those in the file
 		g.Expect(config.Endpoints).To(Equal(endpoints))
 	})
+
+	t.Run("IPv6", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// Create a mock snap
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
+		s.Mock.Hostname = "dev"
+
+		g.Expect(setup.K8sAPIServerProxy(s, nil, "[2001:db8::]", nil)).To(Succeed())
+
+		tests := []struct {
+			key         string
+			expectedVal string
+		}{
+			{key: "--listen", expectedVal: "[2001:db8::]:6443"},
+		}
+		for _, tc := range tests {
+			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
+				val, err := snaputil.GetServiceArgument(s, "k8s-apiserver-proxy", tc.key)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(tc.expectedVal).To(Equal(val))
+			})
+		}
+	})
 }

@@ -109,4 +109,30 @@ func TestKubeProxy(t *testing.T) {
 		g.Expect(err).To(BeNil())
 		g.Expect(val).To(BeEmpty())
 	})
+
+	t.Run("IPv6", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// Create a mock snap
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
+		s.Mock.Hostname = "dev"
+
+		g.Expect(setup.KubeProxy(context.Background(), s, "dev", "fd98::/108", "[::1]", nil)).To(BeNil())
+
+		tests := []struct {
+			key         string
+			expectedVal string
+		}{
+			{key: "--cluster-cidr", expectedVal: "fd98::/108"},
+			{key: "--healthz-bind-address", expectedVal: "[::1]:10256"},
+		}
+		for _, tc := range tests {
+			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
+				val, err := snaputil.GetServiceArgument(s, "kube-proxy", tc.key)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(tc.expectedVal).To(Equal(val))
+			})
+		}
+	})
 }

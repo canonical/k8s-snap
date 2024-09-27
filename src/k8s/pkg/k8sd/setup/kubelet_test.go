@@ -400,4 +400,31 @@ func TestKubelet(t *testing.T) {
 		g.Expect(err).To(BeNil())
 		g.Expect(val).To(BeEmpty())
 	})
+
+	t.Run("IPv6", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// Create a mock snap
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
+		s.Mock.Hostname = "dev"
+
+		// Call the kubelet control plane setup function
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("2001:db8::"), "2001:db8::1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
+
+		tests := []struct {
+			key         string
+			expectedVal string
+		}{
+			{key: "--cluster-dns", expectedVal: "2001:db8::1"},
+			{key: "--node-ip", expectedVal: "2001:db8::"},
+		}
+		for _, tc := range tests {
+			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
+				val, err := snaputil.GetServiceArgument(s, "kubelet", tc.key)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(tc.expectedVal).To(Equal(val))
+			})
+		}
+	})
 }
