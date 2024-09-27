@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"net"
 	"os"
 	"slices"
 	"strings"
@@ -128,13 +127,6 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
-			if bootstrapConfig.PodCIDR != nil && bootstrapConfig.ServiceCIDR != nil {
-				if err = validateCIDROverlapAndSize(*bootstrapConfig.PodCIDR, *bootstrapConfig.ServiceCIDR); err != nil {
-					cmd.PrintErrf("Error: Failed to validate the CIDR configuration.\n\nThe error was: %v\n", err)
-					env.Exit(1)
-					return
-				}
-			}
 
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
 
@@ -277,56 +269,4 @@ func askQuestion(stdin io.Reader, stdout io.Writer, stderr io.Writer, question s
 		}
 		return s
 	}
-}
-
-// validateCIDROverlapAndSize checks for overlap and size constraints between pod and service CIDRs.
-// It parses the provided podCIDR and serviceCIDR strings, checks for IPv4 and IPv6 overlaps, and ensures
-// that the service IPv6 CIDR does not have a prefix length of 64 or more.
-func validateCIDROverlapAndSize(podCIDR string, serviceCIDR string) error {
-	// Parse the CIDRs
-	podIPv4CIDR, podIPv6CIDR, err := utils.ParseCIDRs(podCIDR)
-	if err != nil {
-		return err
-	}
-
-	svcIPv4CIDR, svcIPv6CIDR, err := utils.ParseCIDRs(serviceCIDR)
-	if err != nil {
-		return err
-	}
-
-	// Check for IPv4 overlap
-	if podIPv4CIDR != "" && svcIPv4CIDR != "" {
-		if overlap, err := utils.CIDRsOverlap(podIPv4CIDR, svcIPv4CIDR); err != nil {
-			return err
-		} else if overlap {
-			return fmt.Errorf("pod CIDR %q and service CIDR %q overlap", podCIDR, serviceCIDR)
-		}
-	}
-
-	// Check for IPv6 overlap
-	if podIPv6CIDR != "" && svcIPv6CIDR != "" {
-		if overlap, err := utils.CIDRsOverlap(podIPv6CIDR, svcIPv6CIDR); err != nil {
-			return err
-		} else if overlap {
-			return fmt.Errorf("pod CIDR %q and service CIDR %q overlap", podCIDR, serviceCIDR)
-		}
-	}
-
-	// Check CIDR size
-	// Ref: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/networking/dualstack/#cidr-size-limitations
-	if svcIPv6CIDR != "" {
-		_, ipv6Net, err := net.ParseCIDR(svcIPv6CIDR)
-		if err != nil {
-			// Should not happen, as we already parsed the CIDR
-			return fmt.Errorf("invalid service CIDR %q: %w", svcIPv6CIDR, err)
-		}
-
-		prefixLength, _ := ipv6Net.Mask.Size()
-
-		if prefixLength >= 64 {
-			return fmt.Errorf("service CIDR %q cannot have a prefix length of 64 or more", svcIPv6CIDR)
-		}
-	}
-
-	return nil
 }
