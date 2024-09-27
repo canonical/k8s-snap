@@ -79,7 +79,7 @@ func (c *FeatureController) Run(
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 
 	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyNetwork(ctx, c.snap, cfg.Network, cfg.Annotations)
+		return features.Implementation.ApplyNetwork(ctx, c.snap, cfg.APIServer, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {

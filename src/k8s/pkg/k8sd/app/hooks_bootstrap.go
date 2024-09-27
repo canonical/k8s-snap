@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
@@ -184,11 +186,22 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		localhostAddress = "127.0.0.1"
 	}
 
+	port := "6443"
+	if len(response.APIServers) == 0 {
+		return fmt.Errorf("no APIServers found in worker node info")
+	}
+	// Get the secure port from the first APIServer since they should all be the same.
+	port = response.APIServers[0][strings.LastIndex(response.APIServers[0], ":")+1:]
+	securePort, err := strconv.Atoi(port)
+	if err != nil {
+		return fmt.Errorf("failed to parse apiserver secure port: %w", err)
+	}
+
 	// Kubeconfigs
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), fmt.Sprintf("%s:6443", localhostAddress), certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), fmt.Sprintf("%s:%d", localhostAddress, securePort), certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
 		return fmt.Errorf("failed to generate kubelet kubeconfig: %w", err)
 	}
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), fmt.Sprintf("%s:6443", localhostAddress), certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), fmt.Sprintf("%s:%d", localhostAddress, securePort), certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
 		return fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err)
 	}
 
@@ -203,6 +216,9 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	// TODO(neoaggelos): We should be explicit here and try to avoid having worker nodes use
 	// or set other cluster configuration keys by accident.
 	cfg := types.ClusterConfig{
+		APIServer: types.APIServer{
+			SecurePort: utils.Pointer(securePort),
+		},
 		Network: types.Network{
 			PodCIDR:     utils.Pointer(response.PodCIDR),
 			ServiceCIDR: utils.Pointer(response.ServiceCIDR),
@@ -239,7 +255,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, localhostAddress, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
-	if err := setup.K8sAPIServerProxy(snap, response.APIServers, localhostAddress, joinConfig.ExtraNodeK8sAPIServerProxyArgs); err != nil {
+	if err := setup.K8sAPIServerProxy(snap, response.APIServers, securePort, joinConfig.ExtraNodeK8sAPIServerProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure k8s-apiserver-proxy: %w", err)
 	}
 	if err := setup.ExtraNodeConfigFiles(snap, joinConfig.ExtraNodeConfigFiles); err != nil {
@@ -290,6 +306,8 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	} else {
 		localhostAddress = "127.0.0.1"
 	}
+
+	cfg.Network.LocalhostAddress = utils.Pointer(localhostAddress)
 
 	// Create directories
 	if err := setup.EnsureAllDirectories(snap); err != nil {
@@ -441,7 +459,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	if err := setup.KubeScheduler(snap, bootstrapConfig.ExtraNodeKubeSchedulerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
-	if err := setup.KubeAPIServer(snap, nodeIP, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), bootstrapConfig.ExtraNodeKubeAPIServerArgs); err != nil {
+	if err := setup.KubeAPIServer(snap, cfg.APIServer.GetSecurePort(), nodeIP, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), bootstrapConfig.ExtraNodeKubeAPIServerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 

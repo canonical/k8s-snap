@@ -282,10 +282,10 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	}
 
 	// Kubeconfigs
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), fmt.Sprintf("%s:6443", localhostAddress), certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), fmt.Sprintf("%s:%d", localhostAddress, clusterConfig.APIServer.GetSecurePort()), certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate kubelet kubeconfig: %w", err))
 	}
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), fmt.Sprintf("%s:6443", localhostAddress), certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), fmt.Sprintf("%s:%d", localhostAddress, clusterConfig.APIServer.GetSecurePort()), certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err))
 	}
 

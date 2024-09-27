@@ -32,11 +32,14 @@ func TestNetworkDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.Network{
+		network := types.Network{
 			Enabled: ptr.To(false),
 		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
+		}
 
-		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
+		status, err := cilium.ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -58,11 +61,14 @@ func TestNetworkDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.Network{
+		network := types.Network{
 			Enabled: ptr.To(false),
 		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
+		}
 
-		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
+		status, err := cilium.ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -87,12 +93,15 @@ func TestNetworkEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.Network{
+		network := types.Network{
 			Enabled: ptr.To(true),
 			PodCIDR: ptr.To("invalid-cidr"),
 		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
+		}
 
-		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
+		status, err := cilium.ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -109,12 +118,16 @@ func TestNetworkEnabled(t *testing.T) {
 				Strict:     true,
 			},
 		}
-		cfg := types.Network{
-			Enabled: ptr.To(true),
-			PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+		network := types.Network{
+			Enabled:          ptr.To(true),
+			LocalhostAddress: ptr.To("127.0.0.1"),
+			PodCIDR:          ptr.To("192.0.2.0/24,2001:db8::/32"),
+		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
 		}
 
-		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
+		status, err := cilium.ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -125,7 +138,7 @@ func TestNetworkEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-		validateNetworkValues(t, callArgs.Values, cfg, snapM)
+		validateNetworkValues(t, callArgs.Values, network, snapM)
 	})
 	t.Run("HelmApplyFails", func(t *testing.T) {
 		g := NewWithT(t)
@@ -139,12 +152,16 @@ func TestNetworkEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.Network{
-			Enabled: ptr.To(true),
-			PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+		network := types.Network{
+			Enabled:          ptr.To(true),
+			LocalhostAddress: ptr.To("127.0.0.1"),
+			PodCIDR:          ptr.To("192.0.2.0/24,2001:db8::/32"),
+		}
+		apiserver := types.APIServer{
+			SecurePort: ptr.To(6443),
 		}
 
-		status, err := cilium.ApplyNetwork(context.Background(), snapM, cfg, nil)
+		status, err := cilium.ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -155,15 +172,15 @@ func TestNetworkEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-		validateNetworkValues(t, callArgs.Values, cfg, snapM)
+		validateNetworkValues(t, callArgs.Values, network, snapM)
 	})
 }
 
-func validateNetworkValues(t *testing.T, values map[string]any, cfg types.Network, snap snap.Snap) {
+func validateNetworkValues(t *testing.T, values map[string]any, network types.Network, snap snap.Snap) {
 	t.Helper()
 	g := NewWithT(t)
 
-	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
+	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(network.GetPodCIDR())
 	g.Expect(err).ToNot(HaveOccurred())
 
 	bpfMount, err := utils.GetMountPath("bpf")
@@ -177,6 +194,8 @@ func validateNetworkValues(t *testing.T, values map[string]any, cfg types.Networ
 		g.Expect(values["cgroup"].(map[string]any)["hostRoot"]).To(Equal(cgrMount))
 	}
 
+	g.Expect(values["k8sServiceHost"]).To(Equal("127.0.0.1"))
+	g.Expect(values["k8sServicePort"]).To(Equal(6443))
 	g.Expect(values["ipam"].(map[string]any)["operator"].(map[string]any)["clusterPoolIPv4PodCIDRList"]).To(Equal(ipv4CIDR))
 	g.Expect(values["ipam"].(map[string]any)["operator"].(map[string]any)["clusterPoolIPv6PodCIDRList"]).To(Equal(ipv6CIDR))
 	g.Expect(values["ipv4"].(map[string]any)["enabled"]).To(Equal((ipv4CIDR != "")))

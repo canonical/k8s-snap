@@ -17,18 +17,18 @@ const (
 	networkDeployFailedMsgTmpl = "Failed to deploy Cilium Network, the error was: %v"
 )
 
-// ApplyNetwork will deploy Cilium when cfg.Enabled is true.
-// ApplyNetwork will remove Cilium when cfg.Enabled is false.
+// ApplyNetwork will deploy Cilium when network.Enabled is true.
+// ApplyNetwork will remove Cilium when network.Enabled is false.
 // ApplyNetwork requires that bpf and cgroups2 are already mounted and available when running under strict snap confinement. If they are not, it will fail (since Cilium will not have the required permissions to mount them).
 // ApplyNetwork requires that `/sys` is mounted as a shared mount when running under classic snap confinement. This is to ensure that Cilium will be able to automatically mount bpf and cgroups2 on the pods.
 // ApplyNetwork will always return a FeatureStatus indicating the current status of the
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
-	if !cfg.GetEnabled() {
+	if !network.GetEnabled() {
 		if _, err := m.Apply(ctx, ChartCilium, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall network: %w", err)
 			return types.FeatureStatus{
@@ -44,7 +44,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 		}, nil
 	}
 
-	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
+	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(network.GetPodCIDR())
 	if err != nil {
 		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", err)
 		return types.FeatureStatus{
@@ -87,10 +87,17 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, _ type
 				"clusterPoolIPv6PodCIDRList": ipv6CIDR,
 			},
 		},
+		// https://docs.cilium.io/en/v1.15/network/kubernetes/kubeproxy-free/#kube-proxy-hybrid-modes
 		"nodePort": map[string]any{
 			"enabled": true,
+			// kube-proxy also binds to the same port for health checks so we need to disable it
+			"enableHealthCheck": false,
 		},
 		"disableEnvoyVersionCheck": true,
+		// socketLB requires an endpoint to the apiserver that's not managed by the kube-proxy
+		// so we point to the localhost:secureport to talk to either the kube-apiserver or the kube-apiserver-proxy
+		"k8sServiceHost": network.GetLocalhostAddress(),
+		"k8sServicePort": apiserver.GetSecurePort(),
 	}
 
 	if snap.Strict() {
