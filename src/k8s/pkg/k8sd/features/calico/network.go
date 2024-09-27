@@ -54,7 +54,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 	}
 
 	podIpPools := []map[string]any{}
-	ipv4PodCIDR, ipv6PodCIDR, err := utils.ParseCIDRs(network.GetPodCIDR())
+	ipv4PodCIDR, ipv6PodCIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	if err != nil {
 		err = fmt.Errorf("invalid pod cidr: %w", err)
 		return types.FeatureStatus{
@@ -79,7 +79,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 	}
 
 	serviceCIDRs := []string{}
-	ipv4ServiceCIDR, ipv6ServiceCIDR, err := utils.ParseCIDRs(network.GetServiceCIDR())
+	ipv4ServiceCIDR, ipv6ServiceCIDR, err := utils.SplitCIDRStrings(network.GetServiceCIDR())
 	if err != nil {
 		err = fmt.Errorf("invalid service cidr: %v", err)
 		return types.FeatureStatus{

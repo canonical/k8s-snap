@@ -101,8 +101,8 @@ func ParseAddressString(address string, port int64) (string, error) {
 	return util.CanonicalNetworkAddress(address, port), nil
 }
 
-// ParseCIDRs parses the given CIDR string and returns the respective IPv4 and IPv6 CIDRs.
-func ParseCIDRs(CIDRstring string) (string, string, error) {
+// SplitCIDRStrings parses the given CIDR string and returns the respective IPv4 and IPv6 CIDRs.
+func SplitCIDRStrings(CIDRstring string) (string, string, error) {
 	clusterCIDRs := strings.Split(CIDRstring, ",")
 	if v := len(clusterCIDRs); v != 1 && v != 2 {
 		return "", "", fmt.Errorf("invalid CIDR list: %v", clusterCIDRs)
