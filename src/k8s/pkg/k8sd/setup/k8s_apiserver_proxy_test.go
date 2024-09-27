@@ -138,13 +138,13 @@ func TestK8sApiServerProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 		s.Mock.Hostname = "dev"
 
-		g.Expect(setup.K8sAPIServerProxy(s, nil, "[2001:db8::]", nil)).To(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil, 1234, nil)).To(Succeed())
 
 		tests := []struct {
 			key         string
 			expectedVal string
 		}{
-			{key: "--listen", expectedVal: "[2001:db8::]:6443"},
+			{key: "--listen", expectedVal: ":1234"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
