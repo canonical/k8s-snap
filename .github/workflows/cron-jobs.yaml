@@ -2,8 +2,6 @@ name: Security and quality nightly scan
 
 on:
   pull_request:
-  # schedule:
-  #   - cron: '0 10 * * *'
 
 permissions:
   contents: read
@@ -28,6 +26,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{matrix.branch}}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install Go
         uses: actions/setup-go@v5
         with:
