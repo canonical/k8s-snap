@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.node_count(1)
 @pytest.mark.no_setup()
-@pytest.mark.xfail("cilium failures are blocking this from working")
+@pytest.mark.xfail(reason="cilium failures are blocking this from working")
 @pytest.mark.skipif(
     not config.VERSION_UPGRADE_CHANNELS, reason="No upgrade channels configured"
 )
@@ -26,10 +26,7 @@ def test_version_upgrades(instances: List[harness.Instance]):
                 "'recent' requires the number of releases as second argument and the flavour as third argument"
             )
         _, num_channels, flavour = channels
-        arch = cp.exec(
-            ["dpkg", "--print-architecture"], text=True, capture_output=True
-        ).stdout.strip()
-        channels = snap.get_latest_channels(int(num_channels), flavour, arch)
+        channels = snap.get_latest_channels(int(num_channels), flavour, cp.arch)
 
     LOG.info(
         f"Bootstrap node on {channels[0]} and upgrade through channels: {channels[1:]}"

@@ -18,15 +18,11 @@ jobs:
         release: ["latest/edge"]
       fail-fast: false # TODO: remove once arm64 works
 
-    runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-20.04' }}
 
     steps:
       - name: Checking out repo
         uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
       - name: Install lxd and tox
         run: |
           sudo apt update
@@ -64,3 +60,7 @@ jobs:
         with:
           name: ${{ env.artifact_name }}
           path: ${{ github.workspace }}/inspection-reports.tar.gz
+      - name: Tmate debugging session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 10

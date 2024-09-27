@@ -2,7 +2,7 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import subprocess
-from functools import partial
+from functools import cached_property, partial
 
 
 class HarnessError(Exception):
@@ -29,6 +29,12 @@ class Instance:
     @property
     def id(self) -> str:
         return self._id
+
+    @cached_property
+    def arch(self) -> str:
+        return self.exec(
+            ["dpkg", "--print-architecture"], text=True, capture_output=True
+        ).stdout.strip()
 
     def __str__(self) -> str:
         return f"{self._h.name}:{self.id}"
