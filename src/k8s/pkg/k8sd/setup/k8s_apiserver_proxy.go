@@ -11,7 +11,7 @@ import (
 )
 
 // K8sAPIServerProxy prepares configuration for k8s-apiserver-proxy.
-func K8sAPIServerProxy(snap snap.Snap, servers []string, securePort string, extraArgs map[string]*string) error {
+func K8sAPIServerProxy(snap snap.Snap, servers []string, securePort int, extraArgs map[string]*string) error {
 	configFile := filepath.Join(snap.ServiceExtraConfigDir(), "k8s-apiserver-proxy.json")
 	if err := proxy.WriteEndpointsConfig(servers, configFile); err != nil {
 		return fmt.Errorf("failed to write proxy configuration file: %w", err)
@@ -20,7 +20,7 @@ func K8sAPIServerProxy(snap snap.Snap, servers []string, securePort string, extr
 	if _, err := snaputil.UpdateServiceArguments(snap, "k8s-apiserver-proxy", map[string]string{
 		"--endpoints":  configFile,
 		"--kubeconfig": filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
-		"--listen":     fmt.Sprintf(":%s", securePort),
+		"--listen":     fmt.Sprintf(":%d", securePort),
 	}, nil); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}

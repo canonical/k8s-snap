@@ -27,7 +27,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
-		g.Expect(setup.K8sAPIServerProxy(s, nil, "6443", nil)).To(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil, 6443, nil)).To(Succeed())
 
 		tests := []struct {
 			key         string
@@ -61,7 +61,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 			"--listen":       nil, // This should trigger a delete
 			"--my-extra-arg": utils.Pointer("my-extra-val"),
 		}
-		g.Expect(setup.K8sAPIServerProxy(s, nil, "6443", extraArgs)).To(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil, 6443, extraArgs)).To(Succeed())
 
 		tests := []struct {
 			key         string
@@ -98,7 +98,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		s.Mock.ServiceExtraConfigDir = "nonexistent"
-		g.Expect(setup.K8sAPIServerProxy(s, nil, "6443", nil)).ToNot(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil, 6443, nil)).ToNot(Succeed())
 	})
 
 	t.Run("MissingServiceArgumentsDir", func(t *testing.T) {
@@ -107,7 +107,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
-		g.Expect(setup.K8sAPIServerProxy(s, nil, "6443", nil)).ToNot(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil, 6443, nil)).ToNot(Succeed())
 	})
 
 	t.Run("JSONFileContent", func(t *testing.T) {
@@ -118,7 +118,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 		endpoints := []string{"192.168.0.1", "192.168.0.2", "192.168.0.3"}
 		fileName := filepath.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json")
 
-		g.Expect(setup.K8sAPIServerProxy(s, endpoints, "6443", nil)).To(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, endpoints, 6443, nil)).To(Succeed())
 
 		b, err := os.ReadFile(fileName)
 		g.Expect(err).NotTo(HaveOccurred())

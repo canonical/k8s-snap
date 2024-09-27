@@ -95,7 +95,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 		},
 		"disableEnvoyVersionCheck": true,
 		// socketLB requires an endpoint to the apiserver that's not managed by the kube-proxy
-		// so we point to the localhost 6443 to talk to either the kube-apiserver or the kube-apiserver-proxy
+		// so we point to the localhost:secureport to talk to either the kube-apiserver or the kube-apiserver-proxy
 		"k8sServiceHost": network.GetLocalhostAddress(),
 		"k8sServicePort": apiserver.GetSecurePort(),
 	}

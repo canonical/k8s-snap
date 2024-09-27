@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -185,19 +186,22 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		localhostAddress = "127.0.0.1"
 	}
 
-	var securePort = "6443"
+	port := "6443"
 	if len(response.APIServers) == 0 {
 		return fmt.Errorf("no APIServers found in worker node info")
 	}
-
 	// Get the secure port from the first APIServer since they should all be the same.
-	securePort = response.APIServers[0][strings.LastIndex(response.APIServers[0], ":")+1:]
+	port = response.APIServers[0][strings.LastIndex(response.APIServers[0], ":")+1:]
+	securePort, err := strconv.Atoi(port)
+	if err != nil {
+		return fmt.Errorf("failed to parse apiserver secure port: %w", err)
+	}
 
 	// Kubeconfigs
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), fmt.Sprintf("%s:6443", localhostAddress), certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), fmt.Sprintf("%s:%d", localhostAddress, securePort), certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
 		return fmt.Errorf("failed to generate kubelet kubeconfig: %w", err)
 	}
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), fmt.Sprintf("%s:6443", localhostAddress), certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), fmt.Sprintf("%s:%d", localhostAddress, securePort), certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
 		return fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err)
 	}
 
@@ -212,6 +216,9 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	// TODO(neoaggelos): We should be explicit here and try to avoid having worker nodes use
 	// or set other cluster configuration keys by accident.
 	cfg := types.ClusterConfig{
+		APIServer: types.APIServer{
+			SecurePort: utils.Pointer(securePort),
+		},
 		Network: types.Network{
 			PodCIDR:     utils.Pointer(response.PodCIDR),
 			ServiceCIDR: utils.Pointer(response.ServiceCIDR),
