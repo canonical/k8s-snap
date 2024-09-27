@@ -320,18 +320,6 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.GetServiceCIDR(), err)
 	}
 
-	if cfg.Network.GetPodCIDR() != "" && cfg.Network.GetServiceCIDR() != "" {
-		if err = validateCIDROverlap(cfg.Network.GetPodCIDR(), cfg.Network.GetServiceCIDR()); err != nil {
-			return fmt.Errorf("failed to validate the CIDR configuration: %w", err)
-		}
-	}
-	// Can't be an else-if, because default values are already set.
-	if cfg.Network.GetServiceCIDR() != "" {
-		if err = validateIPv6CIDRSize(cfg.Network.GetServiceCIDR()); err != nil {
-			return fmt.Errorf("failed to validate the CIDR configuration: %w", err)
-		}
-	}
-
 	// NOTE: Set the notBefore certificate time to the current time.
 	notBefore := time.Now()
 
@@ -522,61 +510,5 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		cfg.DNS.GetEnabled(),
 	)
 	a.NotifyUpdateNodeConfigController()
-	return nil
-}
-
-// validateCIDROverlapAndSize checks for overlap and size constraints between pod and service CIDRs.
-// It parses the provided podCIDR and serviceCIDR strings, checks for IPv4 and IPv6 overlaps.
-func validateCIDROverlap(podCIDR string, serviceCIDR string) error {
-	// Parse the CIDRs
-	podIPv4CIDR, podIPv6CIDR, err := utils.SplitCIDRStrings(podCIDR)
-	if err != nil {
-		return fmt.Errorf("failed to parse pod CIDR: %w", err)
-	}
-
-	svcIPv4CIDR, svcIPv6CIDR, err := utils.SplitCIDRStrings(serviceCIDR)
-	if err != nil {
-		return fmt.Errorf("failed to parse service CIDR: %w", err)
-	}
-
-	// Check for IPv4 overlap
-	if podIPv4CIDR != "" && svcIPv4CIDR != "" {
-		if overlap, err := utils.CIDRsOverlap(podIPv4CIDR, svcIPv4CIDR); err != nil {
-			return fmt.Errorf("failed to check for IPv4 overlap: %w", err)
-		} else if overlap {
-			return fmt.Errorf("pod CIDR %q and service CIDR %q overlap", podCIDR, serviceCIDR)
-		}
-	}
-
-	// Check for IPv6 overlap
-	if podIPv6CIDR != "" && svcIPv6CIDR != "" {
-		if overlap, err := utils.CIDRsOverlap(podIPv6CIDR, svcIPv6CIDR); err != nil {
-			return fmt.Errorf("failed to check for IPv6 overlap: %w", err)
-		} else if overlap {
-			return fmt.Errorf("pod CIDR %q and service CIDR %q overlap", podCIDR, serviceCIDR)
-		}
-	}
-
-	return nil
-}
-
-// Check CIDR size ensures that the service IPv6 CIDR is not larger than /108.
-// Ref: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/networking/dualstack/#cidr-size-limitations
-func validateIPv6CIDRSize(serviceCIDR string) error {
-	_, svcIPv6CIDR, err := utils.SplitCIDRStrings(serviceCIDR)
-	if err != nil {
-		return fmt.Errorf("invalid CIDR: %w", err)
-	}
-
-	_, ipv6Net, err := net.ParseCIDR(svcIPv6CIDR)
-	if err != nil {
-		return fmt.Errorf("invalid CIDR: %w", err)
-	}
-
-	prefixLength, _ := ipv6Net.Mask.Size()
-	if prefixLength < 108 {
-		return fmt.Errorf("service CIDR %q cannot be larger than /108", serviceCIDR)
-	}
-
 	return nil
 }
