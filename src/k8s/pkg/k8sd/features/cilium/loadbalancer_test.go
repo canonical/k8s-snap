@@ -5,14 +5,14 @@ import (
 	"errors"
 	"testing"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/canonical/k8s/pkg/client/helm"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
+
+	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	fakediscovery "k8s.io/client-go/discovery/fake"
@@ -52,6 +52,7 @@ func TestLoadBalancerDisabled(t *testing.T) {
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(callArgs.Values).To(BeNil())
 	})
+
 	t.Run("Success", func(t *testing.T) {
 		g := NewWithT(t)
 
@@ -123,93 +124,120 @@ func TestLoadBalancerEnabled(t *testing.T) {
 		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(callArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(networkCfg.GetEnabled())))
 		g.Expect(callArgs.Values["l2announcements"].(map[string]any)["enabled"]).To(Equal(lbCfg.GetL2Mode()))
-		g.Expect(callArgs.Values["bgpControlPlane"].(map[string]any)["enabled"]).To(Equal(lbCfg.GetL2Mode()))
+		g.Expect(callArgs.Values["bgpControlPlane"].(map[string]any)["enabled"]).To(Equal(lbCfg.GetBGPMode()))
 	})
-	t.Run("Success", func(t *testing.T) {
-		g := NewWithT(t)
 
-		helmM := &helmmock.Mock{
-			// setting changed == true to check for restart annotation
-			ApplyChanged: true,
-		}
-		clientset := fake.NewSimpleClientset(
-			&v1.Deployment{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "cilium-operator",
-					Namespace: "kube-system",
+	for _, tc := range []struct {
+		name          string
+		l2Mode        bool
+		bGPMode       bool
+		statusMessage string
+	}{
+		{
+			name:          "SuccessL2Mode",
+			l2Mode:        true,
+			bGPMode:       false,
+			statusMessage: "enabled, L2 mode",
+		},
+		{
+			name:          "SuccessBGPMode",
+			l2Mode:        false,
+			bGPMode:       true,
+			statusMessage: "enabled, BGP mode",
+		},
+		{
+			name:          "SuccessUnknownMode",
+			l2Mode:        false,
+			bGPMode:       false,
+			statusMessage: "enabled, Unknown mode",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			helmM := &helmmock.Mock{
+				ApplyChanged: true,
+			}
+			clientset := fake.NewSimpleClientset(
+				&v1.Deployment{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cilium-operator",
+						Namespace: "kube-system",
+					},
 				},
-			},
-			&v1.DaemonSet{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "cilium",
-					Namespace: "kube-system",
+				&v1.DaemonSet{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cilium",
+						Namespace: "kube-system",
+					},
 				},
-			},
-		)
-		fd, ok := clientset.Discovery().(*fakediscovery.FakeDiscovery)
-		g.Expect(ok).To(BeTrue())
-		fd.Resources = []*metav1.APIResourceList{
-			{
-				GroupVersion: "cilium.io/v2alpha1",
-				APIResources: []metav1.APIResource{
-					{Name: "ciliuml2announcementpolicies"},
-					{Name: "ciliumloadbalancerippools"},
-					{Name: "ciliumbgppeeringpolicies"},
+			)
+			fd, ok := clientset.Discovery().(*fakediscovery.FakeDiscovery)
+			g.Expect(ok).To(BeTrue())
+			fd.Resources = []*metav1.APIResourceList{
+				{
+					GroupVersion: "cilium.io/v2alpha1",
+					APIResources: []metav1.APIResource{
+						{Name: "ciliuml2announcementpolicies"},
+						{Name: "ciliumloadbalancerippools"},
+						{Name: "ciliumbgppeeringpolicies"},
+					},
 				},
-			},
-		}
-		snapM := &snapmock.Snap{
-			Mock: snapmock.Mock{
-				HelmClient:       helmM,
-				KubernetesClient: &kubernetes.Client{Interface: clientset},
-			},
-		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(true),
-			// setting both modes to true for testing purposes
-			L2Mode:         ptr.To(true),
-			L2Interfaces:   ptr.To([]string{"eth0", "eth1"}),
-			BGPMode:        ptr.To(true),
-			BGPLocalASN:    ptr.To(64512),
-			BGPPeerAddress: ptr.To("10.0.0.1/32"),
-			BGPPeerASN:     ptr.To(64513),
-			BGPPeerPort:    ptr.To(179),
-			CIDRs:          ptr.To([]string{"192.0.2.0/24"}),
-			IPRanges: ptr.To([]types.LoadBalancer_IPRange{
-				{Start: "20.0.20.100", Stop: "20.0.20.200"},
-			}),
-		}
-		networkCfg := types.Network{
-			Enabled: ptr.To(true),
-		}
+			}
+			snapM := &snapmock.Snap{
+				Mock: snapmock.Mock{
+					HelmClient:       helmM,
+					KubernetesClient: &kubernetes.Client{Interface: clientset},
+				},
+			}
+			lbCfg := types.LoadBalancer{
+				Enabled: ptr.To(true),
+				// setting both modes to true for testing purposes
+				L2Mode:         ptr.To(tc.l2Mode),
+				L2Interfaces:   ptr.To([]string{"eth0", "eth1"}),
+				BGPMode:        ptr.To(tc.bGPMode),
+				BGPLocalASN:    ptr.To(64512),
+				BGPPeerAddress: ptr.To("10.0.0.1/32"),
+				BGPPeerASN:     ptr.To(64513),
+				BGPPeerPort:    ptr.To(179),
+				CIDRs:          ptr.To([]string{"192.0.2.0/24"}),
+				IPRanges: ptr.To([]types.LoadBalancer_IPRange{
+					{Start: "20.0.20.100", Stop: "20.0.20.200"},
+				}),
+			}
+			networkCfg := types.Network{
+				Enabled: ptr.To(true),
+			}
 
-		status, err := cilium.ApplyLoadBalancer(context.Background(), snapM, lbCfg, networkCfg, nil)
+			status, err := cilium.ApplyLoadBalancer(context.Background(), snapM, lbCfg, networkCfg, nil)
 
-		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(status.Enabled).To(BeTrue())
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Message).To(Equal(tc.statusMessage))
 
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
+			g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
-		firstCallArgs := helmM.ApplyCalledWith[0]
-		g.Expect(firstCallArgs.Chart).To(Equal(cilium.ChartCilium))
-		g.Expect(firstCallArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(networkCfg.GetEnabled())))
-		g.Expect(firstCallArgs.Values["l2announcements"].(map[string]any)["enabled"]).To(Equal(lbCfg.GetL2Mode()))
-		g.Expect(firstCallArgs.Values["bgpControlPlane"].(map[string]any)["enabled"]).To(Equal(lbCfg.GetL2Mode()))
+			firstCallArgs := helmM.ApplyCalledWith[0]
+			g.Expect(firstCallArgs.Chart).To(Equal(cilium.ChartCilium))
+			g.Expect(firstCallArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(networkCfg.GetEnabled())))
+			g.Expect(firstCallArgs.Values["l2announcements"].(map[string]any)["enabled"]).To(Equal(lbCfg.GetL2Mode()))
+			g.Expect(firstCallArgs.Values["bgpControlPlane"].(map[string]any)["enabled"]).To(Equal(lbCfg.GetBGPMode()))
 
-		secondCallArgs := helmM.ApplyCalledWith[1]
-		g.Expect(secondCallArgs.Chart).To(Equal(cilium.ChartCiliumLoadBalancer))
-		g.Expect(secondCallArgs.State).To(Equal(helm.StatePresent))
-		validateLoadBalancerValues(t, secondCallArgs.Values, lbCfg)
+			secondCallArgs := helmM.ApplyCalledWith[1]
+			g.Expect(secondCallArgs.Chart).To(Equal(cilium.ChartCiliumLoadBalancer))
+			g.Expect(secondCallArgs.State).To(Equal(helm.StatePresent))
+			validateLoadBalancerValues(t, secondCallArgs.Values, lbCfg)
 
-		// check if cilium-operator and cilium daemonset are restarted
-		deployment, err := clientset.AppsV1().Deployments("kube-system").Get(context.Background(), "cilium-operator", metav1.GetOptions{})
-		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(deployment.Spec.Template.Annotations).To(HaveKey("kubectl.kubernetes.io/restartedAt"))
-		daemonSet, err := clientset.AppsV1().DaemonSets("kube-system").Get(context.Background(), "cilium", metav1.GetOptions{})
-		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(daemonSet.Spec.Template.Annotations).To(HaveKey("kubectl.kubernetes.io/restartedAt"))
-	})
+			// check if cilium-operator and cilium daemonset are restarted
+			deployment, err := clientset.AppsV1().Deployments("kube-system").Get(context.Background(), "cilium-operator", metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(deployment.Spec.Template.Annotations).To(HaveKey("kubectl.kubernetes.io/restartedAt"))
+			daemonSet, err := clientset.AppsV1().DaemonSets("kube-system").Get(context.Background(), "cilium", metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(daemonSet.Spec.Template.Annotations).To(HaveKey("kubectl.kubernetes.io/restartedAt"))
+		})
+	}
 }
 
 func validateLoadBalancerValues(t *testing.T, values map[string]interface{}, lbCfg types.LoadBalancer) {

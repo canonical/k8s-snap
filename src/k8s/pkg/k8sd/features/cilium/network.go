@@ -17,6 +17,12 @@ const (
 	networkDeployFailedMsgTmpl = "Failed to deploy Cilium Network, the error was: %v"
 )
 
+// required for unittests
+var (
+	getMountPath            = utils.GetMountPath
+	getMountPropagationType = utils.GetMountPropagationType
+)
+
 // ApplyNetwork will deploy Cilium when network.Enabled is true.
 // ApplyNetwork will remove Cilium when network.Enabled is false.
 // ApplyNetwork requires that bpf and cgroups2 are already mounted and available when running under strict snap confinement. If they are not, it will fail (since Cilium will not have the required permissions to mount them).
@@ -101,7 +107,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 	}
 
 	if snap.Strict() {
-		bpfMnt, err := utils.GetMountPath("bpf")
+		bpfMnt, err := getMountPath("bpf")
 		if err != nil {
 			err = fmt.Errorf("failed to get bpf mount path: %w", err)
 			return types.FeatureStatus{
@@ -111,7 +117,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 			}, err
 		}
 
-		cgrMnt, err := utils.GetMountPath("cgroup2")
+		cgrMnt, err := getMountPath("cgroup2")
 		if err != nil {
 			err = fmt.Errorf("failed to get cgroup2 mount path: %w", err)
 			return types.FeatureStatus{
@@ -134,7 +140,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 			"hostRoot": cgrMnt,
 		}
 	} else {
-		pt, err := utils.GetMountPropagationType("/sys")
+		pt, err := getMountPropagationType("/sys")
 		if err != nil {
 			err = fmt.Errorf("failed to get mount propagation type for /sys: %w", err)
 			return types.FeatureStatus{
@@ -146,7 +152,8 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 		if pt == utils.MountPropagationPrivate {
 			onLXD, err := snap.OnLXD(ctx)
 			if err != nil {
-				log.FromContext(ctx).Error(err, "Failed to check if running on LXD")
+				logger := log.FromContext(ctx)
+				logger.Error(err, "Failed to check if running on LXD")
 			}
 			if onLXD {
 				err := fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
