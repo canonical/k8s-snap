@@ -122,6 +122,6 @@ func TestCheckNetwork(t *testing.T) {
 		}
 
 		err := cilium.CheckNetwork(context.Background(), snapM)
-		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(err).NotTo(HaveOccurred())
 	})
 }

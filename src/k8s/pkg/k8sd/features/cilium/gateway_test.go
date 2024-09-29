@@ -142,7 +142,7 @@ func TestGatewayEnabled(t *testing.T) {
 
 		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
-		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
@@ -270,7 +270,7 @@ func TestGatewayDisabled(t *testing.T) {
 
 		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
-		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
