@@ -32,13 +32,13 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 			err = fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: contourGatewayProvisionerContourImageTag,
+				Version: ContourGatewayProvisionerContourImageTag,
 				Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourGatewayProvisionerContourImageTag,
+			Version: ContourGatewayProvisionerContourImageTag,
 			Message: disabledMsg,
 		}, nil
 	}
@@ -48,7 +48,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourGatewayProvisionerContourImageTag,
+			Version: ContourGatewayProvisionerContourImageTag,
 			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -57,7 +57,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		err = fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourGatewayProvisionerContourImageTag,
+			Version: ContourGatewayProvisionerContourImageTag,
 			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -65,14 +65,14 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	values := map[string]any{
 		"projectcontour": map[string]any{
 			"image": map[string]any{
-				"repository": contourGatewayProvisionerContourImageRepo,
-				"tag":        contourGatewayProvisionerContourImageTag,
+				"repository": ContourGatewayProvisionerContourImageRepo,
+				"tag":        ContourGatewayProvisionerContourImageTag,
 			},
 		},
 		"envoyproxy": map[string]any{
 			"image": map[string]any{
-				"repository": contourGatewayProvisionerEnvoyImageRepo,
-				"tag":        contourGatewayProvisionerEnvoyImageTag,
+				"repository": ContourGatewayProvisionerEnvoyImageRepo,
+				"tag":        ContourGatewayProvisionerEnvoyImageTag,
 			},
 		},
 	}
@@ -81,14 +81,14 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		err = fmt.Errorf("failed to install the contour gateway chart: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourGatewayProvisionerContourImageTag,
+			Version: ContourGatewayProvisionerContourImageTag,
 			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
-		Version: contourGatewayProvisionerContourImageTag,
+		Version: ContourGatewayProvisionerContourImageTag,
 		Message: enabledMsg,
 	}, nil
 }

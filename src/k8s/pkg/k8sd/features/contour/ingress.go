@@ -33,13 +33,13 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 			err = fmt.Errorf("failed to uninstall ingress: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: contourIngressContourImageTag,
+				Version: ContourIngressContourImageTag,
 				Message: fmt.Sprintf(ingressDeleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourIngressContourImageTag,
+			Version: ContourIngressContourImageTag,
 			Message: disabledMsg,
 		}, nil
 	}
@@ -49,7 +49,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourIngressContourImageTag,
+			Version: ContourIngressContourImageTag,
 			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -58,7 +58,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		err = fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourIngressContourImageTag,
+			Version: ContourIngressContourImageTag,
 			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -70,8 +70,8 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		"envoy": map[string]any{
 			"image": map[string]any{
 				"registry":   "",
-				"repository": contourIngressEnvoyImageRepo,
-				"tag":        contourIngressEnvoyImageTag,
+				"repository": ContourIngressEnvoyImageRepo,
+				"tag":        ContourIngressEnvoyImageTag,
 			},
 		},
 		"contour": map[string]any{
@@ -83,8 +83,8 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 			},
 			"image": map[string]any{
 				"registry":   "",
-				"repository": contourIngressContourImageRepo,
-				"tag":        contourIngressContourImageTag,
+				"repository": ContourIngressContourImageRepo,
+				"tag":        ContourIngressContourImageTag,
 			},
 		},
 	}
@@ -92,7 +92,6 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	if ingress.GetEnableProxyProtocol() {
 		contour := values["contour"].(map[string]any)
 		contour["extraArgs"] = []string{"--use-proxy-protocol"}
-
 	}
 
 	changed, err := m.Apply(ctx, chartContour, helm.StatePresent, values)
@@ -100,7 +99,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		err = fmt.Errorf("failed to enable ingress: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourIngressContourImageTag,
+			Version: ContourIngressContourImageTag,
 			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -110,7 +109,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 			err = fmt.Errorf("failed to rollout restart contour to apply ingress: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: contourIngressContourImageTag,
+				Version: ContourIngressContourImageTag,
 				Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
 			}, err
 		}
@@ -127,13 +126,13 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 			err = fmt.Errorf("failed to install the delegation resource for default TLS secret: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: contourIngressContourImageTag,
+				Version: ContourIngressContourImageTag,
 				Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: contourIngressContourImageTag,
+			Version: ContourIngressContourImageTag,
 			Message: enabledMsg,
 		}, nil
 	}
@@ -142,7 +141,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		err = fmt.Errorf("failed to uninstall the delegation resource for default TLS secret: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourIngressContourImageTag,
+			Version: ContourIngressContourImageTag,
 			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
 		}, err
 
@@ -150,7 +149,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 
 	return types.FeatureStatus{
 		Enabled: true,
-		Version: contourIngressContourImageTag,
+		Version: ContourIngressContourImageTag,
 		Message: enabledMsg,
 	}, nil
 }
