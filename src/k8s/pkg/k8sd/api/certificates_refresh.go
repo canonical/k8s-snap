@@ -140,7 +140,7 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 	go func() {
 		// NOTE: Create a new context independent of the request context to ensure
 		// the restart process is not cancelled by the client.
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
 
 		if err := <-readyCh; err != nil {
