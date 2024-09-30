@@ -3,6 +3,7 @@ package contour_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -43,7 +44,9 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
-		g.Expect(status.Message).To(ContainSubstring("Failed to delete Contour Gateway"))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeleteFailedMsgTmpl,
+			fmt.Errorf("failed to uninstall the contour gateway chart: %w", applyErr),
+		)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 	})
@@ -67,7 +70,7 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
-		g.Expect(status.Message).To(ContainSubstring("disabled"))
+		g.Expect(status.Message).To(Equal(contour.DisabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 	})
@@ -94,10 +97,12 @@ func TestGatewayEnabled(t *testing.T) {
 		status, err := contour.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
+		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
-		g.Expect(status.Message).To(ContainSubstring("Failed to deploy Contour Gateway"))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeployFailedMsgTmpl,
+			fmt.Errorf("failed to apply common contour CRDS: %w", fmt.Errorf("failed to install common CRDS: %w", applyErr)),
+		)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
 
@@ -144,7 +149,7 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
-		g.Expect(status.Message).To(ContainSubstring("enabled"))
+		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
 		values := helmM.ApplyCalledWith[1].Values
@@ -198,7 +203,10 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(err.Error()).To(ContainSubstring("failed to wait for required contour common CRDs"))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
-		g.Expect(status.Message).To(ContainSubstring("Failed to deploy Contour Gateway"))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeployFailedMsgTmpl,
+			fmt.Errorf("failed to wait for required contour common CRDs to be available: %w",
+				errors.New("context deadline exceeded")),
+		)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
 }

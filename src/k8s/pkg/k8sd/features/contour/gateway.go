@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	enabledMsg                 = "enabled"
-	disabledMsg                = "disabled"
-	gatewayDeployFailedMsgTmpl = "Failed to deploy Contour Gateway, the error was: %v"
-	gatewayDeleteFailedMsgTmpl = "Failed to delete Contour Gateway, the error was: %v"
+	EnabledMsg                 = "enabled"
+	DisabledMsg                = "disabled"
+	GatewayDeployFailedMsgTmpl = "Failed to deploy Contour Gateway, the error was: %v"
+	GatewayDeleteFailedMsgTmpl = "Failed to delete Contour Gateway, the error was: %v"
 )
 
 // ApplyGateway will install a helm chart for contour-gateway-provisioner on the cluster when gateway.Enabled is true.
@@ -33,13 +33,13 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: ContourGatewayProvisionerContourImageTag,
-				Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+				Message: fmt.Sprintf(GatewayDeleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ContourGatewayProvisionerContourImageTag,
-			Message: disabledMsg,
+			Message: DisabledMsg,
 		}, nil
 	}
 
@@ -49,7 +49,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ContourGatewayProvisionerContourImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -58,7 +58,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ContourGatewayProvisionerContourImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -82,14 +82,14 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ContourGatewayProvisionerContourImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
 		Version: ContourGatewayProvisionerContourImageTag,
-		Message: enabledMsg,
+		Message: EnabledMsg,
 	}, nil
 }
 

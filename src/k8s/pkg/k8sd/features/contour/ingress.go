@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	ingressDeleteFailedMsgTmpl = "Failed to delete Contour Ingress, the error was: %v"
-	ingressDeployFailedMsgTmpl = "Failed to deploy Contour Ingress, the error was: %v"
+	IngressDeleteFailedMsgTmpl = "Failed to delete Contour Ingress, the error was: %v"
+	IngressDeployFailedMsgTmpl = "Failed to deploy Contour Ingress, the error was: %v"
 )
 
 // ApplyIngress will install the contour helm chart when ingress.Enabled is true.
@@ -34,13 +34,13 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: ContourIngressContourImageTag,
-				Message: fmt.Sprintf(ingressDeleteFailedMsgTmpl, err),
+				Message: fmt.Sprintf(IngressDeleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ContourIngressContourImageTag,
-			Message: disabledMsg,
+			Message: DisabledMsg,
 		}, nil
 	}
 
@@ -50,7 +50,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ContourIngressContourImageTag,
-			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -59,7 +59,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ContourIngressContourImageTag,
-			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -100,7 +100,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ContourIngressContourImageTag,
-			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -110,7 +110,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: ContourIngressContourImageTag,
-				Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+				Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
 			}, err
 		}
 	}
@@ -127,13 +127,13 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: ContourIngressContourImageTag,
-				Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+				Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: true,
 			Version: ContourIngressContourImageTag,
-			Message: enabledMsg,
+			Message: EnabledMsg,
 		}, nil
 	}
 
@@ -142,7 +142,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ContourIngressContourImageTag,
-			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
 		}, err
 
 	}
@@ -150,7 +150,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	return types.FeatureStatus{
 		Enabled: true,
 		Version: ContourIngressContourImageTag,
-		Message: enabledMsg,
+		Message: EnabledMsg,
 	}, nil
 }
 
