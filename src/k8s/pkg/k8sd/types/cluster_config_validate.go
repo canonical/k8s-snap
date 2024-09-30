@@ -66,6 +66,10 @@ func validateIPv6CIDRSize(serviceCIDR string) error {
 		return fmt.Errorf("invalid CIDR: %w", err)
 	}
 
+	if svcIPv6CIDR == "" {
+		return nil
+	}
+
 	_, ipv6Net, err := net.ParseCIDR(svcIPv6CIDR)
 	if err != nil {
 		return fmt.Errorf("invalid CIDR: %w", err)
