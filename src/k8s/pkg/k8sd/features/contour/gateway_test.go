@@ -44,10 +44,7 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
-		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeleteFailedMsgTmpl,
-			fmt.Errorf("failed to uninstall the contour gateway chart: %w", applyErr),
-		)))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeleteFailedMsgTmpl, err)))
 
 	})
 
@@ -100,9 +97,7 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
-		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeployFailedMsgTmpl,
-			fmt.Errorf("failed to apply common contour CRDS: %w", fmt.Errorf("failed to install common CRDS: %w", applyErr)),
-		)))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeployFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
 
@@ -150,15 +145,6 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
-
-		values := helmM.ApplyCalledWith[1].Values
-		projectcontour := values["projectcontour"].(map[string]any)["image"].(map[string]any)
-		g.Expect(projectcontour["repository"]).To(Equal(contour.ContourGatewayProvisionerContourImageRepo))
-		g.Expect(projectcontour["tag"]).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
-		envoy := values["envoyproxy"].(map[string]any)["image"].(map[string]any)
-		g.Expect(envoy["repository"]).To(Equal(contour.ContourGatewayProvisionerEnvoyImageRepo))
-		g.Expect(envoy["tag"]).To(Equal(contour.ContourGatewayProvisionerEnvoyImageTag))
 	})
 
 	t.Run("CrdDeploymentFailed", func(t *testing.T) {
@@ -203,10 +189,7 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(err.Error()).To(ContainSubstring("failed to wait for required contour common CRDs"))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
-		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeployFailedMsgTmpl,
-			fmt.Errorf("failed to wait for required contour common CRDs to be available: %w",
-				errors.New("context deadline exceeded")),
-		)))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeployFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
 }

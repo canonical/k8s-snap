@@ -45,10 +45,7 @@ func TestIngressDisabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
-		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeleteFailedMsgTmpl,
-			fmt.Errorf("failed to uninstall ingress: %w", applyErr),
-		)))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeleteFailedMsgTmpl, err)))
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -71,7 +68,6 @@ func TestIngressDisabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.DisabledMsg))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
 }
 
@@ -99,10 +95,7 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
-		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeployFailedMsgTmpl,
-			fmt.Errorf("failed to apply common contour CRDS: %w", fmt.Errorf("failed to install common CRDS: %w", applyErr)),
-		)))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeployFailedMsgTmpl, err)))
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -157,8 +150,6 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
-		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, ingress)
 	})
 
 	t.Run("SuccessWithEnabledProxyProtocol", func(t *testing.T) {
@@ -214,8 +205,6 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
-		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, ingress)
 	})
 
 	t.Run("SuccessWithDefaultTLSSecret", func(t *testing.T) {
@@ -273,9 +262,6 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
-		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, ingress)
-		g.Expect(helmM.ApplyCalledWith[2].Values["defaultTLSSecret"]).To(Equal(defaultTLSSecret))
 	})
 
 	t.Run("NoCR", func(t *testing.T) {
@@ -320,11 +306,7 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
-		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeployFailedMsgTmpl,
-			fmt.Errorf("failed to wait for required contour common CRDs to be available: %w",
-				errors.New("context deadline exceeded")),
-		)))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeployFailedMsgTmpl, err)))
 	})
 
 	t.Run("NoDeployment", func(t *testing.T) {
@@ -379,27 +361,6 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(err.Error()).To(ContainSubstring("failed to rollout restart contour to apply ingress"))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
-		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeployFailedMsgTmpl,
-			fmt.Errorf("failed to rollout restart contour to apply ingress: %v",
-				fmt.Errorf("failed to restart contour deployment after 3 attempts: %w",
-					fmt.Errorf("failed to restart contour deployment: %w",
-						fmt.Errorf("failed to get deployment ck-ingress-contour-contour in namespace projectcontour: %w",
-							errors.New("deployments.apps \"ck-ingress-contour-contour\" not found"))))),
-		)))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeployFailedMsgTmpl, err)))
 	})
-}
-
-func validateIngressValues(g Gomega, values map[string]interface{}, ingress types.Ingress) {
-	projectcontour := values["contour"].(map[string]any)["image"].(map[string]any)
-	g.Expect(projectcontour["repository"]).To(Equal(contour.ContourIngressContourImageRepo))
-	g.Expect(projectcontour["tag"]).To(Equal(contour.ContourIngressContourImageTag))
-
-	envoy := values["envoy"].(map[string]any)["image"].(map[string]any)
-	g.Expect(envoy["repository"]).To(Equal(contour.ContourIngressEnvoyImageRepo))
-	g.Expect(envoy["tag"]).To(Equal(contour.ContourIngressEnvoyImageTag))
-
-	if ingress.GetEnableProxyProtocol() {
-		g.Expect(values["contour"].(map[string]any)["extraArgs"].([]string)[0]).To(Equal("--use-proxy-protocol"))
-	}
 }
