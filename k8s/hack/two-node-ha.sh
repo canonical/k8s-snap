@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# This script automates various operations on two-node HA A-A Canonical K8s
-# clusters that use the default datastore, Dqlite.
+# This script automates various operations on two-node HA Active-Active
+# Canonical K8s clusters that use the default datastore, Dqlite.
 #
 # Prerequisites:
 # * required packages installed using the "install_packages" command.
@@ -87,8 +87,8 @@ function get_dqlite_node_role() {
 
 function get_dqlite_role_from_cluster_yaml() {
     # Note that the cluster.yaml role may not match the info.yaml role.
-    # In case of a freshly joined node, info.yaml will have "voter" role
-    # while cluster.yaml has "spare" role.
+    # In case of a freshly joined node, info.yaml will show it as a "voter"
+    # while cluster.yaml lists it as a "spare" node.
     local clusterYamlPath=$1
     local nodeId=$2
 
@@ -99,7 +99,7 @@ function get_dqlite_role_from_cluster_yaml() {
 
 function set_dqlite_node_role() {
     # The yq snap installs in confined mode, so it's unable to access the
-    # dqlite config files.
+    # Dqlite config files.
     # In order to modify files in-place, we're using sponge. It reads all
     # the stdin data before opening the output file.
     local infoYamlPath=$1
@@ -146,7 +146,7 @@ function get_dql_peer_ip() {
     echo ${addresses[0]} | cut -d ":" -f 1
 }
 
-# This function moves the dqlite state directories to the DRBD mount,
+# This function moves the Dqlite state directories to the DRBD mount,
 # replacing them with symlinks. This ensures that the primary will always use
 # the latest DRBD data.
 #
@@ -156,7 +156,7 @@ function move_statedirs() {
     sudo mkdir -p $DRBD_MOUNT_DIR/k8s-dqlite
     sudo mkdir -p $DRBD_MOUNT_DIR/k8sd
 
-    log_message "Validating dqlite state directories."
+    log_message "Validating Dqlite state directories."
     check_statedir $K8S_DQLITE_STATE_DIR $DRBD_MOUNT_DIR/k8s-dqlite
     check_statedir $K8SD_STATE_DIR $DRBD_MOUNT_DIR/k8sd
 
@@ -177,7 +177,7 @@ function move_statedirs() {
             # TODO: consider automating this. We may move the pacemaker resource
             # ourselves and maybe even copy the remote files through scp or ssh.
             # However, there's a risk of race conditions.
-            log_message "DRBD volume mounted on replica, refusing to transfer dqlite files."
+            log_message "DRBD volume mounted on replica, refusing to transfer Dqlite files."
             log_message "Move the DRBD volume to the primary node (through the fs_res Pacemaker resource) and try again."
             log_message "Example: sudo crm resource move fs_res <primary_node> && sudo crm resource clear fs_res"
             exit 1
@@ -261,7 +261,7 @@ function ensure_drbd_unmounted() {
 }
 
 function ensure_drbd_ready() {
-    ensure_mount_rw 
+    ensure_mount_rw
 
     diskStatus=`sudo drbdadm status r0 | grep disk | head -1 | cut -d ":" -f 2`
     if [[ $diskStatus != "UpToDate" ]]; then
@@ -303,7 +303,7 @@ function wait_for_peer_k8s() {
 
     local peerIp=`get_dql_peer_ip $K8S_DQLITE_CLUSTER_BKP_YAML $k8sDqliteNodeId`
     if [[ -z $peerIp ]]; then
-        log_message "Couldn't retrieve dqlite peer ip."
+        log_message "Couldn't retrieve Dqlite peer ip."
         exit 1
     fi
 
@@ -356,8 +356,8 @@ function wait_drbd_resource () {
     return 1
 }
 
-# Based on the drbd volume state, we decide if this node should be a
-# dqlite voter or a spare.
+# Based on the DRBD volume state, we decide if this node should be a
+# Dqlite voter or a spare.
 function get_expected_dqlite_role() {
     drbdResRole=`sudo drbdadm status $DRBD_RES_NAME | head -1 | grep role | cut -d ":" -f 2`
 
@@ -397,7 +397,7 @@ function validate_drbd_state() {
 # After a failover, the state dir points to the shared DRBD volume.
 # We need to restore the node certificate and config files.
 function restore_dqlite_confs_and_certs() {
-    log_message "Restoring dqlite configs and certificates."
+    log_message "Restoring Dqlite configs and certificates."
 
     sudo cp $K8S_DQLITE_STATE_BKP_DIR/info.yaml $K8S_DQLITE_STATE_DIR
 
@@ -431,7 +431,7 @@ function promote_as_primary() {
 
     local peerIp=`get_dql_peer_ip $K8S_DQLITE_CLUSTER_YAML $k8sDqliteNodeId`
     if [[ -z $peerIp ]]; then
-        log_message "Couldn't retrieve dqlite peer ip."
+        log_message "Couldn't retrieve Dqlite peer ip."
         exit 1
     fi
 
@@ -457,17 +457,17 @@ function promote_as_primary() {
             log_message "The stopped services are going to be restarted after the recovery finishes."
         else
             log_message "Couldn't stop k8s services on the peer node." \
-                        "Assuming that it's stopped and proceeding with the recovery."
+                        "Assuming that the peer node is stopped and proceeding with the recovery."
         fi
     fi
 
     log_message "Ensuring rw access to DRBD mount."
-    # Having RW access to the drbd mount implies that this is the primary node.
+    # Having RW access to the DRBD mount implies that this is the primary node.
     ensure_mount_rw
 
     restore_dqlite_confs_and_certs
 
-    log_message "Updating dqlite roles."
+    log_message "Updating Dqlite roles."
     # Update info.yaml
     set_dqlite_node_role $K8S_DQLITE_INFO_YAML $DQLITE_ROLE_VOTER
     set_dqlite_node_role $K8SD_INFO_YAML $DQLITE_ROLE_VOTER
@@ -476,7 +476,7 @@ function promote_as_primary() {
     set_dqlite_node_as_sole_voter $K8S_DQLITE_CLUSTER_YAML $k8sDqliteNodeId
     set_dqlite_node_as_sole_voter $K8SD_CLUSTER_YAML $k8sdNodeId
 
-    log_message "Restoring dqlite."
+    log_message "Restoring Dqlite."
     sudo $K8SD_PATH cluster-recover \
         --state-dir=$K8SD_STATE_DIR \
         --k8s-dqlite-state-dir=$K8S_DQLITE_STATE_DIR \
@@ -506,10 +506,10 @@ function promote_as_primary() {
 function process_recovery_files_on_secondary() {
     local peerIp="$1"
 
-    log_message "Ensuring that the drbd volume is unmounted."
+    log_message "Ensuring that the DRBD volume is unmounted."
     ensure_drbd_unmounted
 
-    log_message "Restoring local dqlite backup files."
+    log_message "Restoring local Dqlite backup files."
     sudo cp -r $K8S_DQLITE_STATE_BKP_DIR/. $DRBD_MOUNT_DIR/k8s-dqlite/
     sudo cp -r $K8SD_STATE_BKP_DIR/. $DRBD_MOUNT_DIR/k8sd/
 
@@ -542,7 +542,7 @@ function process_recovery_files_on_secondary() {
     scp $SSH_USERNAME@$peerIp:/var/snap/k8s/common/$lastK8sDqliteRecoveryTarball /tmp/
     sudo tar -xf /tmp/$lastK8sDqliteRecoveryTarball -C $K8S_DQLITE_STATE_DIR
 
-    log_message "Updating dqlite roles."
+    log_message "Updating Dqlite roles."
     # Update info.yaml
     set_dqlite_node_role $K8S_DQLITE_INFO_YAML $DQLITE_ROLE_SPARE
     set_dqlite_node_role $K8SD_INFO_YAML $DQLITE_ROLE_SPARE
@@ -550,7 +550,7 @@ function process_recovery_files_on_secondary() {
     # updated cluster.yaml files.
 }
 
-# Recover a former primary, now secondary dqlite node.
+# Recover a former primary, now secondary Dqlite node.
 # Run "promote_as_primary" on the ther node first.
 function rejoin_secondary() {
     log_message "Recovering secondary node."
@@ -563,7 +563,7 @@ function rejoin_secondary() {
 
     local peerIp=`get_dql_peer_ip $K8S_DQLITE_CLUSTER_BKP_YAML $k8sDqliteNodeId`
     if [[ -z $peerIp ]]; then
-        log_message "Couldn't retrieve dqlite peer ip."
+        log_message "Couldn't retrieve Dqlite peer ip."
         exit 1
     fi
 
@@ -572,7 +572,7 @@ function rejoin_secondary() {
 
     log_message "Adding temporary Pacemaker constraint."
     # We need to prevent failovers from happening while restoring secondary
-    # dqlite data, otherwise we may end up overriding or deleting the primary
+    # Dqlite data, otherwise we may end up overriding or deleting the primary
     # node data.
     #
     # TODO: consider reducing the constraint scope (e.g. resource level constraint
@@ -641,10 +641,10 @@ function check_peer_recovery_tarballs() {
         exit 1
     fi
 
-    log_message "Retrieving dqlite peer ip."
+    log_message "Retrieving Dqlite peer ip."
     local peerIp=`get_dql_peer_ip $K8S_DQLITE_CLUSTER_BKP_YAML $k8sDqliteNodeId`
     if [[ -z $peerIp ]]; then
-        log_message "Couldn't retrieve dqlite peer ip."
+        log_message "Couldn't retrieve Dqlite peer ip."
         exit 1
     fi
 
@@ -669,11 +669,11 @@ function check_peer_recovery_tarballs() {
 function start_service() {
     log_message "Initializing node."
 
-    # DRBD is the primary source of truth for the dqlite role.
+    # DRBD is the primary source of truth for the Dqlite role.
     # We need to wait for it to become available.
     wait_drbd_resource
 
-    # dump the drbd and pacemaker status for debugging purposes.
+    # dump the DRBD and pacemaker status for debugging purposes.
     sudo drbdadm status
     sudo crm status
 
@@ -684,14 +684,14 @@ function start_service() {
     local expRole=`get_expected_dqlite_role`
     case $expRole in
         $DQLITE_ROLE_VOTER)
-            log_message "Assuming the dqlite voter role (primary)."
+            log_message "Assuming the Dqlite voter role (primary)."
 
             # We'll assume that if the primary stopped, it needs to go through
             # the recovery process.
             promote_as_primary
             ;;
         $DQLITE_ROLE_SPARE)
-            log_message "Assuming the dqlite spare role (secondary)."
+            log_message "Assuming the Dqlite spare role (secondary)."
 
             wait_for_peer_k8s
 
@@ -709,14 +709,14 @@ function start_service() {
             fi
             ;;
         *)
-            log_message "Unexpected dqlite role: $expRole"
+            log_message "Unexpected Dqlite role: $expRole"
             exit 1
             ;;
     esac
 }
 
 function clean_recovery_data() {
-    log_message "Cleaning up dqlite recovery data."
+    log_message "Cleaning up Dqlite recovery data."
     rm -f $K8SD_RECOVERY_TARBALL
     rm -f $K8SD_RECOVERY_TARBALL_BKP
     rm -f $K8S_DQLITE_STATE_DIR/recovery-k8s-dqlite*
@@ -738,7 +738,7 @@ function purge() {
             # The replicas use the mount dir directly, without a block device
             # attachment. We need to clean up the mount point as well.
             #
-            # We're using another mount with "--bind" to bypass the drbd mount.
+            # We're using another mount with "--bind" to bypass the DRBD mount.
             tempdir=`mktemp -d`
             # We need to mount the parent dir.
             sudo mount --bind `dirname $DRBD_MOUNT_DIR` $tempdir
@@ -790,7 +790,7 @@ Unknown command: $1
 usage: $0 <command>
 
 Commands:
-    move_statedirs          Move the dqlite state directories to the DRBD mount,
+    move_statedirs          Move the Dqlite state directories to the DRBD mount,
                             replacing them with symlinks.
                             The existing contents are moved to a backup folder,
                             which can be used as part of the recovery process.
@@ -798,13 +798,13 @@ Commands:
                             cluster.
     start_service           Initialize the k8s services, taking the following
                             steps:
-                            1. Based on the drbd state, decide if this node
+                            1. Based on the DRBD state, decide if this node
                                should assume the primary (dqlite voter) or
                                secondary (spare) role.
-                            2. If this is the first start, transfer the dqlite
+                            2. If this is the first start, transfer the Dqlite
                                state directories and create backups.
                             3. If this node is a primary, promote it and initiate
-                               the dqlite recovery, creating recovery tarballs.
+                               the Dqlite recovery, creating recovery tarballs.
                                Otherwise, copy over the recovery files and
                                join the existing cluster as a spare.
                             4. Start the k8s services.

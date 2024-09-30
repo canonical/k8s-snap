@@ -126,8 +126,8 @@ sudo drbdadm status
 ```
 
 Create a mount point for the DRBD block device. Non-default mount points
-need to be passed to the ``two-node-ha.sh`` script mentioned above, see the
-script for the full list of configurable parameters.
+need to be passed to the ``two-node-ha.sh`` script mentioned above. Please
+refer to the script for the full list of configurable parameters.
 
 ```
 DRBD_MOUNT_DIR=/mnt/drbd0
@@ -214,9 +214,10 @@ Let's define a Pacemaker resource for the DRBD block device, which
 ensures that the block device will be mounted on the replica in case of a
 primary node failure.
 
-[Pacemaker fencing] (stonith) configuration is environment specific and thus
-outside the scope of this guide. Using fencing is highly recommended if it is
-possible to reduce the risk of cluster split-brain situations.
+[Pacemaker fencing] (Shoot The Other Node In The Head - STONITH) configuration
+is environment specific and thus outside the scope of this guide. Using fencing
+is highly recommended, if it is possible, to reduce the risk of cluster
+split-brain situations.
 
 ```
 HAONE_ADDR=<firstNodeAddress>
@@ -262,7 +263,7 @@ sudo crm resource clear fs_res
 
 ### Managing Kubernetes Snap Services
 
-For the two-node HA setup k8s snap services should no longer start
+For the two-node HA setup, k8s snap services should no longer start
 automatically. Instead, they will be managed by a wrapper service.
 
 ```
@@ -307,7 +308,7 @@ synchronize with the peer node (if available) and recover the database.
 ```
 
 When a DRBD failover occurs, the ``two-node-ha-k8s`` service needs to be
-restarted. To accomplish this,, we are going to define a separate service that
+restarted. To accomplish this, we are going to define a separate service that
 will be invoked by Pacemaker. Create a file called
 ``/etc/systemd/system/two-node-ha-k8s-failover.service`` containing the
 following:
@@ -395,7 +396,6 @@ srcversion: C7B8F7076B8D6DB066D84D9
 
 ubuntu@hatwo:~$ dmesg | grep "Split"
 [  +0.000082] block drbd0: Split-Brain detected but unresolved, dropping connection!
-
 ```
 
 To recover DRBD, use following procedure:
