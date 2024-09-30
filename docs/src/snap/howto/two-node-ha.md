@@ -48,13 +48,13 @@ Kubernetes can be configured to use other datastores.
   be used.
 * We recommend using static IP configuration.
 
-The [2ha.sh script] automates most operations related to the 2-node HA scenario
-and is included in the snap.
+The [two-node-ha.sh script] automates most operations related to the 2-node HA
+scenario and is included in the snap.
 
 The first step is to install the required packages:
 
 ```
-/snap/k8s/current/k8s/hack/2ha.sh install_packages
+/snap/k8s/current/k8s/hack/two-node-ha.sh install_packages
 ```
 
 ### DRBD
@@ -134,8 +134,8 @@ sudo drbdadm status
 ```
 
 Let's create a mount point for the DRBD block device. Non-default mount points
-need to be passed to the ``2ha.sh`` script mentioned above, see the script for
-the full list of configurable parameters.
+need to be passed to the ``two-node-ha.sh`` script mentioned above, see the
+script for the full list of configurable parameters.
 
 ```
 DRBD_MOUNT_DIR=/mnt/drbd0
@@ -250,7 +250,7 @@ the primary (voter) Dqlite node.
 
 In this setup, only the primary node holds the latest Dqlite data, which will
 be transferred to the DRBD device once the clustered service starts.
-This is automatically handled by the ``2ha_k8s.sh start_service`` command.
+This is automatically handled by the ``two-node-ha.sh start_service`` command.
 
 ```
 sudo k8s status
@@ -282,7 +282,7 @@ done
 ```
 
 The next step is to define the wrapper service. Add the following to
-``/etc/systemd/system/2ha_k8s.service``. Note that the sample uses the
+``/etc/systemd/system/two-node-ha-k8s.service``. Note that the sample uses the
 ``ubuntu`` user, feel free to use a different one as long as the prerequisites
 are met.
 
@@ -295,7 +295,7 @@ After=network.target pacemaker.service
 User=ubuntu
 Group=ubuntu
 Type=oneshot
-ExecStart=/bin/bash /snap/k8s/current/k8s/hack/2ha.sh start_service
+ExecStart=/bin/bash /snap/k8s/current/k8s/hack/two-node-ha.sh start_service
 ExecStop=/bin/bash sudo snap stop k8s
 RemainAfterExit=true
 
@@ -304,34 +304,34 @@ WantedBy=multi-user.target
 ```
 
 ```{note}
-The ``2ha.sh start_service`` command used by the service wrapper automatically
+The ``two-node-ha.sh start_service`` command used by the service wrapper automatically
 detects the expected Dqlite role based on the DRBD state and takes the
 necessary steps to bootstrap the Dqlite state directories, synchronize with the
 peer node (if available) and recover the database.
 ```
 
-We need the ``2ha_k8s`` service to be restarted once a DRBD failover occurs.
-For that, we are going to define a separate service that will be invoked by
-Pacemaker. Create a file called
-``/etc/systemd/system/2ha_k8s_failover.service`` containing the following:
+We need the ``two-node-ha-k8s`` service to be restarted once a DRBD failover
+occurs. For that, we are going to define a separate service that will be
+invoked by Pacemaker. Create a file called
+``/etc/systemd/system/two-node-ha-k8s-failover.service`` containing the following:
 
 ```
 [Unit]
-Description=Managed by Pacemaker, restarts 2ha_k8s on failover.
+Description=Managed by Pacemaker, restarts two-node-ha-k8s on failover.
 After=network.target home-ubuntu-workspace.mount
 
 [Service]
 Type=oneshot
-ExecStart=systemctl restart 2ha_k8s
+ExecStart=systemctl restart two-node-ha-k8s
 RemainAfterExit=true
 ```
 
-Reload the systemd configuration and set ``2ha_k8s`` to start automatically.
-Notice that ``2ha_k8s_failover`` must not be configured to start automatically,
-but instead is going to be managed through Pacemaker.
+Reload the systemd configuration and set ``two-node-ha-k8s`` to start
+automatically. Notice that ``two-node-ha-k8s-failover`` must not be configured
+to start automatically, but instead is going to be managed through Pacemaker.
 
 ```
-sudo systemctl enable 2ha_k8s
+sudo systemctl enable two-node-ha-k8s
 sudo systemctl daemon-reload
 ```
 
@@ -339,11 +339,11 @@ Make sure that both nodes have been configured using the above steps before
 moving forward.
 
 We can now define a new Pacemaker resource that will invoke the
-``2ha_k8s_failover`` service when a DRBD failover occurs.
+``two-node-ha-k8s-failover`` service when a DRBD failover occurs.
 
 ```
 sudo crm configure <<EOF
-primitive ha_k8s_failover_service systemd:2ha_k8s_failover op start interval=0 timeout=120 op stop interval=0 timeout=30
+primitive ha_k8s_failover_service systemd:two-node-ha-k8s-failover op start interval=0 timeout=120 op stop interval=0 timeout=30
 order failover_after_fs mandatory: fs_res:start ha_k8s_failover_service:start
 colocation fs_failover_colo INFINITY: fs_res ha_k8s_failover_service
 commit
@@ -355,7 +355,7 @@ EOF
 The setup is ready, start the HA k8s service on both nodes:
 
 ```
-sudo systemctl start 2ha_k8s
+sudo systemctl start two-node-ha-k8s
 ```
 
 ## Troubleshooting
@@ -372,7 +372,7 @@ snapshot-2-2048-642428, pre-recovery backup:
 /var/snap/k8s/common/recovery-k8s-dqlite-2024-09-05T082644Z-pre-recovery.tar.gz
 ```
 
-Remove the offending segments and restart the ``2ha_k8s`` service.
+Remove the offending segments and restart the ``two-node-ha-k8s`` service.
 
 ### DRBD split brain
 
@@ -411,7 +411,7 @@ sudo drbdadm connect r0
 [Distributed Replicated Block Device]: https://ubuntu.com/server/docs/distributed-replicated-block-device-drbd
 [Dqlite recovery guide]: restore-quorum
 [external datastore guide]: external-datastore
-[2ha.sh script]: https://github.com/canonical/k8s-snap/blob/main/k8s/hack/2ha.sh
+[two-node-ha.sh script]: https://github.com/canonical/k8s-snap/blob/main/k8s/hack/two-node-ha.sh
 [getting started]: ../tutorial/getting-started
 [add/remove nodes]: ../tutorial/add-remove-nodes
 [Pacemaker fencing]: https://clusterlabs.org/pacemaker/doc/2.1/Pacemaker_Explained/html/fencing.html

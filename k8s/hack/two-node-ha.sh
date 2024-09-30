@@ -24,7 +24,7 @@ else
     fi
 fi
 
-SYSTEMD_SERVICE_NAME=${SYSTEMD_SERVICE_NAME:-"2ha_k8s"}
+SYSTEMD_SERVICE_NAME=${SYSTEMD_SERVICE_NAME:-"two-node-ha-k8s"}
 DRBD_MOUNT_DIR=${DRBD_MOUNT_DIR:-"/mnt/drbd0"}
 SSH_USERNAME=${SSH_USERNAME:-"ubuntu"}
 SSH_OPTS=${SSH_OPTS:-"-o StrictHostKeyChecking=no -o ConnectTimeout=5"}
