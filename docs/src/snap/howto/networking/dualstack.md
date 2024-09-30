@@ -143,4 +143,9 @@ Using a smaller value than `/108` for service CIDRs
 may cause issues like failure to initialize the IPv6 allocator. This is due
 to the CIDR size being too large for Kubernetes to handle efficiently.
 
-See upstream reference: https://github.com/kubernetes/kubernetes/blob/master/cmd/kube-apiserver/app/options/validation_test.go#L435
+See upstream reference: [kube-apiserver validation][kube-apiserver-test]
+
+<!-- LINKS -->
+
+[kube-apiserver-test]: https://github.com/kubernetes/kubernetes/blob/master/cmd/kube-apiserver/app/options/validation_test.go#L435
+)
