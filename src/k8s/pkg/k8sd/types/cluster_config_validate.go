@@ -23,7 +23,7 @@ func validateCIDRs(cidrString string) error {
 	return nil
 }
 
-// validateCIDROverlapAndSize checks for overlap and size constraints between pod and service CIDRs.
+// validateCIDROverlap checks for overlap and size constraints between pod and service CIDRs.
 // It parses the provided podCIDR and serviceCIDR strings, checks for IPv4 and IPv6 overlaps.
 func validateCIDROverlap(podCIDR string, serviceCIDR string) error {
 	// Parse the CIDRs
@@ -58,7 +58,7 @@ func validateCIDROverlap(podCIDR string, serviceCIDR string) error {
 	return nil
 }
 
-// Check CIDR size ensures that the service IPv6 CIDR is not larger than /108.
+// validateIPv6CIDRSize ensures that the service IPv6 CIDR is not larger than /108.
 // Ref: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/networking/dualstack/#cidr-size-limitations
 func validateIPv6CIDRSize(serviceCIDR string) error {
 	_, svcIPv6CIDR, err := utils.SplitCIDRStrings(serviceCIDR)
@@ -75,8 +75,7 @@ func validateIPv6CIDRSize(serviceCIDR string) error {
 		return fmt.Errorf("invalid CIDR: %w", err)
 	}
 
-	prefixLength, _ := ipv6Net.Mask.Size()
-	if prefixLength < 108 {
+	if prefixLength, _ := ipv6Net.Mask.Size(); prefixLength < 108 {
 		return fmt.Errorf("service CIDR %q cannot be larger than /108", serviceCIDR)
 	}
 

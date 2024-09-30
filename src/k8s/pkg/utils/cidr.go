@@ -150,8 +150,12 @@ func CIDRsOverlap(cidr1, cidr2 string) (bool, error) {
 	_, ipNet1, err1 := net.ParseCIDR(cidr1)
 	_, ipNet2, err2 := net.ParseCIDR(cidr2)
 
-	if err1 != nil || err2 != nil {
-		return false, fmt.Errorf("invalid CIDR blocks, %v, %v", err1, err2)
+	if err1 != nil {
+		return false, fmt.Errorf("couldn't parse CIDR block %q: %w", cidr1, err1)
+	}
+
+	if err2 != nil {
+		return false, fmt.Errorf("couldn't parse CIDR block %q: %w", cidr2, err2)
 	}
 
 	if ipNet1.Contains(ipNet2.IP) || ipNet2.Contains(ipNet1.IP) {
