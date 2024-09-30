@@ -41,10 +41,12 @@ func TestGatewayEnabled(t *testing.T) {
 		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
+		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
-		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.GatewayDeployFailedMsgTmpl, applyErr)))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.GatewayDeployFailedMsgTmpl,
+			fmt.Errorf("failed to install Gateway API CRDs: %w", applyErr),
+		)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 	})
@@ -171,10 +173,12 @@ func TestGatewayDisabled(t *testing.T) {
 		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
+		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
-		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.GatewayDeleteFailedMsgTmpl, applyErr)))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.GatewayDeleteFailedMsgTmpl,
+			fmt.Errorf("failed to delete Gateway API GatewayClass: %w", applyErr),
+		)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 	})

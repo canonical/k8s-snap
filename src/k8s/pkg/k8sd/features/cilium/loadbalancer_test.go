@@ -120,7 +120,9 @@ func TestLoadBalancerEnabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.LbDeployFailedMsgTmpl,
-			fmt.Errorf("failed to enable LoadBalancer: %w", applyErr))))
+			fmt.Errorf("failed to enable LoadBalancer: %w",
+				fmt.Errorf("failed to update Cilium configuration for LoadBalancer: %w", applyErr)),
+		)))
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
