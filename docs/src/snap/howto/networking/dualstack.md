@@ -148,4 +148,3 @@ See upstream reference: [kube-apiserver validation][kube-apiserver-test]
 <!-- LINKS -->
 
 [kube-apiserver-test]: https://github.com/kubernetes/kubernetes/blob/master/cmd/kube-apiserver/app/options/validation_test.go#L435
-)
