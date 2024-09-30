@@ -139,6 +139,6 @@ When setting up dual-stack networking, it is important to consider the
 limitations regarding CIDR size:
 
 - **/108 is the maximum size for the Service CIDR**
-Using a smaller valuethan `/108` for service CIDRs
+Using a smaller value than `/108` for service CIDRs
 may cause issues like failure to initialize the IPv6 allocator. This is due
 to the CIDR size being too large for Kubernetes to handle efficiently.
