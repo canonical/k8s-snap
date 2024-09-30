@@ -1,4 +1,4 @@
-# Two-Node Active-Active High-Availability using Dqlite
+# Two-Node High-Availability with Dqlite
 
 High availability (HA) is a mandatory requirement for most production-grade
 Kubernetes deployments, usually implying three or more nodes.
@@ -6,7 +6,8 @@ Kubernetes deployments, usually implying three or more nodes.
 Two-node HA clusters are sometimes preferred for cost savings and operational
 efficiency considerations. Follow this guide to learn how Canonical Kubernetes
 can achieve high availability with just two nodes while using the default
-datastore, [Dqlite].
+datastore, [Dqlite]. Both nodes will be active members of the cluster, sharing
+the Kubernetes load.
 
 Dqlite cannot achieve a [Raft] quorum with fewer than three nodes. This means
 that Dqlite will not be able to replicate data and the secondaries will simply
@@ -69,8 +70,6 @@ sudo chmod +x /etc/rc.local
 Add a service to automatically execute the ``/etc/rc.local`` script.
 
 ```
-
-
 cat <<EOF | sudo tee /etc/systemd/system/rc-local.service
 # This unit gets pulled automatically into multi-user.target by
 # systemd-rc-local-generator if /etc/rc.local is executable.
