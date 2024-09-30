@@ -1,11 +1,11 @@
-# 2-Node Active-Active High-Availability using Dqlite
+# Two-Node Active-Active High-Availability using Dqlite
 
 ## Rationale
 
 High availability (HA) is a mandatory requirement for most production-grade
 Kubernetes deployments, usually implying three or more nodes.
 
-2-node HA clusters are sometimes preferred for cost savings and operational
+Two-node HA clusters are sometimes preferred for cost savings and operational
 efficiency considerations. Follow this guide to learn how Canonical Kubernetes
 can achieve high availability with just two nodes while using the default
 datastore, Dqlite.
@@ -48,8 +48,8 @@ Kubernetes can be configured to use other datastores.
   be used.
 * We recommend using static IP configuration.
 
-The [two-node-ha.sh script] automates most operations related to the 2-node HA
-scenario and is included in the snap.
+The [two-node-ha.sh script] automates most operations related to the two-node
+HA scenario and is included in the snap.
 
 The first step is to install the required packages:
 
@@ -288,7 +288,7 @@ are met.
 
 ```
 [Unit]
-Description=K8s service wrapper handling Dqlite recovery for 2-node HA setups.
+Description=K8s service wrapper handling Dqlite recovery for two-node HA setups.
 After=network.target pacemaker.service
 
 [Service]

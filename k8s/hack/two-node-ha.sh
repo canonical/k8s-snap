@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script automates various operations on 2-node HA A-A Canonical K8s
+# This script automates various operations on two-node HA A-A Canonical K8s
 # clusters that use the default datastore, Dqlite.
 #
 # Prerequisites:
@@ -794,7 +794,7 @@ Commands:
                             replacing them with symlinks.
                             The existing contents are moved to a backup folder,
                             which can be used as part of the recovery process.
-    install_packages        Install the packages required by the 2-node HA
+    install_packages        Install the packages required by the two-node HA
                             cluster.
     start_service           Initialize the k8s services, taking the following
                             steps:
