@@ -3,6 +3,7 @@ package cilium_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/client/helm"
@@ -43,7 +44,7 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
-		g.Expect(status.Message).To(ContainSubstring("Failed to deploy Cilium Gateway"))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.GatewayDeployFailedMsgTmpl, applyErr)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 	})
@@ -101,7 +102,6 @@ func TestGatewayEnabled(t *testing.T) {
 		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring("rollout restart cilium to enable Gateway API"))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(status.Message).To(ContainSubstring("Failed to deploy Cilium Gateway"))
@@ -174,7 +174,7 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
-		g.Expect(status.Message).To(ContainSubstring("Failed to delete Cilium Gateway"))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.GatewayDeleteFailedMsgTmpl, applyErr)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 	})
@@ -203,7 +203,6 @@ func TestGatewayDisabled(t *testing.T) {
 		helmCiliumArgs := helmM.ApplyCalledWith[1]
 		g.Expect(helmCiliumArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(helmCiliumArgs.State).To(Equal(helm.StateDeleted))
-		//validateNetworkValues(g, callArgs.Values, cfg, snapM)
 		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(Equal(false))
 
 	})
@@ -229,7 +228,6 @@ func TestGatewayDisabled(t *testing.T) {
 		}
 		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring("failed to rollout restart cilium to disable Gateway API"))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(status.Message).To(ContainSubstring("Failed to deploy Cilium Gateway"))

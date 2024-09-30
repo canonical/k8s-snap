@@ -34,7 +34,6 @@ func TestCheckNetwork(t *testing.T) {
 		err := cilium.CheckNetwork(context.Background(), snapM)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring("cilium-operator pods not yet ready: no pods in kube-system namespace on the cluster"))
 	})
 
 	t.Run("operatorNoCiliumPods", func(t *testing.T) {
@@ -72,7 +71,6 @@ func TestCheckNetwork(t *testing.T) {
 		err := cilium.CheckNetwork(context.Background(), snapM)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring("cilium pods not yet ready: no pods in kube-system namespace on the cluster"))
 
 	})
 

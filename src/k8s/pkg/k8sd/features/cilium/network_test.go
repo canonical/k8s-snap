@@ -20,7 +20,6 @@ import (
 )
 
 // NOTE(hue): status.Message is not checked sometimes to avoid unnecessary complexity
-
 func TestNetworkDisabled(t *testing.T) {
 	t.Run("HelmApplyFails", func(t *testing.T) {
 		g := NewWithT(t)
@@ -45,7 +44,9 @@ func TestNetworkDisabled(t *testing.T) {
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeleteFailedMsgTmpl,
+			fmt.Errorf("failed to uninstall network: %w", applyErr),
+		)))
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
@@ -170,7 +171,9 @@ func TestNetworkEnabled(t *testing.T) {
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl,
+			fmt.Errorf("failed to enable network: %w", applyErr),
+		)))
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
@@ -217,9 +220,10 @@ func TestNetworkMountPath(t *testing.T) {
 			status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
-			g.Expect(err.Error()).To(ContainSubstring(mountPathErr.Error()))
+			g.Expect(err).To(MatchError(mountPathErr))
 			g.Expect(status.Enabled).To(BeFalse())
-			g.Expect(status.Message).To(ContainSubstring(mountPathErr.Error()))
+			g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl,
+				fmt.Errorf("failed to get %s mount path: %w", tc.name, mountPathErr))))
 			g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
 
@@ -254,10 +258,11 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring(mountErr.Error()))
-
+		g.Expect(err).To(MatchError(mountErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(ContainSubstring(mountErr.Error()))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl,
+			fmt.Errorf("failed to get mount propagation type for /sys: %w", mountErr),
+		)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
@@ -292,10 +297,10 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		status, err := ApplyNetwork(ctx, snapM, apiserver, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring("/sys is not a shared mount"))
-
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(ContainSubstring("/sys is not a shared mount"))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl,
+			fmt.Errorf("/sys is not a shared mount"),
+		)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
@@ -332,10 +337,11 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring("not a shared mount on the LXD container"))
-
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(ContainSubstring("not a shared mount on the LXD container"))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl,
+			fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved "+
+				"by updating LXD on the host to version 5.0.2 or newer"),
+		)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
@@ -366,10 +372,10 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring("/sys is not a shared mount"))
-
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(ContainSubstring("/sys is not a shared mount"))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl,
+			fmt.Errorf("/sys is not a shared mount"),
+		)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))

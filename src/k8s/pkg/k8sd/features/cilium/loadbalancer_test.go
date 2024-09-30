@@ -3,6 +3,7 @@ package cilium_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/client/helm"
@@ -11,7 +12,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
-
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,7 +43,10 @@ func TestLoadBalancerDisabled(t *testing.T) {
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.LbDeleteFailedMsgTmpl,
+			fmt.Errorf("failed to disable LoadBalancer: %w",
+				fmt.Errorf("failed to uninstall LoadBalancer manifests: %w", applyErr)),
+		)))
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
@@ -116,7 +119,8 @@ func TestLoadBalancerEnabled(t *testing.T) {
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.LbDeployFailedMsgTmpl,
+			fmt.Errorf("failed to enable LoadBalancer: %w", applyErr))))
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 

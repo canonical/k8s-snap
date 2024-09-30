@@ -3,6 +3,7 @@ package cilium_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
@@ -35,13 +36,13 @@ func TestIngress(t *testing.T) {
 			name:           "HelmFailNetworkEnabled",
 			networkEnabled: true,
 			helmErr:        applyErr,
-			statusMsg:      "failed to enable ingress",
+			statusMsg:      fmt.Sprintf(cilium.IngressDeployFailedMsgTmpl, fmt.Errorf("failed to enable ingress: %w", applyErr)),
 			statusEnabled:  false,
 		},
 		{
 			name:           "HelmFailNetworkDisabled",
 			networkEnabled: false,
-			statusMsg:      "failed to disable ingress",
+			statusMsg:      fmt.Sprintf(cilium.IngressDeleteFailedMsgTmpl, fmt.Errorf("failed to disable ingress: %w", applyErr)),
 			statusEnabled:  false,
 			helmErr:        applyErr,
 		},
@@ -92,7 +93,7 @@ func TestIngress(t *testing.T) {
 				g.Expect(err).To(MatchError(applyErr))
 			}
 			g.Expect(status.Enabled).To(Equal(tc.statusEnabled))
-			g.Expect(status.Message).To(ContainSubstring(tc.statusMsg))
+			g.Expect(status.Message).To(Equal(tc.statusMsg))
 			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
@@ -135,8 +136,13 @@ func TestIngressRollout(t *testing.T) {
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Message).To(ContainSubstring("Failed to deploy Cilium Ingres"))
-		g.Expect(status.Message).To(ContainSubstring("failed to rollout restart cilium"))
+		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.IngressDeployFailedMsgTmpl,
+			fmt.Errorf("failed to rollout restart cilium to apply ingress: %v",
+				fmt.Errorf("failed to restart cilium-operator deployment after 3 attempts: %w",
+					fmt.Errorf("failed to restart cilium-operator deployment: %w",
+						fmt.Errorf("failed to get deployment cilium-operator in namespace kube-system: %w",
+							errors.New("deployments.apps \"cilium-operator\" not found"))))),
+		)))
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
