@@ -9,8 +9,7 @@ matrix:
     - .custom_wordlist.txt
     output: .sphinx/.wordlist.dic
   sources:
-#  - ../_build/**/*.html
-  - ../test.html
+  - ../_build/**/*.html
   pipeline:
   - pyspelling.filters.html:
       comments: false
