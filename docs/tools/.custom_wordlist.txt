@@ -43,7 +43,7 @@ multipass
 nameservers
 NGINX
 OCI
-Openstack
+OpenStack
 proc
 RBAC
 regsync
