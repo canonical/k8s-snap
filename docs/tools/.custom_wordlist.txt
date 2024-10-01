@@ -27,7 +27,7 @@ grafana
 html
 http
 https
-initialize
+initialise
 juju
 kubeconfig
 kubectl
@@ -41,7 +41,7 @@ localhost
 lxc
 LXD
 MAAS
-multipass
+Multipass
 nameservers
 NGINX
 OCI
