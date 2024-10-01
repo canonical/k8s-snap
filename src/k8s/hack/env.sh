@@ -2,7 +2,7 @@
 
 ## Component repositories
 REPO_MUSL="https://git.launchpad.net/musl"
-REPO_LIBTIRPC="https://salsa.debian.org/debian/libtirpc.git"
+REPO_LIBTIRPC="https://git.launchpad.net/libtirpc"
 REPO_LIBNSL="https://github.com/thkukuk/libnsl.git"
 REPO_LIBUV="https://github.com/libuv/libuv.git"
 REPO_LIBLZ4="https://github.com/lz4/lz4.git"
