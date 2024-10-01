@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install aspell
+        run: apt-get install aspell aspell-en
       - name: Spell Check
         run: make spelling
         working-directory: docs/tools
