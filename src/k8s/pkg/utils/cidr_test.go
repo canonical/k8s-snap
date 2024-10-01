@@ -153,7 +153,7 @@ func TestParseCIDRs(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
-			ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(tc.input)
+			ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(tc.input)
 			if tc.expectedErr {
 				Expect(err).To(HaveOccurred())
 			} else {

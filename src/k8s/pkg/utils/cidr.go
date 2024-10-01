@@ -101,8 +101,8 @@ func ParseAddressString(address string, port int64) (string, error) {
 	return util.CanonicalNetworkAddress(address, port), nil
 }
 
-// ParseCIDRs parses the given CIDR string and returns the respective IPv4 and IPv6 CIDRs.
-func ParseCIDRs(CIDRstring string) (string, string, error) {
+// SplitCIDRStrings parses the given CIDR string and returns the respective IPv4 and IPv6 CIDRs.
+func SplitCIDRStrings(CIDRstring string) (string, string, error) {
 	clusterCIDRs := strings.Split(CIDRstring, ",")
 	if v := len(clusterCIDRs); v != 1 && v != 2 {
 		return "", "", fmt.Errorf("invalid CIDR list: %v", clusterCIDRs)
@@ -141,4 +141,26 @@ func ToIPString(ip net.IP) string {
 		return ip.String()
 	}
 	return "[" + ip.String() + "]"
+}
+
+// CIDRsOverlap checks if two given CIDR blocks overlap.
+// It takes two strings representing the CIDR blocks as input and returns a boolean indicating
+// whether they overlap and an error if any of the CIDR blocks are invalid.
+func CIDRsOverlap(cidr1, cidr2 string) (bool, error) {
+	_, ipNet1, err1 := net.ParseCIDR(cidr1)
+	_, ipNet2, err2 := net.ParseCIDR(cidr2)
+
+	if err1 != nil {
+		return false, fmt.Errorf("couldn't parse CIDR block %q: %w", cidr1, err1)
+	}
+
+	if err2 != nil {
+		return false, fmt.Errorf("couldn't parse CIDR block %q: %w", cidr2, err2)
+	}
+
+	if ipNet1.Contains(ipNet2.IP) || ipNet2.Contains(ipNet1.IP) {
+		return true, nil
+	}
+
+	return false, nil
 }

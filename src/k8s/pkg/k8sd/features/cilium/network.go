@@ -44,7 +44,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 		}, nil
 	}
 
-	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(network.GetPodCIDR())
+	ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	if err != nil {
 		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", err)
 		return types.FeatureStatus{

@@ -180,7 +180,7 @@ func validateNetworkValues(t *testing.T, values map[string]any, network types.Ne
 	t.Helper()
 	g := NewWithT(t)
 
-	ipv4CIDR, ipv6CIDR, err := utils.ParseCIDRs(network.GetPodCIDR())
+	ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	g.Expect(err).ToNot(HaveOccurred())
 
 	bpfMount, err := utils.GetMountPath("bpf")

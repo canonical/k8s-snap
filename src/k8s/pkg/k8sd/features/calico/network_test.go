@@ -210,10 +210,10 @@ func TestEnabled(t *testing.T) {
 func validateValues(t *testing.T, values map[string]any, network types.Network) {
 	g := NewWithT(t)
 
-	podIPv4CIDR, podIPv6CIDR, err := utils.ParseCIDRs(network.GetPodCIDR())
+	podIPv4CIDR, podIPv6CIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	g.Expect(err).ToNot(HaveOccurred())
 
-	svcIPv4CIDR, svcIPv6CIDR, err := utils.ParseCIDRs(network.GetServiceCIDR())
+	svcIPv4CIDR, svcIPv6CIDR, err := utils.SplitCIDRStrings(network.GetServiceCIDR())
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// calico network

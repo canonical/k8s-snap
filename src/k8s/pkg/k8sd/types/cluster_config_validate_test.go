@@ -10,15 +10,18 @@ import (
 
 func TestValidateCIDR(t *testing.T) {
 	for _, tc := range []struct {
-		cidr      string
-		expectErr bool
+		cidr         string
+		expectPodErr bool
+		expectSvcErr bool
 	}{
-		{cidr: "10.1.0.0/16"},
-		{cidr: "2001:0db8::/32"},
-		{cidr: "10.1.0.0/16,2001:0db8::/32"},
-		{cidr: "", expectErr: true},
-		{cidr: "bananas", expectErr: true},
-		{cidr: "fd01::/64,fd02::/64,fd03::/64", expectErr: true},
+		{cidr: "192.168.0.0/16"},
+		{cidr: "2001:0db8::/108"},
+		{cidr: "10.2.0.0/16,2001:0db8::/108"},
+		{cidr: "", expectPodErr: true, expectSvcErr: true},
+		{cidr: "bananas", expectPodErr: true, expectSvcErr: true},
+		{cidr: "fd01::/108,fd02::/108,fd03::/108", expectPodErr: true, expectSvcErr: true},
+		{cidr: "10.1.0.0/32", expectPodErr: true, expectSvcErr: true},
+		{cidr: "2001:0db8::/32", expectSvcErr: true},
 	} {
 		t.Run(tc.cidr, func(t *testing.T) {
 			t.Run("Pod", func(t *testing.T) {
@@ -30,7 +33,7 @@ func TestValidateCIDR(t *testing.T) {
 					},
 				}
 				err := config.Validate()
-				if tc.expectErr {
+				if tc.expectPodErr {
 					g.Expect(err).To(HaveOccurred())
 				} else {
 					g.Expect(err).To(BeNil())
@@ -45,7 +48,7 @@ func TestValidateCIDR(t *testing.T) {
 					},
 				}
 				err := config.Validate()
-				if tc.expectErr {
+				if tc.expectSvcErr {
 					g.Expect(err).To(HaveOccurred())
 				} else {
 					g.Expect(err).To(BeNil())
