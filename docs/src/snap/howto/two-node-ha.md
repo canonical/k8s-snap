@@ -364,6 +364,11 @@ sudo systemctl start two-node-ha-k8s
 Here are some potential problems that may affect two-node HA clusters and how
 to address them.
 
+```{warning}
+Before taking any of the actions below, please back up the entire Dqlite data
+directory to avoid losing data in case something goes wrong.
+```
+
 ### Dqlite recovery failing because of unexpected data segments
 
 Dqlite recovery may fail if there are data segments past the latest snapshot.
