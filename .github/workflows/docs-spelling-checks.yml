@@ -23,4 +23,4 @@ jobs:
       - uses: rojopolis/spellcheck-github-actions@0.42.0
         name: Spellcheck
         with:
-          config_path: docs/tools/.sphinx/spellingcheck.yaml
+          config_path: docs/tools/.sphinx/spellingcheck_test.yaml
