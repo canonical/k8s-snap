@@ -17,6 +17,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install aspell
         run: sudo apt-get install aspell aspell-en
+      - name: build html
+        run: make html
+        working-directory: docs/tools
 #      - name: Spell Check
 #        run: make spelling
 #        working-directory: docs/tools
