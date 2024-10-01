@@ -4,6 +4,7 @@ AppArmor
 autostart
 aws
 CAPI
+Ceph
 cgroup
 CIDRS
 CIDRs
@@ -18,6 +19,7 @@ datastore
 dbus
 DNS
 dqlite
+EasyRSA
 etcd
 GCP
 ghcr
