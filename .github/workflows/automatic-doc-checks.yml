@@ -1,7 +1,10 @@
 name: Core Documentation Checks
 
 on:
-  - workflow_dispatch
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
