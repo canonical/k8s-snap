@@ -1,7 +1,8 @@
 name: Security and quality nightly scan
 
 on:
-  pull_request:
+  schedule:
+    - cron: '0 10 * * *'
 
 permissions:
   contents: read
@@ -67,7 +68,7 @@ jobs:
           sudo make clean
           go build -a ./...
 
-          TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $HOME/work/k8s-snap/k8s-snap/ -log 5 -st
+          TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $HOME/work/k8s-snap/k8s-snap/
 
   Trivy:
     permissions:
