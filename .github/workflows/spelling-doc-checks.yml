@@ -1,0 +1,21 @@
+name: Documentation Spelling Check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  spellsheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Spell Check
+        run: make spelling
+        working-directory: docs/moonray
