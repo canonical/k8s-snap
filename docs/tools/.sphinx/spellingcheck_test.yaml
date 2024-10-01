@@ -5,7 +5,7 @@ matrix:
     d: en_GB
   dictionary:
     wordlists:
-    - docs/tools/..wordlist.txt
+    - docs/tools/.wordlist.txt
     - docs/tools/.custom_wordlist.txt
     output: docs/tools/.sphinx/.wordlist.dic
   sources:
