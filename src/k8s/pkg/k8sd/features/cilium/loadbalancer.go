@@ -12,8 +12,8 @@ import (
 
 const (
 	lbEnabledMsgTmpl      = "enabled, %s mode"
-	lbDeleteFailedMsgTmpl = "Failed to delete Cilium Load Balancer, the error was: %v"
-	lbDeployFailedMsgTmpl = "Failed to deploy Cilium Load Balancer, the error was: %v"
+	LbDeleteFailedMsgTmpl = "Failed to delete Cilium Load Balancer, the error was: %v"
+	LbDeployFailedMsgTmpl = "Failed to deploy Cilium Load Balancer, the error was: %v"
 )
 
 // ApplyLoadBalancer assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
@@ -31,7 +31,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: CiliumAgentImageTag,
-				Message: fmt.Sprintf(lbDeleteFailedMsgTmpl, err),
+				Message: fmt.Sprintf(LbDeleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
@@ -46,7 +46,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(lbDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(LbDeployFailedMsgTmpl, err),
 		}, err
 	}
 

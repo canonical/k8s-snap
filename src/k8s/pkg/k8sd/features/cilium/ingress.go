@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	ingressDeleteFailedMsgTmpl = "Failed to delete Cilium Ingress, the error was: %v"
-	ingressDeployFailedMsgTmpl = "Failed to deploy Cilium Ingress, the error was: %v"
+	IngressDeleteFailedMsgTmpl = "Failed to delete Cilium Ingress, the error was: %v"
+	IngressDeployFailedMsgTmpl = "Failed to deploy Cilium Ingress, the error was: %v"
 )
 
 // ApplyIngress assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
@@ -54,14 +54,14 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: CiliumAgentImageTag,
-				Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+				Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
 			}, err
 		} else {
 			err = fmt.Errorf("failed to disable ingress: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: CiliumAgentImageTag,
-				Message: fmt.Sprintf(ingressDeleteFailedMsgTmpl, err),
+				Message: fmt.Sprintf(IngressDeleteFailedMsgTmpl, err),
 			}, err
 		}
 	}
@@ -95,7 +95,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(ingressDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
 		}, err
 	}
 
