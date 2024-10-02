@@ -95,6 +95,11 @@ func TestIngress(t *testing.T) {
 			g.Expect(status.Enabled).To(Equal(tc.statusEnabled))
 			g.Expect(status.Message).To(Equal(tc.statusMsg))
 			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
+
+			callArgs := helmM.ApplyCalledWith[0]
+			g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
+			validateIngressValues(g, callArgs.Values, ingress)
 		})
 	}
 }
@@ -133,6 +138,11 @@ func TestIngressRollout(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.IngressDeployFailedMsgTmpl, err)))
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
+
+		callArgs := helmM.ApplyCalledWith[0]
+		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
+		validateIngressValues(g, callArgs.Values, ingress)
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -174,5 +184,27 @@ func TestIngressRollout(t *testing.T) {
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
+
+		callArgs := helmM.ApplyCalledWith[0]
+		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
+		validateIngressValues(g, callArgs.Values, ingress)
 	})
+}
+
+func validateIngressValues(g Gomega, values map[string]any, ingress types.Ingress) {
+	ingressController, ok := values["ingressController"].(map[string]any)
+	g.Expect(ok).To(BeTrue())
+	if ingress.GetEnabled() {
+		g.Expect(ingressController["enabled"]).To(Equal(true))
+		g.Expect(ingressController["loadbalancerMode"]).To(Equal("shared"))
+		g.Expect(ingressController["defaultSecretNamespace"]).To(Equal("kube-system"))
+		g.Expect(ingressController["defaultTLSSecret"]).To(Equal(ingress.GetDefaultTLSSecret()))
+		g.Expect(ingressController["enableProxyProtocol"]).To(Equal(ingress.GetEnableProxyProtocol()))
+	} else {
+		g.Expect(ingressController["enabled"]).To(Equal(false))
+		g.Expect(ingressController["defaultSecretNamespace"]).To(Equal(""))
+		g.Expect(ingressController["defaultSecretName"]).To(Equal(""))
+		g.Expect(ingressController["enableProxyProtocol"]).To(Equal(false))
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/canonical/k8s/pkg/client/helm"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
@@ -44,6 +45,12 @@ func TestLoadBalancerDisabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.LbDeleteFailedMsgTmpl, err)))
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
+
+		callArgs := helmM.ApplyCalledWith[0]
+		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCiliumLoadBalancer))
+		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
+		g.Expect(callArgs.Values).To(BeNil())
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -68,6 +75,17 @@ func TestLoadBalancerDisabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
+
+		firstCallArgs := helmM.ApplyCalledWith[0]
+		g.Expect(firstCallArgs.Chart).To(Equal(cilium.ChartCiliumLoadBalancer))
+		g.Expect(firstCallArgs.State).To(Equal(helm.StateDeleted))
+		g.Expect(firstCallArgs.Values).To(BeNil())
+
+		// checking helm apply for network since it's enabled
+		secondCallArgs := helmM.ApplyCalledWith[1]
+		g.Expect(secondCallArgs.Chart).To(Equal(cilium.ChartCilium))
+		g.Expect(secondCallArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(networkCfg.GetEnabled())))
 	})
 }
 
@@ -100,6 +118,17 @@ func TestLoadBalancerEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.LbDeployFailedMsgTmpl, err)))
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
+
+		callArgs := helmM.ApplyCalledWith[0]
+		g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
+		g.Expect(callArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(networkCfg.GetEnabled())))
+		l2announcements, ok := callArgs.Values["l2announcements"].(map[string]any)
+		g.Expect(ok).To(BeTrue())
+		g.Expect(l2announcements["enabled"]).To(Equal(lbCfg.GetL2Mode()))
+		bgpControlPlane, ok := callArgs.Values["bgpControlPlane"].(map[string]any)
+		g.Expect(ok).To(BeTrue())
+		g.Expect(bgpControlPlane["enabled"]).To(Equal(lbCfg.GetBGPMode()))
 	})
 
 	for _, tc := range []struct {
@@ -191,6 +220,23 @@ func TestLoadBalancerEnabled(t *testing.T) {
 			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 			g.Expect(status.Message).To(Equal(tc.statusMessage))
 
+			g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
+
+			firstCallArgs := helmM.ApplyCalledWith[0]
+			g.Expect(firstCallArgs.Chart).To(Equal(cilium.ChartCilium))
+			g.Expect(firstCallArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(networkCfg.GetEnabled())))
+			l2announcements, ok := firstCallArgs.Values["l2announcements"].(map[string]any)
+			g.Expect(ok).To(BeTrue())
+			g.Expect(l2announcements["enabled"]).To(Equal(lbCfg.GetL2Mode()))
+			bgpControlPlane, ok := firstCallArgs.Values["bgpControlPlane"].(map[string]any)
+			g.Expect(ok).To(BeTrue())
+			g.Expect(bgpControlPlane["enabled"]).To(Equal(lbCfg.GetBGPMode()))
+
+			secondCallArgs := helmM.ApplyCalledWith[1]
+			g.Expect(secondCallArgs.Chart).To(Equal(cilium.ChartCiliumLoadBalancer))
+			g.Expect(secondCallArgs.State).To(Equal(helm.StatePresent))
+			validateLoadBalancerValues(t, secondCallArgs.Values, lbCfg)
+
 			// check if cilium-operator and cilium daemonset are restarted
 			deployment, err := clientset.AppsV1().Deployments("kube-system").Get(context.Background(), "cilium-operator", metav1.GetOptions{})
 			g.Expect(err).ToNot(HaveOccurred())
@@ -200,4 +246,36 @@ func TestLoadBalancerEnabled(t *testing.T) {
 			g.Expect(daemonSet.Spec.Template.Annotations).To(HaveKey("kubectl.kubernetes.io/restartedAt"))
 		})
 	}
+}
+
+func validateLoadBalancerValues(t *testing.T, values map[string]interface{}, lbCfg types.LoadBalancer) {
+	g := NewWithT(t)
+
+	l2, ok := values["l2"].(map[string]any)
+	g.Expect(ok).To(BeTrue())
+	g.Expect(l2["enabled"]).To(Equal(lbCfg.GetL2Mode()))
+	g.Expect(l2["interfaces"]).To(Equal(lbCfg.GetL2Interfaces()))
+
+	ipPool, ok := values["ipPool"].(map[string]any)
+	g.Expect(ok).To(BeTrue())
+	cidrs, ok := ipPool["cidrs"].([]map[string]any)
+	g.Expect(ok).To(BeTrue())
+	g.Expect(cidrs).To(HaveLen(len(lbCfg.GetIPRanges()) + len(lbCfg.GetCIDRs())))
+	for _, cidr := range lbCfg.GetCIDRs() {
+		g.Expect(cidrs).To(ContainElement(map[string]any{"cidr": cidr}))
+	}
+	for _, ipRange := range lbCfg.GetIPRanges() {
+		g.Expect(cidrs).To(ContainElement(map[string]any{"start": ipRange.Start, "stop": ipRange.Stop}))
+	}
+
+	bgp, ok := values["bgp"].(map[string]any)
+	g.Expect(ok).To(BeTrue())
+	g.Expect(bgp["enabled"]).To(Equal(lbCfg.GetBGPMode()))
+	g.Expect(bgp["localASN"]).To(Equal(lbCfg.GetBGPLocalASN()))
+	neighbors, ok := bgp["neighbors"].([]map[string]any)
+	g.Expect(ok).To(BeTrue())
+	g.Expect(neighbors).To(HaveLen(1))
+	g.Expect(neighbors[0]["peerAddress"]).To(Equal(lbCfg.GetBGPPeerAddress()))
+	g.Expect(neighbors[0]["peerASN"]).To(Equal(lbCfg.GetBGPPeerASN()))
+	g.Expect(neighbors[0]["peerPort"]).To(Equal(lbCfg.GetBGPPeerPort()))
 }
