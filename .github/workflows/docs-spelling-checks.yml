@@ -15,8 +15,7 @@ jobs:
         run: sudo apt-get install aspell aspell-en
       - id: spell-check
         name: Spell Check
-        run: exit 0
-#        run: make spelling
+        run: make spelling
         working-directory: docs/tools
         continue-on-error: true
       - if: ${{ github.event_name == 'pull_request' && steps.spell-check.outcome == 'failure' }}
