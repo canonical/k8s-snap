@@ -49,7 +49,7 @@ jobs:
         with:
           version: v1.61
           working-directory: src/k8s
-          args: '-c src/k8s/hack/golangci.yml'
+          args: '-c ./hack/golangci.yml'
           only-new-issues: true
 
       - name: go fmt
