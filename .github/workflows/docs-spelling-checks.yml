@@ -15,7 +15,8 @@ jobs:
         run: sudo apt-get install aspell aspell-en
       - id: spell-check
         name: Spell Check
-        run: make spelling
+#        run: make spelling
+        run: exit 1
         working-directory: docs/tools
         continue-on-error: true
       - if: ${{ github.event_name == 'pull_request' && steps.spell-check.outcome == 'failure' }}
@@ -26,5 +27,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '👋 Thanks for reporting!'
+              body: 'Hi, looks like pyspelling found some issues you can check it here ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
             })
