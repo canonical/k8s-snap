@@ -49,7 +49,7 @@ jobs:
         with:
           version: v1.61
           working-directory: src/k8s
-          args: '-c ./hack/golangci.yml --issues-exit-code=0 --new-from-patch'
+          args: '-c ./hack/golangci.yml --issues-exit-code=0'
 #          only-new-issues: true
           skip-cache: true
 
