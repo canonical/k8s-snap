@@ -46,6 +46,7 @@ func TestIngressDisabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeleteFailedMsgTmpl, err)))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -68,6 +69,7 @@ func TestIngressDisabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.DisabledMsg))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
 }
 
@@ -96,6 +98,7 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeployFailedMsgTmpl, err)))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -150,6 +153,8 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
+		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, ingress)
 	})
 
 	t.Run("SuccessWithEnabledProxyProtocol", func(t *testing.T) {
@@ -205,6 +210,8 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
+		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, ingress)
 	})
 
 	t.Run("SuccessWithDefaultTLSSecret", func(t *testing.T) {
@@ -262,6 +269,9 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
+		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, ingress)
+		g.Expect(helmM.ApplyCalledWith[2].Values["defaultTLSSecret"]).To(Equal(defaultTLSSecret))
 	})
 
 	t.Run("NoCR", func(t *testing.T) {
@@ -307,6 +317,7 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeployFailedMsgTmpl, err)))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
 
 	t.Run("NoDeployment", func(t *testing.T) {
@@ -362,5 +373,29 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourIngressContourImageTag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.IngressDeployFailedMsgTmpl, err)))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 	})
+}
+
+func validateIngressValues(g Gomega, values map[string]interface{}, ingress types.Ingress) {
+	contourValues, ok := values["contour"].(map[string]any)
+	g.Expect(ok).To(BeTrue())
+	contourImage, ok := contourValues["image"].(map[string]any)
+	g.Expect(ok).To(BeTrue())
+	g.Expect(contourImage["repository"]).To(Equal(contour.ContourIngressContourImageRepo))
+	g.Expect(contourImage["tag"]).To(Equal(contour.ContourIngressContourImageTag))
+	envoyValues, ok := values["envoy"].(map[string]any)
+	g.Expect(ok).To(BeTrue())
+	envoyImage, ok := envoyValues["image"].(map[string]any)
+	g.Expect(ok).To(BeTrue())
+	g.Expect(envoyImage["repository"]).To(Equal(contour.ContourIngressEnvoyImageRepo))
+	g.Expect(envoyImage["tag"]).To(Equal(contour.ContourIngressEnvoyImageTag))
+
+	if ingress.GetEnableProxyProtocol() {
+		conturExtraValues, ok := values["contour"].(map[string]any)
+		g.Expect(ok).To(BeTrue())
+		contourExtraArgs, ok := conturExtraValues["extraArgs"].([]string)
+		g.Expect(ok).To(BeTrue())
+		g.Expect(contourExtraArgs[0]).To(Equal("--use-proxy-protocol"))
+	}
 }

@@ -145,6 +145,21 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
+		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
+
+		values := helmM.ApplyCalledWith[1].Values
+		contourValues, ok := values["projectcontour"].(map[string]any)
+		g.Expect(ok).To(BeTrue())
+		contourImage, ok := contourValues["image"].(map[string]any)
+		g.Expect(ok).To(BeTrue())
+		g.Expect(contourImage["repository"]).To(Equal(contour.ContourGatewayProvisionerContourImageRepo))
+		g.Expect(contourImage["tag"]).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
+		envoyValues, ok := values["envoyproxy"].(map[string]any)
+		g.Expect(ok).To(BeTrue())
+		envoyImage, ok := envoyValues["image"].(map[string]any)
+		g.Expect(ok).To(BeTrue())
+		g.Expect(envoyImage["repository"]).To(Equal(contour.ContourGatewayProvisionerEnvoyImageRepo))
+		g.Expect(envoyImage["tag"]).To(Equal(contour.ContourGatewayProvisionerEnvoyImageTag))
 	})
 
 	t.Run("CrdDeploymentFailed", func(t *testing.T) {
