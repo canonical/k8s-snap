@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	enabledMsg                 = "enabled"
-	disabledMsg                = "disabled"
-	gatewayDeployFailedMsgTmpl = "Failed to deploy Contour Gateway, the error was: %v"
-	gatewayDeleteFailedMsgTmpl = "Failed to delete Contour Gateway, the error was: %v"
+	EnabledMsg                 = "enabled"
+	DisabledMsg                = "disabled"
+	GatewayDeployFailedMsgTmpl = "Failed to deploy Contour Gateway, the error was: %v"
+	GatewayDeleteFailedMsgTmpl = "Failed to delete Contour Gateway, the error was: %v"
 )
 
 // ApplyGateway will install a helm chart for contour-gateway-provisioner on the cluster when gateway.Enabled is true.
@@ -32,14 +32,14 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 			err = fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: contourGatewayProvisionerContourImageTag,
-				Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+				Version: ContourGatewayProvisionerContourImageTag,
+				Message: fmt.Sprintf(GatewayDeleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourGatewayProvisionerContourImageTag,
-			Message: disabledMsg,
+			Version: ContourGatewayProvisionerContourImageTag,
+			Message: DisabledMsg,
 		}, nil
 	}
 
@@ -48,8 +48,8 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourGatewayProvisionerContourImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Version: ContourGatewayProvisionerContourImageTag,
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -57,22 +57,22 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		err = fmt.Errorf("failed to wait for required contour common CRDs to be available: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourGatewayProvisionerContourImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Version: ContourGatewayProvisionerContourImageTag,
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
 	values := map[string]any{
 		"projectcontour": map[string]any{
 			"image": map[string]any{
-				"repository": contourGatewayProvisionerContourImageRepo,
-				"tag":        contourGatewayProvisionerContourImageTag,
+				"repository": ContourGatewayProvisionerContourImageRepo,
+				"tag":        ContourGatewayProvisionerContourImageTag,
 			},
 		},
 		"envoyproxy": map[string]any{
 			"image": map[string]any{
-				"repository": contourGatewayProvisionerEnvoyImageRepo,
-				"tag":        contourGatewayProvisionerEnvoyImageTag,
+				"repository": ContourGatewayProvisionerEnvoyImageRepo,
+				"tag":        ContourGatewayProvisionerEnvoyImageTag,
 			},
 		},
 	}
@@ -81,15 +81,15 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 		err = fmt.Errorf("failed to install the contour gateway chart: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: contourGatewayProvisionerContourImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Version: ContourGatewayProvisionerContourImageTag,
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
-		Version: contourGatewayProvisionerContourImageTag,
-		Message: enabledMsg,
+		Version: ContourGatewayProvisionerContourImageTag,
+		Message: EnabledMsg,
 	}, nil
 }
 
