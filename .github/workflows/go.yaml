@@ -49,6 +49,11 @@ jobs:
           version: v1.61
           working-directory: src/k8s
           args: '-c ./hack/golangci.yml'
+          only-new-issues: true
+        permissions:
+          contents: read
+          pull-requests: read
+          checks: write
 
       - name: go fmt
         working-directory: src/k8s
