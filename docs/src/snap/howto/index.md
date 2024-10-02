@@ -22,6 +22,7 @@ proxy
 backup-restore
 refresh-certs
 restore-quorum
+two-node-ha
 epa
 contribute
 support
