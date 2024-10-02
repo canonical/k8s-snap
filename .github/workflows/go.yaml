@@ -23,6 +23,7 @@ jobs:
     permissions:
       contents: read  # for actions/checkout to fetch code
       pull-requests: write  # for marocchino/sticky-pull-request-comment to create or update PR comment
+      checks: write # for golangci/golangci-lint-action to checks to allow the action to annotate code in the PR.
     name: Unit Tests & Code Quality
     runs-on: ubuntu-latest
 
@@ -50,10 +51,6 @@ jobs:
           working-directory: src/k8s
           args: '-c ./hack/golangci.yml'
           only-new-issues: true
-        permissions:
-          contents: read
-          pull-requests: read
-          checks: write
 
       - name: go fmt
         working-directory: src/k8s
