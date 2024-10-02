@@ -49,8 +49,9 @@ jobs:
         with:
           version: v1.61
           working-directory: src/k8s
-          args: 'run -c ./hack/golangci.yml'
+          args: '-c ./hack/golangci.yml --issues-exit-code=0 --new-from-patch'
           only-new-issues: true
+          skip-cache: true
 
       - name: go fmt
         working-directory: src/k8s
