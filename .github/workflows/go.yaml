@@ -43,6 +43,13 @@ jobs:
         working-directory: src/k8s
         run: go mod download
 
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.61
+          working-directory: src/k8s
+          args: '-c ./hack/golangci.yml'
+
       - name: go fmt
         working-directory: src/k8s
         run: make go.fmt
