@@ -9,11 +9,13 @@ import (
 	"github.com/canonical/microcluster/v3/state"
 	"golang.org/x/sync/errgroup"
 	certv1 "k8s.io/api/certificates/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// FIXME: Remove these structs after k8s-snap-api is updated
 type ApproveWorkerCSRRequest struct {
-	Seed int
+	Seed int `json:"seed"`
 }
 
 type ApproveWorkerCSRResponse struct{}
@@ -43,31 +45,31 @@ func (e *Endpoints) postApproveWorkerCSR(s state.State, r *http.Request) respons
 	for _, csrName := range csrNames {
 		csrName := csrName
 		g.Go(func() error {
-			csrObject, err := client.CertificatesV1().CertificateSigningRequests().Get(ctx, csrName, metav1.GetOptions{})
-			if err != nil {
-				return fmt.Errorf("failed to get CSR %s: %w", csrObject, err)
+			if err := client.WatchCertificateSigningRequest(
+				ctx,
+				csrName,
+				func(request *certv1.CertificateSigningRequest) (bool, error) {
+					request.Status.Conditions = append(request.Status.Conditions, certv1.CertificateSigningRequestCondition{
+						Type:           certv1.CertificateApproved,
+						Status:         "True",
+						Reason:         "ApprovedByCK8sCAPI",
+						Message:        "This CSR was approved by Canonical Kubernetes CAPI Provider",
+						LastUpdateTime: metav1.Now(),
+					})
+					_, err := client.CertificatesV1().CertificateSigningRequests().UpdateApproval(ctx, csrName, request, metav1.UpdateOptions{})
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return false, nil
+						}
+						return false, fmt.Errorf("failed to update CSR %s: %w", csrName, err)
+					}
+					return true, nil
+				},
+			); err != nil {
+				return fmt.Errorf("certificate signing request failed: %w", err)
 			}
-			// Approve the CSR
-			for _, condition := range csrObject.Status.Conditions {
-				if condition.Type == certv1.CertificateApproved {
-					return fmt.Errorf("CSR %s already approved", csrName)
-				}
-			}
-
-			csrObject.Status.Conditions = append(csrObject.Status.Conditions, certv1.CertificateSigningRequestCondition{
-				Type:           certv1.CertificateApproved,
-				Status:         "True",
-				Reason:         "ApprovedByCK8sCAPI",
-				Message:        "This CSR was approved by Canonical Kubernetes CAPI Provider",
-				LastUpdateTime: metav1.Now(),
-			})
-
-			_, err = client.CertificatesV1().CertificateSigningRequests().UpdateApproval(r.Context(), csrName, csrObject, metav1.UpdateOptions{})
-
 			return nil
-
 		})
-
 	}
 
 	if err := g.Wait(); err != nil {

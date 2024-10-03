@@ -326,13 +326,27 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		return response.InternalError(fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err))
 	}
 
-	// Restart the services
-	if err := snap.RestartService(r.Context(), "kubelet"); err != nil {
-		return response.InternalError(fmt.Errorf("failed to restart kubelet: %w", err))
-	}
-	if err := snap.RestartService(r.Context(), "kube-proxy"); err != nil {
-		return response.InternalError(fmt.Errorf("failed to restart kube-proxy: %w", err))
-	}
+	// NOTE: Restart the worker services in a separate goroutine to avoid
+	// restarting the kube-proxy and kubelet, which would break the
+	// proxy connection and cause missed responses in the proxy side.
+	readyCh := make(chan error, 1)
+	go func() {
+		// NOTE: Create a new context independent of the request context to ensure
+		// the restart process is not cancelled by the client.
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+
+		if err := <-readyCh; err != nil {
+			log.Error(err, "Failed to refresh certificates")
+			return
+		}
+		if err := snap.RestartService(ctx, "kubelet"); err != nil {
+			log.Error(err, "Failed to restart kubelet")
+		}
+		if err := snap.RestartService(ctx, "kube-proxy"); err != nil {
+			log.Error(err, "Failed to restart kube-proxy")
+		}
+	}()
 
 	cert, _, err := pkiutil.LoadCertificate(certificates.KubeletCert, "")
 	if err != nil {
@@ -340,8 +354,26 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	}
 
 	expirationTimeUNIX := cert.NotAfter.Unix()
-	return response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
-		ExpirationSeconds: int(expirationTimeUNIX),
+
+	return response.ManualResponse(func(w http.ResponseWriter) (rerr error) {
+		defer func() {
+			readyCh <- rerr
+			close(readyCh)
+		}()
+		err := response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
+			ExpirationSeconds: int(expirationTimeUNIX),
+		}).Render(w)
+		if err != nil {
+			return fmt.Errorf("failed to render response: %w", err)
+		}
+
+		f, ok := w.(http.Flusher)
+		if !ok {
+			return fmt.Errorf("ResponseWriter is not type http.Flusher")
+		}
+
+		f.Flush()
+		return nil
 	})
 
 }
