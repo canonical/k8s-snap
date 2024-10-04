@@ -40,6 +40,7 @@ jobs:
           snap download k8s --channel=${{ matrix.releases }} --basename k8s
 
       - name: create k8s container
+        run: |
           lxc profile create k8s
           cat tests/integration/lxd-profile.yaml | lxc profile edit k8s
           lxc launch -p default -p k8s ${{ matrix.os }} k8s
