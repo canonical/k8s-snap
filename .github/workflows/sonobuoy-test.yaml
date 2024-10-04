@@ -47,7 +47,7 @@ jobs:
           lxc config device add k8s repo disk source=${PWD} path=/repo/
 
       - name: setup k8s in lxd container
-      - run: |
+        run: |
           lxc exec k8s -- sudo snap install /repo/k8s_v1.31.1_amd64.snap --dangerous --classic
           lxc exec k8s -- sudo k8s bootstrap
           lxc exec k8s -- sudo k8s config > ~/.kube/config
