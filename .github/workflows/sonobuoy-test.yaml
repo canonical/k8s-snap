@@ -41,7 +41,7 @@ jobs:
           curl -L -o sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/${tag}/sonobuoy_${tag//v}_linux_${{ matrix.arch }}.tar.gz
           tar -xf sonobuoy.tar.gz
 
-      - name: download $${ matrix.releases }} k8s snap
+      - name: download ${ matrix.releases }} k8s snap
         run: |
           snap download k8s --channel=${{ matrix.releases }} --basename k8s
 
@@ -81,3 +81,15 @@ jobs:
           name: Sonobuoy End to End Tests
           path: sonobuoy_e2e/plugins/e2e/results/global/*.xml
           reporter: jest-junit
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "sonobuoy_e2e/plugins/e2e/results/global/*.xml"
+          output: test-summary.md
+        if: always()
+      - name: Upload test summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-summary
+          path: test-summary.md
+        if: always()
