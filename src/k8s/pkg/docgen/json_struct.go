@@ -22,8 +22,8 @@ type Field struct {
 
 // Generate Markdown documentation for a JSON or YAML based on
 // the Go structure definition, parsing field annotations.
-func MarkdownFromJsonStruct(i any) (string, error) {
-	fields, err := ParseStruct(i)
+func MarkdownFromJsonStruct(i any, projectDir string) (string, error) {
+	fields, err := ParseStruct(i, projectDir)
 	if err != nil {
 		return "", err
 	}
@@ -47,8 +47,9 @@ func MarkdownFromJsonStruct(i any) (string, error) {
 // Generate Markdown documentation for a JSON or YAML based on
 // the Go structure definition, parsing field annotations.
 // Write the output to the specified file path.
-func MarkdownFromJsonStructToFile(i any, outFilePath string) error {
-	content, err := MarkdownFromJsonStruct(i);
+// The project dir is used to identify dependencies based on the go.mod file.
+func MarkdownFromJsonStructToFile(i any, outFilePath string, projectDir string) error {
+	content, err := MarkdownFromJsonStruct(i, projectDir)
 	if err != nil {
 		return err
 	}
@@ -60,8 +61,6 @@ func MarkdownFromJsonStructToFile(i any, outFilePath string) error {
 	}
 	return nil
 }
-
-
 
 func getJsonTag(field reflect.StructField) JsonTag {
 	jsonTag := JsonTag{}
@@ -84,7 +83,7 @@ func getJsonTag(field reflect.StructField) JsonTag {
 	return jsonTag
 }
 
-func ParseStruct(i any) ([]Field, error) {
+func ParseStruct(i any, projectDir string) ([]Field, error) {
 	inType := reflect.TypeOf(i)
 
 	if inType.Kind() != reflect.Struct {
@@ -95,7 +94,7 @@ func ParseStruct(i any) ([]Field, error) {
 	fields := reflect.VisibleFields(inType)
 	for _, field := range fields {
 		jsonTag := getJsonTag(field)
-		docstring, err := getFieldDocstring(i, field)
+		docstring, err := getFieldDocstring(i, field, projectDir)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "WARNING: could not retrieve field docstring: %s.%s, error: %v",
 				inType.Name, field.Name, err)
@@ -103,7 +102,7 @@ func ParseStruct(i any) ([]Field, error) {
 
 		if field.Type.Kind() == reflect.Struct {
 			fieldIface := reflect.ValueOf(i).FieldByName(field.Name).Interface()
-			nestedFields, err := ParseStruct(fieldIface)
+			nestedFields, err := ParseStruct(fieldIface, projectDir)
 			if err != nil {
 				return nil, fmt.Errorf("couldn't parse %s.%s, error: %v", inType, field.Name, err)
 			}

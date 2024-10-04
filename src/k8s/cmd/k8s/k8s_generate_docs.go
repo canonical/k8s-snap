@@ -12,7 +12,8 @@ import (
 
 func newGenerateDocsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
-		outputDir string
+		outputDir  string
+		projectDir string
 	}
 	cmd := &cobra.Command{
 		Use:    "generate-docs",
@@ -27,7 +28,7 @@ func newGenerateDocsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			outPath = path.Join(opts.outputDir, "bootstrap_config.md")
-			err := docgen.MarkdownFromJsonStructToFile(apiv1.BootstrapConfig{}, outPath)
+			err := docgen.MarkdownFromJsonStructToFile(apiv1.BootstrapConfig{}, outPath, opts.projectDir)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to generate markdown documentation for bootstrap configuration\n\n")
 				cmd.PrintErrf("Error: %v", err)
@@ -36,7 +37,7 @@ func newGenerateDocsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			outPath = path.Join(opts.outputDir, "control_plane_join_config.md")
-			err = docgen.MarkdownFromJsonStructToFile(apiv1.ControlPlaneJoinConfig{}, outPath)
+			err = docgen.MarkdownFromJsonStructToFile(apiv1.ControlPlaneJoinConfig{}, outPath, opts.projectDir)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to generate markdown documentation for ctrl plane join configuration\n\n")
 				cmd.PrintErrf("Error: %v", err)
@@ -45,7 +46,7 @@ func newGenerateDocsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			outPath = path.Join(opts.outputDir, "worker_join_config.md")
-			err = docgen.MarkdownFromJsonStructToFile(apiv1.WorkerJoinConfig{}, outPath)
+			err = docgen.MarkdownFromJsonStructToFile(apiv1.WorkerJoinConfig{}, outPath, opts.projectDir)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to generate markdown documentation for worker join configuration\n\n")
 				cmd.PrintErrf("Error: %v", err)
@@ -58,5 +59,6 @@ func newGenerateDocsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&opts.outputDir, "output-dir", ".", "directory where the markdown docs will be written")
+	cmd.Flags().StringVar(&opts.projectDir, "project-dir", "../../", "the path to k8s-snap/src/k8s")
 	return cmd
 }

@@ -71,13 +71,13 @@ func getAstStructField(structType *ast.StructType, fieldName string) *ast.Field 
 	return nil
 }
 
-func getPackageDoc(packagePath string) (*doc.Package, error) {
+func getPackageDoc(packagePath string, projectDir string) (*doc.Package, error) {
 	packageDoc, found := packageDocCache[packagePath]
 	if found {
 		return packageDoc, nil
 	}
 
-	packageDir, err := getGoPackageDir(packagePath)
+	packageDir, err := getGoPackageDir(packagePath, projectDir)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't retrieve package dir, error: %v", err)
 	}
@@ -93,10 +93,10 @@ func getPackageDoc(packagePath string) (*doc.Package, error) {
 	return packageDoc, nil
 }
 
-func getFieldDocstring(i any, field reflect.StructField) (string, error) {
+func getFieldDocstring(i any, field reflect.StructField, projectDir string) (string, error) {
 	inType := reflect.TypeOf(i)
 
-	packageDoc, err := getPackageDoc(inType.PkgPath())
+	packageDoc, err := getPackageDoc(inType.PkgPath(), projectDir)
 	if err != nil {
 		return "", err
 	}

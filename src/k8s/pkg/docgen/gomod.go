@@ -6,7 +6,6 @@ import (
 	"golang.org/x/mod/module"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 )
 
@@ -66,46 +65,21 @@ func getDependencyVersionFromGoMod(goModPath string, packageName string, directO
 	return "", "", fmt.Errorf("could not find dependency %s in %s", packageName, goModPath)
 }
 
-// getProjectDir retrieves the full path of k8s-snap/src/k8s.
-// For simplicity, we assume that the executable is placed in
-// k8s-snap/src/k8s/bin/(static|dynamic).
-// This will mostly be used to generate the project documentation using
-// "make go.doc".
-func getProjectDir() (string, error) {
-	exec, err := os.Executable()
-	if err != nil {
-		return "", fmt.Errorf("couldn't retrieve executable path, error: %v", err)
-	}
-
-	projDir := path.Join(filepath.Dir(exec), "..", "..")
-	return filepath.Abs(projDir)
+func getGoModPath(projectDir string) (string, error) {
+	return path.Join(projectDir, "go.mod"), nil
 }
 
-func getGoModPath() (string, error) {
-	projDir, err := getProjectDir()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(projDir, "go.mod"), nil
-}
-
-func getGoPackageDir(packageName string) (string, error) {
+func getGoPackageDir(packageName string, projectDir string) (string, error) {
 	if packageName == "" {
 		return "", fmt.Errorf("could not retrieve package dir, no package name specified.")
 	}
 
 	if strings.HasPrefix(packageName, "github.com/canonical/k8s/") {
-		projDir, err := getProjectDir()
-		if err != nil {
-			return "", err
-		}
-
-		return strings.Replace(packageName, "github.com/canonical/k8s", projDir, 1), nil
+		return strings.Replace(packageName, "github.com/canonical/k8s", projectDir, 1), nil
 	}
 
-	// Dependency, need to retrieve its version from go.mod
-	goModPath, err := getGoModPath()
+	// Dependency, need to retrieve its version from go.mod.
+	goModPath, err := getGoModPath(projectDir)
 	if err != nil {
 		return "", err
 	}
