@@ -54,6 +54,7 @@ jobs:
           sg lxd -c 'lxc exec k8s -- service snapd start'
           sg lxd -c 'lxc exec k8s -- snap install /repo/k8s.snap --dangerous --classic'
           sg lxd -c 'lxc exec k8s -- k8s bootstrap'
+          mkdir ~/.kube
           sg lxd -c 'lxc exec k8s -- k8s config' > ~/.kube/config
 
       - name: Run end to end tests
