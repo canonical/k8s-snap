@@ -47,7 +47,8 @@ func MarkdownFromJsonStruct(i any, projectDir string) (string, error) {
 // Generate Markdown documentation for a JSON or YAML based on
 // the Go structure definition, parsing field annotations.
 // Write the output to the specified file path.
-// The project dir is used to identify dependencies based on the go.mod file.
+// The project dir is used to parse the source code and identify dependencies
+// based on the go.mod file.
 func MarkdownFromJsonStructToFile(i any, outFilePath string, projectDir string) error {
 	content, err := MarkdownFromJsonStruct(i, projectDir)
 	if err != nil {

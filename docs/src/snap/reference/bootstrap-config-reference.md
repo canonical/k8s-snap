@@ -1,6 +1,6 @@
 # Bootstrap configuration file reference
 
-A YAML file can be supplied to the `k8s bootstrap` command to configure and
+A YAML file can be supplied to the `k8s join-cluster` command to configure and
 customise the cluster. This reference section provides the format of this file
 by listing all available options and their details. See below for an example.
 

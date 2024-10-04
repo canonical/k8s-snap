@@ -180,6 +180,8 @@ Configuration options for the metric server feature.
 ### cluster-config.metrics-server.enabled
 **Type:** `bool`<br>
 
+Determines if the feature should be enabled.
+If omitted defaults to `true`.
 
 ### cluster-config.cloud-provider
 **Type:** `string`<br>
@@ -194,6 +196,8 @@ Possible values: `external`.
 ### cluster-config.annotations
 **Type:** `map[string]string`<br>
 
+Annotations is a map of strings that can be used to store arbitrary metadata configuration.
+Please refer to the ClusterAPI annotations reference for further details on these options.
 
 ### control-plane-taints
 **Type:** `[]string`<br>
@@ -281,10 +285,14 @@ If omitted defaults to an auto generated key.
 ### client-ca-crt
 **Type:** `string`<br>
 
+The client CA certificate to be used for Kubernetes services.
+If omitted defaults to an auto generated certificate.
 
 ### client-ca-key
 **Type:** `string`<br>
 
+The client CA key to be used for Kubernetes services.
+If omitted defaults to an auto generated key.
 
 ### front-proxy-ca-crt
 **Type:** `string`<br>
@@ -325,34 +333,50 @@ If omitted defaults to an auto generated key.
 ### admin-client-crt
 **Type:** `string`<br>
 
+The admin client certificate to be used for Kubernetes services.
+If omitted defaults to an auto generated certificate.
 
 ### admin-client-key
 **Type:** `string`<br>
 
+The admin client key to be used for Kubernetes services.
+If omitted defaults to an auto generated key.
 
 ### kube-proxy-client-crt
 **Type:** `string`<br>
 
+The client certificate to be used for the kube-proxy.
+If omitted defaults to an auto generated certificate.
 
 ### kube-proxy-client-key
 **Type:** `string`<br>
 
+The client key to be used for the kube-proxy.
+If omitted defaults to an auto generated key.
 
 ### kube-scheduler-client-crt
 **Type:** `string`<br>
 
+The client certificate to be used for the kube-scheduler.
+If omitted defaults to an auto generated certificate.
 
 ### kube-scheduler-client-key
 **Type:** `string`<br>
 
+The client key to be used for the kube-scheduler.
+If omitted defaults to an auto generated key.
 
 ### kube-controller-manager-client-crt
 **Type:** `string`<br>
 
+The client certificate to be used for the Kubernetes controller manager.
+If omitted defaults to an auto generated certificate.
 
 ### kube-controller-manager-client-key
 **Type:** `string`<br>
 
+The client key to be used for the Kubernetes controller manager.
+If omitted defaults to an auto generated key.
 
 ### service-account-key
 **Type:** `string`<br>
@@ -387,10 +411,14 @@ If omitted defaults to an auto generated key.
 ### kubelet-client-crt
 **Type:** `string`<br>
 
+The certificate to be used for the kubelet client.
+If omitted defaults to an auto generated certificate.
 
 ### kubelet-client-key
 **Type:** `string`<br>
 
+The key to be used for the kubelet client.
+If omitted defaults to an auto generated key.
 
 ### extra-node-config-files
 **Type:** `map[string]string`<br>
@@ -404,51 +432,51 @@ The format is `map[<filename>]<filecontent>`.
 ### extra-node-kube-apiserver-args
 **Type:** `map[string]string`<br>
 
-Additional arguments that are passed to the `kube-apiserver` only for that
-specific node. Overwrites default configuration. A parameter that is explicitly
-set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+Additional arguments that are passed to the `kube-apiserver` only for that specific node.
+A parameter that is explicitly set to `null` is deleted.
+The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-kube-controller-manager-args
 **Type:** `map[string]string`<br>
 
-Additional arguments that are passed to the `kube-controller-manager` only for
-that specific node. Overwrites default configuration. A parameter that is
-explicitly set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+Additional arguments that are passed to the `kube-controller-manager` only for that specific node.
+A parameter that is explicitly set to `null` is deleted.
+The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-kube-scheduler-args
 **Type:** `map[string]string`<br>
 
-Additional arguments that are passed to the `kube-scheduler` only for that
-specific node. Overwrites default configuration. A parameter that is explicitly
-set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+Additional arguments that are passed to the `kube-scheduler` only for that specific node.
+A parameter that is explicitly set to `null` is deleted.
+The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-kube-proxy-args
 **Type:** `map[string]string`<br>
 
-Additional arguments that are passed to the `kube-proxy` only for that
-specific node. Overwrites default configuration. A parameter that is explicitly
-set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+Additional arguments that are passed to the `kube-proxy` only for that specific node.
+A parameter that is explicitly set to `null` is deleted.
+The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-kubelet-args
 **Type:** `map[string]string`<br>
 
-Additional arguments that are passed to the `kubelet` only for that
-specific node. Overwrites default configuration. A parameter that is explicitly
-set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+Additional arguments that are passed to the `kubelet` only for that specific node.
+A parameter that is explicitly set to `null` is deleted.
+The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-containerd-args
 **Type:** `map[string]string`<br>
 
-Additional arguments that are passed to `containerd` only for that
-specific node. Overwrites default configuration. A parameter that is explicitly
-set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+Additional arguments that are passed to `containerd` only for that specific node.
+A parameter that is explicitly set to `null` is deleted.
+The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-k8s-dqlite-args
 **Type:** `map[string]string`<br>
 
-Additional arguments that are passed to `k8s-dqlite` only for that
-specific node. Overwrites default configuration. A parameter that is explicitly
-set to `null` is deleted. The format is `map[<--flag-name>]<value>`.
+Additional arguments that are passed to `k8s-dqlite` only for that specific node.
+A parameter that is explicitly set to `null` is deleted.
+The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-containerd-config
 **Type:** `apiv1.MapStringAny`<br>
