@@ -44,6 +44,25 @@ func MarkdownFromJsonStruct(i any) (string, error) {
 	return out.String(), nil
 }
 
+// Generate Markdown documentation for a JSON or YAML based on
+// the Go structure definition, parsing field annotations.
+// Write the output to the specified file path.
+func MarkdownFromJsonStructToFile(i any, outFilePath string) error {
+	content, err := MarkdownFromJsonStruct(i);
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(outFilePath, []byte(content), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write markdown documentation to %s, error: %v.",
+			outFilePath, err)
+	}
+	return nil
+}
+
+
+
 func getJsonTag(field reflect.StructField) JsonTag {
 	jsonTag := JsonTag{}
 

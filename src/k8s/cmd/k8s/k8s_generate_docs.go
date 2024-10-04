@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"os"
+	"path"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
@@ -19,13 +19,15 @@ func newGenerateDocsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Hidden: true,
 		Short:  "Generate markdown documentation",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := doc.GenMarkdownTree(cmd.Parent(), opts.outputDir+"/commands"); err != nil {
+			outPath := path.Join(opts.outputDir, "commands")
+			if err := doc.GenMarkdownTree(cmd.Parent(), outPath); err != nil {
 				cmd.PrintErrf("Error: Failed to generate markdown documentation for k8s command.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			bootstrap_doc, err := docgen.MarkdownFromJsonStruct(apiv1.BootstrapConfig{})
+			outPath = path.Join(opts.outputDir, "bootstrap_config.md")
+			err := docgen.MarkdownFromJsonStructToFile(apiv1.BootstrapConfig{}, outPath)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to generate markdown documentation for bootstrap configuration\n\n")
 				cmd.PrintErrf("Error: %v", err)
@@ -33,11 +35,20 @@ func newGenerateDocsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			bootstrap_doc_path := opts.outputDir + "/bootstrap_config.md"
-			err = os.WriteFile(bootstrap_doc_path, []byte(bootstrap_doc), 0644)
+			outPath = path.Join(opts.outputDir, "control_plane_join_config.md")
+			err = docgen.MarkdownFromJsonStructToFile(apiv1.ControlPlaneJoinConfig{}, outPath)
 			if err != nil {
-				cmd.PrintErrf("Error: Failed to write markdown documentation for bootstrap configuration\n\n")
-				cmd.PrintErrf("Error: %v")
+				cmd.PrintErrf("Error: Failed to generate markdown documentation for ctrl plane join configuration\n\n")
+				cmd.PrintErrf("Error: %v", err)
+				env.Exit(1)
+				return
+			}
+
+			outPath = path.Join(opts.outputDir, "worker_join_config.md")
+			err = docgen.MarkdownFromJsonStructToFile(apiv1.WorkerJoinConfig{}, outPath)
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to generate markdown documentation for worker join configuration\n\n")
+				cmd.PrintErrf("Error: %v", err)
 				env.Exit(1)
 				return
 			}
