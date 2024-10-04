@@ -70,6 +70,26 @@
     </div>
     {%- endif %}
   </div>
+  <div>
+    {% if github_url and github_folder and pagename and page_source_suffix and display_contributors %}
+        {% set contributors = get_contribs(github_url, github_folder, pagename, page_source_suffix, display_contributors_since) %}
+        {% if contributors %}
+          {% if contributors | length > 1 %}
+              <a class="display-contributors">Thanks to the {{ contributors |length }} contributors!</a>
+          {% else %}
+              <a class="display-contributors">Thanks to our contributor!</a>
+          {% endif %}
+          <div id="overlay"></div>
+          <ul class="all-contributors">
+              {% for contributor in contributors %}
+                  <li>
+                      <a href="{{ contributor['github_page'] }}" class="contributor">{{ contributor['name'] }}</a>
+                  </li>
+              {% endfor %}
+          </ul>
+        {% endif %}
+    {% endif %}
+  </div>
   <div class="right-details">
 
     {# mod: replaced RTD icons with our links #}
@@ -77,6 +97,12 @@
     {% if discourse %}
     <div class="ask-discourse">
       <a class="muted-link" href="{{ discourse }}">Ask a question on Discourse</a>
+    </div>
+    {% endif %}
+
+    {% if mattermost %}
+    <div class="ask-mattermost">
+      <a class="muted-link" href="{{ mattermost }}">Ask a question on Mattermost</a>
     </div>
     {% endif %}
 
@@ -95,7 +121,7 @@
     {% endif %}
 
     <div class="edit-github">
-      <a class="muted-link" href="{{ github_url }}/edit/{{ github_version }}{{ github_folder }}src/{{ pagename }}{{ page_source_suffix }}">Edit this page on GitHub</a>
+      <a class="muted-link" href="{{ github_url }}/edit/{{ github_version }}{{ github_folder }}{{ pagename }}{{ page_source_suffix }}">Edit this page on GitHub</a>
     </div>
     {% endif %}
 

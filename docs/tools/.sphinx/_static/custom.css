@@ -84,8 +84,8 @@
     Based on: https://github.com/canonical/vanilla-framework/blob/main/scss/_base_typography-definitions.scss
 
     regular text: 400,
-    bold: 550, 
-    thin: 300, 
+    bold: 550,
+    thin: 300,
 
     h1: bold,
     h2: 180;
@@ -168,33 +168,62 @@ a.headerlink {
     border-left: 2px solid var(--color-brand-primary);
 }
 
-/** Some tweaks for issue #16 **/
+/** Some tweaks for Sphinx tabs **/
 
 [role="tablist"] {
     border-bottom: 1px solid var(--color-sidebar-item-background--hover);
 }
 
-.sphinx-tabs-tab[aria-selected="true"] {
+.sphinx-tabs-tab[aria-selected="true"],  .sd-tab-set>input:checked+label{
     border: 0;
     border-bottom: 2px solid var(--color-brand-primary);
-    background-color: var(--color-sidebar-item-background--current);
-    font-weight:300;
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--color-brand-primary);
 }
 
-.sphinx-tabs-tab{
+body[data-theme="dark"] .sphinx-tabs-tab[aria-selected="true"] {
+    background: var(--color-background-primary);
+    border-bottom: 2px solid var(--color-brand-primary);
+}
+
+button.sphinx-tabs-tab[aria-selected="false"]:hover, .sd-tab-set>input:not(:checked)+label:hover {
+    border-bottom: 2px solid var(--color-foreground-border);
+}
+
+button.sphinx-tabs-tab[aria-selected="false"]{
+    border-bottom: 2px solid var(--color-background-primary);
+}
+
+body[data-theme="dark"] .sphinx-tabs-tab {
+    background: var(--color-background-primary);
+}
+
+.sphinx-tabs-tab, .sd-tab-set>label{
     color: var(--color-brand-primary);
-    font-weight:300;
+    font-family: var(--font-stack);
+    font-weight: 400;
+    font-size: 1rem;
+    padding: 1em 1.25em .5em
 }
 
 .sphinx-tabs-panel {
     border: 0;
     border-bottom: 1px solid var(--color-sidebar-item-background--hover);
     background: var(--color-background-primary);
+    padding: 0.75rem 0 0.75rem 0;
 }
 
-button.sphinx-tabs-tab:hover {
-    background-color: var(--color-sidebar-item-background--hover);
+body[data-theme="dark"] .sphinx-tabs-panel {
+    background: var(--color-background-primary);
 }
+
+/** A tweak for issue #190 **/
+
+.highlight .hll {
+    background-color: var(--color-highlighted-background);
+}
+
 
 /** Custom classes to fix scrolling in tables by decreasing the
     font size or breaking certain columns.
@@ -268,6 +297,15 @@ button.version_select {
 
 .available_versions a:hover {background-color: var(--color-sidebar-item-background--current)}
 
+/** Suppress link underlines outside on-hover **/
+a {
+    text-decoration: none;
+}
+
+a:hover, a:visited:hover {
+    text-decoration: underline;
+}
+
 .show {display:block;}
 
 /** Fix for nested numbered list - the nested list is lettered **/
@@ -318,4 +356,37 @@ details summary {
 
 .sidebar-search-container input[type=submit]:hover {
     text-decoration: underline;
+}
+
+/* Make inline code the same size as code blocks */
+p code.literal {
+    border: 0;
+    font-size: var(--code-font-size);
+}
+
+/* Use the general admonition font size for inline code */
+.admonition p code.literal {
+    font-size: var(--admonition-font-size);
+}
+
+.highlight .s, .highlight .s1, .highlight .s2 {
+    color: #3F8100;
+}
+
+.highlight .o {
+    color: #BB5400;
+}
+
+.rubric > .hclass2 {
+    display: block;
+    font-size: 2em;
+    border-radius: .5rem;
+    font-weight: 300;
+    line-height: 1.25;
+    margin-top: 1.75rem;
+    margin-right: -0.5rem;
+    margin-bottom: 0.5rem;
+    margin-left: -0.5rem;
+    padding-left: .5rem;
+    padding-right: .5rem;
 }
