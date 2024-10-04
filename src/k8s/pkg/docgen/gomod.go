@@ -36,7 +36,7 @@ func getGoDepModulePath(name string, version string) (string, error) {
 	// Validate the path.
 	if _, err := os.Stat(path); err != nil {
 		return "", fmt.Errorf(
-			"Go module path not accessible: %s %s %s. Error: %v.",
+			"Go module path not accessible: %s %s %s, error: %v.",
 			name, version, path, err)
 	}
 
@@ -46,11 +46,11 @@ func getGoDepModulePath(name string, version string) (string, error) {
 func getDependencyVersionFromGoMod(goModPath string, packageName string, directOnly bool) (string, string, error) {
 	goModContents, err := os.ReadFile(goModPath)
 	if err != nil {
-		return "", "", fmt.Errorf("could not read go.mod file %s. Error: ", goModPath, err)
+		return "", "", fmt.Errorf("could not read go.mod file %s, error: %v", goModPath, err)
 	}
 	goModFile, err := modfile.ParseLax(goModPath, goModContents, nil)
 	if err != nil {
-		return "", "", fmt.Errorf("could not parse go.mod file %s. Error: ", goModPath, err)
+		return "", "", fmt.Errorf("could not parse go.mod file %s, error: %v", goModPath, err)
 	}
 
 	for _, dep := range goModFile.Require {

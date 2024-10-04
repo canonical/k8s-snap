@@ -103,12 +103,12 @@ func getFieldDocstring(i any, field reflect.StructField, projectDir string) (str
 
 	structType := getStructTypeFromDoc(packageDoc, inType.Name())
 	if structType == nil {
-		return "", fmt.Errorf("could not find %s structure definition", inType.Name)
+		return "", fmt.Errorf("could not find %s structure definition", inType.Name())
 	}
 
 	astField := getAstStructField(structType, field.Name)
 	if astField == nil {
-		return "", fmt.Errorf("could not find %s.%s field definition", inType.Name, field.Name)
+		return "", fmt.Errorf("could not find %s.%s field definition", inType.Name(), field.Name)
 	}
 
 	return astField.Doc.Text(), nil

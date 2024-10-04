@@ -88,7 +88,7 @@ func ParseStruct(i any, projectDir string) ([]Field, error) {
 	inType := reflect.TypeOf(i)
 
 	if inType.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("structure parsing failed, not a structure: %s", inType.Name)
+		return nil, fmt.Errorf("structure parsing failed, not a structure: %s", inType.Name())
 	}
 
 	outFields := []Field{}
@@ -98,7 +98,7 @@ func ParseStruct(i any, projectDir string) ([]Field, error) {
 		docstring, err := getFieldDocstring(i, field, projectDir)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "WARNING: could not retrieve field docstring: %s.%s, error: %v",
-				inType.Name, field.Name, err)
+				inType.Name(), field.Name, err)
 		}
 
 		if field.Type.Kind() == reflect.Struct {
