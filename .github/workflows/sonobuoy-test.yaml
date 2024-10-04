@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: read
+  actions: read
+  checks: write
 
 jobs:
   test-integration:
@@ -30,6 +32,7 @@ jobs:
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
+          echo "os_dash=${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
 
       - name: Install sonobuoy
         run: |
@@ -68,8 +71,8 @@ jobs:
       - name: Upload inspection report artifact
         uses: actions/upload-artifact@v4
         with:
-          name: report_${{ matrix.arch }}
-          path: sonobuoy_e2e.tar.gz
+          name: report_sonobuoy_e2e_${{ github.os_dash }}_${{ matrix.arch }}
+          path: sonobuoy_e2e
 
       - name: Test Report
         uses: dorny/test-reporter@v1
