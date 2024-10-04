@@ -68,7 +68,7 @@ jobs:
       - name: Upload inspection report artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}_${{ matrix.arch }}
+          name: report_${{ matrix.arch }}
           path: sonobuoy_e2e.tar.gz
 
       - name: Test Report
