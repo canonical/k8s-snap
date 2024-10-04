@@ -54,6 +54,7 @@ jobs:
           sg lxd -c 'lxc exec k8s -- service snapd start'
           sg lxd -c 'lxc exec k8s -- snap install /repo/k8s.snap --dangerous --classic'
           sg lxd -c 'lxc exec k8s -- k8s bootstrap'
+          sg lxd -c 'lxc exec k8s -- sudo k8s kubectl get all'
           mkdir ~/.kube
           sg lxd -c 'lxc exec k8s -- k8s config' > ~/.kube/config
 
