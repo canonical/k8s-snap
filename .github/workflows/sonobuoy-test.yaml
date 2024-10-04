@@ -2,6 +2,9 @@ name: Sonobuoy Nightly Latest/Edge Tests
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - KU-269/sonobuoy-e2e
 
 permissions:
   contents: read
