@@ -85,11 +85,3 @@ jobs:
         uses: test-summary/action@v2
         with:
           paths: "sonobuoy_e2e/plugins/e2e/results/global/*.xml"
-          output: test-summary.md
-        if: always()
-      - name: Upload test summary
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-summary
-          path: test-summary.md
-        if: always()
