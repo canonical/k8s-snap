@@ -5,7 +5,7 @@ go 1.22.6
 require (
 	dario.cat/mergo v1.0.0
 	github.com/canonical/go-dqlite v1.22.0
-	github.com/canonical/k8s-snap-api v1.0.8
+	github.com/canonical/k8s-snap-api v1.0.9
 	github.com/canonical/lxd v0.0.0-20240822122218-e7b2a7a83230
 	github.com/canonical/microcluster/v3 v3.0.0-20240827143335-f7a4d3984970
 	github.com/go-logr/logr v1.4.2
@@ -14,6 +14,7 @@ require (
 	github.com/onsi/gomega v1.32.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/spf13/cobra v1.8.1
+	golang.org/x/mod v0.20.0
 	golang.org/x/net v0.28.0
 	golang.org/x/sync v0.8.0
 	golang.org/x/sys v0.24.0
