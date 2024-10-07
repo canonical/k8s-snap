@@ -15,9 +15,11 @@ run this tutorial
 
 Do I need to install on all K8s nodes?
 
-Download the latest [kube-bench release][] on your Kubernetes nodes. Make sure to select the appropriate binary version.
+Download the latest [kube-bench release][] on your Kubernetes nodes. Make sure 
+to select the appropriate binary version.
 
-For example, to download the Linux binary, use the following command. Replace x.x by the version listed in the releases page.
+For example, to download the Linux binary, use the following command. Replace 
+x.x by the version listed in the releases page.
 
 ```sh 
 mkdir kube-bench
@@ -70,7 +72,9 @@ sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cf
 
 #### Configure auditing
 
-Create an audit-policy.yaml file under /var/snap/k8s/common/etc/ and specify the level of auditing you desire based on the [upstream instructions][]. Here is a minimal example of such a policy file.
+Create an audit-policy.yaml file under /var/snap/k8s/common/etc/ and specify the
+level of auditing you desire based on the [upstream instructions][]. Here is a 
+minimal example of such a policy file.
 
 ```sh
 sudo sh -c 'cat >/var/snap/k8s/common/etc/audit-policy.yaml <<EOL
@@ -102,7 +106,8 @@ sudo systemctl restart snap.k8s.kube-apiserver
 
 #### Set event rate limits
 
-Create a configuration file with the [rate limits][] and place it under /var/snap/k8s/common/etc/.
+Create a configuration file with the [rate limits][] and place it under 
+/var/snap/k8s/common/etc/.
 For example:
 
 ```sh
@@ -128,7 +133,8 @@ plugins:
 EOL'
 ```
 
-Make sure the EventRateLimit admission plugin is loaded in the /var/snap/k8s/common/args/kube-apiserver
+Make sure the EventRateLimit admission plugin is loaded in the 
+/var/snap/k8s/common/args/kube-apiserver
 
 ```sh
 --enable-admission-plugins=...,EventRateLimit,...
@@ -150,7 +156,8 @@ sudo systemctl restart snap.k8s.kube-apiserver
 
 #### Enable AlwaysPullImages admission control plugin
 
-Make sure the AlwaysPullImages admission plugin is loaded in the /var/snap/k8s/common/args/kube-apiserver
+Make sure the AlwaysPullImages admission plugin is loaded in the 
+/var/snap/k8s/common/args/kube-apiserver
 
 ```sh
 --enable-admission-plugins=...,AlwaysPullImages,...
@@ -166,7 +173,8 @@ sudo systemctl restart snap.k8s.kube-apiserver
 
 #### Protect kernel defaults
 
-Kubelet will not start if it finds kernel configurations incompatible with its defaults.
+Kubelet will not start if it finds kernel configurations incompatible with its
+ defaults.
 
 ```sh
 sudo sh -c 'cat >>/var/snap/k8s/common/args/kubelet <<EOL
@@ -188,7 +196,8 @@ Run kube-bench against Canonical Kubernetes control-plane nodes:
 sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
 ```
 
-Verify that there are no checks failed for control or worker nodes in any of the sets, including the dqlite specific checks in the output.
+Verify that there are no checks failed for control or worker nodes in any of 
+the sets, including the dqlite specific checks in the output.
 
 ```sh
 [INFO] 1 Control Plane Security Configuration
