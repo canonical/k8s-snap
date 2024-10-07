@@ -1,17 +1,25 @@
 needed - root access
-run this tutorial
+moonray
+//come back to this name
 
 # CIS hardening and auditing 
 
-//come back to this name
-//include brief description of CIS with cK8s - install, harden, audit
+CIS Hardening refers to the process of implementing security configurations that
+align with the benchmarks set by the [Center for Internet Security (CIS)][]. The
+open-source tool [Kube-bench][] is designed to automatically check whether
+your Kubernetes clusters are configured according to the 
+[CIS Kubernetes Benchmark][]. In this how-to guide you will:
+
+- [Install and configure kube-bench](#install-kube-bench)
+- [Harden your deployments](#harden-your-deployments)
+- [Audit your deployments](#audit-your-deployments)
 
 ## What you will need
 
 - Cluster with kubectl enabled? = or installed below
 -
 
-## Install kube-bench and kubectl
+## Install kube-bench 
 
 Do I need to install on all K8s nodes?
 
@@ -54,19 +62,24 @@ sudo k8s kubectl config view --raw > ~/.kube/config
 export KUBECONFIG=~/.kube/config
 ```
 
-Get CIS hardening checks applicable for Canonical Kubernetes:
+Get CIS hardening checks applicable for {{product}}:
 
 ```sh
 git clone -b ck8s https://github.com/canonical/kube-bench.git kube-bench-ck8s-cfg
 ```
 
-Test-run kube-bench against Canonical Kubernetes: 
+Test-run kube-bench against {{product}}: 
 
 ```sh
 sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
 ```
 
-## Harden your deployments
+## Harden your deployments 
+
+Before running a CIS Kubernetes audit, it is essential to first harden your
+Canonical Kubernetes deployment to minimize vulnerabilities and ensure 
+compliance with industry best practices, as defined by the CIS Kubernetes
+Benchmark.
 
 ### Control plane nodes
 
@@ -190,7 +203,7 @@ sudo systemctl restart snap.k8s.kubelet
 
 ## Audit your deployments
 
-Run kube-bench against Canonical Kubernetes control-plane nodes:
+Run kube-bench against {{product}} control-plane nodes:
 
 ```sh
 sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
@@ -247,6 +260,9 @@ the sets, including the dqlite specific checks in the output.
 ```
 
 <!-- Links -->
+[Center for Internet Security (CIS)]:https://www.cisecurity.org/
+[Kube-bench]:https://aquasecurity.github.io/kube-bench/v0.6.15/
+[CIS Kubernetes Benchmark]:https://www.cisecurity.org/benchmark/kubernetes
 [kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
