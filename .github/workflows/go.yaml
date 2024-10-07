@@ -46,7 +46,10 @@ jobs:
 
       - name: lint-test
         working-directory: src/k8s
-        run: make go.lint
+        run: |
+          make -j static
+
+          make go.lint
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
