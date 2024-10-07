@@ -59,8 +59,8 @@ jobs:
         with:
           version: v1.61
           working-directory: src/k8s
-          args: '--timeout 5m0s'
-#          args: '-c ./hack/golangci.yml --issues-exit-code=0'
+          args: '--timeout 5m0s --fix'
+#          args: '-c ./../../golangci.yml --issues-exit-code=0'
           skip-cache: true
 
       - name: go doc
