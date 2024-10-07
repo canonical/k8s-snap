@@ -49,17 +49,17 @@ jobs:
         working-directory: src/k8s
         run: make go.fmt
 
-      - name: lint-test
-        working-directory: src/k8s
-        run: |
-          make go.lint
+#      - name: lint-test
+#        working-directory: src/k8s
+#        run: |
+#          make go.lint
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.61
           working-directory: src/k8s
-          args: '-c ./hack/golangci.yml --issues-exit-code=0'
+#          args: '-c ./hack/golangci.yml --issues-exit-code=0'
           skip-cache: true
 
       - name: go doc
