@@ -12,20 +12,19 @@ function download() {
 
 function create_container() {
   local os=$1
-  lxc profile create k8s
-  lxc profile create k8s
-  cat tests/integration/lxd-profile.yaml | lxc profile edit k8s
-  lxc launch -p default -p k8s ${os} k8s
-  lxc config device add k8s repo disk source=${PWD} path=/repo/
+  lxc profile create k8s-e2e
+  cat tests/integration/lxd-profile.yaml | lxc profile edit k8s-e2e
+  lxc launch -p default -p k8s-e2e ${os} k8s-e2e
+  lxc config device add k8s-e2e repo disk source=${PWD} path=/repo/
 }
 
 function setup_k8s() {
-  lxc exec k8s -- service snapd start
-  lxc exec k8s -- snap install /repo/k8s.snap --dangerous --classic
-  lxc exec k8s -- k8s bootstrap
-  lxc exec k8s -- k8s status --wait-ready
+  lxc exec k8s-e2e -- service snapd start
+  lxc exec k8s-e2e -- snap install /repo/k8s.snap --dangerous --classic
+  lxc exec k8s-e2e -- k8s bootstrap
+  lxc exec k8s-e2e -- k8s status --wait-ready
   mkdir -p ~/.kube
-  lxc exec k8s -- k8s config > ~/.kube/config
+  lxc exec k8s-e2e -- k8s config > ~/.kube/config
 }
 
 function run_e2e() {
