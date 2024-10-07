@@ -44,13 +44,16 @@ jobs:
         working-directory: src/k8s
         run: go mod download
 
+      - name: lint-test
+        working-directory: src/k8s
+        run: make go.lint
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.61
           working-directory: src/k8s
           args: '-c ./hack/golangci.yml --issues-exit-code=0'
-#          only-new-issues: true
           skip-cache: true
 
       - name: go fmt
