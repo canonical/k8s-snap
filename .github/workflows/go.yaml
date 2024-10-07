@@ -45,15 +45,15 @@ jobs:
         run: go mod download
 
 
-      - name: go fmt
-        working-directory: src/k8s
-        run: make go.fmt
-
 #      - name: lint-test
 #        working-directory: src/k8s
 #        run: |
 #          make go.lint
 
+      - name: check diff
+        run: |
+          go mod tidy
+          go mod vendor
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
@@ -62,6 +62,10 @@ jobs:
           args: '--timeout 5m0s --fix'
 #          args: '-c ./../../golangci.yml --issues-exit-code=0'
           skip-cache: true
+
+      - name: go fmt
+        working-directory: src/k8s
+        run: make go.fmt
 
       - name: go doc
         working-directory: src/k8s
