@@ -156,5 +156,5 @@ multipass purge
 [Ingress]: /snap/howto/networking/default-ingress
 [Kubectl]: kubectl
 [Command Reference]: /snap/reference/commands
-[Storage]: /snap/howto/storage
+[Storage]: /snap/howto/storage/index
 [Networking]: /snap/howto/networking/index.md

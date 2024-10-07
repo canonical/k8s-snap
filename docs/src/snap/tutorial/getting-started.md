@@ -94,9 +94,10 @@ Let's deploy a demo NGINX server:
 sudo k8s kubectl create deployment nginx --image=nginx
 ```
 
-This command launches a [pod](https://kubernetes.io/docs/concepts/workloads/pods/),
-the smallest deployable unit in Kubernetes,
-running the NGINX application within a container.
+This command launches a
+[pod](https://kubernetes.io/docs/concepts/workloads/pods/), the smallest
+deployable unit in Kubernetes, running the NGINX application within a
+container.
 
 You can check the status of your pods by running:
 
@@ -214,6 +215,6 @@ This option ensures complete removal of the snap and its associated data.
 [How to use kubectl]: kubectl
 [Command Reference Guide]: /snap/reference/commands
 [Setting up a K8s cluster]: add-remove-nodes
-[Storage]: /snap/howto/storage
+[Storage]: /snap/howto/storage/index
 [Networking]: /snap/howto/networking/index.md
 [Ingress]: /snap/howto/networking/default-ingress.md

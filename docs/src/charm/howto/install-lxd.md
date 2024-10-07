@@ -73,7 +73,7 @@ lxc profile show juju-myk8s
 ```
 
 ```{note} For an explanation of the settings in this file,
-   [see below](explain-rules)
+   [see below](explain-rules-charm)
 ```
 
 ## Deploying to a container
@@ -81,7 +81,7 @@ lxc profile show juju-myk8s
 We can now deploy {{product}} into the LXD-based model as described in
 the [charm][] guide.
 
-(explain-rules)=
+(explain-rules-charm)=
 
 ## Explanation of custom LXD rules
 
