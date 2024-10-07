@@ -2,7 +2,7 @@ name: Sonobuoy Nightly Latest/Edge Tests
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Runs every midnight
+    - cron: '0 0 * * 1' # Runs every monday midnight
 
 permissions:
   contents: read
