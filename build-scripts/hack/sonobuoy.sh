@@ -28,8 +28,7 @@ function setup_k8s() {
 }
 
 function run_e2e() {
-#  ./sonobuoy run --plugin e2e --wait
-  ./sonobuoy run --plugin e2e --wait --mode quick
+  ./sonobuoy run --plugin e2e --wait
   ./sonobuoy retrieve -f sonobuoy_e2e.tar.gz
   ./sonobuoy results sonobuoy_e2e.tar.gz
   tar -xf sonobuoy_e2e.tar.gz --one-top-level
