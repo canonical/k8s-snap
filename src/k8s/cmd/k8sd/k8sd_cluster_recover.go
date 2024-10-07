@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/canonical/go-dqlite"
+	dqlite "github.com/canonical/go-dqlite"
 	"github.com/canonical/go-dqlite/app"
 	"github.com/canonical/go-dqlite/client"
 	"github.com/canonical/lxd/shared"
