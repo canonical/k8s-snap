@@ -50,11 +50,6 @@ jobs:
 #        run: |
 #          make go.lint
 
-      - name: vendodsffasdfdas
-        run: |
-          go mod tidy
-          go mod vendor
-        working-directory: src/k8s
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
@@ -64,6 +59,7 @@ jobs:
           args: '--timeout 5m0s --fix'
 #          args: '-c ./../../golangci.yml --issues-exit-code=0'
           skip-cache: true
+          install-mode: "goinstall"
 
       - name: go fmt
         working-directory: src/k8s
