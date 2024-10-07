@@ -14,10 +14,11 @@ your Kubernetes clusters are configured according to the
 - [Harden your deployments](#harden-your-deployments)
 - [Audit your deployments](#audit-your-deployments)
 
-## What you will need
+## What you'll need
 
-- Cluster with kubectl enabled? = or installed below
--
+- A bootstrapped {{product}} cluster (see the [Getting Started]
+[getting-started-guide] guide).
+- Root or sudo access to the machine
 
 ## Install kube-bench 
 
@@ -263,6 +264,7 @@ the sets, including the dqlite specific checks in the output.
 [Center for Internet Security (CIS)]:https://www.cisecurity.org/
 [Kube-bench]:https://aquasecurity.github.io/kube-bench/v0.6.15/
 [CIS Kubernetes Benchmark]:https://www.cisecurity.org/benchmark/kubernetes
+[getting-started-guide]: /snap/tutorial/getting-started
 [kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1

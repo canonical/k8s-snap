@@ -26,6 +26,7 @@ two-node-ha
 epa
 contribute
 support
+CIS-hardening
 ```
 
 ---
