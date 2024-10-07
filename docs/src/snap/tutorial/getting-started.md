@@ -94,9 +94,10 @@ Let's deploy a demo NGINX server:
 sudo k8s kubectl create deployment nginx --image=nginx
 ```
 
-This command launches a [pod](https://kubernetes.io/docs/concepts/workloads/pods/),
-the smallest deployable unit in Kubernetes,
-running the NGINX application within a container.
+This command launches a
+[pod](https://kubernetes.io/docs/concepts/workloads/pods/), the smallest
+deployable unit in Kubernetes, running the NGINX application within a
+container.
 
 You can check the status of your pods by running:
 
