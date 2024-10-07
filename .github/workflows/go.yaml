@@ -44,11 +44,14 @@ jobs:
         working-directory: src/k8s
         run: go mod download
 
+
+      - name: go fmt
+        working-directory: src/k8s
+        run: make go.fmt
+
       - name: lint-test
         working-directory: src/k8s
         run: |
-          make -j static
-
           make go.lint
 
       - name: golangci-lint
@@ -58,10 +61,6 @@ jobs:
           working-directory: src/k8s
           args: '-c ./hack/golangci.yml --issues-exit-code=0'
           skip-cache: true
-
-      - name: go fmt
-        working-directory: src/k8s
-        run: make go.fmt
 
       - name: go doc
         working-directory: src/k8s
