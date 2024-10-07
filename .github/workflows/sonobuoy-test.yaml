@@ -8,8 +8,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
-  checks: write
 
 jobs:
   test-integration:
@@ -73,15 +71,3 @@ jobs:
         with:
           name: report_sonobuoy_e2e_${{ github.os_dash }}_${{ matrix.arch }}
           path: sonobuoy_e2e
-
-      - name: Test Report
-        uses: phoenix-actions/test-reporting@v8
-#        if: success() || failure()    # run this step even if previous step failed
-        with:
-          name: Sonobuoy End to End Tests
-          path: sonobuoy_e2e/plugins/e2e/results/global/*.xml
-          reporter: jest-junit
-      - name: Test Summary
-        uses: test-summary/action@v2
-        with:
-          paths: "sonobuoy_e2e/plugins/e2e/results/global/*.xml"
