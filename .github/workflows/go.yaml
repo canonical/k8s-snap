@@ -49,10 +49,10 @@ jobs:
         working-directory: src/k8s
         run: make go.fmt
 
-      - name: lint-test
-        working-directory: src/k8s
-        run: |
-          make go.lint
+#      - name: lint-test
+#        working-directory: src/k8s
+#        run: |
+#          make go.lint
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
