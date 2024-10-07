@@ -62,4 +62,4 @@ Disabling storage only removes the CSI driver. The persistent volume claims
 will still be available and your data will remain on disk.
 
 <!-- LINKS -->
-[getting-started-guide]: ../tutorial/getting-started.md
+[getting-started-guide]: /snap/tutorial/getting-started.md
