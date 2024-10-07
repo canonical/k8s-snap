@@ -50,10 +50,12 @@ jobs:
 #        run: |
 #          make go.lint
 
-      - name: check diff
+      - name: vendodsffasdfdas
         run: |
           go mod tidy
           go mod vendor
+        working-directory: src/k8s
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
