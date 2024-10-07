@@ -1,10 +1,8 @@
 name: Sonobuoy Nightly Latest/Edge Tests
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - KU-269/sonobuoy-e2e
+  schedule:
+    - cron: '0 0 * * *' # Runs every midnight
 
 permissions:
   contents: read
