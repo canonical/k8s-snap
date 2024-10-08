@@ -67,7 +67,8 @@ linters-settings:
       - "^google.golang.org/protobuf/.+Options$"
       - "^gopkg.in/yaml.v3.Node$"
       # github.com/canonical/go-dqlite
-      - "github.com/canonical/go-dqlite*"
+      - "^github.com/canonical/go-dqlite/app$"
+      - "^github.com/canonical/go-dqlite*"
 
   funlen:
     # Checks the number of lines in a function.
