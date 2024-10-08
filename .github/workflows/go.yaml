@@ -67,9 +67,10 @@ jobs:
           working-directory: src/k8s
           only-new-issues: true
 #          args: '--timeout 5m0s --fix'
-          args: '-c ./../../golangci.yml --issues-exit-code=0'
+          args: '-c ./../../golangci.yml'
 #          skip-cache: true
 #          install-mode: "goinstall"
+
 
       - name: go fmt
         working-directory: src/k8s
