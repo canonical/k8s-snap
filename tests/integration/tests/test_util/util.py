@@ -25,6 +25,7 @@ from test_util import config, harness
 
 LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
+TRACK_RE = re.compile(r"^(\d+)\.(\d+)(\S*)$")
 
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
@@ -386,9 +387,10 @@ def previous_track(snap_version: str) -> str:
     """
     LOG.debug("Determining previous track for %s", snap_version)
 
-    def _maj_min(version: str) -> None | tuple[int, int]:
-        if match := re.match(r"(\d+)\.(\d+)", version):
-            return tuple(map(int, match.groups()))
+    def _maj_min(version: str):
+        if match := TRACK_RE.match(version):
+            maj, min, _ = match.groups()
+            return int(maj), int(min)
         return None
 
     if snap_version.startswith("/") or _as_int(snap_version) is not None:
@@ -399,14 +401,15 @@ def previous_track(snap_version: str) -> str:
         return assumed
 
     if maj_min := _maj_min(snap_version):
-        if maj_min[1] == 0:
+        maj, min = maj_min
+        if min == 0:
             with urllib.request.urlopen(
-                f"https://dl.k8s.io/release/stable-{maj_min[0] - 1}.txt"
+                f"https://dl.k8s.io/release/stable-{maj - 1}.txt"
             ) as r:
                 stable = r.read().decode().strip()
                 maj_min = _maj_min(stable)
         else:
-            maj_min = (maj_min[0], maj_min[1] - 1)
+            maj_min = (maj, min - 1)
     elif snap_version.startswith("latest") or "/" not in snap_version:
         with urllib.request.urlopen("https://dl.k8s.io/release/stable.txt") as r:
             stable = r.read().decode().strip()

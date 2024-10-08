@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.node_count(1)
 @pytest.mark.no_setup()
-@pytest.mark.xfail("cilium failures are blocking this from working")
+@pytest.mark.xfail(reason="cilium failures are blocking this from working")
 @pytest.mark.skipif(
     not config.VERSION_UPGRADE_CHANNELS, reason="No upgrade channels configured"
 )
