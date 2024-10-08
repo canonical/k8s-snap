@@ -78,7 +78,7 @@ jobs:
         with:
           version: v1.61
           working-directory: src/k8s
-          args: '-c ./../../golangci.yml --issues-exit-code=0'
+          args: '-c ./../../golangci.yml'
           only-new-issues: true
 
       - name: go test
