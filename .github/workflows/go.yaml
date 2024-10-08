@@ -53,23 +53,20 @@ jobs:
 #        run: go mod download
 #
 #
-      - name: lint-test
+      - name: dqlite-for-golangci-lint
         working-directory: src/k8s
         run: |
           sudo add-apt-repository ppa:dqlite/dev
           sudo apt update
           sudo apt install dqlite-tools libdqlite-dev
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
-          sudo make go.lint
 
       - name: golangci-lint
-        if: always()
         uses: golangci/golangci-lint-action@v6.1.1
         with:
           version: v1.61
           working-directory: src/k8s
 #          args: '--timeout 5m0s --fix'
-          args: '-c ./../../golangci.yml --issues-exit-code=0 -v'
+          args: '-c ./../../golangci.yml --issues-exit-code=0 --new-from-patch'
           skip-cache: true
 #          install-mode: "goinstall"
 

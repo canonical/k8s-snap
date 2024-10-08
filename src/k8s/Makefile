@@ -12,8 +12,7 @@ ifeq (, $(shell which golangci-lint))
 	echo "golangci-lint not found, installing it"
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
 endif
-	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-lint.sh -c ./../../golangci.yml -v
-
+	golangci-lint run -c ./hack/golangci.yml
 go.vet:
 	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-vet.sh ./...
 
