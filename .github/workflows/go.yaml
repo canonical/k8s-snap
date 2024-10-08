@@ -45,10 +45,11 @@ jobs:
         run: go mod download
 
 
-#      - name: lint-test
-#        working-directory: src/k8s
-#        run: |
-#          make go.lint
+      - name: lint-test
+        working-directory: src/k8s
+        run: |
+          make -j static
+          make go.lint
 
 
       - name: golangci-lint
