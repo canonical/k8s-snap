@@ -66,7 +66,10 @@ jobs:
           version: v1.61
           working-directory: src/k8s
           only-new-issues: true
+          args: '--timeout 5m0s'
 #          args: '-c ./../../golangci.yml'
+#          skip-cache: true
+#          install-mode: "goinstall"
 
 
       - name: go fmt
