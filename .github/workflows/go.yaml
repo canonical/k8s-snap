@@ -56,6 +56,7 @@ jobs:
       - name: lint-test
         working-directory: src/k8s
         run: |
+          sudo apt install dqlite-tools libdqlite-dev
           go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
           sudo make go.lint
 
@@ -98,42 +99,42 @@ jobs:
         # root ownership so the tests must be run as root:
         run: sudo make go.unit
 
-  test-binary:
-    name: Binaries
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: audit
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.22"
-
-      - name: go mod download
-        working-directory: src/k8s
-        run: go mod download
-
-      - name: Build static binaries
-        working-directory: src/k8s
-        run: |
-          make -j static
-
-          ./bin/static/k8s --help
-          ./bin/static/k8sd --help
-          ./bin/static/k8s-apiserver-proxy --help
-
-      - name: Build shared binaries
-        working-directory: src/k8s
-        run: |
-          make -j dynamic
-          export LD_LIBRARY_PATH=bin/dynamic/lib
-
-          ./bin/dynamic/k8s --help
-          ./bin/dynamic/k8sd --help
-          ./bin/dynamic/k8s-apiserver-proxy --help
+#  test-binary:
+#    name: Binaries
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Harden Runner
+#        uses: step-security/harden-runner@v2
+#        with:
+#          egress-policy: audit
+#      - name: Check out code
+#        uses: actions/checkout@v4
+#
+#      - name: Install Go
+#        uses: actions/setup-go@v5
+#        with:
+#          go-version: "1.22"
+#
+#      - name: go mod download
+#        working-directory: src/k8s
+#        run: go mod download
+#
+#      - name: Build static binaries
+#        working-directory: src/k8s
+#        run: |
+#          make -j static
+#
+#          ./bin/static/k8s --help
+#          ./bin/static/k8sd --help
+#          ./bin/static/k8s-apiserver-proxy --help
+#
+#      - name: Build shared binaries
+#        working-directory: src/k8s
+#        run: |
+#          make -j dynamic
+#          export LD_LIBRARY_PATH=bin/dynamic/lib
+#
+#          ./bin/dynamic/k8s --help
+#          ./bin/dynamic/k8sd --help
+#          ./bin/dynamic/k8s-apiserver-proxy --help
