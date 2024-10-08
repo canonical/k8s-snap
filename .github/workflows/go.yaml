@@ -68,7 +68,7 @@ jobs:
           only-new-issues: true
           args: '--timeout 5m0s'
 #          args: '-c ./../../golangci.yml'
-#          skip-cache: true
+          skip-cache: true
 #          install-mode: "goinstall"
 
 
