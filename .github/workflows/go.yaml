@@ -39,28 +39,28 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version: "1.22.8"
 
-      - name: pre lint
-        working-directory: src/k8s
-        run: |
-          go get github.com/canonical/go-dqlite/app
-          go env
+#      - name: pre lint
+#        working-directory: src/k8s
+#        run: |
+#          go get github.com/canonical/go-dqlite/app
+#          go env
           
 
-      - name: go mod download
-        working-directory: src/k8s
-        run: go mod download
-
-
+#      - name: go mod download
+#        working-directory: src/k8s
+#        run: go mod download
+#
+#
       - name: lint-test
         working-directory: src/k8s
         run: |
-          make go.lint
+          sudo make go.lint
 
       - name: golangci-lint
         if: always()
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v6.1.1
         with:
           version: v1.61
           working-directory: src/k8s
