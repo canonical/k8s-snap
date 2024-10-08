@@ -56,6 +56,8 @@ jobs:
       - name: lint-test
         working-directory: src/k8s
         run: |
+          sudo add-apt-repo ppa:dqlite/dev
+          sudo apt update
           sudo apt install dqlite-tools libdqlite-dev
           go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
           sudo make go.lint
