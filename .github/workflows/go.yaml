@@ -68,8 +68,9 @@ jobs:
           only-new-issues: true
           args: '--timeout 5m0s -v'
 #          args: '-c ./../../golangci.yml'
-          skip-cache: true
+#          skip-cache: true
 #          install-mode: "goinstall"
+          cache-invalidation-interval: 0
 
 
       - name: go fmt
