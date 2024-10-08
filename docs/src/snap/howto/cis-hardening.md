@@ -1,14 +1,10 @@
-needed - root access
-moonray
-//come back to this name
-
 # CIS hardening and auditing 
 
 CIS Hardening refers to the process of implementing security configurations that
 align with the benchmarks set by the [Center for Internet Security (CIS)][]. The
-open-source tool [Kube-bench][] is designed to automatically check whether
+open source tool [Kube-bench][] is designed to automatically check whether
 your Kubernetes clusters are configured according to the 
-[CIS Kubernetes Benchmark][]. In this how-to guide you will:
+[CIS Kubernetes Benchmark][]. This guide covers how to:
 
 - [Install and configure kube-bench](#install-kube-bench)
 - [Harden your deployments](#harden-your-deployments)
@@ -17,12 +13,10 @@ your Kubernetes clusters are configured according to the
 ## What you'll need
 
 - A bootstrapped {{product}} cluster (see the [Getting Started]
-[getting-started-guide] guide).
+[getting-started-guide] guide)
 - Root or sudo access to the machine
 
 ## Install kube-bench 
-
-Do I need to install on all K8s nodes?
 
 Download the latest [kube-bench release][] on your Kubernetes nodes. Make sure 
 to select the appropriate binary version.
@@ -46,7 +40,7 @@ tar -xvf kube-bench_0.x.x_linux_amd64.tar.gz
 sudo mv kube-bench /usr/local/bin/
 ``` 
 
-Verify kube-bench installation
+Verify kube-bench installation.
 
 ```sh
 kube-bench version
@@ -72,7 +66,7 @@ git clone -b ck8s https://github.com/canonical/kube-bench.git kube-bench-ck8s-cf
 Test-run kube-bench against {{product}}: 
 
 ```sh
-sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
+sudo -E kube-bench --version ck8s-dqlite-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
 ```
 
 ## Harden your deployments 
@@ -135,7 +129,7 @@ limits:
 EOL'
 ```
 
-Create an admissions control config file under /var/k8s/snap/common/etc/
+Create an admissions control config file under /var/k8s/snap/common/etc/ .
 
 ```sh
 sudo sh -c 'cat >/var/snap/k8s/common/etc/admission-control-config-file.yaml <<EOL
@@ -148,7 +142,7 @@ EOL'
 ```
 
 Make sure the EventRateLimit admission plugin is loaded in the 
-/var/snap/k8s/common/args/kube-apiserver
+/var/snap/k8s/common/args/kube-apiserver .
 
 ```sh
 --enable-admission-plugins=...,EventRateLimit,...
@@ -202,12 +196,18 @@ Restart kubelet.
 sudo systemctl restart snap.k8s.kubelet
 ``` 
 
+Run daemon reload.
+
+```sh
+sudo systemctl daemon-reload
+```
+
 ## Audit your deployments
 
 Run kube-bench against {{product}} control-plane nodes:
 
 ```sh
-sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
+sudo -E kube-bench --version ck8s-dqlite-cis-1.24  --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
 ```
 
 Verify that there are no checks failed for control or worker nodes in any of 
