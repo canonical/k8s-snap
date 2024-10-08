@@ -66,6 +66,12 @@ jobs:
         working-directory: src/k8s
         run: make go.vet
 
+      - name: go test
+        working-directory: src/k8s
+        # NOTE: there are a handful of tests checking/setting
+        # root ownership so the tests must be run as root:
+        run: sudo make go.unit
+
       - name: dqlite-for-golangci-lint
         working-directory: src/k8s
         run: |
@@ -78,14 +84,8 @@ jobs:
         with:
           version: v1.61
           working-directory: src/k8s
-          args: '-c ./../../golangci.yml --issues-exit-code=0'
+          args: '-c ./../../golangci.yml'
           only-new-issues: true
-
-      - name: go test
-        working-directory: src/k8s
-        # NOTE: there are a handful of tests checking/setting
-        # root ownership so the tests must be run as root:
-        run: sudo make go.unit
 
   test-binary:
     name: Binaries
