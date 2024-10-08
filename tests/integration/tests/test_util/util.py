@@ -393,6 +393,15 @@ def previous_track(snap_version: str) -> str:
             return int(maj), int(min)
         return None
 
+    if not snap_version:
+        assumed = "latest"
+        LOG.info(
+            "Cannot determine previous track for undefined snap -- assume %s",
+            snap_version,
+            assumed,
+        )
+        return assumed
+
     if snap_version.startswith("/") or _as_int(snap_version) is not None:
         assumed = "latest"
         LOG.info(

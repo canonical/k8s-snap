@@ -246,7 +246,7 @@ def session_instance(
     """
     LOG.info("Setup node and enable all features")
 
-    tmp_path = str(tmp_path_factory.mktemp("data"))
+    tmp_path = tmp_path_factory.mktemp("data")
     instance = h.new_instance()
     util.setup_k8s_snap(instance, tmp_path)
 
