@@ -26,7 +26,8 @@ jobs:
       checks: write # for golangci/golangci-lint-action to checks to allow the action to annotate code in the PR.
     name: Unit Tests & Code Quality
     runs-on: ubuntu-latest
-
+    env:
+      GO111MODULE: 'on'
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@v2
@@ -43,7 +44,9 @@ jobs:
       - name: pre lint
         working-directory: src/k8s
         run: |
+          go get github.com/canonical/go-dqlite/app
           go env
+          
 
       - name: go mod download
         working-directory: src/k8s
