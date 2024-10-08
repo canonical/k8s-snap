@@ -43,9 +43,7 @@ jobs:
       - name: pre lint
         working-directory: src/k8s
         run: |
-          
-          go get github.com/canonical/go-dqlite/app
-          gcc -v
+          go env
 
       - name: go mod download
         working-directory: src/k8s
