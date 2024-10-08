@@ -17,8 +17,14 @@ ETCD_URL = os.getenv("ETCD_URL") or "https://github.com/etcd-io/etcd/releases/do
 # ETCD_VERSION is the version of etcd to use.
 ETCD_VERSION = os.getenv("ETCD_VERSION") or "v3.3.8"
 
+# FLAVOR is the flavor of the snap to use.
+FLAVOR = os.getenv("TEST_FLAVOR") or ""
+
 # SNAP is the absolute path to the snap against which we run the integration tests.
 SNAP = os.getenv("TEST_SNAP")
+
+# SNAP_NAME is the name of the snap under test.
+SNAP_NAME = os.getenv("TEST_SNAP_NAME") or "k8s"
 
 # SUBSTRATE is the substrate to use for running the integration tests.
 # One of 'local' (default), 'lxd', 'juju', or 'multipass'.
