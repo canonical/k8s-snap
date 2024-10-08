@@ -11,6 +11,7 @@
     LimitNOFILE=40000
     TimeoutStartSec=0
 
+    Environment=ETCD_UNSUPPORTED_ARCH=$ARCH
     ExecStart=/tmp/test-etcd/etcd --name $NAME \
     --data-dir /tmp/etcd/s1 \
     --listen-client-urls $CLIENT_URL \
