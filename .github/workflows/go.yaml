@@ -58,7 +58,7 @@ jobs:
           version: v1.61
           working-directory: src/k8s
 #          args: '--timeout 5m0s --fix'
-          args: '-c ./../../golangci.yml --issues-exit-code=0'
+          args: '-c ./../../golangci.yml --issues-exit-code=0 -v'
           skip-cache: true
 #          install-mode: "goinstall"
 
