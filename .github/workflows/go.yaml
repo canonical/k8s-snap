@@ -44,15 +44,6 @@ jobs:
         working-directory: src/k8s
         run: go mod download
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.61
-          working-directory: src/k8s
-          args: '-c ./hack/golangci.yml --issues-exit-code=0'
-#          only-new-issues: true
-          skip-cache: true
-
       - name: go fmt
         working-directory: src/k8s
         run: make go.fmt
@@ -74,6 +65,21 @@ jobs:
       - name: go vet
         working-directory: src/k8s
         run: make go.vet
+
+      - name: dqlite-for-golangci-lint
+        working-directory: src/k8s
+        run: |
+          sudo add-apt-repository ppa:dqlite/dev
+          sudo apt update
+          sudo apt install dqlite-tools libdqlite-dev
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.61
+          working-directory: src/k8s
+          args: '-c ./../../golangci.yml --issues-exit-code=0'
+          only-new-issues: true
 
       - name: go test
         working-directory: src/k8s
