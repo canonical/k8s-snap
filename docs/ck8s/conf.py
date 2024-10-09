@@ -101,7 +101,6 @@ exclude_patterns = [
     'Thumbs.db',
     '.DS_Store',
     '.sphinx',
-    '_parts'
 ]
 exclude_patterns.extend(custom_excludes)
 
@@ -220,7 +219,6 @@ html_context['get_contribs'] = get_contributors_for_file
 if os.path.exists('./reuse/substitutions.yaml'):
   with open('./reuse/substitutions.yaml', 'r') as fd:
       myst_substitutions = yaml.safe_load(fd.read())
-
 
 
 ############################################################
