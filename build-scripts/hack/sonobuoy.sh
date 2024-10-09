@@ -11,27 +11,29 @@ function download() {
 }
 
 function create_container() {
-  local os=$1
-  lxc profile create k8s-e2e
-  cat tests/integration/lxd-profile.yaml | lxc profile edit k8s-e2e
-  lxc launch -p default -p k8s-e2e ${os} k8s-e2e
-  lxc config device add k8s-e2e repo disk source=${PWD} path=/repo/
+    local os=$1
+    lxc profile create k8s-e2e
+    cat tests/integration/lxd-profile.yaml | lxc profile edit k8s-e2e
+    lxc launch -p default -p k8s-e2e ${os} k8s-e2e
+    lxc config device add k8s-e2e repo disk source=${PWD} path=/repo/
 }
 
 function setup_k8s() {
-  lxc exec k8s-e2e -- service snapd start
-  lxc exec k8s-e2e -- snap install /repo/k8s.snap --dangerous --classic
-  lxc exec k8s-e2e -- k8s bootstrap
-  lxc exec k8s-e2e -- k8s status --wait-ready
-  mkdir -p ~/.kube
-  lxc exec k8s-e2e -- k8s config > ~/.kube/config
+    lxc exec k8s-e2e -- service snapd start
+    lxc exec k8s-e2e -- snap install /repo/k8s.snap --dangerous --classic
+    lxc exec k8s-e2e -- k8s bootstrap
+    lxc exec k8s-e2e -- k8s status --wait-ready
+    mkdir -p ~/.kube
+    lxc exec k8s-e2e -- k8s config > ~/.kube/config
 }
 
 function run_e2e() {
-  ./sonobuoy run --plugin e2e --wait
-  ./sonobuoy retrieve -f sonobuoy_e2e.tar.gz
-  ./sonobuoy results sonobuoy_e2e.tar.gz
-  tar -xf sonobuoy_e2e.tar.gz --one-top-level
+    ./sonobuoy run --plugin e2e --wait
+    ./sonobuoy retrieve -f sonobuoy_e2e.tar.gz
+    ./sonobuoy results sonobuoy_e2e.tar.gz
+    tar -xf sonobuoy_e2e.tar.gz --one-top-level
+    ./sonobuoy results sonobuoy_e2e.tar.gz | grep -E "^Failed: 0$"
+    exit $?
 }
 
 function main() {
