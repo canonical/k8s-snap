@@ -1,9 +1,10 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import itertools
 import logging
 from pathlib import Path
-from typing import Generator, List, Union
+from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
 from test_util import config, harness, util
@@ -87,72 +88,26 @@ def pytest_configure(config):
         "dualstack: Support dualstack on the instances.\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
         "node_count: Mark a test to specify how many instance nodes need to be created\n"
-        "node_config: Mark a test to specify detail configuration for each created node\n",
+        "snap_versions: Mark a test to specify snap_versions for each node\n",
     )
 
 
 @pytest.fixture(scope="function")
-def node_config(request) -> List[dict]:
-    """Return a list of node configurations for the test.
-
-    The configuration can be specified using the `node_count` or `node_config` markers.
-    if `node_count` is used, the configuration for each node is empty, only the count is used.
-
-    example)
-    ```python
-    @pytest.mark.node_count(3)
-    def my_test(instances):
-        len(instances) == 3   # because of the node_count marker
-    ```
-
-    if `node_config` is used, the configuration returned is a list of dicts
-    where each dict represents the configuration for a node.
-
-    example)
-    ```python
-    @pytest.mark.node_config("snap", ["latest", "1.31"])
-    def my_other_test(instances):
-        len(instances) == 2   # because of the markers
-        # instances[0] has snap installed from latest track
-        # instances[1] has snap installed from 1.31 track
-    ```
-    or
-    ```python
-    @pytest.mark.node_config("snap,extra_args", [("latest", "something"), ("1.31", "something-else")])
-    def my_other_test(instances):
-        len(instances) == 2   # because of the markers
-        # instances[0] has snap installed from latest track and has extra_args="something"
-        # instances[1] has snap installed from 1.31 track and has extra_args="something-else"
-    ```
-    """
-
-    def _coerce_properties(properties, args):
-        """Coerce properties into a tuple of the correct length."""
-        arg_len = len(args)
-        if isinstance(properties, tuple) and len(properties) == arg_len:
-            coerced = properties
-        elif not isinstance(properties, tuple) and arg_len == 1:
-            coerced = (properties,)
-        assert (
-            len(coerced) == arg_len
-        ), f"Expected {arg_len} properties, got {len(coerced)}"
-        return coerced
-
-    node_config_marker = request.node.get_closest_marker("node_config")
-    if node_config_marker:
-        node_args, node_properties, *_ = node_config_marker.args
-        node_args = node_args.split(",")
-        return [
-            dict(zip(node_args, coerced))
-            for properties in node_properties
-            if (coerced := _coerce_properties(properties, node_args))
-        ]
+def node_count(request) -> int:
     node_count_marker = request.node.get_closest_marker("node_count")
-    if node_count_marker:
-        node_count_arg, *_ = node_count_marker.args
-        return [{} for _ in range(int(node_count_arg))]
-    # if no markings, create one default instance
-    return [{}]
+    if not node_count_marker:
+        return 1
+    node_count_arg, *_ = node_count_marker.args
+    return int(node_count_arg)
+
+
+def snap_versions(request) -> Iterator[Optional[str]]:
+    """An endless iterable of snap versions for each node in the test."""
+    marking = ()
+    if snap_version_marker := request.node.get_closest_marker("snap_versions"):
+        marking, *_ = snap_version_marker.args
+    # endlessly repeat of the configured snap version after exhausting the marking
+    return itertools.chain(marking, itertools.repeat(None))
 
 
 @pytest.fixture(scope="function")
@@ -182,30 +137,30 @@ def dualstack(request) -> bool:
 @pytest.fixture(scope="function")
 def instances(
     h: harness.Harness,
-    node_config: List[dict],
+    node_count: int,
     tmp_path: Path,
     disable_k8s_bootstrapping: bool,
     no_setup: bool,
     bootstrap_config: Union[str, None],
     dualstack: bool,
+    request,
 ) -> Generator[List[harness.Instance], None, None]:
     """Construct instances for a cluster.
 
     Bootstrap and setup networking on the first instance, if `disable_k8s_bootstrapping` marker is not set.
     """
-    node_count = len(node_config)
     if node_count <= 0:
         pytest.xfail("Test requested 0 or fewer instances, skip this test.")
 
     LOG.info(f"Creating {node_count} instances")
     instances: List[harness.Instance] = []
 
-    for cfg in node_config:
+    for _, snap in zip(range(node_count), snap_versions(request)):
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(dualstack=dualstack)
         instances.append(instance)
         if not no_setup:
-            util.setup_k8s_snap(instance, tmp_path, **cfg)
+            util.setup_k8s_snap(instance, tmp_path, snap)
 
     if not disable_k8s_bootstrapping and not no_setup:
         first_node, *_ = instances
@@ -238,7 +193,7 @@ def instances(
 
 @pytest.fixture(scope="session")
 def session_instance(
-    h: harness.Harness, tmp_path_factory: pytest.TempPathFactory
+    h: harness.Harness, tmp_path_factory: pytest.TempPathFactory, request
 ) -> Generator[harness.Instance, None, None]:
     """Constructs and bootstraps an instance that persists over a test session.
 
@@ -248,7 +203,8 @@ def session_instance(
 
     tmp_path = tmp_path_factory.mktemp("data")
     instance = h.new_instance()
-    util.setup_k8s_snap(instance, tmp_path)
+    snap = next(snap_versions(request))
+    util.setup_k8s_snap(instance, tmp_path, snap)
 
     bootstrap_config_path = "/home/ubuntu/bootstrap-session.yaml"
     instance.send_file(

@@ -33,7 +33,8 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
     ), f"only {cluster_node.id} should be left in cluster"
 
 
-@pytest.mark.node_config("snap", [util.previous_track(config.SNAP), config.SNAP])
+@pytest.mark.node_count(2)
+@pytest.mark.snap_versions([util.previous_track(config.SNAP), config.SNAP])
 def test_mixed_version_join(instances: List[harness.Instance]):
     """Test n versioned node joining a n-1 versioned cluster."""
     cluster_node = instances[0]  # bootstrapped on the previous channel
