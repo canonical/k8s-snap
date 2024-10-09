@@ -84,8 +84,6 @@ jobs:
         with:
           version: v1.61
           working-directory: src/k8s
-          args: '-c ./../../golangci.yml'
-          only-new-issues: true
 
   test-binary:
     name: Binaries
