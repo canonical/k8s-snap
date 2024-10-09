@@ -1,4 +1,4 @@
-# CIS hardening and auditing 
+# CIS compliance 
 
 CIS Hardening refers to the process of implementing security configurations that
 align with the benchmarks set by the [Center for Internet Security (CIS)][]. The
