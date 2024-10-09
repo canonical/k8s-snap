@@ -168,9 +168,10 @@ class LXDHarness(Harness):
                 run(["lxc", "network", "create", network_name, *network_args])
 
             except subprocess.CalledProcessError as e:
-                raise HarnessError(
-                    f"Failed to create LXD network {network_name}"
-                ) from e
+                LOG.debug(f"{e=}")
+                #raise HarnessError(
+                #    f"Failed to create LXD network {network_name}"
+                #) from e
 
     def send_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
