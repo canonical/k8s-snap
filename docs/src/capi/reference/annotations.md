@@ -20,4 +20,4 @@ The following annotations can be set on CAPI `Machine` resources.
 
 | Name                                          | Description                                          | Values                       | Set by user |
 |-----------------------------------------------|------------------------------------------------------|------------------------------|-------------|
-| `v1beta2.k8sd.io/refresh-certificates` | The requested duration (TTL) that the refreshed certificates should expire in. The final (actual) duration (which is calculated internally) might be different, but is expected to be close to the requested duration. | Duration (TTL) string. A number followed by a unit e.g.: `1mo`, `1y`, `90d`<br>Allowed units:<br>- `y`: year<br>- `mo` month<br>- `d`: day<br>- Any other unit supported by `time.ParseDuration` | yes |
+| `v1beta2.k8sd.io/refresh-certificates` | The requested duration (TTL) that the refreshed certificates should expire in. | Duration (TTL) string. A number followed by a unit e.g.: `1mo`, `1y`, `90d`<br>Allowed units: Any unit supported by `time.ParseDuration` as well as `y` (year), `mo` (month) and `d` (day). | yes |
