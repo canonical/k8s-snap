@@ -141,9 +141,12 @@ class LXDHarness(Harness):
                 run(["lxc", "profile", "create", profile_name])
 
             except subprocess.CalledProcessError as e:
-                raise HarnessError(
-                    f"Failed to create LXD profile {profile_name}"
-                ) from e
+                if e.stderr.decode().strip() == "The profile already exists":
+                    LOG.debug("Profile %s already exists", profile_name)
+                else:
+                    raise HarnessError(
+                        f"Failed to create LXD profile {profile_name}"
+                    ) from e
 
         try:
             LOG.debug("Configuring LXD profile %s", profile_name)
