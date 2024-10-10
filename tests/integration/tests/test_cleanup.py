@@ -5,7 +5,7 @@ import logging
 from typing import List
 
 import pytest
-from test_util import harness, util
+from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ def test_node_cleanup(instances: List[harness.Instance]):
     util.wait_for_network(instance)
 
     LOG.info("Uninstall k8s...")
-    instance.exec(["snap", "remove", "k8s", "--purge"])
+    instance.exec(["snap", "remove", config.SNAP_NAME, "--purge"])
 
     LOG.info("Waiting for shims to go away...")
     util.stubbornly(retries=5, delay_s=5).on(instance).until(

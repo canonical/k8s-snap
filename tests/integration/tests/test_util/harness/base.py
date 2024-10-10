@@ -32,6 +32,7 @@ class Instance:
 
     @cached_property
     def arch(self) -> str:
+        """Return the architecture of the instance"""
         return self.exec(
             ["dpkg", "--print-architecture"], text=True, capture_output=True
         ).stdout.strip()

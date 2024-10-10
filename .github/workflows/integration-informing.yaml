@@ -89,6 +89,7 @@ jobs:
           TEST_SNAP: ${{ github.workspace }}/build/k8s-${{ matrix.patch }}.snap
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ matrix.os }}
+          TEST_FLAVOR: ${{ matrix.patch }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
         run: |
           # IPv6-only is only supported on moonray
