@@ -11,13 +11,15 @@ The directories are organised like this:
 ├── README.md
 ├── src
 │   ├──{source files for the docs}
-└── tools
-    ├──{sphinx build tools for creating the docs}
+├── canonicalk8s
+│   ├──{sphinx build tools for creating the docs for Canonical K8s}
+├── moonray
+│   ├──{sphinx build tools for creating the docs for Canonical K8s}
 ```
 
 ## Building the docs
 
-This documentation uses the /tools/Makefile to generate HTML docs from the sources.
+This documentation uses the /canonicalk8s/Makefile to generate HTML docs from the sources.
 This can also run specific local tests such as spelling and linkchecking.
 
 ## Contributing to the docs
