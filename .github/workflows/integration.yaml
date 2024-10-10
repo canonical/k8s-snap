@@ -73,7 +73,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
-    runs-on: ubuntu-20.04
+    runs-on: [self-hosted, linux, X64, jammy, two-xlarge]
     needs: build
 
     steps:
@@ -82,7 +82,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.14'
       - name: Install tox
         run: pip install tox
       - name: Install lxd
@@ -103,6 +103,7 @@ jobs:
           TEST_LXD_IMAGE: ${{ matrix.os }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
         run: |
+          python --version
           cd tests/integration && sg lxd -c 'tox -e integration'
       - name: Prepare inspection reports
         if: failure()
