@@ -130,7 +130,7 @@ limits:
 EOL'
 ```
 
-Create an admissions control config file under /var/k8s/snap/common/etc/ .
+Create an admissions control config file under `/var/k8s/snap/common/etc/` .
 
 ```sh
 sudo sh -c 'cat >/var/snap/k8s/common/etc/admission-control-config-file.yaml <<EOL
@@ -143,7 +143,7 @@ EOL'
 ```
 
 Make sure the EventRateLimit admission plugin is loaded in the 
-/var/snap/k8s/common/args/kube-apiserver .
+`/var/snap/k8s/common/args/kube-apiserver` .
 
 ```sh
 --enable-admission-plugins=...,EventRateLimit,...
@@ -166,7 +166,7 @@ sudo systemctl restart snap.k8s.kube-apiserver
 #### Enable AlwaysPullImages admission control plugin
 
 Make sure the AlwaysPullImages admission plugin is loaded in the 
-/var/snap/k8s/common/args/kube-apiserver
+`/var/snap/k8s/common/args/kube-apiserver`
 
 ```sh
 --enable-admission-plugins=...,AlwaysPullImages,...
@@ -202,6 +202,21 @@ Reload the system daemons:
 ```
 sudo systemctl daemon-reload
 ```
+
+#### Edit kubelet service file permissions
+
+Ensure that only the owner of `/etc/systemd/system/snap.k8s.kubelet.service`
+has full read and write access to it.
+
+```
+chmod 600 /etc/systemd/system/snap.k8s.kubelet.service
+```
+
+Restart `kubelet`.
+
+```
+sudo systemctl restart snap.k8s.kubelet
+``` 
 
 ## Audit your deployments
 
