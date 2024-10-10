@@ -66,15 +66,13 @@ ogp_image = 'https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg
 # (default is the circle of friends)
 html_favicon = '.sphinx/_static/favicon.png'
 
-# (Some settings must be part of the html_context dictionary, while others
-#  are on root level. Don't move the settings.)
 html_context = {
 
     # Change to the link to the website of your product (without "https://")
     # For example: "ubuntu.com/lxd" or "microcloud.is"
     # If there is no product website, edit the header template to remove the
     # link (see the readme for instructions).
-    'product_page': 'documentation.ubuntu.com',
+    'product_page': 'ubuntu.com/kubernetes',
 
     # Add your product tag (the orange part of your logo, will be used in the
     # header) to ".sphinx/_static" and change the path here (start with "_static")
@@ -84,26 +82,21 @@ html_context = {
     # Change to the discourse instance you want to be able to link to
     # using the :discourse: metadata at the top of a file
     # (use an empty value if you don't want to link)
-    'discourse': 'https://discourse.ubuntu.com',
+    'discourse': ' https://discourse.ubuntu.com/c/kubernetes/180',
 
     # Change to the Mattermost channel you want to link to
     # (use an empty value if you don't want to link)
-    'mattermost': 'https://chat.canonical.com/canonical/channels/documentation',
-
-    # Change to the Matrix channel you want to link to
-    # (use an empty value if you don't want to link)
-    'matrix': 'https://matrix.to/#/#documentation:ubuntu.com',
+    'matrix': 'https://matrix.to/#/#k8s:ubuntu.com',
 
     # Change to the GitHub URL for your project
-    # This is used, for example, to link to the source files and allow creating GitHub issues directly from the documentation.
-    'github_url': 'https://github.com/canonical/sphinx-docs-starter-pack',
+    'github_url': 'https://github.com/canonical/k8s-snap',
 
     # Change to the branch for this version of the documentation
     'github_version': 'main',
 
     # Change to the folder that contains the documentation
     # (usually "/" or "/docs/")
-    'github_folder': '/',
+    'github_folder': '/docs/src/',
 
     # Change to an empty value if your GitHub repo doesn't have issues enabled.
     # This will disable the feedback button and the issue link in the footer.
@@ -111,10 +104,12 @@ html_context = {
 
     # Controls the existence of Previous / Next buttons at the bottom of pages
     # Valid options: none, prev, next, both
+    # You can override the default setting on a page-by-page basis by specifying
+    # it as file-wide metadata at the top of the file, see
+    # https://www.sphinx-doc.org/en/master/usage/restructuredtext/field-lists.html
     'sequential_nav': "none",
-
     # Controls if to display the contributors of a file or not
-    "display_contributors": True,
+    "display_contributors": False,
 
     # Controls time frame for showing the contributors
     "display_contributors_since": ""

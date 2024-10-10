@@ -179,39 +179,44 @@ html_js_files.extend(custom_html_js_files)
 #############################################################
 # Display the contributors
 
-def get_contributors_for_file(github_url, github_folder, pagename, page_source_suffix, display_contributors_since=None):
-    filename = f"{pagename}{page_source_suffix}"
-    paths=html_context['github_folder'][1:] + filename
 
-    try:
-        repo = Repo(".")
-    except InvalidGitRepositoryError:
-        cwd = os.getcwd()
-        ghfolder = html_context['github_folder'][:-1]
-        if ghfolder and cwd.endswith(ghfolder):
-            repo = Repo(cwd.rpartition(ghfolder)[0])
-        else:
-            print("The local Git repository could not be found.")
-            return
+#############################################################
+# DISABLED AS IT DOESN'T WORK FOR source not in same dir
 
-    since = display_contributors_since if display_contributors_since and display_contributors_since.strip() else None
-
-    commits = repo.iter_commits(paths=paths, since=since)
-
-    contributors_dict = {}
-    for commit in commits:
-        contributor = commit.author.name
-        if contributor not in contributors_dict or commit.committed_date > contributors_dict[contributor]['date']:
-            contributors_dict[contributor] = {
-                'date': commit.committed_date,
-                'sha': commit.hexsha
-            }
-    # The github_page contains the link to the contributor's latest commit.
-    contributors_list = [{'name': name, 'github_page': f"{github_url}/commit/{data['sha']}"} for name, data in contributors_dict.items()]
-    sorted_contributors_list = sorted(contributors_list, key=lambda x: x['name'])
-    return sorted_contributors_list
-
-html_context['get_contribs'] = get_contributors_for_file
+#def get_contributors_for_file(github_url, github_folder, github_source, pagename, page_source_suffix, display_contributors_since=None):
+#    filename = f"{pagename}{page_source_suffix}"
+#    paths=html_context['github_source'][1:] + filename
+#
+#    try:
+#        repo = Repo(".")
+#    except InvalidGitRepositoryError:
+#        cwd = os.getcwd()
+#        ghfolder = html_context['github_source'][:-1]
+#        
+#        if ghfolder and cwd.endswith(ghfolder):
+#            repo = Repo(cwd.rpartition(ghfolder)[0])
+#        else:
+#            print("The local Git repository could not be found.")
+#            return
+#
+#    since = display_contributors_since if display_contributors_since and display_contributors_since.strip() else None
+#
+#    commits = repo.iter_commits(paths=paths, since=since)
+#
+#    contributors_dict = {}
+#    for commit in commits:
+#        contributor = commit.author.name
+#        if contributor not in contributors_dict or commit.committed_date > contributors_dict[contributor]['date']:
+#            contributors_dict[contributor] = {
+#                'date': commit.committed_date,
+#                'sha': commit.hexsha
+#            }
+#    # The github_page contains the link to the contributor's latest commit.
+#    contributors_list = [{'name': name, 'github_page': f"{github_url}/commit/{data['sha']}"} for name, data in contributors_dict.items()]
+#    sorted_contributors_list = sorted(contributors_list, key=lambda x: x['name'])
+#    return sorted_contributors_list
+#
+# html_context['get_contribs'] = get_contributors_for_file
 
 ############################################################
 ### Myst configuration

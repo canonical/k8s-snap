@@ -9,7 +9,7 @@
 SPHINXDIR     = .sphinx
 SPHINXOPTS    ?= -c . -d $(SPHINXDIR)/.doctrees -j auto
 SPHINXBUILD   ?= sphinx-build
-SOURCEDIR     = ../src
+SOURCEDIR     = src
 METRICSDIR    = $(SOURCEDIR)/metrics
 BUILDDIR      = ../_build
 VENVDIR       = $(SPHINXDIR)/venv
