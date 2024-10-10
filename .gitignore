@@ -18,6 +18,9 @@ k8s_*.txt
 /docs/_build
 /docs/tools/.sphinx/venv/
 /docs/tools/.sphinx/warnings.txt
+/docs/tools/.sphinx/requirements.txt
 /docs/tools/.sphinx/.wordlist.dic
 /docs/tools/.sphinx/.doctrees/
 /docs/tools/.sphinx/node_modules
+/docs/tools/.sphinx/styles/*
+/docs/tools/.sphinx/vale.ini

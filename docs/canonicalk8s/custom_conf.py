@@ -25,9 +25,16 @@ author = 'Canonical Group Ltd'
 # The title you want to display for the documentation in the sidebar.
 # You might want to include a version number here.
 # To not display any title, set this option to an empty string.
-html_title = 'Canonical K8s'
+html_title = ''
 
-# The default value uses the current year as the copyright year.
+# The default value uses CC-BY-SA as the license and the current year
+# as the copyright year.
+#
+# If your documentation needs a different copyright license, use that
+# instead of 'CC-BY-SA'. Also, if your documentation is included as
+# part of the code repository of your project, it'll inherit the license
+# of the code. So you'll need to specify that license here (instead of
+# 'CC-BY-SA').
 #
 # For static works, it is common to provide the year of first publication.
 # Another option is to give the first year and the current year
@@ -47,7 +54,9 @@ copyright = '%s CC-BY-SA, %s' % (datetime.date.today().year, author)
 ## when linking to the documentation from another website (see https://ogp.me/)
 # The URL where the documentation will be hosted (leave empty if you
 # don't know yet)
-ogp_site_url = 'https://documentation.ubuntu.com/canonical-kubernetes'
+# NOTE: If no ogp_* variable is defined (e.g. if you remove this section) the
+# sphinxext.opengraph extension will be disabled.
+ogp_site_url = 'https://canonical-starter-pack.readthedocs-hosted.com/'
 # The documentation website name (usually the same as the product name)
 ogp_site_name = project
 # The URL of an image or logo that is used in the preview
@@ -57,8 +66,6 @@ ogp_image = 'https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg
 # (default is the circle of friends)
 html_favicon = '.sphinx/_static/favicon.png'
 
-# (Some settings must be part of the html_context dictionary, while others
-#  are on root level. Don't move the settings.)
 html_context = {
 
     # Change to the link to the website of your product (without "https://")
@@ -102,7 +109,7 @@ html_context = {
     # https://www.sphinx-doc.org/en/master/usage/restructuredtext/field-lists.html
     'sequential_nav': "none",
     # Controls if to display the contributors of a file or not
-    "display_contributors": True,
+    "display_contributors": False,
 
     # Controls time frame for showing the contributors
     "display_contributors_since": ""
@@ -118,7 +125,10 @@ slug = "canonical-kubernetes"
 
 # Set up redirects (https://documatt.gitlab.io/sphinx-reredirects/usage.html)
 # For example: 'explanation/old-name.html': '../how-to/prettify.html',
-
+# You can also configure redirects in the Read the Docs project dashboard
+# (see https://docs.readthedocs.io/en/stable/guides/redirects.html).
+# NOTE: If this variable is not defined, set to None, or the dictionary is empty,
+# the sphinx_reredirects extension will be disabled.
 redirects = {}
 
 ############################################################
@@ -126,29 +136,24 @@ redirects = {}
 ############################################################
 
 # Links to ignore when checking links
-
 linkcheck_ignore = [
     'http://127.0.0.1:8000'
     ]
 
 # Pages on which to ignore anchors
 # (This list will be appended to linkcheck_anchors_ignore_for_url)
-
-custom_linkcheck_anchors_ignore_for_url = [
-    ]
+custom_linkcheck_anchors_ignore_for_url = []
 
 ############################################################
 ### Additions to default configuration
 ############################################################
 
 ## The following settings are appended to the default configuration.
-## Use them to extend the default features.
+## Use them to extend the default functionality.
 
-# Add extensions
-custom_extensions = ['sphinxcontrib.kroki',  ]
-
-# Add MyST extensions
+# Remove this variable to disable the MyST parser extensions.
 custom_myst_extensions = []
+
 # Add custom Sphinx extensions as needed.
 # This array contains recommended extensions that should be used.
 # NOTE: The following extensions are handled automatically and do
@@ -161,7 +166,7 @@ custom_extensions = [
     'canonical.custom-rst-roles',
     'canonical.terminal-output',
     'notfound.extension',
-    'sphinxcontrib.cairosvgconverter',
+    'sphinxcontrib.cairosvgconverter', 
     ]
 
 # Add custom required Python modules that must be added to the
@@ -172,12 +177,15 @@ custom_extensions = [
 # sphinx-notfound-page, sphinx-reredirects, sphinx-tabs, sphinxcontrib-jquery,
 # sphinxext-opengraph
 custom_required_modules = [
-    'sphinxcontrib-svg2pdfconverter[CairoSVG]'
+    'sphinxcontrib-svg2pdfconverter[CairoSVG]',
+    'sphinxcontrib.kroki'
 ]
+
 # Add files or directories that should be excluded from processing.
 custom_excludes = [
     'doc-cheat-sheet*',
-]
+    '_parts'
+    ]
 
 # Add CSS files (located in .sphinx/_static/)
 custom_html_css_files = []
@@ -200,16 +208,15 @@ disable_feedback_button = False
 # (https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#tags)
 custom_tags = []
 
+# If you are using the :manpage: role, set this variable to the URL for the version
+# that you want to link to:
+# manpages_url = "https://manpages.ubuntu.com/manpages/noble/en/man{section}/{page}.{section}.html"
+
 ############################################################
 ### Additional configuration
 ############################################################
 
 ## Add any configuration that is not covered by the common conf.py file.
-
-
-# Change the default code highlighting to 'none'
-
-highlight_language = 'none'
 
 # Define a :center: role that can be used to center the content of table cells.
 rst_prolog = '''
