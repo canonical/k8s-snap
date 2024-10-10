@@ -155,6 +155,11 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Path: apiv1.ClusterAPICertificatesRunRPC,
 			Post: rest.EndpointAction{Handler: e.postRefreshCertsRun, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
 		},
+		{
+			Name: "ClusterAPI/RefreshCerts/Approve",
+			Path: "x/capi/refresh-certs/approve",
+			Post: rest.EndpointAction{Handler: e.postApproveWorkerCSR, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
+		},
 		// Snap refreshes
 		{
 			Name: "Snap/Refresh",
