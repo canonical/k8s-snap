@@ -2,19 +2,18 @@
 
 CIS Hardening refers to the process of implementing security configurations that
 align with the benchmarks set by the [Center for Internet Security (CIS)][]. The
-open source tool [Kube-bench][] is designed to automatically check whether
+open source tool [kube-bench][] is designed to automatically check whether
 your Kubernetes clusters are configured according to the 
-[CIS Kubernetes Benchmark][]. This guide covers how to:
-
-- [Install and configure kube-bench](#install-kube-bench)
-- [Harden your deployments](#harden-your-deployments)
-- [Audit your deployments](#audit-your-deployments)
+[CIS Kubernetes Benchmark][]. This guide covers how to setup your {{product}} 
+cluster with kube-bench. 
 
 ## What you'll need
 
-- A bootstrapped {{product}} cluster (see the [Getting Started]
+This guide assumes the following:
+
+- You have a bootstrapped {{product}} cluster (see the [Getting Started]
 [getting-started-guide] guide)
-- Root or sudo access to the machine
+- You have root or sudo access to the machine
 
 ## Install kube-bench 
 
@@ -22,35 +21,37 @@ Download the latest [kube-bench release][] on your Kubernetes nodes. Make sure
 to select the appropriate binary version.
 
 For example, to download the Linux binary, use the following command. Replace 
-x.x by the version listed in the releases page.
+KB by the version listed in the releases page.
 
-```sh 
+``` 
+KB=8.0
 mkdir kube-bench
-
 cd kube-bench
-
-curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.x.x/kube-bench_0.x.x_linux_amd64.tar.gz -o kube-bench_0.x.x_linux_amd64.tar.gz
+curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.$KB/kube-bench_0.$KB\_linux_amd64.tar.gz -o kube-bench_0.$KB\_linux_amd64.tar.gz
 ```
 
 Extract the downloaded tarball and move the binary to a directory in your PATH:
 
-```sh
-tar -xvf kube-bench_0.x.x_linux_amd64.tar.gz
-
+```
+tar -xvf kube-bench_0.$KB\_linux_amd64.tar.gz
 sudo mv kube-bench /usr/local/bin/
 ``` 
 
 Verify kube-bench installation.
 
-```sh
+```
 kube-bench version
 ``` 
 
 The output should list the version installed.
 
-Install kubectl and configure it to interact with the cluster.
+Install `kubectl` and configure it to interact with the cluster.
 
-```sh
+```{warning}
+This will override your ~/.kube/config if you already have kubectl installed in your cluster. 
+```
+
+```
 sudo snap install kubectl --classic
 mkdir ~/.kube/
 sudo k8s kubectl config view --raw > ~/.kube/config
@@ -59,17 +60,17 @@ export KUBECONFIG=~/.kube/config
 
 Get CIS hardening checks applicable for {{product}}:
 
-```sh
+```
 git clone -b ck8s https://github.com/canonical/kube-bench.git kube-bench-ck8s-cfg
 ```
 
 Test-run kube-bench against {{product}}: 
 
-```sh
+```
 sudo -E kube-bench --version ck8s-dqlite-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
 ```
 
-## Harden your deployments 
+## Harden your deployments
 
 Before running a CIS Kubernetes audit, it is essential to first harden your
 Canonical Kubernetes deployment to minimize vulnerabilities and ensure 
@@ -106,16 +107,16 @@ sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
 EOL'
 ```
 
-Restart the API server.
+Restart the API server:
 
-```sh
+```
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
 
 #### Set event rate limits
 
 Create a configuration file with the [rate limits][] and place it under 
-/var/snap/k8s/common/etc/.
+`/var/snap/k8s/common/etc/`.
 For example:
 
 ```sh
@@ -158,7 +159,7 @@ EOL'
 
 Restart the API server.
 
-```sh
+```
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
 
@@ -173,7 +174,7 @@ Make sure the AlwaysPullImages admission plugin is loaded in the
 
 Restart the API server.
 
-```sh
+```
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
 
@@ -190,15 +191,15 @@ sudo sh -c 'cat >>/var/snap/k8s/common/args/kubelet <<EOL
 EOL'
 ```
 
-Restart kubelet.
+Restart `kubelet`.
 
-```sh
+```
 sudo systemctl restart snap.k8s.kubelet
 ``` 
 
-Run daemon reload.
+Reload the system daemons:
 
-```sh
+```
 sudo systemctl daemon-reload
 ```
 
@@ -206,7 +207,7 @@ sudo systemctl daemon-reload
 
 Run kube-bench against {{product}} control-plane nodes:
 
-```sh
+```
 sudo -E kube-bench --version ck8s-dqlite-cis-1.24  --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
 ```
 
@@ -262,7 +263,7 @@ the sets, including the dqlite specific checks in the output.
 
 <!-- Links -->
 [Center for Internet Security (CIS)]:https://www.cisecurity.org/
-[Kube-bench]:https://aquasecurity.github.io/kube-bench/v0.6.15/
+[kube-bench]:https://aquasecurity.github.io/kube-bench/v0.6.15/
 [CIS Kubernetes Benchmark]:https://www.cisecurity.org/benchmark/kubernetes
 [getting-started-guide]: /snap/tutorial/getting-started
 [kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
