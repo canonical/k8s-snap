@@ -85,7 +85,7 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Post: rest.EndpointAction{
 				Handler:        e.postWorkerInfo,
 				AllowUntrusted: true,
-				AccessHandler:  ValidateWorkerInfoAccessHandler("worker-name", "worker-token"),
+				AccessHandler:  ValidateWorkerInfoAccessHandler("Worker-Name", "Worker-Token"),
 			},
 		},
 		// Certificates
