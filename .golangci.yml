@@ -15,11 +15,9 @@ linters:
   - bidichk
   - bodyclose
   - canonicalheader
+  - copyloopvar
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - containedctx
-# - contextcheck
-# - copyloopvar
 # - cyclop
 # - decorder
 # - depguard

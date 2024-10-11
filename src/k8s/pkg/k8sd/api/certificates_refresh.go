@@ -253,7 +253,6 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			key:         &certificates.KubeProxyClientKey,
 		},
 	} {
-		csr := csr
 		g.Go(func() error {
 			csrPEM, keyPEM, err := pkiutil.GenerateCSR(
 				pkix.Name{
