@@ -6,12 +6,121 @@
 # This is the best config for golangci-lint based on my experience and opinion.
 # It is very strict, but not extremely strict.
 # Feel free to adapt and change it for your needs.
+linters:
+  disable-all: true
+  enable:
+  - gosimple
+
+# TODO(ben): Enable those linters step by step and fix existing issues.
+# - errcheck
+# - govet
+# - ineffassign
+# - staticcheck
+# - unused
+# - asasalint
+# - asciicheck
+# - bidichk
+# - bodyclose
+# - canonicalheader
+# - containedctx
+# - contextcheck
+# - copyloopvar
+# - cyclop
+# - decorder
+# - depguard
+# - dogsled
+# - dupl
+# - dupword
+# - durationcheck
+# - err113
+# - errchkjson
+# - errname
+# - errorlint
+# - exhaustive
+# - exhaustruct
+# - fatcontext
+# - forbidigo
+# - forcetypeassert
+# - funlen
+# - gci
+# - ginkgolinter
+# - gocheckcompilerdirectives
+# - gochecknoglobals
+# - gochecknoinits
+# - gochecksumtype
+# - gocognit
+# - goconst
+# - gocritic
+# - gocyclo
+# - godot
+# - godox
+# - gofmt
+# - gofumpt
+# - goheader
+# - goimports
+# - gomoddirectives
+# - gomodguard
+# - goprintffuncname
+# - gosec
+# - gosmopolitan
+# - grouper
+# - importas
+# - inamedparam
+# - interfacebloat
+# - intrange
+# - ireturn
+# - lll
+# - loggercheck
+# - maintidx
+# - makezero
+# - mirror
+# - misspell
+# - mnd
+# - musttag
+# - nakedret
+# - nestif
+# - nilerr
+# - nilnil
+# - nlreturn
+# - noctx
+# - nolintlint
+# - nonamedreturns
+# - nosprintfhostport
+# - paralleltest
+# - perfsprint
+# - prealloc
+# - predeclared
+# - promlinter
+# - protogetter
+# - reassign
+# - revive
+# - rowserrcheck
+# - sloglint
+# - spancheck
+# - sqlclosecheck
+# - stylecheck
+# - tagalign
+# - tagliatelle
+# - tenv
+# - testableexamples
+# - testifylint
+# - testpackage
+# - thelper
+# - tparallel
+# - unconvert
+# - unparam
+# - usestdlibvars
+# - varnamelen
+# - wastedassign
+# - whitespace
+# - wrapcheck
+# - wsl
+# - zerologlint
 
 run:
   # Timeout for analysis, e.g. 30s, 5m.
   # Default: 1m
   timeout: 5m
-
 
 # This file contains only configs which differ from defaults.
 # All possible options can be found here https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
@@ -208,10 +317,6 @@ linters-settings:
     # Otherwise, only methods that take `*testing.T`, `*testing.B`, and `testing.TB` as arguments are checked.
     # Default: false
     all: true
-
-
-linters:
-  enable-all: true
 
 issues:
   # Maximum count of issues with the same text.

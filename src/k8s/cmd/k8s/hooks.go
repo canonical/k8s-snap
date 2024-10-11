@@ -66,6 +66,5 @@ func hookCheckLXD() func(*cobra.Command, []string) {
 					"https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/lxd/")
 			}
 		}
-		return
 	}
 }
