@@ -47,7 +47,11 @@ func parseAutodetectionAnnotations(annotations types.Annotations, autodetectionM
 		case "firstFound":
 			autodetectionValue = autodetectionValue == "true"
 		case "cidrs":
-			autodetectionValue = strings.Split(autodetectionValue.(string), ",")
+			if strValue, ok := autodetectionValue.(string); ok {
+				autodetectionValue = strings.Split(strValue, ",")
+			} else {
+				return nil, fmt.Errorf("invalid type for cidrs annotation: %T", autodetectionValue)
+			}
 		}
 
 		return map[string]any{
