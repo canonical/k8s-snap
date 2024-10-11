@@ -21,7 +21,7 @@ Download the latest [kube-bench release][] on your Kubernetes nodes. Make sure
 to select the appropriate binary version.
 
 For example, to download the Linux binary, use the following command. Replace 
-KB by the version listed in the releases page.
+`KB` by the version listed in the releases page.
 
 ``` 
 KB=8.0
@@ -73,7 +73,7 @@ sudo -E kube-bench --version ck8s-dqlite-cis-1.24 --config-dir ./kube-bench-ck8s
 ## Harden your deployments
 
 Before running a CIS Kubernetes audit, it is essential to first harden your
-Canonical Kubernetes deployment to minimize vulnerabilities and ensure 
+{{product}} deployment to minimize vulnerabilities and ensure 
 compliance with industry best practices, as defined by the CIS Kubernetes
 Benchmark.
 
@@ -81,9 +81,9 @@ Benchmark.
 
 #### Configure auditing
 
-Create an audit-policy.yaml file under /var/snap/k8s/common/etc/ and specify the
-level of auditing you desire based on the [upstream instructions][]. Here is a 
-minimal example of such a policy file.
+Create an audit-policy.yaml file under `/var/snap/k8s/common/etc/` and specify 
+the level of auditing you desire based on the [upstream instructions][]. Here is 
+a minimal example of such a policy file.
 
 ```sh
 sudo sh -c 'cat >/var/snap/k8s/common/etc/audit-policy.yaml <<EOL
@@ -95,7 +95,7 @@ rules:
 EOL'
 ```
 
-Enable auditing at the API server by adding the following arguments.
+Enable auditing at the API server level by adding the following arguments.
 
 ```sh
 sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
