@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -57,7 +58,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 	get := action.NewGet(cfg)
 	release, err := get.Run(c.Name)
 	if err != nil {
-		if err != driver.ErrReleaseNotFound {
+		if errors.Is(err, driver.ErrReleaseNotFound) {
 			return false, fmt.Errorf("failed to get status of release %s: %w", c.Name, err)
 		}
 		isInstalled = false

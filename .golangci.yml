@@ -24,10 +24,10 @@ linters:
   # - errcheck
   # - errchkjson
   - errname
+  - errorlint
 
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - errorlint
 # - exhaustive
 # - exhaustruct
 # - fatcontext

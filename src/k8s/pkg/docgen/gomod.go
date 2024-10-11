@@ -2,11 +2,12 @@ package docgen
 
 import (
 	"fmt"
-	"golang.org/x/mod/modfile"
-	"golang.org/x/mod/module"
 	"os"
 	"path"
 	"strings"
+
+	"golang.org/x/mod/modfile"
+	"golang.org/x/mod/module"
 )
 
 func getGoDepModulePath(name string, version string) (string, error) {
@@ -22,13 +23,13 @@ func getGoDepModulePath(name string, version string) (string, error) {
 	escapedPath, err := module.EscapePath(name)
 	if err != nil {
 		return "", fmt.Errorf(
-			"couldn't escape module path: %s %v", name, err)
+			"couldn't escape module path %s: %w", name, err)
 	}
 
 	escapedVersion, err := module.EscapeVersion(version)
 	if err != nil {
 		return "", fmt.Errorf(
-			"couldn't escape module version: %s %v", version, err)
+			"couldn't escape module version %s: %w", version, err)
 	}
 
 	path := path.Join(cachePath, escapedPath+"@"+escapedVersion)
@@ -36,7 +37,7 @@ func getGoDepModulePath(name string, version string) (string, error) {
 	// Validate the path.
 	if _, err := os.Stat(path); err != nil {
 		return "", fmt.Errorf(
-			"Go module path not accessible: %s %s %s, error: %v.",
+			"go module path not accessible %s %s %s: %w",
 			name, version, path, err)
 	}
 
@@ -46,11 +47,11 @@ func getGoDepModulePath(name string, version string) (string, error) {
 func getDependencyVersionFromGoMod(goModPath string, packageName string, directOnly bool) (string, string, error) {
 	goModContents, err := os.ReadFile(goModPath)
 	if err != nil {
-		return "", "", fmt.Errorf("could not read go.mod file %s, error: %v", goModPath, err)
+		return "", "", fmt.Errorf("could not read go.mod file %s: %w", goModPath, err)
 	}
 	goModFile, err := modfile.ParseLax(goModPath, goModContents, nil)
 	if err != nil {
-		return "", "", fmt.Errorf("could not parse go.mod file %s, error: %v", goModPath, err)
+		return "", "", fmt.Errorf("could not parse go.mod file %s: %w", goModPath, err)
 	}
 
 	for _, dep := range goModFile.Require {
