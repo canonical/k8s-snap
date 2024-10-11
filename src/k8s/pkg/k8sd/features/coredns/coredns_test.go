@@ -68,7 +68,7 @@ func TestDisabled(t *testing.T) {
 
 		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
 
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(str).To(BeEmpty())
 		g.Expect(status.Message).To(Equal("disabled"))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -172,7 +172,7 @@ func TestEnabled(t *testing.T) {
 
 		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
 
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(str).To(Equal(clusterIp))
 		g.Expect(status.Message).To(ContainSubstring("enabled at " + clusterIp))
 		g.Expect(status.Enabled).To(BeTrue())

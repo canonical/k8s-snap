@@ -53,7 +53,7 @@ func TestContainerd(t *testing.T) {
 	t.Run("Config", func(t *testing.T) {
 		g := NewWithT(t)
 		b, err := os.ReadFile(filepath.Join(dir, "containerd", "config.toml"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(string(b)).To(SatisfyAll(
 			ContainSubstring(fmt.Sprintf(`imports = ["%s/*.toml", "/custom/imports/*.toml"]`, filepath.Join(dir, "containerd-confd"))),
 			ContainSubstring(fmt.Sprintf(`conf_dir = "%s"`, filepath.Join(dir, "cni-netd"))),
@@ -62,7 +62,7 @@ func TestContainerd(t *testing.T) {
 		))
 
 		info, err := os.Stat(filepath.Join(dir, "containerd", "config.toml"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(info.Mode().Perm()).To(Equal(fs.FileMode(0600)))
 
 		switch stat := info.Sys().(type) {
@@ -78,12 +78,12 @@ func TestContainerd(t *testing.T) {
 		g := NewWithT(t)
 		for _, plugin := range []string{"plugin1", "plugin2"} {
 			link, err := os.Readlink(filepath.Join(dir, "opt-cni-bin", plugin))
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(link).To(Equal("cni"))
 		}
 
 		info, err := os.Stat(filepath.Join(dir, "opt-cni-bin"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(info.Mode().Perm()).To(Equal(fs.FileMode(0700)))
 
 		switch stat := info.Sys().(type) {
@@ -107,7 +107,7 @@ func TestContainerd(t *testing.T) {
 			t.Run(key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "containerd", key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(val).To(Equal(expectedVal))
 			})
 		}
@@ -115,7 +115,7 @@ func TestContainerd(t *testing.T) {
 		t.Run("--address", func(t *testing.T) {
 			g := NewWithT(t)
 			val, err := snaputil.GetServiceArgument(s, "containerd", "--address")
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(val).To(BeZero())
 		})
 	})

@@ -109,7 +109,7 @@ func TestGetKubeAPIServerEndpoints(t *testing.T) {
 				g.Expect(err).To(HaveOccurred())
 				g.Expect(servers).To(BeEmpty())
 			} else {
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(servers).To(Equal(tc.expectedAddresses))
 			}
 		})

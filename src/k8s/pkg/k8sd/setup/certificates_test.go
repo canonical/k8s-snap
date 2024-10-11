@@ -28,7 +28,7 @@ func TestEnsureK8sDqlitePKI(t *testing.T) {
 	}
 
 	_, err := setup.EnsureK8sDqlitePKI(mock, certificates)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "cluster.crt"),
@@ -37,7 +37,7 @@ func TestEnsureK8sDqlitePKI(t *testing.T) {
 
 	for _, file := range expectedFiles {
 		_, err := os.Stat(file)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 	}
 }
 
@@ -71,7 +71,7 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 	}
 
 	_, err := setup.EnsureControlPlanePKI(mock, certificates)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "apiserver-kubelet-client.crt"),
@@ -92,7 +92,7 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 
 	for _, file := range expectedFiles {
 		_, err := os.Stat(file)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 	}
 }
 
@@ -115,7 +115,7 @@ func TestEnsureWorkerPKI(t *testing.T) {
 	}
 
 	_, err := setup.EnsureWorkerPKI(mock, certificates)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "ca.crt"),
@@ -126,7 +126,7 @@ func TestEnsureWorkerPKI(t *testing.T) {
 
 	for _, file := range expectedFiles {
 		_, err := os.Stat(file)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 	}
 }
 
@@ -147,7 +147,7 @@ func TestExtDatastorePKI(t *testing.T) {
 	}
 
 	_, err := setup.EnsureExtDatastorePKI(mock, certificates)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 
 	expectedFiles := []string{
 		filepath.Join(tempDir, "ca.crt"),
@@ -157,7 +157,7 @@ func TestExtDatastorePKI(t *testing.T) {
 
 	for _, file := range expectedFiles {
 		_, err := os.Stat(file)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 	}
 }
 
@@ -186,7 +186,7 @@ func TestEmptyCert(t *testing.T) {
 
 	// Should create files
 	_, err := setup.EnsureK8sDqlitePKI(mock, certificates)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 
 	certificates = &pki.K8sDqlitePKI{
 		K8sDqliteCert: "",
@@ -195,10 +195,10 @@ func TestEmptyCert(t *testing.T) {
 
 	// Should delete files
 	_, err = setup.EnsureK8sDqlitePKI(mock, certificates)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 
 	for _, file := range expectedFiles {
 		_, err := os.Stat(file)
-		g.Expect(err).NotTo(BeNil())
+		g.Expect(err).To(HaveOccurred())
 	}
 }

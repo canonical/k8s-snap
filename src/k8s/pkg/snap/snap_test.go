@@ -21,7 +21,7 @@ func TestSnap(t *testing.T) {
 		})
 
 		err := snap.StartService(context.Background(), "test-service")
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snapctl start --enable k8s.test-service"))
 
 		t.Run("Fail", func(t *testing.T) {
@@ -29,7 +29,7 @@ func TestSnap(t *testing.T) {
 			mockRunner.Err = fmt.Errorf("some error")
 
 			err := snap.StartService(context.Background(), "test-service")
-			g.Expect(err).NotTo(BeNil())
+			g.Expect(err).To(HaveOccurred())
 		})
 	})
 
@@ -42,7 +42,7 @@ func TestSnap(t *testing.T) {
 			RunCommand:    mockRunner.Run,
 		})
 		err := snap.StopService(context.Background(), "test-service")
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snapctl stop --disable k8s.test-service"))
 
 		t.Run("Fail", func(t *testing.T) {
@@ -50,7 +50,7 @@ func TestSnap(t *testing.T) {
 			mockRunner.Err = fmt.Errorf("some error")
 
 			err := snap.StartService(context.Background(), "test-service")
-			g.Expect(err).NotTo(BeNil())
+			g.Expect(err).To(HaveOccurred())
 		})
 	})
 
@@ -64,7 +64,7 @@ func TestSnap(t *testing.T) {
 		})
 
 		err := snap.RestartService(context.Background(), "test-service")
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snapctl restart k8s.test-service"))
 
 		t.Run("Fail", func(t *testing.T) {
@@ -72,7 +72,7 @@ func TestSnap(t *testing.T) {
 			mockRunner.Err = fmt.Errorf("some error")
 
 			err := snap.StartService(context.Background(), "service")
-			g.Expect(err).NotTo(BeNil())
+			g.Expect(err).To(HaveOccurred())
 		})
 	})
 }

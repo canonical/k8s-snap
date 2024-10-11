@@ -17,11 +17,11 @@ func TestWorkerTokenEncode(t *testing.T) {
 
 	g := NewWithT(t)
 	s, err := token.Encode()
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(s).ToNot(BeEmpty())
 
 	decoded := &types.InternalWorkerNodeToken{}
 	err = decoded.Decode(s)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(decoded).To(Equal(token))
 }

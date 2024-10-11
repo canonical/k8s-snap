@@ -71,7 +71,7 @@ func Test_loadBalancerCIDRsFromAPI(t *testing.T) {
 	t.Run("Nil", func(t *testing.T) {
 		g := NewWithT(t)
 		cidrs, ranges, err := loadBalancerCIDRsFromAPI(nil)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(cidrs).To(BeNil())
 		g.Expect(ranges).To(BeNil())
 	})
@@ -84,7 +84,7 @@ func Test_loadBalancerCIDRsFromAPI(t *testing.T) {
 			if tc.expectErr {
 				g.Expect(err).To(HaveOccurred())
 			} else {
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(*cidrs).To(Equal(tc.internalCIDRs))
 				g.Expect(*ranges).To(Equal(tc.internalRanges))
 			}

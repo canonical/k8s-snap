@@ -72,7 +72,7 @@ func TestKubelet(t *testing.T) {
 				g := NewWithT(t)
 
 				cm, err := tc.kubelet.ToConfigMap(nil)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(cm).To(Equal(tc.configmap))
 			})
 
@@ -80,7 +80,7 @@ func TestKubelet(t *testing.T) {
 				g := NewWithT(t)
 
 				k, err := types.KubeletFromConfigMap(tc.configmap, nil)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(k).To(Equal(tc.kubelet))
 			})
 		})
@@ -90,7 +90,7 @@ func TestKubelet(t *testing.T) {
 func TestKubeletSign(t *testing.T) {
 	g := NewWithT(t)
 	key, err := rsa.GenerateKey(rand.Reader, 4096)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 
 	kubelet := types.Kubelet{
 		CloudProvider: utils.Pointer("external"),
@@ -99,14 +99,14 @@ func TestKubeletSign(t *testing.T) {
 	}
 
 	configmap, err := kubelet.ToConfigMap(key)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(configmap).To(HaveKeyWithValue("k8sd-mac", Not(BeEmpty())))
 
 	t.Run("NoSign", func(t *testing.T) {
 		g := NewWithT(t)
 
 		configmap, err := kubelet.ToConfigMap(nil)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(configmap).To(Not(HaveKey("k8sd-mac")))
 	})
 
@@ -114,7 +114,7 @@ func TestKubeletSign(t *testing.T) {
 		g := NewWithT(t)
 
 		fromKubelet, err := types.KubeletFromConfigMap(configmap, &key.PublicKey)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(fromKubelet).To(Equal(kubelet))
 	})
 
@@ -122,7 +122,7 @@ func TestKubeletSign(t *testing.T) {
 		g := NewWithT(t)
 
 		configmap2, err := kubelet.ToConfigMap(key)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(configmap2).To(Equal(configmap))
 	})
 
@@ -130,7 +130,7 @@ func TestKubeletSign(t *testing.T) {
 		g := NewWithT(t)
 
 		wrongKey, err := rsa.GenerateKey(rand.Reader, 2048)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 
 		cm, err := types.KubeletFromConfigMap(configmap, &wrongKey.PublicKey)
 		g.Expect(cm).To(BeZero())
@@ -142,10 +142,10 @@ func TestKubeletSign(t *testing.T) {
 			t.Run(editKey, func(t *testing.T) {
 				g := NewWithT(t)
 				key, err := rsa.GenerateKey(rand.Reader, 2048)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 
 				c, err := kubelet.ToConfigMap(key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(c).To(HaveKeyWithValue("k8sd-mac", Not(BeEmpty())))
 
 				t.Run("Manipulated", func(t *testing.T) {
