@@ -15,9 +15,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/moby/sys/mountinfo"
-
 	"github.com/canonical/k8s/pkg/log"
+	"github.com/moby/sys/mountinfo"
 )
 
 // ParseArgumentLine parses a command-line argument from a single line.

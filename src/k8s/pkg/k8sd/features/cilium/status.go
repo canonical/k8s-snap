@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/snap"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
