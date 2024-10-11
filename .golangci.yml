@@ -29,11 +29,11 @@ linters:
   - fatcontext
   - forbidigo
   - forcetypeassert
+  # - funlen - TODO(ben): maybe consider later; needs some refactoring
+  - gci
 
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - funlen
-# - gci
 # - ginkgolinter
 # - gocheckcompilerdirectives
 # - gochecknoglobals
