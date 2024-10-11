@@ -34,7 +34,7 @@ func TestWaitUntilReady(t *testing.T) {
 	cancel2() // Cancel the context immediately
 
 	err2 := WaitUntilReady(ctx2, mockCheckFunc)
-	if err2 == nil || errors.Is(err2, context.Canceled) {
+	if err2 == nil || !errors.Is(err2, context.Canceled) {
 		t.Errorf("Expected context.Canceled error, got: %v", err2)
 	}
 
