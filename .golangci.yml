@@ -25,13 +25,12 @@ linters:
   # - errchkjson
   - errname
   - errorlint
+  - exhaustive
+  - fatcontext
+  - forbidigo
 
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - exhaustive
-# - exhaustruct
-# - fatcontext
-# - forbidigo
 # - forcetypeassert
 # - funlen
 # - gci
