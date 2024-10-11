@@ -38,13 +38,13 @@ type DB interface {
 //			WithDB(t, func(ctx context.Context, db DB) {
 //				err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 //					token, err := database.GetOrCreateToken(ctx, tx, "user1", []string{"group1", "group2"})
-//					if !g.Expect(err).To(BeNil()) {
+//					if !g.Expect(err).To(Not(HaveOccurred())) {
 //						return err
 //					}
 //					g.Expect(token).To(Not(BeEmpty()))
 //					return nil
 //				})
-//				g.Expect(err).To(BeNil())
+//				g.Expect(err).To(Not(HaveOccurred()))
 //			})
 //		})
 //	}

@@ -197,7 +197,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 							g := NewWithT(t)
 
 							val, err := snaputil.GetServiceArgument(s, "kube-apiserver", earg)
-							g.Expect(err).To(BeNil())
+							g.Expect(err).To(Not(HaveOccurred()))
 							g.Expect(val).To(Equal(eval))
 						})
 					}
@@ -209,7 +209,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 							g := NewWithT(t)
 
 							val, err := snaputil.GetServiceArgument(s, "kube-controller-manager", earg)
-							g.Expect(err).To(BeNil())
+							g.Expect(err).To(Not(HaveOccurred()))
 							g.Expect(val).To(Equal(eval))
 						})
 					}
@@ -222,7 +222,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 
 							_, err := os.Stat(file)
 							if mustExist {
-								g.Expect(err).To(BeNil())
+								g.Expect(err).To(Not(HaveOccurred()))
 							} else {
 								g.Expect(err).To(MatchError(os.ErrNotExist))
 							}

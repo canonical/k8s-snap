@@ -31,7 +31,7 @@ func TestKubeControllerManager(t *testing.T) {
 		os.Create(filepath.Join(s.Mock.KubernetesPKIDir, "ca.key"))
 
 		// Call the kube controller manager setup function
-		g.Expect(setup.KubeControllerManager(s, nil)).To(BeNil())
+		g.Expect(setup.KubeControllerManager(s, nil)).To(Succeed())
 
 		// Ensure the kube controller manager arguments file has the expected arguments and values
 		tests := []struct {
@@ -63,7 +63,7 @@ func TestKubeControllerManager(t *testing.T) {
 		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 
 		t.Run("MissingArgsDir", func(t *testing.T) {
 			g := NewWithT(t)
@@ -79,7 +79,7 @@ func TestKubeControllerManager(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeControllerManagerMock)
 
 		// Call the kube controller manager setup function
-		g.Expect(setup.KubeControllerManager(s, nil)).To(BeNil())
+		g.Expect(setup.KubeControllerManager(s, nil)).To(Succeed())
 
 		// Ensure the kube controller manager arguments file has the expected arguments and values
 		tests := []struct {
@@ -109,7 +109,7 @@ func TestKubeControllerManager(t *testing.T) {
 		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 
 		t.Run("MissingArgsDir", func(t *testing.T) {
 			g := NewWithT(t)
@@ -133,7 +133,7 @@ func TestKubeControllerManager(t *testing.T) {
 			"--my-extra-arg":                utils.Pointer("my-extra-val"),
 		}
 		// Call the kube controller manager setup function
-		g.Expect(setup.KubeControllerManager(s, extraArgs)).To(BeNil())
+		g.Expect(setup.KubeControllerManager(s, extraArgs)).To(Succeed())
 
 		// Ensure the kube controller manager arguments file has the expected arguments and values
 		tests := []struct {
@@ -170,7 +170,7 @@ func TestKubeControllerManager(t *testing.T) {
 		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 
 		t.Run("MissingArgsDir", func(t *testing.T) {
 			g := NewWithT(t)

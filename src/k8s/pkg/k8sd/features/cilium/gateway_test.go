@@ -73,7 +73,7 @@ func TestGatewayEnabled(t *testing.T) {
 		helmCiliumArgs := helmM.ApplyCalledWith[2]
 		g.Expect(helmCiliumArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(helmCiliumArgs.State).To(Equal(helm.StateUpgradeOnly))
-		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(Equal(true))
+		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(BeTrue())
 	})
 
 	t.Run("RolloutFail", func(t *testing.T) {
@@ -199,7 +199,7 @@ func TestGatewayDisabled(t *testing.T) {
 		helmCiliumArgs := helmM.ApplyCalledWith[1]
 		g.Expect(helmCiliumArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(helmCiliumArgs.State).To(Equal(helm.StateDeleted))
-		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(Equal(false))
+		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(BeFalse())
 
 	})
 

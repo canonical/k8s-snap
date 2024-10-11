@@ -98,7 +98,7 @@ func TestCheckForReadyPods(t *testing.T) {
 			err := client.CheckForReadyPods(context.Background(), tc.namespace, tc.listOptions)
 
 			if tc.expectedError == "" {
-				g.Expect(err).Should(BeNil())
+				g.Expect(err).ShouldNot(HaveOccurred())
 			} else {
 				g.Expect(err).Should(MatchError(tc.expectedError))
 			}

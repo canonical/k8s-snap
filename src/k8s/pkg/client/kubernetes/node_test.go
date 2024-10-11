@@ -28,7 +28,7 @@ func TestDeleteNode(t *testing.T) {
 		}, metav1.CreateOptions{})
 
 		err := client.DeleteNode(context.Background(), nodeName)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 	})
 
 	t.Run("node does not exist is successful", func(t *testing.T) {
@@ -37,7 +37,7 @@ func TestDeleteNode(t *testing.T) {
 		nodeName := "test-node"
 
 		err := client.DeleteNode(context.Background(), nodeName)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 	})
 
 	t.Run("node deletion fails", func(t *testing.T) {
