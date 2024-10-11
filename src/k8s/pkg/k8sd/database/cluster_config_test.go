@@ -3,11 +3,11 @@ package database_test
 import (
 	"context"
 	"database/sql"
-	"github.com/canonical/k8s/pkg/utils"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 

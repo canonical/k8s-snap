@@ -3,12 +3,11 @@ package kubernetes_test
 import (
 	"testing"
 
-	fakediscovery "k8s.io/client-go/discovery/fake"
-	fakeclientset "k8s.io/client-go/kubernetes/fake"
-
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	fakeclientset "k8s.io/client-go/kubernetes/fake"
 )
 
 func TestListResourcesForGroupVersion(t *testing.T) {

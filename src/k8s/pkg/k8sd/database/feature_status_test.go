@@ -6,11 +6,10 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	. "github.com/onsi/gomega"
 )
 
 func TestFeatureStatus(t *testing.T) {
