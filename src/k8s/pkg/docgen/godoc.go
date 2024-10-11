@@ -79,7 +79,7 @@ func getPackageDoc(packagePath string, projectDir string) (*doc.Package, error) 
 
 	packageDir, err := getGoPackageDir(packagePath, projectDir)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't retrieve package dir, error: %v", err)
+		return nil, fmt.Errorf("couldn't retrieve package dir, error: %w", err)
 	}
 
 	pkg, err := parsePackageDir(packageDir)
