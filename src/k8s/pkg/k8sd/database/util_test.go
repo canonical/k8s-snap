@@ -18,10 +18,8 @@ const (
 	microclusterDatabaseShutdownTimeout = 3 * time.Second
 )
 
-var (
-	// nextIdx is used to pick different listen ports for each microcluster instance.
-	nextIdx int
-)
+// nextIdx is used to pick different listen ports for each microcluster instance.
+var nextIdx int
 
 // DB is an interface for the internal microcluster DB type.
 type DB interface {

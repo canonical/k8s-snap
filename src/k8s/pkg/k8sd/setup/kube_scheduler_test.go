@@ -53,7 +53,6 @@ func TestKubeScheduler(t *testing.T) {
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-scheduler"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(args).To(HaveLen(len(tests)))
-
 	})
 
 	t.Run("WithExtraArgs", func(t *testing.T) {
@@ -100,7 +99,6 @@ func TestKubeScheduler(t *testing.T) {
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-scheduler"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(args).To(HaveLen(len(tests)))
-
 	})
 
 	t.Run("MissingArgsDir", func(t *testing.T) {

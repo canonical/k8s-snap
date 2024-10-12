@@ -32,7 +32,7 @@ func TestGetServiceArgument(t *testing.T) {
 --key=value-of-service-two
 `,
 	} {
-		g.Expect(os.WriteFile(filepath.Join(dir, svc), []byte(args), 0600)).To(Succeed())
+		g.Expect(os.WriteFile(filepath.Join(dir, svc), []byte(args), 0o600)).To(Succeed())
 	}
 
 	for _, tc := range []struct {

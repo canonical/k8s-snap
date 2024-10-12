@@ -38,12 +38,11 @@ linters:
   # - goconst - TODO(ben): Consider moving consts into separate package
   - gocritic
   - godot
+  - gofmt
+  - gofumpt
 
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - godox
-# - gofmt
-# - gofumpt
 # - goheader
 # - goimports
 # - gomoddirectives

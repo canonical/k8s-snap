@@ -227,7 +227,6 @@ func TestNetworkMountPath(t *testing.T) {
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 			g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
-
 		})
 	}
 }
@@ -265,7 +264,6 @@ func TestNetworkMountPropagationType(t *testing.T) {
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
 		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
-
 	})
 
 	t.Run("MountPropagationPrivateOnLXDError", func(t *testing.T) {
@@ -375,7 +373,6 @@ func TestNetworkMountPropagationType(t *testing.T) {
 }
 
 func validateNetworkValues(g Gomega, values map[string]any, network types.Network, snap snap.Snap) {
-
 	ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	g.Expect(err).ToNot(HaveOccurred())
 

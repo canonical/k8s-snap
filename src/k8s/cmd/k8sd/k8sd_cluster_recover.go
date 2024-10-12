@@ -97,7 +97,6 @@ func logDebugf(format string, args ...interface{}) {
 		msg := fmt.Sprintf(format, args...)
 		log.L().Info(msg)
 	}
-
 }
 
 func newClusterRecoverCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
@@ -294,7 +293,7 @@ func ensureK8sDqliteMembersStopped(ctx context.Context) error {
 		}(ctx, dial, member.Address)
 	}
 
-	for _, _ = range members {
+	for range members {
 		addr, ok := <-c
 		if !ok {
 			return fmt.Errorf("channel closed unexpectedly")
