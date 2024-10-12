@@ -46,7 +46,7 @@ func TestTLSClientConfigWithTrustedCertificate(t *testing.T) {
 
 	// Test with invalid remote certificate
 	tlsConfig, err = utils.TLSClientConfigWithTrustedCertificate(nil, rootCAs)
-	g.Expect(err).To(Not(HaveOccurred()))
+	g.Expect(err).To(HaveOccurred())
 	g.Expect(tlsConfig).To(BeNil())
 
 	// Test with nil root CAs
