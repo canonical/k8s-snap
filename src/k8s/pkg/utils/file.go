@@ -119,6 +119,7 @@ func CopyFile(srcFile, dstFile string) error {
 
 	return nil
 }
+
 func FileExists(path ...string) (bool, error) {
 	if _, err := os.Stat(filepath.Join(path...)); err != nil {
 		if !os.IsNotExist(err) {

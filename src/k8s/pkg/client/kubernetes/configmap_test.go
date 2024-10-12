@@ -79,7 +79,6 @@ func TestWatchConfigMap(t *testing.T) {
 			case <-time.After(time.Second):
 				t.Fatal("Timed out waiting for watch to complete")
 			}
-
 		})
 	}
 }

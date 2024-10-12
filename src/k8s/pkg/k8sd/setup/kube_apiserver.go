@@ -52,7 +52,7 @@ var (
 // KubeAPIServer configures kube-apiserver on the local node.
 func KubeAPIServer(snap snap.Snap, securePort int, nodeIP net.IP, serviceCIDR string, authWebhookURL string, enableFrontProxy bool, datastore types.Datastore, authorizationMode string, extraArgs map[string]*string) error {
 	authTokenWebhookConfigFile := filepath.Join(snap.ServiceExtraConfigDir(), "auth-token-webhook.conf")
-	authTokenWebhookFile, err := os.OpenFile(authTokenWebhookConfigFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	authTokenWebhookFile, err := os.OpenFile(authTokenWebhookConfigFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return fmt.Errorf("failed to open auth-token-webhook.conf: %w", err)
 	}
