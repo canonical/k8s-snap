@@ -75,7 +75,7 @@ func TestKubernetesAuthTokens(t *testing.T) {
 				g.Expect(err).To(Not(HaveOccurred()))
 
 				username, groups, err := database.CheckToken(ctx, tx, token2)
-				g.Expect(err).To(Not(HaveOccurred()))
+				g.Expect(err).To(HaveOccurred())
 				g.Expect(username).To(BeEmpty())
 				g.Expect(groups).To(BeEmpty())
 				return nil
