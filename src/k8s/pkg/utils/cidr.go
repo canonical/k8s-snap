@@ -102,8 +102,8 @@ func ParseAddressString(address string, port int64) (string, error) {
 }
 
 // SplitCIDRStrings parses the given CIDR string and returns the respective IPv4 and IPv6 CIDRs.
-func SplitCIDRStrings(CIDRstring string) (string, string, error) {
-	clusterCIDRs := strings.Split(CIDRstring, ",")
+func SplitCIDRStrings(cidrString string) (string, string, error) {
+	clusterCIDRs := strings.Split(cidrString, ",")
 	if v := len(clusterCIDRs); v != 1 && v != 2 {
 		return "", "", fmt.Errorf("invalid CIDR list: %v", clusterCIDRs)
 	}

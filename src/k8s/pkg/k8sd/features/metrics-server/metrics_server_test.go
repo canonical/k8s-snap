@@ -79,11 +79,12 @@ func TestApplyMetricsServer(t *testing.T) {
 				HaveField("Chart.Namespace", Equal("kube-system")),
 				HaveField("State", Equal(tc.expectState)),
 			)))
-			if errors.Is(tc.helmError, helmErr) {
+			switch {
+			case errors.Is(tc.helmError, helmErr):
 				g.Expect(status.Message).To(ContainSubstring(helmErr.Error()))
-			} else if tc.config.GetEnabled() {
+			case tc.config.GetEnabled():
 				g.Expect(status.Message).To(Equal("enabled"))
-			} else {
+			default:
 				g.Expect(status.Message).To(Equal("disabled"))
 			}
 		})

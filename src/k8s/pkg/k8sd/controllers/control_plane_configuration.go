@@ -71,8 +71,7 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 
 func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, config types.ClusterConfig) error {
 	// kube-apiserver: external datastore
-	switch config.Datastore.GetType() {
-	case "external":
+	if config.Datastore.GetType() == "external" {
 		// certificates
 		certificatesChanged, err := setup.EnsureExtDatastorePKI(c.snap, &pki.ExternalDatastorePKI{
 			DatastoreCACert:     config.Datastore.GetExternalCACert(),

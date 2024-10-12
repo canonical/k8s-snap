@@ -200,7 +200,7 @@ func (s *Snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
 	return s.Mock.SnapctlGet[strings.Join(args, " ")], s.SnapctlGetErr
 }
 func (s *Snap) SnapctlSet(ctx context.Context, args ...string) error {
-	s.SnapctlSetCalledWith = append(s.SnapctlGetCalledWith, args)
+	s.SnapctlSetCalledWith = append(s.SnapctlSetCalledWith, args)
 	return s.SnapctlSetErr
 }
 func (s *Snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) error {
