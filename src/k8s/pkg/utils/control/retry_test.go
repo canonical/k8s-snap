@@ -22,7 +22,6 @@ func TestRetryFor(t *testing.T) {
 			}
 			return nil
 		})
-
 		if err != nil {
 			t.Errorf("Expected nil error, got: %v", err)
 		}

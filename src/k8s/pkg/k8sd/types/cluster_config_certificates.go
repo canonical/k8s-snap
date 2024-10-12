@@ -25,6 +25,7 @@ func (c Certificates) GetClientCACert() string {
 	}
 	return c.GetCACert()
 }
+
 func (c Certificates) GetClientCAKey() string {
 	// versions before 1.30.2 were using the same CA for server and client certificates
 	if v := getField(c.ClientCAKey); v != "" {
@@ -38,6 +39,7 @@ func (c Certificates) GetServiceAccountKey() string { return getField(c.ServiceA
 func (c Certificates) GetAPIServerKubeletClientCert() string {
 	return getField(c.APIServerKubeletClientCert)
 }
+
 func (c Certificates) GetAPIServerKubeletClientKey() string {
 	return getField(c.APIServerKubeletClientKey)
 }

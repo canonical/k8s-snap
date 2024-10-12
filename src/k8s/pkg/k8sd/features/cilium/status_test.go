@@ -71,7 +71,6 @@ func TestCheckNetwork(t *testing.T) {
 		err := cilium.CheckNetwork(context.Background(), snapM)
 
 		g.Expect(err).To(HaveOccurred())
-
 	})
 
 	t.Run("allPodsPresent", func(t *testing.T) {

@@ -13,7 +13,6 @@ import (
 )
 
 func TestControlPlanePKI_CompleteWorkerNodePKI(t *testing.T) {
-
 	g := NewWithT(t)
 	notBefore := time.Now()
 	serverCACert, serverCAKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, notBefore, notBefore.AddDate(1, 0, 0), 2048)
