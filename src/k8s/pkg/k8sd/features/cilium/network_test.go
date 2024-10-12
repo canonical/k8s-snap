@@ -18,7 +18,7 @@ import (
 	"k8s.io/utils/ptr"
 )
 
-// NOTE(hue): status.Message is not checked sometimes to avoid unnecessary complexity
+// NOTE(hue): status.Message is not checked sometimes to avoid unnecessary complexity.
 func TestNetworkDisabled(t *testing.T) {
 	t.Run("HelmApplyFails", func(t *testing.T) {
 		g := NewWithT(t)

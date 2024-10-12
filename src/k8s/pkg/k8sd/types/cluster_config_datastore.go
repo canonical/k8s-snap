@@ -29,7 +29,7 @@ func (c Datastore) GetExternalClientCert() string { return getField(c.ExternalCl
 func (c Datastore) GetExternalClientKey() string  { return getField(c.ExternalClientKey) }
 func (c Datastore) Empty() bool                   { return c == Datastore{} }
 
-// DatastorePathsProvider is to avoid circular dependency for snap.Snap in Datastore.ToKubeAPIServerArguments()
+// DatastorePathsProvider is to avoid circular dependency for snap.Snap in Datastore.ToKubeAPIServerArguments().
 type DatastorePathsProvider interface {
 	K8sDqliteStateDir() string
 	EtcdPKIDir() string

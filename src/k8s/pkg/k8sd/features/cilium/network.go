@@ -17,7 +17,7 @@ const (
 	networkDeployFailedMsgTmpl = "Failed to deploy Cilium Network, the error was: %v"
 )
 
-// required for unittests
+// required for unittests.
 var (
 	getMountPath            = utils.GetMountPath
 	getMountPropagationType = utils.GetMountPropagationType

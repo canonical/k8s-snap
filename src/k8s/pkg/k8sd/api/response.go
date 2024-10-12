@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	// StatusNodeUnavailable is the Http status code that the API returns if the node isn't in the cluster
+	// StatusNodeUnavailable is the Http status code that the API returns if the node isn't in the cluster.
 	StatusNodeUnavailable = 520
-	// StatusNodeInUse is the Http status code that the API returns if the node is already in the cluster
+	// StatusNodeInUse is the Http status code that the API returns if the node is already in the cluster.
 	StatusNodeInUse = 521
 )
 

@@ -43,5 +43,5 @@ func (a *App) NotifyFeatureController(network, gateway, ingress, loadBalancer, l
 	}
 }
 
-// Ensure App implements api.Provider
+// Ensure App implements api.Provider.
 var _ api.Provider = &App{}

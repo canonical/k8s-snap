@@ -236,7 +236,7 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 // markNodeReady will decrement the readyWg counter to signal that the node is ready.
 // The node is ready if:
 // - the microcluster database is accessible
-// - the kubernetes endpoint is reachable
+// - the kubernetes endpoint is reachable.
 func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	log := log.FromContext(ctx).WithValues("startup", "waitForReady")
 

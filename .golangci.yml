@@ -37,11 +37,10 @@ linters:
   - gochecksumtype
   # - goconst - TODO(ben): Consider moving consts into separate package
   - gocritic
+  - godot
 
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - gocyclo
-# - godot
 # - godox
 # - gofmt
 # - gofumpt
