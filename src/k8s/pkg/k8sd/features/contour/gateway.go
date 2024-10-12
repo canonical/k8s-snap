@@ -94,7 +94,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 }
 
 // waitForRequiredContourCommonCRDs waits for the required contour CRDs to be available
-// by checking the API resources by group version
+// by checking the API resources by group version.
 func waitForRequiredContourCommonCRDs(ctx context.Context, snap snap.Snap) error {
 	client, err := snap.KubernetesClient("")
 	if err != nil {

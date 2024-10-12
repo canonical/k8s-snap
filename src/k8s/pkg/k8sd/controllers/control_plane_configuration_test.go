@@ -16,7 +16,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// channelSendTimeout is the timeout for pushing to channels for TestControlPlaneConfigController
+// channelSendTimeout is the timeout for pushing to channels for TestControlPlaneConfigController.
 const channelSendTimeout = 100 * time.Millisecond
 
 type configProvider struct {

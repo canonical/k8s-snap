@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	// microclusterDatabaseInitTimeout is the timeout for microcluster database initialization operations
+	// microclusterDatabaseInitTimeout is the timeout for microcluster database initialization operations.
 	microclusterDatabaseInitTimeout = 3 * time.Second
-	// microclusterDatabaseShutdownTimeout is the timeout for microcluster database shutdown operations
+	// microclusterDatabaseShutdownTimeout is the timeout for microcluster database shutdown operations.
 	microclusterDatabaseShutdownTimeout = 3 * time.Second
 )
 
 var (
-	// nextIdx is used to pick different listen ports for each microcluster instance
+	// nextIdx is used to pick different listen ports for each microcluster instance.
 	nextIdx int
 )
 
