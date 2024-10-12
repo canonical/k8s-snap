@@ -39,7 +39,7 @@ func SecondsToExpirationDate(now time.Time, seconds int) time.Time {
 // - y: years
 // - mo: months
 // - d: days
-// - any other unit supported by time.ParseDuration
+// - any other unit supported by time.ParseDuration.
 func TTLToSeconds(ttl string) (int, error) {
 	if len(ttl) < 2 {
 		return 0, fmt.Errorf("invalid TTL length: %s", ttl)
