@@ -32,16 +32,14 @@ linters:
   # - funlen - TODO(ben): maybe consider later; needs some refactoring
   - gci
   - ginkgolinter
+  - gocheckcompilerdirectives
+  # - gochecknoglobals - TODO(ben): We have some global vars, maybe refactor later as this sounds like a useful linter
+  - gochecksumtype
+  # - goconst - TODO(ben): Consider moving consts into separate package
+  - gocritic
 
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - gocheckcompilerdirectives
-# - gochecknoglobals
-# - gochecknoinits
-# - gochecksumtype
-# - gocognit
-# - goconst
-# - gocritic
 # - gocyclo
 # - godot
 # - godox
@@ -329,3 +327,4 @@ issues:
         - dupword
         - err113
         - forcetypeassert
+        - goconst

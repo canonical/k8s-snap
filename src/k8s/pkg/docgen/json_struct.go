@@ -36,7 +36,7 @@ func MarkdownFromJsonStruct(i any, projectDir string) (string, error) {
 
 	var out strings.Builder
 	for _, field := range fields {
-		outFieldType := strings.Replace(field.TypeName, "*", "", -1)
+		outFieldType := strings.ReplaceAll(field.TypeName, "*", "")
 		entry := fmt.Sprintf(entryTemplate, field.FullJsonPath, outFieldType, field.Docstring)
 		out.WriteString(entry)
 	}

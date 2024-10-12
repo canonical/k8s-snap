@@ -27,7 +27,7 @@ func TestIngress(t *testing.T) {
 		applyChanged   bool
 		ingressEnabled bool
 		helmErr        error
-		//then
+		// then
 		statusMsg     string
 		statusEnabled bool
 	}{
