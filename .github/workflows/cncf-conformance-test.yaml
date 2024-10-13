@@ -12,10 +12,9 @@ jobs:
     name: CNCF Conformance ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.releases }}
     strategy:
       matrix:
-#        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
         os: ["ubuntu:24.04"]
         arch: ["amd64"]
-        releases: ["latest/edge"]
+        releases: ["latest/edge/moonray"]
 
     runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-20.04' }}
 
@@ -31,26 +30,28 @@ jobs:
           sg lxd -c 'lxc version'
           echo "os_dash=${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
 
-      - name: Install sonobuoy
-        run: |
-          build-scripts/hack/sonobuoy.sh download ${{ matrix.arch }}
-
       - name: download ${{ matrix.releases }} k8s snap
         run: |
           snap download k8s --channel=${{ matrix.releases }} --basename k8s
 
-      - name: create k8s container
-        run: |
-          sg lxd -c 'build-scripts/hack/sonobuoy.sh create_container ${{ matrix.os }}'
-
-      - name: setup k8s in lxd container
-        run: |
-          sg lxd -c 'build-scripts/hack/sonobuoy.sh setup_k8s'
-
+#      - name: Install sonobuoy
+#        run: |
+#          build-scripts/hack/sonobuoy.sh download ${{ matrix.arch }}
+#
+#      - name: create k8s container
+#        run: |
+#          sg lxd -c 'build-scripts/hack/sonobuoy.sh create_container ${{ matrix.os }}'
+#
+#      - name: setup k8s in lxd container
+#        run: |
+#          sg lxd -c 'build-scripts/hack/sonobuoy.sh setup_k8s'
+#
+#      - name: Run end to end tests
+#        run: |
+#          build-scripts/hack/sonobuoy.sh run_e2e
       - name: Run end to end tests
         run: |
-          build-scripts/hack/sonobuoy.sh run_e2e
-
+          sg lxd -c 'build-scripts/hack/sonobuoy.sh ${{ matrix.arch }} ${{ matrix.os }}'
       - name: Upload inspection report artifact
         uses: actions/upload-artifact@v4
         with:
