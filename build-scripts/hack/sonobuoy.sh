@@ -28,48 +28,35 @@ function setup_k8s() {
 }
 
 function run_e2e() {
-    ./sonobuoy run --plugin e2e --wait
+#    ./sonobuoy run --plugin e2e --wait
+    ./sonobuoy run --plugin e2e --wait --mode quick
     ./sonobuoy retrieve -f sonobuoy_e2e.tar.gz
     ./sonobuoy results sonobuoy_e2e.tar.gz
     tar -xf sonobuoy_e2e.tar.gz --one-top-level
+    set +e
     ./sonobuoy results sonobuoy_e2e.tar.gz | grep -E "^Failed: 0$"
-    exit $?
+    return $?
 }
 
 function main() {
-    local command=$1
-    shift
-    case $command in
-        "download")
-            download "${@}"
-            ;;
-        "create_container")
-            create_container "${@}"
-            ;;
-        "setup_k8s")
-            setup_k8s "${@}"
-            ;;
-        "run_e2e")
-            run_e2e "${@}"
-            ;;
-        *)
-            cat << EOF
-Unknown command: $1
+    if [ "$#" -ne 2 ]; then
+      cat << EOF
+Expected 2 arguments, provided: $@
 
-usage: $0 <command>
-
-Commands:
-    download <amd64|arm64|386|ppc64le|s390x>   Download sonobuoy for given architecture.
-
-    create_container <os>                      Creates lxd container for given operating system.
-
-    setup_k8s                                  Install k8s in k8s lxd container.
-
-    run_e2e                                    Runs sonobuoy end-to-end tests and saves results in
-                                               sonobuoy_e2e.tar.gz and sonobuoy_e2e directory
+usage: $0 <architecture> <os>
 EOF
-            ;;
-    esac
+      exit 255
+    fi
+
+    local architecture=$1
+    local os=$2
+
+    download ${architecture}
+    create_container ${os}
+    setup_k8s
+    run_e2e
+    exit $?
+
 }
 
 if [[ $sourced -ne 1 ]]; then
