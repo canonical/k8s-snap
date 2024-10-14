@@ -52,11 +52,26 @@ class LXDHarness(Harness):
             ),
         )
 
+        self._configure_network(
+            config.LXD_IPV6_NETWORK,
+            "ipv4.address=none",
+            "ipv6.address=auto",
+            "ipv4.nat=false",
+            "ipv6.nat=true",
+        )
+        self.ipv6_profile = config.LXD_IPV6_PROFILE_NAME
+        self._configure_profile(
+            self.ipv6_profile,
+            config.LXD_IPV6_PROFILE.replace(
+                "LXD_IPV6_NETWORK", config.LXD_IPV6_NETWORK
+            ),
+        )
+
         LOG.debug(
             "Configured LXD substrate (profile %s, image %s)", self.profile, self.image
         )
 
-    def new_instance(self, dualstack: bool = False) -> Instance:
+    def new_instance(self, network_type: str = "IPv4") -> Instance:
         instance_id = f"k8s-integration-{os.urandom(3).hex()}-{self.next_id()}"
 
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
@@ -71,8 +86,14 @@ class LXDHarness(Harness):
             self.profile,
         ]
 
-        if dualstack:
+        if network_type.lower() not in ["ipv4", "dualstack", "ipv6"]:
+            raise HarnessError(f"unknown network type {network_type}, need to be one of 'IPv4', 'IPv6', 'dualstack'")
+
+        if network_type.lower() == "dualstack":
             launch_lxd_command.extend(["-p", self.dualstack_profile])
+
+        if network_type.lower() == "ipv6":
+            launch_lxd_command.extend(["-p", self.ipv6_profile])
 
         try:
             stubbornly(retries=3, delay_s=1).exec(launch_lxd_command)
