@@ -56,7 +56,7 @@ func TestGetServiceArgument(t *testing.T) {
 
 			value, err := snaputil.GetServiceArgument(s, tc.service, tc.key)
 			if tc.expectErr {
-				g.Expect(err).To(Not(HaveOccurred()))
+				g.Expect(err).To(HaveOccurred())
 			} else {
 				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(value).To(Equal(tc.expectValue))
@@ -75,7 +75,7 @@ func TestUpdateServiceArguments(t *testing.T) {
 		}
 
 		_, err := snaputil.GetServiceArgument(s, "service", "--key")
-		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(err).To(HaveOccurred())
 
 		changed, err := snaputil.UpdateServiceArguments(s, "service", map[string]string{"--key": "value"}, nil)
 		g.Expect(err).To(Not(HaveOccurred()))
