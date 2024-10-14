@@ -128,6 +128,13 @@ jobs:
         uses: step-security/harden-runner@v2
         with:
           egress-policy: audit
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          # We run into rate limiting issues if we don't authenticate
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Fetch snap
