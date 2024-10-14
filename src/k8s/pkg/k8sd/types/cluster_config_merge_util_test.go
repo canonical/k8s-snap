@@ -28,7 +28,7 @@ func Test_mergeField(t *testing.T) {
 				result, err := mergeField(tc.old, tc.new, tc.allowChange)
 				switch {
 				case tc.expectErr:
-					g.Expect(err).To(Not(HaveOccurred()))
+					g.Expect(err).To(HaveOccurred())
 				case tc.expectVal == nil:
 					g.Expect(err).To(Not(HaveOccurred()))
 					g.Expect(result).To(BeNil())
@@ -60,7 +60,7 @@ func Test_mergeField(t *testing.T) {
 				result, err := mergeField(tc.old, tc.new, tc.allowChange)
 				switch {
 				case tc.expectErr:
-					g.Expect(err).To(Not(HaveOccurred()))
+					g.Expect(err).To(HaveOccurred())
 				case tc.expectVal == nil:
 					g.Expect(err).To(Not(HaveOccurred()))
 					g.Expect(result).To(BeNil())
@@ -94,7 +94,7 @@ func Test_mergeField(t *testing.T) {
 				result, err := mergeField(tc.old, tc.new, tc.allowChange)
 				switch {
 				case tc.expectErr:
-					g.Expect(err).To(Not(HaveOccurred()))
+					g.Expect(err).To(HaveOccurred())
 				case tc.expectVal == nil:
 					g.Expect(err).To(Not(HaveOccurred()))
 					g.Expect(result).To(BeNil())
@@ -128,7 +128,7 @@ func Test_mergeSliceField(t *testing.T) {
 				result, err := mergeSliceField(tc.old, tc.new, tc.allowChange)
 				switch {
 				case tc.expectErr:
-					g.Expect(err).To(Not(HaveOccurred()))
+					g.Expect(err).To(HaveOccurred())
 				case tc.expectVal == nil:
 					g.Expect(err).To(Not(HaveOccurred()))
 					g.Expect(result).To(BeNil())

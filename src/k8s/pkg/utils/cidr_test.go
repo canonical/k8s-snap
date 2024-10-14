@@ -66,7 +66,7 @@ func TestGetKubernetesServiceIPsFromServiceCIDRs(t *testing.T) {
 				g := NewWithT(t)
 				_, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(tc.cidr)
 
-				g.Expect(err).To(Not(HaveOccurred()))
+				g.Expect(err).To(HaveOccurred())
 			})
 		}
 	})
