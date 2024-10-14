@@ -1,6 +1,6 @@
 #!/bin/bash
-set -e
-
+set -ex
+token=""
 function download() {
     local architecture=$1
     local release=$(curl --silent -m 10 --connect-timeout 5 "https://api.github.com/repos/vmware-tanzu/sonobuoy/releases/latest")
@@ -11,20 +11,32 @@ function download() {
 }
 
 function create_container() {
-    local os=$1
-    lxc profile create k8s-e2e
-    cat tests/integration/lxd-profile.yaml | lxc profile edit k8s-e2e
-    lxc launch -p default -p k8s-e2e ${os} k8s-e2e
-    lxc config device add k8s-e2e repo disk source=${PWD} path=/repo/
+    local container_name=$1
+    local os=$2
+#    lxc profile create ${container_name}
+#    cat tests/integration/lxd-profile.yaml | lxc profile edit ${container_name}
+    lxc launch -p default -p ${container_name} ${os} ${container_name}
+    lxc config device add ${container_name} repo disk source=${PWD} path=/repo/
 }
 
 function setup_k8s() {
-    lxc exec k8s-e2e -- service snapd start
-    lxc exec k8s-e2e -- snap install /repo/k8s.snap --dangerous --classic
-    lxc exec k8s-e2e -- k8s bootstrap
-    lxc exec k8s-e2e -- k8s status --wait-ready
+    local container_name=$1
+    lxc exec ${container_name} -- service snapd start
+    lxc exec ${container_name} -- snap install /repo/k8s.snap --dangerous --classic
+    lxc exec ${container_name} -- k8s bootstrap
+    lxc exec ${container_name} -- k8s status --wait-ready
     mkdir -p ~/.kube
-    lxc exec k8s-e2e -- k8s config > ~/.kube/config
+    lxc exec ${container_name} -- k8s config >> ~/.kube/config
+    lxc exec ${container_name} -- k8s get-join-token worker
+}
+
+function add_k8s_node() {
+    local container_name=$1
+    local token=$2
+    lxc exec ${container_name} -- service snapd start
+    lxc exec ${container_name} -- snap install /repo/k8s.snap --dangerous --classic
+#    lxc exec ${container_name} -- k8s join-cluster ${token}
+#    lxc exec ${container_name} -- k8s status --wait-ready
 }
 
 function run_e2e() {
@@ -46,15 +58,20 @@ usage: $0 <architecture> <os>
 EOF
       exit 255
     fi
-
     local architecture=$1
     local os=$2
-
-    download ${architecture}
-    create_container ${os}
-    setup_k8s
-    run_e2e
-    exit $?
+    local main="main"
+    local fallow="fallow"
+#    download ${architecture}
+    for container_name in  ${main} ${fallow}; do
+        create_container ${container_name} ${os} &
+    done
+    wait
+    local token=$(setup_k8s ${main})
+    echo "token: $token"
+    add_k8s_node ${fallow}
+#    run_e2e
+#    exit $?
 }
 
 if [[ $sourced -ne 1 ]]; then
