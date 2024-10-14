@@ -64,8 +64,7 @@ func LoadRSAPublicKey(keyPEM string) (*rsa.PublicKey, error) {
 	if pb == nil {
 		return nil, fmt.Errorf("failed to parse PEM block")
 	}
-	switch pb.Type {
-	case "PUBLIC KEY":
+	if pb.Type == "PUBLIC KEY" {
 		parsed, err := x509.ParsePKIXPublicKey(pb.Bytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse public key: %w", err)
@@ -86,8 +85,7 @@ func LoadCertificateRequest(csrPEM string) (*x509.CertificateRequest, error) {
 	if pb == nil {
 		return nil, fmt.Errorf("failed to parse certificate request PEM")
 	}
-	switch pb.Type {
-	case "CERTIFICATE REQUEST":
+	if pb.Type == "CERTIFICATE REQUEST" {
 		parsed, err := x509.ParseCertificateRequest(pb.Bytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse certificate request: %w", err)

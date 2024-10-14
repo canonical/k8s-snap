@@ -25,15 +25,15 @@ func getFileOwnerAndGroup(filePath string) (uid, gid uint32, err error) {
 
 // ValidateRootOwnership checks if the specified path is owned by the root user and root group.
 func ValidateRootOwnership(path string) (err error) {
-	UID, GID, err := getFileOwnerAndGroup(path)
+	uid, gid, err := getFileOwnerAndGroup(path)
 	if err != nil {
 		return err
 	}
-	if UID != 0 {
-		return fmt.Errorf("owner of %s is user with UID %d expected 0", path, UID)
+	if uid != 0 {
+		return fmt.Errorf("owner of %s is user with UID %d expected 0", path, uid)
 	}
-	if GID != 0 {
-		return fmt.Errorf("owner of %s is group with GID %d expected 0", path, GID)
+	if gid != 0 {
+		return fmt.Errorf("owner of %s is group with GID %d expected 0", path, gid)
 	}
 	return nil
 }
