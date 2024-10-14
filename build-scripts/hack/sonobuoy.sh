@@ -56,7 +56,6 @@ EOF
     setup_k8s
     run_e2e
     exit $?
-
 }
 
 if [[ $sourced -ne 1 ]]; then
