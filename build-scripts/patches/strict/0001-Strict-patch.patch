@@ -257,6 +257,16 @@ index 54b5fc0b..01631684 100644
 +      load: "on-boot"
 +    - name: xt_socket
 +      load: "on-boot"
++  # Kube-proxy reads some values related to the nf_conntrack module
++  # from procfs on startup, so we must ensure it's loaded.
++  # Note that the 'iptable_nat' module which is automatically loaded
++  # by Cilium would load 'nf_conntrack' as a dependency anyway,
++  # but we add a separate explicit entry for it for safety.
++  conntrack-module-load:
++    interface: kernel-module-load
++    modules:
++    - name: nf_conntrack
++      load: "on-boot"
 +
 +hooks:
 +  remove:
