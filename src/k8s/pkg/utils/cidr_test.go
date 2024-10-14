@@ -101,6 +101,7 @@ func TestParseAddressString(t *testing.T) {
 		{name: "CIDR", address: networkAddressCIDR, port: 8080, want: fmt.Sprintf("%s:8080", defaultIPv4), wantErr: false},
 		{name: "CIDRAndPort", address: fmt.Sprintf("%s:9090", networkAddressCIDR), port: 8080, want: fmt.Sprintf("%s:9090", defaultIPv4), wantErr: false},
 		{name: "CIDR6Default", address: "::/0", port: 8080, want: fmt.Sprintf("[%s]:8080", defaultIPv6), wantErr: false},
+		{name: "CIDR6DefaultPort", address: "[::/0]:9090", port: 8080, want: fmt.Sprintf("[%s]:9090", defaultIPv6), wantErr: false},
 		{name: "CIDR6", address: networkAddressCIDR6, port: 8080, want: fmt.Sprintf("[%s]:8080", defaultIPv6), wantErr: false},
 		{name: "CIDR6AndPort", address: fmt.Sprintf("[%s]:9090", networkAddressCIDR6), port: 8080, want: fmt.Sprintf("[%s]:9090", defaultIPv6), wantErr: false},
 		{name: "IPv4", address: "10.0.0.10", port: 8080, want: "10.0.0.10:8080", wantErr: false},
