@@ -31,7 +31,7 @@ func TestCleanHostname(t *testing.T) {
 				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(hostname).To(Equal(tc.expectHostname))
 			} else {
-				g.Expect(err).To(Not(HaveOccurred()))
+				g.Expect(err).To(HaveOccurred())
 			}
 		})
 	}
