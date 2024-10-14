@@ -3,7 +3,6 @@ name: CNCF Conformance Nightly Latest/Edge Tests
 on:
   schedule:
     - cron: '0 0 * * 1' # Runs every monday midnight
-  pull_request:
 permissions:
   contents: read
 
