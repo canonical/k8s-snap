@@ -61,7 +61,7 @@ def test_dualstack(instances: List[harness.Instance]):
 
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.dualstack()
+@pytest.mark.network_type("dualstack")
 @pytest.mark.skipif(
     os.getenv("TEST_IPV6_ONLY") in ["false", None],
     reason="IPv6 is currently only supported for moonray/calico",
@@ -76,14 +76,14 @@ def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
     ).read_text()
 
     main.exec(
-        ["k8s", "bootstrap", "--file", "-"],
+        ["k8s", "bootstrap", "--file", "-", "--address", "::/0"],
         input=str.encode(ipv6_bootstrap_config),
     )
 
     join_token = util.get_join_token(main, joining_cp)
-    joining_cp.exec(["k8s", "join-cluster", join_token])
+    joining_cp.exec(["k8s", "join-cluster", join_token, "--address", "::/0"])
 
-    join_token_worker = util.get_join_token(main, joining_worker, "--worker")
+    join_token_worker = util.get_join_token(main, joining_worker, "--worker", "--address", "::/0")
     joining_worker.exec(
         ["k8s", "join-cluster", join_token_worker]
     )
@@ -130,7 +130,7 @@ def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
 
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.dualstack()
+@pytest.mark.network_type("dualstack")
 @pytest.mark.skipif(
     os.getenv("TEST_IPV6_ONLY") in ["false", None],
     reason="IPv6 is currently only supported for moonray/calico",
