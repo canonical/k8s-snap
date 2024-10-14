@@ -83,9 +83,9 @@ def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
     join_token = util.get_join_token(main, joining_cp)
     joining_cp.exec(["k8s", "join-cluster", join_token, "--address", "::/0"])
 
-    join_token_worker = util.get_join_token(main, joining_worker, "--worker", "--address", "::/0")
+    join_token_worker = util.get_join_token(main, joining_worker, "--worker")
     joining_worker.exec(
-        ["k8s", "join-cluster", join_token_worker]
+        ["k8s", "join-cluster", join_token_worker, "--address", "::/0"]
     )
 
     # Deploy nginx with ipv6 service
@@ -130,7 +130,7 @@ def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
 
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.network_type("dualstack")
+@pytest.mark.network_type("ipv6")
 @pytest.mark.skipif(
     os.getenv("TEST_IPV6_ONLY") in ["false", None],
     reason="IPv6 is currently only supported for moonray/calico",

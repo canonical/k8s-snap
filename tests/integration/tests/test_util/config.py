@@ -72,7 +72,7 @@ LXD_IPV6_PROFILE_NAME = (
 # LXD_IPV6_PROFILE is the profile to use for LXD containers with ipv6-only configured.
 LXD_IPV6_PROFILE = (
     os.getenv("TEST_LXD_IPV6_PROFILE")
-    or (DIR / ".." / ".." / "lxd-dualstack-profile.yaml").read_text()
+    or (DIR / ".." / ".." / "lxd-ipv6-profile.yaml").read_text()
 )
 
 # LXD_IMAGE is the image to use for LXD containers.

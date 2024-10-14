@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/lxd/lxd/util"
 	. "github.com/onsi/gomega"
 )
 
@@ -76,12 +75,20 @@ func TestParseAddressString(t *testing.T) {
 	g := NewWithT(t)
 
 	// Seed the default address
-	defaultAddress := util.NetworkInterfaceAddress()
-	ip := net.ParseIP(defaultAddress)
-	subnetMask := net.CIDRMask(24, 32)
-	networkAddress := ip.Mask(subnetMask)
+	defaultIPv4, defaultIPv6, err := utils.GetDefaultAddress()
+	g.Expect(err).ToNot(HaveOccurred())
+
+	ip4 := net.ParseIP(defaultIPv4)
+	subnetMask4 := net.CIDRMask(24, 32)
+	networkAddress4 := ip4.Mask(subnetMask4)
 	// Infer the CIDR notation
-	networkAddressCIDR := fmt.Sprintf("%s/24", networkAddress.String())
+	networkAddressCIDR := fmt.Sprintf("%s/24", networkAddress4.String())
+
+	ip6 := net.ParseIP(defaultIPv6)
+	subnetMask6 := net.CIDRMask(64, 128)
+	networkAddress6 := ip6.Mask(subnetMask6)
+	// Infer the CIDR notation
+	networkAddressCIDR6 := fmt.Sprintf("%s/64", networkAddress6.String())
 
 	for _, tc := range []struct {
 		name    string
@@ -90,9 +97,12 @@ func TestParseAddressString(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{name: "EmptyAddress", address: "", port: 8080, want: fmt.Sprintf("%s:8080", defaultAddress), wantErr: false},
-		{name: "CIDR", address: networkAddressCIDR, port: 8080, want: fmt.Sprintf("%s:8080", defaultAddress), wantErr: false},
-		{name: "CIDRAndPort", address: fmt.Sprintf("%s:9090", networkAddressCIDR), port: 8080, want: fmt.Sprintf("%s:9090", defaultAddress), wantErr: false},
+		{name: "EmptyAddress", address: "", port: 8080, want: fmt.Sprintf("%s:8080", defaultIPv4), wantErr: false},
+		{name: "CIDR", address: networkAddressCIDR, port: 8080, want: fmt.Sprintf("%s:8080", defaultIPv4), wantErr: false},
+		{name: "CIDRAndPort", address: fmt.Sprintf("%s:9090", networkAddressCIDR), port: 8080, want: fmt.Sprintf("%s:9090", defaultIPv4), wantErr: false},
+		{name: "CIDR6Default", address: "::/0", port: 8080, want: fmt.Sprintf("[%s]:8080", defaultIPv6), wantErr: false},
+		{name: "CIDR6", address: networkAddressCIDR6, port: 8080, want: fmt.Sprintf("[%s]:8080", defaultIPv6), wantErr: false},
+		{name: "CIDR6AndPort", address: fmt.Sprintf("[%s]:9090", networkAddressCIDR6), port: 8080, want: fmt.Sprintf("[%s]:9090", defaultIPv6), wantErr: false},
 		{name: "IPv4", address: "10.0.0.10", port: 8080, want: "10.0.0.10:8080", wantErr: false},
 		{name: "IPv4AndPort", address: "10.0.0.10:9090", port: 8080, want: "10.0.0.10:9090", wantErr: false},
 		{name: "NonMatchingCIDR", address: "10.10.5.0/24", port: 8080, want: "", wantErr: true},
@@ -102,6 +112,7 @@ func TestParseAddressString(t *testing.T) {
 		{name: "PortOutOfBounds", address: "10.0.0.10:70799", port: 8080, want: "", wantErr: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
 			got, err := utils.ParseAddressString(tc.address, tc.port)
 			if tc.wantErr {
 				g.Expect(err).To(HaveOccurred())
