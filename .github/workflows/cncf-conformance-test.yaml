@@ -3,6 +3,7 @@ name: CNCF Conformance Nightly Latest/Edge Tests
 on:
   schedule:
     - cron: '0 0 * * 1' # Runs every monday midnight
+  pull_request:
 permissions:
   contents: read
 
@@ -38,6 +39,7 @@ jobs:
 
       - name: Upload inspection report artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: report_sonobuoy_e2e_${{ github.os_dash }}_${{ matrix.arch }}
           path: sonobuoy_e2e
