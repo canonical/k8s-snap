@@ -66,9 +66,9 @@ func TestRestartDeployment(t *testing.T) {
 			if tc.expectError {
 				g.Expect(err).To(HaveOccurred())
 			} else {
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				deploy, err := client.AppsV1().Deployments("namespace").Get(context.Background(), "test", metav1.GetOptions{})
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(deploy.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"]).NotTo(BeEmpty())
 			}
 		})

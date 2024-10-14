@@ -16,21 +16,21 @@ func TestRemoveNodeByAddress(t *testing.T) {
 			client, err := dqlite.NewClient(ctx, dqlite.ClientOpts{
 				ClusterYAML: filepath.Join(dirs[0], "cluster.yaml"),
 			})
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(client).NotTo(BeNil())
 
 			members, err := client.ListMembers(ctx)
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(members).To(HaveLen(2))
 
 			memberToRemove := members[0].Address
 			if members[0].Role == dqlite.Voter {
 				memberToRemove = members[1].Address
 			}
-			g.Expect(client.RemoveNodeByAddress(ctx, memberToRemove)).To(BeNil())
+			g.Expect(client.RemoveNodeByAddress(ctx, memberToRemove)).To(Succeed())
 
 			members, err = client.ListMembers(ctx)
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(members).To(HaveLen(1))
 		})
 	})
@@ -41,11 +41,11 @@ func TestRemoveNodeByAddress(t *testing.T) {
 			client, err := dqlite.NewClient(ctx, dqlite.ClientOpts{
 				ClusterYAML: filepath.Join(dirs[0], "cluster.yaml"),
 			})
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(client).NotTo(BeNil())
 
 			members, err := client.ListMembers(ctx)
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(members).To(HaveLen(2))
 
 			memberToRemove := members[0]
@@ -61,7 +61,7 @@ func TestRemoveNodeByAddress(t *testing.T) {
 			g.Expect(client.RemoveNodeByAddress(ctx, memberToRemove.Address)).To(Succeed())
 
 			members, err = client.ListMembers(ctx)
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(members).To(HaveLen(1))
 			g.Expect(members[0].Role).To(Equal(dqlite.Voter))
 			g.Expect(members[0].Address).ToNot(Equal(memberToRemove.Address))

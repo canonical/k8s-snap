@@ -31,10 +31,10 @@ linters:
   - forcetypeassert
   # - funlen - TODO(ben): maybe consider later; needs some refactoring
   - gci
+  - ginkgolinter
 
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - ginkgolinter
 # - gocheckcompilerdirectives
 # - gochecknoglobals
 # - gochecknoinits

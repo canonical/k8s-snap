@@ -28,10 +28,10 @@ func TestCleanHostname(t *testing.T) {
 			g := NewWithT(t)
 			hostname, err := utils.CleanHostname(tc.hostname)
 			if tc.expectValid {
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(hostname).To(Equal(tc.expectHostname))
 			} else {
-				g.Expect(err).To(Not(BeNil()))
+				g.Expect(err).To(HaveOccurred())
 			}
 		})
 	}

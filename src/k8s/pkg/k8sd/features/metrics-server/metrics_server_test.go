@@ -107,7 +107,7 @@ func TestApplyMetricsServer(t *testing.T) {
 		}
 
 		status, err := metrics_server.ApplyMetricsServer(context.Background(), s, cfg, annotations)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(h.ApplyCalledWith).To(ConsistOf(HaveField("Values", HaveKeyWithValue("image", SatisfyAll(
 			HaveKeyWithValue("repository", "custom-image"),
 			HaveKeyWithValue("tag", "custom-tag"),

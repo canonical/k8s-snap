@@ -37,7 +37,7 @@ func TestKubeAPIServer(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Call the KubeAPIServer setup function with mock arguments
-		g.Expect(setup.KubeAPIServer(s, 6443, net.ParseIP("192.168.0.1"), "10.0.0.0/24", "https://auth-webhook.url", true, types.Datastore{Type: utils.Pointer("k8s-dqlite")}, "Node,RBAC", nil)).To(BeNil())
+		g.Expect(setup.KubeAPIServer(s, 6443, net.ParseIP("192.168.0.1"), "10.0.0.0/24", "https://auth-webhook.url", true, types.Datastore{Type: utils.Pointer("k8s-dqlite")}, "Node,RBAC", nil)).To(Succeed())
 
 		// Ensure the kube-apiserver arguments file has the expected arguments and values
 		tests := []struct {
@@ -78,7 +78,7 @@ func TestKubeAPIServer(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kube-apiserver", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(val).To(Equal(tc.expectedVal))
 			})
 		}
@@ -86,7 +86,7 @@ func TestKubeAPIServer(t *testing.T) {
 		// Ensure the kube-apiserver arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-apiserver"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("ArgsNoProxy", func(t *testing.T) {
@@ -96,7 +96,7 @@ func TestKubeAPIServer(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Call the KubeAPIServer setup function with mock arguments
-		g.Expect(setup.KubeAPIServer(s, 6443, net.ParseIP("192.168.0.1"), "10.0.0.0/24", "https://auth-webhook.url", false, types.Datastore{Type: utils.Pointer("k8s-dqlite")}, "Node,RBAC", nil)).To(BeNil())
+		g.Expect(setup.KubeAPIServer(s, 6443, net.ParseIP("192.168.0.1"), "10.0.0.0/24", "https://auth-webhook.url", false, types.Datastore{Type: utils.Pointer("k8s-dqlite")}, "Node,RBAC", nil)).To(Succeed())
 
 		// Ensure the kube-apiserver arguments file has the expected arguments and values
 		tests := []struct {
@@ -130,7 +130,7 @@ func TestKubeAPIServer(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kube-apiserver", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(val).To(Equal(tc.expectedVal))
 			})
 		}
@@ -138,7 +138,7 @@ func TestKubeAPIServer(t *testing.T) {
 		// Ensure the kube-apiserver arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-apiserver"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WithExtraArgs", func(t *testing.T) {
@@ -153,7 +153,7 @@ func TestKubeAPIServer(t *testing.T) {
 			"--my-extra-arg":     utils.Pointer("my-extra-val"),
 		}
 		// Call the KubeAPIServer setup function with mock arguments
-		g.Expect(setup.KubeAPIServer(s, 6443, net.ParseIP("192.168.0.1"), "10.0.0.0/24", "https://auth-webhook.url", true, types.Datastore{Type: utils.Pointer("k8s-dqlite")}, "Node,RBAC", extraArgs)).To(BeNil())
+		g.Expect(setup.KubeAPIServer(s, 6443, net.ParseIP("192.168.0.1"), "10.0.0.0/24", "https://auth-webhook.url", true, types.Datastore{Type: utils.Pointer("k8s-dqlite")}, "Node,RBAC", extraArgs)).To(Succeed())
 
 		// Ensure the kube-apiserver arguments file has the expected arguments and values
 		tests := []struct {
@@ -194,7 +194,7 @@ func TestKubeAPIServer(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "kube-apiserver", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(val).To(Equal(tc.expectedVal))
 			})
 		}
@@ -206,7 +206,7 @@ func TestKubeAPIServer(t *testing.T) {
 		// Ensure the kube-apiserver arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-apiserver"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 	t.Run("ArgsDualstack", func(t *testing.T) {
 		g := NewWithT(t)
@@ -214,7 +214,7 @@ func TestKubeAPIServer(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Setup without proxy to simplify argument list
-		g.Expect(setup.KubeAPIServer(s, 6443, net.ParseIP("192.168.0.1"), "10.0.0.0/24,fd01::/64", "https://auth-webhook.url", false, types.Datastore{Type: utils.Pointer("external"), ExternalServers: utils.Pointer([]string{"datastoreurl1", "datastoreurl2"})}, "Node,RBAC", nil)).To(BeNil())
+		g.Expect(setup.KubeAPIServer(s, 6443, net.ParseIP("192.168.0.1"), "10.0.0.0/24,fd01::/64", "https://auth-webhook.url", false, types.Datastore{Type: utils.Pointer("external"), ExternalServers: utils.Pointer([]string{"datastoreurl1", "datastoreurl2"})}, "Node,RBAC", nil)).To(Succeed())
 
 		g.Expect(snaputil.GetServiceArgument(s, "kube-apiserver", "--service-cluster-ip-range")).To(Equal("10.0.0.0/24,fd01::/64"))
 		_, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-apiserver"))
@@ -227,7 +227,7 @@ func TestKubeAPIServer(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeAPIServerMock)
 
 		// Setup without proxy to simplify argument list
-		g.Expect(setup.KubeAPIServer(s, 6443, net.ParseIP("192.168.0.1"), "10.0.0.0/24", "https://auth-webhook.url", false, types.Datastore{Type: utils.Pointer("external"), ExternalServers: utils.Pointer([]string{"datastoreurl1", "datastoreurl2"})}, "Node,RBAC", nil)).To(BeNil())
+		g.Expect(setup.KubeAPIServer(s, 6443, net.ParseIP("192.168.0.1"), "10.0.0.0/24", "https://auth-webhook.url", false, types.Datastore{Type: utils.Pointer("external"), ExternalServers: utils.Pointer([]string{"datastoreurl1", "datastoreurl2"})}, "Node,RBAC", nil)).To(Succeed())
 
 		g.Expect(snaputil.GetServiceArgument(s, "kube-apiserver", "--etcd-servers")).To(Equal("datastoreurl1,datastoreurl2"))
 		_, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-apiserver"))

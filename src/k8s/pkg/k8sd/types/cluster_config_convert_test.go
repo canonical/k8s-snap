@@ -187,7 +187,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 			g := NewWithT(t)
 
 			config, err := types.ClusterConfigFromBootstrapConfig(tc.bootstrap)
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(config).To(Equal(tc.expectConfig))
 		})
 	}

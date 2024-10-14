@@ -93,7 +93,7 @@ func TestClusterHasReadyNodes(t *testing.T) {
 
 			ready, err := client.HasReadyNodes(context.Background())
 
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(ready).To(Equal(tt.expectedReady))
 		})
 	}

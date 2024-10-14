@@ -28,7 +28,7 @@ func TestK8sDqlite(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setK8sDqliteMock)
 
 		// Call the K8sDqlite setup function with mock arguments
-		g.Expect(setup.K8sDqlite(s, "192.168.0.1:1234", []string{"192.168.0.1:1234"}, nil)).To(BeNil())
+		g.Expect(setup.K8sDqlite(s, "192.168.0.1:1234", []string{"192.168.0.1:1234"}, nil)).To(Succeed())
 
 		// Ensure the K8sDqlite arguments file has the expected arguments and values
 		tests := []struct {
@@ -42,7 +42,7 @@ func TestK8sDqlite(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "k8s-dqlite", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(val).To(Equal(tc.expectedVal))
 			})
 		}
@@ -50,7 +50,7 @@ func TestK8sDqlite(t *testing.T) {
 		// Ensure the K8sDqlite arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "k8s-dqlite"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WithExtraArgs", func(t *testing.T) {
@@ -65,7 +65,7 @@ func TestK8sDqlite(t *testing.T) {
 			"--storage-dir":  utils.Pointer("overridden-storage-dir"),
 		}
 		// Call the K8sDqlite setup function with mock arguments
-		g.Expect(setup.K8sDqlite(s, "192.168.0.1:1234", []string{"192.168.0.1:1234"}, extraArgs)).To(BeNil())
+		g.Expect(setup.K8sDqlite(s, "192.168.0.1:1234", []string{"192.168.0.1:1234"}, extraArgs)).To(Succeed())
 
 		// Ensure the K8sDqlite arguments file has the expected arguments and values
 		tests := []struct {
@@ -79,7 +79,7 @@ func TestK8sDqlite(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "k8s-dqlite", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(val).To(Equal(tc.expectedVal))
 			})
 		}
@@ -88,14 +88,14 @@ func TestK8sDqlite(t *testing.T) {
 		t.Run("--listen", func(t *testing.T) {
 			g := NewWithT(t)
 			val, err := snaputil.GetServiceArgument(s, "k8s-dqlite", "--listen")
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(val).To(BeZero())
 		})
 
 		// Ensure the K8sDqlite arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "k8s-dqlite"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("YAMLFileContents", func(t *testing.T) {
@@ -112,10 +112,10 @@ func TestK8sDqlite(t *testing.T) {
 			"192.168.0.3:1234",
 		}
 
-		g.Expect(setup.K8sDqlite(s, "192.168.0.1:1234", cluster, nil)).To(BeNil())
+		g.Expect(setup.K8sDqlite(s, "192.168.0.1:1234", cluster, nil)).To(Succeed())
 
 		b, err := os.ReadFile(filepath.Join(s.Mock.K8sDqliteStateDir, "init.yaml"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(string(b)).To(Equal(expectedYaml))
 	})
 
