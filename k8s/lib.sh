@@ -190,3 +190,11 @@ k8s::kubelet::ensure_shared_root_dir() {
     mount -o remount --make-rshared "$SNAP_COMMON/var/lib/kubelet" /var/lib/kubelet
   fi
 }
+
+# Loads the kernel module names given as arguments
+# Example: 'k8s::util::load_kernel_modules mod1 mod2 mod3'
+k8s::util::load_kernel_modules() {
+  k8s::common::setup_env
+
+  modprobe $@
+}
