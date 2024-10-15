@@ -84,9 +84,7 @@ def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
     joining_cp.exec(["k8s", "join-cluster", join_token, "--address", "::/0"])
 
     join_token_worker = util.get_join_token(main, joining_worker, "--worker")
-    joining_worker.exec(
-        ["k8s", "join-cluster", join_token_worker, "--address", "::/0"]
-    )
+    joining_worker.exec(["k8s", "join-cluster", join_token_worker, "--address", "::/0"])
 
     # Deploy nginx with ipv6 service
     ipv6_config = (config.MANIFESTS_DIR / "nginx-ipv6-only.yaml").read_text()
@@ -153,9 +151,7 @@ def test_ipv6_only_on_ipv6_infra(instances: List[harness.Instance]):
     joining_cp.exec(["k8s", "join-cluster", join_token])
 
     join_token_worker = util.get_join_token(main, joining_worker, "--worker")
-    joining_worker.exec(
-        ["k8s", "join-cluster", join_token_worker]
-    )
+    joining_worker.exec(["k8s", "join-cluster", join_token_worker])
 
     # Deploy nginx with ipv6 service
     ipv6_config = (config.MANIFESTS_DIR / "nginx-ipv6-only.yaml").read_text()

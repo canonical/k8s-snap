@@ -133,7 +133,7 @@ def bootstrap_config(request) -> Union[str, None]:
 def network_type(request) -> Union[str, None]:
     bootstrap_config_marker = request.node.get_closest_marker("network_type")
     if not bootstrap_config_marker:
-        return None
+        return "IPv4"
     network_type, *_ = bootstrap_config_marker.args
     return network_type
 

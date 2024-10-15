@@ -87,7 +87,9 @@ class LXDHarness(Harness):
         ]
 
         if network_type.lower() not in ["ipv4", "dualstack", "ipv6"]:
-            raise HarnessError(f"unknown network type {network_type}, need to be one of 'IPv4', 'IPv6', 'dualstack'")
+            raise HarnessError(
+                f"unknown network type {network_type}, need to be one of 'IPv4', 'IPv6', 'dualstack'"
+            )
 
         if network_type.lower() == "dualstack":
             launch_lxd_command.extend(["-p", self.dualstack_profile])
