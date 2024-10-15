@@ -85,7 +85,7 @@ Create an audit-policy.yaml file under `/var/snap/k8s/common/etc/` and specify
 the level of auditing you desire based on the [upstream instructions][]. Here is 
 a minimal example of such a policy file.
 
-```sh
+```
 sudo sh -c 'cat >/var/snap/k8s/common/etc/audit-policy.yaml <<EOL
 # Log all requests at the Metadata level.
 apiVersion: audit.k8s.io/v1
@@ -97,7 +97,7 @@ EOL'
 
 Enable auditing at the API server level by adding the following arguments.
 
-```sh
+```
 sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
 --audit-log-path=/var/log/apiserver/audit.log
 --audit-log-maxage=30
@@ -119,7 +119,7 @@ Create a configuration file with the [rate limits][] and place it under
 `/var/snap/k8s/common/etc/`.
 For example:
 
-```sh
+```
 sudo sh -c 'cat >/var/snap/k8s/common/etc/eventconfig.yaml <<EOL
 apiVersion: eventratelimit.admission.k8s.io/v1alpha1
 kind: Configuration
@@ -132,7 +132,7 @@ EOL'
 
 Create an admissions control config file under `/var/k8s/snap/common/etc/` .
 
-```sh
+```
 sudo sh -c 'cat >/var/snap/k8s/common/etc/admission-control-config-file.yaml <<EOL
 apiVersion: apiserver.config.k8s.io/v1
 kind: AdmissionConfiguration
@@ -145,13 +145,13 @@ EOL'
 Make sure the EventRateLimit admission plugin is loaded in the 
 `/var/snap/k8s/common/args/kube-apiserver` .
 
-```sh
+```
 --enable-admission-plugins=...,EventRateLimit,...
 ```
 
 Load the admission control config file.
 
-```sh
+```
 sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
 --admission-control-config-file=/var/snap/k8s/common/etc/admission-control-config-file.yaml
 EOL'
@@ -168,7 +168,7 @@ sudo systemctl restart snap.k8s.kube-apiserver
 Make sure the AlwaysPullImages admission plugin is loaded in the 
 `/var/snap/k8s/common/args/kube-apiserver`
 
-```sh
+```
 --enable-admission-plugins=...,AlwaysPullImages,...
 ```
 
@@ -185,7 +185,7 @@ sudo systemctl restart snap.k8s.kube-apiserver
 Kubelet will not start if it finds kernel configurations incompatible with its
  defaults.
 
-```sh
+```
 sudo sh -c 'cat >>/var/snap/k8s/common/args/kubelet <<EOL
 --protect-kernel-defaults=true
 EOL'
@@ -229,7 +229,7 @@ sudo -E kube-bench --version ck8s-dqlite-cis-1.24  --config-dir ./kube-bench-ck8
 Verify that there are no checks failed for control or worker nodes in any of 
 the sets, including the dqlite specific checks in the output.
 
-```sh
+```
 [INFO] 1 Control Plane Security Configuration
 ...
 [PASS] 1.1.7 Ensure that the dqlite configuration file permissions are set to 644 or more restrictive (Automated)
