@@ -10,17 +10,12 @@ linters:
   disable-all: true
   enable:
   - gosimple
+  - asasalint
+  - asciicheck
+  - bidichk
+  - bodyclose
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - errcheck
-# - govet
-# - ineffassign
-# - staticcheck
-# - unused
-# - asasalint
-# - asciicheck
-# - bidichk
-# - bodyclose
 # - canonicalheader
 # - containedctx
 # - contextcheck
@@ -33,6 +28,7 @@ linters:
 # - dupword
 # - durationcheck
 # - err113
+# - errcheck
 # - errchkjson
 # - errname
 # - errorlint
@@ -63,9 +59,11 @@ linters:
 # - goprintffuncname
 # - gosec
 # - gosmopolitan
+# - govet
 # - grouper
 # - importas
 # - inamedparam
+# - ineffassign
 # - interfacebloat
 # - intrange
 # - ireturn
@@ -98,6 +96,7 @@ linters:
 # - sloglint
 # - spancheck
 # - sqlclosecheck
+# - staticcheck
 # - stylecheck
 # - tagalign
 # - tagliatelle
@@ -109,6 +108,7 @@ linters:
 # - tparallel
 # - unconvert
 # - unparam
+# - unused
 # - usestdlibvars
 # - varnamelen
 # - wastedassign
