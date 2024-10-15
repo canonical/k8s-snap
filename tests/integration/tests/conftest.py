@@ -147,7 +147,7 @@ def instances(
     no_setup: bool,
     bootstrap_config: Union[str, None],
     request,
-    network_type: bool,
+    network_type: str,
 ) -> Generator[List[harness.Instance], None, None]:
     """Construct instances for a cluster.
 

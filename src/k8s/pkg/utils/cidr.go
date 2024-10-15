@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -77,6 +78,19 @@ func GetKubernetesServiceIPsFromServiceCIDRs(serviceCIDR string) ([]net.IP, erro
 
 // ParseAddressString parses an address string and returns a canonical network address.
 func ParseAddressString(address string, port int64) (string, error) {
+	re := regexp.MustCompile(`^\[?([a-z0-9:.]+\/[0-9]+)\]?`)
+	cidrMatches := re.FindStringSubmatch(address)
+	if len(cidrMatches) != 0 {
+		// Resolve CIDR
+		if _, ipNet, err := net.ParseCIDR(cidrMatches[1]); err == nil {
+			matchingIP, err := findMatchingNodeAddress(ipNet)
+			if err != nil {
+				return "", fmt.Errorf("failed to find a matching node address for %q: %w", address, err)
+			}
+			address = strings.ReplaceAll(address, cidrMatches[1], matchingIP.String())
+		}
+	}
+
 	host, hostPort, err := net.SplitHostPort(address)
 	if err == nil {
 		address = host
@@ -92,15 +106,9 @@ func ParseAddressString(address string, port int64) (string, error) {
 
 	if address == "" {
 		address = util.NetworkInterfaceAddress()
-	} else if _, ipNet, err := net.ParseCIDR(address); err == nil {
-		matchingIP, err := findMatchingNodeAddress(ipNet)
-		if err != nil {
-			return "", fmt.Errorf("failed to find a matching node address for %q: %w", address, err)
-		}
-		address = matchingIP.String()
 	}
 
-	return util.CanonicalNetworkAddress(address, port), nil
+	return net.JoinHostPort(address, fmt.Sprintf("%d", port)), nil
 }
 
 // GetDefaultAddress returns the default IPv4 and IPv6 addresses of the host.

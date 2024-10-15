@@ -1,6 +1,7 @@
 package utils_test
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"testing"
@@ -97,10 +98,13 @@ func TestParseAddressString(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{name: "EmptyAddress", address: "", port: 8080, want: fmt.Sprintf("%s:8080", defaultIPv4), wantErr: false},
-		{name: "CIDR", address: networkAddressCIDR, port: 8080, want: fmt.Sprintf("%s:8080", defaultIPv4), wantErr: false},
+		{name: "CIDR6LinkLocalPort", address: "[::/0%eth0]:9090", port: 8080, want: fmt.Sprintf("[%s%%eth0]:9090", defaultIPv6), wantErr: false},
 		{name: "CIDRAndPort", address: fmt.Sprintf("%s:9090", networkAddressCIDR), port: 8080, want: fmt.Sprintf("%s:9090", defaultIPv4), wantErr: false},
+		{name: "CIDR", address: networkAddressCIDR, port: 8080, want: fmt.Sprintf("%s:8080", defaultIPv4), wantErr: false},
+		{name: "EmptyAddress", address: "", port: 8080, want: fmt.Sprintf("%s:8080", defaultIPv4), wantErr: false},
+		{name: "CIDR6LinkLocalDefault", address: "::/0%eth0", port: 8080, want: fmt.Sprintf("[%s%%eth0]:8080", defaultIPv6), wantErr: false},
 		{name: "CIDR6Default", address: "::/0", port: 8080, want: fmt.Sprintf("[%s]:8080", defaultIPv6), wantErr: false},
+		{name: "CIDR6DefaultPort", address: "[::/0]:9090", port: 8080, want: fmt.Sprintf("[%s]:9090", defaultIPv6), wantErr: false},
 		{name: "CIDR6DefaultPort", address: "[::/0]:9090", port: 8080, want: fmt.Sprintf("[%s]:9090", defaultIPv6), wantErr: false},
 		{name: "CIDR6", address: networkAddressCIDR6, port: 8080, want: fmt.Sprintf("[%s]:8080", defaultIPv6), wantErr: false},
 		{name: "CIDR6AndPort", address: fmt.Sprintf("[%s]:9090", networkAddressCIDR6), port: 8080, want: fmt.Sprintf("[%s]:9090", defaultIPv6), wantErr: false},
@@ -108,6 +112,8 @@ func TestParseAddressString(t *testing.T) {
 		{name: "IPv4AndPort", address: "10.0.0.10:9090", port: 8080, want: "10.0.0.10:9090", wantErr: false},
 		{name: "NonMatchingCIDR", address: "10.10.5.0/24", port: 8080, want: "", wantErr: true},
 		{name: "IPv6", address: "fe80::1:234", port: 8080, want: "[fe80::1:234]:8080", wantErr: false},
+		{name: "IPv6Zone", address: "fe80::1:234%eth0", port: 8080, want: "[fe80::1:234%eth0]:8080", wantErr: false},
+		{name: "IPv6ZoneAndPort", address: "[fe80::1:234%eth0]:9090", port: 8080, want: "[fe80::1:234%eth0]:9090", wantErr: false},
 		{name: "IPv6AndPort", address: "[fe80::1:234]:9090", port: 8080, want: "[fe80::1:234]:9090", wantErr: false},
 		{name: "InvalidPort", address: "127.0.0.1:invalid-port", port: 0, want: "", wantErr: true},
 		{name: "PortOutOfBounds", address: "10.0.0.10:70799", port: 8080, want: "", wantErr: true},
@@ -216,4 +222,35 @@ func TestToIPString(t *testing.T) {
 			g.Expect(result).To(Equal(tc.expected))
 		})
 	}
+}
+
+// getInterfaceNameForIP returns the network interface name associated with the given IP.
+func getInterfaceNameForIP(ip net.IP) (string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+
+	for _, iface := range interfaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return "", err
+		}
+
+		for _, addr := range addrs {
+			var ipAddr net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ipAddr = v.IP
+			case *net.IPAddr:
+				ipAddr = v.IP
+			}
+
+			if ipAddr.Equal(ip) {
+				return iface.Name, nil
+			}
+		}
+	}
+
+	return "", errors.New("no interface found for the given IP")
 }
