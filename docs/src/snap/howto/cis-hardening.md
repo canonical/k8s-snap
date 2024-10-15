@@ -79,6 +79,8 @@ Benchmark.
 
 ### Control plane nodes
 
+Run the following commands on your control plane nodes.
+
 #### Configure auditing
 
 Create an audit-policy.yaml file under `/var/snap/k8s/common/etc/` and specify 
@@ -179,6 +181,8 @@ sudo systemctl restart snap.k8s.kube-apiserver
 ```
 
 ### Worker nodes
+
+Run the following commands on your worker nodes.
 
 #### Protect kernel defaults
 
