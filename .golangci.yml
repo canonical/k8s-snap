@@ -14,9 +14,9 @@ linters:
   - asciicheck
   - bidichk
   - bodyclose
+  - canonicalheader
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - canonicalheader
 # - containedctx
 # - contextcheck
 # - copyloopvar
