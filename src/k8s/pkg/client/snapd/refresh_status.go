@@ -17,6 +17,7 @@ func (c *Client) GetRefreshStatus(changeID string) (*types.RefreshStatus, error)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapd change status: %w", err)
 	}
+	defer resp.Body.Close()
 
 	resBody, err := io.ReadAll(resp.Body)
 	if err != nil {

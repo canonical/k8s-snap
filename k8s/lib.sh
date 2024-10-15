@@ -60,17 +60,25 @@ k8s::remove::containers() {
   # delete cni network namespaces
   ip netns list | cut -f1 -d' ' | grep -- "^cni-" | xargs -n1 -r -t ip netns delete || true
 
-  # unmount NFS volumes forcefully, as unmounting them normally may hang otherwise.
+  # unmount Pod NFS volumes forcefully, as unmounting them normally may hang otherwise.
   cat /proc/mounts | grep /run/containerd/io.containerd. | grep "nfs[34]" | cut -f2 -d' ' | xargs -r -t umount -f || true
   cat /proc/mounts | grep /var/lib/kubelet/pods | grep "nfs[34]" | cut -f2 -d' ' | xargs -r -t umount -f || true
 
-  # unmount volumes
+  # unmount Pod volumes gracefully.
   cat /proc/mounts | grep /run/containerd/io.containerd. | cut -f2 -d' ' | xargs -r -t umount || true
   cat /proc/mounts | grep /var/lib/kubelet/pods | cut -f2 -d' ' | xargs -r -t umount || true
 
-  # umount lingering volumes by force, to prevent potential volume leaks.
+  # unmount lingering Pod volumes by force, to prevent potential volume leaks.
   cat /proc/mounts | grep /run/containerd/io.containerd. | cut -f2 -d' ' | xargs -r -t umount -f || true
   cat /proc/mounts | grep /var/lib/kubelet/pods | cut -f2 -d' ' | xargs -r -t umount -f || true
+
+  # unmount various volumes exposed by CSI plugin drivers.
+  cat /proc/mounts | grep /var/lib/kubelet/plugins | cut -f2 -d' ' | xargs -r -t umount -f || true
+
+  # remove kubelet plugin sockets, as we don't have the containers associated with them anymore,
+  # so kubelet won't try to access inexistent plugins on reinstallation.
+  find /var/lib/kubelet/plugins/ -name "*.sock" | xargs rm -f || true
+  rm /var/lib/kubelet/plugins_registry/*.sock || true
 }
 
 # Run a ctr command against the local containerd socket

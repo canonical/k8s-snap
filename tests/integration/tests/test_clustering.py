@@ -33,6 +33,31 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
     ), f"only {cluster_node.id} should be left in cluster"
 
 
+@pytest.mark.node_count(2)
+@pytest.mark.snap_versions([util.previous_track(config.SNAP), config.SNAP])
+def test_mixed_version_join(instances: List[harness.Instance]):
+    """Test n versioned node joining a n-1 versioned cluster."""
+    cluster_node = instances[0]  # bootstrapped on the previous channel
+    joining_node = instances[1]  # installed with the snap under test
+
+    join_token = util.get_join_token(cluster_node, joining_node)
+    util.join_cluster(joining_node, join_token)
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "node should have joined cluster"
+
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_node)
+
+    cluster_node.exec(["k8s", "remove-node", joining_node.id])
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 1, "node should have been removed from cluster"
+    assert (
+        nodes[0]["metadata"]["name"] == cluster_node.id
+    ), f"only {cluster_node.id} should be left in cluster"
+
+
 @pytest.mark.node_count(3)
 def test_worker_nodes(instances: List[harness.Instance]):
     cluster_node = instances[0]

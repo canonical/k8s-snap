@@ -14,6 +14,7 @@ require (
 	github.com/onsi/gomega v1.32.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/spf13/cobra v1.8.1
+	golang.org/x/mod v0.20.0
 	golang.org/x/net v0.28.0
 	golang.org/x/sync v0.8.0
 	golang.org/x/sys v0.24.0

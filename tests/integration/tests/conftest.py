@@ -1,9 +1,10 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import itertools
 import logging
 from pathlib import Path
-from typing import Generator, List, Union
+from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
 from test_util import config, harness, util
@@ -86,7 +87,8 @@ def pytest_configure(config):
         "no_setup: No setup steps (pushing snap, bootstrapping etc.) are performed on any node for this test.\n"
         "dualstack: Support dualstack on the instances.\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
-        "node_count: Mark a test to specify how many instance nodes need to be created\n",
+        "node_count: Mark a test to specify how many instance nodes need to be created\n"
+        "snap_versions: Mark a test to specify snap_versions for each node\n",
     )
 
 
@@ -97,6 +99,15 @@ def node_count(request) -> int:
         return 1
     node_count_arg, *_ = node_count_marker.args
     return int(node_count_arg)
+
+
+def snap_versions(request) -> Iterator[Optional[str]]:
+    """An endless iterable of snap versions for each node in the test."""
+    marking = ()
+    if snap_version_marker := request.node.get_closest_marker("snap_versions"):
+        marking, *_ = snap_version_marker.args
+    # endlessly repeat of the configured snap version after exhausting the marking
+    return itertools.chain(marking, itertools.repeat(None))
 
 
 @pytest.fixture(scope="function")
@@ -132,28 +143,24 @@ def instances(
     no_setup: bool,
     bootstrap_config: Union[str, None],
     dualstack: bool,
+    request,
 ) -> Generator[List[harness.Instance], None, None]:
     """Construct instances for a cluster.
 
     Bootstrap and setup networking on the first instance, if `disable_k8s_bootstrapping` marker is not set.
     """
-    if not config.SNAP:
-        pytest.fail("Set TEST_SNAP to the path where the snap is")
-
     if node_count <= 0:
         pytest.xfail("Test requested 0 or fewer instances, skip this test.")
-
-    snap_path = (tmp_path / "k8s.snap").as_posix()
 
     LOG.info(f"Creating {node_count} instances")
     instances: List[harness.Instance] = []
 
-    for _ in range(node_count):
+    for _, snap in zip(range(node_count), snap_versions(request)):
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(dualstack=dualstack)
         instances.append(instance)
         if not no_setup:
-            util.setup_k8s_snap(instance, snap_path)
+            util.setup_k8s_snap(instance, tmp_path, snap)
 
     if not disable_k8s_bootstrapping and not no_setup:
         first_node, *_ = instances
@@ -186,7 +193,7 @@ def instances(
 
 @pytest.fixture(scope="session")
 def session_instance(
-    h: harness.Harness, tmp_path_factory: pytest.TempPathFactory
+    h: harness.Harness, tmp_path_factory: pytest.TempPathFactory, request
 ) -> Generator[harness.Instance, None, None]:
     """Constructs and bootstraps an instance that persists over a test session.
 
@@ -194,9 +201,10 @@ def session_instance(
     """
     LOG.info("Setup node and enable all features")
 
-    snap_path = str(tmp_path_factory.mktemp("data") / "k8s.snap")
+    tmp_path = tmp_path_factory.mktemp("data")
     instance = h.new_instance()
-    util.setup_k8s_snap(instance, snap_path)
+    snap = next(snap_versions(request))
+    util.setup_k8s_snap(instance, tmp_path, snap)
 
     bootstrap_config_path = "/home/ubuntu/bootstrap-session.yaml"
     instance.send_file(

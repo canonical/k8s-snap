@@ -28,13 +28,15 @@ To check the current configuration of the load-balancer, run the following:
 ```
 sudo k8s get load-balancer
 ```
+
 This should output a list of values like this:
 
 
 - `cidrs` - a list containing [cidr] or IP address range definitions of the
   pool of IP addresses to use
 - `l2-mode` - whether L2 mode (failover) is turned on
-- `l2-interfaces` - optional list of interfaces to announce services over (defaults to all)
+- `l2-interfaces` - optional list of interfaces to announce services over
+  (defaults to all)
 - `bgp-mode` - whether BGP mode is active.
 - `bgp-local-asn` - the local Autonomous System Number (ASN)
 - `bgp-peer-address` - the peer address
@@ -47,7 +49,8 @@ These values are configured using the `k8s set`command, e.g.:
 sudo k8s set load-balancer.l2-mode=true
 ```
 
-Note that for the BGP mode, it is necessary to set ***all*** the values simultaneously. E.g.
+Note that for the BGP mode, it is necessary to set ***all*** the values
+simultaneously. E.g.
 
 ```
 sudo k8s set load-balancer.bgp-mode=true load-balancer.bgp-local-asn=64512 load-balancer.bgp-peer-address=10.0.10.55/32 load-balancer.bgp-peer-asn=64512 load-balancer.bgp-peer-port=7012

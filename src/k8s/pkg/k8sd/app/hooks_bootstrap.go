@@ -120,8 +120,8 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	if err != nil {
 		return fmt.Errorf("failed to prepare HTTP request: %w", err)
 	}
-	httpRequest.Header.Add("worker-name", s.Name())
-	httpRequest.Header.Add("worker-token", token.Secret)
+	httpRequest.Header.Add("Worker-Name", s.Name())
+	httpRequest.Header.Add("Worker-Token", token.Secret)
 
 	httpResponse, err := httpClient.Do(httpRequest)
 	if err != nil {

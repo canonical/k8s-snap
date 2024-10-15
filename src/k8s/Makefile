@@ -7,6 +7,13 @@ go.fmt:
 	go mod tidy
 	go fmt ./...
 
+go.lint:
+ifeq (, $(shell which golangci-lint))
+	echo "golangci-lint not found, installing it"
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
+endif
+	golangci-lint run
+
 go.vet:
 	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-vet.sh ./...
 
@@ -14,7 +21,7 @@ go.unit:
 	$(DQLITE_BUILD_SCRIPTS_DIR)/static-go-test.sh -v ./pkg/... ./cmd/... -coverprofile=coverage.txt --cover
 
 go.doc: bin/static/k8s
-	bin/static/k8s generate-docs --output-dir ../../docs/src/_parts/commands/
+	bin/static/k8s generate-docs --output-dir ../../docs/src/_parts/ --project-dir .
 
 ## Static Builds
 static: bin/static/k8s bin/static/k8sd bin/static/k8s-apiserver-proxy

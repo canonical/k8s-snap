@@ -6,11 +6,13 @@ import logging
 import re
 import shlex
 import subprocess
+import urllib.request
 from datetime import datetime
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable, List, Mapping, Optional, Union
 
+import pytest
 from tenacity import (
     RetryCallState,
     retry,
@@ -22,6 +24,8 @@ from tenacity import (
 from test_util import config, harness
 
 LOG = logging.getLogger(__name__)
+RISKS = ["stable", "candidate", "beta", "edge"]
+TRACK_RE = re.compile(r"^(\d+)\.(\d+)(\S*)$")
 
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
@@ -128,12 +132,50 @@ def stubbornly(
     return Retriable()
 
 
-# Installs and setups the k8s snap on the given instance and connects the interfaces.
-def setup_k8s_snap(instance: harness.Instance, snap_path: Path):
-    LOG.info("Install k8s snap")
-    instance.send_file(config.SNAP, snap_path)
-    instance.exec(["snap", "install", snap_path, "--classic", "--dangerous"])
+def _as_int(value: Optional[str]) -> Optional[int]:
+    """Convert a string to an integer."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
+
+def setup_k8s_snap(
+    instance: harness.Instance, tmp_path: Path, snap: Optional[str] = None
+):
+    """Installs and sets up the snap on the given instance and connects the interfaces.
+
+    Args:
+        instance:   instance on which to install the snap
+        tmp_path:   path to store the snap on the instance
+        snap: choice of track, channel, revision, or file path
+            a snap track to install
+            a snap channel to install
+            a snap revision to install
+            a path to the snap to install
+    """
+    cmd = ["snap", "install", "--classic"]
+    which_snap = snap or config.SNAP
+
+    if not which_snap:
+        pytest.fail("Set TEST_SNAP to the channel, revision, or path to the snap")
+
+    if isinstance(which_snap, str) and which_snap.startswith("/"):
+        LOG.info("Install k8s snap by path")
+        snap_path = (tmp_path / "k8s.snap").as_posix()
+        instance.send_file(which_snap, snap_path)
+        cmd += ["--dangerous", snap_path]
+    elif snap_revision := _as_int(which_snap):
+        LOG.info("Install k8s snap by revision")
+        cmd += [config.SNAP_NAME, "--revision", snap_revision]
+    elif "/" in which_snap or which_snap in RISKS:
+        LOG.info("Install k8s snap by specific channel: %s", which_snap)
+        cmd += [config.SNAP_NAME, "--channel", which_snap]
+    elif channel := tracks_least_risk(which_snap, instance.arch):
+        LOG.info("Install k8s snap by least risky channel: %s", channel)
+        cmd += [config.SNAP_NAME, "--channel", channel]
+
+    instance.exec(cmd)
     LOG.info("Ensure k8s interfaces and network requirements")
     instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
 
@@ -294,3 +336,95 @@ def is_valid_rfc3339(date_str):
         return True
     except ValueError:
         return False
+
+
+def tracks_least_risk(track: str, arch: str) -> str:
+    """Determine the snap channel with the least risk in the provided track.
+
+    Args:
+        track: the track to determine the least risk channel for
+        arch: the architecture to narrow the revision
+
+    Returns:
+        the channel associated with the least risk
+    """
+    LOG.debug("Determining least risk channel for track: %s on %s", track, arch)
+    if track == "latest":
+        return f"latest/edge/{config.FLAVOR or 'classic'}"
+
+    INFO_URL = f"https://api.snapcraft.io/v2/snaps/info/{config.SNAP_NAME}"
+    HEADERS = {
+        "Snap-Device-Series": "16",
+        "User-Agent": "Mozilla/5.0",
+    }
+
+    req = urllib.request.Request(INFO_URL, headers=HEADERS)
+    with urllib.request.urlopen(req) as response:
+        snap_info = json.loads(response.read().decode())
+
+    risks = [
+        channel["channel"]["risk"]
+        for channel in snap_info["channel-map"]
+        if channel["channel"]["track"] == track
+        and channel["channel"]["architecture"] == arch
+    ]
+    if not risks:
+        raise ValueError(f"No risks found for track: {track}")
+    risk_level = {"stable": 0, "candidate": 1, "beta": 2, "edge": 3}
+    channel = f"{track}/{min(risks, key=lambda r: risk_level[r])}"
+    LOG.info("Least risk channel from track %s is %s", track, channel)
+    return channel
+
+
+def previous_track(snap_version: str) -> str:
+    """Determine the snap track preceding the provided version.
+
+    Args:
+        snap_version: the snap version to determine the previous track for
+
+    Returns:
+        the previous track
+    """
+    LOG.debug("Determining previous track for %s", snap_version)
+
+    def _maj_min(version: str):
+        if match := TRACK_RE.match(version):
+            maj, min, _ = match.groups()
+            return int(maj), int(min)
+        return None
+
+    if not snap_version:
+        assumed = "latest"
+        LOG.info(
+            "Cannot determine previous track for undefined snap -- assume %s",
+            snap_version,
+            assumed,
+        )
+        return assumed
+
+    if snap_version.startswith("/") or _as_int(snap_version) is not None:
+        assumed = "latest"
+        LOG.info(
+            "Cannot determine previous track for %s -- assume %s", snap_version, assumed
+        )
+        return assumed
+
+    if maj_min := _maj_min(snap_version):
+        maj, min = maj_min
+        if min == 0:
+            with urllib.request.urlopen(
+                f"https://dl.k8s.io/release/stable-{maj - 1}.txt"
+            ) as r:
+                stable = r.read().decode().strip()
+                maj_min = _maj_min(stable)
+        else:
+            maj_min = (maj, min - 1)
+    elif snap_version.startswith("latest") or "/" not in snap_version:
+        with urllib.request.urlopen("https://dl.k8s.io/release/stable.txt") as r:
+            stable = r.read().decode().strip()
+            maj_min = _maj_min(stable)
+
+    flavor_track = {"": "classic", "strict": ""}.get(config.FLAVOR, config.FLAVOR)
+    track = f"{maj_min[0]}.{maj_min[1]}" + (flavor_track and f"-{flavor_track}")
+    LOG.info("Previous track for %s is from track: %s", snap_version, track)
+    return track
