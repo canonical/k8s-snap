@@ -5,11 +5,11 @@ matrix:
     d: en_GB
   dictionary:
     wordlists:
-    - .wordlist.txt
-    - .custom_wordlist.txt
+    - src/.wordlist.txt
+    - src/.custom_wordlist.txt
     output: .sphinx/.wordlist.dic
   sources:
-  - _build/**/*.html
+  - ../_build/**/*.html
   pipeline:
   - pyspelling.filters.html:
       comments: false
