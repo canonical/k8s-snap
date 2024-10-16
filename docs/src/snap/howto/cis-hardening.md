@@ -182,7 +182,9 @@ sudo systemctl restart snap.k8s.kube-apiserver
 
 ### Worker nodes
 
-Run the following commands on your worker nodes.
+Run the following commands on your worker nodes. If you are running a 
+single node cluster, you will need to run both the control plane
+and worker node hardening steps on the same node.
 
 #### Protect kernel defaults
 
