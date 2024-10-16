@@ -1,6 +1,7 @@
 #!/bin/bash
 set -ex
-token=""
+# /home/maciek/canon/k8s-snap/build-scripts/hack/sonobuoy.sh sdf ubuntu:24.04
+
 function download() {
     local architecture=$1
     local release=$(curl --silent -m 10 --connect-timeout 5 "https://api.github.com/repos/vmware-tanzu/sonobuoy/releases/latest")
@@ -27,16 +28,16 @@ function setup_k8s() {
     lxc exec ${container_name} -- k8s status --wait-ready
     mkdir -p ~/.kube
     lxc exec ${container_name} -- k8s config >> ~/.kube/config
-    lxc exec ${container_name} -- k8s get-join-token worker
+    export token=$(lxc exec ${container_name} -- k8s get-join-token second)
 }
 
 function add_k8s_node() {
     local container_name=$1
-    local token=$2
+    local token1=$2
     lxc exec ${container_name} -- service snapd start
     lxc exec ${container_name} -- snap install /repo/k8s.snap --dangerous --classic
-#    lxc exec ${container_name} -- k8s join-cluster ${token}
-#    lxc exec ${container_name} -- k8s status --wait-ready
+    lxc exec ${container_name} -- k8s join-cluster ${token1}
+    lxc exec ${container_name} -- k8s status --wait-ready
 }
 
 function run_e2e() {
@@ -65,11 +66,12 @@ EOF
 #    download ${architecture}
     for container_name in  ${main} ${fallow}; do
         create_container ${container_name} ${os} &
+#        create_container ${container_name} ${os}
     done
     wait
-    local token=$(setup_k8s ${main})
+    setup_k8s ${main}
     echo "token: $token"
-    add_k8s_node ${fallow}
+    add_k8s_node ${fallow} ${token}
 #    run_e2e
 #    exit $?
 }
