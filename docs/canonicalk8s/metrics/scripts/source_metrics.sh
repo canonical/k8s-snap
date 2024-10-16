@@ -11,14 +11,14 @@ readabilityAverage=0
 readable=true
 
 # measure number of files (.rst and .md), excluding those in .sphinx dir
-files=$(find . -type d -path './.sphinx' -prune -o -type f \( -name '*.md' -o -name '*.rst' \) -print | wc -l)
+files=$(find . -type d -path './.sphinx/src' -prune -o -type f \( -name '*.md' -o -name '*.rst' \) -print | wc -l)
 
 # calculate metrics only if source files are present
 if [ "$files" -eq 0 ]; then
     echo "There are no source files to calculate metrics"
 else
     # measure raw total number of words, excluding those in .sphinx dir
-    words=$(find . -type d -path './.sphinx' -prune -o \( -name '*.md' -o -name '*.rst' \) -exec cat {} + | wc -w)
+    words=$(find . -type d -path './.sphinx/src' -prune -o \( -name '*.md' -o -name '*.rst' \) -exec cat {} + | wc -w)
 
     # calculate readability for markdown source files
     echo "Activating virtual environment to run vale..."
