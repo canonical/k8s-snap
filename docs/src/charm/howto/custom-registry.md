@@ -26,7 +26,7 @@ For example, to configure the charm to use a custom registry at
 `mypassword`, set the `containerd_custom_registries` configuration option as
 follows:
 
-```bash
+```
 juju config k8s containerd_custom_registries='[{
     "url": "http://myregistry.example.com:5000",
     "host": "myregistry.example.com:5000",
@@ -39,7 +39,7 @@ Allow the charm to apply the configuration changes and wait for Juju to
 indicate that the changes have been successfully applied. You can monitor the
 progress by running:
 
-```bash
+```
 juju status --watch 2s
 ```
 
@@ -53,21 +53,21 @@ For example, to create a new workload using the `nginx:latest` image that you
 have previously pushed to the `myregistry.example.com:5000` registry, run the
 following command:
 
-```bash
+```
 kubectl run nginx --image=myregistry.example.com:5000/nginx:latest
 ```
 
 To confirm that the image has been pulled from the custom registry and that the
 workload is running, use the following command:
 
-```bash
-kubectl get pod nginx -o jsonpath='{.spec.containers[*].image}{"->"}{.status.containerStatuses[*].ready}
+```
+kubectl get pod nginx -o jsonpath='{.spec.containers[*].image}{"->"}{.status.containerStatuses[*].ready}'
 ```
 
 The output should indicate that the image was pulled from the custom registry
 and that the workload is running.
 
-```bash
+```
 myregistry.example.com:5000/nginx:latest->true
 ```
 
