@@ -20,6 +20,7 @@ etcd
 proxy
 cos-lite
 contribute
+custom-registry
 
 ```
 
