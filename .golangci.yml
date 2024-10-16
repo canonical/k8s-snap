@@ -16,14 +16,11 @@ linters:
   - bodyclose
   - canonicalheader
   - copyloopvar
+  - decorder
+  - dogsled
+  - dupword
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - cyclop
-# - decorder
-# - depguard
-# - dogsled
-# - dupl
-# - dupword
 # - durationcheck
 # - err113
 # - errcheck
@@ -329,10 +326,4 @@ issues:
       linters: [ gocritic ]
     - path: "_test\\.go"
       linters:
-        - bodyclose
-        - dupl
-        - funlen
-        - goconst
-        - gosec
-        - noctx
-        - wrapcheck
+        - dupword
