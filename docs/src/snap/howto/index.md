@@ -19,6 +19,7 @@ networking/index
 storage/index
 external-datastore
 proxy
+compliance/index
 backup-restore
 refresh-certs
 restore-quorum
