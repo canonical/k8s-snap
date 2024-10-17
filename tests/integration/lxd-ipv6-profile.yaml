@@ -1,0 +1,7 @@
+description: "LXD profile for Canonical Kubernetes with IPv6-only networking"
+devices:
+  eth0:
+    name: eth0
+    nictype: bridged
+    parent: LXD_IPV6_NETWORK
+    type: nic

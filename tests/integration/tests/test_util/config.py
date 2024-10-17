@@ -61,6 +61,20 @@ LXD_DUALSTACK_PROFILE = (
     or (DIR / ".." / ".." / "lxd-dualstack-profile.yaml").read_text()
 )
 
+# LXD_IPV6_NETWORK is the network to use for LXD containers with ipv6-only configured.
+LXD_IPV6_NETWORK = os.getenv("TEST_LXD_IPV6_NETWORK") or "ipv6-br0"
+
+# LXD_IPV6_PROFILE_NAME is the profile name to use for LXD containers with ipv6-only configured.
+LXD_IPV6_PROFILE_NAME = (
+    os.getenv("TEST_LXD_IPV6_PROFILE_NAME") or "k8s-integration-ipv6"
+)
+
+# LXD_IPV6_PROFILE is the profile to use for LXD containers with ipv6-only configured.
+LXD_IPV6_PROFILE = (
+    os.getenv("TEST_LXD_IPV6_PROFILE")
+    or (DIR / ".." / ".." / "lxd-ipv6-profile.yaml").read_text()
+)
+
 # LXD_IMAGE is the image to use for LXD containers.
 LXD_IMAGE = os.getenv("TEST_LXD_IMAGE") or "ubuntu:22.04"
 
