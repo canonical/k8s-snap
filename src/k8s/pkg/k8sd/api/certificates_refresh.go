@@ -143,10 +143,17 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
 
-		if err := <-readyCh; err != nil {
-			log.Error(err, "Failed to refresh certificates")
+		select {
+		case err := <-readyCh:
+			if err != nil {
+				log.Error(err, "Failed to refresh certificates")
+				return
+			}
+		case <-ctx.Done():
+			log.Error(ctx.Err(), "Timeout waiting for certificates to be refreshed")
 			return
 		}
+
 		if err := snaputil.RestartControlPlaneServices(ctx, snap); err != nil {
 			log.Error(err, "Failed to restart control plane services")
 		}
@@ -336,10 +343,17 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
 
-		if err := <-readyCh; err != nil {
-			log.Error(err, "Failed to refresh certificates")
+		select {
+		case err := <-readyCh:
+			if err != nil {
+				log.Error(err, "Failed to refresh certificates")
+				return
+			}
+		case <-ctx.Done():
+			log.Error(ctx.Err(), "Timeout waiting for certificates to be refreshed")
 			return
 		}
+
 		if err := snap.RestartService(ctx, "kubelet"); err != nil {
 			log.Error(err, "Failed to restart kubelet")
 		}

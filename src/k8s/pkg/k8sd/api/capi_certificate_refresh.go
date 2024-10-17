@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/microcluster/v3/state"
 	"golang.org/x/sync/errgroup"
 	certv1 "k8s.io/api/certificates/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -18,12 +19,12 @@ import (
 // 1. The CAPI provider calls the /x/capi/refresh-certs/plan endpoint from a
 // worker node, which generates a CSR and creates a CertificateSigningRequest
 // object in the cluster.
-// 2. The CAPI provider then calls the /k8sd/refresh-certs/plan endpoint with
+// 2. The CAPI provider then calls the /k8sd/refresh-certs/run endpoint with
 // the seed. This endpoint waits until the CSR is approved and the certificate
 // is signed. Note that this is a blocking call.
 // 3. The CAPI provider calls the /x/capi/refresh-certs/approve endpoint from
 // any control plane node to approve the CSR.
-// 4. The /x/capi/refresh-certs/plan endpoint completes and returns once the
+// 4. The /x/capi/refresh-certs/run endpoint completes and returns once the
 // certificate is approved and signed.
 func (e *Endpoints) postApproveWorkerCSR(s state.State, r *http.Request) response.Response {
 	snap := e.provider.Snap()
@@ -61,7 +62,7 @@ func (e *Endpoints) postApproveWorkerCSR(s state.State, r *http.Request) respons
 				func(request *certv1.CertificateSigningRequest) (bool, error) {
 					request.Status.Conditions = append(request.Status.Conditions, certv1.CertificateSigningRequestCondition{
 						Type:           certv1.CertificateApproved,
-						Status:         "True",
+						Status:         corev1.ConditionTrue,
 						Reason:         "ApprovedByCK8sCAPI",
 						Message:        "This CSR was approved by the Canonical Kubernetes CAPI Provider",
 						LastUpdateTime: metav1.Now(),
