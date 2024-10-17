@@ -54,7 +54,6 @@ func (e *Endpoints) postApproveWorkerCSR(s state.State, r *http.Request) respons
 	}
 
 	for _, csrName := range csrNames {
-		csrName := csrName
 		g.Go(func() error {
 			if err := client.WatchCertificateSigningRequest(
 				ctx,
