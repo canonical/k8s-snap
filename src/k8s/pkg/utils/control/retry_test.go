@@ -42,7 +42,7 @@ func TestRetryFor(t *testing.T) {
 			return errors.New("failed")
 		})
 
-		if err != context.Canceled {
+		if !errors.Is(err, context.Canceled) {
 			t.Errorf("Expected context.Canceled error, got: %v", err)
 		}
 	})

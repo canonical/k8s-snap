@@ -36,7 +36,7 @@ func (c *Client) HasReadyNodes(ctx context.Context) (bool, error) {
 	nodes, err := c.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 
 	if err != nil {
-		return false, fmt.Errorf("failed to list nodes: %v", err)
+		return false, fmt.Errorf("failed to list nodes: %w", err)
 	}
 
 	for _, node := range nodes.Items {

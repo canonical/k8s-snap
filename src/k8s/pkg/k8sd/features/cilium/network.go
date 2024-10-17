@@ -52,7 +52,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 
 	ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	if err != nil {
-		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", err)
+		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
