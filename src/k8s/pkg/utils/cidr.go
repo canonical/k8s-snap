@@ -78,6 +78,8 @@ func GetKubernetesServiceIPsFromServiceCIDRs(serviceCIDR string) ([]net.IP, erro
 
 // ParseAddressString parses an address string and returns a canonical network address.
 func ParseAddressString(address string, port int64) (string, error) {
+	// Matches a CIDR block at the beginning of the address string
+	// e.g. [2001:db8::/32]:8080
 	re := regexp.MustCompile(`^\[?([a-z0-9:.]+\/[0-9]+)\]?`)
 	cidrMatches := re.FindStringSubmatch(address)
 	if len(cidrMatches) != 0 {
@@ -116,7 +118,7 @@ func GetDefaultAddress() (ipv4, ipv6 string, err error) {
 	// Get a list of network interfaces.
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("failed to get network interfaces: %w", err)
 	}
 
 	// Loop through each network interface
