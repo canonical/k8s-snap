@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 ARCH = platform.machine()
 ARCH_MAP = {"aarch64": "arm64", "x86_64": "amd64"}
 SONOBUOY_VERSION = "v0.57.2"
-SONOBUOY_TAR_GZ = f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1: ]}_linux_{ARCH_MAP.get(ARCH)}.tar.gz"
+SONOBUOY_TAR_GZ = f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1: ]}_linux_{ARCH_MAP.get(ARCH)}.tar.gz"  # noqa
 
 
 @pytest.mark.skipif(
@@ -33,7 +33,7 @@ def test_cncf_conformance(instances: List[harness.Instance]):
     assert resp.returncode == 0
 
     resp = cluster_node.exec(
-        ["./sonobuoy", "run", "--plugin", "e2e", "--wait", "--mode", "quick"],
+        ["./sonobuoy", "run", "--plugin", "e2e", "--wait"],
         capture_output=True,
     )
     assert resp.returncode == 0
@@ -93,8 +93,6 @@ def pull_report(instance: harness.Instance):
 
 
 def install_sonobuoy(instance: harness.Instance):
-
-    # Download cilium-cli
     instance.exec(["curl", "-L", SONOBUOY_TAR_GZ, "-o", "sonobuoy.tar.gz"])
     instance.exec(["tar", "xvzf", "sonobuoy.tar.gz"])
     instance.exec(["./sonobuoy", "version"])
