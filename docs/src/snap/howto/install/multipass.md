@@ -26,7 +26,7 @@ Multipass is shipped as a snap for Ubuntu and other OSes which support the
 Windows users should download and install the Multipass installer from the
 website. 
 
-The [latest Window version][] is available to download,
+The [latest Windows version][] is available to download,
 though you may wish to visit the [Multipass website][] for more details.
 
 
