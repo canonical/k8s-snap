@@ -6,6 +6,10 @@ from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
 
+# The following defaults are used to define how long to wait for a condition to be met.
+DEFAULT_WAIT_RETRIES = os.getenv("TEST_DEFAULT_WAIT_RETRIES") or 30
+DEFAULT_WAIT_DELAY_S = os.getenv("TEST_DEFAULT_WAIT_DELAY_S") or 5
+
 MANIFESTS_DIR = DIR / ".." / ".." / "templates"
 
 # ETCD_DIR contains all templates required to setup an etcd database.

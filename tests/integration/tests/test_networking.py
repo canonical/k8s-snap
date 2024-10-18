@@ -123,7 +123,9 @@ def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
         )
 
     # This might take a while
-    util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(main) == 3)
+    util.stubbornly(retries=config.DEFAULT_WAIT_RETRIES, delay_s=20).until(
+        util.ready_nodes(main) == 3
+    )
 
 
 @pytest.mark.node_count(3)
@@ -190,4 +192,6 @@ def test_ipv6_only_on_ipv6_infra(instances: List[harness.Instance]):
         )
 
     # This might take a while
-    util.stubbornly(retries=30, delay_s=20).until(util.ready_nodes(main) == 3)
+    util.stubbornly(retries=config.DEFAULT_WAIT_RETRIES, delay_s=20).until(
+        util.ready_nodes(main) == 3
+    )
