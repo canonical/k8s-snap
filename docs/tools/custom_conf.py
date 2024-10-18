@@ -41,7 +41,7 @@ html_title = 'Canonical K8s'
 #   -H 'Accept: application/vnd.github.v3.raw' \
 #   https://api.github.com/repos/canonical/<REPO> | jq '.created_at'
 
-copyright = '%s, %s' % (datetime.date.today().year, author)
+copyright = '%s CC-BY-SA, %s' % (datetime.date.today().year, author)
 
 ## Open Graph configuration - defines what is displayed as a link preview
 ## when linking to the documentation from another website (see https://ogp.me/)
@@ -89,7 +89,7 @@ html_context = {
 
     # Change to the folder that contains the documentation
     # (usually "/" or "/docs/")
-    'github_folder': '/docs/',
+    'github_folder': '/docs/src/',
 
     # Change to an empty value if your GitHub repo doesn't have issues enabled.
     # This will disable the feedback button and the issue link in the footer.
@@ -100,7 +100,12 @@ html_context = {
     # You can override the default setting on a page-by-page basis by specifying
     # it as file-wide metadata at the top of the file, see
     # https://www.sphinx-doc.org/en/master/usage/restructuredtext/field-lists.html
-    'sequential_nav': "none"
+    'sequential_nav': "none",
+    # Controls if to display the contributors of a file or not
+    "display_contributors": True,
+
+    # Controls time frame for showing the contributors
+    "display_contributors_since": ""
 }
 
 # If your project is on documentation.ubuntu.com, specify the project
@@ -144,7 +149,31 @@ custom_extensions = ['sphinxcontrib.kroki',  ]
 
 # Add MyST extensions
 custom_myst_extensions = []
+# Add custom Sphinx extensions as needed.
+# This array contains recommended extensions that should be used.
+# NOTE: The following extensions are handled automatically and do
+# not need to be added here: myst_parser, sphinx_copybutton, sphinx_design,
+# sphinx_reredirects, sphinxcontrib.jquery, sphinxext.opengraph
+custom_extensions = [
+    'sphinx_tabs.tabs',
+    'canonical.youtube-links',
+    'canonical.related-links',
+    'canonical.custom-rst-roles',
+    'canonical.terminal-output',
+    'notfound.extension',
+    'sphinxcontrib.cairosvgconverter',
+    ]
 
+# Add custom required Python modules that must be added to the
+# .sphinx/requirements.txt file.
+# NOTE: The following modules are handled automatically and do not need to be
+# added here: canonical-sphinx-extensions, furo, linkify-it-py, myst-parser,
+# pyspelling, sphinx, sphinx-autobuild, sphinx-copybutton, sphinx-design,
+# sphinx-notfound-page, sphinx-reredirects, sphinx-tabs, sphinxcontrib-jquery,
+# sphinxext-opengraph
+custom_required_modules = [
+    'sphinxcontrib-svg2pdfconverter[CairoSVG]'
+]
 # Add files or directories that should be excluded from processing.
 custom_excludes = [
     'doc-cheat-sheet*',
@@ -186,4 +215,6 @@ highlight_language = 'none'
 rst_prolog = '''
 .. role:: center
    :class: align-center
+.. role:: h2
+    :class: hclass2
 '''

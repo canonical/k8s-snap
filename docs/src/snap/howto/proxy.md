@@ -5,7 +5,7 @@ to fetch resources they expect to find on the internet. In a constrained
 network environment, such access is usually controlled through proxies.
 
 To set up a proxy using squid follow the
-[how-to-install-a-squid-server][squid] tutorial.
+[How to install a Squid server][squid] tutorial.
 
 ## Adding proxy configuration for the k8s snap
 
@@ -37,19 +37,21 @@ Environment="no_proxy=10.0.0.0/8,10.152.183.1,192.168.0.0/16,127.0.0.1,172.16.0.
 
 Note that you may need to restart for these settings to take effect.
 
-```{note} The **10.152.183.0/24** CIDR needs to be covered in the juju-no-proxy
-   list as it is the Kubernetes service CIDR. Without this any pods will not be 
-   able to reach the cluster's kubernetes-api. You should also exclude the range
-   used by pods (which defaults to **10.1.0.0/16**) and any required
-   local networks.
+
+```{note} Include the CIDR **10.152.183.0/24** in both the
+`no_proxy` and `NO_PROXY` environment variables, as it's the default Kubernetes
+service CIDR. If you are using a different service CIDR, update this setting
+accordingly. This ensures pods can access the cluster's Kubernetes API Server.
+Also, include the default pod range (**10.1.0.0/16**) and any local networks
+needed.
 ```
 
 ## Adding proxy configuration for the k8s charms
 
 Proxy configuration is handled by Juju when deploying the `k8s` charms. Please
-see the [documentation for adding proxy configuration via Juju].
+see the [documentation for adding proxy configuration via Juju][juju-proxy].
 
 <!-- LINKS -->
 
-[documentation for adding proxy configuration via Juju]: /charm/howto/proxy
+[juju-proxy]: /charm/howto/proxy
 [squid]: https://ubuntu.com/server/docs/how-to-install-a-squid-server

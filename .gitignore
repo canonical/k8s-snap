@@ -21,3 +21,5 @@ k8s_*.txt
 /docs/tools/.sphinx/.wordlist.dic
 /docs/tools/.sphinx/.doctrees/
 /docs/tools/.sphinx/node_modules
+/docs/tools/.sphinx/styles/*
+/docs/tools/.sphinx/vale.ini

@@ -24,6 +24,7 @@ refresh-certs
 restore-quorum
 two-node-ha
 epa
+cis-hardening
 contribute
 support
 ```
