@@ -31,7 +31,7 @@ var (
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
 	if !network.GetEnabled() {
@@ -50,6 +50,16 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 		}, nil
 	}
 
+	config, err := internalConfig(annotations)
+	if err != nil {
+		err = fmt.Errorf("failed to parse annotations: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+		}, err
+	}
+
 	ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	if err != nil {
 		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", err)
@@ -61,6 +71,9 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 	}
 
 	values := map[string]any{
+		"bpf": map[string]any{
+			"vlanBypass": config.vlanBPFBypass,
+		},
 		"image": map[string]any{
 			"repository": ciliumAgentImageRepo,
 			"tag":        CiliumAgentImageTag,
