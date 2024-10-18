@@ -183,8 +183,8 @@ def setup_k8s_snap(
 def wait_until_k8s_ready(
     control_node: harness.Instance,
     instances: List[harness.Instance],
-    retries: int = 30,
-    delay_s: int = 5,
+    retries: int = config.DEFAULT_WAIT_RETRIES,
+    delay_s: int = config.DEFAULT_WAIT_DELAY_S,
     node_names: Mapping[str, str] = {},
 ):
     """
