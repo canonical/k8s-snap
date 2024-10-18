@@ -26,13 +26,13 @@ their issuance.
 | **Common Name**                            | **Purpose** | **File Location**  | **Primary Function**            | **Signed By**               |
 |--------------------------------------------|-----------|------------------------------------------------------|------------------------------------------------------------------|-----------------------------|
 | `kube-apiserver`                           | Server    | `/etc/kubernetes/pki/apiserver.crt`                  | Securing the API server endpoint                                 | `kubernetes-ca`             |
-| `apiserver-kubelet-client`            | Client    | `/etc/kubernetes/pki/apiserver-kubelet-client.crt`   | API server communication with kubelets                           | `kubernetes-ca-client`      |
+| `apiserver-kubelet-client`            | Client    | `/etc/kubernetes/pki/apiserver-kubelet-client.crt`   | API server communication with kubelet                           | `kubernetes-ca-client`      |
 | `kube-apiserver-etcd-client`               | Client    | `/etc/kubernetes/pki/apiserver-etcd-client.crt`      | API server communication with etcd                               | `kubernetes-ca-client`      |
 | `front-proxy-client`                       | Client    | `/etc/kubernetes/pki/front-proxy-client.crt`         | API server communication with the front-proxy                    | `kubernetes-front-proxy-ca` |
 | `system:kube-controller-manager`                  | Client    | `/etc/kubernetes/pki/controller-manager.crt`         | Communication between the controller manager and the API server  | `kubernetes-ca-client`      |
 | `system:kube-scheduler`                           | Client    | `/etc/kubernetes/pki/scheduler.crt`                  | Communication between the scheduler and the API server           | `kubernetes-ca-client`      |
 | `system:kube-proxy`                               | Client    | `/etc/kubernetes/pki/proxy.crt`                      | Communication between kube-proxy and the API server              | `kubernetes-ca-client`      |
-| `system:node:$hostname`                    | Client    | `/etc/kubernetes/pki/kubelet-client.crt`             | Authentication of kubelets to the API server                     | `kubernetes-ca-client`      |
+| `system:node:$hostname`                    | Client    | `/etc/kubernetes/pki/kubelet-client.crt`             | Authentication of kubelet to the API server                     | `kubernetes-ca-client`      |
 | `k8s-dqlite`                               | Client    | `/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt`| Communication between k8s-dqlite nodes and API server            | `self-signed`               |
 | `root@$hostname`                          | Client    | `/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt`             | Communication between k8sd nodes | `self-signed`      |
 

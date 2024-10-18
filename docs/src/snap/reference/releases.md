@@ -18,7 +18,7 @@ Currently {{product}} is working towards general availability, but you
 can install it now to try:
 
 - **Clustering** - need high availability or just an army of worker nodes?
-  {{product}} is emminently scaleable, see the [tutorial on adding
+  {{product}} is eminently scalable, see the [tutorial on adding
   more nodes][nodes]. 
 - **Networking** - Our built-in network component allows cluster administrators
   to automatically scale and secure network policies across the cluster. Find

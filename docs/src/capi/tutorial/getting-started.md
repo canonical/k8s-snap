@@ -170,7 +170,7 @@ provision.
 
 You can generate a cluster manifest for a selected set of commonly used
 infrastructures via templates provided by the {{product}} team.
-Ensure you have initialized the desired infrastructure provider and fetch
+Ensure you have initialised the desired infrastructure provider and fetch
 the {{product}} provider repository:
 
 ```
