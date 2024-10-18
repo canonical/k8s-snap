@@ -31,7 +31,7 @@ func getStructTypeFromDoc(packageDoc *doc.Package, structName string) (*ast.Stru
 		}
 		typeSpec, err := findTypeSpec(docType.Decl, docType.Name)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to find type spec: %v", err)
 		}
 		if typeSpec == nil {
 			continue
@@ -88,12 +88,12 @@ func getPackageDoc(packagePath string, projectDir string) (*doc.Package, error) 
 
 	packageDir, err := getGoPackageDir(packagePath, projectDir)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't retrieve package dir, error: %w", err)
+		return nil, fmt.Errorf("failed to retrieve package dir: %w", err)
 	}
 
 	pkg, err := parsePackageDir(packageDir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse package dir: %w", err)
 	}
 
 	packageDoc = doc.New(pkg, packageDir, doc.AllDecls|doc.PreserveAST)
@@ -107,12 +107,12 @@ func getFieldDocstring(i any, field reflect.StructField, projectDir string) (str
 
 	packageDoc, err := getPackageDoc(inType.PkgPath(), projectDir)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to retrieve package doc: %w", err)
 	}
 
 	structType, err := getStructTypeFromDoc(packageDoc, inType.Name())
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to retrieve struct type: %w", err)
 	}
 	if structType == nil {
 		return "", fmt.Errorf("could not find %s structure definition", inType.Name())
@@ -120,7 +120,7 @@ func getFieldDocstring(i any, field reflect.StructField, projectDir string) (str
 
 	astField, err := getAstStructField(structType, field.Name)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to retrieve struct field: %w", err)
 	}
 	if astField == nil {
 		return "", fmt.Errorf("could not find %s.%s field definition", inType.Name(), field.Name)
