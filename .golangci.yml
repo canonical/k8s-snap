@@ -28,10 +28,10 @@ linters:
   - exhaustive
   - fatcontext
   - forbidigo
+  - forcetypeassert
 
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - forcetypeassert
 # - funlen
 # - gci
 # - ginkgolinter
@@ -328,3 +328,4 @@ issues:
       linters:
         - dupword
         - err113
+        - forcetypeassert
