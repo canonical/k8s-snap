@@ -3,6 +3,9 @@ name: Nightly Latest/Edge Tests
 on:
   schedule:
     - cron: '0 0 * * *' # Runs every midnight
+  push:
+    branches:
+      - KU-1813/strict-interfaces-test
 
 permissions:
   contents: read
@@ -63,3 +66,24 @@ jobs:
         if: ${{ failure() && github.event_name == 'pull_request' }}
         uses: mxschmitt/action-tmate@v3
         timeout-minutes: 10
+
+  test-strict-interfaces:
+    name: Strict Interfaces Test ${{ matrix.release }} ${{ matrix.arch }}
+    strategy:
+      matrix:
+        os: ["ubuntu:20.04"]
+        arch: ["amd64", "arm64"]
+        release: ["1.31/edge", "1.30/edge"]
+      fail-fast: false # TODO: remove once arm64 works
+
+    runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-20.04' }}
+
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+      - name: Install strict snap
+        run: |
+          sudo snap install k8s --channel=${{ matrix.release }}
+      - name: Run strict interfaces test
+        run: |
+          ./tests/strict/check-interfaces-connected.sh
