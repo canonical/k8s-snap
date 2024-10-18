@@ -26,7 +26,6 @@ declare -a INTERFACES=(
   home-read-all
   login-session-observe
   log-observe
-  hi
 )
 
 for if in "${INTERFACES[@]}"; do
