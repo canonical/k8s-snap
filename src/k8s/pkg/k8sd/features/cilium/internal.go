@@ -11,10 +11,8 @@ import (
 )
 
 const (
-	// maxVLANTags is the maximum number of VLAN tags that can be configured
-	maxVLANTags = 5
 	// minVLANIDValue is the minimum valid 802.1Q VLAN ID value
-	minVLANIDValue = 1
+	minVLANIDValue = 0
 	// maxVLANIDValue is the maximum valid 802.1Q VLAN ID value
 	maxVLANIDValue = 4094
 )
@@ -31,15 +29,6 @@ func validateVLANBPFBypass(vlanList string) ([]int, error) {
 	vlanList = strings.Trim(vlanList, "{}")
 	vlans := strings.Split(vlanList, ",")
 
-	// Special case: wildcard "0" allows all VLANs
-	if len(vlans) == 1 && strings.TrimSpace(vlans[0]) == "0" {
-		return []int{0}, nil
-	}
-
-	if len(vlans) > maxVLANTags {
-		return []int{}, fmt.Errorf("the VLAN tag list cannot contain more than %d entries unless '0' is used to allow all VLANs", maxVLANTags)
-	}
-
 	vlanTags := make([]int, 0, len(vlans))
 	seenTags := make(map[int]struct{})
 
@@ -53,7 +42,7 @@ func validateVLANBPFBypass(vlanList string) ([]int, error) {
 		}
 
 		if _, ok := seenTags[vlanID]; ok {
-			return []int{}, fmt.Errorf("VLAN tag %d is duplicated", vlanID)
+			continue
 		}
 		seenTags[vlanID] = struct{}{}
 		vlanTags = append(vlanTags, vlanID)
@@ -66,19 +55,20 @@ func validateVLANBPFBypass(vlanList string) ([]int, error) {
 func internalConfig(annotations types.Annotations) (config, error) {
 	c := config{}
 
-	if v, ok := annotations[apiv1_annotations.AnnotationVLANBPFBypass]; ok {
-		vlanTags, err := validateVLANBPFBypass(v)
-		if err != nil {
-			return config{}, fmt.Errorf("failed to parse VLAN BPF bypass list: %w", err)
-		}
-		c.vlanBPFBypass = vlanTags
-	}
 	if v, ok := annotations.Get(apiv1_annotations.AnnotationDevices); ok {
 		c.devices = v
 	}
 
 	if v, ok := annotations.Get(apiv1_annotations.AnnotationDirectRoutingDevice); ok {
 		c.directRoutingDevice = v
+	}
+
+	if v, ok := annotations[apiv1_annotations.AnnotationVLANBPFBypass]; ok {
+		vlanTags, err := validateVLANBPFBypass(v)
+		if err != nil {
+			return config{}, fmt.Errorf("failed to parse VLAN BPF bypass list: %w", err)
+		}
+		c.vlanBPFBypass = vlanTags
 	}
 
 	return c, nil

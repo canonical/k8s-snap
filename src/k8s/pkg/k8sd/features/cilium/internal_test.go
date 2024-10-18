@@ -69,13 +69,6 @@ func TestInternalConfig(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name: "Too many VLANs",
-			annotations: map[string]string{
-				apiv1_annotations.AnnotationVLANBPFBypass: "1,2,3,4,5,6",
-			},
-			expectError: true,
-		},
-		{
 			name: "Invalid VLAN tag format",
 			annotations: map[string]string{
 				apiv1_annotations.AnnotationVLANBPFBypass: "abc",
@@ -101,7 +94,10 @@ func TestInternalConfig(t *testing.T) {
 			annotations: map[string]string{
 				apiv1_annotations.AnnotationVLANBPFBypass: "1,2,2,3",
 			},
-			expectError: true,
+			expectedConfig: config{
+				vlanBPFBypass: []int{1, 2, 3},
+			},
+			expectError: false,
 		},
 		{
 			name: "Mixed spaces and commas",
@@ -127,7 +123,7 @@ func TestInternalConfig(t *testing.T) {
 			expectError:    false,
 		},
 		{
-			name: "With curly braces",
+			name: "VLAN with curly braces",
 			annotations: map[string]string{
 				apiv1_annotations.AnnotationVLANBPFBypass: "{1,2,3}",
 			},
