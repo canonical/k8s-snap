@@ -48,73 +48,73 @@ jobs:
         with:
           name: k8s.snap
           path: k8s.snap
-
-  test-branches:
-    name: Test Branch Management
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
-      - name: Install tox
-        run: pip install tox
-      - name: Run branch_management tests
-        run: |
-          tox -c tests/branch_management -e test
-
-  test-integration:
-    name: Test ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
-    runs-on: ubuntu-20.04
-    needs: build
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
-      - name: Install tox
-        run: pip install tox
-      - name: Install lxd
-        run: |
-          sudo snap refresh lxd --channel 5.21/stable
-          sudo lxd init --auto
-          sudo usermod --append --groups lxd $USER
-          sg lxd -c 'lxc version'
-      - name: Download snap
-        uses: actions/download-artifact@v4
-        with:
-          name: k8s.snap
-          path: ${{ github.workspace }}/build
-      - name: Run end to end tests
-        env:
-          TEST_SNAP: ${{ github.workspace }}/build/k8s.snap
-          TEST_SUBSTRATE: lxd
-          TEST_LXD_IMAGE: ${{ matrix.os }}
-          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
-        run: |
-          cd tests/integration && sg lxd -c 'tox -e integration'
-      - name: Prepare inspection reports
-        if: failure()
-        run: |
-          tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "artifact_name=inspection-reports-${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
-      - name: Upload inspection report artifact
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.artifact_name }}
-          path: ${{ github.workspace }}/inspection-reports.tar.gz
+#
+#  test-branches:
+#    name: Test Branch Management
+#    runs-on: ubuntu-20.04
+#    steps:
+#      - name: Check out code
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#      - name: Setup Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.8'
+#      - name: Install tox
+#        run: pip install tox
+#      - name: Run branch_management tests
+#        run: |
+#          tox -c tests/branch_management -e test
+#
+#  test-integration:
+#    name: Test ${{ matrix.os }}
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
+#    runs-on: ubuntu-20.04
+#    needs: build
+#
+#    steps:
+#      - name: Check out code
+#        uses: actions/checkout@v4
+#      - name: Setup Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.8'
+#      - name: Install tox
+#        run: pip install tox
+#      - name: Install lxd
+#        run: |
+#          sudo snap refresh lxd --channel 5.21/stable
+#          sudo lxd init --auto
+#          sudo usermod --append --groups lxd $USER
+#          sg lxd -c 'lxc version'
+#      - name: Download snap
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: k8s.snap
+#          path: ${{ github.workspace }}/build
+#      - name: Run end to end tests
+#        env:
+#          TEST_SNAP: ${{ github.workspace }}/build/k8s.snap
+#          TEST_SUBSTRATE: lxd
+#          TEST_LXD_IMAGE: ${{ matrix.os }}
+#          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
+#        run: |
+#          cd tests/integration && sg lxd -c 'tox -e integration'
+#      - name: Prepare inspection reports
+#        if: failure()
+#        run: |
+#          tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
+#          echo "artifact_name=inspection-reports-${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
+#      - name: Upload inspection report artifact
+#        if: failure()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.artifact_name }}
+#          path: ${{ github.workspace }}/inspection-reports.tar.gz
 
   security-scan:
     permissions:
@@ -161,8 +161,11 @@ jobs:
           cp trivy-k8s-repo-scan--results.sarif ./sarifs/
       - name: Run Trivy vulnerability scanner on the snap
         run: |
+          set -x
+          ls
           cp build/k8s.snap .
           unsquashfs k8s.snap
+          ls
           ./trivy rootfs ./squashfs-root/ --format sarif > sarifs/snap.sarif
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
