@@ -163,6 +163,9 @@ jobs:
           cp trivy-k8s-repo-scan--results.sarif ./manual-trivy/sarifs/
       - name: Run Trivy vulnerability scanner on the snap
         run: |
+          for var in $(env | grep -o '^TRIVY_[^=]*'); do
+            unset "$var"
+          done
           cp build/k8s.snap .
           unsquashfs k8s.snap
           ./manual-trivy/trivy rootfs ./squashfs-root/ --format sarif > ./manual-trivy/sarifs/snap.sarif
