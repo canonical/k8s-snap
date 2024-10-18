@@ -141,9 +141,13 @@ class LXDHarness(Harness):
                 run(["lxc", "profile", "create", profile_name])
 
             except subprocess.CalledProcessError as e:
-                raise HarnessError(
-                    f"Failed to create LXD profile {profile_name}"
-                ) from e
+                LOG.debug(f"{e=}")
+                # if e.stdout.decode().strip() == "The profile already exists":
+                #    LOG.debug("Profile %s already exists", profile_name)
+                # else:
+                #    raise HarnessError(
+                #        f"Failed to create LXD profile {profile_name}"
+                #    ) from e
 
         try:
             LOG.debug("Configuring LXD profile %s", profile_name)
@@ -164,9 +168,10 @@ class LXDHarness(Harness):
                 run(["lxc", "network", "create", network_name, *network_args])
 
             except subprocess.CalledProcessError as e:
-                raise HarnessError(
-                    f"Failed to create LXD network {network_name}"
-                ) from e
+                LOG.debug(f"{e=}")
+                # raise HarnessError(
+                #    f"Failed to create LXD network {network_name}"
+                # ) from e
 
     def send_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
