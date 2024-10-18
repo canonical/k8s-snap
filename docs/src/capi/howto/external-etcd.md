@@ -9,7 +9,7 @@ with an external etcd.
 
 To follow this guide, you will need:
 
-- [Clusterctl][clusterctl] installed
+- [clusterctl][clusterctl] installed
 - A CAPI management cluster initialised with the infrastructure, bootstrap and
   control plane providers of your choice. Please refer to the
   [getting-started guide][getting-started] for instructions.
@@ -78,7 +78,7 @@ kubectl get secrets
 
 ## Update etcd cluster template
 
-Please refer to [capi-templates][capi-templates] for the latest templates.
+Please refer to [CAPI-templates][CAPI-templates] for the latest templates.
 Update the control plane resource `CK8sControlPlane` so that it is configured to
 store the Kubernetes state in etcd. Add the following additional configuration
 to the cluster template `cluster-template.yaml`:
@@ -120,5 +120,5 @@ clusterctl describe cluster peaches
 ```
 <!-- LINKS -->
 [getting-started]: ../tutorial/getting-started.md
-[capi-templates]: https://github.com/canonical/cluster-api-k8s/tree/main/templates
+[CAPI-templates]: https://github.com/canonical/cluster-api-k8s/tree/main/templates
 [clusterctl]: https://cluster-api.sigs.k8s.io/clusterctl/overview

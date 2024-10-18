@@ -29,7 +29,7 @@ this demonstration will have less than 5 OSDs. (See [placement groups])
 ceph osd pool create kubernetes 128
 ```
 
-Initialize the pool as a Ceph block device pool.
+Initialise the pool as a Ceph block device pool.
 
 ```
 rbd pool init kubernetes
@@ -48,8 +48,7 @@ capabilities to administer your Ceph cluster:
 ceph auth get-or-create client.kubernetes mon 'profile rbd' osd 'profile rbd pool=kubernetes' mgr 'profile rbd pool=kubernetes'
 ```
 
-For more information on user capabilities in Ceph, see
-[https://docs.ceph.com/en/latest/rados/operations/user-management/#authorization-capabilities]
+For more information on user capabilities in Ceph, see see [authorisation capabilities page][]
 
 ```
 [client.kubernetes]
@@ -60,7 +59,7 @@ Note the generated key, you will need it at a later step.
 
 ## Generate csi-config-map.yaml
 
-First, get the fsid and the monitor addresses of your cluster.
+First, get the `fsid` and the monitor addresses of your cluster.
 
 ```
 sudo ceph mon dump
@@ -79,7 +78,7 @@ election_strategy: 1
 dumped monmap epoch 2
 ```
 
-Keep note of the v1 IP (`10.0.0.136:6789`) and the fsid
+Keep note of the v1 IP (`10.0.0.136:6789`) and the `fsid`
 (`6d5c12c9-6dfb-445a-940f-301aa7de0f29`) as you will need to refer to them soon.
 
 ```
@@ -131,11 +130,10 @@ Then apply:
 kubectl apply -f csi-kms-config-map.yaml
 ```
 
-If you do need to configure a KMS provider, an example ConfigMap is available in
-the Ceph repository:
-[https://github.com/ceph/ceph-csi/blob/devel/examples/kms/vault/kms-config.yaml]
+If you do need to configure a KMS provider, an [example ConfigMap][] is available
+in the Ceph repository.
 
-Create the `ceph-config-map.yaml` which will be stored inside a ceph.conf file
+Create the `ceph-config-map.yaml` which will be stored inside a `ceph.conf` file
 in the CSI containers. This `ceph.conf` file will be used by Ceph daemons on
 each container to authenticate with the Ceph cluster.
 
@@ -188,7 +186,7 @@ Then apply:
 kubectl apply -f csi-rbd-secret.yaml
 ```
 
-## Create ceph-csi's custom Kubernetes objects
+## Create ceph-csi custom Kubernetes objects
 
 Create the ServiceAccount and RBAC ClusterRole/ClusterRoleBinding objects:
 
@@ -251,7 +249,7 @@ Then apply:
 kubectl apply -f csi-rbd-sc.yaml
 ```
 
-## Create a Persistant Volume Claim (PVC) for a RBD-backed file-system
+## Create a Persistent Volume Claim (PVC) for a RBD-backed file-system
 
 This PVC will allow users to request RBD-backed storage.
 
@@ -279,7 +277,7 @@ Then apply:
 kubectl apply -f pvc.yaml
 ```
 
-## Create a pod that binds to the Rados Block Device PVC
+## Create a pod that binds to the RADOS Block Device PVC
 
 Finally, create a pod configuration that uses the RBD-backed PVC.
 
@@ -313,7 +311,7 @@ kubectl apply -f pod.yaml
 
 ## Verify that the pod is using the RBD PV
 
-To verify that the csi-rbd-demo-pod is indeed using a RBD Persistant Volume, run
+To verify that the `csi-rbd-demo-pod` is indeed using a RBD Persistent Volume, run
 the following commands, you should see information related to attached volumes
 in both of their outputs:
 
@@ -335,3 +333,5 @@ Ceph documentation: [Intro to Ceph].
 [block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
 [placement groups]: https://docs.ceph.com/en/mimic/rados/operations/placement-groups/
 [Intro to Ceph]: https://docs.ceph.com/en/latest/start/intro/
+[authorisation capabilities page]:[https://docs.ceph.com/en/latest/rados/operations/user-management/#authorization-capabilities]
+[example ConfigMap]:https://github.com/ceph/ceph-csi/blob/devel/examples/kms/vault/kms-config.yaml

@@ -24,7 +24,7 @@ The source code for both charms is contained in a single repository:
 
 [https://github.com/canonical/k8s-operator][repo]
 
-Please see the [readme file][] there for further specifics of the charm
+Please see the [README file][] there for further specifics of the charm
 implementation.
 
 <!-- LINKS -->
@@ -32,5 +32,5 @@ implementation.
 [explaining channels]: ../explanation/channels
 [cs-k8s]: https://charmhub.io/k8s
 [cs-k8s-worker]: https://charmhub.io/k8s-worker
-[readme file]: https://github.com/canonical/k8s-operator#readme
+[README file]: https://github.com/canonical/k8s-operator#readme
 [repo]: https://github.com/canonical/k8s-operator

@@ -8,7 +8,7 @@ This tutorial simplifies the concept by creating a cluster within a controlled
 environment using two Multipass VMs. The approach here allows us to focus on
 the foundational aspects of clustering using {{product}} without the
 complexities of a full-scale, production setup. If your nodes are already
-installed, you can skip the multipass setup and go to [step 2](step2).
+installed, you can skip the Multipass setup and go to [step 2](step2).
 
 ## Before starting
 
@@ -76,7 +76,7 @@ A base64 token will be printed to your terminal. Keep it handy as you will need
 it for the next step.
 
 ```{note} It's advisable to name the new node after the hostname of the
-   worker node (in this case, the VM's hostname is worker).
+   worker node (in this case, the VM hostname is worker).
 ```
 
 ### 3. Join the cluster on the worker node

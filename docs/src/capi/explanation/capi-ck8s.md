@@ -3,7 +3,7 @@
 ClusterAPI (CAPI) is an open-source Kubernetes project that provides a
 declarative API for cluster creation, configuration, and management. It is
 designed to automate the creation and management of Kubernetes clusters in
-various environments, including on-premises data centers, public clouds, and
+various environments, including on-premises data centres, public clouds, and
 edge devices.
 
 CAPI abstracts away the details of infrastructure provisioning, networking, and
@@ -60,8 +60,8 @@ clusters. As a result, the provisioned clusters are referred to as workload
 clusters.
 
 Typically, the management cluster runs in a separate environment from the
-clusters it manages, such as a public cloud or an on-premises data center. It
-serves as a centralized location for managing the configuration, policies, and
+clusters it manages, such as a public cloud or an on-premises data centre. It
+serves as a centralised location for managing the configuration, policies, and
 security of multiple managed clusters. By leveraging the management cluster,
 users can easily create and manage a fleet of Kubernetes clusters in a
 consistent and repeatable manner.

@@ -144,7 +144,7 @@ sudo tar xf  recovery-k8s-dqlite-$timestamp-post-recovery.tar.gz \
   -C /var/snap/k8s/common/var/lib/k8s-dqlite
 ```
 
-Node specific files need to be copied back to the k8s-dqlite state dir:
+Node specific files need to be copied back to the k8s-dqlite state directory:
 
 ```
 sudo cp /var/snap/k8s/common/var/lib/k8s-dqlite.bkp/cluster.crt \
