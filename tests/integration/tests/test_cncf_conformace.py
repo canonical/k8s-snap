@@ -59,7 +59,7 @@ def test_cncf_conformance(instances: List[harness.Instance]):
     assert "Failed: 0" in resp.stdout.decode()
 
 
-def cluster_setup(instances):
+def cluster_setup(instances: List[harness.Instance]) -> harness.Instance:
     cluster_node = instances[0]
     joining_node = instances[1]
 
