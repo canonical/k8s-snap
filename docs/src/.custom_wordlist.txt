@@ -157,6 +157,7 @@ MicroK
 MicroK8s
 MinIO
 modprobe
+Moonray
 mq
 mtu
 MTU 
