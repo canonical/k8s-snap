@@ -91,7 +91,7 @@ All workloads in a Kubernetes cluster are run as an OCI image.
 Kubernetes needs to be able to fetch these images and load them
 into the container runtime.
 For {{product}}, it is also necessary to fetch the images used
-by its features (network, dns, etc.) as well as any images that are
+by its features (network, DNS, etc.) as well as any images that are
 needed to run specific workloads.
 
 ```{note} 
@@ -124,8 +124,8 @@ ghcr.io/canonical/metrics-server:0.7.0-ck2
 ghcr.io/canonical/rawfile-localpv:0.8.0-ck4
 ```
 
-A list of images can also be found in the `images.txt` file when unsquashing the
-downloaded k8s snap.
+A list of images can also be found in the `images.txt` file when the
+downloaded k8s snap is unsquashed.
 
 Please ensure that the images used by workloads are tracked as well.
 

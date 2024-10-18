@@ -88,7 +88,7 @@ it on the [Diátaxis website]. In essence though, this guides the way we
 categorise and write our documentation. You can see there are four main
 categories of documentation:
 
-- **Tutorials** for guided walkthroughs
+- **Tutorials** for guided walk-throughs
 - **How to** pages for specific tasks and goals
 - **Explanation** pages which give background reasons and, well, explanations
 - **Reference**, where you will find the commands, the roadmap, etc.
