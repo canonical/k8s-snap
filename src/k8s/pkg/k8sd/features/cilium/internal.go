@@ -6,12 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-)
-
-const (
-	// annotationVLANBPFBypass is the annotation for VLAN BPF bypass configuration
-	annotationVLANBPFBypass = "k8sd/v1alpha1/cilium/vlan-bpf-bypass"
 )
 
 const (
@@ -19,12 +15,14 @@ const (
 	maxVLANTags = 5
 	// minVLANIDValue is the minimum valid 802.1Q VLAN ID value
 	minVLANIDValue = 1
-	// maxVLANIDValue is the maximum valid VLAN tag value
+	// maxVLANIDValue is the maximum valid 802.1Q VLAN ID value
 	maxVLANIDValue = 4094
 )
 
 type config struct {
-	vlanBPFBypass []int
+	devices             string
+	directRoutingDevice string
+	vlanBPFBypass       []int
 }
 
 func validateVLANBPFBypass(vlanList string) ([]int, error) {
@@ -34,7 +32,7 @@ func validateVLANBPFBypass(vlanList string) ([]int, error) {
 	vlans := strings.Split(vlanList, ",")
 
 	// Special case: wildcard "0" allows all VLANs
-	if len(vlans) == 1 && vlans[0] == "0" {
+	if len(vlans) == 1 && strings.TrimSpace(vlans[0]) == "0" {
 		return []int{0}, nil
 	}
 
@@ -68,12 +66,19 @@ func validateVLANBPFBypass(vlanList string) ([]int, error) {
 func internalConfig(annotations types.Annotations) (config, error) {
 	c := config{}
 
-	if vlanBPFBypass, ok := annotations[annotationVLANBPFBypass]; ok {
-		vlanTags, err := validateVLANBPFBypass(vlanBPFBypass)
+	if v, ok := annotations[apiv1_annotations.AnnotationVLANBPFBypass]; ok {
+		vlanTags, err := validateVLANBPFBypass(v)
 		if err != nil {
 			return config{}, fmt.Errorf("failed to parse VLAN BPF bypass list: %w", err)
 		}
 		c.vlanBPFBypass = vlanTags
+	}
+	if v, ok := annotations.Get(apiv1_annotations.AnnotationDevices); ok {
+		c.devices = v
+	}
+
+	if v, ok := annotations.Get(apiv1_annotations.AnnotationDirectRoutingDevice); ok {
+		c.directRoutingDevice = v
 	}
 
 	return c, nil

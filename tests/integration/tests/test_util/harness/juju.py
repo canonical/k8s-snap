@@ -53,9 +53,9 @@ class JujuHarness(Harness):
                 self.constraints,
             )
 
-    def new_instance(self, dualstack: bool = False) -> Instance:
-        if dualstack:
-            raise HarnessError("Dualstack is currently not supported by Juju harness")
+    def new_instance(self, network_type: str = "IPv4") -> Instance:
+        if network_type:
+            raise HarnessError("Currently only IPv4 is supported by Juju harness")
 
         for instance_id in self.existing_machines:
             if not self.existing_machines[instance_id]:

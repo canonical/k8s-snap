@@ -62,7 +62,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 
 	ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	if err != nil {
-		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %v", err)
+		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
@@ -70,10 +70,23 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 		}, err
 	}
 
+	ciliumNodePortValues := map[string]any{
+		"enabled": true,
+		// kube-proxy also binds to the same port for health checks so we need to disable it
+		"enableHealthCheck": false,
+	}
+
+	if config.directRoutingDevice != "" {
+		ciliumNodePortValues["directRoutingDevice"] = config.directRoutingDevice
+	}
+
+	bpfValues := map[string]any{}
+	if config.vlanBPFBypass != nil {
+		bpfValues["vlanBypass"] = config.vlanBPFBypass
+	}
+
 	values := map[string]any{
-		"bpf": map[string]any{
-			"vlanBypass": config.vlanBPFBypass,
-		},
+		"bpf": bpfValues,
 		"image": map[string]any{
 			"repository": ciliumAgentImageRepo,
 			"tag":        CiliumAgentImageTag,
@@ -107,16 +120,18 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 			},
 		},
 		// https://docs.cilium.io/en/v1.15/network/kubernetes/kubeproxy-free/#kube-proxy-hybrid-modes
-		"nodePort": map[string]any{
-			"enabled": true,
-			// kube-proxy also binds to the same port for health checks so we need to disable it
-			"enableHealthCheck": false,
-		},
+		"nodePort":                 ciliumNodePortValues,
 		"disableEnvoyVersionCheck": true,
 		// socketLB requires an endpoint to the apiserver that's not managed by the kube-proxy
 		// so we point to the localhost:secureport to talk to either the kube-apiserver or the kube-apiserver-proxy
 		"k8sServiceHost": network.GetLocalhostAddress(),
 		"k8sServicePort": apiserver.GetSecurePort(),
+		// This flag enables the runtime device detection which is set to true by default in Cilium 1.16+
+		"enableRuntimeDeviceDetection": true,
+	}
+
+	if config.devices != "" {
+		values["devices"] = config.devices
 	}
 
 	if snap.Strict() {

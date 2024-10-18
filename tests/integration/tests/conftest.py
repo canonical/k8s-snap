@@ -85,7 +85,7 @@ def pytest_configure(config):
         "bootstrap_config: Provide a custom bootstrap config to the bootstrapping node.\n"
         "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.\n"
         "no_setup: No setup steps (pushing snap, bootstrapping etc.) are performed on any node for this test.\n"
-        "dualstack: Support dualstack on the instances.\n"
+        "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
         "node_count: Mark a test to specify how many instance nodes need to be created\n"
         "snap_versions: Mark a test to specify snap_versions for each node\n",
@@ -130,8 +130,12 @@ def bootstrap_config(request) -> Union[str, None]:
 
 
 @pytest.fixture(scope="function")
-def dualstack(request) -> bool:
-    return bool(request.node.get_closest_marker("dualstack"))
+def network_type(request) -> Union[str, None]:
+    bootstrap_config_marker = request.node.get_closest_marker("network_type")
+    if not bootstrap_config_marker:
+        return "IPv4"
+    network_type, *_ = bootstrap_config_marker.args
+    return network_type
 
 
 @pytest.fixture(scope="function")
@@ -142,8 +146,8 @@ def instances(
     disable_k8s_bootstrapping: bool,
     no_setup: bool,
     bootstrap_config: Union[str, None],
-    dualstack: bool,
     request,
+    network_type: str,
 ) -> Generator[List[harness.Instance], None, None]:
     """Construct instances for a cluster.
 
@@ -157,7 +161,7 @@ def instances(
 
     for _, snap in zip(range(node_count), snap_versions(request)):
         # Create <node_count> instances and setup the k8s snap in each.
-        instance = h.new_instance(dualstack=dualstack)
+        instance = h.new_instance(network_type=network_type)
         instances.append(instance)
         if not no_setup:
             util.setup_k8s_snap(instance, tmp_path, snap)

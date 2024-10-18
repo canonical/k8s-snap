@@ -57,8 +57,7 @@ func MarkdownFromJsonStructToFile(i any, outFilePath string, projectDir string) 
 
 	err = os.WriteFile(outFilePath, []byte(content), 0644)
 	if err != nil {
-		return fmt.Errorf("failed to write markdown documentation to %s, error: %v.",
-			outFilePath, err)
+		return fmt.Errorf("failed to write markdown documentation to %s: %w", outFilePath, err)
 	}
 	return nil
 }
@@ -105,7 +104,7 @@ func ParseStruct(i any, projectDir string) ([]Field, error) {
 			fieldIface := reflect.ValueOf(i).FieldByName(field.Name).Interface()
 			nestedFields, err := ParseStruct(fieldIface, projectDir)
 			if err != nil {
-				return nil, fmt.Errorf("couldn't parse %s.%s, error: %v", inType, field.Name, err)
+				return nil, fmt.Errorf("couldn't parse %s.%s: %w", inType, field.Name, err)
 			}
 
 			outField := Field{

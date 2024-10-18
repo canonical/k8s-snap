@@ -3,6 +3,7 @@ package cilium
 import (
 	"testing"
 
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations/cilium"
 	. "github.com/onsi/gomega"
 )
 
@@ -14,15 +15,33 @@ func TestInternalConfig(t *testing.T) {
 		expectError    bool
 	}{
 		{
-			name:           "Empty annotations",
-			annotations:    map[string]string{},
-			expectedConfig: config{},
-			expectError:    false,
+			name:        "Empty",
+			annotations: map[string]string{},
+			expectedConfig: config{
+				devices:             "",
+				directRoutingDevice: "",
+				vlanBPFBypass:       nil,
+			},
+			expectError: false,
+		},
+		{
+			name: "Valid",
+			annotations: map[string]string{
+				apiv1_annotations.AnnotationDevices:             "eth+ lxdbr+",
+				apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
+				apiv1_annotations.AnnotationVLANBPFBypass:       "1,2,3",
+			},
+			expectedConfig: config{
+				devices:             "eth+ lxdbr+",
+				directRoutingDevice: "eth0",
+				vlanBPFBypass:       []int{1, 2, 3},
+			},
+			expectError: false,
 		},
 		{
 			name: "Single valid VLAN",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: "1",
+				apiv1_annotations.AnnotationVLANBPFBypass: "1",
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1},
@@ -32,7 +51,7 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name: "Multiple valid VLANs",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: "1,2,3,4,5",
+				apiv1_annotations.AnnotationVLANBPFBypass: "1,2,3,4,5",
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3, 4, 5},
@@ -42,7 +61,7 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name: "Wildcard VLAN",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: "0",
+				apiv1_annotations.AnnotationVLANBPFBypass: "0",
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{0},
@@ -52,42 +71,42 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name: "Too many VLANs",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: "1,2,3,4,5,6",
+				apiv1_annotations.AnnotationVLANBPFBypass: "1,2,3,4,5,6",
 			},
 			expectError: true,
 		},
 		{
 			name: "Invalid VLAN tag format",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: "abc",
+				apiv1_annotations.AnnotationVLANBPFBypass: "abc",
 			},
 			expectError: true,
 		},
 		{
 			name: "VLAN tag out of range",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: "4095",
+				apiv1_annotations.AnnotationVLANBPFBypass: "4095",
 			},
 			expectError: true,
 		},
 		{
 			name: "VLAN tag negative",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: "-1",
+				apiv1_annotations.AnnotationVLANBPFBypass: "-1",
 			},
 			expectError: true,
 		},
 		{
 			name: "Duplicate VLAN tags",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: "1,2,2,3",
+				apiv1_annotations.AnnotationVLANBPFBypass: "1,2,2,3",
 			},
 			expectError: true,
 		},
 		{
 			name: "Mixed spaces and commas",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: " 1, 2,3 ,4 , 5 ",
+				apiv1_annotations.AnnotationVLANBPFBypass: " 1, 2,3 ,4 , 5 ",
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3, 4, 5},
@@ -97,7 +116,7 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name: "Invalid mixed with valid",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: "1,abc,3",
+				apiv1_annotations.AnnotationVLANBPFBypass: "1,abc,3",
 			},
 			expectError: true,
 		},
@@ -110,7 +129,7 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name: "With curly braces",
 			annotations: map[string]string{
-				annotationVLANBPFBypass: "{1,2,3}",
+				apiv1_annotations.AnnotationVLANBPFBypass: "{1,2,3}",
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3},
@@ -120,7 +139,6 @@ func TestInternalConfig(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
-
 			parsed, err := internalConfig(tc.annotations)
 			if tc.expectError {
 				g.Expect(err).To(HaveOccurred())

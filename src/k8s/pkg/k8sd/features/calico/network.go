@@ -81,7 +81,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 	serviceCIDRs := []string{}
 	ipv4ServiceCIDR, ipv6ServiceCIDR, err := utils.SplitCIDRStrings(network.GetServiceCIDR())
 	if err != nil {
-		err = fmt.Errorf("invalid service cidr: %v", err)
+		err = fmt.Errorf("invalid service cidr: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CalicoTag,
