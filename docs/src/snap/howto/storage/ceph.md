@@ -48,7 +48,7 @@ capabilities to administer your Ceph cluster:
 ceph auth get-or-create client.kubernetes mon 'profile rbd' osd 'profile rbd pool=kubernetes' mgr 'profile rbd pool=kubernetes'
 ```
 
-For more information on user capabilities in Ceph, see see [authorisation capabilities page][]
+For more information on user capabilities in Ceph, see the [authorisation capabilities page][]
 
 ```
 [client.kubernetes]
