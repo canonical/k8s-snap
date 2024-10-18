@@ -162,10 +162,10 @@ jobs:
       - name: Run Trivy vulnerability scanner on the snap
         run: |
           set -x
-          ls
+          ls -la
           cp build/k8s.snap .
           unsquashfs k8s.snap
-          ls
+          ls -la
           ./trivy rootfs ./squashfs-root/ --format sarif > sarifs/snap.sarif
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
