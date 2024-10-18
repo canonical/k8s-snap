@@ -18,8 +18,15 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-20.04' }}
 
     steps:
-      - name: Checking out repo
+      - name: Check out code
         uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+      - name: Install tox
+        run: pip install tox
 
       - name: Install lxd
         run: |
@@ -33,13 +40,26 @@ jobs:
         run: |
           snap download k8s --channel=${{ matrix.releases }} --basename k8s
 
-      - name: Run end to end tests on ${{ matrix.arch }} ${{ matrix.os }}
+      - name: Run end to end tests
+        env:
+          TEST_SNAP: ${{ github.workspace }}/k8s.snap
+          TEST_SUBSTRATE: lxd
+          TEST_LXD_IMAGE: ${{ matrix.os }}
+          TEST_CNCF_E2E: true
+          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
+        working-directory: tests/integration
         run: |
-          sg lxd -c 'build-scripts/hack/sonobuoy.sh ${{ matrix.arch }} ${{ matrix.os }}'
+          sg lxd -c 'tox -e e2e'
+
+      - name: Extract report
+        if: always()
+        working-directory: tests/integration
+        run: |
+          tar -xf sonobuoy_e2e.tar.gz --one-top-level
 
       - name: Upload inspection report artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: report_sonobuoy_e2e_${{ github.os_dash }}_${{ matrix.arch }}
-          path: sonobuoy_e2e
+          path: tests/integration/sonobuoy_e2e
