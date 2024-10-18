@@ -80,7 +80,13 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 		ciliumNodePortValues["directRoutingDevice"] = config.directRoutingDevice
 	}
 
+	bpfValues := map[string]any{}
+	if config.vlanBPFBypass != nil {
+		bpfValues["vlanBypass"] = config.vlanBPFBypass
+	}
+
 	values := map[string]any{
+		"bpf": bpfValues,
 		"image": map[string]any{
 			"repository": ciliumAgentImageRepo,
 			"tag":        CiliumAgentImageTag,
