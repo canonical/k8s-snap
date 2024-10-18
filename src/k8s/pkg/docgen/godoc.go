@@ -31,7 +31,7 @@ func getStructTypeFromDoc(packageDoc *doc.Package, structName string) (*ast.Stru
 		}
 		typeSpec, err := findTypeSpec(docType.Decl, docType.Name)
 		if err != nil {
-			return nil, fmt.Errorf("failed to find type spec: %v", err)
+			return nil, fmt.Errorf("failed to find type spec: %w", err)
 		}
 		if typeSpec == nil {
 			continue
