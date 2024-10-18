@@ -36,7 +36,7 @@ func schemaApplyMigration(migrationPath ...string) schema.Update {
 	path := filepath.Join(append([]string{"sql", "migrations"}, migrationPath...)...)
 	b, err := sqlMigrations.ReadFile(path)
 	if err != nil {
-		panic(fmt.Errorf("invalid migration file %s: %s", path, err))
+		panic(fmt.Errorf("invalid migration file %s: %w", path, err))
 	}
 	return func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := tx.ExecContext(ctx, string(b)); err != nil {
@@ -51,7 +51,7 @@ func MustPrepareStatement(queryPath ...string) int {
 	path := filepath.Join(append([]string{"sql", "queries"}, queryPath...)...)
 	b, err := sqlQueries.ReadFile(path)
 	if err != nil {
-		panic(fmt.Errorf("invalid query file %s: %s", path, err))
+		panic(fmt.Errorf("invalid query file %s: %w", path, err))
 	}
 	return cluster.RegisterStmt(string(b))
 }

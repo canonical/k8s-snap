@@ -19,14 +19,15 @@ linters:
   - decorder
   - dogsled
   - dupword
+  - durationcheck
+  # - err113 - TODO(ben): maybe consider later
+  # - errcheck
+  # - errchkjson
+  - errname
+  - errorlint
+
 
 # TODO(ben): Enable those linters step by step and fix existing issues.
-# - durationcheck
-# - err113
-# - errcheck
-# - errchkjson
-# - errname
-# - errorlint
 # - exhaustive
 # - exhaustruct
 # - fatcontext
@@ -327,3 +328,4 @@ issues:
     - path: "_test\\.go"
       linters:
         - dupword
+        - err113
