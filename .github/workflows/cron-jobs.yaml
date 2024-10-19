@@ -114,6 +114,9 @@ jobs:
           snap download k8s --channel ${{ matrix.channel }}
           mv ./k8s*.snap ./k8s.snap
           unsquashfs k8s.snap
+          for var in $(env | grep -o '^TRIVY_[^=]*'); do
+            unset "$var"
+          done
           ./trivy rootfs ./squashfs-root/ --format sarif > sarifs/snap.sarif
       - name: Get HEAD sha
         run: |
