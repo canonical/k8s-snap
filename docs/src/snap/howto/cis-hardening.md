@@ -73,7 +73,7 @@ sudo -E kube-bench --version ck8s-dqlite-cis-1.24 --config-dir ./kube-bench-ck8s
 ## Harden your deployments
 
 Before running a CIS Kubernetes audit, it is essential to first harden your
-{{product}} deployment to minimize vulnerabilities and ensure 
+{{product}} deployment to minimise vulnerabilities and ensure 
 compliance with industry best practices, as defined by the CIS Kubernetes
 Benchmark.
 

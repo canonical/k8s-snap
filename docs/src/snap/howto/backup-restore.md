@@ -64,7 +64,7 @@ sudo k8s kubectl expose deployment nginx -n workloads --port 80
 ## Install Velero
 
 Download the Velero binary from the 
-[releases page on github][releases] and place it in our `PATH`. In this case we
+[releases page on GitHub][releases] and place it in our `PATH`. In this case we
 install the v1.14.1 Linux binary for AMD64 under `/usr/local/bin`:
 
 ```bash
@@ -100,7 +100,7 @@ EOF
 ```
 
 We are now ready to install Velero into the cluster, with an aws plugin that
-[matches][aws-plugin-matching] the velero release:
+[matches][aws-plugin-matching] the Velero release:
 
 ```bash
 SERVICE_URL="http://${SERVICE}.velero.svc:9000"
