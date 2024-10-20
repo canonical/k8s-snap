@@ -16,6 +16,9 @@ import (
 	"github.com/canonical/go-dqlite"
 	"github.com/canonical/go-dqlite/app"
 	"github.com/canonical/go-dqlite/client"
+	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/log"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/shared"
 	"github.com/canonical/lxd/shared/termios"
 	"github.com/canonical/microcluster/v3/cluster"
@@ -23,10 +26,6 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/sys/unix"
 	"gopkg.in/yaml.v2"
-
-	cmdutil "github.com/canonical/k8s/cmd/util"
-	"github.com/canonical/k8s/pkg/log"
-	"github.com/canonical/k8s/pkg/utils"
 )
 
 const preRecoveryMessage = `You should only run this command if:

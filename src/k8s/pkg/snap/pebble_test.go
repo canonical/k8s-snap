@@ -7,7 +7,6 @@ import (
 
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/snap/mock"
-
 	. "github.com/onsi/gomega"
 )
 

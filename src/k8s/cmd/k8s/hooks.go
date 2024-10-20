@@ -2,7 +2,6 @@ package k8s
 
 import (
 	cmdutil "github.com/canonical/k8s/cmd/util"
-
 	"github.com/spf13/cobra"
 )
 

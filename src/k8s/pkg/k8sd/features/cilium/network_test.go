@@ -13,7 +13,6 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
 	"github.com/canonical/k8s/pkg/utils"
-
 	. "github.com/onsi/gomega"
 	"k8s.io/klog/v2"
 	"k8s.io/klog/v2/ktesting"
