@@ -53,10 +53,12 @@ def test_cncf_conformance(instances: List[harness.Instance]):
     resp = cluster_node.exec(
         ["./sonobuoy", "results", "sonobuoy_e2e.tar.gz"],
         capture_output=True,
+        text=True,
     )
     assert resp.returncode == 0
+    LOG.info(resp.stdout())
     pull_report(cluster_node)
-    assert "Failed: 0" in resp.stdout.decode()
+    assert "Failed: 0" in resp.stdout()
 
 
 def cluster_setup(instances: List[harness.Instance]) -> harness.Instance:
