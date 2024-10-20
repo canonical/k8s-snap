@@ -3,4 +3,10 @@
 . "$SNAP/k8s/lib.sh"
 
 k8s::util::wait_kube_apiserver
+
+# NOTE: kube-proxy reads some values related to the `nf_conntrack`
+# module from procfs on startup, so we must ensure it's loaded:
+# https://github.com/canonical/k8s-snap/issues/626
+k8s::util::load_kernel_modules nf_conntrack
+
 k8s::common::execute_service kube-proxy
