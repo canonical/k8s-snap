@@ -2,8 +2,10 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import ipaddress
+import json
 import logging
 from pathlib import Path
+import time
 from typing import List
 
 import pytest
@@ -113,3 +115,37 @@ def test_loadbalancer(instances: List[harness.Instance]):
     )
 
     assert "Welcome to nginx!" in p.stdout.decode()
+
+    # Try to access the service via Ingress
+    instance.exec(["k8s", "enable", "ingress"])
+    instance.exec(["k8s", "kubectl", "apply", "-f", "-"], input=Path(MANIFESTS_DIR / "ingress-test.yaml").read_bytes())
+    instance.exec(["k8s", "kubectl", "wait", "--for=condition=ready", "pod", "-l", "run=my-nginx", "--timeout", "180s"])
+
+    try_count = 0
+    ingress_ip = None
+    while ingress_ip is None and try_count < 5:
+        try_count += 1
+        for svc in ["ck-ingress-contour-envoy", "cilium-ingress"]:
+            try:
+                ingress_ip = instance.exec(
+                    [
+                        "k8s",
+                        "kubectl",
+                        "--namespace",
+                        "kube-system",
+                        "get",
+                        "service",
+                        svc,
+                        "-o=jsonpath='{.status.loadBalancer.ingress[0].ip}'",
+                    ],
+                    capture_output=True,
+                ).stdout.decode().replace("'", "")
+            except :
+                ingress_ip = None
+                pass
+        time.sleep(3)
+
+    assert ingress_ip is not None, "No ingress IP found."
+    util.stubbornly(retries=5, delay_s=5).on(tester_instance).until(
+        lambda p: "Welcome to nginx!" in p.stdout.decode()
+    ).exec(["curl", f"{ingress_ip}", "-H", "Host: foo.bar.com"])
