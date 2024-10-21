@@ -101,3 +101,8 @@ JUJU_MACHINES = os.getenv("TEST_JUJU_MACHINES") or ""
 VERSION_UPGRADE_CHANNELS = (
     os.environ.get("TEST_VERSION_UPGRADE_CHANNELS", "").strip().split()
 )
+# A list of space-separated channels for which the strict interface tests should be run in sequential order.
+# Alternatively, use 'recent <num> strict' to get the latest <num> channels for strict.
+STRICT_INTERFACE_CHANNELS = (
+    os.environ.get("TEST_STRICT_INTERFACE_CHANNELS", "").strip().split()
+)

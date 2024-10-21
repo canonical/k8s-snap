@@ -38,7 +38,7 @@ def get_snap_info(snap_name=SNAP_NAME):
 
 
 def get_latest_channels(
-    num_of_channels: int, flavor: str, arch: str, include_latest=True
+    num_of_channels: int, flavor: str, arch: str, include_latest=True, minimum_risk=False
 ) -> List[str]:
     """Get an ascending list of latest channels based on the number of channels and flavour.
 
@@ -46,6 +46,7 @@ def get_latest_channels(
     if there are less than num_of_channels available, return all available channels.
     Only the most stable risk level is returned for each major.minor version.
     By default, the `latest/edge/<flavor>` channel is included in the list.
+    If the `minimum_risk` parameter is set to True, the edge channel is included in the list.
     """
     snap_info = get_snap_info()
 
@@ -73,6 +74,11 @@ def get_latest_channels(
         if match:
             major, minor, risk = match.groups()
             major_minor = (int(major), int(minor))
+
+            # Add edge channels if minimum_risk is True
+            if risk == "edge" and minimum_risk:
+                channel_map[major_minor] = (channel, risk)
+                continue
 
             # Store only the highest risk level channel for each major.minor
             if major_minor not in channel_map or RISK_LEVELS.index(
