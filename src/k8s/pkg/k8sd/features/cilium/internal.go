@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	// minVLANIDValue is the minimum valid 802.1Q VLAN ID value
+	// minVLANIDValue is the minimum valid 802.1Q VLAN ID value.
 	minVLANIDValue = 0
-	// maxVLANIDValue is the maximum valid 802.1Q VLAN ID value
+	// maxVLANIDValue is the maximum valid 802.1Q VLAN ID value.
 	maxVLANIDValue = 4094
 )
 

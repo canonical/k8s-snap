@@ -190,7 +190,7 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 
 }
 
-// refreshCertsRunWorker refreshes the certificates for a worker node
+// refreshCertsRunWorker refreshes the certificates for a worker node.
 func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) response.Response {
 	log := log.FromContext(r.Context())
 

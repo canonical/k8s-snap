@@ -26,7 +26,7 @@ var nextDqlitePort = 37312
 //			})
 //		}
 //
-// ```
+// ```.
 func withDqliteCluster(t *testing.T, size int, f func(ctx context.Context, dirs []string)) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
