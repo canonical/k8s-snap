@@ -12,13 +12,11 @@ import (
 	"github.com/canonical/microcluster/v3/cluster"
 )
 
-var (
-	workerStmts = map[string]int{
-		"insert-token": MustPrepareStatement("worker-tokens", "insert.sql"),
-		"select-token": MustPrepareStatement("worker-tokens", "select.sql"),
-		"delete-token": MustPrepareStatement("worker-tokens", "delete-by-token.sql"),
-	}
-)
+var workerStmts = map[string]int{
+	"insert-token": MustPrepareStatement("worker-tokens", "insert.sql"),
+	"select-token": MustPrepareStatement("worker-tokens", "select.sql"),
+	"delete-token": MustPrepareStatement("worker-tokens", "delete-by-token.sql"),
+}
 
 // CheckWorkerNodeToken returns true if the specified token can be used to join the specified node on the cluster.
 // CheckWorkerNodeToken will return true if the token is empty or if the token is associated with the specified node

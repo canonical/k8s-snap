@@ -60,7 +60,7 @@ func TestExtraNodeConfigFiles(t *testing.T) {
 					// Verify the file exists
 					info, err := os.Stat(filePath)
 					g.Expect(err).ToNot(gomega.HaveOccurred())
-					g.Expect(info.Mode().Perm()).To(gomega.Equal(os.FileMode(0400)))
+					g.Expect(info.Mode().Perm()).To(gomega.Equal(os.FileMode(0o400)))
 
 					// Verify the file content
 					actualContent, err := os.ReadFile(filePath)

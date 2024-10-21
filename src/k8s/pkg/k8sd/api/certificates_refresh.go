@@ -50,7 +50,6 @@ func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) respons
 	return response.SyncResponse(true, apiv1.RefreshCertificatesPlanResponse{
 		Seed: seed,
 	})
-
 }
 
 func (e *Endpoints) postRefreshCertsRun(s state.State, r *http.Request) response.Response {
@@ -187,7 +186,6 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		f.Flush()
 		return nil
 	})
-
 }
 
 // refreshCertsRunWorker refreshes the certificates for a worker node.
@@ -299,9 +297,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			}
 
 			return nil
-
 		})
-
 	}
 
 	if err := g.Wait(); err != nil {
@@ -388,7 +384,6 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		f.Flush()
 		return nil
 	})
-
 }
 
 // isCertificateSigningRequestApprovedAndIssued checks if the certificate
@@ -399,7 +394,6 @@ func isCertificateSigningRequestApprovedAndIssued(csr *certv1.CertificateSigning
 	for _, condition := range csr.Status.Conditions {
 		if condition.Type == certv1.CertificateApproved && condition.Status == corev1.ConditionTrue {
 			return len(csr.Status.Certificate) > 0, nil
-
 		}
 		if condition.Type == certv1.CertificateDenied && condition.Status == corev1.ConditionTrue {
 			return false, fmt.Errorf("CSR %s was denied: %s", csr.Name, condition.Reason)

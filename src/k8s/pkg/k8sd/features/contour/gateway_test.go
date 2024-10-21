@@ -44,7 +44,6 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeleteFailedMsgTmpl, err)))
-
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -68,7 +67,6 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.DisabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
-
 	})
 }
 
@@ -124,7 +122,8 @@ func TestGatewayEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
@@ -182,7 +181,8 @@ func TestGatewayEnabled(t *testing.T) {
 			{
 				GroupVersion: "projectcontour.io/v1",
 				APIResources: []v1.APIResource{},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,

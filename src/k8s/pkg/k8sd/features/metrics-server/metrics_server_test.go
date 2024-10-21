@@ -15,7 +15,6 @@ import (
 )
 
 func TestApplyMetricsServer(t *testing.T) {
-
 	helmErr := errors.New("failed to apply")
 	for _, tc := range []struct {
 		name        string

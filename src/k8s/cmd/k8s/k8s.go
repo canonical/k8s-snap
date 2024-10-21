@@ -35,13 +35,11 @@ func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Com
 }
 
 func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
-	var (
-		opts struct {
-			logDebug   bool
-			logVerbose bool
-			stateDir   string
-		}
-	)
+	var opts struct {
+		logDebug   bool
+		logVerbose bool
+		stateDir   string
+	}
 	cmd := &cobra.Command{
 		Use:   "k8s",
 		Short: "Canonical Kubernetes CLI",

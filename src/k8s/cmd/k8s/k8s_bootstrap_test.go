@@ -109,7 +109,7 @@ var testCases = []testCase{
 func mustAddConfigToTestDir(t *testing.T, configPath string, data string) {
 	t.Helper()
 	// Create the cluster bootstrap config file
-	err := os.WriteFile(configPath, []byte(data), 0644)
+	err := os.WriteFile(configPath, []byte(data), 0o644)
 	if err != nil {
 		t.Fatal(err)
 	}

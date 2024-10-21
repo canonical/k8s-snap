@@ -46,7 +46,6 @@ func TestFeatureStatus(t *testing.T) {
 				ss, err := database.GetFeatureStatuses(ctx, tx)
 				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(ss).To(BeEmpty())
-
 			})
 
 			t.Run("SettingNewStatus", func(t *testing.T) {
@@ -70,7 +69,6 @@ func TestFeatureStatus(t *testing.T) {
 				g.Expect(ss[features.DNS].Message).To(Equal(dnsStatus.Message))
 				g.Expect(ss[features.DNS].Version).To(Equal(dnsStatus.Version))
 				g.Expect(ss[features.DNS].UpdatedAt).To(Equal(dnsStatus.UpdatedAt))
-
 			})
 			t.Run("UpdatingStatus", func(t *testing.T) {
 				g := NewWithT(t)

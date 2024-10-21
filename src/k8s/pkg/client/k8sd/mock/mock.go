@@ -56,14 +56,17 @@ func (m *Mock) BootstrapCluster(_ context.Context, request apiv1.BootstrapCluste
 	m.BootstrapClusterCalledWith = request
 	return m.BootstrapClusterResponse, m.BootstrapClusterErr
 }
+
 func (m *Mock) GetJoinToken(_ context.Context, request apiv1.GetJoinTokenRequest) (apiv1.GetJoinTokenResponse, error) {
 	m.GetJoinTokenCalledWith = request
 	return m.GetJoinTokenResponse, m.GetJoinTokenErr
 }
+
 func (m *Mock) JoinCluster(_ context.Context, request apiv1.JoinClusterRequest) error {
 	m.JoinClusterCalledWith = request
 	return m.JoinClusterErr
 }
+
 func (m *Mock) RemoveNode(_ context.Context, request apiv1.RemoveNodeRequest) error {
 	m.RemoveNodeCalledWith = request
 	return m.RemoveNodeErr
@@ -72,6 +75,7 @@ func (m *Mock) RemoveNode(_ context.Context, request apiv1.RemoveNodeRequest) er
 func (m *Mock) NodeStatus(_ context.Context) (apiv1.NodeStatusResponse, bool, error) {
 	return m.NodeStatusResponse, m.NodeStatusInitialized, m.NodeStatusErr
 }
+
 func (m *Mock) ClusterStatus(_ context.Context, waitReady bool) (apiv1.ClusterStatusResponse, error) {
 	return m.ClusterStatusResponse, m.ClusterStatusErr
 }
@@ -87,6 +91,7 @@ func (m *Mock) RefreshCertificatesRun(_ context.Context, request apiv1.RefreshCe
 func (m *Mock) GetClusterConfig(_ context.Context) (apiv1.GetClusterConfigResponse, error) {
 	return m.GetClusterConfigResponse, m.GetClusterConfigErr
 }
+
 func (m *Mock) SetClusterConfig(_ context.Context, request apiv1.SetClusterConfigRequest) error {
 	m.SetClusterConfigCalledWith = request
 	return m.SetClusterConfigErr

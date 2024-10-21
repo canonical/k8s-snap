@@ -13,15 +13,13 @@ import (
 	"github.com/canonical/microcluster/v3/cluster"
 )
 
-var (
-	k8sdTokensStmts = map[string]int{
-		"insert-token":       MustPrepareStatement("kubernetes-auth-tokens", "insert-token.sql"),
-		"select-by-token":    MustPrepareStatement("kubernetes-auth-tokens", "select-by-token.sql"),
-		"select-by-username": MustPrepareStatement("kubernetes-auth-tokens", "select-by-username.sql"),
-		"delete-by-token":    MustPrepareStatement("kubernetes-auth-tokens", "delete-by-token.sql"),
-		"delete-by-username": MustPrepareStatement("kubernetes-auth-tokens", "delete-by-username.sql"),
-	}
-)
+var k8sdTokensStmts = map[string]int{
+	"insert-token":       MustPrepareStatement("kubernetes-auth-tokens", "insert-token.sql"),
+	"select-by-token":    MustPrepareStatement("kubernetes-auth-tokens", "select-by-token.sql"),
+	"select-by-username": MustPrepareStatement("kubernetes-auth-tokens", "select-by-username.sql"),
+	"delete-by-token":    MustPrepareStatement("kubernetes-auth-tokens", "delete-by-token.sql"),
+	"delete-by-username": MustPrepareStatement("kubernetes-auth-tokens", "delete-by-username.sql"),
+}
 
 func groupsToString(inGroups []string) (string, error) {
 	groupMap := make(map[string]struct{}, len(inGroups))
