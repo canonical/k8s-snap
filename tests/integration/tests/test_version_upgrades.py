@@ -26,7 +26,7 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
                 "'recent' requires the number of releases as second argument and the flavour as third argument"
             )
         _, num_channels, flavour = channels
-        channels = snap.get_latest_channels(int(num_channels), flavour, cp.arch)
+        channels = snap.get_most_stable_channels(int(num_channels), flavour, cp.arch)
         current_channel = channels[0]
 
     LOG.info(
