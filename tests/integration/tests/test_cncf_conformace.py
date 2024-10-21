@@ -3,18 +3,12 @@
 #
 import logging
 import os
-import platform
 from typing import List
 
 import pytest
-from test_util import harness, util
+from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
-
-ARCH = platform.machine()
-ARCH_MAP = {"aarch64": "arm64", "x86_64": "amd64"}
-SONOBUOY_VERSION = "v0.57.2"
-SONOBUOY_TAR_GZ = f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1: ]}_linux_{ARCH_MAP.get(ARCH)}.tar.gz"  # noqa
 
 
 @pytest.mark.skipif(
@@ -26,37 +20,28 @@ def test_cncf_conformance(instances: List[harness.Instance]):
     cluster_node = cluster_setup(instances)
     install_sonobuoy(cluster_node)
 
-    resp = cluster_node.exec(
+    cluster_node.exec(
         ["./sonobuoy"],
         capture_output=True,
     )
-    assert resp.returncode == 0
-
-    resp = cluster_node.exec(
+    cluster_node.exec(
         ["./sonobuoy", "run", "--plugin", "e2e", "--wait"],
         capture_output=True,
     )
-    assert resp.returncode == 0
-
-    resp = cluster_node.exec(
+    cluster_node.exec(
         ["./sonobuoy", "retrieve", "-f", "sonobuoy_e2e.tar.gz"],
         capture_output=True,
     )
-    assert resp.returncode == 0
-
-    resp = cluster_node.exec(
+    cluster_node.exec(
         ["tar", "-xf", "sonobuoy_e2e.tar.gz", "--one-top-level"],
         capture_output=True,
     )
-    assert resp.returncode == 0
-
     resp = cluster_node.exec(
         ["./sonobuoy", "results", "sonobuoy_e2e.tar.gz"],
         capture_output=True,
     )
-    assert resp.returncode == 0
     LOG.info(resp.stdout.decode())
-    pull_report(cluster_node)
+    cluster_node.pull_file("/root/sonobuoy_e2e.tar.gz", "sonobuoy_e2e.tar.gz")
     assert "Failed: 0" in resp.stdout.decode()
 
 
@@ -74,26 +59,13 @@ def cluster_setup(instances: List[harness.Instance]) -> harness.Instance:
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "control-plane" in util.get_local_node_status(joining_node)
 
-    # note: this workaround shlex issue when using string ">>"
-    util.run(
-        [
-            "lxc",
-            "shell",
-            cluster_node.id,
-            "--",
-            "bash",
-            "-c",
-            "k8s config >> /root/.kube/config",
-        ]
-    )
+    config = cluster_node.exec(["k8s", "config"], capture_output=True)
+    cluster_node.exec(["dd", "of=/root/.kube/config"], input=config.stdout)
+
     return cluster_node
 
 
-def pull_report(instance: harness.Instance):
-    instance.pull_file("/root/sonobuoy_e2e.tar.gz", "sonobuoy_e2e.tar.gz")
-
-
 def install_sonobuoy(instance: harness.Instance):
-    instance.exec(["curl", "-L", SONOBUOY_TAR_GZ, "-o", "sonobuoy.tar.gz"])
+    instance.exec(["curl", "-L", config.SONOBUOY_TAR_GZ, "-o", "sonobuoy.tar.gz"])
     instance.exec(["tar", "xvzf", "sonobuoy.tar.gz"])
     instance.exec(["./sonobuoy", "version"])
