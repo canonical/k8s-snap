@@ -26,7 +26,7 @@ func TestIsWorker(t *testing.T) {
 		lock.Close()
 
 		exists, err := snaputil.IsWorker(mock)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(exists).To(BeTrue())
 	})
 
@@ -34,7 +34,7 @@ func TestIsWorker(t *testing.T) {
 		mock.Mock.LockFilesDir = "/non-existent"
 		g := NewWithT(t)
 		exists, err := snaputil.IsWorker(mock)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(exists).To(BeFalse())
 	})
 }
@@ -52,24 +52,24 @@ func TestMarkAsWorkerNode(t *testing.T) {
 	t.Run("MarkWorker", func(t *testing.T) {
 		g := NewWithT(t)
 		err := snaputil.MarkAsWorkerNode(mock, true)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 
 		workerFile := filepath.Join(mock.LockFilesDir(), "worker")
 		g.Expect(workerFile).To(BeAnExistingFile())
 
 		// Clean up
 		err = os.Remove(workerFile)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 	})
 
 	t.Run("UnmarkWorker", func(t *testing.T) {
 		g := NewWithT(t)
 		workerFile := filepath.Join(mock.LockFilesDir(), "worker")
 		_, err := os.Create(workerFile)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 
 		err = snaputil.MarkAsWorkerNode(mock, false)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 
 		g.Expect(workerFile).NotTo(BeAnExistingFile())
 	})

@@ -89,7 +89,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("ControlPlaneWithExtraArgs", func(t *testing.T) {
@@ -153,7 +153,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("ControlPlaneArgsNoOptional", func(t *testing.T) {
@@ -163,7 +163,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet control plane setup function
-		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "", nil, nil)).To(BeNil())
+		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "", nil, nil)).To(Succeed())
 
 		tests := []struct {
 			key         string
@@ -201,7 +201,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WorkerArgs", func(t *testing.T) {
@@ -211,7 +211,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil)).To(BeNil())
+		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -254,7 +254,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WorkerWithExtraArgs", func(t *testing.T) {
@@ -269,7 +269,7 @@ func TestKubelet(t *testing.T) {
 		}
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", extraArgs)).To(BeNil())
+		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", extraArgs)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -316,7 +316,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WorkerArgsNoOptional", func(t *testing.T) {
@@ -326,7 +326,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", nil, "", "", "", nil)).To(BeNil())
+		g.Expect(setup.KubeletWorker(s, "dev", nil, "", "", "", nil)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -365,7 +365,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("ControlPlaneNoArgsDir", func(t *testing.T) {
@@ -397,7 +397,7 @@ func TestKubelet(t *testing.T) {
 		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
 
 		val, err := snaputil.GetServiceArgument(s, "kubelet", "--hostname-override")
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(val).To(BeEmpty())
 	})
 

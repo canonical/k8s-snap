@@ -24,7 +24,7 @@ func TestGetFirstIP(t *testing.T) {
 		t.Run(tc.cidr, func(t *testing.T) {
 			g := NewWithT(t)
 			ip, err := utils.GetFirstIP(tc.cidr)
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(ip.String()).To(Equal(tc.ip))
 		})
 	}
@@ -49,7 +49,7 @@ func TestGetKubernetesServiceIPsFromServiceCIDRs(t *testing.T) {
 					ips[idx] = v.String()
 				}
 
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(ips).To(Equal(tc.ips))
 			})
 		}
@@ -66,7 +66,7 @@ func TestGetKubernetesServiceIPsFromServiceCIDRs(t *testing.T) {
 				g := NewWithT(t)
 				_, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(tc.cidr)
 
-				g.Expect(err).ToNot(BeNil())
+				g.Expect(err).To(HaveOccurred())
 			})
 		}
 	})
@@ -171,13 +171,14 @@ func TestParseCIDRs(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			g := NewWithT(t)
 			ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(tc.input)
 			if tc.expectedErr {
-				Expect(err).To(HaveOccurred())
+				g.Expect(err).To(HaveOccurred())
 			} else {
-				Expect(err).To(BeNil())
-				Expect(ipv4CIDR).To(Equal(tc.expectedIPv4))
-				Expect(ipv6CIDR).To(Equal(tc.expectedIPv6))
+				g.Expect(err).To(Not(HaveOccurred()))
+				g.Expect(ipv4CIDR).To(Equal(tc.expectedIPv4))
+				g.Expect(ipv6CIDR).To(Equal(tc.expectedIPv6))
 			}
 		})
 	}

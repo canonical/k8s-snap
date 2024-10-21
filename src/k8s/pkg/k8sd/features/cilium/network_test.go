@@ -114,7 +114,7 @@ func TestNetworkEnabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 
 	t.Run("Strict", func(t *testing.T) {
@@ -226,7 +226,7 @@ func TestNetworkMountPath(t *testing.T) {
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 			g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-			g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 
 		})
 	}
@@ -264,7 +264,7 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 
 	})
 
@@ -300,7 +300,7 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		testingLogger, ok := logger.GetSink().(ktesting.Underlier)
 		if !ok {
 			panic("Should have had a ktesting LogSink!?")
@@ -338,13 +338,13 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 
 	t.Run("MountPropagationPrivate", func(t *testing.T) {
 		g := NewWithT(t)
 
-		getMountPropagationType = func(path string) (utils.MountPropagationType, error) {
+		getMountPropagationType = func(_ string) (utils.MountPropagationType, error) {
 			return utils.MountPropagationPrivate, nil
 		}
 		helmM := &helmmock.Mock{}
@@ -370,7 +370,7 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 }
 

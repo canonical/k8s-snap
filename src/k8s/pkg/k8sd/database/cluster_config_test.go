@@ -26,19 +26,19 @@ func TestClusterConfig(t *testing.T) {
 			// Write some config to the database
 			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				_, err := database.SetClusterConfig(context.Background(), tx, expectedClusterConfig)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				return nil
 			})
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 
 			// Retrieve it and map it to the struct
 			err = d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				clusterConfig, err := database.GetClusterConfig(ctx, tx)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(clusterConfig).To(Equal(expectedClusterConfig))
 				return nil
 			})
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 		})
 
 		t.Run("CannotUpdateCA", func(t *testing.T) {
@@ -65,11 +65,11 @@ func TestClusterConfig(t *testing.T) {
 
 			err = d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				clusterConfig, err := database.GetClusterConfig(ctx, tx)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(clusterConfig).To(Equal(expectedClusterConfig))
 				return nil
 			})
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 		})
 
 		t.Run("Update", func(t *testing.T) {
@@ -104,18 +104,18 @@ func TestClusterConfig(t *testing.T) {
 					},
 				})
 				g.Expect(returnedConfig).To(Equal(expectedClusterConfig))
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				return nil
 			})
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 
 			err = d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				clusterConfig, err := database.GetClusterConfig(ctx, tx)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(clusterConfig).To(Equal(expectedClusterConfig))
 				return nil
 			})
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 		})
 	})
 }

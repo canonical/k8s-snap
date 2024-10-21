@@ -36,7 +36,7 @@ func TestValidateCIDR(t *testing.T) {
 				if tc.expectPodErr {
 					g.Expect(err).To(HaveOccurred())
 				} else {
-					g.Expect(err).To(BeNil())
+					g.Expect(err).To(Not(HaveOccurred()))
 				}
 			})
 			t.Run("Service", func(t *testing.T) {
@@ -51,7 +51,7 @@ func TestValidateCIDR(t *testing.T) {
 				if tc.expectSvcErr {
 					g.Expect(err).To(HaveOccurred())
 				} else {
-					g.Expect(err).To(BeNil())
+					g.Expect(err).To(Not(HaveOccurred()))
 				}
 			})
 		})
@@ -126,7 +126,7 @@ func TestValidateExternalServers(t *testing.T) {
 			if tc.expectErr {
 				g.Expect(err).To(HaveOccurred())
 			} else {
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 			}
 		})
 	}

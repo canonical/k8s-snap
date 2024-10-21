@@ -68,7 +68,7 @@ func TestFailedToGetCSR(t *testing.T) {
 	result, err := reconciler.Reconcile(context.Background(), getDefaultRequest())
 
 	g.Expect(result).To(Equal(ctrl.Result{}))
-	g.Expect(err).To(MatchError(getErr))
+	g.Expect(err).To(MatchError(getErr.Error()))
 }
 
 func TestHasSignedCertificate(t *testing.T) {

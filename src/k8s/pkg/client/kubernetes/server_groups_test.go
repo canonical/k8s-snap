@@ -58,7 +58,7 @@ func TestListResourcesForGroupVersion(t *testing.T) {
 			if tt.expectedError {
 				g.Expect(err).To(HaveOccurred())
 			} else {
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(resources).To(Equal(tt.expectedList))
 			}
 		})
