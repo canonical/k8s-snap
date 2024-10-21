@@ -28,7 +28,7 @@ var (
 		ManifestPath: filepath.Join("charts", "gateway-api-1.0.0.tgz"),
 	}
 
-	//chartGatewayClass represents a manifest to deploy a GatewayClass called ck-gateway.
+	// chartGatewayClass represents a manifest to deploy a GatewayClass called ck-gateway.
 	chartGatewayClass = helm.InstallableChart{
 		Name:         "ck-gateway-class",
 		Namespace:    "default",
