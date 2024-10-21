@@ -1,3 +1,6 @@
+#
+# Copyright 2024 Canonical, Ltd.
+#
 import logging
 from typing import List
 
@@ -34,10 +37,9 @@ def test_strict_interfaces(instances: List[harness.Instance], tmp_path):
 
         check_snap_interfaces(cp, config.SNAP_NAME)
 
-        cp.exec(
-            ["snap", "remove", config.SNAP_NAME, "--purge"]
-        )
-       
+        cp.exec(["snap", "remove", config.SNAP_NAME, "--purge"])
+
+
 def check_snap_interfaces(cp, snap_name):
     """Check the strict snap interfaces."""
     interfaces = [
@@ -62,6 +64,13 @@ def check_snap_interfaces(cp, snap_name):
     ]
     for interface in interfaces:
         cp.exec(
-            ["snap", "run", "--shell", snap_name, "-c", f"snapctl is-connected {interface}"],
-            check=True
+            [
+                "snap",
+                "run",
+                "--shell",
+                snap_name,
+                "-c",
+                f"snapctl is-connected {interface}",
+            ],
+            check=True,
         )

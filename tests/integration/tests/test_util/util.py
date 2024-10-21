@@ -141,7 +141,10 @@ def _as_int(value: Optional[str]) -> Optional[int]:
 
 
 def setup_k8s_snap(
-    instance: harness.Instance, tmp_path: Path, snap: Optional[str] = None, connect_interfaces=True
+    instance: harness.Instance,
+    tmp_path: Path,
+    snap: Optional[str] = None,
+    connect_interfaces=True,
 ):
     """Installs and sets up the snap on the given instance and connects the interfaces.
 
