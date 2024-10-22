@@ -3,9 +3,6 @@ name: Nightly Latest/Edge Tests
 on:
   schedule:
     - cron: "0 0 * * *" # Runs every midnight
-  push:
-    branches:
-      - KU-1813/strict-interfaces-test # TODO rm
 
 permissions:
   contents: read
