@@ -141,7 +141,10 @@ def _as_int(value: Optional[str]) -> Optional[int]:
 
 
 def setup_k8s_snap(
-    instance: harness.Instance, tmp_path: Path, snap: Optional[str] = None
+    instance: harness.Instance,
+    tmp_path: Path,
+    snap: Optional[str] = None,
+    connect_interfaces=True,
 ):
     """Installs and sets up the snap on the given instance and connects the interfaces.
 
@@ -176,8 +179,9 @@ def setup_k8s_snap(
         cmd += [config.SNAP_NAME, "--channel", channel]
 
     instance.exec(cmd)
-    LOG.info("Ensure k8s interfaces and network requirements")
-    instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
+    if connect_interfaces:
+        LOG.info("Ensure k8s interfaces and network requirements")
+        instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
 
 
 def wait_until_k8s_ready(
