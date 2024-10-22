@@ -88,7 +88,7 @@ func TestParseArgumentFile(t *testing.T) {
 			g := NewWithT(t)
 
 			filePath := filepath.Join(t.TempDir(), tc.name)
-			err := os.WriteFile(filePath, []byte(tc.content), 0755)
+			err := os.WriteFile(filePath, []byte(tc.content), 0o755)
 			if err != nil {
 				t.Fatalf("Failed to setup testfile: %v", err)
 			}

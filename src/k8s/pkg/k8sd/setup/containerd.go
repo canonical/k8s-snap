@@ -108,7 +108,7 @@ func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs 
 		return fmt.Errorf("failed to render containerd config.toml: %w", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(snap.ContainerdConfigDir(), "config.toml"), b, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(snap.ContainerdConfigDir(), "config.toml"), b, 0o600); err != nil {
 		return fmt.Errorf("failed to write config.toml: %w", err)
 	}
 
@@ -131,7 +131,7 @@ func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs 
 	if err := utils.CopyFile(snap.CNIPluginsBinary(), cniBinary); err != nil {
 		return fmt.Errorf("failed to copy cni plugin binary: %w", err)
 	}
-	if err := os.Chmod(cniBinary, 0700); err != nil {
+	if err := os.Chmod(cniBinary, 0o700); err != nil {
 		return fmt.Errorf("failed to chmod cni plugin binary: %w", err)
 	}
 	if err := os.Chown(cniBinary, snap.UID(), snap.GID()); err != nil {

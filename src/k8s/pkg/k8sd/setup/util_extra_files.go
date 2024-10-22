@@ -20,7 +20,7 @@ func ExtraNodeConfigFiles(snap snap.Snap, files map[string]string) error {
 
 		filePath := filepath.Join(snap.ServiceExtraConfigDir(), filename)
 		// Write the content to the file
-		if err := os.WriteFile(filePath, []byte(content), 0400); err != nil {
+		if err := os.WriteFile(filePath, []byte(content), 0o400); err != nil {
 			return fmt.Errorf("failed to write to file %s: %w", filePath, err)
 		}
 

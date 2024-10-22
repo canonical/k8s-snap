@@ -8,12 +8,10 @@ import (
 	"github.com/canonical/microcluster/v3/cluster"
 )
 
-var (
-	clusterAPIConfigsStmts = map[string]int{
-		"insert-capi-token": MustPrepareStatement("cluster-configs", "insert-capi-token.sql"),
-		"select-capi-token": MustPrepareStatement("cluster-configs", "select-capi-token.sql"),
-	}
-)
+var clusterAPIConfigsStmts = map[string]int{
+	"insert-capi-token": MustPrepareStatement("cluster-configs", "insert-capi-token.sql"),
+	"select-capi-token": MustPrepareStatement("cluster-configs", "select-capi-token.sql"),
+}
 
 // SetClusterAPIToken stores the ClusterAPI token in the cluster config.
 func SetClusterAPIToken(ctx context.Context, tx *sql.Tx, token string) error {

@@ -130,7 +130,8 @@ func TestIngressEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
@@ -186,7 +187,8 @@ func TestIngressEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
@@ -230,7 +232,6 @@ func TestIngressEnabled(t *testing.T) {
 		fakeDiscovery, ok := clientset.Discovery().(*fakediscovery.FakeDiscovery)
 		g.Expect(ok).To(BeTrue())
 		fakeDiscovery.Resources = []*metav1.APIResourceList{
-
 			{
 				GroupVersion: "projectcontour.io/v1alpha1",
 				APIResources: []metav1.APIResource{
@@ -245,7 +246,8 @@ func TestIngressEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
@@ -294,7 +296,8 @@ func TestIngressEnabled(t *testing.T) {
 			{
 				GroupVersion: "projectcontour.io/metav1",
 				APIResources: []metav1.APIResource{},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
@@ -349,7 +352,8 @@ func TestIngressEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,

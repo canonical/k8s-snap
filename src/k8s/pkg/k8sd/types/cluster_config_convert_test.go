@@ -254,6 +254,5 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 				g.Expect(err).To(HaveOccurred())
 			})
 		}
-
 	})
 }

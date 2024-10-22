@@ -17,7 +17,7 @@ type RefreshOpts struct {
 }
 
 func RefreshOptsFromAPI(req apiv1.SnapRefreshRequest) (RefreshOpts, error) {
-	var optsMap = map[string]string{
+	optsMap := map[string]string{
 		"localPath": req.LocalPath,
 		"channel":   req.Channel,
 		"revision":  req.Revision,

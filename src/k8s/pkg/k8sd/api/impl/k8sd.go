@@ -59,5 +59,4 @@ func GetLocalNodeStatus(ctx context.Context, s state.State, snap snap.Snap) (api
 		Address:     s.Address().Hostname(),
 		ClusterRole: clusterRole,
 	}, nil
-
 }

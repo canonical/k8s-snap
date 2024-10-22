@@ -20,7 +20,7 @@ func TestContainerd(t *testing.T) {
 
 	dir := t.TempDir()
 
-	g.Expect(os.WriteFile(filepath.Join(dir, "mockcni"), []byte("echo hi"), 0600)).To(Succeed())
+	g.Expect(os.WriteFile(filepath.Join(dir, "mockcni"), []byte("echo hi"), 0o600)).To(Succeed())
 
 	s := &mock.Snap{
 		Mock: mock.Mock{
@@ -63,7 +63,7 @@ func TestContainerd(t *testing.T) {
 
 		info, err := os.Stat(filepath.Join(dir, "containerd", "config.toml"))
 		g.Expect(err).To(Not(HaveOccurred()))
-		g.Expect(info.Mode().Perm()).To(Equal(fs.FileMode(0600)))
+		g.Expect(info.Mode().Perm()).To(Equal(fs.FileMode(0o600)))
 
 		switch stat := info.Sys().(type) {
 		case *syscall.Stat_t:
@@ -84,7 +84,7 @@ func TestContainerd(t *testing.T) {
 
 		info, err := os.Stat(filepath.Join(dir, "opt-cni-bin"))
 		g.Expect(err).To(Not(HaveOccurred()))
-		g.Expect(info.Mode().Perm()).To(Equal(fs.FileMode(0700)))
+		g.Expect(info.Mode().Perm()).To(Equal(fs.FileMode(0o700)))
 
 		switch stat := info.Sys().(type) {
 		case *syscall.Stat_t:

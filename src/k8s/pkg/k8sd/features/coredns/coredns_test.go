@@ -50,7 +50,6 @@ func TestDisabled(t *testing.T) {
 		g.Expect(callArgs.Chart).To(Equal(coredns.Chart))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(callArgs.Values).To(BeNil())
-
 	})
 	t.Run("Success", func(t *testing.T) {
 		g := NewWithT(t)

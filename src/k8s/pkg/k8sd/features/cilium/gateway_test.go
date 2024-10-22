@@ -144,7 +144,6 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
 	})
-
 }
 
 func TestGatewayDisabled(t *testing.T) {
@@ -200,7 +199,6 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(helmCiliumArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(helmCiliumArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(BeFalse())
-
 	})
 
 	t.Run("RolloutFail", func(t *testing.T) {
