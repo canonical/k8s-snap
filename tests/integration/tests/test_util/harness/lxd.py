@@ -228,7 +228,7 @@ class LXDHarness(Harness):
             raise HarnessError(f"unknown instance {instance_id}")
 
         try:
-            run(["lxc", "rm", instance_id, "--force"])
+            run(["lxc", "rm", instance_id, "--force", "--debug"])
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"failed to delete instance {instance_id}") from e
 
