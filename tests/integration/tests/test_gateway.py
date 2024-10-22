@@ -3,6 +3,8 @@
 #
 import json
 import logging
+import subprocess
+import time
 from pathlib import Path
 
 from test_util import harness, util
@@ -34,6 +36,34 @@ def get_gateway_service_node_port(p):
         if gateway_http_port:
             return gateway_http_port
     return None
+
+
+def get_external_service_ip(instance: harness.Instance) -> str:
+    try_count = 0
+    gateway_ip = None
+    while gateway_ip is None and try_count < 5:
+        try_count += 1
+        try:
+            gateway_ip = (
+                instance.exec(
+                    [
+                        "k8s",
+                        "kubectl",
+                        "get",
+                        "gateway",
+                        "my-gateway",
+                        "-o=jsonpath='{.status.addresses[0].value}'",
+                    ],
+                    capture_output=True,
+                )
+                .stdout.decode()
+                .replace("'", "")
+            )
+        except subprocess.CalledProcessError:
+            gateway_ip = None
+            pass
+        time.sleep(3)
+    return gateway_ip
 
 
 def test_gateway(session_instance: harness.Instance):
@@ -80,9 +110,7 @@ def test_gateway(session_instance: harness.Instance):
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{gateway_http_port}"])
 
-    gateway_ip = util.get_external_service_ip(
-        session_instance, ["ck-ingress-contour-envoy", "cilium-ingress"]
-    )
+    gateway_ip = get_external_service_ip(session_instance)
     assert gateway_ip is not None, "No Gateway IP found."
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
