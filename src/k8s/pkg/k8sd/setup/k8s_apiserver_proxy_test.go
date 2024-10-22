@@ -41,14 +41,14 @@ func TestK8sApiServerProxy(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "k8s-apiserver-proxy", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(tc.expectedVal).To(Equal(val))
 			})
 		}
 
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "k8s-apiserver-proxy"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WithExtraArgs", func(t *testing.T) {
@@ -75,7 +75,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "k8s-apiserver-proxy", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(tc.expectedVal).To(Equal(val))
 			})
 		}
@@ -83,13 +83,13 @@ func TestK8sApiServerProxy(t *testing.T) {
 		t.Run("--listen", func(t *testing.T) {
 			g := NewWithT(t)
 			val, err := snaputil.GetServiceArgument(s, "k8s-apiserver-proxy", "--listen")
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(val).To(BeZero())
 		})
 
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "k8s-apiserver-proxy"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("MissingExtraConfigDir", func(t *testing.T) {

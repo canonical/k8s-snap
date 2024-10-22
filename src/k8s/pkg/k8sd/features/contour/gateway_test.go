@@ -12,7 +12,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/features/contour"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
-
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	fakediscovery "k8s.io/client-go/discovery/fake"
@@ -45,7 +44,6 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour.GatewayDeleteFailedMsgTmpl, err)))
-
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -69,7 +67,6 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(status.Version).To(Equal(contour.ContourGatewayProvisionerContourImageTag))
 		g.Expect(status.Message).To(Equal(contour.DisabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
-
 	})
 }
 
@@ -125,7 +122,8 @@ func TestGatewayEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
@@ -183,7 +181,8 @@ func TestGatewayEnabled(t *testing.T) {
 			{
 				GroupVersion: "projectcontour.io/v1",
 				APIResources: []v1.APIResource{},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,

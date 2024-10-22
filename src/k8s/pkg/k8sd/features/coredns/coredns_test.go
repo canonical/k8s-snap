@@ -6,18 +6,17 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/utils/ptr"
-
 	"github.com/canonical/k8s/pkg/client/helm"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features/coredns"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
+	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/utils/ptr"
 )
 
 func TestDisabled(t *testing.T) {
@@ -51,7 +50,6 @@ func TestDisabled(t *testing.T) {
 		g.Expect(callArgs.Chart).To(Equal(coredns.Chart))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(callArgs.Values).To(BeNil())
-
 	})
 	t.Run("Success", func(t *testing.T) {
 		g := NewWithT(t)
@@ -69,7 +67,7 @@ func TestDisabled(t *testing.T) {
 
 		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
 
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(str).To(BeEmpty())
 		g.Expect(status.Message).To(Equal("disabled"))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -173,7 +171,7 @@ func TestEnabled(t *testing.T) {
 
 		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
 
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(str).To(Equal(clusterIp))
 		g.Expect(status.Message).To(ContainSubstring("enabled at " + clusterIp))
 		g.Expect(status.Enabled).To(BeTrue())

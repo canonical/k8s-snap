@@ -1,12 +1,12 @@
 package utils_test
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/lxd/lxd/util"
 	. "github.com/onsi/gomega"
 )
 
@@ -24,7 +24,7 @@ func TestGetFirstIP(t *testing.T) {
 		t.Run(tc.cidr, func(t *testing.T) {
 			g := NewWithT(t)
 			ip, err := utils.GetFirstIP(tc.cidr)
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(ip.String()).To(Equal(tc.ip))
 		})
 	}
@@ -49,7 +49,7 @@ func TestGetKubernetesServiceIPsFromServiceCIDRs(t *testing.T) {
 					ips[idx] = v.String()
 				}
 
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(ips).To(Equal(tc.ips))
 			})
 		}
@@ -66,7 +66,7 @@ func TestGetKubernetesServiceIPsFromServiceCIDRs(t *testing.T) {
 				g := NewWithT(t)
 				_, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(tc.cidr)
 
-				g.Expect(err).ToNot(BeNil())
+				g.Expect(err).To(HaveOccurred())
 			})
 		}
 	})
@@ -76,12 +76,20 @@ func TestParseAddressString(t *testing.T) {
 	g := NewWithT(t)
 
 	// Seed the default address
-	defaultAddress := util.NetworkInterfaceAddress()
-	ip := net.ParseIP(defaultAddress)
-	subnetMask := net.CIDRMask(24, 32)
-	networkAddress := ip.Mask(subnetMask)
+	defaultIPv4, defaultIPv6, err := utils.GetDefaultAddress()
+	g.Expect(err).ToNot(HaveOccurred())
+
+	ip4 := net.ParseIP(defaultIPv4)
+	subnetMask4 := net.CIDRMask(24, 32)
+	networkAddress4 := ip4.Mask(subnetMask4)
 	// Infer the CIDR notation
-	networkAddressCIDR := fmt.Sprintf("%s/24", networkAddress.String())
+	networkAddressCIDR := fmt.Sprintf("%s/24", networkAddress4.String())
+
+	ip6 := net.ParseIP(defaultIPv6)
+	subnetMask6 := net.CIDRMask(64, 128)
+	networkAddress6 := ip6.Mask(subnetMask6)
+	// Infer the CIDR notation
+	networkAddressCIDR6 := fmt.Sprintf("%s/64", networkAddress6.String())
 
 	for _, tc := range []struct {
 		name    string
@@ -90,18 +98,28 @@ func TestParseAddressString(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{name: "EmptyAddress", address: "", port: 8080, want: fmt.Sprintf("%s:8080", defaultAddress), wantErr: false},
-		{name: "CIDR", address: networkAddressCIDR, port: 8080, want: fmt.Sprintf("%s:8080", defaultAddress), wantErr: false},
-		{name: "CIDRAndPort", address: fmt.Sprintf("%s:9090", networkAddressCIDR), port: 8080, want: fmt.Sprintf("%s:9090", defaultAddress), wantErr: false},
+		{name: "CIDR6LinkLocalPort", address: "[::/0%eth0]:9090", port: 8080, want: fmt.Sprintf("[%s%%eth0]:9090", defaultIPv6), wantErr: false},
+		{name: "CIDRAndPort", address: fmt.Sprintf("%s:9090", networkAddressCIDR), port: 8080, want: fmt.Sprintf("%s:9090", defaultIPv4), wantErr: false},
+		{name: "CIDR", address: networkAddressCIDR, port: 8080, want: fmt.Sprintf("%s:8080", defaultIPv4), wantErr: false},
+		{name: "EmptyAddress", address: "", port: 8080, want: fmt.Sprintf("%s:8080", defaultIPv4), wantErr: false},
+		{name: "CIDR6LinkLocalDefault", address: "::/0%eth0", port: 8080, want: fmt.Sprintf("[%s%%eth0]:8080", defaultIPv6), wantErr: false},
+		{name: "CIDR6Default", address: "::/0", port: 8080, want: fmt.Sprintf("[%s]:8080", defaultIPv6), wantErr: false},
+		{name: "CIDR6DefaultPort", address: "[::/0]:9090", port: 8080, want: fmt.Sprintf("[%s]:9090", defaultIPv6), wantErr: false},
+		{name: "CIDR6DefaultPort", address: "[::/0]:9090", port: 8080, want: fmt.Sprintf("[%s]:9090", defaultIPv6), wantErr: false},
+		{name: "CIDR6", address: networkAddressCIDR6, port: 8080, want: fmt.Sprintf("[%s]:8080", defaultIPv6), wantErr: false},
+		{name: "CIDR6AndPort", address: fmt.Sprintf("[%s]:9090", networkAddressCIDR6), port: 8080, want: fmt.Sprintf("[%s]:9090", defaultIPv6), wantErr: false},
 		{name: "IPv4", address: "10.0.0.10", port: 8080, want: "10.0.0.10:8080", wantErr: false},
 		{name: "IPv4AndPort", address: "10.0.0.10:9090", port: 8080, want: "10.0.0.10:9090", wantErr: false},
 		{name: "NonMatchingCIDR", address: "10.10.5.0/24", port: 8080, want: "", wantErr: true},
 		{name: "IPv6", address: "fe80::1:234", port: 8080, want: "[fe80::1:234]:8080", wantErr: false},
+		{name: "IPv6Zone", address: "fe80::1:234%eth0", port: 8080, want: "[fe80::1:234%eth0]:8080", wantErr: false},
+		{name: "IPv6ZoneAndPort", address: "[fe80::1:234%eth0]:9090", port: 8080, want: "[fe80::1:234%eth0]:9090", wantErr: false},
 		{name: "IPv6AndPort", address: "[fe80::1:234]:9090", port: 8080, want: "[fe80::1:234]:9090", wantErr: false},
 		{name: "InvalidPort", address: "127.0.0.1:invalid-port", port: 0, want: "", wantErr: true},
 		{name: "PortOutOfBounds", address: "10.0.0.10:70799", port: 8080, want: "", wantErr: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
 			got, err := utils.ParseAddressString(tc.address, tc.port)
 			if tc.wantErr {
 				g.Expect(err).To(HaveOccurred())
@@ -153,13 +171,14 @@ func TestParseCIDRs(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			g := NewWithT(t)
 			ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(tc.input)
 			if tc.expectedErr {
-				Expect(err).To(HaveOccurred())
+				g.Expect(err).To(HaveOccurred())
 			} else {
-				Expect(err).To(BeNil())
-				Expect(ipv4CIDR).To(Equal(tc.expectedIPv4))
-				Expect(ipv6CIDR).To(Equal(tc.expectedIPv6))
+				g.Expect(err).To(Not(HaveOccurred()))
+				g.Expect(ipv4CIDR).To(Equal(tc.expectedIPv4))
+				g.Expect(ipv6CIDR).To(Equal(tc.expectedIPv6))
 			}
 		})
 	}
@@ -204,4 +223,35 @@ func TestToIPString(t *testing.T) {
 			g.Expect(result).To(Equal(tc.expected))
 		})
 	}
+}
+
+// getInterfaceNameForIP returns the network interface name associated with the given IP.
+func getInterfaceNameForIP(ip net.IP) (string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+
+	for _, iface := range interfaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return "", err
+		}
+
+		for _, addr := range addrs {
+			var ipAddr net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ipAddr = v.IP
+			case *net.IPAddr:
+				ipAddr = v.IP
+			}
+
+			if ipAddr.Equal(ip) {
+				return iface.Name, nil
+			}
+		}
+	}
+
+	return "", errors.New("no interface found for the given IP")
 }

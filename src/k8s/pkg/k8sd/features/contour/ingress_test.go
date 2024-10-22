@@ -12,7 +12,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/features/contour"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
-
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -131,7 +130,8 @@ func TestIngressEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
@@ -187,7 +187,8 @@ func TestIngressEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
@@ -231,7 +232,6 @@ func TestIngressEnabled(t *testing.T) {
 		fakeDiscovery, ok := clientset.Discovery().(*fakediscovery.FakeDiscovery)
 		g.Expect(ok).To(BeTrue())
 		fakeDiscovery.Resources = []*metav1.APIResourceList{
-
 			{
 				GroupVersion: "projectcontour.io/v1alpha1",
 				APIResources: []metav1.APIResource{
@@ -246,7 +246,8 @@ func TestIngressEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
@@ -295,7 +296,8 @@ func TestIngressEnabled(t *testing.T) {
 			{
 				GroupVersion: "projectcontour.io/metav1",
 				APIResources: []metav1.APIResource{},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
@@ -350,7 +352,8 @@ func TestIngressEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,

@@ -47,19 +47,20 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 		}, err
 	}
 
-	if loadbalancer.GetBGPMode() {
+	switch {
+	case loadbalancer.GetBGPMode():
 		return types.FeatureStatus{
 			Enabled: true,
 			Version: ControllerImageTag,
 			Message: fmt.Sprintf(enabledMsgTmpl, "BGP"),
 		}, nil
-	} else if loadbalancer.GetL2Mode() {
+	case loadbalancer.GetL2Mode():
 		return types.FeatureStatus{
 			Enabled: true,
 			Version: ControllerImageTag,
 			Message: fmt.Sprintf(enabledMsgTmpl, "L2"),
 		}, nil
-	} else {
+	default:
 		return types.FeatureStatus{
 			Enabled: true,
 			Version: ControllerImageTag,

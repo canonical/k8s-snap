@@ -13,7 +13,8 @@ import (
 )
 
 func reconcileAutoApprove(ctx context.Context, log log.Logger, csr *certv1.CertificateSigningRequest,
-	priv *rsa.PrivateKey, client client.Client) (ctrl.Result, error) {
+	priv *rsa.PrivateKey, client client.Client,
+) (ctrl.Result, error) {
 	var result certv1.RequestConditionType
 
 	if err := validateCSR(csr, priv); err != nil {

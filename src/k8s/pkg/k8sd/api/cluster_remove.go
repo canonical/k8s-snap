@@ -8,6 +8,7 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
@@ -87,7 +88,7 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
 
-	if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; ok {
+	if _, ok := cfg.Annotations[apiv1_annotations.AnnotationSkipCleanupKubernetesNodeOnRemove]; ok {
 		// Explicitly skip removing the node from Kubernetes.
 		log.Info("Skipping Kubernetes worker node removal")
 		return response.SyncResponse(true, nil)

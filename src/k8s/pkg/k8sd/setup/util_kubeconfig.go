@@ -74,5 +74,4 @@ func SetupControlPlaneKubeconfigs(kubeConfigDir string, localhostAddress string,
 		}
 	}
 	return nil
-
 }

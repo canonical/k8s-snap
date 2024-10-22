@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"testing"
 
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations/cilium"
 	"github.com/canonical/k8s/pkg/client/helm"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
 	"github.com/canonical/k8s/pkg/utils"
-
 	. "github.com/onsi/gomega"
 	"k8s.io/klog/v2"
 	"k8s.io/klog/v2/ktesting"
@@ -20,6 +20,12 @@ import (
 )
 
 // NOTE(hue): status.Message is not checked sometimes to avoid unnecessary complexity
+
+var annotations = types.Annotations{
+	apiv1_annotations.AnnotationDevices:             "eth+ lxdbr+",
+	apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
+}
+
 func TestNetworkDisabled(t *testing.T) {
 	t.Run("HelmApplyFails", func(t *testing.T) {
 		g := NewWithT(t)
@@ -108,7 +114,7 @@ func TestNetworkEnabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 
 	t.Run("Strict", func(t *testing.T) {
@@ -130,7 +136,7 @@ func TestNetworkEnabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
+		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, annotations)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -165,7 +171,7 @@ func TestNetworkEnabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
+		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, annotations)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -220,8 +226,7 @@ func TestNetworkMountPath(t *testing.T) {
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 			g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-			g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
-
+			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		})
 	}
 }
@@ -258,8 +263,7 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
-
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 
 	t.Run("MountPropagationPrivateOnLXDError", func(t *testing.T) {
@@ -294,7 +298,7 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		testingLogger, ok := logger.GetSink().(ktesting.Underlier)
 		if !ok {
 			panic("Should have had a ktesting LogSink!?")
@@ -332,13 +336,13 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 
 	t.Run("MountPropagationPrivate", func(t *testing.T) {
 		g := NewWithT(t)
 
-		getMountPropagationType = func(path string) (utils.MountPropagationType, error) {
+		getMountPropagationType = func(_ string) (utils.MountPropagationType, error) {
 			return utils.MountPropagationPrivate, nil
 		}
 		helmM := &helmmock.Mock{}
@@ -364,12 +368,11 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(networkDeployFailedMsgTmpl, err)))
 
 		g.Expect(status.Version).To(Equal(CiliumAgentImageTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 }
 
 func validateNetworkValues(g Gomega, values map[string]any, network types.Network, snap snap.Snap) {
-
 	ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -390,4 +393,14 @@ func validateNetworkValues(g Gomega, values map[string]any, network types.Networ
 	g.Expect(values["ipam"].(map[string]any)["operator"].(map[string]any)["clusterPoolIPv6PodCIDRList"]).To(Equal(ipv6CIDR))
 	g.Expect(values["ipv4"].(map[string]any)["enabled"]).To(Equal((ipv4CIDR != "")))
 	g.Expect(values["ipv6"].(map[string]any)["enabled"]).To(Equal((ipv6CIDR != "")))
+
+	devices, exists := annotations.Get(apiv1_annotations.AnnotationDevices)
+	if exists {
+		g.Expect(values["devices"]).To(Equal(devices))
+	}
+
+	directRoutingDevice, exists := annotations.Get(apiv1_annotations.AnnotationDirectRoutingDevice)
+	if exists {
+		g.Expect(values["nodePort"].(map[string]any)["directRoutingDevice"]).To(Equal(directRoutingDevice))
+	}
 }

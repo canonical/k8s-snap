@@ -192,7 +192,7 @@ func Test_updateConfigMapstructure(t *testing.T) {
 				if tc.expectErr {
 					g.Expect(err).To(HaveOccurred())
 				} else {
-					g.Expect(err).To(BeNil())
+					g.Expect(err).To(Not(HaveOccurred()))
 					g.Expect(cfg).To(SatisfyAll(tc.assertions...))
 				}
 			})

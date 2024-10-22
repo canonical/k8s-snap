@@ -5,14 +5,13 @@ import (
 	"errors"
 	"testing"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/canonical/k8s/pkg/client/helm"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/k8sd/features/calico"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
 	"github.com/canonical/k8s/pkg/utils"
+	. "github.com/onsi/gomega"
 	"k8s.io/utils/ptr"
 )
 
@@ -113,7 +112,7 @@ func TestEnabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(calico.CalicoTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 	t.Run("InvalidServiceCIDR", func(t *testing.T) {
 		g := NewWithT(t)
@@ -138,7 +137,7 @@ func TestEnabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(calico.CalicoTag))
-		g.Expect(helmM.ApplyCalledWith).To(HaveLen(0))
+		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 	t.Run("HelmApplyFails", func(t *testing.T) {
 		g := NewWithT(t)
@@ -229,10 +228,10 @@ func validateValues(t *testing.T, values map[string]any, network types.Network) 
 		"encapsulation": "VXLAN",
 	}))
 	g.Expect(calicoNetwork["ipPools"].([]map[string]any)).To(HaveLen(2))
-	g.Expect(calicoNetwork["nodeAddressAutodetectionV4"].(map[string]any)["firstFound"]).To(Equal(true))
-	g.Expect(calicoNetwork["nodeAddressAutodetectionV6"].(map[string]any)["firstFound"]).To(Equal(true))
+	g.Expect(calicoNetwork["nodeAddressAutodetectionV4"].(map[string]any)["firstFound"]).To(BeTrue())
+	g.Expect(calicoNetwork["nodeAddressAutodetectionV6"].(map[string]any)["firstFound"]).To(BeTrue())
 
-	g.Expect(values["apiServer"].(map[string]any)["enabled"]).To(Equal(true))
+	g.Expect(values["apiServer"].(map[string]any)["enabled"]).To(BeTrue())
 
 	// service CIDRs
 	g.Expect(values["serviceCIDRs"].([]string)).To(ContainElements(svcIPv4CIDR, svcIPv6CIDR))

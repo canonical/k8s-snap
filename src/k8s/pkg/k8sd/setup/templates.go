@@ -7,10 +7,8 @@ import (
 	"text/template"
 )
 
-var (
-	//go:embed embed
-	templates embed.FS
-)
+//go:embed embed
+var templates embed.FS
 
 func mustTemplate(parts ...string) *template.Template {
 	path := filepath.Join(append([]string{"embed"}, parts...)...)

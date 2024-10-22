@@ -11,7 +11,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
-
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,7 +27,7 @@ func TestIngress(t *testing.T) {
 		applyChanged   bool
 		ingressEnabled bool
 		helmErr        error
-		//then
+		// then
 		statusMsg     string
 		statusEnabled bool
 	}{
@@ -88,7 +87,7 @@ func TestIngress(t *testing.T) {
 			status, err := cilium.ApplyIngress(context.Background(), snapM, ingress, network, nil)
 
 			if tc.helmErr == nil {
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 			} else {
 				g.Expect(err).To(MatchError(applyErr))
 			}
@@ -180,7 +179,7 @@ func TestIngressRollout(t *testing.T) {
 
 		status, err := cilium.ApplyIngress(context.Background(), snapM, ingress, network, nil)
 
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
@@ -196,15 +195,15 @@ func validateIngressValues(g Gomega, values map[string]any, ingress types.Ingres
 	ingressController, ok := values["ingressController"].(map[string]any)
 	g.Expect(ok).To(BeTrue())
 	if ingress.GetEnabled() {
-		g.Expect(ingressController["enabled"]).To(Equal(true))
+		g.Expect(ingressController["enabled"]).To(BeTrue())
 		g.Expect(ingressController["loadbalancerMode"]).To(Equal("shared"))
 		g.Expect(ingressController["defaultSecretNamespace"]).To(Equal("kube-system"))
 		g.Expect(ingressController["defaultTLSSecret"]).To(Equal(ingress.GetDefaultTLSSecret()))
 		g.Expect(ingressController["enableProxyProtocol"]).To(Equal(ingress.GetEnableProxyProtocol()))
 	} else {
-		g.Expect(ingressController["enabled"]).To(Equal(false))
+		g.Expect(ingressController["enabled"]).To(BeFalse())
 		g.Expect(ingressController["defaultSecretNamespace"]).To(Equal(""))
 		g.Expect(ingressController["defaultSecretName"]).To(Equal(""))
-		g.Expect(ingressController["enableProxyProtocol"]).To(Equal(false))
+		g.Expect(ingressController["enableProxyProtocol"]).To(BeFalse())
 	}
 }

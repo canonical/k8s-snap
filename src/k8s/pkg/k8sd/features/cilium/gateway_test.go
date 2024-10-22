@@ -12,7 +12,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
-
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -74,7 +73,7 @@ func TestGatewayEnabled(t *testing.T) {
 		helmCiliumArgs := helmM.ApplyCalledWith[2]
 		g.Expect(helmCiliumArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(helmCiliumArgs.State).To(Equal(helm.StateUpgradeOnly))
-		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(Equal(true))
+		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(BeTrue())
 	})
 
 	t.Run("RolloutFail", func(t *testing.T) {
@@ -145,7 +144,6 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
 	})
-
 }
 
 func TestGatewayDisabled(t *testing.T) {
@@ -200,8 +198,7 @@ func TestGatewayDisabled(t *testing.T) {
 		helmCiliumArgs := helmM.ApplyCalledWith[1]
 		g.Expect(helmCiliumArgs.Chart).To(Equal(cilium.ChartCilium))
 		g.Expect(helmCiliumArgs.State).To(Equal(helm.StateDeleted))
-		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(Equal(false))
-
+		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(BeFalse())
 	})
 
 	t.Run("RolloutFail", func(t *testing.T) {

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"unicode"
@@ -15,12 +16,16 @@ func YAMLToStringSliceHookFunc(f reflect.Kind, t reflect.Kind, data interface{})
 		return data, nil
 	}
 
-	if data.(string) == "" {
+	strData, ok := data.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string but got %T", data)
+	}
+	if strData == "" {
 		return data, nil
 	}
 
 	var result []string
-	if err := yaml.Unmarshal([]byte(data.(string)), &result); err != nil {
+	if err := yaml.Unmarshal([]byte(strData), &result); err != nil {
 		return data, nil
 	}
 
@@ -34,7 +39,10 @@ func StringToFieldsSliceHookFunc(r rune) mapstructure.DecodeHookFunc {
 			return data, nil
 		}
 
-		raw := data.(string)
+		raw, ok := data.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected string but got %T", data)
+		}
 		if raw == "" {
 			return []string{}, nil
 		}
@@ -49,12 +57,16 @@ func YAMLToStringMapHookFunc(f reflect.Kind, t reflect.Kind, data interface{}) (
 		return data, nil
 	}
 
-	if data.(string) == "" {
+	strData, ok := data.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string but got %T", data)
+	}
+	if strData == "" {
 		return map[string]string{}, nil
 	}
 
 	var result map[string]string
-	if err := yaml.Unmarshal([]byte(data.(string)), &result); err != nil {
+	if err := yaml.Unmarshal([]byte(strData), &result); err != nil {
 		return data, nil
 	}
 
@@ -67,14 +79,17 @@ func StringToStringMapHookFunc(f reflect.Kind, t reflect.Kind, data interface{})
 		return data, nil
 	}
 
-	raw := data.(string)
+	raw, ok := data.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string but got %T", data)
+	}
 	if raw == "" {
 		return map[string]string{}, nil
 	}
 
 	fields := strings.FieldsFunc(raw, func(this rune) bool { return this == ',' || unicode.IsSpace(this) })
 	result := make(map[string]string, len(fields))
-	for _, kv := range strings.FieldsFunc(raw, func(this rune) bool { return this == ',' || unicode.IsSpace(this) }) {
+	for _, kv := range fields {
 		parts := strings.SplitN(kv, "=", 2)
 		if len(parts) < 2 {
 			return data, nil

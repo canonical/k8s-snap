@@ -10,12 +10,10 @@ import (
 	"github.com/canonical/microcluster/v3/cluster"
 )
 
-var (
-	clusterConfigsStmts = map[string]int{
-		"insert-v1alpha2": MustPrepareStatement("cluster-configs", "insert-v1alpha2.sql"),
-		"select-v1alpha2": MustPrepareStatement("cluster-configs", "select-v1alpha2.sql"),
-	}
-)
+var clusterConfigsStmts = map[string]int{
+	"insert-v1alpha2": MustPrepareStatement("cluster-configs", "insert-v1alpha2.sql"),
+	"select-v1alpha2": MustPrepareStatement("cluster-configs", "select-v1alpha2.sql"),
+}
 
 // SetClusterConfig updates the cluster configuration with any non-empty values that are set.
 // SetClusterConfig will attempt to merge the existing and new configs, and return an error if any protected fields have changed.

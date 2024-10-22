@@ -3,6 +3,7 @@ package calico
 import (
 	"testing"
 
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations/calico"
 	. "github.com/onsi/gomega"
 )
 
@@ -26,8 +27,8 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name: "Valid",
 			annotations: map[string]string{
-				annotationAPIServerEnabled: "true",
-				annotationEncapsulationV4:  "IPIP",
+				apiv1_annotations.AnnotationAPIServerEnabled: "true",
+				apiv1_annotations.AnnotationEncapsulationV4:  "IPIP",
 			},
 			expectedConfig: config{
 				apiServerEnabled: true,
@@ -39,15 +40,15 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name: "InvalidEncapsulation",
 			annotations: map[string]string{
-				annotationEncapsulationV4: "Invalid",
+				apiv1_annotations.AnnotationEncapsulationV4: "Invalid",
 			},
 			expectError: true,
 		},
 		{
 			name: "InvalidAPIServerEnabled",
 			annotations: map[string]string{
-				annotationAPIServerEnabled: "invalid",
-				annotationEncapsulationV4:  "VXLAN",
+				apiv1_annotations.AnnotationAPIServerEnabled: "invalid",
+				apiv1_annotations.AnnotationEncapsulationV4:  "VXLAN",
 			},
 			expectedConfig: config{
 				apiServerEnabled: false,
@@ -59,15 +60,15 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name: "MultipleAutodetectionV4",
 			annotations: map[string]string{
-				annotationAutodetectionV4FirstFound: "true",
-				annotationAutodetectionV4Kubernetes: "true",
+				apiv1_annotations.AnnotationAutodetectionV4FirstFound: "true",
+				apiv1_annotations.AnnotationAutodetectionV4Kubernetes: "true",
 			},
 			expectError: true,
 		},
 		{
 			name: "ValidAutodetectionCidrs",
 			annotations: map[string]string{
-				annotationAutodetectionV4CIDRs: "10.1.0.0/16,2001:0db8::/32",
+				apiv1_annotations.AnnotationAutodetectionV4CIDRs: "10.1.0.0/16,2001:0db8::/32",
 			},
 			expectedConfig: config{
 				apiServerEnabled: false,

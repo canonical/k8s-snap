@@ -8,6 +8,10 @@ import (
 	"testing"
 	"time"
 
+	k8smock "github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning/test"
+	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	. "github.com/onsi/gomega"
 	certv1 "k8s.io/api/certificates/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -16,11 +20,6 @@ import (
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	k8smock "github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning/test"
-	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/log"
-	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 )
 
 func TestCSRNotFound(t *testing.T) {
@@ -69,7 +68,7 @@ func TestFailedToGetCSR(t *testing.T) {
 	result, err := reconciler.Reconcile(context.Background(), getDefaultRequest())
 
 	g.Expect(result).To(Equal(ctrl.Result{}))
-	g.Expect(err).To(MatchError(getErr))
+	g.Expect(err).To(MatchError(getErr.Error()))
 }
 
 func TestHasSignedCertificate(t *testing.T) {

@@ -2,7 +2,7 @@ name: Nightly Latest/Edge Tests
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Runs every midnight
+    - cron: "0 0 * * *" # Runs every midnight
   pull_request: # todo remove before merge
 
 permissions:
@@ -47,6 +47,7 @@ jobs:
           # Test the latest (up to) 6 releases for the flavour
           # TODO(ben): upgrade nightly to run all flavours
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
+          TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
         run: |
           export PATH="/home/runner/.local/bin:$PATH"
           cd tests/integration && sg lxd -c 'tox -vve integration'

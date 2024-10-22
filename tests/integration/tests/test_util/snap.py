@@ -37,27 +37,9 @@ def get_snap_info(snap_name=SNAP_NAME):
         raise
 
 
-def get_latest_channels(
-    num_of_channels: int, flavor: str, arch: str, include_latest=True
-) -> List[str]:
-    """Get an ascending list of latest channels based on the number of channels and flavour.
-
-    e.g. get_latest_release_channels(3, "classic") -> ['1.31-classic/candidate', '1.30-classic/candidate']
-    if there are less than num_of_channels available, return all available channels.
-    Only the most stable risk level is returned for each major.minor version.
-    By default, the `latest/edge/<flavor>` channel is included in the list.
-    """
-    snap_info = get_snap_info()
-
-    # Extract channel information
-    channels = snap_info.get("channel-map", [])
-    available_channels = [
-        ch["channel"]["name"]
-        for ch in channels
-        if ch["channel"]["architecture"] == arch
-    ]
-
-    # Define regex pattern to match channels in the format 'major.minor-flavour'
+def filter_arch_and_flavor(channels: List[dict], arch: str, flavor: str) -> List[tuple]:
+    """Filter available channels by architecture and match them with a given regex pattern
+    for a flavor."""
     if flavor == "strict":
         pattern = re.compile(r"(\d+)\.(\d+)\/(" + "|".join(RISK_LEVELS) + ")")
     else:
@@ -65,29 +47,65 @@ def get_latest_channels(
             r"(\d+)\.(\d+)-" + re.escape(flavor) + r"\/(" + "|".join(RISK_LEVELS) + ")"
         )
 
-    # Dictionary to store the highest risk level for each major.minor
+    matched_channels = []
+    for ch in channels:
+        if ch["channel"]["architecture"] == arch:
+            channel_name = ch["channel"]["name"]
+            match = pattern.match(channel_name)
+            if match:
+                major, minor, risk = match.groups()
+                matched_channels.append((channel_name, int(major), int(minor), risk))
+
+    return matched_channels
+
+
+def get_most_stable_channels(
+    num_of_channels: int, flavor: str, arch: str, include_latest=True
+) -> List[str]:
+    """Get an ascending list of latest channels based on the number of channels
+    flavour and architecture."""
+    snap_info = get_snap_info()
+
+    # Extract channel information and filter by architecture and flavor
+    arch_flavor_channels = filter_arch_and_flavor(
+        snap_info.get("channel-map", []), arch, flavor
+    )
+
+    # Dictionary to store the most stable channels for each version
     channel_map = {}
+    for channel, major, minor, risk in arch_flavor_channels:
+        version_key = (int(major), int(minor))
 
-    for channel in available_channels:
-        match = pattern.match(channel)
-        if match:
-            major, minor, risk = match.groups()
-            major_minor = (int(major), int(minor))
+        if version_key not in channel_map or RISK_LEVELS.index(
+            risk
+        ) < RISK_LEVELS.index(channel_map[version_key][1]):
+            channel_map[version_key] = (channel, risk)
 
-            # Store only the highest risk level channel for each major.minor
-            if major_minor not in channel_map or RISK_LEVELS.index(
-                risk
-            ) < RISK_LEVELS.index(channel_map[major_minor][1]):
-                channel_map[major_minor] = (channel, risk)
+    # Sort channels by major and minor version (ascending order)
+    sorted_versions = sorted(channel_map.keys(), key=lambda v: (v[0], v[1]))
 
-    # Sort channels by major and minor version in descending order
-    sorted_channels = sorted(channel_map.keys(), reverse=False)
-
-    # Prepare final channel list
-    final_channels = [channel_map[mm][0] for mm in sorted_channels[:num_of_channels]]
+    # Extract only the channel names
+    final_channels = [channel_map[v][0] for v in sorted_versions[:num_of_channels]]
 
     if include_latest:
-        latest_channel = f"latest/edge/{flavor}"
-        final_channels.append(latest_channel)
+        final_channels.append(f"latest/edge/{flavor}")
 
     return final_channels
+
+
+def get_channels(
+    num_of_channels: int, flavor: str, arch: str, risk_level: str, include_latest=True
+) -> List[str]:
+    """Get channels based on the risk level, architecture and flavour."""
+    snap_info = get_snap_info()
+    arch_flavor_channels = filter_arch_and_flavor(
+        snap_info.get("channel-map", []), arch, flavor
+    )
+
+    matching_channels = [ch[0] for ch in arch_flavor_channels if ch[3] == risk_level]
+    matching_channels = matching_channels[:num_of_channels]
+    if include_latest:
+        latest_channel = f"latest/edge/{flavor}"
+        matching_channels.append(latest_channel)
+
+    return matching_channels

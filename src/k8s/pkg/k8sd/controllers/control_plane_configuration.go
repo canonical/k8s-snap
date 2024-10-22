@@ -23,7 +23,7 @@ type ControlPlaneConfigurationController struct {
 }
 
 // NewControlPlaneConfigurationController creates a new controller.
-// triggerCh is typically a `time.NewTicker(<duration>).C`
+// triggerCh is typically a `time.NewTicker(<duration>).C`.
 func NewControlPlaneConfigurationController(snap snap.Snap, waitReady func(), triggerCh <-chan time.Time) *ControlPlaneConfigurationController {
 	return &ControlPlaneConfigurationController{
 		snap:      snap,
@@ -35,7 +35,7 @@ func NewControlPlaneConfigurationController(snap snap.Snap, waitReady func(), tr
 // Run starts the controller.
 // Run accepts a context to manage the lifecycle of the controller.
 // Run accepts a function that retrieves the current cluster configuration.
-// Run will loop every time the trigger channel is
+// Run will loop every time the trigger channel is.
 func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) {
 	c.waitReady()
 
@@ -71,8 +71,7 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 
 func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, config types.ClusterConfig) error {
 	// kube-apiserver: external datastore
-	switch config.Datastore.GetType() {
-	case "external":
+	if config.Datastore.GetType() == "external" {
 		// certificates
 		certificatesChanged, err := setup.EnsureExtDatastorePKI(c.snap, &pki.ExternalDatastorePKI{
 			DatastoreCACert:     config.Datastore.GetExternalCACert(),

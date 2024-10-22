@@ -36,7 +36,7 @@ func MarkdownFromJsonStruct(i any, projectDir string) (string, error) {
 
 	var out strings.Builder
 	for _, field := range fields {
-		outFieldType := strings.Replace(field.TypeName, "*", "", -1)
+		outFieldType := strings.ReplaceAll(field.TypeName, "*", "")
 		entry := fmt.Sprintf(entryTemplate, field.FullJsonPath, outFieldType, field.Docstring)
 		out.WriteString(entry)
 	}
@@ -55,7 +55,7 @@ func MarkdownFromJsonStructToFile(i any, outFilePath string, projectDir string) 
 		return err
 	}
 
-	err = os.WriteFile(outFilePath, []byte(content), 0644)
+	err = os.WriteFile(outFilePath, []byte(content), 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to write markdown documentation to %s: %w", outFilePath, err)
 	}

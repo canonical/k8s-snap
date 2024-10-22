@@ -88,7 +88,7 @@ func TestParseArgumentFile(t *testing.T) {
 			g := NewWithT(t)
 
 			filePath := filepath.Join(t.TempDir(), tc.name)
-			err := os.WriteFile(filePath, []byte(tc.content), 0755)
+			err := os.WriteFile(filePath, []byte(tc.content), 0o755)
 			if err != nil {
 				t.Fatalf("Failed to setup testfile: %v", err)
 			}
@@ -157,17 +157,17 @@ func TestFileExists(t *testing.T) {
 
 	testFilePath := fmt.Sprintf("%s/myfile", t.TempDir())
 	_, err := os.Create(testFilePath)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 
 	fileExists, err := utils.FileExists(testFilePath)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(fileExists).To(BeTrue())
 
 	err = os.Remove(testFilePath)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 
 	fileExists, err = utils.FileExists(testFilePath)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(fileExists).To(BeFalse())
 }
 

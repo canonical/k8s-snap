@@ -16,6 +16,9 @@ import (
 	"github.com/canonical/go-dqlite"
 	"github.com/canonical/go-dqlite/app"
 	"github.com/canonical/go-dqlite/client"
+	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/log"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/shared"
 	"github.com/canonical/lxd/shared/termios"
 	"github.com/canonical/microcluster/v3/cluster"
@@ -23,10 +26,6 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/sys/unix"
 	"gopkg.in/yaml.v2"
-
-	cmdutil "github.com/canonical/k8s/cmd/util"
-	"github.com/canonical/k8s/pkg/log"
-	"github.com/canonical/k8s/pkg/utils"
 )
 
 const preRecoveryMessage = `You should only run this command if:
@@ -98,7 +97,6 @@ func logDebugf(format string, args ...interface{}) {
 		msg := fmt.Sprintf(format, args...)
 		log.L().Info(msg)
 	}
-
 }
 
 func newClusterRecoverCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
@@ -111,7 +109,7 @@ func newClusterRecoverCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				AddDirHeader: true,
 			})
 
-			if err := recoveryCmdPrechecks(cmd.Context()); err != nil {
+			if err := recoveryCmdPrechecks(cmd); err != nil {
 				cmd.PrintErrf("Recovery precheck failed: %v\n", err)
 				env.Exit(1)
 			}
@@ -179,8 +177,8 @@ func removeEmptyLines(content []byte) []byte {
 	return out
 }
 
-func recoveryCmdPrechecks(ctx context.Context) error {
-	log := log.FromContext(ctx)
+func recoveryCmdPrechecks(cmd *cobra.Command) error {
+	log := log.FromContext(cmd.Context())
 
 	log.V(1).Info("Running prechecks.")
 
@@ -195,15 +193,15 @@ func recoveryCmdPrechecks(ctx context.Context) error {
 		return fmt.Errorf("k8sd state dir not specified")
 	}
 
-	fmt.Print(preRecoveryMessage)
-	fmt.Print("\n")
+	cmd.Print(preRecoveryMessage)
+	cmd.Print("\n")
 
 	if clusterRecoverOpts.NonInteractive {
-		fmt.Print(nonInteractiveMessage)
-		fmt.Print("\n")
+		cmd.Print(nonInteractiveMessage)
+		cmd.Print("\n")
 	} else {
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Print(recoveryConfirmation)
+		cmd.Print(recoveryConfirmation)
 
 		input, err := reader.ReadString('\n')
 		if err != nil {
@@ -215,11 +213,11 @@ func recoveryCmdPrechecks(ctx context.Context) error {
 			return fmt.Errorf("cluster edit aborted; no changes made")
 		}
 
-		fmt.Print("\n")
+		cmd.Print("\n")
 	}
 
 	if !clusterRecoverOpts.SkipK8sDqlite {
-		if err := ensureK8sDqliteMembersStopped(ctx); err != nil {
+		if err := ensureK8sDqliteMembersStopped(cmd.Context()); err != nil {
 			return err
 		}
 	}
@@ -295,7 +293,7 @@ func ensureK8sDqliteMembersStopped(ctx context.Context) error {
 		}(ctx, dial, member.Address)
 	}
 
-	for _, _ = range members {
+	for range members {
 		addr, ok := <-c
 		if !ok {
 			return fmt.Errorf("channel closed unexpectedly")

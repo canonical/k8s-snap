@@ -24,7 +24,7 @@ const (
 // deployment.
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-// Contour CRDS are applied through a ck-contour common chart (Overlap with gateway)
+// Contour CRDS are applied through a ck-contour common chart (Overlap with gateway).
 func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
@@ -90,7 +90,15 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	}
 
 	if ingress.GetEnableProxyProtocol() {
-		contour := values["contour"].(map[string]any)
+		contour, ok := values["contour"].(map[string]any)
+		if !ok {
+			err := fmt.Errorf("unexpected type for contour values")
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ContourIngressContourImageTag,
+				Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
+			}, err
+		}
 		contour["extraArgs"] = []string{"--use-proxy-protocol"}
 	}
 

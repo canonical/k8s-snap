@@ -2,7 +2,6 @@ package k8s
 
 import (
 	cmdutil "github.com/canonical/k8s/cmd/util"
-
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +40,7 @@ func hookInitializeFormatter(env cmdutil.ExecutionEnvironment, format *string) f
 func hookCheckLXD() func(*cobra.Command, []string) {
 	return func(cmd *cobra.Command, args []string) {
 		// pathsOwnershipCheck paths to validate root is the owner
-		var pathsOwnershipCheck = []string{"/sys", "/proc", "/dev/kmsg"}
+		pathsOwnershipCheck := []string{"/sys", "/proc", "/dev/kmsg"}
 		inLXD, err := cmdutil.InLXDContainer()
 		if err != nil {
 			cmd.PrintErrf("Failed to check if running inside LXD container: %s", err.Error())

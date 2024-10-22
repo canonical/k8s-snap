@@ -26,7 +26,7 @@ func TestKubeScheduler(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeSchedulerMock)
 
 		// Call the kube scheduler setup function
-		g.Expect(setup.KubeScheduler(s, nil)).To(BeNil())
+		g.Expect(setup.KubeScheduler(s, nil)).To(Succeed())
 
 		// Ensure the kube scheduler arguments file has the expected arguments and values
 		tests := []struct {
@@ -52,8 +52,7 @@ func TestKubeScheduler(t *testing.T) {
 		// Ensure the kube scheduler arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-scheduler"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
-
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WithExtraArgs", func(t *testing.T) {
@@ -68,7 +67,7 @@ func TestKubeScheduler(t *testing.T) {
 			"--my-extra-arg":                utils.Pointer("my-extra-val"),
 		}
 		// Call the kube scheduler setup function
-		g.Expect(setup.KubeScheduler(s, extraArgs)).To(BeNil())
+		g.Expect(setup.KubeScheduler(s, extraArgs)).To(Succeed())
 
 		// Ensure the kube scheduler arguments file has the expected arguments and values
 		tests := []struct {
@@ -99,8 +98,7 @@ func TestKubeScheduler(t *testing.T) {
 		// Ensure the kube scheduler arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-scheduler"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
-
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("MissingArgsDir", func(t *testing.T) {

@@ -44,9 +44,7 @@ func TestSecondsToExpirationDate(t *testing.T) {
 			got := utils.SecondsToExpirationDate(now, tt.seconds)
 			g.Expect(got).To(Equal(tt.want))
 		})
-
 	}
-
 }
 
 func TestTTLToSeconds(t *testing.T) {

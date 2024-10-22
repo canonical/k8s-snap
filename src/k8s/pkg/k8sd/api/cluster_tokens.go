@@ -10,6 +10,7 @@ import (
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v3/microcluster"
@@ -48,17 +49,19 @@ func (e *Endpoints) postClusterJoinTokens(s state.State, r *http.Request) respon
 }
 
 func getOrCreateJoinToken(ctx context.Context, m *microcluster.MicroCluster, tokenName string, ttl time.Duration) (string, error) {
+	log := log.FromContext(ctx)
+
 	// grab token if it exists and return it
 	records, err := m.ListJoinTokens(ctx)
 	if err != nil {
-		fmt.Println("Failed to get existing tokens. Trying to create a new token.")
+		log.V(1).Info("Failed to get existing tokens. Trying to create a new token.")
 	} else {
 		for _, record := range records {
 			if record.Name == tokenName {
 				return record.Token, nil
 			}
 		}
-		fmt.Println("No token exists yet. Creating a new token.")
+		log.V(1).Info("No token exists yet. Creating a new token.")
 	}
 
 	token, err := m.NewJoinToken(ctx, tokenName, ttl)

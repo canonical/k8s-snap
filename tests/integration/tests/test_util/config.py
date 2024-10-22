@@ -7,6 +7,10 @@ from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
 
+# The following defaults are used to define how long to wait for a condition to be met.
+DEFAULT_WAIT_RETRIES = int(os.getenv("TEST_DEFAULT_WAIT_RETRIES") or 30)
+DEFAULT_WAIT_DELAY_S = int(os.getenv("TEST_DEFAULT_WAIT_DELAY_S") or 5)
+
 MANIFESTS_DIR = DIR / ".." / ".." / "templates"
 
 # ETCD_DIR contains all templates required to setup an etcd database.
@@ -62,6 +66,20 @@ LXD_DUALSTACK_PROFILE = (
     or (DIR / ".." / ".." / "lxd-dualstack-profile.yaml").read_text()
 )
 
+# LXD_IPV6_NETWORK is the network to use for LXD containers with ipv6-only configured.
+LXD_IPV6_NETWORK = os.getenv("TEST_LXD_IPV6_NETWORK") or "ipv6-br0"
+
+# LXD_IPV6_PROFILE_NAME is the profile name to use for LXD containers with ipv6-only configured.
+LXD_IPV6_PROFILE_NAME = (
+    os.getenv("TEST_LXD_IPV6_PROFILE_NAME") or "k8s-integration-ipv6"
+)
+
+# LXD_IPV6_PROFILE is the profile to use for LXD containers with ipv6-only configured.
+LXD_IPV6_PROFILE = (
+    os.getenv("TEST_LXD_IPV6_PROFILE")
+    or (DIR / ".." / ".." / "lxd-ipv6-profile.yaml").read_text()
+)
+
 # LXD_IMAGE is the image to use for LXD containers.
 LXD_IMAGE = os.getenv("TEST_LXD_IMAGE") or "ubuntu:22.04"
 
@@ -101,6 +119,11 @@ JUJU_MACHINES = os.getenv("TEST_JUJU_MACHINES") or ""
 # Alternatively, use 'recent <num> <flavour>' to get the latest <num> channels for <flavour>.
 VERSION_UPGRADE_CHANNELS = (
     os.environ.get("TEST_VERSION_UPGRADE_CHANNELS", "").strip().split()
+)
+# A list of space-separated channels for which the strict interface tests should be run in sequential order.
+# Alternatively, use 'recent <num> strict' to get the latest <num> channels for strict.
+STRICT_INTERFACE_CHANNELS = (
+    os.environ.get("TEST_STRICT_INTERFACE_CHANNELS", "").strip().split()
 )
 
 # ARCH_MAP is a map changing python architecture naming to common one
