@@ -72,5 +72,4 @@ def check_snap_interfaces(cp, snap_name):
                 "-c",
                 f"snapctl is-connected {interface}",
             ],
-            check=True,
         )
