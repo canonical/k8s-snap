@@ -112,7 +112,7 @@ ARCHITECTURE = os.getenv("TEST_ARCHITECTURE") or ARCH_MAP.get(platform.machine()
 # SONOBUOY_VERSION is version of sonobuoy to use
 SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.2"
 
-# SONOBUOY_VERSION is a full path of sonobuoy to download
+# SONOBUOY_TAR_GZ is a full path of sonobuoy to download
 SONOBUOY_TAR_GZ = (
     os.getenv("TEST_SONOBUOY_TAR_GZ")
     or f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1: ]}_linux_{ARCHITECTURE}.tar.gz"  # noqa
