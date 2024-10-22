@@ -246,7 +246,8 @@ func TestIngressEnabled(t *testing.T) {
 					{Name: "tlscertificatedelegations"},
 					{Name: "httpproxies"},
 				},
-			}}
+			},
+		}
 		snapM := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: helmM,
