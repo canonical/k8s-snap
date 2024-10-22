@@ -1,6 +1,7 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import ipaddress
 import json
 import logging
 import re
@@ -221,7 +222,7 @@ def wait_for_dns(instance: harness.Instance):
 
 def wait_for_network(instance: harness.Instance):
     LOG.info("Waiting for network to be ready")
-    instance.exec(["k8s", "x-wait-for", "network"])
+    instance.exec(["k8s", "x-wait-for", "network", "--timeout", "10m"])
 
 
 def hostname(instance: harness.Instance) -> str:
@@ -432,3 +433,27 @@ def previous_track(snap_version: str) -> str:
     track = f"{maj_min[0]}.{maj_min[1]}" + (flavor_track and f"-{flavor_track}")
     LOG.info("Previous track for %s is from track: %s", snap_version, track)
     return track
+
+
+def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
+    """Find a suitable CIDR for LoadBalancer services"""
+    net = ipaddress.IPv4Network(parent_cidr, False)
+
+    # Starting from the first IP address from the parent cidr,
+    # we search for a /30 cidr block(4 total ips, 2 available)
+    # that doesn't contain the excluded ips to avoid collisions
+    # /30 because this is the smallest CIDR cilium hands out IPs from
+    for i in range(4, 255, 4):
+        lb_net = ipaddress.IPv4Network(f"{str(net[0]+i)}/30", False)
+
+        contains_excluded = False
+        for excluded in excluded_ips:
+            if ipaddress.ip_address(excluded) in lb_net:
+                contains_excluded = True
+                break
+
+        if contains_excluded:
+            continue
+
+        return str(lb_net)
+    raise RuntimeError("Could not find a suitable CIDR for LoadBalancer services")

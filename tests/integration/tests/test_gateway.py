@@ -73,8 +73,17 @@ def test_gateway(session_instance: harness.Instance):
     )
     gateway_http_port = get_gateway_service_node_port(result)
 
-    assert gateway_http_port is not None, "No ingress nodePort found."
+    assert gateway_http_port is not None, "No Gateway nodePort found."
 
+    # Test the Gateway service via loadbalancer IP.
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{gateway_http_port}"])
+
+    gateway_ip = util.get_external_service_ip(
+        session_instance, ["ck-ingress-contour-envoy", "cilium-ingress"]
+    )
+    assert gateway_ip is not None, "No Gateway IP found."
+    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+        lambda p: "Welcome to nginx!" in p.stdout.decode()
+    ).exec(["curl", f"{gateway_ip}", "-H", "Host: foo.bar.com"])
