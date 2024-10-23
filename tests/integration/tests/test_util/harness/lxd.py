@@ -228,9 +228,14 @@ class LXDHarness(Harness):
             raise HarnessError(f"unknown instance {instance_id}")
 
         try:
-            run(["lxc", "rm", instance_id, "--force", "--debug"])
+            # There are cases where the instance is not deleted properly and this command is stuck.
+            # A timeout prevents this.
+            run(["lxc", "rm", instance_id, "--force", "--debug"], timeout=60*5)
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"failed to delete instance {instance_id}") from e
+        except subprocess.TimeoutExpired as e:
+            LOG.warning("LXC container removal timed out.")
+            pass
 
         self.instances.discard(instance_id)
 
