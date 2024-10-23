@@ -79,10 +79,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          detached: true
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -113,6 +109,8 @@ jobs:
         run: |
           tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
           echo "artifact_name=inspection-reports-${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
