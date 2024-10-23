@@ -15,13 +15,17 @@ import logging
 import sys
 import yaml
 from pathlib import Path
+import re
 import util
+import urllib.request
+
 
 logging.basicConfig(level=logging.INFO)
 
 LOG = logging.getLogger(__name__)
 
 DIR = Path(__file__).absolute().parent
+SNAPCRAFT = DIR.parent.parent / "snap/snapcraft.yaml"
 COMPONENTS = DIR.parent / "components"
 CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
 
@@ -125,6 +129,8 @@ def update_component_versions(dry_run: bool):
         if not dry_run:
             Path(path).write_text(version.strip() + "\n")
 
+    update_go_version(dry_run)
+
     for component, pull_helm_chart in [
         ("bitnami/contour", pull_contour_chart),
         ("metallb", pull_metallb_chart),
@@ -132,6 +138,25 @@ def update_component_versions(dry_run: bool):
         LOG.info("Updating chart for %s", component)
         if not dry_run:
             pull_helm_chart()
+
+
+def update_go_version(dry_run: bool):
+    k8s_version = (COMPONENTS / "kubernetes/version").read_text().strip()
+    url = f"https://raw.githubusercontent.com/kubernetes/kubernetes/refs/tags/{k8s_version}/.go-version"
+    with urllib.request.urlopen(url) as response:
+        go_version = response.read().decode("utf-8").strip()
+
+    LOG.info("Upstream go version is %s", go_version)
+    go_snap = f'go/{".".join(go_version.split(".")[:2])}/stable'
+    snapcraft_yaml = SNAPCRAFT.read_text()
+    if f"- {go_snap}" in snapcraft_yaml:
+        LOG.info("snapcraft.yaml already contains go version %s", go_snap)
+        return
+
+    LOG.info("Update go snap version to %s in %s", go_snap, SNAPCRAFT)
+    if not dry_run:
+        updated = re.sub(r"- go/\d+\.\d+/stable", f"- {go_snap}", snapcraft_yaml)
+        SNAPCRAFT.write_text(updated)
 
 
 def main():
