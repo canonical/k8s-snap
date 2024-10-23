@@ -61,7 +61,9 @@ Once the cluster is up, verify that all pods are running:
 sudo k8s kubectl get pods -A
 ```
 
-Deploy a pod with an nginx web-server and expose it via a service to verify connectivity of the IPv6-only cluster:
+Deploy a pod with an nginx web-server and expose it via a service to verify
+connectivity of the IPv6-only cluster. For that, create a manifest file
+`nginx-ipv6.yaml` with the following content:
 
 ```yaml
 apiVersion: apps/v1
@@ -101,6 +103,12 @@ spec:
     run: nginx-ipv6
 ```
 
+Deploy it with:
+
+```sh
+sudo k8s kubectl apply -f nginx-ipv6.yaml
+```
+
 3. **Verify IPv6 Connectivity**
 
 Retrieve the service details to confirm an IPv6 address is assigned:
@@ -122,24 +130,13 @@ Use the assigned IPv6 address to test connectivity:
 curl http://[fd98::7534]/
 ```
 
-A welcome message from the nginx web-server is displayed when IPv6 connectivity is set up correctly.
+A welcome message from the nginx web-server is displayed when IPv6
+connectivity is set up correctly.
 
 ## IPv6-Only Cluster Considerations
 
-1. **Service and Pod CIDR Sizing**
+**Service and Pod CIDR Sizing**
 
 Use `/108` as the maximum size for Service CIDRs. Larger ranges (e.g., `/64`)
 may lead to allocation errors or Kubernetes failing to initialize the IPv6
 address allocator.
-
-2. **Ingress and DNS**
-
-When setting up an IPv6-only cluster, ensure that your ingress controllers and
-DNS configurations are properly configured for IPv6, as many setups default to
-IPv4.
-
-3. **External IPv6 Access**
-
-Verify that your external networking supports IPv6, especially if
-your applications need to communicate beyond the cluster.
-Ensure firewalls and load balancers are IPv6-compatible.
