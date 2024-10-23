@@ -3,7 +3,7 @@
 An IPv6-only Kubernetes cluster operates exclusively using IPv6 addresses,
 without support for IPv4. This configuration is ideal for environments that
 are transitioning away from IPv4 or want to take full advantage of IPv6's
-expanded address space. In this document, we’ll guide you through setting up
+expanded address space. This document, explains how to set up
 an IPv6-only cluster, including key configurations and necessary checks
 to ensure proper setup.
 
@@ -14,7 +14,7 @@ Before setting up an IPv6-only cluster, ensure that:
 - Your environment supports IPv6.
 - Network infrastructure, such as routers, firewalls, and DNS, are configured
 to handle IPv6 traffic.
-- Any underlying infrastructure (e.g., cloud providers, bare metal setups)
+- Any underlying infrastructure (e.g. cloud providers, bare metal setups)
 must be IPv6-compatible.
 
 ## Setting Up an IPv6-Only Cluster
@@ -25,14 +25,14 @@ only IPv6 CIDRs are used.
 
 1. **Bootstrap Kubernetes with IPv6 CIDRs**
 
-You can start by bootstrapping the Kubernetes cluster and providing only IPv6
+Start by bootstrapping the Kubernetes cluster and providing only IPv6
 CIDRs for pods and services:
 
 ```bash
 sudo k8s bootstrap --timeout 10m --interactive
 ```
 
-When prompted, set the Pod and Service CIDRs to IPv6 ranges. For example:
+When prompted, set the pod and service CIDRs to IPv6 ranges. For example:
 
 ```
 Please set the Pod CIDR: [fd01::/108]
@@ -40,14 +40,14 @@ Please set the Service CIDR: [fd98::/108]
 ```
 
 Alternatively, these values can be configured in a bootstrap configuration file
-(`bootstrap-config.yaml`):
+named `bootstrap-config.yaml` in this example:
 
 ```yaml
 pod-cidr: fd01::/108
 service-cidr: fd98::/108
 ```
 
-Then, use the configuration file during the bootstrapping process:
+Specify the configuration file during the bootstrapping process:
 
 ```bash
 sudo k8s bootstrap --file bootstrap-config.yaml
@@ -61,7 +61,7 @@ Once the cluster is up, verify that all pods are running:
 sudo k8s kubectl get pods -A
 ```
 
-Test the IPv6-only cluster by deploying a pod and exposing it via a service:
+Deploy a pod with an nginx web-server and expose it via a service to verify connectivity of the IPv6-only cluster:
 
 ```yaml
 apiVersion: apps/v1
@@ -101,7 +101,7 @@ spec:
     run: nginx-ipv6
 ```
 
-3. **Check IPv6 Connectivity**
+3. **Verify IPv6 Connectivity**
 
 Retrieve the service details to confirm an IPv6 address is assigned:
 
@@ -109,7 +109,7 @@ Retrieve the service details to confirm an IPv6 address is assigned:
 sudo k8s kubectl get service nginx-ipv6 -n default
 ```
 
-The output should show the service’s IPv6 address:
+Obtain the service’s IPv6 address from the output:
 
 ```
 NAME         TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
@@ -122,7 +122,7 @@ Use the assigned IPv6 address to test connectivity:
 curl http://[fd98::7534]/
 ```
 
-If the Nginx server responds, IPv6 connectivity is working properly.
+A welcome message from the nginx web-server is displayed when IPv6 connectivity is set up correctly.
 
 ## IPv6-Only Cluster Considerations
 
