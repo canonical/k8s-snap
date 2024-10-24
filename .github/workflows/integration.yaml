@@ -103,14 +103,12 @@ jobs:
           TEST_LXD_IMAGE: ${{ matrix.os }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
         run: |
-          cd tests/integration && sg lxd -c 'tox -e integration -- -k test_loadbalancer'
+          cd tests/integration && sg lxd -c 'tox -e integration'
       - name: Prepare inspection reports
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
           echo "artifact_name=inspection-reports-${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
