@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations/metrics-server"
 	"github.com/canonical/k8s/pkg/client/helm"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	metrics_server "github.com/canonical/k8s/pkg/k8sd/features/metrics-server"
@@ -102,8 +103,8 @@ func TestApplyMetricsServer(t *testing.T) {
 			Enabled: utils.Pointer(true),
 		}
 		annotations := types.Annotations{
-			"k8sd/v1alpha1/metrics-server/image-repo": "custom-image",
-			"k8sd/v1alpha1/metrics-server/image-tag":  "custom-tag",
+			apiv1_annotations.AnnotationImageRepo: "custom-image",
+			apiv1_annotations.AnnotationImageTag:  "custom-tag",
 		}
 
 		status, err := metrics_server.ApplyMetricsServer(context.Background(), s, cfg, annotations)
