@@ -16,4 +16,5 @@ how to configure and use key capabilities of {{product}}.
 /snap/howto/networking/default-ingress.md
 /snap/howto/networking/default-loadbalancer.md
 /snap/howto/networking/dualstack.md
+/snap/howto/networking/ipv6.md
 ```
