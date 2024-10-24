@@ -3,6 +3,8 @@
 #
 import json
 import logging
+import subprocess
+import time
 from pathlib import Path
 from typing import List
 
@@ -33,6 +35,41 @@ def get_ingress_service_node_port(p):
         if ingress_http_port:
             return ingress_http_port
     return None
+
+
+def get_external_service_ip(instance: harness.Instance, service_namespace) -> str:
+    try_count = 0
+    ingress_ip = None
+    while ingress_ip is None and try_count < 5:
+        try_count += 1
+        for svcns in service_namespace:
+            svc = svcns["service"]
+            namespace = svcns["namespace"]
+            try:
+                ingress_ip = (
+                    instance.exec(
+                        [
+                            "k8s",
+                            "kubectl",
+                            "--namespace",
+                            namespace,
+                            "get",
+                            "service",
+                            svc,
+                            "-o=jsonpath='{.status.loadBalancer.ingress[0].ip}'",
+                        ],
+                        capture_output=True,
+                    )
+                    .stdout.decode()
+                    .replace("'", "")
+                )
+                if ingress_ip is not None:
+                    return ingress_ip
+            except subprocess.CalledProcessError:
+                ingress_ip = None
+                pass
+        time.sleep(3)
+    return ingress_ip
 
 
 def test_ingress(session_instance: List[harness.Instance]):
@@ -77,3 +114,16 @@ def test_ingress(session_instance: List[harness.Instance]):
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{ingress_http_port}", "-H", "Host: foo.bar.com"])
+
+    # Test the ingress service via loadbalancer IP
+    ingress_ip = get_external_service_ip(
+        session_instance,
+        [
+            {"service": "ck-ingress-contour-envoy", "namespace": "projectcontour"},
+            {"service": "cilium-ingress", "namespace": "kube-system"},
+        ],
+    )
+    assert ingress_ip is not None, "No ingress IP found."
+    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+        lambda p: "Welcome to nginx!" in p.stdout.decode()
+    ).exec(["curl", f"{ingress_ip}", "-H", "Host: foo.bar.com"])
