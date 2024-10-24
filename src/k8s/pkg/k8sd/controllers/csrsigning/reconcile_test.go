@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations/csrsigning"
 	k8smock "github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning/test"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
@@ -297,7 +298,7 @@ func TestNotApprovedCSR(t *testing.T) {
 			getClusterConfig: func(context.Context) (types.ClusterConfig, error) {
 				return types.ClusterConfig{
 					Annotations: map[string]string{
-						"k8sd/v1alpha1/csrsigning/auto-approve": "true",
+						apiv1_annotations.AnnotationAutoApprove: "true",
 					},
 					Certificates: types.Certificates{
 						K8sdPrivateKey: ptr.To(priv),
