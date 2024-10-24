@@ -109,7 +109,7 @@ port assigned by Kubernetes.
 In this example, we will use [Microbot] as it provides a simple HTTP endpoint
 to expose. These steps can be applied to any other deployment.
 
-First, initialize the k8s cluster with
+First, initialise the k8s cluster with
 
 ```
 lxc exec k8s -- sudo k8s bootstrap

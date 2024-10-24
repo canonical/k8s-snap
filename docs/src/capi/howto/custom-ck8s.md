@@ -1,6 +1,6 @@
 # Install custom {{product}} on machines
 
-By default, the `version` field in the machine specifications will determine which {{product}} is downloaded from the `stable` rist level. While you can install different versions of the `stable` risk level by changing the `version` field, extra steps should be taken if you're willing to install a specific risk level.
+By default, the `version` field in the machine specifications will determine which {{product}} is downloaded from the `stable` risk level. While you can install different versions of the `stable` risk level by changing the `version` field, extra steps should be taken if you're willing to install a specific risk level.
 This guide walks you through the process of installing custom {{product}} on workload cluster machines.
 
 ## Prerequisites
@@ -13,7 +13,7 @@ To follow this guide, you will need:
 Please refer to the [getting-started guide][getting-started] for further
 details on the required setup.
 
-In this guide we call the generated cluster spec manifrst `cluster.yaml`.
+In this guide we call the generated cluster spec manifest `cluster.yaml`.
 
 ## Overwrite the existing `install.sh` script
 
