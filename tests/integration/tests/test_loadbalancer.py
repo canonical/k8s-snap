@@ -83,9 +83,6 @@ def test_loadbalancer(instances: List[harness.Instance]):
     )
     service_ip = p.stdout.decode().replace("'", "")
 
-    p = tester_instance.exec(
-        ["curl", service_ip],
-        capture_output=True,
-    )
-
-    assert "Welcome to nginx!" in p.stdout.decode()
+    util.stubbornly(retries=5, delay_s=3).on(tester_instance).until(
+        lambda p: "Welcome to nginx!" in p.stdout.decode()
+    ).exec(["curl", service_ip])
