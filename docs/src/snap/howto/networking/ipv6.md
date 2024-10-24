@@ -20,7 +20,7 @@ must be IPv6-compatible.
 ## Setting Up an IPv6-Only Cluster
 
 The process of creating an IPv6-only cluster involves specifying only IPv6
-CIDRs for Pods and Services during the bootstrap process. Unlike dual-stack,
+CIDRs for pods and services during the bootstrap process. Unlike dual-stack,
 only IPv6 CIDRs are used.
 
 1. **Bootstrap Kubernetes with IPv6 CIDRs**
@@ -62,7 +62,7 @@ sudo k8s kubectl get pods -A
 ```
 
 Deploy a pod with an nginx web-server and expose it via a service to verify
-connectivity of the IPv6-only cluster. For that, create a manifest file
+connectivity of the IPv6-only cluster. Create a manifest file
 `nginx-ipv6.yaml` with the following content:
 
 ```yaml
@@ -103,7 +103,7 @@ spec:
     run: nginx-ipv6
 ```
 
-Deploy it with:
+Deploy the web-server and its service by running:
 
 ```sh
 sudo k8s kubectl apply -f nginx-ipv6.yaml
