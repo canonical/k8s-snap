@@ -37,12 +37,14 @@ def get_ingress_service_node_port(p):
     return None
 
 
-def get_external_service_ip(instance: harness.Instance, svcs) -> str:
+def get_external_service_ip(instance: harness.Instance, service_namespace) -> str:
     try_count = 0
     ingress_ip = None
     while ingress_ip is None and try_count < 5:
         try_count += 1
-        for svc in svcs:
+        for svcns in service_namespace:
+            svc = svcns["service"]
+            namespace = svcns["namespace"]
             try:
                 ingress_ip = (
                     instance.exec(
@@ -50,7 +52,7 @@ def get_external_service_ip(instance: harness.Instance, svcs) -> str:
                             "k8s",
                             "kubectl",
                             "--namespace",
-                            "kube-system",
+                            namespace,
                             "get",
                             "service",
                             svc,
@@ -61,6 +63,8 @@ def get_external_service_ip(instance: harness.Instance, svcs) -> str:
                     .stdout.decode()
                     .replace("'", "")
                 )
+                if ingress_ip is not None:
+                    return ingress_ip
             except subprocess.CalledProcessError:
                 ingress_ip = None
                 pass
@@ -113,7 +117,11 @@ def test_ingress(session_instance: List[harness.Instance]):
 
     # Test the ingress service via loadbalancer IP
     ingress_ip = get_external_service_ip(
-        session_instance, ["ck-ingress-contour-envoy", "cilium-ingress"]
+        session_instance,
+        [
+            {"service": "ck-ingress-contour-envoy", "namespace": "projectcontour"},
+            {"service": "cilium-ingress", "namespace": "kube-system"},
+        ],
     )
     assert ingress_ip is not None, "No ingress IP found."
     util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
