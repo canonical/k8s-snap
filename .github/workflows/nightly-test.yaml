@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        release: ["latest/edge"]
+        release: ["latest/edge/moonray", "latest/edge/classic", "latest/edge/strict"]
       fail-fast: false # TODO: remove once arm64 works
 
     runs-on: ${{ matrix.arch == 'arm64' && 'Ubuntu_ARM64_4C_16G_01' || 'ubuntu-20.04' }}
@@ -43,12 +43,15 @@ jobs:
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ matrix.os }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
-          TEST_CNCF_E2E: true
           # Test the latest (up to) 6 releases for the flavour
           # TODO(ben): upgrade nightly to run all flavours
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
           TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
         run: |
+          # IPv6-only is only supported on moonray
+          if [[ "${{ matrix.release }}" == "latest/edge/moonray" ]]; then
+            export TEST_CNCF_E2E="true"
+          fi
           export PATH="/home/runner/.local/bin:$PATH"
           cd tests/integration && sg lxd -c 'tox -vve integration'
       - name: Prepare inspection reports
@@ -67,14 +70,14 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         timeout-minutes: 10
       - name: Extract CNCF conformance report
-        if: failure()
+        if: ${{ failure() && matrix.release == 'latest/edge/moonray' }}
         working-directory: tests/integration
         run: |
          tar -xf sonobuoy_e2e.tar.gz --one-top-level
          echo "os_dash=${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Upload CNCF conformance report artifact
         uses: actions/upload-artifact@v4
-        if: failure()
+        if: ${{ failure() && matrix.release == 'latest/edge/moonray' }}
         with:
          name: report_sonobuoy_e2e_${{ env.os_dash }}_${{ matrix.arch }}
          path: tests/integration/sonobuoy_e2e
