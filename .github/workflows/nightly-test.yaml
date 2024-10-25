@@ -79,5 +79,5 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ failure() && matrix.release == 'latest/edge/moonray' }}
         with:
-         name: report_sonobuoy_e2e_${{ env.os_dash }}_${{ matrix.arch }}
+         name: report_sonobuoy_e2e_${{ env.os_dash }}_${{ matrix.release }}_${{ matrix.arch }}
          path: tests/integration/sonobuoy_e2e
