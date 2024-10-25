@@ -2,6 +2,8 @@
 [![End to End Tests](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml/badge.svg)](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml)
 ![](https://img.shields.io/badge/Kubernetes-1.31-326de6.svg)
 
+TEST
+
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/k8s)
 
 
