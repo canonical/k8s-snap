@@ -75,9 +75,10 @@ jobs:
         run: |
          tar -xf sonobuoy_e2e.tar.gz --one-top-level
          echo "os_dash=${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
+         echo "release_dash=${{  matrix.release }}" | sed 's#/#-#g'>> $GITHUB_ENV
       - name: Upload CNCF conformance report artifact
         uses: actions/upload-artifact@v4
         if: ${{ failure() && matrix.release == 'latest/edge/moonray' }}
         with:
-         name: report_sonobuoy_e2e_${{ env.os_dash }}_${{ matrix.release }}_${{ matrix.arch }}
+         name: report_sonobuoy_e2e_${{ env.os_dash }}_${{ env.release_dash }}_${{ matrix.arch }}
          path: tests/integration/sonobuoy_e2e
