@@ -1,10 +1,14 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import datetime
 import logging
+import tempfile
 from typing import List
 
 import pytest
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
@@ -228,3 +232,62 @@ extra-sans:
     cluster_node.exec(["k8s", "remove-node", joining_cp_with_hostname.id])
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "cp node with hostname should be removed from the cluster"
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-csr-auto-approve.yaml").read_text()
+)
+def test_cert_refresh(instances: List[harness.Instance]):
+    cluster_node = instances[0]
+    joining_worker = instances[1]
+
+    join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
+    util.join_cluster(joining_worker, join_token_worker)
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "nodes should have joined cluster"
+
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "worker" in util.get_local_node_status(joining_worker)
+
+    extra_san = "test_san.local"
+
+    def _check_cert(instance, cert_path):
+        # Ensure that the certificate was refreshed, having the right expiry date
+        # and extra SAN.
+        cert = _get_instance_cert(instance, cert_path)
+        date = datetime.datetime.now()
+        assert (cert.not_valid_after - date).days in (364, 365)
+
+        san = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
+        san_dns_names = san.value.get_values_for_type(x509.DNSName)
+        assert extra_san in san_dns_names
+
+    joining_worker.exec(
+        ["k8s", "refresh-certs", "--expires-in", "1y", "--extra-sans", extra_san]
+    )
+
+    _check_cert(joining_worker, "/etc/kubernetes/pki/kubelet.crt")
+
+    cluster_node.exec(
+        ["k8s", "refresh-certs", "--expires-in", "1y", "--extra-sans", extra_san]
+    )
+
+    _check_cert(cluster_node, "/etc/kubernetes/pki/kubelet.crt")
+    _check_cert(cluster_node, "/etc/kubernetes/pki/apiserver.crt")
+
+    # Ensure that the services come back online after refreshing the certificates.
+    util.wait_until_k8s_ready(cluster_node, instances)
+
+
+def _get_instance_cert(
+    instance: harness.Instance, remote_path: str
+) -> x509.Certificate:
+    with tempfile.NamedTemporaryFile(delete_on_close=False) as fp:
+        instance.pull_file(remote_path, fp.name)
+
+        pem = fp.read()
+        cert = x509.load_pem_x509_certificate(pem, default_backend())
+        return cert
