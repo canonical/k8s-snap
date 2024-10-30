@@ -66,20 +66,20 @@ def get_external_service_ip(instance: harness.Instance) -> str:
     return gateway_ip
 
 
-def test_gateway(session_instance: harness.Instance):
+def test_gateway(aio_instance: harness.Instance):
     manifest = MANIFESTS_DIR / "gateway-test.yaml"
-    session_instance.exec(
+    aio_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
     LOG.info("Waiting for nginx pod to show up...")
-    util.stubbornly(retries=5, delay_s=10).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=10).on(aio_instance).until(
         lambda p: "my-nginx" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Nginx pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(aio_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -97,7 +97,7 @@ def test_gateway(session_instance: harness.Instance):
     gateway_http_port = None
     result = (
         util.stubbornly(retries=7, delay_s=3)
-        .on(session_instance)
+        .on(aio_instance)
         .until(lambda p: get_gateway_service_node_port(p) is not None)
         .exec(["k8s", "kubectl", "get", "service", "-o", "json"])
     )
@@ -106,12 +106,12 @@ def test_gateway(session_instance: harness.Instance):
     assert gateway_http_port is not None, "No Gateway nodePort found."
 
     # Test the Gateway service via loadbalancer IP.
-    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=5).on(aio_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{gateway_http_port}"])
 
-    gateway_ip = get_external_service_ip(session_instance)
+    gateway_ip = get_external_service_ip(aio_instance)
     assert gateway_ip is not None, "No Gateway IP found."
-    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=5).on(aio_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"{gateway_ip}", "-H", "Host: foo.bar.com"])

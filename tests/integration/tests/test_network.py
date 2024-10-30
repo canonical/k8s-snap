@@ -11,14 +11,14 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
-def test_network(session_instance: harness.Instance):
+def test_network(aio_instance: harness.Instance):
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
-    p = session_instance.exec(
+    p = aio_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(aio_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -32,7 +32,7 @@ def test_network(session_instance: harness.Instance):
         ]
     )
 
-    p = session_instance.exec(
+    p = aio_instance.exec(
         [
             "k8s",
             "kubectl",
@@ -51,6 +51,6 @@ def test_network(session_instance: harness.Instance):
     assert len(out["items"]) > 0, "No NGINX pod found"
     podIP = out["items"][0]["status"]["podIP"]
 
-    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=5).on(aio_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", "-s", f"http://{podIP}"])

@@ -20,14 +20,14 @@ def check_pvc_bound(p: subprocess.CompletedProcess) -> bool:
     return False
 
 
-def test_storage(session_instance: harness.Instance):
+def test_storage(aio_instance: harness.Instance):
     LOG.info("Waiting for storage provisioner pod to show up...")
-    util.stubbornly(retries=15, delay_s=5).on(session_instance).until(
+    util.stubbornly(retries=15, delay_s=5).on(aio_instance).until(
         lambda p: "ck-storage" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"])
     LOG.info("Storage provisioner pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(aio_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -44,18 +44,18 @@ def test_storage(session_instance: harness.Instance):
     )
 
     manifest = MANIFESTS_DIR / "storage-setup.yaml"
-    session_instance.exec(
+    aio_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
     LOG.info("Waiting for storage writer pod to show up...")
-    util.stubbornly(retries=3, delay_s=10).on(session_instance).until(
+    util.stubbornly(retries=3, delay_s=10).on(aio_instance).until(
         lambda p: "storage-writer-pod" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Storage writer pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(aio_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -70,16 +70,16 @@ def test_storage(session_instance: harness.Instance):
     )
 
     LOG.info("Waiting for storage to get provisioned...")
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).until(
-        check_pvc_bound
-    ).exec(["k8s", "kubectl", "get", "pvc", "-o", "json"])
+    util.stubbornly(retries=3, delay_s=1).on(aio_instance).until(check_pvc_bound).exec(
+        ["k8s", "kubectl", "get", "pvc", "-o", "json"]
+    )
     LOG.info("Storage got provisioned and pvc is bound.")
 
-    util.stubbornly(retries=5, delay_s=10).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=10).on(aio_instance).until(
         lambda p: "LOREM IPSUM" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "logs", "storage-writer-pod"])
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(aio_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -92,18 +92,18 @@ def test_storage(session_instance: harness.Instance):
     )
 
     manifest = MANIFESTS_DIR / "storage-test.yaml"
-    session_instance.exec(
+    aio_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
     LOG.info("Waiting for storage reader pod to show up...")
-    util.stubbornly(retries=3, delay_s=10).on(session_instance).until(
+    util.stubbornly(retries=3, delay_s=10).on(aio_instance).until(
         lambda p: "storage-reader-pod" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Storage reader pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(aio_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -117,7 +117,7 @@ def test_storage(session_instance: harness.Instance):
         ]
     )
 
-    util.stubbornly(retries=5, delay_s=10).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=10).on(aio_instance).until(
         lambda p: "LOREM IPSUM" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "logs", "storage-reader-pod"])
 

@@ -185,7 +185,7 @@ def instances(
 
     # Cleanup after each test.
     # We cannot execute _harness_clean() here as this would also
-    # remove the session_instance. The harness ensures that everything is cleaned up
+    # remove session scoped instances. The harness ensures that everything is cleaned up
     # at the end of the test session.
     for instance in instances:
         if config.INSPECTION_REPORTS_DIR is not None:
@@ -195,14 +195,11 @@ def instances(
         h.delete_instance(instance.id)
 
 
-@pytest.fixture(scope="session")
-def session_instance(
+@pytest.fixture(scope="function")
+def aio_instance(
     h: harness.Harness, tmp_path_factory: pytest.TempPathFactory, request
 ) -> Generator[harness.Instance, None, None]:
-    """Constructs and bootstraps an instance that persists over a test session.
-
-    Bootstraps the instance with all k8sd features enabled to reduce testing time.
-    """
+    """Constructs and bootstraps an instance with all k8sd features enabled."""
     LOG.info("Setup node and enable all features")
 
     tmp_path = tmp_path_factory.mktemp("data")
@@ -210,9 +207,9 @@ def session_instance(
     snap = next(snap_versions(request))
     util.setup_k8s_snap(instance, tmp_path, snap)
 
-    bootstrap_config_path = "/home/ubuntu/bootstrap-session.yaml"
+    bootstrap_config_path = "/home/ubuntu/bootstrap-all.yaml"
     instance.send_file(
-        (config.MANIFESTS_DIR / "bootstrap-session.yaml").as_posix(),
+        (config.MANIFESTS_DIR / "bootstrap-all.yaml").as_posix(),
         bootstrap_config_path,
     )
 

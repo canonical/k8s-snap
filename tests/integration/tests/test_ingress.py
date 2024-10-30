@@ -72,11 +72,11 @@ def get_external_service_ip(instance: harness.Instance, service_namespace) -> st
     return ingress_ip
 
 
-def test_ingress(session_instance: List[harness.Instance]):
+def test_ingress(aio_instance: List[harness.Instance]):
 
     result = (
         util.stubbornly(retries=7, delay_s=3)
-        .on(session_instance)
+        .on(aio_instance)
         .until(lambda p: get_ingress_service_node_port(p) is not None)
         .exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
     )
@@ -86,18 +86,18 @@ def test_ingress(session_instance: List[harness.Instance]):
     assert ingress_http_port is not None, "No ingress nodePort found."
 
     manifest = MANIFESTS_DIR / "ingress-test.yaml"
-    session_instance.exec(
+    aio_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
     LOG.info("Waiting for nginx pod to show up...")
-    util.stubbornly(retries=5, delay_s=10).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=10).on(aio_instance).until(
         lambda p: "my-nginx" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Nginx pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(aio_instance).exec(
         [
             "k8s",
             "kubectl",
@@ -111,19 +111,19 @@ def test_ingress(session_instance: List[harness.Instance]):
         ]
     )
 
-    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=5).on(aio_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{ingress_http_port}", "-H", "Host: foo.bar.com"])
 
     # Test the ingress service via loadbalancer IP
     ingress_ip = get_external_service_ip(
-        session_instance,
+        aio_instance,
         [
             {"service": "ck-ingress-contour-envoy", "namespace": "projectcontour"},
             {"service": "cilium-ingress", "namespace": "kube-system"},
         ],
     )
     assert ingress_ip is not None, "No ingress IP found."
-    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=5).on(aio_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"{ingress_ip}", "-H", "Host: foo.bar.com"])
