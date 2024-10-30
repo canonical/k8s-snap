@@ -136,8 +136,7 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     join_token_worker = util.get_join_token(cluster_node, worker, "--worker")
     util.join_cluster(worker, join_token_worker)
 
-    # We don't care if the node is ready or the CNI is up.
-    util.stubbornly(retries=5, delay_s=3).until(util.get_nodes(cluster_node) == 3)
+    util.wait_until_k8s_ready(cluster_node, instances)
 
     cluster_node.exec(["k8s", "remove-node", joining_cp.id])
     nodes = util.ready_nodes(cluster_node)
