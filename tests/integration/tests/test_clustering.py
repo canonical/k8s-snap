@@ -3,6 +3,8 @@
 #
 import datetime
 import logging
+import os
+import subprocess
 import tempfile
 from typing import List
 
@@ -254,9 +256,12 @@ def test_cert_refresh(instances: List[harness.Instance]):
 
     extra_san = "test_san.local"
 
-    def _check_cert(instance, cert_path):
+    def _check_cert(instance, cert_fname):
         # Ensure that the certificate was refreshed, having the right expiry date
         # and extra SAN.
+        cert_dir = _get_k8s_cert_dir(instance)
+        cert_path = os.path.join(cert_dir, cert_fname)
+
         cert = _get_instance_cert(instance, cert_path)
         date = datetime.datetime.now()
         assert (cert.not_valid_after - date).days in (364, 365)
@@ -269,23 +274,43 @@ def test_cert_refresh(instances: List[harness.Instance]):
         ["k8s", "refresh-certs", "--expires-in", "1y", "--extra-sans", extra_san]
     )
 
-    _check_cert(joining_worker, "/etc/kubernetes/pki/kubelet.crt")
+    _check_cert(joining_worker, "kubelet.crt")
 
     cluster_node.exec(
         ["k8s", "refresh-certs", "--expires-in", "1y", "--extra-sans", extra_san]
     )
 
-    _check_cert(cluster_node, "/etc/kubernetes/pki/kubelet.crt")
-    _check_cert(cluster_node, "/etc/kubernetes/pki/apiserver.crt")
+    _check_cert(cluster_node, "kubelet.crt")
+    _check_cert(cluster_node, "apiserver.crt")
 
     # Ensure that the services come back online after refreshing the certificates.
     util.wait_until_k8s_ready(cluster_node, instances)
 
 
+def _get_k8s_cert_dir(instance: harness.Instance):
+    tested_paths = [
+        "/etc/kubernetes/pki/",
+        "/var/snap/k8s/common/etc/kubernetes/pki/",
+    ]
+    for path in tested_paths:
+        if _instance_path_exists(instance, path):
+            return path
+
+    raise Exception("Could not find k8s certificates dir.")
+
+
+def _instance_path_exists(instance: harness.Instance, remote_path: str):
+    try:
+        instance.exec(["ls", remote_path])
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
 def _get_instance_cert(
     instance: harness.Instance, remote_path: str
 ) -> x509.Certificate:
-    with tempfile.NamedTemporaryFile(delete_on_close=False) as fp:
+    with tempfile.NamedTemporaryFile() as fp:
         instance.pull_file(remote_path, fp.name)
 
         pem = fp.read()
