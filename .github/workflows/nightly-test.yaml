@@ -37,6 +37,9 @@ jobs:
         run: |
           cd build
           snap download k8s --channel=${{ matrix.release }} --basename k8s
+          #create env variables for artifacts
+          echo "os_dash=${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
+          echo "release_dash=${{  matrix.release }}" | sed 's#/#-#g'>> $GITHUB_ENV
       - name: Run end to end tests # tox path needs to be specified for arm64
         env:
           TEST_SNAP: ${{ github.workspace }}/build/k8s.snap
@@ -65,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.artifact_name }}
-          path: ${{ github.workspace }}/inspection-reports.tar.gz
+          path: ${{ github.workspace }}/inspection-reports_${{ env.os_dash }}_${{ env.release_dash }}_${{ matrix.arch }}.tar.gz
       - name: Tmate debugging session
         if: ${{ failure() && github.event_name == 'pull_request' }}
         uses: mxschmitt/action-tmate@v3
@@ -75,8 +78,6 @@ jobs:
         working-directory: tests/integration
         run: |
          tar -xf sonobuoy_e2e.tar.gz --one-top-level
-         echo "os_dash=${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
-         echo "release_dash=${{  matrix.release }}" | sed 's#/#-#g'>> $GITHUB_ENV
       - name: Upload CNCF conformance report artifact
         uses: actions/upload-artifact@v4
         if: ${{ failure() && matrix.release == 'latest/edge/moonray' }}
