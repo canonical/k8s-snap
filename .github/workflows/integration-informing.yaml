@@ -92,10 +92,6 @@ jobs:
           TEST_FLAVOR: ${{ matrix.patch }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
         run: |
-          # IPv6-only is only supported on moonray
-          if [[ "${{ matrix.patch }}" == "moonray" ]]; then
-            export TEST_IPV6_ONLY="true"
-          fi
           cd tests/integration && sg lxd -c 'tox -e integration'
       - name: Prepare inspection reports
         if: failure()
