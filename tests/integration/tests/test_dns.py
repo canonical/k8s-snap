@@ -2,14 +2,18 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
+from typing import List
 
-from test_util import harness, util
+import pytest
+from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
 
 
-def test_dns(aio_instance: harness.Instance):
-    aio_instance.exec(
+@pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
+def test_dns(instances: List[harness.Instance]):
+    instance = instances[0]
+    instance.exec(
         [
             "k8s",
             "kubectl",
@@ -23,7 +27,7 @@ def test_dns(aio_instance: harness.Instance):
         ],
     )
 
-    util.stubbornly(retries=3, delay_s=1).on(aio_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -37,14 +41,14 @@ def test_dns(aio_instance: harness.Instance):
         ]
     )
 
-    result = aio_instance.exec(
+    result = instance.exec(
         ["k8s", "kubectl", "exec", "busybox", "--", "nslookup", "kubernetes.default"],
         capture_output=True,
     )
 
     assert "10.152.183.1 kubernetes.default.svc.cluster.local" in result.stdout.decode()
 
-    result = aio_instance.exec(
+    result = instance.exec(
         ["k8s", "kubectl", "exec", "busybox", "--", "nslookup", "canonical.com"],
         capture_output=True,
         check=False,

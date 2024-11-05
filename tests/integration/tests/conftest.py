@@ -196,44 +196,6 @@ def instances(
 
 
 @pytest.fixture(scope="function")
-def aio_instance(
-    h: harness.Harness, tmp_path_factory: pytest.TempPathFactory, request
-) -> Generator[harness.Instance, None, None]:
-    """Constructs and bootstraps an instance with all k8sd features enabled."""
-    LOG.info("Setup node and enable all features")
-
-    tmp_path = tmp_path_factory.mktemp("data")
-    instance = h.new_instance()
-    snap = next(snap_versions(request))
-    util.setup_k8s_snap(instance, tmp_path, snap)
-
-    bootstrap_config_path = "/home/ubuntu/bootstrap-all.yaml"
-    instance.send_file(
-        (config.MANIFESTS_DIR / "bootstrap-all.yaml").as_posix(),
-        bootstrap_config_path,
-    )
-
-    instance_default_ip = util.get_default_ip(instance)
-
-    instance.exec(["k8s", "bootstrap", "--file", bootstrap_config_path])
-    instance_default_cidr = util.get_default_cidr(instance, instance_default_ip)
-
-    lb_cidr = util.find_suitable_cidr(
-        parent_cidr=instance_default_cidr,
-        excluded_ips=[instance_default_ip],
-    )
-
-    instance.exec(
-        ["k8s", "set", f"load-balancer.cidrs={lb_cidr}", "load-balancer.l2-mode=true"]
-    )
-    util.wait_until_k8s_ready(instance, [instance])
-    util.wait_for_network(instance)
-    util.wait_for_dns(instance)
-
-    yield instance
-
-
-@pytest.fixture(scope="function")
 def etcd_count(request) -> int:
     etcd_count_marker = request.node.get_closest_marker("etcd_count")
     if not etcd_count_marker:
