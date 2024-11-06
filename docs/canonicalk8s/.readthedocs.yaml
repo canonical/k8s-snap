@@ -23,10 +23,6 @@ build:
           exit 183;
         fi
         ls
-    pre_build:
-      cd docs/canonicalk8s; make install
-
-
       
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
@@ -37,8 +33,5 @@ sphinx:
 formats:
    - pdf
 
-# Optionally declare the Python requirements required to build your docs
-python:
-   install:
-   - requirements: docs/canonicalk8s/.sphinx/requirements.txt
+
 
