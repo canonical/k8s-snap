@@ -14,13 +14,15 @@ details on the required setup.
 This guide refers to the workload cluster as `c1`.
 
 ```{note} To refresh the certificates in your cluster, make sure it was
-initially set up with self-signed certificates.
+initially set up with self-signed certificates. You can verify this by
+checking the `CK8sConfigTemplate` resource for the cluster to see if a
+`BootstrapConfig` value was provided with the necessary certificates.
 ```
 
 ### Refresh Control Plane Node Certificates
 
 To refresh the certificates on control plane nodes, follow these steps for each
-control plane machine in your workload cluster:
+control plane node in your workload cluster:
 
 1. First, check the names of the control plane machines in your cluster:
 
@@ -65,7 +67,7 @@ the machine resource:
 ### Refresh Worker Node Certificates
 
 To refresh the certificates on worker nodes, follow these steps for each worker
-machine in your workload cluster:
+node in your workload cluster:
 
 1. Check the names of the worker machines in your cluster:
 
