@@ -2,10 +2,14 @@ package api
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"fmt"
 	"math"
-	"math/rand"
+	"math/big"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -29,7 +33,11 @@ import (
 )
 
 func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) response.Response {
-	seed := rand.Intn(math.MaxInt)
+	seedBigInt, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt))
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to generate seed: %w", err))
+	}
+	seed := int(seedBigInt.Int64())
 
 	snap := e.provider.Snap()
 	isWorker, err := snaputil.IsWorker(snap)
@@ -216,6 +224,18 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	certificates.CACert = clusterConfig.Certificates.GetCACert()
 	certificates.ClientCACert = clusterConfig.Certificates.GetClientCACert()
 
+	k8sdPublicKey, err := pkiutil.LoadRSAPublicKey(clusterConfig.Certificates.GetK8sdPublicKey())
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to load k8sd public key, error: %w", err))
+	}
+
+	hostnames := []string{snap.Hostname()}
+	ips := []net.IP{net.ParseIP(s.Address().Hostname())}
+
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(req.ExtraSANs)
+	hostnames = append(hostnames, extraNames...)
+	ips = append(ips, extraIPs...)
+
 	g, ctx := errgroup.WithContext(r.Context())
 
 	for _, csr := range []struct {
@@ -234,8 +254,8 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			commonName:   fmt.Sprintf("system:node:%s", snap.Hostname()),
 			organization: []string{"system:nodes"},
 			usages:       []certv1.KeyUsage{certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment, certv1.UsageServerAuth},
-			hostnames:    []string{snap.Hostname()},
-			ips:          []net.IP{net.ParseIP(s.Address().Hostname())},
+			hostnames:    hostnames,
+			ips:          ips,
 			signerName:   "k8sd.io/kubelet-serving",
 			certificate:  &certificates.KubeletCert,
 			key:          &certificates.KubeletKey,
@@ -272,14 +292,34 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 				return fmt.Errorf("failed to generate CSR for %s: %w", csr.name, err)
 			}
 
+			// Obtain the SHA256 sum of the CSR request.
+			hash := sha256.New()
+			_, err = hash.Write([]byte(csrPEM))
+			if err != nil {
+				return fmt.Errorf("failed to checksum CSR %s, err: %w", csr.name, err)
+			}
+
+			signature, err := rsa.EncryptPKCS1v15(rand.Reader, k8sdPublicKey, hash.Sum(nil))
+			if err != nil {
+				return fmt.Errorf("failed to sign CSR %s, err: %w", csr.name, err)
+			}
+			signatureB64 := base64.StdEncoding.EncodeToString(signature)
+
+			expirationSeconds := int32(req.ExpirationSeconds)
+
 			if _, err = client.CertificatesV1().CertificateSigningRequests().Create(ctx, &certv1.CertificateSigningRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: csr.name,
+					Annotations: map[string]string{
+						"k8sd.io/signature": signatureB64,
+						"k8sd.io/node":      snap.Hostname(),
+					},
 				},
 				Spec: certv1.CertificateSigningRequestSpec{
-					Request:    []byte(csrPEM),
-					Usages:     csr.usages,
-					SignerName: csr.signerName,
+					Request:           []byte(csrPEM),
+					ExpirationSeconds: &expirationSeconds,
+					Usages:            csr.usages,
+					SignerName:        csr.signerName,
 				},
 			}, metav1.CreateOptions{}); err != nil {
 				return fmt.Errorf("failed to create CSR for %s: %w", csr.name, err)

@@ -1,0 +1,9 @@
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+  metrics-server:
+    enabled: true
+  annotations:
+    k8sd/v1alpha1/csrsigning/auto-approve: true
