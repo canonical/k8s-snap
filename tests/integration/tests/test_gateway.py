@@ -71,6 +71,10 @@ def get_external_service_ip(instance: harness.Instance) -> str:
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
 def test_gateway(instances: List[harness.Instance]):
     instance = instances[0]
+    util.wait_until_k8s_ready(instance, [instance])
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
+
     manifest = MANIFESTS_DIR / "gateway-test.yaml"
     instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],

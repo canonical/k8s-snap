@@ -25,6 +25,10 @@ def check_pvc_bound(p: subprocess.CompletedProcess) -> bool:
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
 def test_storage(instances: List[harness.Instance]):
     instance = instances[0]
+    util.wait_until_k8s_ready(instance, [instance])
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
+
     LOG.info("Waiting for storage provisioner pod to show up...")
     util.stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "ck-storage" in p.stdout.decode()

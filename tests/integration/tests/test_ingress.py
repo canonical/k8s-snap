@@ -76,6 +76,10 @@ def get_external_service_ip(instance: harness.Instance, service_namespace) -> st
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
 def test_ingress(instances: List[harness.Instance]):
     instance = instances[0]
+    util.wait_until_k8s_ready(instance, [instance])
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
+
     result = (
         util.stubbornly(retries=7, delay_s=3)
         .on(instance)

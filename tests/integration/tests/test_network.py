@@ -16,6 +16,10 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
 def test_network(instances: List[harness.Instance]):
     instance = instances[0]
+    util.wait_until_k8s_ready(instance, [instance])
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
+
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
     p = instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
