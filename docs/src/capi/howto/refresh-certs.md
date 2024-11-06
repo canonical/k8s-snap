@@ -4,6 +4,7 @@ This how-to will walk you through the steps to refresh the certificates for
 both control plane and worker nodes in your {{product}} Cluster API cluster.
 
 ## Prerequisites
+
 - A Kubernetes management cluster with Cluster API and Canonical K8s providers
   installed and configured.
 - A target workload cluster managed by Cluster API.
@@ -102,5 +103,5 @@ the machine resource:
 ```
 
 <!-- Links -->
-
+[getting-started]: ../tutorial/getting-started.md
 [ParseDuration]: https://pkg.go.dev/time#ParseDuration
