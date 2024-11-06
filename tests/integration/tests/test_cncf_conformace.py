@@ -24,7 +24,7 @@ def test_cncf_conformance(instances: List[harness.Instance]):
         ["./sonobuoy"],
     )
     cluster_node.exec(
-        ["./sonobuoy", "run", "--plugin", "e2e", "--wait", "--mode", "quick"],
+        ["./sonobuoy", "run", "--plugin", "e2e", "--wait"],
     )
     cluster_node.exec(
         ["./sonobuoy", "retrieve", "-f", "sonobuoy_e2e.tar.gz"],
