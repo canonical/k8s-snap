@@ -23,7 +23,8 @@ build:
           exit 183;
         fi
         ls
-    - |
+    pre_build:
+      - |
         cd docs/canonicalk8s/
         make install
       
