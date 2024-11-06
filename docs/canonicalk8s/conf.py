@@ -251,4 +251,4 @@ with open(".sphinx/latex_elements_template.txt", "rt") as file:
 
 latex_elements = ast.literal_eval(latex_config.replace("$PROJECT", project))
 
-master_doc = 'canonicalk8s/src/index'
+master_doc = 'docs/canonicalk8s/src/index'
