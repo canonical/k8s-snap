@@ -17,15 +17,15 @@ Overview <self>
 install/index
 networking/index
 storage/index
-external-datastore
+Use an external datastore <external-datastore>
 backup-restore
 refresh-certs
 restore-quorum
 two-node-ha
-epa
+Set up Enhanced Platform Awareness <epa>
 cis-hardening
-contribute
-support
+Contribute to {{product}} <contribute>
+Get support <support>
 ```
 
 ---

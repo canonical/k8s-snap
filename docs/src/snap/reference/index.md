@@ -21,7 +21,7 @@ worker-join-config-reference
 proxy
 troubleshooting
 architecture
-community
+Community <community>
 roadmap
 ```
 
