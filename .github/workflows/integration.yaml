@@ -160,6 +160,8 @@ jobs:
           format: "sarif"
           output: "trivy-k8s-repo-scan--results.sarif"
           severity: "MEDIUM,HIGH,CRITICAL"
+        env:
+          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
       - name: Gather Trivy repo scan results
         run: |
           cp trivy-k8s-repo-scan--results.sarif ./manual-trivy/sarifs/
@@ -170,7 +172,7 @@ jobs:
           done
           cp build/k8s.snap .
           unsquashfs k8s.snap
-          ./manual-trivy/trivy rootfs ./squashfs-root/ --format sarif > ./manual-trivy/sarifs/snap.sarif
+          ./manual-trivy/trivy --db-repository public.ecr.aws/aquasecurity/trivy-db rootfs ./squashfs-root/ --format sarif > ./manual-trivy/sarifs/snap.sarif
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
