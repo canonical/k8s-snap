@@ -20,11 +20,11 @@ Home <self>
 :titlesonly:
 :maxdepth: 6
 :caption: Deploy from Snap package
-Overview <snap/index.md>
-snap/tutorial/index
-snap/howto/index
-snap/explanation/index
-snap/reference/index
+Overview <src/snap/index.md>
+src/snap/tutorial/index
+src/snap/howto/index
+src/snap/explanation/index
+src/snap/reference/index
 ```
 
 ```{toctree}
@@ -32,11 +32,11 @@ snap/reference/index
 :caption: Deploy with Juju
 :titlesonly:
 :glob:
-Overview <charm/index>
-charm/tutorial/index
-charm/howto/index
-charm/explanation/index
-charm/reference/index
+Overview <src/charm/index>
+src/charm/tutorial/index
+src/charm/howto/index
+src/charm/explanation/index
+src/charm/reference/index
 ```
 
 ```{toctree}
@@ -44,11 +44,11 @@ charm/reference/index
 :caption: Deploy with Cluster API (WIP)
 :titlesonly:
 :glob:
-Overview <capi/index>
-capi/tutorial/index
-capi/howto/index
-capi/explanation/index
-capi/reference/index
+Overview <src/capi/index>
+src/capi/tutorial/index
+src/capi/howto/index
+src/capi/explanation/index
+src/capi/reference/index
 ```
 
 ---
@@ -56,16 +56,16 @@ capi/reference/index
 ````{grid} 1 1 2 2
 
 ```{grid-item-card}
-:link: snap/
-### [Install K8s from a snap ›](snap/index)
+:link: src/snap/
+### [Install K8s from a snap ›](src/snap/index)
 ^^^
 Our tutorials, How To guides and other pages will explain how to install,
  configure and use the {{product}} 'k8s' snap.
 ```
 
 ```{grid-item-card}
-:link: charm/
-### [Deploy K8s using Juju ›](charm/index)
+:link: src/charm/
+### [Deploy K8s using Juju ›](src/charm/index)
 ^^^
 Our tutorials, How To guides and other pages will explain how to install,
  configure and use the {{product}} 'k8s' charm.
@@ -73,8 +73,8 @@ Our tutorials, How To guides and other pages will explain how to install,
 
 
 ```{grid-item-card}
-:link: capi/
-### [Deploy K8s using Cluster API ›](capi/index)
+:link: src/capi/
+### [Deploy K8s using Cluster API ›](src/capi/index)
 ^^^
 Our tutorials, guides and explanation pages will explain how to install,
  configure and use {{product}} through CAPI.
@@ -101,8 +101,8 @@ and constructive feedback.
 <!-- LINKS -->
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
-[community]: snap/reference/community
-[contribute]: snap/howto/contribute
-[roadmap]: snap/reference/roadmap
-[overview page]: snap/explanation/about
-[architecture documentation]: snap/reference/architecture
+[community]: src/snap/reference/community
+[contribute]: src/snap/howto/contribute
+[roadmap]: src/snap/reference/roadmap
+[overview page]: src/snap/explanation/about
+[architecture documentation]: src/snap/reference/architecture

@@ -1,2 +1,4 @@
-```{include} /snap/explanation/security.md
+# Security
+
+```{include} ../../snap/explanation/security.md
 ```

@@ -218,7 +218,7 @@ spec:
 ```
 
 <!-- LINKS -->
-[Install custom {{product}} on machines]: /capi/howto/custom-ck8s.md
+[Install custom {{product}} on machines]: ../howto/custom-ck8s.md
 [etcd best practices]: https://etcd.io/docs/v3.5/faq/#why-an-odd-number-of-cluster-members
 
 

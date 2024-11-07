@@ -62,4 +62,4 @@ check the [roadmap][] for current areas of work.
 [Kubernetes Security documentation]: https://kubernetes.io/docs/concepts/security/overview/
 [snap documentation]: https://snapcraft.io/docs/security-sandboxing
 [rocks-security]: https://canonical-rockcraft.readthedocs-hosted.com/en/latest/explanation/rockcraft/
-[roadmap]: /snap/reference/roadmap
+[roadmap]: ../reference/roadmap
