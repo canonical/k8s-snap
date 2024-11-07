@@ -187,10 +187,12 @@ def setup_k8s_snap(
 
 def remove_k8s_snap(instance: harness.Instance):
     LOG.info("Uninstall k8s...")
-    instance.exec(["snap", "remove", config.SNAP_NAME, "--purge"])
+    stubbornly(retries=20, delay_s=5).on(instance).exec(
+        ["snap", "remove", config.SNAP_NAME, "--purge"]
+    )
 
     LOG.info("Waiting for shims to go away...")
-    stubbornly(retries=5, delay_s=5).on(instance).until(
+    stubbornly(retries=20, delay_s=5).on(instance).until(
         lambda p: all(
             x not in p.stdout.decode()
             for x in ["containerd-shim", "cilium", "coredns", "/pause"]
@@ -198,7 +200,7 @@ def remove_k8s_snap(instance: harness.Instance):
     ).exec(["ps", "-fea"])
 
     LOG.info("Waiting for kubelet and containerd mounts to go away...")
-    stubbornly(retries=5, delay_s=5).on(instance).until(
+    stubbornly(retries=20, delay_s=5).on(instance).until(
         lambda p: all(
             x not in p.stdout.decode()
             for x in ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
