@@ -19,7 +19,7 @@ rollout-upgrades
 in-place-upgrades
 upgrade-providers
 migrate-management
-Install custom {{product}} <custom-ck8s>
+custom-ck8s
 refresh-certs
 ```
 

@@ -24,7 +24,7 @@ restore-quorum
 two-node-ha
 Set up Enhanced Platform Awareness <epa>
 cis-hardening
-Contribute to {{product}} <contribute>
+contribute
 Get support <support>
 ```
 

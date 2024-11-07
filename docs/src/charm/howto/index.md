@@ -16,10 +16,10 @@ Overview <self>
 
 charm
 install-lxd
-Integrate {{product}} with etd <etcd>
+Integrate with etd <etcd>
 proxy
 cos-lite
-Contribute to {{product}} <contribute>
+contribute
 custom-registry
 
 ```
