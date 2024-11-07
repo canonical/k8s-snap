@@ -300,7 +300,7 @@ After a while, confirm that all the cluster nodes show up in the output of the
 
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
 [svc-ports]: /snap/explanation/services-and-ports.md
-[proxy]: /snap/howto/proxy.md
+[proxy]: /snap/howto/networking/proxy.md
 [sync-images-yaml]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/sync-images.yaml
 [regsync]: https://github.com/regclient/regclient/blob/main/docs/regsync.md
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md

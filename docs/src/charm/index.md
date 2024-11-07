@@ -1,5 +1,22 @@
 # {{product}} charm documentation
 
+```{toctree}
+:hidden:
+Overview <self>
+```
+
+```{toctree}
+:hidden:
+:titlesonly:
+:caption: Deploy with Juju
+
+Overview <charm/index.md>
+tutorial/index.md
+howto/index.md
+explanation/index.md
+reference/index.md
+```
+
 The {{product}} charm, `k8s`, is an operator: software which wraps an
 application and contains all of the instructions necessary for deploying,
 configuring, scaling, integrating the application on any cloud supported by

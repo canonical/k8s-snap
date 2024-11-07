@@ -19,36 +19,11 @@ Home <self>
 :hidden:
 :titlesonly:
 :maxdepth: 6
-:caption: Deploy from Snap package
-Overview <src/snap/index.md>
-src/snap/tutorial/index
-src/snap/howto/index
-src/snap/explanation/index
-src/snap/reference/index
-```
-
-```{toctree}
-:hidden:
-:caption: Deploy with Juju
-:titlesonly:
-:glob:
-Overview <src/charm/index>
-src/charm/tutorial/index
-src/charm/howto/index
-src/charm/explanation/index
-src/charm/reference/index
-```
-
-```{toctree}
-:hidden:
-:caption: Deploy with Cluster API (WIP)
-:titlesonly:
-:glob:
-Overview <src/capi/index>
-src/capi/tutorial/index
-src/capi/howto/index
-src/capi/explanation/index
-src/capi/reference/index
+Deploy from Snap package <src/snap/index.md>
+Deploy with Juju <src/charm/index.md>
+Deploy with Cluster API <src/capi/index.md>
+Community <src/snap/reference/community.md>
+Release notes <src/snap/reference/releases.md>
 ```
 
 ---
