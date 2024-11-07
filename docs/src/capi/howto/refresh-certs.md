@@ -42,7 +42,7 @@ kubectl annotate machine c1-control-plane-nwlss v1beta2.k8sd.io/refresh-certific
 ```
 
 ```{note} The value of the annotation can be specified in years (y), months
-(mo), (d) days, or any unit accepted by the [ParseDuration][] function in
+(mo), (d) days, or any unit accepted by the [ParseDuration] function in
 Go.
 ```
 
