@@ -22,11 +22,9 @@ Home <self>
 Deploy from Snap package <src/snap/index.md>
 Deploy with Juju <src/charm/index.md>
 Deploy with Cluster API <src/capi/index.md>
-Community <src/snap/reference/community.md>
-Release notes <src/snap/reference/releases.md>
+Community <community.md>
+Release notes <release.md>
 ```
-
----
 
 ````{grid} 1 1 2 2
 
