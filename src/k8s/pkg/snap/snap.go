@@ -3,6 +3,7 @@ package snap
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -23,18 +24,20 @@ import (
 )
 
 type SnapOpts struct {
-	SnapInstanceName string
-	SnapDir          string
-	SnapCommonDir    string
-	RunCommand       func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+	SnapInstanceName  string
+	SnapDir           string
+	SnapCommonDir     string
+	RunCommand        func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+	ContainerdBaseDir string
 }
 
 // snap implements the Snap interface.
 type snap struct {
-	snapDir          string
-	snapCommonDir    string
-	snapInstanceName string
-	runCommand       func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+	snapDir           string
+	snapCommonDir     string
+	snapInstanceName  string
+	runCommand        func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+	containerdBaseDir string
 }
 
 // NewSnap creates a new interface with the K8s snap.
@@ -50,6 +53,15 @@ func NewSnap(opts SnapOpts) *snap {
 		snapInstanceName: opts.SnapInstanceName,
 		runCommand:       runCommand,
 	}
+
+	containerdBaseDir := opts.ContainerdBaseDir
+	if containerdBaseDir == "" {
+		containerdBaseDir = "/"
+		if s.Strict() {
+			containerdBaseDir = opts.SnapCommonDir
+		}
+	}
+	s.containerdBaseDir = containerdBaseDir
 
 	return s
 }
@@ -161,19 +173,23 @@ func (s *snap) Hostname() string {
 }
 
 func (s *snap) ContainerdConfigDir() string {
-	return filepath.Join(s.snapCommonDir, "etc", "containerd")
+	return filepath.Join(s.containerdBaseDir, "etc", "containerd")
 }
 
 func (s *snap) ContainerdRootDir() string {
-	return filepath.Join(s.snapCommonDir, "var", "lib", "containerd")
+	return filepath.Join(s.containerdBaseDir, "var", "lib", "containerd")
 }
 
 func (s *snap) ContainerdSocketDir() string {
-	return filepath.Join(s.snapCommonDir, "run")
+	return filepath.Join(s.containerdBaseDir, "run", "containerd")
+}
+
+func (s *snap) ContainerdSocketPath() string {
+	return filepath.Join(s.containerdBaseDir, "run", "containerd", "containerd.sock")
 }
 
 func (s *snap) ContainerdStateDir() string {
-	return "/run/containerd"
+	return filepath.Join(s.containerdBaseDir, "run", "containerd")
 }
 
 func (s *snap) CNIConfDir() string {
@@ -250,11 +266,11 @@ func (s *snap) NodeTokenFile() string {
 }
 
 func (s *snap) ContainerdExtraConfigDir() string {
-	return filepath.Join(s.snapCommonDir, "etc", "containerd", "conf.d")
+	return filepath.Join(s.containerdBaseDir, "etc", "containerd", "conf.d")
 }
 
 func (s *snap) ContainerdRegistryConfigDir() string {
-	return filepath.Join(s.snapCommonDir, "etc", "containerd", "hosts.d")
+	return filepath.Join(s.containerdBaseDir, "etc", "containerd", "hosts.d")
 }
 
 func (s *snap) restClientGetter(path string, namespace string) genericclioptions.RESTClientGetter {
@@ -321,6 +337,17 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) er
 		if err := s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", binary), "--version"}); err != nil {
 			return fmt.Errorf("%q binary could not run: %w", binary, err)
 		}
+	}
+
+	// check if the containerd.sock file already exists, signaling the fact that another containerd instance
+	// is already running on this node, which will conflict with the snap.
+	socketPath := s.ContainerdSocketPath()
+	if _, err := os.Stat(socketPath); err == nil {
+		return fmt.Errorf("The path '%s' to be used for the containerd socket already exists. "+
+			"This may mean that another service is already using that path, and it conflicts with the k8s snap. "+
+			"Please make sure that there is no other service installed that uses the same path, and remove the existing file.", socketPath)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("Encountered an error while checking '%s': %w", socketPath, err)
 	}
 
 	return nil

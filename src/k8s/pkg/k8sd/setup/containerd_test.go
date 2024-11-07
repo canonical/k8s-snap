@@ -27,6 +27,7 @@ func TestContainerd(t *testing.T) {
 			ContainerdConfigDir:         filepath.Join(dir, "containerd"),
 			ContainerdRootDir:           filepath.Join(dir, "containerd-root"),
 			ContainerdSocketDir:         filepath.Join(dir, "containerd-run"),
+			ContainerdSocketPath:        filepath.Join(dir, "containerd-run", "containerd.sock"),
 			ContainerdRegistryConfigDir: filepath.Join(dir, "containerd-hosts"),
 			ContainerdStateDir:          filepath.Join(dir, "containerd-state"),
 			ContainerdExtraConfigDir:    filepath.Join(dir, "containerd-confd"),

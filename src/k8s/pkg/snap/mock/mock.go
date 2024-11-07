@@ -32,6 +32,7 @@ type Mock struct {
 	ContainerdRegistryConfigDir string
 	ContainerdRootDir           string
 	ContainerdSocketDir         string
+	ContainerdSocketPath        string
 	ContainerdStateDir          string
 	K8sdStateDir                string
 	K8sDqliteStateDir           string
@@ -144,6 +145,10 @@ func (s *Snap) ContainerdStateDir() string {
 
 func (s *Snap) ContainerdSocketDir() string {
 	return s.Mock.ContainerdSocketDir
+}
+
+func (s *Snap) ContainerdSocketPath() string {
+	return s.Mock.ContainerdSocketPath
 }
 
 func (s *Snap) ContainerdExtraConfigDir() string {

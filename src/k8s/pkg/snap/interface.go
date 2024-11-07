@@ -39,11 +39,12 @@ type Snap interface {
 	EtcdPKIDir() string          // /etc/kubernetes/pki/etcd
 	KubeletRootDir() string      // /var/lib/kubelet
 
-	ContainerdConfigDir() string         // /var/snap/k8s/common/etc/containerd
-	ContainerdExtraConfigDir() string    // /var/snap/k8s/common/etc/containerd/conf.d
-	ContainerdRegistryConfigDir() string // /var/snap/k8s/common/etc/containerd/hosts.d
+	ContainerdConfigDir() string         // /etc/containerd
+	ContainerdExtraConfigDir() string    // /etc/containerd/conf.d
+	ContainerdRegistryConfigDir() string // /etc/containerd/hosts.d
 	ContainerdRootDir() string           // /var/snap/k8s/common/var/lib/containerd
-	ContainerdSocketDir() string         // /var/snap/k8s/common/run
+	ContainerdSocketDir() string         // /run/containerd
+	ContainerdSocketPath() string        // /run/containerd/containerd.sock
 	ContainerdStateDir() string          // /run/containerd
 
 	K8sdStateDir() string      // /var/snap/k8s/common/var/lib/k8sd/state
