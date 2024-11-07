@@ -84,7 +84,7 @@ def get_most_stable_channels(
 
         if min_release is not None:
             _min_release = major_minor(min_release)
-            if version_key < _min_release:
+            if _min_release is not None and version_key < _min_release:
                 continue
 
         if version_key not in channel_map or RISK_LEVELS.index(
