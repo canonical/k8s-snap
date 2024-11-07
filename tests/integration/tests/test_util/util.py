@@ -381,6 +381,21 @@ def tracks_least_risk(track: str, arch: str) -> str:
     return channel
 
 
+def major_minor(version: str) -> Optional[tuple]:
+    """Determine the major and minor version of a Kubernetes version string.
+
+    Args:
+        version: the version string to determine the major and minor version for
+
+    Returns:
+        a tuple containing the major and minor version or None if the version string is invalid
+    """
+    if match := TRACK_RE.match(version):
+        maj, min, _ = match.groups()
+        return int(maj), int(min)
+    return None
+
+
 def previous_track(snap_version: str) -> str:
     """Determine the snap track preceding the provided version.
 
@@ -391,12 +406,6 @@ def previous_track(snap_version: str) -> str:
         the previous track
     """
     LOG.debug("Determining previous track for %s", snap_version)
-
-    def _maj_min(version: str):
-        if match := TRACK_RE.match(version):
-            maj, min, _ = match.groups()
-            return int(maj), int(min)
-        return None
 
     if not snap_version:
         assumed = "latest"
@@ -414,20 +423,20 @@ def previous_track(snap_version: str) -> str:
         )
         return assumed
 
-    if maj_min := _maj_min(snap_version):
+    if maj_min := major_minor(snap_version):
         maj, min = maj_min
         if min == 0:
             with urllib.request.urlopen(
                 f"https://dl.k8s.io/release/stable-{maj - 1}.txt"
             ) as r:
                 stable = r.read().decode().strip()
-                maj_min = _maj_min(stable)
+                maj_min = major_minor(stable)
         else:
             maj_min = (maj, min - 1)
     elif snap_version.startswith("latest") or "/" not in snap_version:
         with urllib.request.urlopen("https://dl.k8s.io/release/stable.txt") as r:
             stable = r.read().decode().strip()
-            maj_min = _maj_min(stable)
+            maj_min = major_minor(stable)
 
     flavor_track = {"": "classic", "strict": ""}.get(config.FLAVOR, config.FLAVOR)
     track = f"{maj_min[0]}.{maj_min[1]}" + (flavor_track and f"-{flavor_track}")

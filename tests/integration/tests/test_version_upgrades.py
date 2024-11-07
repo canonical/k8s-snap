@@ -26,7 +26,16 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
                 "'recent' requires the number of releases as second argument and the flavour as third argument"
             )
         _, num_channels, flavour = channels
-        channels = snap.get_most_stable_channels(int(num_channels), flavour, cp.arch)
+        channels = snap.get_most_stable_channels(
+            int(num_channels),
+            flavour,
+            cp.arch,
+            min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+        )
+        if len(channels) < 2:
+            pytest.fail(
+                f"Need at least 2 channels to upgrade, got {len(channels)} for flavour {flavour}"
+            )
         current_channel = channels[0]
 
     LOG.info(
