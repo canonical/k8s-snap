@@ -48,7 +48,6 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			config := response.Config
 
 			config.MetricsServer = apiv1.MetricsServerConfig{}
-			config.CloudProvider = nil
 			config.Annotations = nil
 
 			var key string
@@ -116,6 +115,8 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				output = config.LoadBalancer.GetBGPPeerPort()
 			case fmt.Sprintf("%s.bgp-peer-asn", features.LoadBalancer):
 				output = config.LoadBalancer.GetBGPPeerASN()
+			case "cloud-provider":
+				output = config.GetCloudProvider()
 			default:
 				cmd.PrintErrf("Error: Unknown config key %q.\n", key)
 				env.Exit(1)
