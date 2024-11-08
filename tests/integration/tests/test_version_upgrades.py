@@ -2,6 +2,7 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
+import time
 from typing import List
 
 import pytest
@@ -51,6 +52,11 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
         cp.exec(
             ["snap", "refresh", config.SNAP_NAME, "--channel", channel, "--classic"]
         )
+
+        # After the upgrade and restart, the ready states of e.g. the CNI pods
+        # might be incorrect and need some time to run into timeouts and settle.
+        time.sleep(5)
+
         util.wait_until_k8s_ready(cp, instances)
         current_channel = channel
         LOG.info(f"Upgraded {cp.id} on channel {channel}")
