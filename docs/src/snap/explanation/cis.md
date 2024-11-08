@@ -1,4 +1,4 @@
-# CIS Hardeneing 
+# CIS Hardening 
 
 CIS Hardening refers to the process of implementing security configurations that
 align with the benchmarks set forth by the [Center for Internet Security] (CIS).
