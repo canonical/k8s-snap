@@ -3,6 +3,7 @@
 #
 import logging
 import os
+import re
 from typing import List
 
 import pytest
@@ -36,9 +37,13 @@ def test_cncf_conformance(instances: List[harness.Instance]):
         ["./sonobuoy", "results", "sonobuoy_e2e.tar.gz"],
         capture_output=True,
     )
-    LOG.info(resp.stdout.decode())
+
     cluster_node.pull_file("/root/sonobuoy_e2e.tar.gz", "sonobuoy_e2e.tar.gz")
-    assert "Failed: 0" in resp.stdout.decode()
+
+    output = resp.stdout.decode()
+    LOG.info(output)
+    failed_tests = int(re.search("Failed: (\\d+)", output).group(1))
+    assert failed_tests == 0, f"{failed_tests} tests failed"
 
 
 def cluster_setup(instances: List[harness.Instance]) -> harness.Instance:
@@ -62,6 +67,6 @@ def cluster_setup(instances: List[harness.Instance]) -> harness.Instance:
 
 
 def install_sonobuoy(instance: harness.Instance):
-    instance.exec(["curl", "-L", config.SONOBUOY_TAR_GZ, "-o", "sonobuoy.tar.gz"])
+    instance.exec(["curl", "-L", config.sonobuoy_tar_gz(instance.arch), "-o", "sonobuoy.tar.gz"])
     instance.exec(["tar", "xvzf", "sonobuoy.tar.gz"])
     instance.exec(["./sonobuoy", "version"])

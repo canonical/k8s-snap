@@ -33,7 +33,7 @@ sudo sysctl --system
 
 # TODO: Remove after https://bugs.launchpad.net/snapd/+bug/2047798
 sudo sed -i -e 's/\/run\/netns\/ r/\/run\/netns\/ rk/g' /var/lib/snapd/apparmor/profiles/snap.k8s.containerd
-#sudo sed -i -e 's/userns,/userns rwk,/g' /var/lib/snapd/apparmor/profiles/snap.k8s.containerd # Tempfix
+sudo sed -i -e 's/userns,/userns rwk,/g' /var/lib/snapd/apparmor/profiles/snap.k8s.containerd # Tempfix
 sudo apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap.k8s.containerd
 
 # TODO: Remove after https://bugs.launchpad.net/snapd/+bug/2053271

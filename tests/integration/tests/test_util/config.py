@@ -2,7 +2,6 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import os
-import platform
 from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
@@ -126,17 +125,11 @@ STRICT_INTERFACE_CHANNELS = (
     os.environ.get("TEST_STRICT_INTERFACE_CHANNELS", "").strip().split()
 )
 
-# ARCH_MAP is a map changing python architecture naming to common one
-ARCH_MAP = {"aarch64": "arm64", "x86_64": "amd64"}
-
-# ARCHITECTURE is an architecture of current machine
-ARCHITECTURE = os.getenv("TEST_ARCHITECTURE") or ARCH_MAP.get(platform.machine())
-
 # SONOBUOY_VERSION is version of sonobuoy to use
 SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.2"
 
-# SONOBUOY_TAR_GZ is a full path of sonobuoy to download
-SONOBUOY_TAR_GZ = (
-    os.getenv("TEST_SONOBUOY_TAR_GZ")
-    or f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1: ]}_linux_{ARCHITECTURE}.tar.gz"  # noqa
-)
+
+# sonobuoy_tar_gz is a full path of sonobuoy to download
+def sonobuoy_tar_gz(architecture: str) -> str:
+    os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.2"
+    return  f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1: ]}_linux_{architecture}.tar.gz" # noqa

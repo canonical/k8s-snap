@@ -35,8 +35,8 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
 
 
 @pytest.mark.skipif(
-    os.getenv("TEST_SNAP_RELEASE") in ["latest/edge/moonray", "latest/edge/strict"],
-    reason="Test is breaks on moonray and strict",
+    os.getenv("TEST_SNAP_RELEASE") in ["latest/edge/classic", "latest/edge/strict"],
+    reason="Test is breaks on classic and strict",
 )
 @pytest.mark.node_count(2)
 @pytest.mark.snap_versions([util.previous_track(config.SNAP), config.SNAP])

@@ -11,6 +11,9 @@ permissions:
 jobs:
   test-integration:
     name: Integration Test ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.release }}
+    env:
+      # todo(mac) e2e works with Cilium to 1.17 remove if after upgrade
+      TEST_CNCF_E2E: ${{ matrix.release == 'latest/edge/moonray' }}
     strategy:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
@@ -37,9 +40,6 @@ jobs:
         run: |
           cd build
           snap download k8s --channel=${{ matrix.release }} --basename k8s
-          #create env variables for artifacts
-          echo "os_dash=${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
-          echo "release_dash=${{  matrix.release }}" | sed 's#/#-#g'>> $GITHUB_ENV
       - name: Run end to end tests # tox path needs to be specified for arm64
         env:
           TEST_SNAP: ${{ github.workspace }}/build/k8s.snap
@@ -52,12 +52,13 @@ jobs:
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
           TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
         run: |
-          # e2e works with Cilium to 1.17 remove if after upgrade
-          if [[ "${{ matrix.release }}" == "latest/edge/moonray" ]]; then
-            export TEST_CNCF_E2E="true"
-          fi
           export PATH="/home/runner/.local/bin:$PATH"
           cd tests/integration && sg lxd -c 'tox -vve integration'
+      - name: Create env variables for artifacts
+        if: failure()
+        run: |
+          echo "os_dash=${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
+          echo "release_dash=${{  matrix.release }}" | sed 's#/#-#g'>> $GITHUB_ENV
       - name: Prepare inspection reports
         if: failure()
         run: |
@@ -74,13 +75,13 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         timeout-minutes: 10
       - name: Extract CNCF conformance report
-        if: ${{ failure() && matrix.release == 'latest/edge/moonray' }}
+        if: ${{ failure() && ( env.TEST_CNCF_E2E == 'true' ) }}
         working-directory: tests/integration
         run: |
          tar -xf sonobuoy_e2e.tar.gz --one-top-level
       - name: Upload CNCF conformance report artifact
         uses: actions/upload-artifact@v4
-        if: ${{ failure() && matrix.release == 'latest/edge/moonray' }}
+        if: ${{ failure() && ( env.TEST_CNCF_E2E == 'true' ) }}
         with:
          name: report_sonobuoy_e2e_${{ env.os_dash }}_${{ env.release_dash }}_${{ matrix.arch }}
          path: tests/integration/sonobuoy_e2e
