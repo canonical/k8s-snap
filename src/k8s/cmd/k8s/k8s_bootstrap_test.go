@@ -3,7 +3,6 @@ package k8s
 import (
 	"bytes"
 	_ "embed"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -109,7 +108,7 @@ var testCases = []testCase{
 func mustAddConfigToTestDir(t *testing.T, configPath string, data string) {
 	t.Helper()
 	// Create the cluster bootstrap config file
-	err := os.WriteFile(configPath, []byte(data), 0o644)
+	err := utils.WriteFile(configPath, []byte(data), 0o644)
 	if err != nil {
 		t.Fatal(err)
 	}

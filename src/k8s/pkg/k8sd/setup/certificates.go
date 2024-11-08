@@ -8,6 +8,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 // ensureFile creates fname with the specified contents, mode and owner bits.
@@ -39,7 +40,7 @@ func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (
 	var contentChanged bool
 
 	if contents != string(origContent) {
-		if err := os.WriteFile(fname, []byte(contents), mode); err != nil {
+		if err := utils.WriteFile(fname, []byte(contents), mode); err != nil {
 			return false, fmt.Errorf("failed to write: %w", err)
 		}
 		contentChanged = true

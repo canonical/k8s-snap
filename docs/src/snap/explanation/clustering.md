@@ -18,8 +18,7 @@ and scheduling of workloads.
 
 This is the overview of a {{product}} cluster:
 
-```{kroki} ../../assets/ck-cluster.puml
-```
+![cluster6][]
 
 ## The Role of `k8sd` in Kubernetes Clustering
 
@@ -68,6 +67,10 @@ entire life-cycle. Their components include:
 - **Kube-Proxy (kube-proxy)**: Manages network communication within the cluster.
 - **Container Runtime**: The software responsible for running containers. In
     {{product}} the runtime is `containerd`.
+
+<!-- IMAGES -->
+
+[cluster6]: https://assets.ubuntu.com/v1/e6d02e9c-cluster6.svg
 
 <!-- LINKS -->
 

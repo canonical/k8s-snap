@@ -190,9 +190,10 @@ def rock_coredns(manifest, extra_files):
 
     with util.git_repo(COREDNS_ROCK_REPO, COREDNS_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
-        rockcraft = (d / "rockcraft.yaml").read_text()
+        # TODO(ben): This should not be hard coded.
+        rockcraft = (d / "1.11.1/rockcraft.yaml").read_text()
 
-        extra_files["coredns/rockcraft.yaml"] = rockcraft
+        extra_files["coredns/1.11.1/rockcraft.yaml"] = rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["coredns"]["source"]
@@ -211,7 +212,7 @@ def rock_coredns(manifest, extra_files):
             "revision": rock_repo_commit,
         },
         "language": "go",
-        "details": ["coredns/rockcraft.yaml", "coredns/go.mod", "coredns/go.sum"],
+        "details": ["coredns/1.11.1/rockcraft.yaml", "coredns/go.mod", "coredns/go.sum"],
         "source": {
             "type": "git",
             "repo": repo_url,
