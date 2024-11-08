@@ -71,6 +71,15 @@ def get_external_service_ip(instance: harness.Instance) -> str:
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
 def test_gateway(instances: List[harness.Instance]):
     instance = instances[0]
+    instance_default_ip = util.get_default_ip(instance)
+    instance_default_cidr = util.get_default_cidr(instance, instance_default_ip)
+    lb_cidr = util.find_suitable_cidr(
+        parent_cidr=instance_default_cidr,
+        excluded_ips=[instance_default_ip],
+    )
+    instance.exec(
+        ["k8s", "set", f"load-balancer.cidrs={lb_cidr}", "load-balancer.l2-mode=true"]
+    )
     util.wait_until_k8s_ready(instance, [instance])
     util.wait_for_network(instance)
     util.wait_for_dns(instance)
