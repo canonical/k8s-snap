@@ -145,7 +145,7 @@ custom_linkcheck_anchors_ignore_for_url = [
 ## Use them to extend the default features.
 
 # Add extensions
-custom_extensions = ['sphinxcontrib.kroki',  ]
+custom_extensions = [ ]
 
 # Add MyST extensions
 custom_myst_extensions = []
