@@ -20,7 +20,7 @@ func TestContainerd(t *testing.T) {
 
 	dir := t.TempDir()
 
-	g.Expect(os.WriteFile(filepath.Join(dir, "mockcni"), []byte("echo hi"), 0o600)).To(Succeed())
+	g.Expect(utils.WriteFile(filepath.Join(dir, "mockcni"), []byte("echo hi"), 0o600)).To(Succeed())
 
 	s := &mock.Snap{
 		Mock: mock.Mock{

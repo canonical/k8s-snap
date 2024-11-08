@@ -346,7 +346,7 @@ func yamlEditorGuide(
 	newContent = removeEmptyLines(newContent)
 
 	if applyChanges {
-		err = os.WriteFile(path, newContent, os.FileMode(0o644))
+		err = utils.WriteFile(path, newContent, os.FileMode(0o644))
 		if err != nil {
 			return nil, fmt.Errorf("could not write file: %s, error: %w", path, err)
 		}
