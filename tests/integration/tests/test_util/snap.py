@@ -6,7 +6,9 @@ import logging
 import re
 import urllib.error
 import urllib.request
-from typing import List
+from typing import List, Optional
+
+from test_util.util import major_minor
 
 LOG = logging.getLogger(__name__)
 
@@ -60,7 +62,11 @@ def filter_arch_and_flavor(channels: List[dict], arch: str, flavor: str) -> List
 
 
 def get_most_stable_channels(
-    num_of_channels: int, flavor: str, arch: str, include_latest=True
+    num_of_channels: int,
+    flavor: str,
+    arch: str,
+    include_latest: bool = True,
+    min_release: Optional[str] = None,
 ) -> List[str]:
     """Get an ascending list of latest channels based on the number of channels
     flavour and architecture."""
@@ -75,6 +81,11 @@ def get_most_stable_channels(
     channel_map = {}
     for channel, major, minor, risk in arch_flavor_channels:
         version_key = (int(major), int(minor))
+
+        if min_release is not None:
+            _min_release = major_minor(min_release)
+            if _min_release is not None and version_key < _min_release:
+                continue
 
         if version_key not in channel_map or RISK_LEVELS.index(
             risk
