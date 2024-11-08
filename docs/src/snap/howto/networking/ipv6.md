@@ -1,4 +1,4 @@
-# How to Setup an IPv6-Only Cluster
+# How to set up an IPv6-Only Cluster
 
 An IPv6-only Kubernetes cluster operates exclusively using IPv6 addresses,
 without support for IPv4. This configuration is ideal for environments that

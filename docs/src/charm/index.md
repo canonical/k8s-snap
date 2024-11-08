@@ -83,10 +83,10 @@ and constructive feedback.
 <!-- LINKS -->
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
-[community]: /charm/reference/community
-[contribute]: /snap/howto/contribute
-[roadmap]: /snap/reference/roadmap
-[overview page]: /charm/explanation/about
-[arch]: /charm/reference/architecture
+[community]: reference/community
+[contribute]: ../snap/howto/contribute
+[roadmap]: ../snap/reference/roadmap
+[overview page]: explanation/about
+[arch]: reference/architecture
 [Juju]: https://juju.is
-[k8s snap package]: /snap/index
+[k8s snap package]: ../snap/index

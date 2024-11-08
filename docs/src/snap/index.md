@@ -86,4 +86,4 @@ and constructive feedback.
 [roadmap]: ./reference/roadmap
 [overview page]: ./explanation/about
 [architecture documentation]: ./reference/architecture
-[Juju charm]: /charm/index
+[Juju charm]: ../charm/index

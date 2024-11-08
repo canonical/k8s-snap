@@ -78,8 +78,8 @@ outlining rules that direct traffic to your application's Kubernetes service.
 
 <!-- LINKS -->
 
-[Ingress]: /snap/howto/networking/default-ingress
-[Network]: /snap/howto/networking/default-network
+[Ingress]: ../howto/networking/default-ingress
+[Network]: ../howto/networking/default-network
 [Cilium]: https://cilium.io/
 [network plugin]: https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/
 [Service]: https://kubernetes.io/docs/concepts/services-networking/service/

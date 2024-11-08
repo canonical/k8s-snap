@@ -239,4 +239,4 @@ need to access for example storage devices (See comment in [^5]).
 [default-bridged-networking]: https://ubuntu.com/blog/lxd-networking-lxdbr0-explained
 [Microbot]: https://github.com/dontrebootme/docker-microbot
 [AppArmor]: https://apparmor.net/
-[channels]: /snap/explanation/channels
+[channels]: ../../explanation/channels

@@ -39,4 +39,4 @@ details or information such as the command reference or release notes.
 [Tutorials section]: ../tutorial/index
 [How-to guides]:     ../howto/index
 [Reference section]: ../reference/index
-[explanation topic]: ../explanation/index.md
+[explanation topic]: ../../snap/explanation/index.md

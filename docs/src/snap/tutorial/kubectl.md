@@ -123,7 +123,7 @@ pods will have a status of `ContainerCreating`.
 
 <!-- LINKS -->
 
-[Command Reference Guide]: /snap/reference/commands
+[Command Reference Guide]: ../reference/commands
 [Getting Started]: getting-started
 [kubernetes-api-server]: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
 [kubeconfig-doc]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/

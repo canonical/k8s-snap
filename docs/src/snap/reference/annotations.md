@@ -33,4 +33,4 @@ the bootstrap configuration.
 
 <!-- Links -->
 
-[bootstrap]: /snap/reference/bootstrap-config-reference
+[bootstrap]: bootstrap-config-reference

@@ -1141,8 +1141,8 @@ the correct PCI address:
 <!-- LINKS -->
 
 [MAAS]: https://maas.io
-[channel]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/explanation/channels/
-[install-link]: /snap/howto/install/snap
+[channel]: ../explanation/channels/
+[install-link]: install/snap
 [snap]: https://snapcraft.io/docs
 [cyclictest]: https://github.com/jlelli/rt-tests
-[explain-epa]: /snap/explanation/epa
+[explain-epa]: ../explanation/epa

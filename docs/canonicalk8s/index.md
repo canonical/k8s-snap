@@ -19,11 +19,14 @@ Home <self>
 :hidden:
 :titlesonly:
 :maxdepth: 6
+
+about.md
 Deploy from Snap package <src/snap/index.md>
 Deploy with Juju <src/charm/index.md>
 Deploy with Cluster API <src/capi/index.md>
 Community <community.md>
 Release notes <release.md>
+
 ```
 
 ````{grid} 1 1 2 2
@@ -33,7 +36,7 @@ Release notes <release.md>
 ### [Install K8s from a snap ›](src/snap/index)
 ^^^
 Our tutorials, How To guides and other pages will explain how to install,
- configure and use the {{product}} 'k8s' snap.
+ configure and use the {{product}} 'k8s' snap. This is a great option if you are new to Kubernetes.
 ```
 
 ```{grid-item-card}
@@ -51,6 +54,13 @@ Our tutorials, How To guides and other pages will explain how to install,
 ^^^
 Our tutorials, guides and explanation pages will explain how to install,
  configure and use {{product}} through CAPI.
+```
+
+```{grid-item-card}
+:link: about
+### [Overview of {{product}} ›](about)
+^^^
+A brief overview of {{product}} answering common questions.
 ```
 ````
 
@@ -77,5 +87,5 @@ and constructive feedback.
 [community]: src/snap/reference/community
 [contribute]: src/snap/howto/contribute
 [roadmap]: src/snap/reference/roadmap
-[overview page]: src/snap/explanation/about
+[overview page]: about
 [architecture documentation]: src/snap/reference/architecture
