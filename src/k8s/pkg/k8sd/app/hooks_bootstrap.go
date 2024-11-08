@@ -15,6 +15,7 @@ import (
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
+	"github.com/canonical/k8s/pkg/client/snapd"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -36,6 +37,19 @@ func (a *App) onBootstrap(ctx context.Context, s state.State, initConfig map[str
 	if t := utils.MicroclusterTimeoutFromMap(initConfig); t != 0 {
 		ctx, cancel = context.WithTimeout(ctx, t)
 		defer cancel()
+	}
+
+	snapdClient, err := snapd.NewClient()
+	if err != nil {
+		return fmt.Errorf("failed to create snapd client: %w", err)
+	}
+
+	microk8sInfo, err := snapdClient.GetSnapInfo("microk8s")
+	if err != nil {
+		return fmt.Errorf("failed to check if microk8s is installed: %w", err)
+	}
+	if microk8sInfo.StatusCode == 200 {
+		return fmt.Errorf("microk8s snap is installed, please remove it and try again")
 	}
 
 	if workerToken, ok := initConfig["workerToken"]; ok {
