@@ -82,6 +82,8 @@ jobs:
           - { branch: main, channel: latest/edge }
           # Stable branches
           # Add branches to test here
+          - { branch: release-1.30, channel: 1.30-classic/edge }
+          - { branch: release-1.31, channel: 1.31-classic/edge }
 
     steps:
       - name: Harden Runner
