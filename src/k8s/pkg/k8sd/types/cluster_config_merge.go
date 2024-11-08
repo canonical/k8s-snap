@@ -46,7 +46,6 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		// network
 		{name: "pod CIDR", val: &config.Network.PodCIDR, old: existing.Network.PodCIDR, new: new.Network.PodCIDR},
 		{name: "service CIDR", val: &config.Network.ServiceCIDR, old: existing.Network.ServiceCIDR, new: new.Network.ServiceCIDR},
-		{name: "localhost address", val: &config.Network.LocalhostAddress, old: existing.Network.LocalhostAddress, new: new.Network.LocalhostAddress},
 		// apiserver
 		{name: "kube-apiserver authorization mode", val: &config.APIServer.AuthorizationMode, old: existing.APIServer.AuthorizationMode, new: new.APIServer.AuthorizationMode, allowChange: true},
 		// kubelet

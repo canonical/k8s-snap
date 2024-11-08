@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"database/sql"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
@@ -60,6 +61,17 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 			ctx,
 			func(ctx context.Context) (types.ClusterConfig, error) {
 				return databaseutil.GetClusterConfig(ctx, s)
+			},
+			func() (string, error) {
+				nodeIP := net.ParseIP(s.Address().Hostname())
+				if nodeIP == nil {
+					return "", fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
+				}
+
+				if nodeIP.To4() == nil {
+					return "::1", nil
+				}
+				return "127.0.0.1", nil
 			},
 			func(ctx context.Context, dnsIP string) error {
 				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
