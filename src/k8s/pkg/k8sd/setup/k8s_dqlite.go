@@ -32,7 +32,7 @@ func K8sDqlite(snap snap.Snap, address string, cluster []string, extraArgs map[s
 		return fmt.Errorf("failed to create init.yaml file for address=%s cluster=%v: %w", address, cluster, err)
 	}
 
-	if err := os.WriteFile(filepath.Join(snap.K8sDqliteStateDir(), "init.yaml"), b, 0o600); err != nil {
+	if err := utils.WriteFile(filepath.Join(snap.K8sDqliteStateDir(), "init.yaml"), b, 0o600); err != nil {
 		return fmt.Errorf("failed to write init.yaml: %w", err)
 	}
 

@@ -2,12 +2,12 @@ package snaputil_test
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -32,7 +32,7 @@ func TestGetServiceArgument(t *testing.T) {
 --key=value-of-service-two
 `,
 	} {
-		g.Expect(os.WriteFile(filepath.Join(dir, svc), []byte(args), 0o600)).To(Succeed())
+		g.Expect(utils.WriteFile(filepath.Join(dir, svc), []byte(args), 0o600)).To(Succeed())
 	}
 
 	for _, tc := range []struct {

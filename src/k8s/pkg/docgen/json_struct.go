@@ -5,6 +5,8 @@ import (
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 type JsonTag struct {
@@ -55,7 +57,7 @@ func MarkdownFromJsonStructToFile(i any, outFilePath string, projectDir string) 
 		return err
 	}
 
-	err = os.WriteFile(outFilePath, []byte(content), 0o644)
+	err = utils.WriteFile(outFilePath, []byte(content), 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to write markdown documentation to %s: %w", outFilePath, err)
 	}
