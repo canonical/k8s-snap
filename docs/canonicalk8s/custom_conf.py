@@ -178,13 +178,13 @@ custom_extensions = [
 # sphinxext-opengraph
 custom_required_modules = [
     'sphinxcontrib-svg2pdfconverter[CairoSVG]',
-    'sphinxcontrib.kroki'
 ]
 
 # Add files or directories that should be excluded from processing.
 custom_excludes = [
     'doc-cheat-sheet*',
-    '_parts'
+    '_parts/*',
+    'src/_parts'
     ]
 
 # Add CSS files (located in .sphinx/_static/)
@@ -217,6 +217,12 @@ custom_tags = []
 ############################################################
 
 ## Add any configuration that is not covered by the common conf.py file.
+
+# Change the default code highlighting to 'none'
+
+highlight_language = 'none'
+
+
 
 # Define a :center: role that can be used to center the content of table cells.
 rst_prolog = '''

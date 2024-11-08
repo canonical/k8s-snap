@@ -11,10 +11,10 @@ how to configure and use key capabilities of {{product}}.
 ```{toctree}
 :titlesonly:
 
-/snap/howto/networking/default-dns.md
-/snap/howto/networking/default-network.md
-/snap/howto/networking/default-ingress.md
-/snap/howto/networking/default-loadbalancer.md
-/snap/howto/networking/dualstack.md
-/snap/howto/networking/ipv6.md
+default-dns.md
+default-network.md
+default-ingress.md
+default-loadbalancer.md
+dualstack.md
+ipv6.md
 ```

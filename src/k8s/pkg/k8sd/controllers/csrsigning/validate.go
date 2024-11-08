@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/subtle"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/utils"
@@ -21,7 +22,12 @@ func validateCSR(obj *certv1.CertificateSigningRequest, priv *rsa.PrivateKey) er
 		return fmt.Errorf("failed to parse x509 certificate request: %w", err)
 	}
 
-	encryptedSignature := obj.Annotations["k8sd.io/signature"]
+	encryptedSignatureB64 := obj.Annotations["k8sd.io/signature"]
+	encryptedSignature, err := base64.StdEncoding.DecodeString(encryptedSignatureB64)
+	if err != nil {
+		return fmt.Errorf("failed to decode b64 signature: %w", err)
+	}
+
 	signature, err := rsa.DecryptPKCS1v15(nil, priv, []byte(encryptedSignature))
 	if err != nil {
 		return fmt.Errorf("failed to decrypt signature: %w", err)

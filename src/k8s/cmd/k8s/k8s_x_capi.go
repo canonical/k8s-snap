@@ -1,10 +1,9 @@
 package k8s
 
 import (
-	"os"
-
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +47,7 @@ func newXCAPICmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := os.WriteFile(env.Snap.NodeTokenFile(), []byte(token), 0o600); err != nil {
+			if err := utils.WriteFile(env.Snap.NodeTokenFile(), []byte(token), 0o600); err != nil {
 				cmd.PrintErrf("Error: Failed to write the node token to file.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return

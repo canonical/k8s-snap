@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/canonical/k8s/pkg/utils"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	certv1 "k8s.io/api/certificates/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -96,6 +97,15 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
+	notBefore := time.Now()
+	var notAfter time.Time
+
+	if obj.Spec.ExpirationSeconds != nil {
+		notAfter = utils.SecondsToExpirationDate(notBefore, int(*obj.Spec.ExpirationSeconds))
+	} else {
+		notAfter = time.Now().AddDate(10, 0, 0)
+	}
+
 	var crtPEM []byte
 	switch obj.Spec.SignerName {
 	case "k8sd.io/kubelet-serving":
@@ -114,8 +124,8 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 				CommonName:   obj.Spec.Username,
 				Organization: obj.Spec.Groups,
 			},
-			NotBefore:             time.Now(),
-			NotAfter:              time.Now().AddDate(10, 0, 0), // TODO: expiration date from obj, or config
+			NotBefore:             notBefore,
+			NotAfter:              notAfter,
 			IPAddresses:           certRequest.IPAddresses,
 			DNSNames:              certRequest.DNSNames,
 			BasicConstraintsValid: true,
@@ -149,8 +159,8 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 				CommonName:   obj.Spec.Username,
 				Organization: obj.Spec.Groups,
 			},
-			NotBefore:             time.Now(),
-			NotAfter:              time.Now().AddDate(10, 0, 0), // TODO: expiration date from obj, or config
+			NotBefore:             notBefore,
+			NotAfter:              notAfter,
 			BasicConstraintsValid: true,
 			ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
@@ -181,8 +191,8 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			Subject: pkix.Name{
 				CommonName: "system:kube-proxy",
 			},
-			NotBefore:             time.Now(),
-			NotAfter:              time.Now().AddDate(10, 0, 0), // TODO: expiration date from obj, or config
+			NotBefore:             notBefore,
+			NotAfter:              notAfter,
 			BasicConstraintsValid: true,
 			ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,

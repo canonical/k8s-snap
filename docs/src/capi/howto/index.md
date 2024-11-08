@@ -20,6 +20,7 @@ in-place-upgrades
 upgrade-providers
 migrate-management
 custom-ck8s
+refresh-certs
 ```
 
 ---

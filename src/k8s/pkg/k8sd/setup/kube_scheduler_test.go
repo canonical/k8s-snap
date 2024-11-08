@@ -39,6 +39,7 @@ func TestKubeScheduler(t *testing.T) {
 			{key: "--leader-elect-lease-duration", expectedVal: "30s"},
 			{key: "--leader-elect-renew-deadline", expectedVal: "15s"},
 			{key: "--profiling", expectedVal: "false"},
+			{key: "--tls-min-version", expectedVal: "VersionTLS12"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
@@ -79,6 +80,7 @@ func TestKubeScheduler(t *testing.T) {
 			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "scheduler.conf")},
 			{key: "--leader-elect-renew-deadline", expectedVal: "15s"},
 			{key: "--profiling", expectedVal: "true"},
+			{key: "--tls-min-version", expectedVal: "VersionTLS12"},
 			{key: "--my-extra-arg", expectedVal: "my-extra-val"},
 		}
 		for _, tc := range tests {

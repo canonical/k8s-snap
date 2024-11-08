@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"sort"
+
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 // Configuration is the format of the apiserver proxy endpoints config file.
@@ -33,7 +35,7 @@ func WriteEndpointsConfig(endpoints []string, file string) error {
 		return fmt.Errorf("failed to marshal configuration: %w", err)
 	}
 
-	if err := os.WriteFile(file, b, 0o600); err != nil {
+	if err := utils.WriteFile(file, b, 0o600); err != nil {
 		return fmt.Errorf("failed to write configuration file %s: %w", file, err)
 	}
 	return nil

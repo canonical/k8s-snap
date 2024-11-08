@@ -1,7 +1,6 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
-import ipaddress
 import logging
 from pathlib import Path
 from typing import List
@@ -11,29 +10,6 @@ from test_util import harness, util
 from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
-
-
-def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
-    net = ipaddress.IPv4Network(parent_cidr, False)
-
-    # Starting from the first IP address from the parent cidr,
-    # we search for a /30 cidr block(4 total ips, 2 available)
-    # that doesn't contain the excluded ips to avoid collisions
-    # /30 because this is the smallest CIDR cilium hands out IPs from
-    for i in range(4, 255, 4):
-        lb_net = ipaddress.IPv4Network(f"{str(net[0]+i)}/30", False)
-
-        contains_excluded = False
-        for excluded in excluded_ips:
-            if ipaddress.ip_address(excluded) in lb_net:
-                contains_excluded = True
-                break
-
-        if contains_excluded:
-            continue
-
-        return str(lb_net)
-    raise RuntimeError("Could not find a suitable CIDR for LoadBalancer services")
 
 
 @pytest.mark.node_count(2)
@@ -47,7 +23,7 @@ def test_loadbalancer(instances: List[harness.Instance]):
 
     instance_default_cidr = util.get_default_cidr(instance, instance_default_ip)
 
-    lb_cidr = find_suitable_cidr(
+    lb_cidr = util.find_suitable_cidr(
         parent_cidr=instance_default_cidr,
         excluded_ips=[instance_default_ip, tester_instance_default_ip],
     )
@@ -107,9 +83,6 @@ def test_loadbalancer(instances: List[harness.Instance]):
     )
     service_ip = p.stdout.decode().replace("'", "")
 
-    p = tester_instance.exec(
-        ["curl", service_ip],
-        capture_output=True,
-    )
-
-    assert "Welcome to nginx!" in p.stdout.decode()
+    util.stubbornly(retries=5, delay_s=3).on(tester_instance).until(
+        lambda p: "Welcome to nginx!" in p.stdout.decode()
+    ).exec(["curl", service_ip])

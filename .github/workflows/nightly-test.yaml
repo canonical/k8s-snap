@@ -50,6 +50,8 @@ jobs:
           # Test the latest (up to) 6 releases for the flavour
           # TODO(ben): upgrade nightly to run all flavours
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
+          # Upgrading from 1.30 is not supported.
+          TEST_VERSION_UPGRADE_MIN_RELEASE: "1.31"
           TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
         run: |
           export PATH="/home/runner/.local/bin:$PATH"
