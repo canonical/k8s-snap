@@ -63,6 +63,7 @@ func TestKubeAPIServer(t *testing.T) {
 			{key: "--service-cluster-ip-range", expectedVal: "10.0.0.0/24"},
 			{key: "--tls-cert-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver.crt")},
 			{key: "--tls-cipher-suites", expectedVal: apiserverTLSCipherSuites},
+			{key: "--tls-min-version", expectedVal: "VersionTLS12"},
 			{key: "--tls-private-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver.key")},
 			{key: "--etcd-servers", expectedVal: fmt.Sprintf("unix://%s", filepath.Join(s.Mock.K8sDqliteStateDir, "k8s-dqlite.sock"))},
 			{key: "--request-timeout", expectedVal: "300s"},
@@ -123,6 +124,7 @@ func TestKubeAPIServer(t *testing.T) {
 			{key: "--service-cluster-ip-range", expectedVal: "10.0.0.0/24"},
 			{key: "--tls-cert-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver.crt")},
 			{key: "--tls-cipher-suites", expectedVal: apiserverTLSCipherSuites},
+			{key: "--tls-min-version", expectedVal: "VersionTLS12"},
 			{key: "--tls-private-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver.key")},
 			{key: "--etcd-servers", expectedVal: fmt.Sprintf("unix://%s", filepath.Join(s.Mock.K8sDqliteStateDir, "k8s-dqlite.sock"))},
 		}
@@ -178,6 +180,7 @@ func TestKubeAPIServer(t *testing.T) {
 			{key: "--service-cluster-ip-range", expectedVal: "10.0.0.0/24"},
 			{key: "--tls-cert-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver.crt")},
 			{key: "--tls-cipher-suites", expectedVal: apiserverTLSCipherSuites},
+			{key: "--tls-min-version", expectedVal: "VersionTLS12"},
 			{key: "--tls-private-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver.key")},
 			{key: "--etcd-servers", expectedVal: fmt.Sprintf("unix://%s", filepath.Join(s.Mock.K8sDqliteStateDir, "k8s-dqlite.sock"))},
 			{key: "--request-timeout", expectedVal: "300s"},

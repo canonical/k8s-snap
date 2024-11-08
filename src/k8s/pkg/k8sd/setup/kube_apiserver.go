@@ -85,6 +85,7 @@ func KubeAPIServer(snap snap.Snap, securePort int, nodeIP net.IP, serviceCIDR st
 		"--service-cluster-ip-range":                 serviceCIDR,
 		"--tls-cert-file":                            filepath.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
 		"--tls-cipher-suites":                        strings.Join(apiserverTLSCipherSuites, ","),
+		"--tls-min-version":                          "VersionTLS12",
 		"--tls-private-key-file":                     filepath.Join(snap.KubernetesPKIDir(), "apiserver.key"),
 	}
 
