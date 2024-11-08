@@ -137,4 +137,4 @@ SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.2"
 # sonobuoy_tar_gz is a full path of sonobuoy to download
 def sonobuoy_tar_gz(architecture: str) -> str:
     os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.2"
-    return  f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1: ]}_linux_{architecture}.tar.gz" # noqa
+    return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1: ]}_linux_{architecture}.tar.gz"  # noqa

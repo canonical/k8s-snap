@@ -7,7 +7,6 @@ import os
 import subprocess
 import tempfile
 from typing import List
-import os
 
 import pytest
 from cryptography import x509

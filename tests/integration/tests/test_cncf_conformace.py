@@ -67,6 +67,8 @@ def cluster_setup(instances: List[harness.Instance]) -> harness.Instance:
 
 
 def install_sonobuoy(instance: harness.Instance):
-    instance.exec(["curl", "-L", config.sonobuoy_tar_gz(instance.arch), "-o", "sonobuoy.tar.gz"])
+    instance.exec(
+        ["curl", "-L", config.sonobuoy_tar_gz(instance.arch), "-o", "sonobuoy.tar.gz"]
+    )
     instance.exec(["tar", "xvzf", "sonobuoy.tar.gz"])
     instance.exec(["./sonobuoy", "version"])
