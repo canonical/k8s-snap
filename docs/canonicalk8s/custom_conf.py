@@ -167,7 +167,6 @@ custom_extensions = [
     'canonical.terminal-output',
     'notfound.extension',
     'sphinxcontrib.cairosvgconverter', 
-    'sphinxcontrib.kroki',
     ]
 
 # Add custom required Python modules that must be added to the
@@ -179,7 +178,6 @@ custom_extensions = [
 # sphinxext-opengraph
 custom_required_modules = [
     'sphinxcontrib-svg2pdfconverter[CairoSVG]',
-    'sphinxcontrib.kroki'
 ]
 
 # Add files or directories that should be excluded from processing.

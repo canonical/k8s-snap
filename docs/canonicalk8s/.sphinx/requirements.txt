@@ -18,6 +18,5 @@ sphinx-notfound-page
 sphinx-tabs
 sphinxcontrib-jquery
 sphinxcontrib-svg2pdfconverter[CairoSVG]
-sphinxcontrib.kroki
 sphinxext-opengraph
 watchfiles

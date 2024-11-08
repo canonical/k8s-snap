@@ -54,8 +54,7 @@ that routes traffic from outside of your cluster to services inside of your clus
 Please do not confuse this with the Kubernetes Service LoadBalancer type
 which operates at layer 4 and routes traffic directly to individual pods.
 
-```{kroki} ../../assets/ingress.puml
-```
+![cluster6][]
 
 With {{product}}, enabling Ingress is easy:
 See the [default Ingress guide][Ingress].
@@ -72,6 +71,10 @@ the responsibility of implementation falls upon you.
 
 You will need to create the Ingress resource,
 outlining rules that direct traffic to your application's Kubernetes service.
+
+<!-- IMAGES -->
+
+[cluster6]: https://assets.ubuntu.com/v1/e6d02e9c-cluster6.svg
 
 <!-- LINKS -->
 
