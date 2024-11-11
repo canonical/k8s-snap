@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"database/sql"
 	"fmt"
-	"net"
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
@@ -73,21 +72,12 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 					return "", fmt.Errorf("failed to get cluster members: %w", err)
 				}
 
-				// Check if any of the cluster members have an IPv6 address, if so return "::1"
-				// if one member has an IPv6 address, other members should also have IPv6 interfaces
-				for _, clusterMember := range clusterMembers {
-					nodeIP := net.ParseIP(clusterMember.Address.Addr().String())
-					if nodeIP == nil {
-						return "", fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
-					}
-
-					if nodeIP.To4() == nil {
-						return "::1", nil
-					}
+				localhostAddress, err := DetermineLocalhostAddress(clusterMembers)
+				if err != nil {
+					return "", fmt.Errorf("failed to determine localhost address: %w", err)
 				}
 
-				// If no IPv6 addresses are found this means the cluster is IPv4 only
-				return "127.0.0.1", nil
+				return localhostAddress, nil
 			},
 			func(ctx context.Context, dnsIP string) error {
 				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {

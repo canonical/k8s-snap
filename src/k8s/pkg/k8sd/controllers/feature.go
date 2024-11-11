@@ -82,7 +82,7 @@ func (c *FeatureController) Run(
 	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		localhostAddress, err := getLocalhostAddress()
 		if err != nil {
-			return types.FeatureStatus{Enabled: cfg.Network.GetEnabled(), Message: "failed to determine the localhost address"}, fmt.Errorf("failed to get localhost address: %w", err)
+			return types.FeatureStatus{Enabled: false, Message: "failed to determine the localhost address"}, fmt.Errorf("failed to get localhost address: %w", err)
 		}
 		return features.Implementation.ApplyNetwork(ctx, c.snap, localhostAddress, cfg.APIServer, cfg.Network, cfg.Annotations)
 	})
