@@ -197,7 +197,7 @@ Possible values: `external`.
 **Type:** `map[string]string`<br>
 
 Annotations is a map of strings that can be used to store arbitrary metadata configuration.
-Please refer to the ClusterAPI annotations reference for further details on these options.
+Please refer to the annotations reference for further details on these options.
 
 ### control-plane-taints
 **Type:** `[]string`<br>
