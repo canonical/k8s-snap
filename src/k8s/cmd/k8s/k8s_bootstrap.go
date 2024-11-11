@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"net"
 	"os"
 	"slices"
 	"strings"
@@ -98,15 +97,6 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				env.Exit(1)
 				return
 			}
-
-			a := fmt.Sprintf("%s:%d", opts.address, config.DefaultPort)
-			ln, err := net.Listen("tcp", a)
-			if err != nil {
-				cmd.PrintErrf("Error: Failed to bind to required port %d. Please make sure the port is not in use.\n", config.DefaultPort)
-				env.Exit(1)
-				return
-			}
-			_ = ln.Close()
 
 			client, err := env.Snap.K8sdClient("")
 			if err != nil {
