@@ -1,7 +1,11 @@
+#
+# Copyright 2024 Canonical, Ltd.
+#
 from typing import List
 
 import pytest
 from test_util import harness
+
 
 @pytest.mark.node_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
