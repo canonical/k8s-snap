@@ -543,5 +543,5 @@ components and their roles:
 <!-- LINKS -->
 
 [no_hz]: https://www.kernel.org/doc/Documentation/timers/NO_HZ.txt
-[howto-epa]: /snap/howto/epa
+[howto-epa]: ../howto/epa
 

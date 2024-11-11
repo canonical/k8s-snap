@@ -19,39 +19,15 @@ Home <self>
 :hidden:
 :titlesonly:
 :maxdepth: 6
-:caption: Deploy from Snap package
-Overview <src/snap/index.md>
-src/snap/tutorial/index
-src/snap/howto/index
-src/snap/explanation/index
-src/snap/reference/index
-```
 
-```{toctree}
-:hidden:
-:caption: Deploy with Juju
-:titlesonly:
-:glob:
-Overview <src/charm/index>
-src/charm/tutorial/index
-src/charm/howto/index
-src/charm/explanation/index
-src/charm/reference/index
-```
+about.md
+Deploy from Snap package <src/snap/index.md>
+Deploy with Juju <src/charm/index.md>
+Deploy with Cluster API <src/capi/index.md>
+Community <community.md>
+Release notes <release.md>
 
-```{toctree}
-:hidden:
-:caption: Deploy with Cluster API (WIP)
-:titlesonly:
-:glob:
-Overview <src/capi/index>
-src/capi/tutorial/index
-src/capi/howto/index
-src/capi/explanation/index
-src/capi/reference/index
 ```
-
----
 
 ````{grid} 1 1 2 2
 
@@ -60,7 +36,7 @@ src/capi/reference/index
 ### [Install K8s from a snap ›](src/snap/index)
 ^^^
 Our tutorials, How To guides and other pages will explain how to install,
- configure and use the {{product}} 'k8s' snap.
+ configure and use the {{product}} 'k8s' snap. This is a great option if you are new to Kubernetes.
 ```
 
 ```{grid-item-card}
@@ -78,6 +54,14 @@ Our tutorials, How To guides and other pages will explain how to install,
 ^^^
 Our tutorials, guides and explanation pages will explain how to install,
  configure and use {{product}} through CAPI.
+```
+
+```{grid-item-card}
+:link: about
+### [Overview of {{product}} ›](about)
+^^^
+Find out more about {{product}}, what services are included and get the
+answers to some common questions.
 ```
 ````
 
@@ -104,5 +88,5 @@ and constructive feedback.
 [community]: src/snap/reference/community
 [contribute]: src/snap/howto/contribute
 [roadmap]: src/snap/reference/roadmap
-[overview page]: src/snap/explanation/about
+[overview page]: about
 [architecture documentation]: src/snap/reference/architecture

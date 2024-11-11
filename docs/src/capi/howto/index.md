@@ -14,7 +14,7 @@ Overview <self>
 :glob:
 :titlesonly:
 
-external-etcd
+Use external etcd <external-etcd.md>
 rollout-upgrades
 in-place-upgrades
 upgrade-providers

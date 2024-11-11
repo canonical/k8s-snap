@@ -53,5 +53,5 @@ see the [documentation for adding proxy configuration via Juju][juju-proxy].
 
 <!-- LINKS -->
 
-[juju-proxy]: /charm/howto/proxy
+[juju-proxy]: ../../../charm/howto/proxy
 [squid]: https://ubuntu.com/server/docs/how-to-install-a-squid-server

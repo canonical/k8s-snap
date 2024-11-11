@@ -142,7 +142,7 @@ multipass purge
 ## Next Steps
 
 - Discover how to enable and configure Ingress resources [Ingress][Ingress]
-- Keep mastering {{product}} with kubectl [How to use
+- Learn more about {{product}} with kubectl [How to use
   kubectl][Kubectl]
 - Explore Kubernetes commands with our [Command Reference
   Guide][Command Reference]
@@ -153,8 +153,8 @@ multipass purge
 
 [Getting started]: getting-started
 [Multipass Installation]: https://multipass.run/install
-[Ingress]: /snap/howto/networking/default-ingress
+[Ingress]: ../howto/networking/default-ingress
 [Kubectl]: kubectl
-[Command Reference]: /snap/reference/commands
-[Storage]: /snap/howto/storage/index
-[Networking]: /snap/howto/networking/index.md
+[Command Reference]: ../reference/commands
+[Storage]: ../howto/storage/index
+[Networking]: ../howto/networking/index.md
