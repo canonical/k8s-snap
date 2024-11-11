@@ -68,7 +68,7 @@ workload and remove everything again!
 
 ## Next Steps
 
-- Learn more about Canonical Kubernetes with kubectl: [How to use kubectl]
+- How to control {{product}} with `kubectl`: [How to use kubectl]
 - Explore Kubernetes commands with our [Command Reference Guide]
 - Learn how to set up a multi-node environment [Setting up a K8s cluster]
 - Configure storage options [Storage]

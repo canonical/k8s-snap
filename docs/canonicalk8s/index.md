@@ -60,7 +60,8 @@ Our tutorials, guides and explanation pages will explain how to install,
 :link: about
 ### [Overview of {{product}} ›](about)
 ^^^
-A brief overview of {{product}} answering common questions.
+Find out more about {{product}}, what services are included and get the
+answers to some common questions.
 ```
 ````
 
