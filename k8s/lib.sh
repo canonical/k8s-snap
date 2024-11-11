@@ -84,6 +84,8 @@ k8s::remove::containers() {
   find /var/lib/kubelet/plugins/ -name "*.sock" | xargs rm -f || true
   rm /var/lib/kubelet/plugins_registry/*.sock || true
 
+  cat /proc/mounts | grep /var/snap/k8s/common/var/lib/containerd/ | cut -f2 -d' ' | xargs -r -t umount  || true
+
   # cleanup loopback devices
   for dev in $LOOP_DEVICES; do
     losetup -d $dev
