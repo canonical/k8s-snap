@@ -46,7 +46,7 @@ func TestNetworkDisabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
+		status, err := ApplyNetwork(context.Background(), snapM, "127.0.0.1", apiserver, network, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -76,7 +76,7 @@ func TestNetworkDisabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
+		status, err := ApplyNetwork(context.Background(), snapM, "127.0.0.1", apiserver, network, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -109,7 +109,7 @@ func TestNetworkEnabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
+		status, err := ApplyNetwork(context.Background(), snapM, "127.0.0.1", apiserver, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -128,15 +128,14 @@ func TestNetworkEnabled(t *testing.T) {
 			},
 		}
 		network := types.Network{
-			Enabled:          ptr.To(true),
-			LocalhostAddress: ptr.To("127.0.0.1"),
-			PodCIDR:          ptr.To("192.0.2.0/24,2001:db8::/32"),
+			Enabled: ptr.To(true),
+			PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
 		}
 		apiserver := types.APIServer{
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, annotations)
+		status, err := ApplyNetwork(context.Background(), snapM, "127.0.0.1", apiserver, network, annotations)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -163,15 +162,14 @@ func TestNetworkEnabled(t *testing.T) {
 			},
 		}
 		network := types.Network{
-			Enabled:          ptr.To(true),
-			LocalhostAddress: ptr.To("127.0.0.1"),
-			PodCIDR:          ptr.To("192.0.2.0/24,2001:db8::/32"),
+			Enabled: ptr.To(true),
+			PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
 		}
 		apiserver := types.APIServer{
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, annotations)
+		status, err := ApplyNetwork(context.Background(), snapM, "127.0.0.1", apiserver, network, annotations)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -205,9 +203,8 @@ func TestNetworkMountPath(t *testing.T) {
 				},
 			}
 			network := types.Network{
-				Enabled:          ptr.To(true),
-				LocalhostAddress: ptr.To("127.0.0.1"),
-				PodCIDR:          ptr.To("192.0.2.0/24,2001:db8::/32"),
+				Enabled: ptr.To(true),
+				PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
 			}
 			apiserver := types.APIServer{
 				SecurePort: ptr.To(6443),
@@ -219,7 +216,7 @@ func TestNetworkMountPath(t *testing.T) {
 				return tc.name, nil
 			}
 
-			status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
+			status, err := ApplyNetwork(context.Background(), snapM, "127.0.0.1", apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(err).To(MatchError(mountPathErr))
@@ -247,15 +244,14 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			},
 		}
 		network := types.Network{
-			Enabled:          ptr.To(true),
-			LocalhostAddress: ptr.To("127.0.0.1"),
-			PodCIDR:          ptr.To("192.0.2.0/24,2001:db8::/32"),
+			Enabled: ptr.To(true),
+			PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
 		}
 		apiserver := types.APIServer{
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
+		status, err := ApplyNetwork(context.Background(), snapM, "127.0.0.1", apiserver, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(mountErr))
@@ -281,9 +277,8 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			},
 		}
 		network := types.Network{
-			Enabled:          ptr.To(true),
-			LocalhostAddress: ptr.To("127.0.0.1"),
-			PodCIDR:          ptr.To("192.0.2.0/24,2001:db8::/32"),
+			Enabled: ptr.To(true),
+			PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
 		}
 		apiserver := types.APIServer{
 			SecurePort: ptr.To(6443),
@@ -291,7 +286,7 @@ func TestNetworkMountPropagationType(t *testing.T) {
 		logger := ktesting.NewLogger(t, ktesting.NewConfig(ktesting.BufferLogs(true)))
 		ctx := klog.NewContext(context.Background(), logger)
 
-		status, err := ApplyNetwork(ctx, snapM, apiserver, network, nil)
+		status, err := ApplyNetwork(ctx, snapM, "127.0.0.1", apiserver, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -321,15 +316,14 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			},
 		}
 		network := types.Network{
-			Enabled:          ptr.To(true),
-			LocalhostAddress: ptr.To("127.0.0.1"),
-			PodCIDR:          ptr.To("192.0.2.0/24,2001:db8::/32"),
+			Enabled: ptr.To(true),
+			PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
 		}
 		apiserver := types.APIServer{
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
+		status, err := ApplyNetwork(context.Background(), snapM, "127.0.0.1", apiserver, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -353,15 +347,14 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			},
 		}
 		network := types.Network{
-			Enabled:          ptr.To(true),
-			LocalhostAddress: ptr.To("127.0.0.1"),
-			PodCIDR:          ptr.To("192.0.2.0/24,2001:db8::/32"),
+			Enabled: ptr.To(true),
+			PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
 		}
 		apiserver := types.APIServer{
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := ApplyNetwork(context.Background(), snapM, apiserver, network, nil)
+		status, err := ApplyNetwork(context.Background(), snapM, "127.0.0.1", apiserver, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
