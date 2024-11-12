@@ -29,7 +29,7 @@ implementation.
 
 <!-- LINKS -->
 [Juju]: https://juju.is
-[explaining channels]: /charm/explanation/channels
+[explaining channels]: ../explanation/channels
 [cs-k8s]: https://charmhub.io/k8s
 [cs-k8s-worker]: https://charmhub.io/k8s-worker
 [readme file]: https://github.com/canonical/k8s-operator#readme

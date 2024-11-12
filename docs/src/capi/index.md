@@ -1,5 +1,22 @@
 # Installing {{product}} with Cluster API
 
+```{toctree}
+:hidden:
+Overview <self>
+```
+
+```{toctree}
+:hidden:
+:titlesonly:
+:glob:
+:caption: Deploy with Cluster API
+Overview <index.md>
+tutorial/index.md
+howto/index.md
+explanation/index.md
+reference/index.md
+```
+
 Cluster API (CAPI) is a Kubernetes project focused on providing declarative APIs and tooling to simplify provisioning, upgrading, and operating multiple Kubernetes clusters. The supporting infrastructure, like virtual machines, networks, load balancers, and VPCs, as well as the cluster configuration are all defined in the same way that cluster operators are already familiar with. {{product}} supports deploying and operating Kubernetes through CAPI.
 
 ![Illustration depicting working on components and clouds][logo]

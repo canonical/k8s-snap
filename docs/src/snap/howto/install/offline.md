@@ -29,7 +29,7 @@ are necessary to verify the integrity of the packages.
 ```{note}
 Update the version of k8s by adjusting the channel parameter.
 For more information on channels visit the
-[channels explanation](/snap/explanation/channels.md).
+[channels explanation](../../explanation/channels.md).
 ```
 
 ```{note}
@@ -299,11 +299,10 @@ After a while, confirm that all the cluster nodes show up in the output of the
 <!-- LINKS -->
 
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
-[svc-ports]: /snap/explanation/services-and-ports.md
-[proxy]: /snap/howto/proxy.md
+[proxy]: ../networking/proxy.md
 [sync-images-yaml]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/sync-images.yaml
 [regsync]: https://github.com/regclient/regclient/blob/main/docs/regsync.md
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
 [regctl.sh]: https://github.com/canonical/k8s-snap/blob/main/src/k8s/tools/regctl.sh
-[nodes]: /snap/tutorial/add-remove-nodes.md
+[nodes]: ../../tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/

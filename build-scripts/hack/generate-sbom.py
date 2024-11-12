@@ -212,7 +212,11 @@ def rock_coredns(manifest, extra_files):
             "revision": rock_repo_commit,
         },
         "language": "go",
-        "details": ["coredns/1.11.1/rockcraft.yaml", "coredns/go.mod", "coredns/go.sum"],
+        "details": [
+            "coredns/1.11.1/rockcraft.yaml",
+            "coredns/go.mod",
+            "coredns/go.sum",
+        ],
         "source": {
             "type": "git",
             "repo": repo_url,
@@ -227,9 +231,10 @@ def rock_metrics_server(manifest, extra_files):
 
     with util.git_repo(METRICS_SERVER_ROCK_REPO, METRICS_SERVER_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
-        rockcraft = (d / "rockcraft.yaml").read_text()
+        # TODO(ben): This should not be hard coded.
+        rockcraft = (d / "0.7.0/rockcraft.yaml").read_text()
 
-        extra_files["metrics-server/rockcraft.yaml"] = rockcraft
+        extra_files["metrics-server/0.7.0/rockcraft.yaml"] = rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["metrics-server"]["source"]
@@ -249,7 +254,7 @@ def rock_metrics_server(manifest, extra_files):
         },
         "language": "go",
         "details": [
-            "metrics-server/rockcraft.yaml",
+            "metrics-server/0.7.0/rockcraft.yaml",
             "metrics-server/go.mod",
             "metrics-server/go.sum",
         ],

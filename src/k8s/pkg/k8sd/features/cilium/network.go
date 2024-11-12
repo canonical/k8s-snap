@@ -3,6 +3,7 @@ package cilium
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -31,7 +32,7 @@ var (
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
+func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
 	if !network.GetEnabled() {
@@ -124,7 +125,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, apiserver types.APIServer
 		"disableEnvoyVersionCheck": true,
 		// socketLB requires an endpoint to the apiserver that's not managed by the kube-proxy
 		// so we point to the localhost:secureport to talk to either the kube-apiserver or the kube-apiserver-proxy
-		"k8sServiceHost": network.GetLocalhostAddress(),
+		"k8sServiceHost": strings.Trim(localhostAddress, "[]"), // Cilium already adds the brackets for ipv6 addresses, so we need to remove them
 		"k8sServicePort": apiserver.GetSecurePort(),
 		// This flag enables the runtime device detection which is set to true by default in Cilium 1.16+
 		"enableRuntimeDeviceDetection": true,

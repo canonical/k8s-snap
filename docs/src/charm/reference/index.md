@@ -15,7 +15,7 @@ releases
 charms
 proxy
 architecture
-community
+Community <community>
 
 ```
 

@@ -1,5 +1,21 @@
 # {{product}} snap documentation
 
+```{toctree}
+:hidden:
+Overview <self>
+```
+
+```{toctree}
+:hidden:
+:titlesonly:
+:maxdepth: 6
+Overview <index.md>
+tutorial/index.md
+howto/index.md
+explanation/index.md
+reference/index.md
+```
+
 The {{product}} snap is a performant, lightweight, secure and
 opinionated distribution of **Kubernetes** which includes everything needed to
 create and manage a scalable cluster suitable for all use cases.
@@ -70,4 +86,4 @@ and constructive feedback.
 [roadmap]: ./reference/roadmap
 [overview page]: ./explanation/about
 [architecture documentation]: ./reference/architecture
-[Juju charm]: /charm/index
+[Juju charm]: ../charm/index

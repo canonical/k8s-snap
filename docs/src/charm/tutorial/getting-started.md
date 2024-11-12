@@ -239,5 +239,5 @@ informed of updates.
 [Juju client]: https://juju.is/docs/juju/install-and-manage-the-client
 [Juju tutorial]: https://juju.is/docs/juju/tutorial
 [Kubectl]: https://kubernetes.io/docs/reference/kubectl/
-[the channel explanation page]: /snap/explanation/channels
-[releases page]: /charm/reference/releases
+[the channel explanation page]: ../../snap/explanation/channels
+[releases page]: ../reference/releases

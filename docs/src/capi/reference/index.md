@@ -12,7 +12,7 @@ Overview <self>
 :titlesonly:
 releases
 annotations
-community
+Community <community>
 configs
 
 ```
