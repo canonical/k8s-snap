@@ -11,7 +11,7 @@ var (
 	ChartCilium = helm.InstallableChart{
 		Name:         "ck-network",
 		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "cilium-1.15.2.tgz"),
+		ManifestPath: filepath.Join("charts", "cilium-1.16.3.tgz"),
 	}
 
 	// ChartCiliumLoadBalancer represents manifests to deploy Cilium LoadBalancer resources.
@@ -25,7 +25,7 @@ var (
 	chartGateway = helm.InstallableChart{
 		Name:         "ck-gateway",
 		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "gateway-api-1.0.0.tgz"),
+		ManifestPath: filepath.Join("charts", "gateway-api-1.1.0.tgz"),
 	}
 
 	// chartGatewayClass represents a manifest to deploy a GatewayClass called ck-gateway.
@@ -39,11 +39,11 @@ var (
 	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
 
 	// CiliumAgentImageTag is the tag to use for the cilium-agent image.
-	CiliumAgentImageTag = "1.15.2-ck2"
+	CiliumAgentImageTag = "cd9b04e84bb68cae7c672b66c839b011321b6b44cd91d7521d6f5a63e232ae71-amd64"
 
 	// ciliumOperatorImageRepo is the image to use for cilium-operator.
 	ciliumOperatorImageRepo = "ghcr.io/canonical/cilium-operator"
 
 	// ciliumOperatorImageTag is the tag to use for the cilium-operator image.
-	ciliumOperatorImageTag = "1.15.2-ck2"
+	ciliumOperatorImageTag = "8d1f1ef6ee8e0036760d131a02f5b598e54779f568bb2b272f3f639c96cfa121-amd64"
 )
