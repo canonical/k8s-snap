@@ -79,7 +79,7 @@ func TestDetermineLocalhostAddress(t *testing.T) {
 		localhostAddress, err := app.DetermineLocalhostAddress(mockMembers)
 
 		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(localhostAddress).To(Equal("::1"))
+		g.Expect(localhostAddress).To(Equal("[::1]"))
 	})
 
 	t.Run("IPv4_IPv6_Mixed", func(t *testing.T) {
@@ -115,6 +115,6 @@ func TestDetermineLocalhostAddress(t *testing.T) {
 		localhostAddress, err := app.DetermineLocalhostAddress(mockMembers)
 
 		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(localhostAddress).To(Equal("::1"))
+		g.Expect(localhostAddress).To(Equal("[::1]"))
 	})
 }

@@ -72,7 +72,7 @@ func DetermineLocalhostAddress(clusterMembers []mctypes.ClusterMember) (string, 
 		}
 
 		if nodeIP.To4() == nil {
-			return "::1", nil
+			return "[::1]", nil
 		}
 	}
 
