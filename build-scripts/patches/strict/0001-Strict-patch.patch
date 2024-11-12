@@ -1,4 +1,4 @@
-From 3338580f4e22b001615320c40b1c1ad95f8a945e Mon Sep 17 00:00:00 2001
+From ca067dbdc4b8a8bb78996cd3662a98a6fe4d642a Mon Sep 17 00:00:00 2001
 From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
 Date: Fri, 10 May 2024 19:17:55 +0300
 Subject: [PATCH] Strict patch
@@ -6,11 +6,11 @@ Subject: [PATCH] Strict patch
 ---
  k8s/hack/init.sh                 |   6 +-
  k8s/wrappers/services/containerd |   5 -
- snap/snapcraft.yaml              | 168 ++++++++++++++++++++++++++++++-
- 3 files changed, 172 insertions(+), 7 deletions(-)
+ snap/snapcraft.yaml              | 169 ++++++++++++++++++++++++++++++-
+ 3 files changed, 173 insertions(+), 7 deletions(-)
 
 diff --git a/k8s/hack/init.sh b/k8s/hack/init.sh
-index a0b57c7d..d53b528a 100755
+index a0b57c7..d53b528 100755
 --- a/k8s/hack/init.sh
 +++ b/k8s/hack/init.sh
 @@ -1,3 +1,7 @@
@@ -23,7 +23,7 @@ index a0b57c7d..d53b528a 100755
 +"${DIR}/connect-interfaces.sh"
 +"${DIR}/network-requirements.sh"
 diff --git a/k8s/wrappers/services/containerd b/k8s/wrappers/services/containerd
-index c3f71a01..a82e1c03 100755
+index c3f71a0..a82e1c0 100755
 --- a/k8s/wrappers/services/containerd
 +++ b/k8s/wrappers/services/containerd
 @@ -21,9 +21,4 @@ You can try to apply the profile manually by running:
@@ -37,7 +37,7 @@ index c3f71a01..a82e1c03 100755
 -
  k8s::common::execute_service containerd
 diff --git a/snap/snapcraft.yaml b/snap/snapcraft.yaml
-index 54b5fc0b..01631684 100644
+index 9d21e55..e01e558 100644
 --- a/snap/snapcraft.yaml
 +++ b/snap/snapcraft.yaml
 @@ -7,7 +7,7 @@ description: |-
@@ -49,7 +49,7 @@ index 54b5fc0b..01631684 100644
  base: core20
  environment:
    REAL_PATH: $PATH
-@@ -216,6 +216,20 @@ parts:
+@@ -217,6 +217,20 @@ parts:
  apps:
    k8s:
      command: k8s/wrappers/commands/k8s
@@ -70,7 +70,7 @@ index 54b5fc0b..01631684 100644
    containerd:
      command: k8s/wrappers/services/containerd
      daemon: notify
-@@ -226,43 +240,195 @@ apps:
+@@ -227,43 +241,196 @@ apps:
      restart-condition: always
      start-timeout: 5m
      before: [kubelet]
@@ -266,6 +266,7 @@ index 54b5fc0b..01631684 100644
 +      - process-control
 +      - network-control
 +      - firewall-control
++      - system-observe
 -- 
-2.34.1
+2.43.0
 
