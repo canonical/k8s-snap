@@ -192,9 +192,10 @@ def instances(
             LOG.debug("Generating inspection reports for test instances")
             _generate_inspection_report(h, instance.id)
 
-        util.remove_k8s_snap(instance)
-
-        h.delete_instance(instance.id)
+        try:
+            util.remove_k8s_snap(instance)
+        finally:
+            h.delete_instance(instance.id)
 
 
 @pytest.fixture(scope="function")
