@@ -343,7 +343,7 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) er
 	// is already running on this node, which will conflict with the snap.
 	socketPath := s.ContainerdSocketPath()
 	if _, err := os.Stat(socketPath); err == nil {
-		return fmt.Errorf("The path '%s' to be used for the containerd socket already exists. "+
+		return fmt.Errorf("The path '%s' required for the containerd socket already exists. "+
 			"This may mean that another service is already using that path, and it conflicts with the k8s snap. "+
 			"Please make sure that there is no other service installed that uses the same path, and remove the existing file.", socketPath)
 	} else if !errors.Is(err, os.ErrNotExist) {
