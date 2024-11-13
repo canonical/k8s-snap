@@ -3,6 +3,7 @@ name: Nightly Latest/Edge Tests
 on:
   schedule:
     - cron: "0 0 * * *" # Runs every midnight
+  pull_request: # todo remove before merge
 
 permissions:
   contents: read
@@ -10,11 +11,14 @@ permissions:
 jobs:
   test-integration:
     name: Integration Test ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.release }}
+    env:
+      # todo(mac) e2e works with Cilium to 1.17 remove if after upgrade
+      TEST_CNCF_E2E: ${{ matrix.release == 'latest/edge/moonray' }}
     strategy:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        release: ["latest/edge"]
+        release: ["latest/edge/moonray", "latest/edge/classic"]
       fail-fast: false # TODO: remove once arm64 works
 
     runs-on: ${{ matrix.arch == 'arm64' && ["self-hosted", "Linux", "ARM64", "jammy", "large"] || ["self-hosted", "Linux", "AMD64", "jammy", "large"] }}
@@ -41,6 +45,7 @@ jobs:
           TEST_SNAP: ${{ github.workspace }}/build/k8s.snap
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ matrix.os }}
+          TEST_SNAP_RELEASE: ${{ matrix.release }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
           # Test the latest (up to) 6 releases for the flavour
           # TODO(ben): upgrade nightly to run all flavours
@@ -51,6 +56,11 @@ jobs:
         run: |
           export PATH="/home/runner/.local/bin:$PATH"
           cd tests/integration && sg lxd -c 'tox -vve integration'
+      - name: Create env variables for artifacts
+        if: failure()
+        run: |
+          echo "os_dash=${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
+          echo "release_dash=${{  matrix.release }}" | sed 's#/#-#g'>> $GITHUB_ENV
       - name: Prepare inspection reports
         if: failure()
         run: |
@@ -61,8 +71,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.artifact_name }}
-          path: ${{ github.workspace }}/inspection-reports.tar.gz
+          path: ${{ github.workspace }}/inspection-reports_${{ env.os_dash }}_${{ env.release_dash }}_${{ matrix.arch }}.tar.gz
       - name: Tmate debugging session
         if: ${{ failure() && github.event_name == 'pull_request' }}
         uses: mxschmitt/action-tmate@v3
         timeout-minutes: 10
+      - name: Extract CNCF conformance report
+        if: ${{ failure() && ( env.TEST_CNCF_E2E == 'true' ) }}
+        working-directory: tests/integration
+        run: |
+         tar -xf sonobuoy_e2e.tar.gz --one-top-level
+      - name: Upload CNCF conformance report artifact
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() && ( env.TEST_CNCF_E2E == 'true' ) }}
+        with:
+         name: report_sonobuoy_e2e_${{ env.os_dash }}_${{ env.release_dash }}_${{ matrix.arch }}
+         path: tests/integration/sonobuoy_e2e
