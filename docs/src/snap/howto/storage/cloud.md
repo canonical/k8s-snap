@@ -25,6 +25,7 @@ policies to the role. Once the role is created with the required policies,
 attach the role to the instance.
 
 For a control plane node:
+
 ```json
 {
   "Version": "2012-10-17",
@@ -99,6 +100,7 @@ For a control plane node:
 ```
 
 For a worker node:
+
 ```json
 {
   "Version": "2012-10-17",
@@ -351,7 +353,8 @@ subjects:
     namespace: kube-system
 ```
 
-After a moment, you should see the cloud controller manager pod was successfully deployed.
+After a moment, you should see the cloud controller manager pod was
+successfully deployed.
 
 ```
 NAME                                 READY   STATUS    RESTARTS        AGE
