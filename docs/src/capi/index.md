@@ -10,7 +10,6 @@ Overview <self>
 :titlesonly:
 :glob:
 :caption: Deploy with Cluster API
-Overview <index.md>
 tutorial/index.md
 howto/index.md
 explanation/index.md

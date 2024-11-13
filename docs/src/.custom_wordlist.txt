@@ -21,6 +21,7 @@ benoitblanchon
 bgp
 BGP
 bootloader
+BPF
 CABPCK
 CACPCK
 capi
@@ -79,10 +80,13 @@ drv
 dqlite
 EAL
 EasyRSA
+eBPF
 enp
 enum
 etcd
+eth
 EventRateLimit
+ExternalIP
 failover
 gapped
 GCP
@@ -107,10 +111,13 @@ iavf
 init
 initialise
 integrations
+InternalIP
 io
 IOMMU
 IOV
 ip
+IPIP
+IPIPCrossSubnet
 IPv
 IPv4
 IPv6
@@ -174,6 +181,7 @@ nginx
 NGINX
 NIC
 NMI
+NodeInternalIP
 nodeport
 nohz
 NUMA
@@ -225,6 +233,7 @@ ServiceAccount
 Snapcraft
 snapd
 SR-IOV
+src
 stackexchange
 stgraber
 STONITH
@@ -255,11 +264,14 @@ VFIO
 VFs
 virtualised
 VLAN
+VLANs
 VMs
 VMware
 VNFs
 VPCs
 VSphere
+VXLAN
+VXLANCrossSubnet
 WIP
 www
 yaml
