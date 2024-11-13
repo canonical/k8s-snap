@@ -26,7 +26,7 @@ attach the role to the instance.
 
 For a control plane node:
 
-```json
+```{dropdown} Control Plane Policies
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -101,7 +101,7 @@ For a control plane node:
 
 For a worker node:
 
-```json
+```{dropdown} Worker Policies
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -180,7 +180,7 @@ cluster, you have everything you need to deploy the cloud controller manager.
 Here is a YAML definition file that sets appropriate defaults for you, it
 configures the necessary service accounts, roles, and daemonsets:
 
-```bash
+```{dropdown} CCM deployment manifest
 ---
 apiVersion: apps/v1
 kind: DaemonSet
