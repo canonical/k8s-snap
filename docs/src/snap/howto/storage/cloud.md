@@ -11,31 +11,12 @@ This guide assumes the following:
 - You have root or sudo access to an Amazon EC2 instance
 - You can create roles and policies in AWS
 
-## Set your host name
-
-The cloud controller manager uses the node name to correctly associate the node with an EC2 instance. In Canonical K8s, the node name is derived from the hostname of the machine. Therefore, before bootstrapping the cluster, we must first set an appropriate host name.
-
-```
-echo "$(sudo cloud-init query ds.meta_data.local-hostname)" | sudo tee /etc/hostname
-```
-
-Then, reboot the machine.
-
-When the machine is up, use `hostname -f` to check the host name. It should look like:
-
-```
-ip-172-31-11-86.us-east-2.compute.internal
-```
-
-This format is called IP-based naming and is specific to AWS.
-
-```
-{note} Don't rely on the PS1 prompt to know if your host name was changed successfully. The PS1 prompt only displays the hostname up to the first `.`.
-```
 
 ## Set IAM Policies
 
-Your instance will need a few IAM policies to be able to communciate with the AWS APIs. These policies are quite open and can be scaled back if desired.
+Your instance will need a few IAM policies to be able to communciate with the AWS APIs. The policies provided here are quite open and should be scoped down based on your security requirements.
+
+You will most likely want to create a Role for your instance. You can call this role "k8s-control-plane" or "k8s-worker". Then, define and attach the following Policies to the role. Once the Role is created with the required Policies, attach the Role to the instance.
 
 For a control plane node:
 ```json
@@ -134,6 +115,30 @@ For a worker node:
   ]
 }
 ```
+
+
+## Set your host name
+
+The cloud controller manager uses the node name to correctly associate the node with an EC2 instance. In Canonical K8s, the node name is derived from the hostname of the machine. Therefore, before bootstrapping the cluster, we must first set an appropriate host name.
+
+```
+echo "$(sudo cloud-init query ds.meta_data.local-hostname)" | sudo tee /etc/hostname
+```
+
+Then, reboot the machine.
+
+When the machine is up, use `hostname -f` to check the host name. It should look like:
+
+```
+ip-172-31-11-86.us-east-2.compute.internal
+```
+
+This host name format is called IP-based naming and is specific to AWS.
+
+```
+{note} Don't rely on the PS1 prompt to know if your host name was changed successfully. The PS1 prompt only displays the hostname up to the first `.`.
+```
+
 
 ## Bootstrap Canonical K8s
 
@@ -334,8 +339,7 @@ subjects:
 
 ## Deploy the EBS CSI Driver
 
-The easiest way to deploy the EBS CSI Driver is with the helm chart. Luckily,
-Canonical K8s has a built-in helm command you can leverage.
+Now that the cloud controller manager is deployed and can communicate with AWS, you are ready to deploy the EBS CSI driver. The easiest way to deploy the driver is with the Helm chart. Luckily, Canonical K8s has a built-in helm command.
 
 If you want to create encrypted drives, you need to add the statement to the policy you are using for the instance.
 
