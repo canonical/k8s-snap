@@ -185,55 +185,17 @@ def instances(
 
     # Cleanup after each test.
     # We cannot execute _harness_clean() here as this would also
-    # remove the session_instance. The harness ensures that everything is cleaned up
+    # remove session scoped instances. The harness ensures that everything is cleaned up
     # at the end of the test session.
     for instance in instances:
         if config.INSPECTION_REPORTS_DIR is not None:
             LOG.debug("Generating inspection reports for test instances")
             _generate_inspection_report(h, instance.id)
 
-        h.delete_instance(instance.id)
-
-
-@pytest.fixture(scope="session")
-def session_instance(
-    h: harness.Harness, tmp_path_factory: pytest.TempPathFactory, request
-) -> Generator[harness.Instance, None, None]:
-    """Constructs and bootstraps an instance that persists over a test session.
-
-    Bootstraps the instance with all k8sd features enabled to reduce testing time.
-    """
-    LOG.info("Setup node and enable all features")
-
-    tmp_path = tmp_path_factory.mktemp("data")
-    instance = h.new_instance()
-    snap = next(snap_versions(request))
-    util.setup_k8s_snap(instance, tmp_path, snap)
-
-    bootstrap_config_path = "/home/ubuntu/bootstrap-session.yaml"
-    instance.send_file(
-        (config.MANIFESTS_DIR / "bootstrap-session.yaml").as_posix(),
-        bootstrap_config_path,
-    )
-
-    instance_default_ip = util.get_default_ip(instance)
-
-    instance.exec(["k8s", "bootstrap", "--file", bootstrap_config_path])
-    instance_default_cidr = util.get_default_cidr(instance, instance_default_ip)
-
-    lb_cidr = util.find_suitable_cidr(
-        parent_cidr=instance_default_cidr,
-        excluded_ips=[instance_default_ip],
-    )
-
-    instance.exec(
-        ["k8s", "set", f"load-balancer.cidrs={lb_cidr}", "load-balancer.l2-mode=true"]
-    )
-    util.wait_until_k8s_ready(instance, [instance])
-    util.wait_for_network(instance)
-    util.wait_for_dns(instance)
-
-    yield instance
+        try:
+            util.remove_k8s_snap(instance)
+        finally:
+            h.delete_instance(instance.id)
 
 
 @pytest.fixture(scope="function")

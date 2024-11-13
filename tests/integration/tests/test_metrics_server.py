@@ -2,20 +2,28 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
+from typing import List
 
-from test_util import harness, util
+import pytest
+from test_util import config, harness, util
 
 LOG = logging.getLogger(__name__)
 
 
-def test_metrics_server(session_instance: harness.Instance):
+@pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
+def test_metrics_server(instances: List[harness.Instance]):
+    instance = instances[0]
+    util.wait_until_k8s_ready(instance, [instance])
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
+
     LOG.info("Waiting for metrics-server pod to show up...")
-    util.stubbornly(retries=15, delay_s=5).on(session_instance).until(
+    util.stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "metrics-server" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"])
     LOG.info("Metrics-server pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -31,6 +39,6 @@ def test_metrics_server(session_instance: harness.Instance):
         ]
     )
 
-    util.stubbornly(retries=15, delay_s=5).on(session_instance).until(
-        lambda p: session_instance.id in p.stdout.decode()
+    util.stubbornly(retries=15, delay_s=5).on(instance).until(
+        lambda p: instance.id in p.stdout.decode()
     ).exec(["k8s", "kubectl", "top", "node"])

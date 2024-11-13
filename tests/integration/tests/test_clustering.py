@@ -119,7 +119,19 @@ def test_no_remove(instances: List[harness.Instance]):
     assert "control-plane" in util.get_local_node_status(joining_cp)
     assert "worker" in util.get_local_node_status(joining_worker)
 
-    cluster_node.exec(["k8s", "remove-node", joining_cp.id])
+    # TODO: k8sd sometimes fails when requested to remove nodes immediately
+    # after bootstrapping the cluster. It seems that it takes a little
+    # longer for trust store changes to be propagated to all nodes, which
+    # should probably be fixed on the microcluster side.
+    #
+    # For now, we'll perform some retries.
+    #
+    #   failed to POST /k8sd/cluster/remove: failed to delete cluster member
+    #   k8s-integration-c1aee0-2: No truststore entry found for node with name
+    #   "k8s-integration-c1aee0-2"
+    util.stubbornly(retries=3, delay_s=5).on(cluster_node).exec(
+        ["k8s", "remove-node", joining_cp.id]
+    )
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 3, "cp node should not have been removed from cluster"
     cluster_node.exec(["k8s", "remove-node", joining_worker.id])
@@ -142,10 +154,12 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     join_token_worker = util.get_join_token(cluster_node, worker, "--worker")
     util.join_cluster(worker, join_token_worker)
 
-    # We don't care if the node is ready or the CNI is up.
-    util.stubbornly(retries=5, delay_s=3).until(util.get_nodes(cluster_node) == 3)
+    util.wait_until_k8s_ready(cluster_node, instances)
 
-    cluster_node.exec(["k8s", "remove-node", joining_cp.id])
+    # TODO: skip retrying this once the microcluster trust store issue is addressed.
+    util.stubbornly(retries=3, delay_s=5).on(cluster_node).exec(
+        ["k8s", "remove-node", joining_cp.id]
+    )
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "cp node should have been removed from the cluster"
     services = joining_cp.exec(

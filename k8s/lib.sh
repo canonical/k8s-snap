@@ -60,6 +60,10 @@ k8s::remove::containers() {
   # delete cni network namespaces
   ip netns list | cut -f1 -d' ' | grep -- "^cni-" | xargs -n1 -r -t ip netns delete || true
 
+  # The PVC loopback devices use container paths, making them tricky to identify.
+  # We'll rely on the volume mount paths (/var/lib/kubelet/*).
+  local LOOP_DEVICES=`cat /proc/mounts | grep /var/lib/kubelet/pods | grep /dev/loop | cut -d " " -f 1`
+
   # unmount Pod NFS volumes forcefully, as unmounting them normally may hang otherwise.
   cat /proc/mounts | grep /run/containerd/io.containerd. | grep "nfs[34]" | cut -f2 -d' ' | xargs -r -t umount -f || true
   cat /proc/mounts | grep /var/lib/kubelet/pods | grep "nfs[34]" | cut -f2 -d' ' | xargs -r -t umount -f || true
@@ -79,6 +83,13 @@ k8s::remove::containers() {
   # so kubelet won't try to access inexistent plugins on reinstallation.
   find /var/lib/kubelet/plugins/ -name "*.sock" | xargs rm -f || true
   rm /var/lib/kubelet/plugins_registry/*.sock || true
+
+  cat /proc/mounts | grep /var/snap/k8s/common/var/lib/containerd/ | cut -f2 -d' ' | xargs -r -t umount  || true
+
+  # cleanup loopback devices
+  for dev in $LOOP_DEVICES; do
+    losetup -d $dev
+  done
 }
 
 # Run a ctr command against the local containerd socket
