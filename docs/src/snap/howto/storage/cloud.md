@@ -19,10 +19,10 @@ Your instance will need a few IAM policies to be able to communciate with the
 AWS APIs. The policies provided here are quite open and should be scoped down
 based on your security requirements.
 
-You will most likely want to create a Role for your instance. You can call this
+You will most likely want to create a role for your instance. You can call this
 role "k8s-control-plane" or "k8s-worker". Then, define and attach the following
-Policies to the role. Once the Role is created with the required Policies,
-attach the Role to the instance.
+policies to the role. Once the role is created with the required policies,
+attach the role to the instance.
 
 For a control plane node:
 ```json
