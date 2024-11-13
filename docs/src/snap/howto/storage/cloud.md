@@ -356,7 +356,7 @@ subjects:
 After a moment, you should see the cloud controller manager pod was
 successfully deployed.
 
-```
+```bash
 NAME                                 READY   STATUS    RESTARTS        AGE
 aws-cloud-controller-manager-ndbtq   1/1     Running   1 (3h51m ago)   9h
 ```
@@ -406,7 +406,7 @@ Once the command completes, you can verify the pods are successfully deployed:
 kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
 ```
 
-```
+```bash
 NAME                                  READY   STATUS    RESTARTS        AGE
 ebs-csi-controller-78bcd46cf8-5zk8q   5/5     Running   2 (3h48m ago)   8h
 ebs-csi-controller-78bcd46cf8-g7l5h   5/5     Running   1 (3h48m ago)   8h
@@ -414,6 +414,62 @@ ebs-csi-node-nx6rg                    3/3     Running   0               9h
 ```
 
 The status of all pods should be "Running".
+
+## Deploy a workload
+
+Everything is in place for you to deploy a workload that dynamically creates
+and uses an EBS volume.
+
+First, create a StorageClass and a PersistentVolumeClaim:
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-sc
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  type: gp3 # EBS volume type (gp3, gp2, etc.)
+  fsType: ext4 # File system type
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ebs-sc
+```
+
+Then, you can deploy a pod that uses a volume. Because we used
+`WaitForFirstConsumer`, you'll only see the volume in AWS once the pod is
+deployed.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-using-ebs
+spec:
+  containers:
+  - name: app
+    image: nginx
+    volumeMounts:
+    - mountPath: "/data"
+      name: ebs-volume
+  volumes:
+  - name: ebs-volume
+    persistentVolumeClaim:
+      claimName: ebs-pvc
+```
+
+When you go to the `Elastic Block Store > Volumes` page in AWS, you should see
+a 10Gi gp3 volume.
 
 <!-- LINKS -->
 [getting-started-guide]: /snap/tutorial/getting-started.md
