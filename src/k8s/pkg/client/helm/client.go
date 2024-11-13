@@ -94,7 +94,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		// there is already a release installed, so we must run an upgrade action
 		upgrade := action.NewUpgrade(cfg)
 		upgrade.Namespace = c.Namespace
-		upgrade.ReuseValues = true
+		upgrade.ResetThenReuseValues = true
 
 		chart, err := loader.Load(filepath.Join(h.manifestsBaseDir, c.ManifestPath))
 		if err != nil {
