@@ -351,6 +351,13 @@ subjects:
     namespace: kube-system
 ```
 
+After a moment, you should see the cloud controller manager pod was successfully deployed.
+
+```
+NAME                                 READY   STATUS    RESTARTS        AGE
+aws-cloud-controller-manager-ndbtq   1/1     Running   1 (3h51m ago)   9h
+```
+
 ## Deploy the EBS CSI Driver
 
 Now that the cloud controller manager is deployed and can communicate with AWS,
@@ -394,6 +401,13 @@ Once the command completes, you can verify the pods are successfully deployed:
 
 ```bash
 kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
+```
+
+```
+NAME                                  READY   STATUS    RESTARTS        AGE
+ebs-csi-controller-78bcd46cf8-5zk8q   5/5     Running   2 (3h48m ago)   8h
+ebs-csi-controller-78bcd46cf8-g7l5h   5/5     Running   1 (3h48m ago)   8h
+ebs-csi-node-nx6rg                    3/3     Running   0               9h
 ```
 
 The status of all pods should be "Running".
