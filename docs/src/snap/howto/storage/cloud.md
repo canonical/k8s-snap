@@ -149,8 +149,8 @@ ip-172-31-11-86.us-east-2.compute.internal
 
 This host name format is called IP-based naming and is specific to AWS.
 
-```bash
-{note} Don't rely on the PS1 prompt to know if your host name was changed successfully. The PS1 prompt only displays the hostname up to the first `.`.
+```{note} Don't rely on the PS1 prompt to know if your host name was changed
+successfully. The PS1 prompt only displays the hostname up to the first `.`.
 ```
 
 
@@ -474,7 +474,3 @@ spec:
 Congratulations! By following this guide, you've set up cloud storage
 integration for your Kubernetes cluster. When you go to the `Elastic Block
 Store > Volumes` page in AWS, you should see a 10Gi gp3 volume.
-
-
-<!-- LINKS -->
-[getting-started-guide]: /snap/tutorial/getting-started.md
