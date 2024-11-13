@@ -299,7 +299,7 @@ index 3e54d68..295c458 100644
 +    #  * list mounts
 +    #
 +    # https://paste.ubuntu.com/p/WscCCfnvGH/plain/
-+    # https://paste.ubuntu.com/p/sSnJVvZkrr/plain/ 
++    # https://paste.ubuntu.com/p/sSnJVvZkrr/plain/
 +    #
 +    # LOG.info("Waiting for shims to go away...")
 +    # stubbornly(retries=20, delay_s=5).on(instance).until(
