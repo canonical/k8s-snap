@@ -468,8 +468,10 @@ spec:
       claimName: ebs-pvc
 ```
 
-When you go to the `Elastic Block Store > Volumes` page in AWS, you should see
-a 10Gi gp3 volume.
+Congratulations! By following this guide, you've set up cloud storage
+integration for your Kubernetes cluster. When you go to the `Elastic Block
+Store > Volumes` page in AWS, you should see a 10Gi gp3 volume.
+
 
 <!-- LINKS -->
 [getting-started-guide]: /snap/tutorial/getting-started.md
