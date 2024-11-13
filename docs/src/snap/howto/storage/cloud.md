@@ -27,6 +27,7 @@ attach the role to the instance.
 For a control plane node:
 
 ```{dropdown} Control Plane Policies
+```json
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -102,6 +103,7 @@ For a control plane node:
 For a worker node:
 
 ```{dropdown} Worker Policies
+```json
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -181,6 +183,7 @@ Here is a YAML definition file that sets appropriate defaults for you, it
 configures the necessary service accounts, roles, and daemonsets:
 
 ```{dropdown} CCM deployment manifest
+```yaml
 ---
 apiVersion: apps/v1
 kind: DaemonSet
