@@ -1,8 +1,9 @@
 # How to use cloud storage
 
-{{product}} offers a local-storage option to quickly set up and run a
-cluster, especially for single-node support. This guide walks you through
-enabling and configuring this feature.
+{{product}} simplifies the process of integrating and managing cloud storage
+solutions like Amazon EBS. This guide provides steps to configure IAM policies,
+deploy the cloud controller manager, and set up the necessary drivers for you
+to take advantage of cloud storage solutions in the context of Kubernetes.
 
 ## What you'll need
 
@@ -14,9 +15,14 @@ This guide assumes the following:
 
 ## Set IAM Policies
 
-Your instance will need a few IAM policies to be able to communciate with the AWS APIs. The policies provided here are quite open and should be scoped down based on your security requirements.
+Your instance will need a few IAM policies to be able to communciate with the
+AWS APIs. The policies provided here are quite open and should be scoped down
+based on your security requirements.
 
-You will most likely want to create a Role for your instance. You can call this role "k8s-control-plane" or "k8s-worker". Then, define and attach the following Policies to the role. Once the Role is created with the required Policies, attach the Role to the instance.
+You will most likely want to create a Role for your instance. You can call this
+role "k8s-control-plane" or "k8s-worker". Then, define and attach the following
+Policies to the role. Once the Role is created with the required Policies,
+attach the Role to the instance.
 
 For a control plane node:
 ```json
@@ -119,52 +125,60 @@ For a worker node:
 
 ## Set your host name
 
-The cloud controller manager uses the node name to correctly associate the node with an EC2 instance. In Canonical K8s, the node name is derived from the hostname of the machine. Therefore, before bootstrapping the cluster, we must first set an appropriate host name.
+The cloud controller manager uses the node name to correctly associate the node
+with an EC2 instance. In Canonical K8s, the node name is derived from the
+hostname of the machine. Therefore, before bootstrapping the cluster, we must
+first set an appropriate host name.
 
-```
+```bash
 echo "$(sudo cloud-init query ds.meta_data.local-hostname)" | sudo tee /etc/hostname
 ```
 
 Then, reboot the machine.
 
-When the machine is up, use `hostname -f` to check the host name. It should look like:
+When the machine is up, use `hostname -f` to check the host name. It should
+look like:
 
-```
+```bash
 ip-172-31-11-86.us-east-2.compute.internal
 ```
 
 This host name format is called IP-based naming and is specific to AWS.
 
-```
+```bash
 {note} Don't rely on the PS1 prompt to know if your host name was changed successfully. The PS1 prompt only displays the hostname up to the first `.`.
 ```
 
 
 ## Bootstrap Canonical K8s
 
-Now that your machine has an appropriate host name, you are ready to bootstrap Canonical K8s.
+Now that your machine has an appropriate host name, you are ready to bootstrap
+Canonical K8s.
 
-First, create a bootstrap configuration file that sets the cloud-provider configuration to "external".
+First, create a bootstrap configuration file that sets the cloud-provider
+configuration to "external".
 
-```
+```bash
 echo "cluster-config:
   cloud-provider: external" > bootstrap-config.yaml
 ```
 
 Then, bootstrap the cluster:
 
-```
+```bash
 sudo k8s bootstrap --file ./bootstrap-config.yaml
 sudo k8s status --wait-ready
 ```
 
 ## Deploy the cloud controller manager
 
-Now that you have an appropriate host name, policies, and a Canonical K8s cluster, you have everything you need to deploy the cloud controller manager.
+Now that you have an appropriate host name, policies, and a Canonical K8s
+cluster, you have everything you need to deploy the cloud controller manager.
 
-Here is a YAML definition file that sets appropriate defaults for you, it configures the necessary service accounts, roles, and daemonsets:
+Here is a YAML definition file that sets appropriate defaults for you, it
+configures the necessary service accounts, roles, and daemonsets:
 
-```
+```bash
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -339,11 +353,15 @@ subjects:
 
 ## Deploy the EBS CSI Driver
 
-Now that the cloud controller manager is deployed and can communicate with AWS, you are ready to deploy the EBS CSI driver. The easiest way to deploy the driver is with the Helm chart. Luckily, Canonical K8s has a built-in helm command.
+Now that the cloud controller manager is deployed and can communicate with AWS,
+you are ready to deploy the EBS CSI driver. The easiest way to deploy the
+driver is with the Helm chart. Luckily, Canonical K8s has a built-in helm
+command.
 
-If you want to create encrypted drives, you need to add the statement to the policy you are using for the instance.
+If you want to create encrypted drives, you need to add the statement to the
+policy you are using for the instance.
 
-```
+```json
 {
   "Effect": "Allow",
   "Action": [
@@ -357,14 +375,15 @@ If you want to create encrypted drives, you need to add the statement to the pol
 
 Then, add the helm repo for the EBS CSI Driver.
 
-```
+```bash
 sudo k8s helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
 sudo k8s helm repo update
 ```
 
-Finally, install the Helm chart, making sure to set the correct region as an argument.
+Finally, install the Helm chart, making sure to set the correct region as an
+argument.
 
-```
+```bash
 sudo k8s helm upgrade --install aws-ebs-csi-driver \
     --namespace kube-system \
     aws-ebs-csi-driver/aws-ebs-csi-driver \
@@ -373,7 +392,7 @@ sudo k8s helm upgrade --install aws-ebs-csi-driver \
 
 Once the command completes, you can verify the pods are successfully deployed:
 
-```
+```bash
 kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
 ```
 
