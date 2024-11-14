@@ -27,11 +27,8 @@ func CleanupNetwork(ctx context.Context, snap snap.Snap) error {
 
 		lines := strings.Split(string(out), "\n")
 		for i, line := range lines {
-			for _, word := range []string{"cilium", "kube", "CILIUM", "KUBE"} {
-				if strings.Contains(line, word) {
-					lines[i] = ""
-					break
-				}
+			if strings.Contains(strings.ToLower(line), "cilium") {
+				lines[i] = ""
 			}
 		}
 
