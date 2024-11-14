@@ -38,6 +38,7 @@ cidr
 CIDR
 cidrs
 CIDRs
+CIS
 CK8sControlPlane
 CLI
 CLIs
@@ -220,6 +221,7 @@ regsync
 roadmap
 Rockcraft
 rollout
+Runtime
 runtimes
 rw
 sandboxed
