@@ -126,12 +126,12 @@ For a worker node:
 }
 ```
 
-## Add a tag to your EC2 Machine
+## Add a tag to your EC2 Instance
 
 A cluster using the AWS cloud provider needs to label existing nodes and
-resources with a ClusterID or the kube-controller-manager will not start.
-
-In your instance's details page, go to the "Tags" tab and add the following tag:
+resources with a ClusterID or the kube-controller-manager will not start. Add
+the following tag to your instance, making sure to replace the placeholder id
+with your own (this can simply be "k8s" or "my-k8s-cluster").
 
 ```
 kubernetes.io/cluster/<your-cluster-id>=owned
