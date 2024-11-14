@@ -141,7 +141,7 @@ kubernetes.io/cluster/<your-cluster-id>=owned
 
 The cloud controller manager uses the node name to correctly associate the node
 with an EC2 instance. In {{product}}, the node name is derived from the
-hostname of the machine. Therefore, before bootstrapping the cluster, we must
+hostname of the machine. Therefore, before bootstrapping the cluster, you must
 first set an appropriate host name.
 
 ```bash
@@ -366,6 +366,12 @@ subjects:
     namespace: kube-system
 ```
 
+You can apply the CCM manifest easily by running the following command:
+
+```bash
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/how-to-cloud-storage-aws-ccm.yaml
+```
+
 After a moment, you should see the cloud controller manager pod was
 successfully deployed.
 
@@ -459,9 +465,9 @@ spec:
   storageClassName: ebs-sc
 ```
 
-Then, you can deploy a pod that uses a volume. Because we used
-`WaitForFirstConsumer`, you'll only see the volume in AWS once the pod is
-deployed.
+Then, you can deploy a pod that uses a volume. Because the StorageClass uses
+the `WaitForFirstConsumer` volume binding mode, you'll only see the volume in
+AWS once the pod is deployed.
 
 ```yaml
 apiVersion: v1
