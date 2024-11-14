@@ -4,6 +4,16 @@ This page outlines the annotations that can be configured during cluster
 [bootstrap]. To do this, set the `cluster-config/annotations` parameter in
 the bootstrap configuration.
 
+For example:
+
+```yaml
+cluster-config:
+...
+    annotations:
+        k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove: true
+        k8sd/v1alpha/lifecycle/skip-stop-services-on-remove: true
+```
+
 ## `k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove`
 
 |   |   |
