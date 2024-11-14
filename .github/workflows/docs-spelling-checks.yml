@@ -16,7 +16,7 @@ jobs:
       - id: spell-check
         name: Spell Check
         run: make spelling
-        working-directory: docs/tools
+        working-directory: docs/canonicalk8s
         continue-on-error: true
       - if: ${{ github.event_name == 'pull_request' && steps.spell-check.outcome == 'failure' }}
         uses: actions/github-script@v6
