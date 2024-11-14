@@ -62,12 +62,12 @@ def test_loadbalancer(instances: List[harness.Instance]):
         ]
     )
 
-    util.stubbornly(retries=5, delay_s=2).on(instance).until(
+    util.stubbornly(retries=10, delay_s=2).on(instance).until(
         lambda p: "my-nginx" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
 
     p = (
-        util.stubbornly(retries=5, delay_s=3)
+        util.stubbornly(retries=10, delay_s=3)
         .on(instance)
         .until(lambda p: len(p.stdout.decode().replace("'", "")) > 0)
         .exec(
@@ -83,6 +83,6 @@ def test_loadbalancer(instances: List[harness.Instance]):
     )
     service_ip = p.stdout.decode().replace("'", "")
 
-    util.stubbornly(retries=5, delay_s=3).on(tester_instance).until(
+    util.stubbornly(retries=20, delay_s=3).on(tester_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", service_ip])

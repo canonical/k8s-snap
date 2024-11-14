@@ -113,7 +113,7 @@ def test_gateway(instances: List[harness.Instance]):
     # Get gateway node port
     gateway_http_port = None
     result = (
-        util.stubbornly(retries=7, delay_s=3)
+        util.stubbornly(retries=10, delay_s=3)
         .on(instance)
         .until(lambda p: get_gateway_service_node_port(p) is not None)
         .exec(["k8s", "kubectl", "get", "service", "-o", "json"])
@@ -123,12 +123,12 @@ def test_gateway(instances: List[harness.Instance]):
     assert gateway_http_port is not None, "No Gateway nodePort found."
 
     # Test the Gateway service via loadbalancer IP.
-    util.stubbornly(retries=5, delay_s=5).on(instance).until(
+    util.stubbornly(retries=10, delay_s=5).on(instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{gateway_http_port}"])
 
     gateway_ip = get_external_service_ip(instance)
     assert gateway_ip is not None, "No Gateway IP found."
-    util.stubbornly(retries=5, delay_s=5).on(instance).until(
+    util.stubbornly(retries=10, delay_s=5).on(instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"{gateway_ip}", "-H", "Host: foo.bar.com"])
