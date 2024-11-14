@@ -3,12 +3,14 @@
 #
 import itertools
 import logging
+from string import Template
 from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
 from test_util import config, harness, util
 from test_util.etcd import EtcdCluster
+from test_util.registry import Registry
 
 LOG = logging.getLogger(__name__)
 
@@ -79,6 +81,11 @@ def h() -> harness.Harness:
     _harness_clean(h)
 
 
+@pytest.fixture(scope="session")
+def registry(h: harness.Harness) -> Registry:
+    yield Registry(h)
+
+
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
@@ -141,6 +148,7 @@ def network_type(request) -> Union[str, None]:
 @pytest.fixture(scope="function")
 def instances(
     h: harness.Harness,
+    registry: Registry,
     node_count: int,
     tmp_path: Path,
     disable_k8s_bootstrapping: bool,
@@ -165,6 +173,25 @@ def instances(
         instances.append(instance)
         if not no_setup:
             util.setup_k8s_snap(instance, tmp_path, snap)
+
+            for mirror in registry.mirrors:
+
+                substitutes = {
+                    "IP": registry.ip,
+                    "PORT": mirror.port,
+                }
+
+                instance.exec(["mkdir", "-p", f"/etc/containerd/hosts.d/{mirror.name}"])
+
+                with open(config.REGISTRY_DIR / "hosts.toml", "r") as registry_template:
+                    src = Template(registry_template.read())
+                    instance.exec(
+                        [
+                            "dd",
+                            f"of=/etc/containerd/hosts.d/{mirror.name}/hosts.toml",
+                        ],
+                        input=str.encode(src.substitute(substitutes)),
+                    )
 
     if not disable_k8s_bootstrapping and not no_setup:
         first_node, *_ = instances

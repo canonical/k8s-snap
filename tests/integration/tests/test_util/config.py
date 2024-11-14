@@ -21,6 +21,18 @@ ETCD_URL = os.getenv("ETCD_URL") or "https://github.com/etcd-io/etcd/releases/do
 # ETCD_VERSION is the version of etcd to use.
 ETCD_VERSION = os.getenv("ETCD_VERSION") or "v3.4.34"
 
+# REGISTRY_DIR contains all templates required to setup an registry mirror.
+REGISTRY_DIR = MANIFESTS_DIR / "registry"
+
+# REGISTRY_URL is the url from which the registry binary should be downloaded.
+REGISTRY_URL = (
+    os.getenv("REGISTRY_URL")
+    or "https://github.com/distribution/distribution/releases/download"
+)
+
+# REGISTRY_VERSION is the version of registry to use.
+REGISTRY_VERSION = os.getenv("REGISTRY_VERSION") or "v2.8.3"
+
 # FLAVOR is the flavor of the snap to use.
 FLAVOR = os.getenv("TEST_FLAVOR") or ""
 
