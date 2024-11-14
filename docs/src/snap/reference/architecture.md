@@ -10,7 +10,7 @@ current design of {{product}}, following the [C4 model].
 This overview of {{product}} demonstrates the interactions of
 Kubernetes with users and with other systems.
 
-![cluster2][]
+![cluster5][]
 
 Two actors interact with the Kubernetes snap:
 
@@ -51,7 +51,7 @@ distribution. We have identified the following:
 
 Looking more closely at what is contained within the K8s snap itself:
 
-![cluster3][]
+![cluster1][]
 
 The `k8s` snap distribution includes the following:
 
@@ -72,7 +72,7 @@ The `k8s` snap distribution includes the following:
 K8sd is the component that implements and exposes the operations functionality
 needed for managing the Kubernetes cluster.
 
-![cluster4][]
+![cluster2][]
 
 At the core of the `k8sd` functionality we have the cluster manager that is
 responsible for configuring the services, workload and features we deem
@@ -104,7 +104,7 @@ This functionality is exposed via the following interfaces:
 Canonical `k8s` Charms encompass two primary components: the [`k8s` charm][K8s
 charm] and the [`k8s-worker` charm][K8s-worker charm].
 
-![cluster1][]
+![cluster4][]
 
 Charms are instantiated on a machine as a Juju unit, and a collection of units
 constitutes an application. Both `k8s` and `k8s-worker` units are responsible
@@ -140,8 +140,8 @@ and flexible {{product}} deployment managed through Juju.
 
 [cluster1]: https://assets.ubuntu.com/v1/dfc43753-cluster1.svg
 [cluster2]: https://assets.ubuntu.com/v1/0e486a5d-cluster2.svg
-[cluster3]: https://assets.ubuntu.com/v1/24fd1773-cluster3.svg
 [cluster4]: https://assets.ubuntu.com/v1/24fd1773-cluster4.svg
+[cluster5]: https://assets.ubuntu.com/v1/bcfe150f-overview.svg 
 
 <!-- LINKS -->
 [C4 model]:           https://c4model.com/
