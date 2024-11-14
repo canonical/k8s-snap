@@ -35,3 +35,7 @@ func (c *Client) GetSnapInfo(snap string) (*SnapInfoResponse, error) {
 
 	return &snapInfoResponse, nil
 }
+
+func (s SnapInfoResponse) HasInstallDate() bool {
+	return !s.Result.InstallDate.IsZero()
+}

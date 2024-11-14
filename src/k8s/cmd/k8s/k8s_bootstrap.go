@@ -60,7 +60,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				env.Exit(1)
 				return
 			}
-			if microk8sInfo.StatusCode == 200 && !microk8sInfo.Result.InstallDate.IsZero() {
+			if microk8sInfo.StatusCode == 200 && microk8sInfo.HasInstallDate() {
 				cmd.PrintErrln("Error: microk8s snap is installed. Please remove it using the following command and try again:\n\n  sudo snap remove microk8s")
 				env.Exit(1)
 				return
