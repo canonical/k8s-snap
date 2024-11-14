@@ -7,7 +7,7 @@ to take advantage of cloud storage solutions in the context of Kubernetes.
 
 ## What you'll need
 
-This guide assumes the following:
+This guide is for AWS and assumes the following:
 
 - You have root or sudo access to an Amazon EC2 instance
 - You can create roles and policies in AWS
@@ -130,7 +130,7 @@ For a worker node:
 ## Set your host name
 
 The cloud controller manager uses the node name to correctly associate the node
-with an EC2 instance. In Canonical K8s, the node name is derived from the
+with an EC2 instance. In {{product}}, the node name is derived from the
 hostname of the machine. Therefore, before bootstrapping the cluster, we must
 first set an appropriate host name.
 
@@ -139,6 +139,10 @@ echo "$(sudo cloud-init query ds.meta_data.local-hostname)" | sudo tee /etc/host
 ```
 
 Then, reboot the machine.
+
+```bash
+sudo reboot
+```
 
 When the machine is up, use `hostname -f` to check the host name. It should
 look like:
@@ -150,10 +154,10 @@ ip-172-31-11-86.us-east-2.compute.internal
 This host name format is called IP-based naming and is specific to AWS.
 
 
-## Bootstrap Canonical K8s
+## Bootstrap {{product}}
 
 Now that your machine has an appropriate host name, you are ready to bootstrap
-Canonical K8s.
+{{product}}.
 
 First, create a bootstrap configuration file that sets the cloud-provider
 configuration to "external".
@@ -172,7 +176,7 @@ sudo k8s status --wait-ready
 
 ## Deploy the cloud controller manager
 
-Now that you have an appropriate host name, policies, and a Canonical K8s
+Now that you have an appropriate host name, policies, and a {{product}}
 cluster, you have everything you need to deploy the cloud controller manager.
 
 Here is a YAML definition file that sets appropriate defaults for you, it
@@ -364,7 +368,7 @@ aws-cloud-controller-manager-ndbtq   1/1     Running   1 (3h51m ago)   9h
 
 Now that the cloud controller manager is deployed and can communicate with AWS,
 you are ready to deploy the EBS CSI driver. The easiest way to deploy the
-driver is with the Helm chart. Luckily, Canonical K8s has a built-in helm
+driver is with the Helm chart. Luckily, {{product}} has a built-in Helm
 command.
 
 If you want to create encrypted drives, you need to add the statement to the
@@ -382,7 +386,7 @@ policy you are using for the instance.
 }
 ```
 
-Then, add the helm repo for the EBS CSI Driver.
+Then, add the Helm repo for the EBS CSI Driver.
 
 ```bash
 sudo k8s helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
