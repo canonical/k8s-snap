@@ -19,7 +19,8 @@ Two actors interact with the Kubernetes snap:
   access to the cluster. That initial user is able to configure the cluster to
   match their needs and of course create other users that may or may not have
   admin privileges. The K8s admin is also able to maintain workloads running
-  in the cluster.
+  in the cluster. If you deploy {{product}} from a snap, this is how the cluster
+ is manually orchestrated.
 
 - **K8s user**: A user consuming the workloads hosted in the cluster. Users do
   not have access to the Kubernetes API server. They need to access the cluster
@@ -139,7 +140,7 @@ and flexible {{product}} deployment managed through Juju.
 <!-- IMAGES -->
 
 [cluster1]: https://assets.ubuntu.com/v1/dfc43753-cluster1.svg
-[cluster2]: https://assets.ubuntu.com/v1/0e486a5d-cluster2.svg
+[cluster2]: https://assets.ubuntu.com/v1/f634743e-k8sd.svg
 [cluster4]: https://assets.ubuntu.com/v1/24fd1773-cluster4.svg
 [cluster5]: https://assets.ubuntu.com/v1/bcfe150f-overview.svg 
 
