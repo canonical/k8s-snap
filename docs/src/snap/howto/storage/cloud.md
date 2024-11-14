@@ -126,6 +126,16 @@ For a worker node:
 }
 ```
 
+## Add a tag to your EC2 Machine
+
+A cluster using the AWS cloud provider needs to label existing nodes and
+resources with a ClusterID or the kube-controller-manager will not start.
+
+In your instance's details page, go to the "Tags" tab and add the following tag:
+
+```
+kubernetes.io/cluster/<your-cluster-id>=owned
+```
 
 ## Set your host name
 
@@ -400,7 +410,7 @@ argument.
 sudo k8s helm upgrade --install aws-ebs-csi-driver \
     --namespace kube-system \
     aws-ebs-csi-driver/aws-ebs-csi-driver \
-    --set controller.region=us-east-2
+    --set controller.region=<REGION>
 ```
 
 Once the command completes, you can verify the pods are successfully deployed:
