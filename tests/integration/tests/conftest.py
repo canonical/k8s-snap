@@ -3,6 +3,7 @@
 #
 import itertools
 import logging
+import subprocess
 from string import Template
 from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
@@ -84,6 +85,30 @@ def h() -> harness.Harness:
 @pytest.fixture(scope="session")
 def registry(h: harness.Harness) -> Registry:
     yield Registry(h)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def snapd_preload() -> None:
+    LOG.info("Downloading snapd and core20 snaps for preloading")
+    util.run(
+        [
+            "snap",
+            "download",
+            "snapd",
+            "--basename=snapd",
+            "--target-directory=/tmp",
+        ]
+    )
+
+    util.run(
+        [
+            "snap",
+            "download",
+            "core20",
+            "--basename=core20",
+            "--target-directory=/tmp",
+        ]
+    )
 
 
 def pytest_configure(config):
@@ -171,6 +196,26 @@ def instances(
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(network_type=network_type)
         instances.append(instance)
+
+        for file in [
+            "snapd.assert",
+            "core20.assert",
+        ]:
+            remote_path = (tmp_path / file).as_posix()
+            instance.send_file(
+                source=f"/tmp/{file}",
+                destination=remote_path,
+            )
+            instance.exec(["snap", "ack", remote_path])
+
+        for file in ["snapd.snap", "core20.snap"]:
+            remote_path = (tmp_path / file).as_posix()
+            instance.send_file(
+                source=f"/tmp/{file}",
+                destination=remote_path,
+            )
+            instance.exec(["snap", "install", remote_path])
+
         if not no_setup:
             util.setup_k8s_snap(instance, tmp_path, snap)
 
