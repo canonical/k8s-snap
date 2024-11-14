@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/app"
-	mctypes "github.com/canonical/microcluster/v3/rest/types"
+	mctypes "github.com/canonical/microcluster/v2/rest/types"
 	. "github.com/onsi/gomega"
 )
 

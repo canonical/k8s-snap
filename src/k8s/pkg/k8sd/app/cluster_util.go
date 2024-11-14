@@ -8,7 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
-	mctypes "github.com/canonical/microcluster/v3/rest/types"
+	mctypes "github.com/canonical/microcluster/v2/rest/types"
 )
 
 func startControlPlaneServices(ctx context.Context, snap snap.Snap, datastore string) error {

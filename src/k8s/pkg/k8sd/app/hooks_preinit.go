@@ -8,8 +8,8 @@ import (
 
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/shared"
-	microclusterTypes "github.com/canonical/microcluster/v3/rest/types"
-	"github.com/canonical/microcluster/v3/state"
+	microclusterTypes "github.com/canonical/microcluster/v2/rest/types"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 // onPreInit is called before we bootstrap or join a node.
