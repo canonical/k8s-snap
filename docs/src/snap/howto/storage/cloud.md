@@ -442,6 +442,7 @@ and uses an EBS volume.
 First, create a StorageClass and a PersistentVolumeClaim:
 
 ```yaml
+sudo k8s kubectl apply -f - <<EOF
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -463,6 +464,7 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: ebs-sc
+EOF
 ```
 
 Then, you can deploy a pod that uses a volume. Because the StorageClass uses
@@ -470,6 +472,7 @@ the `WaitForFirstConsumer` volume binding mode, you'll only see the volume in
 AWS once the pod is deployed.
 
 ```yaml
+sudo k8s kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
@@ -485,6 +488,7 @@ spec:
   - name: ebs-volume
     persistentVolumeClaim:
       claimName: ebs-pvc
+EOF
 ```
 
 Congratulations! By following this guide, you've set up cloud storage
