@@ -149,10 +149,6 @@ ip-172-31-11-86.us-east-2.compute.internal
 
 This host name format is called IP-based naming and is specific to AWS.
 
-```{note} Don't rely on the PS1 prompt to know if your host name was changed
-successfully. The PS1 prompt only displays the hostname up to the first `.`.
-```
-
 
 ## Bootstrap Canonical K8s
 
