@@ -4,7 +4,6 @@
 import itertools
 import logging
 from pathlib import Path
-from string import Template
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
@@ -222,27 +221,7 @@ def instances(
             util.setup_k8s_snap(instance, tmp_path, snap)
 
             if config.USE_LOCAL_MIRROR:
-                for mirror in registry.mirrors:
-                    substitutes = {
-                        "IP": registry.ip,
-                        "PORT": mirror.port,
-                    }
-
-                    instance.exec(
-                        ["mkdir", "-p", f"/etc/containerd/hosts.d/{mirror.name}"]
-                    )
-
-                    with open(
-                        config.REGISTRY_DIR / "hosts.toml", "r"
-                    ) as registry_template:
-                        src = Template(registry_template.read())
-                        instance.exec(
-                            [
-                                "dd",
-                                f"of=/etc/containerd/hosts.d/{mirror.name}/hosts.toml",
-                            ],
-                            input=str.encode(src.substitute(substitutes)),
-                        )
+                registry.apply_configuration(instance)
 
     if not disable_k8s_bootstrapping and not no_setup:
         first_node, *_ = instances

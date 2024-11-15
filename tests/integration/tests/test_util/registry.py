@@ -155,3 +155,23 @@ class Registry:
             str: The IP address of the registry.
         """
         return self._ip
+
+    # Configure the specified instance to use this registry mirror.
+    def apply_configuration(self, instance):
+        for mirror in self.mirrors:
+            substitutes = {
+                "IP": self.ip,
+                "PORT": mirror.port,
+            }
+
+            instance.exec(["mkdir", "-p", f"/etc/containerd/hosts.d/{mirror.name}"])
+
+            with open(config.REGISTRY_DIR / "hosts.toml", "r") as registry_template:
+                src = Template(registry_template.read())
+                instance.exec(
+                    [
+                        "dd",
+                        f"of=/etc/containerd/hosts.d/{mirror.name}/hosts.toml",
+                    ],
+                    input=str.encode(src.substitute(substitutes)),
+                )
