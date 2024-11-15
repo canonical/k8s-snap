@@ -16,13 +16,13 @@ Container(K8sSnapDistribution.State, "State", $techn="", $descr="Datastores hold
 Container(K8sSnapDistribution.KubernetesServices, "Kubernetes Services", $techn="", $descr="API server, kubelet, kube-proxy, scheduler, kube-controller", $tags="", $link="")
 
 Container_Boundary("K8sSnapDistribution.K8sd_boundary", "K8sd", $tags="") {
-  Component(K8sSnapDistribution.K8sd.CLI, "CLI", $techn="CLI", $descr="The CLI the offered", $tags="", $link="")
+  Component(K8sSnapDistribution.K8sd.CLI, "CLI", $techn="CLI", $descr="The CLI offered", $tags="", $link="")
   Component(K8sSnapDistribution.K8sd.APIviaHTTP, "API via HTTP", $techn="REST", $descr="The API interface offered", $tags="", $link="")
-  Component(K8sSnapDistribution.K8sd.CLustermanagement, "CLuster management", $techn="", $descr="Management of the cluster with the help of MicroCluster", $tags="", $link="")
+  Component(K8sSnapDistribution.K8sd.CLustermanagement, "Cluster management", $techn="", $descr="Management of the cluster with the help of MicroCluster", $tags="", $link="")
 }
 
 Rel(K8sAdmin, K8sSnapDistribution.K8sd.CLI, "Sets up and configured the cluster", $techn="", $tags="", $link="")
-Rel(CharmK8s, K8sSnapDistribution.K8sd.APIviaHTTP, "Orchestrates the lifecycle management of K8s", $techn="", $tags="", $link="")
+Rel(CharmK8s, K8sSnapDistribution.K8sd.APIviaHTTP, "Orchestrates the lifecycle management of K8s when deployed with Juju", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd.CLustermanagement, K8sSnapDistribution.KubernetesServices, "Configures", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.KubernetesServices, K8sSnapDistribution.State, "Uses by default", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd.CLustermanagement, K8sSnapDistribution.State, "Keeps state in", $techn="", $tags="", $link="")
