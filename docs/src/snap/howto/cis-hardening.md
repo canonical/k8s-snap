@@ -2803,7 +2803,8 @@ Restart the kubelet service:
 ###### Expected output:
 
 ```
---streaming-connection-idle-timeout is not set
+--streaming-connection-idle-timeout is not set, or set to a
+value greater or equal than 5m
 ```
 
 ##### Control 4.2.6
@@ -2868,8 +2869,7 @@ For example: `snap restart k8s.kubelet`
 ###### Expected output:
 
 ```
---make-iptables-util-chains is not set, or set to a value
-greater or equal than 5m
+--make-iptables-util-chains is not set
 ```
 
 ##### Control 4.2.8
@@ -3540,7 +3540,6 @@ Ensure that namespaces are created to allow for appropriate
 segregation of Kubernetes
 resources and that all new resources are created in a specific
 namespace.
-
 
 
 
