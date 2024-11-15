@@ -46,6 +46,8 @@ k8s::common::is_strict() {
 # Cleanup configuration left by the network feature
 k8s::remove::network() {
   k8s::common::setup_env
+  
+  "${SNAP}/bin/kube-proxy" --cleanup || true
 
   k8s::cmd::k8s x-cleanup network || true
 }
