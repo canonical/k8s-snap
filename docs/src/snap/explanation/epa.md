@@ -19,7 +19,7 @@ capabilities. This document provides a detailed guide of how EPA applies to
 -  **NUMA topology awareness**: Ensures that CPU and memory allocation are
    aligned according to the NUMA architecture, reducing memory latency and
    increasing performance for memory-intensive applications.  
--  **Single Root I/O Virtualization (SR-IOV)**: Enhances networking by enabling
+-  **Single Root I/O Virtualisation (SR-IOV)**: Enhances networking by enabling
    virtualisation of a single physical network device into multiple virtual
    devices.  
 -  **DPDK (Data Plane Development Kit)**: A set of libraries and drivers for
@@ -92,19 +92,19 @@ are the key architectural components and their roles:
    (e.g., Prometheus, Grafana) to monitor and visualise HugePages usage across
    the cluster. This helps in tracking resource utilisation and performance.
    Metrics can include HugePages allocation, usage and availability on each
-   node, aiding in capacity planning and optimization.
+   node, aiding in capacity planning and optimisation.
 
 ## Real-time kernel 
 
 A real-time kernel ensures that high-priority tasks are run within a
-predictable timeframe, crucial for applications requiring low latency and high
+predictable time frame, crucial for applications requiring low latency and high
 determinism. Note that this can also impede applications which were not
 designed with these considerations. 
 
 ### Key features
 
 -  **Predictable task execution**: A real-time kernel ensures that
-   high-priority tasks are run within a predictable and bounded timeframe,
+   high-priority tasks are run within a predictable and bounded time frame,
    reducing the variability in task execution time.  
 -  **Low latency**: The kernel is optimised to minimise the time it takes to
    respond to high-priority tasks, which is crucial for applications that
@@ -115,7 +115,7 @@ designed with these considerations.
 -  **Deterministic behaviour**: The kernel guarantees deterministic behaviour,
    meaning the same task will have the same response time every time it is
    run, essential for time-sensitive applications.  
--  **Pre-emption:** The real-time kernel supports preemptive multitasking,
+-  **Preemption:** The real-time kernel supports preemptive multitasking,
    allowing high-priority tasks to interrupt lower-priority tasks to ensure
    critical tasks are run without delay.  
 -  **Resource reservation**: System resources (such as CPU and memory) can be
@@ -361,7 +361,7 @@ architectural components and their roles:
    configuring kernel parameters and using tools like `numactl` to bind
    processes to specific NUMA nodes.
 
-## SR-IOV (Single Root I/O Virtualization)
+## SR-IOV (Single Root I/O Virtualisation)
 
 SR-IOV enables a single physical network device to appear as multiple separate
 virtual devices. This can be beneficial for network-intensive applications that
@@ -394,7 +394,7 @@ require direct access to the network hardware.
 -  **Kubernetes integration**: Kubernetes supports SR-IOV through the use of
    network device plugins, enabling the automatic discovery, allocation,
    and management of virtual functions.  
--  **Compatibility with Network Functions Virtualization (NFV)**: SR-IOV is
+-  **Compatibility with Network Functions Virtualisation (NFV)**: SR-IOV is
    widely used in NFV deployments to meet the high-performance networking
    requirements of virtual network functions (VNFs), such as firewalls,
    routers and load balancers.  
@@ -404,7 +404,7 @@ require direct access to the network hardware.
 
 ### Application to Kubernetes
 
-The architecture for SR-IOV (Single Root I/O Virtualization) in Kubernetes
+The architecture for SR-IOV (Single Root I/O Virtualisation) in Kubernetes
 involves several components and configurations to ensure that virtual functions
 (VFs) from a single physical network device can be managed and allocated
 efficiently. This setup enhances network performance and provides direct access

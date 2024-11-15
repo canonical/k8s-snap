@@ -3,7 +3,7 @@
 Certificates are a crucial part of Kubernetes' security infrastructure, serving
 to authenticate and secure communication within the cluster. They play a key
 role in ensuring that communication between various components (such as the
-API server, kubelets, and the datastore) is both encrypted and restricted to
+API server, kubelet, and the datastore) is both encrypted and restricted to
 authorised components only.
 
 In Kubernetes, [X.509][] certificates are primarily used for

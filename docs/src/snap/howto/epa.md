@@ -7,7 +7,7 @@ page][explain-epa] for details about how EPA applies to {{product}}.
 The content starts with the setup of the environment (including steps for using
 [MAAS][MAAS]). Then the setup of {{product}}, including the Multus & SR-IOV/DPDK
 networking components. Finally, the steps needed to test every EPA feature:
-HugePages, Real-time Kernel, CPU Pinning / Numa Topology Awareness and
+HugePages, Real-time Kernel, CPU Pinning / NUMA Topology Awareness and
 SR-IOV/DPDK. 
 
 ## What you'll need
@@ -106,7 +106,7 @@ reboot
 
 ```{dropdown} Explanation of boot options
 
--  `intel_iommu=on`: Enables Intel's Input-Output Memory Management Unit (IOMMU), which is used for device virtualization and Direct Memory Access (DMA) remapping.  
+-  `intel_iommu=on`: Enables Intel's Input-Output Memory Management Unit (IOMMU), which is used for device virtualisation and Direct Memory Access (DMA) remapping.  
 -  `iommu=pt`: Sets the IOMMU to passthrough mode, allowing devices to directly access physical memory without translation.  
 -  `usbcore.autosuspend=-1`: Disables USB autosuspend, preventing USB devices from being automatically suspended to save power.  
 -  `selinux=0`: Disables Security-Enhanced Linux (SELinux), a security module that provides mandatory access control.  
@@ -183,8 +183,8 @@ virtual functions.
 ```
 
 ```{dropdown} Explanation of steps
-  * Breakdown of the content of the file /etc/netplan/99-sriov\_vfs.yaml :  
-    * path: /etc/netplan/99-sriov\_vfs.yaml: This specifies the location of the configuration file. The "99" prefix in the filename usually indicates that it will be processed last, potentially overriding other configurations.  
+  * Breakdown of the content of the file `/etc/netplan/99-sriov\_vfs.yaml` :  
+    * path: `/etc/netplan/99-sriov\_vfs.yaml`: This specifies the location of the configuration file. The "99" prefix in the filename usually indicates that it will be processed last, potentially overriding other configurations.  
     * enp152s0f1:  This is the name of the physical network interface you want to create VFs on. This name may vary depending on your system.  
     * virtual-function-count: 128: This is the key line that instructs Netplan to create 128 virtual functions on the specified physical interface. Each of these VFs can be assigned to a different virtual machine or container, effectively allowing them to share the physical adapter's bandwidth.  
     * permissions: "0600": This is an optional line that sets the file permissions to 600 (read and write access only for the owner).  
@@ -212,7 +212,7 @@ virtual functions.
 ```
 
 
-Now enable DPDK, first by cloning the DPDK repo, and then placing the script which
+Now enable DPDK, first by cloning the DPDK repository, and then placing the script which
 will bind the VFs to the VFIO-PCI driver in the location that will run
 automatically each time the system boots up, so the VFIO
 (Virtual Function I/O) bindings are applied consistently:
@@ -231,9 +231,9 @@ sudo chmod 0755 /var/lib/cloud/scripts/per-boot/dpdk_bind.sh
 
 ```{dropdown} Explanation 
   * Load VFIO Module (modprobe vfio-pci): If the DPDK directory exists, the script loads the VFIO-PCI kernel module. This module is necessary for the VFIO driver to function.  
-  * The script uses the dpdk-devbind.py tool (included with DPDK) to list the available network devices and their drivers.  
+  * The script uses the `dpdk-devbind.py` tool (included with DPDK) to list the available network devices and their drivers.  
     * It filters this output using grep drv=iavf to find devices that are currently using the iavf driver (a common driver for Intel network adapters), excluding the physical network interface itself and just focusing on the virtual functions (VFs).  
-  * Bind VFs to VFIO: The script uses dpdk-devbind.py again, this time with the \--bind=vfio-pci option, to bind the identified VFs to the VFIO-PCI driver. This step essentially tells the kernel to relinquish control of these devices to DPDK.  
+  * Bind VFs to VFIO: The script uses `dpdk-devbind.py` again, this time with the \--bind=vfio-pci option, to bind the identified VFs to the VFIO-PCI driver. This step essentially tells the kernel to relinquish control of these devices to DPDK.  
 ```
 
 To test that the VFIO Kernel Module and DPDK are enabled:
@@ -276,7 +276,7 @@ With these preparation steps we have enabled the features of EPA:
 - NUMA and CPU Pinning are available to the first 32 CPUs  
 - Real-Time Kernel is enabled  
 - HugePages are enabled and 1000 1G huge pages are available   
-- SRIOV is enabled in the enp152s0f1 interface, with 128 virtual 
+- SR-IOV is enabled in the enp152s0f1 interface, with 128 virtual 
   function interfaces bound to the vfio-pci driver (that could also use the iavf driver)  
 - DPDK is enabled in all the 128 virtual function interfaces
 
@@ -284,8 +284,8 @@ With these preparation steps we have enabled the features of EPA:
 
 ````{group-tab} MAAS
 
-To prepare a machine for CPU isolation, Hugepages, real-time kernel, 
-SRIOV and DPDK we leverage cloud-init through MAAS.
+To prepare a machine for CPU isolation, HugePages, real-time kernel, 
+SR-IOV and DPDK we leverage cloud-init through MAAS.
 
 ```
 #cloud-config
@@ -391,10 +391,10 @@ power_state:
 
 ```{note}
 
-In the above file, the realtime kernel 6.8 is installed from a private PPA.
+In the above file, the `realtime kernel` 6.8 is installed from a private PPA.
 It was recently backported from 24.04 to 22.04 and is still going through
 some validation stages. Once it is officially released, it will be
-installable via the Ubuntu Pro cli.
+installable via the Ubuntu Pro CLI.
 ```
 
 <!--VERSION:
@@ -505,7 +505,7 @@ pc6b-rb4-n1   Ready    control-plane,worker   22h   v1.31.0
 pc6b-rb4-n3   Ready    worker                 22h   v1.31.0
 ```
 
-### Multus and SRIOV setup 
+### Multus and SR-IOV setup 
 
 Apply the 'thick' Multus plugin (in case of resource scarcity we can consider 
 deploying the thin flavour)
@@ -515,14 +515,14 @@ sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg
 ```
 
 ```{note} 
-The memory limits for the multus pod spec in the DaemonSet should be
+The memory limits for the Multus pod spec in the DaemonSet should be
 increased (i.e. to 500Mi instead 50Mi) to avoid OOM issues when deploying
 multiple workload pods in parallel.
 ```
 
-#### SRIOV Network Device Plugin 
+#### SR-IOV Network Device Plugin 
 
-Create sriov-dp.yaml configMap:
+Create `sriov-dp.yaml` configMap:
 
 ```
 cat <<EOF | tee sriov-dp.yaml
@@ -564,15 +564,15 @@ Apply the configMap definition:
 sudo k8s kubectl create -f ./sriov-dp.yaml
 ```
 
-Install the SRIOV network device plugin:
+Install the SR-IOV network device plugin:
 
 ```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/sriov-network-device-plugin/master/deployments/sriovdp-daemonset.yaml
 ```
 
-#### SRIOV CNI 
+#### SR-IOV CNI 
 
-Install the SRIOV CNI daemonset:
+Install the SR-IOV CNI daemonset:
 
 ```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/sriov-cni/master/images/sriov-cni-daemonset.yaml
@@ -580,7 +580,7 @@ sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg
 
 #### Multus NetworkAttachmentDefinition 
 
-Create the sriov-nad.yaml NetworkAttachmentDefinition:
+Create the `sriov-nad.yaml` NetworkAttachmentDefinition:
 
 ```
 cat <<EOF | tee sriov-nad.yaml
@@ -835,7 +835,7 @@ Run the command:
 lscpu
 ```
 
-The ouptut should include information on the CPUs like this example:
+The output should include information on the CPUs like this example:
 
 ```
 ....
@@ -990,7 +990,7 @@ Now check the VFs:
 sudo k8s kubectl describe node pc6b-rb4-n3
 ```
 
-This should indicate the presence of the SRIOV device:
+This should indicate the presence of the SR-IOV device:
 
 ```
 ...

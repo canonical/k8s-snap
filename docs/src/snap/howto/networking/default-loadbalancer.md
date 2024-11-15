@@ -9,7 +9,7 @@ explains how to configure and enable the load-balancer.
 This guide assumes the following:
 
 - You have root or sudo access to the machine.
-- You have a bootstraped {{product}} cluster (see the [Getting
+- You have a bootstrapped {{product}} cluster (see the [Getting
   Started][getting-started-guide] guide).
 
 ## Check the status and configuration
@@ -32,7 +32,7 @@ sudo k8s get load-balancer
 This should output a list of values like this:
 
 
-- `cidrs` - a list containing [cidr] or IP address range definitions of the
+- `cidrs` - a list containing [CIDR] or IP address range definitions of the
   pool of IP addresses to use
 - `l2-mode` - whether L2 mode (failover) is turned on
 - `l2-interfaces` - optional list of interfaces to announce services over
@@ -80,6 +80,5 @@ sudo k8s disable load-balancer
 
 
 <!-- LINKS -->
-
-[cidr]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing
+[CIDR]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing
 [getting-started-guide]: ../../tutorial/getting-started

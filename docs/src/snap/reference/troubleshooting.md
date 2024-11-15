@@ -44,7 +44,7 @@ the kubelet. kubelet needs a feature from cgroup and the kernel may not be set
 up appropriately to provide the cpuset feature.
 
 ```
-E0125 00:20:56.003890    2172 kubelet.go:1466] "Failed to start ContainerManager" err="failed to initialize top level QOS containers: root container [kubepods] doesn't exist"
+E0125 00:20:56.003890    2172 kubelet.go:1466] "Failed to start ContainerManager" err="failed to initialise top level QOS containers: root container [kubepods] doesn't exist"
 ```
 
 ### Explanation
@@ -54,7 +54,7 @@ An excellent deep-dive of the issue exists at
 
 Commenter [@haircommander][] [states][kubernetes-122955-2020403422]
 >  basically: we've figured out that this issue happens because libcontainer
->  doesn't initialize the cpuset cgroup for the kubepods slice when the kubelet
+>  doesn't initialise the cpuset cgroup for the kubepods slice when the kubelet
 >  initially calls into it to do so. This happens because there isn't a cpuset
 >  defined on the top level of the cgroup. however, we fail to validate all of
 >  the cgroup controllers we need are present. It's possible this is a
@@ -68,7 +68,7 @@ Commenter [@haircommander][] [states][kubernetes-122955-2020403422]
 ### Solution
 
 This is in the process of being fixed upstream via 
-[kubernetes/kuberetes #125923][kubernetes-125923].
+[kubernetes/kubernetes #125923][kubernetes-125923].
 
 In the meantime, the best solution is to create a `Delegate=yes` configuration
 in systemd.

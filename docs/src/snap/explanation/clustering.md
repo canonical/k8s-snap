@@ -24,7 +24,7 @@ This is the overview of a {{product}} cluster:
 
 `k8sd` plays a vital role in the {{product}} architecture, enhancing
 the functionality of both the Control Plane and Worker nodes through the use
-of [microcluster]. This component simplifies cluster management tasks, such as
+of [MicroCluster]. This component simplifies cluster management tasks, such as
 adding or removing nodes and integrating them into the cluster. It also
 manages essential features like DNS and networking within the cluster,
 streamlining the entire process for a more efficient operation.
@@ -75,4 +75,4 @@ entire life-cycle. Their components include:
 <!-- LINKS -->
 
 [Kubernetes Components]: https://kubernetes.io/docs/concepts/overview/components/
-[microcluster]: https://github.com/canonical/microcluster
+[MicroCluster]: https://github.com/canonical/microcluster

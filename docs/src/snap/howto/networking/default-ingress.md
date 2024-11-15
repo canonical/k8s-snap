@@ -55,7 +55,7 @@ You should see three options:
 ### TLS Secret
 
 You can create a TLS secret by following the official
-[Kubernetes documentation][kubectl-create-secret-tls/].
+[Kubernetes documentation][kubectl-create-secret-TLS/].
 Please remember to use `sudo k8s kubectl` (See the [kubectl-guide]).
 
 Tell Ingress to use your new Ingress certificate:
@@ -105,7 +105,7 @@ sudo k8s help disable
 
 <!-- LINKS -->
 
-[kubectl-create-secret-tls/]: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_create/kubectl_create_secret_tls/
+[kubectl-create-secret-TLS/]: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_create/kubectl_create_secret_tls/
 [proxy-protocol]: https://kubernetes.io/docs/reference/networking/service-protocols/#protocol-proxy-special
 [getting-started-guide]: ../../tutorial/getting-started
 [kubectl-guide]: ../../tutorial/kubectl

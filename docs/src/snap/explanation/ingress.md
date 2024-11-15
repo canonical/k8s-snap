@@ -19,7 +19,7 @@ CNI (Container Network Interface) called [Cilium][Cilium].
 If you wish to use a different network plugin
 the implementation and configuration falls under your responsibility.
 
-Learn how to use the {{product}} default network in the [networking HowTo guide][Network].
+Learn how to use the {{product}} default network in the [networking how-to guide][Network].
 
 ## Kubernetes Pods and Services
 

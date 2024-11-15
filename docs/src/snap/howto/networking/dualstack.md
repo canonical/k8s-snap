@@ -140,7 +140,7 @@ limitations regarding CIDR size:
 
 - **/108 is the maximum size for the Service CIDR**
 Using a smaller value than `/108` for service CIDRs
-may cause issues like failure to initialize the IPv6 allocator. This is due
+may cause issues like failure to initialise the IPv6 allocator. This is due
 to the CIDR size being too large for Kubernetes to handle efficiently.
 
 See upstream reference: [kube-apiserver validation][kube-apiserver-test]

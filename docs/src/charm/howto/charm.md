@@ -9,7 +9,7 @@ This guide assumes the following:
 
 - The rest of this page assumes you already have Juju installed and have added
   [credentials] for a cloud and bootstrapped a controller.
-- If you still need to do this, please take a look at the quickstart
+- If you still need to do this, please take a look at the quick-start
   instructions, or, for custom clouds (OpenStack, MAAS), please consult the
   [Juju documentation][juju].
 - You are not using the Juju 'localhost' cloud (see [localhost
