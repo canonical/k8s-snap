@@ -108,8 +108,8 @@ class Registry:
             "NAME": mirror.name,
             "PORT": mirror.port,
             "REMOTE": mirror.remote,
-            "USERNAME": mirror.username,
-            "PASSWORD": mirror.password,
+            "USERNAME": mirror.username or "",
+            "PASSWORD": mirror.password or "",
         }
 
         self.instance.exec(["mkdir", "-p", "/etc/distribution"])
@@ -121,6 +121,7 @@ class Registry:
             src = Template(registry_template.read())
             self.instance.exec(
                 ["dd", f"of=/etc/distribution/{mirror.name}.yaml"],
+                sensitive_kwargs=True,
                 input=str.encode(src.substitute(substitutes)),
             )
 
@@ -128,6 +129,7 @@ class Registry:
             src = Template(registry_template.read())
             self.instance.exec(
                 ["dd", f"of=/etc/systemd/system/registry-{mirror.name}.service"],
+                sensitive_kwargs=True,
                 input=str.encode(src.substitute(substitutes)),
             )
 

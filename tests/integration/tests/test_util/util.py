@@ -33,7 +33,13 @@ def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     """Log and run command."""
     kwargs.setdefault("check", True)
 
-    LOG.debug("Execute command %s (kwargs=%s)", shlex.join(command), kwargs)
+    sensitive_command = kwargs.pop("sensitive_command", False)
+    sensitive_kwargs = kwargs.pop("sensitive_kwargs", sensitive_command)
+
+    logged_command = shlex.join(command) if not sensitive_command else "<sanitized>"
+    logged_kwargs = kwargs if not sensitive_kwargs else "<sanitized>"
+
+    LOG.debug("Execute command %s (kwargs=%s)", logged_command, logged_kwargs)
     return subprocess.run(command, **kwargs)
 
 
