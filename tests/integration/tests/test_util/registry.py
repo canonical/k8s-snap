@@ -70,10 +70,7 @@ class Registry:
         self.registry_version = config.REGISTRY_VERSION
         self.instance: Instance = None
         self.harness: Harness = h
-        self._mirrors: List[Mirror] = [
-            Mirror("ghcr.io", 5000, "https://ghcr.io"),
-            Mirror("docker.io", 5001, "https://registry-1.docker.io"),
-        ]
+        self._mirrors: List[Mirror] = self.get_configured_mirrors()
         self.instance = self.harness.new_instance()
 
         arch = self.instance.arch
@@ -101,6 +98,21 @@ class Registry:
         self._ip = get_default_ip(self.instance)
 
         self.add_mirrors()
+
+    def get_configured_mirrors(self) -> List[Mirror]:
+        mirrors: List[Mirror] = []
+        for mirror_dict in config.MIRROR_LIST:
+            for field in ["name", "port", "remote"]:
+                if field not in mirror_dict:
+                    raise Exception(
+                        f"Invalid 'TEST_MIRROR_LIST' configuration. Missing field: {field}"
+                    )
+
+            mirror = Mirror(
+                mirror_dict["name"], mirror_dict["port"], mirror_dict["remote"]
+            )
+            mirrors.append(mirror)
+        return mirrors
 
     def add_mirrors(self):
         for mirror in self._mirrors:

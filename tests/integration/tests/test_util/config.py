@@ -1,6 +1,7 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import json
 import os
 from pathlib import Path
 
@@ -143,9 +144,17 @@ STRICT_INTERFACE_CHANNELS = (
 )
 
 # Cache and preload certain snaps such as snapd and core20 to avoid fetching them
-# for every test instance. Note k8s-snap is currently based on core20.
+# for every test instance. Note that k8s-snap is currently based on core20.
 PRELOAD_SNAPS = (os.getenv("TEST_PRELOAD_SNAPS") or "1") == "1"
 
 # Setup a local image mirror to reduce the number of image pulls. The mirror
 # will be configured to run in a session scoped harness instance (e.g. LXD container)
 USE_LOCAL_MIRROR = (os.getenv("TEST_USE_LOCAL_MIRROR") or "1") == "1"
+
+DEFAULT_MIRROR_LIST = [
+    {"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io"},
+    {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io"},
+]
+
+# Local mirror configuration.
+MIRROR_LIST = json.loads(os.getenv("TEST_MIRROR_LIST", "{}")) or DEFAULT_MIRROR_LIST
