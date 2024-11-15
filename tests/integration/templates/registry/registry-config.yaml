@@ -18,3 +18,5 @@ health:
     threshold: 3
 proxy:
   remoteurl: $REMOTE
+  username: $USERNAME
+  password: $PASSWORD

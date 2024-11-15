@@ -85,7 +85,7 @@ def h() -> harness.Harness:
 
 
 @pytest.fixture(scope="session")
-def registry(h: harness.Harness) -> Registry:
+def registry(h: harness.Harness) -> Optional[Registry]:
     if config.USE_LOCAL_MIRROR:
         yield Registry(h)
     else:

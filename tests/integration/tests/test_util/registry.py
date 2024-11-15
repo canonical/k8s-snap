@@ -3,7 +3,7 @@
 #
 import logging
 from string import Template
-from typing import List
+from typing import List, Optional
 
 from test_util import config
 from test_util.harness import Harness, Instance
@@ -13,7 +13,14 @@ LOG = logging.getLogger(__name__)
 
 
 class Mirror:
-    def __init__(self, name: str, port: int, remote: str):
+    def __init__(
+        self,
+        name: str,
+        port: int,
+        remote: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+    ):
         """
         Initialize the Mirror object.
 
@@ -21,40 +28,14 @@ class Mirror:
             name (str): The name of the mirror.
             port (int): The port of the mirror.
             remote (str): The remote URL of the upstream registry.
+            username (str, optional): Authentication username.
+            password (str, optional): Authentication password.
         """
-        self._name = name
-        self._port = port
-        self._remote = remote
-
-    @property
-    def name(self) -> str:
-        """
-        Get the name of the mirror.
-
-        Returns:
-            str: The name of the mirror.
-        """
-        return self._name
-
-    @property
-    def port(self) -> int:
-        """
-        Get the port of the mirror.
-
-        Returns:
-            int: The port of the mirror.
-        """
-        return self._port
-
-    @property
-    def remote(self) -> str:
-        """
-        Get the remote URL of the upstream registry.
-
-        Returns:
-            str: The remote URL of the upstream registry.
-        """
-        return self._remote
+        self.name = name
+        self.port = port
+        self.remote = remote
+        self.username = username
+        self.password = password
 
 
 class Registry:
@@ -109,7 +90,11 @@ class Registry:
                     )
 
             mirror = Mirror(
-                mirror_dict["name"], mirror_dict["port"], mirror_dict["remote"]
+                mirror_dict["name"],
+                mirror_dict["port"],
+                mirror_dict["remote"],
+                mirror_dict.get("username"),
+                mirror_dict.get("password"),
             )
             mirrors.append(mirror)
         return mirrors
@@ -123,6 +108,8 @@ class Registry:
             "NAME": mirror.name,
             "PORT": mirror.port,
             "REMOTE": mirror.remote,
+            "USERNAME": mirror.username,
+            "PASSWORD": mirror.password,
         }
 
         self.instance.exec(["mkdir", "-p", "/etc/distribution"])
