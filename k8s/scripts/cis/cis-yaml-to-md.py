@@ -118,6 +118,18 @@ def process_files(input_dir, output_dir, substitutions, custom_outputs_by_contro
 
         LOG.info(f"Rendered {file} to {output_file}.")
 
+    # Create an empty report file
+    report = output_dir / "report.md"
+    report.write_text("")
+    # This is a hack because we want to put the files in tahe right order
+    for file in "master.md etcd.md controlplane.md node.md policies.md".split():
+        output_file = output_dir / f"{file}"
+        content = output_file.read_text()
+        with report.open("a") as f:
+           f.write(content)
+
+    LOG.info(f"Rendered report.md.")
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(usage=USAGE, description=DESCRIPTION)

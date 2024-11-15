@@ -1,29 +1,29 @@
-## {{ kube_bench_control_file.text | trim }}
+### {{ kube_bench_control_file.text | trim }}
 
 {% for group in kube_bench_control_file.groups %}
 {% if group.text != title %}
-### {{group.text}}
+#### {{group.text}}
 
 {% endif %}
 {% for check in group.checks %}
-#### Control {{ check.id }}
+##### Control {{ check.id }}
 
 {% if check.text %}
-##### Description:
+###### Description:
 
 {{ check.text | trim | wordwrap(64) }}
 
 {% endif %}
 
 {% if check.remediation %}
-##### Remediation:
+###### Remediation:
 
 {{ check.remediation | trim | wordwrap(64)}}
 
 {% endif %}
 
 {% if check.audit %}
-##### Audit (as root):
+###### Audit (as root):
 
 ```
 {{ check.audit | trim }}
@@ -31,7 +31,7 @@
 
 {% endif %}
 {% if custom_outputs_by_control_id[check.id] %}
-##### Expected output:
+###### Expected output:
 
 ```
 {{ custom_outputs_by_control_id[check.id] | trim | wordwrap(64) }}
