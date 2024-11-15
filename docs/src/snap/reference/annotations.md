@@ -175,6 +175,15 @@ cluster-config:
 |**Values**| string|
 |**Description**|Override the default image tag for the metrics-server.|
 
+<script>
+const el = document.getElementsByTagName("h2");
+for(var i=0;i<el.length;i++){
+  el[i].style.fontSize = '1.2em';
+  el[i].style.fontWeight = '600';
+}
+</script>
+
+
 <!-- Links -->
 
 [bootstrap]: bootstrap-config-reference
