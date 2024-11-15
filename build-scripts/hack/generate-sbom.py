@@ -234,9 +234,9 @@ def rock_metrics_server(manifest, extra_files):
     with util.git_repo(METRICS_SERVER_ROCK_REPO, METRICS_SERVER_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
         # TODO(ben): This should not be hard coded.
-        rockcraft = (d / "0.7.0/rockcraft.yaml").read_text()
+        rockcraft = (d / "0.7.2/rockcraft.yaml").read_text()
 
-        extra_files["metrics-server/0.7.0/rockcraft.yaml"] = rockcraft
+        extra_files["metrics-server/0.7.2/rockcraft.yaml"] = rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["metrics-server"]["source"]
