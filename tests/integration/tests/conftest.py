@@ -3,9 +3,8 @@
 #
 import itertools
 import logging
-import subprocess
-from string import Template
 from pathlib import Path
+from string import Template
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
