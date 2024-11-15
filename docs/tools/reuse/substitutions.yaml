@@ -1,4 +1,0 @@
-product: 'Canonical Kubernetes'
-multi_line_example: |-
-  *Multi-line* text
-   that uses basic **markup**.
