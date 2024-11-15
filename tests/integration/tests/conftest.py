@@ -14,6 +14,10 @@ from test_util.registry import Registry
 
 LOG = logging.getLogger(__name__)
 
+# The following snaps will be downloaded once per test run and preloaded
+# into the harness instances to reduce the number of downloads.
+PRELOADED_SNAPS = ["snapd", "core20"]
+
 
 def _harness_clean(h: harness.Harness):
     "Clean up created instances within the test harness."
@@ -83,31 +87,31 @@ def h() -> harness.Harness:
 
 @pytest.fixture(scope="session")
 def registry(h: harness.Harness) -> Registry:
-    yield Registry(h)
+    if config.USE_LOCAL_MIRROR:
+        yield Registry(h)
+    else:
+        # local image mirror disabled, avoid initializing the
+        # registry mirror instance.
+        yield None
 
 
 @pytest.fixture(scope="session", autouse=True)
 def snapd_preload() -> None:
-    LOG.info("Downloading snapd and core20 snaps for preloading")
-    util.run(
-        [
-            "snap",
-            "download",
-            "snapd",
-            "--basename=snapd",
-            "--target-directory=/tmp",
-        ]
-    )
+    if not config.PRELOAD_SNAPS:
+        LOG.info("Snap preloading disabled, skipping...")
+        return
 
-    util.run(
-        [
-            "snap",
-            "download",
-            "core20",
-            "--basename=core20",
-            "--target-directory=/tmp",
-        ]
-    )
+    LOG.info(f"Downloading snaps for preloading: {PRELOADED_SNAPS}")
+    for snap in PRELOADED_SNAPS:
+        util.run(
+            [
+                "snap",
+                "download",
+                snap,
+                f"--basename={snap}",
+                "--target-directory=/tmp",
+            ]
+        )
 
 
 def pytest_configure(config):
@@ -196,46 +200,49 @@ def instances(
         instance = h.new_instance(network_type=network_type)
         instances.append(instance)
 
-        for file in [
-            "snapd.assert",
-            "core20.assert",
-        ]:
-            remote_path = (tmp_path / file).as_posix()
-            instance.send_file(
-                source=f"/tmp/{file}",
-                destination=remote_path,
-            )
-            instance.exec(["snap", "ack", remote_path])
+        if config.PRELOAD_SNAPS:
+            for preloaded_snap in PRELOADED_SNAPS:
+                ack_file = f"{preloaded_snap}.assert"
+                remote_path = (tmp_path / ack_file).as_posix()
+                instance.send_file(
+                    source=f"/tmp/{ack_file}",
+                    destination=remote_path,
+                )
+                instance.exec(["snap", "ack", remote_path])
 
-        for file in ["snapd.snap", "core20.snap"]:
-            remote_path = (tmp_path / file).as_posix()
-            instance.send_file(
-                source=f"/tmp/{file}",
-                destination=remote_path,
-            )
-            instance.exec(["snap", "install", remote_path])
+                snap_file = f"{preloaded_snap}.snap"
+                remote_path = (tmp_path / snap_file).as_posix()
+                instance.send_file(
+                    source=f"/tmp/{snap_file}",
+                    destination=remote_path,
+                )
+                instance.exec(["snap", "install", remote_path])
 
         if not no_setup:
             util.setup_k8s_snap(instance, tmp_path, snap)
 
-            for mirror in registry.mirrors:
+            if config.USE_LOCAL_MIRROR:
+                for mirror in registry.mirrors:
+                    substitutes = {
+                        "IP": registry.ip,
+                        "PORT": mirror.port,
+                    }
 
-                substitutes = {
-                    "IP": registry.ip,
-                    "PORT": mirror.port,
-                }
-
-                instance.exec(["mkdir", "-p", f"/etc/containerd/hosts.d/{mirror.name}"])
-
-                with open(config.REGISTRY_DIR / "hosts.toml", "r") as registry_template:
-                    src = Template(registry_template.read())
                     instance.exec(
-                        [
-                            "dd",
-                            f"of=/etc/containerd/hosts.d/{mirror.name}/hosts.toml",
-                        ],
-                        input=str.encode(src.substitute(substitutes)),
+                        ["mkdir", "-p", f"/etc/containerd/hosts.d/{mirror.name}"]
                     )
+
+                    with open(
+                        config.REGISTRY_DIR / "hosts.toml", "r"
+                    ) as registry_template:
+                        src = Template(registry_template.read())
+                        instance.exec(
+                            [
+                                "dd",
+                                f"of=/etc/containerd/hosts.d/{mirror.name}/hosts.toml",
+                            ],
+                            input=str.encode(src.substitute(substitutes)),
+                        )
 
     if not disable_k8s_bootstrapping and not no_setup:
         first_node, *_ = instances

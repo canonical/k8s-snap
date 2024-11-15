@@ -141,3 +141,11 @@ VERSION_UPGRADE_MIN_RELEASE = os.environ.get("TEST_VERSION_UPGRADE_MIN_RELEASE")
 STRICT_INTERFACE_CHANNELS = (
     os.environ.get("TEST_STRICT_INTERFACE_CHANNELS", "").strip().split()
 )
+
+# Cache and preload certain snaps such as snapd and core20 to avoid fetching them
+# for every test instance. Note k8s-snap is currently based on core20.
+PRELOAD_SNAPS = (os.getenv("TEST_PRELOAD_SNAPS") or "1") == "1"
+
+# Setup a local image mirror to reduce the number of image pulls. The mirror
+# will be configured to run in a session scoped harness instance (e.g. LXD container)
+USE_LOCAL_MIRROR = (os.getenv("TEST_USE_LOCAL_MIRROR") or "1") == "1"

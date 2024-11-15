@@ -107,7 +107,6 @@ class Registry:
             self.add_mirror(mirror)
 
     def add_mirror(self, mirror: Mirror):
-
         substitutes = {
             "NAME": mirror.name,
             "PORT": mirror.port,
