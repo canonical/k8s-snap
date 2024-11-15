@@ -1548,7 +1548,8 @@ appropriate (Automated)
 
 ###### Remediation:
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --audit-log-maxsize
 parameter to an appropriate size in MB.
 
@@ -1577,7 +1578,8 @@ Ensure that the --request-timeout argument is set as appropriate
 
 ###### Remediation:
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver
 and set the following argument as appropriate and if needed.
 
 `--request-timeout=300s`
@@ -1605,7 +1607,8 @@ Ensure that the --service-account-lookup argument is set to true
 
 ###### Remediation:
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the following argument.
 
 `--service-account-lookup=true`
@@ -1637,9 +1640,9 @@ appropriate (Automated)
 
 ###### Remediation:
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --service-account-key-file
-parameter
+Edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver on the control plane
+node and set the --service-account-key-file parameter
 to the public key file for service accounts.
 
 `--service-account-key-file=<filename>`
@@ -1687,7 +1690,8 @@ arguments are set as appropriate (Automated)
 
 Follow the Kubernetes documentation and set up the TLS
 connection on the apiserver.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the TLS certificate and
 private key file parameters.
 
@@ -1776,9 +1780,10 @@ appropriate (Manual)
 
 Follow the Kubernetes documentation and configure a
 EncryptionConfig file.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --encryption-provider-
-config parameter to the path of that file.
+Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver on the control plane
+node and set the --encryption-provider-config parameter
+to the path of that file.
 
 `--encryption-provider-config=</path/to/EncryptionConfig/File>`
 
@@ -2103,8 +2108,8 @@ Ensure that the --profiling argument is set to false (Automated)
 
 ###### Remediation:
 
-Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler file
-on the control plane node and set the following argument.
+Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler
+file on the control plane node and set the following argument.
 
 `--profiling=false`
 
@@ -2346,6 +2351,7 @@ Ensure that the audit policy covers key security concerns
 Review the audit policy provided for the cluster and ensure that
 it covers
 at least the following areas,
+
 - Access to Secrets managed by the cluster. Care should be taken
 to only
   log Metadata for requests to Secrets, ConfigMaps, and
@@ -2354,6 +2360,7 @@ TokenReviews, in
 - Modification of Pod and Deployment objects.
 - Use of `pods/exec`, `pods/portforward`, `pods/proxy` and
 `services/proxy`.
+
 For most requests, minimally logging at the Metadata level is
 recommended
 (the most basic level of logging).
@@ -2662,7 +2669,8 @@ Ensure that the --anonymous-auth argument is set to false
 ###### Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
+argument.
 
 `--anonymous-auth=false`
 
@@ -2694,7 +2702,8 @@ AlwaysAllow (Automated)
 ###### Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
+argument.
 
 `--authorization-mode=Webhook`
 
@@ -2726,7 +2735,8 @@ Ensure that the --client-ca-file argument is set as appropriate
 ###### Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
+argument.
 
 `--client-ca-file=/etc/kubernetes/pki/client-ca.crt`
 
@@ -2757,7 +2767,8 @@ Verify that the --read-only-port argument is set to 0 (Manual)
 ###### Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
+argument.
 
 `--read-only-port=0`
 
@@ -2789,7 +2800,8 @@ not set to 0 (Manual)
 ###### Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following argument.
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
+argument.
 
 `--streaming-connection-idle-timeout=5m`
 
@@ -2822,7 +2834,8 @@ true (Automated)
 ###### Remediation:
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following argument:
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
+argument:
 
 `--protect-kernel-defaults=true`
 
