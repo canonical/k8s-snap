@@ -2,9 +2,9 @@ name: Documentation Spelling Check
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'docs/**'
+  # pull_request:
+  #   paths:
+  #     - 'docs/**'
 
 jobs:
   spell-check:
@@ -18,13 +18,13 @@ jobs:
         run: make spelling
         working-directory: docs/canonicalk8s
         continue-on-error: true
-      - if: ${{ github.event_name == 'pull_request' && steps.spell-check.outcome == 'failure' }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'Hi, looks like pyspelling job found some issues, you can check it [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
-            })
+      # - if: ${{ github.event_name == 'pull_request' && steps.spell-check.outcome == 'failure' }}
+      #   uses: actions/github-script@v6
+      #   with:
+      #     script: |
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: 'Hi, looks like pyspelling job found some issues, you can check it [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+      #       })
