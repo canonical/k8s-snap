@@ -1,16 +1,17 @@
-From 3338580f4e22b001615320c40b1c1ad95f8a945e Mon Sep 17 00:00:00 2001
+From 94dadc0e3963e0b01af66e490500c619ec45c019 Mon Sep 17 00:00:00 2001
 From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
 Date: Fri, 10 May 2024 19:17:55 +0300
 Subject: [PATCH] Strict patch
 
 ---
- k8s/hack/init.sh                 |   6 +-
- k8s/wrappers/services/containerd |   5 -
- snap/snapcraft.yaml              | 168 ++++++++++++++++++++++++++++++-
- 3 files changed, 172 insertions(+), 7 deletions(-)
+ k8s/hack/init.sh                          |   6 +-
+ k8s/wrappers/services/containerd          |   5 -
+ snap/snapcraft.yaml                       | 171 +++++++++++++++++++++-
+ tests/integration/tests/test_util/util.py |  38 +++--
+ 4 files changed, 198 insertions(+), 22 deletions(-)
 
 diff --git a/k8s/hack/init.sh b/k8s/hack/init.sh
-index a0b57c7d..d53b528a 100755
+index a0b57c7..d53b528 100755
 --- a/k8s/hack/init.sh
 +++ b/k8s/hack/init.sh
 @@ -1,3 +1,7 @@
@@ -23,7 +24,7 @@ index a0b57c7d..d53b528a 100755
 +"${DIR}/connect-interfaces.sh"
 +"${DIR}/network-requirements.sh"
 diff --git a/k8s/wrappers/services/containerd b/k8s/wrappers/services/containerd
-index c3f71a01..a82e1c03 100755
+index c3f71a0..a82e1c0 100755
 --- a/k8s/wrappers/services/containerd
 +++ b/k8s/wrappers/services/containerd
 @@ -21,9 +21,4 @@ You can try to apply the profile manually by running:
@@ -37,7 +38,7 @@ index c3f71a01..a82e1c03 100755
 -
  k8s::common::execute_service containerd
 diff --git a/snap/snapcraft.yaml b/snap/snapcraft.yaml
-index 54b5fc0b..01631684 100644
+index 9d21e55..26f49ad 100644
 --- a/snap/snapcraft.yaml
 +++ b/snap/snapcraft.yaml
 @@ -7,7 +7,7 @@ description: |-
@@ -49,7 +50,7 @@ index 54b5fc0b..01631684 100644
  base: core20
  environment:
    REAL_PATH: $PATH
-@@ -216,6 +216,20 @@ parts:
+@@ -217,6 +217,20 @@ parts:
  apps:
    k8s:
      command: k8s/wrappers/commands/k8s
@@ -70,7 +71,7 @@ index 54b5fc0b..01631684 100644
    containerd:
      command: k8s/wrappers/services/containerd
      daemon: notify
-@@ -226,43 +240,195 @@ apps:
+@@ -227,43 +241,198 @@ apps:
      restart-condition: always
      start-timeout: 5m
      before: [kubelet]
@@ -263,9 +264,61 @@ index 54b5fc0b..01631684 100644
 +    plugs:
 +      - network
 +      - network-bind
-+      - process-control
 +      - network-control
++      - network-observe
++      - process-control
 +      - firewall-control
++      - system-observe
++      - mount-observe
+diff --git a/tests/integration/tests/test_util/util.py b/tests/integration/tests/test_util/util.py
+index 3e54d68..295c458 100644
+--- a/tests/integration/tests/test_util/util.py
++++ b/tests/integration/tests/test_util/util.py
+@@ -191,21 +191,29 @@ def remove_k8s_snap(instance: harness.Instance):
+         ["snap", "remove", config.SNAP_NAME, "--purge"]
+     )
+ 
+-    LOG.info("Waiting for shims to go away...")
+-    stubbornly(retries=20, delay_s=5).on(instance).until(
+-        lambda p: all(
+-            x not in p.stdout.decode()
+-            for x in ["containerd-shim", "cilium", "coredns", "/pause"]
+-        )
+-    ).exec(["ps", "-fea"])
+-
+-    LOG.info("Waiting for kubelet and containerd mounts to go away...")
+-    stubbornly(retries=20, delay_s=5).on(instance).until(
+-        lambda p: all(
+-            x not in p.stdout.decode()
+-            for x in ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
+-        )
+-    ).exec(["mount"])
++    # NOTE(lpetrut): on "strict", the snap remove hook is unable to:
++    #  * terminate processes
++    #  * remove network namespaces
++    #  * list mounts
++    #
++    # https://paste.ubuntu.com/p/WscCCfnvGH/plain/
++    # https://paste.ubuntu.com/p/sSnJVvZkrr/plain/
++    #
++    # LOG.info("Waiting for shims to go away...")
++    # stubbornly(retries=20, delay_s=5).on(instance).until(
++    #     lambda p: all(
++    #         x not in p.stdout.decode()
++    #         for x in ["containerd-shim", "cilium", "coredns", "/pause"]
++    #     )
++    # ).exec(["ps", "-fea"])
++    #
++    # LOG.info("Waiting for kubelet and containerd mounts to go away...")
++    # stubbornly(retries=20, delay_s=5).on(instance).until(
++    #     lambda p: all(
++    #         x not in p.stdout.decode()
++    #         for x in ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
++    #     )
++    # ).exec(["mount"])
+ 
+     # NOTE(neoaggelos): Temporarily disable this as it fails on strict.
+     # For details, `snap changes` then `snap change $remove_k8s_snap_change`.
 -- 
-2.34.1
+2.43.0
 

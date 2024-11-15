@@ -108,6 +108,8 @@ jobs:
           format: "sarif"
           output: "trivy-k8s-repo-scan--results.sarif"
           severity: "MEDIUM,HIGH,CRITICAL"
+        env:
+          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
       - name: Gather Trivy repo scan results
         run: |
           cp trivy-k8s-repo-scan--results.sarif ./sarifs/
@@ -119,7 +121,7 @@ jobs:
           for var in $(env | grep -o '^TRIVY_[^=]*'); do
             unset "$var"
           done
-          ./trivy rootfs ./squashfs-root/ --format sarif > sarifs/snap.sarif
+          ./trivy --db-repository public.ecr.aws/aquasecurity/trivy-db rootfs ./squashfs-root/ --format sarif > sarifs/snap.sarif
       - name: Get HEAD sha
         run: |
           SHA="$(git rev-parse HEAD)"

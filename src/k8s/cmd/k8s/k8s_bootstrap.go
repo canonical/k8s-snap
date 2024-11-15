@@ -13,6 +13,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/client/snapd"
 	"github.com/canonical/k8s/pkg/config"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/utils"
@@ -47,6 +48,24 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Long:   "Generate certificates, configure service arguments and start the Kubernetes services.",
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat), hookCheckLXD()),
 		Run: func(cmd *cobra.Command, args []string) {
+			snapdClient, err := snapd.NewClient()
+			if err != nil {
+				cmd.PrintErrln("Error: failed to create snapd client: %w", err)
+				env.Exit(1)
+				return
+			}
+			microk8sInfo, err := snapdClient.GetSnapInfo("microk8s")
+			if err != nil {
+				cmd.PrintErrln("Error: failed to check if microk8s is installed: %w", err)
+				env.Exit(1)
+				return
+			}
+			if microk8sInfo.StatusCode == 200 && microk8sInfo.HasInstallDate() {
+				cmd.PrintErrln("Error: microk8s snap is installed. Please remove it using the following command and try again:\n\n  sudo snap remove microk8s")
+				env.Exit(1)
+				return
+			}
+
 			if opts.interactive && opts.configFile != "" {
 				cmd.PrintErrln("Error: --interactive and --file flags cannot be set at the same time.")
 				env.Exit(1)

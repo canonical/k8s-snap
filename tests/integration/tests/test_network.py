@@ -4,21 +4,29 @@
 import json
 import logging
 from pathlib import Path
+from typing import List
 
-from test_util import harness, util
+import pytest
+from test_util import config, harness, util
 from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
 
 
-def test_network(session_instance: harness.Instance):
+@pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
+def test_network(instances: List[harness.Instance]):
+    instance = instances[0]
+    util.wait_until_k8s_ready(instance, [instance])
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
+
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
-    p = session_instance.exec(
+    p = instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -32,7 +40,7 @@ def test_network(session_instance: harness.Instance):
         ]
     )
 
-    p = session_instance.exec(
+    p = instance.exec(
         [
             "k8s",
             "kubectl",
@@ -51,6 +59,6 @@ def test_network(session_instance: harness.Instance):
     assert len(out["items"]) > 0, "No NGINX pod found"
     podIP = out["items"][0]["status"]["podIP"]
 
-    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=5).on(instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", "-s", f"http://{podIP}"])

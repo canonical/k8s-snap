@@ -164,6 +164,7 @@ parts:
       - ethtool
       - hostname
       - iproute2
+      - ipset
       - kmod
       - libatm1
       - libnss-resolve

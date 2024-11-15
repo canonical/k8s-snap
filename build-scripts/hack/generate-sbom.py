@@ -139,13 +139,15 @@ def k8s_snap_c_dqlite_components(manifest, extra_files):
 def rock_cilium(manifest, extra_files):
     LOG.info("Generating SBOM info for Cilium rocks")
 
+    cilium_version = "1.15.2"
+
     with util.git_repo(CILIUM_ROCK_REPO, CILIUM_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
-        rockcraft = (d / "cilium/rockcraft.yaml").read_text()
-        operator_rockcraft = (d / "cilium-operator-generic/rockcraft.yaml").read_text()
+        rockcraft = (d / f"{cilium_version}/cilium/rockcraft.yaml").read_text()
+        operator_rockcraft = (d / f"{cilium_version}/cilium-operator-generic/rockcraft.yaml").read_text()
 
-        extra_files["cilium/rockcraft.yaml"] = rockcraft
-        extra_files["cilium-operator-generic/rockcraft.yaml"] = operator_rockcraft
+        extra_files[f"{cilium_version}/cilium/rockcraft.yaml"] = rockcraft
+        extra_files[f"{cilium_version}/cilium-operator-generic/rockcraft.yaml"] = operator_rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["cilium"]["source"]
@@ -169,10 +171,10 @@ def rock_cilium(manifest, extra_files):
         },
         "language": "go",
         "details": [
-            "cilium/rockcraft.yaml",
+            f"{cilium_version}/cilium/rockcraft.yaml",
             "cilium/go.mod",
             "cilium/go.sum",
-            "cilium-operator-generic/rockcraft.yaml",
+            f"{cilium_version}/cilium-operator-generic/rockcraft.yaml",
             "cilium-operator-generic/go.mod",
             "cilium-operator-generic/go.sum",
         ],
