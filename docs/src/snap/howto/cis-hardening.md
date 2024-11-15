@@ -25,14 +25,15 @@ This guide assumes the following:
 
 ## Post-deployment extra hardening steps
 
-The following hardening configurations are not part of the default {{product}} setup
-as they might:
+The following hardening configurations are not part of the default {{product}}
+setup as they might:
 
   * impact performance
   * affect the compatibility with workloads
   * require input from the administrator
 
-Please, consider the effects of each configuration suggested before applying it.
+Please, consider the effects of each configuration suggested before applying
+it.
 
 ### Control plane nodes
 
@@ -156,10 +157,12 @@ sudo systemctl restart snap.k8s.kube-apiserver
 #### Set the Kubernetes scheduler and controller manager bind address
 
 ```{note}
-This configuration may affect compatibility with workloads and metrics collection.
+This configuration may affect compatibility with workloads and metrics
+collection.
 ```
 
-Edit the Kubernetes scheduler arguments file `/var/snap/k8s/common/args/kube-scheduler`
+Edit the Kubernetes scheduler arguments file
+`/var/snap/k8s/common/args/kube-scheduler`
 and set the `--bind-address` to be `127.0.0.1`.
 
 ```
@@ -186,8 +189,9 @@ sudo systemctl restart snap.k8s.kube-controller-manager
 
 ### Worker nodes
 
-Run the following commands on nodes that host workloads. In the default deployment
-the control plane nodes functions as workers and they may need to be hardened.
+Run the following commands on nodes that host workloads. In the default
+deployment the control plane nodes functions as workers and they may need
+to be hardened.
 
 #### Protect kernel defaults
 
@@ -219,13 +223,13 @@ sudo systemctl daemon-reload
 #### Edit kubelet service file permissions
 
 ```{note}
-Fully complying with the spirit of this hardening recommendation calls for systemd configuration
-that is out of the scope of this documentation page. 
+Fully complying with the spirit of this hardening recommendation calls for
+systemd configuration that is out of the scope of this documentation page. 
 ```
 
 Ensure that only the owner of `/etc/systemd/system/snap.k8s.kubelet.service`
-has full read and write access to it. Setting the kubelet service file permission
-needs to be performed every time the k8s snap refreshes.
+has full read and write access to it. Setting the kubelet service file
+permission needs to be performed every time the k8s snap refreshes.
 
 ```
 chmod 600 /etc/systemd/system/snap.k8s.kubelet.service
@@ -241,10 +245,10 @@ sudo systemctl restart snap.k8s.kubelet
 
 ## Assess CIS hardening with kube-bench 
 
-Download the latest [kube-bench release][] on your Kubernetes nodes. Make sure 
+Download the latest [kube-bench release][] on your Kubernetes nodes. Make sure
 to select the appropriate binary version.
 
-For example, to download the Linux binary, use the following command. Replace 
+For example, to download the Linux binary, use the following command. Replace
 `KB` by the version listed in the releases page.
 
 ``` 
@@ -2911,8 +2915,8 @@ ensures appropriate event capture (Manual)
 
 ###### Remediation:
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
-node and
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet
+on each worker node and
 set the --event-qps parameter as appropriate.
 
 Restart the kubelet service.
@@ -2942,9 +2946,8 @@ arguments are set as appropriate (Manual)
 
 ###### Remediation:
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
-node and
-set the following arguments:
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet
+on each worker node and set the following arguments:
 
 ```
 --tls-private-key-file=<path/to/private-key-file>
@@ -2979,8 +2982,8 @@ false (Automated)
 
 ###### Remediation:
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
-node and
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet
+on each worker node and
 remove the --rotate-certificates=false argument.
 
 Restart the kubelet service.
@@ -3010,10 +3013,9 @@ to true (Manual)
 
 ###### Remediation:
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
-node and
-set the argument --feature-
-gates=RotateKubeletServerCertificate=true
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet
+on each worker node and set the argument
+--feature-gates=RotateKubeletServerCertificate=true
 on each worker node.
 
 Restart the kubelet service.
@@ -3043,8 +3045,8 @@ Ciphers (Manual)
 
 ###### Remediation:
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each worker
-node and
+Edit the kubelet configuration file
+/var/snap/k8s/common/args/kubelet on each worker node and
 set the --tls-cipher-suites parameter as follows, or to a subset
 of these values.
 
