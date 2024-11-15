@@ -14,4 +14,5 @@ default storage built-in to {{product}}.
 
 Use default storage <storage.md>
 Use Ceph storage <ceph.md>
+Use cloud storage <cloud.md>
 ```
