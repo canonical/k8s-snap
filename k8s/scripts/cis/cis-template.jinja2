@@ -9,11 +9,21 @@
 #### Control {{ check.id }}
 
 {% if check.text %}
-Description: {{ check.text | trim | wordwrap(64) }}
+##### Description:
+
+{{ check.text | trim | wordwrap(64) }}
 
 {% endif %}
+
+{% if check.remediation %}
+##### Remediation:
+
+{{ check.remediation | trim | wordwrap(64)}}
+
+{% endif %}
+
 {% if check.audit %}
-Audit:
+##### Audit (as root):
 
 ```
 {{ check.audit | trim }}
@@ -21,17 +31,11 @@ Audit:
 
 {% endif %}
 {% if custom_outputs_by_control_id[check.id] %}
-Expected output:
+##### Expected output:
 
 ```
 {{ custom_outputs_by_control_id[check.id] | trim | wordwrap(64) }}
 ```
-
-{% endif %}
-{% if check.remediation %}
-Remediation:
-
-{{ check.remediation | trim | wordwrap(64)}}
 
 {% endif %}
 {% endfor %}

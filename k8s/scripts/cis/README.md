@@ -37,7 +37,7 @@ pip install -r requirements.txt
 Run the script
 
 ```sh
-python3 cis-yaml-to-md.py --input-dir=./kube-bench/cfg/cis-1.24-ck8s --output-dir=../../../docs/src/_parts/cis/
+python3 cis-yaml-to-md.py --input-dir=./kube-bench/cfg/ck8s-cis-1.24 --output-dir=../../../docs/src/_parts/cis/
 ```
 
 You should see the following output:
