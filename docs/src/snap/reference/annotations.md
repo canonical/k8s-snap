@@ -1,7 +1,7 @@
 # Annotations
 
 This page outlines the annotations that can be configured during cluster
-[bootstrap]. To do this, set the `cluster-config/annotations` parameter in
+[bootstrap]. To do this, set the `cluster-config.annotations` parameter in
 the bootstrap configuration.
 
 For example:
@@ -13,6 +13,8 @@ cluster-config:
         k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove: true
         k8sd/v1alpha/lifecycle/skip-stop-services-on-remove: true
 ```
+
+Please refer to the [Kubernetes website] for more information on annnotations.
 
 ## `k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove`
 
@@ -95,7 +97,7 @@ cluster-config:
 
 |   |   |
 |---|---|
-|**Values**| []string (comma separated) |
+|**Values**| \[] (string values comma separated) |
 |**Description**|Enable IP auto-detection based on which addresses on the nodes are within one of the provided CIDRs.|
 
 ## `k8sd/v1alpha1/calico/autodetection-v6/firstFound` 
@@ -137,7 +139,7 @@ cluster-config:
 
 |   |   |
 |---|---|
-|**Values**| []string (comma separated) |
+|**Values**| \[] (string values comma separated) |
 |**Description**|Enable IP auto-detection based on which addresses on the nodes are within one of the provided CIDRs.|
 
 ## `k8sd/v1alpha1/cilium/devices`
@@ -158,7 +160,7 @@ cluster-config:
 
 |   |   |
 |---|---|
-|**Values**| []string|
+|**Values**| \[] (string values comma separated)|
 |**Description**|Comma separated list of VLAN tags to bypass eBPF filtering on native devices. Cilium enables firewalling on native devices and filters all unknown traffic, including VLAN 802.1q packets, which pass through the main device with the associated tag (e.g., VLAN device eth0.4000 and its main interface eth0). Supports `0` as wildcard for bypassing all VLANs. e.g. `4001,4002`|
 
 ## `k8sd/v1alpha1/metrics-server/image-repo`
@@ -186,4 +188,5 @@ for(var i=0;i<el.length;i++){
 
 <!-- Links -->
 
+[Kubernetes website]:https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 [bootstrap]: bootstrap-config-reference
