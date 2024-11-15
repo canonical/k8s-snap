@@ -11,7 +11,7 @@ var (
 	Chart = helm.InstallableChart{
 		Name:         "ck-dns",
 		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "coredns-1.29.0.tgz"),
+		ManifestPath: filepath.Join("charts", "coredns-1.36.0.tgz"),
 	}
 
 	// imageRepo is the image to use for CoreDNS.
