@@ -45,8 +45,8 @@ may incurr performance penalties in the form of disk I/O.
 ```
 
 Create an audit-policy.yaml file under `/var/snap/k8s/common/etc/` and specify 
-the level of auditing you desire based on the [upstream instructions][]. Here is 
-a minimal example of such a policy file.
+the level of auditing you desire based on the [upstream instructions][].
+Here is a minimal example of such a policy file.
 
 ```
 sudo sh -c 'cat >/var/snap/k8s/common/etc/audit-policy.yaml <<EOL
@@ -1189,7 +1189,8 @@ Ensure that the admission control plugin EventRateLimit is set
 
 Follow the Kubernetes documentation and set the desired limits
 in a configuration file.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver
 and set the following arguments.
 
 ```
@@ -1315,9 +1316,10 @@ Ensure that the admission control plugin ServiceAccount is set
 
 Follow the documentation and create ServiceAccount objects as
 per your environment.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and ensure that the --disable-
-admission-plugins parameter is set to a
+Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver
+on the control plane node and ensure that the
+--disable-admission-plugins parameter is set to a
 value that does not include ServiceAccount.
 
 
@@ -1373,7 +1375,8 @@ Ensure that the admission control plugin NodeRestriction is set
 
 Follow the Kubernetes documentation and configure
 NodeRestriction plug-in on kubelets.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the --enable-admission-plugins
 parameter to a
 value that includes NodeRestriction.
@@ -1726,9 +1729,9 @@ Ensure that the --client-ca-file argument is set as appropriate
 
 Follow the Kubernetes documentation and set up the TLS
 connection on the apiserver.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the client certificate
-authority file.
+Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver on the control plane
+node and set the client certificate authority file.
 
 `--client-ca-file=<path/to/client-ca-file>`
 
