@@ -48,7 +48,7 @@ CONTOUR_CHART_VERSION = "17.0.4"
 
 # MetalLB Helm repository and chart version
 METALLB_REPO = "https://metallb.github.io/metallb"
-METALLB_CHART_VERSION = "0.14.5"
+METALLB_CHART_VERSION = "0.14.8"
 
 
 def get_kubernetes_version() -> str:
