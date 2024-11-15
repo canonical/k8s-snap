@@ -178,7 +178,7 @@ cluster-config:
 <script>
 const el = document.getElementsByTagName("h2");
 for(var i=0;i<el.length;i++){
-  el[i].style.fontSize = '1.2em';
+  el[i].style.fontSize = '1.5em';
   el[i].style.fontWeight = '600';
 }
 </script>
