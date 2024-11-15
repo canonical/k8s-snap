@@ -256,7 +256,7 @@ def rock_metrics_server(manifest, extra_files):
         },
         "language": "go",
         "details": [
-            "metrics-server/0.7.0/rockcraft.yaml",
+            "metrics-server/0.7.2/rockcraft.yaml",
             "metrics-server/go.mod",
             "metrics-server/go.sum",
         ],
