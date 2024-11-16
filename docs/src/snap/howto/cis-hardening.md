@@ -1192,8 +1192,8 @@ set (Manual)
 
 Follow the Kubernetes documentation and set the desired
 limits in a configuration file.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-and set the following arguments.
+Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver and set the following arguments.
 
 ```
 --enable-admission-plugins=...,EventRateLimit,...
@@ -1318,9 +1318,9 @@ set (Automated)
 
 Follow the documentation and create ServiceAccount objects
 as per your environment.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and ensure that the --disable-
-admission-plugins parameter is set to a
+Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver on the control plane node
+and ensure that the --disable-admission-plugins parameter is set to a
 value that does not include ServiceAccount.
 
 
@@ -1376,9 +1376,9 @@ set (Automated)
 
 Follow the Kubernetes documentation and configure
 NodeRestriction plug-in on kubelets.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --enable-admission-
-plugins parameter to a
+Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver on the control plane node
+and set the --enable-admission-plugins parameter to a
 value that includes NodeRestriction.
 
 `--enable-admission-plugins=...,NodeRestriction,...`
@@ -1690,8 +1690,8 @@ arguments are set as appropriate (Automated)
 **Remediation:**
 
 Follow the Kubernetes documentation and set up the TLS
-connection on the apiserver.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+connection on the apiserver. Then, edit the API server configuration
+file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the TLS certificate and
 private key file parameters.
 
@@ -1725,8 +1725,8 @@ appropriate (Automated)
 **Remediation:**
 
 Follow the Kubernetes documentation and set up the TLS
-connection on the apiserver.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+connection on the apiserver. Then, edit the API server configuration
+file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the client certificate
 authority file.
 
@@ -1779,10 +1779,9 @@ as appropriate (Manual)
 **Remediation:**
 
 Follow the Kubernetes documentation and configure a
-EncryptionConfig file.
-Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --encryption-provider-
-config parameter to the path of that file.
+EncryptionConfig file. Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver on the control plane node and
+set the --encryption-provider-config parameter to the path of that file.
 
 `--encryption-provider-
 config=</path/to/EncryptionConfig/File>`
@@ -2110,8 +2109,8 @@ Ensure that the --profiling argument is set to false
 
 **Remediation:**
 
-Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler file
-on the control plane node and set the following argument.
+Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler
+file on the control plane node and set the following argument.
 
 `--profiling=false`
 
