@@ -18,7 +18,7 @@ Currently {{product}} is working towards general availability, but you
 can install it now to try:
 
 - **Clustering** - need high availability or just an army of worker nodes?
-  {{product}} is emminently scaleable, see the [tutorial on adding
+  {{product}} is eminently scalable, see the [tutorial on adding
   more nodes][nodes]. 
 - **Networking** - Our built-in network component allows cluster administrators
   to automatically scale and secure network policies across the cluster. Find
@@ -32,8 +32,8 @@ Follow along with the [tutorial] to get started!
 
 <!-- LINKS -->
 
-[tutorial]: /snap/tutorial/getting-started
-[nodes]: /snap/tutorial/add-remove-nodes
+[tutorial]: ../tutorial/getting-started
+[nodes]: ../tutorial/add-remove-nodes
 [COS Lite]: https://charmhub.io/cos-lite
-[networking]: /snap/howto/networking/index
-[observability documentation]: /charm/howto/cos-lite
+[networking]: ../howto/networking/index
+[observability documentation]: ../../charm/howto/cos-lite

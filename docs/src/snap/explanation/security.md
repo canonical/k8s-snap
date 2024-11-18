@@ -44,11 +44,11 @@ have access to your cluster. Describing the security mechanisms of these clouds
 is out of the scope of this documentation, but you may find the following links
 useful.
 
-- Amazon Web Services <https://aws.amazon.com/security/>
-- Google Cloud Platform <https://cloud.google.com/security/>
-- Metal As A Service(MAAS) <https://maas.io/docs/snap/3.0/ui/hardening-your-maas-installation>
-- Microsoft Azure <https://docs.microsoft.com/en-us/azure/security/azure-security>
-- VMWare VSphere <https://www.vmware.com/security/hardening-guides.html>
+- [Amazon Web Services security][]
+- [Google Cloud Platform security][]
+- [Metal As A Service(MAAS) hardening][]
+- [Microsoft Azure security][]
+- [VMware VSphere hardening guides][]
 
 ## Security Compliance
 
@@ -62,4 +62,10 @@ check the [roadmap][] for current areas of work.
 [Kubernetes Security documentation]: https://kubernetes.io/docs/concepts/security/overview/
 [snap documentation]: https://snapcraft.io/docs/security-sandboxing
 [rocks-security]: https://canonical-rockcraft.readthedocs-hosted.com/en/latest/explanation/rockcraft/
-[roadmap]: /snap/reference/roadmap
+[roadmap]: ../reference/roadmap
+[Amazon Web Services security]: https://aws.amazon.com/security/
+[Google Cloud Platform security]:https://cloud.google.com/security/
+[Metal As A Service(MAAS) hardening]:https://maas.io/docs/snap/3.0/ui/hardening-your-maas-installation
+[Microsoft Azure security]:https://docs.microsoft.com/en-us/azure/security/azure-security
+[VMware VSphere hardening guides]: https://www.vmware.com/security/hardening-guides.html
+

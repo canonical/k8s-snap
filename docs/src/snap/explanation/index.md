@@ -16,7 +16,9 @@ certificates
 channels
 clustering
 ingress
-/snap/explanation/security
+epa
+security
+cis
 ```
 
 ---

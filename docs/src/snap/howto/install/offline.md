@@ -29,7 +29,7 @@ are necessary to verify the integrity of the packages.
 ```{note}
 Update the version of k8s by adjusting the channel parameter.
 For more information on channels visit the
-[channels explanation](/snap/explanation/channels.md).
+[channels explanation](../../explanation/channels.md).
 ```
 
 ```{note}
@@ -91,7 +91,7 @@ All workloads in a Kubernetes cluster are run as an OCI image.
 Kubernetes needs to be able to fetch these images and load them
 into the container runtime.
 For {{product}}, it is also necessary to fetch the images used
-by its features (network, dns, etc.) as well as any images that are
+by its features (network, DNS, etc.) as well as any images that are
 needed to run specific workloads.
 
 ```{note} 
@@ -120,12 +120,12 @@ ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1
 ghcr.io/canonical/k8s-snap/sig-storage/csi-provisioner:v5.0.1
 ghcr.io/canonical/k8s-snap/sig-storage/csi-resizer:v1.11.1
 ghcr.io/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1
-ghcr.io/canonical/metrics-server:0.7.0-ck1
+ghcr.io/canonical/metrics-server:0.7.0-ck2
 ghcr.io/canonical/rawfile-localpv:0.8.0-ck4
 ```
 
-A list of images can also be found in the `images.txt` file when unsquashing the
-downloaded k8s snap.
+A list of images can also be found in the `images.txt` file when the
+downloaded k8s snap is unsquashed.
 
 Please ensure that the images used by workloads are tracked as well.
 
@@ -299,11 +299,10 @@ After a while, confirm that all the cluster nodes show up in the output of the
 <!-- LINKS -->
 
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
-[svc-ports]: /snap/explanation/services-and-ports.md
-[proxy]: /snap/howto/proxy.md
+[proxy]: ../networking/proxy.md
 [sync-images-yaml]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/sync-images.yaml
 [regsync]: https://github.com/regclient/regclient/blob/main/docs/regsync.md
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
 [regctl.sh]: https://github.com/canonical/k8s-snap/blob/main/src/k8s/tools/regctl.sh
-[nodes]: /snap/tutorial/add-remove-nodes.md
+[nodes]: ../../tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/

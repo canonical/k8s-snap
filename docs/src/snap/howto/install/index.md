@@ -12,8 +12,8 @@ the current How-to guides below.
 :glob:
 :titlesonly:
 
-snap
+Install from a snap <snap.md>
 multipass
-lxd
-offline
+Install in LXD <lxd.md>
+Install in air-gapped environments <offline.md>
 ```

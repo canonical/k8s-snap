@@ -37,5 +37,6 @@ how to set these.
 
 <!-- LINKS -->
 
-[How to guide for configuring proxies for the k8s snap]: /snap/howto/proxy
-[How to guide for configuring proxies for k8s charms]: /charm/howto/proxy
+[How to guide for configuring proxies for the k8s snap]: ../howto/networking/proxy
+[How to guide for configuring proxies for k8s charms]: ../../charm/howto/proxy
+
