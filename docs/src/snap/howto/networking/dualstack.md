@@ -6,13 +6,13 @@ both IPv4 and IPv6 addresses, allowing them to communicate over either protocol.
 This document will guide you through enabling dual-stack, including necessary
 configurations, known limitations, and common issues.
 
-### Prerequisites
+## Prerequisites
 
 Before enabling dual-stack, ensure that your environment supports IPv6, and
 that your network configuration (including any underlying infrastructure) is
 compatible with dual-stack operation.
 
-### Enabling Dual-Stack
+## Enabling Dual-Stack
 
 Dual-stack can be enabled by specifying both IPv4 and IPv6 CIDRs during the
 cluster bootstrap process. The key configuration parameters are:
@@ -133,11 +133,18 @@ cluster bootstrap process. The key configuration parameters are:
    working.
 
 
-### CIDR Size Limitations
+## CIDR Size Limitations
 
 When setting up dual-stack networking, it is important to consider the
 limitations regarding CIDR size:
 
-- **/64 is too large for the Service CIDR**: Using a `/64` CIDR for services
-may cause issues like failure to initialize the IPv6 allocator. This is due
+- **/108 is the maximum size for the Service CIDR**
+Using a smaller value than `/108` for service CIDRs
+may cause issues like failure to initialise the IPv6 allocator. This is due
 to the CIDR size being too large for Kubernetes to handle efficiently.
+
+See upstream reference: [kube-apiserver validation][kube-apiserver-test]
+
+<!-- LINKS -->
+
+[kube-apiserver-test]: https://github.com/kubernetes/kubernetes/blob/master/cmd/kube-apiserver/app/options/validation_test.go#L435

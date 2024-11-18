@@ -14,11 +14,13 @@ Overview <self>
 :glob:
 :titlesonly:
 
-external-etcd
+Use external etcd <external-etcd.md>
 rollout-upgrades
+in-place-upgrades
 upgrade-providers
 migrate-management
 custom-ck8s
+refresh-certs
 ```
 
 ---

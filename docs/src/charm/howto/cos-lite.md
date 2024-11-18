@@ -28,7 +28,7 @@ juju add-model --config logging-config='<root>=DEBUG' microk8s-ubuntu
 We also set the logging level to DEBUG so that helpful debug information is
 shown when you use `juju debug-log` (see [juju debug-log][juju-debug-log]).
 
-Use the Ubuntu charm to deploy an application named “microk8s”:
+Use the Ubuntu charm to deploy an application named `microk8s`:
 
 ```
 juju deploy ubuntu microk8s --series=focal --constraints="mem=8G cores=4 root-disk=30G"
@@ -36,13 +36,13 @@ juju deploy ubuntu microk8s --series=focal --constraints="mem=8G cores=4 root-di
 
 Deploy MicroK8s on Ubuntu by accessing the unit you created at the last step
 with `juju ssh microk8s/0` and following the 
-[Install Microk8s][how-to-install-microk8s] guide for configuration.
+[Install MicroK8s][how-to-install-MicroK8s] guide for configuration.
 
 ```{note} Make sure to enable the hostpath-storage and MetalLB addons for 
-Microk8s.
+MicroK8s.
 ```
 
-Export the Microk8s kubeconfig file to your current directory after
+Export the MicroK8s kubeconfig file to your current directory after
 configuration:
 
 ```
@@ -57,9 +57,9 @@ command):
 KUBECONFIG=microk8s-config.yaml juju add-k8s microk8s-cloud
 ```
 
-## Deploying COS Lite on the Microk8s cloud
+## Deploying COS Lite on the MicroK8s cloud
 
-On the Microk8s cloud, create a new model and deploy the `cos-lite` bundle:
+On the MicroK8s cloud, create a new model and deploy the `cos-lite` bundle:
 
 ```
 juju add-model cos-lite microk8s-cloud
@@ -145,4 +145,4 @@ you can head over to the [COS Lite documentation][cos-lite-docs].
 [juju-models]: https://juju.is/docs/juju/model
 [juju-debug-log]: https://juju.is/docs/juju/juju-debug-log
 [cross-model-integration]: https://juju.is/docs/juju/relation#heading--cross-model
-[how-to-install-microk8s]: https://microk8s.io/docs/getting-started
+[how-to-install-MicroK8s]: https://microk8s.io/docs/getting-started

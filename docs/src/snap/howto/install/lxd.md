@@ -109,7 +109,7 @@ port assigned by Kubernetes.
 In this example, we will use [Microbot] as it provides a simple HTTP endpoint
 to expose. These steps can be applied to any other deployment.
 
-First, initialize the k8s cluster with
+First, initialise the k8s cluster with
 
 ```
 lxc exec k8s -- sudo k8s bootstrap
@@ -239,4 +239,4 @@ need to access for example storage devices (See comment in [^5]).
 [default-bridged-networking]: https://ubuntu.com/blog/lxd-networking-lxdbr0-explained
 [Microbot]: https://github.com/dontrebootme/docker-microbot
 [AppArmor]: https://apparmor.net/
-[channels]: /snap/explanation/channels
+[channels]: ../../explanation/channels

@@ -80,4 +80,4 @@ ready state.
 [channels page]: ../../explanation/channels
 [snap]: https://snapcraft.io/docs
 [snapd support]: https://snapcraft.io/docs/installing-snapd
-[bootstrap]: /snap/reference/bootstrap-config-reference
+[bootstrap]: ../../reference/bootstrap-config-reference

@@ -15,11 +15,6 @@ The documentation also supports various diagrams-as-code options. We
 prefer to use UML-style diagrams, but you can also use Mermaid or many
 other types.
 
-Diagrams like this are processed using the 'kroki' directive:
-
-```{kroki} ../../assets/ck-cluster.puml
-```
-
 ## Links
 
 Explanations frequently include links to other documents. In particular, please

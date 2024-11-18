@@ -16,10 +16,12 @@ commands
 annotations
 certificates
 bootstrap-config-reference
+control-plane-join-config-reference
+worker-join-config-reference
 proxy
 troubleshooting
 architecture
-community
+Community <community>
 roadmap
 ```
 

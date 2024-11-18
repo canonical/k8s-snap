@@ -11,9 +11,11 @@ how to configure and use key capabilities of {{product}}.
 ```{toctree}
 :titlesonly:
 
-/snap/howto/networking/default-dns.md
-/snap/howto/networking/default-network.md
-/snap/howto/networking/default-ingress.md
-/snap/howto/networking/default-loadbalancer.md
-/snap/howto/networking/dualstack.md
+Use default DNS <default-dns.md>
+Use default network <default-network.md>
+Use default Ingress <default-ingress.md>
+Use default load-balancer <default-loadbalancer.md>
+Enable Dual-Stack networking <dualstack.md>
+Set up an IPv6-only cluster <ipv6.md>
+Configure proxy settings <proxy.md>
 ```

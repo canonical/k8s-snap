@@ -11,12 +11,12 @@ Overview <self>
 
 ```{toctree}
 :titlesonly:
-:globs:
+:glob:
 
 about
 security
 capi-ck8s.md
-
+in-place-upgrades.md
 ```
 
 

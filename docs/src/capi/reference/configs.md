@@ -68,6 +68,7 @@ spec:
         - echo "second-command"
 ```
 
+(preruncommands)=
 ### `preRunCommands`
 **Type:** `[]string`
 
@@ -107,7 +108,7 @@ spec:
 
 **Required:** no
 
-`airGapped` is used to signal that we are deploying to an airgap environment. In this case, the provider will not attempt to install k8s-snap on the machine. The user is expected to install k8s-snap manually with [`preRunCommands`](#preRunCommands), or provide an image with k8s-snap pre-installed.
+`airGapped` is used to signal that we are deploying to an air-gapped environment. In this case, the provider will not attempt to install k8s-snap on the machine. The user is expected to install k8s-snap manually with [`preRunCommands`](#preruncommands), or provide an image with k8s-snap pre-installed.
 
 **Example Usage:**
 ```yaml
@@ -120,7 +121,7 @@ spec:
 
 **Required:** no
 
-`initConfig` is configuration for the initializing the cluster features
+`initConfig` is configuration for the initialising the cluster features
 
 **Fields:**
 
@@ -192,8 +193,8 @@ spec:
 | `datastoreType` | `string` | The type of datastore to use for the control plane. | `""` |
 | `datastoreServersSecretRef` | `struct{name:str, key:str}` | A reference to a secret containing the datastore servers. | `{}` |
 | `k8sDqlitePort` | `int` | The port to use for k8s-dqlite. If unset, 2379 (etcd) will be used. | `2379` |
-| `microclusterAddress` | `string` | The address (or CIDR) to use for microcluster. If unset, the default node interface is chosen. | `""` |
-| `microclusterPort` | `int` | The port to use for microcluster. If unset, ":2380" (etcd peer) will be used. | `":2380"` |
+| `microclusterAddress` | `string` | The address (or CIDR) to use for MicroCluster. If unset, the default node interface is chosen. | `""` |
+| `microclusterPort` | `int` | The port to use for MicroCluster. If unset, ":2380" (etcd peer) will be used. | `":2380"` |
 | `extraKubeAPIServerArgs` | `map[string]string` | Extra arguments to add to kube-apiserver. | `map[]` |
 
 **Example Usage:**
