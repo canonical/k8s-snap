@@ -24,7 +24,7 @@ profiles by running the command:
 lxc profile list
 ```
 
-For example, suppose we have created a model called 'myk8s'. This will
+For example, suppose we have created a model called `myk8s`. This will
 output a table like this:
 
 ```

@@ -116,7 +116,7 @@ determines the node's role in the Kubernetes cluster. The `k8s` charm manages
 directing the `juju` controller to reach the model's eventually consistent
 state. For more detail on Juju's concepts, see the [Juju docs][].
 
-The administrator may choose any supported cloud-types (Openstack, MAAS, AWS,
+The administrator may choose any supported cloud-types (OpenStack, MAAS, AWS,
 GCP, Azure...) on which to manage the machines making up the Kubernetes
 cluster. Juju selects a single leader unit per application to act as a
 centralised figure with the model. The `k8s` leader oversees Kubernetes

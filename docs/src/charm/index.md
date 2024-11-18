@@ -9,8 +9,6 @@ Overview <self>
 :hidden:
 :titlesonly:
 :caption: Deploy with Juju
-
-Overview <charm/index.md>
 tutorial/index.md
 howto/index.md
 explanation/index.md

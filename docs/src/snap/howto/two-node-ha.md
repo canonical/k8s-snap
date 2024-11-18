@@ -134,7 +134,7 @@ DRBD_MOUNT_DIR=/mnt/drbd0
 sudo mkdir -p $DRBD_MOUNT_DIR
 ```
 
-Run the following *once* to initialize the filesystem.
+Run the following *once* to initialise the file system.
 
 ```
 sudo drbdadm up r0
@@ -145,7 +145,7 @@ sudo mkfs.ext4 /dev/drbd0
 sudo drbdadm down r0
 ```
 
-Add the DRBD device to the ``multipathd`` blacklist, ensuring that the multipath
+Add the DRBD device to the ``multipathd`` blacklist, ensuring that the `multipath`
 service will not attempt to manage this device:
 
 ```
@@ -304,7 +304,7 @@ WantedBy=multi-user.target
 The ``two-node-ha.sh start_service`` command used by the service wrapper
 automatically detects the expected Dqlite role based on the DRBD state.
 It then takes the necessary steps to bootstrap the Dqlite state directories,
-synchronize with the peer node (if available) and recover the database.
+synchronise with the peer node (if available) and recover the database.
 ```
 
 When a DRBD failover occurs, the ``two-node-ha-k8s`` service needs to be
@@ -385,8 +385,8 @@ Remove the offending segments and restart the ``two-node-ha-k8s`` service.
 
 ### DRBD split brain
 
-The DRBD cluster may enter a [split brain] state and stop synchronizing. The
-chances increase if fencing (stonith) is not enabled.
+The DRBD cluster may enter a [split brain] state and stop synchronising. The
+chances increase if fencing (STONITH) is not enabled.
 
 ```
 ubuntu@hatwo:~$ sudo drbdadm status

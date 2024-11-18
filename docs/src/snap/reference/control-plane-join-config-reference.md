@@ -1,7 +1,7 @@
 # Control plane node join configuration file reference
 
 A YAML file can be supplied to the `k8s join-cluster ` command to configure and
-customize new nodes.
+customise new nodes.
 
 This reference section provides all available options for control plane nodes.
 

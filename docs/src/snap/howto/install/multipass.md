@@ -1,6 +1,6 @@
 # Install with Multipass (Ubuntu/Mac/Windows)
 
-**Multipass** <https://multipass.run/> is a simple way to run Ubuntu in a
+[Multipass][]is a simple way to run Ubuntu in a
 virtual machine, no matter what your underlying OS. It is the recommended way
 to run {{product}} on Windows and macOS systems, and is equally useful
 for running multiple instances of the `k8s` snap on Ubuntu too.
@@ -26,7 +26,7 @@ Multipass is shipped as a snap for Ubuntu and other OSes which support the
 Windows users should download and install the Multipass installer from the
 website. 
 
-The latest version is available here <https://multipass.run/download/windows>,
+The [latest Windows version][] is available to download,
 though you may wish to visit the [Multipass website][] for more details.
 
 
@@ -37,7 +37,7 @@ though you may wish to visit the [Multipass website][] for more details.
 Users running macOS should download and install the Multipass installer from the
 website. 
 
-The latest version is available here <https://multipass.run/download/macos>,
+The [latest macOS version] is available to download,
 though you may wish to visit the [Multipass website][] for more details, including
 an alternate install method using `brew`.
 
@@ -60,14 +60,14 @@ multipass launch 22.04 --name k8s-node --memory 4G --disk 20G --cpus 2
 
 This command specifies:
 
-- **22.04**: The Ubuntu image used as the basis for the instance
-- **--name**: The name by which you will refer to the instance
-- **--memory**: The memory to allocate
-- **--disk**: The disk space to allocate
-- **--cpus**: The number of CPU cores to reserve for this instance
+- `22.04`: The Ubuntu image used as the basis for the instance
+- `--name`: The name by which you will refer to the instance
+- `--memory`: The memory to allocate
+- `--disk`: The disk space to allocate
+- `--cpus`: The number of CPU cores to reserve for this instance
 
 For more details of creating instances with Multipass, please see the
-[Multipass documentation][multipass-options] about instance creation.
+[Multipass documentation][Multipass-options] about instance creation.
 
 ## Access the created instance
 
@@ -111,8 +111,11 @@ multipass purge
 
 <!-- LINKS -->
 <!-- markdownlint-disable MD053 -->
+[Multipass]:https://multipass.run/
 [snap-support]: https://snapcraft.io/docs/installing-snapd
-[multipass-options]: https://multipass.run/docs/get-started-with-multipass-linux#heading--create-a-customised-instance
+[Multipass-options]: https://multipass.run/docs/get-started-with-multipass-linux#heading--create-a-customised-instance
 [install instructions]: ./snap
 [Getting started]: ../../tutorial/getting-started
 [Multipass website]: https://multipass.run/docs
+[latest Window version]:https://multipass.run/download/windows
+[latest macOS version]:https://multipass.run/download/macos

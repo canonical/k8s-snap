@@ -21,7 +21,7 @@ Please refer to the [Kubernetes website] for more information on annnotations.
 |   |   |
 |---|---|
 | **Values**| "true"\|"false"|
-| **Description**| If set, only microcluster and file cleanup are performed.  This is helpful when an external controller (e.g., CAPI) manages the Kubernetes node lifecycle. By default,  k8sd will remove the Kubernetes node when it is removed from the cluster. |
+| **Description**| If set, only MicroCluster and file cleanup are performed.  This is helpful when an external controller (e.g., CAPI) manages the Kubernetes node lifecycle. By default,  k8sd will remove the Kubernetes node when it is removed from the cluster. |
 
 ## `k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove`
 
@@ -161,7 +161,7 @@ Please refer to the [Kubernetes website] for more information on annnotations.
 |   |   |
 |---|---|
 |**Values**| \[] (string values comma separated)|
-|**Description**|Comma separated list of VLAN tags to bypass eBPF filtering on native devices. Cilium enables firewalling on native devices and filters all unknown traffic, including VLAN 802.1q packets, which pass through the main device with the associated tag (e.g., VLAN device eth0.4000 and its main interface eth0). Supports `0` as wildcard for bypassing all VLANs. e.g. `4001,4002`|
+|**Description**|Comma separated list of VLAN tags to bypass eBPF filtering on native devices. Cilium enables a firewall on native devices and filters all unknown traffic, including VLAN 802.1q packets, which pass through the main device with the associated tag (e.g., VLAN device eth0.4000 and its main interface eth0). Supports `0` as wildcard for bypassing all VLANs. e.g. `4001,4002`|
 
 ## `k8sd/v1alpha1/metrics-server/image-repo`
 
@@ -184,7 +184,6 @@ for(var i=0;i<el.length;i++){
   el[i].style.fontWeight = '600';
 }
 </script>
-
 
 <!-- Links -->
 

@@ -9,7 +9,6 @@ Overview <self>
 :hidden:
 :titlesonly:
 :maxdepth: 6
-Overview <index.md>
 tutorial/index.md
 howto/index.md
 explanation/index.md

@@ -3,4 +3,16 @@
 . "$SNAP/k8s/lib.sh"
 
 k8s::util::wait_kube_apiserver
+
+# NOTE: kube-proxy reads some values related to the `nf_conntrack`
+# module from procfs on startup, so we must ensure it's loaded:
+# https://github.com/canonical/k8s-snap/issues/626
+if [ -f "/proc/sys/net/netfilter/nf_conntrack_max" ]; then
+    echo "Kernel module nf_conntrack was already loaded before kube-proxy startup."
+else
+    k8s::util::load_kernel_modules nf_conntrack \
+        && echo "Successfully modprobed nf_conntrack before kube-proxy startup." \
+        || echo "WARN: Failed to 'modprobe nf_conntrack' before kube-proxy startup."
+fi
+
 k8s::common::execute_service kube-proxy
