@@ -189,7 +189,7 @@ If omitted defaults to `true`.
 Sets the cloud provider to be used by the cluster.
 
 When this is set as `external`, node will wait for an external cloud provider to
-do cloud specific setup and finish node initialisation.
+do cloud specific setup and finish node initialization.
 
 Possible values: `external`.
 
