@@ -208,7 +208,7 @@ This option ensures complete removal of the snap and its associated data.
 
 - Learn more about {{product}} with kubectl: [How to use kubectl]
 - Explore Kubernetes commands with our [Command Reference Guide]
-- Learn how to set up a multi-node environment by [Adding and Removing Nodes]
+- Learn how to set up a multi-node environment [Setting up a K8s cluster]
 - Configure storage options: [Storage]
 - Master Kubernetes networking concepts: [Networking]
 - Discover how to enable and configure Ingress resources: [Ingress]
@@ -217,7 +217,7 @@ This option ensures complete removal of the snap and its associated data.
 
 [How to use kubectl]: kubectl
 [Command Reference Guide]: ../reference/commands
-[Adding and Removing Nodes]: add-remove-nodes
+[Setting up a K8s cluster]: add-remove-nodes
 [Storage]: ../howto/storage/index
 [Networking]: ../howto/networking/index.md
 [Ingress]: ../howto/networking/default-ingress.md

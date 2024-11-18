@@ -306,6 +306,7 @@ After a while, confirm that all the cluster nodes show up in the output of the
 
 [Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
 [proxy]: ../networking/proxy.md
+[sync-images-yaml]: https://github.com/canonical/k8s-snap/blob/main/build-scripts/hack/sync-images.yaml
 [regsync]: https://github.com/regclient/regclient/blob/main/docs/regsync.md
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
 [regctl.sh]: https://github.com/canonical/k8s-snap/blob/main/src/k8s/tools/regctl.sh
