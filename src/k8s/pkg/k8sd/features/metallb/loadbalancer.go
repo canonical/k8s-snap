@@ -91,12 +91,14 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 				"repository": controllerImageRepo,
 				"tag":        ControllerImageTag,
 			},
+			"command": "/controller",
 		},
 		"speaker": map[string]any{
 			"image": map[string]any{
 				"repository": speakerImageRepo,
 				"tag":        speakerImageTag,
 			},
+			"command": "/speaker",
 			// TODO(neoaggelos): make frr enable/disable configurable through an annotation
 			// We keep it disabled by default
 			"frr": map[string]any{
