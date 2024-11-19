@@ -139,7 +139,7 @@ def k8s_snap_c_dqlite_components(manifest, extra_files):
 def rock_cilium(manifest, extra_files):
     LOG.info("Generating SBOM info for Cilium rocks")
 
-    cilium_version = "1.15.2"
+    cilium_version = "1.16.3"
 
     with util.git_repo(CILIUM_ROCK_REPO, CILIUM_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
