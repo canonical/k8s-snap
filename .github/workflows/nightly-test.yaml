@@ -20,6 +20,10 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && ["self-hosted", "Linux", "ARM64", "jammy", "large"] || ["self-hosted", "Linux", "AMD64", "jammy", "large"] }}
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Install lxd and tox

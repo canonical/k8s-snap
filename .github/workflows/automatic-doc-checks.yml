@@ -3,13 +3,20 @@ name: Core Documentation Checks
 on:
   - workflow_dispatch
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   documentation-checks:
-    uses: canonical/documentation-workflows/.github/workflows/documentation-checks.yaml@main
-    with:
-      working-directory: 'docs/moonray'
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+    - uses: canonical/documentation-workflows/.github/workflows/documentation-checks.yaml@main
+      with:
+        working-directory: 'docs/moonray'
       
