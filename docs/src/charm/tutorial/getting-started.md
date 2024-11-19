@@ -7,7 +7,7 @@ instances and also to integrate other operators to enhance or customise your
 Kubernetes deployment. This tutorial will take you through installing
 Kubernetes and some common first steps.
 
-## What you will learn
+## What will be covered
 
 - How to install {{product}}
 - Making a cluster
@@ -41,7 +41,9 @@ The currently available versions of the charm can be discovered by running:
 ```
 juju info k8s
 ```
+
 or
+
 ```
 juju info k8s-worker
 ```
@@ -106,13 +108,14 @@ fetched earlier also includes a list of the relations possible, and from this
 we can see that the k8s-worker requires "cluster: k8s-cluster".
 
 To connect these charms and effectively add the worker to our cluster, we use
-the 'integrate' command, adding the interface we wish to connect
+the 'integrate' command, adding the interface we wish to connect.
 
 ```
 juju integrate k8s k8s-worker:cluster
 ```
 
-After a short time, the worker node will share information with the control plane and be joined to the cluster.
+After a short time, the worker node will share information with the control plane 
+and be joined to the cluster.
 
 ## 4. Scale the cluster (Optional)
 
@@ -168,7 +171,8 @@ config file which will just require a bit of editing:
 juju run k8s/0 get-kubeconfig >> ~/.kube/config
 ```
 
-The output includes the root of the YAML, `kubeconfig: |`, so we can just use an editor to remove that line:
+The output includes the root of the YAML, `kubeconfig: |`, so we can just use an
+editor to remove that line:
 
 ```
 nano ~/.kube/config
@@ -189,6 +193,7 @@ kubectl config show
 ```
 
 ...which should output something like this:
+
 ```
 apiVersion: v1
 clusters:
@@ -217,15 +222,7 @@ running a simple command such as :
 kubectl get pods -A
 ```
 
-This should return some pods, confirming the command can reach the cluster:
-
-```
-NAMESPACE     NAME                               READY   STATUS    RESTARTS   AGE
-kube-system   cilium-4m5xj                       1/1     Running   0          35m
-kube-system   cilium-operator-5ff9ddcfdb-b6qxm   1/1     Running   0          35m
-kube-system   coredns-7d4dffcffd-tvs6v           1/1     Running   0          35m
-kube-system   metrics-server-6f66c6cc48-wdxxk    1/1     Running   0          35m
-```
+This should return some pods, confirming the command can reach the cluster.
 
 ## Next steps
 
