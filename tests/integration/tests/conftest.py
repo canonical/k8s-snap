@@ -9,8 +9,13 @@ from typing import Generator, Iterator, List, Optional, Union
 import pytest
 from test_util import config, harness, util
 from test_util.etcd import EtcdCluster
+from test_util.registry import Registry
 
 LOG = logging.getLogger(__name__)
+
+# The following snaps will be downloaded once per test run and preloaded
+# into the harness instances to reduce the number of downloads.
+PRELOADED_SNAPS = ["snapd", "core20"]
 
 
 def _harness_clean(h: harness.Harness):
@@ -79,6 +84,35 @@ def h() -> harness.Harness:
     _harness_clean(h)
 
 
+@pytest.fixture(scope="session")
+def registry(h: harness.Harness) -> Optional[Registry]:
+    if config.USE_LOCAL_MIRROR:
+        yield Registry(h)
+    else:
+        # local image mirror disabled, avoid initializing the
+        # registry mirror instance.
+        yield None
+
+
+@pytest.fixture(scope="session", autouse=True)
+def snapd_preload() -> None:
+    if not config.PRELOAD_SNAPS:
+        LOG.info("Snap preloading disabled, skipping...")
+        return
+
+    LOG.info(f"Downloading snaps for preloading: {PRELOADED_SNAPS}")
+    for snap in PRELOADED_SNAPS:
+        util.run(
+            [
+                "snap",
+                "download",
+                snap,
+                f"--basename={snap}",
+                "--target-directory=/tmp",
+            ]
+        )
+
+
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
@@ -141,6 +175,7 @@ def network_type(request) -> Union[str, None]:
 @pytest.fixture(scope="function")
 def instances(
     h: harness.Harness,
+    registry: Registry,
     node_count: int,
     tmp_path: Path,
     disable_k8s_bootstrapping: bool,
@@ -163,8 +198,30 @@ def instances(
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(network_type=network_type)
         instances.append(instance)
+
+        if config.PRELOAD_SNAPS:
+            for preloaded_snap in PRELOADED_SNAPS:
+                ack_file = f"{preloaded_snap}.assert"
+                remote_path = (tmp_path / ack_file).as_posix()
+                instance.send_file(
+                    source=f"/tmp/{ack_file}",
+                    destination=remote_path,
+                )
+                instance.exec(["snap", "ack", remote_path])
+
+                snap_file = f"{preloaded_snap}.snap"
+                remote_path = (tmp_path / snap_file).as_posix()
+                instance.send_file(
+                    source=f"/tmp/{snap_file}",
+                    destination=remote_path,
+                )
+                instance.exec(["snap", "install", remote_path])
+
         if not no_setup:
             util.setup_k8s_snap(instance, tmp_path, snap)
+
+            if config.USE_LOCAL_MIRROR:
+                registry.apply_configuration(instance)
 
     if not disable_k8s_bootstrapping and not no_setup:
         first_node, *_ = instances

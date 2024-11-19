@@ -1,6 +1,7 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import json
 import os
 from pathlib import Path
 
@@ -20,6 +21,18 @@ ETCD_URL = os.getenv("ETCD_URL") or "https://github.com/etcd-io/etcd/releases/do
 
 # ETCD_VERSION is the version of etcd to use.
 ETCD_VERSION = os.getenv("ETCD_VERSION") or "v3.4.34"
+
+# REGISTRY_DIR contains all templates required to setup an registry mirror.
+REGISTRY_DIR = MANIFESTS_DIR / "registry"
+
+# REGISTRY_URL is the url from which the registry binary should be downloaded.
+REGISTRY_URL = (
+    os.getenv("REGISTRY_URL")
+    or "https://github.com/distribution/distribution/releases/download"
+)
+
+# REGISTRY_VERSION is the version of registry to use.
+REGISTRY_VERSION = os.getenv("REGISTRY_VERSION") or "v2.8.3"
 
 # FLAVOR is the flavor of the snap to use.
 FLAVOR = os.getenv("TEST_FLAVOR") or ""
@@ -129,3 +142,19 @@ VERSION_UPGRADE_MIN_RELEASE = os.environ.get("TEST_VERSION_UPGRADE_MIN_RELEASE")
 STRICT_INTERFACE_CHANNELS = (
     os.environ.get("TEST_STRICT_INTERFACE_CHANNELS", "").strip().split()
 )
+
+# Cache and preload certain snaps such as snapd and core20 to avoid fetching them
+# for every test instance. Note that k8s-snap is currently based on core20.
+PRELOAD_SNAPS = (os.getenv("TEST_PRELOAD_SNAPS") or "1") == "1"
+
+# Setup a local image mirror to reduce the number of image pulls. The mirror
+# will be configured to run in a session scoped harness instance (e.g. LXD container)
+USE_LOCAL_MIRROR = (os.getenv("TEST_USE_LOCAL_MIRROR") or "1") == "1"
+
+DEFAULT_MIRROR_LIST = [
+    {"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io"},
+    {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io"},
+]
+
+# Local mirror configuration.
+MIRROR_LIST = json.loads(os.getenv("TEST_MIRROR_LIST", "{}")) or DEFAULT_MIRROR_LIST

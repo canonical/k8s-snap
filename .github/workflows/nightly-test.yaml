@@ -48,6 +48,7 @@ jobs:
           # Upgrading from 1.30 is not supported.
           TEST_VERSION_UPGRADE_MIN_RELEASE: "1.31"
           TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
+          TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}]'
         run: |
           export PATH="/home/runner/.local/bin:$PATH"
           cd tests/integration && sg lxd -c 'tox -vve integration'
