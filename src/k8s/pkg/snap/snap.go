@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -329,7 +330,26 @@ func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
 }
 
 func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) error {
-	// TODO: check for available ports for k8s-dqlite, apiserver, containerd, etc
+	// TODO(eac): Make these configurable or part of a Config struct
+	ports := []int{
+		config.APIServer.GetSecurePort(),    // kubeAPIServerPort
+		config.Datastore.GetK8sDqlitePort(), // k8sDqlitePort
+		10248,                               // kubeletHealthzPort
+		10250,                               // kubeletPort
+		10256,                               // kubeProxyHealthzPort
+		10257,                               // kubeControllerManagerPort
+		10259,                               // kubeSchedulerPort
+	}
+	for _, port := range ports {
+		for _, address := range []string{"127.0.0.1", "0.0.0.0"} {
+			listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
+			if err != nil {
+				listener.Close()
+				return fmt.Errorf("couldn't bind to required address %s. Is it in use?", address)
+			}
+			listener.Close()
+		}
+	}
 
 	// NOTE(neoaggelos): in some environments the Kubernetes might hang when running for the first time
 	// This works around the issue by running them once during the install hook
