@@ -9,7 +9,7 @@ sync:
     target: '{{ env "MIRROR" }}/canonical/cilium:1.15.2-ck2'
     type: image
   - source: ghcr.io/canonical/coredns:1.11.3
-    target: '{{ env "MIRROR" }}/canonical/coredns:1.11.3
+    target: '{{ env "MIRROR" }}/canonical/coredns:1.11.3-ck0'
     type: image
   - source: ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1
     target: '{{ env "MIRROR" }}/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1'
