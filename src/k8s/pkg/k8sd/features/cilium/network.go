@@ -120,6 +120,9 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, 
 				"clusterPoolIPv6PodCIDRList": ipv6CIDR,
 			},
 		},
+		"envoy": map[string]any{
+			"enabled": false, // 1.16+ installs envoy as a standalone daemonset by default if not explicitly disabled
+		},
 		// https://docs.cilium.io/en/v1.15/network/kubernetes/kubeproxy-free/#kube-proxy-hybrid-modes
 		"nodePort":                 ciliumNodePortValues,
 		"disableEnvoyVersionCheck": true,
