@@ -46,7 +46,7 @@ k8s::common::is_strict() {
 # Cleanup configuration left by the network feature
 k8s::remove::network() {
   k8s::common::setup_env
-  
+
   "${SNAP}/bin/kube-proxy" --cleanup || true
 
   k8s::cmd::k8s x-cleanup network || true
@@ -92,6 +92,16 @@ k8s::remove::containers() {
   for dev in $LOOP_DEVICES; do
     losetup -d $dev
   done
+}
+
+k8s::remove::containerd() {
+  k8s::common::setup_env
+
+  # only remove containerd if the snap was already bootstrapped.
+  # this is to prevent removing containerd when it is not installed by the snap.
+  if [ -f "$SNAP_COMMON/lock/containerd-socket-path" ]; then
+     rm -f $(cat "$SNAP_COMMON/lock/containerd-socket-path")
+  fi
 }
 
 # Run a ctr command against the local containerd socket

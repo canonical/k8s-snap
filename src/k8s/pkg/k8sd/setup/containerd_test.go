@@ -120,4 +120,11 @@ func TestContainerd(t *testing.T) {
 			g.Expect(val).To(BeZero())
 		})
 	})
+
+	t.Run("Lockfile", func(t *testing.T) {
+		g := NewWithT(t)
+		b, err := os.ReadFile(filepath.Join(s.LockFilesDir(), "containerd-socket-path"))
+		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(string(b)).To(Equal(s.ContainerdSocketDir()))
+	})
 }

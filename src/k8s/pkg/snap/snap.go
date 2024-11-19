@@ -339,15 +339,16 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) er
 		}
 	}
 
-	// check if the containerd.sock file already exists, signaling the fact that another containerd instance
+	// check if the containerd path already exists, signaling the fact that another containerd instance
 	// is already running on this node, which will conflict with the snap.
-	socketPath := s.ContainerdSocketPath()
-	if _, err := os.Stat(socketPath); err == nil {
+	// Checks the directories instead of the containerd.sock file, since this file does not exist if
+	// containerd is not running/stopped.
+	if _, err := os.Stat(s.ContainerdSocketDir()); err == nil {
 		return fmt.Errorf("The path '%s' required for the containerd socket already exists. "+
 			"This may mean that another service is already using that path, and it conflicts with the k8s snap. "+
-			"Please make sure that there is no other service installed that uses the same path, and remove the existing file.", socketPath)
+			"Please make sure that there is no other service installed that uses the same path, and remove the existing directory.", s.ContainerdSocketDir())
 	} else if !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("Encountered an error while checking '%s': %w", socketPath, err)
+		return fmt.Errorf("Encountered an error while checking '%s': %w", s.ContainerdSocketDir(), err)
 	}
 
 	return nil
