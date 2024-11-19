@@ -30,6 +30,7 @@ type Mock struct {
 	ContainerdConfigDir         string
 	ContainerdExtraConfigDir    string
 	ContainerdRegistryConfigDir string
+	ContainerdBaseDir           string
 	ContainerdRootDir           string
 	ContainerdSocketDir         string
 	ContainerdSocketPath        string
@@ -129,6 +130,14 @@ func (s *Snap) GID() int {
 
 func (s *Snap) Hostname() string {
 	return s.Mock.Hostname
+}
+
+func (s *Snap) SetContainerdBaseDir(baseDir string) {
+	s.Mock.ContainerdBaseDir = baseDir
+}
+
+func (s *Snap) GetContainerdBaseDir() string {
+	return s.Mock.ContainerdBaseDir
 }
 
 func (s *Snap) ContainerdConfigDir() string {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
@@ -38,6 +39,12 @@ func (e *Endpoints) postClusterBootstrap(_ state.State, r *http.Request) respons
 
 	if status.Ready {
 		return response.BadRequest(fmt.Errorf("cluster is already bootstrapped"))
+	}
+
+	// If not set, leave the default base dir location.
+	if req.Config.ContainerdBaseDir != "" {
+		// append k8s-containerd to the given base dir, so we don't flood it with our own folders.
+		e.provider.Snap().SetContainerdBaseDir(filepath.Join(req.Config.ContainerdBaseDir, "k8s-containerd"))
 	}
 
 	// NOTE(neoaggelos): microcluster adds an implicit 30 second timeout if no context deadline is set.
