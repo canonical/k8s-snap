@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 
-	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
@@ -131,7 +130,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Error(err, "failed to cleanup control plane certificates")
 	}
 
-	if _, ok := cfg.Annotations.Get(apiv1.AnnotationSkipStopServicesOnRemove); !ok {
+	if _, ok := cfg.Annotations.Get(apiv1_annotations.AnnotationSkipStopServicesOnRemove); !ok {
 		log.Info("Stopping worker services")
 		if err := snaputil.StopWorkerServices(ctx, snap); err != nil {
 			log.Error(err, "Failed to stop worker services")
