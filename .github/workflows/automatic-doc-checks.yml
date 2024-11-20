@@ -12,11 +12,6 @@ concurrency:
 
 jobs:
   documentation-checks:
-    - name: Harden Runner
-      uses: step-security/harden-runner@v2
-      with:
-        egress-policy: audit
     - uses: canonical/documentation-workflows/.github/workflows/documentation-checks.yaml@main
       with:
         working-directory: 'docs/moonray'
-      

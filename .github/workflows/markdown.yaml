@@ -9,10 +9,6 @@ jobs:
   markdown-lint:
     runs-on: ubuntu-22.04
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: audit
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0

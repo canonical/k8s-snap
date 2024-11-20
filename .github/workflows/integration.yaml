@@ -53,10 +53,6 @@ jobs:
     name: Test Branch Management
     runs-on: ubuntu-20.04
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: audit
       - name: Check out code
         uses: actions/checkout@v4
         with:
@@ -81,10 +77,6 @@ jobs:
     needs: build
 
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: audit
       - name: Check out code
         uses: actions/checkout@v4
       - name: Setup Python

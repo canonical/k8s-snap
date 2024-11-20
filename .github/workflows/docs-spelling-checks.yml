@@ -12,10 +12,6 @@ jobs:
   spell-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: audit
       - uses: actions/checkout@v4
       - name: Install aspell
         run: sudo apt-get install aspell aspell-en
