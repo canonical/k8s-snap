@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -122,7 +123,9 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 
 	log.Info("Removing worker node mark")
 	if err := snaputil.MarkAsWorkerNode(snap, false); err != nil {
-		log.Error(err, "Failed to unmark node as worker")
+		if !errors.Is(err, os.ErrNotExist) {
+			log.Error(err, "failed to unmark node as worker")
+		}
 	}
 
 	log.Info("Cleaning up control plane certificates")
