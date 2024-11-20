@@ -1,4 +1,4 @@
-# Adding and Removing Nodes
+# Adding and removing nodes
 
 Typical production clusters are hosted across multiple data centres and cloud
 environments, enabling them to leverage geographical distribution for improved
@@ -56,14 +56,15 @@ sudo snap install --classic --edge k8s
 ### 2. Bootstrap your control plane node
 
 <!-- markdownlint-restore -->
-Bootstrap the control plane node:
+Bootstrap the control plane node with default configuration:
 
 ```
 sudo k8s bootstrap
 ```
 
 {{product}} allows you to create two types of nodes: control plane and
-worker nodes. In this example, we're creating a worker node.
+worker nodes. In this example, we just initialised a control plane node, now 
+let's create a worker node.
 
 Generate the token required for the worker node to join the cluster by executing
 the following command on the control-plane node:
@@ -71,6 +72,9 @@ the following command on the control-plane node:
 ```
 sudo k8s get-join-token worker --worker
 ```
+
+`worker` refers to the name of the node we want to join. `--worker` is the type 
+of node we want to join.
 
 A base64 token will be printed to your terminal. Keep it handy as you will need
 it for the next step.
@@ -81,36 +85,36 @@ it for the next step.
 
 ### 3. Join the cluster on the worker node
 
-To join the worker node to the cluster, run:
+To join the worker node to the cluster, run on worker node:
 
 ```
 sudo k8s join-cluster <join-token>
 ```
 
-After a few seconds, you should see: `Joined the cluster.`
+After a few seconds, you should see: `Joined the cluster.` 
 
 ### 4. View the status of your cluster
 
-To see what we've accomplished in this tutorial:
+Let's review what we've accomplished in this tutorial.
 
-If you created a control plane node, check that it joined successfully:
+To see the control plane node created:
 
 ```
 sudo k8s status
 ```
 
-If you created a worker node, verify with this command:
+Verify the worker node joined successfully with this command
+on control-plane node:
 
 ```
 sudo k8s kubectl get nodes
 ```
 
-You should see that you've successfully added a worker or control plane node to
-your cluster.
+You should see that you've successfully added a worker to your cluster.
 
 Congratulations!
 
-### 4. Remove Nodes and delete the VMs (Optional)
+### 4. Remove nodes and delete the VMs (Optional)
 
 It is important to clean-up your nodes before tearing down the VMs.
 
@@ -139,7 +143,7 @@ multipass delete worker
 multipass purge
 ```
 
-## Next Steps
+## Next steps
 
 - Discover how to enable and configure Ingress resources [Ingress][Ingress]
 - Learn more about {{product}} with kubectl [How to use

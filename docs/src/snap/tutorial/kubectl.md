@@ -13,7 +13,7 @@ Before you begin, make sure you have the following:
   [Getting Started])
 - You are using the built-in `kubectl` command from the snap.
 
-### 1. The Kubectl Command
+### 1. The kubectl command
 
 The `kubectl` command communicates with the
 [Kubernetes API server][kubernetes-api-server].
@@ -21,16 +21,24 @@ The `kubectl` command communicates with the
 The `kubectl` command included with {{product}} is built from the
 original upstream source into the `k8s` snap you have installed.
 
-### 2. How To Use Kubectl
+### 2. How to use kubectl
 
-To access `kubectl`, run the following command:
+To access `kubectl`, run the following:
+
+```
+sudo k8s kubectl 
+```
+
+This will display a list of commands possible with `kubectl`. 
+
+> **Note**: Only control plane nodes can use the `kubectl` command. Worker
+> nodes do not have access to this command.
+
+The format of `kubectl` commands are:
 
 ```
 sudo k8s kubectl <command>
 ```
-
-> **Note**: Only control plane nodes can use the `kubectl` command. Worker
-> nodes do not have access to this command.
 
 ### 3. Configuration
 
@@ -49,7 +57,7 @@ Let's review what was created in the [Getting Started]
 guide.
 
 To see what pods were created when we enabled the `network` and `dns`
-components:
+components during the cluster bootstrap:
 
 ```
 sudo k8s kubectl get pods -o wide -n kube-system
@@ -68,7 +76,7 @@ The `kubernetes` service in the `default` namespace is where the Kubernetes API
 server resides, and it's the endpoint with which other nodes in your cluster
 will communicate.
 
-### 5. Creating and Managing Objects
+### 5. Creating and managing objects
 
 Let's deploy an NGINX server using this command:
 

@@ -1,4 +1,4 @@
-# Cluster provisioning with CAPI and Canonical K8s
+# Cluster provisioning with CAPI and {{product}}
 
 This guide covers how to deploy a {{product}} multi-node cluster
 using Cluster API (CAPI).
@@ -16,7 +16,7 @@ curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.3/
 sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 ```
 
-### Configure clusterctl
+## Configure `clusterctl`
 
 `clusterctl` contains a list of default providers. Right now, {{product}} is 
 not yet part of that list. To make `clusterctl` aware of the new
@@ -33,10 +33,10 @@ providers:
     url: "https://github.com/canonical/cluster-api-k8s/releases/latest/control-plane-components.yaml"
 ```
 
-### Set up a management cluster
+## Set up a management cluster
 
-The management cluster hosts the CAPI providers. You can use Canonical
-Kubernetes as a management cluster:
+The management cluster hosts the CAPI providers. You can use {{product}} as a 
+management cluster:
 
 ```
 sudo snap install k8s --classic --edge
@@ -50,7 +50,7 @@ When setting up the management cluster, place its kubeconfig under
 `~/.kube/config` so other tools such as `clusterctl` can discover and interact
 with it.
 
-### Prepare the infrastructure provider
+## Prepare the infrastructure provider
 
 Before generating a cluster, you need to configure the infrastructure provider.
 Each provider has its own prerequisites. Please follow the instructions
@@ -68,7 +68,7 @@ chmod +x clusterawsadm
 sudo mv clusterawsadm /usr/local/bin
 ```
 
-`clusterawsadm` helps you bootstrapping the AWS environment that CAPI will use
+`clusterawsadm` helps you bootstrapping the AWS environment that CAPI will use.
 It will also create the necessary IAM roles for you.
 
 Start by setting up environment variables defining the AWS account to use, if
@@ -153,7 +153,7 @@ You are now all set to deploy the MAAS CAPI infrastructure provider.
 ````
 `````
 
-### Initialise the management cluster
+## Initialise the management cluster
 
 To initialise the management cluster with the latest released version of the
 providers and the infrastructure of your choice:
@@ -162,7 +162,7 @@ providers and the infrastructure of your choice:
 clusterctl init --bootstrap ck8s --control-plane ck8s -i <infra-provider-of-choice>
 ```
 
-### Generate a cluster spec manifest
+## Generate a cluster spec manifest
 
 Once the bootstrap and control-plane controllers are up and running, you can
 apply the cluster manifests with the specifications of the cluster you want to
@@ -198,7 +198,7 @@ set the cluster’s properties. Review the available options in the respective
 definitions file and edit the cluster manifest (`cluster.yaml` above) to match
 your needs.
 
-### Deploy the cluster
+## Deploy the cluster
 
 To deploy the cluster, run:
 
@@ -237,7 +237,7 @@ You can then see the workload nodes using:
 KUBECONFIG=./kubeconfig sudo k8s kubectl get node
 ```
 
-### Delete the cluster
+## Delete the cluster
 
 To delete a cluster:
 
