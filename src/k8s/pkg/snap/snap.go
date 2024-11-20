@@ -344,8 +344,7 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) er
 		for _, address := range []string{"127.0.0.1", "0.0.0.0"} {
 			listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
 			if err != nil {
-				listener.Close()
-				return fmt.Errorf("couldn't bind to required address %s. Is it in use?", address)
+				return fmt.Errorf("couldn't bind to required address %s:%d. Is it in use?", address, port)
 			}
 			listener.Close()
 		}
