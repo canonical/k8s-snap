@@ -159,6 +159,11 @@ func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs 
 		}
 	}
 
+	// Write the containerd socket path to a file to properly clean-up on removal.
+	if err := utils.WriteFile(filepath.Join(snap.LockFilesDir(), "containerd-socket-path"), []byte(snap.ContainerdSocketDir()), 0o600); err != nil {
+		return fmt.Errorf("failed to write containerd-socket-path: %w", err)
+	}
+
 	return nil
 }
 
