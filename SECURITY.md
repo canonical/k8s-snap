@@ -1,9 +1,5 @@
 # Security Policy
 
-## Supported versions
-
-Support follows the lifecycle mentioned in [Canonical Kubernetes release cycle](https://ubuntu.com/about/release-cycle#canonical-kubernetes-release-cycle).
-
 ## Reporting a Vulnerability
 
 To report a security issue, please follow the steps below:
