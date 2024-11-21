@@ -100,7 +100,7 @@ k8s::remove::containerd() {
   # only remove containerd if the snap was already bootstrapped.
   # this is to prevent removing containerd when it is not installed by the snap.
   if [ -f "$SNAP_COMMON/lock/containerd-socket-path" ]; then
-     rm -f $(cat "$SNAP_COMMON/lock/containerd-socket-path")
+     rm -rf $(cat "$SNAP_COMMON/lock/containerd-socket-path")
   fi
 }
 
