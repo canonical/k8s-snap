@@ -19,6 +19,12 @@ Install the {{product}} snap with:
 sudo snap install k8s --edge --classic
 ```
 
+```{warning}
+Avoid installing containerd/docker via apt when using the {{product}} snap, as
+the snap defaults to containerd paths. Installing both can cause conflicts. Do
+not install containerd/docker and the {{product}} snap simultaneously.
+```
+
 ### 2. Bootstrap a Kubernetes cluster
 
 The bootstrap command initialises your cluster and configures your host system
