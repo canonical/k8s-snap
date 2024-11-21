@@ -11,9 +11,12 @@ LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(1)
-def test_node_cleanup(instances: List[harness.Instance]):
+def test_node_cleanup(instances: List[harness.Instance], tmp_path):
     instance = instances[0]
     util.wait_for_dns(instance)
     util.wait_for_network(instance)
 
     util.remove_k8s_snap(instance)
+
+    util.setup_k8s_snap(instance, tmp_path)
+    instance.exec(["k8s", "bootstrap"])
