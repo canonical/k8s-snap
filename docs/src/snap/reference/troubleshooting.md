@@ -82,8 +82,31 @@ EOF
 reboot
 ```
 
+## The path required for the containerd socket already exists
+
+### Problem
+
+{{product}} tries to create the containerd socket to manage containers,
+but it fails because the socket file already exists, which indicates another
+installation of containerd on the system.
+
+### Explanation
+
+In classic confinment mode, {{product}} uses the default containerd
+paths. This means that a {{product}} installation will conflict with
+any existing system configuration where containerd is already installed.
+For example, if you have Docker installed, or another Kubernetes distribution
+that uses containerd.
+
+### Solution
+
+We recommend running {{product}} in an isolated environment, for this purpose,
+you can create a LXD container for your installation. See
+[Install {{product}} in LXD][lxd-install] for instructions.
+
 <!-- LINKS -->
 
+[lxd-install]: ../howto/install/lxd.md
 [kubeconfig file]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
 [kubernetes-122955]: https://github.com/kubernetes/kubernetes/issues/122955
 [kubernetes-125923]: https://github.com/kubernetes/kubernetes/pull/125923
