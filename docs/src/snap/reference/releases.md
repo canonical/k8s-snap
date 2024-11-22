@@ -19,4 +19,6 @@ and backwards-incompatible changes.
 Our release cadence and support window for all Kubernetes-related products are 
 available on the main Ubuntu website, on the [release cycle page][].
 
+<!-- LINKS -->
 
+[release cycle page]: https://ubuntu.com/about/release-cycle#canonical-kubernetes-release-cycle
