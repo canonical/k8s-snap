@@ -205,7 +205,12 @@ To create a bundle of images, use the [regctl][regctl] tool or invoke the
 
 ```
 ./src/k8s/tools/regctl.sh image export ghcr.io/canonical/k8s-snap/pause:3.10 \
---platform=local > pause.tar
+--name ghcr.io/canonical/k8s-snap/pause:3.10 --platform=local > pause.tar
+```
+
+```{note} 
+The flag `--name` is essential. Without it, the exported image will be imported with a hash only,
+and the image with the particular tag required by k8s will not be found.
 ```
 
 Upon choosing this option, place all images under
