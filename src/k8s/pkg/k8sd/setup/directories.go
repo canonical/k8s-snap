@@ -82,5 +82,11 @@ func ensureCniBinDir(cniBinDir string) error {
 		}
 	}
 
+	f, err := os.CreateTemp(cniBinDir, "test*.txt")
+	if err != nil {
+		return fmt.Errorf("failed create file in %q: %w", cniBinDir, err)
+	}
+	defer os.Remove(f.Name())
+
 	return nil
 }
