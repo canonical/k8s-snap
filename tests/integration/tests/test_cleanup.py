@@ -31,7 +31,6 @@ def test_node_cleanup(instances: List[harness.Instance], tmp_path):
     )
     for path in CONTAINERD_PATHS:
         assert f"cannot access '{path}': No such file or directory" in process.stderr
-        
+
     util.setup_k8s_snap(instance, tmp_path)
     instance.exec(["k8s", "bootstrap"])
-
