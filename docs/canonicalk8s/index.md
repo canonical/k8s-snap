@@ -25,7 +25,7 @@ Deploy from Snap package <src/snap/index.md>
 Deploy with Juju <src/charm/index.md>
 Deploy with Cluster API <src/capi/index.md>
 Community <community.md>
-Release notes <release.md>
+Release notes <src/snap/reference/releases.md>
 
 ```
 
