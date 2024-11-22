@@ -6,7 +6,9 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/pem"
+	"fmt"
 	"net"
 	"os"
 	"testing"
@@ -25,14 +27,60 @@ func mustReadTestData(t *testing.T, filename string) string {
 	return string(data)
 }
 
+// patchCertPEM can be used to modify certificates for testing purposes.
+func patchCertPEM(
+	certPEM string,
+	caPEM string,
+	caKeyPEM string,
+	updateFunc func(*x509.Certificate) error,
+) (string, string, error) {
+	block, _ := pem.Decode([]byte(certPEM))
+	if block == nil {
+		return "", "", fmt.Errorf("failed to decode certificate")
+	}
+
+	cert, _ := x509.ParseCertificate(block.Bytes)
+	if cert == nil {
+		return "", "", fmt.Errorf("failed to decode certificate")
+	}
+
+	// Generate a new certificate based on the input certificate and the
+	// updates applied by "updateFunc".
+	template, err := pkiutil.GenerateCertificate(
+		cert.Subject,
+		cert.NotBefore, cert.NotAfter, false,
+		cert.DNSNames, cert.IPAddresses,
+	)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate patched certificate")
+	}
+
+	if err = updateFunc(template); err != nil {
+		return "", "", fmt.Errorf("cert update failed: %w", err)
+	}
+
+	caCert, caKey, err := pkiutil.LoadCertificate(caPEM, caKeyPEM)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to load CA cert: %w", err)
+	}
+
+	certPem, keyPem, err := pkiutil.SignCertificate(template, 2048, caCert, &caCert.PublicKey, caKey)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to sign cert: %w", err)
+	}
+
+	return certPem, keyPem, err
+}
+
 func TestControlPlaneCertificates(t *testing.T) {
 	notBefore := time.Now()
-	c := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
+	opts := pki.ControlPlanePKIOpts{
 		Hostname:          "h1",
 		NotBefore:         notBefore,
 		NotAfter:          notBefore.AddDate(1, 0, 0),
 		AllowSelfSignedCA: true,
-	})
+	}
+	c := pki.NewControlPlanePKI(opts)
 
 	g := NewWithT(t)
 
@@ -141,5 +189,102 @@ func TestControlPlaneCertificates(t *testing.T) {
 
 			g.Expect(cert.DNSNames).To(ConsistOf(expectedDNSNames))
 		})
+	})
+
+	t.Run("InvalidSan", func(t *testing.T) {
+		c := pki.NewControlPlanePKI(opts)
+		g := NewWithT(t)
+		g.Expect(c.CompleteCertificates()).To(Succeed())
+
+		// Switch CA certificates, expecting certificate validation failures.
+		c.CACert = c.FrontProxyCACert
+		c.CAKey = c.FrontProxyCAKey
+		g.Expect(c.CompleteCertificates()).ToNot(Succeed())
+	})
+
+	t.Run("KubeletCertExpired", func(t *testing.T) {
+		c := pki.NewControlPlanePKI(opts)
+		g := NewWithT(t)
+		g.Expect(c.CompleteCertificates()).To(Succeed())
+
+		var err error
+		c.KubeletCert, c.KubeletKey, err = patchCertPEM(c.KubeletCert, c.CACert, c.CAKey, func(cert *x509.Certificate) error {
+			cert.NotAfter = time.Now().AddDate(-1, 0, 0)
+			return nil
+		})
+		g.Expect(err).ToNot(HaveOccurred())
+
+		err = c.CompleteCertificates()
+		g.Expect(err).To(MatchError(ContainSubstring("certificate expired")))
+	})
+
+	t.Run("KubeletCertNotBefore", func(t *testing.T) {
+		c := pki.NewControlPlanePKI(opts)
+		g := NewWithT(t)
+		g.Expect(c.CompleteCertificates()).To(Succeed())
+
+		var err error
+		c.KubeletCert, c.KubeletKey, err = patchCertPEM(c.KubeletCert, c.CACert, c.CAKey, func(cert *x509.Certificate) error {
+			cert.NotBefore = time.Now().AddDate(1, 0, 0)
+			return nil
+		})
+		g.Expect(err).ToNot(HaveOccurred())
+
+		err = c.CompleteCertificates()
+		g.Expect(err).To(MatchError(ContainSubstring("invalid certificate, not valid before")))
+	})
+
+	t.Run("KubeletCertInvalidCN", func(t *testing.T) {
+		c := pki.NewControlPlanePKI(opts)
+		g := NewWithT(t)
+		g.Expect(c.CompleteCertificates()).To(Succeed())
+
+		var err error
+		c.KubeletCert, c.KubeletKey, err = patchCertPEM(c.KubeletCert, c.CACert, c.CAKey, func(cert *x509.Certificate) error {
+			cert.Subject = pkix.Name{
+				CommonName:   "unexpected-cn",
+				Organization: cert.Subject.Organization,
+			}
+			return nil
+		})
+		g.Expect(err).ToNot(HaveOccurred())
+
+		err = c.CompleteCertificates()
+		g.Expect(err).To(MatchError(ContainSubstring("invalid certificate CN")))
+	})
+
+	t.Run("KubeletCertInvalidOrganization", func(t *testing.T) {
+		c := pki.NewControlPlanePKI(opts)
+		g := NewWithT(t)
+		g.Expect(c.CompleteCertificates()).To(Succeed())
+
+		var err error
+		c.KubeletCert, c.KubeletKey, err = patchCertPEM(c.KubeletCert, c.CACert, c.CAKey, func(cert *x509.Certificate) error {
+			cert.Subject = pkix.Name{
+				CommonName:   cert.Subject.CommonName,
+				Organization: []string{"unexpected-organization"},
+			}
+			return nil
+		})
+		g.Expect(err).ToNot(HaveOccurred())
+
+		err = c.CompleteCertificates()
+		g.Expect(err).To(MatchError(ContainSubstring("missing cert organization")))
+	})
+
+	t.Run("KubeletCertInvalidDNSName", func(t *testing.T) {
+		c := pki.NewControlPlanePKI(opts)
+		g := NewWithT(t)
+		g.Expect(c.CompleteCertificates()).To(Succeed())
+
+		var err error
+		c.KubeletCert, c.KubeletKey, err = patchCertPEM(c.KubeletCert, c.CACert, c.CAKey, func(cert *x509.Certificate) error {
+			cert.DNSNames = []string{"some-other-dnsname"}
+			return nil
+		})
+		g.Expect(err).ToNot(HaveOccurred())
+
+		err = c.CompleteCertificates()
+		g.Expect(err).To(MatchError(MatchRegexp(`certificate dns name \(.*\) validation failure`)))
 	})
 }
