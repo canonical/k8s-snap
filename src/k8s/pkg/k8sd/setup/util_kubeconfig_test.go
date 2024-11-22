@@ -34,5 +34,5 @@ users:
 	actual, err := setup.KubeconfigString("server", "ca", "crt", "key")
 
 	g.Expect(actual).To(Equal(expectedConfig))
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 }

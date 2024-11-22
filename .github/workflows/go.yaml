@@ -2,6 +2,8 @@ name: Go
 
 on:
   push:
+    paths-ignore:
+      - 'docs/**'
     branches:
       - main
       - autoupdate/strict
@@ -10,6 +12,8 @@ on:
       - 'autoupdate/release-[0-9]+.[0-9]+-strict'
       - 'autoupdate/sync/**'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
 
 permissions:
   contents: read
@@ -19,6 +23,7 @@ jobs:
     permissions:
       contents: read  # for actions/checkout to fetch code
       pull-requests: write  # for marocchino/sticky-pull-request-comment to create or update PR comment
+      checks: write # for golangci/golangci-lint-action to checks to allow the action to annotate code in the PR.
     name: Unit Tests & Code Quality
     runs-on: ubuntu-latest
 
@@ -66,6 +71,19 @@ jobs:
         # NOTE: there are a handful of tests checking/setting
         # root ownership so the tests must be run as root:
         run: sudo make go.unit
+
+      - name: dqlite-for-golangci-lint
+        working-directory: src/k8s
+        run: |
+          sudo add-apt-repository ppa:dqlite/dev
+          sudo apt update
+          sudo apt install dqlite-tools libdqlite-dev
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.61
+          working-directory: src/k8s
 
   test-binary:
     name: Binaries

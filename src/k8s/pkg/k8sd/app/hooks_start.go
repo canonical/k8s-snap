@@ -61,6 +61,24 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 			func(ctx context.Context) (types.ClusterConfig, error) {
 				return databaseutil.GetClusterConfig(ctx, s)
 			},
+			func() (string, error) {
+				c, err := s.Leader()
+				if err != nil {
+					return "", fmt.Errorf("failed to get leader client: %w", err)
+				}
+
+				clusterMembers, err := c.GetClusterMembers(ctx)
+				if err != nil {
+					return "", fmt.Errorf("failed to get cluster members: %w", err)
+				}
+
+				localhostAddress, err := DetermineLocalhostAddress(clusterMembers)
+				if err != nil {
+					return "", fmt.Errorf("failed to determine localhost address: %w", err)
+				}
+
+				return localhostAddress, nil
+			},
 			func(ctx context.Context, dnsIP string) error {
 				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 					if _, err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{

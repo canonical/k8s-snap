@@ -38,13 +38,13 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 			"csiDriverArgs": []string{"--args", "rawfile", "csi-driver", "--disable-metrics"},
 			"image": map[string]any{
 				"repository": imageRepo,
-				"tag":        imageTag,
+				"tag":        ImageTag,
 			},
 		},
 		"node": map[string]any{
 			"image": map[string]any{
 				"repository": imageRepo,
-				"tag":        imageTag,
+				"tag":        ImageTag,
 			},
 			"storage": map[string]any{
 				"path": cfg.GetLocalPath(),
@@ -58,19 +58,19 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 		},
 	}
 
-	if _, err := m.Apply(ctx, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values); err != nil {
+	if _, err := m.Apply(ctx, Chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values); err != nil {
 		if cfg.GetEnabled() {
 			err = fmt.Errorf("failed to install rawfile-csi helm package: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: imageTag,
+				Version: ImageTag,
 				Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 			}, err
 		} else {
 			err = fmt.Errorf("failed to delete rawfile-csi helm package: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: imageTag,
+				Version: ImageTag,
 				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
 			}, err
 		}
@@ -79,13 +79,13 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 	if cfg.GetEnabled() {
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: imageTag,
+			Version: ImageTag,
 			Message: fmt.Sprintf(enabledMsg, cfg.GetLocalPath()),
 		}, nil
 	} else {
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: imageTag,
+			Version: ImageTag,
 			Message: disabledMsg,
 		}, nil
 	}

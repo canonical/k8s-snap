@@ -47,19 +47,20 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 		}, err
 	}
 
-	if loadbalancer.GetBGPMode() {
+	switch {
+	case loadbalancer.GetBGPMode():
 		return types.FeatureStatus{
 			Enabled: true,
 			Version: ControllerImageTag,
 			Message: fmt.Sprintf(enabledMsgTmpl, "BGP"),
 		}, nil
-	} else if loadbalancer.GetL2Mode() {
+	case loadbalancer.GetL2Mode():
 		return types.FeatureStatus{
 			Enabled: true,
 			Version: ControllerImageTag,
 			Message: fmt.Sprintf(enabledMsgTmpl, "L2"),
 		}, nil
-	} else {
+	default:
 		return types.FeatureStatus{
 			Enabled: true,
 			Version: ControllerImageTag,
@@ -90,12 +91,14 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 				"repository": controllerImageRepo,
 				"tag":        ControllerImageTag,
 			},
+			"command": "/controller",
 		},
 		"speaker": map[string]any{
 			"image": map[string]any{
 				"repository": speakerImageRepo,
 				"tag":        speakerImageTag,
 			},
+			"command": "/speaker",
 			// TODO(neoaggelos): make frr enable/disable configurable through an annotation
 			// We keep it disabled by default
 			"frr": map[string]any{
@@ -170,13 +173,13 @@ func waitForRequiredLoadBalancerCRDs(ctx context.Context, snap snap.Snap, bgpMod
 			return false, nil
 		}
 
-		requiredCRDs := map[string]bool{
-			"metallb.io/v1beta1:ipaddresspools":   true,
-			"metallb.io/v1beta1:l2advertisements": true,
+		requiredCRDs := map[string]struct{}{
+			"metallb.io/v1beta1:ipaddresspools":   {},
+			"metallb.io/v1beta1:l2advertisements": {},
 		}
 		if bgpMode {
-			requiredCRDs["metallb.io/v1beta2:bgppeers"] = true
-			requiredCRDs["metallb.io/v1beta1:bgpadvertisements"] = true
+			requiredCRDs["metallb.io/v1beta2:bgppeers"] = struct{}{}
+			requiredCRDs["metallb.io/v1beta1:bgpadvertisements"] = struct{}{}
 		}
 
 		requiredCount := len(requiredCRDs)

@@ -1,93 +1,127 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
+import functools
+import logging
+import subprocess
 from pathlib import Path
-from subprocess import check_output
 
 import requests
 
-
-def _get_max_minor(major):
-    """Get the latest minor release of the provided major.
-    For example if you use 1 as major you will get back X where X gives you latest 1.X release.
-    """
-    minor = 0
-    while _upstream_release_exists(major, minor):
-        minor += 1
-    return minor - 1
+log = logging.getLogger(__name__)
+K8S_GH_REPO = "https://github.com/canonical/k8s-snap.git/"
+K8S_LP_REPO = " https://git.launchpad.net/k8s"
 
 
-def _upstream_release_exists(major, minor):
-    """Return true if the major.minor release exists"""
-    release_url = "https://dl.k8s.io/release/stable-{}.{}.txt".format(major, minor)
-    r = requests.get(release_url)
-    return r.status_code == 200
-
-
-def _confirm_branch_exists(branch):
-    cmd = f"git ls-remote --heads https://github.com/canonical/k8s-snap.git/ {branch}"
-    output = check_output(cmd.split()).decode("utf-8")
-    assert branch in output, f"Branch {branch} does not exist"
+def _sh(*args, **kwargs):
+    default = {"text": True, "stderr": subprocess.PIPE}
+    try:
+        return subprocess.check_output(*args, **{**default, **kwargs})
+    except subprocess.CalledProcessError as e:
+        log.error("stdout: %s", e.stdout)
+        log.error("stderr: %s", e.stderr)
+        raise e
 
 
 def _branch_flavours(branch: str = None):
     patch_dir = Path("build-scripts/patches")
     branch = "HEAD" if branch is None else branch
-    cmd = f"git ls-tree --full-tree -r --name-only {branch} {patch_dir}"
-    output = check_output(cmd.split()).decode("utf-8")
+    cmd = f"git ls-tree --full-tree -r --name-only origin/{branch} {patch_dir}"
+    output = _sh(cmd.split())
     patches = set(
         Path(f).relative_to(patch_dir).parents[0] for f in output.splitlines()
     )
     return [p.name for p in patches]
 
 
-def _confirm_recipe(track, flavour):
+@functools.lru_cache
+def _confirm_branch_exists(repo, branch):
+    log.info(f"Checking {branch} branch exists in {repo}")
+    cmd = f"git ls-remote --heads {repo} {branch}"
+    output = _sh(cmd.split())
+    return branch in output
+
+
+def _confirm_all_branches_exist(leader):
+    assert _confirm_branch_exists(
+        K8S_GH_REPO, leader
+    ), f"GH Branch {leader} does not exist"
+    branches = [leader]
+    branches += [f"autoupdate/{leader}-{fl}" for fl in _branch_flavours(leader)]
+    if missing := [b for b in branches if not _confirm_branch_exists(K8S_GH_REPO, b)]:
+        assert missing, f"GH Branches do not exist {missing}"
+    if missing := [b for b in branches if not _confirm_branch_exists(K8S_LP_REPO, b)]:
+        assert missing, f"LP Branches do not exist {missing}"
+
+
+@functools.lru_cache
+def _confirm_recipe_exist(track, flavour):
     recipe = f"https://launchpad.net/~containers/k8s/+snap/k8s-snap-{track}-{flavour}"
     r = requests.get(recipe)
     return r.status_code == 200
 
 
-def test_branches(upstream_release):
-    """Ensures git branches exist for prior releases.
+def _confirm_all_recipes_exist(track, branch):
+    log.info(f"Checking {track} recipe exists")
+    assert _confirm_branch_exists(
+        K8S_GH_REPO, branch
+    ), f"GH Branch {branch} does not exist"
+    flavours = ["classic"] + _branch_flavours(branch)
+    recipes = {flavour: _confirm_recipe_exist(track, flavour) for flavour in flavours}
+    if missing := [fl for fl, exists in recipes.items() if not exists]:
+        assert missing, f"LP Recipes do not exist for {track} {missing}"
 
-    We need to make sure the LP builders pointing to the main github branch are only pushing
-    to the latest and current k8s edge snap tracks. An indication that this is not enforced is
-    that we do not have a branch for the k8s release for the previous stable release. Let me
-    clarify with an example.
 
-    Assuming upstream stable k8s release is v1.12.x, there has to be a 1.11 github branch used
-    by the respective LP builders for building the v1.11.y.
+def test_prior_branches(prior_stable_release):
+    """Ensures git branches exist for prior stable releases.
+
+    This is to ensure that the prior release branches exist in the k8s-snap repository
+    before we can proceed to build the next release. For example, if the current stable
+    k8s release is v1.31.0, there must be a release-1.30 branch before updating main.
     """
-    if upstream_release.minor != 0:
-        major = upstream_release.major
-        minor = upstream_release.minor - 1
-    else:
-        major = int(upstream_release.major) - 1
-        minor = _get_max_minor(major)
-
-    prior_branch = f"release-{major}.{minor}"
-    print(f"Current stable is {upstream_release}")
-    print(f"Checking {prior_branch} branch exists")
-    _confirm_branch_exists(prior_branch)
-    flavours = _branch_flavours(prior_branch)
-    for flavour in flavours:
-        prior_branch = f"autoupdate/{prior_branch}-{flavour}"
-        print(f"Checking {prior_branch} branch exists")
-        _confirm_branch_exists(prior_branch)
+    branch = f"release-{prior_stable_release.major}.{prior_stable_release.minor}"
+    _confirm_all_branches_exist(branch)
 
 
-def test_launchpad_recipe(current_release):
+def test_prior_recipes(prior_stable_release):
+    """Ensures the recipes exist for prior stable releases.
+
+    This is to ensure that the prior release recipes exist in launchpad before we can proceed
+    to build the next release. For example, if the current stable k8s release is v1.31.0, there
+    must be a k8s-snap-1.30-classic recipe before updating main.
+    """
+    track = f"{prior_stable_release.major}.{prior_stable_release.minor}"
+    branch = f"release-{track}"
+    _confirm_all_recipes_exist(track, branch)
+
+
+def test_branches(current_release):
+    """Ensures the current release has a release branch.
+
+    This is to ensure that the current release branches exist in the k8s-snap repository
+    before we can proceed to build it. For example, if the current stable
+    k8s release is v1.31.0, there must be a release-1.31 branch.
+    """
+    branch = f"release-{current_release.major}.{current_release.minor}"
+    _confirm_all_branches_exist(branch)
+
+
+def test_recipes(current_release):
     """Ensures the current recipes are available.
 
-    We should ensure that a launchpad recipe exists for this release to be build with
+    We should ensure that a launchpad recipes exist for this release to be build with
+
+    This can fail when a new minor release (e.g. 1.32) is detected and its release branch
+    is yet to be created from main.
     """
     track = f"{current_release.major}.{current_release.minor}"
-    print(f"Checking {track} recipe exists")
-    flavours = ["classic"] + _branch_flavours()
-    recipe_exists = {flavour: _confirm_recipe(track, flavour) for flavour in flavours}
-    if missing_recipes := [
-        flavour for flavour, exists in recipe_exists.items() if not exists
-    ]:
-        assert (
-            not missing_recipes
-        ), f"LP Recipes do not exist for {track} {missing_recipes}"
+    branch = f"release-{track}"
+    _confirm_all_recipes_exist(track, branch)
+
+
+def test_tip_recipes():
+    """Ensures the tip recipes are available.
+
+    We should ensure that a launchpad recipes always exist for tip to be build with
+    """
+    _confirm_all_recipes_exist("latest", "main")

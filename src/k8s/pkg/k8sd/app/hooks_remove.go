@@ -3,11 +3,12 @@ package app
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net"
 	"os"
 
-	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -59,8 +60,9 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Error(err, "Failed to wait for node to finish microcluster join before removing. Continuing with the cleanup...")
 	}
 
-	if cfg, err := databaseutil.GetClusterConfig(ctx, s); err == nil {
-		if _, ok := cfg.Annotations[apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove]; !ok {
+	cfg, err := databaseutil.GetClusterConfig(ctx, s)
+	if err == nil {
+		if _, ok := cfg.Annotations.Get(apiv1_annotations.AnnotationSkipCleanupKubernetesNodeOnRemove); !ok {
 			c, err := snap.KubernetesClient("")
 			if err != nil {
 				log.Error(err, "Failed to create Kubernetes client", err)
@@ -121,12 +123,9 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 
 	log.Info("Removing worker node mark")
 	if err := snaputil.MarkAsWorkerNode(snap, false); err != nil {
-		log.Error(err, "Failed to unmark node as worker")
-	}
-
-	log.Info("Stopping worker services")
-	if err := snaputil.StopWorkerServices(ctx, snap); err != nil {
-		log.Error(err, "Failed to stop worker services")
+		if !errors.Is(err, os.ErrNotExist) {
+			log.Error(err, "failed to unmark node as worker")
+		}
 	}
 
 	log.Info("Cleaning up control plane certificates")
@@ -134,9 +133,16 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Error(err, "failed to cleanup control plane certificates")
 	}
 
-	log.Info("Stopping control plane services")
-	if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
-		log.Error(err, "Failed to stop control-plane services")
+	if _, ok := cfg.Annotations.Get(apiv1_annotations.AnnotationSkipStopServicesOnRemove); !ok {
+		log.Info("Stopping worker services")
+		if err := snaputil.StopWorkerServices(ctx, snap); err != nil {
+			log.Error(err, "Failed to stop worker services")
+		}
+
+		log.Info("Stopping control plane services")
+		if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
+			log.Error(err, "Failed to stop control-plane services")
+		}
 	}
 
 	return nil

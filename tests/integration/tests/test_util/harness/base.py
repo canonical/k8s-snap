@@ -2,7 +2,7 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import subprocess
-from functools import partial
+from functools import cached_property, partial
 
 
 class HarnessError(Exception):
@@ -30,6 +30,13 @@ class Instance:
     def id(self) -> str:
         return self._id
 
+    @cached_property
+    def arch(self) -> str:
+        """Return the architecture of the instance"""
+        return self.exec(
+            ["dpkg", "--print-architecture"], text=True, capture_output=True
+        ).stdout.strip()
+
     def __str__(self) -> str:
         return f"{self._h.name}:{self.id}"
 
@@ -42,7 +49,7 @@ class Harness:
 
     name: str
 
-    def new_instance(self, dualstack: bool = False) -> Instance:
+    def new_instance(self, network_type: str = "IPv4") -> Instance:
         """Creates a new instance on the infrastructure and returns an object
         which can be used to interact with it.
 

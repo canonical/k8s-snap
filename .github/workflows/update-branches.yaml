@@ -41,7 +41,7 @@ jobs:
       - name: Sync ${{ github.ref }} to ${{ steps.determine.outputs.branch }}
         uses: actions/checkout@v4
         with:
-          ssh-key: ${{ secrets.DEPLOY_KEY_TO_UPDATE_STRICT_BRANCH }}
+          ssh-key: ${{ secrets.BOT_SSH_KEY }}
       - name: Apply ${{ matrix.patch }} patch
         run: |
           git checkout -b ${{ steps.determine.outputs.branch }}

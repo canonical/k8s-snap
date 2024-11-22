@@ -108,12 +108,12 @@ func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs 
 		return fmt.Errorf("failed to render containerd config.toml: %w", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(snap.ContainerdConfigDir(), "config.toml"), b, 0600); err != nil {
+	if err := utils.WriteFile(filepath.Join(snap.ContainerdConfigDir(), "config.toml"), b, 0o600); err != nil {
 		return fmt.Errorf("failed to write config.toml: %w", err)
 	}
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "containerd", map[string]string{
-		"--address": filepath.Join(snap.ContainerdSocketDir(), "containerd.sock"),
+		"--address": snap.ContainerdSocketPath(),
 		"--config":  filepath.Join(snap.ContainerdConfigDir(), "config.toml"),
 		"--root":    snap.ContainerdRootDir(),
 		"--state":   snap.ContainerdStateDir(),
@@ -131,7 +131,7 @@ func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs 
 	if err := utils.CopyFile(snap.CNIPluginsBinary(), cniBinary); err != nil {
 		return fmt.Errorf("failed to copy cni plugin binary: %w", err)
 	}
-	if err := os.Chmod(cniBinary, 0700); err != nil {
+	if err := os.Chmod(cniBinary, 0o700); err != nil {
 		return fmt.Errorf("failed to chmod cni plugin binary: %w", err)
 	}
 	if err := os.Chown(cniBinary, snap.UID(), snap.GID()); err != nil {
@@ -159,6 +159,27 @@ func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs 
 		}
 	}
 
+	if err := saveSnapContainerdPaths(snap); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func saveSnapContainerdPaths(s snap.Snap) error {
+	// Write the containerd-related paths to files to properly clean-up on removal.
+	m := map[string]string{
+		"containerd-socket-path": s.ContainerdSocketDir(),
+		"containerd-config-dir":  s.ContainerdConfigDir(),
+		"containerd-root-dir":    s.ContainerdRootDir(),
+		"containerd-cni-bin-dir": s.CNIBinDir(),
+	}
+
+	for filename, content := range m {
+		if err := utils.WriteFile(filepath.Join(s.LockFilesDir(), filename), []byte(content), 0o600); err != nil {
+			return fmt.Errorf("failed to write %s: %w", filename, err)
+		}
+	}
 	return nil
 }
 

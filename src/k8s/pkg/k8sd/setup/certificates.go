@@ -8,6 +8,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 // ensureFile creates fname with the specified contents, mode and owner bits.
@@ -39,7 +40,7 @@ func ensureFile(fname string, contents string, uid, gid int, mode fs.FileMode) (
 	var contentChanged bool
 
 	if contents != string(origContent) {
-		if err := os.WriteFile(fname, []byte(contents), mode); err != nil {
+		if err := utils.WriteFile(fname, []byte(contents), mode); err != nil {
 			return false, fmt.Errorf("failed to write: %w", err)
 		}
 		contentChanged = true
@@ -73,7 +74,7 @@ func ensureFiles(uid, gid int, mode fs.FileMode, files map[string]string) (bool,
 // and have the correct content, permissions and ownership.
 // It returns true if one or more files were updated and any error that occurred.
 func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePKI) (bool, error) {
-	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
+	return ensureFiles(snap.UID(), snap.GID(), 0o600, map[string]string{
 		filepath.Join(snap.EtcdPKIDir(), "ca.crt"):     certificates.DatastoreCACert,
 		filepath.Join(snap.EtcdPKIDir(), "client.key"): certificates.DatastoreClientKey,
 		filepath.Join(snap.EtcdPKIDir(), "client.crt"): certificates.DatastoreClientCert,
@@ -84,7 +85,7 @@ func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePK
 // and have the correct content, permissions and ownership.
 // It returns true if one or more files were updated and any error that occurred.
 func EnsureK8sDqlitePKI(snap snap.Snap, certificates *pki.K8sDqlitePKI) (bool, error) {
-	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
+	return ensureFiles(snap.UID(), snap.GID(), 0o600, map[string]string{
 		filepath.Join(snap.K8sDqliteStateDir(), "cluster.crt"): certificates.K8sDqliteCert,
 		filepath.Join(snap.K8sDqliteStateDir(), "cluster.key"): certificates.K8sDqliteKey,
 	})
@@ -94,7 +95,7 @@ func EnsureK8sDqlitePKI(snap snap.Snap, certificates *pki.K8sDqlitePKI) (bool, e
 // and have the correct content, permissions and ownership.
 // It returns true if one or more files were updated and any error that occurred.
 func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (bool, error) {
-	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
+	return ensureFiles(snap.UID(), snap.GID(), 0o600, map[string]string{
 		filepath.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"): certificates.APIServerKubeletClientCert,
 		filepath.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"): certificates.APIServerKubeletClientKey,
 		filepath.Join(snap.KubernetesPKIDir(), "apiserver.crt"):                certificates.APIServerCert,
@@ -116,7 +117,7 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (b
 // and have the correct content, permissions and ownership.
 // It returns true if one or more files were updated and any error that occurred.
 func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) (bool, error) {
-	return ensureFiles(snap.UID(), snap.GID(), 0600, map[string]string{
+	return ensureFiles(snap.UID(), snap.GID(), 0o600, map[string]string{
 		filepath.Join(snap.KubernetesPKIDir(), "ca.crt"):        certificates.CACert,
 		filepath.Join(snap.KubernetesPKIDir(), "client-ca.crt"): certificates.ClientCACert,
 		filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt"):   certificates.KubeletCert,

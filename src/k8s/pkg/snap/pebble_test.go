@@ -7,7 +7,6 @@ import (
 
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/snap/mock"
-
 	. "github.com/onsi/gomega"
 )
 
@@ -22,7 +21,7 @@ func TestPebble(t *testing.T) {
 		})
 
 		err := snap.StartService(context.Background(), "test-service")
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("testdir/bin/pebble start test-service"))
 
 		t.Run("Fail", func(t *testing.T) {
@@ -30,7 +29,7 @@ func TestPebble(t *testing.T) {
 			mockRunner.Err = fmt.Errorf("some error")
 
 			err := snap.StartService(context.Background(), "test-service")
-			g.Expect(err).NotTo(BeNil())
+			g.Expect(err).To(HaveOccurred())
 		})
 	})
 
@@ -43,7 +42,7 @@ func TestPebble(t *testing.T) {
 			RunCommand:    mockRunner.Run,
 		})
 		err := snap.StopService(context.Background(), "test-service")
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("testdir/bin/pebble stop test-service"))
 
 		t.Run("Fail", func(t *testing.T) {
@@ -51,7 +50,7 @@ func TestPebble(t *testing.T) {
 			mockRunner.Err = fmt.Errorf("some error")
 
 			err := snap.StartService(context.Background(), "test-service")
-			g.Expect(err).NotTo(BeNil())
+			g.Expect(err).To(HaveOccurred())
 		})
 	})
 
@@ -65,7 +64,7 @@ func TestPebble(t *testing.T) {
 		})
 
 		err := snap.RestartService(context.Background(), "test-service")
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("testdir/bin/pebble restart test-service"))
 
 		t.Run("Fail", func(t *testing.T) {
@@ -73,7 +72,7 @@ func TestPebble(t *testing.T) {
 			mockRunner.Err = fmt.Errorf("some error")
 
 			err := snap.StartService(context.Background(), "service")
-			g.Expect(err).NotTo(BeNil())
+			g.Expect(err).To(HaveOccurred())
 		})
 	})
 }

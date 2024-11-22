@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/canonical/k8s/pkg/utils"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
@@ -40,7 +41,13 @@ func (c *Client) GetKubeAPIServerEndpoints(ctx context.Context) ([]string, error
 		}
 		for _, addr := range subset.Addresses {
 			if addr.IP != "" {
-				addresses = append(addresses, fmt.Sprintf("%s:%d", addr.IP, portNumber))
+				var address string
+				if utils.IsIPv4(addr.IP) {
+					address = addr.IP
+				} else {
+					address = fmt.Sprintf("[%s]", addr.IP)
+				}
+				addresses = append(addresses, fmt.Sprintf("%s:%d", address, portNumber))
 			}
 		}
 	}

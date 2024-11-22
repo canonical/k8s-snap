@@ -25,6 +25,7 @@ func (c Certificates) GetClientCACert() string {
 	}
 	return c.GetCACert()
 }
+
 func (c Certificates) GetClientCAKey() string {
 	// versions before 1.30.2 were using the same CA for server and client certificates
 	if v := getField(c.ClientCAKey); v != "" {
@@ -38,6 +39,7 @@ func (c Certificates) GetServiceAccountKey() string { return getField(c.ServiceA
 func (c Certificates) GetAPIServerKubeletClientCert() string {
 	return getField(c.APIServerKubeletClientCert)
 }
+
 func (c Certificates) GetAPIServerKubeletClientKey() string {
 	return getField(c.APIServerKubeletClientKey)
 }
@@ -46,5 +48,5 @@ func (c Certificates) GetAdminClientKey() string  { return getField(c.AdminClien
 func (c Certificates) GetK8sdPublicKey() string   { return getField(c.K8sdPublicKey) }
 func (c Certificates) GetK8sdPrivateKey() string  { return getField(c.K8sdPrivateKey) }
 
-// Empty returns true if all Certificates fields are unset
+// Empty returns true if all Certificates fields are unset.
 func (c Certificates) Empty() bool { return c == Certificates{} }

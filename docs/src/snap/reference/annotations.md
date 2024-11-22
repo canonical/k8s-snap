@@ -1,7 +1,7 @@
 # Annotations
 
 This page outlines the annotations that can be configured during cluster
-[bootstrap]. To do this, set the cluster-config/annotations parameter in
+[bootstrap]. To do this, set the `cluster-config.annotations` parameter in
 the bootstrap configuration.
 
 | Name                                                          | Description                                                                                                                                                                                                                                       | Values          |

@@ -31,7 +31,7 @@ func TestKubeControllerManager(t *testing.T) {
 		os.Create(filepath.Join(s.Mock.KubernetesPKIDir, "ca.key"))
 
 		// Call the kube controller manager setup function
-		g.Expect(setup.KubeControllerManager(s, nil)).To(BeNil())
+		g.Expect(setup.KubeControllerManager(s, nil)).To(Succeed())
 
 		// Ensure the kube controller manager arguments file has the expected arguments and values
 		tests := []struct {
@@ -47,6 +47,7 @@ func TestKubeControllerManager(t *testing.T) {
 			{key: "--root-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--service-account-private-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
 			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
+			{key: "--tls-min-version", expectedVal: "VersionTLS12"},
 			{key: "--use-service-account-credentials", expectedVal: "true"},
 			{key: "--cluster-signing-cert-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--cluster-signing-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.key")},
@@ -63,7 +64,7 @@ func TestKubeControllerManager(t *testing.T) {
 		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 
 		t.Run("MissingArgsDir", func(t *testing.T) {
 			g := NewWithT(t)
@@ -79,7 +80,7 @@ func TestKubeControllerManager(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeControllerManagerMock)
 
 		// Call the kube controller manager setup function
-		g.Expect(setup.KubeControllerManager(s, nil)).To(BeNil())
+		g.Expect(setup.KubeControllerManager(s, nil)).To(Succeed())
 
 		// Ensure the kube controller manager arguments file has the expected arguments and values
 		tests := []struct {
@@ -95,6 +96,7 @@ func TestKubeControllerManager(t *testing.T) {
 			{key: "--root-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--service-account-private-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
 			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
+			{key: "--tls-min-version", expectedVal: "VersionTLS12"},
 			{key: "--use-service-account-credentials", expectedVal: "true"},
 		}
 		for _, tc := range tests {
@@ -109,7 +111,7 @@ func TestKubeControllerManager(t *testing.T) {
 		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 
 		t.Run("MissingArgsDir", func(t *testing.T) {
 			g := NewWithT(t)
@@ -133,7 +135,7 @@ func TestKubeControllerManager(t *testing.T) {
 			"--my-extra-arg":                utils.Pointer("my-extra-val"),
 		}
 		// Call the kube controller manager setup function
-		g.Expect(setup.KubeControllerManager(s, extraArgs)).To(BeNil())
+		g.Expect(setup.KubeControllerManager(s, extraArgs)).To(Succeed())
 
 		// Ensure the kube controller manager arguments file has the expected arguments and values
 		tests := []struct {
@@ -148,6 +150,7 @@ func TestKubeControllerManager(t *testing.T) {
 			{key: "--root-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--service-account-private-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "serviceaccount.key")},
 			{key: "--terminated-pod-gc-threshold", expectedVal: "12500"},
+			{key: "--tls-min-version", expectedVal: "VersionTLS12"},
 			{key: "--use-service-account-credentials", expectedVal: "true"},
 			{key: "--cluster-signing-cert-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.crt")},
 			{key: "--cluster-signing-key-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "ca.key")},
@@ -170,7 +173,7 @@ func TestKubeControllerManager(t *testing.T) {
 		// Ensure the kube controller manager arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kube-controller-manager"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 
 		t.Run("MissingArgsDir", func(t *testing.T) {
 			g := NewWithT(t)

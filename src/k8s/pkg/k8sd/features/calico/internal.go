@@ -4,25 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations/calico"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-)
-
-const (
-	annotationAPIServerEnabled             = "k8sd/v1alpha1/calico/apiserver-enabled"
-	annotationEncapsulationV4              = "k8sd/v1alpha1/calico/encapsulation-v4"
-	annotationEncapsulationV6              = "k8sd/v1alpha1/calico/encapsulation-v6"
-	annotationAutodetectionV4FirstFound    = "k8sd/v1alpha1/calico/autodetection-v4/firstFound"
-	annotationAutodetectionV4Kubernetes    = "k8sd/v1alpha1/calico/autodetection-v4/kubernetes"
-	annotationAutodetectionV4Interface     = "k8sd/v1alpha1/calico/autodetection-v4/interface"
-	annotationAutodetectionV4SkipInterface = "k8sd/v1alpha1/calico/autodetection-v4/skipInterface"
-	annotationAutodetectionV4CanReach      = "k8sd/v1alpha1/calico/autodetection-v4/canReach"
-	annotationAutodetectionV4CIDRs         = "k8sd/v1alpha1/calico/autodetection-v4/cidrs"
-	annotationAutodetectionV6FirstFound    = "k8sd/v1alpha1/calico/autodetection-v6/firstFound"
-	annotationAutodetectionV6Kubernetes    = "k8sd/v1alpha1/calico/autodetection-v6/kubernetes"
-	annotationAutodetectionV6Interface     = "k8sd/v1alpha1/calico/autodetection-v6/interface"
-	annotationAutodetectionV6SkipInterface = "k8sd/v1alpha1/calico/autodetection-v6/skipInterface"
-	annotationAutodetectionV6CanReach      = "k8sd/v1alpha1/calico/autodetection-v6/canReach"
-	annotationAutodetectionV6CIDRs         = "k8sd/v1alpha1/calico/autodetection-v6/cidrs"
 )
 
 type config struct {
@@ -64,7 +47,11 @@ func parseAutodetectionAnnotations(annotations types.Annotations, autodetectionM
 		case "firstFound":
 			autodetectionValue = autodetectionValue == "true"
 		case "cidrs":
-			autodetectionValue = strings.Split(autodetectionValue.(string), ",")
+			if strValue, ok := autodetectionValue.(string); ok {
+				autodetectionValue = strings.Split(strValue, ",")
+			} else {
+				return nil, fmt.Errorf("invalid type for cidrs annotation: %T", autodetectionValue)
+			}
 		}
 
 		return map[string]any{
@@ -82,18 +69,18 @@ func internalConfig(annotations types.Annotations) (config, error) {
 		apiServerEnabled: defaultAPIServerEnabled,
 	}
 
-	if v, ok := annotations.Get(annotationAPIServerEnabled); ok {
+	if v, ok := annotations.Get(apiv1_annotations.AnnotationAPIServerEnabled); ok {
 		c.apiServerEnabled = v == "true"
 	}
 
-	if v, ok := annotations.Get(annotationEncapsulationV4); ok {
+	if v, ok := annotations.Get(apiv1_annotations.AnnotationEncapsulationV4); ok {
 		if err := checkEncapsulation(v); err != nil {
 			return config{}, fmt.Errorf("invalid encapsulation-v4 annotation: %w", err)
 		}
 		c.encapsulationV4 = v
 	}
 
-	if v, ok := annotations.Get(annotationEncapsulationV6); ok {
+	if v, ok := annotations.Get(apiv1_annotations.AnnotationEncapsulationV6); ok {
 		if err := checkEncapsulation(v); err != nil {
 			return config{}, fmt.Errorf("invalid encapsulation-v6 annotation: %w", err)
 		}
@@ -101,12 +88,12 @@ func internalConfig(annotations types.Annotations) (config, error) {
 	}
 
 	v4Map := map[string]string{
-		annotationAutodetectionV4FirstFound:    "firstFound",
-		annotationAutodetectionV4Kubernetes:    "kubernetes",
-		annotationAutodetectionV4Interface:     "interface",
-		annotationAutodetectionV4SkipInterface: "skipInterface",
-		annotationAutodetectionV4CanReach:      "canReach",
-		annotationAutodetectionV4CIDRs:         "cidrs",
+		apiv1_annotations.AnnotationAutodetectionV4FirstFound:    "firstFound",
+		apiv1_annotations.AnnotationAutodetectionV4Kubernetes:    "kubernetes",
+		apiv1_annotations.AnnotationAutodetectionV4Interface:     "interface",
+		apiv1_annotations.AnnotationAutodetectionV4SkipInterface: "skipInterface",
+		apiv1_annotations.AnnotationAutodetectionV4CanReach:      "canReach",
+		apiv1_annotations.AnnotationAutodetectionV4CIDRs:         "cidrs",
 	}
 
 	autodetectionV4, err := parseAutodetectionAnnotations(annotations, v4Map)
@@ -119,12 +106,12 @@ func internalConfig(annotations types.Annotations) (config, error) {
 	}
 
 	v6Map := map[string]string{
-		annotationAutodetectionV6FirstFound:    "firstFound",
-		annotationAutodetectionV6Kubernetes:    "kubernetes",
-		annotationAutodetectionV6Interface:     "interface",
-		annotationAutodetectionV6SkipInterface: "skipInterface",
-		annotationAutodetectionV6CanReach:      "canReach",
-		annotationAutodetectionV6CIDRs:         "cidrs",
+		apiv1_annotations.AnnotationAutodetectionV6FirstFound:    "firstFound",
+		apiv1_annotations.AnnotationAutodetectionV6Kubernetes:    "kubernetes",
+		apiv1_annotations.AnnotationAutodetectionV6Interface:     "interface",
+		apiv1_annotations.AnnotationAutodetectionV6SkipInterface: "skipInterface",
+		apiv1_annotations.AnnotationAutodetectionV6CanReach:      "canReach",
+		apiv1_annotations.AnnotationAutodetectionV6CIDRs:         "cidrs",
 	}
 
 	autodetectionV6, err := parseAutodetectionAnnotations(annotations, v6Map)

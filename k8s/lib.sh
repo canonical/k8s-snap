@@ -47,6 +47,8 @@ k8s::common::is_strict() {
 k8s::remove::network() {
   k8s::common::setup_env
 
+  "${SNAP}/bin/kube-proxy" --cleanup || true
+
   k8s::cmd::k8s x-cleanup network || true
 }
 
@@ -60,17 +62,48 @@ k8s::remove::containers() {
   # delete cni network namespaces
   ip netns list | cut -f1 -d' ' | grep -- "^cni-" | xargs -n1 -r -t ip netns delete || true
 
-  # unmount NFS volumes forcefully, as unmounting them normally may hang otherwise.
+  # The PVC loopback devices use container paths, making them tricky to identify.
+  # We'll rely on the volume mount paths (/var/lib/kubelet/*).
+  local LOOP_DEVICES=`cat /proc/mounts | grep /var/lib/kubelet/pods | grep /dev/loop | cut -d " " -f 1`
+
+  # unmount Pod NFS volumes forcefully, as unmounting them normally may hang otherwise.
   cat /proc/mounts | grep /run/containerd/io.containerd. | grep "nfs[34]" | cut -f2 -d' ' | xargs -r -t umount -f || true
   cat /proc/mounts | grep /var/lib/kubelet/pods | grep "nfs[34]" | cut -f2 -d' ' | xargs -r -t umount -f || true
 
-  # unmount volumes
+  # unmount Pod volumes gracefully.
   cat /proc/mounts | grep /run/containerd/io.containerd. | cut -f2 -d' ' | xargs -r -t umount || true
   cat /proc/mounts | grep /var/lib/kubelet/pods | cut -f2 -d' ' | xargs -r -t umount || true
 
-  # umount lingering volumes by force, to prevent potential volume leaks.
+  # unmount lingering Pod volumes by force, to prevent potential volume leaks.
   cat /proc/mounts | grep /run/containerd/io.containerd. | cut -f2 -d' ' | xargs -r -t umount -f || true
   cat /proc/mounts | grep /var/lib/kubelet/pods | cut -f2 -d' ' | xargs -r -t umount -f || true
+
+  # unmount various volumes exposed by CSI plugin drivers.
+  cat /proc/mounts | grep /var/lib/kubelet/plugins | cut -f2 -d' ' | xargs -r -t umount -f || true
+
+  # remove kubelet plugin sockets, as we don't have the containers associated with them anymore,
+  # so kubelet won't try to access inexistent plugins on reinstallation.
+  find /var/lib/kubelet/plugins/ -name "*.sock" | xargs rm -f || true
+  rm /var/lib/kubelet/plugins_registry/*.sock || true
+
+  cat /proc/mounts | grep /var/snap/k8s/common/var/lib/containerd/ | cut -f2 -d' ' | xargs -r -t umount  || true
+
+  # cleanup loopback devices
+  for dev in $LOOP_DEVICES; do
+    losetup -d $dev
+  done
+}
+
+k8s::remove::containerd() {
+  k8s::common::setup_env
+
+  # only remove containerd if the snap was already bootstrapped.
+  # this is to prevent removing containerd when it is not installed by the snap.
+  for file in "containerd-socket-path" "containerd-config-dir" "containerd-root-dir" "containerd-cni-bin-dir"; do
+    if [ -f "$SNAP_COMMON/lock/$file" ]; then
+      rm -rf $(cat "$SNAP_COMMON/lock/$file")
+    fi
+  done
 }
 
 # Run a ctr command against the local containerd socket
@@ -168,4 +201,12 @@ k8s::kubelet::ensure_shared_root_dir() {
     echo "Ensure /var/lib/kubelet mount propagation is rshared"
     mount -o remount --make-rshared "$SNAP_COMMON/var/lib/kubelet" /var/lib/kubelet
   fi
+}
+
+# Loads the kernel module names given as arguments
+# Example: 'k8s::util::load_kernel_modules mod1 mod2 mod3'
+k8s::util::load_kernel_modules() {
+  k8s::common::setup_env
+
+  modprobe $@
 }

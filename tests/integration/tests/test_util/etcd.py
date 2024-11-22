@@ -90,6 +90,7 @@ class EtcdCluster:
         ]
 
         substitutes = {
+            "ARCH": instance.arch,
             "NAME": instance.id,
             "IP": ip,
             "CLIENT_URL": f"https://{ip}:2379",
@@ -224,13 +225,14 @@ class EtcdCluster:
                 input=str.encode(src.substitute(substitutes)),
             )
 
+        arch = instance.arch
         instance.exec(
             [
                 "curl",
                 "-L",
-                f"{self.etcd_url}/{self.etcd_version}/etcd-{self.etcd_version}-linux-amd64.tar.gz",
+                f"{self.etcd_url}/{self.etcd_version}/etcd-{self.etcd_version}-linux-{arch}.tar.gz",
                 "-o",
-                f"/tmp/etcd-{self.etcd_version}-linux-amd64.tar.gz",
+                f"/tmp/etcd-{self.etcd_version}-linux-{arch}.tar.gz",
             ]
         )
         instance.exec(["mkdir", "-p", "/tmp/test-etcd"])
@@ -238,7 +240,7 @@ class EtcdCluster:
             [
                 "tar",
                 "xzvf",
-                f"/tmp/etcd-{self.etcd_version}-linux-amd64.tar.gz",
+                f"/tmp/etcd-{self.etcd_version}-linux-{arch}.tar.gz",
                 "-C",
                 "/tmp/test-etcd",
                 "--strip-components=1",

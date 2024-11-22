@@ -1,10 +1,15 @@
 package api
 
 import (
+	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"fmt"
 	"math"
-	"math/rand"
+	"math/big"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -28,7 +33,11 @@ import (
 )
 
 func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) response.Response {
-	seed := rand.Intn(math.MaxInt)
+	seedBigInt, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt))
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to generate seed: %w", err))
+	}
+	seed := int(seedBigInt.Int64())
 
 	snap := e.provider.Snap()
 	isWorker, err := snaputil.IsWorker(snap)
@@ -49,7 +58,6 @@ func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) respons
 	return response.SyncResponse(true, apiv1.RefreshCertificatesPlanResponse{
 		Seed: seed,
 	})
-
 }
 
 func (e *Endpoints) postRefreshCertsRun(s state.State, r *http.Request) response.Response {
@@ -66,6 +74,8 @@ func (e *Endpoints) postRefreshCertsRun(s state.State, r *http.Request) response
 
 // refreshCertsRunControlPlane refreshes the certificates for a control plane node.
 func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap) response.Response {
+	log := log.FromContext(r.Context())
+
 	req := apiv1.RefreshCertificatesRunRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
@@ -79,6 +89,13 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 	nodeIP := net.ParseIP(s.Address().Hostname())
 	if nodeIP == nil {
 		return response.InternalError(fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname()))
+	}
+
+	var localhostAddress string
+	if nodeIP.To4() == nil {
+		localhostAddress = "[::1]"
+	} else {
+		localhostAddress = "127.0.0.1"
 	}
 
 	serviceIPs, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(clusterConfig.Network.GetServiceCIDR())
@@ -119,27 +136,67 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		return response.InternalError(fmt.Errorf("failed to write control plane certificates: %w", err))
 	}
 
-	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), localhostAddress, clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate control plane kubeconfigs: %w", err))
 	}
 
-	if err := snaputil.RestartControlPlaneServices(r.Context(), snap); err != nil {
-		return response.InternalError(fmt.Errorf("failed to restart control plane services: %w", err))
-	}
+	// NOTE: Restart the control plane services in a separate goroutine to avoid
+	// restarting the API server, which would break the k8sd proxy connection
+	// and cause missed responses in the proxy side.
+	readyCh := make(chan error)
+	go func() {
+		// NOTE: Create a new context independent of the request context to ensure
+		// the restart process is not cancelled by the client.
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
 
-	kubeletCert, _, err := pkiutil.LoadCertificate(certificates.KubeletCert, "")
+		select {
+		case err := <-readyCh:
+			if err != nil {
+				log.Error(err, "Failed to refresh certificates")
+				return
+			}
+		case <-ctx.Done():
+			log.Error(ctx.Err(), "Timeout waiting for certificates to be refreshed")
+			return
+		}
+
+		if err := snaputil.RestartControlPlaneServices(ctx, snap); err != nil {
+			log.Error(err, "Failed to restart control plane services")
+		}
+	}()
+
+	apiServerCert, _, err := pkiutil.LoadCertificate(certificates.APIServerCert, "")
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to read kubelet certificate: %w", err))
 	}
 
-	expirationTimeUNIX := kubeletCert.NotAfter.Unix()
+	expirationTimeUNIX := apiServerCert.NotAfter.Unix()
 
-	return response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
-		ExpirationSeconds: int(expirationTimeUNIX),
+	return response.ManualResponse(func(w http.ResponseWriter) (rerr error) {
+		defer func() {
+			readyCh <- rerr
+			close(readyCh)
+		}()
+
+		err := response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
+			ExpirationSeconds: int(expirationTimeUNIX),
+		}).Render(w)
+		if err != nil {
+			return fmt.Errorf("failed to render response: %w", err)
+		}
+
+		f, ok := w.(http.Flusher)
+		if !ok {
+			return fmt.Errorf("ResponseWriter is not type http.Flusher")
+		}
+
+		f.Flush()
+		return nil
 	})
 }
 
-// refreshCertsRunWorker refreshes the certificates for a worker node
+// refreshCertsRunWorker refreshes the certificates for a worker node.
 func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) response.Response {
 	log := log.FromContext(r.Context())
 
@@ -167,6 +224,18 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	certificates.CACert = clusterConfig.Certificates.GetCACert()
 	certificates.ClientCACert = clusterConfig.Certificates.GetClientCACert()
 
+	k8sdPublicKey, err := pkiutil.LoadRSAPublicKey(clusterConfig.Certificates.GetK8sdPublicKey())
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to load k8sd public key, error: %w", err))
+	}
+
+	hostnames := []string{snap.Hostname()}
+	ips := []net.IP{net.ParseIP(s.Address().Hostname())}
+
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(req.ExtraSANs)
+	hostnames = append(hostnames, extraNames...)
+	ips = append(ips, extraIPs...)
+
 	g, ctx := errgroup.WithContext(r.Context())
 
 	for _, csr := range []struct {
@@ -185,8 +254,8 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			commonName:   fmt.Sprintf("system:node:%s", snap.Hostname()),
 			organization: []string{"system:nodes"},
 			usages:       []certv1.KeyUsage{certv1.UsageDigitalSignature, certv1.UsageKeyEncipherment, certv1.UsageServerAuth},
-			hostnames:    []string{snap.Hostname()},
-			ips:          []net.IP{net.ParseIP(s.Address().Hostname())},
+			hostnames:    hostnames,
+			ips:          ips,
 			signerName:   "k8sd.io/kubelet-serving",
 			certificate:  &certificates.KubeletCert,
 			key:          &certificates.KubeletKey,
@@ -209,7 +278,6 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			key:         &certificates.KubeProxyClientKey,
 		},
 	} {
-		csr := csr
 		g.Go(func() error {
 			csrPEM, keyPEM, err := pkiutil.GenerateCSR(
 				pkix.Name{
@@ -224,14 +292,34 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 				return fmt.Errorf("failed to generate CSR for %s: %w", csr.name, err)
 			}
 
+			// Obtain the SHA256 sum of the CSR request.
+			hash := sha256.New()
+			_, err = hash.Write([]byte(csrPEM))
+			if err != nil {
+				return fmt.Errorf("failed to checksum CSR %s, err: %w", csr.name, err)
+			}
+
+			signature, err := rsa.EncryptPKCS1v15(rand.Reader, k8sdPublicKey, hash.Sum(nil))
+			if err != nil {
+				return fmt.Errorf("failed to sign CSR %s, err: %w", csr.name, err)
+			}
+			signatureB64 := base64.StdEncoding.EncodeToString(signature)
+
+			expirationSeconds := int32(req.ExpirationSeconds)
+
 			if _, err = client.CertificatesV1().CertificateSigningRequests().Create(ctx, &certv1.CertificateSigningRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: csr.name,
+					Annotations: map[string]string{
+						"k8sd.io/signature": signatureB64,
+						"k8sd.io/node":      snap.Hostname(),
+					},
 				},
 				Spec: certv1.CertificateSigningRequestSpec{
-					Request:    []byte(csrPEM),
-					Usages:     csr.usages,
-					SignerName: csr.signerName,
+					Request:           []byte(csrPEM),
+					ExpirationSeconds: &expirationSeconds,
+					Usages:            csr.usages,
+					SignerName:        csr.signerName,
 				},
 			}, metav1.CreateOptions{}); err != nil {
 				return fmt.Errorf("failed to create CSR for %s: %w", csr.name, err)
@@ -249,9 +337,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 			}
 
 			return nil
-
 		})
-
 	}
 
 	if err := g.Wait(); err != nil {
@@ -262,21 +348,54 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		return response.InternalError(fmt.Errorf("failed to write worker PKI: %w", err))
 	}
 
+	nodeIP := net.ParseIP(s.Address().Hostname())
+	if nodeIP == nil {
+		return response.InternalError(fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname()))
+	}
+
+	var localhostAddress string
+	if nodeIP.To4() == nil {
+		localhostAddress = "[::1]"
+	} else {
+		localhostAddress = "127.0.0.1"
+	}
+
 	// Kubeconfigs
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), fmt.Sprintf("%s:%d", localhostAddress, clusterConfig.APIServer.GetSecurePort()), certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate kubelet kubeconfig: %w", err))
 	}
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), "127.0.0.1:6443", certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
+	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), fmt.Sprintf("%s:%d", localhostAddress, clusterConfig.APIServer.GetSecurePort()), certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err))
 	}
 
-	// Restart the services
-	if err := snap.RestartService(r.Context(), "kubelet"); err != nil {
-		return response.InternalError(fmt.Errorf("failed to restart kubelet: %w", err))
-	}
-	if err := snap.RestartService(r.Context(), "kube-proxy"); err != nil {
-		return response.InternalError(fmt.Errorf("failed to restart kube-proxy: %w", err))
-	}
+	// NOTE: Restart the worker services in a separate goroutine to avoid
+	// restarting the kube-proxy and kubelet, which would break the
+	// proxy connection and cause missed responses in the proxy side.
+	readyCh := make(chan error, 1)
+	go func() {
+		// NOTE: Create a new context independent of the request context to ensure
+		// the restart process is not cancelled by the client.
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+
+		select {
+		case err := <-readyCh:
+			if err != nil {
+				log.Error(err, "Failed to refresh certificates")
+				return
+			}
+		case <-ctx.Done():
+			log.Error(ctx.Err(), "Timeout waiting for certificates to be refreshed")
+			return
+		}
+
+		if err := snap.RestartService(ctx, "kubelet"); err != nil {
+			log.Error(err, "Failed to restart kubelet")
+		}
+		if err := snap.RestartService(ctx, "kube-proxy"); err != nil {
+			log.Error(err, "Failed to restart kube-proxy")
+		}
+	}()
 
 	cert, _, err := pkiutil.LoadCertificate(certificates.KubeletCert, "")
 	if err != nil {
@@ -284,10 +403,27 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	}
 
 	expirationTimeUNIX := cert.NotAfter.Unix()
-	return response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
-		ExpirationSeconds: int(expirationTimeUNIX),
-	})
 
+	return response.ManualResponse(func(w http.ResponseWriter) (rerr error) {
+		defer func() {
+			readyCh <- rerr
+			close(readyCh)
+		}()
+		err := response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
+			ExpirationSeconds: int(expirationTimeUNIX),
+		}).Render(w)
+		if err != nil {
+			return fmt.Errorf("failed to render response: %w", err)
+		}
+
+		f, ok := w.(http.Flusher)
+		if !ok {
+			return fmt.Errorf("ResponseWriter is not type http.Flusher")
+		}
+
+		f.Flush()
+		return nil
+	})
 }
 
 // isCertificateSigningRequestApprovedAndIssued checks if the certificate
@@ -298,7 +434,6 @@ func isCertificateSigningRequestApprovedAndIssued(csr *certv1.CertificateSigning
 	for _, condition := range csr.Status.Conditions {
 		if condition.Type == certv1.CertificateApproved && condition.Status == corev1.ConditionTrue {
 			return len(csr.Status.Certificate) > 0, nil
-
 		}
 		if condition.Type == certv1.CertificateDenied && condition.Status == corev1.ConditionTrue {
 			return false, fmt.Errorf("CSR %s was denied: %s", csr.Name, condition.Reason)

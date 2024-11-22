@@ -2,11 +2,15 @@ name: Informing Integration Tests
 
 on:
   push:
+    paths-ignore:
+      - 'docs/**'
     branches:
       - main
       - 'release-[0-9]+.[0-9]+'
       - 'autoupdate/sync/**'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
 
 permissions:
   contents: read
@@ -17,7 +21,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        patch: ["strict", "moonray"]
+        patch: ["moonray"]
       fail-fast: false
     steps:
       - name: Harden Runner
@@ -54,16 +58,16 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu:20.04"]
-        patch: ["strict", "moonray"]
+        patch: ["moonray"]
       fail-fast: false
-    runs-on: ubuntu-20.04
+    runs-on: ["self-hosted", "Linux", "AMD64", "jammy", "large"]
     steps:
       - name: Check out code
         uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.10'
       - name: Install tox
         run: pip install tox
       - name: Install lxd
@@ -72,29 +76,33 @@ jobs:
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
+          sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
+          sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
       - name: Download snap
         uses: actions/download-artifact@v4
         with:
           name: k8s-${{ matrix.patch }}.snap
-          path: build
+          path: ${{ github.workspace }}/build
       - name: Apply ${{ matrix.patch }} patch
         run: |
           ./build-scripts/patches/${{ matrix.patch }}/apply
       - name: Run end to end tests
+        env:
+          TEST_SNAP: ${{ github.workspace }}/build/k8s-${{ matrix.patch }}.snap
+          TEST_SUBSTRATE: lxd
+          TEST_LXD_IMAGE: ${{ matrix.os }}
+          TEST_FLAVOR: ${{ matrix.patch }}
+          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
         run: |
-          export TEST_SNAP="$PWD/build/k8s-${{ matrix.patch }}.snap"
-          export TEST_SUBSTRATE=lxd
-          export TEST_LXD_IMAGE=${{ matrix.os }}
-          export TEST_INSPECTION_REPORTS_DIR="$HOME/inspection-reports"
           cd tests/integration && sg lxd -c 'tox -e integration'
       - name: Prepare inspection reports
         if: failure()
         run: |
-          tar -czvf inspection-reports.tar.gz -C $HOME inspection-reports
+          tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
           echo "artifact_name=inspection-reports-${{ matrix.os }}-${{ matrix.patch }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.artifact_name }}
-          path: inspection-reports.tar.gz
+          path: ${{ github.workspace }}/inspection-reports.tar.gz

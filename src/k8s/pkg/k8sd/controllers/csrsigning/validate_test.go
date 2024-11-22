@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"testing"
 
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
@@ -93,7 +94,7 @@ func TestValidateCSREncryption(t *testing.T) {
 				},
 			},
 			expectErr:        true,
-			expectErrMessage: "failed to decrypt signature",
+			expectErrMessage: "failed to decode b64 signature",
 		},
 		{
 			name: "Missing Signature",
@@ -219,5 +220,5 @@ func mustCreateEncryptedSignature(g Gomega, pub *rsa.PublicKey, csrPEM string) s
 	signature, err := rsa.EncryptPKCS1v15(rand.Reader, pub, hash.Sum(nil))
 	g.Expect(err).NotTo(HaveOccurred())
 
-	return string(signature)
+	return base64.StdEncoding.EncodeToString(signature)
 }

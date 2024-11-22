@@ -17,16 +17,16 @@ const (
 	deleteFailedMsgTmpl = "Failed to delete Calico, the error was: %v"
 )
 
-// ApplyNetwork will deploy Calico when cfg.Enabled is true.
-// ApplyNetwork will remove Calico when cfg.Enabled is false.
+// ApplyNetwork will deploy Calico when network.Enabled is true.
+// ApplyNetwork will remove Calico when network.Enabled is false.
 // ApplyNetwork will always return a FeatureStatus indicating the current status of the
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
+func ApplyNetwork(ctx context.Context, snap snap.Snap, _ string, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
-	if !cfg.GetEnabled() {
+	if !network.GetEnabled() {
 		if _, err := m.Apply(ctx, ChartCalico, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall network: %w", err)
 			return types.FeatureStatus{
@@ -54,7 +54,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	}
 
 	podIpPools := []map[string]any{}
-	ipv4PodCIDR, ipv6PodCIDR, err := utils.ParseCIDRs(cfg.GetPodCIDR())
+	ipv4PodCIDR, ipv6PodCIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	if err != nil {
 		err = fmt.Errorf("invalid pod cidr: %w", err)
 		return types.FeatureStatus{
@@ -79,9 +79,9 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, cfg types.Network, annota
 	}
 
 	serviceCIDRs := []string{}
-	ipv4ServiceCIDR, ipv6ServiceCIDR, err := utils.ParseCIDRs(cfg.GetServiceCIDR())
+	ipv4ServiceCIDR, ipv6ServiceCIDR, err := utils.SplitCIDRStrings(network.GetServiceCIDR())
 	if err != nil {
-		err = fmt.Errorf("invalid service cidr: %v", err)
+		err = fmt.Errorf("invalid service cidr: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CalicoTag,

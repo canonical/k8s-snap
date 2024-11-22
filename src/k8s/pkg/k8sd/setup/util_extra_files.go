@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 // ExtraNodeConfigFiles writes the file contents to the specified filenames in the snap.ExtraFilesDir directory.
@@ -20,7 +21,7 @@ func ExtraNodeConfigFiles(snap snap.Snap, files map[string]string) error {
 
 		filePath := filepath.Join(snap.ServiceExtraConfigDir(), filename)
 		// Write the content to the file
-		if err := os.WriteFile(filePath, []byte(content), 0400); err != nil {
+		if err := utils.WriteFile(filePath, []byte(content), 0o400); err != nil {
 			return fmt.Errorf("failed to write to file %s: %w", filePath, err)
 		}
 

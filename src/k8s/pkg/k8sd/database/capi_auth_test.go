@@ -17,10 +17,10 @@ func TestClusterAPIAuthTokens(t *testing.T) {
 			g := NewWithT(t)
 			err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				err := database.SetClusterAPIToken(ctx, tx, token)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				return nil
 			})
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 		})
 
 		t.Run("CheckAuthToken", func(t *testing.T) {
@@ -28,22 +28,22 @@ func TestClusterAPIAuthTokens(t *testing.T) {
 				g := NewWithT(t)
 				err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 					valid, err := database.ValidateClusterAPIToken(ctx, tx, token)
-					g.Expect(err).To(BeNil())
+					g.Expect(err).To(Not(HaveOccurred()))
 					g.Expect(valid).To(BeTrue())
 					return nil
 				})
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 			})
 
 			t.Run("InvalidToken", func(t *testing.T) {
 				g := NewWithT(t)
 				err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 					valid, err := database.ValidateClusterAPIToken(ctx, tx, "invalid-token")
-					g.Expect(err).To(BeNil())
+					g.Expect(err).To(Not(HaveOccurred()))
 					g.Expect(valid).To(BeFalse())
 					return nil
 				})
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 			})
 		})
 	})

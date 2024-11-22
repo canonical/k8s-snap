@@ -15,9 +15,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/moby/sys/mountinfo"
-
 	"github.com/canonical/k8s/pkg/log"
+	"github.com/moby/sys/mountinfo"
 )
 
 // ParseArgumentLine parses a command-line argument from a single line.
@@ -120,6 +119,7 @@ func CopyFile(srcFile, dstFile string) error {
 
 	return nil
 }
+
 func FileExists(path ...string) (bool, error) {
 	if _, err := os.Stat(filepath.Join(path...)); err != nil {
 		if !os.IsNotExist(err) {
@@ -254,6 +254,38 @@ func CreateTarball(tarballPath string, rootDir string, walkDir string, excludeFi
 	err = tarball.Close()
 	if err != nil {
 		return fmt.Errorf("could not close tarball, error: %w", err)
+	}
+
+	return nil
+}
+
+// WriteFile writes data to a file with the given name and permissions.
+// The file is written to a temporary file in the same directory as the target file
+// and then renamed to the target file to avoid partial writes in case of a crash.
+func WriteFile(name string, data []byte, perm fs.FileMode) error {
+	dir := filepath.Dir(name)
+	tmpFile, err := os.CreateTemp(dir, "tmp-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err := tmpFile.Write(data); err != nil {
+		tmpFile.Close()
+		return fmt.Errorf("failed to write to temp file: %w", err)
+	}
+
+	if err := tmpFile.Chmod(perm); err != nil {
+		tmpFile.Close()
+		return fmt.Errorf("failed to set permissions on temp file: %w", err)
+	}
+
+	if err := tmpFile.Close(); err != nil {
+		return fmt.Errorf("failed to close temp file: %w", err)
+	}
+
+	if err := os.Rename(tmpFile.Name(), name); err != nil {
+		return fmt.Errorf("failed to rename temp file to target file: %w", err)
 	}
 
 	return nil

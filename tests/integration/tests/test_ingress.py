@@ -3,10 +3,13 @@
 #
 import json
 import logging
+import subprocess
+import time
 from pathlib import Path
 from typing import List
 
-from test_util import harness, util
+import pytest
+from test_util import config, harness, util
 from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
@@ -35,11 +38,60 @@ def get_ingress_service_node_port(p):
     return None
 
 
-def test_ingress(session_instance: List[harness.Instance]):
+def get_external_service_ip(instance: harness.Instance, service_namespace) -> str:
+    try_count = 0
+    ingress_ip = None
+    while ingress_ip is None and try_count < 5:
+        try_count += 1
+        for svcns in service_namespace:
+            svc = svcns["service"]
+            namespace = svcns["namespace"]
+            try:
+                ingress_ip = (
+                    instance.exec(
+                        [
+                            "k8s",
+                            "kubectl",
+                            "--namespace",
+                            namespace,
+                            "get",
+                            "service",
+                            svc,
+                            "-o=jsonpath='{.status.loadBalancer.ingress[0].ip}'",
+                        ],
+                        capture_output=True,
+                    )
+                    .stdout.decode()
+                    .replace("'", "")
+                )
+                if ingress_ip is not None:
+                    return ingress_ip
+            except subprocess.CalledProcessError:
+                ingress_ip = None
+                pass
+        time.sleep(3)
+    return ingress_ip
+
+
+@pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
+def test_ingress(instances: List[harness.Instance]):
+    instance = instances[0]
+    instance_default_ip = util.get_default_ip(instance)
+    instance_default_cidr = util.get_default_cidr(instance, instance_default_ip)
+    lb_cidr = util.find_suitable_cidr(
+        parent_cidr=instance_default_cidr,
+        excluded_ips=[instance_default_ip],
+    )
+    instance.exec(
+        ["k8s", "set", f"load-balancer.cidrs={lb_cidr}", "load-balancer.l2-mode=true"]
+    )
+    util.wait_until_k8s_ready(instance, [instance])
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
 
     result = (
         util.stubbornly(retries=7, delay_s=3)
-        .on(session_instance)
+        .on(instance)
         .until(lambda p: get_ingress_service_node_port(p) is not None)
         .exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
     )
@@ -49,18 +101,18 @@ def test_ingress(session_instance: List[harness.Instance]):
     assert ingress_http_port is not None, "No ingress nodePort found."
 
     manifest = MANIFESTS_DIR / "ingress-test.yaml"
-    session_instance.exec(
+    instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
     LOG.info("Waiting for nginx pod to show up...")
-    util.stubbornly(retries=5, delay_s=10).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=10).on(instance).until(
         lambda p: "my-nginx" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Nginx pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
+    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -74,6 +126,19 @@ def test_ingress(session_instance: List[harness.Instance]):
         ]
     )
 
-    util.stubbornly(retries=5, delay_s=5).on(session_instance).until(
+    util.stubbornly(retries=5, delay_s=5).on(instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{ingress_http_port}", "-H", "Host: foo.bar.com"])
+
+    # Test the ingress service via loadbalancer IP
+    ingress_ip = get_external_service_ip(
+        instance,
+        [
+            {"service": "ck-ingress-contour-envoy", "namespace": "projectcontour"},
+            {"service": "cilium-ingress", "namespace": "kube-system"},
+        ],
+    )
+    assert ingress_ip is not None, "No ingress IP found."
+    util.stubbornly(retries=5, delay_s=5).on(instance).until(
+        lambda p: "Welcome to nginx!" in p.stdout.decode()
+    ).exec(["curl", f"{ingress_ip}", "-H", "Host: foo.bar.com"])

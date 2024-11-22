@@ -111,6 +111,17 @@ function collect_service_diagnostics {
   journalctl -n 100000 -u "snap.$service" &>"$INSPECT_DUMP/$service/journal.log"
 }
 
+function collect_registry_mirror_logs {
+  local mirror_units=`systemctl list-unit-files --state=enabled | grep "registry-" | awk '{print $1}'`
+  if [ -n "$mirror_units" ]; then
+    mkdir -p "$INSPECT_DUMP/mirrors"
+
+    for mirror_unit in $mirror_units; do
+      journalctl -n 100000 -u "$mirror_unit" &>"$INSPECT_DUMP/mirrors/$mirror_unit.log"
+    done
+  fi
+}
+
 function collect_network_diagnostics {
   log_info "Copy network diagnostics to the final report tarball"
   ip a &>"$INSPECT_DUMP/ip-a.log" || true
@@ -181,6 +192,9 @@ if is_control_plane_node; then
 else
   check_expected_services "${worker_services[@]}"
 fi
+
+printf -- 'Collecting registry mirror logs\n'
+collect_registry_mirror_logs
 
 printf -- 'Collecting service arguments\n'
 collect_args

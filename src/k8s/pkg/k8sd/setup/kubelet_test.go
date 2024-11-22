@@ -14,8 +14,10 @@ import (
 
 // These values are hard-coded and need to be updated if the
 // implementation changes.
-var expectedControlPlaneLabels = "node-role.kubernetes.io/control-plane=,node-role.kubernetes.io/worker=,k8sd.io/role=control-plane"
-var expectedWorkerLabels = "node-role.kubernetes.io/worker=,k8sd.io/role=worker"
+var (
+	expectedControlPlaneLabels = "node-role.kubernetes.io/control-plane=,node-role.kubernetes.io/worker=,k8sd.io/role=control-plane"
+	expectedWorkerLabels       = "node-role.kubernetes.io/worker=,k8sd.io/role=worker"
+)
 
 var kubeletTLSCipherSuites = "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384"
 
@@ -30,11 +32,12 @@ func mustSetupSnapAndDirectories(t *testing.T, createMock func(*mock.Snap, strin
 
 func setKubeletMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
-		KubernetesPKIDir:    filepath.Join(dir, "pki"),
-		KubernetesConfigDir: filepath.Join(dir, "k8s-config"),
-		KubeletRootDir:      filepath.Join(dir, "kubelet-root"),
-		ServiceArgumentsDir: filepath.Join(dir, "args"),
-		ContainerdSocketDir: filepath.Join(dir, "containerd-run"),
+		KubernetesPKIDir:     filepath.Join(dir, "pki"),
+		KubernetesConfigDir:  filepath.Join(dir, "k8s-config"),
+		KubeletRootDir:       filepath.Join(dir, "kubelet-root"),
+		ServiceArgumentsDir:  filepath.Join(dir, "args"),
+		ContainerdSocketDir:  filepath.Join(dir, "containerd-run"),
+		ContainerdSocketPath: filepath.Join(dir, "containerd-run", "containerd.sock"),
 	}
 }
 
@@ -57,8 +60,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
-			{key: "--container-runtime-endpoint", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
-			{key: "--containerd", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
+			{key: "--container-runtime-endpoint", expectedVal: s.Mock.ContainerdSocketPath},
+			{key: "--containerd", expectedVal: s.Mock.ContainerdSocketPath},
 			{key: "--cgroup-driver", expectedVal: "systemd"},
 			{key: "--eviction-hard", expectedVal: "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'"},
 			{key: "--fail-swap-on", expectedVal: "false"},
@@ -89,7 +92,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("ControlPlaneWithExtraArgs", func(t *testing.T) {
@@ -115,8 +118,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
-			{key: "--container-runtime-endpoint", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
-			{key: "--containerd", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
+			{key: "--container-runtime-endpoint", expectedVal: s.Mock.ContainerdSocketPath},
+			{key: "--containerd", expectedVal: s.Mock.ContainerdSocketPath},
 			{key: "--cgroup-driver", expectedVal: "systemd"},
 			{key: "--eviction-hard", expectedVal: "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'"},
 			{key: "--fail-swap-on", expectedVal: "false"},
@@ -153,7 +156,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("ControlPlaneArgsNoOptional", func(t *testing.T) {
@@ -163,7 +166,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet control plane setup function
-		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "", nil, nil)).To(BeNil())
+		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "", nil, nil)).To(Succeed())
 
 		tests := []struct {
 			key         string
@@ -173,8 +176,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
-			{key: "--container-runtime-endpoint", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
-			{key: "--containerd", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
+			{key: "--container-runtime-endpoint", expectedVal: s.Mock.ContainerdSocketPath},
+			{key: "--containerd", expectedVal: s.Mock.ContainerdSocketPath},
 			{key: "--cgroup-driver", expectedVal: "systemd"},
 			{key: "--eviction-hard", expectedVal: "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'"},
 			{key: "--fail-swap-on", expectedVal: "false"},
@@ -201,7 +204,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WorkerArgs", func(t *testing.T) {
@@ -211,7 +214,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil)).To(BeNil())
+		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -222,8 +225,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
-			{key: "--container-runtime-endpoint", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
-			{key: "--containerd", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
+			{key: "--container-runtime-endpoint", expectedVal: s.Mock.ContainerdSocketPath},
+			{key: "--containerd", expectedVal: s.Mock.ContainerdSocketPath},
 			{key: "--cgroup-driver", expectedVal: "systemd"},
 			{key: "--eviction-hard", expectedVal: "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'"},
 			{key: "--fail-swap-on", expectedVal: "false"},
@@ -254,7 +257,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WorkerWithExtraArgs", func(t *testing.T) {
@@ -269,7 +272,7 @@ func TestKubelet(t *testing.T) {
 		}
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", extraArgs)).To(BeNil())
+		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", extraArgs)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -280,8 +283,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
-			{key: "--container-runtime-endpoint", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
-			{key: "--containerd", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
+			{key: "--container-runtime-endpoint", expectedVal: s.Mock.ContainerdSocketPath},
+			{key: "--containerd", expectedVal: s.Mock.ContainerdSocketPath},
 			{key: "--cgroup-driver", expectedVal: "systemd"},
 			{key: "--eviction-hard", expectedVal: "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'"},
 			{key: "--fail-swap-on", expectedVal: "false"},
@@ -316,7 +319,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WorkerArgsNoOptional", func(t *testing.T) {
@@ -326,7 +329,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", nil, "", "", "", nil)).To(BeNil())
+		g.Expect(setup.KubeletWorker(s, "dev", nil, "", "", "", nil)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -337,8 +340,8 @@ func TestKubelet(t *testing.T) {
 			{key: "--anonymous-auth", expectedVal: "false"},
 			{key: "--authentication-token-webhook", expectedVal: "true"},
 			{key: "--client-ca-file", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "client-ca.crt")},
-			{key: "--container-runtime-endpoint", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
-			{key: "--containerd", expectedVal: filepath.Join(s.Mock.ContainerdSocketDir, "containerd.sock")},
+			{key: "--container-runtime-endpoint", expectedVal: s.Mock.ContainerdSocketPath},
+			{key: "--containerd", expectedVal: s.Mock.ContainerdSocketPath},
 			{key: "--cgroup-driver", expectedVal: "systemd"},
 			{key: "--eviction-hard", expectedVal: "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'"},
 			{key: "--fail-swap-on", expectedVal: "false"},
@@ -365,7 +368,7 @@ func TestKubelet(t *testing.T) {
 		// Ensure the kubelet arguments file has exactly the expected number of arguments
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "kubelet"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("ControlPlaneNoArgsDir", func(t *testing.T) {
@@ -397,7 +400,34 @@ func TestKubelet(t *testing.T) {
 		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
 
 		val, err := snaputil.GetServiceArgument(s, "kubelet", "--hostname-override")
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(val).To(BeEmpty())
+	})
+
+	t.Run("IPv6", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// Create a mock snap
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
+		s.Mock.Hostname = "dev"
+
+		// Call the kubelet control plane setup function
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("2001:db8::"), "2001:db8::1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
+
+		tests := []struct {
+			key         string
+			expectedVal string
+		}{
+			{key: "--cluster-dns", expectedVal: "2001:db8::1"},
+			{key: "--node-ip", expectedVal: "2001:db8::"},
+		}
+		for _, tc := range tests {
+			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
+				val, err := snaputil.GetServiceArgument(s, "kubelet", tc.key)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(tc.expectedVal).To(Equal(val))
+			})
+		}
 	})
 }

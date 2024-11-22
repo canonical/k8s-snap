@@ -27,12 +27,12 @@ class LocalHarness(Harness):
 
         LOG.debug("Configured local substrate")
 
-    def new_instance(self, dualstack: bool = False) -> Instance:
+    def new_instance(self, network_type: str = "IPv4") -> Instance:
         if self.initialized:
             raise HarnessError("local substrate only supports up to one instance")
 
-        if dualstack:
-            raise HarnessError("Dualstack is currently not supported by Local harness")
+        if network_type != "IPv4":
+            raise HarnessError("Currently only IPv4 is supported by Local harness")
 
         self.initialized = True
         LOG.debug("Initializing instance")

@@ -22,7 +22,7 @@ func K8sDqlite(snap snap.Snap, address string, cluster []string, extraArgs map[s
 		if err := os.RemoveAll(snap.K8sDqliteStateDir()); err != nil {
 			return fmt.Errorf("failed to cleanup not-empty k8s-dqlite directory: %w", err)
 		}
-		if err := os.MkdirAll(snap.K8sDqliteStateDir(), 0700); err != nil {
+		if err := os.MkdirAll(snap.K8sDqliteStateDir(), 0o700); err != nil {
 			return fmt.Errorf("failed to create k8s-dqlite state directory: %w", err)
 		}
 	}
@@ -32,7 +32,7 @@ func K8sDqlite(snap snap.Snap, address string, cluster []string, extraArgs map[s
 		return fmt.Errorf("failed to create init.yaml file for address=%s cluster=%v: %w", address, cluster, err)
 	}
 
-	if err := os.WriteFile(filepath.Join(snap.K8sDqliteStateDir(), "init.yaml"), b, 0600); err != nil {
+	if err := utils.WriteFile(filepath.Join(snap.K8sDqliteStateDir(), "init.yaml"), b, 0o600); err != nil {
 		return fmt.Errorf("failed to write init.yaml: %w", err)
 	}
 

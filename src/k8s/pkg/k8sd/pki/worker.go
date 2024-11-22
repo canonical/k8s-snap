@@ -48,7 +48,7 @@ func (c *ControlPlanePKI) CompleteWorkerNodePKI(hostname string, nodeIP net.IP, 
 			c.notAfter,
 			false,
 			[]string{hostname},
-			[]net.IP{{127, 0, 0, 1}, nodeIP},
+			[]net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1"), nodeIP},
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate kubelet certificate for hostname=%s address=%s: %w", hostname, nodeIP.String(), err)

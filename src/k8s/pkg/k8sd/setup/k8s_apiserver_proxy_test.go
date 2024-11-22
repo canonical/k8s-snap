@@ -27,7 +27,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
-		g.Expect(setup.K8sAPIServerProxy(s, nil, nil)).To(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil, 6443, nil)).To(Succeed())
 
 		tests := []struct {
 			key         string
@@ -35,20 +35,20 @@ func TestK8sApiServerProxy(t *testing.T) {
 		}{
 			{key: "--endpoints", expectedVal: filepath.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json")},
 			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "kubelet.conf")},
-			{key: "--listen", expectedVal: "127.0.0.1:6443"},
+			{key: "--listen", expectedVal: ":6443"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "k8s-apiserver-proxy", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(tc.expectedVal).To(Equal(val))
 			})
 		}
 
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "k8s-apiserver-proxy"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("WithExtraArgs", func(t *testing.T) {
@@ -61,7 +61,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 			"--listen":       nil, // This should trigger a delete
 			"--my-extra-arg": utils.Pointer("my-extra-val"),
 		}
-		g.Expect(setup.K8sAPIServerProxy(s, nil, extraArgs)).To(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil, 6443, extraArgs)).To(Succeed())
 
 		tests := []struct {
 			key         string
@@ -75,7 +75,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 			t.Run(tc.key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "k8s-apiserver-proxy", tc.key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(tc.expectedVal).To(Equal(val))
 			})
 		}
@@ -83,13 +83,13 @@ func TestK8sApiServerProxy(t *testing.T) {
 		t.Run("--listen", func(t *testing.T) {
 			g := NewWithT(t)
 			val, err := snaputil.GetServiceArgument(s, "k8s-apiserver-proxy", "--listen")
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(val).To(BeZero())
 		})
 
 		args, err := utils.ParseArgumentFile(filepath.Join(s.Mock.ServiceArgumentsDir, "k8s-apiserver-proxy"))
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(len(args)).To(Equal(len(tests)))
+		g.Expect(args).To(HaveLen(len(tests)))
 	})
 
 	t.Run("MissingExtraConfigDir", func(t *testing.T) {
@@ -98,7 +98,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		s.Mock.ServiceExtraConfigDir = "nonexistent"
-		g.Expect(setup.K8sAPIServerProxy(s, nil, nil)).ToNot(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil, 6443, nil)).ToNot(Succeed())
 	})
 
 	t.Run("MissingServiceArgumentsDir", func(t *testing.T) {
@@ -107,7 +107,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setK8sApiServerMock)
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
-		g.Expect(setup.K8sAPIServerProxy(s, nil, nil)).ToNot(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, nil, 6443, nil)).ToNot(Succeed())
 	})
 
 	t.Run("JSONFileContent", func(t *testing.T) {
@@ -118,7 +118,7 @@ func TestK8sApiServerProxy(t *testing.T) {
 		endpoints := []string{"192.168.0.1", "192.168.0.2", "192.168.0.3"}
 		fileName := filepath.Join(s.Mock.ServiceExtraConfigDir, "k8s-apiserver-proxy.json")
 
-		g.Expect(setup.K8sAPIServerProxy(s, endpoints, nil)).To(Succeed())
+		g.Expect(setup.K8sAPIServerProxy(s, endpoints, 6443, nil)).To(Succeed())
 
 		b, err := os.ReadFile(fileName)
 		g.Expect(err).NotTo(HaveOccurred())
@@ -129,5 +129,30 @@ func TestK8sApiServerProxy(t *testing.T) {
 
 		// Compare the expected endpoints with those in the file
 		g.Expect(config.Endpoints).To(Equal(endpoints))
+	})
+
+	t.Run("IPv6", func(t *testing.T) {
+		g := NewWithT(t)
+
+		// Create a mock snap
+		s := mustSetupSnapAndDirectories(t, setKubeletMock)
+		s.Mock.Hostname = "dev"
+
+		g.Expect(setup.K8sAPIServerProxy(s, nil, 1234, nil)).To(Succeed())
+
+		tests := []struct {
+			key         string
+			expectedVal string
+		}{
+			{key: "--listen", expectedVal: ":1234"},
+		}
+		for _, tc := range tests {
+			t.Run(tc.key, func(t *testing.T) {
+				g := NewWithT(t)
+				val, err := snaputil.GetServiceArgument(s, "k8s-apiserver-proxy", tc.key)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(tc.expectedVal).To(Equal(val))
+			})
+		}
 	})
 }

@@ -17,15 +17,16 @@ func (c *Client) GetRefreshStatus(changeID string) (*types.RefreshStatus, error)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapd change status: %w", err)
 	}
+	defer resp.Body.Close()
 
 	resBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("client: could not read response body: %s", err)
+		return nil, fmt.Errorf("client: could not read response body: %w", err)
 	}
 
 	var changeResponse snapdChangeResponse
 	if err := json.Unmarshal(resBody, &changeResponse); err != nil {
-		return nil, fmt.Errorf("client: could not unmarshal response body: %s", err)
+		return nil, fmt.Errorf("client: could not unmarshal response body: %w", err)
 	}
 
 	return &changeResponse.Result, nil

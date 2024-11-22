@@ -29,17 +29,17 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 	m := snap.HelmClient()
 
 	if !dns.GetEnabled() {
-		if _, err := m.Apply(ctx, chart, helm.StateDeleted, nil); err != nil {
+		if _, err := m.Apply(ctx, Chart, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall coredns: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: imageTag,
+				Version: ImageTag,
 				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
 			}, "", err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: imageTag,
+			Version: ImageTag,
 			Message: disabledMsg,
 		}, "", nil
 	}
@@ -47,7 +47,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 	values := map[string]any{
 		"image": map[string]any{
 			"repository": imageRepo,
-			"tag":        imageTag,
+			"tag":        ImageTag,
 		},
 		"service": map[string]any{
 			"name":      "coredns",
@@ -82,11 +82,11 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 		},
 	}
 
-	if _, err := m.Apply(ctx, chart, helm.StatePresent, values); err != nil {
+	if _, err := m.Apply(ctx, Chart, helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to apply coredns: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: imageTag,
+			Version: ImageTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, "", err
 	}
@@ -96,7 +96,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 		err = fmt.Errorf("failed to create kubernetes client: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: imageTag,
+			Version: ImageTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, "", err
 	}
@@ -105,14 +105,14 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 		err = fmt.Errorf("failed to retrieve the coredns service: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: imageTag,
+			Version: ImageTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, "", err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
-		Version: imageTag,
+		Version: ImageTag,
 		Message: fmt.Sprintf(enabledMsgTmpl, dnsIP),
 	}, dnsIP, err
 }

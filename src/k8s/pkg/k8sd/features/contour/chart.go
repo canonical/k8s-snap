@@ -34,29 +34,29 @@ var (
 		ManifestPath: filepath.Join("charts", "ck-contour-common-1.28.2.tgz"),
 	}
 
-	// contourGatewayProvisionerEnvoyImageRepo represents the image to use for envoy in the gateway.
-	contourGatewayProvisionerEnvoyImageRepo = "ghcr.io/canonical/k8s-snap/envoyproxy/envoy"
+	// ContourGatewayProvisionerEnvoyImageRepo represents the image to use for envoy in the gateway.
+	ContourGatewayProvisionerEnvoyImageRepo = "ghcr.io/canonical/k8s-snap/envoyproxy/envoy"
 
 	// NOTE: The image version is v1.29.2 instead of 1.28.2
 	// to follow the upstream configuration for the contour gateway provisioner.
-	// contourGatewayProvisionerEnvoyImageTag is the tag to use for for envoy in the gateway.
-	contourGatewayProvisionerEnvoyImageTag = "v1.29.2"
+	// ContourGatewayProvisionerEnvoyImageTag is the tag to use for envoy in the gateway.
+	ContourGatewayProvisionerEnvoyImageTag = "v1.29.2"
 
-	// contourIngressEnvoyImageRepo represents the image to use for the Contour Envoy proxy.
-	contourIngressEnvoyImageRepo = "ghcr.io/canonical/k8s-snap/bitnami/envoy"
+	// ContourIngressEnvoyImageRepo represents the image to use for the Contour Envoy proxy.
+	ContourIngressEnvoyImageRepo = "ghcr.io/canonical/k8s-snap/bitnami/envoy"
 
-	// contourIngressEnvoyImageTag is the tag to use for the Contour Envoy proxy image.
-	contourIngressEnvoyImageTag = "1.28.2-debian-12-r0"
+	// ContourIngressEnvoyImageTag is the tag to use for the Contour Envoy proxy image.
+	ContourIngressEnvoyImageTag = "1.28.2-debian-12-r0"
 
-	// contourIngressContourImageRepo represents the image to use for Contour.
-	contourIngressContourImageRepo = "ghcr.io/canonical/k8s-snap/bitnami/contour"
+	// ContourIngressContourImageRepo represents the image to use for Contour.
+	ContourIngressContourImageRepo = "ghcr.io/canonical/k8s-snap/bitnami/contour"
 
-	// contourIngressContourImageTag is the tag to use for the Contour image.
-	contourIngressContourImageTag = "1.28.2-debian-12-r4"
+	// ContourIngressContourImageTag is the tag to use for the Contour image.
+	ContourIngressContourImageTag = "1.28.2-debian-12-r4"
 
-	// contourGatewayProvisionerContourImageRepo represents the image to use for the Contour Gateway Provisioner.
-	contourGatewayProvisionerContourImageRepo = "ghcr.io/canonical/k8s-snap/projectcontour/contour"
+	// ContourGatewayProvisionerContourImageRepo represents the image to use for the Contour Gateway Provisioner.
+	ContourGatewayProvisionerContourImageRepo = "ghcr.io/canonical/k8s-snap/projectcontour/contour"
 
-	// contourGatewayProvisionerContourImageTag is the tag to use for the Contour Gateway Provisioner image.
-	contourGatewayProvisionerContourImageTag = "v1.28.2"
+	// ContourGatewayProvisionerContourImageTag is the tag to use for the Contour Gateway Provisioner image.
+	ContourGatewayProvisionerContourImageTag = "v1.28.2"
 )

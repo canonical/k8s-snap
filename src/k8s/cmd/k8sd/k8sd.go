@@ -91,7 +91,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	addCommands(
 		cmd,
 		&cobra.Group{ID: "cluster", Title: "K8sd clustering commands:"},
-		newClusterRecoverCmd(),
+		newClusterRecoverCmd(env),
 	)
 
 	return cmd

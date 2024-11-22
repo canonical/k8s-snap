@@ -25,7 +25,7 @@ func MarkAsWorkerNode(snap snap.Snap, mark bool) error {
 		if err := os.Chown(fname, snap.UID(), snap.GID()); err != nil {
 			return fmt.Errorf("failed to chown %s: %w", fname, err)
 		}
-		if err := os.Chmod(fname, 0600); err != nil {
+		if err := os.Chmod(fname, 0o600); err != nil {
 			return fmt.Errorf("failed to chmod %s: %w", fname, err)
 		}
 	} else {

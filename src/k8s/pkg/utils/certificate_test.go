@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/canonical/k8s/pkg/utils"
-
 	. "github.com/onsi/gomega"
 )
 
@@ -41,18 +40,18 @@ func TestTLSClientConfigWithTrustedCertificate(t *testing.T) {
 
 	tlsConfig, err := utils.TLSClientConfigWithTrustedCertificate(remoteCert, rootCAs)
 
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(tlsConfig.ServerName).To(Equal("bubblegum.com"))
 	g.Expect(tlsConfig.RootCAs.Subjects()).To(ContainElement(remoteCert.RawSubject))
 
 	// Test with invalid remote certificate
 	tlsConfig, err = utils.TLSClientConfigWithTrustedCertificate(nil, rootCAs)
-	g.Expect(err).ToNot(BeNil())
+	g.Expect(err).To(HaveOccurred())
 	g.Expect(tlsConfig).To(BeNil())
 
 	// Test with nil root CAs
 	_, err = utils.TLSClientConfigWithTrustedCertificate(remoteCert, nil)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).To(Not(HaveOccurred()))
 }
 
 func TestCertFingerprint(t *testing.T) {

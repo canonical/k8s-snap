@@ -18,6 +18,7 @@ func KubeScheduler(snap snap.Snap, extraArgs map[string]*string) error {
 		"--leader-elect-lease-duration": "30s",
 		"--leader-elect-renew-deadline": "15s",
 		"--profiling":                   "false",
+		"--tls-min-version":             "VersionTLS12",
 	}, nil); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
 	}

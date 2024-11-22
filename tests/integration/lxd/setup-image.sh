@@ -69,6 +69,8 @@ case "${BASE_DISTRO}" in
     # snapd is preinstalled on Ubuntu OSes
     lxc shell tmp-builder -- bash -c 'snap wait core seed.loaded'
     lxc shell tmp-builder -- bash -c 'snap install '"${BASE_SNAP}"
+    # NOTE(aznashwan): 'nf_conntrack' required by kube-proxy:
+    lxc shell tmp-builder -- bash -c 'apt update && apt install -y "linux-modules-$(uname -r)"}'
     ;;
   almalinux)
     # install snapd and ensure /snap/bin is in the environment
@@ -77,6 +79,8 @@ case "${BASE_DISTRO}" in
     lxc shell tmp-builder -- bash -c 'dnf install tar sudo -y'
     lxc shell tmp-builder -- bash -c 'dnf install fuse squashfuse -y'
     lxc shell tmp-builder -- bash -c 'dnf install snapd -y'
+    # NOTE(aznashwan): 'nf_conntrack' required by kube-proxy:
+    lxc shell tmp-builder -- bash -c 'dnf install -y kernel-modules-core'
 
     lxc shell tmp-builder -- bash -c 'systemctl enable --now snapd.socket'
     lxc shell tmp-builder -- bash -c 'ln -s /var/lib/snapd/snap /snap'
@@ -92,6 +96,8 @@ case "${BASE_DISTRO}" in
     lxc shell tmp-builder -- bash -c 'snap install snapd '"${BASE_SNAP}"
     lxc shell tmp-builder -- bash -c 'echo PATH=$PATH:/snap/bin >> /etc/environment'
     lxc shell tmp-builder -- bash -c 'apt autoremove; apt clean; apt autoclean; rm -rf /var/lib/apt/lists'
+    # NOTE(aznashwan): 'nf_conntrack' required by kube-proxy:
+    lxc shell tmp-builder -- bash -c 'apt update && apt install -y "linux-modules-$(uname -r)"}'
 
     # NOTE(neoaggelos): disable apparmor in containerd, as it causes trouble in the default setup
     lxc shell tmp-builder -- bash -c '

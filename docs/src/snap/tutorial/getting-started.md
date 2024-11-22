@@ -19,21 +19,23 @@ Install the {{product}} snap with:
 sudo snap install k8s --edge --classic
 ```
 
-### 2. Bootstrap a Kubernetes Cluster
+### 2. Bootstrap a Kubernetes cluster
 
-Bootstrap a Kubernetes cluster with default configuration using:
+The bootstrap command initialises your cluster and configures your host system
+as a Kubernetes node. If you would like to bootstrap a Kubernetes cluster with 
+default configuration run: 
 
 ```
 sudo k8s bootstrap
 ```
 
-This command initialises your cluster and configures your host system
-as a Kubernetes node.
 For custom configurations, you can explore additional options using:
 
 ```
 sudo k8s bootstrap --help
 ```
+
+Bootstrapping the cluster can only be done once. 
 
 ### 3. Check cluster status
 
@@ -44,6 +46,13 @@ should run:
 sudo k8s status
 ```
 
+It may take a few moments for the cluster to be ready. Confirm that {{product}} 
+has transitioned to the `cluster status ready` state by running:
+
+```
+sudo k8s status --wait-ready
+```
+
 Run the following command to list all the pods in the `kube-system`
 namespace:
 
@@ -51,18 +60,12 @@ namespace:
 sudo k8s kubectl get pods -n kube-system
 ```
 
-You will observe at least three pods running:
+You will observe at least three pods running. The functions of these three pods 
+are:
 
 - **CoreDNS**: Provides DNS resolution services.
 - **Network operator**: Manages the life-cycle of the networking solution.
 - **Network agent**: Facilitates network management.
-
-Confirm that {{product}} has transitioned to the `k8s is ready` state
-by running:
-
-```
-sudo k8s status --wait-ready
-```
 
 ### 5. Access Kubernetes
 
@@ -124,7 +127,7 @@ running:
 sudo k8s kubectl get pods
 ```
 
-### 8. Enable Local Storage
+### 8. Enable local storage
 
 In scenarios where you need to preserve application data beyond the
 life-cycle of the pod, Kubernetes provides persistent volumes.
@@ -166,7 +169,7 @@ You can inspect the storage-writer-pod with:
 sudo k8s kubectl describe pod storage-writer-pod
 ```
 
-### 9. Disable Local Storage
+### 9. Disable local storage
 
 Begin by removing the pod along with the persistent volume claim:
 
@@ -201,14 +204,14 @@ sudo snap remove k8s --purge
 
 This option ensures complete removal of the snap and its associated data.
 
-## Next Steps
+## Next steps
 
 - Learn more about {{product}} with kubectl: [How to use kubectl]
 - Explore Kubernetes commands with our [Command Reference Guide]
 - Learn how to set up a multi-node environment [Setting up a K8s cluster]
 - Configure storage options: [Storage]
 - Master Kubernetes networking concepts: [Networking]
-- Discover how to enable and configure Ingress resources [Ingress]
+- Discover how to enable and configure Ingress resources: [Ingress]
 
 <!-- LINKS -->
 

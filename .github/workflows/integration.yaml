@@ -2,6 +2,8 @@ name: Integration Tests
 
 on:
   push:
+    paths-ignore:
+      - 'docs/**'
     branches:
       - main
       - autoupdate/strict
@@ -10,6 +12,8 @@ on:
       - 'autoupdate/release-[0-9]+.[0-9]+-strict'
       - 'autoupdate/sync/**'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
 
 permissions:
   contents: read
@@ -51,6 +55,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -59,7 +65,7 @@ jobs:
         run: pip install tox
       - name: Run branch_management tests
         run: |
-          tox -c tests/branch_management -e integration
+          tox -c tests/branch_management -e test
 
   test-integration:
     name: Test ${{ matrix.os }}
@@ -67,7 +73,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
-    runs-on: ubuntu-20.04
+    runs-on: ["self-hosted", "Linux", "AMD64", "jammy", "large"]
     needs: build
 
     steps:
@@ -76,7 +82,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.10'
       - name: Install tox
         run: pip install tox
       - name: Install lxd
@@ -85,29 +91,38 @@ jobs:
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
+          sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
+          sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
       - name: Download snap
         uses: actions/download-artifact@v4
         with:
           name: k8s.snap
-          path: build
+          path: ${{ github.workspace }}/build
       - name: Run end to end tests
+        env:
+          TEST_SNAP: ${{ github.workspace }}/build/k8s.snap
+          TEST_SUBSTRATE: lxd
+          TEST_LXD_IMAGE: ${{ matrix.os }}
+          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
+          # Test the latest (up to) 6 releases for the flavour
+          # TODO(ben): upgrade nightly to run all flavours
+          TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
+          # Upgrading from 1.30 is not supported.
+          TEST_VERSION_UPGRADE_MIN_RELEASE: "1.31"
+          TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}]'
         run: |
-          export TEST_SNAP="$PWD/build/k8s.snap"
-          export TEST_SUBSTRATE=lxd
-          export TEST_LXD_IMAGE=${{ matrix.os }}
-          export TEST_INSPECTION_REPORTS_DIR="$HOME/inspection-reports"
-          cd tests/integration && sg lxd -c 'tox -e integration -- -k test_control_plane_nodes'
+          cd tests/integration && sg lxd -c 'tox -e integration'
       - name: Prepare inspection reports
         if: failure()
         run: |
-          tar -czvf inspection-reports.tar.gz -C $HOME inspection-reports
+          tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
           echo "artifact_name=inspection-reports-${{ matrix.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.artifact_name }}
-          path: inspection-reports.tar.gz
+          path: ${{ github.workspace }}/inspection-reports.tar.gz
 
   security-scan:
     permissions:
@@ -121,6 +136,13 @@ jobs:
         uses: step-security/harden-runner@v2
         with:
           egress-policy: audit
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          # We run into rate limiting issues if we don't authenticate
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Fetch snap
@@ -130,10 +152,12 @@ jobs:
           path: build
       - name: Setup Trivy vulnerability scanner
         run: |
-          mkdir -p sarifs
+          mkdir -p manual-trivy/sarifs
+          pushd manual-trivy
           VER=$(curl --silent -qI https://github.com/aquasecurity/trivy/releases/latest | awk -F '/' '/^location/ {print  substr($NF, 1, length($NF)-1)}');
           wget https://github.com/aquasecurity/trivy/releases/download/${VER}/trivy_${VER#v}_Linux-64bit.tar.gz
           tar -zxvf ./trivy_${VER#v}_Linux-64bit.tar.gz
+          popd
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@master
         with:
@@ -142,15 +166,20 @@ jobs:
           format: "sarif"
           output: "trivy-k8s-repo-scan--results.sarif"
           severity: "MEDIUM,HIGH,CRITICAL"
+        env:
+          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
       - name: Gather Trivy repo scan results
         run: |
-          cp trivy-k8s-repo-scan--results.sarif ./sarifs/
+          cp trivy-k8s-repo-scan--results.sarif ./manual-trivy/sarifs/
       - name: Run Trivy vulnerability scanner on the snap
         run: |
+          for var in $(env | grep -o '^TRIVY_[^=]*'); do
+            unset "$var"
+          done
           cp build/k8s.snap .
           unsquashfs k8s.snap
-          ./trivy rootfs ./squashfs-root/ --format sarif > sarifs/snap.sarif
+          ./manual-trivy/trivy --db-repository public.ecr.aws/aquasecurity/trivy-db rootfs ./squashfs-root/ --format sarif > ./manual-trivy/sarifs/snap.sarif
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: "sarifs"
+          sarif_file: "./manual-trivy/sarifs"

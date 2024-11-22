@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -11,6 +12,8 @@ import (
 )
 
 // findMatchingNodeAddress returns the IP address of a network interface that belongs to the given CIDR.
+// It prefers the address with the fewest subnet bits.
+// Loopback addresses are ignored.
 func findMatchingNodeAddress(cidr *net.IPNet) (net.IP, error) {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -25,7 +28,7 @@ func findMatchingNodeAddress(cidr *net.IPNet) (net.IP, error) {
 		if !ok {
 			continue
 		}
-		if cidr.Contains(ipNet.IP) {
+		if cidr.Contains(ipNet.IP) && !ipNet.IP.IsLoopback() {
 			_, subnetBits := cidr.Mask.Size()
 			if selectedSubnetBits == -1 || subnetBits < selectedSubnetBits {
 				// Prefer the address with the fewest subnet bits
@@ -75,6 +78,21 @@ func GetKubernetesServiceIPsFromServiceCIDRs(serviceCIDR string) ([]net.IP, erro
 
 // ParseAddressString parses an address string and returns a canonical network address.
 func ParseAddressString(address string, port int64) (string, error) {
+	// Matches a CIDR block at the beginning of the address string
+	// e.g. [2001:db8::/32]:8080
+	re := regexp.MustCompile(`^\[?([a-z0-9:.]+\/[0-9]+)\]?`)
+	cidrMatches := re.FindStringSubmatch(address)
+	if len(cidrMatches) != 0 {
+		// Resolve CIDR
+		if _, ipNet, err := net.ParseCIDR(cidrMatches[1]); err == nil {
+			matchingIP, err := findMatchingNodeAddress(ipNet)
+			if err != nil {
+				return "", fmt.Errorf("failed to find a matching node address for %q: %w", address, err)
+			}
+			address = strings.ReplaceAll(address, cidrMatches[1], matchingIP.String())
+		}
+	}
+
 	host, hostPort, err := net.SplitHostPort(address)
 	if err == nil {
 		address = host
@@ -90,20 +108,67 @@ func ParseAddressString(address string, port int64) (string, error) {
 
 	if address == "" {
 		address = util.NetworkInterfaceAddress()
-	} else if _, ipNet, err := net.ParseCIDR(address); err == nil {
-		matchingIP, err := findMatchingNodeAddress(ipNet)
-		if err != nil {
-			return "", fmt.Errorf("failed to find a matching node address for %q: %w", address, err)
-		}
-		address = matchingIP.String()
 	}
 
-	return util.CanonicalNetworkAddress(address, port), nil
+	return net.JoinHostPort(address, fmt.Sprintf("%d", port)), nil
 }
 
-// ParseCIDRs parses the given CIDR string and returns the respective IPv4 and IPv6 CIDRs.
-func ParseCIDRs(CIDRstring string) (string, string, error) {
-	clusterCIDRs := strings.Split(CIDRstring, ",")
+// GetDefaultAddress returns the default IPv4 and IPv6 addresses of the host.
+func GetDefaultAddress() (ipv4, ipv6 string, err error) {
+	// Get a list of network interfaces.
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get network interfaces: %w", err)
+	}
+
+	// Loop through each network interface
+	for _, iface := range interfaces {
+		// Skip interfaces that are down or loopback interfaces
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		// Get a list of addresses for the current interface.
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return "", "", fmt.Errorf("failed to get addresses for interface %q: %w", iface.Name, err)
+		}
+
+		// Loop through each address
+		for _, addr := range addrs {
+			// Parse the address to get the IP
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+
+			// Check if it's an IPv4 or IPv6 address and not a loopback
+			if ip.IsLoopback() {
+				continue
+			}
+
+			if ip.To4() != nil && ipv4 == "" {
+				ipv4 = ip.String()
+			} else if ip.To4() == nil && ipv6 == "" {
+				ipv6 = ip.String()
+			}
+
+			// Break early if both IPv4 and IPv6 addresses are found
+			if ipv4 != "" && ipv6 != "" {
+				return ipv4, ipv6, nil
+			}
+		}
+	}
+
+	return ipv4, ipv6, nil
+}
+
+// SplitCIDRStrings parses the given CIDR string and returns the respective IPv4 and IPv6 CIDRs.
+func SplitCIDRStrings(cidrString string) (string, string, error) {
+	clusterCIDRs := strings.Split(cidrString, ",")
 	if v := len(clusterCIDRs); v != 1 && v != 2 {
 		return "", "", fmt.Errorf("invalid CIDR list: %v", clusterCIDRs)
 	}
@@ -124,4 +189,43 @@ func ParseCIDRs(CIDRstring string) (string, string, error) {
 		}
 	}
 	return ipv4CIDR, ipv6CIDR, nil
+}
+
+// IsIPv4 returns true if the address is a valid IPv4 address, false otherwise.
+// The address may contain a port number.
+func IsIPv4(address string) bool {
+	ip := strings.Split(address, ":")[0]
+	parsedIP := net.ParseIP(ip)
+	return parsedIP != nil && parsedIP.To4() != nil
+}
+
+// ToIPString returns the string representation of an IP address.
+// If the IP address is an IPv6 address, it is enclosed in square brackets.
+func ToIPString(ip net.IP) string {
+	if ip.To4() != nil {
+		return ip.String()
+	}
+	return "[" + ip.String() + "]"
+}
+
+// CIDRsOverlap checks if two given CIDR blocks overlap.
+// It takes two strings representing the CIDR blocks as input and returns a boolean indicating
+// whether they overlap and an error if any of the CIDR blocks are invalid.
+func CIDRsOverlap(cidr1, cidr2 string) (bool, error) {
+	_, ipNet1, err1 := net.ParseCIDR(cidr1)
+	_, ipNet2, err2 := net.ParseCIDR(cidr2)
+
+	if err1 != nil {
+		return false, fmt.Errorf("couldn't parse CIDR block %q: %w", cidr1, err1)
+	}
+
+	if err2 != nil {
+		return false, fmt.Errorf("couldn't parse CIDR block %q: %w", cidr2, err2)
+	}
+
+	if ipNet1.Contains(ipNet2.IP) || ipNet2.Contains(ipNet1.IP) {
+		return true, nil
+	}
+
+	return false, nil
 }

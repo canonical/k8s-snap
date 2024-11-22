@@ -66,9 +66,9 @@ func TestRestartDaemonset(t *testing.T) {
 			if tc.expectError {
 				g.Expect(err).To(HaveOccurred())
 			} else {
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				ds, err := client.AppsV1().DaemonSets("namespace").Get(context.Background(), "test", metav1.GetOptions{})
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(ds.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"]).NotTo(BeEmpty())
 			}
 		})

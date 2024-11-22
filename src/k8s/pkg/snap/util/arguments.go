@@ -103,8 +103,8 @@ func UpdateServiceArguments(snap snap.Snap, serviceName string, updateMap map[st
 	// sort arguments so that output is consistent
 	sort.Strings(newArguments)
 
-	if err := os.WriteFile(argumentsFile, []byte(strings.Join(newArguments, "\n")+"\n"), 0600); err != nil {
-		return false, fmt.Errorf("failed to write arguments for service %s: %q", serviceName, err)
+	if err := utils.WriteFile(argumentsFile, []byte(strings.Join(newArguments, "\n")+"\n"), 0o600); err != nil {
+		return false, fmt.Errorf("failed to write arguments for service %s: %w", serviceName, err)
 	}
 	return changed, nil
 }

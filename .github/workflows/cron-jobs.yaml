@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: read
- 
+
 jobs:
   TICS:
     permissions:
@@ -27,6 +27,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{matrix.branch}}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install Go
         uses: actions/setup-go@v5
         with:
@@ -47,14 +50,14 @@ jobs:
 
           # TICS requires us to have the test results in cobertura xml format under the
           # directory use below
-          make go.unit
+          sudo make go.unit
           go install github.com/boumenot/gocover-cobertura@latest
           gocover-cobertura < coverage.txt > coverage.xml
           mkdir .coverage
           mv ./coverage.xml ./.coverage/
 
           # Install the TICS and staticcheck
-          go install honnef.co/go/tools/cmd/staticcheck@v0.4.7
+          go install honnef.co/go/tools/cmd/staticcheck@v0.5.1
           . <(curl --silent --show-error 'https://canonical.tiobe.com/tiobeweb/TICS/api/public/v1/fapi/installtics/Script?cfg=default&platform=linux&url=https://canonical.tiobe.com/tiobeweb/TICS/')
 
           # We need to have our project built
@@ -62,7 +65,7 @@ jobs:
           # will try to build parts of the project itself
           sudo add-apt-repository -y ppa:dqlite/dev
           sudo apt install dqlite-tools libdqlite-dev -y
-          make clean
+          sudo make clean
           go build -a ./...
 
           TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $HOME/work/k8s-snap/k8s-snap/
@@ -79,6 +82,8 @@ jobs:
           - { branch: main, channel: latest/edge }
           # Stable branches
           # Add branches to test here
+          - { branch: release-1.30, channel: 1.30-classic/edge }
+          - { branch: release-1.31, channel: 1.31-classic/edge }
 
     steps:
       - name: Harden Runner
@@ -103,6 +108,8 @@ jobs:
           format: "sarif"
           output: "trivy-k8s-repo-scan--results.sarif"
           severity: "MEDIUM,HIGH,CRITICAL"
+        env:
+          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
       - name: Gather Trivy repo scan results
         run: |
           cp trivy-k8s-repo-scan--results.sarif ./sarifs/
@@ -111,7 +118,10 @@ jobs:
           snap download k8s --channel ${{ matrix.channel }}
           mv ./k8s*.snap ./k8s.snap
           unsquashfs k8s.snap
-          ./trivy rootfs ./squashfs-root/ --format sarif > sarifs/snap.sarif
+          for var in $(env | grep -o '^TRIVY_[^=]*'); do
+            unset "$var"
+          done
+          ./trivy --db-repository public.ecr.aws/aquasecurity/trivy-db rootfs ./squashfs-root/ --format sarif > sarifs/snap.sarif
       - name: Get HEAD sha
         run: |
           SHA="$(git rev-parse HEAD)"

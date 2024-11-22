@@ -26,7 +26,7 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 	}
 
 	// Existence of this header is already checked in the access handler.
-	workerName := r.Header.Get("worker-name")
+	workerName := r.Header.Get("Worker-Name")
 	nodeIP := net.ParseIP(req.Address)
 	if nodeIP == nil {
 		return response.BadRequest(fmt.Errorf("failed to parse node IP address %s", req.Address))
@@ -63,7 +63,7 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 		return response.InternalError(fmt.Errorf("failed to retrieve list of known kube-apiserver endpoints: %w", err))
 	}
 
-	workerToken := r.Header.Get("worker-token")
+	workerToken := r.Header.Get("Worker-Token")
 	if err := s.Database().Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		return database.DeleteWorkerNodeToken(ctx, tx, workerToken)
 	}); err != nil {
@@ -86,5 +86,6 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 		KubeProxyClientCert: workerCertificates.KubeProxyClientCert,
 		KubeProxyClientKey:  workerCertificates.KubeProxyClientKey,
 		K8sdPublicKey:       cfg.Certificates.GetK8sdPublicKey(),
+		Annotations:         cfg.Annotations,
 	})
 }

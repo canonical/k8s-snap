@@ -2,12 +2,12 @@ package snaputil_test
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -32,7 +32,7 @@ func TestGetServiceArgument(t *testing.T) {
 --key=value-of-service-two
 `,
 	} {
-		g.Expect(os.WriteFile(filepath.Join(dir, svc), []byte(args), 0600)).To(BeNil())
+		g.Expect(utils.WriteFile(filepath.Join(dir, svc), []byte(args), 0o600)).To(Succeed())
 	}
 
 	for _, tc := range []struct {
@@ -56,9 +56,9 @@ func TestGetServiceArgument(t *testing.T) {
 
 			value, err := snaputil.GetServiceArgument(s, tc.service, tc.key)
 			if tc.expectErr {
-				g.Expect(err).ToNot(BeNil())
+				g.Expect(err).To(HaveOccurred())
 			} else {
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(value).To(Equal(tc.expectValue))
 			}
 		})
@@ -75,14 +75,14 @@ func TestUpdateServiceArguments(t *testing.T) {
 		}
 
 		_, err := snaputil.GetServiceArgument(s, "service", "--key")
-		g.Expect(err).ToNot(BeNil())
+		g.Expect(err).To(HaveOccurred())
 
 		changed, err := snaputil.UpdateServiceArguments(s, "service", map[string]string{"--key": "value"}, nil)
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(changed).To(BeTrue())
 
 		value, err := snaputil.GetServiceArgument(s, "service", "--key")
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(value).To(Equal("value"))
 	})
 
@@ -183,11 +183,11 @@ func TestUpdateServiceArguments(t *testing.T) {
 				},
 			}
 			changed, err := snaputil.UpdateServiceArguments(s, "service", initialArguments, nil)
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(changed).To(BeTrue())
 
 			changed, err = snaputil.UpdateServiceArguments(s, "service", tc.update, tc.delete)
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(changed).To(Equal(tc.expectedChange))
 
 			for key, expectedValue := range tc.expectedValues {
@@ -197,7 +197,7 @@ func TestUpdateServiceArguments(t *testing.T) {
 			t.Run("Reapply", func(t *testing.T) {
 				g := NewWithT(t)
 				changed, err := snaputil.UpdateServiceArguments(s, "service", tc.update, tc.delete)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(changed).To(BeFalse())
 			})
 		})

@@ -3,11 +3,11 @@ package k8s
 import (
 	"bytes"
 	_ "embed"
-	"os"
 	"path/filepath"
 	"testing"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
@@ -62,7 +62,10 @@ var testCases = []testCase{
 					Enabled: utils.Pointer(true),
 				},
 				CloudProvider: utils.Pointer("external"),
-				Annotations:   map[string]string{apiv1.AnnotationSkipCleanupKubernetesNodeOnRemove: "true"},
+				Annotations: map[string]string{
+					apiv1_annotations.AnnotationSkipCleanupKubernetesNodeOnRemove: "true",
+					apiv1_annotations.AnnotationSkipStopServicesOnRemove:          "true",
+				},
 			},
 			ControlPlaneTaints:                 []string{"node-role.kubernetes.io/control-plane:NoSchedule"},
 			PodCIDR:                            utils.Pointer("10.100.0.0/16"),
@@ -105,7 +108,7 @@ var testCases = []testCase{
 func mustAddConfigToTestDir(t *testing.T, configPath string, data string) {
 	t.Helper()
 	// Create the cluster bootstrap config file
-	err := os.WriteFile(configPath, []byte(data), 0644)
+	err := utils.WriteFile(configPath, []byte(data), 0o644)
 	if err != nil {
 		t.Fatal(err)
 	}

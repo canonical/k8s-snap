@@ -208,9 +208,9 @@ func TestMergeClusterConfig(t *testing.T) {
 
 				result, err := types.MergeClusterConfig(tc.old, tc.new)
 				if tc.expectErr {
-					g.Expect(err).ToNot(BeNil())
+					g.Expect(err).To(HaveOccurred())
 				} else {
-					g.Expect(err).To(BeNil())
+					g.Expect(err).To(Not(HaveOccurred()))
 					g.Expect(result).To(Equal(tc.expectResult))
 				}
 			})
@@ -408,7 +408,7 @@ func TestMergeClusterConfig_Scenarios(t *testing.T) {
 			if tc.expectErr {
 				g.Expect(err).To(HaveOccurred())
 			} else {
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(merged).To(Equal(tc.expectMerged))
 			}
 		})

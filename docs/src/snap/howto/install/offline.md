@@ -61,13 +61,13 @@ add a dummy default route on the `eth0` interface using the following command:
 ip route add default dev eth0
 ```
 
-```{note} 
+```{note}
 Ensure that `eth0` is the name of the default network interface used for
 pod-to-pod communication.
 ```
 
-The dummy gateway will only be used by the Kubernetes services to 
-know which interface to use, actual connectivity to the internet is not 
+The dummy gateway will only be used by the Kubernetes services to
+know which interface to use, actual connectivity to the internet is not
 required. Ensure that the dummy gateway rule survives a node reboot.
 
 #### Ensure proxy access
@@ -94,7 +94,7 @@ For {{product}}, it is also necessary to fetch the images used
 by its features (network, DNS, etc.) as well as any images that are
 needed to run specific workloads.
 
-```{note} 
+```{note}
 The image options are presented in the order of increasing complexity
 of implementation.
 It may be helpful to combine these options for different scenarios.
@@ -167,12 +167,18 @@ any upstream registries (e.g. `docker.io`) and the private mirror.
 ##### Load images with regsync
 
 We recommend using [regsync][regsync] to copy images from the upstream registry
-to your private registry. Refer to the [sync-images.yaml][sync-images-yaml]
-file that contains the configuration for syncing images from the upstream
-registry to the private registry. Using the output from `k8s list-images`
-update the images in the [sync-images.yaml][sync-images-yaml] file if
-necessary. Update the file with the appropriate mirror, and specify a mirror
-for ghcr.io that points to the registry.
+to your private registry.
+For that, create a `sync-images.yaml` file that maps the output from
+`k8s list-images` to the private registry mirror and specify a mirror for
+ghcr.io that points to the registry.
+
+```
+sync:
+  - source: ghcr.io/canonical/k8s-snap/pause:3.10
+    target: '{{ env "MIRROR" }}/canonical/k8s-snap/pause:3.10'
+    type: image
+  ...
+```
 
 After creating the `sync-images.yaml` file, use [regsync][regsync] to sync the
 images. Assuming your registry mirror is at http://10.10.10.10:5050, run:
@@ -264,7 +270,7 @@ capabilities = ["pull", "resolve"]
 HTTPS requires the additionally specification of the registry CA certificate.
 Copy the certificate to
 `/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt`.
-Then add the configuration in 
+Then add the configuration in
 `/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/hosts.toml`:
 
 ```

@@ -1,0 +1,29 @@
+name: Auto-merge Successful PRs
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */4 * * *"  # Every 4 hours
+
+permissions:
+  contents: read
+
+jobs:
+  merge-successful-prs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - name: Checking out repo
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Auto-merge pull requests if all status checks pass
+        env:
+          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+            build-scripts/hack/auto-merge-successful-pr.py

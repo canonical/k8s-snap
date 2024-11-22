@@ -12,11 +12,11 @@ func mockCheckFunc() (bool, error) {
 	return true, nil
 }
 
-var testError = errors.New("test error")
+var errTest = errors.New("test error")
 
 // Mock check function that returns an error.
 func mockErrorCheckFunc() (bool, error) {
-	return false, testError
+	return false, errTest
 }
 
 func TestWaitUntilReady(t *testing.T) {
@@ -34,7 +34,7 @@ func TestWaitUntilReady(t *testing.T) {
 	cancel2() // Cancel the context immediately
 
 	err2 := WaitUntilReady(ctx2, mockCheckFunc)
-	if err2 == nil || err2 != context.Canceled {
+	if err2 == nil || !errors.Is(err2, context.Canceled) {
 		t.Errorf("Expected context.Canceled error, got: %v", err2)
 	}
 
@@ -52,7 +52,7 @@ func TestWaitUntilReady(t *testing.T) {
 	defer cancel4()
 
 	err4 := WaitUntilReady(ctx4, mockErrorCheckFunc)
-	if err4 == nil || !errors.Is(err4, testError) {
+	if err4 == nil || !errors.Is(err4, errTest) {
 		t.Errorf("Expected test error, got: %v", err4)
 	}
 }

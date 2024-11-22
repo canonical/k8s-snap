@@ -6,11 +6,10 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	. "github.com/onsi/gomega"
 )
 
 func TestFeatureStatus(t *testing.T) {
@@ -45,21 +44,20 @@ func TestFeatureStatus(t *testing.T) {
 			t.Run("ReturnNothingInitially", func(t *testing.T) {
 				g := NewWithT(t)
 				ss, err := database.GetFeatureStatuses(ctx, tx)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(ss).To(BeEmpty())
-
 			})
 
 			t.Run("SettingNewStatus", func(t *testing.T) {
 				g := NewWithT(t)
 
 				err := database.SetFeatureStatus(ctx, tx, features.Network, networkStatus)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				err = database.SetFeatureStatus(ctx, tx, features.DNS, dnsStatus)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 
 				ss, err := database.GetFeatureStatuses(ctx, tx)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(ss).To(HaveLen(2))
 
 				g.Expect(ss[features.Network].Enabled).To(Equal(networkStatus.Enabled))
@@ -71,26 +69,25 @@ func TestFeatureStatus(t *testing.T) {
 				g.Expect(ss[features.DNS].Message).To(Equal(dnsStatus.Message))
 				g.Expect(ss[features.DNS].Version).To(Equal(dnsStatus.Version))
 				g.Expect(ss[features.DNS].UpdatedAt).To(Equal(dnsStatus.UpdatedAt))
-
 			})
 			t.Run("UpdatingStatus", func(t *testing.T) {
 				g := NewWithT(t)
 
 				err := database.SetFeatureStatus(ctx, tx, features.Network, networkStatus)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				err = database.SetFeatureStatus(ctx, tx, features.DNS, dnsStatus)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 
 				// set and update
 				err = database.SetFeatureStatus(ctx, tx, features.Network, networkStatus)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				err = database.SetFeatureStatus(ctx, tx, features.DNS, dnsStatus2)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				err = database.SetFeatureStatus(ctx, tx, features.Gateway, gatewayStatus)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 
 				ss, err := database.GetFeatureStatuses(ctx, tx)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(ss).To(HaveLen(3))
 
 				// network stayed the same

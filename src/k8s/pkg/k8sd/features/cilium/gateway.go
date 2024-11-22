@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	gatewayDeleteFailedMsgTmpl = "Failed to delete Cilium Gateway, the error was %v"
-	gatewayDeployFailedMsgTmpl = "Failed to deploy Cilium Gateway, the error was %v"
+	GatewayDeleteFailedMsgTmpl = "Failed to delete Cilium Gateway, the error was %v"
+	GatewayDeployFailedMsgTmpl = "Failed to deploy Cilium Gateway, the error was %v"
 )
 
 // ApplyGateway assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
@@ -38,7 +38,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -48,7 +48,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -58,7 +58,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -75,7 +75,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -95,7 +95,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeleteFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -105,7 +105,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeleteFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -116,7 +116,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(gatewayDeleteFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeleteFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -133,7 +133,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(gatewayDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 

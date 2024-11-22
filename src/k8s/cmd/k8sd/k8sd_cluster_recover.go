@@ -16,6 +16,9 @@ import (
 	"github.com/canonical/go-dqlite"
 	"github.com/canonical/go-dqlite/app"
 	"github.com/canonical/go-dqlite/client"
+	cmdutil "github.com/canonical/k8s/cmd/util"
+	"github.com/canonical/k8s/pkg/log"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/shared"
 	"github.com/canonical/lxd/shared/termios"
 	"github.com/canonical/microcluster/v3/cluster"
@@ -23,12 +26,9 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/sys/unix"
 	"gopkg.in/yaml.v2"
-
-	"github.com/canonical/k8s/pkg/log"
-	"github.com/canonical/k8s/pkg/utils"
 )
 
-const recoveryConfirmation = `You should only run this command if:
+const preRecoveryMessage = `You should only run this command if:
  - A quorum of cluster members is permanently lost
  - You are *absolutely* sure all k8s daemons are stopped (sudo snap stop k8s)
  - This instance has the most up to date database
@@ -36,8 +36,17 @@ const recoveryConfirmation = `You should only run this command if:
 Note that before applying any changes, a database backup is created at:
 * k8sd (microcluster): /var/snap/k8s/common/var/lib/k8sd/state/db_backup.<timestamp>.tar.gz
 * k8s-dqlite: /var/snap/k8s/common/recovery-k8s-dqlite-<timestamp>-pre-recovery.tar.gz
+`
 
-Do you want to proceed? (yes/no): `
+const recoveryConfirmation = "Do you want to proceed? (yes/no): "
+
+const nonInteractiveMessage = `Non-interactive mode requested.
+
+The command will assume that the dqlite configuration files have already been
+modified with the updated cluster member roles and addresses.
+
+Initiating the dqlite database recovery.
+`
 
 const clusterK8sdYamlRecoveryComment = `# Member roles can be modified. Unrecoverable nodes should be given the role "spare".
 #
@@ -75,6 +84,7 @@ const yamlHelperCommentFooter = "# ------- everything below will be written ----
 
 var clusterRecoverOpts struct {
 	K8sDqliteStateDir string
+	NonInteractive    bool
 	SkipK8sd          bool
 	SkipK8sDqlite     bool
 }
@@ -87,29 +97,30 @@ func logDebugf(format string, args ...interface{}) {
 		msg := fmt.Sprintf(format, args...)
 		log.L().Info(msg)
 	}
-
 }
 
-func newClusterRecoverCmd() *cobra.Command {
+func newClusterRecoverCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster-recover",
 		Short: "Recover the cluster from this member if quorum is lost",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			log.Configure(log.Options{
 				LogLevel:     rootCmdOpts.logLevel,
 				AddDirHeader: true,
 			})
 
-			if err := recoveryCmdPrechecks(cmd.Context()); err != nil {
-				return err
+			if err := recoveryCmdPrechecks(cmd); err != nil {
+				cmd.PrintErrf("Recovery precheck failed: %v\n", err)
+				env.Exit(1)
 			}
 
 			if clusterRecoverOpts.SkipK8sd {
-				cmd.Printf("Skipping k8sd recovery.")
+				cmd.Printf("Skipping k8sd recovery.\n")
 			} else {
 				k8sdTarballPath, err := recoverK8sd()
 				if err != nil {
-					return fmt.Errorf("failed to recover k8sd, error: %w", err)
+					cmd.PrintErrf("Failed to recover k8sd, error: %v\n", err)
+					env.Exit(1)
 				}
 				cmd.Printf("K8sd cluster changes applied.\n")
 				cmd.Printf("New database state saved to %s\n", k8sdTarballPath)
@@ -120,15 +131,15 @@ func newClusterRecoverCmd() *cobra.Command {
 			}
 
 			if clusterRecoverOpts.SkipK8sDqlite {
-				cmd.Printf("Skipping k8s-dqlite recovery.")
+				cmd.Printf("Skipping k8s-dqlite recovery.\n")
 			} else {
 				k8sDqlitePreRecoveryTarball, k8sDqlitePostRecoveryTarball, err := recoverK8sDqlite()
 				if err != nil {
-					return fmt.Errorf(
-						"failed to recover k8s-dqlite, error: %w, "+
-							"pre-recovery backup: %s",
-						err, k8sDqlitePreRecoveryTarball,
-					)
+					cmd.PrintErrf(
+						"Failed to recover k8s-dqlite, error: %v, "+
+							"pre-recovery backup: %s\n",
+						err, k8sDqlitePreRecoveryTarball)
+					env.Exit(1)
 				}
 				cmd.Printf("K8s-dqlite cluster changes applied.\n")
 				cmd.Printf("New database state saved to %s\n",
@@ -138,13 +149,13 @@ func newClusterRecoverCmd() *cobra.Command {
 					k8sDqlitePostRecoveryTarball, clusterRecoverOpts.K8sDqliteStateDir)
 				cmd.Printf("Pre-recovery database backup: %s\n\n", k8sDqlitePreRecoveryTarball)
 			}
-
-			return nil
 		},
 	}
 
 	cmd.Flags().StringVar(&clusterRecoverOpts.K8sDqliteStateDir, "k8s-dqlite-state-dir",
 		"", "k8s-dqlite datastore location")
+	cmd.Flags().BoolVar(&clusterRecoverOpts.NonInteractive, "non-interactive",
+		false, "disable interactive prompts, assume that the configs have been updated")
 	cmd.Flags().BoolVar(&clusterRecoverOpts.SkipK8sd, "skip-k8sd",
 		false, "skip k8sd recovery")
 	cmd.Flags().BoolVar(&clusterRecoverOpts.SkipK8sDqlite, "skip-k8s-dqlite",
@@ -166,13 +177,13 @@ func removeEmptyLines(content []byte) []byte {
 	return out
 }
 
-func recoveryCmdPrechecks(ctx context.Context) error {
-	log := log.FromContext(ctx)
+func recoveryCmdPrechecks(cmd *cobra.Command) error {
+	log := log.FromContext(cmd.Context())
 
 	log.V(1).Info("Running prechecks.")
 
-	if !termios.IsTerminal(unix.Stdin) {
-		return fmt.Errorf("this command is meant to be run in an interactive terminal")
+	if !termios.IsTerminal(unix.Stdin) && !clusterRecoverOpts.NonInteractive {
+		return fmt.Errorf("interactive mode requested in a non-interactive terminal")
 	}
 
 	if clusterRecoverOpts.K8sDqliteStateDir == "" {
@@ -182,21 +193,31 @@ func recoveryCmdPrechecks(ctx context.Context) error {
 		return fmt.Errorf("k8sd state dir not specified")
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print(recoveryConfirmation)
+	cmd.Print(preRecoveryMessage)
+	cmd.Print("\n")
 
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		return fmt.Errorf("couldn't read user input, error: %w", err)
-	}
-	input = strings.TrimSuffix(input, "\n")
+	if clusterRecoverOpts.NonInteractive {
+		cmd.Print(nonInteractiveMessage)
+		cmd.Print("\n")
+	} else {
+		reader := bufio.NewReader(os.Stdin)
+		cmd.Print(recoveryConfirmation)
 
-	if strings.ToLower(input) != "yes" {
-		return fmt.Errorf("cluster edit aborted; no changes made")
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return fmt.Errorf("couldn't read user input, error: %w", err)
+		}
+		input = strings.TrimSuffix(input, "\n")
+
+		if strings.ToLower(input) != "yes" {
+			return fmt.Errorf("cluster edit aborted; no changes made")
+		}
+
+		cmd.Print("\n")
 	}
 
 	if !clusterRecoverOpts.SkipK8sDqlite {
-		if err = ensureK8sDqliteMembersStopped(ctx); err != nil {
+		if err := ensureK8sDqliteMembersStopped(cmd.Context()); err != nil {
 			return err
 		}
 	}
@@ -272,7 +293,7 @@ func ensureK8sDqliteMembersStopped(ctx context.Context) error {
 		}(ctx, dial, member.Address)
 	}
 
-	for _, _ = range members {
+	for range members {
 		addr, ok := <-c
 		if !ok {
 			return fmt.Errorf("channel closed unexpectedly")
@@ -325,7 +346,7 @@ func yamlEditorGuide(
 	newContent = removeEmptyLines(newContent)
 
 	if applyChanges {
-		err = os.WriteFile(path, newContent, os.FileMode(0o644))
+		err = utils.WriteFile(path, newContent, os.FileMode(0o644))
 		if err != nil {
 			return nil, fmt.Errorf("could not write file: %s, error: %w", path, err)
 		}
@@ -376,59 +397,64 @@ func recoverK8sd() (string, error) {
 	clusterYamlPath := path.Join(m.FileSystem.DatabaseDir, "cluster.yaml")
 	clusterYamlCommentHeader := fmt.Sprintf("# K8sd cluster configuration\n# (based on the trust store and %s)\n", clusterYamlPath)
 
-	clusterYamlContent, err := yamlEditorGuide(
-		"",
-		false,
-		slices.Concat(
-			[]byte(clusterYamlCommentHeader),
-			[]byte("#\n"),
-			[]byte(clusterK8sdYamlRecoveryComment),
-			[]byte(yamlHelperCommentFooter),
-			[]byte("\n"),
-			oldMembersYaml,
-		),
-		false,
-	)
-	if err != nil {
-		return "", fmt.Errorf("interactive text editor failed, error: %w", err)
-	}
+	clusterYamlContent := oldMembersYaml
+	if !clusterRecoverOpts.NonInteractive {
+		// Interactive mode requested (default).
+		// Assist the user in configuring dqlite.
+		clusterYamlContent, err = yamlEditorGuide(
+			"",
+			false,
+			slices.Concat(
+				[]byte(clusterYamlCommentHeader),
+				[]byte("#\n"),
+				[]byte(clusterK8sdYamlRecoveryComment),
+				[]byte(yamlHelperCommentFooter),
+				[]byte("\n"),
+				oldMembersYaml,
+			),
+			false,
+		)
+		if err != nil {
+			return "", fmt.Errorf("interactive text editor failed, error: %w", err)
+		}
 
-	infoYamlPath := path.Join(m.FileSystem.DatabaseDir, "info.yaml")
-	infoYamlCommentHeader := fmt.Sprintf("# K8sd info.yaml\n# (%s)\n", infoYamlPath)
-	_, err = yamlEditorGuide(
-		infoYamlPath,
-		true,
-		slices.Concat(
-			[]byte(infoYamlCommentHeader),
-			[]byte("#\n"),
-			[]byte(infoYamlRecoveryComment),
-			utils.YamlCommentLines(clusterYamlContent),
-			[]byte("\n"),
-			[]byte(yamlHelperCommentFooter),
-		),
-		true,
-	)
-	if err != nil {
-		return "", fmt.Errorf("interactive text editor failed, error: %w", err)
-	}
+		infoYamlPath := path.Join(m.FileSystem.DatabaseDir, "info.yaml")
+		infoYamlCommentHeader := fmt.Sprintf("# K8sd info.yaml\n# (%s)\n", infoYamlPath)
+		_, err = yamlEditorGuide(
+			infoYamlPath,
+			true,
+			slices.Concat(
+				[]byte(infoYamlCommentHeader),
+				[]byte("#\n"),
+				[]byte(infoYamlRecoveryComment),
+				utils.YamlCommentLines(clusterYamlContent),
+				[]byte("\n"),
+				[]byte(yamlHelperCommentFooter),
+			),
+			true,
+		)
+		if err != nil {
+			return "", fmt.Errorf("interactive text editor failed, error: %w", err)
+		}
 
-	daemonYamlPath := path.Join(m.FileSystem.StateDir, "daemon.yaml")
-	daemonYamlCommentHeader := fmt.Sprintf("# K8sd daemon.yaml\n# (%s)\n", daemonYamlPath)
-	_, err = yamlEditorGuide(
-		daemonYamlPath,
-		true,
-		slices.Concat(
-			[]byte(daemonYamlCommentHeader),
-			[]byte("#\n"),
-			[]byte(daemonYamlRecoveryComment),
-			utils.YamlCommentLines(clusterYamlContent),
-			[]byte("\n"),
-			[]byte(yamlHelperCommentFooter),
-		),
-		true,
-	)
-	if err != nil {
-		return "", fmt.Errorf("interactive text editor failed, error: %w", err)
+		daemonYamlPath := path.Join(m.FileSystem.StateDir, "daemon.yaml")
+		daemonYamlCommentHeader := fmt.Sprintf("# K8sd daemon.yaml\n# (%s)\n", daemonYamlPath)
+		_, err = yamlEditorGuide(
+			daemonYamlPath,
+			true,
+			slices.Concat(
+				[]byte(daemonYamlCommentHeader),
+				[]byte("#\n"),
+				[]byte(daemonYamlRecoveryComment),
+				utils.YamlCommentLines(clusterYamlContent),
+				[]byte("\n"),
+				[]byte(yamlHelperCommentFooter),
+			),
+			true,
+		)
+		if err != nil {
+			return "", fmt.Errorf("interactive text editor failed, error: %w", err)
+		}
 	}
 
 	newMembers := []cluster.DqliteMember{}
@@ -465,40 +491,53 @@ func recoverK8sd() (string, error) {
 func recoverK8sDqlite() (string, string, error) {
 	k8sDqliteStateDir := clusterRecoverOpts.K8sDqliteStateDir
 
+	var err error
+	clusterYamlContent := []byte{}
 	clusterYamlPath := path.Join(k8sDqliteStateDir, "cluster.yaml")
 	clusterYamlCommentHeader := fmt.Sprintf("# k8s-dqlite cluster configuration\n# (%s)\n", clusterYamlPath)
-	clusterYamlContent, err := yamlEditorGuide(
-		clusterYamlPath,
-		true,
-		slices.Concat(
-			[]byte(clusterYamlCommentHeader),
-			[]byte("#\n"),
-			[]byte(clusterK8sDqliteRecoveryComment),
-			[]byte(yamlHelperCommentFooter),
-		),
-		true,
-	)
-	if err != nil {
-		return "", "", fmt.Errorf("interactive text editor failed, error: %w", err)
-	}
 
-	infoYamlPath := path.Join(k8sDqliteStateDir, "info.yaml")
-	infoYamlCommentHeader := fmt.Sprintf("# k8s-dqlite info.yaml\n# (%s)\n", infoYamlPath)
-	_, err = yamlEditorGuide(
-		infoYamlPath,
-		true,
-		slices.Concat(
-			[]byte(infoYamlCommentHeader),
-			[]byte("#\n"),
-			[]byte(infoYamlRecoveryComment),
-			utils.YamlCommentLines(clusterYamlContent),
-			[]byte("\n"),
-			[]byte(yamlHelperCommentFooter),
-		),
-		true,
-	)
-	if err != nil {
-		return "", "", fmt.Errorf("interactive text editor failed, error: %w", err)
+	if clusterRecoverOpts.NonInteractive {
+		clusterYamlContent, err = os.ReadFile(clusterYamlPath)
+		if err != nil {
+			return "", "", fmt.Errorf(
+				"could not read k8s-dqlite cluster.yaml, error: %w", err)
+		}
+	} else {
+		// Interactive mode requested (default).
+		// Assist the user in configuring dqlite.
+		clusterYamlContent, err = yamlEditorGuide(
+			clusterYamlPath,
+			true,
+			slices.Concat(
+				[]byte(clusterYamlCommentHeader),
+				[]byte("#\n"),
+				[]byte(clusterK8sDqliteRecoveryComment),
+				[]byte(yamlHelperCommentFooter),
+			),
+			true,
+		)
+		if err != nil {
+			return "", "", fmt.Errorf("interactive text editor failed, error: %w", err)
+		}
+
+		infoYamlPath := path.Join(k8sDqliteStateDir, "info.yaml")
+		infoYamlCommentHeader := fmt.Sprintf("# k8s-dqlite info.yaml\n# (%s)\n", infoYamlPath)
+		_, err = yamlEditorGuide(
+			infoYamlPath,
+			true,
+			slices.Concat(
+				[]byte(infoYamlCommentHeader),
+				[]byte("#\n"),
+				[]byte(infoYamlRecoveryComment),
+				utils.YamlCommentLines(clusterYamlContent),
+				[]byte("\n"),
+				[]byte(yamlHelperCommentFooter),
+			),
+			true,
+		)
+		if err != nil {
+			return "", "", fmt.Errorf("interactive text editor failed, error: %w", err)
+		}
 	}
 
 	newMembers := []dqlite.NodeInfo{}

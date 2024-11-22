@@ -139,13 +139,15 @@ def k8s_snap_c_dqlite_components(manifest, extra_files):
 def rock_cilium(manifest, extra_files):
     LOG.info("Generating SBOM info for Cilium rocks")
 
+    cilium_version = "1.16.3"
+
     with util.git_repo(CILIUM_ROCK_REPO, CILIUM_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
-        rockcraft = (d / "cilium/rockcraft.yaml").read_text()
-        operator_rockcraft = (d / "cilium-operator-generic/rockcraft.yaml").read_text()
+        rockcraft = (d / f"{cilium_version}/cilium/rockcraft.yaml").read_text()
+        operator_rockcraft = (d / f"{cilium_version}/cilium-operator-generic/rockcraft.yaml").read_text()
 
-        extra_files["cilium/rockcraft.yaml"] = rockcraft
-        extra_files["cilium-operator-generic/rockcraft.yaml"] = operator_rockcraft
+        extra_files[f"{cilium_version}/cilium/rockcraft.yaml"] = rockcraft
+        extra_files[f"{cilium_version}/cilium-operator-generic/rockcraft.yaml"] = operator_rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["cilium"]["source"]
@@ -169,10 +171,10 @@ def rock_cilium(manifest, extra_files):
         },
         "language": "go",
         "details": [
-            "cilium/rockcraft.yaml",
+            f"{cilium_version}/cilium/rockcraft.yaml",
             "cilium/go.mod",
             "cilium/go.sum",
-            "cilium-operator-generic/rockcraft.yaml",
+            f"{cilium_version}/cilium-operator-generic/rockcraft.yaml",
             "cilium-operator-generic/go.mod",
             "cilium-operator-generic/go.sum",
         ],
@@ -190,9 +192,10 @@ def rock_coredns(manifest, extra_files):
 
     with util.git_repo(COREDNS_ROCK_REPO, COREDNS_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
-        rockcraft = (d / "rockcraft.yaml").read_text()
+        # TODO(ben): This should not be hard coded.
+        rockcraft = (d / "1.11.3/rockcraft.yaml").read_text()
 
-        extra_files["coredns/rockcraft.yaml"] = rockcraft
+        extra_files["coredns/1.11.3/rockcraft.yaml"] = rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["coredns"]["source"]
@@ -211,7 +214,11 @@ def rock_coredns(manifest, extra_files):
             "revision": rock_repo_commit,
         },
         "language": "go",
-        "details": ["coredns/rockcraft.yaml", "coredns/go.mod", "coredns/go.sum"],
+        "details": [
+            "coredns/1.11.3/rockcraft.yaml",
+            "coredns/go.mod",
+            "coredns/go.sum",
+        ],
         "source": {
             "type": "git",
             "repo": repo_url,
@@ -226,9 +233,10 @@ def rock_metrics_server(manifest, extra_files):
 
     with util.git_repo(METRICS_SERVER_ROCK_REPO, METRICS_SERVER_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
-        rockcraft = (d / "rockcraft.yaml").read_text()
+        # TODO(ben): This should not be hard coded.
+        rockcraft = (d / "0.7.2/rockcraft.yaml").read_text()
 
-        extra_files["metrics-server/rockcraft.yaml"] = rockcraft
+        extra_files["metrics-server/0.7.2/rockcraft.yaml"] = rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["metrics-server"]["source"]
@@ -248,7 +256,7 @@ def rock_metrics_server(manifest, extra_files):
         },
         "language": "go",
         "details": [
-            "metrics-server/rockcraft.yaml",
+            "metrics-server/0.7.2/rockcraft.yaml",
             "metrics-server/go.mod",
             "metrics-server/go.sum",
         ],

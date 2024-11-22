@@ -85,18 +85,18 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Post: rest.EndpointAction{
 				Handler:        e.postWorkerInfo,
 				AllowUntrusted: true,
-				AccessHandler:  ValidateWorkerInfoAccessHandler("worker-name", "worker-token"),
+				AccessHandler:  ValidateWorkerInfoAccessHandler("Worker-Name", "Worker-Token"),
 			},
 		},
 		// Certificates
 		{
 			Name: "RefreshCerts/Plan",
-			Path: "k8sd/refresh-certs/plan",
+			Path: apiv1.RefreshCertificatesPlanRPC,
 			Post: rest.EndpointAction{Handler: e.postRefreshCertsPlan},
 		},
 		{
 			Name: "RefreshCerts/Run",
-			Path: "k8sd/refresh-certs/run",
+			Path: apiv1.RefreshCertificatesRunRPC,
 			Post: rest.EndpointAction{Handler: e.postRefreshCertsRun},
 		},
 		// Kubeconfig
@@ -139,6 +139,26 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Name: "ClusterAPI/RemoveNode",
 			Path: apiv1.ClusterAPIRemoveNodeRPC,
 			Post: rest.EndpointAction{Handler: e.postClusterRemove, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
+		},
+		{
+			Name: "ClusterAPI/CertificatesExpiry",
+			Path: apiv1.ClusterAPICertificatesExpiryRPC,
+			Post: rest.EndpointAction{Handler: e.postCertificatesExpiry, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
+		},
+		{
+			Name: "ClusterAPI/RefreshCerts/Plan",
+			Path: apiv1.ClusterAPICertificatesPlanRPC,
+			Post: rest.EndpointAction{Handler: e.postRefreshCertsPlan, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
+		},
+		{
+			Name: "ClusterAPI/RefreshCerts/Run",
+			Path: apiv1.ClusterAPICertificatesRunRPC,
+			Post: rest.EndpointAction{Handler: e.postRefreshCertsRun, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
+		},
+		{
+			Name: "ClusterAPI/RefreshCerts/Approve",
+			Path: apiv1.ClusterAPIApproveWorkerCSRRPC,
+			Post: rest.EndpointAction{Handler: e.postApproveWorkerCSR, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
 		},
 		// Snap refreshes
 		{

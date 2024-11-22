@@ -20,13 +20,14 @@ func TestContainerd(t *testing.T) {
 
 	dir := t.TempDir()
 
-	g.Expect(os.WriteFile(filepath.Join(dir, "mockcni"), []byte("echo hi"), 0600)).To(Succeed())
+	g.Expect(utils.WriteFile(filepath.Join(dir, "mockcni"), []byte("echo hi"), 0o600)).To(Succeed())
 
 	s := &mock.Snap{
 		Mock: mock.Mock{
 			ContainerdConfigDir:         filepath.Join(dir, "containerd"),
 			ContainerdRootDir:           filepath.Join(dir, "containerd-root"),
 			ContainerdSocketDir:         filepath.Join(dir, "containerd-run"),
+			ContainerdSocketPath:        filepath.Join(dir, "containerd-run", "containerd.sock"),
 			ContainerdRegistryConfigDir: filepath.Join(dir, "containerd-hosts"),
 			ContainerdStateDir:          filepath.Join(dir, "containerd-state"),
 			ContainerdExtraConfigDir:    filepath.Join(dir, "containerd-confd"),
@@ -53,7 +54,7 @@ func TestContainerd(t *testing.T) {
 	t.Run("Config", func(t *testing.T) {
 		g := NewWithT(t)
 		b, err := os.ReadFile(filepath.Join(dir, "containerd", "config.toml"))
-		g.Expect(err).To(BeNil())
+		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(string(b)).To(SatisfyAll(
 			ContainSubstring(fmt.Sprintf(`imports = ["%s/*.toml", "/custom/imports/*.toml"]`, filepath.Join(dir, "containerd-confd"))),
 			ContainSubstring(fmt.Sprintf(`conf_dir = "%s"`, filepath.Join(dir, "cni-netd"))),
@@ -62,8 +63,8 @@ func TestContainerd(t *testing.T) {
 		))
 
 		info, err := os.Stat(filepath.Join(dir, "containerd", "config.toml"))
-		g.Expect(err).To(BeNil())
-		g.Expect(info.Mode().Perm()).To(Equal(fs.FileMode(0600)))
+		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(info.Mode().Perm()).To(Equal(fs.FileMode(0o600)))
 
 		switch stat := info.Sys().(type) {
 		case *syscall.Stat_t:
@@ -78,13 +79,13 @@ func TestContainerd(t *testing.T) {
 		g := NewWithT(t)
 		for _, plugin := range []string{"plugin1", "plugin2"} {
 			link, err := os.Readlink(filepath.Join(dir, "opt-cni-bin", plugin))
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(link).To(Equal("cni"))
 		}
 
 		info, err := os.Stat(filepath.Join(dir, "opt-cni-bin"))
-		g.Expect(err).To(BeNil())
-		g.Expect(info.Mode().Perm()).To(Equal(fs.FileMode(0700)))
+		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(info.Mode().Perm()).To(Equal(fs.FileMode(0o700)))
 
 		switch stat := info.Sys().(type) {
 		case *syscall.Stat_t:
@@ -107,7 +108,7 @@ func TestContainerd(t *testing.T) {
 			t.Run(key, func(t *testing.T) {
 				g := NewWithT(t)
 				val, err := snaputil.GetServiceArgument(s, "containerd", key)
-				g.Expect(err).To(BeNil())
+				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(val).To(Equal(expectedVal))
 			})
 		}
@@ -115,8 +116,24 @@ func TestContainerd(t *testing.T) {
 		t.Run("--address", func(t *testing.T) {
 			g := NewWithT(t)
 			val, err := snaputil.GetServiceArgument(s, "containerd", "--address")
-			g.Expect(err).To(BeNil())
+			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(val).To(BeZero())
 		})
+	})
+
+	t.Run("Lockfiles", func(t *testing.T) {
+		g := NewWithT(t)
+		m := map[string]string{
+			"containerd-socket-path": s.ContainerdSocketDir(),
+			"containerd-config-dir":  s.ContainerdConfigDir(),
+			"containerd-root-dir":    s.ContainerdRootDir(),
+			"containerd-cni-bin-dir": s.CNIBinDir(),
+		}
+		for filename, content := range m {
+
+			b, err := os.ReadFile(filepath.Join(s.LockFilesDir(), filename))
+			g.Expect(err).To(Not(HaveOccurred()))
+			g.Expect(string(b)).To(Equal(content))
+		}
 	})
 }

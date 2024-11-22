@@ -22,7 +22,6 @@ func TestRetryFor(t *testing.T) {
 			}
 			return nil
 		})
-
 		if err != nil {
 			t.Errorf("Expected nil error, got: %v", err)
 		}
@@ -42,7 +41,7 @@ func TestRetryFor(t *testing.T) {
 			return errors.New("failed")
 		})
 
-		if err != context.Canceled {
+		if !errors.Is(err, context.Canceled) {
 			t.Errorf("Expected context.Canceled error, got: %v", err)
 		}
 	})

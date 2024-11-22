@@ -39,12 +39,13 @@ type Snap interface {
 	EtcdPKIDir() string          // /etc/kubernetes/pki/etcd
 	KubeletRootDir() string      // /var/lib/kubelet
 
-	ContainerdConfigDir() string         // /var/snap/k8s/common/etc/containerd
-	ContainerdExtraConfigDir() string    // /var/snap/k8s/common/etc/containerd/conf.d
-	ContainerdRegistryConfigDir() string // /var/snap/k8s/common/etc/containerd/hosts.d
-	ContainerdRootDir() string           // /var/snap/k8s/common/var/lib/containerd
-	ContainerdSocketDir() string         // /var/snap/k8s/common/run
-	ContainerdStateDir() string          // /run/containerd
+	ContainerdConfigDir() string         // classic confinement: /etc/containerd, strict confinement: /var/snap/k8s/common/etc/containerd
+	ContainerdExtraConfigDir() string    // classic confinement: /etc/containerd/conf.d, strict confinement: /var/snap/k8s/common/etc/containerd/conf.d
+	ContainerdRegistryConfigDir() string // classic confinement: /etc/containerd/hosts.d, strict confinement: /var/snap/k8s/common/etc/containerd/hosts.d
+	ContainerdRootDir() string           // classic confinement: /var/lib/containerd, strict confinement: /var/snap/k8s/common/var/lib/containerd
+	ContainerdSocketDir() string         // classic confinement: /run/containerd, strict confinement: /var/snap/k8s/common/run/containerd
+	ContainerdSocketPath() string        // classic confinement: /run/containerd/containerd.sock, strict confinement: /var/snap/k8s/common/run/containerd/containerd.sock
+	ContainerdStateDir() string          // classic confinement: /run/containerd, strict confinement: /var/snap/k8s/common/run/containerd
 
 	K8sdStateDir() string      // /var/snap/k8s/common/var/lib/k8sd/state
 	K8sDqliteStateDir() string // /var/snap/k8s/common/var/lib/k8s-dqlite
