@@ -121,10 +121,19 @@ func TestContainerd(t *testing.T) {
 		})
 	})
 
-	t.Run("Lockfile", func(t *testing.T) {
+	t.Run("Lockfiles", func(t *testing.T) {
 		g := NewWithT(t)
-		b, err := os.ReadFile(filepath.Join(s.LockFilesDir(), "containerd-socket-path"))
-		g.Expect(err).To(Not(HaveOccurred()))
-		g.Expect(string(b)).To(Equal(s.ContainerdSocketDir()))
+		m := map[string]string{
+			"containerd-socket-path": s.ContainerdSocketDir(),
+			"containerd-config-dir":  s.ContainerdConfigDir(),
+			"containerd-root-dir":    s.ContainerdRootDir(),
+			"containerd-cni-bin-dir": s.CNIBinDir(),
+		}
+		for filename, content := range m {
+
+			b, err := os.ReadFile(filepath.Join(s.LockFilesDir(), filename))
+			g.Expect(err).To(Not(HaveOccurred()))
+			g.Expect(string(b)).To(Equal(content))
+		}
 	})
 }
