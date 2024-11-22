@@ -18,7 +18,7 @@ needs. This guide covers:
 
 This guide assumes the following:
 
-- You have a bootstrapped {{product}} cluster (see the [Getting Started] guide)
+- You have a bootstrapped {{product}} cluster (see the [getting started] guide)
 - You have root or sudo access to the machine
 
 
@@ -972,9 +972,10 @@ Ensure that the --token-auth-file parameter is not set
 
 **Remediation:**
 
-Follow the documentation and configure alternate mechanisms
-for authentication. Then,
-edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Follow the Kubernetes documentation and configure alternate
+mechanisms for
+authentication. Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver
 on the control plane node and remove the --token-auth-file
 argument.
 
@@ -1038,8 +1039,7 @@ file
 kubelet client certificate and key parameters as follows.
 
 ```
---kubelet-client-certificate=<path/to/client-certificate-
-file>
+--kubelet-client-certificate=<path/to/client-certificate-file>
 --kubelet-client-key=<path/to/client-key-file>
 ```
 
@@ -1053,9 +1053,8 @@ file>
 **Expected output:**
 
 ```
---kubelet-client-certificate=/etc/kubernetes/pki/apiserver-
-kubelet-client.crt and --kubelet-client-
-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+--kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
+and --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
 ```
 
 ##### Control 1.2.5
@@ -1192,7 +1191,8 @@ set (Manual)
 Follow the Kubernetes documentation and set the desired
 limits in a configuration file.
 Then, edit the API server configuration file
-/var/snap/k8s/common/args/kube-apiserver and set the following arguments.
+/var/snap/k8s/common/args/kube-apiserver
+and set the following arguments.
 
 ```
 --enable-admission-plugins=...,EventRateLimit,...
@@ -1224,8 +1224,8 @@ set (Automated)
 **Remediation:**
 
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and either remove the --enable-
-admission-plugins parameter, or set it to a
+on the control plane node and either remove the
+--enable-admission-plugins parameter, or set it to a
 value that does not include AlwaysAdmit.
 
 
@@ -1253,8 +1253,8 @@ set (Manual)
 **Remediation:**
 
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --enable-admission-
-plugins parameter to include
+on the control plane node and set the 
+--enable-admission-plugins parameter to include
 AlwaysPullImages.
 
 `--enable-admission-plugins=...,AlwaysPullImages,...`
@@ -1316,10 +1316,10 @@ set (Automated)
 **Remediation:**
 
 Follow the documentation and create ServiceAccount objects
-as per your environment.
-Then, edit the API server configuration file
-/var/snap/k8s/common/args/kube-apiserver on the control plane node
-and ensure that the --disable-admission-plugins parameter is set to a
+as per your environment. Then, edit the API server configuration
+file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and ensure that the
+--disable-admission-plugins parameter is set to a
 value that does not include ServiceAccount.
 
 
@@ -1374,10 +1374,10 @@ set (Automated)
 **Remediation:**
 
 Follow the Kubernetes documentation and configure
-NodeRestriction plug-in on kubelets.
-Then, edit the API server configuration file
-/var/snap/k8s/common/args/kube-apiserver on the control plane node
-and set the --enable-admission-plugins parameter to a
+NodeRestriction plug-in on kubelets. Then, edit the API server
+configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --enable-admission-
+plugins parameter to a
 value that includes NodeRestriction.
 
 `--enable-admission-plugins=...,NodeRestriction,...`
@@ -1689,8 +1689,9 @@ arguments are set as appropriate (Automated)
 **Remediation:**
 
 Follow the Kubernetes documentation and set up the TLS
-connection on the apiserver. Then, edit the API server configuration
-file /var/snap/k8s/common/args/kube-apiserver
+connection on the apiserver.
+Then, edit the API server configuration file
+/var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the TLS certificate and
 private key file parameters.
 
@@ -1761,12 +1762,6 @@ local socket
 accessible to users with root permissions.
 
 
-**Expected output:**
-
-```
---etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
-```
-
 ##### Control 1.2.29
 
 **Description:**
@@ -1778,9 +1773,10 @@ as appropriate (Manual)
 **Remediation:**
 
 Follow the Kubernetes documentation and configure a
-EncryptionConfig file. Then, edit the API server configuration file
-/var/snap/k8s/common/args/kube-apiserver on the control plane node and
-set the --encryption-provider-config parameter to the path of that file.
+EncryptionConfig file. Then, edit the API server configuration
+file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --encryption-provider-
+config parameter to the path of that file.
 
 `--encryption-provider-
 config=</path/to/EncryptionConfig/File>`
@@ -1902,7 +1898,7 @@ Edit the Controller Manager configuration file
 on the control plane node and set the --terminated-pod-gc-
 threshold to an appropriate threshold.
 
-`--terminated-pod-gc-threshold=10`
+`--terminated-pod-gc-threshold=12500`
 
 
 **Audit (as root):**
@@ -1972,7 +1968,7 @@ on the control plane node to set the following argument.
 **Expected output:**
 
 ```
---user-service-account-credentials=true
+--use-service-account-credentials=true
 ```
 
 ##### Control 1.3.4
@@ -2064,7 +2060,8 @@ parameter to include RotateKubeletServerCertificate=true.
 **Expected output:**
 
 ```
---feature-gates is not set
+RotateKubeletServerCertificate feature gate is not set, or set
+to true
 ```
 
 ##### Control 1.3.7
@@ -2109,7 +2106,7 @@ Ensure that the --profiling argument is set to false
 **Remediation:**
 
 Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler
-file on the control plane node and set the following argument.
+on the control plane node and set the following argument.
 
 `--profiling=false`
 
@@ -2823,7 +2820,7 @@ Restart the kubelet service:
 
 ```
 --streaming-connection-idle-timeout is not set, or set to a
-value greater or equal than 5m
+value greater or equal to 5m
 ```
 
 ##### Control 4.2.6
@@ -2889,7 +2886,7 @@ For example: `snap restart k8s.kubelet`
 **Expected output:**
 
 ```
---make-iptables-util-chains is not set
+--make-iptables-util-chains is not set or set to true
 ```
 
 ##### Control 4.2.8
@@ -2951,7 +2948,7 @@ Restart the kubelet service.
 **Expected output:**
 
 ```
---event-qps is not set
+--event-qps is not set, or set to a value greater than 0
 ```
 
 ##### Control 4.2.10
@@ -3019,7 +3016,7 @@ Restart the kubelet service.
 **Expected output:**
 
 ```
---rotate-certificates is not set
+--rotate-certificates is not set, or set to true
 ```
 
 ##### Control 4.2.12
@@ -3052,7 +3049,8 @@ Restart the kubelet service.
 **Expected output:**
 
 ```
-the RotateKubeletServerCertificate feature gate is not set
+RotateKubeletServerCertificate feature gate is not set, or set
+to true
 ```
 
 ##### Control 4.2.13
@@ -3570,11 +3568,12 @@ specific namespace.
 
 
 
+
 <!-- Links -->
 [Center for Internet Security (CIS)]:https://www.cisecurity.org/
 [kube-bench]:https://aquasecurity.github.io/kube-bench/v0.6.15/
 [CIS Kubernetes Benchmark]:https://www.cisecurity.org/benchmark/kubernetes
-[Getting Started]: ../tutorial/getting-started
+[getting started]: ../tutorial/getting-started
 [kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
