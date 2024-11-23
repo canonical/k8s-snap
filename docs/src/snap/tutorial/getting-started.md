@@ -10,6 +10,10 @@ explains how to install the snap package and some typical operations.
   [snapd documentation](https://snapcraft.io/docs/installing-snapd))
 - System Requirements: Your machine should have at least 40G disk space
   and 4G of memory
+- A system without any previous installations of containerd/docker. Installing
+either with {{product}} will cause conflicts. If a containerization solution is
+required on your system, consider [using LXD][LXD] to isolate your
+installation.
 
 ### 1. Install {{product}}
 
@@ -17,12 +21,6 @@ Install the {{product}} snap with:
 
 ```
 sudo snap install k8s --edge --classic
-```
-
-```{warning}
-Avoid installing containerd/docker via apt when using the {{product}} snap, as
-the snap defaults to containerd paths. Installing both can cause conflicts. Do
-not install containerd/docker and the {{product}} snap simultaneously.
 ```
 
 ### 2. Bootstrap a Kubernetes cluster
