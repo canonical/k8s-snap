@@ -225,3 +225,4 @@ This option ensures complete removal of the snap and its associated data.
 [Storage]: ../howto/storage/index
 [Networking]: ../howto/networking/index.md
 [Ingress]: ../howto/networking/default-ingress.md
+[LXD]: ../howto/install/lxd.md
