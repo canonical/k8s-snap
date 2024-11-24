@@ -22,7 +22,6 @@ proxy
 troubleshooting
 architecture
 Community <community>
-roadmap
 ```
 
 ## Other documentation types
