@@ -363,7 +363,7 @@ hardening state of a cluster.
 **Description:**
 
 Ensure that the API server configuration file permissions
-are set to 600 (Automated)
+are set to 600 
 
 
 **Remediation:**
@@ -390,7 +390,7 @@ permissions=600
 **Description:**
 
 Ensure that the API server configuration file ownership is
-set to root:root (Automated)
+set to root:root
 
 
 **Remediation:**
@@ -417,7 +417,7 @@ root:root
 **Description:**
 
 Ensure that the controller manager configuration file
-permissions are set to 600 (Automated)
+permissions are set to 600
 
 
 **Remediation:**
@@ -444,7 +444,7 @@ permissions=600
 **Description:**
 
 Ensure that the controller manager configuration file
-ownership is set to root:root (Automated)
+ownership is set to root:root
 
 
 **Remediation:**
@@ -471,7 +471,7 @@ root:root
 **Description:**
 
 Ensure that the scheduler configuration file permissions are
-set to 600 (Automated)
+set to 600
 
 
 **Remediation:**
@@ -498,7 +498,7 @@ permissions=600
 **Description:**
 
 Ensure that the scheduler configuration file ownership is
-set to root:root (Automated)
+set to root:root
 
 
 **Remediation:**
@@ -525,7 +525,7 @@ root:root
 **Description:**
 
 Ensure that the dqlite configuration file permissions are
-set to 644 or more restrictive (Automated)
+set to 644 or more restrictive
 
 
 **Remediation:**
@@ -552,7 +552,7 @@ permissions=600
 **Description:**
 
 Ensure that the dqlite configuration file ownership is set
-to root:root (Automated)
+to root:root
 
 
 **Remediation:**
@@ -579,7 +579,7 @@ root:root
 **Description:**
 
 Ensure that the Container Network Interface file permissions
-are set to 600 (Manual)
+are set to 600
 
 
 **Remediation:**
@@ -607,7 +607,7 @@ permissions=600
 **Description:**
 
 Ensure that the Container Network Interface file ownership
-is set to root:root (Manual)
+is set to root:root
 
 
 **Remediation:**
@@ -634,7 +634,7 @@ root:root
 **Description:**
 
 Ensure that the dqlite data directory permissions are set to
-700 or more restrictive (Automated)
+700 or more restrictive
 
 
 **Remediation:**
@@ -664,7 +664,7 @@ permissions=700
 **Description:**
 
 Ensure that the dqlite data directory ownership is set to
-root:root (Automated)
+root:root
 
 
 **Remediation:**
@@ -694,7 +694,6 @@ root:root
 **Description:**
 
 Ensure that the admin.conf file permissions are set to 600
-(Automated)
 
 
 **Remediation:**
@@ -721,7 +720,7 @@ permissions=600
 **Description:**
 
 Ensure that the admin.conf file ownership is set to
-root:root (Automated)
+root:root
 
 
 **Remediation:**
@@ -748,7 +747,7 @@ root:root
 **Description:**
 
 Ensure that the scheduler.conf file permissions are set to
-600 (Automated)
+600
 
 
 **Remediation:**
@@ -775,7 +774,7 @@ permissions=600
 **Description:**
 
 Ensure that the scheduler.conf file ownership is set to
-root:root (Automated)
+root:root
 
 
 **Remediation:**
@@ -802,7 +801,7 @@ root:root
 **Description:**
 
 Ensure that the controller-manager.conf file permissions are
-set to 600 (Automated)
+set to 600
 
 
 **Remediation:**
@@ -829,7 +828,7 @@ permissions=600
 **Description:**
 
 Ensure that the controller-manager.conf file ownership is
-set to root:root (Automated)
+set to root:root
 
 
 **Remediation:**
@@ -856,7 +855,7 @@ root:root
 **Description:**
 
 Ensure that the Kubernetes PKI directory and file ownership
-is set to root:root (Automated)
+is set to root:root
 
 
 **Remediation:**
@@ -883,7 +882,7 @@ root:root
 **Description:**
 
 Ensure that the Kubernetes PKI certificate file permissions
-are set to 600 (Manual)
+are set to 600
 
 
 **Remediation:**
@@ -910,7 +909,7 @@ permissions=600
 **Description:**
 
 Ensure that the Kubernetes PKI key file permissions are set
-to 600 (Manual)
+to 600
 
 
 **Remediation:**
@@ -939,7 +938,6 @@ permissions=600
 **Description:**
 
 Ensure that the --anonymous-auth argument is set to false
-(Manual)
 
 
 **Remediation:**
@@ -967,7 +965,6 @@ on the control plane node and set the following argument.
 **Description:**
 
 Ensure that the --token-auth-file parameter is not set
-(Automated)
 
 
 **Remediation:**
@@ -997,7 +994,6 @@ argument.
 **Description:**
 
 Ensure that the --DenyServiceExternalIPs is not set
-(Automated)
 
 
 **Remediation:**
@@ -1026,7 +1022,7 @@ DenyServiceExternalIPs
 **Description:**
 
 Ensure that the --kubelet-client-certificate and --kubelet-
-client-key arguments are set as appropriate (Automated)
+client-key arguments are set as appropriate
 
 
 **Remediation:**
@@ -1062,7 +1058,7 @@ and --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
 **Description:**
 
 Ensure that the --kubelet-certificate-authority argument is
-set as appropriate (Automated)
+set as appropriate
 
 
 **Remediation:**
@@ -1095,7 +1091,7 @@ cert file for the certificate authority.
 **Description:**
 
 Ensure that the --authorization-mode argument is not set to
-AlwaysAllow (Automated)
+AlwaysAllow
 
 
 **Remediation:**
@@ -1125,7 +1121,6 @@ One such example could be as follows.
 **Description:**
 
 Ensure that the --authorization-mode argument includes Node
-(Automated)
 
 
 **Remediation:**
@@ -1154,7 +1149,6 @@ parameter to a value that includes Node.
 **Description:**
 
 Ensure that the --authorization-mode argument includes RBAC
-(Automated)
 
 
 **Remediation:**
@@ -1183,7 +1177,7 @@ parameter to a value that includes RBAC,
 **Description:**
 
 Ensure that the admission control plugin EventRateLimit is
-set (Manual)
+set
 
 
 **Remediation:**
@@ -1218,7 +1212,7 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 **Description:**
 
 Ensure that the admission control plugin AlwaysAdmit is not
-set (Automated)
+set
 
 
 **Remediation:**
@@ -1247,7 +1241,7 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 **Description:**
 
 Ensure that the admission control plugin AlwaysPullImages is
-set (Manual)
+set
 
 
 **Remediation:**
@@ -1278,7 +1272,7 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 **Description:**
 
 Ensure that the admission control plugin SecurityContextDeny
-is set if PodSecurityPolicy is not used (Manual)
+is set if PodSecurityPolicy is not used
 
 
 **Remediation:**
@@ -1310,7 +1304,7 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 **Description:**
 
 Ensure that the admission control plugin ServiceAccount is
-set (Automated)
+set
 
 
 **Remediation:**
@@ -1340,7 +1334,7 @@ value that does not include ServiceAccount.
 **Description:**
 
 Ensure that the admission control plugin NamespaceLifecycle
-is set (Automated)
+is set
 
 
 **Remediation:**
@@ -1368,7 +1362,7 @@ ensure it does not include NamespaceLifecycle.
 **Description:**
 
 Ensure that the admission control plugin NodeRestriction is
-set (Automated)
+set
 
 
 **Remediation:**
@@ -1401,7 +1395,6 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 **Description:**
 
 Ensure that the --secure-port argument is not set to 0
-(Automated)
 
 
 **Remediation:**
@@ -1429,7 +1422,6 @@ set it to a different (non-zero) desired port.
 **Description:**
 
 Ensure that the --profiling argument is set to false
-(Automated)
 
 
 **Remediation:**
@@ -1456,7 +1448,7 @@ on the control plane node and set the following argument.
 
 **Description:**
 
-Ensure that the --audit-log-path argument is set (Automated)
+Ensure that the --audit-log-path argument is set
 
 
 **Remediation:**
@@ -1486,7 +1478,7 @@ file where you would like audit logs to be written.
 **Description:**
 
 Ensure that the --audit-log-maxage argument is set to 30 or
-as appropriate (Automated)
+as appropriate
 
 
 **Remediation:**
@@ -1516,7 +1508,7 @@ or as an appropriate number of days.
 **Description:**
 
 Ensure that the --audit-log-maxbackup argument is set to 10
-or as appropriate (Automated)
+or as appropriate
 
 
 **Remediation:**
@@ -1546,7 +1538,7 @@ value.
 **Description:**
 
 Ensure that the --audit-log-maxsize argument is set to 100
-or as appropriate (Automated)
+or as appropriate
 
 
 **Remediation:**
@@ -1575,7 +1567,7 @@ parameter to an appropriate size in MB.
 **Description:**
 
 Ensure that the --request-timeout argument is set as
-appropriate (Manual)
+appropriate
 
 
 **Remediation:**
@@ -1603,7 +1595,7 @@ and set the following argument as appropriate and if needed.
 **Description:**
 
 Ensure that the --service-account-lookup argument is set to
-true (Automated)
+true
 
 
 **Remediation:**
@@ -1635,7 +1627,7 @@ that the default takes effect.
 **Description:**
 
 Ensure that the --service-account-key-file argument is set
-as appropriate (Automated)
+as appropriate
 
 
 **Remediation:**
@@ -1666,7 +1658,7 @@ file=/etc/kubernetes/pki/serviceaccount.key
 **Description:**
 
 Ensure that the --etcd-certfile and --etcd-keyfile arguments
-are set as appropriate (Automated)
+are set as appropriate
 
 
 **Remediation:**
@@ -1683,7 +1675,7 @@ accessible to users with root permissions.
 **Description:**
 
 Ensure that the --tls-cert-file and --tls-private-key-file
-arguments are set as appropriate (Automated)
+arguments are set as appropriate
 
 
 **Remediation:**
@@ -1719,7 +1711,7 @@ private-key-file=/etc/kubernetes/pki/apiserver.key
 **Description:**
 
 Ensure that the --client-ca-file argument is set as
-appropriate (Automated)
+appropriate
 
 
 **Remediation:**
@@ -1750,7 +1742,6 @@ authority file.
 **Description:**
 
 Ensure that the --etcd-cafile argument is set as appropriate
-(Automated)
 
 
 **Remediation:**
@@ -1767,7 +1758,7 @@ accessible to users with root permissions.
 **Description:**
 
 Ensure that the --encryption-provider-config argument is set
-as appropriate (Manual)
+as appropriate
 
 
 **Remediation:**
@@ -1799,7 +1790,7 @@ config=</path/to/EncryptionConfig/File>`
 **Description:**
 
 Ensure that encryption providers are appropriately
-configured (Manual)
+configured
 
 
 **Remediation:**
@@ -1829,7 +1820,7 @@ aescbc,kms,secretbox
 **Description:**
 
 Ensure that the API Server only makes use of Strong
-Cryptographic Ciphers (Manual)
+Cryptographic Ciphers
 
 
 **Remediation:**
@@ -1888,7 +1879,7 @@ _256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384
 **Description:**
 
 Ensure that the --terminated-pod-gc-threshold argument is
-set as appropriate (Manual)
+set as appropriate
 
 
 **Remediation:**
@@ -1918,7 +1909,6 @@ threshold to an appropriate threshold.
 **Description:**
 
 Ensure that the --profiling argument is set to false
-(Automated)
 
 
 **Remediation:**
@@ -1947,7 +1937,7 @@ on the control plane node and set the following argument.
 **Description:**
 
 Ensure that the --use-service-account-credentials argument
-is set to true (Automated)
+is set to true
 
 
 **Remediation:**
@@ -1976,7 +1966,7 @@ on the control plane node to set the following argument.
 **Description:**
 
 Ensure that the --service-account-private-key-file argument
-is set as appropriate (Automated)
+is set as appropriate
 
 
 **Remediation:**
@@ -2008,7 +1998,7 @@ file=/etc/kubernetes/pki/serviceaccount.key
 **Description:**
 
 Ensure that the --root-ca-file argument is set as
-appropriate (Automated)
+appropriate
 
 
 **Remediation:**
@@ -2038,7 +2028,7 @@ parameter to the certificate bundle file.
 **Description:**
 
 Ensure that the RotateKubeletServerCertificate argument is
-set to true (Automated)
+set to true
 
 
 **Remediation:**
@@ -2069,7 +2059,6 @@ to true
 **Description:**
 
 Ensure that the --bind-address argument is set to 127.0.0.1
-(Automated)
 
 
 **Remediation:**
@@ -2100,7 +2089,6 @@ and restart the controller manager service
 **Description:**
 
 Ensure that the --profiling argument is set to false
-(Automated)
 
 
 **Remediation:**
@@ -2128,7 +2116,6 @@ on the control plane node and set the following argument.
 **Description:**
 
 Ensure that the --bind-address argument is set to 127.0.0.1
-(Automated)
 
 
 **Remediation:**
@@ -2160,7 +2147,7 @@ and restart the kube-scheduler service
 **Description:**
 
 Ensure that the --cert-file and --key-file arguments are set
-as appropriate (Automated)
+as appropriate
 
 
 **Remediation:**
@@ -2177,7 +2164,6 @@ accessible to users with root permissions.
 **Description:**
 
 Ensure that the --client-cert-auth argument is set to true
-(Automated)
 
 
 **Remediation:**
@@ -2194,7 +2180,6 @@ accessible to users with root permissions.
 **Description:**
 
 Ensure that the --auto-tls argument is not set to true
-(Automated)
 
 
 **Remediation:**
@@ -2211,7 +2196,7 @@ accessible to users with root permissions.
 **Description:**
 
 Ensure that the --peer-cert-file and --peer-key-file
-arguments are set as appropriate (Automated)
+arguments are set as appropriate
 
 
 **Remediation:**
@@ -2239,7 +2224,7 @@ certs-found
 **Description:**
 
 Ensure that the --peer-client-cert-auth argument is set to
-true (Automated)
+true
 
 
 **Remediation:**
@@ -2266,7 +2251,6 @@ is set to false in
 **Description:**
 
 Ensure that the --peer-auto-tls argument is not set to true
-(Automated)
 
 
 **Remediation:**
@@ -2281,7 +2265,7 @@ created upon the snap creation.
 **Description:**
 
 Ensure that a unique Certificate Authority is used for the
-datastore (Manual)
+datastore
 
 
 **Remediation:**
@@ -2300,7 +2284,7 @@ created upon cluster setup.
 **Description:**
 
 Client certificate authentication should not be used for
-users (Manual)
+users
 
 
 **Remediation:**
@@ -2316,7 +2300,7 @@ implemented in place of client certificates.
 
 **Description:**
 
-Ensure that a minimal audit policy is created (Manual)
+Ensure that a minimal audit policy is created 
 
 
 **Remediation:**
@@ -2341,7 +2325,6 @@ Create an audit policy file for your cluster.
 **Description:**
 
 Ensure that the audit policy covers key security concerns
-(Manual)
 
 
 **Remediation:**
@@ -2373,7 +2356,7 @@ is recommended
 **Description:**
 
 Ensure that the kubelet service file permissions are set to
-600 (Automated)
+600
 
 
 **Remediation:**
@@ -2401,7 +2384,7 @@ permissions=600
 **Description:**
 
 Ensure that the kubelet service file ownership is set to
-root:root (Automated)
+root:root
 
 
 **Remediation:**
@@ -2429,7 +2412,7 @@ root:root
 **Description:**
 
 If proxy kubeconfig file exists ensure permissions are set
-to 600 (Manual)
+to 600
 
 
 **Remediation:**
@@ -2457,7 +2440,7 @@ permissions=600
 **Description:**
 
 If proxy kubeconfig file exists ensure ownership is set to
-root:root (Manual)
+root:root
 
 
 **Remediation:**
@@ -2485,7 +2468,7 @@ root:root
 **Description:**
 
 Ensure that the --kubeconfig kubelet.conf file permissions
-are set to 600 (Automated)
+are set to 600
 
 
 **Remediation:**
@@ -2513,7 +2496,7 @@ permissions=600
 **Description:**
 
 Ensure that the --kubeconfig kubelet.conf file ownership is
-set to root:root (Automated)
+set to root:root
 
 
 **Remediation:**
@@ -2541,7 +2524,7 @@ root:root
 **Description:**
 
 Ensure that the certificate authorities file permissions are
-set to 600 (Manual)
+set to 600
 
 
 **Remediation:**
@@ -2572,7 +2555,7 @@ permissions=600
 **Description:**
 
 Ensure that the client certificate authorities file
-ownership is set to root:root (Manual)
+ownership is set to root:root
 
 
 **Remediation:**
@@ -2602,7 +2585,7 @@ root:root
 **Description:**
 
 If the kubelet config.yaml configuration file is being used
-validate permissions set to 600 (Manual)
+validate permissions set to 600
 
 
 **Remediation:**
@@ -2631,7 +2614,7 @@ permissions=600
 **Description:**
 
 If the kubelet config.yaml configuration file is being used
-validate file ownership is set to root:root (Manual)
+validate file ownership is set to root:root
 
 
 **Remediation:**
@@ -2662,7 +2645,6 @@ root:root
 **Description:**
 
 Ensure that the --anonymous-auth argument is set to false
-(Automated)
 
 
 **Remediation:**
@@ -2695,7 +2677,7 @@ Restart the kubelet service.
 **Description:**
 
 Ensure that the --authorization-mode argument is not set to
-AlwaysAllow (Automated)
+AlwaysAllow
 
 
 **Remediation:**
@@ -2728,7 +2710,7 @@ Restart the kubelet service:
 **Description:**
 
 Ensure that the --client-ca-file argument is set as
-appropriate (Automated)
+appropriate
 
 
 **Remediation:**
@@ -2761,7 +2743,6 @@ Restart the kubelet service:
 **Description:**
 
 Verify that the --read-only-port argument is set to 0
-(Manual)
 
 
 **Remediation:**
@@ -2794,7 +2775,7 @@ Restart the kubelet service:
 **Description:**
 
 Ensure that the --streaming-connection-idle-timeout argument
-is not set to 0 (Manual)
+is not set to 0
 
 
 **Remediation:**
@@ -2828,7 +2809,7 @@ value greater or equal to 5m
 **Description:**
 
 Ensure that the --protect-kernel-defaults argument is set to
-true (Automated)
+true
 
 
 **Remediation:**
@@ -2861,7 +2842,7 @@ Restart the kubelet service:
 **Description:**
 
 Ensure that the --make-iptables-util-chains argument is set
-to true (Automated)
+to true
 
 
 **Remediation:**
@@ -2894,7 +2875,6 @@ For example: `snap restart k8s.kubelet`
 **Description:**
 
 Ensure that the --hostname-override argument is not set
-(Manual)
 
 
 **Remediation:**
@@ -2925,7 +2905,7 @@ Restart the kubelet service.
 **Description:**
 
 Ensure that the --event-qps argument is set to a level which
-ensures appropriate event capture (Manual)
+ensures appropriate event capture
 
 
 **Remediation:**
@@ -2956,7 +2936,7 @@ Restart the kubelet service.
 **Description:**
 
 Ensure that the --tls-cert-file and --tls-private-key-file
-arguments are set as appropriate (Manual)
+arguments are set as appropriate
 
 
 **Remediation:**
@@ -2993,7 +2973,7 @@ private-key-file=/etc/kubernetes/pki/kubelet.key
 **Description:**
 
 Ensure that the --rotate-certificates argument is not set to
-false (Automated)
+false
 
 
 **Remediation:**
@@ -3024,7 +3004,7 @@ Restart the kubelet service.
 **Description:**
 
 Verify that the RotateKubeletServerCertificate argument is
-set to true (Manual)
+set to true
 
 
 **Remediation:**
@@ -3058,7 +3038,7 @@ to true
 **Description:**
 
 Ensure that the Kubelet only makes use of Strong
-Cryptographic Ciphers (Manual)
+Cryptographic Ciphers
 
 
 **Remediation:**
@@ -3107,7 +3087,7 @@ RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
 **Description:**
 
 Ensure that the cluster-admin role is only used where
-required (Manual)
+required
 
 
 **Remediation:**
@@ -3126,7 +3106,7 @@ kubectl delete clusterrolebinding [name]
 
 **Description:**
 
-Minimize access to secrets (Manual)
+Minimize access to secrets
 
 
 **Remediation:**
@@ -3139,7 +3119,7 @@ objects in the cluster.
 
 **Description:**
 
-Minimize wildcard use in Roles and ClusterRoles (Manual)
+Minimize wildcard use in Roles and ClusterRoles
 
 
 **Remediation:**
@@ -3153,7 +3133,7 @@ objects or actions.
 
 **Description:**
 
-Minimize access to create pods (Manual)
+Minimize access to create pods
 
 
 **Remediation:**
@@ -3167,7 +3147,6 @@ cluster.
 **Description:**
 
 Ensure that default service accounts are not actively used.
-(Manual)
 
 
 **Remediation:**
@@ -3185,7 +3164,7 @@ automountServiceAccountToken: false
 **Description:**
 
 Ensure that Service Account Tokens are only mounted where
-necessary (Manual)
+necessary
 
 
 **Remediation:**
@@ -3199,7 +3178,7 @@ account tokens to disable it.
 
 **Description:**
 
-Avoid use of system:masters group (Manual)
+Avoid use of system:masters group
 
 
 **Remediation:**
@@ -3213,7 +3192,7 @@ cluster.
 **Description:**
 
 Limit use of the Bind, Impersonate and Escalate permissions
-in the Kubernetes cluster (Manual)
+in the Kubernetes cluster
 
 
 **Remediation:**
@@ -3229,7 +3208,7 @@ rights from subjects.
 **Description:**
 
 Ensure that the cluster has at least one active policy
-control mechanism in place (Manual)
+control mechanism in place
 
 
 **Remediation:**
@@ -3243,7 +3222,7 @@ for every namespace which contains user workloads.
 
 **Description:**
 
-Minimize the admission of privileged containers (Manual)
+Minimize the admission of privileged containers
 
 
 **Remediation:**
@@ -3258,7 +3237,7 @@ admission of privileged containers.
 **Description:**
 
 Minimize the admission of containers wishing to share the
-host process ID namespace (Automated)
+host process ID namespace
 
 
 **Remediation:**
@@ -3273,7 +3252,7 @@ admission of `hostPID` containers.
 **Description:**
 
 Minimize the admission of containers wishing to share the
-host IPC namespace (Automated)
+host IPC namespace
 
 
 **Remediation:**
@@ -3288,7 +3267,7 @@ admission of `hostIPC` containers.
 **Description:**
 
 Minimize the admission of containers wishing to share the
-host network namespace (Automated)
+host network namespace
 
 
 **Remediation:**
@@ -3303,7 +3282,7 @@ admission of `hostNetwork` containers.
 **Description:**
 
 Minimize the admission of containers with
-allowPrivilegeEscalation (Automated)
+allowPrivilegeEscalation
 
 
 **Remediation:**
@@ -3318,7 +3297,7 @@ admission of containers with
 
 **Description:**
 
-Minimize the admission of root containers (Automated)
+Minimize the admission of root containers
 
 
 **Remediation:**
@@ -3334,7 +3313,7 @@ set.
 **Description:**
 
 Minimize the admission of containers with the NET_RAW
-capability (Automated)
+capability
 
 
 **Remediation:**
@@ -3349,7 +3328,6 @@ admission of containers with the `NET_RAW` capability.
 **Description:**
 
 Minimize the admission of containers with added capabilities
-(Automated)
 
 
 **Remediation:**
@@ -3364,7 +3342,7 @@ it is set to an empty array.
 **Description:**
 
 Minimize the admission of containers with capabilities
-assigned (Manual)
+assigned
 
 
 **Remediation:**
@@ -3382,7 +3360,6 @@ drop all capabilities.
 **Description:**
 
 Minimize the admission of Windows HostProcess containers
-(Manual)
 
 
 **Remediation:**
@@ -3397,7 +3374,7 @@ admission of containers that have
 
 **Description:**
 
-Minimize the admission of HostPath volumes (Manual)
+Minimize the admission of HostPath volumes
 
 
 **Remediation:**
@@ -3412,7 +3389,6 @@ admission of containers with `hostPath` volumes.
 **Description:**
 
 Minimize the admission of containers which use HostPorts
-(Manual)
 
 
 **Remediation:**
@@ -3428,7 +3404,7 @@ admission of containers which use `hostPort` sections.
 
 **Description:**
 
-Ensure that the CNI in use supports NetworkPolicies (Manual)
+Ensure that the CNI in use supports NetworkPolicies
 
 
 **Remediation:**
@@ -3445,7 +3421,6 @@ in the Kubernetes cluster.
 **Description:**
 
 Ensure that all Namespaces have NetworkPolicies defined
-(Manual)
 
 
 **Remediation:**
@@ -3461,7 +3436,7 @@ you need them.
 **Description:**
 
 Prefer using Secrets as files over Secrets as environment
-variables (Manual)
+variables
 
 
 **Remediation:**
@@ -3475,7 +3450,7 @@ from environment variables.
 
 **Description:**
 
-Consider external secret storage (Manual)
+Consider external secret storage 
 
 
 **Remediation:**
@@ -3492,7 +3467,7 @@ secrets management solution.
 **Description:**
 
 Configure Image Provenance using ImagePolicyWebhook
-admission controller (Manual)
+admission controller 
 
 
 **Remediation:**
@@ -3508,7 +3483,7 @@ provenance.
 **Description:**
 
 Create administrative boundaries between resources using
-namespaces (Manual)
+namespaces 
 
 
 **Remediation:**
@@ -3523,7 +3498,7 @@ them.
 **Description:**
 
 Ensure that the seccomp profile is set to docker/default in
-your Pod definitions (Manual)
+your Pod definitions
 
 
 **Remediation:**
@@ -3540,7 +3515,7 @@ An example is as follows:
 
 **Description:**
 
-Apply SecurityContext to your Pods and Containers (Manual)
+Apply SecurityContext to your Pods and Containers
 
 
 **Remediation:**
@@ -3556,7 +3531,7 @@ Containers.
 
 **Description:**
 
-The default namespace should not be used (Manual)
+The default namespace should not be used
 
 
 **Remediation:**
