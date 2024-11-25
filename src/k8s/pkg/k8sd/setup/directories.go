@@ -91,7 +91,6 @@ func ensureCniBinDir(cniBinDir string) error {
 	}
 	if err = os.Remove(f.Name()); err != nil {
 		return fmt.Errorf("failed delete file in %q: %w", cniBinDir, err)
-
 	}
 
 	return nil
