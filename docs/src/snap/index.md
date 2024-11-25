@@ -71,7 +71,7 @@ and constructive feedback.
 - Our [Code of Conduct]
 - Our [community]
 - How to [contribute]
-- Our development [roadmap]
+- Our [release notes][releases]
 
 <!-- IMAGES -->
 
@@ -82,7 +82,7 @@ and constructive feedback.
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
 [community]: ./reference/community
 [contribute]: ./howto/contribute
-[roadmap]: ./reference/roadmap
+[releases]: ./reference/releases
 [overview page]: ./explanation/about
 [architecture documentation]: ./reference/architecture
 [Juju charm]: ../charm/index
