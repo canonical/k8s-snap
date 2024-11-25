@@ -18,7 +18,7 @@ CONTAINERD_PATHS = [
 
 
 @pytest.mark.node_count(1)
-def test_node_cleanup(instances: List[harness.Instance]):
+def test_node_cleanup(instances: List[harness.Instance], tmp_path):
     instance = instances[0]
     util.wait_for_dns(instance)
     util.wait_for_network(instance)
@@ -31,3 +31,6 @@ def test_node_cleanup(instances: List[harness.Instance]):
     )
     for path in CONTAINERD_PATHS:
         assert f"cannot access '{path}': No such file or directory" in process.stderr
+
+    util.setup_k8s_snap(instance, tmp_path)
+    instance.exec(["k8s", "bootstrap"])
