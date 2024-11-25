@@ -10,6 +10,10 @@ explains how to install the snap package and some typical operations.
   [snapd documentation](https://snapcraft.io/docs/installing-snapd))
 - System Requirements: Your machine should have at least 40G disk space
   and 4G of memory
+- A system without any previous installations of containerd/docker. Installing
+either with {{product}} will cause conflicts. If a containerization solution is
+required on your system, consider [using LXD][LXD] to isolate your
+installation.
 
 ### 1. Install {{product}}
 
@@ -221,3 +225,4 @@ This option ensures complete removal of the snap and its associated data.
 [Storage]: ../howto/storage/index
 [Networking]: ../howto/networking/index.md
 [Ingress]: ../howto/networking/default-ingress.md
+[LXD]: ../howto/install/lxd.md
