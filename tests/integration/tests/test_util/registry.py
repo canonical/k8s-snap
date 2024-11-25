@@ -2,12 +2,13 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
+from pathlib import Path
 from string import Template
 from typing import List, Optional
 
 from test_util import config
 from test_util.harness import Harness, Instance
-from test_util.util import get_default_ip
+from test_util.util import get_default_ip, setup_k8s_snap
 
 LOG = logging.getLogger(__name__)
 
@@ -79,6 +80,8 @@ class Registry:
         self._ip = get_default_ip(self.instance)
 
         self.add_mirrors()
+
+        setup_k8s_snap(self.instance, Path("/"))
 
     def get_configured_mirrors(self) -> List[Mirror]:
         mirrors: List[Mirror] = []

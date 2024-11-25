@@ -44,9 +44,12 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
     )
 
     (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
-    (inspection_path / instance_id / "inspection_report_logs.txt").write_text(
-        result.stdout
-    )
+    report_log = inspection_path / instance_id / "inspection_report_logs.txt"
+    with report_log.open("w") as f:
+        f.write("stdout:\n")
+        f.write(result.stdout)
+        f.write("stderr:\n")
+        f.write(result.stderr)
 
     try:
         h.pull_file(
