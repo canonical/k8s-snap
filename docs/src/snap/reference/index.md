@@ -13,6 +13,7 @@ Overview <self>
 
 releases
 commands
+ports-and-services
 annotations
 certificates
 bootstrap-config-reference
