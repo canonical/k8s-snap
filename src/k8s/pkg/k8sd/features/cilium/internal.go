@@ -21,6 +21,7 @@ type config struct {
 	devices             string
 	directRoutingDevice string
 	vlanBPFBypass       []int
+	cniExclusive        bool
 }
 
 func validateVLANBPFBypass(vlanList string) ([]int, error) {
@@ -69,6 +70,12 @@ func internalConfig(annotations types.Annotations) (config, error) {
 			return config{}, fmt.Errorf("failed to parse VLAN BPF bypass list: %w", err)
 		}
 		c.vlanBPFBypass = vlanTags
+	}
+
+	if v, ok := annotations.Get(apiv1_annotations.AnnotationCniExclusive); ok {
+		c.cniExclusive = v == "true"
+	} else {
+		c.cniExclusive = true
 	}
 
 	return c, nil
