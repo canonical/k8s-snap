@@ -158,7 +158,8 @@ This requires three steps:
    push to your registry mirror.
 3. Configure the {{product}} container runtime (`containerd`) to load
    images from the private registry mirror instead of the upstream source. This
-   will be described in the [Configure registry mirrors](#private-registry)
+   will be described in the
+   [Configure registry mirrors](#container-runtime-option-b-configure-registry-mirrors)
    section.
 
 To load images into the private registry, a machine is needed with access to

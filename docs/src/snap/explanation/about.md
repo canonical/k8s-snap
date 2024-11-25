@@ -59,10 +59,10 @@ visit the [Ubuntu support] page.
 
 [Kubernetes]: https://kubernetes.io
 [snap]: https://snapcraft.io/docs
-[tutorial]: ../tutorial/getting-started
+[tutorial]: /src/snap/tutorial/getting-started.md
 [Juju]: https://juju.is
 [charm]: https://charmhub.io/k8s
 [snapd documentation]: https://snapcraft.io/docs/installing-snapd
-[Community page]: ../reference/community
+[Community page]: community.md
 [Ubuntu Pro]:  https://ubuntu.com/pro
 [Ubuntu support]: https://ubuntu.com/support
