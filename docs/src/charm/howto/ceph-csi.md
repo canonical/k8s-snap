@@ -13,7 +13,14 @@ See the [charm installation] guide for more details.
 
 In case of localhost/LXD Juju clouds, please make sure that the K8s units are
 configured to use VM containers with Ubuntu 22.04 as the base and adding the 
-``virt-type=virtual-machine`` constraint.
+``virt-type=virtual-machine`` constraint. In order for K8s to function properly,
+an adequate amount of resources must be allocated:
+
+```
+juju deploy k8s --channel=latest/edge \
+    --base "ubuntu@22.04" \
+    --constraints "cores=2 mem=8G root-disk=16G virt-type=virtual-machine"
+```
 
 ## Deploying Ceph
 
