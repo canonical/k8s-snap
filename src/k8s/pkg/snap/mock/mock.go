@@ -245,7 +245,7 @@ func (s *Snap) SnapctlSet(ctx context.Context, args ...string) error {
 	return s.SnapctlSetErr
 }
 
-func (s *Snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) error {
+func (s *Snap) PreInitChecks(ctx context.Context, config types.ClusterConfig, isControlPlane bool) error {
 	s.PreInitChecksCalledWith = append(s.PreInitChecksCalledWith, config)
 	return s.PreInitChecksErr
 }

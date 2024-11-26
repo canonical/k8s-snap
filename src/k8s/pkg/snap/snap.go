@@ -328,11 +328,11 @@ func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
 	return s.runCommand(ctx, append([]string{"snapctl", "set"}, args...))
 }
 
-func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) error {
-	// TODO: check for available ports for k8s-dqlite, apiserver, containerd, etc
+func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig, isControlPlane bool) error {
+	if err := checkK8sServicePorts(config, isControlPlane); err != nil {
+		return fmt.Errorf("Encountered error(s) while verifying port availability for Kubernetes services: %w", err)
+	}
 
-	// NOTE(neoaggelos): in some environments the Kubernetes might hang when running for the first time
-	// This works around the issue by running them once during the install hook
 	for _, binary := range []string{"kube-apiserver", "kube-controller-manager", "kube-scheduler", "kube-proxy", "kubelet"} {
 		if err := s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", binary), "--version"}); err != nil {
 			return fmt.Errorf("%q binary could not run: %w", binary, err)
@@ -352,6 +352,43 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) er
 	}
 
 	return nil
+}
+
+func checkK8sServicePorts(config types.ClusterConfig, isControlPlane bool) error {
+	// NOTE(neoaggelos): in some environments the Kubernetes might hang when running for the first time
+	// This works around the issue by running them once during the install hook
+	ports := map[string]int{
+		// Default values from official Kubernetes documentation.
+		"kubelet":            10250,
+		"kubelet-healthz":    10248,
+		"kube-proxy-healhz":  10256,
+		"kube-proxy-metrics": 10249,
+		"k8s-dqlite":         config.Datastore.GetK8sDqlitePort(),
+		"loadbalancer":       config.LoadBalancer.GetBGPPeerPort(),
+	}
+
+	if isControlPlane {
+		ports["kube-apiserver"] = config.APIServer.GetSecurePort()
+		ports["kube-scheduler"] = 10259
+		ports["kube-controller-manager"] = 10257
+	} else {
+		ports["kube-apiserver-proxy"] = config.APIServer.GetSecurePort()
+	}
+
+	var allErrors []error
+	for service, port := range ports {
+		if port == 0 {
+			continue
+		}
+		if open, err := utils.IsLocalPortOpen(port); err != nil {
+			// Could not open port due to error.
+			allErrors = append(allErrors, fmt.Errorf("could not check port %d (needed by: %s): %w", port, service, err))
+		} else if open {
+			allErrors = append(allErrors, fmt.Errorf("port %d (needed by: %s) is already in use.", port, service))
+		}
+	}
+
+	return errors.Join(allErrors...)
 }
 
 var _ Snap = &snap{}

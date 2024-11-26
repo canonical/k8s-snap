@@ -138,7 +138,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	}
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(ctx, cfg); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg, true); err != nil {
 		return fmt.Errorf("pre-init checks failed for joining node: %w", err)
 	}
 

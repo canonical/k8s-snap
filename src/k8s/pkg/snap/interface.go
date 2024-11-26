@@ -66,5 +66,5 @@ type Snap interface {
 
 	K8sdClient(address string) (k8sd.Client, error) // k8sd client
 
-	PreInitChecks(ctx context.Context, config types.ClusterConfig) error // pre-init checks before k8s-snap can start
+	PreInitChecks(ctx context.Context, config types.ClusterConfig, isControlPlane bool) error // pre-init checks before k8s-snap can start
 }

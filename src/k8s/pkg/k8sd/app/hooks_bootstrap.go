@@ -232,7 +232,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	}
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(ctx, cfg); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg, false); err != nil {
 		return fmt.Errorf("pre-init checks failed for worker node: %w", err)
 	}
 
@@ -420,7 +420,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	cfg.Certificates.K8sdPrivateKey = utils.Pointer(certificates.K8sdPrivateKey)
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(ctx, cfg); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg, true); err != nil {
 		return fmt.Errorf("pre-init checks failed for bootstrap node: %w", err)
 	}
 
