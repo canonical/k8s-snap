@@ -1,4 +1,5 @@
 # Services and ports
+
 ## Network Services
 
 There are two main types of services based on the network interface they use:
@@ -34,6 +35,7 @@ There are two main types of services based on the network interface they use:
 | 10256 | kube-proxy      | Port for binding the health check server.                               |
  
 ## Socket Service
+
 ### Containerd
 
 Containerd is being exposed through unix socket.
