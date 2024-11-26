@@ -31,6 +31,10 @@ func (check CertCheck) ValidateKeypair(certPEM string, keyPEM string) error {
 }
 
 func (check CertCheck) ValidateCert(cert *x509.Certificate) error {
+	if cert == nil {
+		return fmt.Errorf("no certificate specified")
+	}
+
 	if check.CN != "" && check.CN != cert.Subject.CommonName {
 		return fmt.Errorf("invalid certificate CN, expected: %s, actual: %s ",
 			check.CN, cert.Subject.CommonName)
