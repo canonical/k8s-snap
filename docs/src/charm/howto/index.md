@@ -17,6 +17,7 @@ Overview <self>
 charm
 install-lxd
 Integrate with etcd <etcd>
+Integrate with ceph-csi <ceph-csi>
 proxy
 cos-lite
 contribute
