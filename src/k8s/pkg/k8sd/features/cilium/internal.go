@@ -72,9 +72,7 @@ func internalConfig(annotations types.Annotations) (config, error) {
 		c.vlanBPFBypass = vlanTags
 	}
 
-	if v, ok := annotations.Get(apiv1_annotations.AnnotationCniExclusive); ok {
-		c.cniExclusive = v == "true"
-	} else {
+	if _, ok := annotations.Get(apiv1_annotations.AnnotationCNIExclusive); ok {
 		c.cniExclusive = true
 	}
 

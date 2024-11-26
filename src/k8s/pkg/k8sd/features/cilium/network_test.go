@@ -183,7 +183,7 @@ func TestNetworkEnabled(t *testing.T) {
 		validateNetworkValues(g, callArgs.Values, network, snapM)
 	})
 
-	t.Run("cniExclusiveDisabled", func(t *testing.T) {
+	t.Run("CNIExclusive", func(t *testing.T) {
 		g := NewWithT(t)
 
 		helmM := &helmmock.Mock{}
@@ -203,7 +203,7 @@ func TestNetworkEnabled(t *testing.T) {
 		testAnnotations := types.Annotations{
 			apiv1_annotations.AnnotationDevices:             "eth+ lxdbr+",
 			apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
-			apiv1_annotations.AnnotationCniExclusive:        "false",
+			apiv1_annotations.AnnotationCNIExclusive:        "true",
 		}
 		status, err := ApplyNetwork(context.Background(), snapM, "127.0.0.1", apiserver, network, testAnnotations)
 
@@ -218,7 +218,7 @@ func TestNetworkEnabled(t *testing.T) {
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 
 		cniValues := callArgs.Values["cni"].(map[string]interface{})
-		g.Expect(cniValues["exclusive"]).To(BeFalse())
+		g.Expect(cniValues["exclusive"]).To(BeTrue())
 	})
 }
 
@@ -435,11 +435,7 @@ func validateNetworkValues(g Gomega, values map[string]any, network types.Networ
 		g.Expect(values["nodePort"].(map[string]any)["directRoutingDevice"]).To(Equal(directRoutingDevice))
 	}
 
-	cniExclusiveStr, exists := annotations.Get(apiv1_annotations.AnnotationCniExclusive)
+	_, exists = annotations.Get(apiv1_annotations.AnnotationCNIExclusive)
 	cniValues := values["cni"].(map[string]interface{})
-	if exists {
-		g.Expect(cniValues["exclusive"]).To(Equal(cniExclusiveStr == "true"))
-	} else {
-		g.Expect(cniValues["exclusive"]).To(BeTrue())
-	}
+	g.Expect(cniValues["exclusive"]).To(Equal(exists))
 }

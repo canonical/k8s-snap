@@ -21,7 +21,7 @@ func TestInternalConfig(t *testing.T) {
 				devices:             "",
 				directRoutingDevice: "",
 				vlanBPFBypass:       nil,
-				cniExclusive:        true,
+				cniExclusive:        false,
 			},
 			expectError: false,
 		},
@@ -31,20 +31,19 @@ func TestInternalConfig(t *testing.T) {
 				apiv1_annotations.AnnotationDevices:             "eth+ lxdbr+",
 				apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
 				apiv1_annotations.AnnotationVLANBPFBypass:       "1,2,3",
-				apiv1_annotations.AnnotationCniExclusive:        "false",
+				apiv1_annotations.AnnotationCNIExclusive:        "false",
 			},
 			expectedConfig: config{
 				devices:             "eth+ lxdbr+",
 				directRoutingDevice: "eth0",
 				vlanBPFBypass:       []int{1, 2, 3},
-				cniExclusive:        false,
 			},
 			expectError: false,
 		},
 		{
 			name: "Cilum exclusive CNI",
 			annotations: map[string]string{
-				apiv1_annotations.AnnotationCniExclusive: "true",
+				apiv1_annotations.AnnotationCNIExclusive: "true",
 			},
 			expectedConfig: config{
 				devices:             "",
@@ -61,7 +60,6 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1},
-				cniExclusive:  true,
 			},
 			expectError: false,
 		},
@@ -72,7 +70,6 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3, 4, 5},
-				cniExclusive:  true,
 			},
 			expectError: false,
 		},
@@ -83,7 +80,6 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{0},
-				cniExclusive:  true,
 			},
 			expectError: false,
 		},
@@ -115,7 +111,6 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3},
-				cniExclusive:  true,
 			},
 			expectError: false,
 		},
@@ -126,7 +121,6 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3, 4, 5},
-				cniExclusive:  true,
 			},
 			expectError: false,
 		},
@@ -140,7 +134,7 @@ func TestInternalConfig(t *testing.T) {
 		{
 			name:           "Nil annotations",
 			annotations:    nil,
-			expectedConfig: config{cniExclusive: true},
+			expectedConfig: config{},
 			expectError:    false,
 		},
 		{
@@ -150,7 +144,6 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3},
-				cniExclusive:  true,
 			},
 			expectError: false,
 		},
