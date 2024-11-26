@@ -191,7 +191,7 @@ func TestControlPlaneCertificates(t *testing.T) {
 		})
 	})
 
-	t.Run("InvalidSan", func(t *testing.T) {
+	t.Run("InvalidSAN", func(t *testing.T) {
 		c := pki.NewControlPlanePKI(opts)
 		g := NewWithT(t)
 		g.Expect(c.CompleteCertificates()).To(Succeed())

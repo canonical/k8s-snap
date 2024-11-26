@@ -302,7 +302,7 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 			DNSSANs: []string{"kubernetes", "kubernetes.default", "kubernetes.default.svc", "kubernetes.default.svc.cluster", "kubernetes.default.svc.cluster.local"},
 		}
 		if err := certCheck.ValidateKeypair(c.APIServerCert, c.APIServerKey); err != nil {
-			return fmt.Errorf("kube-apiservert certificate validation failure: %w", err)
+			return fmt.Errorf("kube-apiserver certificate validation failure: %w", err)
 		}
 	}
 
