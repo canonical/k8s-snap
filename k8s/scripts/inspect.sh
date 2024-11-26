@@ -47,6 +47,11 @@ function is_service_active {
   systemctl status "snap.$service" | grep -q "active (running)"
 }
 
+function collect_environment {
+  log_info "Copy environment file to the final report tarball"
+  cp -r --no-preserve=mode,ownership /etc/environment "$INSPECT_DUMP"
+}
+
 function collect_args {
   log_info "Copy service args to the final report tarball"
   cp -r --no-preserve=mode,ownership /var/snap/k8s/common/args "$INSPECT_DUMP"
@@ -210,6 +215,9 @@ collect_k8s_diagnostics
 
 printf -- 'Collecting networking information\n'
 collect_network_diagnostics
+
+printf -- 'Collecting environment information\n'
+collect_environment
 
 matches=$(grep -rlEi "BEGIN CERTIFICATE|PRIVATE KEY" inspection-report)
 if [ -n "$matches" ]; then
