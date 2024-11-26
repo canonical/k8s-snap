@@ -154,6 +154,11 @@ USE_LOCAL_MIRROR = (os.getenv("TEST_USE_LOCAL_MIRROR") or "1") == "1"
 DEFAULT_MIRROR_LIST = [
     {"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io"},
     {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io"},
+    {
+        "name": "rocks.canonical.com",
+        "port": 5002,
+        "remote": "https://rocks.canonical.com/cdk",
+    },
 ]
 
 # Local mirror configuration.
