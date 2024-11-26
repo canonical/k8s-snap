@@ -1,10 +1,14 @@
 # Services and ports
+## Network Services
 
-Services can be placed in two groups based on the network interface they bind to. Services binding to the localhost interface are only available from within the host. Services binding to the default host interface are available from outside the host and thus are subject to access restrictions.
+There are two main types of services based on the network interface they use:
 
-## Services binding to the default Host interface
+* Default Host Interface Services: These services bind to the default host interface, making them accessible from outside the host.
+* Localhost Services: These services bind to the localhost interface, meaning they can only be accessed from within the host.
 
-| Port  | Service         | Description/Access Restrictions                                                                          |
+### Services binding to the default Host interface
+
+| Port  | Service         | Description                                                                                              |
 |-------|-----------------|----------------------------------------------------------------------------------------------------------|
 | 4244  | cilium-agent    | Listening address for Hubble.                                                                            |                                                                                     
 | 4240  | cilium-agent    | TCP port for cluster-wide network connectivity and Cilium agent health API.                              |
@@ -17,7 +21,7 @@ Services can be placed in two groups based on the network interface they bind to
 | 10259 | kube-scheduler  | Kubernetes scheduler API. HTTPS with authentication and authorization.                                   |                                                                                     
 
 
-## Services binding to the localhost interface
+### Services binding to the localhost interface
 
 | Port  | Service         | Description                                                             |
 |-------|-----------------|-------------------------------------------------------------------------|
@@ -29,9 +33,10 @@ Services can be placed in two groups based on the network interface they bind to
 | 10249 | kube-proxy      | Port for the metrics server.                                            |
 | 10256 | kube-proxy      | Port for binding the health check server.                               |
  
-## Containerd 
+## Socket Service
+### Containerd
 
-Containerd is being exposed through unix sockets.
+Containerd is being exposed through unix socket.
 
 | Service      | Socket                                 |
 |--------------|----------------------------------------|
