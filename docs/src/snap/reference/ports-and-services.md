@@ -4,8 +4,8 @@
 
 There are two main types of services based on the network interface they use:
 
-* Default Host Interface Services: These services bind to the default host interface, 
-making them accessible from outside the host.
+* Default Host Interface Services: These services bind to the default host 
+interface, making them accessible from outside the host.
 * Localhost Services: These services bind to the localhost interface,
 meaning they can only be accessed from within the host.
 
