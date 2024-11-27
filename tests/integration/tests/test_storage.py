@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from test_util import config, harness, util
+from test_util import config, harness, util, tags
 from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
@@ -23,6 +23,7 @@ def check_pvc_bound(p: subprocess.CompletedProcess) -> bool:
 
 
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
+@pytest.mark.tags(tags.PULL_REQUEST)
 def test_storage(instances: List[harness.Instance]):
     instance = instances[0]
     util.wait_until_k8s_ready(instance, [instance])

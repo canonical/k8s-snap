@@ -19,6 +19,23 @@ pytest_plugins = ("pytest_tagging",)
 # into the harness instances to reduce the number of downloads.
 PRELOADED_SNAPS = ["snapd", "core20"]
 
+def pytest_collection_modifyitems(config, items):
+    """
+    A hook to ensure all tests have at least one tag before execution.
+    """
+    untagged_tests = []
+
+    for item in items:
+        # Check for tags in the pytest.mark attributes
+        tags = [mark for mark in item.iter_markers(name="tags")]
+        if not tags:
+            untagged_tests.append(item.nodeid)
+
+    if untagged_tests:
+        pytest.fail(
+            f"The following tests do not have any tags: {', '.join(untagged_tests)}. "
+            f"Please add at least one tag using @pytest.mark.tags."
+        )
 
 def _harness_clean(h: harness.Harness):
     "Clean up created instances within the test harness."

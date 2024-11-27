@@ -5,7 +5,7 @@ import logging
 from typing import List
 
 import pytest
-from test_util import harness, util
+from test_util import harness, util, tags
 
 LOG = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ CONTAINERD_PATHS = [
 
 
 @pytest.mark.node_count(1)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_node_cleanup(instances: List[harness.Instance], tmp_path):
     instance = instances[0]
     util.wait_for_dns(instance)

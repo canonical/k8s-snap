@@ -6,7 +6,7 @@ import time
 from typing import List
 
 import pytest
-from test_util import harness, util
+from test_util import harness, util, tags
 
 LOG = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.bootstrap_config(
     'control-plane-taints: ["node-role.kubernetes.io/control-plane:NoSchedule"]'
 )
+@pytest.mark.tags(tags.NIGHTLY)
 def test_control_plane_taints(instances: List[harness.Instance]):
     k8s_instance = instances[0]
     retries = 10

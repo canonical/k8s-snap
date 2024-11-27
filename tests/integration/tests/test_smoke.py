@@ -8,7 +8,7 @@ import subprocess
 from typing import List
 
 import pytest
-from test_util import config, harness, util
+from test_util import config, harness, util, tags
 
 LOG = logging.getLogger(__name__)
 
@@ -30,6 +30,7 @@ STATUS_PATTERNS = [
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-smoke.yaml").read_text()
 )
+@pytest.mark.tags(tags.PULL_REQUEST)
 def test_smoke(instances: List[harness.Instance]):
     instance = instances[0]
 

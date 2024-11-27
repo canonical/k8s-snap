@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from test_util import config, harness, util
+from test_util import config, harness, util, tags
 from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
@@ -69,6 +69,7 @@ def get_external_service_ip(instance: harness.Instance) -> str:
 
 
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
+@pytest.mark.tags(tags.PULL_REQUEST)
 def test_gateway(instances: List[harness.Instance]):
     instance = instances[0]
     instance_default_ip = util.get_default_ip(instance)

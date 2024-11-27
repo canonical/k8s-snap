@@ -5,7 +5,7 @@ import logging
 from typing import List
 
 import pytest
-from test_util import config, harness, snap, util
+from test_util import config, harness, snap, util, tags
 
 LOG = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.skipif(
     not config.STRICT_INTERFACE_CHANNELS, reason="No strict channels configured"
 )
+@pytest.mark.tags(tags.NIGHTLY)
 def test_strict_interfaces(instances: List[harness.Instance], tmp_path):
     channels = config.STRICT_INTERFACE_CHANNELS
     cp = instances[0]

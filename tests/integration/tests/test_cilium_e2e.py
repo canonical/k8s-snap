@@ -7,7 +7,7 @@ import platform
 from typing import List
 
 import pytest
-from test_util import config, harness, util
+from test_util import config, harness, util, tags
 
 LOG = logging.getLogger(__name__)
 
@@ -24,6 +24,7 @@ CILIUM_CLI_TAR_GZ = f"https://github.com/cilium/cilium-cli/releases/download/{CI
     os.getenv("TEST_CILIUM_E2E") in ["false", None],
     reason="Test is known to be flaky on GitHub Actions",
 )
+@pytest.mark.tags(tags.WEEKLY)
 def test_cilium_e2e(instances: List[harness.Instance]):
     instance = instances[0]
     instance.exec(["bash", "-c", "mkdir -p ~/.kube"])
