@@ -47,9 +47,9 @@ function is_service_active {
   systemctl status "snap.$service" | grep -q "active (running)"
 }
 
-function collect_environment {
-  log_info "Copy environment file to the final report tarball"
-  cp -r --no-preserve=mode,ownership /etc/environment "$INSPECT_DUMP"
+function collect_proxy_from_environment {
+  log_info "Grep proxy form environment file to the final report tarball"
+  grep -i "proxy" /etc/environment > "$INSPECT_DUMP/proxy_in_etc_environment"
 }
 
 function collect_args {
@@ -217,7 +217,7 @@ printf -- 'Collecting networking information\n'
 collect_network_diagnostics
 
 printf -- 'Collecting environment information\n'
-collect_environment
+collect_proxy_from_environment
 
 matches=$(grep -rlEi "BEGIN CERTIFICATE|PRIVATE KEY" inspection-report)
 if [ -n "$matches" ]; then
