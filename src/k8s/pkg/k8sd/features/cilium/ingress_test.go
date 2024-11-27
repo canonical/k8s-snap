@@ -23,10 +23,12 @@ func TestIngress(t *testing.T) {
 	for _, tc := range []struct {
 		name string
 		// given
-		networkEnabled bool
-		applyChanged   bool
-		ingressEnabled bool
-		helmErr        error
+		networkEnabled      bool
+		applyChanged        bool
+		ingressEnabled      bool
+		defaultSecretName   string
+		enableProxyProtocol bool
+		helmErr             error
 		// then
 		statusMsg     string
 		statusEnabled bool
@@ -64,6 +66,14 @@ func TestIngress(t *testing.T) {
 			statusMsg:      cilium.DisabledMsg,
 			statusEnabled:  false,
 		},
+		{
+			name:                "HelmUnchangedIngressEnabled/",
+			ingressEnabled:      true,
+			defaultSecretName:   "secret-name",
+			enableProxyProtocol: true,
+			statusMsg:           cilium.EnabledMsg,
+			statusEnabled:       true,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
@@ -81,7 +91,9 @@ func TestIngress(t *testing.T) {
 				Enabled: ptr.To(tc.networkEnabled),
 			}
 			ingress := types.Ingress{
-				Enabled: ptr.To(tc.ingressEnabled),
+				Enabled:             ptr.To(tc.ingressEnabled),
+				DefaultTLSSecret:    ptr.To(tc.defaultSecretName),
+				EnableProxyProtocol: ptr.To(tc.enableProxyProtocol),
 			}
 
 			status, err := cilium.ApplyIngress(context.Background(), snapM, ingress, network, nil)
@@ -195,15 +207,16 @@ func validateIngressValues(g Gomega, values map[string]any, ingress types.Ingres
 	ingressController, ok := values["ingressController"].(map[string]any)
 	g.Expect(ok).To(BeTrue())
 	if ingress.GetEnabled() {
-		g.Expect(ingressController["enabled"]).To(BeTrue())
-		g.Expect(ingressController["loadbalancerMode"]).To(Equal("shared"))
-		g.Expect(ingressController["defaultSecretNamespace"]).To(Equal("kube-system"))
-		g.Expect(ingressController["defaultTLSSecret"]).To(Equal(ingress.GetDefaultTLSSecret()))
-		g.Expect(ingressController["enableProxyProtocol"]).To(Equal(ingress.GetEnableProxyProtocol()))
+		g.Expect(ingressController[cilium.IngressOptionEnabled]).To(BeTrue())
+		g.Expect(ingressController[cilium.IngressOptionLoadBalancerMode]).To(Equal(cilium.IngressOptionLoadBalancerModeShared))
+		g.Expect(ingressController[cilium.IngressOptionDefaultSecretNamespace]).To(Equal(cilium.IngressOptionDefaultSecretNamespaceKubeSystem))
+		g.Expect(ingressController[cilium.IngressOptionDefaultSecretName]).To(Equal(ingress.GetDefaultTLSSecret()))
+		g.Expect(ingressController[cilium.IngressOptionEnableProxyProtocol]).To(Equal(ingress.GetEnableProxyProtocol()))
 	} else {
-		g.Expect(ingressController["enabled"]).To(BeFalse())
-		g.Expect(ingressController["defaultSecretNamespace"]).To(Equal(""))
-		g.Expect(ingressController["defaultSecretName"]).To(Equal(""))
-		g.Expect(ingressController["enableProxyProtocol"]).To(BeFalse())
+		g.Expect(ingressController[cilium.IngressOptionEnabled]).To(BeFalse())
+		g.Expect(ingressController[cilium.IngressOptionLoadBalancerMode]).To(Equal(""))
+		g.Expect(ingressController[cilium.IngressOptionDefaultSecretNamespace]).To(Equal(""))
+		g.Expect(ingressController[cilium.IngressOptionDefaultSecretName]).To(Equal(""))
+		g.Expect(ingressController[cilium.IngressOptionEnableProxyProtocol]).To(BeFalse())
 	}
 }
