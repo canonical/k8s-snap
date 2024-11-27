@@ -133,6 +133,7 @@ function collect_network_diagnostics {
   ip6tables-save &>"$INSPECT_DUMP/iptables6.log" || true
   ip6tables-legacy-save &>"$INSPECT_DUMP/iptables6-legacy.log" || true
   ss -6 -plnt &>"$INSPECT_DUMP/ss6-plnt.log" || true
+  grep -Ei "^(HTTP_PROXY|HTTPS_PROXY|NO_PROXY)=" /etc/environment > "$INSPECT_DUMP/proxy_in_etc_environment"
 }
 
 function check_expected_services {
