@@ -142,6 +142,13 @@ Please refer to the [Kubernetes website] for more information on annnotations.
 |**Values**| \[] (string values comma separated) |
 |**Description**|Enable IP auto-detection based on which addresses on the nodes are within one of the provided CIDRs.|
 
+## `k8sd/v1alpha1/cilium/cni-exclusive`
+
+|   |   |
+|---|---|
+| **Values**| "true"\|"false"|
+| **Description**| Make Cilium take ownership over the `/etc/cni/net.d` directory on the node, renaming all non-Cilium CNI configurations to `*.cilium_bak`. This ensures no Pods can be scheduled using other CNI plugins during Cilium agent downtime. Set this to "false" if you wish to use other CNIs such as Multus. |
+
 ## `k8sd/v1alpha1/cilium/devices`
 
 |   |   |

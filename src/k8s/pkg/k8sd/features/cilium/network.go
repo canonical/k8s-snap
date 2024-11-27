@@ -97,8 +97,9 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, 
 			"enabled": true,
 		},
 		"cni": map[string]any{
-			"confPath": "/etc/cni/net.d",
-			"binPath":  "/opt/cni/bin",
+			"confPath":  "/etc/cni/net.d",
+			"binPath":   "/opt/cni/bin",
+			"exclusive": config.cniExclusive,
 		},
 		"operator": map[string]any{
 			"replicas": 1,
