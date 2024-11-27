@@ -118,6 +118,11 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		}
 		c.CACert = cert
 		c.CAKey = key
+	} else {
+		certCheck := pkiutil.CertCheck{CN: "kubernetes-ca", AllowSelfSigned: true}
+		if err := certCheck.ValidateKeypair(c.CACert, c.CAKey); err != nil {
+			return fmt.Errorf("kubernetes CA certificate validation failure: %w", err)
+		}
 	}
 
 	// Generate self-signed client CA (if not set already)
@@ -131,6 +136,11 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		}
 		c.ClientCACert = cert
 		c.ClientCAKey = key
+	} else {
+		certCheck := pkiutil.CertCheck{CN: "kubernetes-ca-client", AllowSelfSigned: true}
+		if err := certCheck.ValidateKeypair(c.ClientCACert, c.ClientCAKey); err != nil {
+			return fmt.Errorf("kubernetes client CA certificate validation failure: %w", err)
+		}
 	}
 
 	serverCACert, serverCAKey, err := pkiutil.LoadCertificate(c.CACert, c.CAKey)
@@ -154,6 +164,11 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 		}
 		c.FrontProxyCACert = cert
 		c.FrontProxyCAKey = key
+	} else {
+		certCheck := pkiutil.CertCheck{CN: "front-proxy-ca", AllowSelfSigned: true}
+		if err := certCheck.ValidateKeypair(c.FrontProxyCACert, c.FrontProxyCAKey); err != nil {
+			return fmt.Errorf("kubernetes front-proxy CA certificate validation failure: %w", err)
+		}
 	}
 
 	// Generate front proxy client certificate (ok to override)
@@ -177,6 +192,11 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 		c.FrontProxyClientCert = cert
 		c.FrontProxyClientKey = key
+	} else {
+		certCheck := pkiutil.CertCheck{CN: "front-proxy-client", CaPEM: c.FrontProxyCACert}
+		if err := certCheck.ValidateKeypair(c.FrontProxyClientCert, c.FrontProxyClientKey); err != nil {
+			return fmt.Errorf("kubernetes front-proxy client certificate validation failure: %w", err)
+		}
 	}
 
 	// Generate service account key (if missing)
@@ -213,6 +233,16 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 		c.KubeletCert = cert
 		c.KubeletKey = key
+	} else {
+		certCheck := pkiutil.CertCheck{
+			CN:      fmt.Sprintf("system:node:%s", c.hostname),
+			O:       []string{"system:nodes"},
+			CaPEM:   c.CACert,
+			DNSSANs: []string{c.hostname},
+		}
+		if err := certCheck.ValidateKeypair(c.KubeletCert, c.KubeletKey); err != nil {
+			return fmt.Errorf("kubelet certificate validation failure: %w", err)
+		}
 	}
 
 	// Generate apiserver-kubelet-client certificate (if missing)
@@ -232,6 +262,15 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 		c.APIServerKubeletClientCert = cert
 		c.APIServerKubeletClientKey = key
+	} else {
+		certCheck := pkiutil.CertCheck{
+			CN:    "apiserver-kubelet-client",
+			O:     []string{"system:masters"},
+			CaPEM: c.ClientCACert,
+		}
+		if err := certCheck.ValidateKeypair(c.APIServerKubeletClientCert, c.APIServerKubeletClientKey); err != nil {
+			return fmt.Errorf("apiserver-kubelet-client certificate validation failure: %w", err)
+		}
 	}
 
 	// Generate kube-apiserver certificate (if missing)
@@ -256,6 +295,15 @@ func (c *ControlPlanePKI) CompleteCertificates() error {
 
 		c.APIServerCert = cert
 		c.APIServerKey = key
+	} else {
+		certCheck := pkiutil.CertCheck{
+			CN:      "kube-apiserver",
+			CaPEM:   c.CACert,
+			DNSSANs: []string{"kubernetes", "kubernetes.default", "kubernetes.default.svc", "kubernetes.default.svc.cluster", "kubernetes.default.svc.cluster.local"},
+		}
+		if err := certCheck.ValidateKeypair(c.APIServerCert, c.APIServerKey); err != nil {
+			return fmt.Errorf("kube-apiserver certificate validation failure: %w", err)
+		}
 	}
 
 	for _, i := range []struct {
