@@ -6,7 +6,7 @@ from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import List
 
 import pytest
-from test_util import config, harness, util, tags
+from test_util import config, harness, tags, util
 
 LOG = logging.getLogger(__name__)
 

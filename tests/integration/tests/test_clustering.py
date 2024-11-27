@@ -11,7 +11,7 @@ from typing import List
 import pytest
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from test_util import config, harness, util, tags
+from test_util import config, harness, tags, util
 
 LOG = logging.getLogger(__name__)
 
@@ -98,8 +98,6 @@ def test_worker_nodes(instances: List[harness.Instance]):
     ] and other_joining_node.id in [
         node["metadata"]["name"] for node in nodes
     ], f"only {cluster_node.id} should be left in cluster"
-
-
 
 
 @pytest.mark.node_count(3)

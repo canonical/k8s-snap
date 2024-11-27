@@ -6,7 +6,7 @@ import time
 from typing import List
 
 import pytest
-from test_util import harness, util, tags
+from test_util import harness, tags, util
 
 LOG = logging.getLogger(__name__)
 

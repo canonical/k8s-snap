@@ -7,7 +7,7 @@ from typing import List
 
 import pytest
 import yaml
-from test_util import harness, util, tags
+from test_util import harness, tags, util
 from test_util.etcd import EtcdCluster
 
 LOG = logging.getLogger(__name__)

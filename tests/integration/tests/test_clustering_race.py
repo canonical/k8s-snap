@@ -4,7 +4,7 @@
 from typing import List
 
 import pytest
-from test_util import harness, util, tags
+from test_util import harness, tags, util
 
 
 @pytest.mark.node_count(3)

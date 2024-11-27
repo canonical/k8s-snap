@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from test_util import config, harness, util, tags
+from test_util import config, harness, tags, util
 from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)

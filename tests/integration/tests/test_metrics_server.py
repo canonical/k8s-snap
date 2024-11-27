@@ -5,7 +5,7 @@ import logging
 from typing import List
 
 import pytest
-from test_util import config, harness, util, tags
+from test_util import config, harness, tags, util
 
 LOG = logging.getLogger(__name__)
 

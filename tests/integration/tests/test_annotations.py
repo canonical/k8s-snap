@@ -1,19 +1,14 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
-import datetime
 import logging
-import os
-import subprocess
-import tempfile
 from typing import List
 
 import pytest
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from test_util import config, harness, util, tags
+from test_util import config, harness, tags, util
 
 LOG = logging.getLogger(__name__)
+
 
 @pytest.mark.node_count(3)
 @pytest.mark.bootstrap_config(
