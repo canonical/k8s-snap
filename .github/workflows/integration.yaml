@@ -24,10 +24,6 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: audit
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Install lxd
@@ -132,10 +128,6 @@ jobs:
     runs-on: ubuntu-20.04
     needs: build
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: audit
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
