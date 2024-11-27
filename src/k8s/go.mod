@@ -7,7 +7,7 @@ require (
 	github.com/canonical/go-dqlite/v2 v2.0.0
 	github.com/canonical/k8s-snap-api v1.0.14
 	github.com/canonical/lxd v0.0.0-20241106165613-4aab50ec18c3
-	github.com/canonical/microcluster/v2 v2.0.0
+	github.com/canonical/microcluster/v2 v2.0.5
 	github.com/go-logr/logr v1.4.2
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/sys/mountinfo v0.7.1
@@ -28,8 +28,6 @@ require (
 	k8s.io/utils v0.0.0-20240921022957-49e7df575cb6
 	sigs.k8s.io/controller-runtime v0.18.4
 )
-
-require github.com/canonical/go-dqlite v1.22.0 // indirect
 
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
