@@ -59,47 +59,12 @@ cluster bootstrap process. The key configuration parameters are:
    ```
 
    To test that the cluster is configured with dual-stack, apply the following
-   manifest that creates a service with `ipFamilyPolicy: RequireDualStack`:
-   ```
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-    name: nginxdualstack
-    spec:
-    selector:
-        matchLabels:
-        run: nginxdualstack
-    replicas: 1
-    template:
-        metadata:
-        labels:
-            run: nginxdualstack
-        spec:
-        containers:
-        - name: nginxdualstack
-            image: rocks.canonical.com/cdk/diverdane/nginxdualstack:1.0.0
-            ports:
-            - containerPort: 80
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-    name: nginx-dualstack
-    labels:
-        run: nginxdualstack
-    spec:
-    type: NodePort
-    ipFamilies:
-    - IPv4
-    - IPv6
-    ipFamilyPolicy: RequireDualStack
-    ports:
-    - port: 80
-        protocol: TCP
-    selector:
-        run: nginxdualstack
+   manifest that creates a service with `ipFamilyPolicy: RequireDualStack`. 
+   It also creates an nginx deployment sample workload. 
 
    ```
+   sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/how-to-dualstack-pod-and-service.yaml
+   ``` 
 
 1. **Check IPv6 Connectivity**
 

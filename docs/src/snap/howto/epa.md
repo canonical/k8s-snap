@@ -285,108 +285,9 @@ With these preparation steps we have enabled the features of EPA:
 ````{group-tab} MAAS
 
 To prepare a machine for CPU isolation, HugePages, real-time kernel, 
-SR-IOV and DPDK we leverage cloud-init through MAAS.
+SR-IOV and DPDK we leverage cloud-init through MAAS available to download {download}`here </src/assets/how-to-epa-maas-cloud-init>`.
 
-```
-#cloud-config
-
-apt:
-  sources:
-    rtk.list:
-      source: "deb https://<launchpad_id>:<ppa_subscription_password>@private-ppa.launchpadcontent.net/canonical-kernel-rt/ppa/ubuntu jammy main"
-
-write_files:
-  # set kernel option with hugepages and cpu isolation
-  - path: /etc/default/grub.d/100-telco_kernel_options.cfg
-    content: |
-      GRUB_CMDLINE_LINUX_DEFAULT="${GRUB_CMDLINE_LINUX_DEFAULT} intel_iommu=on iommu=pt usbcore.autosuspend=-1 selinux=0 enforcing=0 nmi_watchdog=0 crashkernel=auto softlockup_panic=0 audit=0 tsc=nowatchdog intel_pstate=disable mce=off hugepagesz=1G hugepages=1000 hugepagesz=2M hugepages=0 default_hugepagesz=1G kthread_cpus=0-31 irqaffinity=0-31 nohz=on nosoftlockup nohz_full=32-127 rcu_nocbs=32-127 rcu_nocb_poll skew_tick=1 isolcpus=managed_irq,32-127 console=tty0 console=ttyS0,115200n8"
-    permissions: "0644"
-
-  # create sriov VFs
-  - path: /etc/netplan/99-sriov_vfs.yaml
-    content: |
-      network:
-          ethernets:
-              enp152s0f1:
-                  virtual-function-count: 128
-    permissions: "0600"
-
-  # ensure VFs are bound to vfio-pci driver (so they can be consumed by pods)
-  - path: /var/lib/cloud/scripts/per-boot/dpdk_bind.sh
-    content: |
-      #!/bin/bash
-      if [ -d /home/ubuntu/dpdk ]; then
-        modprobe vfio-pci
-        vfs=$(python3 /home/ubuntu/dpdk/usertools/dpdk-devbind.py -s | grep drv=iavf | awk '{print $1}' | tail -n +11)
-        python3 /home/ubuntu/dpdk/usertools/dpdk-devbind.py --bind=vfio-pci $vfs
-      fi
-    permissions: "0755"
-
-  # set proxy variables
-  - path: /etc/environment
-    content: |
-      HTTPS_PROXY=http://10.18.2.1:3128
-      HTTP_PROXY=http://10.18.2.1:3128
-      NO_PROXY=10.0.0.0/8,192.168.0.0/16,127.0.0.1,172.16.0.0/16,.svc,localhost
-      https_proxy=http://10.18.2.1:3128
-      http_proxy=http://10.18.2.1:3128
-      no_proxy=10.0.0.0/8,192.168.0.0/16,127.0.0.1,172.16.0.0/16,.svc,localhost
-    append: true
-
-  # add rtk ppa key
-  - path: /etc/apt/trusted.gpg.d/rtk.asc
-    content: |
-      -----BEGIN PGP PUBLIC KEY BLOCK-----
-      Comment: Hostname:
-      Version: Hockeypuck 2.2
-
-      xsFNBGAervwBEADHCeEuR7WKRiEII+uFOu8J+W47MZOcVhfNpu4rdcveL4qe4gj4
-      nsROMHaINeUPCmv7/4EXdXtTm1VksXeh4xTeqH6ZaQre8YZ9Hf4OYNRcnFOn0KR+
-      aCk0OWe9xkoDbrSYd3wmx8NG/Eau2C7URzYzYWwdHgZv6elUKk6RDbDh6XzIaChm
-      kLsErCP1SiYhKQvD3Q0qfXdRG908lycCxgejcJIdYxgxOYFFPcyC+kJy2OynnvQr
-      4Yw6LJ2LhwsA7bJ5hhQDCYZ4foKCXX9I59G71dO1fFit5O/0/oq0xe7yUYCejf7Z
-      OqD+TzEK4lxLr1u8j8lXoQyUXzkKIL0SWEFT4tzOFpWQ2IBs/sT4X2oVA18dPDoZ
-      H2SGxCUcABfne5zrEDgkUkbnQRihBtTyR7QRiE3GpU19RNVs6yAu+wA/hti8Pg9O
-      U/5hqifQrhJXiuEoSmmgNb9QfbR3tc0ZhKevz4y+J3vcnka6qlrP1lAirOVm2HA7
-      STGRnaEJcTama85MSIzJ6aCx4omCgUIfDmsi9nAZRkmeomERVlIAvcUYxtqprLfu
-      6plDs+aeff/MAmHbak7yF+Txj8+8F4k6FcfNBT51oVSZuqFwyLswjGVzWol6aEY7
-      akVIrn3OdN2u6VWlU4ZO5+sjP4QYsf5K2oVnzFVIpYvqtO2fGbxq/8dRJQARAQAB
-      zSVMYXVuY2hwYWQgUFBBIGZvciBDYW5vbmljYWwgS2VybmVsIFJUwsGOBBMBCgA4
-      FiEEc4Tsv+pcopCX6lNfLz1Vl/FsjCEFAmAervwCGwMFCwkIBwIGFQoJCAsCBBYC
-      AwECHgECF4AACgkQLz1Vl/FsjCF9WhAAnwfx9njs1M3rfsMMuhvPxx0WS65HDlq8
-      SRgl9K2EHtZIcS7lHmcjiTR5RD1w+4rlKZuE5J3EuMnNX1PdCYLSyMQed+7UAtX6
-      TNyuiuVZVxuzJ5iS7L2ZoX05ASgyoh/Loipc+an6HzHqQnNC16ZdrBL4AkkGhDgP
-      ZbYjM3FbBQkL2T/08NcwTrKuVz8DIxgH7yPAOpBzm91n/pV248eK0a46sKauR2DB
-      zPKjcc180qmaVWyv9C60roSslvnkZsqe/jYyDFuSsRWqGgE5jNyIb8EY7K7KraPv
-      3AkusgCh4fqlBxOvF6FJkiYeZZs5YXvGQ296HTfVhPLOqctSFX2kuUKGIq2Z+H/9
-      qfJFGS1iaUsoDEUOaU27lQg5wsYa8EsCm9otroH2P3g7435JYRbeiwlwfHMS9EfK
-      dwD38d8UzZj7TnxGG4T1aLb3Lj5tNG6DSko69+zqHhuknjkRuAxRAZfHeuRbACgE
-      nIa7Chit8EGhC2GB12pr5XFWzTvNFdxFhbG+ed7EiGn/v0pVQc0ZfE73FXltg7et
-      bkoC26o5Ksk1wK2SEs/f8aDZFtG01Ys0ASFICDGW2tusFvDs6LpPUUggMjf41s7j
-      4tKotEE1Hzr38EdY+8faRaAS9teQdH5yob5a5Bp5F5wgmpqZom/gjle4JBVaV5dI
-      N5rcnHzcvXw=
-      =asqr
-      -----END PGP PUBLIC KEY BLOCK-----
-    permissions: "0644"
-
-# install the snap
-snap:
-  commands:
-    00: 'snap install k8s --classic --channel=1.31/beta'
-
-runcmd:
-# fetch dpdk driver binding script
-- su ubuntu -c "git config --global http.proxy http://10.18.2.1:3128"
-- su ubuntu -c "git clone https://github.com/DPDK/dpdk.git /home/ubuntu/dpdk"
-- apt update
-- DEBIAN_FRONTEND=noninteractive apt install -y linux-headers-6.8.1-1004-realtime linux-image-6.8.1-1004-realtime linux-modules-6.8.1-1004-realtime linux-modules-extra-6.8.1-1004-realtime
-
-# enable kernel options
-- update-grub
-
-# reboot to activate realtime-kernel and kernel options
-power_state:
-  mode: reboot
+```{literalinclude} /src/assets/how-to-epa-maas-cloud-init
 ```
 
 ```{note}
@@ -426,23 +327,13 @@ EPA capabilities.
    ```{include} ../../_parts/install.md
    ```
 
-2. Create a file called *configuration.yaml*. In this configuration file we let
+2. Create a file called *configuration.yaml* or download it {download}`here </src/assets/configuration.yaml>`. In this configuration file we let
    the snap start with its default CNI (calico), with CoreDNS deployed and we
    also point k8s to the external etcd. 
 
-   ```yaml
-   cluster-config:
-     network:
-       enabled: true
-     dns:
-       enabled: true
-     local-storage:
-       enabled: true
-   extra-node-kubelet-args:
-     --reserved-cpus: "0-31"
-     --cpu-manager-policy: "static"
-     --topology-manager-policy: "best-effort"
-   ```
+```{literalinclude} /src/assets/configuration.yaml 
+:language: yaml
+```
 
 3. Bootstrap {{product}} using the above configuration file.
 
@@ -689,7 +580,6 @@ EOF
 ```{note} 
 To ensure proper resource management and prevent conflicts, Kubernetes
 enforces that a pod requesting HugePages also explicitly requests a minimum
-Now, ensure that the `1Gi` HugePage is allocated in the pod:
 ```
 
 Now ensure that the 1Gi HugePage is allocated in the pod:
@@ -769,7 +659,6 @@ Confirm that the test is running by checking the pod's logs:
 
 ```
 sudo k8s kubectl logs realtime-kernel-test -f
-
 ```
 
 This should produce output including:
@@ -850,7 +739,6 @@ Label the node with information about the available CPU/NUMA nodes:
 
 ```
 sudo k8s kubectl label node pc6b-rb4-n3 topology.kubernetes.io/zone=NUMA
-
 ```
 
 The output should indicate the label has been applied:
