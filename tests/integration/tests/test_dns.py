@@ -23,7 +23,7 @@ def test_dns(instances: List[harness.Instance]):
             "kubectl",
             "run",
             "busybox",
-            "--image=busybox:1.28",
+            "--image=ghcr.io/containerd/busybox:1.28",
             "--restart=Never",
             "--",
             "sleep",

@@ -8,5 +8,5 @@ metadata:
 spec:
   containers:
     - name: nginx
-      image: nginx:latest
+      image: ghcr.io/containerd/nginx:1.27.0
   restartPolicy: Always

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: my-nginx
-        image: nginx
+        image: ghcr.io/containerd/nginx:1.27.0
         ports:
         - containerPort: 80
 ---
