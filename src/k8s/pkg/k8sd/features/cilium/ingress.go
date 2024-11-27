@@ -12,6 +12,14 @@ import (
 const (
 	IngressDeleteFailedMsgTmpl = "Failed to delete Cilium Ingress, the error was: %v"
 	IngressDeployFailedMsgTmpl = "Failed to deploy Cilium Ingress, the error was: %v"
+
+	IngressOptionEnabled                          = "enabled"
+	IngressOptionLoadBalancerMode                 = "loadbalancerMode"
+	IngressOptionLoadBalancerModeShared           = "shared" // loadbalancerMode: "shared"
+	IngressOptionDefaultSecretName                = "defaultSecretName"
+	IngressOptionDefaultSecretNamespace           = "defaultSecretNamespace"
+	IngressOptionDefaultSecretNamespaceKubeSystem = "kube-system" // defaultSecretNamespace: "kube-system"
+	IngressOptionEnableProxyProtocol              = "enableProxyProtocol"
 )
 
 // ApplyIngress assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
@@ -24,25 +32,25 @@ const (
 // returned FeatureStatus.
 func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
-
 	var values map[string]any
 	if ingress.GetEnabled() {
 		values = map[string]any{
 			"ingressController": map[string]any{
-				"enabled":                true,
-				"loadbalancerMode":       "shared",
-				"defaultSecretNamespace": "kube-system",
-				"defaultTLSSecret":       ingress.GetDefaultTLSSecret(),
-				"enableProxyProtocol":    ingress.GetEnableProxyProtocol(),
+				IngressOptionEnabled:                true,
+				IngressOptionLoadBalancerMode:       IngressOptionLoadBalancerModeShared,
+				IngressOptionDefaultSecretNamespace: IngressOptionDefaultSecretNamespaceKubeSystem,
+				IngressOptionDefaultSecretName:      ingress.GetDefaultTLSSecret(),
+				IngressOptionEnableProxyProtocol:    ingress.GetEnableProxyProtocol(),
 			},
 		}
 	} else {
 		values = map[string]any{
 			"ingressController": map[string]any{
-				"enabled":                false,
-				"defaultSecretNamespace": "",
-				"defaultSecretName":      "",
-				"enableProxyProtocol":    false,
+				IngressOptionEnabled:                false,
+				IngressOptionLoadBalancerMode:       "",
+				IngressOptionDefaultSecretNamespace: "",
+				IngressOptionDefaultSecretName:      "",
+				IngressOptionEnableProxyProtocol:    false,
 			},
 		}
 	}
