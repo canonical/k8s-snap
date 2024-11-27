@@ -9,6 +9,7 @@ import (
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
@@ -137,8 +138,16 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to initialize control plane certificates: %w", err)
 	}
 
+	serviceConfigs := types.K8sServiceConfigs{
+		IsControlPlane:                     true,
+		ExtraNodeKubeSchedulerArgs:         joinConfig.ExtraNodeKubeSchedulerArgs,
+		ExtraNodeKubeControllerManagerArgs: joinConfig.ExtraNodeKubeControllerManagerArgs,
+		ExtraNodeKubeletArgs:               joinConfig.ExtraNodeKubeletArgs,
+		ExtraNodeKubeProxyArgs:             joinConfig.ExtraNodeKubeProxyArgs,
+	}
+
 	// Pre-init checks
-	if err := snap.PreInitChecks(ctx, cfg, true); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg, serviceConfigs); err != nil {
 		return fmt.Errorf("pre-init checks failed for joining node: %w", err)
 	}
 

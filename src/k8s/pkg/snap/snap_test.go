@@ -142,8 +142,9 @@ func TestSnap(t *testing.T) {
 			ContainerdBaseDir: containerdDir,
 		})
 		conf := types.ClusterConfig{}
+		serviceConfigs := types.K8sServiceConfigs{}
 
-		err = snap.PreInitChecks(context.Background(), conf, true)
+		err = snap.PreInitChecks(context.Background(), conf, serviceConfigs)
 		g.Expect(err).To(Not(HaveOccurred()))
 		expectedCalls := []string{}
 		for _, binary := range []string{"kube-apiserver", "kube-controller-manager", "kube-scheduler", "kube-proxy", "kubelet"} {
@@ -154,11 +155,15 @@ func TestSnap(t *testing.T) {
 		t.Run("Fail port already in use", func(t *testing.T) {
 			g := NewWithT(t)
 			// Open a port which will be checked (kubelet).
-			l, err := net.Listen("tcp", ":10250")
+			port := "9999"
+			serviceConfigs := types.K8sServiceConfigs{
+				ExtraNodeKubeletArgs: map[string]*string{"--port": &port},
+			}
+			l, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 			g.Expect(err).To(Not(HaveOccurred()))
 			defer l.Close()
 
-			err = snap.PreInitChecks(context.Background(), conf, true)
+			err = snap.PreInitChecks(context.Background(), conf, serviceConfigs)
 			g.Expect(err).To(HaveOccurred())
 		})
 
@@ -172,7 +177,7 @@ func TestSnap(t *testing.T) {
 			f.Close()
 			defer os.Remove(f.Name())
 
-			err = snap.PreInitChecks(context.Background(), conf, true)
+			err = snap.PreInitChecks(context.Background(), conf, serviceConfigs)
 			g.Expect(err).To(HaveOccurred())
 		})
 
@@ -180,7 +185,7 @@ func TestSnap(t *testing.T) {
 			g := NewWithT(t)
 			mockRunner.Err = fmt.Errorf("some error")
 
-			err := snap.PreInitChecks(context.Background(), conf, true)
+			err := snap.PreInitChecks(context.Background(), conf, serviceConfigs)
 			g.Expect(err).To(HaveOccurred())
 		})
 	})

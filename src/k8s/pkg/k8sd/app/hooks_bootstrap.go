@@ -231,8 +231,14 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		Annotations: response.Annotations,
 	}
 
+	serviceConfigs := types.K8sServiceConfigs{
+		IsControlPlane:         false,
+		ExtraNodeKubeletArgs:   joinConfig.ExtraNodeKubeletArgs,
+		ExtraNodeKubeProxyArgs: joinConfig.ExtraNodeKubeProxyArgs,
+	}
+
 	// Pre-init checks
-	if err := snap.PreInitChecks(ctx, cfg, false); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg, serviceConfigs); err != nil {
 		return fmt.Errorf("pre-init checks failed for worker node: %w", err)
 	}
 
@@ -419,8 +425,16 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	cfg.Certificates.K8sdPublicKey = utils.Pointer(certificates.K8sdPublicKey)
 	cfg.Certificates.K8sdPrivateKey = utils.Pointer(certificates.K8sdPrivateKey)
 
+	serviceConfigs := types.K8sServiceConfigs{
+		IsControlPlane:                     true,
+		ExtraNodeKubeSchedulerArgs:         bootstrapConfig.ExtraNodeKubeSchedulerArgs,
+		ExtraNodeKubeControllerManagerArgs: bootstrapConfig.ExtraNodeKubeControllerManagerArgs,
+		ExtraNodeKubeletArgs:               bootstrapConfig.ExtraNodeKubeletArgs,
+		ExtraNodeKubeProxyArgs:             bootstrapConfig.ExtraNodeKubeProxyArgs,
+	}
+
 	// Pre-init checks
-	if err := snap.PreInitChecks(ctx, cfg, true); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg, serviceConfigs); err != nil {
 		return fmt.Errorf("pre-init checks failed for bootstrap node: %w", err)
 	}
 
