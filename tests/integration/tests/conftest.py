@@ -13,6 +13,8 @@ from test_util.registry import Registry
 
 LOG = logging.getLogger(__name__)
 
+pytest_plugins = ("pytest_tagging",)
+
 # The following snaps will be downloaded once per test run and preloaded
 # into the harness instances to reduce the number of downloads.
 PRELOADED_SNAPS = ["snapd", "core20"]
