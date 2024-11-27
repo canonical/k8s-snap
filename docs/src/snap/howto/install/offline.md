@@ -19,7 +19,7 @@ From a machine with access to the internet download the
 `k8s` and `core20` snap with:
 
 ```
-sudo snap download k8s --channel 1.30-classic/beta --basename k8s
+sudo snap download k8s --channel 1.31-classic/candidate --basename k8s
 sudo snap download core20 --basename core20
 ```
 

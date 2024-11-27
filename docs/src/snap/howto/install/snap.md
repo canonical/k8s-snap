@@ -37,12 +37,7 @@ page] for an explanation of the different types of channel.
 The snap can be installed with the snap command:
 
 ```
-sudo snap install k8s --classic --channel=latest/edge
-```
-
-```{note}
-The `latest/edge` channel is always under active development. This is where you
-will find the latest features but you may also experience instability.
+sudo snap install k8s --classic --channel=1.31-classic/candidate
 ```
 
 ## Bootstrap the cluster

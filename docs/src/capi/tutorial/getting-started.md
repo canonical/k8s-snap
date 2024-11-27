@@ -39,7 +39,7 @@ The management cluster hosts the CAPI providers. You can use {{product}} as a
 management cluster:
 
 ```
-sudo snap install k8s --classic --edge
+sudo snap install k8s --classic --channel=1.31-classic/candidate
 sudo k8s bootstrap
 sudo k8s status --wait-ready
 mkdir -p ~/.kube/

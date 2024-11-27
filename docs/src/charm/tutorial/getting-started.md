@@ -68,7 +68,7 @@ recommendation is two CPU cores, 16GB of memory and 40GB of disk space. Now we
 can go ahead and create a cluster:
 
 ```
-juju deploy k8s --channel=latest/edge --constraints='cores=2 mem=16G root-disk=40G'
+juju deploy k8s --channel=1.31/candidate --constraints='cores=2 mem=16G root-disk=40G'
 ```
 
 At this point Juju will fetch the charm from Charmhub, create a new instance
@@ -97,7 +97,7 @@ more of its resources are available for running workloads. We can deploy a
 worker node in a similar way to the original K8s node:
 
 ```
-juju deploy k8s-worker --channel=latest/edge --constraints='cores=2 mem=16G root-disk=40G'
+juju deploy k8s-worker --channel=latest/candidate --constraints='cores=2 mem=16G root-disk=40G'
 ```
 
 Once again, this will take a few minutes. In this case though, the `k8s-worker`
