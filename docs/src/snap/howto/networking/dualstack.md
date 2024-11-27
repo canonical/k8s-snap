@@ -63,7 +63,7 @@ cluster bootstrap process. The key configuration parameters are:
    It also creates an nginx deployment sample workload. 
 
    ```
-   sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/how-to-dualstack-pod-and-service.yaml
+   sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/how-to-dualstack-manifest.yaml
    ``` 
 
 1. **Check IPv6 Connectivity**

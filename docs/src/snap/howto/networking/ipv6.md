@@ -65,7 +65,7 @@ Deploy a pod with an nginx web-server and expose it via a service to verify
 connectivity of the IPv6-only cluster:
 
 ```sh
-sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/how-to-ipv6-only-pod-and-service.yaml
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/how-to-ipv6-only-manifest.yaml
 ```
 
 3. **Verify IPv6 Connectivity**
