@@ -47,11 +47,6 @@ function is_service_active {
   systemctl status "snap.$service" | grep -q "active (running)"
 }
 
-function collect_proxy_from_environment {
-  log_info "Grep proxy form environment file to the final report tarball"
-  grep -i "proxy" /etc/environment > "$INSPECT_DUMP/proxy_in_etc_environment"
-}
-
 function collect_args {
   log_info "Copy service args to the final report tarball"
   cp -r --no-preserve=mode,ownership /var/snap/k8s/common/args "$INSPECT_DUMP"
@@ -138,6 +133,7 @@ function collect_network_diagnostics {
   ip6tables-save &>"$INSPECT_DUMP/iptables6.log" || true
   ip6tables-legacy-save &>"$INSPECT_DUMP/iptables6-legacy.log" || true
   ss -6 -plnt &>"$INSPECT_DUMP/ss6-plnt.log" || true
+  grep -Ei "^(HTTP_PROXY|HTTPS_PROXY|NO_PROXY)=" /etc/environment > "$INSPECT_DUMP/proxy_in_etc_environment"
 }
 
 function check_expected_services {
@@ -215,9 +211,6 @@ collect_k8s_diagnostics
 
 printf -- 'Collecting networking information\n'
 collect_network_diagnostics
-
-printf -- 'Collecting environment information\n'
-collect_proxy_from_environment
 
 matches=$(grep -rlEi "BEGIN CERTIFICATE|PRIVATE KEY" inspection-report)
 if [ -n "$matches" ]; then
