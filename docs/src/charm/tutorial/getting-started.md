@@ -97,7 +97,7 @@ more of its resources are available for running workloads. We can deploy a
 worker node in a similar way to the original K8s node:
 
 ```
-juju deploy k8s-worker --channel=latest/candidate --constraints='cores=2 mem=16G root-disk=40G'
+juju deploy k8s-worker --channel=1.31/candidate --constraints='cores=2 mem=16G root-disk=40G'
 ```
 
 Once again, this will take a few minutes. In this case though, the `k8s-worker`
