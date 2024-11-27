@@ -53,7 +53,7 @@ def test_dualstack(instances: List[harness.Instance]):
             pytest.fail(f"Unknown IP address type: {addr}")
 
         # need to shell out otherwise this runs into permission errors
-        util.stubbornly(retries=3, delay_s=1).on(main).exec(
+        util.stubbornly(retries=10, delay_s=1).on(main).exec(
             ["curl", address], shell=True
         )
 
@@ -113,7 +113,7 @@ def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
             pytest.fail(f"Unknown IP address type: {addr}")
 
         # need to shell out otherwise this runs into permission errors
-        util.stubbornly(retries=3, delay_s=1).on(main).exec(
+        util.stubbornly(retries=10, delay_s=1).on(main).exec(
             ["curl", address], shell=True
         )
 

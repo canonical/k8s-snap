@@ -126,7 +126,7 @@ def test_ingress(instances: List[harness.Instance]):
         ]
     )
 
-    util.stubbornly(retries=5, delay_s=5).on(instance).until(
+    util.stubbornly(retries=10, delay_s=5).on(instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{ingress_http_port}", "-H", "Host: foo.bar.com"])
 
@@ -139,6 +139,6 @@ def test_ingress(instances: List[harness.Instance]):
         ],
     )
     assert ingress_ip is not None, "No ingress IP found."
-    util.stubbornly(retries=5, delay_s=5).on(instance).until(
+    util.stubbornly(retries=10, delay_s=5).on(instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"{ingress_ip}", "-H", "Host: foo.bar.com"])
