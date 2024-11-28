@@ -1,0 +1,11 @@
+cluster-config:
+     network:
+       enabled: true
+     dns:
+       enabled: true
+     local-storage:
+       enabled: true
+   extra-node-kubelet-args:
+     --reserved-cpus: "0-31"
+     --cpu-manager-policy: "static"
+     --topology-manager-policy: "best-effort"

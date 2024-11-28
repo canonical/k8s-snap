@@ -62,51 +62,10 @@ sudo k8s kubectl get pods -A
 ```
 
 Deploy a pod with an nginx web-server and expose it via a service to verify
-connectivity of the IPv6-only cluster. Create a manifest file
-`nginx-ipv6.yaml` with the following content:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-ipv6
-spec:
-  selector:
-    matchLabels:
-      run: nginx-ipv6
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        run: nginx-ipv6
-    spec:
-      containers:
-      - name: nginx-ipv6
-        image: rocks.canonical.com/cdk/diverdane/nginxipv6:1.0.0
-        ports:
-        - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-ipv6
-  labels:
-    run: nginx-ipv6
-spec:
-  type: NodePort
-  ipFamilies:
-  - IPv6
-  ports:
-  - port: 80
-    protocol: TCP
-  selector:
-    run: nginx-ipv6
-```
-
-Deploy the web-server and its service by running:
+connectivity of the IPv6-only cluster:
 
 ```sh
-sudo k8s kubectl apply -f nginx-ipv6.yaml
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/how-to-ipv6-only-manifest.yaml
 ```
 
 3. **Verify IPv6 Connectivity**
