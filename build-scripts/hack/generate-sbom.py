@@ -146,8 +146,8 @@ def rock_cilium(manifest, extra_files):
         rockcraft = (d / f"{cilium_version}/cilium/rockcraft.yaml").read_text()
         operator_rockcraft = (d / f"{cilium_version}/cilium-operator-generic/rockcraft.yaml").read_text()
 
-        extra_files[f"{cilium_version}/cilium/rockcraft.yaml"] = rockcraft
-        extra_files[f"{cilium_version}/cilium-operator-generic/rockcraft.yaml"] = operator_rockcraft
+        extra_files[f"cilium/{cilium_version}/rockcraft.yaml"] = rockcraft
+        extra_files[f"cilium-operator-generic/{cilium_version}/rockcraft.yaml"] = operator_rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["cilium"]["source"]
@@ -171,10 +171,10 @@ def rock_cilium(manifest, extra_files):
         },
         "language": "go",
         "details": [
-            f"{cilium_version}/cilium/rockcraft.yaml",
+            f"cilium/{cilium_version}/rockcraft.yaml",
             "cilium/go.mod",
             "cilium/go.sum",
-            f"{cilium_version}/cilium-operator-generic/rockcraft.yaml",
+            f"cilium-operator-generic/{cilium_version}/rockcraft.yaml",
             "cilium-operator-generic/go.mod",
             "cilium-operator-generic/go.sum",
         ],
