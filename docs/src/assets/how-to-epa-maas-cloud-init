@@ -97,3 +97,4 @@ runcmd:
 # reboot to activate realtime-kernel and kernel options
 power_state:
   mode: reboot
+  

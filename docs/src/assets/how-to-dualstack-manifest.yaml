@@ -35,3 +35,4 @@ ports:
     protocol: TCP
 selector:
     run: nginxdualstack
+    

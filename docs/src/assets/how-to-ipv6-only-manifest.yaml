@@ -33,3 +33,4 @@ spec:
     protocol: TCP
   selector:
     run: nginx-ipv6
+    

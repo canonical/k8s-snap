@@ -9,3 +9,4 @@ cluster-config:
      --reserved-cpus: "0-31"
      --cpu-manager-policy: "static"
      --topology-manager-policy: "best-effort"
+     

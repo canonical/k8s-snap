@@ -47,3 +47,4 @@ extra-node-containerd-args:
   --log-level: debug
 extra-node-k8s-dqlite-args:
   --watch-storage-available-size-interval: 6s
+  
