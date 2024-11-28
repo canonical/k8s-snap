@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
-from test_util import config, harness, util
+from test_util import config, harness, util, tags
 from test_util.etcd import EtcdCluster
 from test_util.registry import Registry
 
@@ -20,22 +20,18 @@ pytest_plugins = ("pytest_tagging",)
 PRELOADED_SNAPS = ["snapd", "core20"]
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_itemcollected(item):
     """
     A hook to ensure all tests have at least one tag before execution.
     """
-    untagged_tests = []
-
-    for item in items:
-        # Check for tags in the pytest.mark attributes
-        tags = [mark for mark in item.iter_markers(name="tags")]
-        if not tags:
-            untagged_tests.append(item.nodeid)
-
-    if untagged_tests:
+    # Check for tags in the pytest.mark attributes
+    marked_tags = [mark for mark in item.iter_markers(name="tags")]
+    if not marked_tags or not any(
+        tag.args[0] in tags.TEST_LEVELS for tag in marked_tags
+    ):
         pytest.fail(
-            f"The following tests do not have any tags: {', '.join(untagged_tests)}. "
-            f"Please add at least one tag using @pytest.mark.tags."
+            f"The test {item.nodeid} does not have one of the test level tags ({", ".join(tags.TEST_LEVELS)})."
+            f"Please add at least one test-level tag using @pytest.mark.tags."
         )
 
 

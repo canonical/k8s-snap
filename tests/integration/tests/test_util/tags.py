@@ -3,9 +3,12 @@
 #
 from pytest_tagging import combine_tags
 
+
 PULL_REQUEST = "pull_request"
 NIGHTLY = "nightly"
 WEEKLY = "weekly"
+
+TEST_LEVELS = [PULL_REQUEST, NIGHTLY, WEEKLY]
 
 # Those tags can be used for a convenient way to run multiple test levels.
 combine_tags("up_to_nightly", PULL_REQUEST, NIGHTLY)
