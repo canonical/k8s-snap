@@ -121,7 +121,7 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		},
 		{
 			Name: "KubernetesAuthWebhook",
-			Path: "kubernetes/auth/webhook",
+			Path: apiv1.ReviewKubernetesAuthTokenRPC,
 			Post: rest.EndpointAction{Handler: e.postKubernetesAuthWebhook, AllowUntrusted: true},
 		},
 		// ClusterAPI management endpoints.
