@@ -81,7 +81,11 @@ class Registry:
 
         self.add_mirrors()
 
-        setup_k8s_snap(self.instance, Path("/"))
+        # Setup the k8s snap on the instance.
+        # Use the latest/edge/classic channel as this version is only used to collect logs.
+        # This would fail if the `TEST_SNAP` environment variable is not set which however has
+        # valid use cases, e.g. in the promotion scenarios.
+        setup_k8s_snap(self.instance, Path("/"), "latest/edge/classic")
 
     def get_configured_mirrors(self) -> List[Mirror]:
         mirrors: List[Mirror] = []
