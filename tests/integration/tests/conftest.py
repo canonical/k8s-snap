@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
-from test_util import config, harness, util, tags
+from test_util import config, harness, tags, util
 from test_util.etcd import EtcdCluster
 from test_util.registry import Registry
 
@@ -30,8 +30,8 @@ def pytest_itemcollected(item):
         tag.args[0] in tags.TEST_LEVELS for tag in marked_tags
     ):
         pytest.fail(
-            f"The test {item.nodeid} does not have one of the test level tags ({", ".join(tags.TEST_LEVELS)})."
-            f"Please add at least one test-level tag using @pytest.mark.tags."
+            f"The test {item.nodeid} does not have one of the test level tags."
+            f"Please add at least one test-level tag using @pytest.mark.tags ({tags.TEST_LEVELS})."
         )
 
 

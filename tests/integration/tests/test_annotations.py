@@ -80,14 +80,13 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     services = joining_cp.exec(
         ["snap", "services", "k8s"], capture_output=True, text=True
     ).stdout.split("\n")[1:-1]
-    print(services)
     for service in services:
         if "k8s-apiserver-proxy" in service:
             assert (
                 " inactive " in service
             ), "apiserver proxy should be inactive on control-plane"
         else:
-            assert " active " in service, "service should be active"
+            assert " active " in service, f"'{service}' should be active"
 
     cluster_node.exec(["k8s", "remove-node", worker.id])
     nodes = util.ready_nodes(cluster_node)
@@ -95,7 +94,6 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     services = worker.exec(
         ["snap", "services", "k8s"], capture_output=True, text=True
     ).stdout.split("\n")[1:-1]
-    print(services)
     for service in services:
         for expected_active_service in [
             "containerd",

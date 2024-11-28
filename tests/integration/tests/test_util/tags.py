@@ -3,7 +3,6 @@
 #
 from pytest_tagging import combine_tags
 
-
 PULL_REQUEST = "pull_request"
 NIGHTLY = "nightly"
 WEEKLY = "weekly"
