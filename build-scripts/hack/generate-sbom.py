@@ -30,10 +30,13 @@ SNAPCRAFT_YAML = yaml.safe_load(util.read_file(DIR / "../../snap/snapcraft.yaml"
 # FIXME: This information should not be hardcoded here
 CILIUM_ROCK_REPO = "https://github.com/canonical/cilium-rocks"
 CILIUM_ROCK_TAG = "main"
+CILIUM_VERSION = "1.16.3"
 COREDNS_ROCK_REPO = "https://github.com/canonical/coredns-rock"
 COREDNS_ROCK_TAG = "main"
+COREDNS_VERSION = "1.11.3"
 METRICS_SERVER_ROCK_REPO = "https://github.com/canonical/metrics-server-rock"
 METRICS_SERVER_ROCK_TAG = "main"
+METRICS_SERVER_VERSION = "0.7.2"
 RAWFILE_LOCALPV_REPO = "https://github.com/canonical/rawfile-localpv"
 RAWFILE_LOCALPV_TAG = "main"
 SNAPCRAFT_C_COMPONENTS = ["libmnl", "libnftnl", "iptables"]
@@ -139,15 +142,13 @@ def k8s_snap_c_dqlite_components(manifest, extra_files):
 def rock_cilium(manifest, extra_files):
     LOG.info("Generating SBOM info for Cilium rocks")
 
-    cilium_version = "1.16.3"
-
     with util.git_repo(CILIUM_ROCK_REPO, CILIUM_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
-        rockcraft = (d / f"{cilium_version}/cilium/rockcraft.yaml").read_text()
-        operator_rockcraft = (d / f"{cilium_version}/cilium-operator-generic/rockcraft.yaml").read_text()
+        rockcraft = (d / f"{CILIUM_VERSION}/cilium/rockcraft.yaml").read_text()
+        operator_rockcraft = (d / f"{CILIUM_VERSION}/cilium-operator-generic/rockcraft.yaml").read_text()
 
-        extra_files[f"{cilium_version}/cilium/rockcraft.yaml"] = rockcraft
-        extra_files[f"{cilium_version}/cilium-operator-generic/rockcraft.yaml"] = operator_rockcraft
+        extra_files[f"cilium/{CILIUM_VERSION}/rockcraft.yaml"] = rockcraft
+        extra_files[f"cilium-operator-generic/{CILIUM_VERSION}/rockcraft.yaml"] = operator_rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["cilium"]["source"]
@@ -171,10 +172,10 @@ def rock_cilium(manifest, extra_files):
         },
         "language": "go",
         "details": [
-            f"{cilium_version}/cilium/rockcraft.yaml",
+            f"cilium/{CILIUM_VERSION}/rockcraft.yaml",
             "cilium/go.mod",
             "cilium/go.sum",
-            f"{cilium_version}/cilium-operator-generic/rockcraft.yaml",
+            f"cilium-operator-generic/{CILIUM_VERSION}/rockcraft.yaml",
             "cilium-operator-generic/go.mod",
             "cilium-operator-generic/go.sum",
         ],
@@ -193,9 +194,9 @@ def rock_coredns(manifest, extra_files):
     with util.git_repo(COREDNS_ROCK_REPO, COREDNS_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
         # TODO(ben): This should not be hard coded.
-        rockcraft = (d / "1.11.3/rockcraft.yaml").read_text()
+        rockcraft = (d / f"{COREDNS_VERSION}/rockcraft.yaml").read_text()
 
-        extra_files["coredns/1.11.3/rockcraft.yaml"] = rockcraft
+        extra_files[f"coredns/{COREDNS_VERSION}/rockcraft.yaml"] = rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["coredns"]["source"]
@@ -215,7 +216,7 @@ def rock_coredns(manifest, extra_files):
         },
         "language": "go",
         "details": [
-            "coredns/1.11.3/rockcraft.yaml",
+            f"coredns/{COREDNS_VERSION}/rockcraft.yaml",
             "coredns/go.mod",
             "coredns/go.sum",
         ],
@@ -234,9 +235,9 @@ def rock_metrics_server(manifest, extra_files):
     with util.git_repo(METRICS_SERVER_ROCK_REPO, METRICS_SERVER_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
         # TODO(ben): This should not be hard coded.
-        rockcraft = (d / "0.7.2/rockcraft.yaml").read_text()
+        rockcraft = (d / f"{METRICS_SERVER_VERSION}/rockcraft.yaml").read_text()
 
-        extra_files["metrics-server/0.7.2/rockcraft.yaml"] = rockcraft
+        extra_files[f"metrics-server/{METRICS_SERVER_VERSION}/rockcraft.yaml"] = rockcraft
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["metrics-server"]["source"]
@@ -256,7 +257,7 @@ def rock_metrics_server(manifest, extra_files):
         },
         "language": "go",
         "details": [
-            "metrics-server/0.7.2/rockcraft.yaml",
+            f"metrics-server/{METRICS_SERVER_VERSION}/rockcraft.yaml",
             "metrics-server/go.mod",
             "metrics-server/go.sum",
         ],
