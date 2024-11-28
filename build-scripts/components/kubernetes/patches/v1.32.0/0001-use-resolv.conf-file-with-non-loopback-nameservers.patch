@@ -1,3 +1,20 @@
+From a6b7287d10dbe008ee252d646eb7b762fb49d831 Mon Sep 17 00:00:00 2001
+From: Benjamin Schimke <benjamin.schimke@canonical.com>
+Date: Thu, 28 Nov 2024 17:51:10 +0100
+Subject: [PATCH] fix
+
+---
+ pkg/kubelet/apis/config/fuzzer/fuzzer.go      |  2 +-
+ pkg/kubelet/apis/config/v1beta1/defaults.go   |  2 +-
+ .../apis/config/v1beta1/defaults_test.go      | 10 +--
+ pkg/kubelet/types/constants.go                |  4 +-
+ pkg/kubelet/types/resolv_conf.go              | 75 ++++++++++++++++
+ pkg/kubelet/types/resolv_conf_test.go         | 87 +++++++++++++++++++
+ pkg/kubemark/hollow_kubelet.go                |  2 +-
+ 7 files changed, 172 insertions(+), 10 deletions(-)
+ create mode 100644 pkg/kubelet/types/resolv_conf.go
+ create mode 100644 pkg/kubelet/types/resolv_conf_test.go
+
 diff --git a/pkg/kubelet/apis/config/fuzzer/fuzzer.go b/pkg/kubelet/apis/config/fuzzer/fuzzer.go
 index 474d6db2ef0..b6ae5016353 100644
 --- a/pkg/kubelet/apis/config/fuzzer/fuzzer.go
@@ -275,3 +292,6 @@ index 523b6fcd65f..0e0a4832d04 100644
  	c.KubeletCgroups = "/kubelet"
  	c.SerializeImagePulls = true
  	c.SystemCgroups = ""
+-- 
+2.43.0
+
