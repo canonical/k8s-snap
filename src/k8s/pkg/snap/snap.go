@@ -396,7 +396,7 @@ func checkK8sServicePorts(config types.ClusterConfig, serviceConfigs types.K8sSe
 		if open, err := utils.IsLocalPortOpen(port); err != nil {
 			// Could not open port due to error.
 			allErrors = append(allErrors, fmt.Errorf("could not check port %s (needed by: %s): %w", port, service, err))
-		} else if open {
+		} else if !open {
 			allErrors = append(allErrors, fmt.Errorf("port %s (needed by: %s) is already in use.", port, service))
 		}
 	}

@@ -2,29 +2,20 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"net"
-	"os"
 	"syscall"
-	"time"
 )
 
 // IsLocalPortOpen checks if the given local port is already open or not.
 func IsLocalPortOpen(port string) (bool, error) {
-	if err := checkPort("localhost", port, 500*time.Millisecond); err == nil {
-		return true, nil
-	} else if errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, syscall.ECONNREFUSED) {
+	// Without an address, Listen will listen on all addresses.
+	if l, err := net.Listen("tcp", fmt.Sprintf(":%s", port)); errors.Is(err, syscall.EADDRINUSE) {
 		return false, nil
-	} else {
-		// could not open due to error, couldn't check.
+	} else if err != nil {
 		return false, err
+	} else {
+		l.Close()
+		return true, nil
 	}
-}
-
-func checkPort(host, port string, timeout time.Duration) error {
-	conn, err := net.DialTimeout("tcp", net.JoinHostPort(host, port), timeout)
-	if err != nil {
-		return err
-	}
-	conn.Close()
-	return nil
 }
