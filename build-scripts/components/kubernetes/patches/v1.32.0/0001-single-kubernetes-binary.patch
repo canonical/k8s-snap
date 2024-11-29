@@ -1,0 +1,190 @@
+From 436a9056b639517bebb826c7121feefd692f6629 Mon Sep 17 00:00:00 2001
+From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
+Date: Tue, 2 Jan 2024 16:43:16 +0200
+Subject: [PATCH] single kubernetes binary
+
+---
+ cmd/kube-apiserver/apiserver.go               |  4 +--
+ .../controller-manager.go                     |  4 +--
+ cmd/kube-proxy/proxy.go                       |  4 +--
+ cmd/kube-scheduler/scheduler.go               |  4 +--
+ cmd/kubectl/kubectl.go                        |  4 +--
+ cmd/kubelet/kubelet.go                        |  4 +--
+ cmd/kubernetes/main.go                        | 34 +++++++++++++++++++
+ 7 files changed, 46 insertions(+), 12 deletions(-)
+ create mode 100644 cmd/kubernetes/main.go
+
+diff --git a/cmd/kube-apiserver/apiserver.go b/cmd/kube-apiserver/apiserver.go
+index 1bf05bc5684..53b781b8d41 100644
+--- a/cmd/kube-apiserver/apiserver.go
++++ b/cmd/kube-apiserver/apiserver.go
+@@ -16,7 +16,7 @@ limitations under the License.
+
+ // APIServer is the main API server and master for the cluster.
+ // It is responsible for serving the cluster management API.
+-package main
++package apiserver
+
+ import (
+ 	"os"
+@@ -29,7 +29,7 @@ import (
+ 	"k8s.io/kubernetes/cmd/kube-apiserver/app"
+ )
+
+-func main() {
++func Main() {
+ 	command := app.NewAPIServerCommand()
+ 	code := cli.Run(command)
+ 	os.Exit(code)
+diff --git a/cmd/kube-controller-manager/controller-manager.go b/cmd/kube-controller-manager/controller-manager.go
+index 77bc10a3517..3b95649afe4 100644
+--- a/cmd/kube-controller-manager/controller-manager.go
++++ b/cmd/kube-controller-manager/controller-manager.go
+@@ -18,7 +18,7 @@ limitations under the License.
+ // controllers, and creating corresponding pods to achieve the desired
+ // state.  It uses the API to listen for new controllers and to create/delete
+ // pods.
+-package main
++package controllermanager
+
+ import (
+ 	"os"
+@@ -31,7 +31,7 @@ import (
+ 	"k8s.io/kubernetes/cmd/kube-controller-manager/app"
+ )
+
+-func main() {
++func Main() {
+ 	command := app.NewControllerManagerCommand()
+ 	code := cli.Run(command)
+ 	os.Exit(code)
+diff --git a/cmd/kube-proxy/proxy.go b/cmd/kube-proxy/proxy.go
+index e167484781a..5ed91261468 100644
+--- a/cmd/kube-proxy/proxy.go
++++ b/cmd/kube-proxy/proxy.go
+@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
+
+-package main
++package proxy
+
+ import (
+ 	"os"
+@@ -26,7 +26,7 @@ import (
+ 	"k8s.io/kubernetes/cmd/kube-proxy/app"
+ )
+
+-func main() {
++func Main() {
+ 	command := app.NewProxyCommand()
+ 	code := cli.Run(command)
+ 	os.Exit(code)
+diff --git a/cmd/kube-scheduler/scheduler.go b/cmd/kube-scheduler/scheduler.go
+index 71739808dd2..8659324973a 100644
+--- a/cmd/kube-scheduler/scheduler.go
++++ b/cmd/kube-scheduler/scheduler.go
+@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
+
+-package main
++package scheduler
+
+ import (
+ 	"os"
+@@ -26,7 +26,7 @@ import (
+ 	"k8s.io/kubernetes/cmd/kube-scheduler/app"
+ )
+
+-func main() {
++func Main() {
+ 	command := app.NewSchedulerCommand()
+ 	code := cli.Run(command)
+ 	os.Exit(code)
+diff --git a/cmd/kubectl/kubectl.go b/cmd/kubectl/kubectl.go
+index 09c18cfa209..5a8d2d432c3 100644
+--- a/cmd/kubectl/kubectl.go
++++ b/cmd/kubectl/kubectl.go
+@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
+
+-package main
++package kubectl
+
+ import (
+ 	"k8s.io/component-base/cli"
+@@ -25,7 +25,7 @@ import (
+ 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+ )
+
+-func main() {
++func Main() {
+ 	command := cmd.NewDefaultKubectlCommand()
+ 	if err := cli.RunNoErrOutput(command); err != nil {
+ 		// Pretty-print the error and exit with an error.
+diff --git a/cmd/kubelet/kubelet.go b/cmd/kubelet/kubelet.go
+index c6a73a0034d..24656e8727e 100644
+--- a/cmd/kubelet/kubelet.go
++++ b/cmd/kubelet/kubelet.go
+@@ -19,7 +19,7 @@ limitations under the License.
+ // It then communicates with the container runtime (or a CRI shim for the runtime) to see what is
+ // currently running.  It synchronizes the configuration data, with the running set of containers
+ // by starting or stopping containers.
+-package main
++package kubelet
+
+ import (
+ 	"os"
+@@ -31,7 +31,7 @@ import (
+ 	"k8s.io/kubernetes/cmd/kubelet/app"
+ )
+
+-func main() {
++func Main() {
+ 	command := app.NewKubeletCommand()
+ 	code := cli.Run(command)
+ 	os.Exit(code)
+diff --git a/cmd/kubernetes/main.go b/cmd/kubernetes/main.go
+new file mode 100644
+index 00000000000..9c82c6a89ee
+--- /dev/null
++++ b/cmd/kubernetes/main.go
+@@ -0,0 +1,34 @@
++package main
++
++import (
++	"fmt"
++	"os"
++	"path/filepath"
++
++	apiserver "k8s.io/kubernetes/cmd/kube-apiserver"
++	controllermanager "k8s.io/kubernetes/cmd/kube-controller-manager"
++	proxy "k8s.io/kubernetes/cmd/kube-proxy"
++	scheduler "k8s.io/kubernetes/cmd/kube-scheduler"
++	"k8s.io/kubernetes/cmd/kubectl"
++	"k8s.io/kubernetes/cmd/kubelet"
++)
++
++func main() {
++	base := filepath.Base(os.Args[0])
++	switch base {
++	case "kubelet":
++		kubelet.Main()
++	case "kube-proxy":
++		proxy.Main()
++	case "kube-controller-manager":
++		controllermanager.Main()
++	case "kubectl":
++		kubectl.Main()
++	case "kube-apiserver":
++		apiserver.Main()
++	case "kube-scheduler":
++		scheduler.Main()
++	default:
++		panic(fmt.Errorf("unknown entrypoint %s", base))
++	}
++}
+--
+2.34.1
