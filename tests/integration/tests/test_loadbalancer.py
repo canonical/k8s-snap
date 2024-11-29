@@ -6,13 +6,14 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from test_util import harness, util
+from test_util import harness, tags, util
 from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
 def test_loadbalancer(instances: List[harness.Instance]):
     instance = instances[0]
 

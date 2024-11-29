@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
-from test_util import config, harness, util
+from test_util import config, harness, tags, util
 from test_util.etcd import EtcdCluster
 from test_util.registry import Registry
 
@@ -18,6 +18,21 @@ pytest_plugins = ("pytest_tagging",)
 # The following snaps will be downloaded once per test run and preloaded
 # into the harness instances to reduce the number of downloads.
 PRELOADED_SNAPS = ["snapd", "core20"]
+
+
+def pytest_itemcollected(item):
+    """
+    A hook to ensure all tests have at least one tag before execution.
+    """
+    # Check for tags in the pytest.mark attributes
+    marked_tags = [mark for mark in item.iter_markers(name="tags")]
+    if not marked_tags or not any(
+        tag.args[0] in tags.TEST_LEVELS for tag in marked_tags
+    ):
+        pytest.fail(
+            f"The test {item.nodeid} does not have one of the test level tags."
+            f"Please add at least one test-level tag using @pytest.mark.tags ({tags.TEST_LEVELS})."
+        )
 
 
 def _harness_clean(h: harness.Harness):

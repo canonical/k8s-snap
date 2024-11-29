@@ -5,12 +5,13 @@ import logging
 from typing import List
 
 import pytest
-from test_util import harness, util
+from test_util import harness, tags, util
 
 LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(3)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_config_propagation(instances: List[harness.Instance]):
     initial_node = instances[0]
     joining_cplane_node = instances[1]

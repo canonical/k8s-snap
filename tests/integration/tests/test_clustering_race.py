@@ -4,10 +4,11 @@
 from typing import List
 
 import pytest
-from test_util import harness, util
+from test_util import harness, tags, util
 
 
 @pytest.mark.node_count(3)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_wrong_token_race(instances: List[harness.Instance]):
     cluster_node = instances[0]
 
