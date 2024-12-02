@@ -8,21 +8,21 @@ The content starts with the setup of the environment (including steps for using
 [MAAS][MAAS]). Then the setup of {{product}}, including the Multus & SR-IOV/DPDK
 networking components. Finally, the steps needed to test every EPA feature:
 HugePages, Real-time Kernel, CPU Pinning / NUMA Topology Awareness and
-SR-IOV/DPDK. 
+SR-IOV/DPDK.
 
 ## What you'll need
 
 - An Ubuntu Pro subscription (required for real-time kernel)
-- Ubuntu instances **or** a MAAS environment to run {{product}} on 
+- Ubuntu instances **or** a MAAS environment to run {{product}} on
 
 
-## Prepare the Environment 
+## Prepare the Environment
 
 
 `````{tabs}
 ````{group-tab} Ubuntu
 
-First, run the `numactl` command to get the number of CPUs available for NUMA: 
+First, run the `numactl` command to get the number of CPUs available for NUMA:
 
 ```
 numactl -s
@@ -41,11 +41,11 @@ membind: 0 1
 
 ```{dropdown} Detailed explanation of output
 
-- `policy: default`: indicates that the system is using the default NUMA policy. The default policy typically tries to allocate memory on the same node as the processor executing a task, but it can fall back to other nodes if necessary.  
-- `preferred node: current`: processes will prefer to allocate memory from the current node (the node where the process is running). However, if memory is not available on the current node, it can be allocated from other nodes.  
-- `physcpubind: 0 1 2 3 ... 31 `: shows the physical CPUs that processes are allowed to run on. In this case, the system has 32 physical CPUs enabled for NUMA, and processes can use any of them.  
-- `cpubind: 0 1 `: indicates the specific CPUs that the current process (meaning the process “numactl \-s”) is bound to. It's currently using CPUs 0 and 1.  
-- `nodebind: 0 1 `: shows the NUMA nodes that the current process (meaning the process “numactl \-s”) is allowed to use for memory allocation. It has access to both node 0 and node 1.  
+- `policy: default`: indicates that the system is using the default NUMA policy. The default policy typically tries to allocate memory on the same node as the processor executing a task, but it can fall back to other nodes if necessary.
+- `preferred node: current`: processes will prefer to allocate memory from the current node (the node where the process is running). However, if memory is not available on the current node, it can be allocated from other nodes.
+- `physcpubind: 0 1 2 3 ... 31 `: shows the physical CPUs that processes are allowed to run on. In this case, the system has 32 physical CPUs enabled for NUMA, and processes can use any of them.
+- `cpubind: 0 1 `: indicates the specific CPUs that the current process (meaning the process “numactl \-s”) is bound to. It's currently using CPUs 0 and 1.
+- `nodebind: 0 1 `: shows the NUMA nodes that the current process (meaning the process “numactl \-s”) is allowed to use for memory allocation. It has access to both node 0 and node 1.
 - `membind`: 0 1 `: confirms that the current process (meaning the process “numactl \-s”) can allocate memory from both node 0 and node 1.
 ```
 
@@ -79,20 +79,20 @@ Real-time kernel enabled
 A reboot is required to complete install.
 ```
 
-First the Ubuntu system is attached to an Ubuntu Pro subscription 
-(needed to use the real-time kernel), requiring you to enter a token 
-associated with the subscription. After successful attachment, your 
-system gains access to the Ubuntu Pro repositories, including the one 
-containing the real-time kernel packages. Once the tools and 
-real-time kernel are installed, a reboot is required to start using 
+First the Ubuntu system is attached to an Ubuntu Pro subscription
+(needed to use the real-time kernel), requiring you to enter a token
+associated with the subscription. After successful attachment, your
+system gains access to the Ubuntu Pro repositories, including the one
+containing the real-time kernel packages. Once the tools and
+real-time kernel are installed, a reboot is required to start using
 the new kernel.
 
 ### Create a configuration file to enable HugePages and CPU isolation
 
-The bootloader will need a configuration file to enable the recommended 
+The bootloader will need a configuration file to enable the recommended
 boot options (explained below) to enable HugePages and CPU isolation.
 
-In this example, the host has 128 CPUs, and 2M / 1G HugePages are enabled. 
+In this example, the host has 128 CPUs, and 2M / 1G HugePages are enabled.
 This is the command to update the boot options and reboot the system:
 
 ```
@@ -106,32 +106,32 @@ reboot
 
 ```{dropdown} Explanation of boot options
 
--  `intel_iommu=on`: Enables Intel's Input-Output Memory Management Unit (IOMMU), which is used for device virtualisation and Direct Memory Access (DMA) remapping.  
--  `iommu=pt`: Sets the IOMMU to passthrough mode, allowing devices to directly access physical memory without translation.  
--  `usbcore.autosuspend=-1`: Disables USB autosuspend, preventing USB devices from being automatically suspended to save power.  
--  `selinux=0`: Disables Security-Enhanced Linux (SELinux), a security module that provides mandatory access control.  
--  `enforcing=0`: If SELinux is enabled, this option sets it to permissive mode, where policies are not enforced but violations are logged.  
--  `nmi_watchdog=0`: Disables the Non-Maskable Interrupt (NMI) watchdog, which is used to detect and respond to system hangs.  
--  `crashkernel=auto`: Reserves a portion of memory for capturing a crash dump in the event of a kernel crash.  
--  `softlockup_panic=0`: Prevents the kernel from panicking (crashing) on detecting a soft lockup, where a CPU appears to be stuck.  
--  `audit=0`: Disables the kernel auditing system, which logs security-relevant events.  
--  `tsc=nowatchdog`: Disables the Time Stamp Counter (TSC) watchdog, which checks for issues with the TSC.  
--  `intel_pstate=disable`: Disables the Intel P-state driver, which controls CPU frequency scaling.  
--  `mce=off`: Disables Machine Check Exception (MCE) handling, which detects and reports hardware errors.  
--  `hugepagesz=1G hugepages=1000`: Allocates 1000 huge pages of 1GB each.  
--  `hugepagesz=2M hugepages=0`: Configures huge pages of 2MB size but sets their count to 0\.  
--  `default_hugepagesz=1G`: Sets the default size for huge pages to 1GB.  
--  `kthread_cpus=0-31`: Restricts kernel threads to run on CPUs 0-31.  
--  `irqaffinity=0-31`: Restricts interrupt handling to CPUs 0-31.  
--  `nohz=on`: Enables the nohz (no timer tick) mode, reducing timer interrupts on idle CPUs.  
--  `nosoftlockup`: Disables the detection of soft lockups.  
--  `nohz_full=32-127`: Enables nohz\_full (full tickless) mode on CPUs 32-127, reducing timer interrupts during application processing.  
--  `rcu_nocbs=32-127`: Offloads RCU (Read-Copy-Update) callbacks to CPUs 32-127, preventing them from running on these CPUs.  
--  `rcu_nocb_poll`: Enables polling for RCU callbacks instead of using interrupts.  
--  `skew_tick=1`: Skews the timer tick across CPUs to reduce contention.  
--  `isolcpus=managed_irq,32-127`: Isolates CPUs 32-127 and assigns managed IRQs to them, reducing their involvement in system processes and dedicating them to specific workloads.  
--  `console=tty0`: Sets the console output to the first virtual terminal.  
--  `console=ttyS0,115200n8`: Sets the console output to the serial port ttyS0 with a baud rate of 115200, 8 data bits, no parity, and 1 stop bit.  
+-  `intel_iommu=on`: Enables Intel's Input-Output Memory Management Unit (IOMMU), which is used for device virtualisation and Direct Memory Access (DMA) remapping.
+-  `iommu=pt`: Sets the IOMMU to passthrough mode, allowing devices to directly access physical memory without translation.
+-  `usbcore.autosuspend=-1`: Disables USB autosuspend, preventing USB devices from being automatically suspended to save power.
+-  `selinux=0`: Disables Security-Enhanced Linux (SELinux), a security module that provides mandatory access control.
+-  `enforcing=0`: If SELinux is enabled, this option sets it to permissive mode, where policies are not enforced but violations are logged.
+-  `nmi_watchdog=0`: Disables the Non-Maskable Interrupt (NMI) watchdog, which is used to detect and respond to system hangs.
+-  `crashkernel=auto`: Reserves a portion of memory for capturing a crash dump in the event of a kernel crash.
+-  `softlockup_panic=0`: Prevents the kernel from panicking (crashing) on detecting a soft lockup, where a CPU appears to be stuck.
+-  `audit=0`: Disables the kernel auditing system, which logs security-relevant events.
+-  `tsc=nowatchdog`: Disables the Time Stamp Counter (TSC) watchdog, which checks for issues with the TSC.
+-  `intel_pstate=disable`: Disables the Intel P-state driver, which controls CPU frequency scaling.
+-  `mce=off`: Disables Machine Check Exception (MCE) handling, which detects and reports hardware errors.
+-  `hugepagesz=1G hugepages=1000`: Allocates 1000 huge pages of 1GB each.
+-  `hugepagesz=2M hugepages=0`: Configures huge pages of 2MB size but sets their count to 0\.
+-  `default_hugepagesz=1G`: Sets the default size for huge pages to 1GB.
+-  `kthread_cpus=0-31`: Restricts kernel threads to run on CPUs 0-31.
+-  `irqaffinity=0-31`: Restricts interrupt handling to CPUs 0-31.
+-  `nohz=on`: Enables the nohz (no timer tick) mode, reducing timer interrupts on idle CPUs.
+-  `nosoftlockup`: Disables the detection of soft lockups.
+-  `nohz_full=32-127`: Enables nohz\_full (full tickless) mode on CPUs 32-127, reducing timer interrupts during application processing.
+-  `rcu_nocbs=32-127`: Offloads RCU (Read-Copy-Update) callbacks to CPUs 32-127, preventing them from running on these CPUs.
+-  `rcu_nocb_poll`: Enables polling for RCU callbacks instead of using interrupts.
+-  `skew_tick=1`: Skews the timer tick across CPUs to reduce contention.
+-  `isolcpus=managed_irq,32-127`: Isolates CPUs 32-127 and assigns managed IRQs to them, reducing their involvement in system processes and dedicating them to specific workloads.
+-  `console=tty0`: Sets the console output to the first virtual terminal.
+-  `console=ttyS0,115200n8`: Sets the console output to the serial port ttyS0 with a baud rate of 115200, 8 data bits, no parity, and 1 stop bit.
 ```
 
 Once the reboot has taken place, ensure the HugePages configuration has been applied:
@@ -150,8 +150,8 @@ HugePages_Surp:        0
 ```
 
 
-Next, create a configuration file to configure the network interface 
-to use SR-IOV (so it can create virtual functions afterwards) using 
+Next, create a configuration file to configure the network interface
+to use SR-IOV (so it can create virtual functions afterwards) using
 Netplan. In the example below the file is created first, then the configuration is
 applied, making  128 virtual functions available for use in the environment:
 
@@ -183,31 +183,31 @@ virtual functions.
 ```
 
 ```{dropdown} Explanation of steps
-  * Breakdown of the content of the file `/etc/netplan/99-sriov\_vfs.yaml` :  
-    * path: `/etc/netplan/99-sriov\_vfs.yaml`: This specifies the location of the configuration file. The "99" prefix in the filename usually indicates that it will be processed last, potentially overriding other configurations.  
-    * enp152s0f1:  This is the name of the physical network interface you want to create VFs on. This name may vary depending on your system.  
-    * virtual-function-count: 128: This is the key line that instructs Netplan to create 128 virtual functions on the specified physical interface. Each of these VFs can be assigned to a different virtual machine or container, effectively allowing them to share the physical adapter's bandwidth.  
-    * permissions: "0600": This is an optional line that sets the file permissions to 600 (read and write access only for the owner).  
-  * Breakdown of the output of ip link show enp152s0f1 command:  
-    * Main interface:  
-      * 5: The index number of the network interface in the system.  
-      * enp152s0f1: The name of the physical network interface.  
-      * \<BROADCAST,MULTICAST,UP,LOWER\_UP\>: The interface's flags indicating its capabilities (e.g., broadcast, multicast) and current status (UP).  
-      * mtu 9000: The maximum transmission unit (MTU) is set to 9000 bytes, larger than the typical 1500 bytes, likely for jumbo frames.  
-      * qdisc mq: The queuing discipline (qdisc) is set to "mq" (multi-queue), designed for multi-core systems.  
-      * state UP: The interface is currently active and operational.  
-      * mode DEFAULT: The interface is in the default mode of operation.  
-      * qlen 1000: The maximum number of packets allowed in the transmit queue.  
-      * link/ether 40:a6:b7:96:d8:89: The interface's MAC address (a unique hardware identifier).  
-    * Virtual functions:  
-      * vf \<number\>: The index number of the virtual function.  
-      * link/ether \<MAC address\>: The MAC address assigned to the virtual function.  
-      * spoof checking on: A security feature to prevent MAC address spoofing (pretending to be another device).  
-      * link-state auto: The link state (up/down) is determined automatically based on the physical connection.  
-      * trust off: The interface doesn't trust the incoming VLAN (Virtual LAN) tags.  
-    * Results:  
-      * Successful VF Creation: The output confirms a success creation of 128 VFs (numbered 0 through 127\) on the enp152s0f1 interface.  
-      * VF Availability: Each VF is ready for use, and they can be assigned i.e. to {{product}} containers to give them direct access to the network through this physical network interface.  
+  * Breakdown of the content of the file `/etc/netplan/99-sriov\_vfs.yaml` :
+    * path: `/etc/netplan/99-sriov\_vfs.yaml`: This specifies the location of the configuration file. The "99" prefix in the filename usually indicates that it will be processed last, potentially overriding other configurations.
+    * enp152s0f1:  This is the name of the physical network interface you want to create VFs on. This name may vary depending on your system.
+    * virtual-function-count: 128: This is the key line that instructs Netplan to create 128 virtual functions on the specified physical interface. Each of these VFs can be assigned to a different virtual machine or container, effectively allowing them to share the physical adapter's bandwidth.
+    * permissions: "0600": This is an optional line that sets the file permissions to 600 (read and write access only for the owner).
+  * Breakdown of the output of ip link show enp152s0f1 command:
+    * Main interface:
+      * 5: The index number of the network interface in the system.
+      * enp152s0f1: The name of the physical network interface.
+      * \<BROADCAST,MULTICAST,UP,LOWER\_UP\>: The interface's flags indicating its capabilities (e.g., broadcast, multicast) and current status (UP).
+      * mtu 9000: The maximum transmission unit (MTU) is set to 9000 bytes, larger than the typical 1500 bytes, likely for jumbo frames.
+      * qdisc mq: The queuing discipline (qdisc) is set to "mq" (multi-queue), designed for multi-core systems.
+      * state UP: The interface is currently active and operational.
+      * mode DEFAULT: The interface is in the default mode of operation.
+      * qlen 1000: The maximum number of packets allowed in the transmit queue.
+      * link/ether 40:a6:b7:96:d8:89: The interface's MAC address (a unique hardware identifier).
+    * Virtual functions:
+      * vf \<number\>: The index number of the virtual function.
+      * link/ether \<MAC address\>: The MAC address assigned to the virtual function.
+      * spoof checking on: A security feature to prevent MAC address spoofing (pretending to be another device).
+      * link-state auto: The link state (up/down) is determined automatically based on the physical connection.
+      * trust off: The interface doesn't trust the incoming VLAN (Virtual LAN) tags.
+    * Results:
+      * Successful VF Creation: The output confirms a success creation of 128 VFs (numbered 0 through 127\) on the enp152s0f1 interface.
+      * VF Availability: Each VF is ready for use, and they can be assigned i.e. to {{product}} containers to give them direct access to the network through this physical network interface.
       * MAC Addresses: Each VF has its own unique MAC address, which is essential for network communication.
 ```
 
@@ -219,7 +219,7 @@ automatically each time the system boots up, so the VFIO
 
 ```
 git clone https://github.com/DPDK/dpdk.git /home/ubuntu/dpdk
-cat <<EOF > /var/lib/cloud/scripts/per-boot/dpdk_bind.sh 
+cat <<EOF > /var/lib/cloud/scripts/per-boot/dpdk_bind.sh
       #!/bin/bash
       if [ -d /home/ubuntu/dpdk ]; then
         modprobe vfio-pci
@@ -229,11 +229,11 @@ cat <<EOF > /var/lib/cloud/scripts/per-boot/dpdk_bind.sh
 sudo chmod 0755 /var/lib/cloud/scripts/per-boot/dpdk_bind.sh
 ```
 
-```{dropdown} Explanation 
-  * Load VFIO Module (modprobe vfio-pci): If the DPDK directory exists, the script loads the VFIO-PCI kernel module. This module is necessary for the VFIO driver to function.  
-  * The script uses the `dpdk-devbind.py` tool (included with DPDK) to list the available network devices and their drivers.  
-    * It filters this output using grep drv=iavf to find devices that are currently using the iavf driver (a common driver for Intel network adapters), excluding the physical network interface itself and just focusing on the virtual functions (VFs).  
-  * Bind VFs to VFIO: The script uses `dpdk-devbind.py` again, this time with the \--bind=vfio-pci option, to bind the identified VFs to the VFIO-PCI driver. This step essentially tells the kernel to relinquish control of these devices to DPDK.  
+```{dropdown} Explanation
+  * Load VFIO Module (modprobe vfio-pci): If the DPDK directory exists, the script loads the VFIO-PCI kernel module. This module is necessary for the VFIO driver to function.
+  * The script uses the `dpdk-devbind.py` tool (included with DPDK) to list the available network devices and their drivers.
+    * It filters this output using grep drv=iavf to find devices that are currently using the iavf driver (a common driver for Intel network adapters), excluding the physical network interface itself and just focusing on the virtual functions (VFs).
+  * Bind VFs to VFIO: The script uses `dpdk-devbind.py` again, this time with the \--bind=vfio-pci option, to bind the identified VFs to the VFIO-PCI driver. This step essentially tells the kernel to relinquish control of these devices to DPDK.
 ```
 
 To test that the VFIO Kernel Module and DPDK are enabled:
@@ -273,18 +273,18 @@ Network devices using DPDK-compatible driver
 
 With these preparation steps we have enabled the features of EPA:
 
-- NUMA and CPU Pinning are available to the first 32 CPUs  
-- Real-Time Kernel is enabled  
-- HugePages are enabled and 1000 1G huge pages are available   
-- SR-IOV is enabled in the enp152s0f1 interface, with 128 virtual 
-  function interfaces bound to the vfio-pci driver (that could also use the iavf driver)  
+- NUMA and CPU Pinning are available to the first 32 CPUs
+- Real-Time Kernel is enabled
+- HugePages are enabled and 1000 1G huge pages are available
+- SR-IOV is enabled in the enp152s0f1 interface, with 128 virtual
+  function interfaces bound to the vfio-pci driver (that could also use the iavf driver)
 - DPDK is enabled in all the 128 virtual function interfaces
 
 ````
 
 ````{group-tab} MAAS
 
-To prepare a machine for CPU isolation, HugePages, real-time kernel, 
+To prepare a machine for CPU isolation, HugePages, real-time kernel,
 SR-IOV and DPDK we leverage cloud-init through MAAS available to download {download}`here </src/assets/how-to-epa-maas-cloud-init>`.
 
 ```{literalinclude} /src/assets/how-to-epa-maas-cloud-init
@@ -305,33 +305,35 @@ updated for these -->
 ````
 `````
 
-## {{product}} setup 
+## {{product}} setup
 
 {{product}} is delivered as a [snap][].
 
 This section explains how to set up a dual node {{product}} cluster for testing
 EPA capabilities.
 
-### Control plane and worker node 
+### Control plane and worker node
 
-1. [Install the snap][install-link] from the relevant [channel][channel]. 
-   
+1. [Install the snap][install-link] from the relevant [channel][channel].
+
    ```{note}
    A pre-release channel is required currently until there is a stable release of {{product}}.
    ```
 
    For example:
 
-   <!-- This uses a generic include for this branch to insert the standard 
+   <!-- This uses a generic include for this branch to insert the standard
    install command-->
-   ```{include} ../../_parts/install.md
+   ```{literalinclude} ../../_parts/install.md
+   :start-after: <!-- snap start -->
+   :end-before: <!-- snap end -->
    ```
 
 2. Create a file called *configuration.yaml* or download it {download}`here </src/assets/configuration.yaml>`. In this configuration file we let
    the snap start with its default CNI (calico), with CoreDNS deployed and we
-   also point k8s to the external etcd. 
+   also point k8s to the external etcd.
 
-```{literalinclude} /src/assets/configuration.yaml 
+```{literalinclude} /src/assets/configuration.yaml
 :language: yaml
 ```
 
@@ -349,12 +351,14 @@ After a few seconds you can query the API server with:
 sudo k8s kubectl get all -A
 ```
 
-### Add a second k8s node as a worker 
+### Add a second k8s node as a worker
 
 1. Install the k8s snap on the second node
 
-   ```{include} ../../_parts/install.md
-   ```
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- snap start -->
+:end-before: <!-- snap end -->
+```
 
 2. On the control plane node generate a join token to be used for joining the
    second node
@@ -379,7 +383,7 @@ sudo k8s kubectl get all -A
    ```
 
 
-#### Verify the two node cluster is ready 
+#### Verify the two node cluster is ready
 
 After a few seconds the second worker node will register with the control
 plane. You can query the available workers from the first node:
@@ -396,22 +400,22 @@ pc6b-rb4-n1   Ready    control-plane,worker   22h   v1.31.0
 pc6b-rb4-n3   Ready    worker                 22h   v1.31.0
 ```
 
-### Multus and SR-IOV setup 
+### Multus and SR-IOV setup
 
-Apply the 'thick' Multus plugin (in case of resource scarcity we can consider 
+Apply the 'thick' Multus plugin (in case of resource scarcity we can consider
 deploying the thin flavour)
 
 ```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/master/deployments/multus-daemonset-thick.yml
 ```
 
-```{note} 
+```{note}
 The memory limits for the Multus pod spec in the DaemonSet should be
 increased (i.e. to 500Mi instead 50Mi) to avoid OOM issues when deploying
 multiple workload pods in parallel.
 ```
 
-#### SR-IOV Network Device Plugin 
+#### SR-IOV Network Device Plugin
 
 Create `sriov-dp.yaml` configMap:
 
@@ -461,7 +465,7 @@ Install the SR-IOV network device plugin:
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/sriov-network-device-plugin/master/deployments/sriovdp-daemonset.yaml
 ```
 
-#### SR-IOV CNI 
+#### SR-IOV CNI
 
 Install the SR-IOV CNI daemonset:
 
@@ -469,7 +473,7 @@ Install the SR-IOV CNI daemonset:
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/sriov-cni/master/images/sriov-cni-daemonset.yaml
 ```
 
-#### Multus NetworkAttachmentDefinition 
+#### Multus NetworkAttachmentDefinition
 
 Create the `sriov-nad.yaml` NetworkAttachmentDefinition:
 
@@ -492,7 +496,7 @@ spec:
    "routes": [{
      "dst": "0.0.0.0/0"
    }],
-   "gateway": "10.18.2.1" 
+   "gateway": "10.18.2.1"
  }
 }'
 EOF
@@ -526,7 +530,7 @@ It is important to verify that all of these enabled features are working as
 expected before relying on them. This section confirms that
 everything is working as expected.
 
-### Test HugePages 
+### Test HugePages
 
 Verify that HugePages are allocated on your Kubernetes nodes. You can do this
 by checking the node's capacity and allocatable resources:
@@ -577,7 +581,7 @@ spec:
 EOF
 ```
 
-```{note} 
+```{note}
 To ensure proper resource management and prevent conflicts, Kubernetes
 enforces that a pod requesting HugePages also explicitly requests a minimum
 ```
@@ -586,7 +590,7 @@ Now ensure that the 1Gi HugePage is allocated in the pod:
 
 ```
 sudo k8s kubectl describe pod hugepage-test-ubuntu
-``` 
+```
 
 The output should reflect the HugePage request:
 
@@ -626,16 +630,16 @@ events.  Lower latencies typically indicate better real-time performance.
 
 The output of cyclictest will provide statistics including:
 
-- Average latency: The average time taken for a cycle.  
-- Minimum latency: The shortest observed cycle time.  
+- Average latency: The average time taken for a cycle.
+- Minimum latency: The shortest observed cycle time.
 - Maximum latency: The longest observed cycle time.
 
 Create a pod that will run the cyclictest tool with specific options:
 
-- `-l 1000000`: Sets the number of test iterations to 1 million.  
-- `-m`: Measures the maximum latency.  
-- `-p 80`: Sets the real-time scheduling priority to 80 (a high priority, 
-  typically used for real-time tasks).  
+- `-l 1000000`: Sets the number of test iterations to 1 million.
+- `-m`: Measures the maximum latency.
+- `-p 80`: Sets the real-time scheduling priority to 80 (a high priority,
+  typically used for real-time tasks).
 - `-t 1`: Specifies CPU core 1 to be used for the test.
 
 ```
@@ -651,7 +655,7 @@ spec:
     command: ["/bin/bash"]
     args: ["-c", "apt-get update && apt-get install rt-tests -y && cyclictest -l 1000000 -m -p 80 -t 1"]
     securityContext:
-      privileged: true     
+      privileged: true
 EOF
 ```
 
@@ -673,34 +677,34 @@ T: 0 ( 2965) P:80 I:1000 C: 241486 Min:      3 Act:    4 Avg:    3 Max:      18
 
 ```{dropdown} Explanation of output
 
-- `/dev/cpu_dma\_latency set to 0us`: This line indicates that the CPU DMA (Direct Memory Access) latency has been set to 0 microseconds. This setting is relevant for real-time systems as it controls how long a device can hold the CPU bus during a DMA transfer.  
-- `policy: fifo`: This means the scheduling policy for the cyclictest thread is set to FIFO (First In, First Out). In FIFO scheduling, the highest priority task that is ready to run gets the CPU first and continues running until it is blocked or voluntarily yields the CPU.  
-- `loadavg: 7.92 8.34 9.32 1/3698 2965:` This shows the load average of your system over the last 1, 5, and 15 minutes. The numbers are quite high, indicating that your system is under significant load. This can potentially affect the latency measurements.  
-- `T: 0 ( 2965) P:80 I:1000 C: 241486`:  
-  - `T: 0`: The number of the CPU core the test was run on (CPU 0 in this case).  
-  - `(2965)`: The PID (Process ID) of the cyclictest process.  
-  - `P:80`: The priority of the cyclictest thread.  
-  - `I:1000`: The number of iterations (loops) the test ran for (1000 in this case).  
-  - `C: 241486`: The number of cycles per second that the test has aimed for.  
-- `Min: 3 Act: 4 Avg: 3 Max: 18`: These are the key latency statistics in microseconds (us):  
-  - `Min`: The minimum latency observed during the test (3 us).  
-  - `Act`: The actual average latency (4 us).  
-  - `Avg`: The expected average latency (3us).  
-  - `Max`: The maximum latency observed during the test (18 us).  
-- In this case, the results suggest the following:  
-  - Low Latencies: The minimum, average, and maximum latencies are all very low (3-18 us), which is a good sign for real-time performance. It indicates that your real-time kernel is responding promptly to events.  
+- `/dev/cpu_dma\_latency set to 0us`: This line indicates that the CPU DMA (Direct Memory Access) latency has been set to 0 microseconds. This setting is relevant for real-time systems as it controls how long a device can hold the CPU bus during a DMA transfer.
+- `policy: fifo`: This means the scheduling policy for the cyclictest thread is set to FIFO (First In, First Out). In FIFO scheduling, the highest priority task that is ready to run gets the CPU first and continues running until it is blocked or voluntarily yields the CPU.
+- `loadavg: 7.92 8.34 9.32 1/3698 2965:` This shows the load average of your system over the last 1, 5, and 15 minutes. The numbers are quite high, indicating that your system is under significant load. This can potentially affect the latency measurements.
+- `T: 0 ( 2965) P:80 I:1000 C: 241486`:
+  - `T: 0`: The number of the CPU core the test was run on (CPU 0 in this case).
+  - `(2965)`: The PID (Process ID) of the cyclictest process.
+  - `P:80`: The priority of the cyclictest thread.
+  - `I:1000`: The number of iterations (loops) the test ran for (1000 in this case).
+  - `C: 241486`: The number of cycles per second that the test has aimed for.
+- `Min: 3 Act: 4 Avg: 3 Max: 18`: These are the key latency statistics in microseconds (us):
+  - `Min`: The minimum latency observed during the test (3 us).
+  - `Act`: The actual average latency (4 us).
+  - `Avg`: The expected average latency (3us).
+  - `Max`: The maximum latency observed during the test (18 us).
+- In this case, the results suggest the following:
+  - Low Latencies: The minimum, average, and maximum latencies are all very low (3-18 us), which is a good sign for real-time performance. It indicates that your real-time kernel is responding promptly to events.
   - High Load: The high load average indicates that your system is busy, but even under this load, the real-time kernel is maintaining low latencies for the high-priority cyclictest thread.
 
 ```
 
-### Test CPU Pinning and NUMA 
+### Test CPU Pinning and NUMA
 
 First check if CPU Manager and NUMA Topology Manager is set up in the worker
 node:
 
 ```
 ps -ef | grep /snap/k8s/678/bin/kubelet
-``` 
+```
 
 The process output will indicate the arguments used when running the kubelet:
 
@@ -710,10 +714,10 @@ root        9139       1  1 Jul17 ?        00:20:03 /snap/k8s/678/bin/kubelet --
 
 ```{dropdown} Explanation of output
 
-   - `--cpu-manager-policy=static` : This flag within the Kubelet command line arguments explicitly tells us that the CPU Manager is active and using the static policy. Here's what this means:  
-      - `CPU Manager`:  This is a component of Kubelet that manages how CPU resources are allocated to pods running on a node.  
-      - `Static Policy`:  This policy is designed to provide stricter control over CPU allocation. With the static policy, you can request integer CPUs for your containers (e.g., 1, 2, etc.), and {{product}} will try to assign them to dedicated CPU cores on the node, providing a greater degree of isolation and predictability.  
-   - `--reserved-cpus=0-31`: This line indicates that no CPUs are reserved for the Kubelet or system processes. This implies that all CPUs might be available for pod scheduling, depending on the cluster's overall resource allocation strategy.  
+   - `--cpu-manager-policy=static` : This flag within the Kubelet command line arguments explicitly tells us that the CPU Manager is active and using the static policy. Here's what this means:
+      - `CPU Manager`:  This is a component of Kubelet that manages how CPU resources are allocated to pods running on a node.
+      - `Static Policy`:  This policy is designed to provide stricter control over CPU allocation. With the static policy, you can request integer CPUs for your containers (e.g., 1, 2, etc.), and {{product}} will try to assign them to dedicated CPU cores on the node, providing a greater degree of isolation and predictability.
+   - `--reserved-cpus=0-31`: This line indicates that no CPUs are reserved for the Kubelet or system processes. This implies that all CPUs might be available for pod scheduling, depending on the cluster's overall resource allocation strategy.
    - `--topology-manager-policy=best-effort`: This flag sets the topology manager policy to "best-effort." The topology manager helps optimise pod placement on nodes by considering factors like NUMA nodes, CPU cores, and devices. The "best-effort" policy tries to place pods optimally, but it doesn't enforce strict requirements.
 ```
 
@@ -845,7 +849,7 @@ pid 1's current affinity mask: 1000000000000000100000000
 ```
 
 This hexadecimal mask (1000000000000000100000000) might seem unusual, but it
-represents the binary equivalent: 0b1000000000000000100000000  
+represents the binary equivalent: 0b1000000000000000100000000
 In this binary representation, each '1' bit indicates a CPU core that the
 process is allowed to run on, while a '0' bit indicates a core the process
 cannot use. Counting from right to left (starting at 0), the '1' bits in this
@@ -853,7 +857,7 @@ mask correspond to CPU cores 0 and 32\.
 
 Based on the output, the sleep infinity process (PID 1\) is indeed being pinned
 to specific CPU cores (0 and 32). This indicates that the CPU pinning is
-working correctly. 
+working correctly.
 
 ### Test SR-IOV & DPDK
 
@@ -944,7 +948,7 @@ kind: Pod
 metadata:
   name: sriov-test-pod
   annotations:
-    k8s.v1.cni.cncf.io/networks: dpdk-net1 
+    k8s.v1.cni.cncf.io/networks: dpdk-net1
 spec:
   containers:
     - name: sriov-test-container
@@ -1019,10 +1023,10 @@ the correct PCI address:
 
 ## Further reading
 
-- [How to enable real-time Ubuntu](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/enable\_realtime\_kernel/\#how-to-enable-real-time-ubuntu)  
-- [Manage HugePages](https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/)  
-- [Utilising the NUMA-aware Memory Manager](https://kubernetes.io/docs/tasks/administer-cluster/memory-manager/)  
-- [SR-IOV Network Device Plugin for Kubernetes](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin)  
+- [How to enable real-time Ubuntu](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/enable\_realtime\_kernel/\#how-to-enable-real-time-ubuntu)
+- [Manage HugePages](https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/)
+- [Utilising the NUMA-aware Memory Manager](https://kubernetes.io/docs/tasks/administer-cluster/memory-manager/)
+- [SR-IOV Network Device Plugin for Kubernetes](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin)
 - [VMware Telco Cloud Automation \- EPA](https://docs.vmware.com/en/VMware-Telco-Cloud-Automation/3.1.1/com-vmware-tca-userguide/GUID-3F4BA111-D344-4022-A635-7D5774385EF8.html)
 
 
