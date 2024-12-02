@@ -2,6 +2,7 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
+import time
 from typing import List
 
 import pytest
@@ -29,6 +30,8 @@ def test_config_propagation(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(initial_node, instances)
     nodes = util.ready_nodes(initial_node)
     assert len(nodes) == 3, "all nodes should have joined cluster"
+
+    time.sleep(200)
 
     initial_node.exec(["k8s", "set", "dns.cluster-domain=integration.local"])
 
