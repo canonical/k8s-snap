@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
@@ -19,6 +18,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/checks"
 	"github.com/moby/sys/mountinfo"
 	"gopkg.in/yaml.v2"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -329,8 +329,8 @@ func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
 	return s.runCommand(ctx, append([]string{"snapctl", "set"}, args...))
 }
 
-func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig, serviceConfigs types.K8sServiceConfigs) error {
-	if err := checkK8sServicePorts(config, serviceConfigs); err != nil {
+func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig, serviceConfigs types.K8sServiceConfigs, isControlPlane bool) error {
+	if err := checks.CheckK8sServicePorts(config, serviceConfigs, isControlPlane); err != nil {
 		return fmt.Errorf("Encountered error(s) while verifying port availability for Kubernetes services: %w", err)
 	}
 
@@ -355,53 +355,6 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig, se
 	}
 
 	return nil
-}
-
-func checkK8sServicePorts(config types.ClusterConfig, serviceConfigs types.K8sServiceConfigs) error {
-	var allErrors []error
-	ports := map[string]string{
-		// Default values from official Kubernetes documentation.
-		"kubelet":           serviceConfigs.GetKubeletPort(),
-		"kubelet-healthz":   serviceConfigs.GetKubeletHealthzPort(),
-		"kubelet-read-only": serviceConfigs.GetKubeletReadOnlyPort(),
-		"k8s-dqlite":        strconv.Itoa(config.Datastore.GetK8sDqlitePort()),
-		"loadbalancer":      strconv.Itoa(config.LoadBalancer.GetBGPPeerPort()),
-	}
-
-	if port, err := serviceConfigs.GetKubeProxyHealthzPort(); err != nil {
-		allErrors = append(allErrors, err)
-	} else {
-		ports["kube-proxy-healhz"] = port
-	}
-
-	if port, err := serviceConfigs.GetKubeProxyMetricsPort(); err != nil {
-		allErrors = append(allErrors, err)
-	} else {
-		ports["kube-proxy-metrics"] = port
-	}
-
-	if serviceConfigs.IsControlPlane {
-		ports["kube-apiserver"] = strconv.Itoa(config.APIServer.GetSecurePort())
-		ports["kube-scheduler"] = serviceConfigs.GetKubeSchedulerPort()
-		ports["kube-controller-manager"] = serviceConfigs.GetKubeControllerManagerPort()
-	} else {
-		ports["kube-apiserver-proxy"] = strconv.Itoa(config.APIServer.GetSecurePort())
-	}
-
-	for service, port := range ports {
-		if port == "0" {
-			// Some ports may be set to 0 in order to disable them. No need to check.
-			continue
-		}
-		if open, err := utils.IsLocalPortOpen(port); err != nil {
-			// Could not open port due to error.
-			allErrors = append(allErrors, fmt.Errorf("could not check port %s (needed by: %s): %w", port, service, err))
-		} else if !open {
-			allErrors = append(allErrors, fmt.Errorf("port %s (needed by: %s) is already in use.", port, service))
-		}
-	}
-
-	return errors.Join(allErrors...)
 }
 
 var _ Snap = &snap{}

@@ -16,7 +16,6 @@ const (
 )
 
 type K8sServiceConfigs struct {
-	IsControlPlane                     bool
 	ExtraNodeKubeControllerManagerArgs map[string]*string
 	ExtraNodeKubeSchedulerArgs         map[string]*string
 	ExtraNodeKubeletArgs               map[string]*string

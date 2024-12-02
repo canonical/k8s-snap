@@ -139,7 +139,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	}
 
 	serviceConfigs := types.K8sServiceConfigs{
-		IsControlPlane:                     true,
 		ExtraNodeKubeSchedulerArgs:         joinConfig.ExtraNodeKubeSchedulerArgs,
 		ExtraNodeKubeControllerManagerArgs: joinConfig.ExtraNodeKubeControllerManagerArgs,
 		ExtraNodeKubeletArgs:               joinConfig.ExtraNodeKubeletArgs,
@@ -147,7 +146,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	}
 
 	// Pre-init checks
-	if err := snap.PreInitChecks(ctx, cfg, serviceConfigs); err != nil {
+	if err := snap.PreInitChecks(ctx, cfg, serviceConfigs, true); err != nil {
 		return fmt.Errorf("pre-init checks failed for joining node: %w", err)
 	}
 
