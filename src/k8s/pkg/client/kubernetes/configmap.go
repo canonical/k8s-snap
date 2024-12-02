@@ -13,7 +13,7 @@ import (
 
 func (c *Client) WatchConfigMap(ctx context.Context, namespace string, name string, reconcile func(configMap *v1.ConfigMap) error) error {
 	log := log.FromContext(ctx).WithValues("namespace", namespace, "name", name)
-	w, err := c.CoreV1().ConfigMaps(namespace).Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: name}))
+	w, err := c.CoreV1().ConfigMaps(namespace).Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: name, ResourceVersion: "0"}))
 	if err != nil {
 		return fmt.Errorf("failed to watch configmap namespace=%s name=%s: %w", namespace, name, err)
 	}
