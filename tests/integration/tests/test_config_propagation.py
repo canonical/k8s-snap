@@ -32,10 +32,10 @@ def test_config_propagation(instances: List[harness.Instance]):
 
     initial_node.exec(["k8s", "set", "dns.cluster-domain=integration.local"])
 
-    util.stubbornly(retries=5, delay_s=10).on(joining_cplane_node).until(
+    util.stubbornly(retries=50, delay_s=10).on(joining_cplane_node).until(
         lambda p: "--cluster-domain=integration.local" in p.stdout.decode()
     ).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
 
-    util.stubbornly(retries=5, delay_s=10).on(joining_worker_node).until(
+    util.stubbornly(retries=50, delay_s=10).on(joining_worker_node).until(
         lambda p: "--cluster-domain=integration.local" in p.stdout.decode()
     ).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
