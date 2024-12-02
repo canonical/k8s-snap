@@ -62,6 +62,9 @@ func (c *NodeConfigurationController) Run(ctx context.Context, getRSAKey func(co
 			// This also can fail during bootstrapping/start up when api-server is not ready
 			// So the watch requests get connection refused replies
 			log.WithValues("name", "k8sd-config", "namespace", "kube-system").Error(err, "Failed to watch configmap")
+			if reconcilationErr := client.ForceConfigMapReconcilation(ctx, "kube-system", "k8sd-config"); reconcilationErr != nil {
+				log.WithValues("name", "k8sd-config", "namespace", "kube-system").Error(reconcilationErr, "Failed to force configmap reconciliation")
+			}
 		}
 
 		select {
