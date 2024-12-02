@@ -38,12 +38,7 @@ page][channels] for an explanation of the different types of channel.
 The charm can be installed with the `juju` command:
 
 ```
-juju deploy k8s --channel=latest/edge
-```
-
-```{note}
-The `latest/edge` channel is always under active development. This is where you
-will find the latest features but you may also experience instability.
+juju deploy k8s --channel=1.31/candidate
 ```
 
 ## Bootstrap the cluster

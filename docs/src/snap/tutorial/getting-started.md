@@ -20,7 +20,7 @@ installation.
 Install the {{product}} snap with:
 
 ```
-sudo snap install k8s --edge --classic
+sudo snap install k8s --classic --channel=1.31-classic/candidate 
 ```
 
 ### 2. Bootstrap a Kubernetes cluster

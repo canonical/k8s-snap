@@ -65,7 +65,7 @@ also applying the `k8s` profile - the order is important.
 First, we’ll need to install {{product}} within the container.
 
 ```
-lxc exec k8s -- sudo snap install k8s --classic --channel=latest/edge
+lxc exec k8s -- sudo snap install k8s --classic --channel=1.31-classic/candidate
 ```
 
 ```{note}

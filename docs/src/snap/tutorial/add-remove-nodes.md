@@ -48,7 +48,7 @@ run commands.
 Install {{product}} on both VMs with the following command:
 
 ```
-sudo snap install --classic --edge k8s
+sudo snap install k8s --classic --channel=1.31-classic/candidate 
 ```
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable -->

@@ -31,13 +31,13 @@ spec:
     files:
     - content: |
         #!/bin/bash -xe
-        snap install k8s --classic --channel=latest/edge
+        snap install k8s --classic --channel=1.31-classic/candidate
       owner: root:root
       path: /capi/scripts/install.sh
       permissions: "0500"
 ```
 
-Now the new control plane nodes that are created using this manifest will have the `latest/edge` {{product}} snap installed on them!
+Now the new control plane nodes that are created using this manifest will have the `1.31-classic/candidate` {{product}} snap installed on them!
 
 ## Use `preRunCommands`
 
@@ -57,7 +57,7 @@ spec:
   ...
   spec:
     preRunCommands:
-    - snap install k8s --classic --channel=latest/edge
+    - snap install k8s --classic --channel=1.31-classic/candidate
 ```
 
 <!-- LINKS -->
