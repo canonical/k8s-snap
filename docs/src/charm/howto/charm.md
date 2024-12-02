@@ -37,8 +37,9 @@ page][channels] for an explanation of the different types of channel.
 
 The charm can be installed with the `juju` command:
 
-```
-juju deploy k8s --channel=1.31/candidate
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- juju control start -->
+:end-before: <!-- juju control end -->
 ```
 
 ## Bootstrap the cluster
@@ -76,9 +77,11 @@ Rather than adding more control-plane units, we'll deploy the `k8s-worker` charm
 After deployment, integrate these new nodes with control-plane units so they join
 the cluster.
 
-```
-juju deploy k8s-worker --channel=latest/edge -n 2
-juju integrate k8s k8s-worker:cluster
+
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- juju worker start -->
+:end-before: <!-- juju worker end -->
+:append: juju integrate k8s k8s-worker:cluster
 ```
 
 Use `juju status` to watch these units approach the active/idle state.

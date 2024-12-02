@@ -12,14 +12,13 @@ This guide assumes that you have an existing {{product}} cluster.
 See the [charm installation] guide for more details.
 
 In case of localhost/LXD Juju clouds, please make sure that the K8s units are
-configured to use VM containers with Ubuntu 22.04 as the base and adding the 
+configured to use VM containers with Ubuntu 22.04 as the base and adding the
 ``virt-type=virtual-machine`` constraint. In order for K8s to function properly,
 an adequate amount of resources must be allocated:
 
-```
-juju deploy k8s --channel=latest/edge \
-    --base "ubuntu@22.04" \
-    --constraints "cores=2 mem=8G root-disk=16G virt-type=virtual-machine"
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- juju vm start -->
+:end-before: <!-- juju vm end -->
 ```
 
 ## Deploying Ceph
@@ -37,11 +36,11 @@ juju deploy -n 3 ceph-osd \
 juju integrate ceph-osd:mon ceph-mon:osd
 ```
 
-If using LXD, configure the OSD units to use VM containers by adding the 
+If using LXD, configure the OSD units to use VM containers by adding the
 constraint: ``virt-type=virtual-machine``.
 
-Once the units are ready, deploy ``ceph-csi``. By default, this enables 
-the ``ceph-xfs`` and ``ceph-ext4`` storage classes, which leverage 
+Once the units are ready, deploy ``ceph-csi``. By default, this enables
+the ``ceph-xfs`` and ``ceph-ext4`` storage classes, which leverage
 Ceph RBD.
 
 ```
@@ -134,4 +133,3 @@ sudo k8s kubectl wait pod/pv-writer-test \
 
 [charm installation]: ./charm
 [Ceph]: https://docs.ceph.com/
-

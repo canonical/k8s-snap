@@ -19,15 +19,16 @@ installation.
 
 Install the {{product}} snap with:
 
-```
-sudo snap install k8s --classic --channel=1.31-classic/candidate 
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- snap start -->
+:end-before: <!-- snap end -->
 ```
 
 ### 2. Bootstrap a Kubernetes cluster
 
 The bootstrap command initialises your cluster and configures your host system
-as a Kubernetes node. If you would like to bootstrap a Kubernetes cluster with 
-default configuration run: 
+as a Kubernetes node. If you would like to bootstrap a Kubernetes cluster with
+default configuration run:
 
 ```
 sudo k8s bootstrap
@@ -39,7 +40,7 @@ For custom configurations, you can explore additional options using:
 sudo k8s bootstrap --help
 ```
 
-Bootstrapping the cluster can only be done once. 
+Bootstrapping the cluster can only be done once.
 
 ### 3. Check cluster status
 
@@ -50,7 +51,7 @@ should run:
 sudo k8s status
 ```
 
-It may take a few moments for the cluster to be ready. Confirm that {{product}} 
+It may take a few moments for the cluster to be ready. Confirm that {{product}}
 has transitioned to the `cluster status ready` state by running:
 
 ```
@@ -64,7 +65,7 @@ namespace:
 sudo k8s kubectl get pods -n kube-system
 ```
 
-You will observe at least three pods running. The functions of these three pods 
+You will observe at least three pods running. The functions of these three pods
 are:
 
 - **CoreDNS**: Provides DNS resolution services.

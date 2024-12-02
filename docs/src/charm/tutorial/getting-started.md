@@ -67,8 +67,9 @@ minimums required. For the Kubernetes control plane (`k8s` charm), the
 recommendation is two CPU cores, 16GB of memory and 40GB of disk space. Now we
 can go ahead and create a cluster:
 
-```
-juju deploy k8s --channel=1.31/candidate --constraints='cores=2 mem=16G root-disk=40G'
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- juju control constraints start -->
+:end-before: <!-- juju control constraints end -->
 ```
 
 At this point Juju will fetch the charm from Charmhub, create a new instance
@@ -83,7 +84,7 @@ juju status --watch 2s
 When the status reports that K8s is "idle/ready" you have successfully deployed
 a {{product}} control-plane using Juju.
 
-```{note} For High Availability you will need at least three units of the k8s 
+```{note} For High Availability you will need at least three units of the k8s
    charm. Scaling the deployment is covered below.
 ```
 
@@ -96,8 +97,9 @@ connection to a control-plane node to tell it what to do, but it also means
 more of its resources are available for running workloads. We can deploy a
 worker node in a similar way to the original K8s node:
 
-```
-juju deploy k8s-worker --channel=1.31/candidate --constraints='cores=2 mem=16G root-disk=40G'
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- juju worker constraints start -->
+:end-before: <!-- juju worker constraints end -->
 ```
 
 Once again, this will take a few minutes. In this case though, the `k8s-worker`
@@ -114,7 +116,7 @@ the 'integrate' command, adding the interface we wish to connect.
 juju integrate k8s k8s-worker:cluster
 ```
 
-After a short time, the worker node will share information with the control plane 
+After a short time, the worker node will share information with the control plane
 and be joined to the cluster.
 
 ## 4. Scale the cluster (Optional)
@@ -152,7 +154,7 @@ mkdir ~/.kube
 To fetch the configuration information from the cluster we can run:
 
 ```
-juju run k8s/0 get-kubeconfig 
+juju run k8s/0 get-kubeconfig
 ```
 
 The Juju action is a piece of code which runs on a unit to perform a specific

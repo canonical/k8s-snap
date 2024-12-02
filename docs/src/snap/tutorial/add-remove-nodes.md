@@ -47,9 +47,11 @@ run commands.
 
 Install {{product}} on both VMs with the following command:
 
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- snap start -->
+:end-before: <!-- snap end -->
 ```
-sudo snap install k8s --classic --channel=1.31-classic/candidate 
-```
+
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable -->
 (step2)=
@@ -63,7 +65,7 @@ sudo k8s bootstrap
 ```
 
 {{product}} allows you to create two types of nodes: control plane and
-worker nodes. In this example, we just initialised a control plane node, now 
+worker nodes. In this example, we just initialised a control plane node, now
 let's create a worker node.
 
 Generate the token required for the worker node to join the cluster by executing
@@ -73,7 +75,7 @@ the following command on the control-plane node:
 sudo k8s get-join-token worker --worker
 ```
 
-`worker` refers to the name of the node we want to join. `--worker` is the type 
+`worker` refers to the name of the node we want to join. `--worker` is the type
 of node we want to join.
 
 A base64 token will be printed to your terminal. Keep it handy as you will need
@@ -91,7 +93,7 @@ To join the worker node to the cluster, run on worker node:
 sudo k8s join-cluster <join-token>
 ```
 
-After a few seconds, you should see: `Joined the cluster.` 
+After a few seconds, you should see: `Joined the cluster.`
 
 ### 4. View the status of your cluster
 

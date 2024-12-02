@@ -15,7 +15,7 @@ For more information and instructions, please see the official documentation at:
 Install Canonical Kubernetes and initialise the cluster with:
 
 ```bash
-sudo snap install k8s --channel=1.30-classic/beta --classic
+sudo snap install k8s --channel=1.31-classic/candidate --classic
 sudo k8s bootstrap
 ```
 
