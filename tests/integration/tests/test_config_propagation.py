@@ -27,11 +27,9 @@ def test_config_propagation(instances: List[harness.Instance]):
 
     util.join_cluster(joining_worker_node, join_token_2)
 
-    util.wait_until_k8s_ready(initial_node, instances)
+    util.wait_until_k8s_ready(initial_node, instances, retries=500)
     nodes = util.ready_nodes(initial_node)
     assert len(nodes) == 3, "all nodes should have joined cluster"
-
-    time.sleep(200)
 
     initial_node.exec(["k8s", "set", "dns.cluster-domain=integration.local"])
 
