@@ -15,7 +15,7 @@ index b03467ffd73..686d292b151 100644
  		case secretResource:
  			return r.authorizeReadNamespacedObject(nodeName, secretVertexType, attrs)
  		case configMapResource:
-+			if (attrs.GetVerb() == "get" || attrs.GetVerb() == "watch" || attrs.GetVerb() == "update" || attrs.GetVerb() == "list") && attrs.GetName() == "k8sd-config" && attrs.GetNamespace() == "kube-system" {
++			if (attrs.GetVerb() == "get" || attrs.GetVerb() == "watch") && attrs.GetName() == "k8sd-config" && attrs.GetNamespace() == "kube-system" {
 +				return authorizer.DecisionAllow, "", nil
 +			}
  			return r.authorizeReadNamespacedObject(nodeName, configMapVertexType, attrs)

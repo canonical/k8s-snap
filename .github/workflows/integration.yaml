@@ -119,9 +119,6 @@ jobs:
         with:
           name: ${{ env.artifact_name }}
           path: ${{ github.workspace }}/inspection-reports.tar.gz
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
 
   security-scan:
     permissions:

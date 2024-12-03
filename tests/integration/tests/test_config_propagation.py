@@ -27,16 +27,16 @@ def test_config_propagation(instances: List[harness.Instance]):
 
     util.join_cluster(joining_worker_node, join_token_2)
 
-    util.wait_until_k8s_ready(initial_node, instances, retries=500)
+    util.wait_until_k8s_ready(initial_node, instances)
     nodes = util.ready_nodes(initial_node)
     assert len(nodes) == 3, "all nodes should have joined cluster"
 
     initial_node.exec(["k8s", "set", "dns.cluster-domain=integration.local"])
 
-    util.stubbornly(retries=50, delay_s=10).on(joining_cplane_node).until(
+    util.stubbornly(retries=5, delay_s=10).on(joining_cplane_node).until(
         lambda p: "--cluster-domain=integration.local" in p.stdout.decode()
     ).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
 
-    util.stubbornly(retries=50, delay_s=10).on(joining_worker_node).until(
+    util.stubbornly(retries=5, delay_s=10).on(joining_worker_node).until(
         lambda p: "--cluster-domain=integration.local" in p.stdout.decode()
     ).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
