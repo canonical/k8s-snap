@@ -13,7 +13,7 @@ from test_util.etcd import EtcdCluster
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.node_count(2)
+@pytest.mark.node_count(3)
 @pytest.mark.etcd_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
