@@ -67,7 +67,7 @@ A modified overlay template can look like this:
 ```yaml
 applications:
   kubeapi-load-balancer: null
-  kubernetes-control-plane:
+  k8s:
     options:
       allow-privileged: "true"
   openstack-integrator:
@@ -85,8 +85,8 @@ applications:
       - 0 
 relations:
   - [openstack-cloud-controller:certificates,            easyrsa:client]
-  - [openstack-cloud-controller:kube-control,            kubernetes-control-plane:kube-control]
-  - [openstack-cloud-controller:external-cloud-provider, kubernetes-control-plane:external-cloud-provider]
+  - [openstack-cloud-controller:kube-control,            k8s:kube-control]
+  - [openstack-cloud-controller:external-cloud-provider, k8s:external-cloud-provider]
   - [openstack-cloud-controller:openstack,               openstack-integrator:clients]
   - [easyrsa:client,                                     cinder-csi:certificates]
   - [k8s:kube-control,              cinder-csi:kube-control]
