@@ -13,12 +13,12 @@ from test_util.etcd import EtcdCluster
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.node_count(1)
+@pytest.mark.node_count(2)
 @pytest.mark.etcd_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
 def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
-    k8s_instance = instances[0]
+    initial_node = instances[0]
 
     bootstrap_conf = yaml.safe_dump(
         {
@@ -31,16 +31,16 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
         }
     )
 
-    k8s_instance.exec(
+    initial_node.exec(
         ["dd", "of=/root/config.yaml"],
         input=str.encode(bootstrap_conf),
     )
 
-    k8s_instance.exec(["k8s", "bootstrap", "--file", "/root/config.yaml"])
-    util.wait_for_dns(k8s_instance)
-    util.wait_for_network(k8s_instance)
+    initial_node.exec(["k8s", "bootstrap", "--file", "/root/config.yaml"])
+    util.wait_for_dns(initial_node)
+    util.wait_for_network(initial_node)
 
-    p = k8s_instance.exec(
+    p = initial_node.exec(
         ["systemctl", "is-active", "--quiet", "snap.k8s.k8s-dqlite"], check=False
     )
     assert p.returncode != 0, "k8s-dqlite service is still active"
@@ -58,7 +58,7 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
             "client-key": etcd_cluster.key,
         }
     }
-    k8s_instance.exec(
+    initial_node.exec(
         [
             "curl",
             "-XPUT",
@@ -73,7 +73,7 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     )
 
     # check that we can still connect to the kubernetes cluster
-    util.stubbornly(retries=10, delay_s=2).on(k8s_instance).exec(
+    util.stubbornly(retries=10, delay_s=2).on(initial_node).exec(
         ["k8s", "kubectl", "get", "pods", "-A"]
     )
 
@@ -84,7 +84,7 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
         }
     }
 
-    resp = k8s_instance.exec(
+    resp = initial_node.exec(
         [
             "curl",
             "-XPUT",
@@ -100,3 +100,30 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     )
     response = json.loads(resp.stdout.decode())
     assert response["error_code"] == 400, "changing the datastore type should fail"
+
+
+    joining_cplane_node = instances[1]
+    joining_worker_node = instances[2]
+
+    join_token = util.get_join_token(initial_node, joining_cplane_node)
+    join_token_2 = util.get_join_token(initial_node, joining_worker_node, "--worker")
+
+    assert join_token != join_token_2
+
+    util.join_cluster(joining_cplane_node, join_token)
+
+    util.join_cluster(joining_worker_node, join_token_2)
+
+    util.wait_until_k8s_ready(initial_node, instances)
+    nodes = util.ready_nodes(initial_node)
+    assert len(nodes) == 3, "all nodes should have joined cluster"
+
+    initial_node.exec(["k8s", "set", "dns.cluster-domain=integration.local"])
+
+    util.stubbornly(retries=5, delay_s=10).on(joining_cplane_node).until(
+        lambda p: "--cluster-domain=integration.local" in p.stdout.decode()
+    ).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
+
+    util.stubbornly(retries=5, delay_s=10).on(joining_worker_node).until(
+        lambda p: "--cluster-domain=integration.local" in p.stdout.decode()
+    ).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
