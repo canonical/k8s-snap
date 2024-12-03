@@ -18,7 +18,7 @@ sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 
 ## Configure `clusterctl`
 
-`clusterctl` contains a list of default providers. Right now, {{product}} is 
+`clusterctl` contains a list of default providers. Right now, {{product}} is
 not yet part of that list. To make `clusterctl` aware of the new
 providers we need to add them to the configuration
 file. Edit `~/.cluster-api/clusterctl.yaml` and add the following:
@@ -35,20 +35,24 @@ providers:
 
 ## Set up a management cluster
 
-The management cluster hosts the CAPI providers. You can use {{product}} as a 
+The management cluster hosts the CAPI providers. You can use {{product}} as a
 management cluster:
 
-```
-sudo snap install k8s --classic --channel=1.31-classic/candidate
-sudo k8s bootstrap
-sudo k8s status --wait-ready
-mkdir -p ~/.kube/
-sudo k8s config > ~/.kube/config
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- snap start -->
+:end-before: <!-- snap end -->
+:append: sudo k8s bootstrap
 ```
 
 When setting up the management cluster, place its kubeconfig under
 `~/.kube/config` so other tools such as `clusterctl` can discover and interact
 with it.
+
+```
+sudo k8s status --wait-ready
+mkdir -p ~/.kube/
+sudo k8s config > ~/.kube/config
+```
 
 ## Prepare the infrastructure provider
 
@@ -114,7 +118,7 @@ The MAAS infrastructure provider uses these credentials to deploy machines,
 create DNS records and perform various other operations for workload clusters.
 
 ```{warning}
-The management cluster needs to resolve DNS records from the MAAS domain, 
+The management cluster needs to resolve DNS records from the MAAS domain,
 therefore it should be deployed on a MAAS machine.
 ```
 

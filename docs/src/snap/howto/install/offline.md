@@ -18,9 +18,10 @@ handle images for workloads and {{product}} features.
 From a machine with access to the internet download the
 `k8s` and `core20` snap with:
 
-```
-sudo snap download k8s --channel 1.31-classic/candidate --basename k8s
-sudo snap download core20 --basename core20
+```{literalinclude} ../../../_parts/install.md
+:start-after: <!-- offline start -->
+:end-before: <!-- offline end -->
+:append: sudo snap download core20 --basename core20
 ```
 
 Besides the snaps, this will also download the corresponding assert files which
@@ -182,7 +183,7 @@ sync:
 ```
 
 After creating the `sync-images.yaml` file, use [regsync][regsync] to sync the
-images. Assuming your registry mirror is at http://10.10.10.10:5050, run:
+images. Assuming your registry mirror is at `http://10.10.10.10:5050`, run:
 
 ```
 USERNAME="$username" PASSWORD="$password" MIRROR="10.10.10.10:5050" \
@@ -209,7 +210,7 @@ To create a bundle of images, use the [regctl][regctl] tool or invoke the
 --name ghcr.io/canonical/k8s-snap/pause:3.10 --platform=local > pause.tar
 ```
 
-```{note} 
+```{note}
 The flag `--name` is essential. Without it, the exported image will be imported with a hash only,
 and the image with the particular tag required by k8s will not be found.
 ```

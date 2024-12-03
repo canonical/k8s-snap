@@ -36,8 +36,9 @@ page] for an explanation of the different types of channel.
 
 The snap can be installed with the snap command:
 
-```
-sudo snap install k8s --classic --channel=1.31-classic/candidate
+```{literalinclude} ../../../_parts/install.md
+:start-after: <!-- snap start -->
+:end-before: <!-- snap end -->
 ```
 
 ## Bootstrap the cluster
@@ -52,7 +53,7 @@ sudo k8s bootstrap
 This command will output a message confirming local cluster services have been started.
 
 ```{note}
-Additional configuration is possible by passing a YAML file. The various options are described 
+Additional configuration is possible by passing a YAML file. The various options are described
 in the [bootstrap reference documentation][bootstrap].
 ```
 
