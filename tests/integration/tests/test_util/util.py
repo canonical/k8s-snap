@@ -175,9 +175,9 @@ def setup_k8s_snap(
         snap_path = (tmp_path / "k8s.snap").as_posix()
         instance.send_file(which_snap, snap_path)
         cmd += ["--dangerous", snap_path]
-    elif snap_revision := _as_int(which_snap):
+    elif _as_int(which_snap):
         LOG.info("Install k8s snap by revision")
-        cmd += [config.SNAP_NAME, "--revision", snap_revision]
+        cmd += [config.SNAP_NAME, "--revision", which_snap]
     elif "/" in which_snap or which_snap in RISKS:
         LOG.info("Install k8s snap by specific channel: %s", which_snap)
         cmd += [config.SNAP_NAME, "--channel", which_snap]
