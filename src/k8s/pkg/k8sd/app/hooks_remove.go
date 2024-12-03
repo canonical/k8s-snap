@@ -13,6 +13,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/log"
+	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/microcluster/v2/cluster"
@@ -145,5 +146,48 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		}
 	}
 
+	tryCleanupContainerdPaths(log, snap)
+
 	return nil
+}
+
+// tryCleanupContainerdPaths attempts to clean up all containerd directories which were
+// created by the k8s-snap based on the existence of their respective lockfiles
+// located in the directory returned by `s.LockFilesDir()`.
+func tryCleanupContainerdPaths(log log.Logger, s snap.Snap) {
+	for lockpath, dirpath := range setup.ContainerdLockPathsForSnap(s) {
+		// Ensure lockfile exists:
+		if _, err := os.Stat(lockpath); os.IsNotExist(err) {
+			log.Info("WARN: failed to find containerd lockfile, no cleanup will be perfomed", "lockfile", lockpath, "directory", dirpath)
+			continue
+		}
+
+		// Ensure lockfile's contents is the one we expect:
+		lockfile_contents := ""
+		if contents, err := os.ReadFile(lockpath); err != nil {
+			log.Info("WARN: failed to read contents of lockfile", "lockfile", lockpath, "error", err)
+			continue
+		} else {
+			lockfile_contents = string(contents)
+		}
+
+		if lockfile_contents != dirpath {
+			log.Info("WARN: lockfile points to different path than expected", "lockfile", lockpath, "expected", dirpath, "actual", lockfile_contents)
+			continue
+		}
+
+		// Check directory exists before attempting to remove:
+		if _, err := os.Stat(dirpath); os.IsNotExist(err) {
+			log.Info("Containerd directory doesn't exist; skipping cleanup", "directory", dirpath)
+		} else {
+			if err := os.RemoveAll(dirpath); err != nil {
+				log.Info("WARN: failed to remove containerd data directory", "directory", dirpath, "error", err)
+				continue // Avoid removing the lockfile path.
+			}
+		}
+
+		if err := os.Remove(lockpath); err != nil {
+			log.Info("WARN: Failed to remove containerd lockfile", "lockfile", lockpath)
+		}
+	}
 }
