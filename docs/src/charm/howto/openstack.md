@@ -10,12 +10,10 @@ To follow this guide, you will need:
 - An [OpenStack][openstack] cloud environment.
 - Juju set-up as the deployment tool for Openstack. Please refer to
   [Juju and Openstack][juju-openstack] documentation for more information.
-- An OpenStack [project][project] with the necessary permissions to deploy
-  {{product}}.
-- A juju [controller][controller] with [access][credentials] to the OpenStack 
+- A Juju [controller][controller] with [access][credentials] to the OpenStack 
   cloud environment.
-- A juju [model][model] for deploying {{product}} on OpenStack.
-- Configured [proxy configuration][proxy] in constrained environments.
+- A Juju [model][model] for deploying {{product}} on OpenStack.
+- A valid [proxy configuration][proxy] in constrained environments.
 
 ## Deploying {{product}} on OpenStack
 
@@ -23,11 +21,14 @@ To follow this guide, you will need:
 To deploy the {{product}} [bundle][bundle] on OpenStack you need an overlay
 bundle which serves as an extension of the core bundle. The overlay bundle
 contains the necessary configuration to deploy {{product}} on OpenStack.
+Applications are deployed through the overlay and relations are established
+between the applications. These include the openstack integrator, cloud
+controller, and cinder-csi charm.
 
-Refer to the base overlay [openstack-lb-overlay.yaml][openstack-overlay] and
+Refer to the base overlay [openstack-overlay.yaml][openstack-overlay] and
 modify it as needed.
 
-### OpenStack overlay configurations:
+### OpenStack Overlay Configurations:
 
 Run `openstack project list` to retrieve your project id and include the
 [project id][project] in the overlay template:
@@ -49,7 +50,19 @@ applications:
       - 0
 ```
 
-The modified overlay template should look like this:
+If your set-up includes a load-balancer add the following:
+
+```yaml
+relations:
+  - [k8s:loadbalancer-external, openstack-integrator:lb-consumers]
+```
+
+```yaml
+applications:
+  kubeapi-load-balancer: null 
+```
+
+A modified overlay template can look like this:
 
 ```yaml
 applications:
@@ -76,15 +89,17 @@ relations:
   - [openstack-cloud-controller:external-cloud-provider, kubernetes-control-plane:external-cloud-provider]
   - [openstack-cloud-controller:openstack,               openstack-integrator:clients]
   - [easyrsa:client,                                     cinder-csi:certificates]
-  - [kubernetes-control-plane:kube-control,              cinder-csi:kube-control]
+  - [k8s:kube-control,              cinder-csi:kube-control]
   - [openstack-integrator:clients,                       cinder-csi:openstack]
-  - [kubernetes-control-plane:loadbalancer-external,     openstack-integrator:lb-consumers]
+  - [k8s:loadbalancer-external,     openstack-integrator:lb-consumers]
 ```
+
+### Deploying the Overlay Template
 
 Deploy the {{product}} bundle on OpenStack using the modified overlay:
 
 ```bash
-juju deploy canonical-kubernetes --overlay openstack-lb-overlay.yaml --trust
+juju deploy canonical-kubernetes --overlay openstack-overlay.yaml --trust
 ```
 
 The {{product}} bundle is now deployed and integrated with OpenStack. Run 
@@ -99,6 +114,7 @@ deployment will take a few minutes until all the components are up and running.
 [model]: https://juju.is/docs/juju/manage-models
 [proxy]: https://documentation.ubuntu.com/canonical-kubernetes/main/src/charm/howto/proxy/
 [credentials]: https://juju.is/docs/juju/manage-credentials
-[bundle]: https://juju.is/docs/juju/bundle
-[openstack-overlay]: https://github.com/charmed-kubernetes/bundle/blob/main/overlays/openstack-lb-overlay.yaml
+[bundle]: https://github.com/canonical/k8s-bundles/blob/main/main/bundle.yaml
+[openstack-overlay]: https://github.com/canonical/k8s-bundles/blob/main/main/overlays/openstack-overlay.yaml 
+<!-- TODO add overlay template to repo-->
 [easyrsa]: https://easy-rsa.readthedocs.io/en/latest/
