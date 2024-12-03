@@ -18,6 +18,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/checks"
 	"github.com/moby/sys/mountinfo"
 	"gopkg.in/yaml.v2"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -328,8 +329,10 @@ func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
 	return s.runCommand(ctx, append([]string{"snapctl", "set"}, args...))
 }
 
-func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig) error {
-	// TODO: check for available ports for k8s-dqlite, apiserver, containerd, etc
+func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig, serviceConfigs types.K8sServiceConfigs, isControlPlane bool) error {
+	if err := checks.CheckK8sServicePorts(config, serviceConfigs, isControlPlane); err != nil {
+		return fmt.Errorf("Encountered error(s) while verifying port availability for Kubernetes services: %w", err)
+	}
 
 	// NOTE(neoaggelos): in some environments the Kubernetes might hang when running for the first time
 	// This works around the issue by running them once during the install hook
