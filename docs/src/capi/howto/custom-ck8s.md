@@ -18,9 +18,10 @@ In this guide we call the generated cluster spec manifest `cluster.yaml`.
 ## Overwrite the existing `install.sh` script
 
 The installation of the {{product}} snap is done via running the `install.sh` script in the cloud-init.
-While this file is automatically placed in every workload cluster machine which hard-coded content by {{product}} providers, you can overwrite this file to make sure your desired content is available in the script. 
+While this file is automatically placed in every workload cluster machine which hard-coded content by {{product}} providers, you can overwrite this file to make sure your desired content is available in the script.
 
 As an example, let's overwrite the `install.sh` for our control plane nodes. Inside the `cluster.yaml`, add the new file content:
+
 ```yaml
 apiVersion: controlplane.cluster.x-k8s.io/v1beta2
 kind: CK8sControlPlane
@@ -37,11 +38,12 @@ spec:
       permissions: "0500"
 ```
 
-Now the new control plane nodes that are created using this manifest will have the `1.31-classic/candidate` {{product}} snap installed on them!
+Now the new control plane nodes that are created using this manifest will have
+the `1.31-classic/candidate` {{product}} snap installed on them!
 
 ## Use `preRunCommands`
 
-As mentioned above, the `install.sh` script is responsible for installing {{product}} snap on machines. `preRunCommands` are executed before `install.sh`. You can also add an install command to the `preRunCommands` in order to install your desired {{product}} version. 
+As mentioned above, the `install.sh` script is responsible for installing {{product}} snap on machines. `preRunCommands` are executed before `install.sh`. You can also add an install command to the `preRunCommands` in order to install your desired {{product}} version.
 
 ```{note}
 Installing the {{product}} snap via the `preRunCommands`, does not prevent the `install.sh` script from running. Instead, the installation process in the `install.sh` will fail with a message indicating that `k8s` is already installed.
@@ -49,6 +51,7 @@ This is not considered a standard way and overwriting the `install.sh` script is
 ```
 
 Edit the `cluster.yaml` to add the installation command:
+
 ```yaml
 apiVersion: controlplane.cluster.x-k8s.io/v1beta2
 kind: CK8sControlPlane
