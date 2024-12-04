@@ -15,7 +15,7 @@ This guide is for AWS and assumes the following:
 
 ## Set IAM Policies
 
-Your instance will need a few IAM policies to be able to communciate with the
+Your instance will need a few IAM policies to be able to communicate with the
 AWS APIs. The policies provided here are quite open and should be scoped down
 based on your security requirements.
 
@@ -402,7 +402,7 @@ policy you are using for the instance.
 }
 ```
 
-Then, add the Helm repo for the EBS CSI Driver.
+Then, add the Helm repository for the EBS CSI Driver.
 
 ```bash
 sudo k8s helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver

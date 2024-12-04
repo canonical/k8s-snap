@@ -209,7 +209,7 @@ To create a bundle of images, use the [regctl][regctl] tool or invoke the
 --name ghcr.io/canonical/k8s-snap/pause:3.10 --platform=local > pause.tar
 ```
 
-```{note} 
+```{note}
 The flag `--name` is essential. Without it, the exported image will be imported with a hash only,
 and the image with the particular tag required by k8s will not be found.
 ```
@@ -249,8 +249,8 @@ Choose one of the following options:
 
 Create or edit the
 `/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`
-file on each node and set the appropriate http_proxy, https_proxy and
-no_proxy variables as described in the
+file on each node and set the appropriate `http_proxy`, `https_proxy` and
+`no_proxy` variables as described in the
 [adding proxy configuration section][proxy].
 
 #### Container Runtime Option B: Configure registry mirrors

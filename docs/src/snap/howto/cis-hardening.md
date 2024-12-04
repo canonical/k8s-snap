@@ -1,4 +1,4 @@
-# CIS compliance 
+# CIS compliance
 
 CIS Hardening refers to the process of implementing security configurations that
 align with the benchmarks set by the [Center for Internet Security (CIS)][].
@@ -43,7 +43,7 @@ Configuring log auditing requires the cluster administrator's input and
 may incurr performance penalties in the form of disk I/O.
 ```
 
-Create an audit-policy.yaml file under `/var/snap/k8s/common/etc/` and specify 
+Create an audit-policy.yaml file under `/var/snap/k8s/common/etc/` and specify
 the level of auditing you desire based on the [upstream instructions][].
 Here is a minimal example of such a policy file.
 
@@ -83,7 +83,7 @@ in assessing the hardware and workload specifications/requirements.
 ```
 
 
-Create a configuration file with the [rate limits][] and place it under 
+Create a configuration file with the [rate limits][] and place it under
 `/var/snap/k8s/common/etc/`.
 For example:
 
@@ -110,7 +110,7 @@ plugins:
 EOL'
 ```
 
-Make sure the EventRateLimit admission plugin is loaded in the 
+Make sure the EventRateLimit admission plugin is loaded in the
 `/var/snap/k8s/common/args/kube-apiserver` .
 
 ```
@@ -138,8 +138,8 @@ Configuring the AlwaysPullImages admission control plugin may have performance
 impact in the form of increased network traffic and may hamper offline deployments
 that use image sideloading.
 ```
- 
-Make sure the AlwaysPullImages admission plugin is loaded in the 
+
+Make sure the AlwaysPullImages admission plugin is loaded in the
 `/var/snap/k8s/common/args/kube-apiserver`
 
 ```
@@ -211,7 +211,7 @@ Restart `kubelet`.
 
 ```
 sudo systemctl restart snap.k8s.kubelet
-``` 
+```
 
 Reload the system daemons:
 
@@ -223,7 +223,7 @@ sudo systemctl daemon-reload
 
 ```{note}
 Fully complying with the spirit of this hardening recommendation calls for
-systemd configuration that is out of the scope of this documentation page. 
+systemd configuration that is out of the scope of this documentation page.
 ```
 
 Ensure that only the owner of `/etc/systemd/system/snap.k8s.kubelet.service`
@@ -238,11 +238,11 @@ Restart `kubelet`.
 
 ```
 sudo systemctl restart snap.k8s.kubelet
-``` 
+```
 
 
 
-## Assess CIS hardening with kube-bench 
+## Assess CIS hardening with kube-bench
 
 Download the latest [kube-bench release][] on your Kubernetes nodes. Make sure
 to select the appropriate binary version.
@@ -250,7 +250,7 @@ to select the appropriate binary version.
 For example, to download the Linux binary, use the following command. Replace
 `KB` by the version listed in the releases page.
 
-``` 
+```
 KB=8.0
 mkdir kube-bench
 cd kube-bench
@@ -262,20 +262,20 @@ Extract the downloaded tarball and move the binary to a directory in your PATH:
 ```
 tar -xvf kube-bench_0.$KB\_linux_amd64.tar.gz
 sudo mv kube-bench /usr/local/bin/
-``` 
+```
 
 Verify kube-bench installation.
 
 ```
 kube-bench version
-``` 
+```
 
 The output should list the version installed.
 
 Install `kubectl` and configure it to interact with the cluster.
 
 ```{warning}
-This will override your ~/.kube/config if you already have kubectl installed in your cluster. 
+This will override your ~/.kube/config if you already have kubectl installed in your cluster.
 ```
 
 ```
@@ -291,13 +291,13 @@ Get CIS hardening checks applicable for {{product}}:
 git clone -b ck8s-dqlite https://github.com/canonical/kube-bench.git kube-bench-ck8s-cfg
 ```
 
-Test-run kube-bench against {{product}}: 
+Test-run kube-bench against {{product}}:
 
 ```
 sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
 ```
 
-Review the warnings detected and address any failing checks you see fit. 
+Review the warnings detected and address any failing checks you see fit.
 
 ```
 [INFO] 1 Control Plane Security Configuration
@@ -363,7 +363,7 @@ hardening state of a cluster.
 **Description:**
 
 Ensure that the API server configuration file permissions
-are set to 600 
+are set to 600
 
 
 **Remediation:**
@@ -1247,7 +1247,7 @@ set
 **Remediation:**
 
 Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the 
+on the control plane node and set the
 --enable-admission-plugins parameter to include
 AlwaysPullImages.
 
@@ -2300,7 +2300,7 @@ implemented in place of client certificates.
 
 **Description:**
 
-Ensure that a minimal audit policy is created 
+Ensure that a minimal audit policy is created
 
 
 **Remediation:**
@@ -3347,10 +3347,10 @@ assigned
 
 **Remediation:**
 
-Review the use of capabilites in applications running on
+Review the use of capabilities in applications running on
 your cluster. Where a namespace
 contains applicaions which do not require any Linux
-capabities to operate consider adding
+capabilities to operate consider adding
 a PSP which forbids the admission of containers which do not
 drop all capabilities.
 
@@ -3450,7 +3450,7 @@ from environment variables.
 
 **Description:**
 
-Consider external secret storage 
+Consider external secret storage
 
 
 **Remediation:**
@@ -3467,7 +3467,7 @@ secrets management solution.
 **Description:**
 
 Configure Image Provenance using ImagePolicyWebhook
-admission controller 
+admission controller
 
 
 **Remediation:**
@@ -3483,7 +3483,7 @@ provenance.
 **Description:**
 
 Create administrative boundaries between resources using
-namespaces 
+namespaces
 
 
 **Remediation:**
@@ -3506,10 +3506,12 @@ your Pod definitions
 Use `securityContext` to enable the docker/default seccomp
 profile in your pod definitions.
 An example is as follows:
+
+```
   securityContext:
     seccompProfile:
       type: RuntimeDefault
-
+```
 
 ##### Control 5.7.3
 
