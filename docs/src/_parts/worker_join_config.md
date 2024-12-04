@@ -76,3 +76,8 @@ The format is `map[<--flag-name>]<value>`.
 
 Extra configuration for the containerd config.toml
 
+### containerd-base-dir
+**Type:** `string`<br>
+
+The base directory in which the containerd-related files are located.
+
