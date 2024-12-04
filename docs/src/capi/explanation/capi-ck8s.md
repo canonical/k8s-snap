@@ -22,7 +22,7 @@ distribution that seamlessly integrates with Cluster API.
 With {{product}} CAPI you can:
 
 - provision a cluster with:
-    - Kubernetes version 1.31 onwards
+    - Kubernetes version 1.31 onward
     - risk level of the track you want to follow (stable, candidate, beta, edge)
     - deploy behind proxies
 - upgrade clusters with no downtime:
