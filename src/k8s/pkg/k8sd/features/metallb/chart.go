@@ -34,8 +34,8 @@ var (
 	speakerImageTag = "v0.14.8-ck0"
 
 	// frrImageRepo is the image to use for frrouting.
-	frrImageRepo = "ghcr.io/canonical/k8s-snap/frrouting/frr"
+	frrImageRepo = "ghcr.io/canonical/frr"
 
 	// frrImageTag is the tag to use for frrouting.
-	frrImageTag = "9.0.2"
+	frrImageTag = "9.1.0"
 )
