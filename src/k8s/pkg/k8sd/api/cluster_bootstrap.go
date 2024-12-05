@@ -31,8 +31,12 @@ func (e *Endpoints) postClusterBootstrap(_ state.State, r *http.Request) respons
 	}
 
 	// Check if the cluster is already bootstrapped
-	_, err = e.provider.MicroCluster().Status(r.Context())
-	if err == nil {
+	status, err := e.provider.MicroCluster().Status(r.Context())
+	if err != nil {
+		return response.BadRequest(fmt.Errorf("failed to get boostrap status: %w", err))
+	}
+
+	if status.Ready {
 		return response.BadRequest(fmt.Errorf("cluster is already bootstrapped"))
 	}
 
