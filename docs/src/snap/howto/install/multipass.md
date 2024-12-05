@@ -13,7 +13,7 @@ Choose your OS for the install procedure
 
 ```{group-tab} Ubuntu/Linux
 
-Multipass is shipped as a snap for Ubuntu and other OSes which support the 
+Multipass is shipped as a snap for Ubuntu and other OSes which support the
 [snap package system][snap-support].
 
     sudo snap install multipass
@@ -24,7 +24,7 @@ Multipass is shipped as a snap for Ubuntu and other OSes which support the
 ```{group-tab} Windows
 
 Windows users should download and install the Multipass installer from the
-website. 
+website.
 
 The [latest Windows version][] is available to download,
 though you may wish to visit the [Multipass website][] for more details.
@@ -35,7 +35,7 @@ though you may wish to visit the [Multipass website][] for more details.
 ```{group-tab} macOS
 
 Users running macOS should download and install the Multipass installer from the
-website. 
+website.
 
 The [latest macOS version] is available to download,
 though you may wish to visit the [Multipass website][] for more details, including
@@ -113,7 +113,7 @@ multipass purge
 <!-- markdownlint-disable MD053 -->
 [Multipass]:https://multipass.run/
 [snap-support]: https://snapcraft.io/docs/installing-snapd
-[Multipass-options]: https://multipass.run/docs/get-started-with-multipass-linux#heading--create-a-customised-instance
+[Multipass-options]: https://multipass.run/docs/tutorial#p-71169-create-a-customised-instance
 [install instructions]: ./snap
 [Getting started]: ../../tutorial/getting-started
 [Multipass website]: https://multipass.run/docs

@@ -49,7 +49,7 @@ E0125 00:20:56.003890    2172 kubelet.go:1466] "Failed to start ContainerManager
 
 ### Explanation
 
-An excellent deep-dive of the issue exists at 
+An excellent deep-dive of the issue exists at
 [kubernetes/kubernetes #122955][kubernetes-122955].
 
 Commenter [@haircommander][] [states][kubernetes-122955-2020403422]
@@ -58,7 +58,7 @@ Commenter [@haircommander][] [states][kubernetes-122955-2020403422]
 >  initially calls into it to do so. This happens because there isn't a cpuset
 >  defined on the top level of the cgroup. however, we fail to validate all of
 >  the cgroup controllers we need are present. It's possible this is a
->  limitation in the dbus API: how do you ask systemd to create a cgroup that 
+>  limitation in the dbus API: how do you ask systemd to create a cgroup that
 >  is effectively empty?
 
 >  if we delegate: we are telling systemd to leave our cgroups alone, and not
@@ -67,7 +67,7 @@ Commenter [@haircommander][] [states][kubernetes-122955-2020403422]
 
 ### Solution
 
-This is in the process of being fixed upstream via 
+This is in the process of being fixed upstream via
 [kubernetes/kubernetes #125923][kubernetes-125923].
 
 In the meantime, the best solution is to create a `Delegate=yes` configuration
@@ -92,7 +92,7 @@ installation of containerd on the system.
 
 ### Explanation
 
-In classic confinment mode, {{product}} uses the default containerd
+In classic confinement mode, {{product}} uses the default containerd
 paths. This means that a {{product}} installation will conflict with
 any existing system configuration where containerd is already installed.
 For example, if you have Docker installed, or another Kubernetes distribution

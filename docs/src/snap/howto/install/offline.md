@@ -250,8 +250,8 @@ Choose one of the following options:
 
 Create or edit the
 `/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`
-file on each node and set the appropriate http_proxy, https_proxy and
-no_proxy variables as described in the
+file on each node and set the appropriate `http_proxy`, `https_proxy` and
+`no_proxy` variables as described in the
 [adding proxy configuration section][proxy].
 
 #### Container Runtime Option B: Configure registry mirrors
