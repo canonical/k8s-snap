@@ -2,7 +2,6 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
-import time
 from typing import List
 
 import pytest
