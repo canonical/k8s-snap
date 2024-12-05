@@ -7,7 +7,7 @@ require (
 	github.com/canonical/go-dqlite/v2 v2.0.0
 	github.com/canonical/k8s-snap-api v1.0.15
 	github.com/canonical/lxd v0.0.0-20241106165613-4aab50ec18c3
-	github.com/canonical/microcluster/v2 v2.0.5
+	github.com/canonical/microcluster/v2 v2.0.6-0.20241203181750-18d500625323
 	github.com/go-logr/logr v1.4.2
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/sys/mountinfo v0.7.1
@@ -17,7 +17,7 @@ require (
 	golang.org/x/mod v0.21.0
 	golang.org/x/net v0.30.0
 	golang.org/x/sync v0.8.0
-	golang.org/x/sys v0.26.0
+	golang.org/x/sys v0.27.0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.15.3
 	k8s.io/api v0.30.1
