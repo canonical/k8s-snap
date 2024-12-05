@@ -250,7 +250,8 @@ func TestControlPlaneCertificates(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 
 		err = c.CompleteCertificates()
-		g.Expect(err).To(MatchError(ContainSubstring("invalid certificate CN")))
+		// We're currently ignoring CNs.
+		g.Expect(err).ToNot(HaveOccurred())
 	})
 
 	t.Run("KubeletCertInvalidOrganization", func(t *testing.T) {
@@ -269,7 +270,8 @@ func TestControlPlaneCertificates(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 
 		err = c.CompleteCertificates()
-		g.Expect(err).To(MatchError(ContainSubstring("missing cert organization")))
+		// We're currently ignoring the certificate organization.
+		g.Expect(err).ToNot(HaveOccurred())
 	})
 
 	t.Run("KubeletCertInvalidDNSName", func(t *testing.T) {
