@@ -9,15 +9,15 @@ first-class integration between {{product}} and COS Lite (Canonical
 Observability Stack). This guide will help you integrate a COS Lite
 deployment with a {{product}} deployment.
 
-This document assumes you have a controller with an installation of Canonical
-Kubernetes. If you have not yet installed {{product}}, please see
+This document assumes that you have a controller with an installation of
+Canonical Kubernetes. If you have not yet installed {{product}}, please see
 ["Installing {{product}}"][how-to-install].
 
 ## Preparing a platform for COS Lite
 
 If you are unfamiliar with Juju models, the documentation can be found
-[here][juju-models]. In this section, we'll be adding a new model to keep
-observability separate from the Kubernetes model.
+[here][juju-models]. This section adds a new model to keep observability
+separate from the Kubernetes model.
 
 First, create a new model to act as a deployment cloud for COS Lite:
 
@@ -25,8 +25,8 @@ First, create a new model to act as a deployment cloud for COS Lite:
 juju add-model --config logging-config='<root>=DEBUG' cos-cluster
 ```
 
-We also set the logging level to DEBUG so that helpful debug information is
-shown when you use `juju debug-log` (see [juju debug-log][juju-debug-log]).
+Set the logging level to DEBUG so that helpful debug information is shown when
+you use `juju debug-log` (see [juju debug-log][juju-debug-log]).
 
 Next, deploy your observability cluster using the `k8s` charm:
 
@@ -34,11 +34,12 @@ Next, deploy your observability cluster using the `k8s` charm:
 juju deploy k8s --constraints="mem=8G cores=4 root-disk=30G"
 ```
 
-```{note} Make sure to enable the local-storage and load-balancer features for
-the `k8s` charm. These are essential for the COS Lite to function correctly.
+```{note} local-storage and load-balancer are essential features for the COS
+Lite to function correctly. You can enable these features using the charm
+configuration [options][k8s-config].
 ```
 
-Once the cluster is `active/idle` state, export the kubeconfig file:
+Once the cluster is in the `active/idle` state, export the kubeconfig file:
 
 ```
 juju run k8s/leader get-kubeconfig | yq eval '.kubeconfig' > kubeconfig
@@ -73,7 +74,7 @@ Use `juju status --relations` to verify that both `grafana` and `prometheus`
 offerings are listed.
 
 At this stage, you’ve set up a Kubernetes cluster, registered it as a Juju
-cloud, and deployed COS Lite on it. This creates tow models on the same
+cloud, and deployed COS Lite on it. This creates two models on the same
 controller.
 
 ## Integrating COS Lite with {{product}}
@@ -140,3 +141,4 @@ you can head over to the [COS Lite documentation][cos-lite-docs].
 [juju-models]: https://juju.is/docs/juju/model
 [juju-debug-log]: https://juju.is/docs/juju/juju-debug-log
 [cross-model-integration]: https://juju.is/docs/juju/relation#heading--cross-model
+[k8s-config]: https://charmhub.io/k8s/configurations
