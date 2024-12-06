@@ -73,7 +73,7 @@ jobs:
         run: |
           sudo add-apt-repository ppa:dqlite/dev
           sudo apt update
-          sudo apt install dqlite-tools libdqlite-dev
+          sudo apt install dqlite-tools-v2 libdqlite1.17-dev -y
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6

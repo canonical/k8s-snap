@@ -5,7 +5,7 @@ import (
 	"context"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
-	"github.com/canonical/microcluster/v3/rest"
+	"github.com/canonical/microcluster/v2/rest"
 )
 
 type Endpoints struct {

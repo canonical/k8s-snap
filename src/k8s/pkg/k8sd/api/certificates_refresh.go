@@ -25,7 +25,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/v3/state"
+	"github.com/canonical/microcluster/v2/state"
 	"golang.org/x/sync/errgroup"
 	certv1 "k8s.io/api/certificates/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -181,7 +181,7 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 
 		err := response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
 			ExpirationSeconds: int(expirationTimeUNIX),
-		}).Render(w)
+		}).Render(w, r)
 		if err != nil {
 			return fmt.Errorf("failed to render response: %w", err)
 		}
@@ -411,7 +411,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 		}()
 		err := response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
 			ExpirationSeconds: int(expirationTimeUNIX),
-		}).Render(w)
+		}).Render(w, r)
 		if err != nil {
 			return fmt.Errorf("failed to render response: %w", err)
 		}

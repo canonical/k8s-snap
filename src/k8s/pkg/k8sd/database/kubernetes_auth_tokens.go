@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/canonical/microcluster/v3/cluster"
+	"github.com/canonical/microcluster/v2/cluster"
 )
 
 var k8sdTokensStmts = map[string]int{

@@ -15,8 +15,8 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/control"
-	"github.com/canonical/microcluster/v3/cluster"
-	"github.com/canonical/microcluster/v3/state"
+	"github.com/canonical/microcluster/v2/cluster"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 // NOTE(ben): the pre-remove performs a series of cleanup steps on a best-effort basis.

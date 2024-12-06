@@ -9,7 +9,7 @@ import (
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/v3/state"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 func (e *Endpoints) postCertificatesExpiry(s state.State, r *http.Request) response.Response {

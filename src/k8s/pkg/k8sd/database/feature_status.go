@@ -8,7 +8,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
-	"github.com/canonical/microcluster/v3/cluster"
+	"github.com/canonical/microcluster/v2/cluster"
 )
 
 var featureStatusStmts = map[string]int{

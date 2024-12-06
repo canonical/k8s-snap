@@ -1,7 +1,7 @@
 package dqlite
 
 import (
-	"github.com/canonical/go-dqlite/client"
+	"github.com/canonical/go-dqlite/v2/client"
 )
 
 // NodeInfo is information about a node in the dqlite cluster.
