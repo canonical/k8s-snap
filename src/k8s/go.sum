@@ -55,8 +55,8 @@ github.com/canonical/k8s-snap-api v1.0.15 h1:uhEJiEhrK93tJAly+quuAayanMhT/5vpePl
 github.com/canonical/k8s-snap-api v1.0.15/go.mod h1:LDPoIYCeYnfgOFrwVPJ/4edGU264w7BB7g0GsVi36AY=
 github.com/canonical/lxd v0.0.0-20241106165613-4aab50ec18c3 h1:1OAWxun8+xS5vQta/GTSIVoTP6uDP4uD9eR93UbTWiw=
 github.com/canonical/lxd v0.0.0-20241106165613-4aab50ec18c3/go.mod h1:ORoLmeSj+tQmUgh10kLA9eMtRnbBZPT6X10V2I4cTGs=
-github.com/canonical/microcluster/v2 v2.0.6-0.20241203181750-18d500625323 h1:sXd5VZpf/haHkuAgPT21K20guIAf2p3X5Ql4EblAZ/U=
-github.com/canonical/microcluster/v2 v2.0.6-0.20241203181750-18d500625323/go.mod h1:Aofp11LCtIpIm8OdkQRpl7RWXYtLMTE+B+SOE0gcyAE=
+github.com/canonical/microcluster/v2 v2.1.0 h1:jEycvk2vu8XH5SaT4GatqymCOmY7Bhj/mOM4d8XN13c=
+github.com/canonical/microcluster/v2 v2.1.0/go.mod h1:Aofp11LCtIpIm8OdkQRpl7RWXYtLMTE+B+SOE0gcyAE=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chai2010/gettext-go v1.0.2 h1:1Lwwip6Q2QGsAdl/ZKPCwTe9fe0CjlUbqj5bFNSjIRk=
