@@ -17,7 +17,7 @@ jobs:
         release: ["latest/edge"]
       fail-fast: false # TODO: remove once arm64 works
 
-    runs-on: ${{ matrix.arch == 'arm64' && ["self-hosted", "Linux", "ARM64", "jammy", "large"] || ["self-hosted", "Linux", "AMD64", "jammy", "large"] }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-large' }}
 
     steps:
       - name: Checking out repo
