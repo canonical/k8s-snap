@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
@@ -11,6 +12,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
+	"gopkg.in/yaml.v2"
 )
 
 func (e *Endpoints) postClusterJoin(s state.State, r *http.Request) response.Response {
@@ -31,6 +33,20 @@ func (e *Endpoints) postClusterJoin(s state.State, r *http.Request) response.Res
 
 	if status.Ready {
 		return NodeInUse(fmt.Errorf("node %q is part of the cluster", hostname))
+	}
+
+	joinConfig := struct {
+		// We only care about this field from the entire join config.
+		containerdBaseDir string `yaml:"containerd-base-dir,omitempty"`
+	}{}
+
+	if err := yaml.Unmarshal([]byte(req.Config), &joinConfig); err != nil {
+		return response.BadRequest(fmt.Errorf("failed to parse request config: %w", err))
+	}
+
+	if joinConfig.containerdBaseDir != "" {
+		// append k8s-containerd to the given base dir, so we don't flood it with our own folders.
+		e.provider.Snap().SetContainerdBaseDir(filepath.Join(joinConfig.containerdBaseDir, "k8s-containerd"))
 	}
 
 	config := map[string]string{}

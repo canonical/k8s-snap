@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/snap"
@@ -32,10 +33,17 @@ func DefaultExecutionEnvironment() ExecutionEnvironment {
 	var s snap.Snap
 	switch os.Getenv("K8SD_RUNTIME_ENVIRONMENT") {
 	case "", "snap":
+		// If this node is already bootstrapped / joined, we should already know where the
+		// containerd base directory is. If not, leave the defaults.
+		containerdBaseDir := ""
+		if data, err := os.ReadFile(filepath.Join(os.Getenv("SNAP_COMMON"), "lock", snap.ContainerdBaseDir)); err == nil {
+			containerdBaseDir = strings.TrimSpace(string(data))
+		}
 		s = snap.NewSnap(snap.SnapOpts{
-			SnapDir:          os.Getenv("SNAP"),
-			SnapCommonDir:    os.Getenv("SNAP_COMMON"),
-			SnapInstanceName: os.Getenv("SNAP_INSTANCE_NAME"),
+			SnapDir:           os.Getenv("SNAP"),
+			SnapCommonDir:     os.Getenv("SNAP_COMMON"),
+			SnapInstanceName:  os.Getenv("SNAP_INSTANCE_NAME"),
+			ContainerdBaseDir: containerdBaseDir,
 		})
 	case "pebble":
 		s = snap.NewPebble(snap.PebbleOpts{

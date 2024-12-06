@@ -24,6 +24,10 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
+const (
+	ContainerdBaseDir = ".containerd-base-dir"
+)
+
 type SnapOpts struct {
 	SnapInstanceName  string
 	SnapDir           string
@@ -171,6 +175,14 @@ func (s *snap) Hostname() string {
 		return "dev"
 	}
 	return hostname
+}
+
+func (s *snap) SetContainerdBaseDir(baseDir string) {
+	s.containerdBaseDir = baseDir
+}
+
+func (s *snap) GetContainerdBaseDir() string {
+	return s.containerdBaseDir
 }
 
 func (s *snap) ContainerdConfigDir() string {
@@ -349,7 +361,8 @@ func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig, se
 	if _, err := os.Stat(s.ContainerdSocketDir()); err == nil {
 		return fmt.Errorf("The path '%s' required for the containerd socket already exists. "+
 			"This may mean that another service is already using that path, and it conflicts with the k8s snap. "+
-			"Please make sure that there is no other service installed that uses the same path, and remove the existing directory.", s.ContainerdSocketDir())
+			"Please make sure that there is no other service installed that uses the same path, and remove the existing directory."+
+			"(dev-only): You can change the default k8s containerd base path with the containerd-base-dir option in the bootstrap / join-cluster config file.", s.ContainerdSocketDir())
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("Encountered an error while checking '%s': %w", s.ContainerdSocketDir(), err)
 	}

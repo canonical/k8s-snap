@@ -173,6 +173,7 @@ func saveSnapContainerdPaths(s snap.Snap) error {
 		"containerd-config-dir":  s.ContainerdConfigDir(),
 		"containerd-root-dir":    s.ContainerdRootDir(),
 		"containerd-cni-bin-dir": s.CNIBinDir(),
+		snap.ContainerdBaseDir:   s.GetContainerdBaseDir(),
 	}
 
 	for filename, content := range m {

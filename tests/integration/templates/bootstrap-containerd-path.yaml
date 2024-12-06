@@ -1,0 +1,2 @@
+# Contains the bootstrap configuration for the containerd-related paths test.
+containerd-base-dir: /home/ubuntu

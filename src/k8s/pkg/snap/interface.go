@@ -39,6 +39,8 @@ type Snap interface {
 	EtcdPKIDir() string          // /etc/kubernetes/pki/etcd
 	KubeletRootDir() string      // /var/lib/kubelet
 
+	SetContainerdBaseDir(baseDir string) // sets the containerd base directory.
+	GetContainerdBaseDir() string        // gets the containerd base directory.
 	ContainerdConfigDir() string         // classic confinement: /etc/containerd, strict confinement: /var/snap/k8s/common/etc/containerd
 	ContainerdExtraConfigDir() string    // classic confinement: /etc/containerd/conf.d, strict confinement: /var/snap/k8s/common/etc/containerd/conf.d
 	ContainerdRegistryConfigDir() string // classic confinement: /etc/containerd/hosts.d, strict confinement: /var/snap/k8s/common/etc/containerd/hosts.d
