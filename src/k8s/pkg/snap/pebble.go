@@ -13,9 +13,10 @@ import (
 )
 
 type PebbleOpts struct {
-	SnapDir       string
-	SnapCommonDir string
-	RunCommand    func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+	SnapDir           string
+	SnapCommonDir     string
+	RunCommand        func(ctx context.Context, command []string, opts ...func(c *exec.Cmd)) error
+	ContainerdBaseDir string
 }
 
 // pebble implements the Snap interface.
@@ -37,6 +38,15 @@ func NewPebble(opts PebbleOpts) *pebble {
 			runCommand:    runCommand,
 		},
 	}
+
+	containerdBaseDir := opts.ContainerdBaseDir
+	if containerdBaseDir == "" {
+		containerdBaseDir = "/"
+		if s.Strict() {
+			containerdBaseDir = opts.SnapCommonDir
+		}
+	}
+	s.containerdBaseDir = containerdBaseDir
 
 	return s
 }
