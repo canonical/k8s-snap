@@ -28,7 +28,7 @@ This guide assumes the following:
 checks require administrator consideration and intervention. You can review
 these steps in the [Post-Deployment Configuration Steps][] section.
 
-```{include ../_parts/harden.md}
+```{include} ../../_parts/common_hardening.md
 ```
 
 ## Assess CIS hardening with kube-bench

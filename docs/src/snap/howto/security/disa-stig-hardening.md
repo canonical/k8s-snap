@@ -24,7 +24,7 @@ This guide assumes the following:
 some checks require administrator consideration and intervention. You can
 review these steps in the [Post-Deployment Configuration Steps][] section.
 
-```{include ../_parts/common-hardening.md}
+```{include} ../../_parts/common_hardening.md
 ```
 
 ## Additional DISA-STIG specific steps

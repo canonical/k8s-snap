@@ -1,8 +1,8 @@
-# Hardening {{product}}
+# Security
 
 ```{toctree}
 :hidden:
-Harden <self>
+Hardening <self>
 ```
 
 We provide administrators with detailed instructions and compliance guidance to
