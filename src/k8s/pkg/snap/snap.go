@@ -89,6 +89,24 @@ func (s *snap) RestartService(ctx context.Context, name string) error {
 	return s.runCommand(ctx, []string{"snapctl", "restart", serviceName(name)})
 }
 
+// GetServiceState returns a k8s service state. The name can be either prefixed or not.
+func (s *snap) GetServiceState(ctx context.Context, name string) (string, error) {
+	log.FromContext(ctx).V(2).WithCallDepth(1).Info("Getting service state", "service", name)
+
+	var b bytes.Buffer
+	err := s.runCommand(ctx, []string{"systemctl", "is-active", systemdServiceName(name)}, func(c *exec.Cmd) { c.Stdout = &b })
+	if err != nil {
+		// systemctl is-active has exit code 3 if the given service is not active.
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) && exitErr.ExitCode() == 3 {
+			return "failed", nil
+		}
+		return "", err
+	}
+
+	return strings.TrimSpace(b.String()), nil
+}
+
 // Refresh refreshes the snap to a different track, revision or custom snap.
 func (s *snap) Refresh(ctx context.Context, to types.RefreshOpts) (string, error) {
 	if s.Strict() {

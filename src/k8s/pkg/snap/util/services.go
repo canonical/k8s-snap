@@ -3,6 +3,7 @@ package snaputil
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/canonical/k8s/pkg/snap"
 )
@@ -94,6 +95,34 @@ func StopControlPlaneServices(ctx context.Context, snap snap.Snap) error {
 func StopK8sDqliteServices(ctx context.Context, snap snap.Snap) error {
 	if err := snap.StopService(ctx, "k8s-dqlite"); err != nil {
 		return fmt.Errorf("failed to stop service %s: %w", "k8s-dqlite", err)
+	}
+	return nil
+}
+
+// CheckWorkerServicesStates checks if the worker services are in the expected state.
+// CheckWorkerServicesStates will return on the first error or service state mismatch.
+func CheckWorkerServicesStates(ctx context.Context, snap snap.Snap, state string) error {
+	return checkServicesStates(ctx, snap, workerServices, state)
+}
+
+// CheckControlPlaneServicesStates checks if the control plane services are in the expected state.
+// CheckControlPlaneServicesStates will return on the first error or service state mismatch.
+func CheckControlPlaneServicesStates(ctx context.Context, snap snap.Snap, state string) error {
+	return checkServicesStates(ctx, snap, controlPlaneServices, state)
+}
+
+// CheckK8sDqliteServices checks if the k8s-dqlite datastore service is in the expected state.
+func CheckK8sDqliteServices(ctx context.Context, snap snap.Snap, state string) error {
+	return checkServicesStates(ctx, snap, []string{"k8s-dqlite"}, state)
+}
+
+func checkServicesStates(ctx context.Context, snap snap.Snap, services []string, state string) error {
+	for _, service := range services {
+		if actualState, err := snap.GetServiceState(ctx, service); err != nil {
+			return fmt.Errorf("failed to check service %s: %w", service, err)
+		} else if !strings.EqualFold(state, actualState) {
+			return fmt.Errorf("expected %s to be in state %s, but it is %s", service, state, actualState)
+		}
 	}
 	return nil
 }
