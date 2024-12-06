@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils/control"
 	mctypes "github.com/canonical/microcluster/v2/rest/types"
 )
 
@@ -58,6 +60,20 @@ func waitApiServerReady(ctx context.Context, snap snap.Snap) error {
 		return fmt.Errorf("kubernetes endpoints not ready yet: %w", err)
 	}
 
+	return nil
+}
+
+func waitControlPlaneServices(ctx context.Context, snap snap.Snap) error {
+	// The services may be able to start, appearing to be "active", but they might eventually fail due to
+	// various reasons, and they may be restarted. We're checking their activity a few times.
+	if err := control.Consistently(ctx, 3, 5*time.Second, func() error {
+		if err := snaputil.CheckControlPlaneServicesStates(ctx, snap, "active"); err != nil {
+			return fmt.Errorf("failed to ensure all control plane services are active: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed after retry: %w", err)
+	}
 	return nil
 }
 

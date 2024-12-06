@@ -236,5 +236,12 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to wait for kube-apiserver to become ready: %w", err)
 	}
 
+	log.Info("API server is ready - waiting for control plane services")
+	if err := waitControlPlaneServices(ctx, snap); err != nil {
+		log.Error(err, "Not all control plane services entered an active state. Stopping control plane services.")
+		return err
+	}
+
+	log.Info("Control plane node services are ready")
 	return nil
 }

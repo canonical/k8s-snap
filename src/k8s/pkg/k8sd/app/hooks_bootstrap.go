@@ -283,6 +283,20 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		return fmt.Errorf("failed after retry: %w", err)
 	}
 
+	log.Info("Checking worker node services")
+	// The services may be able to start, appearing to be "active", but they might eventually fail due to
+	// various reasons, and they may be restarted. We're checking their activity a few times.
+	if err := control.Consistently(ctx, 3, 5*time.Second, func() error {
+		if err := snaputil.CheckWorkerServicesStates(ctx, snap, "active"); err != nil {
+			return fmt.Errorf("failed to ensure all worker services are active: %w", err)
+		}
+		return nil
+	}); err != nil {
+		log.Error(err, "Not all worker node services entered an active state. Stopping worker node services.")
+		return err
+	}
+
+	log.Info("Worker node services are ready")
 	return nil
 }
 
@@ -508,8 +522,14 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	if err := waitApiServerReady(ctx, snap); err != nil {
 		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
-	log.Info("API server is ready - notify controllers")
 
+	log.Info("API server is ready - waiting for control plane services")
+	if err := waitControlPlaneServices(ctx, snap); err != nil {
+		log.Error(err, "Not all control plane services entered an active state. Stopping control plane services.")
+		return err
+	}
+
+	log.Info("Control plane services are ready - notify controllers")
 	a.NotifyFeatureController(
 		cfg.Network.GetEnabled(),
 		cfg.Gateway.GetEnabled(),
