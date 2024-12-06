@@ -46,6 +46,8 @@ func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[strin
 	switch c.GetType() {
 	case "k8s-dqlite":
 		updateArgs["--etcd-servers"] = fmt.Sprintf("unix://%s", filepath.Join(p.K8sDqliteStateDir(), "k8s-dqlite.sock"))
+		// The watch list feature is enable by default on >1.32, but k8s-dqlite currently doesn't support it.
+		updateArgs["--feature-gates"] = "WatchList=false"
 		deleteArgs = []string{"--etcd-cafile", "--etcd-certfile", "--etcd-keyfile"}
 	case "external":
 		updateArgs["--etcd-servers"] = strings.Join(c.GetExternalServers(), ",")
