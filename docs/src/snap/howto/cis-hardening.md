@@ -22,12 +22,14 @@ This guide assumes the following:
 - You have root or sudo access to the machine
 
 
-## Post-Deployment Configuration Steps
+## Post-deployment configuration steps
 
 {{product}} complies with most CIS recommendations by default. However, some
 checks require administrator consideration and intervention. You can review
 these steps in the [Post-Deployment Configuration Steps][] section.
 
+```{include ../_parts/harden.md}
+```
 
 ## Assess CIS hardening with kube-bench
 
@@ -147,7 +149,5 @@ For manual audits of CIS hardening recommendations, please visit the
 [CIS Kubernetes Benchmark]:https://www.cisecurity.org/benchmark/kubernetes
 [getting started]: ../tutorial/getting-started
 [kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
-[upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
-[rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
 [Post-Deployment Configuration Steps]: security/hardening.md#post-deployment-configuration-steps
 [Comprehensive Hardening Checklist]: security/hardening.md#comprehensive-hardening-checklist
