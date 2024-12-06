@@ -95,26 +95,12 @@ func (s *snap) GetServiceState(ctx context.Context, name string) (string, error)
 	log.FromContext(ctx).V(2).WithCallDepth(1).Info("Getting service state", "service", name)
 
 	var b bytes.Buffer
-	err := s.runCommand(ctx, []string{"snapctl", "services", serviceName(name)}, func(c *exec.Cmd) { c.Stdout = &b })
+	err := s.runCommand(ctx, []string{"systemctl", "is-active", systemdServiceName(name)}, func(c *exec.Cmd) { c.Stdout = &b })
 	if err != nil {
 		return "", err
 	}
 
-	output := b.String()
-	// We're expecting output like this:
-	// Service      Startup  Current   Notes
-	// k8s.kubelet  enabled  inactive  -
-	lines := strings.Split(output, "\n")
-	if len(lines) < 2 {
-		return "", fmt.Errorf("Unexpected output when checking service %s state", name)
-	}
-
-	fields := strings.Fields(lines[1])
-	if len(fields) < 3 || (!strings.EqualFold(stateActive, fields[2]) && !strings.EqualFold(stateInactive, fields[2])) {
-		return "", fmt.Errorf("Unexpected output when checking service %s state", name)
-	}
-
-	return fields[2], nil
+	return strings.TrimSpace(b.String()), nil
 }
 
 // Refresh refreshes the snap to a different track, revision or custom snap.

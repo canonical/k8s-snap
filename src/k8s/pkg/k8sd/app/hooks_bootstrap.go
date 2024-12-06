@@ -290,6 +290,11 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		}
 		return nil
 	}); err != nil {
+		log.Error(err, "Not all worker node services entered an active state. Stopping worker node services.")
+		if stopErr := snaputil.StopWorkerServices(ctx, snap); stopErr != nil {
+			log.Error(stopErr, "Could not stop all worker node services")
+			return fmt.Errorf("Not all worker node services entered an active state: %w, Encountered error while stopping the node worker services: %w", err, stopErr)
+		}
 		return fmt.Errorf("failed after retry: %w", err)
 	}
 
@@ -527,6 +532,11 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		}
 		return nil
 	}); err != nil {
+		log.Error(err, "Not all control plane services entered an active state. Stopping control plane services.")
+		if stopErr := snaputil.StopControlPlaneServices(ctx, snap); stopErr != nil {
+			log.Error(stopErr, "Could not stop all control plane services")
+			return fmt.Errorf("Not all control plane services entered an active state: %w, Encountered error while stopping the control plane services: %w", err, stopErr)
+		}
 		return fmt.Errorf("failed after retry: %w", err)
 	}
 

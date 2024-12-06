@@ -244,6 +244,11 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		}
 		return nil
 	}); err != nil {
+		log.Error(err, "Not all control plane services entered an active state. Stopping control plane services.")
+		if stopErr := snaputil.StopControlPlaneServices(ctx, snap); stopErr != nil {
+			log.Error(stopErr, "Could not stop all control plane services")
+			return fmt.Errorf("Not all control plane services entered an active state: %w, Encountered error while stopping the control plane services: %w", err, stopErr)
+		}
 		return fmt.Errorf("failed after retry: %w", err)
 	}
 
