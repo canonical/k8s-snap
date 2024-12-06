@@ -23,8 +23,13 @@ func (e *Endpoints) postClusterJoin(s state.State, r *http.Request) response.Res
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", req.Name, err))
 	}
+	// Check if the cluster is already bootstrapped
+	status, err := e.provider.MicroCluster().Status(r.Context())
+	if err != nil {
+		return response.BadRequest(fmt.Errorf("failed to get microcluster status: %w", err))
+	}
 
-	if _, err := e.provider.MicroCluster().Status(r.Context()); err == nil {
+	if status.Ready {
 		return NodeInUse(fmt.Errorf("node %q is part of the cluster", hostname))
 	}
 
