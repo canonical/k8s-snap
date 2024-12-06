@@ -13,3 +13,11 @@ func serviceName(serviceName string) string {
 	}
 	return fmt.Sprintf("k8s.%s", serviceName)
 }
+
+// systemdServiceName infers the name of the systemd service from the service name.
+func systemdServiceName(serviceName string) string {
+	if strings.HasPrefix(serviceName, "snap.k8s.") {
+		return serviceName
+	}
+	return fmt.Sprintf("snap.k8s.%s", serviceName)
+}

@@ -283,6 +283,22 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		return fmt.Errorf("failed after retry: %w", err)
 	}
 
+	log.Info("Checking worker node services")
+	if err := control.RetryFor(ctx, 3, 5*time.Second, func() error {
+		if err := snaputil.CheckWorkerServicesStates(ctx, snap, "active"); err != nil {
+			return fmt.Errorf("failed to ensure all worker services are active: %w", err)
+		}
+		return nil
+	}); err != nil {
+		log.Error(err, "Not all worker node services entered an active state. Stopping worker node services.")
+		if stopErr := snaputil.StopWorkerServices(ctx, snap); stopErr != nil {
+			log.Error(stopErr, "Could not stop all worker node services")
+			return fmt.Errorf("Not all worker node services entered an active state: %w, Encountered error while stopping the node worker services: %w", err, stopErr)
+		}
+		return fmt.Errorf("failed after retry: %w", err)
+	}
+
+	log.Info("Worker node services are ready")
 	return nil
 }
 
@@ -508,8 +524,23 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	if err := waitApiServerReady(ctx, snap); err != nil {
 		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
-	log.Info("API server is ready - notify controllers")
 
+	log.Info("API server is ready - checking control plane services")
+	if err := control.RetryFor(ctx, 3, 5*time.Second, func() error {
+		if err := snaputil.CheckControlPlaneServicesStates(ctx, snap, "active"); err != nil {
+			return fmt.Errorf("failed to ensure all control plane services are active: %w", err)
+		}
+		return nil
+	}); err != nil {
+		log.Error(err, "Not all control plane services entered an active state. Stopping control plane services.")
+		if stopErr := snaputil.StopControlPlaneServices(ctx, snap); stopErr != nil {
+			log.Error(stopErr, "Could not stop all control plane services")
+			return fmt.Errorf("Not all control plane services entered an active state: %w, Encountered error while stopping the control plane services: %w", err, stopErr)
+		}
+		return fmt.Errorf("failed after retry: %w", err)
+	}
+
+	log.Info("Control plane services are ready - notify controllers")
 	a.NotifyFeatureController(
 		cfg.Network.GetEnabled(),
 		cfg.Gateway.GetEnabled(),

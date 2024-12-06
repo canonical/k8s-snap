@@ -11,6 +11,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
@@ -236,5 +237,21 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to wait for kube-apiserver to become ready: %w", err)
 	}
 
+	log.Info("API server is ready - checking control plane services")
+	if err := control.RetryFor(ctx, 3, 5*time.Second, func() error {
+		if err := snaputil.CheckControlPlaneServicesStates(ctx, snap, "active"); err != nil {
+			return fmt.Errorf("failed to ensure all control plane services are active: %w", err)
+		}
+		return nil
+	}); err != nil {
+		log.Error(err, "Not all control plane services entered an active state. Stopping control plane services.")
+		if stopErr := snaputil.StopControlPlaneServices(ctx, snap); stopErr != nil {
+			log.Error(stopErr, "Could not stop all control plane services")
+			return fmt.Errorf("Not all control plane services entered an active state: %w, Encountered error while stopping the control plane services: %w", err, stopErr)
+		}
+		return fmt.Errorf("failed after retry: %w", err)
+	}
+
+	log.Info("Control plane node services are ready")
 	return nil
 }

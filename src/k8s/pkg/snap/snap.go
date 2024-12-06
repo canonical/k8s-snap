@@ -24,6 +24,11 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
+const (
+	stateActive   = "active"
+	stateInactive = "inactive"
+)
+
 type SnapOpts struct {
 	SnapInstanceName  string
 	SnapDir           string
@@ -83,6 +88,19 @@ func (s *snap) StopService(ctx context.Context, name string) error {
 func (s *snap) RestartService(ctx context.Context, name string) error {
 	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Restarting service", "service", name)
 	return s.runCommand(ctx, []string{"snapctl", "restart", serviceName(name)})
+}
+
+// GetServiceState returns a k8s service state. The name can be either prefixed or not.
+func (s *snap) GetServiceState(ctx context.Context, name string) (string, error) {
+	log.FromContext(ctx).V(2).WithCallDepth(1).Info("Getting service state", "service", name)
+
+	var b bytes.Buffer
+	err := s.runCommand(ctx, []string{"systemctl", "is-active", systemdServiceName(name)}, func(c *exec.Cmd) { c.Stdout = &b })
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(b.String()), nil
 }
 
 // Refresh refreshes the snap to a different track, revision or custom snap.

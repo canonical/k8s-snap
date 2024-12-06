@@ -98,6 +98,10 @@ func (s *Snap) RestartService(ctx context.Context, name string) error {
 	return s.RestartServiceErr
 }
 
+func (s *Snap) GetServiceState(ctx context.Context, name string) (string, error) {
+	return "active", nil
+}
+
 func (s *Snap) Refresh(ctx context.Context, opts types.RefreshOpts) (string, error) {
 	if len(s.RefreshCalledWith) == 0 {
 		s.RefreshCalledWith = []types.RefreshOpts{opts}
