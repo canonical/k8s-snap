@@ -24,11 +24,10 @@ This guide assumes the following:
 
 ## Post-deployment configuration steps
 
-{{product}} complies with most CIS recommendations by default. However, some
-checks require administrator consideration and intervention. You can review
-these steps in the [Post-Deployment Configuration Steps][] section.
+By completing these steps, you can ensure your cluster achieves full compliance
+with CIS hardening guidelines.
 
-```{include} ../../_parts/common_hardening.md
+```{include} ../../../_parts/common_hardening.md
 ```
 
 ## Assess CIS hardening with kube-bench

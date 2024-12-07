@@ -1,10 +1,24 @@
 # {{product}} hardening guide
 
+The {{product}} hardening guide provides actionable steps to enhance the
+security posture of your deployment. These steps are designed to help you align
+with industry-standard frameworks such as CIS and DISA STIG.
+
+{{product}} aligns with many DISA STIG and CIS compliance recommendations by
+default. However, additional hardening steps are required to fully meet both
+standards. The steps outlined below are shared recommendations that, when
+followed, will ensure compliance with both DISA STIG and CIS.
+
 Please evaluate the implications of each configuration before applying it.
 
 ## Post-deployment hardening steps
 
-```{include ../_parts/common-hardening.md}
+These steps are common to the hardening process for both CIS and DISA STIG
+compliance. On their own, they are enough to ensure full CIS compliance, but
+DISA STIG requires completing the steps in this section and [additional DISA
+STIG-specific steps].
+
+```{include} ../../../_parts/common_hardening.md
 ```
 
 
@@ -3209,3 +3223,4 @@ specific namespace.
 [Comprehensive Hardening Checklist]: security/hardening.md#comprehensive-hardening-checklist
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
+[additional DISA STIG-specific steps]: disa-stig-hardening.md#additional-disa-stig-specific-steps
