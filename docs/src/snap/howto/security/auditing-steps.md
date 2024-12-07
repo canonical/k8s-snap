@@ -54,8 +54,7 @@ Run the following command on the control plane node.
 /bin/sh -c 'if test -e /var/snap/k8s/common/args/kube-apiserver; then stat -c permissions=%a /var/snap/k8s/common/args/kube-apiserver; fi'
 ```
 
-uu
-**Expected output:*:*
+**Expected output:**
 
 ```
 permissions=600
