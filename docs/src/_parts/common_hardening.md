@@ -203,3 +203,7 @@ Restart `kubelet`.
 ```
 sudo systemctl restart snap.k8s.kubelet
 ```
+
+<!-- Links -->
+[upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
+[rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
