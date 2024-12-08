@@ -17,13 +17,13 @@ Overview <self>
 install/index
 networking/index
 storage/index
+security/index
 Use an external datastore <external-datastore>
 backup-restore
 refresh-certs
 restore-quorum
 two-node-ha
 Set up Enhanced Platform Awareness <epa>
-cis-hardening
 contribute
 Get support <support>
 ```
