@@ -6,10 +6,10 @@ Information System Agency (DISA) for the U.S. Department of Defense (DoD).
 The Kubernetes STIGs contain guidelines on how to check remediate various
 potential security concerns for a Kubernetes deployment.
 
-{{product}} aligns with many DISA STIG compliance recommendations by
-default. However, additional hardening steps are required to fully meet the
-standard. The steps outlined below are recommendations that, when
-followed, will ensure compliance with DISA STIG.
+{{product}} aligns with many DISA STIG compliance recommendations by default.
+However, additional hardening steps are required to fully meet the standard.
+The steps outlined below are recommendations that focus specifically on
+resolving failing tests, ensuring a higher level of security.
 
 
 ## What you'll need
@@ -20,11 +20,10 @@ This guide assumes the following:
 - You have root or sudo access to the machine
 
 
-## Post-deployment configuration steps
+## Critical post-deployment hardening steps
 
-By completing these steps, in addition to the [additional DISA STIG-specific
-steps], you can ensure your cluster achieves full compliance with DISA-STIG
-hardening guidelines.
+By completing these steps, you can ensure your cluster achieves does not fail
+any of the DISA STIG hardening recommendations.
 
 ```{include} ../../../_parts/common_hardening.md
 ```
@@ -219,7 +218,7 @@ List (PPSM CAL)**
 
 ## Manually audit DISA STIG hardening recommendations
 
-For manual audits of CIS hardening recommendations, please visit the
+For manual audits of DISA STIG hardening recommendations, please visit the
 [Comprehensive Hardening Checklist][].
 
 

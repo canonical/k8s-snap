@@ -9,6 +9,9 @@ default. However, additional hardening steps are required to fully meet both
 standards. The steps outlined below are shared recommendations that, when
 followed, will ensure compliance with both DISA STIG and CIS.
 
+This how-to has both the bare minimum to pass the tests and also a more
+comprehensive list of manual tests.
+
 Please evaluate the implications of each configuration before applying it.
 
 ## Post-deployment hardening steps

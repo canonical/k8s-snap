@@ -22,10 +22,10 @@ This guide assumes the following:
 - You have root or sudo access to the machine
 
 
-## Post-deployment configuration steps
+## Critical post-deployment hardening steps
 
-By completing these steps, you can ensure your cluster achieves full compliance
-with CIS hardening guidelines.
+By completing these steps, you can ensure your cluster achieves does not fail
+any of the CIS hardening recommendations.
 
 ```{include} ../../../_parts/common_hardening.md
 ```
