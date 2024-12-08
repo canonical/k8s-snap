@@ -3219,7 +3219,6 @@ specific namespace.
 
 <!-- Links -->
 [Post-Deployment Configuration Steps section]:#post-deployment-configuration-steps
-[Comprehensive Hardening Checklist]: security/hardening.md#comprehensive-hardening-checklist
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
 [additional DISA STIG-specific steps]: disa-stig-hardening.md#additional-disa-stig-specific-steps
