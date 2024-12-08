@@ -232,3 +232,4 @@ For manual audits of CIS hardening recommendations, please visit the
 [kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
 [additional DISA STIG-specific steps]: #additional-disa-stig-specific-steps
 [Comprehensive Hardening Checklist]: auditing-steps.md#comprehensive-hardening-checklist
+[upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
