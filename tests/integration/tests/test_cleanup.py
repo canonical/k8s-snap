@@ -64,7 +64,9 @@ def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
 
     boostrap_config = yaml.safe_load(containerd_path_bootstrap_config)
     new_containerd_paths = [
-        os.path.join(boostrap_config["containerd-base-dir"], "k8s-containerd", p.lstrip("/"))
+        os.path.join(
+            boostrap_config["containerd-base-dir"], "k8s-containerd", p.lstrip("/")
+        )
         for p in CONTAINERD_PATHS
     ]
 
