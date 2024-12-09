@@ -13,8 +13,6 @@ import (
 )
 
 func TestValidateNodeTokenAccessHandler(t *testing.T) {
-	g := NewWithT(t)
-
 	const tokenFileName = "tmp-token-file"
 	const tokenHeaderName = "X-Node-Token"
 
@@ -22,69 +20,84 @@ func TestValidateNodeTokenAccessHandler(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	for _, tc := range []struct {
+		name               string
 		tokenHeaderContent string
 		tokenFileContent   string
 		expectErr          bool
 		createFile         bool
 	}{
 		{
+			name:               "Header and file token match",
 			tokenHeaderContent: "node-token",
 			tokenFileContent:   "node-token",
 			createFile:         true,
 		},
 		{
+			name:               "Header and file token differ",
 			tokenHeaderContent: "node-token",
 			tokenFileContent:   "different-node-token",
 			expectErr:          true,
 			createFile:         true,
 		},
 		{
+			name:               "Missing header token",
 			tokenHeaderContent: "",
 			tokenFileContent:   "node-token",
 			expectErr:          true,
 			createFile:         true,
 		},
 		{
+			name:               "Missing token file",
 			tokenHeaderContent: "node-token",
 			tokenFileContent:   "node-token",
 			expectErr:          true,
 		},
+		{
+			name:               "Missing token in token file",
+			tokenHeaderContent: "node-token",
+			tokenFileContent:   "",
+			expectErr:          true,
+			createFile:         true,
+		},
 	} {
-		var err error
-		if tc.createFile {
-			err = os.WriteFile(path.Join(tempDir, tokenFileName), []byte(tc.tokenFileContent), 0o644)
-			g.Expect(err).To(BeNil())
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+			var err error
+			if tc.createFile {
+				err = os.WriteFile(path.Join(tempDir, tokenFileName), []byte(tc.tokenFileContent), 0o644)
+				g.Expect(err).To(BeNil())
+			}
 
-		e := &Endpoints{
-			context: context.Background(),
-			provider: &mock.Provider{
-				SnapFn: func() snap.Snap {
-					return &mock.Snap{
-						Mock: mock.Mock{
-							NodeTokenFile: path.Join(tempDir, tokenFileName),
-						},
-					}
+			e := &Endpoints{
+				context: context.Background(),
+				provider: &mock.Provider{
+					SnapFn: func() snap.Snap {
+						return &mock.Snap{
+							Mock: mock.Mock{
+								NodeTokenFile: path.Join(tempDir, tokenFileName),
+							},
+						}
+					},
 				},
-			},
-		}
+			}
 
-		req := &http.Request{
-			Header: make(http.Header),
-		}
-		req.Header.Set(tokenHeaderName, tc.tokenHeaderContent)
+			req := &http.Request{
+				Header: make(http.Header),
+			}
+			req.Header.Set(tokenHeaderName, tc.tokenHeaderContent)
 
-		handler := e.ValidateNodeTokenAccessHandler(tokenHeaderName)
-		valid, resp := handler(nil, req)
+			handler := e.ValidateNodeTokenAccessHandler(tokenHeaderName)
+			valid, resp := handler(nil, req)
 
-		os.Remove(path.Join(tempDir, tokenFileName))
+			os.Remove(path.Join(tempDir, tokenFileName))
 
-		if tc.expectErr {
-			g.Expect(valid).To(BeFalse())
-			g.Expect(resp).NotTo(BeNil())
-		} else {
-			g.Expect(valid).To(BeTrue())
-			g.Expect(resp).To(BeNil())
-		}
+			if tc.expectErr {
+				g.Expect(valid).To(BeFalse())
+				g.Expect(resp).NotTo(BeNil())
+			} else {
+				g.Expect(valid).To(BeTrue())
+				g.Expect(resp).To(BeNil())
+			}
+		})
 	}
 }
