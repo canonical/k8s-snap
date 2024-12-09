@@ -1,364 +1,42 @@
-# CIS compliance
+# {{product}} hardening guide
 
-CIS Hardening refers to the process of implementing security configurations that
-align with the benchmarks set by the [Center for Internet Security (CIS)][].
-Out of the box {{product}} complies with the majority of the recommended
-CIS security configurations. Since implementing all security recommendations
+The {{product}} hardening guide provides actionable steps to enhance the
+security posture of your deployment. These steps are designed to help you align
+with industry-standard frameworks such as CIS and DISA STIG.
+
+{{product}} aligns with many security recommendations by
+default. However, since implementing all security recommendations
 would comes at the expense of compatibility and/or performance we expect
 cluster administrators to follow post deployment hardening steps based on their
-needs. This guide covers:
+needs.
 
-  * post deployment harden steps you could consider for your {{product}}
-  * use [kube-bench][] to automatically check whether your Kubernetes clusters
-   are configured according to the [CIS Kubernetes Benchmark][]
-  * manually configure and audit each configuration CIS hardening recommendation
+This how-to has both the recommended minimum hardening steps and also a more
+comprehensive list of manual tests.
 
+Please evaluate the implications of each configuration before applying it.
 
-## What you'll need
+## Post-deployment hardening steps
 
-This guide assumes the following:
+These steps are common to the hardening process for both CIS and DISA STIG
+compliance.
 
-- You have a bootstrapped {{product}} cluster (see the [getting started] guide)
-- You have root or sudo access to the machine
-
-
-## Post-deployment extra hardening steps
-
-The following hardening configurations are not part of the default {{product}}
-setup as they might:
-
-  * impact performance
-  * affect the compatibility with workloads
-  * require input from the administrator
-
-Please, consider the effects of each configuration suggested before applying
-it.
-
-### Control plane nodes
-
-#### Configure log auditing
-
-```{note}
-Configuring log auditing requires the cluster administrator's input and
-may incurr performance penalties in the form of disk I/O.
+```{include} ../../../_parts/common_hardening.md
 ```
 
-Create an audit-policy.yaml file under `/var/snap/k8s/common/etc/` and specify
-the level of auditing you desire based on the [upstream instructions][].
-Here is a minimal example of such a policy file.
+If you would also like to apply further DISA STIG recommendations please see [additional DISA STIG-specific steps].
 
-```
-sudo sh -c 'cat >/var/snap/k8s/common/etc/audit-policy.yaml <<EOL
-# Log all requests at the Metadata level.
-apiVersion: audit.k8s.io/v1
-kind: Policy
-rules:
-  - level: Metadata
-EOL'
-```
+## Comprehensive Hardening Checklist
 
-Enable auditing at the API server level by adding the following arguments.
-
-```
-sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
---audit-log-path=/var/log/apiserver/audit.log
---audit-log-maxage=30
---audit-log-maxbackup=10
---audit-log-maxsize=100
---audit-policy-file=/var/snap/k8s/common/etc/audit-policy.yaml
-EOL'
-```
-
-Restart the API server:
-
-```
-sudo systemctl restart snap.k8s.kube-apiserver
-```
-
-#### Set event rate limits
-
-```{note}
-Configuring event rate limits requires the cluster administrator's input
-in assessing the hardware and workload specifications/requirements.
-```
-
-
-Create a configuration file with the [rate limits][] and place it under
-`/var/snap/k8s/common/etc/`.
-For example:
-
-```
-sudo sh -c 'cat >/var/snap/k8s/common/etc/eventconfig.yaml <<EOL
-apiVersion: eventratelimit.admission.k8s.io/v1alpha1
-kind: Configuration
-limits:
-  - type: Server
-    qps: 5000
-    burst: 20000
-EOL'
-```
-
-Create an admissions control config file under `/var/k8s/snap/common/etc/` .
-
-```
-sudo sh -c 'cat >/var/snap/k8s/common/etc/admission-control-config-file.yaml <<EOL
-apiVersion: apiserver.config.k8s.io/v1
-kind: AdmissionConfiguration
-plugins:
-  - name: EventRateLimit
-    path: eventconfig.yaml
-EOL'
-```
-
-Make sure the EventRateLimit admission plugin is loaded in the
-`/var/snap/k8s/common/args/kube-apiserver` .
-
-```
---enable-admission-plugins=...,EventRateLimit,...
-```
-
-Load the admission control config file.
-
-```
-sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
---admission-control-config-file=/var/snap/k8s/common/etc/admission-control-config-file.yaml
-EOL'
-```
-
-Restart the API server.
-
-```
-sudo systemctl restart snap.k8s.kube-apiserver
-```
-
-#### Enable AlwaysPullImages admission control plugin
-
-```{note}
-Configuring the AlwaysPullImages admission control plugin may have performance
-impact in the form of increased network traffic and may hamper offline deployments
-that use image sideloading.
-```
-
-Make sure the AlwaysPullImages admission plugin is loaded in the
-`/var/snap/k8s/common/args/kube-apiserver`
-
-```
---enable-admission-plugins=...,AlwaysPullImages,...
-```
-
-Restart the API server.
-
-```
-sudo systemctl restart snap.k8s.kube-apiserver
-```
-
-
-#### Set the Kubernetes scheduler and controller manager bind address
-
-```{note}
-This configuration may affect compatibility with workloads and metrics
-collection.
-```
-
-Edit the Kubernetes scheduler arguments file
-`/var/snap/k8s/common/args/kube-scheduler`
-and set the `--bind-address` to be `127.0.0.1`.
-
-```
-sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-scheduler <<EOL
---bind-address=127.0.0.1
-EOL'
-```
-
-Do the same for the Kubernetes controller manager
-(`/var/snap/k8s/common/args/kube-controller-manager`):
-
-```
-sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-controller-manager <<EOL
---bind-address=127.0.0.1
-EOL'
-```
-
-Restart both services.
-
-```
-sudo systemctl restart snap.k8s.kube-scheduler
-sudo systemctl restart snap.k8s.kube-controller-manager
-```
-
-### Worker nodes
-
-Run the following commands on nodes that host workloads. In the default
-deployment the control plane nodes functions as workers and they may need
-to be hardened.
-
-#### Protect kernel defaults
-
-```{note}
-This configuration may affect compatibility of workloads.
-```
-
-Kubelet will not start if it finds kernel configurations incompatible with its
- defaults.
-
-```
-sudo sh -c 'cat >>/var/snap/k8s/common/args/kubelet <<EOL
---protect-kernel-defaults=true
-EOL'
-```
-
-Restart `kubelet`.
-
-```
-sudo systemctl restart snap.k8s.kubelet
-```
-
-Reload the system daemons:
-
-```
-sudo systemctl daemon-reload
-```
-
-#### Edit kubelet service file permissions
-
-```{note}
-Fully complying with the spirit of this hardening recommendation calls for
-systemd configuration that is out of the scope of this documentation page.
-```
-
-Ensure that only the owner of `/etc/systemd/system/snap.k8s.kubelet.service`
-has full read and write access to it. Setting the kubelet service file
-permission needs to be performed every time the k8s snap refreshes.
-
-```
-chmod 600 /etc/systemd/system/snap.k8s.kubelet.service
-```
-
-Restart `kubelet`.
-
-```
-sudo systemctl restart snap.k8s.kubelet
-```
-
-
-
-## Assess CIS hardening with kube-bench
-
-Download the latest [kube-bench release][] on your Kubernetes nodes. Make sure
-to select the appropriate binary version.
-
-For example, to download the Linux binary, use the following command. Replace
-`KB` by the version listed in the releases page.
-
-```
-KB=8.0
-mkdir kube-bench
-cd kube-bench
-curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.$KB/kube-bench_0.$KB\_linux_amd64.tar.gz -o kube-bench_0.$KB\_linux_amd64.tar.gz
-```
-
-Extract the downloaded tarball and move the binary to a directory in your PATH:
-
-```
-tar -xvf kube-bench_0.$KB\_linux_amd64.tar.gz
-sudo mv kube-bench /usr/local/bin/
-```
-
-Verify kube-bench installation.
-
-```
-kube-bench version
-```
-
-The output should list the version installed.
-
-Install `kubectl` and configure it to interact with the cluster.
-
-```{warning}
-This will override your ~/.kube/config if you already have kubectl installed in your cluster.
-```
-
-```
-sudo snap install kubectl --classic
-mkdir ~/.kube/
-sudo k8s kubectl config view --raw > ~/.kube/config
-export KUBECONFIG=~/.kube/config
-```
-
-Get CIS hardening checks applicable for {{product}}:
-
-```
-git clone -b ck8s-dqlite https://github.com/canonical/kube-bench.git kube-bench-ck8s-cfg
-```
-
-Test-run kube-bench against {{product}}:
-
-```
-sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml
-```
-
-Review the warnings detected and address any failing checks you see fit.
-
-```
-[INFO] 1 Control Plane Security Configuration
-...
-[PASS] 1.1.7 Ensure that the dqlite configuration file permissions are set to 644 or more restrictive (Automated)
-[PASS] 1.1.8 Ensure that the dqlite configuration file ownership is set to root:root (Automated)
-...
-[PASS] 1.1.11 Ensure that the dqlite data directory permissions are set to 700 or more restrictive (Automated)
-[PASS] 1.1.12 Ensure that the dqlite data directory ownership is set to root:root (Automated)
-...
-== Summary master ==
-55 checks PASS
-0 checks FAIL
-4 checks WARN
-0 checks INFO
-
-[INFO] 3 Control Plane Configuration
-...
-== Summary controlplane ==
-1 checks PASS
-0 checks FAIL
-2 checks WARN
-0 checks INFO
-
-[INFO] 4 Worker Node Security Configuration
-...
-== Summary node ==
-23 checks PASS
-0 checks FAIL
-0 checks WARN
-0 checks INFO
-
-[INFO] 5 Kubernetes Policies
-...
-== Summary policies ==
-0 checks PASS
-0 checks FAIL
-30 checks WARN
-0 checks INFO
-
-== Summary total ==
-79 checks PASS
-0 checks FAIL
-36 checks WARN
-0 checks INFO
-
-```
-
-
-## Manually audit CIS hardening recommendations
-
-In what follows we iterate over all CIS hardening recommendations
+In what follows we iterate over all hardening recommendations
 and, when possible, provide information on how to comply with each
-one manually. This can be used for manually auditing the CIS
+one manually. This can be used for manually auditing the CIS and DISA STIG
 hardening state of a cluster.
 
 ### Control Plane Security Configuration
 
 #### Control Plane Node Configuration Files
 
-##### Control 1.1.1
+##### CIS Control 1.1.1
 
 **Description:**
 
@@ -385,7 +63,7 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-##### Control 1.1.2
+##### CIS Control 1.1.2
 
 **Description:**
 
@@ -412,7 +90,7 @@ Run the following command on the control plane node.
 root:root
 ```
 
-##### Control 1.1.3
+##### CIS Control 1.1.3
 
 **Description:**
 
@@ -439,7 +117,7 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-##### Control 1.1.4
+##### CIS Control 1.1.4
 
 **Description:**
 
@@ -466,7 +144,7 @@ Run the following command on the control plane node.
 root:root
 ```
 
-##### Control 1.1.5
+##### CIS Control 1.1.5
 
 **Description:**
 
@@ -493,7 +171,7 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-##### Control 1.1.6
+##### CIS Control 1.1.6
 
 **Description:**
 
@@ -520,7 +198,7 @@ Run the following command on the control plane node.
 root:root
 ```
 
-##### Control 1.1.7
+##### CIS Control 1.1.7
 
 **Description:**
 
@@ -547,7 +225,7 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-##### Control 1.1.8
+##### CIS Control 1.1.8
 
 **Description:**
 
@@ -574,7 +252,7 @@ Run the following command on the control plane node.
 root:root
 ```
 
-##### Control 1.1.9
+##### CIS Control 1.1.9
 
 **Description:**
 
@@ -602,7 +280,7 @@ find /etc/cni/net.d/05-cilium.conflist -type f 2> /dev/null | xargs --no-run-if-
 permissions=600
 ```
 
-##### Control 1.1.10
+##### CIS Control 1.1.10
 
 **Description:**
 
@@ -629,7 +307,7 @@ find /etc/cni/net.d/05-cilium.conflist -type f 2> /dev/null | xargs --no-run-if-
 root:root
 ```
 
-##### Control 1.1.11
+##### CIS Control 1.1.11
 
 **Description:**
 
@@ -659,7 +337,7 @@ stat -c permissions=%a "$DATA_DIR"
 permissions=700
 ```
 
-##### Control 1.1.12
+##### CIS Control 1.1.12
 
 **Description:**
 
@@ -689,7 +367,7 @@ stat -c %U:%G "$DATA_DIR"
 root:root
 ```
 
-##### Control 1.1.13
+##### CIS Control 1.1.13
 
 **Description:**
 
@@ -715,7 +393,7 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-##### Control 1.1.14
+##### CIS Control 1.1.14
 
 **Description:**
 
@@ -742,7 +420,7 @@ Run the following command on the control plane node.
 root:root
 ```
 
-##### Control 1.1.15
+##### CIS Control 1.1.15
 
 **Description:**
 
@@ -769,7 +447,7 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-##### Control 1.1.16
+##### CIS Control 1.1.16
 
 **Description:**
 
@@ -796,7 +474,7 @@ Run the following command on the control plane node.
 root:root
 ```
 
-##### Control 1.1.17
+##### CIS Control 1.1.17
 
 **Description:**
 
@@ -823,7 +501,7 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-##### Control 1.1.18
+##### CIS Control 1.1.18
 
 **Description:**
 
@@ -850,7 +528,7 @@ Run the following command on the control plane node.
 root:root
 ```
 
-##### Control 1.1.19
+##### CIS Control 1.1.19
 
 **Description:**
 
@@ -877,7 +555,7 @@ find /etc/kubernetes/pki/ | xargs stat -c %U:%G
 root:root
 ```
 
-##### Control 1.1.20
+##### CIS Control 1.1.20
 
 **Description:**
 
@@ -904,7 +582,7 @@ find /etc/kubernetes/pki/ -name '*.crt' | xargs stat -c permissions=%a
 permissions=600
 ```
 
-##### Control 1.1.21
+##### CIS Control 1.1.21
 
 **Description:**
 
@@ -933,7 +611,7 @@ permissions=600
 
 #### API Server
 
-##### Control 1.2.1
+##### CIS Control 1.2.1
 
 **Description:**
 
@@ -960,7 +638,7 @@ on the control plane node and set the following argument.
 --anonymous-auth=false
 ```
 
-##### Control 1.2.2
+##### CIS Control 1.2.2
 
 **Description:**
 
@@ -989,7 +667,7 @@ argument.
 --token-auth-file is not set
 ```
 
-##### Control 1.2.3
+##### CIS Control 1.2.3
 
 **Description:**
 
@@ -1017,7 +695,7 @@ from enabled admission plugins.
 DenyServiceExternalIPs
 ```
 
-##### Control 1.2.4
+##### CIS Control 1.2.4
 
 **Description:**
 
@@ -1053,7 +731,7 @@ kubelet client certificate and key parameters as follows.
 and --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
 ```
 
-##### Control 1.2.5
+##### CIS Control 1.2.5
 
 **Description:**
 
@@ -1086,7 +764,7 @@ cert file for the certificate authority.
 --kubelet-certificate-authority=/etc/kubernetes/pki/ca.crt
 ```
 
-##### Control 1.2.6
+##### CIS Control 1.2.6
 
 **Description:**
 
@@ -1116,7 +794,7 @@ One such example could be as follows.
 --authorization-mode=Node,RBAC
 ```
 
-##### Control 1.2.7
+##### CIS Control 1.2.7
 
 **Description:**
 
@@ -1144,7 +822,7 @@ parameter to a value that includes Node.
 --authorization-mode=Node,RBAC
 ```
 
-##### Control 1.2.8
+##### CIS Control 1.2.8
 
 **Description:**
 
@@ -1172,7 +850,7 @@ parameter to a value that includes RBAC,
 --authorization-mode=Node,RBAC
 ```
 
-##### Control 1.2.9
+##### CIS Control 1.2.9
 
 **Description:**
 
@@ -1207,7 +885,7 @@ and set the following arguments.
 plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 ```
 
-##### Control 1.2.10
+##### CIS Control 1.2.10
 
 **Description:**
 
@@ -1236,7 +914,7 @@ value that does not include AlwaysAdmit.
 plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 ```
 
-##### Control 1.2.11
+##### CIS Control 1.2.11
 
 **Description:**
 
@@ -1267,7 +945,7 @@ AlwaysPullImages.
 plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 ```
 
-##### Control 1.2.12
+##### CIS Control 1.2.12
 
 **Description:**
 
@@ -1299,7 +977,7 @@ place.
 plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 ```
 
-##### Control 1.2.13
+##### CIS Control 1.2.13
 
 **Description:**
 
@@ -1329,7 +1007,7 @@ value that does not include ServiceAccount.
 --disable-admission-plugins is not set
 ```
 
-##### Control 1.2.14
+##### CIS Control 1.2.14
 
 **Description:**
 
@@ -1357,7 +1035,7 @@ ensure it does not include NamespaceLifecycle.
 --disable-admission-plugins is not set
 ```
 
-##### Control 1.2.15
+##### CIS Control 1.2.15
 
 **Description:**
 
@@ -1390,7 +1068,7 @@ value that includes NodeRestriction.
 plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 ```
 
-##### Control 1.2.16
+##### CIS Control 1.2.16
 
 **Description:**
 
@@ -1417,7 +1095,7 @@ set it to a different (non-zero) desired port.
 --secure-port=6443
 ```
 
-##### Control 1.2.17
+##### CIS Control 1.2.17
 
 **Description:**
 
@@ -1444,7 +1122,7 @@ on the control plane node and set the following argument.
 --profiling=false
 ```
 
-##### Control 1.2.18
+##### CIS Control 1.2.18 / DISA-STIG V-242402
 
 **Description:**
 
@@ -1473,7 +1151,7 @@ file where you would like audit logs to be written.
 --audit-log-path=/var/log/apiserver/audit.log
 ```
 
-##### Control 1.2.19
+##### CIS Control 1.2.19
 
 **Description:**
 
@@ -1503,7 +1181,7 @@ or as an appropriate number of days.
 --audit-log-maxage=30
 ```
 
-##### Control 1.2.20
+##### CIS Control 1.2.20 / DISA STIG V-242463
 
 **Description:**
 
@@ -1533,7 +1211,7 @@ value.
 --audit-log-maxbackup=10
 ```
 
-##### Control 1.2.21
+##### CIS Control 1.2.21 / DISA STIG V-242462
 
 **Description:**
 
@@ -1562,7 +1240,7 @@ parameter to an appropriate size in MB.
 --audit-log-maxsize=100
 ```
 
-##### Control 1.2.22
+##### CIS Control 1.2.22
 
 **Description:**
 
@@ -1590,7 +1268,7 @@ and set the following argument as appropriate and if needed.
 --request-timeout=300s
 ```
 
-##### Control 1.2.23
+##### CIS Control 1.2.23
 
 **Description:**
 
@@ -1622,7 +1300,7 @@ that the default takes effect.
 --service-account-lookup is not set
 ```
 
-##### Control 1.2.24
+##### CIS Control 1.2.24
 
 **Description:**
 
@@ -1653,7 +1331,7 @@ to the public key file for service accounts.
 file=/etc/kubernetes/pki/serviceaccount.key
 ```
 
-##### Control 1.2.25
+##### CIS Control 1.2.25
 
 **Description:**
 
@@ -1670,7 +1348,7 @@ local socket
 accessible to users with root permissions.
 
 
-##### Control 1.2.26
+##### CIS Control 1.2.26
 
 **Description:**
 
@@ -1706,7 +1384,7 @@ private key file parameters.
 private-key-file=/etc/kubernetes/pki/apiserver.key
 ```
 
-##### Control 1.2.27
+##### CIS Control 1.2.27
 
 **Description:**
 
@@ -1737,7 +1415,7 @@ authority file.
 --client-ca-file=/etc/kubernetes/pki/client-ca.crt
 ```
 
-##### Control 1.2.28
+##### CIS Control 1.2.28
 
 **Description:**
 
@@ -1753,7 +1431,7 @@ local socket
 accessible to users with root permissions.
 
 
-##### Control 1.2.29
+##### CIS Control 1.2.29
 
 **Description:**
 
@@ -1785,7 +1463,7 @@ config=</path/to/EncryptionConfig/File>`
 --encryption-provider-config is set
 ```
 
-##### Control 1.2.30
+##### CIS Control 1.2.30
 
 **Description:**
 
@@ -1815,7 +1493,7 @@ if test -e $ENCRYPTION_PROVIDER_CONFIG; then grep -A1 'providers:' $ENCRYPTION_P
 aescbc,kms,secretbox
 ```
 
-##### Control 1.2.31
+##### CIS Control 1.2.31
 
 **Description:**
 
@@ -1874,7 +1552,7 @@ _256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384
 
 #### Controller Manager
 
-##### Control 1.3.1
+##### CIS Control 1.3.1
 
 **Description:**
 
@@ -1904,7 +1582,7 @@ threshold to an appropriate threshold.
 --terminated-pod-gc-threshold=12500
 ```
 
-##### Control 1.3.2
+##### CIS Control 1.3.2
 
 **Description:**
 
@@ -1932,7 +1610,7 @@ on the control plane node and set the following argument.
 --profiling=false
 ```
 
-##### Control 1.3.3
+##### CIS Control 1.3.3
 
 **Description:**
 
@@ -1961,7 +1639,7 @@ on the control plane node to set the following argument.
 --use-service-account-credentials=true
 ```
 
-##### Control 1.3.4
+##### CIS Control 1.3.4
 
 **Description:**
 
@@ -1993,7 +1671,7 @@ to the private key file for service accounts.
 file=/etc/kubernetes/pki/serviceaccount.key
 ```
 
-##### Control 1.3.5
+##### CIS Control 1.3.5
 
 **Description:**
 
@@ -2023,7 +1701,7 @@ parameter to the certificate bundle file.
 --root-ca-file=/etc/kubernetes/pki/ca.crt
 ```
 
-##### Control 1.3.6
+##### CIS Control 1.3.6
 
 **Description:**
 
@@ -2054,7 +1732,7 @@ RotateKubeletServerCertificate feature gate is not set, or set
 to true
 ```
 
-##### Control 1.3.7
+##### CIS Control 1.3.7 / DISA STIG V-242385
 
 **Description:**
 
@@ -2084,7 +1762,7 @@ and restart the controller manager service
 
 #### Scheduler
 
-##### Control 1.4.1
+##### CIS Control 1.4.1
 
 **Description:**
 
@@ -2111,7 +1789,7 @@ on the control plane node and set the following argument.
 --profiling=false
 ```
 
-##### Control 1.4.2
+##### CIS Control 1.4.2 / DISA STIG V-242384
 
 **Description:**
 
@@ -2142,7 +1820,7 @@ and restart the kube-scheduler service
 
 #### Datastore Node Configuration
 
-##### Control 2.1
+##### CIS Control 2.1
 
 **Description:**
 
@@ -2159,7 +1837,7 @@ local socket
 accessible to users with root permissions.
 
 
-##### Control 2.2
+##### CIS Control 2.2
 
 **Description:**
 
@@ -2175,7 +1853,7 @@ local socket
 accessible to users with root permissions.
 
 
-##### Control 2.3
+##### CIS Control 2.3
 
 **Description:**
 
@@ -2191,7 +1869,7 @@ local socket
 accessible to users with root permissions.
 
 
-##### Control 2.4
+##### CIS Control 2.4
 
 **Description:**
 
@@ -2219,7 +1897,7 @@ if test -e /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt && test -e /var/s
 certs-found
 ```
 
-##### Control 2.5
+##### CIS Control 2.5
 
 **Description:**
 
@@ -2246,7 +1924,7 @@ is set to false in
 0
 ```
 
-##### Control 2.6
+##### CIS Control 2.6
 
 **Description:**
 
@@ -2260,7 +1938,7 @@ communication uses the certificates
 created upon the snap creation.
 
 
-##### Control 2.7
+##### CIS Control 2.7
 
 **Description:**
 
@@ -2279,7 +1957,7 @@ created upon cluster setup.
 
 #### Authentication and Authorization
 
-##### Control 3.1.1
+##### CIS Control 3.1.1
 
 **Description:**
 
@@ -2296,7 +1974,7 @@ implemented in place of client certificates.
 
 #### Logging
 
-##### Control 3.2.1
+##### CIS Control 3.2.1
 
 **Description:**
 
@@ -2320,7 +1998,7 @@ Create an audit policy file for your cluster.
 --audit-policy-file=/var/snap/k8s/common/etc/audit-policy.yaml
 ```
 
-##### Control 3.2.2
+##### CIS Control 3.2.2 / DISA STIG V-242403
 
 **Description:**
 
@@ -2351,7 +2029,7 @@ is recommended
 
 #### Worker Node Configuration Files
 
-##### Control 4.1.1
+##### CIS Control 4.1.1
 
 **Description:**
 
@@ -2379,7 +2057,7 @@ Run the following command on each worker node.
 permissions=600
 ```
 
-##### Control 4.1.2
+##### CIS Control 4.1.2
 
 **Description:**
 
@@ -2407,7 +2085,7 @@ Run the following command on each worker node.
 root:root
 ```
 
-##### Control 4.1.3
+##### CIS Control 4.1.3
 
 **Description:**
 
@@ -2435,7 +2113,7 @@ Run the following command on each worker node.
 permissions=600
 ```
 
-##### Control 4.1.4
+##### CIS Control 4.1.4
 
 **Description:**
 
@@ -2463,7 +2141,7 @@ Run the following command on each worker node.
 root:root
 ```
 
-##### Control 4.1.5
+##### CIS Control 4.1.5
 
 **Description:**
 
@@ -2491,7 +2169,7 @@ Run the following command on each worker node.
 permissions=600
 ```
 
-##### Control 4.1.6
+##### CIS Control 4.1.6
 
 **Description:**
 
@@ -2519,7 +2197,7 @@ Run the following command on each worker node.
 root:root
 ```
 
-##### Control 4.1.7
+##### CIS Control 4.1.7
 
 **Description:**
 
@@ -2550,7 +2228,7 @@ if test -e $CAFILE; then stat -c permissions=%a $CAFILE; fi
 permissions=600
 ```
 
-##### Control 4.1.8
+##### CIS Control 4.1.8
 
 **Description:**
 
@@ -2580,7 +2258,7 @@ if test -e $CAFILE; then stat -c %U:%G $CAFILE; fi
 root:root
 ```
 
-##### Control 4.1.9
+##### CIS Control 4.1.9
 
 **Description:**
 
@@ -2609,7 +2287,7 @@ identified in the Audit step)
 permissions=600
 ```
 
-##### Control 4.1.10
+##### CIS Control 4.1.10
 
 **Description:**
 
@@ -2640,7 +2318,7 @@ root:root
 
 #### Kubelet
 
-##### Control 4.2.1
+##### CIS Control 4.2.1
 
 **Description:**
 
@@ -2672,7 +2350,7 @@ Restart the kubelet service.
 --anonymous-auth=false
 ```
 
-##### Control 4.2.2
+##### CIS Control 4.2.2
 
 **Description:**
 
@@ -2705,7 +2383,7 @@ Restart the kubelet service:
 --authorization-mode=Webhook
 ```
 
-##### Control 4.2.3
+##### CIS Control 4.2.3
 
 **Description:**
 
@@ -2738,7 +2416,7 @@ Restart the kubelet service:
 --client-ca-file=/etc/kubernetes/pki/client-ca.crt
 ```
 
-##### Control 4.2.4
+##### CIS Control 4.2.4
 
 **Description:**
 
@@ -2770,7 +2448,7 @@ Restart the kubelet service:
 --read-only-port=0
 ```
 
-##### Control 4.2.5
+##### CIS Control 4.2.5
 
 **Description:**
 
@@ -2804,7 +2482,7 @@ Restart the kubelet service:
 value greater or equal to 5m
 ```
 
-##### Control 4.2.6
+##### CIS Control 4.2.6 / DISA STIG V-242434
 
 **Description:**
 
@@ -2837,7 +2515,7 @@ Restart the kubelet service:
 --protect-kernel-defaults=true
 ```
 
-##### Control 4.2.7
+##### CIS Control 4.2.7
 
 **Description:**
 
@@ -2870,7 +2548,7 @@ For example: `snap restart k8s.kubelet`
 --make-iptables-util-chains is not set or set to true
 ```
 
-##### Control 4.2.8
+##### CIS Control 4.2.8
 
 **Description:**
 
@@ -2900,7 +2578,7 @@ Restart the kubelet service.
 --hostname-override is set to false
 ```
 
-##### Control 4.2.9
+##### CIS Control 4.2.9
 
 **Description:**
 
@@ -2931,7 +2609,7 @@ Restart the kubelet service.
 --event-qps is not set, or set to a value greater than 0
 ```
 
-##### Control 4.2.10
+##### CIS Control 4.2.10
 
 **Description:**
 
@@ -2968,7 +2646,7 @@ Restart the kubelet service.
 private-key-file=/etc/kubernetes/pki/kubelet.key
 ```
 
-##### Control 4.2.11
+##### CIS Control 4.2.11
 
 **Description:**
 
@@ -2999,7 +2677,7 @@ Restart the kubelet service.
 --rotate-certificates is not set, or set to true
 ```
 
-##### Control 4.2.12
+##### CIS Control 4.2.12
 
 **Description:**
 
@@ -3033,7 +2711,7 @@ RotateKubeletServerCertificate feature gate is not set, or set
 to true
 ```
 
-##### Control 4.2.13
+##### CIS Control 4.2.13
 
 **Description:**
 
@@ -3082,7 +2760,7 @@ RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
 
 #### RBAC and Service Accounts
 
-##### Control 5.1.1
+##### CIS Control 5.1.1
 
 **Description:**
 
@@ -3102,7 +2780,7 @@ clusterrolebinding to the cluster-admin role :
 kubectl delete clusterrolebinding [name]
 
 
-##### Control 5.1.2
+##### CIS Control 5.1.2
 
 **Description:**
 
@@ -3115,7 +2793,7 @@ Where possible, remove get, list and watch access to Secret
 objects in the cluster.
 
 
-##### Control 5.1.3
+##### CIS Control 5.1.3
 
 **Description:**
 
@@ -3129,7 +2807,7 @@ and roles with specific
 objects or actions.
 
 
-##### Control 5.1.4
+##### CIS Control 5.1.4
 
 **Description:**
 
@@ -3142,7 +2820,7 @@ Where possible, remove create access to pod objects in the
 cluster.
 
 
-##### Control 5.1.5
+##### CIS Control 5.1.5
 
 **Description:**
 
@@ -3159,7 +2837,7 @@ include this value
 automountServiceAccountToken: false
 
 
-##### Control 5.1.6
+##### CIS Control 5.1.6
 
 **Description:**
 
@@ -3174,7 +2852,7 @@ not need to mount service
 account tokens to disable it.
 
 
-##### Control 5.1.7
+##### CIS Control 5.1.7
 
 **Description:**
 
@@ -3187,7 +2865,7 @@ Remove the system:masters group from all users in the
 cluster.
 
 
-##### Control 5.1.8
+##### CIS Control 5.1.8
 
 **Description:**
 
@@ -3203,7 +2881,7 @@ rights from subjects.
 
 #### Pod Security Standards
 
-##### Control 5.2.1
+##### CIS Control 5.2.1 / DISA STIG V-254800
 
 **Description:**
 
@@ -3218,7 +2896,7 @@ policy control system is in place
 for every namespace which contains user workloads.
 
 
-##### Control 5.2.2
+##### CIS Control 5.2.2 / DISA STIG V-254801
 
 **Description:**
 
@@ -3232,7 +2910,7 @@ workloads to restrict the
 admission of privileged containers.
 
 
-##### Control 5.2.3
+##### CIS Control 5.2.3
 
 **Description:**
 
@@ -3247,7 +2925,7 @@ workloads to restrict the
 admission of `hostPID` containers.
 
 
-##### Control 5.2.4
+##### CIS Control 5.2.4
 
 **Description:**
 
@@ -3262,7 +2940,7 @@ workloads to restrict the
 admission of `hostIPC` containers.
 
 
-##### Control 5.2.5
+##### CIS Control 5.2.5
 
 **Description:**
 
@@ -3277,7 +2955,7 @@ workloads to restrict the
 admission of `hostNetwork` containers.
 
 
-##### Control 5.2.6
+##### CIS Control 5.2.6
 
 **Description:**
 
@@ -3293,7 +2971,7 @@ admission of containers with
 `.spec.allowPrivilegeEscalation` set to `true`.
 
 
-##### Control 5.2.7
+##### CIS Control 5.2.7
 
 **Description:**
 
@@ -3308,7 +2986,7 @@ or `MustRunAs` with the range of UIDs not including 0, is
 set.
 
 
-##### Control 5.2.8
+##### CIS Control 5.2.8
 
 **Description:**
 
@@ -3323,7 +3001,7 @@ workloads to restrict the
 admission of containers with the `NET_RAW` capability.
 
 
-##### Control 5.2.9
+##### CIS Control 5.2.9
 
 **Description:**
 
@@ -3337,7 +3015,7 @@ for the cluster unless
 it is set to an empty array.
 
 
-##### Control 5.2.10
+##### CIS Control 5.2.10
 
 **Description:**
 
@@ -3355,7 +3033,7 @@ a PSP which forbids the admission of containers which do not
 drop all capabilities.
 
 
-##### Control 5.2.11
+##### CIS Control 5.2.11
 
 **Description:**
 
@@ -3370,7 +3048,7 @@ admission of containers that have
 `.securityContext.windowsOptions.hostProcess` set to `true`.
 
 
-##### Control 5.2.12
+##### CIS Control 5.2.12
 
 **Description:**
 
@@ -3384,7 +3062,7 @@ workloads to restrict the
 admission of containers with `hostPath` volumes.
 
 
-##### Control 5.2.13
+##### CIS Control 5.2.13
 
 **Description:**
 
@@ -3400,7 +3078,7 @@ admission of containers which use `hostPort` sections.
 
 #### Network Policies and CNI
 
-##### Control 5.3.1
+##### CIS Control 5.3.1
 
 **Description:**
 
@@ -3416,7 +3094,7 @@ mechanism for restricting traffic
 in the Kubernetes cluster.
 
 
-##### Control 5.3.2
+##### CIS Control 5.3.2
 
 **Description:**
 
@@ -3431,7 +3109,7 @@ you need them.
 
 #### Secrets Management
 
-##### Control 5.4.1
+##### CIS Control 5.4.1
 
 **Description:**
 
@@ -3446,7 +3124,7 @@ mounted secret files, rather than
 from environment variables.
 
 
-##### Control 5.4.2
+##### CIS Control 5.4.2
 
 **Description:**
 
@@ -3462,7 +3140,7 @@ secrets management solution.
 
 #### Extensible Admission Control
 
-##### Control 5.5.1
+##### CIS Control 5.5.1
 
 **Description:**
 
@@ -3478,7 +3156,7 @@ provenance.
 
 #### General Policies
 
-##### Control 5.7.1
+##### CIS Control 5.7.1
 
 **Description:**
 
@@ -3493,7 +3171,7 @@ in your deployment as you need
 them.
 
 
-##### Control 5.7.2
+##### CIS Control 5.7.2
 
 **Description:**
 
@@ -3513,7 +3191,7 @@ An example is as follows:
       type: RuntimeDefault
 ```
 
-##### Control 5.7.3
+##### CIS Control 5.7.3
 
 **Description:**
 
@@ -3529,7 +3207,7 @@ Security Benchmark for Docker
 Containers.
 
 
-##### Control 5.7.4
+##### CIS Control 5.7.4
 
 **Description:**
 
@@ -3544,13 +3222,8 @@ resources and that all new resources are created in a
 specific namespace.
 
 
-
-
 <!-- Links -->
-[Center for Internet Security (CIS)]:https://www.cisecurity.org/
-[kube-bench]:https://aquasecurity.github.io/kube-bench/v0.6.15/
-[CIS Kubernetes Benchmark]:https://www.cisecurity.org/benchmark/kubernetes
-[getting started]: ../tutorial/getting-started
-[kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
+[Post-Deployment Configuration Steps section]:#post-deployment-configuration-steps
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
+[additional DISA STIG-specific steps]: disa-stig-hardening#disa-stig-specific-steps
