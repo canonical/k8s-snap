@@ -17,6 +17,9 @@ import (
 const defaultPauseImage = "ghcr.io/canonical/k8s-snap/pause:3.10"
 
 func defaultContainerdConfig(
+	containerdRootDir string,
+	containerdSocketPath string,
+	containerdStateDir string,
 	cniConfDir string,
 	cniBinDir string,
 	importsDir string,
@@ -24,11 +27,15 @@ func defaultContainerdConfig(
 	pauseImage string,
 ) map[string]any {
 	return map[string]any{
-		"version":   2,
-		"oom_score": 0,
-		"imports":   []string{filepath.Join(importsDir, "*.toml")},
+		"version":    2,
+		"oom_score":  0,
+		"imports":    []string{filepath.Join(importsDir, "*.toml")},
+		"root":       containerdRootDir,
+		"state":      containerdStateDir,
+		"plugin_dir": filepath.Join(containerdRootDir, "plugins"),
 
 		"grpc": map[string]any{
+			"address":               containerdSocketPath,
 			"uid":                   0,
 			"gid":                   0,
 			"max_recv_message_size": 16777216,
@@ -38,7 +45,7 @@ func defaultContainerdConfig(
 		"debug": map[string]any{
 			"uid":     0,
 			"gid":     0,
-			"address": "",
+			"address": "/home/ubuntu/k8s-containerd/debug.sock",
 			"level":   "",
 		},
 
@@ -92,6 +99,9 @@ func defaultContainerdConfig(
 // Optionally, a number of registry mirrors and auths can be configured.
 func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs map[string]*string) error {
 	configToml := defaultContainerdConfig(
+		snap.ContainerdRootDir(),
+		snap.ContainerdSocketPath(),
+		snap.ContainerdStateDir(),
 		snap.CNIConfDir(),
 		snap.CNIBinDir(),
 		snap.ContainerdExtraConfigDir(),
@@ -113,10 +123,7 @@ func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs 
 	}
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "containerd", map[string]string{
-		"--address": snap.ContainerdSocketPath(),
-		"--config":  filepath.Join(snap.ContainerdConfigDir(), "config.toml"),
-		"--root":    snap.ContainerdRootDir(),
-		"--state":   snap.ContainerdStateDir(),
+		"--config": filepath.Join(snap.ContainerdConfigDir(), "config.toml"),
 	}, nil); err != nil {
 		return fmt.Errorf("failed to write arguments file: %w", err)
 	}
