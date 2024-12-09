@@ -4,12 +4,13 @@ The {{product}} hardening guide provides actionable steps to enhance the
 security posture of your deployment. These steps are designed to help you align
 with industry-standard frameworks such as CIS and DISA STIG.
 
-{{product}} aligns with many DISA STIG and CIS compliance recommendations by
-default. However, additional hardening steps are required to fully meet both
-standards. The steps outlined below are shared recommendations that, when
-followed, will ensure compliance with both DISA STIG and CIS.
+{{product}} aligns with many security recommendations by
+default. However, since implementing all security recommendations
+would comes at the expense of compatibility and/or performance we expect
+cluster administrators to follow post deployment hardening steps based on their
+needs.
 
-This how-to has both the bare minimum to pass the tests and also a more
+This how-to has both the recommended minimum hardening steps and also a more
 comprehensive list of manual tests.
 
 Please evaluate the implications of each configuration before applying it.
@@ -17,13 +18,12 @@ Please evaluate the implications of each configuration before applying it.
 ## Post-deployment hardening steps
 
 These steps are common to the hardening process for both CIS and DISA STIG
-compliance. On their own, they are enough to ensure full CIS compliance, but
-DISA STIG requires completing the steps in this section and [additional DISA
-STIG-specific steps].
+compliance.
 
 ```{include} ../../../_parts/common_hardening.md
 ```
 
+If you would also like to apply further DISA STIG recommendations please see [additional DISA STIG-specific steps].
 
 ## Comprehensive Hardening Checklist
 
@@ -3025,10 +3025,10 @@ assigned
 
 **Remediation:**
 
-Review the use of capabilites in applications running on
+Review the use of capabilities in applications running on
 your cluster. Where a namespace
 contains applicaions which do not require any Linux
-capabities to operate consider adding
+capabilities to operate consider adding
 a PSP which forbids the admission of containers which do not
 drop all capabilities.
 
@@ -3184,10 +3184,12 @@ your Pod definitions
 Use `securityContext` to enable the docker/default seccomp
 profile in your pod definitions.
 An example is as follows:
+
+```
   securityContext:
     seccompProfile:
       type: RuntimeDefault
-
+```
 
 ##### CIS Control 5.7.3
 
@@ -3224,4 +3226,4 @@ specific namespace.
 [Post-Deployment Configuration Steps section]:#post-deployment-configuration-steps
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
-[additional DISA STIG-specific steps]: disa-stig-hardening.md#additional-disa-stig-specific-steps
+[additional DISA STIG-specific steps]: disa-stig-hardening#disa-stig-specific-steps

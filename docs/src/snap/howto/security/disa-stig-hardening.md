@@ -3,14 +3,11 @@
 Security Technical Implementation Guides (STIG) are developed by the Defense
 Information System Agency (DISA) for the U.S. Department of Defense (DoD).
 
-The Kubernetes STIGs contain guidelines on how to check remediate various
+The Kubernetes STIGs contain guidelines on how to check and remediate various
 potential security concerns for a Kubernetes deployment.
 
 {{product}} aligns with many DISA STIG compliance recommendations by default.
 However, additional hardening steps are required to fully meet the standard.
-The steps outlined below are recommendations that focus specifically on
-resolving failing tests, ensuring a higher level of security.
-
 
 ## What you'll need
 
@@ -22,13 +19,19 @@ This guide assumes the following:
 
 ## Critical post-deployment hardening steps
 
-By completing these steps, you can ensure your cluster achieves does not fail
-any of the DISA STIG hardening recommendations.
+Follow these steps to apply critical security hardening steps to your cluster.
+These steps address DISA STIG hardening recommendations V-242384, V-242385,
+ V-242402, V-242403, V-242461, V-242462, V-242463, V-242464, V-242465 and
+ V-242434.
 
 ```{include} ../../../_parts/common_hardening.md
 ```
 
-## Additional DISA-STIG specific steps
+## DISA-STIG specific steps
+
+The following steps are further security hardening steps recommended by DISA
+ STIG. After addressing these recommendations correctly along with the critical
+ post-deployment steps above, your cluster should be DISA STIG compliant.
 
 #### [V-242383](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242383)
 
@@ -95,7 +98,7 @@ List (PPSM CAL)**
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
 >
 
-### [V-242412](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242412)
+#### [V-242412](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242412)
 
 **The Kubernetes Controllers must enforce ports, protocols, and services (PPS)
 that adhere to the Ports, Protocols, and Services Management Category Assurance
@@ -117,7 +120,7 @@ List (PPSM CAL)**
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
 >
 
-### [V-242414](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242414)
+#### [V-242414](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242414)
 
 **The Kubernetes cluster must use non-privileged host ports for user pods**
 
@@ -141,7 +144,7 @@ List (PPSM CAL)**
 >     kubectl -n NAMESPACE get pod PODNAME -o yaml | grep -i port
 >
 
-### [V-242415](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242415)
+#### [V-242415](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242415)
 
 **Secrets in Kubernetes must not be stored as environment variables**
 
@@ -161,7 +164,7 @@ List (PPSM CAL)**
 > cryptographic keys, API tokens, etc).
 >
 
-### [V-242417](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242417)
+#### [V-242417](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242417)
 
 **Kubernetes must separate user functionality**
 
@@ -185,7 +188,7 @@ List (PPSM CAL)**
 >     kubectl -n kube-node-lease get pods
 >
 
-### [V-254800](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254800)
+#### [V-254800](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254800)
 
 **Kubernetes must have a Pod Security Admission control file configured**
 
@@ -216,6 +219,7 @@ List (PPSM CAL)**
 > https://documentation.ubuntu.com/canonical-kubernetes/latest/src/snap/howto/cis-hardening/#configure-auditing
 >
 
+
 ## Manually audit DISA STIG hardening recommendations
 
 For manual audits of DISA STIG hardening recommendations, please visit the
@@ -227,8 +231,7 @@ For manual audits of DISA STIG hardening recommendations, please visit the
 [Center for Internet Security (CIS)]:https://www.cisecurity.org/
 [kube-bench]:https://aquasecurity.github.io/kube-bench/v0.6.15/
 [CIS Kubernetes Benchmark]:https://www.cisecurity.org/benchmark/kubernetes
-[getting started]: ../tutorial/getting-started
+[getting started]: ../../tutorial/getting-started
 [kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
-[additional DISA STIG-specific steps]: #additional-disa-stig-specific-steps
 [Comprehensive Hardening Checklist]: auditing-steps.md#comprehensive-hardening-checklist
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/

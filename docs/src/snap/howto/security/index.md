@@ -14,5 +14,5 @@ harden their clusters in accordance with DISA STIG and CIS recommendations.
 
 CIS Hardening <cis-hardening.md>
 DISA STIG Hardening <disa-stig-hardening.md>
-Manual Auditing Steps <auditing-steps.md>
+Hardening guide <auditing-steps.md>
 ```

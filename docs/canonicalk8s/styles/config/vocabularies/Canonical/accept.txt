@@ -316,6 +316,7 @@ SR-IOV
 src
 stackexchange
 stgraber
+STIGs
 STONITH
 StorageClass
 sudo

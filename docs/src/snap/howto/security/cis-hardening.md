@@ -146,7 +146,6 @@ For manual audits of CIS hardening recommendations, please visit the
 [Center for Internet Security (CIS)]:https://www.cisecurity.org/
 [kube-bench]:https://aquasecurity.github.io/kube-bench/v0.6.15/
 [CIS Kubernetes Benchmark]:https://www.cisecurity.org/benchmark/kubernetes
-[getting started]: ../tutorial/getting-started
+[getting started]: ../../tutorial/getting-started
 [kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
-[Post-Deployment Configuration Steps]: security/hardening.md#post-deployment-configuration-steps
-[Comprehensive Hardening Checklist]: security/hardening.md#comprehensive-hardening-checklist
+[Comprehensive Hardening Checklist]: auditing-steps.md#comprehensive-hardening-checklist
