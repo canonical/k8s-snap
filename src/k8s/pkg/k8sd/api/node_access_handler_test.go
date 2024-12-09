@@ -27,33 +27,33 @@ func TestValidateNodeTokenAccessHandler(t *testing.T) {
 		createFile         bool
 	}{
 		{
-			name:               "Header and file token match",
+			name:               "header and file token match",
 			tokenHeaderContent: "node-token",
 			tokenFileContent:   "node-token",
 			createFile:         true,
 		},
 		{
-			name:               "Header and file token differ",
+			name:               "header and file token differ",
 			tokenHeaderContent: "node-token",
 			tokenFileContent:   "different-node-token",
 			expectErr:          true,
 			createFile:         true,
 		},
 		{
-			name:               "Missing header token",
+			name:               "missing header token",
 			tokenHeaderContent: "",
 			tokenFileContent:   "node-token",
 			expectErr:          true,
 			createFile:         true,
 		},
 		{
-			name:               "Missing token file",
+			name:               "missing token file",
 			tokenHeaderContent: "node-token",
 			tokenFileContent:   "node-token",
 			expectErr:          true,
 		},
 		{
-			name:               "Missing token in token file",
+			name:               "missing token in token file",
 			tokenHeaderContent: "node-token",
 			tokenFileContent:   "",
 			expectErr:          true,
