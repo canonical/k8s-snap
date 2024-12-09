@@ -138,7 +138,7 @@ List (PPSM CAL)**
 >
 > The Kubernetes System Administrators must manually inspect the Pods in all of
 > the default namespaces to ensure there are no user-created Pods with
-> Containers exposing priviledged port numbers (< 1024).
+> Containers exposing privileged port numbers (< 1024).
 >
 >     kubectl get pods --all-namespaces
 >     kubectl -n NAMESPACE get pod PODNAME -o yaml | grep -i port
