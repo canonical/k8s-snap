@@ -10,7 +10,7 @@ Observability Stack). This guide will help you integrate a COS Lite
 deployment with a {{product}} deployment.
 
 This document assumes that you have a controller with an installation of
-Canonical Kubernetes. If you have not yet installed {{product}}, please see
+{{product}}. If you have not yet installed {{product}}, please see
 ["Installing {{product}}"][how-to-install].
 
 ## Preparing a platform for COS Lite
@@ -55,7 +55,7 @@ KUBECONFIG=./kubeconfig juju add-k8s k8s-cloud
 
 ## Deploying COS Lite on the K8s cloud
 
-On the COS cloud, create a new model and deploy the `cos-lite` bundle:
+On the K8s cloud, create a new model and deploy the `cos-lite` bundle:
 
 ```
 juju add-model cos-lite k8s-cloud
