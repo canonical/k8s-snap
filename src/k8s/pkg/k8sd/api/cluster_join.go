@@ -37,16 +37,18 @@ func (e *Endpoints) postClusterJoin(s state.State, r *http.Request) response.Res
 
 	joinConfig := struct {
 		// We only care about this field from the entire join config.
-		containerdBaseDir string `yaml:"containerd-base-dir,omitempty"`
+		// Note that the field must be public (uppercase) in order for the yaml
+		// parser to handle it.
+		ContainerdBaseDir string `yaml:"containerd-base-dir,omitempty"`
 	}{}
 
 	if err := yaml.Unmarshal([]byte(req.Config), &joinConfig); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request config: %w", err))
 	}
 
-	if joinConfig.containerdBaseDir != "" {
+	if joinConfig.ContainerdBaseDir != "" {
 		// append k8s-containerd to the given base dir, so we don't flood it with our own folders.
-		e.provider.Snap().SetContainerdBaseDir(filepath.Join(joinConfig.containerdBaseDir, "k8s-containerd"))
+		e.provider.Snap().SetContainerdBaseDir(filepath.Join(joinConfig.ContainerdBaseDir, "k8s-containerd"))
 	}
 
 	config := map[string]string{}
