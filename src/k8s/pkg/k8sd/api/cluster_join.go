@@ -37,6 +37,8 @@ func (e *Endpoints) postClusterJoin(s state.State, r *http.Request) response.Res
 
 	joinConfig := struct {
 		// We only care about this field from the entire join config.
+		// Note that the field must be public (uppercase) in order for the yaml
+		// parser to handle it.
 		ContainerdBaseDir string `yaml:"containerd-base-dir,omitempty"`
 	}{}
 
