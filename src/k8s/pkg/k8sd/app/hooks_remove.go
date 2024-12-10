@@ -180,8 +180,23 @@ func tryCleanupContainerdPaths(log log.Logger, s snap.Snap) {
 		if _, err := os.Stat(dirpath); os.IsNotExist(err) {
 			log.Info("Containerd directory doesn't exist; skipping cleanup", "directory", dirpath)
 		} else {
+			// NOTE(aznashwan): because of the convoluted interfaces-based way the snap
+			// composes and creates the original lockfiles (see k8sd/setup/containerd.go)
+			// this check is meant to defend against accidental code/configuration errors which
+			// might lead to the root FS being deleted:
+			realPath, err := os.Readlink(dirpath)
+			if err != nil {
+				log.Error(err, fmt.Sprintf("Failed to os.Readlink the directory path for lockfile %q pointing to %q. Skipping cleanup", lockpath, dirpath))
+				continue
+			}
+
+			if realPath == "/" {
+				log.Error(fmt.Errorf("There is some configuration/logic error in the current versions of the k8s-snap related to lockfile %q (meant to lock %q, which points to %q) which could lead to accidental wiping of the root file system.", lockpath, dirpath, realPath), "Please report this issue upstream immediately.")
+				continue
+			}
+
 			if err := os.RemoveAll(dirpath); err != nil {
-				log.Info("WARN: failed to remove containerd data directory", "directory", dirpath, "error", err)
+				log.Info("WARN: failed to remove containerd data directory", "directory", dirpath, "error", err, "realPath", realPath)
 				continue // Avoid removing the lockfile path.
 			}
 		}
