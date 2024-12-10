@@ -20,7 +20,8 @@ jobs:
         branch:
           # Keep main branch up to date
           - main
-          # Supported stable release branches
+          # Supported release branches
+          - release-1.32
           - release-1.31
           - release-1.30
 
