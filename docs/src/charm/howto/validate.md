@@ -5,7 +5,7 @@ to test the behavior of the system. This is a useful indicator
 that the cluster is performing properly, as well as a good 
 validation of any code changes.
 
-For **Canonical Kubernetes**, these tests are encapsulated 
+For **{{product}}**, these tests are encapsulated 
 in an additional **Juju** charm which can be added to your cluster.
 Actual testing is then run through the charm's actions.
 
@@ -60,7 +60,7 @@ Check operation status with 'juju show-operation 25'
 Check task status with 'juju show-task 26'
 ```
 
-See the section on _Test output_ below for details.
+See the section on [Test output](#test-output) below for details.
 
 ## Running specific tests
 

@@ -3,7 +3,7 @@
 It is recommended that you keep your Kubernetes deployment
 updated to the latest available stable version. You should
 also update the other applications which make up Kubernetes.
-Keeping up to date ensures you have the latest bug-fixes
+Keeping up-to-date ensures you have the latest bug-fixes
 and security patches for smooth operation of your cluster.
 
 New minor versions of Kubernetes are set to release three
@@ -84,7 +84,96 @@ rely on deprecated APIs.
 
 ## Specific upgrade instructions
 
-<<<Place more here>>>
+### Deciding if an upgrade is available
+
+Juju will contact charmhub daily to find new revisions of charms
+deployed in your models. To see if the `k8s` or `k8s-worker` charms 
+can be upgraded, set with the following:
+
+```sh
+juju status --format=json | \
+   jq '.applications | 
+        to_entries[] | {
+           application: .key,
+           "charm-name": .value["charm-name"],
+           "charm-channel": .value["charm-channel"],
+           "charm-rev": .value["charm-rev"],
+           "can-upgrade-to": .value["can-upgrade-to"]
+        }'
+```
+
+This will output list of applications in the model:
+* the name of the application
+* the charm used by the application
+* the kubernetes channel this charm follows
+* the current charm revision
+* the next potential charm revision
+
+If the `can-upgrade-to` revision is empty, you are at the most stable
+release in this channel and there is no patch upgrade.
+
+If there is another stable release, continue with the
+[Pre Upgrade Check](#the-pre-upgrade-check)
+
+
+### The pre-upgrade-check
+
+Before running an upgrade, we should check that the cluster is 
+steady and ready for upgrade. The charm will perform checks 
+necessary to confirm the cluster is in safe working order before
+upgrading.
+
+```sh
+juju run k8s/leader pre-upgrade-check
+```
+
+If no error appears, the `pre-upgrade-check` completed successfully.
+
+
+### Refreshing charm applications
+
+#### Control Plane units (k8s)
+
+Following the `pre-upgrade-check` update the control-plane nodes.
+
+```sh
+juju refresh k8s
+juju status k8s --watch 5s
+```
+
+The `refresh` command instructs the juju controller to use the new charm
+revision of the application's charm channel to upgrade each unit. The
+charm code is simultaneously replaced on each unit, then the kubernetes
+snap is updated unit-by-unit, finishing with the juju leader unit for the
+application.
+
+After the `k8s` charm is upgraded, the application `Version` from `juju status`
+will reflect the updated version of the control-plane nodes making up the cluster.
+
+#### Worker units (k8s-worker)
+
+After updating the control-plane applications, worker nodes may be upgraded
+following running the `pre-upgrade-check`. 
+
+```sh
+juju run k8s-worker/leader pre-upgrade-check
+juju refresh k8s-worker
+juju status k8s-worker --watch 5s
+```
+
+The `refresh` command instructs the juju controller to use the new charm
+revision of the application's charm channel to upgrade each unit. The
+charm code is simultaneously replaced on each unit, then the kubernetes
+snap is updated unit-by-unit finishing with the juju leader unit for the 
+application.
+
+After the `k8s-worker` charm is upgraded, the application `Version` from `juju status`
+will reflect the updated version of the worker nodes making up the cluster.
+
+```{note} Repeat for every application using the k8s-worker charm if
+multiple appear in the same model.
+```
+
 
 ## Verify an Upgrade
 
@@ -103,10 +192,10 @@ to ensure that the cluster is fully functional.
 
 <!-- LINKS -->
 
-[backup-restore]:     ../../snap/howto/backup-restore.md
-[cluster-validation]: ./validate.md
+[backup-restore]:     ../../snap/howto/backup-restore
+[cluster-validation]: ./validate
 [juju-docs]:          https://juju.is/docs/juju/upgrade-models
-[release-notes]:      ../reference/releases.md
-[upgrade-notes]:      ../reference/upgrade-notes.md
+[release-notes]:      ../reference/releases
+[upgrade-notes]:      ../reference/upgrade-notes
 [upstream-notes]:     https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.31.md#deprecation
 
