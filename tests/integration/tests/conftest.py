@@ -139,6 +139,7 @@ def pytest_configure(config):
         "bootstrap_config: Provide a custom bootstrap config to the bootstrapping node.\n"
         "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.\n"
         "no_setup: No setup steps (pushing snap, bootstrapping etc.) are performed on any node for this test.\n"
+        "containerd_cfgdir: The instance containerd config directory, defaults to /etc/containerd."
         "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
         "node_count: Mark a test to specify how many instance nodes need to be created\n"
@@ -193,6 +194,15 @@ def network_type(request) -> Union[str, None]:
 
 
 @pytest.fixture(scope="function")
+def containerd_cfgdir(request) -> str:
+    marker = request.node.get_closest_marker("containerd_cfgdir")
+    if not marker:
+        return "/etc/containerd"
+    cfgdir, *_ = marker.args
+    return cfgdir
+
+
+@pytest.fixture(scope="function")
 def instances(
     h: harness.Harness,
     registry: Registry,
@@ -200,6 +210,7 @@ def instances(
     tmp_path: Path,
     disable_k8s_bootstrapping: bool,
     no_setup: bool,
+    containerd_cfgdir: str,
     bootstrap_config: Union[str, None],
     request,
     network_type: str,
@@ -241,7 +252,7 @@ def instances(
             util.setup_k8s_snap(instance, tmp_path, snap)
 
             if config.USE_LOCAL_MIRROR:
-                registry.apply_configuration(instance)
+                registry.apply_configuration(instance, containerd_cfgdir)
 
     if not disable_k8s_bootstrapping and not no_setup:
         first_node, *_ = instances

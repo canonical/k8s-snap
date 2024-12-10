@@ -2,6 +2,7 @@
 # Copyright 2024 Canonical, Ltd.
 #
 import logging
+import os
 from pathlib import Path
 from string import Template
 from typing import List, Optional
@@ -165,21 +166,22 @@ class Registry:
         return self._ip
 
     # Configure the specified instance to use this registry mirror.
-    def apply_configuration(self, instance):
+    def apply_configuration(self, instance, containerd_basedir="/etc/containerd"):
         for mirror in self.mirrors:
             substitutes = {
                 "IP": self.ip,
                 "PORT": mirror.port,
             }
 
-            instance.exec(["mkdir", "-p", f"/etc/containerd/hosts.d/{mirror.name}"])
+            mirror_dir = os.path.join(containerd_basedir, "hosts.d", mirror.name)
+            instance.exec(["mkdir", "-p", mirror_dir])
 
             with open(config.REGISTRY_DIR / "hosts.toml", "r") as registry_template:
                 src = Template(registry_template.read())
                 instance.exec(
                     [
                         "dd",
-                        f"of=/etc/containerd/hosts.d/{mirror.name}/hosts.toml",
+                        f"of={mirror_dir}/hosts.toml",
                     ],
                     input=str.encode(src.substitute(substitutes)),
                 )

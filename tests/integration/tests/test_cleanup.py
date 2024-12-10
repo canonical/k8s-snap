@@ -42,6 +42,7 @@ def test_node_cleanup(instances: List[harness.Instance], tmp_path):
 
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.containerd_cfgdir("/home/ubuntu/etc/containerd")
 @pytest.mark.tags(tags.NIGHTLY)
 def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
     main = instances[0]
@@ -70,12 +71,10 @@ def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
         for p in CONTAINERD_PATHS
     ]
 
-    # We expect containerd to use our custom paths instead of the default ones.
-    # However, the test fixture places registry configuration in /etc/containerd
-    # and /run/containerd gets created but isn't actually used (requires further
+    # /run/containerd gets created but isn't actually used (requires further
     # investigation).
     exp_missing_paths = [
-        "/etc/containerd/config.toml",
+        "/etc/containerd",
         "/run/containerd/containerd.sock",
         "/var/lib/containerd",
     ]
