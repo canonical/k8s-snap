@@ -3,7 +3,7 @@
 It is recommended that you keep your Kubernetes deployment
 updated to the latest available stable version. You should
 also update the other applications which make up Kubernetes.
-Keeping up to date ensures you have the latest bug-fixes
+Keeping up-to-date ensures you have the latest bug-fixes
 and security patches for smooth operation of your cluster.
 
 New minor versions of Kubernetes are set to release three
@@ -109,9 +109,19 @@ This will output list of applications in the model:
 * the current charm revision
 * the next potential charm revision
 
-If the `can-upgrade-to` revision is empty, you are done, there's no
-upgrade currently available on this charm channel.
+If the `can-upgrade-to` revision is empty, you are at the most stable
+release in this channel and you should continue with the
+[Pre Upgrade Check](#the-pre-upgrade-check).
 
+If there is another stable release, follow the
+[Upgrade Patch](upgrade-patch) instructions.
+
+
+```{note} Only update the charm to the next minor version.
+If the current `charm-channel` is `1.31/stable`, it's critical
+to refresh to the `1.32/stable`. Skipping channels (eg 1.31 -> 1.33)
+will result in the units blocking and indicating they cannot upgrade.
+```
 
 ### The pre-upgrade-check
 
@@ -121,36 +131,31 @@ necessary to confirm the cluster is in safe working order before
 upgrading.
 
 ```sh
-$ juju run k8s/leader pre-upgrade-check           
-Running operation 3 with 1 task
-  - task 4 on unit-k8s-1
-
-Waiting for task 4...
-$ 
+juju run k8s/leader pre-upgrade-check
 ```
 
-If no error appears, the `pre-upgrade-check` completed successfully
+If no error appears, the `pre-upgrade-check` completed successfully.
 
 ### Refreshing charm applications
 
 #### Control Plane units (k8s)
 
-In order to upgrade the cluster, first the control-plane nodes should be updated
-following running the `pre-upgrade-check`. 
+Following the `pre-upgrade-check` update the control-plane nodes.
 
 ```sh
-$ juju refresh k8s
-$ juju status k8s --watch 5s
+juju refresh k8s --channel ${NEXT_CHANNEL}
+juju status k8s --watch 5s
 ```
 
-The first command instructs the juju controller to use the new charm revision
-on the application's charm channel to upgrade each unit. The charm code
-will be simultaneously replaced on each unit, then the kubernetes snap
-will be updated unit-by-unit finishing with the juju leader unit for the 
+The `refresh` command instructs the juju controller to follow a new
+charm channel related to the kubernetes release and use the new charm
+revision of the application's channel to upgrade each unit. The
+charm code is simultaneously replaced on each unit, then the kubernetes
+snap is updated unit-by-unit, finishing with the juju leader unit for the
 application.
 
 After the `k8s` charm is upgraded, the application `Version` from `juju status`
-will reflect the version of the control-plane nodes making up the cluster.
+will reflect the updated version of the control-plane nodes making up the cluster.
 
 #### Worker units (k8s-worker)
 
@@ -158,24 +163,24 @@ After updating the control-plane applications, worker nodes may be upgraded
 following running the `pre-upgrade-check`. 
 
 ```sh
-$ juju run k8s-worker/leader pre-upgrade-check
-$ juju refresh k8s-worker
-$ juju status k8s-worker --watch 5s
+juju run k8s-worker/leader pre-upgrade-check
+juju refresh k8s-worker --channel ${NEXT_CHANNEL}
+juju status k8s-worker --watch 5s
 ```
 
-The first command instructs the juju controller to use the new charm revision
-on the application's charm channel to upgrade each unit. The charm code
-will be simultaneously replaced on each unit, then the kubernetes snap
-will be updated unit-by-unit finishing with the juju leader unit for the 
+The `refresh` command instructs the juju controller to follow a new
+charm channel related to the kubernetes release and use the new charm
+revision of the application's channel to upgrade each unit. The
+charm code is simultaneously replaced on each unit, then the kubernetes
+snap is updated unit-by-unit, finishing with the juju leader unit for the
 application.
 
 After the `k8s-worker` charm is upgraded, the application `Version` from `juju status`
-will reflect the version of the worker nodes making up the cluster.
+will reflect the updated version of the worker nodes making up the cluster.
 
 ```{note} Repeat for every application using the k8s-worker charm if
 multiple appear in the same model.
 ```
-
 
 ## Verify an Upgrade
 
@@ -194,9 +199,10 @@ to ensure that the cluster is fully functional.
 
 <!-- LINKS -->
 
-[backup-restore]:     ../../snap/howto/backup-restore.md
-[cluster-validation]: ./validate.md
+[backup-restore]:     ../../snap/howto/backup-restore
+[cluster-validation]: ./validate
 [juju-docs]:          https://juju.is/docs/juju/upgrade-models
-[release-notes]:      ../reference/releases.md
-[upgrade-notes]:      ../reference/upgrade-notes.md
+[release-notes]:      ../reference/releases
+[upgrade-notes]:      ../reference/upgrade-notes
+[upgrade-patch]:      ./upgrade-patch
 [upstream-notes]:     https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.31.md#deprecation
