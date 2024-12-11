@@ -1,9 +1,9 @@
 # DISA STIG for {{product}}
 
-Security Technical Implementation Guides (STIG) are developed by the Defense
+Security Technical Implementation Guides (STIGs) are developed by the Defense
 Information System Agency (DISA) for the U.S. Department of Defense (DoD).
 
-The Kubernetes STIGs contain guidelines on how to check and remediate various
+The Kubernetes STIG contains guidelines on how to check and remediate various
 potential security concerns for a Kubernetes deployment.
 
 {{product}} aligns with many DISA STIG compliance recommendations by default.
@@ -20,9 +20,18 @@ This guide assumes the following:
 ## Critical post-deployment hardening steps
 
 Follow these steps to apply critical security hardening steps to your cluster.
-These steps address DISA STIG hardening recommendations V-242384, V-242385,
- V-242402, V-242403, V-242461, V-242462, V-242463, V-242464, V-242465 and
- V-242434.
+These steps address DISA STIG hardening recommendations
+[V-242384](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242384),
+[V-242385](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242385),
+[V-242402](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242402),
+[V-242403](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242403),
+[V-242461](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242461),
+[V-242462](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242462),
+[V-242463](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242463),
+[V-242464](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242464),
+[V-242465](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242465),
+and
+[V-242434](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242434).
 
 ```{include} ../../../_parts/common_hardening.md
 ```
