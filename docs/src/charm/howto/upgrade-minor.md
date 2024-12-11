@@ -103,17 +103,17 @@ juju status --format=json | \
 ```
 
 This will output list of applications in the model:
-* the name of the application
-* the charm used by the application
-* the kubernetes channel this charm follows
-* the current charm revision
-* the next potential charm revision
+* the name of the application (ex. `k8s`)
+* the charm used by the application (ex. `k8s`)
+* the kubernetes channel this charm follows (ex. `1.31/stable`)
+* the current charm revision  (ex. `1001`)
+* the next potential charm revision (ex. `ch:amd64/k8s-1002`)
 
-If the `can-upgrade-to` revision is empty, you are at the most stable
-release in this channel and you should continue with the
+If the `can-upgrade-to` revision is `null`, you are at the most
+stable release in this channel and you should continue with the
 [Pre Upgrade Check](#the-pre-upgrade-check).
 
-If there is another stable release, follow the
+If the `can-upgrade-to` revision is non-null, continue with the
 [Upgrade Patch](upgrade-patch) instructions.
 
 
