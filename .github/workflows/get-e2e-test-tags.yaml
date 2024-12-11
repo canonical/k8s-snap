@@ -12,7 +12,7 @@ jobs:
     name: Build snap
     runs-on: ubuntu-latest
     outputs:
-      test-tags: ${{ steps.get-tags.outputs.snap-artifact }}
+      test-tags: ${{ steps.get-tags.outputs.test-tags }}
     steps:
       - name: Checking out repo
         uses: actions/checkout@v4

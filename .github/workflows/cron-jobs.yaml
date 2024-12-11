@@ -80,7 +80,6 @@ jobs:
           # Add branches to test here
           - { branch: release-1.30, channel: 1.30-classic/edge }
           - { branch: release-1.31, channel: 1.31-classic/edge }
-
     uses: ./.github/workflows/security-scan.yaml
     with:
       channel: ${{ matrix.channel }}

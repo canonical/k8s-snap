@@ -51,17 +51,20 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
-    needs: build
+    needs: [build-snap, get-e2e-test-tags]
     uses: ./.github/workflows/run-e2e-tests.yaml
     with:
       arch: amd64
       os: ${{ matrix.os }}
-      test-tags: ${{ jobs.get-e2e-test-tags.outputs.test-tags}}
-      artifact: ${{ jobs.build-snap.outputs.snap-artifact}}
+      test-tags: ${{ needs.get-e2e-test-tags.outputs.test-tags}}
+      artifact: ${{ needs.build-snap.outputs.snap-artifact}}
 
   security-scan:
     name: Security scan
-    needs: build
+    needs: build-snap
     uses: ./.github/workflows/security-scan.yaml
     with:
-      artifact: ${{ jobs.build-snap.outputs.snap-artifact}}
+      artifact: ${{ needs.build-snap.outputs.snap-artifact}}
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results

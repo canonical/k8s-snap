@@ -17,30 +17,35 @@ runs:
   using: "composite"
   steps:
     - name: Exit if no input provided
-      if: ${{ inputs.artifact }} == '' && ${{ inputs.channel }} == ''
+      if: inputs.artifact == '' && inputs.channel == ''
+      shell: bash
       run: |
         echo "No k8s-snap artifact or channel specified..."
         exit 1
     - name: Exit if multiple inputs provided
-      if: ${{ inputs.artifact }} != '' && ${{ inputs.channel }} != ''
+      if: inputs.artifact != '' && inputs.channel != ''
+      shell: bash
       run: |
         echo "Received snap artifact AND snap channel."
         exit 1
     - name: Create destination dir.
+      shell: bash
       run: mkdir -p $(dirname ${{ inputs.output-file }})
 
     - name: Download snap artifact
-      if: ${{ inputs.artifact }} != ''
+      if: inputs.artifact != ''
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.artifact }}
         path: ${{ github.workspace }}
     - name: Move snap artifact.
-      if: ${{ inputs.artifact }} != ''
+      if: inputs.artifact != ''
+      shell: bash
       run: mv ${{ github.workspace }}/${{ inputs.artifact }} ${{ inputs.output-file }}
 
     - name: Download snap channel
-      if: ${{ inputs.artifact }} != ''
+      if: inputs.artifact != ''
+      shell: bash
       run: |
         cd $(dirname ${{ inputs.output-file }})
         snap download k8s --channel=${{ inputs.channel }} --basename k8s

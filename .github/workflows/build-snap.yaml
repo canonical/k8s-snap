@@ -21,7 +21,7 @@ jobs:
       - name: Checking out repo
         uses: actions/checkout@v4
       - name: Apply patches
-        if: ${{ inputs.flavor }} != ""
+        if: inputs.flavor != ''
         run: |
           ./build-scripts/patches/${{ inputs.flavor }}/apply
       - name: Install lxd

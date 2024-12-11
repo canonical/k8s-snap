@@ -37,10 +37,10 @@ jobs:
       matrix:
         os: ["ubuntu:20.04"]
         patch: ["moonray"]
-    needs: build
+    needs: [build-snap, get-e2e-test-tags]
     uses: ./.github/workflows/run-e2e-tests.yaml
     with:
       arch: amd64
       os: ${{ matrix.os }}
-      test-tags: ${{ jobs.get-e2e-test-tags.outputs.test-tags}}
+      test-tags: ${{ needs.get-e2e-test-tags.outputs.test-tags}}
       artifact: k8s-${{ matrix.patch }}.snap
