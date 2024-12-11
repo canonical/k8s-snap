@@ -6025,7 +6025,7 @@ start with `PASS`.
 > The Kubernetes PKI directory contains all certificate key files supporting
 secure network communications in the Kubernetes Control Plane. If these files
 can be modified, data traversing within the architecture components would
-become unsecure and compromised.
+become insecure and compromised.
 
 #### Comments:
 
