@@ -83,9 +83,9 @@ func TestValidateNodeTokenAccessHandler(t *testing.T) {
 			req := &http.Request{
 				Header: make(http.Header),
 			}
-			req.Header.Set(TokenHeaderName, tc.tokenHeaderContent)
+			req.Header.Set("node-token", tc.tokenHeaderContent)
 
-			handler := e.ValidateNodeTokenAccessHandler(TokenHeaderName)
+			handler := e.ValidateNodeTokenAccessHandler("node-token")
 			valid, resp := handler(nil, req)
 
 			if tc.expectErr {
