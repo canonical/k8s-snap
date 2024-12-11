@@ -16,7 +16,7 @@ This guide assumes the following:
 - You have a bootstrapped {{product}} cluster (see the [getting started] guide)
 - You have root or sudo access to the machine
 - You have reviewed the [post-deployment hardening] guide and have applied the
-  hardening steps that relevant to your use-case 
+  hardening steps that relevant to your use-case
 
 
 ## Results overview
@@ -61,9 +61,9 @@ administrator, so they cannot be automated.
 
 > The command line arguments of the Kubernetes Controller Manager
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-controller-manager
-> 
+>
 
 
 #### Remediation
@@ -124,11 +124,11 @@ The final line of the output will be `PASS`.
 > The Kubernetes System Administrators must manually inspect the services
 > in all of the default namespaces to ensure there are no
 > user-created resources within them:
-> 
+>
 >     kubectl -n default get all | grep -v "^(service|NAME)"
 >     kubectl -n kube-public get all | grep -v "^(service|NAME)"
 >     kubectl -n kube-node-lease get all | grep -v "^(service|NAME)"
-> 
+>
 
 
 
@@ -147,7 +147,7 @@ The final line of the output will be `PASS`.
 > who gains access to the host on which the Control Plane is running can bypass
 > all authorization and authentication mechanisms put in place, and have full
 > control over the entire cluster.
-> 
+>
 > Close the insecure port by setting the API server's "--insecure-port" flag to
 > "0", ensuring that the "--insecure-bind-address" is not set.
 
@@ -159,13 +159,13 @@ The final line of the output will be `PASS`.
 
 > This Finding refers to the `--insecure-port` command line argument
 > for the Kubernetes API Server service.
-> 
+>
 > Support for the `--insecure-port` flag has been deprecated in
 > Kubernetes 1.10, and completely removed in 1.21, so this Finding
 > is Not Applicable to any versions of the k8s-snap.
-> 
+>
 > https://github.com/kubernetes/kubernetes/issues/91506
-> 
+>
 
 
 
@@ -192,12 +192,12 @@ The final line of the output will be `PASS`.
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, but does explicitly pass
 > `--read-only-port=0` as a command line argument.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 
 
 #### Remediation
@@ -249,7 +249,7 @@ The final line of the output will be `PASS`.
 > which the Control Plane is running can bypass all authorization and
 > authentication mechanisms put in place and have full control over the entire
 > cluster.
-> 
+>
 > Close or set the insecure bind address by setting the API server's
 > "--insecure-bind-address" flag to an IP or leave it unset and ensure that the
 > "--insecure-bind-port" is not set.
@@ -262,9 +262,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation
@@ -315,10 +315,10 @@ The final line of the output will be `PASS`.
 > Kubernetes cluster. To control access, users must be authenticated and
 > authorized. By allowing anonymous connections, the controls put in place to
 > secure the API can be bypassed.
-> 
+>
 > Setting "--anonymous-auth" to "false" also disables unauthenticated requests
 > from kubelets.
-> 
+>
 > While there are instances where anonymous connections may be needed (e.g.,
 > health checks) and Role-Based Access Controls (RBACs) are in place to limit
 > the anonymous access, this access should be disabled, and only enabled when
@@ -332,9 +332,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation
@@ -379,10 +379,10 @@ The final line of the output will be `PASS`.
 > contained within the Kubernetes Control Plane. To control access, users must
 > be authenticated and authorized. By allowing anonymous connections, the
 > controls put in place to secure the Kubelet can be bypassed.
-> 
+>
 > Setting anonymous authentication to "false" also disables unauthenticated
 > requests from kubelets.
-> 
+>
 > While there are instances where anonymous connections may be needed (e.g.,
 > health checks) and Role-Based Access Controls (RBAC) are in place to limit
 > the anonymous access, this access must be disabled and only enabled when
@@ -397,12 +397,12 @@ The final line of the output will be `PASS`.
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, but does explicitly pass
 > `--anonymous-auth=0` as a command line argument.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 
 
 #### Remediation
@@ -462,12 +462,12 @@ The final line of the output will be `PASS`.
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, but does explicitly pass
 > `--authorization-mode=Webhook` as a command line argument.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 
 
 #### Remediation
@@ -530,16 +530,16 @@ The final line of the output will be `PASS`.
 
 > The Finding refers to checking the 'staticPodPath' in kubectl's `--config`
 > file is not set.
-> 
+>
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, nor does it pass
 > `--pod-manifest-path` as a command line argument.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 
 
 #### Remediation
@@ -600,7 +600,7 @@ The final line of the output will be `PASS`.
 > of each user-created Pod to ensure there are no Pods passing information
 > which the System Administrator may categorize as 'sensitive'
 > (e.g. passwords, cryptographic keys, API tokens, etc).
-> 
+>
 
 
 
@@ -624,17 +624,17 @@ The final line of the output will be `PASS`.
 
 > The Finding stipulates that `--protect-kernel-defaults`
 > must be set on the Kubelet service.
-> 
+>
 > This flag is not set by default in the k8s-snap, as it
 > may prevent kubelet from starting normally unless the
 > kernel settings are as Kubelet expects.
-> 
+>
 > Please review the hardening guide for information on how to
 > properly configure the Node's Operating System for Kubelet.
-> 
+>
 > <!-- TODO: link to dedicated K8s hardening doc. -->
 > https://microk8s.io/docs/how-to-cis-harden#check-426
-> 
+>
 
 
 #### Remediation
@@ -697,14 +697,14 @@ The final line of the output will be `PASS`.
 
 > This Finding stipulates that the `ValidatingAdmissionWebhook`
 > Admission Plugin should be enabled.
-> 
+>
 > The `ValidatingAdmissionWebhook` Admission Plugin is enabled
 > by default in all modern versions of the k8s-snap.
-> 
+>
 > The automated check associated with this Finding is thus meant
 > to verify that `ValidatingAdmissionWebhook` is NOT disabled
 > through the `--disable-admission-plugins` argument.
-> 
+>
 
 
 #### Remediation
@@ -768,9 +768,9 @@ The final line of the output will be `PASS`.
 > This Finding stipulates some checks on the Pod Security Policy object
 > which was deprecated in 1.21 and removed in 1.25, so it is Not Applicable
 > to any versions of the k8s-snap.
-> 
+>
 > https://kubernetes.io/docs/concepts/security/pod-security-policy/
-> 
+>
 
 
 
@@ -797,9 +797,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation
@@ -861,9 +861,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation
@@ -918,11 +918,11 @@ The final line of the output will be `PASS`.
 > architecture. Using authenticity protection, the communication can be
 > protected against man-in-the-middle attacks/session hijacking and the
 > insertion of false information into sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols, such as TLS. TLS provides the Kubernetes API Server with a means
 > to be able to authenticate sessions and encrypt traffic.
-> 
+>
 > By default, the API Server does not authenticate to the kubelet HTTPs
 > endpoint. To enable secure communication for API Server, the parameter
 > -kubelet-client-certificate and kubelet-client-key must be set. This
@@ -939,9 +939,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation for Step 1
@@ -987,9 +987,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation for Step 2
@@ -1039,11 +1039,11 @@ The final line of the output will be `PASS`.
 > An admission controller intercepts and processes requests to the Kubernetes
 > API prior to persistence of the object, but after the request is
 > authenticated and authorized.
-> 
+>
 > Kubernetes (> v1.23)offers a built-in Pod Security admission controller to
 > enforce the Pod Security Standards. Pod security restrictions are applied at
-> the namespace level when pods are created. 
-> 
+> the namespace level when pods are created.
+>
 > The Kubernetes Pod Security Standards define different isolation levels for
 > Pods. These standards define how to restrict the behavior of pods in a clear,
 > consistent fashion.
@@ -1058,13 +1058,13 @@ The final line of the output will be `PASS`.
 > Control File which will need to be manually configured by
 > the Kubernetes System Administrator on a per-organization
 > basis.
-> 
+>
 > Instructions on how to configure an `--admission-control-config-file` for
 > the Kube API Server of the k8s-snap can be found at:
-> 
+>
 > <!-- TODO: switch link to dedicated DISA Hardening page when published. -->
 > https://documentation.ubuntu.com/canonical-kubernetes/latest/src/snap/howto/cis-hardening/#configure-auditing
-> 
+>
 
 
 
@@ -1079,15 +1079,15 @@ The final line of the output will be `PASS`.
 > PodSecurity admission controller is a component that validates and enforces
 > security policies for pods running within a Kubernetes cluster. It is
 > responsible for evaluating the security context and configuration of pods
-> against defined policies. 
-> 
+> against defined policies.
+>
 > To enable PodSecurity admission controller on Static Pods (kube-apiserver,
 > kube-controller-manager, or kube-schedule), the argument
 > "--feature-gates=PodSecurity=true" must be set.
-> 
-> To enable PodSecurity admission controller on Kubelets, the featureGates
+>
+> To enable PodSecurity admission controller on Kubelets, the feature gates
 > PodSecurity=true argument must be set.
-> 
+>
 > (Note: The PodSecurity feature gate is GA as of  v1.25.)
 
 
@@ -1098,15 +1098,15 @@ The final line of the output will be `PASS`.
 
 > This Finding refers to setting the `--feature-gates=PodSecurity=true`
 > feature gate for the Kubernetes API Server.
-> 
+>
 > The `PodSecurity` feature gate has been GA and enabled by default
 > since 1.25.
-> 
+>
 > https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates-removed/
-> 
+>
 > The automated check associated with this Finding is thus meant
 > to verify that `PodSecurity` is NOT disabled.
-> 
+>
 
 
 #### Remediation
@@ -1153,7 +1153,7 @@ The final line of the output will be `PASS`.
 
 > The Kubernetes Controller Manager will prohibit the use of SSL and
 > unauthorized versions of TLS protocols to properly secure communication.
-> 
+>
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
 > rogue traffic interceptions, man-in-the-middle attacks, and impersonation of
 > users or services from the container platform runtime, registry, and key
@@ -1168,9 +1168,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes Controller Manager
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-controller-manager
-> 
+>
 
 
 #### Remediation
@@ -1214,7 +1214,7 @@ The final line of the output will be `PASS`.
 
 > The Kubernetes Scheduler will prohibit the use of SSL and unauthorized
 > versions of TLS protocols to properly secure communication.
-> 
+>
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
 > rogue traffic interceptions, man-in-the-middle attacks, and impersonation of
 > users or services from the container platform runtime, registry, and
@@ -1229,9 +1229,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes Scheduler
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-scheduler
-> 
+>
 
 
 #### Remediation
@@ -1274,7 +1274,7 @@ The final line of the output will be `PASS`.
 
 > The Kubernetes API Server will prohibit the use of SSL and unauthorized
 > versions of TLS protocols to properly secure communication.
-> 
+>
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
 > rogue traffic interceptions, man-in-the-middle attacks, and impersonation of
 > users or services from the container platform runtime, registry, and
@@ -1286,9 +1286,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes Scheduler
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-scheduler
-> 
+>
 
 
 #### Remediation
@@ -1331,7 +1331,7 @@ The final line of the output will be `PASS`.
 
 > Kubernetes etcd will prohibit the use of SSL and unauthorized versions of TLS
 > protocols to properly secure communication.
-> 
+>
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
 > rogue traffic interceptions, man-in-the-middle attacks, and impersonation of
 > users or services from the container platform runtime, registry, and
@@ -1346,22 +1346,22 @@ The final line of the output will be `PASS`.
 
 > This finding refers to the `--auto-tls` command line argument for the
 > etcd service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The k8s-snap configures the Kube API Server to connect to
 > k8s-dqlite via local socket owned by root.
-> 
+>
 > The Auditing section will describe how to check the ownership
 > of the k8s-dqlite socket.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -1393,7 +1393,7 @@ start with `PASS`.
 
 #### Remediation for Step 2
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -1422,7 +1422,7 @@ start with `PASS`.
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
-> 
+>
 
 
 #### Remediation for Step 3
@@ -1472,7 +1472,7 @@ The final line of the output will be `PASS`.
 
 > The Kubernetes API Server will prohibit the use of SSL and unauthorized
 > versions of TLS protocols to properly secure communication.
-> 
+>
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
 > rogue traffic interceptions, man-in-the-middle attacks, and impersonation of
 > users or services from the container platform runtime, registry, and
@@ -1487,17 +1487,17 @@ The final line of the output will be `PASS`.
 
 > This finding refers to the `--peer-auto-tls` command line argument for
 > the etcd service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > k8s-dqlite communication defaults to using TLS unless the
 > `--enable-tls` argument is set in k8s-dqlite argument configuration
 > file located at:
-> 
+>
 >     /var/snap/k8s/common/args/k8s-dqlite
-> 
+>
 
 
 #### Remediation
@@ -1553,11 +1553,11 @@ The final line of the output will be `PASS`.
 > authenticated entity also has a validated and current authorization.
 > Authorization is the process of determining whether an entity, once
 > authenticated, is permitted to access a specific asset.
-> 
+>
 > Node,RBAC is the method within Kubernetes to control access of users and
 > applications. Kubernetes uses roles to grant authorization API requests made
 > by kubelets.
-> 
+>
 > Satisfies: SRG-APP-000340-CTR-000770, SRG-APP-000033-CTR-000095,
 > SRG-APP-000378-CTR-000880, SRG-APP-000033-CTR-000090
 
@@ -1569,11 +1569,11 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 > Note that the ordering of the values is mandatory.
-> 
+>
 
 
 #### Remediation
@@ -1635,9 +1635,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes Scheduler
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-scheduler
-> 
+>
 
 
 #### Remediation
@@ -1693,9 +1693,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes Controller Manager
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-controller-manager
-> 
+>
 
 
 #### Remediation
@@ -1741,7 +1741,7 @@ The final line of the output will be `PASS`.
 > and authorization checks. If this port is disabled, anyone who gains access
 > to the host on which the Control Plane is running has full control of the
 > entire cluster over encrypted traffic.
-> 
+>
 > Open the secure port by setting the API server's "--secure-port" flag to a
 > value other than "0".
 
@@ -1753,9 +1753,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation
@@ -1815,10 +1815,10 @@ The final line of the output will be `PASS`.
 > This Finding aims to completely prohibit the *running*
 > of SSHD on all worker Nodes, and must be assessed by the
 > Kubernetes System Administrator as applicable.
-> 
+>
 > It also mentions that:
 > "If the worker nodes cannot be reached, this requirement is "not a finding"."
-> 
+>
 
 
 
@@ -1844,10 +1844,10 @@ The final line of the output will be `PASS`.
 > This Finding aims to prohibit the *enabling of the service*
 > for SSHD on all worker Nodes, and must be assessed by the
 > Kubernetes System Administrator as applicable.
-> 
+>
 > It also mentions that:
 > "If the worker nodes cannot be reached, this requirement is "not a finding"."
-> 
+>
 
 
 
@@ -1874,12 +1874,12 @@ The final line of the output will be `PASS`.
 
 > The k8s-snap does not automatically deploy or configure the Kubernetes Dashboard,
 > so this finding is Not Applicable.
-> 
+>
 > You can check whether the Kubernetes Dashboard has been installed post-snap-setup
 > by running:
-> 
+>
 >     k8s kubectl get pods --all-namespaces -l k8s-app=kubernetes-dashboard
-> 
+>
 
 
 
@@ -1909,12 +1909,12 @@ The final line of the output will be `PASS`.
 
 > This Finding refers to checking the `kubectl version --client` to avoid
 > a known security issue with `kubectl cp`.
-> 
+>
 > This issue was fixed in 1.12.9, and thus is Not Applicable to any
 > versions of the k8s-snap.
-> 
+>
 > https://discuss.kubernetes.io/t/announce-security-release-of-kubernetes-kubectl-potential-directory-traversal-releases-1-11-9-1-12-7-1-13-5-and-1-14-0-cve-2019-1002101/5712
-> 
+>
 
 
 
@@ -1932,7 +1932,7 @@ The final line of the output will be `PASS`.
 > difficult to investigate how the attack took place and what changes were
 > made. The audit data can be protected through audit log file protections and
 > user authorization.
-> 
+>
 > One way for an attacker to thwart these measures is to send the audit logs to
 > another source and filter the audited results before sending them on to the
 > original target. This can be done in Kubernetes through the configuration of
@@ -1945,12 +1945,12 @@ The final line of the output will be `PASS`.
 #### Comments:
 
 > This finding relates to the `--feature-gate=DynamicAuditing` feature gate flag.
-> 
+>
 > This Feature Gate was only available between Kubernetes versions 1.13-1.19,
 > and is thus Not Applicable to any version of the k8s-snap.
-> 
+>
 > https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates-removed/
-> 
+>
 
 
 
@@ -1977,12 +1977,12 @@ The final line of the output will be `PASS`.
 #### Comments:
 
 > Checks related to the `--feature-gate=DynamicKubeletConfig` feature gate flag.
-> 
+>
 > This Feature Gate was only available between Kubernetes versions 1.4-1.25,
 > and is thus Not Applicable to any version of the k8s-snap.
-> 
+>
 > https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates-removed/
-> 
+>
 
 
 
@@ -2007,7 +2007,7 @@ The final line of the output will be `PASS`.
 #### Comments:
 
 > The k8s-snap does not set the `--feature-gate` flag on the `kube-apiserver`.
-> 
+>
 
 
 #### Remediation
@@ -2070,14 +2070,14 @@ The final line of the output will be `PASS`.
 
 > This Finding refers to the `--audit-log-path` argument of the
 > Kubernetes API Service.
-> 
+>
 > The k8s-snap does not configure auditing by default.
-> 
+>
 > Please review the [post-deployment hardening] guide for a full description
 > on how to enable auditing for the kube-apiserver.
-> 
+>
 > This Finding is basically a duplicate of V-242465.
-> 
+>
 
 
 #### Remediation
@@ -2123,8 +2123,8 @@ The final line of the output will be `PASS`.
 > security incidents that must be investigated. To make the audit data
 > worthwhile for the investigation of events, it is necessary to have the
 > appropriate and required data logged. To fully understand the event, it is
-> important to identify any users associated with the event. 
-> 
+> important to identify any users associated with the event.
+>
 > The API server policy file allows for the following levels of auditing:
 >       None - Do not log events that match the rule.
 >       Metadata - Log request metadata (requesting user, timestamp, resource,
@@ -2133,7 +2133,7 @@ The final line of the output will be `PASS`.
 >             response body.
 >       RequestResponse - Log event metadata, request, and
 >             response bodies.
-> 
+>
 > Satisfies: SRGID:SRG-APP-000092-CTR-000165, SRG-APP-000026-CTR-000070,
 > SRG-APP-000027-CTR-000075, SRG-APP-000028-CTR-000080,
 > SRG-APP-000101-CTR-000205, SRG-APP-000100-CTR-000200,
@@ -2155,12 +2155,12 @@ The final line of the output will be `PASS`.
 
 > This Finding refers to the `--audit-policy-file` argument of the
 > Kubernetes API Service.
-> 
+>
 > The k8s-snap does not configure auditing by default.
-> 
+>
 > Please review the [post-deployment hardening] guide for a full description
 > on how to enable auditing for the kube-apiserver.
-> 
+>
 
 
 #### Remediation
@@ -2216,9 +2216,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 
 
 #### Remediation
@@ -2273,15 +2273,15 @@ The final line of the output will be `PASS`.
 
 > The manifest files for the Kubernetes services in the k8s-snap are
 > located in the following directories:
-> 
+>
 >     /etc/kubernetes
 >     /etc/containerd
-> 
+>
 
 
 #### Remediation
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -2343,23 +2343,23 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 #### Comments:
 
 > This Finding relates to the ownership of Kubelet's `--config` file.
-> 
+>
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 > The Auditing section will advise on how to check the ownership
 > of said file.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -2388,7 +2388,7 @@ start with `PASS`.
 
 > This check is defined to ensure that Kubelet is not passed
 > a `--config` file argument in the k8s-snap.
-> 
+>
 
 
 #### Remediation for Step 2
@@ -2450,23 +2450,23 @@ The final line of the output will be `PASS`.
 #### Comments:
 
 > This Finding relates to the permissions on Kubelet's `--config` file.
-> 
+>
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 > The Auditing section will advise on how to check the permissions
 > of said file.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -2495,7 +2495,7 @@ start with `PASS`.
 
 > This check is defined to ensure that Kubelet is not passed
 > a `--config` file argument in the k8s-snap.
-> 
+>
 
 
 #### Remediation for Step 2
@@ -2547,7 +2547,7 @@ The final line of the output will be `PASS`.
 > scheduler, controller, and etcd. If an attacker can gain access to these
 > files, changes can be made to open vulnerabilities and bypass user
 > authorizations inherent within Kubernetes with RBAC implemented.
-> 
+>
 > Satisfies: SRG-APP-000133-CTR-000310, SRG-APP-000133-CTR-000295,
 > SRG-APP-000516-CTR-001335
 
@@ -2560,16 +2560,16 @@ The final line of the output will be `PASS`.
 > The Finding requires checking the permissions of the files
 > within the `/etc/kubernetes/manifests` directory, but the k8s-snap
 > does not use it.
-> 
+>
 > The usual manifest files for the k8s-snap are located under:
-> 
+>
 >     /var/snap/k8s/common/args
-> 
+>
 
 
 #### Remediation
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -2619,9 +2619,9 @@ start with `PASS`.
 
 > The command line arguments of the Kubernetes Controller Manager
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-controller-manager
-> 
+>
 
 
 #### Remediation
@@ -2677,9 +2677,9 @@ The final line of the output will be `PASS`.
 
 > This STIG Finding relates to implementing PPSM CAL for kube-apiserver,
 > and must be assessed manually by the Auditor.
-> 
+>
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
-> 
+>
 
 
 
@@ -2704,9 +2704,9 @@ The final line of the output will be `PASS`.
 
 > This STIG Finding relates to implementing PPSM CAL for kube-scheduler,
 > and must be assessed manually by the Auditor.
-> 
+>
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
-> 
+>
 
 
 
@@ -2731,9 +2731,9 @@ The final line of the output will be `PASS`.
 
 > This STIG Finding relates to implementing PPSM CAL for kube-controller-manager,
 > and must be assessed manually by the Auditor.
-> 
+>
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
-> 
+>
 
 
 
@@ -2756,13 +2756,13 @@ The final line of the output will be `PASS`.
 #### Comments:
 
 > This STIG Finding relates to implementing PPSM CAL for etcd.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling, so this Finding is Not Applicable.
-> 
+>
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
-> 
+>
 
 
 
@@ -2792,10 +2792,10 @@ The final line of the output will be `PASS`.
 > The Kubernetes System Administrators must manually inspect the Pods
 > in all of the default namespaces to ensure there are no user-created
 > Pods with Containers exposing privileged port numbers (< 1024).
-> 
+>
 >     kubectl get pods --all-namespaces
 >     kubectl -n NAMESPACE get pod PODNAME -o yaml | grep -i port
-> 
+>
 
 
 
@@ -2824,11 +2824,11 @@ The final line of the output will be `PASS`.
 > in all of the default namespaces to ensure there are no
 > user-created Pods within them, and move them to dedicated
 > user namespaces if present.
-> 
+>
 >     kubectl -n kube-system get pods
 >     kubectl -n kube-public get pods
 >     kubectl -n kube-node-lease get pods
-> 
+>
 
 
 
@@ -2855,9 +2855,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation
@@ -2911,11 +2911,11 @@ The final line of the output will be `PASS`.
 > architecture. Using authenticity protection, the communication can be
 > protected against man-in-the-middle attacks/session hijacking and the
 > insertion of false information into sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols such as TLS. TLS provides the Kubernetes API Server with a means to
-> authenticate sessions and encrypt traffic. 
-> 
+> authenticate sessions and encrypt traffic.
+>
 > To enable encrypted communication for API Server, the parameter
 > client-ca-file must be set. This parameter gives the location of the
 > SSL Certificate Authority file used to secure API Server communication.
@@ -2928,9 +2928,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation
@@ -2981,11 +2981,11 @@ The final line of the output will be `PASS`.
 > Using authenticity protection, the communication can be protected against
 > man-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols such as TLS. TLS provides the Kubernetes API Server with a means to
 > authenticate sessions and encrypt traffic.
-> 
+>
 > To enable encrypted communication for Kubelet, the clientCAFile must be set.
 > This parameter gives the location of the SSL Certificate Authority file used
 > to secure Kubelet communication.
@@ -2999,12 +2999,12 @@ The final line of the output will be `PASS`.
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, but does explicitly pass the
 > `--client-ca-file` argument as a command line argument.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 
 
 #### Remediation
@@ -3051,14 +3051,14 @@ The final line of the output will be `PASS`.
 > accounts and tokens for the API Server, maintaining the correct number of
 > pods for every replication controller and provides notifications when nodes
 > are offline.
-> 
+>
 > Anyone who gains access to the Controller Manager can generate backdoor
 > accounts, take possession of, or diminish system performance without
 > detection > by disabling system notification. Using authenticity protection,
 > the > communication can be protected against man-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols, such as TLS. TLS provides the Kubernetes Controller Manager with a
 > means to be able to authenticate sessions and encrypt traffic.
@@ -3071,9 +3071,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes Controller Manager
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-controller-manager
-> 
+>
 
 
 #### Remediation
@@ -3124,11 +3124,11 @@ The final line of the output will be `PASS`.
 > authenticity protection, the communication can be protected against
 > man-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols, such as TLS. TLS provides the Kubernetes API Server with a means to
-> be able to authenticate sessions and encrypt traffic. 
-> 
+> be able to authenticate sessions and encrypt traffic.
+>
 > To enable encrypted communication for API Server, the parameter etcd-cafile
 > must be set. This parameter gives the location of the SSL Certificate
 > Authority file used to secure API Server communication.
@@ -3143,9 +3143,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation for Step 1
@@ -3191,9 +3191,9 @@ The final line of the output will be `PASS`.
 
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kube-apiserver
-> 
+>
 
 
 #### Remediation for Step 2
@@ -3247,11 +3247,11 @@ The final line of the output will be `PASS`.
 > Using authenticity protection, the communication can be protected against
 > man-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols, such as TLS. TLS provides the Kubernetes API Server with a means to
 > be able to authenticate sessions and encrypt traffic.
-> 
+>
 > To enable encrypted communication for Kubelet, the parameter client-cert-auth
 > must be set. This parameter gives the location of the SSL Certificate
 > Authority file used to secure Kubelet communication.
@@ -3266,22 +3266,22 @@ The final line of the output will be `PASS`.
 
 > This finding refers to the `--cert-file` command line argument for the
 > etcd service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The k8s-snap configures the Kube API Server to connect to
 > k8s-dqlite via local socket owned by root.
-> 
+>
 > The Auditing section will describe how to check the ownership
 > of the k8s-dqlite socket.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -3313,7 +3313,7 @@ start with `PASS`.
 
 #### Remediation for Step 2
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -3342,7 +3342,7 @@ start with `PASS`.
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
-> 
+>
 
 
 #### Remediation for Step 3
@@ -3394,11 +3394,11 @@ The final line of the output will be `PASS`.
 > Using authenticity protection, the communication can be protected against
 > man-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols such as TLS. TLS provides the Kubernetes API Server with a means to
 > authenticate sessions and encrypt traffic.
-> 
+>
 > To enable encrypted communication for Kubelet, the tlsPrivateKeyFile must be
 > set. This parameter gives the location of the SSL Certificate Authority file
 > used to secure Kubelet communication.
@@ -3413,12 +3413,12 @@ The final line of the output will be `PASS`.
 > to the Kubelet service, but does explicitly pass
 > `--tls-private-key-file=/etc/kubernetes/pki/kubelet.key`
 > as a command line argument.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 
 
 #### Remediation
@@ -3466,11 +3466,11 @@ The final line of the output will be `PASS`.
 > Using authenticity protection, the communication can be protected against
 > man-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols such as TLS. TLS provides the Kubernetes API Server with a means to
 > authenticate sessions and encrypt traffic.
-> 
+>
 > To enable encrypted communication for Kubelet, the parameter tlsCertFile must
 > be set. This parameter gives the location of the SSL Certificate Authority
 > file used to secure Kubelet communication.
@@ -3485,12 +3485,12 @@ The final line of the output will be `PASS`.
 > to the Kubelet service, but does explicitly pass
 > `--tls-cert-file=/etc/kubernetes/pki/kubelet.crt`
 > as a command line argument.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 
 
 #### Remediation
@@ -3537,11 +3537,11 @@ The final line of the output will be `PASS`.
 > Using authenticity protection, the communication can be protected against
 > man-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols, such as TLS. TLS provides the Kubernetes API Server with a means to
 > be able to authenticate sessions and encrypt traffic.
-> 
+>
 > Etcd is a highly-available key value store used by Kubernetes deployments for
 > persistent storage of all of its REST API objects. These objects are sensitive
 > and should be accessible only by authenticated etcd peers in the etcd cluster.
@@ -3556,17 +3556,17 @@ The final line of the output will be `PASS`.
 
 > This finding refers to the `--peer-client-cert-auth` command
 > line argument for the etcd service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > k8s-dqlite peer communication defaults to using TLS unless the
 > `--enable-tls` argument is set in k8s-dqlite argument configuration
 > file located at:
-> 
+>
 >     /var/snap/k8s/common/args/k8s-dqlite
-> 
+>
 
 
 #### Remediation
@@ -3619,11 +3619,11 @@ The final line of the output will be `PASS`.
 > protection, the communication can be protected against man-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with
 > a means to be able to authenticate sessions and encrypt traffic.
-> 
+>
 > To enable encrypted communication for etcd, the parameter key-file must be
 > set. This parameter gives the location of the key file used to secure etcd
 > communication.
@@ -3638,22 +3638,22 @@ The final line of the output will be `PASS`.
 
 > This finding refers to the `--key-file` command line argument for the
 > etcd service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The k8s-snap configures the Kube API Server to connect to
 > k8s-dqlite via local socket owned by root.
-> 
+>
 > The Auditing section will describe how to check the ownership
 > of the k8s-dqlite socket.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -3683,7 +3683,7 @@ start with `PASS`.
 
 #### Remediation for Step 2
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -3709,7 +3709,7 @@ start with `PASS`.
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
-> 
+>
 
 
 #### Remediation for Step 3
@@ -3762,11 +3762,11 @@ The final line of the output will be `PASS`.
 > protection, the communication can be protected against man-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
-> protocols, such as TLS. TLS provides the Kubernetes API Server and etcd 
-> with a means to be able to authenticate sessions and encrypt traffic. 
-> 
+> protocols, such as TLS. TLS provides the Kubernetes API Server and etcd
+> with a means to be able to authenticate sessions and encrypt traffic.
+>
 > To enable encrypted communication for etcd, the parameter cert-file must be
 > set. This parameter gives the location of the SSL certification file used to
 > secure etcd communication.
@@ -3781,22 +3781,22 @@ The final line of the output will be `PASS`.
 
 > This finding refers to the `--cert-file` command line argument for the
 > etcd service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The k8s-snap configures the Kube API Server to connect to
 > k8s-dqlite via local socket owned by root.
-> 
+>
 > The Auditing section will describe how to check the ownership
 > of the k8s-dqlite socket.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -3824,7 +3824,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 #### Remediation for Step 2
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -3851,7 +3851,7 @@ start with `PASS`.
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
-> 
+>
 
 
 #### Remediation for Step 3
@@ -3899,9 +3899,9 @@ The final line of the output will be `PASS`.
 > protection, the communication can be protected against man-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
-> 
-> The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic. 
-> 
+>
+> The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic.
+>
 > To enable encrypted communication for etcd, the parameter "--etcd-cafile" must be set. This parameter gives the location of the SSL Certificate Authority file used to secure etcd communication.
 
 
@@ -3912,22 +3912,22 @@ The final line of the output will be `PASS`.
 
 > This finding refers to the `--etcd-cafile` command line argument for the
 > Kube API Service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The k8s-snap configures the Kube API Server to connect to
 > k8s-dqlite via local socket owned by root.
-> 
+>
 > The Auditing section will describe how to check the ownership
 > of the k8s-dqlite socket.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -3955,7 +3955,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 #### Remediation for Step 2
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -3980,7 +3980,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
-> 
+>
 
 
 #### Remediation for Step 3
@@ -4019,9 +4019,9 @@ The final line of the output will be `PASS`.
 #### Upstream Finding Description:
 
 > Kubernetes stores configuration and state information in a distributed key-value store called etcd. Anyone who can write to etcd can effectively control the Kubernetes cluster. Even just reading the contents of etcd could easily provide helpful hints to a would-be attacker. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
-> 
-> The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic. 
-> 
+>
+> The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic.
+>
 > To enable encrypted communication for etcd, the parameter "--etcd-certfile" must be set. This parameter gives the location of the SSL certification file used to secure etcd communication.
 
 
@@ -4034,22 +4034,22 @@ The final line of the output will be `PASS`.
 
 > This finding refers to the `--etcd-certfile` command line argument for the
 > Kube API Service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The k8s-snap configures the Kube API Server to connect to
 > k8s-dqlite via local socket owned by root.
-> 
+>
 > The Auditing section will describe how to check the ownership
 > of the k8s-dqlite socket.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -4077,7 +4077,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 #### Remediation for Step 2
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -4103,7 +4103,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
-> 
+>
 
 
 #### Remediation for Step 3
@@ -4153,11 +4153,11 @@ The final line of the output will be `PASS`.
 > protection, the communication can be protected against man-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 > protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with
-> a means to be able to authenticate sessions and encrypt traffic. 
-> 
+> a means to be able to authenticate sessions and encrypt traffic.
+>
 > To enable encrypted communication for etcd, the parameter "--etcd-keyfile"
 > must be set. This parameter gives the location of the key file used to secure
 > etcd communication.
@@ -4172,22 +4172,22 @@ The final line of the output will be `PASS`.
 
 > This finding refers to the `--etcd-keyfile` command line argument
 > for the Kube API Service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The k8s-snap configures the Kube API Server to connect to
 > k8s-dqlite via local socket owned by root.
-> 
+>
 > The Auditing section will describe how to check the ownership
 > of the k8s-dqlite socket.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -4215,7 +4215,7 @@ start with `PASS`.
 
 #### Remediation for Step 2
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -4242,7 +4242,7 @@ will start with `PASS`.
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
-> 
+>
 
 
 #### Remediation for Step 3
@@ -4294,11 +4294,11 @@ control the Kubernetes cluster. Even just reading the contents of etcd could
 easily provide helpful hints to a would-be attacker. Using authenticity
 protection, the communication can be protected against man-in-the-middle
 attacks/session hijacking and the insertion of false information into sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 protocols, such as TLS. TLS provides the Kubernetes API Server and etcd
 with a means to be able to authenticate sessions and encrypt traffic.
-> 
+>
 > To enable encrypted communication for etcd, the parameter peer-cert-file must
 be set. This parameter gives the location of the SSL certification file used to
 secure etcd communication.
@@ -4308,18 +4308,18 @@ secure etcd communication.
 
 > This finding refers to the `--peer-cert-file` command
 > line argument for the etcd service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The Peer Certificate File used by k8s-dqlite is located at:
-> 
+>
 >     /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt
-> 
+>
 > The directory of the certificate file is governed by the
 > `--storage-dir` k8s-dqlite argument.
-> 
+>
 
 
 #### Remediation
@@ -4370,11 +4370,11 @@ easily provide helpful hints to a would-be attacker. Using authenticity
 protection, the communication can be protected against man-in-the-middle
 attacks/session hijacking and the insertion of false information into
 sessions.
-> 
+>
 > The communication session is protected by utilizing transport encryption
 protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with
-a means to be able to authenticate sessions and encrypt traffic. 
-> 
+a means to be able to authenticate sessions and encrypt traffic.
+>
 > To enable encrypted communication for etcd, the parameter peer-key-file must
 be set. This parameter gives the location of the SSL certification file used
 to secure etcd communication.
@@ -4384,18 +4384,18 @@ to secure etcd communication.
 
 > This finding refers to the `--peer-key-file` command
 > line argument for the etcd service.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The Peer Key File used by k8s-dqlite is located at:
-> 
+>
 >     /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key
-> 
+>
 > The directory of the key file is governed by the
 > `--storage-dir` k8s-dqlite argument.
-> 
+>
 
 
 #### Remediation
@@ -4448,7 +4448,7 @@ set to "0". This disables the request-timeout feature. (By default, the
 #### Comments:
 
 > The Finding also allows for setting a timeout larger than 300s.
-> 
+>
 
 
 #### Remediation
@@ -4500,10 +4500,10 @@ to always be at the desired security state.
 
 > This Finding recommends checking that no residual versions of Kubernetes
 > components are left running following upgrades of the Kubernetes cluster.
-> 
+>
 > Thanks to the k8s-snap's distribution and upgrade model, it is not
 > possible for this to occur, so this Finding is Not Applicable.
-> 
+>
 
 
 
@@ -4518,17 +4518,17 @@ to always be at the desired security state.
 > Kubernetes software must stay up to date with the latest patches, service
 packs, and hot fixes. Not updating the Kubernetes control plane will expose
 the organization to vulnerabilities.
-> 
+>
 > Flaws discovered during security assessments, continuous monitoring, incident
 response activities, or information system error handling must also be addressed
-expeditiously. 
-> 
+expeditiously.
+>
 > Organization-defined time periods for updating security-relevant container
 platform components may vary based on a variety of factors including, for
 example, the security category of the information system or the criticality of
 the update (i.e., severity of the vulnerability related to the
-discovered flaw). 
-> 
+discovered flaw).
+>
 > This requirement will apply to software patch management solutions that are
 used to install patches across the enclave and also to applications themselves
 that are not part of that patch management solution. For example, many browsers
@@ -4538,7 +4538,7 @@ situations regarding the patch management process will also vary. This means
 that the time period utilized must be a configurable parameter. Time frames for
 application of security-relevant software updates may be dependent upon the
 IAVM process.
-> 
+>
 > The container platform components will be configured to check for and install
 security-relevant software updates within an identified time period from the
 availability of the update. The container platform registry will ensure the
@@ -4550,13 +4550,13 @@ authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 
 > This Finding recommends checking all Kubernetes component versions
 > are actively supported.
-> 
+>
 > https://kubernetes.io/releases/version-skew-policy/#supported-versions
-> 
+>
 > Supported versions of the k8s-snap should always ship with supported
 > versions of Kubernetes components within it, so this Finding is
 > Not Applicable.
-> 
+>
 
 
 
@@ -4582,14 +4582,14 @@ settings within the document are implemented through these manifests.
 
 > The manifest files for the Kubernetes services in the k8s-snap are
 > located in the following directories:
-> 
+>
 >     /etc/kubernetes
-> 
+>
 
 
 #### Remediation
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -4647,22 +4647,22 @@ through this file.
 
 > This Finding refers to checking the ownership of all etcd-related
 > files under /var/lib/etcd/*.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The state directory for k8s-dqlite within the k8s-snap is located under:
-> 
+>
 >     /var/snap/k8s/common/var/lib/k8s-dqlite
-> 
+>
 > Related Finding V-242459 contains directives on the permissions of the files.
-> 
+>
 
 
 #### Remediation
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -4705,14 +4705,14 @@ this file.
 
 > Note that the original Finding references 'controller-manager.conf',
 > but the k8s-snap uses 'controller.conf'.
-> 
+>
 > Finding V-242460 defines the permissions checks for these files.
-> 
+>
 
 
 #### Remediation
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -4755,14 +4755,14 @@ document are implemented through this file.
 
 > Finding stipulates that permission mask should be at most 644,
 > but they can also be set to be more restrictive.
-> 
+>
 > Finding V-242448 defines the associated file ownership requirements.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -4788,7 +4788,7 @@ will start with `PASS`.
 
 > This check was added to ensure the Kubernetes Proxy configuration
 > file path is set as expected.
-> 
+>
 
 
 #### Remediation for Step 2
@@ -4847,14 +4847,14 @@ the document are implemented through this file.
 #### Comments:
 
 > Finding stipulates the file should be owned by the root user/group.
-> 
+>
 > Finding V-242447 defines the associated file permissions requirements.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
     chown -R 0:0 /etc/kubernetes/proxy.conf
@@ -4879,7 +4879,7 @@ will start with `PASS`.
 #### Comments:
 
 > This check was added to ensure the proxy config is as expected.
-> 
+>
 
 
 #### Remediation for Step 2
@@ -4931,16 +4931,18 @@ the security settings within the document are implemented through this file.
 
 
 #### Comments:
+>
 > Finding stipulates that permission mask should be at most 644,
 > but they can also be set to be more restrictive.
-> 
+>
 > Finding V-242450 defines the associated file ownership requirements.
 > Finding V-242451 deines the associated directory ownership requirements.
-> 
+>
 
 
 #### Remediation for Step 1
-Ensure all of the following paths have correct permissions by running: 
+
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -4966,7 +4968,7 @@ will start with `PASS`.
 #### Comments:
 
 > This check was added to ensure the `--client-ca-file` is as expected.
-> 
+>
 
 
 #### Remediation for Step 2
@@ -5023,14 +5025,14 @@ document are implemented through this file.
 #### Comments:
 
 > Finding stipulates the file should be owned by the root user/group.
-> 
+>
 > Finding V-242449 defines the associated file permissions requirements.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -5056,7 +5058,7 @@ will start with `PASS`.
 #### Comments:
 
 > This check was added to ensure the `--client-ca-file` is as expected.
-> 
+>
 
 
 #### Remediation for Step 2
@@ -5102,23 +5104,23 @@ The final line of the output will be `PASS`.
 > The Kubernetes PKI directory contains all certificates (.crt files)
 supporting secure network communications in the Kubernetes Control Plane. If
 these files can be modified, data traversing within the architecture components
-would become unsecure and compromised. Many of the security settings within the
+would become insecure and compromised. Many of the security settings within the
 document are implemented through this file.
 
 
 #### Comments:
 
 > The k8s-snap stores PKI-related files in the following directory:
-> 
+>
 >     /etc/kubernetes/pki
-> 
+>
 > Finding V-242466 stipulates the permissions of this directory.
-> 
+>
 
 
 #### Remediation
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -5174,12 +5176,12 @@ implemented through this file.
 
 > Finding stipulates that permission mask should be at most 644,
 > but they can also be set to be more restrictive.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /etc/kubernetes/kubelet.conf
 
@@ -5255,11 +5257,11 @@ the security settings within the document are implemented through this file.
 #### Comments:
 
 > Finding stipulates the file should be owned by the root user/group.
-> 
+>
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct ownership by running: 
+Ensure all of the following paths have correct ownership by running:
 
 
 
@@ -5334,13 +5336,13 @@ the security settings within the document are implemented through this file.
 
 > This Finding stipulates the file ownership of the kubeadm executable,
 > which does not ship as part of the k8s-snap.
-> 
+>
 > The Auditor may check whether the binary was installed separately and its
 > permissions are correct by performing:
-> 
+>
 >     # Should print 'root:root' if the kubeadm binary exists in $PATH.
 >     stat -c %U:%G $(which kubeadm)
-> 
+>
 
 
 
@@ -5362,13 +5364,13 @@ the security settings within the document are implemented through this file.
 
 > This Finding stipulates the file ownership of the kubeadm executable,
 > which does not ship as part of the k8s-snap.
-> 
+>
 > The Auditor may check whether the binary was installed separately and its
 > permissions are correct by performing:
-> 
+>
 >     # Should print 'root:root' if the kubeadm binary exists in $PATH.
 >     stat -c %U:%G $(which kubeadm)
-> 
+>
 
 
 
@@ -5392,23 +5394,23 @@ information system would be unaware of pod or container degradation.
 
 > This Finding relates to the permissions on the `/var/lib/kubelet/config.yaml`
 > file.
-> 
+>
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 > The Auditing section will advise on how to check the permissions
 > of said file.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -5437,7 +5439,7 @@ will start with `PASS`.
 
 > This check is defined to ensure that Kubelet is not passed
 > a `--config` file argument in the k8s-snap.
-> 
+>
 
 
 #### Remediation for Step 2
@@ -5494,23 +5496,23 @@ the information system would be unaware of pod or container degradation.
 
 > This Finding relates to the permissions on the `/var/lib/kubelet/config.yaml`
 > file in relation to it being used by `kubeadm`.
-> 
+>
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, nor does it ship with `kubeadm`.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 > The Auditing section will advise on how to check the permissions
 > of said file.
-> 
+>
 
 
 #### Remediation for Step 1
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
     chmod -R 644 /var/snap/k8s/common/args/kubelet
@@ -5535,7 +5537,7 @@ start with `PASS`.
 
 > This check is defined to ensure that Kubelet is not passed
 > a `--config` file argument in the k8s-snap.
-> 
+>
 
 
 #### Remediation for Step 2
@@ -5587,22 +5589,22 @@ Plane would be compromised.
 
 > This Finding refers to checking the ownership of all etcd-related
 > files under /var/lib/etcd/*.
-> 
+>
 > The k8s-snap does not use etcd in any way, instead relying on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its
 > state handling.
-> 
+>
 > The state directory for k8s-dqlite within the k8s-snap is located under:
-> 
+>
 >     /var/snap/k8s/common/var/lib/k8s-dqlite
-> 
+>
 > Related Finding V-242445 contains directives on the ownership of the files.
-> 
+>
 
 
 #### Remediation
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
 
@@ -5644,14 +5646,14 @@ immediately.
 
 > Note that the original Finding references 'controller-manager.conf',
 > but the k8s-snap uses 'controller.conf'.
-> 
+>
 > Finding V-242446 defines the ownership checks for these files.
-> 
+>
 
 
 #### Remediation
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /etc/kubernetes/admin.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/controller.conf
 
@@ -5681,19 +5683,19 @@ object. The REST operation provides frontend functionality to the cluster
 share state. Enabling audit logs provides a way to monitor and identify
 security risk events or misuse of information. Audit logs are necessary to
 provide evidence in the case the Kubernetes API Server is compromised
-requiring a Cyber Security Investigation.
+requiring a cybersecurity investigation.
 
 
 #### Comments:
 
 > This Finding refers to the `--audit-policy-file` argument of the
 > Kubernetes API Service.
-> 
+>
 > The k8s-snap does not configure auditing by default.
-> 
+>
 > Please review the [post-deployment hardening] guide for a full description
 > on how to enable auditing for the kube-apiserver.
-> 
+>
 
 
 #### Remediation
@@ -5743,12 +5745,12 @@ maximum log file size is to set these limits.
 
 > This Finding refers to the `--audit-log-maxsize` argument of the
 > Kubernetes API Service.
-> 
+>
 > The k8s-snap does not configure auditing by default.
-> 
+>
 > Please review the [post-deployment hardening] guide for a full description
 > on how to enable auditing for the kube-apiserver.
-> 
+>
 
 
 #### Remediation
@@ -5790,18 +5792,18 @@ or equal to `100`.
 
 > The Kubernetes API Server must set enough storage to retain logs for
 monitoring suspicious activity and system misconfiguration, and provide
-evidence for Cyber Security Investigations.
+evidence for cybersecurity investigations.
 
 #### Comments:
 
 > This Finding refers to the `--audit-log-maxbackup` argument of the
 > Kubernetes API Service.
-> 
+>
 > The k8s-snap does not configure auditing by default.
-> 
+>
 > Please review the [post-deployment hardening] guide for a full description
 > on how to enable auditing for the kube-apiserver.
-> 
+>
 
 
 #### Remediation
@@ -5822,7 +5824,7 @@ Afterwards restart the `kube-apiserver` service with:
 #### Auditing (as root)
 
 Ensure that the argument `--audit-log-maxbackup` for service `kube-apiserver`
-is set as appropriate in the service's argument 
+is set as appropriate in the service's argument
 file `/var/snap/k8s/common/args/kube-apiserver`.
 
 ```bash
@@ -5844,18 +5846,18 @@ less or equal to `10`.
 
 > The Kubernetes API Server must set enough storage to retain logs for
 monitoring suspicious activity and system misconfiguration, and provide
-evidence for Cyber Security Investigations.
+evidence for cybersecurity investigations.
 
 #### Comments:
 
 > This Finding refers to the `--audit-log-maxage` argument of the
 > Kubernetes API Service.
-> 
+>
 > The k8s-snap does not configure auditing by default.
-> 
+>
 > Please review the [post-deployment hardening] guide for a full description
 > on how to enable auditing for the kube-apiserver.
-> 
+>
 
 
 #### Remediation
@@ -5896,21 +5898,21 @@ The output should indicate a `audit-log-maxage` value of 30.
 > Kubernetes API Server validates and configures pods and services for the API
 object. The REST operation provides frontend functionality to the cluster share
 state. Audit logs are necessary to provide evidence in the case the Kubernetes
-API Server is compromised requiring Cyber Security Investigation. To record
+API Server is compromised requiring cybersecurity investigation. To record
 events in the audit log the log path value must be set.
 
 #### Comments:
 
 > This Finding refers to the `--audit-log-path` argument of the
 > Kubernetes API Service.
-> 
+>
 > The k8s-snap does not configure auditing by default.
-> 
+>
 > Please review the [post-deployment hardening] guide for a full description
 > on how to enable auditing for the kube-apiserver.
-> 
+>
 > This Finding is basically a duplicate of V-242402.
-> 
+>
 
 
 #### Remediation
@@ -5950,20 +5952,20 @@ The final line of the output will be `PASS`.
 > The Kubernetes PKI directory contains all certificates (.crt files)
 supporting secure network communications in the Kubernetes Control Plane.
 If these files can be modified, data traversing within the architecture
-components would become unsecure and compromised.
+components would become insecure and compromised.
 
 #### Comments:
 
 > Finding stipulates that permission mask of all the '*.crt' files
 > should be at most 644, but they can also be set to be more restrictive.
-> 
+>
 > Finding V-242467 stipulates the permissions of the '*.key' files.
-> 
+>
 
 
 #### Remediation
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-client.crt
 
@@ -6001,14 +6003,14 @@ become unsecure and compromised.
 
 > Finding stipulates that permission mask of all the '*.key' files
 > should be 600.
-> 
+>
 > Finding V-242467 stipulates the permissions of the '*.crt' files.
-> 
+>
 
 
 #### Remediation
 
-Ensure all of the following paths have correct permissions by running: 
+Ensure all of the following paths have correct permissions by running:
 
 
     chmod -R 600 /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/kubelet.key
@@ -6051,12 +6053,12 @@ must never be set to "0" and should be defined at "5m" (the default is 4hr).
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, nor does it explicitly pass
 > `--streaming-connection-idle-timeout=5m` as a command line argument.
-> 
+>
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
-> 
+>
 >     /var/snap/k8s/common/args/kubelet
-> 
+>
 
 
 #### Remediation

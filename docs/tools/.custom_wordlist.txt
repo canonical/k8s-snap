@@ -160,7 +160,7 @@ modprobe
 Moonray
 mq
 mtu
-MTU 
+MTU
 multicast
 MULTICAST
 Multipass
@@ -264,3 +264,7 @@ WIP
 www
 yaml
 YAMLs
+PKIs
+sshd
+CTOs
+DTMs
