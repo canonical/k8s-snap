@@ -3,6 +3,7 @@ package api
 
 import (
 	"context"
+	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/microcluster/v2/rest"
@@ -31,6 +32,7 @@ func New(ctx context.Context, provider Provider) map[string]rest.Server {
 					Endpoints:  k8sd.Endpoints(),
 				},
 			},
+			DrainConnectionsTimeout: 10 * time.Second,
 		},
 	}
 }
