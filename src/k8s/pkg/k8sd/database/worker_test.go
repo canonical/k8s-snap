@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	testenv "github.com/canonical/k8s/pkg/utils/microcluster"
+	"github.com/canonical/microcluster/v2/state"
 	. "github.com/onsi/gomega"
 )
 
 func TestWorkerNodeToken(t *testing.T) {
-	WithDB(t, func(ctx context.Context, db DB) {
-		_ = db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+	testenv.WithState(t, func(ctx context.Context, s state.State) {
+		_ = s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 			tokenExpiry := time.Now().Add(time.Hour)
 			t.Run("Default", func(t *testing.T) {
 				g := NewWithT(t)
