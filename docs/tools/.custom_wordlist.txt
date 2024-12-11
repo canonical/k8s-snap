@@ -264,7 +264,3 @@ WIP
 www
 yaml
 YAMLs
-PKIs
-sshd
-CTOs
-DTMs
