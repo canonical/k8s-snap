@@ -1,7 +1,7 @@
 # CIS compliance
 
 CIS Hardening refers to the process of implementing security configurations that
-align with the benchmarks set by the [Center for Internet Security (CIS)][].
+align with the benchmarks set by the [Center for Internet Security (CIS)].
 Out of the box {{product}} complies with the majority of the recommended
 CIS security configurations. Since implementing all security recommendations
 would comes at the expense of compatibility and/or performance we expect
@@ -9,8 +9,8 @@ cluster administrators to follow post deployment hardening steps based on their
 needs. This guide covers:
 
   * Post-deployment hardening steps you could consider for your {{product}}
-  * Using [kube-bench][] to automatically check whether your Kubernetes
-    clusters are configured according to the [CIS Kubernetes Benchmark][]
+  * Using [kube-bench] to automatically check whether your Kubernetes
+    clusters are configured according to the [CIS Kubernetes Benchmark]
   * Manually configuring and auditing each CIS hardening recommendation
 
 
@@ -21,7 +21,7 @@ This guide assumes the following:
 - You have a bootstrapped {{product}} cluster (see the [getting started] guide)
 - You have root or sudo access to the machine
 - You have reviewed the [post-deployment hardening] guide and have applied the
-  hardening steps that relevant to your use-case 
+  hardening steps that relevant to your use-case
 
 
 ## Critical post-deployment hardening steps
@@ -34,7 +34,7 @@ any of the CIS hardening recommendations.
 
 ## Assess CIS hardening with kube-bench
 
-Download the latest [kube-bench release][] on your Kubernetes nodes. Make sure
+Download the latest [kube-bench release] on your Kubernetes nodes. Make sure
 to select the appropriate binary version.
 
 For example, to download the Linux binary, use the following command. Replace

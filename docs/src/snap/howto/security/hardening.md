@@ -24,14 +24,15 @@ compliance.
 ```
 
 
-## CIS and DISA STIG Hardening 
+## CIS and DISA STIG Hardening
 
-If you would like to apply further DISA STIG recommendations please see [additional DISA STIG-specific steps].
+If you would like to apply further DISA STIG recommendations please see
+[additional DISA STIG-specific steps].
 
-To asses compliance to the CIS hardening guidelines please see the [CIS assessment page].
+To assess compliance to the CIS hardening guidelines please see the [CIS
+assessment page].
 
 <!-- Links -->
-[Post-Deployment Configuration Steps section]:#post-deployment-configuration-steps
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
 [additional DISA STIG-specific steps]: disa-stig-assessment.md
