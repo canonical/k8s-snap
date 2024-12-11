@@ -39,7 +39,7 @@ does not package, etc.
 administrator, so they cannot be automated.
 
 
-### [V-242381](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242381): The Kubernetes Controller Manager must create unique service accounts for each work payload
+### [V-242381]: The Kubernetes Controller Manager must create unique service accounts for each work payload
 
 #### Severity: High
 
@@ -100,7 +100,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242383](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242383): User-managed resources must be created in dedicated namespaces
+### [V-242383]: User-managed resources must be created in dedicated namespaces
 
 #### Severity: High
 
@@ -132,7 +132,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242386](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242386): The Kubernetes API server must have the insecure port flag disabled
+### [V-242386]: The Kubernetes API server must have the insecure port flag disabled
 
 #### Severity: High
 
@@ -169,7 +169,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242387](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242387): The Kubernetes Kubelet must have the "readOnlyPort" flag disabled
+### [V-242387]: The Kubernetes Kubelet must have the "readOnlyPort" flag disabled
 
 #### Severity: High
 
@@ -233,7 +233,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242388](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242388): The Kubernetes API server must have the insecure bind address not set
+### [V-242388]: The Kubernetes API server must have the insecure bind address not set
 
 #### Severity: High
 
@@ -302,7 +302,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242390](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242390): The Kubernetes API server must have anonymous authentication disabled
+### [V-242390]: The Kubernetes API server must have anonymous authentication disabled
 
 #### Severity: High
 
@@ -367,7 +367,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242391](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242391): The Kubernetes Kubelet must have anonymous authentication disabled
+### [V-242391]: The Kubernetes Kubelet must have anonymous authentication disabled
 
 #### Severity: High
 
@@ -437,7 +437,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242392](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242392): The Kubernetes kubelet must enable explicit authorization
+### [V-242392]: The Kubernetes kubelet must enable explicit authorization
 
 #### Severity: High
 
@@ -504,7 +504,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242397](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242397): The Kubernetes kubelet staticPodPath must not enable static pods
+### [V-242397]: The Kubernetes kubelet staticPodPath must not enable static pods
 
 #### Severity: High
 
@@ -576,7 +576,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242415](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242415): Secrets in Kubernetes must not be stored as environment variables
+### [V-242415]: Secrets in Kubernetes must not be stored as environment variables
 
 #### Severity: High
 
@@ -604,7 +604,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242434](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242434): Kubernetes Kubelet must enable kernel protection
+### [V-242434]: Kubernetes Kubelet must enable kernel protection
 
 #### Severity: High
 
@@ -672,7 +672,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242436](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242436): The Kubernetes API server must have the ValidatingAdmissionWebhook enabled
+### [V-242436]: The Kubernetes API server must have the ValidatingAdmissionWebhook enabled
 
 #### Severity: High
 
@@ -742,7 +742,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242437](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242437): Kubernetes must have a pod security policy set
+### [V-242437]: Kubernetes must have a pod security policy set
 
 #### Severity: High
 
@@ -774,7 +774,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-245542](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245542): Kubernetes API Server must disable basic authentication to protect information in transit
+### [V-245542]: Kubernetes API Server must disable basic authentication to protect information in transit
 
 #### Severity: High
 
@@ -837,7 +837,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-245543](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245543): Kubernetes API Server must disable token authentication to protect information in transit
+### [V-245543]: Kubernetes API Server must disable token authentication to protect information in transit
 
 #### Severity: High
 
@@ -903,7 +903,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-245544](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245544): Kubernetes endpoints must use approved organizational certificate and key pair to protect information in transit
+### [V-245544]: Kubernetes endpoints must use approved organizational certificate and key pair to protect information in transit
 
 #### Severity: High
 
@@ -1028,7 +1028,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-254800](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254800): Kubernetes must have a Pod Security Admission control file configured
+### [V-254800]: Kubernetes must have a Pod Security Admission control file configured
 
 #### Severity: High
 
@@ -1068,7 +1068,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-254801](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254801): Kubernetes must enable PodSecurity admission controller on static pods and Kubelets
+### [V-254801]: Kubernetes must enable PodSecurity admission controller on static pods and Kubelets
 
 #### Severity: High
 
@@ -1143,7 +1143,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242376](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242376): The Kubernetes Controller Manager must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
+### [V-242376]: The Kubernetes Controller Manager must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
 
 #### Severity: Medium
 
@@ -1204,7 +1204,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242377](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242377): The Kubernetes Scheduler must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
+### [V-242377]: The Kubernetes Scheduler must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
 
 #### Severity: Medium
 
@@ -1264,7 +1264,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242378](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242378): The Kubernetes API Server must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
+### [V-242378]: The Kubernetes API Server must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
 
 #### Severity: Medium
 
@@ -1321,7 +1321,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242379](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242379): The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination
+### [V-242379]: The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination
 
 #### Severity: Medium
 
@@ -1462,7 +1462,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242380](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242380): The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination
+### [V-242380]: The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination
 
 #### Severity: Medium
 
@@ -1535,7 +1535,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242382](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242382): The Kubernetes API Server must enable Node,RBAC as the authorization mode
+### [V-242382]: The Kubernetes API Server must enable Node,RBAC as the authorization mode
 
 #### Severity: Medium
 
@@ -1609,7 +1609,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242384](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242384): The Kubernetes Scheduler must have secure binding
+### [V-242384]: The Kubernetes Scheduler must have secure binding
 
 #### Severity: Medium
 
@@ -1670,7 +1670,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242385](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242385): The Kubernetes Controller Manager must have secure binding
+### [V-242385]: The Kubernetes Controller Manager must have secure binding
 
 #### Severity: Medium
 
@@ -1728,7 +1728,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242389](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242389): The Kubernetes API server must have the secure port set
+### [V-242389]: The Kubernetes API server must have the secure port set
 
 #### Severity: Medium
 
@@ -1793,7 +1793,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242393](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242393): Kubernetes Worker Nodes must not have sshd service running
+### [V-242393]: Kubernetes Worker Nodes must not have sshd service running
 
 #### Severity: Medium
 
@@ -1822,7 +1822,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242394](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242394): Kubernetes Worker Nodes must not have the sshd service enabled
+### [V-242394]: Kubernetes Worker Nodes must not have the sshd service enabled
 
 #### Severity: Medium
 
@@ -1851,7 +1851,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242395](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242395): Kubernetes dashboard must not be enabled
+### [V-242395]: Kubernetes dashboard must not be enabled
 
 #### Severity: Medium
 
@@ -1883,7 +1883,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242396](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242396): Kubernetes Kubectl cp command must give expected access and results
+### [V-242396]: Kubernetes Kubectl cp command must give expected access and results
 
 #### Severity: Medium
 
@@ -1918,7 +1918,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242398](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242398): Kubernetes DynamicAuditing must not be enabled
+### [V-242398]: Kubernetes DynamicAuditing must not be enabled
 
 #### Severity: Medium
 
@@ -1954,7 +1954,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242399](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242399): Kubernetes DynamicKubeletConfig must not be enabled
+### [V-242399]: Kubernetes DynamicKubeletConfig must not be enabled
 
 #### Severity: Medium
 
@@ -1986,7 +1986,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242400](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242400): The Kubernetes API server must have Alpha APIs disabled
+### [V-242400]: The Kubernetes API server must have Alpha APIs disabled
 
 #### Severity: Medium
 
@@ -2048,7 +2048,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242402](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242402): The Kubernetes API Server must have an audit log path set
+### [V-242402]: The Kubernetes API Server must have an audit log path set
 
 #### Severity: Medium
 
@@ -2110,7 +2110,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242403](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242403): Kubernetes API Server must generate audit records that identify what type of event has occurred, identify the source of the event, contain the event results, identify any users, and identify any containers associated with the event
+### [V-242403]: Kubernetes API Server must generate audit records that identify what type of event has occurred, identify the source of the event, contain the event results, identify any users, and identify any containers associated with the event
 
 #### Severity: Medium
 
@@ -2193,7 +2193,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242404](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242404): Kubernetes Kubelet must deny hostname override
+### [V-242404]: Kubernetes Kubelet must deny hostname override
 
 #### Severity: Medium
 
@@ -2252,7 +2252,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242405](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242405): The Kubernetes manifests must be owned by root
+### [V-242405]: The Kubernetes manifests must be owned by root
 
 #### Severity: Medium
 
@@ -2321,7 +2321,7 @@ stat -c %u:%g '/etc/containerd/config.toml' | grep -q 0:0 && echo PASS /etc/cont
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-### [V-242406](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242406): The Kubernetes KubeletConfiguration file must be owned by root
+### [V-242406]: The Kubernetes KubeletConfiguration file must be owned by root
 
 #### Severity: Medium
 
@@ -2428,7 +2428,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242407](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242407): The Kubernetes KubeletConfiguration files must have file permissions set to 644 or more restrictive
+### [V-242407]: The Kubernetes KubeletConfiguration files must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -2535,7 +2535,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242408](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242408): The Kubernetes manifest files must have least privileges
+### [V-242408]: The Kubernetes manifest files must have least privileges
 
 #### Severity: Medium
 
@@ -2598,7 +2598,7 @@ start with `PASS`.
 
 
 
-### [V-242409](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242409): Kubernetes Controller Manager must disable profiling
+### [V-242409]: Kubernetes Controller Manager must disable profiling
 
 #### Severity: Medium
 
@@ -2657,7 +2657,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242410](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242410): The Kubernetes API Server must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
+### [V-242410]: The Kubernetes API Server must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
 
 #### Severity: Medium
 
@@ -2683,7 +2683,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242411](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242411): The Kubernetes Scheduler must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
+### [V-242411]: The Kubernetes Scheduler must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
 
 #### Severity: Medium
 
@@ -2710,7 +2710,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242412](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242412): The Kubernetes Controllers must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
+### [V-242412]: The Kubernetes Controllers must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
 
 #### Severity: Medium
 
@@ -2737,7 +2737,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242413](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242413): The Kubernetes etcd must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
+### [V-242413]: The Kubernetes etcd must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
 
 #### Severity: Medium
 
@@ -2766,7 +2766,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242414](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242414): The Kubernetes cluster must use non-privileged host ports for user pods
+### [V-242414]: The Kubernetes cluster must use non-privileged host ports for user pods
 
 #### Severity: Medium
 
@@ -2799,7 +2799,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242417](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242417): Kubernetes must separate user functionality
+### [V-242417]: Kubernetes must separate user functionality
 
 #### Severity: Medium
 
@@ -2832,7 +2832,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242418](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242418): The Kubernetes API server must use approved cipher suites
+### [V-242418]: The Kubernetes API server must use approved cipher suites
 
 #### Severity: Medium
 
@@ -2896,7 +2896,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242419](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242419): Kubernetes API Server must have the SSL Certificate Authority set
+### [V-242419]: Kubernetes API Server must have the SSL Certificate Authority set
 
 #### Severity: Medium
 
@@ -2966,7 +2966,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242420](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242420): Kubernetes Kubelet must have the SSL Certificate Authority set
+### [V-242420]: Kubernetes Kubelet must have the SSL Certificate Authority set
 
 #### Severity: Medium
 
@@ -3039,7 +3039,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242421](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242421): Kubernetes Controller Manager must have the SSL Certificate Authority set
+### [V-242421]: Kubernetes Controller Manager must have the SSL Certificate Authority set
 
 #### Severity: Medium
 
@@ -3109,7 +3109,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242422](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242422): Kubernetes API Server must have a certificate for communication
+### [V-242422]: Kubernetes API Server must have a certificate for communication
 
 #### Severity: Medium
 
@@ -3232,7 +3232,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242423](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242423): Kubernetes etcd must enable client authentication to secure service
+### [V-242423]: Kubernetes etcd must enable client authentication to secure service
 
 #### Severity: Medium
 
@@ -3379,7 +3379,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242424](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242424): Kubernetes Kubelet must enable tlsPrivateKeyFile for client authentication to secure service
+### [V-242424]: Kubernetes Kubelet must enable tlsPrivateKeyFile for client authentication to secure service
 
 #### Severity: Medium
 
@@ -3451,7 +3451,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242425](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242425): Kubernetes Kubelet must enable tlsCertFile for client authentication to secure service
+### [V-242425]: Kubernetes Kubelet must enable tlsCertFile for client authentication to secure service
 
 #### Severity: Medium
 
@@ -3522,7 +3522,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242426](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242426): Kubernetes etcd must enable client authentication to secure service
+### [V-242426]: Kubernetes etcd must enable client authentication to secure service
 
 #### Severity: Medium
 
@@ -3604,7 +3604,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242427](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242427): Kubernetes etcd must have a key file for secure communication
+### [V-242427]: Kubernetes etcd must have a key file for secure communication
 
 #### Severity: Medium
 
@@ -3747,7 +3747,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242428](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242428): Kubernetes etcd must have a certificate for communication
+### [V-242428]: Kubernetes etcd must have a certificate for communication
 
 #### Severity: Medium
 
@@ -3884,7 +3884,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 The final line of the output will be `PASS`.
 
 
-### [V-242429](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242429): Kubernetes etcd must have the SSL Certificate Authority set
+### [V-242429]: Kubernetes etcd must have the SSL Certificate Authority set
 
 #### Severity: Medium
 
@@ -4010,7 +4010,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242430](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242430): Kubernetes etcd must have a certificate for communication
+### [V-242430]: Kubernetes etcd must have a certificate for communication
 
 #### Severity: Medium
 
@@ -4138,7 +4138,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242431](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242431): Kubernetes etcd must have a key file for secure communication
+### [V-242431]: Kubernetes etcd must have a key file for secure communication
 
 #### Severity: Medium
 
@@ -4280,7 +4280,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242432](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242432): Kubernetes etcd must have peer-cert-file set for secure communication
+### [V-242432]: Kubernetes etcd must have peer-cert-file set for secure communication
 
 #### Severity: Medium
 
@@ -4355,7 +4355,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242433](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242433): Kubernetes etcd must have a peer-key-file set for secure communication
+### [V-242433]: Kubernetes etcd must have a peer-key-file set for secure communication
 
 #### Severity: Medium
 
@@ -4426,7 +4426,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242438](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242438): Kubernetes API Server must configure timeouts to limit attack surface
+### [V-242438]: Kubernetes API Server must configure timeouts to limit attack surface
 
 #### Severity: Medium
 
@@ -4481,7 +4481,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242442](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242442): Kubernetes must remove old components after updated versions have been installed
+### [V-242442]: Kubernetes must remove old components after updated versions have been installed
 
 #### Severity: Medium
 
@@ -4507,7 +4507,7 @@ to always be at the desired security state.
 
 
 
-### [V-242443](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242443): Kubernetes must contain the latest updates as authorized by IAVMs, CTOs, DTMs, and STIGs
+### [V-242443]: Kubernetes must contain the latest updates as authorized by IAVMs, CTOs, DTMs, and STIGs
 
 #### Severity: Medium
 
@@ -4560,7 +4560,7 @@ authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 
 
 
-### [V-242444](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242444): The Kubernetes component manifests must be owned by root
+### [V-242444]: The Kubernetes component manifests must be owned by root
 
 #### Severity: Medium
 
@@ -4628,7 +4628,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-### [V-242445](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242445): The Kubernetes component etcd must be owned by etcd
+### [V-242445]: The Kubernetes component etcd must be owned by etcd
 
 #### Severity: Medium
 
@@ -4686,7 +4686,7 @@ will start with `PASS`.
 
 
 
-### [V-242446](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242446): The Kubernetes conf files must be owned by root
+### [V-242446]: The Kubernetes conf files must be owned by root
 
 #### Severity: Medium
 
@@ -4731,7 +4731,7 @@ stat -c %u:%g '/etc/kubernetes/controller.conf' | grep -q 0:0 && echo PASS /etc/
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-### [V-242447](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242447): The Kubernetes Kube Proxy kubeconfig must have file permissions set to 644 or more restrictive
+### [V-242447]: The Kubernetes Kube Proxy kubeconfig must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -4823,7 +4823,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242448](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242448): The Kubernetes Kube Proxy kubeconfig must be owned by root
+### [V-242448]: The Kubernetes Kube Proxy kubeconfig must be owned by root
 
 #### Severity: Medium
 
@@ -4910,7 +4910,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242449](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242449): The Kubernetes Kubelet certificate authority file must have file permissions set to 644 or more restrictive
+### [V-242449]: The Kubernetes Kubelet certificate authority file must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -5001,7 +5001,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242450](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242450): The Kubernetes Kubelet certificate authority must be owned by root
+### [V-242450]: The Kubernetes Kubelet certificate authority must be owned by root
 
 #### Severity: Medium
 
@@ -5091,7 +5091,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242451](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242451): The Kubernetes component PKI must be owned by root
+### [V-242451]: The Kubernetes component PKI must be owned by root
 
 #### Severity: Medium
 
@@ -5152,7 +5152,7 @@ will start with `PASS`.
 
 
 
-### [V-242452](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242452): The Kubernetes kubelet KubeConfig must have file permissions set to 644 or more restrictive
+### [V-242452]: The Kubernetes kubelet KubeConfig must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -5235,7 +5235,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242453](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242453): The Kubernetes kubelet KubeConfig file must be owned by root
+### [V-242453]: The Kubernetes kubelet KubeConfig file must be owned by root
 
 #### Severity: Medium
 
@@ -5316,7 +5316,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242454](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242454): The Kubernetes kubeadm.conf must be owned by root
+### [V-242454]: The Kubernetes kubeadm.conf must be owned by root
 
 #### Severity: Medium
 
@@ -5344,7 +5344,7 @@ the security settings within the document are implemented through this file.
 
 
 
-### [V-242455](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242455): The Kubernetes kubeadm.conf must have file permissions set to 644 or more restrictive
+### [V-242455]: The Kubernetes kubeadm.conf must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -5372,7 +5372,7 @@ the security settings within the document are implemented through this file.
 
 
 
-### [V-242456](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242456): The Kubernetes kubelet config must have file permissions set to 644 or more restrictive
+### [V-242456]: The Kubernetes kubelet config must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -5474,7 +5474,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242457](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242457): The Kubernetes kubelet config must be owned by root
+### [V-242457]: The Kubernetes kubelet config must be owned by root
 
 #### Severity: Medium
 
@@ -5570,7 +5570,7 @@ will start with `UNSET`.
 The final line of the output will be `PASS`.
 
 
-### [V-242459](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242459): The Kubernetes etcd must have file permissions set to 644 or more restrictive
+### [V-242459]: The Kubernetes etcd must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -5626,7 +5626,7 @@ will start with `PASS`.
 
 
 
-### [V-242460](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242460): The Kubernetes admin kubeconfig must have file permissions set to 644 or more restrictive
+### [V-242460]: The Kubernetes admin kubeconfig must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -5668,7 +5668,7 @@ stat -c %a '/etc/kubernetes/controller.conf' | grep -q 600 && echo PASS /etc/kub
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-### [V-242461](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242461): Kubernetes API Server audit logs must be enabled
+### [V-242461]: Kubernetes API Server audit logs must be enabled
 
 #### Severity: Medium
 
@@ -5725,7 +5725,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 The final line of the output will be `PASS`.
 
 
-### [V-242462](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242462): The Kubernetes API Server must be set to audit log max size
+### [V-242462]: The Kubernetes API Server must be set to audit log max size
 
 #### Severity: Medium
 
@@ -5780,7 +5780,7 @@ The output should indicate that `audit-log-maxsize` is set to a value less
 or equal to `100`.
 
 
-### [V-242463](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242463): The Kubernetes API Server must be set to audit log maximum backup
+### [V-242463]: The Kubernetes API Server must be set to audit log maximum backup
 
 #### Severity: Medium
 
@@ -5834,7 +5834,7 @@ less or equal to `10`.
 
 
 
-### [V-242464](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242464): The Kubernetes API Server audit log retention must be set
+### [V-242464]: The Kubernetes API Server audit log retention must be set
 
 #### Severity: Medium
 
@@ -5885,7 +5885,7 @@ grep -E '\-\-audit-log-maxage=' '/var/snap/k8s/common/args/kube-apiserver'
 The output should indicate a `audit-log-maxage` value of 30.
 
 
-### [V-242465](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242465): The Kubernetes API Server audit log path must be set
+### [V-242465]: The Kubernetes API Server audit log path must be set
 
 #### Severity: Medium
 
@@ -5939,7 +5939,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 The final line of the output will be `PASS`.
 
 
-### [V-242466](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242466): The Kubernetes PKI CRT must have file permissions set to 644 or more restrictive
+### [V-242466]: The Kubernetes PKI CRT must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -5984,7 +5984,7 @@ stat -c %a '/etc/kubernetes/pki/front-proxy-client.crt' | grep -q 600 && echo PA
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-### [V-242467](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242467): The Kubernetes PKI keys must have file permissions set to 600 or more restrictive
+### [V-242467]: The Kubernetes PKI keys must have file permissions set to 600 or more restrictive
 
 #### Severity: Medium
 
@@ -6031,7 +6031,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-### [V-245541](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245541): Kubernetes Kubelet must not disable timeouts
+### [V-245541]: Kubernetes Kubelet must not disable timeouts
 
 #### Severity: Medium
 
@@ -6094,3 +6094,94 @@ The final line of the output will be `PASS`.
 [Comprehensive Hardening Checklist]: auditing-steps.md#comprehensive-hardening-checklist
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [post-deployment hardening]: hardening.md
+[V-242381]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242381
+[V-242383]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242383
+[V-242386]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242386
+[V-242387]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242387
+[V-242388]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242388
+[V-242390]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242390
+[V-242391]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242391
+[V-242392]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242392
+[V-242397]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242397
+[V-242415]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242415
+[V-242434]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242434
+[V-242436]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242436
+[V-242437]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242437
+[V-245542]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245542
+[V-245543]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245543
+[V-245544]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245544
+[V-254800]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254800
+[V-254801]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254801
+[V-242376]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242376
+[V-242377]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242377
+[V-242378]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242378
+[V-242379]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242379
+[V-242380]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242380
+[V-242382]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242382
+[V-242384]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242384
+[V-242385]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242385
+[V-242389]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242389
+[V-242393]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242393
+[V-242394]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242394
+[V-242395]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242395
+[V-242396]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242396
+[V-242398]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242398
+[V-242399]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242399
+[V-242400]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242400
+[V-242402]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242402
+[V-242403]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242403
+[V-242404]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242404
+[V-242405]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242405
+[V-242406]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242406
+[V-242407]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242407
+[V-242408]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242408
+[V-242409]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242409
+[V-242410]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242410
+[V-242411]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242411
+[V-242412]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242412
+[V-242413]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242413
+[V-242414]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242414
+[V-242417]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242417
+[V-242418]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242418
+[V-242419]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242419
+[V-242420]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242420
+[V-242421]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242421
+[V-242422]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242422
+[V-242423]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242423
+[V-242424]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242424
+[V-242425]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242425
+[V-242426]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242426
+[V-242427]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242427
+[V-242428]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242428
+[V-242429]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242429
+[V-242430]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242430
+[V-242431]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242431
+[V-242432]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242432
+[V-242433]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242433
+[V-242438]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242438
+[V-242442]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242442
+[V-242443]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242443
+[V-242444]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242444
+[V-242445]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242445
+[V-242446]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242446
+[V-242447]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242447
+[V-242448]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242448
+[V-242449]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242449
+[V-242450]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242450
+[V-242451]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242451
+[V-242452]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242452
+[V-242453]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242453
+[V-242454]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242454
+[V-242455]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242455
+[V-242456]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242456
+[V-242457]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242457
+[V-242459]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242459
+[V-242460]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242460
+[V-242461]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242461
+[V-242462]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242462
+[V-242463]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242463
+[V-242464]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242464
+[V-242465]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242465
+[V-242466]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242466
+[V-242467]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242467
+[V-245541]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245541
