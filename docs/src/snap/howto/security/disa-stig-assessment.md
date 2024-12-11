@@ -34,7 +34,7 @@ This guide assumes the following:
 **Manual**: These checks require manual intervention from a cluster administrator, so they cannot be automated.
 
 
-### [V-242381](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242381): The Kubernetes Controller Manager must create unique service accounts for each work payload.
+### [V-242381](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242381): The Kubernetes Controller Manager must create unique service accounts for each work payload
 
 #### Severity: High
 
@@ -49,6 +49,7 @@ This guide assumes the following:
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes Controller Manager
 > in the k8s-snap are defined in the following file:
 > 
@@ -57,6 +58,7 @@ This guide assumes the following:
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the argument `--use-service-account-credentials` for service `kube-controller-manager` as appropriate.
 
 Ensure it is set to one of: `true`, `1`
@@ -84,7 +86,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242383](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242383): User-managed resources must be created in dedicated namespaces.
+### [V-242383](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242383): User-managed resources must be created in dedicated namespaces
 
 #### Severity: High
 
@@ -99,6 +101,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The Kubernetes System Administrators must manually inspect the services
 > in all of the default namespaces to ensure there are no
 > user-created resources within them:
@@ -110,7 +113,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242386](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242386): The Kubernetes API server must have the insecure port flag disabled.
+### [V-242386](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242386): The Kubernetes API server must have the insecure port flag disabled
 
 #### Severity: High
 
@@ -127,6 +130,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding refers to the `--insecure-port` command line argument
 > for the Kubernetes API Server service.
 > 
@@ -139,7 +143,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242387](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242387): The Kubernetes Kubelet must have the "readOnlyPort" flag disabled.
+### [V-242387](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242387): The Kubernetes Kubelet must have the "readOnlyPort" flag disabled
 
 #### Severity: High
 
@@ -154,6 +158,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, but does explicitly pass
 > `--read-only-port=0` as a command line argument.
@@ -166,6 +171,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--read-only-port` for service `kubelet` as appropriate.
 
 Ensure it is set to: `0`
@@ -195,7 +201,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242388](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242388): The Kubernetes API server must have the insecure bind address not set.
+### [V-242388](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242388): The Kubernetes API server must have the insecure bind address not set
 
 #### Severity: High
 
@@ -212,6 +218,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -220,6 +227,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--insecure-bind-address` for service `kube-apiserver` as appropriate.
 
 Ensure it is NOT set to any value.
@@ -249,7 +257,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242390](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242390): The Kubernetes API server must have anonymous authentication disabled.
+### [V-242390](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242390): The Kubernetes API server must have anonymous authentication disabled
 
 #### Severity: High
 
@@ -268,6 +276,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -276,6 +285,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--anonymous-auth` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to one of: `false`, `0`
@@ -301,7 +311,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242391](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242391): The Kubernetes Kubelet must have anonymous authentication disabled.
+### [V-242391](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242391): The Kubernetes Kubelet must have anonymous authentication disabled
 
 #### Severity: High
 
@@ -320,6 +330,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, but does explicitly pass
 > `--anonymous-auth=0` as a command line argument.
@@ -332,6 +343,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--anonymous-auth` for service `kubelet` as appropriate.
 
 Ensure it is set to one of: `false`, `0`
@@ -359,7 +371,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242392](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242392): The Kubernetes kubelet must enable explicit authorization.
+### [V-242392](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242392): The Kubernetes kubelet must enable explicit authorization
 
 #### Severity: High
 
@@ -374,6 +386,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, but does explicitly pass
 > `--authorization-mode=Webhook` as a command line argument.
@@ -386,6 +399,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--authorization-mode` for service `kubelet` as appropriate.
 
 Ensure it is set to: `Webhook`
@@ -415,7 +429,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242397](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242397): The Kubernetes kubelet staticPodPath must not enable static pods.
+### [V-242397](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242397): The Kubernetes kubelet staticPodPath must not enable static pods
 
 #### Severity: High
 
@@ -430,6 +444,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The Finding refers to checking the 'staticPodPath' in kubectl's `--config`
 > file is not set.
 > 
@@ -445,6 +460,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--pod-manifest-path` for service `kubelet` as appropriate.
 
 Ensure it is NOT set to any value.
@@ -474,7 +490,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242415](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242415): Secrets in Kubernetes must not be stored as environment variables.
+### [V-242415](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242415): Secrets in Kubernetes must not be stored as environment variables
 
 #### Severity: High
 
@@ -489,6 +505,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The Kubernetes System Administrator must manually inspect the Environment
 > of each user-created Pod to ensure there are no Pods passing information
 > which the System Administrator may categorize as 'sensitive'
@@ -497,7 +514,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242434](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242434): Kubernetes Kubelet must enable kernel protection.
+### [V-242434](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242434): Kubernetes Kubelet must enable kernel protection
 
 #### Severity: High
 
@@ -512,6 +529,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The Finding stipulates that `--protect-kernel-defaults`
 > must be set on the Kubelet service.
 > 
@@ -528,6 +546,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--protect-kernel-defaults` for service `kubelet` as appropriate.
 
 Ensure it is set to one of: `true`, `1`
@@ -557,7 +576,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242436](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242436): The Kubernetes API server must have the ValidatingAdmissionWebhook enabled.
+### [V-242436](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242436): The Kubernetes API server must have the ValidatingAdmissionWebhook enabled
 
 #### Severity: High
 
@@ -572,6 +591,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding stipulates that the `ValidatingAdmissionWebhook`
 > Admission Plugin should be enabled.
 > 
@@ -585,6 +605,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--disable-admission-plugins` for service `kube-apiserver` as appropriate.
 
 Ensure it is NOT set to one of: `.*ValidatingAdmissionWebhook.*`
@@ -614,7 +635,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242437](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242437): Kubernetes must have a pod security policy set.
+### [V-242437](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242437): Kubernetes must have a pod security policy set
 
 #### Severity: High
 
@@ -629,6 +650,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding stipulates some checks on the Pod Security Policy object
 > which was deprecated in 1.21 and removed in 1.25, so it is Not Applicable
 > to any versions of the k8s-snap.
@@ -638,7 +660,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-245542](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245542): Kubernetes API Server must disable basic authentication to protect information in transit.
+### [V-245542](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245542): Kubernetes API Server must disable basic authentication to protect information in transit
 
 #### Severity: High
 
@@ -653,6 +675,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -661,6 +684,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--basic-auth-file` for service `kube-apiserver` as appropriate.
 
 Ensure it is NOT set to any value.
@@ -690,7 +714,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-245543](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245543): Kubernetes API Server must disable token authentication to protect information in transit.
+### [V-245543](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245543): Kubernetes API Server must disable token authentication to protect information in transit
 
 #### Severity: High
 
@@ -705,6 +729,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -713,6 +738,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--token-auth-file` for service `kube-apiserver` as appropriate.
 
 It is possible to leave this argument unset completely.
@@ -744,7 +770,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-245544](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245544): Kubernetes endpoints must use approved organizational certificate and key pair to protect information in transit.
+### [V-245544](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245544): Kubernetes endpoints must use approved organizational certificate and key pair to protect information in transit
 
 #### Severity: High
 
@@ -765,6 +791,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -773,6 +800,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--kubelet-client-certificate` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to: `/etc/kubernetes/pki/apiserver-kubelet-client\.crt`
@@ -807,6 +835,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -846,7 +875,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-254800](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254800): Kubernetes must have a Pod Security Admission control file configured.
+### [V-254800](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254800): Kubernetes must have a Pod Security Admission control file configured
 
 #### Severity: High
 
@@ -865,6 +894,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding stipulates the presence of a Pod Security Admission
 > Control File which will need to be manually configured by
 > the Kubernetes System Administrator on a per-organization
@@ -879,7 +909,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-254801](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254801): Kubernetes must enable PodSecurity admission controller on static pods and Kubelets.
+### [V-254801](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254801): Kubernetes must enable PodSecurity admission controller on static pods and Kubelets
 
 #### Severity: High
 
@@ -900,6 +930,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding refers to setting the `--feature-gates=PodSecurity=true`
 > feature gate for the Kubernetes API Server.
 > 
@@ -914,6 +945,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--feature-gates` for service `kubelet` as appropriate.
 
 Ensure it is NOT set to one of: `.*PodSecurity=false.*`, `.*PodSecurity=0.*`
@@ -943,7 +975,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242376](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242376): The Kubernetes Controller Manager must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination.
+### [V-242376](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242376): The Kubernetes Controller Manager must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
 
 #### Severity: Medium
 
@@ -960,6 +992,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes Controller Manager
 > in the k8s-snap are defined in the following file:
 > 
@@ -968,6 +1001,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the argument `--tls-min-version` for service `kube-controller-manager` as appropriate.
 
 Ensure it is set to one of: `VersionTLS12`, `VersionTLS13`
@@ -993,7 +1027,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242377](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242377): The Kubernetes Scheduler must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination.
+### [V-242377](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242377): The Kubernetes Scheduler must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
 
 #### Severity: Medium
 
@@ -1010,6 +1044,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes Scheduler
 > in the k8s-snap are defined in the following file:
 > 
@@ -1018,6 +1053,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-scheduler` in order to set the argument `--tls-min-version` for service `kube-scheduler` as appropriate.
 
 Ensure it is set to one of: `VersionTLS12`, `VersionTLS13`
@@ -1043,7 +1079,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242378](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242378): The Kubernetes API Server must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination.
+### [V-242378](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242378): The Kubernetes API Server must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
 
 #### Severity: Medium
 
@@ -1057,6 +1093,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes Scheduler
 > in the k8s-snap are defined in the following file:
 > 
@@ -1065,6 +1102,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--tls-min-version` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to one of: `VersionTLS12`, `VersionTLS13`
@@ -1090,7 +1128,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242379](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242379): The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination.
+### [V-242379](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242379): The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination
 
 #### Severity: Medium
 
@@ -1107,6 +1145,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This finding refers to the `--auto-tls` command line argument for the
 > etcd service.
 > 
@@ -1123,6 +1162,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -1148,6 +1188,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
@@ -1178,6 +1219,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
 > 
@@ -1215,7 +1257,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242380](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242380): The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination.
+### [V-242380](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242380): The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination
 
 #### Severity: Medium
 
@@ -1232,6 +1274,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This finding refers to the `--peer-auto-tls` command line argument for
 > the etcd service.
 > 
@@ -1248,6 +1291,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/k8s-dqlite` in order to set the argument `--enable-tls` for service `k8s-dqlite` as appropriate.
 
 Ensure it is NOT set to one of: `false`, `0`
@@ -1277,7 +1321,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242382](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242382): The Kubernetes API Server must enable Node,RBAC as the authorization mode.
+### [V-242382](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242382): The Kubernetes API Server must enable Node,RBAC as the authorization mode
 
 #### Severity: Medium
 
@@ -1296,6 +1340,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -1306,6 +1351,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--authorization-mode` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to: `Node,RBAC`
@@ -1333,7 +1379,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242384](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242384): The Kubernetes Scheduler must have secure binding.
+### [V-242384](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242384): The Kubernetes Scheduler must have secure binding
 
 #### Severity: Medium
 
@@ -1348,6 +1394,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes Scheduler
 > in the k8s-snap are defined in the following file:
 > 
@@ -1356,6 +1403,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-scheduler` in order to set the argument `--bind-address` for service `kube-scheduler` as appropriate.
 
 Ensure it is set to: `127.0.0.1`
@@ -1381,7 +1429,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242385](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242385): The Kubernetes Controller Manager must have secure binding.
+### [V-242385](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242385): The Kubernetes Controller Manager must have secure binding
 
 #### Severity: Medium
 
@@ -1396,6 +1444,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes Controller Manager
 > in the k8s-snap are defined in the following file:
 > 
@@ -1404,6 +1453,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the argument `--bind-address` for service `kube-controller-manager` as appropriate.
 
 Ensure it is set to: `127.0.0.1`
@@ -1429,7 +1479,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242389](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242389): The Kubernetes API server must have the secure port set.
+### [V-242389](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242389): The Kubernetes API server must have the secure port set
 
 #### Severity: Medium
 
@@ -1446,6 +1496,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -1454,6 +1505,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--secure-port` for service `kube-apiserver` as appropriate.
 
 Ensure it is NOT set to one of: `0`
@@ -1483,7 +1535,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242393](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242393): Kubernetes Worker Nodes must not have sshd service running.
+### [V-242393](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242393): Kubernetes Worker Nodes must not have sshd service running
 
 #### Severity: Medium
 
@@ -1498,6 +1550,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding aims to completely prohibit the *running*
 > of SSHD on all worker Nodes, and must be assessed by the
 > Kubernetes System Administrator as applicable.
@@ -1508,7 +1561,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242394](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242394): Kubernetes Worker Nodes must not have the sshd service enabled.
+### [V-242394](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242394): Kubernetes Worker Nodes must not have the sshd service enabled
 
 #### Severity: Medium
 
@@ -1523,6 +1576,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding aims to prohibit the *enabling of the service*
 > for SSHD on all worker Nodes, and must be assessed by the
 > Kubernetes System Administrator as applicable.
@@ -1533,7 +1587,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242395](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242395): Kubernetes dashboard must not be enabled.
+### [V-242395](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242395): Kubernetes dashboard must not be enabled
 
 #### Severity: Medium
 
@@ -1548,6 +1602,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The k8s-snap does not automatically deploy or configure the Kubernetes Dashboard,
 > so this finding is Not Applicable.
 > 
@@ -1559,7 +1614,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242396](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242396): Kubernetes Kubectl cp command must give expected access and results.
+### [V-242396](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242396): Kubernetes Kubectl cp command must give expected access and results
 
 #### Severity: Medium
 
@@ -1574,6 +1629,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding refers to checking the `kubectl version --client` to avoid
 > a known security issue with `kubectl cp`.
 > 
@@ -1585,7 +1641,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242398](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242398): Kubernetes DynamicAuditing must not be enabled.
+### [V-242398](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242398): Kubernetes DynamicAuditing must not be enabled
 
 #### Severity: Medium
 
@@ -1602,6 +1658,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This finding relates to the `--feature-gate=DynamicAuditing` feature gate flag.
 > 
 > This Feature Gate was only available between Kubernetes versions 1.13-1.19,
@@ -1612,7 +1669,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242399](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242399): Kubernetes DynamicKubeletConfig must not be enabled.
+### [V-242399](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242399): Kubernetes DynamicKubeletConfig must not be enabled
 
 #### Severity: Medium
 
@@ -1627,6 +1684,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > Checks related to the `--feature-gate=DynamicKubeletConfig` feature gate flag.
 > 
 > This Feature Gate was only available between Kubernetes versions 1.4-1.25,
@@ -1637,7 +1695,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242400](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242400): The Kubernetes API server must have Alpha APIs disabled.
+### [V-242400](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242400): The Kubernetes API server must have Alpha APIs disabled
 
 #### Severity: Medium
 
@@ -1652,11 +1710,13 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The k8s-snap does not set the `--feature-gate` flag on the `kube-apiserver`.
 > 
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--feature-gate` for service `kube-apiserver` as appropriate.
 
 It is possible to leave this argument unset completely.
@@ -1688,7 +1748,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242402](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242402): The Kubernetes API Server must have an audit log path set.
+### [V-242402](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242402): The Kubernetes API Server must have an audit log path set
 
 #### Severity: Medium
 
@@ -1703,6 +1763,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding refers to the `--audit-log-path` argument of the
 > Kubernetes API Service.
 > 
@@ -1716,6 +1777,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--audit-log-path` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to any explicit value.
@@ -1741,7 +1803,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242403](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242403): Kubernetes API Server must generate audit records that identify what type of event has occurred, identify the source of the event, contain the event results, identify any users, and identify any containers associated with the event.
+### [V-242403](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242403): Kubernetes API Server must generate audit records that identify what type of event has occurred, identify the source of the event, contain the event results, identify any users, and identify any containers associated with the event
 
 #### Severity: Medium
 
@@ -1764,6 +1826,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding refers to the `--audit-policy-file` argument of the
 > Kubernetes API Service.
 > 
@@ -1775,6 +1838,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--audit-policy-file` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to any explicit value.
@@ -1800,7 +1864,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242404](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242404): Kubernetes Kubelet must deny hostname override.
+### [V-242404](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242404): Kubernetes Kubelet must deny hostname override
 
 #### Severity: Medium
 
@@ -1815,6 +1879,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of Kubelet in the k8s-snap
 > are defined in the following file:
 > 
@@ -1823,6 +1888,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--hostname-override` for service `kubelet` as appropriate.
 
 Ensure it is NOT set to any value.
@@ -1850,7 +1916,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242405](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242405): The Kubernetes manifests must be owned by root.
+### [V-242405](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242405): The Kubernetes manifests must be owned by root
 
 #### Severity: Medium
 
@@ -1865,6 +1931,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The manifest files for the Kubernetes services in the k8s-snap are
 > located in the following directories:
 > 
@@ -1874,6 +1941,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -1914,7 +1982,7 @@ stat -c %u:%g '/etc/containerd/config.toml' | grep -q 0:0 && echo PASS /etc/cont
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-### [V-242406](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242406): The Kubernetes KubeletConfiguration file must be owned by root.
+### [V-242406](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242406): The Kubernetes KubeletConfiguration file must be owned by root
 
 #### Severity: Medium
 
@@ -1931,6 +1999,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This Finding relates to the ownership of Kubelet's `--config` file.
 > 
 > The k8s-snap does not pass a `--config` command line argument
@@ -1947,6 +2016,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -1972,6 +2042,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This check is defined to ensure that Kubelet is not passed
 > a `--config` file argument in the k8s-snap.
 > 
@@ -2011,7 +2082,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242407](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242407): The Kubernetes KubeletConfiguration files must have file permissions set to 644 or more restrictive.
+### [V-242407](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242407): The Kubernetes KubeletConfiguration files must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -2028,6 +2099,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding relates to the permissions on Kubelet's `--config` file.
 > 
 > The k8s-snap does not pass a `--config` command line argument
@@ -2044,6 +2116,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct permissions by running: 
 
 
@@ -2069,6 +2142,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This check is defined to ensure that Kubelet is not passed
 > a `--config` file argument in the k8s-snap.
 > 
@@ -2108,7 +2182,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242408](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242408): The Kubernetes manifest files must have least privileges.
+### [V-242408](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242408): The Kubernetes manifest files must have least privileges
 
 #### Severity: Medium
 
@@ -2125,6 +2199,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The Finding requires checking the permissions of the files
 > within the `/etc/kubernetes/manifests` directory, but the k8s-snap
 > does not use it.
@@ -2136,6 +2211,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Ensure all of the following paths have correct permissions by running: 
 
 
@@ -2164,7 +2240,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-### [V-242409](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242409): Kubernetes Controller Manager must disable profiling.
+### [V-242409](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242409): Kubernetes Controller Manager must disable profiling
 
 #### Severity: Medium
 
@@ -2179,6 +2255,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes Controller Manager
 > in the k8s-snap are defined in the following file:
 > 
@@ -2187,6 +2264,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the argument `--profiling` for service `kube-controller-manager` as appropriate.
 
 Ensure it is set to one of: `false`, `0`
@@ -2214,7 +2292,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242410](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242410): The Kubernetes API Server must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL).
+### [V-242410](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242410): The Kubernetes API Server must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
 
 #### Severity: Medium
 
@@ -2229,6 +2307,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This STIG Finding relates to implementing PPSM CAL for kube-apiserver,
 > and must be assessed manually by the Auditor.
 > 
@@ -2237,7 +2316,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242411](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242411): The Kubernetes Scheduler must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL).
+### [V-242411](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242411): The Kubernetes Scheduler must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
 
 #### Severity: Medium
 
@@ -2252,6 +2331,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This STIG Finding relates to implementing PPSM CAL for kube-scheduler,
 > and must be assessed manually by the Auditor.
 > 
@@ -2260,7 +2340,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242412](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242412): The Kubernetes Controllers must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL).
+### [V-242412](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242412): The Kubernetes Controllers must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
 
 #### Severity: Medium
 
@@ -2275,6 +2355,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This STIG Finding relates to implementing PPSM CAL for kube-controller-manager,
 > and must be assessed manually by the Auditor.
 > 
@@ -2283,7 +2364,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242413](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242413): The Kubernetes etcd must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL).
+### [V-242413](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242413): The Kubernetes etcd must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
 
 #### Severity: Medium
 
@@ -2298,6 +2379,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This STIG Finding relates to implementing PPSM CAL for etcd.
 > 
 > The k8s-snap does not use etcd in any way, instead relying on
@@ -2309,7 +2391,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242414](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242414): The Kubernetes cluster must use non-privileged host ports for user pods.
+### [V-242414](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242414): The Kubernetes cluster must use non-privileged host ports for user pods
 
 #### Severity: Medium
 
@@ -2324,6 +2406,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The Kubernetes System Administrators must manually inspect the Pods
 > in all of the default namespaces to ensure there are no user-created
 > Pods with Containers exposing privileged port numbers (< 1024).
@@ -2334,7 +2417,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242417](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242417): Kubernetes must separate user functionality.
+### [V-242417](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242417): Kubernetes must separate user functionality
 
 #### Severity: Medium
 
@@ -2349,6 +2432,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The Kubernetes System Administrators must manually inspect the Pods
 > in all of the default namespaces to ensure there are no
 > user-created Pods within them, and move them to dedicated
@@ -2361,7 +2445,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242418](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242418): The Kubernetes API server must use approved cipher suites.
+### [V-242418](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242418): The Kubernetes API server must use approved cipher suites
 
 #### Severity: Medium
 
@@ -2376,6 +2460,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -2384,6 +2469,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--tls-cipher-suites` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to one of: `.*TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256.*`, `.*TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.*`, `.*TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384.*`, `.*TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384.*`
@@ -2411,7 +2497,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242419](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242419): Kubernetes API Server must have the SSL Certificate Authority set.
+### [V-242419](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242419): Kubernetes API Server must have the SSL Certificate Authority set
 
 #### Severity: Medium
 
@@ -2430,6 +2516,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -2438,6 +2525,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--client-ca-file` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to: `/etc/kubernetes/pki/client-ca\.crt`
@@ -2465,7 +2553,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242420](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242420): Kubernetes Kubelet must have the SSL Certificate Authority set.
+### [V-242420](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242420): Kubernetes Kubelet must have the SSL Certificate Authority set
 
 #### Severity: Medium
 
@@ -2484,6 +2572,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, but does explicitly pass the
 > `--client-ca-file` argument as a command line argument.
@@ -2496,6 +2585,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--client-ca-file` for service `kubelet` as appropriate.
 
 Ensure it is set to: `/etc/kubernetes/pki/client-ca\.crt`
@@ -2523,7 +2613,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242421](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242421): Kubernetes Controller Manager must have the SSL Certificate Authority set.
+### [V-242421](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242421): Kubernetes Controller Manager must have the SSL Certificate Authority set
 
 #### Severity: Medium
 
@@ -2542,6 +2632,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes Controller Manager
 > in the k8s-snap are defined in the following file:
 > 
@@ -2550,6 +2641,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the argument `--root-ca-file` for service `kube-controller-manager` as appropriate.
 
 Ensure it is set to: `/etc/kubernetes/pki/ca\.crt`
@@ -2577,7 +2669,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242422](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242422): Kubernetes API Server must have a certificate for communication.
+### [V-242422](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242422): Kubernetes API Server must have a certificate for communication
 
 #### Severity: Medium
 
@@ -2598,6 +2690,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -2606,6 +2699,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--tls-cert-file` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to: `/etc/kubernetes/pki/apiserver\.crt`
@@ -2640,6 +2734,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The command line arguments of the Kubernetes API Server
 > in the k8s-snap are defined in the following file:
 > 
@@ -2679,7 +2774,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242423](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242423): Kubernetes etcd must enable client authentication to secure service.
+### [V-242423](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242423): Kubernetes etcd must enable client authentication to secure service
 
 #### Severity: Medium
 
@@ -2700,6 +2795,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This finding refers to the `--cert-file` command line argument for the
 > etcd service.
 > 
@@ -2716,6 +2812,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -2741,6 +2838,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
@@ -2771,6 +2869,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
 > 
@@ -2808,7 +2907,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242424](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242424): Kubernetes Kubelet must enable tlsPrivateKeyFile for client authentication to secure service.
+### [V-242424](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242424): Kubernetes Kubelet must enable tlsPrivateKeyFile for client authentication to secure service
 
 #### Severity: Medium
 
@@ -2827,6 +2926,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, but does explicitly pass
 > `--tls-private-key-file=/etc/kubernetes/pki/kubelet.key`
@@ -2840,6 +2940,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--tls-private-key-file` for service `kubelet` as appropriate.
 
 Ensure it is set to: `/etc/kubernetes/pki/kubelet\.key`
@@ -2865,7 +2966,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242425](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242425): Kubernetes Kubelet must enable tlsCertFile for client authentication to secure service.
+### [V-242425](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242425): Kubernetes Kubelet must enable tlsCertFile for client authentication to secure service
 
 #### Severity: Medium
 
@@ -2884,6 +2985,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, but does explicitly pass
 > `--tls-cert-file=/etc/kubernetes/pki/kubelet.crt`
@@ -2897,6 +2999,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--tls-cert-file` for service `kubelet` as appropriate.
 
 Ensure it is set to: `/etc/kubernetes/pki/kubelet\.crt`
@@ -2922,7 +3025,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242426](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242426): Kubernetes etcd must enable client authentication to secure service.
+### [V-242426](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242426): Kubernetes etcd must enable client authentication to secure service
 
 #### Severity: Medium
 
@@ -2941,6 +3044,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This finding refers to the `--peer-client-cert-auth` command
 > line argument for the etcd service.
 > 
@@ -2957,6 +3061,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/k8s-dqlite` in order to set the argument `--enable-tls` for service `k8s-dqlite` as appropriate.
 
 Ensure it is NOT set to one of: `false`, `0`
@@ -2986,7 +3091,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242427](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242427): Kubernetes etcd must have a key file for secure communication.
+### [V-242427](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242427): Kubernetes etcd must have a key file for secure communication
 
 #### Severity: Medium
 
@@ -3007,6 +3112,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This finding refers to the `--key-file` command line argument for the
 > etcd service.
 > 
@@ -3023,6 +3129,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -3041,13 +3148,12 @@ stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-
-
-
 #### Step 2/3
 
 
 #### Comments:
+
+
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
@@ -3071,13 +3177,11 @@ stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 6
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-
-
-
 #### Step 3/3
 
 
 #### Comments:
+
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
 > 
@@ -3115,7 +3219,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242428](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242428): Kubernetes etcd must have a certificate for communication.
+### [V-242428](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242428): Kubernetes etcd must have a certificate for communication
 
 #### Severity: Medium
 
@@ -3136,6 +3240,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This finding refers to the `--cert-file` command line argument for the
 > etcd service.
 > 
@@ -3152,6 +3257,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -3168,9 +3274,6 @@ stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -
 ```
 
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
-
-
-
 
 
 #### Step 2/3
@@ -3207,6 +3310,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
 > 
@@ -3214,7 +3318,8 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 #### Remediation for Step 3
 
-Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--etcd-servers` for service `kube-apiserver` as appropriate.
+Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set
+the argument `--etcd-servers` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to: `unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`
 
@@ -3241,10 +3346,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 The final line of the output will be `PASS`.
 
 
-
-
-
-### [V-242429](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242429): Kubernetes etcd must have the SSL Certificate Authority set.
+### [V-242429](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242429): Kubernetes etcd must have the SSL Certificate Authority set
 
 #### Severity: Medium
 
@@ -3257,8 +3359,6 @@ The final line of the output will be `PASS`.
 > The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic. 
 > 
 > To enable encrypted communication for etcd, the parameter "--etcd-cafile" must be set. This parameter gives the location of the SSL Certificate Authority file used to secure etcd communication.
-
-
 
 
 #### Step 1/3
@@ -3281,6 +3381,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -3299,13 +3400,11 @@ stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-
-
-
 #### Step 2/3
 
 
 #### Comments:
+
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
@@ -3329,13 +3428,11 @@ stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 6
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-
-
-
 #### Step 3/3
 
 
 #### Comments:
+
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
 > 
@@ -3353,9 +3450,6 @@ Afterwards restart the `kube-apiserver` service with:
 
     sudo systemctl restart snap.k8s.kube-apiserver
 
-
-
-
 #### Auditing (as root) for Step 3
 
 Ensure that the argument `--etcd-servers` for service `kube-apiserver` is set as appropriate in the service's argument file `/var/snap/k8s/common/args/kube-apiserver`.
@@ -3371,9 +3465,7 @@ The final line of the output will be `PASS`.
 
 
 
-
-
-### [V-242430](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242430): Kubernetes etcd must have a certificate for communication.
+### [V-242430](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242430): Kubernetes etcd must have a certificate for communication
 
 #### Severity: Medium
 
@@ -3394,6 +3486,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This finding refers to the `--etcd-certfile` command line argument for the
 > Kube API Service.
 > 
@@ -3428,13 +3521,11 @@ stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-
-
-
 #### Step 2/3
 
 
 #### Comments:
+
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
@@ -3459,12 +3550,11 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-
-
 #### Step 3/3
 
 
 #### Comments:
+
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
 > 
@@ -3487,7 +3577,9 @@ Afterwards restart the `kube-apiserver` service with:
 
 #### Auditing (as root) for Step 3
 
-Ensure that the argument `--etcd-servers` for service `kube-apiserver` is set as appropriate in the service's argument file `/var/snap/k8s/common/args/kube-apiserver`.
+Ensure that the argument `--etcd-servers` for service `kube-apiserver`
+is set as appropriate in the service's argument
+file `/var/snap/k8s/common/args/kube-apiserver`.
 
 ```bash
 grep -E -q  '\-\-etcd-servers=(unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)' '/var/snap/k8s/common/args/kube-apiserver'
@@ -3500,9 +3592,7 @@ The final line of the output will be `PASS`.
 
 
 
-
-
-### [V-242431](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242431): Kubernetes etcd must have a key file for secure communication.
+### [V-242431](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242431): Kubernetes etcd must have a key file for secure communication
 
 #### Severity: Medium
 
@@ -3523,6 +3613,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This finding refers to the `--etcd-keyfile` command line argument
 > for the Kube API Service.
 > 
@@ -3539,6 +3630,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -3555,9 +3647,6 @@ stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -
 ```
 
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
-
-
-
 
 
 #### Step 2/3
@@ -3588,12 +3677,11 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-
-
 #### Step 3/3
 
 
 #### Comments:
+
 > This check ensures the `--etcd-servers` argument of the Kube API Server
 > is as expected.
 > 
@@ -3629,9 +3717,7 @@ The final line of the output will be `PASS`.
 
 
 
-
-
-### [V-242432](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242432): Kubernetes etcd must have peer-cert-file set for secure communication.
+### [V-242432](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242432): Kubernetes etcd must have peer-cert-file set for secure communication
 
 #### Severity: Medium
 
@@ -3646,10 +3732,8 @@ The final line of the output will be `PASS`.
 > To enable encrypted communication for etcd, the parameter peer-cert-file must be set. This parameter gives the location of the SSL certification file used to secure etcd communication.
 
 
-
-
-
 #### Comments:
+
 > This finding refers to the `--peer-cert-file` command
 > line argument for the etcd service.
 > 
@@ -3667,6 +3751,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/k8s-dqlite` in order to set the argument `--storage-dir` for service `k8s-dqlite` as appropriate.
 
 Ensure it is set to: `/var/snap/k8s/common/var/lib/k8s-dqlite`
@@ -3681,7 +3766,9 @@ Afterwards restart the `k8s-dqlite` service with:
 
 #### Auditing (as root)
 
-Ensure that the argument `--storage-dir` for service `k8s-dqlite` is set as appropriate in the service's argument file `/var/snap/k8s/common/args/k8s-dqlite`.
+Ensure that the argument `--storage-dir` for service `k8s-dqlite` is
+set as appropriate in the service's argument
+file `/var/snap/k8s/common/args/k8s-dqlite`.
 
 ```bash
 grep -E -q  '\-\-storage-dir=(/var/snap/k8s/common/var/lib/k8s-dqlite)' '/var/snap/k8s/common/args/k8s-dqlite'
@@ -3694,7 +3781,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242433](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242433): Kubernetes etcd must have a peer-key-file set for secure communication.
+### [V-242433](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242433): Kubernetes etcd must have a peer-key-file set for secure communication
 
 #### Severity: Medium
 
@@ -3709,10 +3796,8 @@ The final line of the output will be `PASS`.
 > To enable encrypted communication for etcd, the parameter peer-key-file must be set. This parameter gives the location of the SSL certification file used to secure etcd communication.
 
 
-
-
-
 #### Comments:
+
 > This finding refers to the `--peer-key-file` command
 > line argument for the etcd service.
 > 
@@ -3730,16 +3815,14 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/k8s-dqlite` in order to set the argument `--storage-dir` for service `k8s-dqlite` as appropriate.
 
 Ensure it is set to: `/var/snap/k8s/common/var/lib/k8s-dqlite`
 
 Afterwards restart the `k8s-dqlite` service with:
 
-
-
     sudo systemctl restart snap.k8s.k8s-dqlite
-
 
 
 #### Auditing (as root)
@@ -3757,7 +3840,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242438](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242438): Kubernetes API Server must configure timeouts to limit attack surface.
+### [V-242438](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242438): Kubernetes API Server must configure timeouts to limit attack surface
 
 #### Severity: Medium
 
@@ -3768,15 +3851,14 @@ The final line of the output will be `PASS`.
 > Kubernetes API Server request timeouts sets the duration a request stays open before timing out. Since the API Server is the central component in the Kubernetes Control Plane, it is vital to protect this service. If request timeouts were not set, malicious attacks or unwanted activities might affect multiple deployments across different applications or environments. This might deplete all resources from the Kubernetes infrastructure causing the information system to go offline. The "--request-timeout" value must never be set to "0". This disables the request-timeout feature. (By default, the "--request-timeout" is set to "1 minute".)
 
 
-
-
-
 #### Comments:
+
 > The Finding also allows for setting a timeout larger than 300s.
 > 
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--request-timeout` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to: `300s`
@@ -3802,7 +3884,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242442](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242442): Kubernetes must remove old components after updated versions have been installed.
+### [V-242442](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242442): Kubernetes must remove old components after updated versions have been installed
 
 #### Severity: Medium
 
@@ -3813,10 +3895,8 @@ The final line of the output will be `PASS`.
 > Previous versions of Kubernetes components that are not removed after updates have been installed may be exploited by adversaries by allowing the vulnerabilities to still exist within the cluster. It is important for Kubernetes to remove old pods when newer pods are created using new images to always be at the desired security state.
 
 
-
-
-
 #### Comments:
+
 > This Finding recommends checking that no residual versions of Kubernetes
 > components are left running following upgrades of the Kubernetes cluster.
 > 
@@ -3826,7 +3906,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242443](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242443): Kubernetes must contain the latest updates as authorized by IAVMs, CTOs, DTMs, and STIGs.
+### [V-242443](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242443): Kubernetes must contain the latest updates as authorized by IAVMs, CTOs, DTMs, and STIGs
 
 #### Severity: Medium
 
@@ -3845,10 +3925,8 @@ The final line of the output will be `PASS`.
 > The container platform components will be configured to check for and install security-relevant software updates within an identified time period from the availability of the update. The container platform registry will ensure the images are current. The specific time period will be defined by an authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 
 
-
-
-
 #### Comments:
+
 > This Finding recommends checking all Kubernetes component versions
 > are actively supported.
 > 
@@ -3861,7 +3939,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242444](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242444): The Kubernetes component manifests must be owned by root.
+### [V-242444](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242444): The Kubernetes component manifests must be owned by root
 
 #### Severity: Medium
 
@@ -3876,6 +3954,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > The manifest files for the Kubernetes services in the k8s-snap are
 > located in the following directories:
 > 
@@ -3884,6 +3963,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -3923,7 +4003,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-### [V-242445](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242445): The Kubernetes component etcd must be owned by etcd.
+### [V-242445](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242445): The Kubernetes component etcd must be owned by etcd
 
 #### Severity: Medium
 
@@ -3934,10 +4014,8 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 > The Kubernetes etcd key-value store provides a way to store data to the Control Plane. If these files can be changed, data to API object and the Control Plane would be compromised. The scheduler will implement the changes immediately. Many of the security settings within the document are implemented through this file.
 
 
-
-
-
 #### Comments:
+
 > This Finding refers to checking the ownership of all etcd-related
 > files under /var/lib/etcd/*.
 > 
@@ -3954,6 +4032,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Remediation
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -3977,7 +4056,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-### [V-242446](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242446): The Kubernetes conf files must be owned by root.
+### [V-242446](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242446): The Kubernetes conf files must be owned by root
 
 #### Severity: Medium
 
@@ -3988,10 +4067,8 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 > The Kubernetes conf files contain the arguments and settings for the Control Plane services. These services are controller and scheduler. If these files can be changed, the scheduler will be implementing the changes immediately. Many of the security settings within the document are implemented through this file.
 
 
-
-
-
 #### Comments:
+
 > Note that the original Finding references 'controller-manager.conf',
 > but the k8s-snap uses 'controller.conf'.
 > 
@@ -4000,6 +4077,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Remediation
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -4019,8 +4097,7 @@ stat -c %u:%g '/etc/kubernetes/controller.conf' | grep -q 0:0 && echo PASS /etc/
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-
-### [V-242447](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242447): The Kubernetes Kube Proxy kubeconfig must have file permissions set to 644 or more restrictive.
+### [V-242447](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242447): The Kubernetes Kube Proxy kubeconfig must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -4032,11 +4109,11 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-
 #### Step 1/2
 
 
 #### Comments:
+
 > Finding stipulates that permission mask should be at most 644,
 > but they can also be set to be more restrictive.
 > 
@@ -4045,6 +4122,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct permissions by running: 
 
 
@@ -4063,13 +4141,11 @@ stat -c %a '/etc/kubernetes/proxy.conf' | grep -q 600 && echo PASS /etc/kubernet
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-
-
-
 #### Step 2/2
 
 
 #### Comments:
+
 > This check was added to ensure the Kubernetes Proxy configuration
 > file path is set as expected.
 > 
@@ -4105,9 +4181,7 @@ The final line of the output will be `PASS`.
 
 
 
-
-
-### [V-242448](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242448): The Kubernetes Kube Proxy kubeconfig must be owned by root.
+### [V-242448](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242448): The Kubernetes Kube Proxy kubeconfig must be owned by root
 
 #### Severity: Medium
 
@@ -4124,6 +4198,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > Finding stipulates the file should be owned by the root user/group.
 > 
 > Finding V-242447 defines the associated file permissions requirements.
@@ -4131,8 +4206,8 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
-Ensure all of the following paths have correct ownership by running: 
 
+Ensure all of the following paths have correct ownership by running: 
 
 
     chown -R 0:0 /etc/kubernetes/proxy.conf
@@ -4150,12 +4225,11 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-
-
 #### Step 2/2
 
 
 #### Comments:
+
 > This check was added to ensure the proxy config is as expected.
 > 
 
@@ -4168,11 +4242,7 @@ Ensure it is set to: `/etc/kubernetes/proxy\.conf`
 
 Afterwards restart the `kube-proxy` service with:
 
-
-
     sudo systemctl restart snap.k8s.kube-proxy
-
-
 
 
 #### Auditing (as root) for Step 2
@@ -4190,9 +4260,7 @@ The final line of the output will be `PASS`.
 
 
 
-
-
-### [V-242449](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242449): The Kubernetes Kubelet certificate authority file must have file permissions set to 644 or more restrictive.
+### [V-242449](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242449): The Kubernetes Kubelet certificate authority file must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -4237,12 +4305,11 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-
-
 #### Step 2/2
 
 
 #### Comments:
+
 > This check was added to ensure the `--client-ca-file` is as expected.
 > 
 
@@ -4277,9 +4344,7 @@ The final line of the output will be `PASS`.
 
 
 
-
-
-### [V-242450](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242450): The Kubernetes Kubelet certificate authority must be owned by root.
+### [V-242450](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242450): The Kubernetes Kubelet certificate authority must be owned by root
 
 #### Severity: Medium
 
@@ -4290,12 +4355,11 @@ The final line of the output will be `PASS`.
 > The Kubernetes kube proxy kubeconfig contain the argument and setting for the Control Planes. These settings contain network rules for restricting network communication between pods, clusters, and networks. If these files can be changed, data traversing between the Kubernetes Control Panel components would be compromised. Many of the security settings within the document are implemented through this file.
 
 
-
-
 #### Step 1/2
 
 
 #### Comments:
+
 > Finding stipulates the file should be owned by the root user/group.
 > 
 > Finding V-242449 defines the associated file permissions requirements.
@@ -4322,12 +4386,11 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-
-
 #### Step 2/2
 
 
 #### Comments:
+
 > This check was added to ensure the `--client-ca-file` is as expected.
 > 
 
@@ -4345,8 +4408,6 @@ Afterwards restart the `kubelet` service with:
     sudo systemctl restart snap.k8s.kubelet
 
 
-
-
 #### Auditing (as root) for Step 2
 
 Ensure that the argument `--client-ca-file` for service `kubelet` is set as appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -4362,9 +4423,7 @@ The final line of the output will be `PASS`.
 
 
 
-
-
-### [V-242451](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242451): The Kubernetes component PKI must be owned by root.
+### [V-242451](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242451): The Kubernetes component PKI must be owned by root
 
 #### Severity: Medium
 
@@ -4375,10 +4434,8 @@ The final line of the output will be `PASS`.
 > The Kubernetes PKI directory contains all certificates (.crt files) supporting secure network communications in the Kubernetes Control Plane. If these files can be modified, data traversing within the architecture components would become unsecure and compromised. Many of the security settings within the document are implemented through this file.
 
 
-
-
-
 #### Comments:
+
 > The k8s-snap stores PKI-related files in the following directory:
 > 
 >     /etc/kubernetes/pki
@@ -4388,6 +4445,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -4421,7 +4479,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-### [V-242452](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242452): The Kubernetes kubelet KubeConfig must have file permissions set to 644 or more restrictive.
+### [V-242452](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242452): The Kubernetes kubelet KubeConfig must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -4432,21 +4490,19 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 > The Kubernetes kubelet agent registers nodes with the API Server, mounts volume storage for pods, and performs health checks to containers within pods. If these files can be modified, the information system would be unaware of pod or container degradation. Many of the security settings within the document are implemented through this file.
 
 
-
-
 #### Step 1/2
 
 
 #### Comments:
+
 > Finding stipulates that permission mask should be at most 644,
 > but they can also be set to be more restrictive.
 > 
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct permissions by running: 
-
-
 
     chmod -R 644 /etc/kubernetes/kubelet.conf
 
@@ -4463,12 +4519,11 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-
-
 #### Step 2/2
 
 
 #### Comments:
+
 > This check was added to ensure Kubelet's `--kubeconfig` is as expected.
 
 
@@ -4483,8 +4538,6 @@ Afterwards restart the `kubelet` service with:
 
 
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 
 #### Auditing (as root) for Step 2
@@ -4502,9 +4555,7 @@ The final line of the output will be `PASS`.
 
 
 
-
-
-### [V-242453](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242453): The Kubernetes kubelet KubeConfig file must be owned by root.
+### [V-242453](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242453): The Kubernetes kubelet KubeConfig file must be owned by root
 
 #### Severity: Medium
 
@@ -4515,17 +4566,16 @@ The final line of the output will be `PASS`.
 > The Kubernetes kubelet agent registers nodes with the API server and performs health checks to containers within pods. If these files can be modified, the information system would be unaware of pod or container degradation. Many of the security settings within the document are implemented through this file.
 
 
-
-
 #### Step 1/2
 
 
 #### Comments:
+
 > Finding stipulates the file should be owned by the root user/group.
 > 
 
-
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -4545,12 +4595,11 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-
-
 #### Step 2/2
 
 
 #### Comments:
+
 > This check was added to ensure Kubelet's `--kubeconfig` is as expected.
 
 
@@ -4565,8 +4614,6 @@ Afterwards restart the `kubelet` service with:
 
 
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 
 #### Auditing (as root) for Step 2
@@ -4584,9 +4631,7 @@ The final line of the output will be `PASS`.
 
 
 
-
-
-### [V-242454](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242454): The Kubernetes kubeadm.conf must be owned by root.
+### [V-242454](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242454): The Kubernetes kubeadm.conf must be owned by root
 
 #### Severity: Medium
 
@@ -4597,10 +4642,8 @@ The final line of the output will be `PASS`.
 > The Kubernetes kubeeadm.conf contains sensitive information regarding the cluster nodes configuration. If this file can be modified, the Kubernetes Platform Plane would be degraded or compromised for malicious intent. Many of the security settings within the document are implemented through this file.
 
 
-
-
-
 #### Comments:
+
 > This Finding stipulates the file ownership of the kubeadm executable,
 > which does not ship as part of the k8s-snap.
 > 
@@ -4613,7 +4656,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242455](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242455): The Kubernetes kubeadm.conf must have file permissions set to 644 or more restrictive.
+### [V-242455](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242455): The Kubernetes kubeadm.conf must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -4624,10 +4667,8 @@ The final line of the output will be `PASS`.
 > The Kubernetes kubeadm.conf contains sensitive information regarding the cluster nodes configuration. If this file can be modified, the Kubernetes Platform Plane would be degraded or compromised for malicious intent. Many of the security settings within the document are implemented through this file.
 
 
-
-
-
 #### Comments:
+
 > This Finding stipulates the file ownership of the kubeadm executable,
 > which does not ship as part of the k8s-snap.
 > 
@@ -4640,7 +4681,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242456](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242456): The Kubernetes kubelet config must have file permissions set to 644 or more restrictive.
+### [V-242456](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242456): The Kubernetes kubelet config must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -4657,6 +4698,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding relates to the permissions on the `/var/lib/kubelet/config.yaml`
 > file.
 > 
@@ -4674,6 +4716,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct permissions by running: 
 
 
@@ -4699,6 +4742,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This check is defined to ensure that Kubelet is not passed
 > a `--config` file argument in the k8s-snap.
 > 
@@ -4736,9 +4780,7 @@ The final line of the output will be `PASS`.
 
 
 
-
-
-### [V-242457](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242457): The Kubernetes kubelet config must be owned by root.
+### [V-242457](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242457): The Kubernetes kubelet config must be owned by root
 
 #### Severity: Medium
 
@@ -4749,12 +4791,11 @@ The final line of the output will be `PASS`.
 > The Kubernetes kubelet agent registers nodes with the API Server and performs health checks to containers within pods. If this file can be modified, the information system would be unaware of pod or container degradation.
 
 
-
-
 #### Step 1/2
 
 
 #### Comments:
+
 > This Finding relates to the permissions on the `/var/lib/kubelet/config.yaml`
 > file in relation to it being used by `kubeadm`.
 > 
@@ -4772,8 +4813,8 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
-Ensure all of the following paths have correct permissions by running: 
 
+Ensure all of the following paths have correct permissions by running: 
 
 
     chmod -R 644 /var/snap/k8s/common/args/kubelet
@@ -4812,8 +4853,6 @@ Afterwards restart the `kubelet` service with:
     sudo systemctl restart snap.k8s.kubelet
 
 
-
-
 #### Auditing (as root) for Step 2
 
 Ensure that the argument `--config` for service `kubelet` is set as appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -4833,7 +4872,7 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242459](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242459): The Kubernetes etcd must have file permissions set to 644 or more restrictive.
+### [V-242459](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242459): The Kubernetes etcd must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -4845,6 +4884,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding refers to checking the ownership of all etcd-related
 > files under /var/lib/etcd/*.
 > 
@@ -4861,6 +4901,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Ensure all of the following paths have correct permissions by running: 
 
 
@@ -4884,7 +4925,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-### [V-242460](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242460): The Kubernetes admin kubeconfig must have file permissions set to 644 or more restrictive.
+### [V-242460](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242460): The Kubernetes admin kubeconfig must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -4896,6 +4937,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > Note that the original Finding references 'controller-manager.conf',
 > but the k8s-snap uses 'controller.conf'.
 > 
@@ -4904,9 +4946,8 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Remediation
+
 Ensure all of the following paths have correct permissions by running: 
-
-
 
     chmod -R 644 /etc/kubernetes/admin.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/controller.conf
 
@@ -4923,8 +4964,7 @@ stat -c %a '/etc/kubernetes/controller.conf' | grep -q 600 && echo PASS /etc/kub
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-
-### [V-242461](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242461): Kubernetes API Server audit logs must be enabled.
+### [V-242461](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242461): Kubernetes API Server audit logs must be enabled
 
 #### Severity: Medium
 
@@ -4936,6 +4976,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This Finding refers to the `--audit-policy-file` argument of the
 > Kubernetes API Service.
 > 
@@ -4947,6 +4988,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--audit-policy-file` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to any explicit value.
@@ -4971,8 +5013,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 The final line of the output will be `PASS`.
 
 
-
-### [V-242462](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242462): The Kubernetes API Server must be set to audit log max size.
+### [V-242462](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242462): The Kubernetes API Server must be set to audit log max size
 
 #### Severity: Medium
 
@@ -4984,6 +5025,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This Finding refers to the `--audit-log-maxsize` argument of the
 > Kubernetes API Service.
 > 
@@ -4995,6 +5037,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--audit-log-maxsize` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to a minimum of `10`.
@@ -5019,8 +5062,7 @@ The output should indicate that `audit-log-maxsize` is set to a value less
 or equal to `100`.
 
 
-
-### [V-242463](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242463): The Kubernetes API Server must be set to audit log maximum backup.
+### [V-242463](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242463): The Kubernetes API Server must be set to audit log maximum backup
 
 #### Severity: Medium
 
@@ -5030,11 +5072,8 @@ or equal to `100`.
 
 > The Kubernetes API Server must set enough storage to retain logs for monitoring suspicious activity and system misconfiguration, and provide evidence for Cyber Security Investigations.
 
-
-
-
-
 #### Comments:
+
 > This Finding refers to the `--audit-log-maxbackup` argument of the
 > Kubernetes API Service.
 > 
@@ -5046,7 +5085,9 @@ or equal to `100`.
 
 
 #### Remediation
-Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--audit-log-maxbackup` for service `kube-apiserver` as appropriate.
+
+Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the
+argument `--audit-log-maxbackup` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to a minimum of `10`.
 
@@ -5060,7 +5101,9 @@ Afterwards restart the `kube-apiserver` service with:
 
 #### Auditing (as root)
 
-Ensure that the argument `--audit-log-maxbackup` for service `kube-apiserver` is set as appropriate in the service's argument file `/var/snap/k8s/common/args/kube-apiserver`.
+Ensure that the argument `--audit-log-maxbackup` for service `kube-apiserver`
+is set as appropriate in the service's argument
+file `/var/snap/k8s/common/args/kube-apiserver`.
 
 ```bash
 grep -E '\-\-audit-log-maxbackup=' '/var/snap/k8s/common/args/kube-apiserver'
@@ -5071,7 +5114,7 @@ less or equal to `10`.
 
 
 
-### [V-242464](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242464): The Kubernetes API Server audit log retention must be set.
+### [V-242464](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242464): The Kubernetes API Server audit log retention must be set
 
 #### Severity: Medium
 
@@ -5082,6 +5125,7 @@ less or equal to `10`.
 > The Kubernetes API Server must set enough storage to retain logs for monitoring suspicious activity and system misconfiguration, and provide evidence for Cyber Security Investigations.
 
 #### Comments:
+
 > This Finding refers to the `--audit-log-maxage` argument of the
 > Kubernetes API Service.
 > 
@@ -5093,6 +5137,7 @@ less or equal to `10`.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--audit-log-maxage` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to a minimum of 30
@@ -5115,7 +5160,7 @@ grep -E '\-\-audit-log-maxage=' '/var/snap/k8s/common/args/kube-apiserver'
 The output should indicate a `audit-log-maxage` value of 30.
 
 
-### [V-242465](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242465): The Kubernetes API Server audit log path must be set.
+### [V-242465](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242465): The Kubernetes API Server audit log path must be set
 
 #### Severity: Medium
 
@@ -5126,6 +5171,7 @@ The output should indicate a `audit-log-maxage` value of 30.
 > Kubernetes API Server validates and configures pods and services for the API object. The REST operation provides frontend functionality to the cluster share state. Audit logs are necessary to provide evidence in the case the Kubernetes API Server is compromised requiring Cyber Security Investigation. To record events in the audit log the log path value must be set.
 
 #### Comments:
+
 > This Finding refers to the `--audit-log-path` argument of the
 > Kubernetes API Service.
 > 
@@ -5139,6 +5185,7 @@ The output should indicate a `audit-log-maxage` value of 30.
 
 
 #### Remediation
+
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--audit-log-path` for service `kube-apiserver` as appropriate.
 
 Ensure it is set to any explicit value.
@@ -5160,7 +5207,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 The final line of the output will be `PASS`.
 
 
-### [V-242466](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242466): The Kubernetes PKI CRT must have file permissions set to 644 or more restrictive.
+### [V-242466](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242466): The Kubernetes PKI CRT must have file permissions set to 644 or more restrictive
 
 #### Severity: Medium
 
@@ -5171,6 +5218,7 @@ The final line of the output will be `PASS`.
 > The Kubernetes PKI directory contains all certificates (.crt files) supporting secure network communications in the Kubernetes Control Plane. If these files can be modified, data traversing within the architecture components would become unsecure and compromised.
 
 #### Comments:
+
 > Finding stipulates that permission mask of all the '*.crt' files
 > should be at most 644, but they can also be set to be more restrictive.
 > 
@@ -5179,6 +5227,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation
+
 Ensure all of the following paths have correct permissions by running: 
 
     chmod -R 644 /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-client.crt
@@ -5200,7 +5249,7 @@ stat -c %a '/etc/kubernetes/pki/front-proxy-client.crt' | grep -q 600 && echo PA
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-### [V-242467](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242467): The Kubernetes PKI keys must have file permissions set to 600 or more restrictive.
+### [V-242467](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242467): The Kubernetes PKI keys must have file permissions set to 600 or more restrictive
 
 #### Severity: Medium
 
@@ -5211,6 +5260,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 > The Kubernetes PKI directory contains all certificate key files supporting secure network communications in the Kubernetes Control Plane. If these files can be modified, data traversing within the architecture components would become unsecure and compromised.
 
 #### Comments:
+
 > Finding stipulates that permission mask of all the '*.key' files
 > should be 600.
 > 
@@ -5219,6 +5269,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Remediation
+
 Ensure all of the following paths have correct permissions by running: 
 
 
@@ -5242,7 +5293,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 
-### [V-245541](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245541): Kubernetes Kubelet must not disable timeouts.
+### [V-245541](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245541): Kubernetes Kubelet must not disable timeouts
 
 #### Severity: Medium
 
@@ -5254,6 +5305,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, nor does it explicitly pass
 > `--streaming-connection-idle-timeout=5m` as a command line argument.
@@ -5266,7 +5318,9 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Remediation
-Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument `--streaming-connection-idle-timeout` for service `kubelet` as appropriate.
+
+Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
+`--streaming-connection-idle-timeout` for service `kubelet` as appropriate.
 
 Ensure it is set to: `5m`
 
@@ -5277,7 +5331,9 @@ Afterwards restart the `kubelet` service with:
 
 #### Auditing (as root)
 
-Ensure that the argument `--streaming-connection-idle-timeout` for service `kubelet` is set as appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
+Ensure that the argument `--streaming-connection-idle-timeout` for service
+`kubelet` is set as appropriate in the service's argument
+file `/var/snap/k8s/common/args/kubelet`.
 
 ```bash
 grep -E -q  '\-\-streaming-connection-idle-timeout=(5m)' '/var/snap/k8s/common/args/kubelet'
