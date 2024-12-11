@@ -3818,6 +3818,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 
 #### Comments:
+
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
@@ -3840,8 +3841,6 @@ stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 6
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-
 
 
 
@@ -3910,6 +3909,7 @@ The final line of the output will be `PASS`.
 
 
 #### Comments:
+
 > This finding refers to the `--etcd-cafile` command line argument for the
 > Kube API Service.
 > 
@@ -4048,6 +4048,7 @@ The final line of the output will be `PASS`.
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -4209,8 +4210,8 @@ start with `PASS`.
 
 
 #### Comments:
-> This check ensures the permissions on the k8s-dqlite socket.
 
+> This check ensures the permissions on the k8s-dqlite socket.
 
 #### Remediation for Step 2
 
@@ -5028,6 +5029,7 @@ document are implemented through this file.
 
 
 #### Remediation for Step 1
+
 Ensure all of the following paths have correct ownership by running: 
 
 
@@ -5530,6 +5532,7 @@ start with `PASS`.
 
 
 #### Comments:
+
 > This check is defined to ensure that Kubelet is not passed
 > a `--config` file argument in the k8s-snap.
 > 
