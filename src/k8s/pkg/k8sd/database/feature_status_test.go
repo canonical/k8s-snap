@@ -9,13 +9,13 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	microcluster_testenv "github.com/canonical/k8s/pkg/utils/microcluster"
+	testenv "github.com/canonical/k8s/pkg/utils/microcluster"
 	"github.com/canonical/microcluster/v2/state"
 	. "github.com/onsi/gomega"
 )
 
 func TestFeatureStatus(t *testing.T) {
-	microcluster_testenv.WithState(t, func(ctx context.Context, s state.State) {
+	testenv.WithState(t, func(ctx context.Context, s state.State) {
 		_ = s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 			t0, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 			networkStatus := types.FeatureStatus{

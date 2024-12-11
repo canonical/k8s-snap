@@ -1,4 +1,4 @@
-package microcluster_testenv
+package testenv
 
 import (
 	"context"
