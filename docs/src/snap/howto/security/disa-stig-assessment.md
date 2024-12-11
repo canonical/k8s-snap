@@ -297,9 +297,7 @@ grep -E -q  '\-\-anonymous-auth=(false|0)' '/var/snap/k8s/common/args/kube-apise
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -991,9 +989,7 @@ grep -E -q  '\-\-tls-min-version=(VersionTLS12|VersionTLS13)' '/var/snap/k8s/com
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -1043,9 +1039,7 @@ grep -E -q  '\-\-tls-min-version=(VersionTLS12|VersionTLS13)' '/var/snap/k8s/com
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -1060,9 +1054,6 @@ The final line of the output will be `FAIL`.
 > The Kubernetes API Server will prohibit the use of SSL and unauthorized versions of TLS protocols to properly secure communication.
 > 
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by rogue traffic interceptions, man-in-the-middle attacks, and impersonation of users or services from the container platform runtime, registry, and keystore. To enable the minimum version of TLS to be used by the Kubernetes API Server, the setting "tls-min-version" must be set.
-
-
-
 
 
 #### Comments:
@@ -1095,9 +1086,7 @@ grep -E -q  '\-\-tls-min-version=(VersionTLS12|VersionTLS13)' '/var/snap/k8s/com
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -1112,8 +1101,6 @@ The final line of the output will be `FAIL`.
 > Kubernetes etcd will prohibit the use of SSL and unauthorized versions of TLS protocols to properly secure communication.
 > 
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by rogue traffic interceptions, man-in-the-middle attacks, and impersonation of users or services from the container platform runtime, registry, and keystore. To enable the minimum version of TLS to be used by the Kubernetes API Server, the setting "--auto-tls" must be set.
-
-
 
 
 #### Step 1/3
@@ -1390,9 +1377,7 @@ grep -E -q  '\-\-bind-address=(127.0.0.1)' '/var/snap/k8s/common/args/kube-sched
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -1440,9 +1425,7 @@ grep -E -q  '\-\-bind-address=(127.0.0.1)' '/var/snap/k8s/common/args/kube-contr
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -1725,11 +1708,8 @@ The final line of the output will be `PASS`.
 > 
 > The k8s-snap does not configure auditing by default.
 > 
-> Please review the below hardening document for a full guide on how
-> to enable auditing for the kube-apiserver.
-> 
-> <!-- TODO: switch link to dedicated DISA Hardening page when published. -->
-> https://documentation.ubuntu.com/canonical-kubernetes/latest/src/snap/howto/cis-hardening/#configure-auditing
+> Please review the [post-deployment hardening] guide for a full description
+> on how to enable auditing for the kube-apiserver.
 > 
 > This Finding is basically a duplicate of V-242465.
 > 
@@ -1757,9 +1737,7 @@ grep -E -q  '\-\-audit-log-path=(.*)' '/var/snap/k8s/common/args/kube-apiserver'
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -1791,11 +1769,8 @@ The final line of the output will be `FAIL`.
 > 
 > The k8s-snap does not configure auditing by default.
 > 
-> Please review the below hardening document for a full guide on how
-> to enable auditing for the kube-apiserver.
-> 
-> <!-- TODO: switch link to dedicated DISA Hardening page when published. -->
-> https://documentation.ubuntu.com/canonical-kubernetes/latest/src/snap/howto/cis-hardening/#configure-auditing
+> Please review the [post-deployment hardening] guide for a full description
+> on how to enable auditing for the kube-apiserver.
 > 
 
 
@@ -1821,9 +1796,7 @@ grep -E -q  '\-\-audit-policy-file=(.*)' '/var/snap/k8s/common/args/kube-apiserv
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -1873,9 +1846,7 @@ grep -E -qvz '\-\-hostname-override=(.*)' '/var/snap/k8s/common/args/kubelet' &&
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -2890,9 +2861,7 @@ grep -E -q  '\-\-tls-private-key-file=(/etc/kubernetes/pki/kubelet\.key)' '/var/
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -2949,9 +2918,7 @@ grep -E -q  '\-\-tls-cert-file=(/etc/kubernetes/pki/kubelet\.crt)' '/var/snap/k8
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -3831,9 +3798,7 @@ grep -E -q  '\-\-request-timeout=(300s)' '/var/snap/k8s/common/args/kube-apiserv
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -4825,9 +4790,6 @@ stat -c %a '/var/snap/k8s/common/args/kubelet' | grep -q 600 && echo PASS /var/s
 In the default configuration of the `k8s-snap`, resulting output lines will start with `PASS`.
 
 
-
-
-
 #### Step 2/2
 
 
@@ -4882,9 +4844,6 @@ The final line of the output will be `PASS`.
 > The Kubernetes etcd key-value store provides a way to store data to the Control Plane. If these files can be changed, data to API object and Control Plane would be compromised.
 
 
-
-
-
 #### Comments:
 > This Finding refers to checking the ownership of all etcd-related
 > files under /var/lib/etcd/*.
@@ -4936,9 +4895,6 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 > The Kubernetes admin kubeconfig files contain the arguments and settings for the Control Plane services. These services are controller and scheduler. If these files can be changed, the scheduler will be implementing the changes immediately.
 
 
-
-
-
 #### Comments:
 > Note that the original Finding references 'controller-manager.conf',
 > but the k8s-snap uses 'controller.conf'.
@@ -4979,20 +4935,14 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 > Kubernetes API Server validates and configures pods and services for the API object. The REST operation provides frontend functionality to the cluster share state. Enabling audit logs provides a way to monitor and identify security risk events or misuse of information. Audit logs are necessary to provide evidence in the case the Kubernetes API Server is compromised requiring a Cyber Security Investigation.
 
 
-
-
-
 #### Comments:
 > This Finding refers to the `--audit-policy-file` argument of the
 > Kubernetes API Service.
 > 
 > The k8s-snap does not configure auditing by default.
 > 
-> Please review the below hardening document for a full guide on how
-> to enable auditing for the kube-apiserver.
-> 
-> <!-- TODO: switch link to dedicated DISA Hardening page when published. -->
-> https://documentation.ubuntu.com/canonical-kubernetes/latest/src/snap/howto/cis-hardening/#configure-auditing
+> Please review the [post-deployment hardening] guide for a full description
+> on how to enable auditing for the kube-apiserver.
 > 
 
 
@@ -5018,9 +4968,7 @@ grep -E -q  '\-\-audit-policy-file=(.*)' '/var/snap/k8s/common/args/kube-apiserv
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 
@@ -5035,27 +4983,21 @@ The final line of the output will be `FAIL`.
 > The Kubernetes API Server must be set for enough storage to retain log information over the period required. When audit logs are large in size, the monitoring service for events becomes degraded. The function of the maximum log file size is to set these limits.
 
 
-
-
-
 #### Comments:
 > This Finding refers to the `--audit-log-maxsize` argument of the
 > Kubernetes API Service.
 > 
 > The k8s-snap does not configure auditing by default.
 > 
-> Please review the below hardening document for a full guide on how
-> to enable auditing for the kube-apiserver.
-> 
-> <!-- TODO: switch link to dedicated DISA Hardening page when published. -->
-> https://documentation.ubuntu.com/canonical-kubernetes/latest/src/snap/howto/cis-hardening/#configure-auditing
+> Please review the [post-deployment hardening] guide for a full description
+> on how to enable auditing for the kube-apiserver.
 > 
 
 
 #### Remediation
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--audit-log-maxsize` for service `kube-apiserver` as appropriate.
 
-Ensure it is set to: `\d{3,}`
+Ensure it is set to a minimum of `10`.
 
 Afterwards restart the `kube-apiserver` service with:
 
@@ -5070,13 +5012,11 @@ Afterwards restart the `kube-apiserver` service with:
 Ensure that the argument `--audit-log-maxsize` for service `kube-apiserver` is set as appropriate in the service's argument file `/var/snap/k8s/common/args/kube-apiserver`.
 
 ```bash
-grep -E -q  '\-\-audit-log-maxsize=(\d{3,})' '/var/snap/k8s/common/args/kube-apiserver'
-test $? -eq 0 && echo PASS || echo FAIL
+grep -E '\-\-audit-log-maxsize=' '/var/snap/k8s/common/args/kube-apiserver'
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The output should indicate that `audit-log-maxsize` is set to a value less
+or equal to `100`.
 
 
 
@@ -5100,18 +5040,15 @@ The final line of the output will be `FAIL`.
 > 
 > The k8s-snap does not configure auditing by default.
 > 
-> Please review the below hardening document for a full guide on how
-> to enable auditing for the kube-apiserver.
-> 
-> <!-- TODO: switch link to dedicated DISA Hardening page when published. -->
-> https://documentation.ubuntu.com/canonical-kubernetes/latest/src/snap/howto/cis-hardening/#configure-auditing
+> Please review the [post-deployment hardening] guide for a full description
+> on how to enable auditing for the kube-apiserver.
 > 
 
 
 #### Remediation
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--audit-log-maxbackup` for service `kube-apiserver` as appropriate.
 
-Ensure it is set to: `\d{2,}`
+Ensure it is set to a minimum of `10`.
 
 Afterwards restart the `kube-apiserver` service with:
 
@@ -5126,13 +5063,11 @@ Afterwards restart the `kube-apiserver` service with:
 Ensure that the argument `--audit-log-maxbackup` for service `kube-apiserver` is set as appropriate in the service's argument file `/var/snap/k8s/common/args/kube-apiserver`.
 
 ```bash
-grep -E -q  '\-\-audit-log-maxbackup=(\d{2,})' '/var/snap/k8s/common/args/kube-apiserver'
-test $? -eq 0 && echo PASS || echo FAIL
+grep -E '\-\-audit-log-maxbackup=' '/var/snap/k8s/common/args/kube-apiserver'
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The output should indicate that `audit-log-maxbackup` is set to a value
+less or equal to `10`.
 
 
 
@@ -5146,31 +5081,23 @@ The final line of the output will be `FAIL`.
 
 > The Kubernetes API Server must set enough storage to retain logs for monitoring suspicious activity and system misconfiguration, and provide evidence for Cyber Security Investigations.
 
-
-
-
-
 #### Comments:
 > This Finding refers to the `--audit-log-maxage` argument of the
 > Kubernetes API Service.
 > 
 > The k8s-snap does not configure auditing by default.
 > 
-> Please review the below hardening document for a full guide on how
-> to enable auditing for the kube-apiserver.
-> 
-> <!-- TODO: switch link to dedicated DISA Hardening page when published. -->
-> https://documentation.ubuntu.com/canonical-kubernetes/latest/src/snap/howto/cis-hardening/#configure-auditing
+> Please review the [post-deployment hardening] guide for a full description
+> on how to enable auditing for the kube-apiserver.
 > 
 
 
 #### Remediation
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument `--audit-log-maxage` for service `kube-apiserver` as appropriate.
 
-Ensure it is set to: `\d{2,}`
+Ensure it is set to a minimum of 30
 
 Afterwards restart the `kube-apiserver` service with:
-
 
 
     sudo systemctl restart snap.k8s.kube-apiserver
@@ -5182,13 +5109,10 @@ Afterwards restart the `kube-apiserver` service with:
 Ensure that the argument `--audit-log-maxage` for service `kube-apiserver` is set as appropriate in the service's argument file `/var/snap/k8s/common/args/kube-apiserver`.
 
 ```bash
-grep -E -q  '\-\-audit-log-maxage=(\d{2,})' '/var/snap/k8s/common/args/kube-apiserver'
-test $? -eq 0 && echo PASS || echo FAIL
+grep -E '\-\-audit-log-maxage=' '/var/snap/k8s/common/args/kube-apiserver'
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The output should indicate a `audit-log-maxage` value of 30.
 
 
 ### [V-242465](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242465): The Kubernetes API Server audit log path must be set.
@@ -5201,21 +5125,14 @@ The final line of the output will be `FAIL`.
 
 > Kubernetes API Server validates and configures pods and services for the API object. The REST operation provides frontend functionality to the cluster share state. Audit logs are necessary to provide evidence in the case the Kubernetes API Server is compromised requiring Cyber Security Investigation. To record events in the audit log the log path value must be set.
 
-
-
-
-
 #### Comments:
 > This Finding refers to the `--audit-log-path` argument of the
 > Kubernetes API Service.
 > 
 > The k8s-snap does not configure auditing by default.
 > 
-> Please review the below hardening document for a full guide on how
-> to enable auditing for the kube-apiserver.
-> 
-> <!-- TODO: switch link to dedicated DISA Hardening page when published. -->
-> https://documentation.ubuntu.com/canonical-kubernetes/latest/src/snap/howto/cis-hardening/#configure-auditing
+> Please review the [post-deployment hardening] guide for a full description
+> on how to enable auditing for the kube-apiserver.
 > 
 > This Finding is basically a duplicate of V-242402.
 > 
@@ -5228,10 +5145,7 @@ Ensure it is set to any explicit value.
 
 Afterwards restart the `kube-apiserver` service with:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
 
 
 #### Auditing (as root)
@@ -5243,9 +5157,7 @@ grep -E -q  '\-\-audit-log-path=(.*)' '/var/snap/k8s/common/args/kube-apiserver'
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 
 ### [V-242466](https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242466): The Kubernetes PKI CRT must have file permissions set to 644 or more restrictive.
@@ -5258,10 +5170,6 @@ The final line of the output will be `FAIL`.
 
 > The Kubernetes PKI directory contains all certificates (.crt files) supporting secure network communications in the Kubernetes Control Plane. If these files can be modified, data traversing within the architecture components would become unsecure and compromised.
 
-
-
-
-
 #### Comments:
 > Finding stipulates that permission mask of all the '*.crt' files
 > should be at most 644, but they can also be set to be more restrictive.
@@ -5272,8 +5180,6 @@ The final line of the output will be `FAIL`.
 
 #### Remediation
 Ensure all of the following paths have correct permissions by running: 
-
-
 
     chmod -R 644 /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-client.crt
 
@@ -5304,10 +5210,6 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 > The Kubernetes PKI directory contains all certificate key files supporting secure network communications in the Kubernetes Control Plane. If these files can be modified, data traversing within the architecture components would become unsecure and compromised.
 
-
-
-
-
 #### Comments:
 > Finding stipulates that permission mask of all the '*.key' files
 > should be 600.
@@ -5318,7 +5220,6 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 
 #### Remediation
 Ensure all of the following paths have correct permissions by running: 
-
 
 
     chmod -R 600 /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/kubelet.key
@@ -5352,9 +5253,6 @@ In the default configuration of the `k8s-snap`, resulting output lines will star
 > Idle connections from the Kubelet can be used by unauthorized users to perform malicious activity to the nodes, pods, containers, and cluster within the Kubernetes Control Plane. Setting the streamingConnectionIdleTimeout defines the maximum time an idle session is permitted prior to disconnect. Setting the value to "0" never disconnects any idle sessions. Idle timeouts must never be set to "0" and should be defined at "5m" (the default is 4hr).
 
 
-
-
-
 #### Comments:
 > The k8s-snap does not pass a `--config` command line argument
 > to the Kubelet service, nor does it explicitly pass
@@ -5374,10 +5272,7 @@ Ensure it is set to: `5m`
 
 Afterwards restart the `kubelet` service with:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
 
 
 #### Auditing (as root)
@@ -5389,9 +5284,7 @@ grep -E -q  '\-\-streaming-connection-idle-timeout=(5m)' '/var/snap/k8s/common/a
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
-In the default configuration of the `k8s-snap`, resulting output lines will start with `FAIL`.
-
-The final line of the output will be `FAIL`.
+The final line of the output will be `PASS`.
 
 <!-- Links -->
 [Hardening]:security/hardening.md
