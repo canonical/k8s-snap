@@ -1,8 +1,7 @@
-package database_test
+package testenv
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -21,21 +20,17 @@ const (
 // nextIdx is used to pick different listen ports for each microcluster instance.
 var nextIdx int
 
-// DB is an interface for the internal microcluster DB type.
-type DB interface {
-	Transaction(ctx context.Context, f func(context.Context, *sql.Tx) error) error
-}
-
-// WithDB can be used to run isolated tests against the microcluster database.
+// WithState can be used to run isolated tests against the microcluster database.
+// The Database() can be accessed by calling s.Database().
 //
 // Example usage:
 //
 //	func TestKubernetesAuthTokens(t *testing.T) {
 //		t.Run("ValidToken", func(t *testing.T) {
 //			g := NewWithT(t)
-//			WithDB(t, func(ctx context.Context, db DB) {
+//			WithState(t, func(ctx context.Context, s state.State) {
 //				err := db.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-//					token, err := database.GetOrCreateToken(ctx, tx, "user1", []string{"group1", "group2"})
+//					token, err := s.Database().GetOrCreateToken(ctx, tx, "user1", []string{"group1", "group2"})
 //					if !g.Expect(err).To(Not(HaveOccurred())) {
 //						return err
 //					}
@@ -46,7 +41,7 @@ type DB interface {
 //			})
 //		})
 //	}
-func WithDB(t *testing.T, f func(context.Context, DB)) {
+func WithState(t *testing.T, f func(context.Context, state.State)) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -57,16 +52,16 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 		t.Fatalf("failed to create microcluster app: %v", err)
 	}
 
-	databaseCh := make(chan DB, 1)
+	stateChan := make(chan state.State, 1)
 	doneCh := make(chan error, 1)
-	defer close(databaseCh)
+	defer close(stateChan)
 	defer close(doneCh)
 
-	// app.Run() is blocking, so we get the database handle through a channel
+	// app.Run() is blocking, so we get the state handle through a channel
 	go func() {
 		doneCh <- app.Run(ctx, &state.Hooks{
 			PostBootstrap: func(ctx context.Context, s state.State, initConfig map[string]string) error {
-				databaseCh <- s.Database()
+				stateChan <- s
 				return nil
 			},
 			OnStart: func(ctx context.Context, s state.State) error {
@@ -95,8 +90,8 @@ func WithDB(t *testing.T, f func(context.Context, DB)) {
 	select {
 	case <-time.After(microclusterDatabaseInitTimeout):
 		t.Fatalf("timed out waiting for microcluster to start")
-	case db := <-databaseCh:
-		f(ctx, db)
+	case state := <-stateChan:
+		f(ctx, state)
 	}
 
 	// cancel context to stop the microcluster instance, and wait for it to shutdown
