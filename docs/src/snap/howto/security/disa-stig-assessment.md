@@ -1,3 +1,4 @@
+
 # DISA STIG for {{product}}
 
 Security Technical Implementation Guides (STIGs) are developed by the Defense
@@ -39,6 +40,8 @@ does not package, etc.
 administrator, so they cannot be automated.
 
 
+<!-- TODO Re-enable once report is formatted >
+<!-- markdownlint-disable MD013 -->
 ### [V-242381]: The Kubernetes Controller Manager must create unique service accounts for each work payload
 
 #### Severity: High
@@ -6121,9 +6124,8 @@ The final line of the output will be `PASS`.
 [getting started]: ../../tutorial/getting-started
 [kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
 [Comprehensive Hardening Checklist]:
-    auditing-steps.md#comprehensive-hardening-checklist
-[upstream
-    instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
+    auditing-steps.md#comprehensive-hardening-checklist [upstream
+instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [post-deployment hardening]: hardening.md
 [V-242381]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242381
 [V-242383]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242383
@@ -6216,3 +6218,5 @@ The final line of the output will be `PASS`.
 [V-242466]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242466
 [V-242467]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242467
 [V-245541]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245541
+
+<!-- markdownlint-enable MD013 -->
