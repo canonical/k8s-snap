@@ -8,6 +8,11 @@ import (
 	"github.com/canonical/microcluster/v2/rest"
 )
 
+const (
+	TokenHeaderName     = "node-token"
+	CAPITokenHeaderName = "capi-auth-token"
+)
+
 type Endpoints struct {
 	context  context.Context
 	provider Provider
@@ -128,7 +133,7 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		{
 			Name: "ClusterAPI/GetJoinToken",
 			Path: apiv1.ClusterAPIGetJoinTokenRPC,
-			Post: rest.EndpointAction{Handler: e.postClusterJoinTokens, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postClusterJoinTokens, AccessHandler: ValidateCAPIAuthTokenAccessHandler(CAPITokenHeaderName), AllowUntrusted: true},
 		},
 		{
 			Name: "ClusterAPI/SetAuthToken",
@@ -138,38 +143,38 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 		{
 			Name: "ClusterAPI/RemoveNode",
 			Path: apiv1.ClusterAPIRemoveNodeRPC,
-			Post: rest.EndpointAction{Handler: e.postClusterRemove, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postClusterRemove, AccessHandler: ValidateCAPIAuthTokenAccessHandler(CAPITokenHeaderName), AllowUntrusted: true},
 		},
 		{
 			Name: "ClusterAPI/CertificatesExpiry",
 			Path: apiv1.ClusterAPICertificatesExpiryRPC,
-			Post: rest.EndpointAction{Handler: e.postCertificatesExpiry, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postCertificatesExpiry, AccessHandler: e.ValidateNodeTokenAccessHandler(TokenHeaderName), AllowUntrusted: true},
 		},
 		{
 			Name: "ClusterAPI/RefreshCerts/Plan",
 			Path: apiv1.ClusterAPICertificatesPlanRPC,
-			Post: rest.EndpointAction{Handler: e.postRefreshCertsPlan, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postRefreshCertsPlan, AccessHandler: e.ValidateNodeTokenAccessHandler(TokenHeaderName), AllowUntrusted: true},
 		},
 		{
 			Name: "ClusterAPI/RefreshCerts/Run",
 			Path: apiv1.ClusterAPICertificatesRunRPC,
-			Post: rest.EndpointAction{Handler: e.postRefreshCertsRun, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postRefreshCertsRun, AccessHandler: e.ValidateNodeTokenAccessHandler(TokenHeaderName), AllowUntrusted: true},
 		},
 		{
 			Name: "ClusterAPI/RefreshCerts/Approve",
 			Path: apiv1.ClusterAPIApproveWorkerCSRRPC,
-			Post: rest.EndpointAction{Handler: e.postApproveWorkerCSR, AccessHandler: ValidateCAPIAuthTokenAccessHandler("capi-auth-token"), AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postApproveWorkerCSR, AccessHandler: ValidateCAPIAuthTokenAccessHandler(CAPITokenHeaderName), AllowUntrusted: true},
 		},
 		// Snap refreshes
 		{
 			Name: "Snap/Refresh",
 			Path: apiv1.SnapRefreshRPC,
-			Post: rest.EndpointAction{Handler: e.postSnapRefresh, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postSnapRefresh, AccessHandler: e.ValidateNodeTokenAccessHandler(TokenHeaderName), AllowUntrusted: true},
 		},
 		{
 			Name: "Snap/RefreshStatus",
 			Path: apiv1.SnapRefreshStatusRPC,
-			Post: rest.EndpointAction{Handler: e.postSnapRefreshStatus, AccessHandler: e.ValidateNodeTokenAccessHandler("node-token"), AllowUntrusted: true},
+			Post: rest.EndpointAction{Handler: e.postSnapRefreshStatus, AccessHandler: e.ValidateNodeTokenAccessHandler(TokenHeaderName), AllowUntrusted: true},
 		},
 	}
 }

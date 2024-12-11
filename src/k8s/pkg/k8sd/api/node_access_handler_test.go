@@ -13,12 +13,6 @@ import (
 )
 
 func TestValidateNodeTokenAccessHandler(t *testing.T) {
-	const tokenFileName = "tmp-token-file"
-	const tokenHeaderName = "X-Node-Token"
-
-	tempDir := os.TempDir()
-	defer os.RemoveAll(tempDir)
-
 	for _, tc := range []struct {
 		name               string
 		tokenHeaderContent string
@@ -40,11 +34,10 @@ func TestValidateNodeTokenAccessHandler(t *testing.T) {
 			createFile:         true,
 		},
 		{
-			name:               "missing header token",
-			tokenHeaderContent: "",
-			tokenFileContent:   "node-token",
-			expectErr:          true,
-			createFile:         true,
+			name:             "missing header token",
+			tokenFileContent: "node-token",
+			expectErr:        true,
+			createFile:       true,
 		},
 		{
 			name:               "missing token file",
@@ -55,17 +48,23 @@ func TestValidateNodeTokenAccessHandler(t *testing.T) {
 		{
 			name:               "missing token in token file",
 			tokenHeaderContent: "node-token",
-			tokenFileContent:   "",
 			expectErr:          true,
 			createFile:         true,
+		},
+		{
+			name:      "missing header and token file",
+			expectErr: true,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
+
+			dir := t.TempDir()
+
 			var err error
 			if tc.createFile {
-				err = os.WriteFile(path.Join(tempDir, tokenFileName), []byte(tc.tokenFileContent), 0o644)
-				g.Expect(err).To(BeNil())
+				err = os.WriteFile(path.Join(dir, "token-file"), []byte(tc.tokenFileContent), 0o644)
+				g.Expect(err).ToNot(HaveOccurred())
 			}
 
 			e := &Endpoints{
@@ -74,7 +73,7 @@ func TestValidateNodeTokenAccessHandler(t *testing.T) {
 					SnapFn: func() snap.Snap {
 						return &mock.Snap{
 							Mock: mock.Mock{
-								NodeTokenFile: path.Join(tempDir, tokenFileName),
+								NodeTokenFile: path.Join(dir, "token-file"),
 							},
 						}
 					},
@@ -84,12 +83,10 @@ func TestValidateNodeTokenAccessHandler(t *testing.T) {
 			req := &http.Request{
 				Header: make(http.Header),
 			}
-			req.Header.Set(tokenHeaderName, tc.tokenHeaderContent)
+			req.Header.Set(TokenHeaderName, tc.tokenHeaderContent)
 
-			handler := e.ValidateNodeTokenAccessHandler(tokenHeaderName)
+			handler := e.ValidateNodeTokenAccessHandler(TokenHeaderName)
 			valid, resp := handler(nil, req)
-
-			os.Remove(path.Join(tempDir, tokenFileName))
 
 			if tc.expectErr {
 				g.Expect(valid).To(BeFalse())
