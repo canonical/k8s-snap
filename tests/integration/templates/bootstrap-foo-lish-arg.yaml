@@ -1,0 +1,3 @@
+# Contains the bootstrap configuration for the test ensuring k8s services start as expected.
+extra-node-kubelet-args:
+  --foo: "lish"

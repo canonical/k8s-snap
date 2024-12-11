@@ -178,10 +178,10 @@ k8s::common::execute_service() {
 
   k8s::common::setup_env
 
+  set -xe
   # Source arguments and substitute environment variables. Will fail if we cannot read the file.
   declare -a args="($(cat "${SNAP_COMMON}/args/${service_name}"))"
 
-  set -xe
   exec "${SNAP}/bin/${service_name}" "${args[@]}"
 }
 
