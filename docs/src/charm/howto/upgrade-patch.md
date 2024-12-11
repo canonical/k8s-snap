@@ -6,9 +6,9 @@ also update the other applications which make up Kubernetes.
 Keeping up-to-date ensures you have the latest bug-fixes
 and security patches for smooth operation of your cluster.
 
-New minor versions of Kubernetes are set to release three
-times per year. You can check the latest release version
-on the Kubernetes release page on GitHub.
+Kubernetes releases patch versions approximately every month. These updates
+focus on making minor improvements without introducing new features. You
+can check the latest release version on the Kubernetes release page on GitHub.
 
 ```{note} Kubernetes will not automatically handle patch
 releases. The cluster will not perform an unattended automatic
@@ -86,7 +86,7 @@ rely on deprecated APIs.
 
 ### Deciding if an upgrade is available
 
-Juju will contact charmhub daily to find new revisions of charms
+Juju will contact Charmhub daily to find new revisions of charms
 deployed in your models. To see if the `k8s` or `k8s-worker` charms 
 can be upgraded, set with the following:
 
@@ -143,8 +143,8 @@ juju status k8s --watch 5s
 
 The `refresh` command instructs the juju controller to use the new charm
 revision of the application's charm channel to upgrade each unit. The
-charm code is simultaneously replaced on each unit, then the kubernetes
-snap is updated unit-by-unit, finishing with the juju leader unit for the
+charm code is simultaneously replaced on each unit, then the `k8s`
+snap is updated unit-by-unit, starting with the Juju leader unit for the
 application.
 
 After the `k8s` charm is upgraded, the application `Version` from `juju status`
@@ -163,8 +163,8 @@ juju status k8s-worker --watch 5s
 
 The `refresh` command instructs the juju controller to use the new charm
 revision of the application's charm channel to upgrade each unit. The
-charm code is simultaneously replaced on each unit, then the kubernetes
-snap is updated unit-by-unit finishing with the juju leader unit for the 
+charm code is simultaneously replaced on each unit, then the `k8s`
+snap is updated unit-by-unit starting with the Juju leader unit for the 
 application.
 
 After the `k8s-worker` charm is upgraded, the application `Version` from `juju status`

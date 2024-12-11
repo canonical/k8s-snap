@@ -117,7 +117,7 @@ If the `can-upgrade-to` revision is non-null, continue with the
 [Upgrade Patch](upgrade-patch) instructions.
 
 
-```{note} Only update the charm to the next minor version.
+```{caution} Only update the charm to the next minor version.
 If the current `charm-channel` is `1.31/stable`, it's critical
 to refresh to the `1.32/stable`. Skipping channels (eg 1.31 -> 1.33)
 will result in the units blocking and indicating they cannot upgrade.
@@ -148,12 +148,14 @@ juju status k8s --watch 5s
 ```
 
 The `refresh` command instructs the juju controller to follow a new
-charm channel related to the kubernetes release and use the new charm
+charm channel related to the Kubernetes release and use the new charm
 revision of the application's channel to upgrade each unit. The
-charm code is simultaneously replaced on each unit, then the kubernetes
-snap is updated unit-by-unit, finishing with the juju leader unit for the
+charm code is simultaneously replaced on each unit, then the `k8s`
+snap is updated unit-by-unit, starting with the Juju leader unit for the
 application.
-
+During the upgrade process, the application status message and the `k8s` leader
+unit message will display the current progress, listing the `k8s` and
+`k8s-worker` units still pending upgrades.
 After the `k8s` charm is upgraded, the application `Version` from `juju status`
 will reflect the updated version of the control-plane nodes making up the cluster.
 
@@ -169,10 +171,10 @@ juju status k8s-worker --watch 5s
 ```
 
 The `refresh` command instructs the juju controller to follow a new
-charm channel related to the kubernetes release and use the new charm
+charm channel related to the Kubernetes release and use the new charm
 revision of the application's channel to upgrade each unit. The
-charm code is simultaneously replaced on each unit, then the kubernetes
-snap is updated unit-by-unit, finishing with the juju leader unit for the
+charm code is simultaneously replaced on each unit, then the `k8s`
+snap is updated unit-by-unit, starting with the Juju leader unit for the
 application.
 
 After the `k8s-worker` charm is upgraded, the application `Version` from `juju status`
