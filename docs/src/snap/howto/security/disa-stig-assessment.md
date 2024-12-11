@@ -27,7 +27,7 @@ This guide assumes the following:
 | `Not Applicable` (13) | V-242386, V-242393, V-242394, V-242395, V-242396, V-242398, V-242399, V-242413, V-242437, V-242442, V-242443, V-242454, V-242455 |
 | `Manual` (8) | V-242383, V-242410, V-242411, V-242412, V-242414, V-242415, V-242417, V-254800 |
 
-**Automated**: An automated process can be used to validate that the system is in a conformant state.
+**Automated**: An automated process can be used to validate that the system is correctly configured.
 
 **Not Applicable**: These Findings are not applicable to {{product}}. Some reasons for this include: a check on a Kubernetes feature that was removed prior to {{product}}'s first release, a check for a component that {{product}} does not package, etc.
 
@@ -2413,7 +2413,7 @@ The final line of the output will be `PASS`.
 #### Comments:
 > The Kubernetes System Administrators must manually inspect the Pods
 > in all of the default namespaces to ensure there are no user-created
-> Pods with Containers exposing priviledged port numbers (< 1024).
+> Pods with Containers exposing privileged port numbers (< 1024).
 > 
 >     kubectl get pods --all-namespaces
 >     kubectl -n NAMESPACE get pod PODNAME -o yaml | grep -i port
@@ -4903,7 +4903,7 @@ The final line of the output will be `PASS`.
 > which does not ship as part of the k8s-snap.
 > 
 > The Auditor may check whether the binary was installed separately and its
-> permissions are correct by permforming:
+> permissions are correct by performing:
 > 
 >     # Should print 'root:root' if the kubeadm binary exists in $PATH.
 >     stat -c %U:%G $(which kubeadm)
@@ -4930,7 +4930,7 @@ The final line of the output will be `PASS`.
 > which does not ship as part of the k8s-snap.
 > 
 > The Auditor may check whether the binary was installed separately and its
-> permissions are correct by permforming:
+> permissions are correct by performing:
 > 
 >     # Should print 'root:root' if the kubeadm binary exists in $PATH.
 >     stat -c %U:%G $(which kubeadm)
