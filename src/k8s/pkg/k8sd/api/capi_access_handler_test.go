@@ -72,9 +72,9 @@ func TestValidateCAPIAuthTokenAccessHandler(t *testing.T) {
 				req := &http.Request{
 					Header: make(http.Header),
 				}
-				req.Header.Set("Authorization", tc.tokenHeaderContent)
+				req.Header.Set(api.CAPITokenHeaderName, tc.tokenHeaderContent)
 
-				handler := api.ValidateCAPIAuthTokenAccessHandler("Authorization")
+				handler := api.ValidateCAPIAuthTokenAccessHandler(api.CAPITokenHeaderName)
 				valid, resp := handler(s, req)
 
 				if tc.expectErr {
