@@ -1,0 +1,139 @@
+name: Lint and integration tests
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+    branches:
+      - main
+      - autoupdate/strict
+      - autoupdate/moonray
+      - 'release-[0-9]+.[0-9]+'
+      - 'autoupdate/release-[0-9]+.[0-9]+-strict'
+      - 'autoupdate/sync/**'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build-snap:
+    name: Build k8s-snap ${{ matrix.patch }}
+    uses: ./.github/workflows/build-snap.yaml
+    strategy:
+      matrix:
+        patch: ["", "moonray"]
+    with:
+      flavor: ${{ matrix.patch }}
+
+  test-branches:
+    name: Test Branch Management
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+      - name: Install tox
+        run: pip install tox
+      - name: Run branch_management tests
+        run: |
+          tox -c tests/branch_management -e test
+
+  python-lint:
+    name: Python lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install tox
+        run: pip install tox
+      - name: Lint
+        run: |
+          cd tests/integration && tox -e lint
+
+  go-lint-and-unit:
+    name: Go lint and unit tests
+    uses: ./.github/workflows/go.yaml
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      pull-requests: write  # for marocchino/sticky-pull-request-comment to create or update PR comment
+      checks: write # for golangci/golangci-lint-action to checks to allow the action to annotate code in the PR.
+
+  get-e2e-tags:
+    name: Get e2e test tags
+    runs-on: ubuntu-latest
+    outputs:
+      test-tags: ${{ steps.get-e2e-tags.outputs.test-tags }}
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Get e2e test tags
+        id: get-e2e-tags
+        run: |
+          tags="pull_request"
+          if ${{ github.event_name == 'pull_request' }}; then
+            # Run all tests if there are test changes. In case of a PR, we'll
+            # get a merge commit that includes all changes.
+            if git diff HEAD HEAD~1 --name-only | grep "tests/"; then
+              tags="up_to_weekly"
+            fi
+            # Run all tests on backports.
+            if echo ${{ github.base_ref }} | grep "release-"; then
+              tags="up_to_weekly"
+            fi
+          fi
+
+          echo "test-tags=$tags" >> "$GITHUB_OUTPUT"
+
+  test-integration:
+    name: Test ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
+    needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: amd64
+      os: ${{ matrix.os }}
+      test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
+      artifact: k8s.snap
+
+  test-integration-informing:
+    name: Test informing ${{ matrix.os }} ${{ matrix.patch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu:20.04"]
+        patch: ["moonray"]
+    needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
+    if: success() && github.event_name == 'pull_request'
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: amd64
+      os: ${{ matrix.os }}
+      test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
+      artifact: k8s-${{ matrix.patch }}.snap
+
+  security-scan:
+    name: Security scan
+    needs: build-snap
+    uses: ./.github/workflows/security-scan.yaml
+    with:
+      artifact: ${{ needs.build-snap.outputs.snap-artifact}}
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results

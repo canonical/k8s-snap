@@ -1,0 +1,20 @@
+name: Install lxd
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install lxd snap
+      shell: bash
+      run: |
+        sudo snap refresh lxd --channel 5.21/stable
+    - name: Initialize lxd
+      shell: bash
+      run: |
+        sudo lxd init --auto
+        sudo usermod --append --groups lxd $USER
+        sg lxd -c 'lxc version'
+    - name: Apply Docker iptables workaround
+      shell: bash
+      run: |
+        sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
+        sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT

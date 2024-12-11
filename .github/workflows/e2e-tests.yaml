@@ -1,0 +1,72 @@
+name: Run k8s-snap e2e tests
+
+on:
+  workflow_call:
+    inputs:
+      arch:
+        description: Job runner architecture (amd64 or arm64)
+        default: amd64
+        type: string
+      os:
+        description: LXD image to use when running e2e tests
+        default: ubuntu:24.04
+        type: string
+      # Download k8s-snap using either a GH action artifact or a snap channel.
+      artifact:
+        description: The name of a GH action artifact.
+        type: string
+      channel:
+        description: k8s snap channel.
+        type: string
+      test-tags:
+        description: Test filter tags (e.g. pull_request, up_to_weekly)
+        default: pull_request
+        type: string
+
+jobs:
+  test-integration:
+    name: Integration Test ${{ inputs.os }} ${{ inputs.arch }} ${{ inputs.artifact }}
+    runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-large' }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Download k8s-snap
+        id: download-snap
+        uses: ./.github/actions/download-k8s-snap
+        with:
+          channel: ${{ inputs.channel }}
+          artifact: ${{ inputs.artifact }}
+      - name: Install lxd
+        uses: ./.github/actions/install-lxd
+      - name: Install tox
+        run: pip install tox
+      - name: Run e2e tests
+        env:
+          TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
+          TEST_SUBSTRATE: lxd
+          TEST_LXD_IMAGE: ${{ inputs.os }}
+          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
+          # Test the latest (up to) 6 releases for the flavour
+          # TODO(ben): upgrade nightly to run all flavours
+          TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
+          # Upgrading from 1.30 is not supported.
+          TEST_VERSION_UPGRADE_MIN_RELEASE: "1.31"
+          TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
+          TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
+        run: |
+          cd tests/integration && sg lxd -c "tox -e integration -- --tags ${{ inputs.test-tags }}"
+      - name: Prepare inspection reports
+        if: failure()
+        run: |
+          tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
+          echo "artifact_name=inspection-reports-${{ inputs.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
+      - name: Upload inspection report artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: ${{ github.workspace }}/inspection-reports.tar.gz

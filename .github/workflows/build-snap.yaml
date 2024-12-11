@@ -1,0 +1,51 @@
+name: Build k8s-snap
+
+on:
+  workflow_call:
+    inputs:
+      flavor:
+        description: k8s-snap flavor (e.g. moonray or strict)
+        type: string
+    outputs:
+      snap-artifact:
+        description: Name of the uploaded snap artifact
+        value: ${{ jobs.build-snap.outputs.snap-artifact }}
+
+jobs:
+  build-snap:
+    name: Build snap
+    runs-on: ubuntu-20.04
+    outputs:
+      snap-artifact: ${{ steps.build.outputs.snap-artifact }}
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+      - name: Apply patches
+        if: inputs.flavor != ''
+        run: |
+          ./build-scripts/patches/${{ inputs.flavor }}/apply
+      - name: Install lxd
+        uses: ./.github/actions/install-lxd
+      - name: Install snapcraft
+        run: |
+          sudo snap install snapcraft --classic
+      - name: Build snap
+        id: build
+        env:
+          flavor: ${{ inputs.flavor }}
+        run: |
+          if [[ -n "$flavor" ]]; then
+            out_snap=k8s-$flavor.snap
+          else
+            out_snap=k8s.snap
+          fi
+
+          sg lxd -c 'snapcraft --use-lxd'
+          mv k8s_*.snap $out_snap
+
+          echo "snap-artifact=$out_snap" >> "$GITHUB_OUTPUT"
+      - name: Uploading snap
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.snap-artifact }}
+          path: ${{ steps.build.outputs.snap-artifact }}

@@ -1,19 +1,7 @@
-name: Go
+name: Go lint and unit tests
 
 on:
-  push:
-    paths-ignore:
-      - 'docs/**'
-    branches:
-      - main
-      - autoupdate/strict
-      - autoupdate/moonray
-      - 'release-[0-9]+.[0-9]+'
-      - 'autoupdate/release-[0-9]+.[0-9]+-strict'
-      - 'autoupdate/sync/**'
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
+  workflow_call:
 
 permissions:
   contents: read

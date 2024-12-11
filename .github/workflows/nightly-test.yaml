@@ -3,6 +3,10 @@ name: Nightly Latest/Edge Tests
 on:
   schedule:
     - cron: "0 0 * * *" # Runs every midnight
+  pull_request:
+    paths:
+      - .github/workflows/nightly-test.yaml
+      - .github/workflows/e2e-tests.yaml
 
 permissions:
   contents: read
@@ -14,58 +18,11 @@ jobs:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        release: ["latest/edge"]
+        channel: ["latest/edge"]
       fail-fast: false # TODO: remove once arm64 works
-
-    runs-on: ${{ matrix.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-large' }}
-
-    steps:
-      - name: Checking out repo
-        uses: actions/checkout@v4
-      - name: Install lxd and tox
-        run: |
-          sudo apt update
-          sudo apt install -y tox
-          sudo snap refresh lxd --channel 5.21/stable
-          sudo lxd init --auto
-          sudo usermod --append --groups lxd $USER
-          sg lxd -c 'lxc version'
-          sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
-          sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-      - name: Create build directory
-        run: mkdir -p build
-      - name: Install ${{ matrix.release }} k8s snap
-        run: |
-          cd build
-          snap download k8s --channel=${{ matrix.release }} --basename k8s
-      - name: Run end to end tests # tox path needs to be specified for arm64
-        env:
-          TEST_SNAP: ${{ github.workspace }}/build/k8s.snap
-          TEST_SUBSTRATE: lxd
-          TEST_LXD_IMAGE: ${{ matrix.os }}
-          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
-          # Test the latest (up to) 6 releases for the flavour
-          # TODO(ben): upgrade nightly to run all flavours
-          TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
-          # Upgrading from 1.30 is not supported.
-          TEST_VERSION_UPGRADE_MIN_RELEASE: "1.31"
-          TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
-          TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
-        run: |
-          export PATH="/home/runner/.local/bin:$PATH"
-          cd tests/integration && sg lxd -c 'tox -vve integration -- --tags up_to_nightly '
-      - name: Prepare inspection reports
-        if: failure()
-        run: |
-          tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "artifact_name=inspection-reports-${{ matrix.os }}-${{ matrix.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
-      - name: Upload inspection report artifact
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.artifact_name }}
-          path: ${{ github.workspace }}/inspection-reports.tar.gz
-      - name: Tmate debugging session
-        if: ${{ failure() && github.event_name == 'pull_request' }}
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 10
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel: ${{ matrix.channel }}
+      test-tags: 'up_to_weekly'
