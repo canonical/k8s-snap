@@ -1,0 +1,36 @@
+name: Get e2e test tags
+
+on:
+  workflow_call:
+    outputs:
+      test-tags:
+        description: The filter tags to use when running e2e tests
+        value: ${{ jobs.get-tags.outputs.test-tags }}
+
+jobs:
+  get-tags:
+    name: Build snap
+    runs-on: ubuntu-latest
+    outputs:
+      test-tags: ${{ steps.get-tags.outputs.snap-artifact }}
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+
+      - name: Build snap
+        id: get-tags
+        run: |
+          tags="pull_request"
+          if ${{ github.event_name == 'pull_request' }}; then
+            # Run all tests if there are test changes. In case of a PR, we'll
+            # get a merge commit that includes all changes.
+            if git diff HEAD HEAD~1 --name-only | grep "tests/"; then
+              tags="up_to_weekly"
+            fi
+            # Run all tests on backports.
+            if echo ${{ github.base_ref }} | grep "release-"; then
+              tags="up_to_weekly"
+            fi
+          fi
+
+          echo "test-tags=$tags" >> "$GITHUB_OUTPUT"
