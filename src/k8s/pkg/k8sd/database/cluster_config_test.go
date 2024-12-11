@@ -8,11 +8,13 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
+	microcluster_testenv "github.com/canonical/k8s/pkg/utils/microcluster"
+	"github.com/canonical/microcluster/v2/state"
 	. "github.com/onsi/gomega"
 )
 
 func TestClusterConfig(t *testing.T) {
-	WithDB(t, func(ctx context.Context, d DB) {
+	microcluster_testenv.WithState(t, func(ctx context.Context, s state.State) {
 		t.Run("Set", func(t *testing.T) {
 			g := NewWithT(t)
 			expectedClusterConfig := types.ClusterConfig{
@@ -24,7 +26,7 @@ func TestClusterConfig(t *testing.T) {
 			expectedClusterConfig.SetDefaults()
 
 			// Write some config to the database
-			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+			err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				_, err := database.SetClusterConfig(context.Background(), tx, expectedClusterConfig)
 				g.Expect(err).To(Not(HaveOccurred()))
 				return nil
@@ -32,7 +34,7 @@ func TestClusterConfig(t *testing.T) {
 			g.Expect(err).To(Not(HaveOccurred()))
 
 			// Retrieve it and map it to the struct
-			err = d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+			err = s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				clusterConfig, err := database.GetClusterConfig(ctx, tx)
 				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(clusterConfig).To(Equal(expectedClusterConfig))
@@ -52,7 +54,7 @@ func TestClusterConfig(t *testing.T) {
 			}
 			expectedClusterConfig.SetDefaults()
 
-			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+			err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				_, err := database.SetClusterConfig(context.Background(), tx, types.ClusterConfig{
 					Certificates: types.Certificates{
 						CACert: utils.Pointer("CA CERT NEW DATA"),
@@ -63,7 +65,7 @@ func TestClusterConfig(t *testing.T) {
 			})
 			g.Expect(err).To(HaveOccurred())
 
-			err = d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+			err = s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				clusterConfig, err := database.GetClusterConfig(ctx, tx)
 				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(clusterConfig).To(Equal(expectedClusterConfig))
@@ -90,7 +92,7 @@ func TestClusterConfig(t *testing.T) {
 			}
 			expectedClusterConfig.SetDefaults()
 
-			err := d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+			err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				returnedConfig, err := database.SetClusterConfig(context.Background(), tx, types.ClusterConfig{
 					Kubelet: types.Kubelet{
 						ClusterDNS: utils.Pointer("10.152.183.10"),
@@ -109,7 +111,7 @@ func TestClusterConfig(t *testing.T) {
 			})
 			g.Expect(err).To(Not(HaveOccurred()))
 
-			err = d.Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+			err = s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 				clusterConfig, err := database.GetClusterConfig(ctx, tx)
 				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(clusterConfig).To(Equal(expectedClusterConfig))
