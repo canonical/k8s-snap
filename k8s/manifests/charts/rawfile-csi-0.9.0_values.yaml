@@ -1,0 +1,45 @@
+provisionerName: "rawfile.csi.openebs.io"
+
+defaults: &defaults
+  image:
+    repository: docker.io/openebs/rawfile-localpv
+    tag: 0.8.0
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 1
+      memory: 100Mi
+    requests:
+      cpu: 10m
+      memory: 100Mi
+
+controller:
+  <<: *defaults
+  csiDriverArgs:
+    - csi-driver
+    - --disable-metrics
+
+images:
+  csiNodeDriverRegistrar: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.10.1
+  csiProvisioner: registry.k8s.io/sig-storage/csi-provisioner:v5.0.1
+  csiResizer: registry.k8s.io/sig-storage/csi-resizer:v1.11.1
+  csiSnapshotter: registry.k8s.io/sig-storage/csi-snapshotter:v8.0.1
+
+node:
+  <<: *defaults
+  storage:
+    path: /var/csi/rawfile
+  metrics:
+    enabled: false
+
+storageClass:
+  enabled: false
+  name: "csi-rawfile-default"
+  isDefault: true
+  reclaimPolicy: Delete
+  volumeBindingMode: WaitForFirstConsumer
+
+imagePullSecrets: []
+serviceMonitor:
+  enabled: true
+  interval: 1m

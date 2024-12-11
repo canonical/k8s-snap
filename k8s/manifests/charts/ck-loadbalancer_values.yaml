@@ -1,0 +1,21 @@
+driver:
+
+l2:
+  enabled: true
+  # interfaces:
+  # - "^eth[0-9]+"
+  interfaces: []
+
+ipPool:
+  # cidrs:
+  # - cidr: "10.42.254.176/28"
+  cidrs: []
+
+bgp:
+  enabled: false
+  localASN: 64512
+  # neighbors:
+  # - peerAddress: '10.0.0.60/24'
+  #   peerASN: 65100
+  #   peerPort: 179
+  neighbors: []
