@@ -141,7 +141,7 @@ Review the warnings detected and address any failing checks you see fit.
 
 In what follows we iterate over all hardening recommendations
 and, when possible, provide information on how to comply with each
-one manually. This can be used for manually auditing the CIS and DISA STIG
+one manually. This can be used for manually auditing the CIS
 hardening state of a cluster.
 
 ### Control Plane Security Configuration

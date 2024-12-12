@@ -4,7 +4,7 @@
 Security Technical Implementation Guides (STIGs) are developed by the Defense
 Information System Agency (DISA) for the U.S. Department of Defense (DoD).
 
-The Kubernetes STIG contains guidelines on how to check and remediate various
+The [Kubernetes STIG] contains guidelines on how to check and remediate various
 potential security concerns for a Kubernetes deployment.
 
 {{product}} aligns with many DISA STIG compliance recommendations by default.
@@ -17,7 +17,7 @@ This guide assumes the following:
 - You have a bootstrapped {{product}} cluster (see the [getting started] guide)
 - You have root or sudo access to the machine
 - You have reviewed the [post-deployment hardening] guide and have applied the
-  hardening steps that relevant to your use-case
+  hardening steps that are relevant to your use-case
 
 
 ## Results overview
@@ -31,7 +31,7 @@ This guide assumes the following:
 **Automated**: An automated process can be used to validate that the system is
 correctly configured.
 
-**Not Applicable**: These Findings are not applicable to {{product}}. Some
+**Not Applicable**: These findings are not applicable to {{product}}. Some
 reasons for this include: a check on a Kubernetes feature that was removed
 prior to {{product}}'s first release, a check for a component that {{product}}
 does not package, etc.
@@ -6118,15 +6118,9 @@ The final line of the output will be `PASS`.
 
 <!-- Links -->
 [Hardening]:security/hardening.md
-[Center for Internet Security (CIS)]:https://www.cisecurity.org/
-[kube-bench]:https://aquasecurity.github.io/kube-bench/v0.6.15/
-[CIS Kubernetes Benchmark]:https://www.cisecurity.org/benchmark/kubernetes
 [getting started]: ../../tutorial/getting-started
-[kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
-[Comprehensive Hardening Checklist]:
-    auditing-steps.md#comprehensive-hardening-checklist [upstream
-instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [post-deployment hardening]: hardening.md
+[Kubernetes STIG]:https://www.stigviewer.com/stig/kubernetes/
 [V-242381]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242381
 [V-242383]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242383
 [V-242386]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242386
