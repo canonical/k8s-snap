@@ -11,6 +11,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -20,20 +21,27 @@ import (
 
 func TestNodeConfigurationReconciler(t *testing.T) {
 	testCases := []struct {
-		name            string
-		initialConfig   types.ClusterConfig
-		expectedConfig  types.ClusterConfig
-		expectedFailure bool
+		name           string
+		existingMap    bool
+		expectedConfig types.ClusterConfig
 	}{
 		{
-			name:          "ControlPlane_DefaultConfig",
-			initialConfig: types.ClusterConfig{},
+			name:        "ControlPlane_NotExist",
+			existingMap: false,
 			expectedConfig: types.ClusterConfig{
 				Kubelet: types.Kubelet{
 					ClusterDomain: utils.Pointer("cluster.local"),
 				},
 			},
-			expectedFailure: false,
+		},
+		{
+			name:        "ControlPlane_ExistingConfig",
+			existingMap: true,
+			expectedConfig: types.ClusterConfig{
+				Kubelet: types.Kubelet{
+					ClusterDomain: utils.Pointer("cluster.local"),
+				},
+			},
 		},
 	}
 
@@ -46,22 +54,24 @@ func TestNodeConfigurationReconciler(t *testing.T) {
 			scheme := runtime.NewScheme()
 			g.Expect(corev1.AddToScheme(scheme)).To(Succeed())
 
-			// Create initial ConfigMap
-			kubeletConfigMap, err := tc.initialConfig.Kubelet.ToConfigMap(nil)
-			g.Expect(err).ToNot(HaveOccurred())
-
-			configMap := &corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "k8sd-config",
-					Namespace: "kube-systems",
-				},
-				Data: kubeletConfigMap,
+			// Setup objects for fake client
+			objects := []client.Object{}
+			if tc.existingMap {
+				// Only create initial ConfigMap if test case requires it
+				initialMap := &corev1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "k8sd-config",
+						Namespace: "kube-system",
+					},
+					Data: map[string]string{"initial": "data"},
+				}
+				objects = append(objects, initialMap)
 			}
 
 			// Create fake client
 			k8sClient := fake.NewClientBuilder().
 				WithScheme(scheme).
-				WithObjects(configMap).
+				WithObjects(objects...).
 				Build()
 
 			// Setup mock snap
@@ -85,11 +95,22 @@ func TestNodeConfigurationReconciler(t *testing.T) {
 				return tc.expectedConfig, nil
 			})
 
+			// Verify ConfigMap doesn't exist if it shouldn't
+			if !tc.existingMap {
+				var cm corev1.ConfigMap
+				err := k8sClient.Get(ctx, client.ObjectKey{
+					Name:      "k8sd-config",
+					Namespace: "kube-system",
+				}, &cm)
+				g.Expect(err).To(HaveOccurred())
+				g.Expect(apierrors.IsNotFound(err)).To(BeTrue(), "Expected ConfigMap not to exist")
+			}
+
 			// Trigger reconciliation
 			req := reconcile.Request{
 				NamespacedName: client.ObjectKey{
 					Name:      "k8sd-config",
-					Namespace: "kube-systems",
+					Namespace: "kube-system",
 				},
 			}
 
@@ -106,12 +127,7 @@ func TestNodeConfigurationReconciler(t *testing.T) {
 
 			expectedConfigMap, err := tc.expectedConfig.Kubelet.ToConfigMap(nil)
 			g.Expect(err).ToNot(HaveOccurred())
-
-			if tc.expectedFailure {
-				g.Expect(getResult.Data).ToNot(Equal(expectedConfigMap))
-			} else {
-				g.Expect(getResult.Data).To(Equal(expectedConfigMap))
-			}
+			g.Expect(getResult.Data).To(Equal(expectedConfigMap))
 		})
 	}
 }

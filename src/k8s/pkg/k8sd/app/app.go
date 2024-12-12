@@ -132,7 +132,7 @@ func New(cfg Config) (*App, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to setup manager: %w", err)
 		}
-		ctrller, err := setupControllers(mgr, cfg)
+		ctrller, err := setupControllers(app, mgr, cfg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to setup controllers: %w", err)
 		}
@@ -294,7 +294,7 @@ func setupManager(cfg Config) (manager.Manager, error) {
 	return mgr, nil
 }
 
-func setupControllers(mgr manager.Manager, cfg Config) (*controllers.NodeConfigurationReconciler, error) {
+func setupControllers(app *App, mgr manager.Manager, cfg Config) (*controllers.NodeConfigurationReconciler, error) {
 	scheme := mgr.GetScheme()
 
 	if !cfg.DisableUpdateNodeConfigController {
@@ -302,7 +302,7 @@ func setupControllers(mgr manager.Manager, cfg Config) (*controllers.NodeConfigu
 			mgr.GetClient(),
 			scheme,
 			cfg.Snap,
-			func() {},
+			app.readyWg.Wait,
 		)
 
 		if err := controller.SetupWithManager(mgr); err != nil {

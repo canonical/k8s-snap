@@ -11,6 +11,7 @@ import (
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -106,8 +107,23 @@ func (c *NodeConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// Get existing ConfigMap
 	cm := &corev1.ConfigMap{}
 	if err := c.Get(ctx, req.NamespacedName, cm); err != nil {
-		logger.Error(err, "Failed to get ConfigMap")
-		return reconcile.Result{}, err
+		if !apierrors.IsNotFound(err) {
+			logger.Error(err, "Failed to get ConfigMap")
+			return reconcile.Result{}, err
+		} else {
+			cm = &corev1.ConfigMap{
+				ObjectMeta: ctrl.ObjectMeta{
+					Name:      req.Name,
+					Namespace: req.Namespace,
+				},
+				Data: cmData,
+			}
+			if err := c.Create(ctx, cm); err != nil {
+				logger.Error(err, "Failed to create ConfigMap")
+				return reconcile.Result{}, err
+			}
+			return reconcile.Result{}, nil
+		}
 	}
 
 	// Update ConfigMap
@@ -133,4 +149,12 @@ func (c *NodeConfigurationReconciler) ReconciledCh() <-chan struct{} {
 
 func (r *NodeConfigurationReconciler) SetConfigGetter(getter func(context.Context) (types.ClusterConfig, error)) {
 	r.getClusterConfig = getter
+}
+
+func (c *NodeConfigurationReconciler) Start(ctx context.Context) error {
+	logger := log.FromContext(ctx)
+	logger.V(1).Info("Waiting for node to be ready")
+	c.waitReady()
+	logger.V(1).Info("Starting update node configuration controller")
+	return nil
 }
