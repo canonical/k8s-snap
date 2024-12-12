@@ -9,6 +9,5 @@ import (
 type Provider interface {
 	MicroCluster() *microcluster.MicroCluster
 	Snap() snap.Snap
-	NotifyUpdateNodeConfigController()
 	NotifyFeatureController(network, gateway, ingress, loadBalancer, localStorage, metricsServer, dns bool)
 }

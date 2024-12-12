@@ -519,6 +519,5 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		cfg.MetricsServer.GetEnabled(),
 		cfg.DNS.GetEnabled(),
 	)
-	a.NotifyUpdateNodeConfigController()
 	return nil
 }

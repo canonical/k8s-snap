@@ -48,12 +48,11 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 	}
 
 	// start update node config controller
-	if a.updateNodeConfigController != nil {
-		go a.updateNodeConfigController.Run(ctx, func(ctx context.Context) (types.ClusterConfig, error) {
+	if a.nodeConfigReconciler != nil {
+		a.nodeConfigReconciler.SetConfigGetter(func(ctx context.Context) (types.ClusterConfig, error) {
 			return databaseutil.GetClusterConfig(ctx, s)
 		})
 	}
-
 	// start feature controller
 	if a.featureController != nil {
 		go a.featureController.Run(
@@ -91,9 +90,6 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 					return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
 				}
 
-				// DNS IP has changed, notify node config controller
-				a.NotifyUpdateNodeConfigController()
-
 				return nil
 			},
 			func(ctx context.Context, name types.FeatureName, featureStatus types.FeatureStatus) error {
@@ -122,6 +118,12 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 				return databaseutil.GetClusterConfig(ctx, s)
 			},
 		)
+	}
+
+	if a.manager != nil {
+		if err := a.manager.Start(ctx); err != nil {
+			return fmt.Errorf("failed to start manager: %w", err)
+		}
 	}
 
 	return nil

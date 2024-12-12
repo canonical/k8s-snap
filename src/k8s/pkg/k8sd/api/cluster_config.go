@@ -39,7 +39,6 @@ func (e *Endpoints) putClusterConfig(s state.State, r *http.Request) response.Re
 		return response.InternalError(fmt.Errorf("database transaction to update cluster configuration failed: %w", err))
 	}
 
-	e.provider.NotifyUpdateNodeConfigController()
 	e.provider.NotifyFeatureController(
 		!requestedConfig.Network.Empty(),
 		!requestedConfig.Gateway.Empty(),

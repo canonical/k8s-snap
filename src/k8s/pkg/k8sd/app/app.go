@@ -19,6 +19,11 @@ import (
 	"github.com/canonical/microcluster/v2/client"
 	"github.com/canonical/microcluster/v2/microcluster"
 	"github.com/canonical/microcluster/v2/state"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // Config defines configuration for the k8sd app.
@@ -63,8 +68,8 @@ type App struct {
 	csrsigningController         *csrsigning.Controller
 
 	// updateNodeConfigController
-	triggerUpdateNodeConfigControllerCh chan struct{}
-	updateNodeConfigController          *controllers.UpdateNodeConfigurationController
+	nodeConfigReconciler *controllers.NodeConfigurationReconciler
+	manager              ctrl.Manager
 
 	// featureController
 	triggerFeatureControllerNetworkCh       chan struct{}
@@ -121,14 +126,17 @@ func New(cfg Config) (*App, error) {
 		log.L().Info("control-plane-config-controller disabled via config")
 	}
 
-	app.triggerUpdateNodeConfigControllerCh = make(chan struct{}, 1)
-
 	if !cfg.DisableUpdateNodeConfigController {
-		app.updateNodeConfigController = controllers.NewUpdateNodeConfigurationController(
-			cfg.Snap,
-			app.readyWg.Wait,
-			app.triggerUpdateNodeConfigControllerCh,
-		)
+		mgr, err := setupManager(cfg)
+		app.manager = mgr
+		if err != nil {
+			return nil, fmt.Errorf("failed to setup manager: %w", err)
+		}
+		ctrller, err := setupControllers(mgr, cfg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to setup controllers: %w", err)
+		}
+		app.nodeConfigReconciler = ctrller
 	} else {
 		log.L().Info("update-node-config-controller disabled via config")
 	}
@@ -266,4 +274,42 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	log.V(1).Info("Marking node as ready")
 	a.readyWg.Done()
 	return nil
+}
+
+func setupManager(cfg Config) (manager.Manager, error) {
+	scheme := runtime.NewScheme()
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+
+	k8sClient, err := cfg.Snap.KubernetesClient("kube-system")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
+
+	options := ctrl.Options{
+		Scheme: scheme,
+	}
+
+	mgr, err := ctrl.NewManager(k8sClient.RESTConfig(), options)
+
+	return mgr, nil
+}
+
+func setupControllers(mgr manager.Manager, cfg Config) (*controllers.NodeConfigurationReconciler, error) {
+	scheme := mgr.GetScheme()
+
+	if !cfg.DisableUpdateNodeConfigController {
+		controller := controllers.NewNodeConfigurationReconciler(
+			mgr.GetClient(),
+			scheme,
+			cfg.Snap,
+			func() {},
+		)
+
+		if err := controller.SetupWithManager(mgr); err != nil {
+			return nil, fmt.Errorf("failed to setup node configuration reconciler: %w", err)
+		}
+		return controller, nil
+	}
+
+	return nil, nil
 }
