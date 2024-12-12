@@ -10,8 +10,8 @@ CNI with an alternative solution.
 This guide assumes the following:
 
 - You have root or sudo access to the machine.
-- Basic understanding of Kubernetes networking concepts
-- Basic knowledge of Helm
+- Basic understanding of Kubernetes networking concepts.
+- Basic knowledge of Helm.
 
 ## Disable default network implementation
 
