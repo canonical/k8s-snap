@@ -23,7 +23,6 @@ jobs:
           # Supported release branches
           - release-1.32
           - release-1.31
-          - release-1.30
 
     steps:
       - name: Checking out repo
