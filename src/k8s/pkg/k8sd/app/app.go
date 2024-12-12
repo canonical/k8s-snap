@@ -220,12 +220,13 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 	}
 
 	err := a.cluster.Start(ctx, microcluster.DaemonArgs{
-		Version:          string(apiv1.K8sdAPIVersion),
-		Verbose:          a.config.Verbose,
-		Debug:            a.config.Debug,
-		Hooks:            hooks,
-		ExtensionServers: api.New(ctx, a),
-		ExtensionsSchema: database.SchemaExtensions,
+		Version:                 string(apiv1.K8sdAPIVersion),
+		Verbose:                 a.config.Verbose,
+		Debug:                   a.config.Debug,
+		Hooks:                   hooks,
+		ExtensionServers:        api.New(ctx, a),
+		ExtensionsSchema:        database.SchemaExtensions,
+		DrainConnectionsTimeout: 10 * time.Second,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
