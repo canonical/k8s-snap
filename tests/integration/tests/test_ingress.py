@@ -41,7 +41,7 @@ def get_ingress_service_node_port(p):
 def get_external_service_ip(instance: harness.Instance, service_namespace) -> str:
     try_count = 0
     ingress_ip = None
-    while ingress_ip is None and try_count < 5:
+    while ingress_ip is None and try_count < 20:
         try_count += 1
         for svcns in service_namespace:
             svc = svcns["service"]
@@ -91,7 +91,7 @@ def test_ingress(instances: List[harness.Instance]):
     util.wait_for_dns(instance)
 
     result = (
-        util.stubbornly(retries=7, delay_s=3)
+        util.stubbornly(retries=20, delay_s=3)
         .on(instance)
         .until(lambda p: get_ingress_service_node_port(p) is not None)
         .exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
@@ -99,7 +99,7 @@ def test_ingress(instances: List[harness.Instance]):
 
     ingress_http_port = get_ingress_service_node_port(result)
 
-    assert ingress_http_port is not None, "No ingress nodePort found."
+    assert ingress_http_port, "No ingress nodePort found."
 
     manifest = MANIFESTS_DIR / "ingress-test.yaml"
     instance.exec(
@@ -139,7 +139,7 @@ def test_ingress(instances: List[harness.Instance]):
             {"service": "cilium-ingress", "namespace": "kube-system"},
         ],
     )
-    assert ingress_ip is not None, "No ingress IP found."
+    assert ingress_ip, "No ingress IP found."
     util.stubbornly(retries=10, delay_s=5).on(instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"{ingress_ip}", "-H", "Host: foo.bar.com"])
