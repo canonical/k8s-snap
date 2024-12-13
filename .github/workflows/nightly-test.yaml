@@ -26,7 +26,7 @@ jobs:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
-      test-tags: 'up_to_weekly'
+      test-tags: 'up_to_nightly'
 
   Trivy:
     permissions:
