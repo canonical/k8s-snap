@@ -19,11 +19,7 @@ import (
 	"github.com/canonical/microcluster/v2/client"
 	"github.com/canonical/microcluster/v2/microcluster"
 	"github.com/canonical/microcluster/v2/state"
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // Config defines configuration for the k8sd app.
@@ -127,16 +123,10 @@ func New(cfg Config) (*App, error) {
 	}
 
 	if !cfg.DisableUpdateNodeConfigController {
-		mgr, err := setupManager(cfg)
-		app.manager = mgr
-		if err != nil {
-			return nil, fmt.Errorf("failed to setup manager: %w", err)
-		}
-		ctrller, err := setupControllers(app, mgr, cfg)
-		if err != nil {
-			return nil, fmt.Errorf("failed to setup controllers: %w", err)
-		}
-		app.nodeConfigReconciler = ctrller
+		app.nodeConfigReconciler = controllers.NewNodeConfigurationReconciler(
+			app.config.Snap,
+			app.readyWg.Wait,
+		)
 	} else {
 		log.L().Info("update-node-config-controller disabled via config")
 	}
@@ -274,42 +264,4 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	log.V(1).Info("Marking node as ready")
 	a.readyWg.Done()
 	return nil
-}
-
-func setupManager(cfg Config) (manager.Manager, error) {
-	scheme := runtime.NewScheme()
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
-	k8sClient, err := cfg.Snap.KubernetesClient("kube-system")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create kubernetes client: %w", err)
-	}
-
-	options := ctrl.Options{
-		Scheme: scheme,
-	}
-
-	mgr, err := ctrl.NewManager(k8sClient.RESTConfig(), options)
-
-	return mgr, nil
-}
-
-func setupControllers(app *App, mgr manager.Manager, cfg Config) (*controllers.NodeConfigurationReconciler, error) {
-	scheme := mgr.GetScheme()
-
-	if !cfg.DisableUpdateNodeConfigController {
-		controller := controllers.NewNodeConfigurationReconciler(
-			mgr.GetClient(),
-			scheme,
-			cfg.Snap,
-			app.readyWg.Wait,
-		)
-
-		if err := controller.SetupWithManager(mgr); err != nil {
-			return nil, fmt.Errorf("failed to setup node configuration reconciler: %w", err)
-		}
-		return controller, nil
-	}
-
-	return nil, nil
 }

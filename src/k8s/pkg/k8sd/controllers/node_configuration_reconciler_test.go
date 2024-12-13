@@ -84,11 +84,12 @@ func TestNodeConfigurationReconciler(t *testing.T) {
 
 			// Create controller
 			reconciler := controllers.NewNodeConfigurationReconciler(
-				k8sClient,
-				scheme,
 				s,
 				func() {}, // Mock ready function
 			)
+
+			reconciler.SetClient(k8sClient)
+			reconciler.SetScheme(scheme)
 
 			// Set the config getter
 			reconciler.SetConfigGetter(func(context.Context) (types.ClusterConfig, error) {

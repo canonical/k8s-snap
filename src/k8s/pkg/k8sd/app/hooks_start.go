@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -14,6 +15,11 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	"github.com/canonical/microcluster/v2/state"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 func (a *App) onStart(ctx context.Context, s state.State) error {
@@ -120,11 +126,68 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		)
 	}
 
-	if a.manager != nil {
-		if err := a.manager.Start(ctx); err != nil {
-			return fmt.Errorf("failed to start manager: %w", err)
+	go func() {
+		mgr, err := setupManager(ctx, a)
+		if err != nil {
+			log.FromContext(ctx).Error(err, "Failed to setup manager")
+			return
 		}
-	}
+
+		a.manager = mgr
+		log.FromContext(ctx).Info("Starting controller manager")
+		if err := mgr.Start(ctx); err != nil {
+			log.FromContext(ctx).Error(err, "Manager failed to start")
+		}
+	}()
 
 	return nil
+}
+
+func setupManager(ctx context.Context, app *App) (manager.Manager, error) {
+	log.FromContext(ctx).Info("Setting up controller manager, waiting for ready signal")
+	app.readyWg.Wait()
+	log.FromContext(ctx).Info("Received ready signal, setting up controller manager")
+
+	scheme := runtime.NewScheme()
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+
+	k8sClient, err := app.config.Snap.KubernetesClient("kube-system")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
+	log.FromContext(ctx).Info("Created kubernetes client")
+
+	options := ctrl.Options{
+		Scheme: scheme,
+	}
+
+	mgr, err := ctrl.NewManager(k8sClient.RESTConfig(), options)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create manager: %w", err)
+	}
+
+	log.FromContext(ctx).Info("Created controller manager")
+
+	if _, err := setupControllers(ctx, app, mgr); err != nil {
+		return nil, fmt.Errorf("failed to setup controllers: %w", err)
+	}
+
+	return mgr, nil
+}
+
+func setupControllers(ctx context.Context, app *App, mgr manager.Manager) (*controllers.NodeConfigurationReconciler, error) {
+	log.FromContext(ctx).Info("Setting up controllers")
+	if app.nodeConfigReconciler != nil {
+		log.FromContext(ctx).Info("Setting up node configuration reconciler")
+
+		app.nodeConfigReconciler.SetClient(mgr.GetClient())
+		app.nodeConfigReconciler.SetScheme(mgr.GetScheme())
+
+		if err := app.nodeConfigReconciler.SetupWithManager(mgr); err != nil {
+			return nil, fmt.Errorf("failed to setup node configuration reconciler: %w", err)
+		}
+		return app.nodeConfigReconciler, nil
+	}
+
+	return nil, nil
 }

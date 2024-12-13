@@ -22,8 +22,8 @@ import (
 
 type NodeConfigurationReconciler struct {
 	client.Client
-	scheme *runtime.Scheme
 	snap   snap.Snap
+	scheme *runtime.Scheme
 
 	waitReady func()
 
@@ -33,14 +33,10 @@ type NodeConfigurationReconciler struct {
 }
 
 func NewNodeConfigurationReconciler(
-	client client.Client,
-	scheme *runtime.Scheme,
 	snap snap.Snap,
 	waitReady func(),
 ) *NodeConfigurationReconciler {
 	return &NodeConfigurationReconciler{
-		Client:       client,
-		scheme:       scheme,
 		snap:         snap,
 		waitReady:    waitReady,
 		reconciledCh: make(chan struct{}, 1),
@@ -48,6 +44,17 @@ func NewNodeConfigurationReconciler(
 }
 
 func (c *NodeConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if c.Client == nil {
+		return fmt.Errorf("client must be set before setting up with manager")
+	}
+	if c.scheme == nil {
+		return fmt.Errorf("scheme must be set before setting up with manager")
+	}
+
+	if err := mgr.Add(c); err != nil {  // This registers the Start method
+        return err
+    }
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.ConfigMap{}).WithEventFilter(predicate.Funcs{
 		CreateFunc: func(e event.CreateEvent) bool {
@@ -75,6 +82,8 @@ func (c *NodeConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		"configmap", req.NamespacedName,
 	)
 
+	logger.Info("Reconciling node configuration")
+
 	// Check if we're running on a worker node
 	if isWorker, err := snaputil.IsWorker(c.snap); err != nil {
 		logger.Error(err, "Failed to check if running on a worker node")
@@ -91,6 +100,8 @@ func (c *NodeConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return reconcile.Result{RequeueAfter: time.Second * 30}, err
 	}
 
+	logger.Info("Retrieved cluster configuration")
+
 	// Load and process certificates
 	keyPEM := config.Certificates.GetK8sdPrivateKey()
 	key, err := pkiutil.LoadRSAPrivateKey(keyPEM)
@@ -104,6 +115,8 @@ func (c *NodeConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return reconcile.Result{}, fmt.Errorf("failed to format kubelet configmap data: %w", err)
 	}
 
+	logger.Info("Generated ConfigMap data")
+
 	// Get existing ConfigMap
 	cm := &corev1.ConfigMap{}
 	if err := c.Get(ctx, req.NamespacedName, cm); err != nil {
@@ -111,6 +124,7 @@ func (c *NodeConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			logger.Error(err, "Failed to get ConfigMap")
 			return reconcile.Result{}, err
 		} else {
+			logger.Info("ConfigMap not found, creating new ConfigMap")
 			cm = &corev1.ConfigMap{
 				ObjectMeta: ctrl.ObjectMeta{
 					Name:      req.Name,
@@ -122,9 +136,12 @@ func (c *NodeConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				logger.Error(err, "Failed to create ConfigMap")
 				return reconcile.Result{}, err
 			}
+			logger.Info("Created ConfigMap")
 			return reconcile.Result{}, nil
 		}
 	}
+
+	logger.Info("Retrieved existing ConfigMap, will update")
 
 	// Update ConfigMap
 	cm.Data = cmData
@@ -132,6 +149,8 @@ func (c *NodeConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		logger.Error(err, "Failed to update ConfigMap")
 		return reconcile.Result{}, err
 	}
+
+	logger.Info("Updated ConfigMap, reconcile complete")
 
 	// Notify that reconciliation is complete
 	select {
@@ -151,10 +170,24 @@ func (r *NodeConfigurationReconciler) SetConfigGetter(getter func(context.Contex
 	r.getClusterConfig = getter
 }
 
-func (c *NodeConfigurationReconciler) Start(ctx context.Context) error {
-	logger := log.FromContext(ctx)
-	logger.V(1).Info("Waiting for node to be ready")
-	c.waitReady()
-	logger.V(1).Info("Starting update node configuration controller")
+func (r *NodeConfigurationReconciler) SetScheme(scheme *runtime.Scheme) {
+	r.scheme = scheme
+}
+
+func (r *NodeConfigurationReconciler) SetClient(client client.Client) {
+	r.Client = client
+}
+
+func (r *NodeConfigurationReconciler) Start(ctx context.Context) error {
+	// Trigger initial reconciliation
+	_, err := r.Reconcile(ctx, ctrl.Request{
+		NamespacedName: client.ObjectKey{
+			Name:      "k8sd-config",
+			Namespace: "kube-system",
+		},
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
