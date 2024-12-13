@@ -11,9 +11,8 @@ create, for example, Cinder volumes.
 To follow this guide, you will need:
 
 - An [OpenStack][openstack] cloud environment.
-- The installation requires Octavia to be available both to support Kubernetes
-  LoadBalancer services and to support the creation of a load balancer for the
-  Kubernetes API.
+- Octavia available both to support Kubernetes LoadBalancer services and to
+  support the creation of a load balancer for the Kubernetes API.
 - A valid [proxy configuration][proxy] in constrained environments.
 
 ## Installing {{product}} on OpenStack
@@ -59,7 +58,7 @@ juju deploy canonical-kubernetes --overlay ~/path/openstack-overlay.yaml --trust
 ...and remember to fetch the configuration file!
 
 ```
-juju ssh k8s/0 -- cat config > ~/.kube/config
+juju run k8s/leader get-kubeconfig | yq eval '.kubeconfig' > kubeconfig
 ```
 
 The {{product}} bundle is now deployed and integrated with OpenStack. Run 
