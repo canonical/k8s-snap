@@ -22,6 +22,10 @@ on:
         description: Test filter tags (e.g. pull_request, up_to_weekly)
         default: pull_request
         type: string
+      flavor:
+        description: Test flavor (e.g. moonray or strict)
+        default: ""
+        type: string
 
 jobs:
   test-integration:
@@ -49,6 +53,7 @@ jobs:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ inputs.os }}
+          TEST_FLAVOR: ${{ inputs.flavor }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
           # Test the latest (up to) 6 releases for the flavour
           # TODO(ben): upgrade nightly to run all flavours

@@ -127,6 +127,7 @@ jobs:
       os: ${{ matrix.os }}
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
       artifact: k8s-${{ matrix.patch }}.snap
+      flavor: ${{ matrix.patch }}
 
   security-scan:
     name: Security scan
