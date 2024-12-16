@@ -46,7 +46,7 @@ uses Calico as an example:
 sudo k8s helm repo add projectcalico https://docs.tigera.io/calico/charts
 ```
 
-## Install Calico CNI
+## Install Alternative CNI
 
 Create a values file with the basic configuration:
 
