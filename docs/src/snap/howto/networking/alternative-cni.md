@@ -1,9 +1,9 @@
 # How to use an alternative CNI
 
-While {{product}} ships with a default CNI that we guarantee is compatible with
-our distribution, you may want to use a different CNI plugin for your specific
-networking requirements. This guide explains how to safely replace the default
-CNI with an alternative solution.
+While {{product}} ships with a default [Container Network Interface] (CNI) that
+we guarantee is compatible with our distribution, you may want to use a
+different CNI plugin for your specific networking requirements. This guide
+explains how to safely replace the default CNI with an alternative solution.
 
 ## What you'll need
 
@@ -102,3 +102,6 @@ calico-node-2bm8m                          1/1     Running   0          22h
 calico-typha-56f55cb75-cj2jk               1/1     Running   0          22h
 csi-node-driver-vth9t                      2/2     Running   0          22h
 ```
+
+<!-- Links -->
+[Container Network Interface]: https://github.com/containernetworking/cni
