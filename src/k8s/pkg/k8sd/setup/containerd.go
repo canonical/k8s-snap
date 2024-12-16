@@ -166,21 +166,46 @@ func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs 
 	return nil
 }
 
-func saveSnapContainerdPaths(s snap.Snap) error {
-	// Write the containerd-related paths to files to properly clean-up on removal.
+// ContainerdLockPathsForSnap returns a mapping between the absolute paths of
+// the lockfiles within the k8s snap and the absolute paths of the containerd
+// directory they lock.
+//
+// WARN: these lockfiles are meant to be used in later cleanup stages.
+// DO NOT include any system paths which are not managed by the k8s-snap!
+//
+// It intentionally does NOT include the containerd base dir lockfile
+// (which most of the rest of the paths are based on), as it is meant
+// to indicate the root of the containerd install ('/' or '/var/snap/k8s/*').
+func ContainerdLockPathsForSnap(s snap.Snap) map[string]string {
 	m := map[string]string{
 		"containerd-socket-path": s.ContainerdSocketDir(),
 		"containerd-config-dir":  s.ContainerdConfigDir(),
 		"containerd-root-dir":    s.ContainerdRootDir(),
 		"containerd-cni-bin-dir": s.CNIBinDir(),
-		snap.ContainerdBaseDir:   s.GetContainerdBaseDir(),
 	}
 
-	for filename, content := range m {
-		if err := utils.WriteFile(filepath.Join(s.LockFilesDir(), filename), []byte(content), 0o600); err != nil {
-			return fmt.Errorf("failed to write %s: %w", filename, err)
+	prefixed := map[string]string{}
+	for k, v := range m {
+		prefixed[filepath.Join(s.LockFilesDir(), k)] = v
+	}
+
+	return prefixed
+}
+
+// saveSnapContainerdPaths creates the lock files for the containerd directory paths to be used for later cleanup.
+func saveSnapContainerdPaths(s snap.Snap) error {
+	for lockpath, dirpath := range ContainerdLockPathsForSnap(s) {
+		if err := utils.WriteFile(lockpath, []byte(dirpath), 0o600); err != nil {
+			return fmt.Errorf("failed to write %s: %w", lockpath, err)
 		}
 	}
+
+	// Save the Containerd Base Dir separately:
+	baseDirPath := filepath.Join(s.LockFilesDir(), snap.ContainerdBaseDir)
+	if err := utils.WriteFile(baseDirPath, []byte(s.GetContainerdBaseDir()), 0o600); err != nil {
+		return fmt.Errorf("failed to write %s: %w", baseDirPath, err)
+	}
+
 	return nil
 }
 
