@@ -12,7 +12,7 @@ harden their clusters in accordance with DISA STIG and CIS recommendations.
 :glob:
 :titlesonly:
 
-CIS Hardening <cis-hardening.md>
-DISA STIG Hardening <disa-stig-hardening.md>
-Hardening guide <auditing-steps.md>
+Hardening guide <hardening.md>
+CIS assessment <cis-assessment.md>
+DISA STIG assessment <disa-stig-assessment.md>
 ```
