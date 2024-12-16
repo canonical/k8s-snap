@@ -48,7 +48,7 @@ sudo k8s helm repo add projectcalico https://docs.tigera.io/calico/charts
 
 ## Install Alternative CNI
 
-Create a values file with the basic configuration:
+Create a values file with the basic configuration for Calico:
 
 ```
 cat <<EOF > values.yaml
