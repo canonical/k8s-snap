@@ -29,24 +29,6 @@ func startControlPlaneServices(ctx context.Context, snap snap.Snap, datastore st
 	return nil
 }
 
-func stopControlPlaneServices(ctx context.Context, snap snap.Snap, datastore string) error {
-	// Stop services
-	switch datastore {
-	case "k8s-dqlite":
-		if err := snaputil.StopK8sDqliteServices(ctx, snap); err != nil {
-			return fmt.Errorf("failed to stop k8s-dqlite service: %w", err)
-		}
-	case "external":
-	default:
-		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore, setup.SupportedDatastores)
-	}
-
-	if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
-		return fmt.Errorf("failed to stop control plane services: %w", err)
-	}
-	return nil
-}
-
 func waitApiServerReady(ctx context.Context, snap snap.Snap) error {
 	// Wait for API server to come up
 	client, err := snap.KubernetesClient("")
