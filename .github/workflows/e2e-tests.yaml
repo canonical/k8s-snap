@@ -38,6 +38,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+      - name: Apply patches
+        if: inputs.flavor != ''
+        run: |
+          ./build-scripts/patches/${{ inputs.flavor }}/apply
       - name: Download k8s-snap
         id: download-snap
         uses: ./.github/actions/download-k8s-snap
