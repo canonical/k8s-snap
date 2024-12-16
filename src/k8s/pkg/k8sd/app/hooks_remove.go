@@ -13,6 +13,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/log"
+	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/microcluster/v2/cluster"
@@ -145,5 +146,63 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		}
 	}
 
+	tryCleanupContainerdPaths(log, snap)
+
 	return nil
+}
+
+// tryCleanupContainerdPaths attempts to clean up all containerd directories which were
+// created by the k8s-snap based on the existence of their respective lockfiles
+// located in the directory returned by `s.LockFilesDir()`.
+func tryCleanupContainerdPaths(log log.Logger, s snap.Snap) {
+	for lockpath, dirpath := range setup.ContainerdLockPathsForSnap(s) {
+		// Ensure lockfile exists:
+		if _, err := os.Stat(lockpath); os.IsNotExist(err) {
+			log.Info("WARN: failed to find containerd lockfile, no cleanup will be perfomed", "lockfile", lockpath, "directory", dirpath)
+			continue
+		}
+
+		// Ensure lockfile's contents is the one we expect:
+		lockfile_contents := ""
+		if contents, err := os.ReadFile(lockpath); err != nil {
+			log.Info("WARN: failed to read contents of lockfile", "lockfile", lockpath, "error", err)
+			continue
+		} else {
+			lockfile_contents = string(contents)
+		}
+
+		if lockfile_contents != dirpath {
+			log.Info("WARN: lockfile points to different path than expected", "lockfile", lockpath, "expected", dirpath, "actual", lockfile_contents)
+			continue
+		}
+
+		// Check directory exists before attempting to remove:
+		if _, err := os.Stat(dirpath); os.IsNotExist(err) {
+			log.Info("Containerd directory doesn't exist; skipping cleanup", "directory", dirpath)
+		} else {
+			// NOTE(aznashwan): because of the convoluted interfaces-based way the snap
+			// composes and creates the original lockfiles (see k8sd/setup/containerd.go)
+			// this check is meant to defend against accidental code/configuration errors which
+			// might lead to the root FS being deleted:
+			realPath, err := os.Readlink(dirpath)
+			if err != nil {
+				log.Error(err, fmt.Sprintf("Failed to os.Readlink the directory path for lockfile %q pointing to %q. Skipping cleanup", lockpath, dirpath))
+				continue
+			}
+
+			if realPath == "/" {
+				log.Error(fmt.Errorf("There is some configuration/logic error in the current versions of the k8s-snap related to lockfile %q (meant to lock %q, which points to %q) which could lead to accidental wiping of the root file system.", lockpath, dirpath, realPath), "Please report this issue upstream immediately.")
+				continue
+			}
+
+			if err := os.RemoveAll(dirpath); err != nil {
+				log.Info("WARN: failed to remove containerd data directory", "directory", dirpath, "error", err, "realPath", realPath)
+				continue // Avoid removing the lockfile path.
+			}
+		}
+
+		if err := os.Remove(lockpath); err != nil {
+			log.Info("WARN: Failed to remove containerd lockfile", "lockfile", lockpath)
+		}
+	}
 }

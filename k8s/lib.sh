@@ -101,8 +101,16 @@ k8s::remove::containerd() {
   # this is to prevent removing containerd when it is not installed by the snap.
   # NOTE: do NOT include .containerd-base-dir! By default, it will contain "/".
   for file in "containerd-socket-path" "containerd-config-dir" "containerd-root-dir" "containerd-cni-bin-dir"; do
-    if [ -f "$SNAP_COMMON/lock/$file" ]; then
-      rm -rf $(cat "$SNAP_COMMON/lock/$file")
+    local lockpath="$SNAP_COMMON/lock/$file"
+    if [ -f "$lockpath" ]; then
+      local dirpath=$(cat "$SNAP_COMMON/lock/$file")
+
+      if [ $(readlink -m "$dirpath") = "/" ]; then
+        echo "WARN: lockfile '$lockpath' points to root ('/'). Skipping cleanup."
+        continue
+      fi
+
+      rm -rf "$dirpath"
     fi
   done
 }
