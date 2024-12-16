@@ -2,8 +2,8 @@
 
 It is recommended that you keep your Kubernetes deployment
 updated to the latest available stable version. You should
-also update the other applications which make up Kubernetes.
-Keeping up-to-date ensures you have the latest bug-fixes
+also update the other applications deployed in your Kubernetes
+cluster. Keeping up-to-date ensures you have the latest bug-fixes
 and security patches for smooth operation of your cluster.
 
 New minor versions of Kubernetes are set to release three
@@ -79,14 +79,14 @@ It is also important to understand that Kubernetes will only
 upgrade and if necessary migrate, components relating specifically
 to elements of Kubernetes installed and configured as part of Kubernetes.
 This may not include any customized configuration of Kubernetes,
-or user generated objects (e.g. storage classes) or deployments which
+or non-built-in generated objects (e.g. storage classes) or deployments which
 rely on deprecated APIs.
 
 ## Specific upgrade instructions
 
 ### Deciding if an upgrade is available
 
-Juju will contact charmhub daily to find new revisions of charms
+Juju will contact [charmhub] daily to find new revisions of charms
 deployed in your models. To see if the `k8s` or `k8s-worker` charms 
 can be upgraded, set with the following:
 
@@ -102,7 +102,7 @@ juju status --format=json | \
         }'
 ```
 
-This will output list of applications in the model:
+This outputs a list of applications in the model:
 * the name of the application (ex. `k8s`)
 * the charm used by the application (ex. `k8s`)
 * the kubernetes channel this charm follows (ex. `1.31/stable`)
@@ -113,19 +113,20 @@ If the `can-upgrade-to` revision is `null`, you are at the most
 stable release in this channel and you should continue with the
 [Pre Upgrade Check](#the-pre-upgrade-check).
 
-If the `can-upgrade-to` revision is non-null, continue with the
-[Upgrade Patch](upgrade-patch) instructions.
+Otherwise, continue with the [Upgrade Patch](upgrade-patch) instructions.
 
 
 ```{caution} Only update the charm to the next minor version.
 If the current `charm-channel` is `1.31/stable`, it's critical
 to refresh to the `1.32/stable`. Skipping channels (eg 1.31 -> 1.33)
 will result in the units blocking and indicating they cannot upgrade.
+
+See Kubernetes' [Version Skew Policy][version-skew-policy]
 ```
 
 ### The pre-upgrade-check
 
-Before running an upgrade, we should check that the cluster is 
+Before running an upgrade, check that the cluster is
 steady and ready for upgrade. The charm will perform checks 
 necessary to confirm the cluster is in safe working order before
 upgrading.
@@ -162,7 +163,7 @@ will reflect the updated version of the control-plane nodes making up the cluste
 #### Worker units (k8s-worker)
 
 After updating the control-plane applications, worker nodes may be upgraded
-following running the `pre-upgrade-check`. 
+by running the `pre-upgrade-check` action.
 
 ```sh
 juju run k8s-worker/leader pre-upgrade-check
@@ -180,31 +181,35 @@ application.
 After the `k8s-worker` charm is upgraded, the application `Version` from `juju status`
 will reflect the updated version of the worker nodes making up the cluster.
 
-```{note} Repeat for every application using the k8s-worker charm if
-multiple appear in the same model.
+```{note} Repeat [this section](#worker-units-k8s-worker) for every
+application using the k8s-worker charm, if multiple k8s-worker
+applications appear in the same model.
 ```
 
 ## Verify an Upgrade
 
-Once an upgrade is complete and units settle, the output from:
+Once an upgrade is complete, confirm the successful upgrade by running:
 
 <!-- markdownlint-disable -->
 ```sh
 juju status
 ```
 <!-- markdownlint-restore -->
-... should indicate that all units are active and the correct
-version of **Kubernetes** is running.
+
+... should indicate that all units are active/idle and the correct
+version of **Kubernetes** is listed in the application's **Version**
 
 It is recommended that you run a [cluster validation][cluster-validation]
 to ensure that the cluster is fully functional.
 
 <!-- LINKS -->
 
-[backup-restore]:     ../../snap/howto/backup-restore
-[cluster-validation]: ./validate
-[juju-docs]:          https://juju.is/docs/juju/upgrade-models
-[release-notes]:      ../reference/releases
-[upgrade-notes]:      ../reference/upgrade-notes
-[upgrade-patch]:      ./upgrade-patch
-[upstream-notes]:     https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.31.md#deprecation
+[backup-restore]:      ../../snap/howto/backup-restore
+[charmhub]:            https://charmhub.io/k8s
+[cluster-validation]:  ./validate
+[juju-docs]:           https://juju.is/docs/juju/upgrade-models
+[release-notes]:       ../reference/releases
+[upgrade-notes]:       ../reference/upgrade-notes
+[upgrade-patch]:       ./upgrade-patch
+[upstream-notes]:      https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.31.md#deprecation
+[version-skew-policy]: https://kubernetes.io/releases/version-skew-policy/
