@@ -70,6 +70,15 @@ func ensureFiles(uid, gid int, mode fs.FileMode, files map[string]string) (bool,
 	return changed, nil
 }
 
+func removeFiles(files []string) error {
+	for _, fname := range files {
+		if err := os.Remove(fname); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("failed to remove %s: %w", fname, err)
+		}
+	}
+	return nil
+}
+
 // EnsureExtDatastorePKI ensures the external datastore PKI files are present
 // and have the correct content, permissions and ownership.
 // It returns true if one or more files were updated and any error that occurred.
@@ -79,6 +88,16 @@ func EnsureExtDatastorePKI(snap snap.Snap, certificates *pki.ExternalDatastorePK
 		filepath.Join(snap.EtcdPKIDir(), "client.key"): certificates.DatastoreClientKey,
 		filepath.Join(snap.EtcdPKIDir(), "client.crt"): certificates.DatastoreClientCert,
 	})
+}
+
+// RemoveExtDatastorePKIFiles removes the external datastore PKI files.
+func RemoveExtDatastorePKIFiles(snap snap.Snap) error {
+	files := []string{
+		filepath.Join(snap.EtcdPKIDir(), "ca.crt"),
+		filepath.Join(snap.EtcdPKIDir(), "client.key"),
+		filepath.Join(snap.EtcdPKIDir(), "client.crt"),
+	}
+	return removeFiles(files)
 }
 
 // EnsureK8sDqlitePKI ensures the k8s dqlite PKI files are present
@@ -113,6 +132,27 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (b
 	})
 }
 
+// RemoveControlNodePKIFiles removes the control plane PKI files.
+func RemoveControlNodePKIFiles(snap snap.Snap) error {
+	files := []string{
+		filepath.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"),
+		filepath.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"),
+		filepath.Join(snap.KubernetesPKIDir(), "apiserver.crt"),
+		filepath.Join(snap.KubernetesPKIDir(), "apiserver.key"),
+		filepath.Join(snap.KubernetesPKIDir(), "ca.crt"),
+		filepath.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
+		filepath.Join(snap.KubernetesPKIDir(), "ca.key"),
+		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-ca.crt"),
+		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-ca.key"),
+		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-client.crt"),
+		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-client.key"),
+		filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
+		filepath.Join(snap.KubernetesPKIDir(), "kubelet.key"),
+		filepath.Join(snap.KubernetesPKIDir(), "serviceaccount.key"),
+	}
+	return removeFiles(files)
+}
+
 // EnsureWorkerPKI ensures the worker PKI files are present
 // and have the correct content, permissions and ownership.
 // It returns true if one or more files were updated and any error that occurred.
@@ -123,4 +163,15 @@ func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) (bool, err
 		filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt"):   certificates.KubeletCert,
 		filepath.Join(snap.KubernetesPKIDir(), "kubelet.key"):   certificates.KubeletKey,
 	})
+}
+
+// RemoveWorkerPKIFiles removes the worker PKI files.
+func RemoveWorkerPKIFiles(snap snap.Snap) error {
+	files := []string{
+		filepath.Join(snap.KubernetesPKIDir(), "ca.crt"),
+		filepath.Join(snap.KubernetesPKIDir(), "client-ca.crt"),
+		filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt"),
+		filepath.Join(snap.KubernetesPKIDir(), "kubelet.key"),
+	}
+	return removeFiles(files)
 }
