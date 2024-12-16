@@ -1,15 +1,22 @@
 package snap
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
+)
+
+const (
+	stateActive   = "active"
+	stateInactive = "inactive"
 )
 
 type PebbleOpts struct {
@@ -64,6 +71,31 @@ func (s *pebble) StopService(ctx context.Context, name string) error {
 // RestartService restarts a k8s service. The name can be either prefixed or not.
 func (s *pebble) RestartService(ctx context.Context, name string) error {
 	return s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", "pebble"), "restart", name})
+}
+
+// GetServiceState returns a k8s service state. The name can be either prefixed or not.
+func (s *pebble) GetServiceState(ctx context.Context, name string) (string, error) {
+	var b bytes.Buffer
+	err := s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", "pebble"), "services", name}, func(c *exec.Cmd) { c.Stdout = &b })
+	if err != nil {
+		return "", err
+	}
+
+	output := b.String()
+	// We're expecting output like this:
+	// Service  Startup  Current   Since
+	// kubelet  enabled  inactive  -
+	lines := strings.Split(output, "\n")
+	if len(lines) < 2 {
+		return "", fmt.Errorf("Unexpected output when checking service %s state", name)
+	}
+
+	fields := strings.Fields(lines[1])
+	if len(fields) < 3 || (!strings.EqualFold(stateActive, fields[2]) && !strings.EqualFold(stateInactive, fields[2])) {
+		return "", fmt.Errorf("Unexpected output when checking service %s state", name)
+	}
+
+	return fields[2], nil
 }
 
 func (s *pebble) Refresh(ctx context.Context, to types.RefreshOpts) (string, error) {

@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"reflect"
+	"syscall"
 	"testing"
+	"unsafe"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
@@ -101,6 +105,53 @@ func TestSnap(t *testing.T) {
 			mockRunner.Err = fmt.Errorf("some error")
 
 			err := snap.StartService(context.Background(), "test-service")
+			g.Expect(err).To(HaveOccurred())
+		})
+	})
+
+	t.Run("GetServiceState", func(t *testing.T) {
+		g := NewWithT(t)
+		mockRunner := &mock.Runner{
+			RunOutput: "active\n",
+		}
+		snap := snap.NewSnap(snap.SnapOpts{
+			RunCommand:    mockRunner.Run,
+		})
+
+		state, err := snap.GetServiceState(context.Background(), "test-service")
+
+		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(state).To(Equal("active"))
+		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("systemctl is-active snap.k8s.test-service"))
+
+		t.Run("failed unit", func(t *testing.T) {
+			g := NewWithT(t)
+			exitErr := &exec.ExitError{
+				ProcessState: &os.ProcessState{},
+			}
+
+			// exit code 3.
+			status := syscall.WaitStatus(0x0300)
+
+			// We can't set the state directly, so we're using reflection instead.
+			psField := reflect.ValueOf(exitErr.ProcessState).Elem().FieldByName("status")
+			psField = reflect.NewAt(psField.Type(), unsafe.Pointer(psField.UnsafeAddr())).Elem()
+			psField.Set(reflect.ValueOf(status))
+
+			mockRunner.Err = exitErr
+
+			state, err = snap.GetServiceState(context.Background(), "test-service")
+
+			g.Expect(err).To(Not(HaveOccurred()))
+			g.Expect(state).To(Equal("failed"))
+		})
+
+		t.Run("run error", func(t *testing.T) {
+			g := NewWithT(t)
+			mockRunner.Err = fmt.Errorf("some error")
+
+			_, err := snap.GetServiceState(context.Background(), "test-service")
+
 			g.Expect(err).To(HaveOccurred())
 		})
 	})
