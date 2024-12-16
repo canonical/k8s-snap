@@ -54,7 +54,7 @@ function collect_args {
 
 function collect_cluster_info {
   log_info "Copy k8s cluster-info dump to the final report tarball"
-  k8s kubectl cluster-info dump --output-directory "$INSPECT_DUMP/cluster-info" &>/dev/null
+  k8s kubectl cluster-info dump --all-namespaces --output-directory "$INSPECT_DUMP/cluster-info" &>/dev/null
 }
 
 function collect_sbom {
