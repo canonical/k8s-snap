@@ -12,6 +12,7 @@ the level of auditing you desire based on the [upstream instructions][].
 Here is a minimal example of such a policy file.
 
 ```
+sudo mkdir -p /var/snap/k8s/common/etc/
 sudo sh -c 'cat >/var/snap/k8s/common/etc/audit-policy.yaml <<EOL
 # Log all requests at the Metadata level.
 apiVersion: audit.k8s.io/v1
@@ -52,6 +53,7 @@ Create a configuration file with the [rate limits][] and place it under
 For example:
 
 ```
+sudo mkdir -p /var/snap/k8s/common/etc/
 sudo sh -c 'cat >/var/snap/k8s/common/etc/eventconfig.yaml <<EOL
 apiVersion: eventratelimit.admission.k8s.io/v1alpha1
 kind: Configuration
@@ -65,6 +67,7 @@ EOL'
 Create an admissions control config file under `/var/k8s/snap/common/etc/` .
 
 ```
+sudo mkdir -p /var/snap/k8s/common/etc/
 sudo sh -c 'cat >/var/snap/k8s/common/etc/admission-control-config-file.yaml <<EOL
 apiVersion: apiserver.config.k8s.io/v1
 kind: AdmissionConfiguration
@@ -203,6 +206,27 @@ Restart `kubelet`.
 ```
 sudo systemctl restart snap.k8s.kubelet
 ```
+
+#### Set the maximum time an idle session is permitted prior to disconnect
+
+Idle connections from the Kubelet can be used by unauthorized users to
+perform malicious activity to the nodes, pods, containers, and cluster within
+the Kubernetes Control Plane.
+
+Edit `/var/snap/k8s/common/args/kubelet` and set the argument `--streaming-connection-idle-timeout` to `5m`.
+
+```
+sudo sh -c 'cat >>/var/snap/k8s/common/args/kubelet <<EOL
+--streaming-connection-idle-timeout=5m
+EOL'
+```
+
+Restart `kubelet`.
+
+```
+sudo systemctl restart snap.k8s.kubelet
+```
+
 
 <!-- Links -->
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
