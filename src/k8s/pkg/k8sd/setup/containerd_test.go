@@ -31,6 +31,7 @@ func TestContainerd(t *testing.T) {
 			ContainerdRegistryConfigDir: filepath.Join(dir, "containerd-hosts"),
 			ContainerdStateDir:          filepath.Join(dir, "containerd-state"),
 			ContainerdExtraConfigDir:    filepath.Join(dir, "containerd-confd"),
+			LockFilesDir:                filepath.Join(dir, "lockfiles"),
 			ServiceArgumentsDir:         filepath.Join(dir, "args"),
 			CNIBinDir:                   filepath.Join(dir, "opt-cni-bin"),
 			CNIConfDir:                  filepath.Join(dir, "cni-netd"),
@@ -129,9 +130,16 @@ func TestContainerd(t *testing.T) {
 			"containerd-root-dir":    s.ContainerdRootDir(),
 			"containerd-cni-bin-dir": s.CNIBinDir(),
 		}
-		for filename, content := range m {
 
-			b, err := os.ReadFile(filepath.Join(s.LockFilesDir(), filename))
+		// Ensure locks directory exists:
+		files, err := os.ReadDir(s.LockFilesDir())
+		g.Expect(err).To(Not(HaveOccurred()))
+		t.Logf("Lockfiles currently in %q: %v", s.LockFilesDir(), files)
+
+		for filename, content := range m {
+			path := filepath.Join(s.LockFilesDir(), filename)
+			t.Logf("Checking path: %s", path)
+			b, err := os.ReadFile(path)
 			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(string(b)).To(Equal(content))
 		}
