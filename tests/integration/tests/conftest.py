@@ -81,9 +81,7 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 @pytest.fixture(scope="session")
 def h() -> harness.Harness:
     LOG.debug("Create harness for %s", config.SUBSTRATE)
-    if config.SUBSTRATE == "local":
-        h = harness.LocalHarness()
-    elif config.SUBSTRATE == "lxd":
+    if config.SUBSTRATE == "lxd":
         h = harness.LXDHarness()
     elif config.SUBSTRATE == "multipass":
         h = harness.MultipassHarness()
@@ -91,7 +89,7 @@ def h() -> harness.Harness:
         h = harness.JujuHarness()
     else:
         raise harness.HarnessError(
-            "TEST_SUBSTRATE must be one of: local, lxd, multipass, juju"
+            "TEST_SUBSTRATE must be one of: lxd, multipass, juju"
         )
 
     yield h
