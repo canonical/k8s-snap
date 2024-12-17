@@ -143,7 +143,8 @@ juju status k8s --watch 5s
 The `refresh` command instructs the juju controller to use the new charm
 revision of the application's charm channel to upgrade each unit. The
 charm code is simultaneously replaced on each unit, then the `k8s`
-snap is updated unit-by-unit, starting with the Juju leader unit for the
+snap is updated unit-by-unit in order to maintain a highly-available
+kube-api-server endpoint, starting with the Juju leader unit for the
 application.
 
 After the `k8s` charm is upgraded, the application `Version` from `juju status`

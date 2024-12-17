@@ -152,7 +152,8 @@ The `refresh` command instructs the juju controller to follow a new
 charm channel related to the Kubernetes release and use the new charm
 revision of the application's channel to upgrade each unit. The
 charm code is simultaneously replaced on each unit, then the `k8s`
-snap is updated unit-by-unit, starting with the Juju leader unit for the
+snap is updated unit-by-unit in order to maintain a highly-available
+kube-api-server endpoint, starting with the Juju leader unit for the
 application.
 During the upgrade process, the application status message and the `k8s` leader
 unit message will display the current progress, listing the `k8s` and
