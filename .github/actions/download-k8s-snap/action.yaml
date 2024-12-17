@@ -17,13 +17,13 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Exit if no input provided
+    - name: Fail if neither artifact nor channel are specified
       if: inputs.artifact == '' && inputs.channel == ''
       shell: bash
       run: |
         echo "No k8s-snap artifact or channel specified..."
         exit 1
-    - name: Exit if multiple inputs provided
+    - name: Fail if both artifact and channel are specified
       if: inputs.artifact != '' && inputs.channel != ''
       shell: bash
       run: |
@@ -57,5 +57,5 @@ runs:
         fi
         echo "snap-path=$snap_path" >> "$GITHUB_OUTPUT"
 
-        echo "Downloaded snap: $snap_path"
+        echo "Output snap: $snap_path"
         ls -lh $snap_path

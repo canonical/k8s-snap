@@ -10,7 +10,6 @@ on:
       - autoupdate/moonray
       - 'release-[0-9]+.[0-9]+'
       - 'autoupdate/release-[0-9]+.[0-9]+-strict'
-      - 'autoupdate/sync/**'
   pull_request:
     paths-ignore:
       - 'docs/**'
@@ -30,7 +29,7 @@ jobs:
 
   test-branches:
     name: Test Branch Management
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -75,6 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-tags: ${{ steps.get-e2e-tags.outputs.test-tags }}
+    needs: [build-snap, go-lint-and-unit, python-lint]
     steps:
       - name: Checking out repo
         uses: actions/checkout@v4
@@ -117,7 +117,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu:20.04"]
+        os: ["ubuntu:24.04"]
         patch: ["moonray"]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     if: success() && github.event_name == 'pull_request'

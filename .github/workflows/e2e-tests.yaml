@@ -1,5 +1,8 @@
 name: Run k8s-snap e2e tests
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
     inputs:
@@ -19,7 +22,7 @@ on:
         description: k8s snap channel.
         type: string
       test-tags:
-        description: Test filter tags (e.g. pull_request, up_to_weekly)
+        description: Integration test filter tags (e.g. pull_request, up_to_weekly)
         default: pull_request
         type: string
       flavor:

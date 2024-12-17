@@ -20,7 +20,7 @@ jobs:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
         channel: ["latest/edge"]
-      fail-fast: false # TODO: remove once arm64 works
+      fail-fast: false # TODO: remove once we no longer have flaky tests.
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
@@ -39,8 +39,10 @@ jobs:
           - { branch: main, channel: latest/edge }
           # Stable branches
           # Add branches to test here
+          # TODO: automatically retrieve the list of channels.
           - { branch: release-1.30, channel: 1.30-classic/edge }
           - { branch: release-1.31, channel: 1.31-classic/edge }
+          - { branch: release-1.32, channel: 1.32-classic/edge }
     uses: ./.github/workflows/security-scan.yaml
     with:
       channel: ${{ matrix.channel }}
@@ -66,11 +68,12 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version-file: './src/k8s/go.mod'
       - name: go mod download
         working-directory: src/k8s
         run: go mod download
       - name: TICS scan
+        # TODO: move the following to a script.
         run: |
           export TICSAUTHTOKEN=${{ secrets.TICSAUTHTOKEN }}
 

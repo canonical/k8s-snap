@@ -54,6 +54,7 @@ function collect_args {
 
 function collect_cluster_info {
   log_info "Copy k8s cluster-info dump to the final report tarball"
+  # TODO: add a verbose mode that collects logs from all namespaces (--all-namespaces).
   k8s kubectl cluster-info dump --output-directory "$INSPECT_DUMP/cluster-info" &>/dev/null
 }
 

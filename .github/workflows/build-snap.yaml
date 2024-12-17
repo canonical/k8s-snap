@@ -1,5 +1,8 @@
 name: Build k8s-snap
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
     inputs:
@@ -14,13 +17,13 @@ on:
 jobs:
   build-snap:
     name: Build snap
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       snap-artifact: ${{ steps.build.outputs.snap-artifact }}
     steps:
       - name: Checking out repo
         uses: actions/checkout@v4
-      - name: Apply patches
+      - name: Apply flavor-specific patches
         if: inputs.flavor != ''
         run: |
           ./build-scripts/patches/${{ inputs.flavor }}/apply
@@ -29,7 +32,7 @@ jobs:
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
-      - name: Build snap
+      - name: Build k8s snap
         id: build
         env:
           flavor: ${{ inputs.flavor }}
@@ -44,7 +47,7 @@ jobs:
           mv k8s_*.snap $out_snap
 
           echo "snap-artifact=$out_snap" >> "$GITHUB_OUTPUT"
-      - name: Uploading snap
+      - name: Upload k8s snap
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build.outputs.snap-artifact }}
