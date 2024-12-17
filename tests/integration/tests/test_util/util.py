@@ -1,13 +1,11 @@
 #
 # Copyright 2024 Canonical, Ltd.
 #
-import contextlib
 import ipaddress
 import json
 import logging
 import re
 import shlex
-import socket
 import subprocess
 import urllib.request
 from datetime import datetime
@@ -516,38 +514,6 @@ def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
 
         return str(lb_net)
     raise RuntimeError("Could not find a suitable CIDR for LoadBalancer services")
-
-
-@contextlib.contextmanager
-def open_port(
-    port: int,
-    host: str = "",
-    address_family: socket.AddressFamily = socket.AF_INET,
-    socket_kind: socket.SocketKind = socket.SOCK_STREAM,
-    max_backlogged_connections: int = 0,
-):
-    """Context manager which opens a socket with the given properties
-    and binds it to the given port.
-
-    Yields the already setup and listening socket object for use.
-
-    By default, it will only allow one single active connection
-    and instantly refuse any new ones. Use the `max_backlogged_connections`
-    argument if you'd like it to accept more connections as `pending`.
-    """
-    sock = socket.socket(family=address_family, type=socket_kind)
-    if not host:
-        host = socket.gethostname()
-    sock.bind((host, port))
-    LOG.info(f"Successfully bound new socket on '{host}:{port}'")
-
-    try:
-        sock.listen(max_backlogged_connections)
-        LOG.info(f"Successfully started listening on '{host}:{port}'")
-        yield sock
-    finally:
-        sock.close()
-        LOG.info(f"Closed socket on '{host}:{port}'")
 
 
 def check_file_paths_exist(
