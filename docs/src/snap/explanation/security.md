@@ -60,12 +60,11 @@ check the [roadmap][] for current areas of work.
 <!-- LINKS -->
 
 [Kubernetes Security documentation]: https://kubernetes.io/docs/concepts/security/overview/
-[snap documentation]: https://snapcraft.io/docs/security-sandboxing
+[snap documentation]: https://snapcraft.io/docs/security-policies
 [rocks-security]: https://canonical-rockcraft.readthedocs-hosted.com/en/latest/explanation/rockcraft/
 [roadmap]: ../reference/roadmap
 [Amazon Web Services security]: https://aws.amazon.com/security/
 [Google Cloud Platform security]:https://cloud.google.com/security/
-[Metal As A Service(MAAS) hardening]:https://maas.io/docs/snap/3.0/ui/hardening-your-maas-installation
+[Metal As A Service(MAAS) hardening]:https://maas.io/docs/how-to-enhance-maas-security
 [Microsoft Azure security]:https://docs.microsoft.com/en-us/azure/security/azure-security
 [VMware VSphere hardening guides]: https://www.vmware.com/security/hardening-guides.html
-

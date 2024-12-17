@@ -1060,10 +1060,7 @@ The final line of the output will be `PASS`.
 > Administrator on a per-organization basis.
 >
 > Instructions on how to configure an `--admission-control-config-file` for the
-> Kube API Server of the k8s-snap can be found at:
->
-> <!-- TODO: switch link to dedicated DISA Hardening page when published. -->
-> https://documentation.ubuntu.com/canonical-kubernetes/latest/src/snap/howto/cis-hardening/#configure-auditing
+> Kube API Server of the k8s-snap can be found in the [hardening guide page].
 >
 
 
@@ -6117,10 +6114,10 @@ test $? -eq 0 && echo PASS || echo FAIL
 The final line of the output will be `PASS`.
 
 <!-- Links -->
-[Hardening]:security/hardening.md
 [getting started]: ../../tutorial/getting-started
 [post-deployment hardening]: hardening.md
 [Kubernetes STIG]:https://www.stigviewer.com/stig/kubernetes/
+[hardening guide page]: hardening.md#set-event-rate-limits
 [V-242381]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242381
 [V-242383]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242383
 [V-242386]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242386
