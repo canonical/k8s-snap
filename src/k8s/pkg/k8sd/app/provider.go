@@ -15,10 +15,6 @@ func (a *App) Snap() snap.Snap {
 	return a.snap
 }
 
-func (a *App) NotifyUpdateNodeConfigController() {
-	utils.MaybeNotify(a.triggerUpdateNodeConfigControllerCh)
-}
-
 func (a *App) NotifyFeatureController(network, gateway, ingress, loadBalancer, localStorage, metricsServer, dns bool) {
 	if network {
 		utils.MaybeNotify(a.triggerFeatureControllerNetworkCh)
