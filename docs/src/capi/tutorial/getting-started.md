@@ -12,25 +12,8 @@ placing it in your PATH. For example, at the time this guide was written,
 for `amd64` you would run:
 
 ```
-curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.3/clusterctl-linux-amd64 -o clusterctl
+curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.0/clusterctl-linux-amd64 -o clusterctl
 sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
-```
-
-## Configure `clusterctl`
-
-`clusterctl` contains a list of default providers. Right now, {{product}} is
-not yet part of that list. To make `clusterctl` aware of the new
-providers we need to add them to the configuration
-file. Edit `~/.cluster-api/clusterctl.yaml` and add the following:
-
-```
-providers:
-  - name: ck8s
-    type: BootstrapProvider
-    url: "https://github.com/canonical/cluster-api-k8s/releases/latest/bootstrap-components.yaml"
-  - name: ck8s
-    type: ControlPlaneProvider
-    url: "https://github.com/canonical/cluster-api-k8s/releases/latest/control-plane-components.yaml"
 ```
 
 ## Set up a management cluster
@@ -163,7 +146,7 @@ To initialise the management cluster with the latest released version of the
 providers and the infrastructure of your choice:
 
 ```
-clusterctl init --bootstrap ck8s --control-plane ck8s -i <infra-provider-of-choice>
+clusterctl init --bootstrap canonical-kubernetes --control-plane canonical-kubernetes -i <infra-provider-of-choice>
 ```
 
 ## Generate a cluster spec manifest
