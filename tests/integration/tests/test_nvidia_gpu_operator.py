@@ -58,6 +58,7 @@ def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, boo
 
 @pytest.mark.node_count(1)
 @pytest.mark.tags(tags.WEEKLY)
+@pytest.mark.tags(tags.GPU)
 @pytest.mark.parametrize(
     "gpu_operator_version", NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS.keys()
 )
