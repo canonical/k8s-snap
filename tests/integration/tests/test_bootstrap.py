@@ -15,3 +15,5 @@ def test_microk8s_installed(instances: List[harness.Instance]):
     instance.exec("snap install microk8s --classic".split())
     result = instance.exec("k8s bootstrap".split(), capture_output=True, check=False)
     assert "Error: microk8s snap is installed" in result.stderr.decode()
+
+    instance.exec("snap remove microk8s --purge".split())
