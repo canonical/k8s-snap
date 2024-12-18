@@ -1,0 +1,81 @@
+name: Security scan
+
+permissions:
+  contents: read  # for actions/checkout to fetch code
+  security-events: write  # for github/codeql-action/upload-sarif to upload SARIF results
+
+on:
+  workflow_call:
+    inputs:
+      # Download k8s-snap using either a GH action artifact or a snap channel.
+      artifact:
+        description: The name of a GH action artifact.
+        type: string
+      channel:
+        description: k8s snap channel.
+        type: string
+      checkout-ref:
+        description: k8s-snap git checkout ref, optional.
+        type: string
+
+jobs:
+  security-scan:
+    name: Security scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          # We run into rate limiting issues if we don't authenticate
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # Need to fetch the GH actions first.
+      - name: Checking out repo
+        uses: actions/checkout@v4
+      - name: Download k8s-snap
+        id: download-snap
+        uses: ./.github/actions/download-k8s-snap
+        with:
+          channel: ${{ inputs.channel }}
+          artifact: ${{ inputs.artifact }}
+      - name: Checking out tested repo branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.checkout-ref }}
+          # Persist downloaded artifacts
+          clean: 'false'
+      # TODO: move the following steps to a separate script
+      - name: Setup Trivy vulnerability scanner
+        run: |
+          mkdir -p manual-trivy/sarifs
+          pushd manual-trivy
+          VER=$(curl --silent -qI https://github.com/aquasecurity/trivy/releases/latest | awk -F '/' '/^location/ {print  substr($NF, 1, length($NF)-1)}');
+          wget https://github.com/aquasecurity/trivy/releases/download/${VER}/trivy_${VER#v}_Linux-64bit.tar.gz
+          tar -zxvf ./trivy_${VER#v}_Linux-64bit.tar.gz
+          popd
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          ignore-unfixed: true
+          format: "sarif"
+          output: "trivy-k8s-repo-scan--results.sarif"
+          severity: "MEDIUM,HIGH,CRITICAL"
+        env:
+          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
+      - name: Gather Trivy repo scan results
+        run: |
+          cp trivy-k8s-repo-scan--results.sarif ./manual-trivy/sarifs/
+      - name: Run Trivy vulnerability scanner on the snap
+        run: |
+          for var in $(env | grep -o '^TRIVY_[^=]*'); do
+            unset "$var"
+          done
+          cp ${{ steps.download-snap.outputs.snap-path }} ./k8s-test.snap
+          unsquashfs k8s-test.snap
+          ./manual-trivy/trivy --db-repository public.ecr.aws/aquasecurity/trivy-db rootfs ./squashfs-root/ --format sarif > ./manual-trivy/sarifs/snap.sarif
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "./manual-trivy/sarifs"

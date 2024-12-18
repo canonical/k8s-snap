@@ -1,8 +1,13 @@
-name: Nightly Latest/Edge Tests
+name: Nightly Tests
 
 on:
   schedule:
     - cron: "0 0 * * *" # Runs every midnight
+  pull_request:
+    paths:
+      - .github/workflows/nightly-test.yaml
+      - .github/workflows/e2e-tests.yaml
+      - .github/workflows/security-scan.yaml
 
 permissions:
   contents: read
@@ -14,58 +19,89 @@ jobs:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        release: ["latest/edge"]
-      fail-fast: false # TODO: remove once arm64 works
+        channel: ["latest/edge"]
+      fail-fast: false # TODO: remove once we no longer have flaky tests.
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel: ${{ matrix.channel }}
+      test-tags: 'up_to_nightly'
 
-    runs-on: ${{ matrix.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-large' }}
+  Trivy:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    strategy:
+      matrix:
+        include:
+          # Latest branches
+          - { branch: main, channel: latest/edge }
+          # Stable branches
+          # Add branches to test here
+          # TODO: automatically retrieve the list of channels.
+          - { branch: release-1.30, channel: 1.30-classic/edge }
+          - { branch: release-1.31, channel: 1.31-classic/edge }
+          - { branch: release-1.32, channel: 1.32-classic/edge }
+    uses: ./.github/workflows/security-scan.yaml
+    with:
+      channel: ${{ matrix.channel }}
+      checkout-ref: ${{ matrix.branch }}
 
+  TICS:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # Latest branches
+          - { branch: main }
     steps:
       - name: Checking out repo
         uses: actions/checkout@v4
-      - name: Install lxd and tox
-        run: |
-          sudo apt update
-          sudo apt install -y tox
-          sudo snap refresh lxd --channel 5.21/stable
-          sudo lxd init --auto
-          sudo usermod --append --groups lxd $USER
-          sg lxd -c 'lxc version'
-          sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
-          sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-      - name: Create build directory
-        run: mkdir -p build
-      - name: Install ${{ matrix.release }} k8s snap
-        run: |
-          cd build
-          snap download k8s --channel=${{ matrix.release }} --basename k8s
-      - name: Run end to end tests # tox path needs to be specified for arm64
-        env:
-          TEST_SNAP: ${{ github.workspace }}/build/k8s.snap
-          TEST_SUBSTRATE: lxd
-          TEST_LXD_IMAGE: ${{ matrix.os }}
-          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports
-          # Test the latest (up to) 6 releases for the flavour
-          # TODO(ben): upgrade nightly to run all flavours
-          TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
-          # Upgrading from 1.30 is not supported.
-          TEST_VERSION_UPGRADE_MIN_RELEASE: "1.31"
-          TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
-          TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
-        run: |
-          export PATH="/home/runner/.local/bin:$PATH"
-          cd tests/integration && sg lxd -c 'tox -vve integration -- --tags up_to_nightly '
-      - name: Prepare inspection reports
-        if: failure()
-        run: |
-          tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "artifact_name=inspection-reports-${{ matrix.os }}-${{ matrix.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
-      - name: Upload inspection report artifact
-        if: failure()
-        uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.artifact_name }}
-          path: ${{ github.workspace }}/inspection-reports.tar.gz
-      - name: Tmate debugging session
-        if: ${{ failure() && github.event_name == 'pull_request' }}
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 10
+          ref: ${{matrix.branch}}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: './src/k8s/go.mod'
+      - name: go mod download
+        working-directory: src/k8s
+        run: go mod download
+      - name: TICS scan
+        # TODO: move the following to a script.
+        run: |
+          export TICSAUTHTOKEN=${{ secrets.TICSAUTHTOKEN }}
+
+          set -x
+          # Install python dependencies
+          pip install -r tests/integration/requirements-test.txt
+          pip install -r tests/integration/requirements-dev.txt
+
+          cd src/k8s
+
+          # TICS requires us to have the test results in cobertura xml format under the
+          # directory use below
+          sudo make go.unit
+          go install github.com/boumenot/gocover-cobertura@latest
+          gocover-cobertura < coverage.txt > coverage.xml
+          mkdir .coverage
+          mv ./coverage.xml ./.coverage/
+
+          # Install the TICS and staticcheck
+          go install honnef.co/go/tools/cmd/staticcheck@v0.5.1
+          . <(curl --silent --show-error 'https://canonical.tiobe.com/tiobeweb/TICS/api/public/v1/fapi/installtics/Script?cfg=default&platform=linux&url=https://canonical.tiobe.com/tiobeweb/TICS/')
+
+          # We need to have our project built
+          # We load the dqlite libs here instead of doing through make because TICS
+          # will try to build parts of the project itself
+          sudo add-apt-repository -y ppa:dqlite/dev
+          sudo apt install dqlite-tools-v2 libdqlite1.17-dev
+          sudo make clean
+          go build -a ./...
+
+          TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $HOME/work/k8s-snap/k8s-snap/

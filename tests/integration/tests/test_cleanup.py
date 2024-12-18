@@ -114,6 +114,7 @@ def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
 @pytest.mark.node_count(1)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skip(reason="the test fails when using a harness other than 'local'")
 def test_containerd_path_cleanup_on_failed_init(
     instances: List[harness.Instance], tmp_path
 ):
