@@ -1,6 +1,6 @@
 product: 'Canonical Kubernetes'
 version: '1.32'
-channel: '1.32/edge'
+channel: '1.32/stable'
 multi_line_example: |-
   *Multi-line* text
    that uses basic **markup**.

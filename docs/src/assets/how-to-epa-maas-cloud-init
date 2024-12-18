@@ -82,7 +82,7 @@ write_files:
 # install the snap
 snap:
   commands:
-    00: 'snap install k8s --classic --channel=1.32/edge'
+    00: 'snap install k8s --classic --channel=1.32/stable'
 
 runcmd:
 # fetch dpdk driver binding script
