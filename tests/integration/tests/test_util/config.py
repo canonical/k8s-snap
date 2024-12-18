@@ -44,8 +44,8 @@ SNAP = os.getenv("TEST_SNAP")
 SNAP_NAME = os.getenv("TEST_SNAP_NAME") or "k8s"
 
 # SUBSTRATE is the substrate to use for running the integration tests.
-# One of 'local' (default), 'lxd', 'juju', or 'multipass'.
-SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "local"
+# One of 'lxd' (default), 'juju', or 'multipass'.
+SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "lxd"
 
 # SKIP_CLEANUP can be used to prevent machines to be automatically destroyed
 # after the tests complete.
