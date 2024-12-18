@@ -2,7 +2,7 @@
 
 ## Overview
 
-End to end tests are written in Python. They are built on top of a [Harness](./tests/conftest.py) fixture so that they can run on multiple environments like LXD, Multipass, Juju, or the local machine.
+End to end tests are written in Python. They are built on top of a [Harness](./tests/conftest.py) fixture so that they can run on multiple environments like LXD, Multipass, or Juju.
 
 End to end tests can be configured using environment variables. You can see all available options in [./tests/config.py](./tests/config.py).
 
@@ -27,17 +27,6 @@ mv k8s_*.snap k8s.snap
 In general, all end to end tests will require specifying the local path to the snap package under test, using the `TEST_SNAP` environment variable. Make sure to specify the full path to the file.
 
 End to end tests are typically run with: `cd tests/integration && tox -e integration`
-
-### Running end to end tests on the local machine
-
-```bash
-export TEST_SNAP=$PWD/k8s.snap
-export TEST_SUBSTRATE=local
-
-cd tests/integration && tox -e integration
-```
-
-> *NOTE*: When running locally, end to end tests that create more than one instance will fail.
 
 ### Running end to end tests on LXD containers
 
