@@ -1,0 +1,77 @@
+name: Auto-update pre-release branches
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - .github/workflows/update-pre-release-branches.yaml
+  schedule:
+    - cron: "0 0 * * *" # Runs every midnight
+
+permissions:
+  contents: read
+
+jobs:
+  update-branches:
+    permissions:
+      contents: write  # for Git to git push
+    runs-on: ubuntu-latest
+    outputs:
+      preRelease: ${{ steps.determine.outputs.preRelease }}
+      branch: ${{ steps.determine.outputs.branch }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.BOT_SSH_KEY }}
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install Python dependencies
+        run: pip3 install packaging requests
+      - name: Determine outstanding pre-release
+        id: determine
+        run: |
+          preRelease=`python3 ./build-scripts/k8s_releases.py get_outstanding_prerelease`
+          echo "preRelease=$preRelease" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "$preRelease" ]]; then
+            branch="autoupdate/$preRelease"
+          fi
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+      - name: Define git credentials
+        run: |
+          # Needed to create commits.
+          git config --global user.name "Github Actions"
+          git config --global user.email "worker@org.com"
+      - name: 'Update k8s component version: ${{ steps.determine.outputs.preRelease }}'
+        if: ${{ steps.determine.outputs.preRelease }} != ''
+        run: |
+          echo ${{ steps.determine.outputs.preRelease }} > ./build-scripts/components/kubernetes/version
+          git add ./build-scripts/components/kubernetes/version
+          git commit -m "Update k8s version to ${{ steps.determine.outputs.preRelease }}"
+      - name: Create pre-release branch ${{ steps.determine.outputs.branch }}
+        if: ${{ steps.determine.outputs.preRelease }} != ''
+        run: |
+          git checkout -b ${{ steps.determine.outputs.branch }}
+          git push origin --force ${{ steps.determine.outputs.branch }}
+      - name: Clean obsolete branches
+        run: |
+          git fetch origin
+
+          # Log the latest release for reference.
+          latestRelease=`python3 ./build-scripts/k8s_releases.py get_latest_release`
+          echo "Latest k8s release: $latestRelease"
+
+          for outstandingPreRelease in `python3 ./build-scripts/k8s_releases.py get_obsolete_prereleases`; do
+            branch="autoupdate/${outstandingPreRelease}"
+            if git branch -r | grep "origin/$branch"; then
+              echo "Cleaning up obsolete pre-release branch: $branch"
+              git push origin --delete $branch
+            else
+              echo "Obsolete branch not found, skpping: $branch"
+            fi
+          done

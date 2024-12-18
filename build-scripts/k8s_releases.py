@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-from packaging.version import Version
 import json
-import requests
 import sys
-from typing import List
+from typing import List, Optional
+
+import requests
+from packaging.version import Version
 
 K8S_TAGS_URL = "https://api.github.com/repos/kubernetes/kubernetes/tags"
 
 
 def _url_get(url: str) -> str:
-    r = requests.get(url)
+    r = requests.get(url, timeout=5)
     r.raise_for_status()
     return r.text
 
@@ -28,9 +29,9 @@ def get_k8s_tags() -> List[str]:
 
 
 # k8s release naming:
-# * alpha:  v{major}.{minor}.{patch}r-alpha.{version}
-# * beta:   v{major}.{minor}.{patch}r-beta.{version}
-# * rc:     v{major}.{minor}.{patch}r-rc.{version}
+# * alpha:  v{major}.{minor}.{patch}-alpha.{version}
+# * beta:   v{major}.{minor}.{patch}-beta.{version}
+# * rc:     v{major}.{minor}.{patch}-rc.{version}
 # * stable: v{major}.{minor}.{patch}
 def is_stable_release(release: str):
     return "-" not in release
@@ -48,6 +49,14 @@ def get_latest_stable() -> str:
 def get_latest_release() -> str:
     k8s_tags = get_k8s_tags()
     return k8s_tags[0]
+
+
+def get_outstanding_prerelease() -> Optional[str]:
+    latest_release = get_latest_release()
+    if not is_stable_release(latest_release):
+        return latest_release
+    # The latest release is a stable release, no outstanding pre-release.
+    return None
 
 
 def get_obsolete_prereleases() -> List[str]:
@@ -75,4 +84,4 @@ if __name__ == "__main__":
         for item in out:
             print(item)
     else:
-        print(out)
+        print(out or "")
