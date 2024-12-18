@@ -143,7 +143,7 @@ def wait_for_gpu_operator_daemonset(
 
 
 @pytest.mark.node_count(1)
-@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.tags(tags.GPU)
 @pytest.mark.parametrize(
     "gpu_operator_version", NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS.keys()
 )
