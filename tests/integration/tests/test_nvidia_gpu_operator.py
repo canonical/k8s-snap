@@ -3,11 +3,10 @@
 #
 
 import logging
-import time
 from typing import List, Mapping
 
 import pytest
-from test_util import harness, tags, util
+from test_util import config, harness, tags, util
 
 LOG = logging.getLogger(__name__)
 
@@ -26,22 +25,6 @@ NVIDIA_KERNEL_MODULE_NAMES = ["nvidia", "nvidia_uvm", "nvidia_modeset"]
 # Lifted 1:1 from:
 # https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html#cuda-vectoradd
 NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME = "cuda-vectoradd"
-NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_SPEC = f"""
-apiVersion: v1
-kind: Pod
-metadata:
-  name: {NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME}
-spec:
-  restartPolicy: OnFailure
-  containers:
-  - name: cuda-vectoradd
-    image: "nvcr.io/nvidia/k8s/cuda-sample:vectoradd-cuda11.7.1-ubuntu20.04"
-    resources:
-      limits:
-        nvidia.com/gpu: 1
-"""[
-    1:
-]
 
 
 def _check_nvidia_gpu_present(instance: harness.Instance) -> bool:
@@ -59,7 +42,7 @@ def _check_nvidia_gpu_present(instance: harness.Instance) -> bool:
 
 
 def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, bool]:
-    """Ensures that Nvidia kernel medules are NOT loaded on
+    """Ensures that Nvidia kernel modules are NOT loaded on
     the given harness instance."""
 
     proc = instance.exec(["lsmod"], capture_output=True)
@@ -73,77 +56,9 @@ def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, boo
     return modules_present
 
 
-def _get_harness_instance_os_release(instance: harness.Instance) -> str:
-    """Reads harness instance os series from LSB release."""
-    proc = instance.exec(["cat", "/etc/lsb-release"], capture_output=True)
-
-    release = None
-    var = "DISTRIB_RELEASE"
-    for line in proc.stdout.split(b"\n"):
-        line = line.decode()
-        if line.startswith(var):
-            release = line.lstrip(f"{var}=")
-            break
-
-    if release is None:
-        raise ValueError(
-            f"Failed to parse LSB release var '{release}' from LSB info: "
-            f"{proc.stdout}"
-        )
-
-    return release
-
-
-def wait_for_gpu_operator_daemonset(
-    instance: harness.Instance,
-    name: str,
-    namespace: str = "default",
-    retry_times: int = 5,
-    retry_delay_s: int = 60,
-):
-    """Waits for the daemonset with the given name from the gpu-operator
-    to become available."""
-    proc = None
-    for i in range(retry_times):
-        # NOTE: Because the gpu-operator's daemonsets are single-replica
-        # and do not have a RollingUpdate strategy, we directly query the
-        # `numberReady` instead of using `rollout status`.
-        proc = instance.exec(
-            [
-                "k8s",
-                "kubectl",
-                "-n",
-                namespace,
-                "get",
-                "daemonset",
-                name,
-                "-o",
-                "jsonpath={.status.numberReady}",
-            ],
-            check=True,
-            capture_output=True,
-        )
-        if proc.stdout.decode() == "1":
-            LOG.info(
-                f"Successfully waited for daemonset '{name}' after "
-                f"{(i+1)*retry_delay_s} seconds"
-            )
-            return
-
-        LOG.info(
-            f"Waiting {retry_delay_s} seconds for daemonset '{name}'.\n"
-            f"code: {proc.returncode}\nstdout: {proc.stdout}\nstderr: {proc.stderr}"
-        )
-        time.sleep(retry_delay_s)
-
-    raise AssertionError(
-        f"Daemonset '{name}' failed to have at least one pod ready after "
-        f"{retry_times} x {retry_delay_s} seconds."
-    )
-
-
 @pytest.mark.node_count(1)
 @pytest.mark.tags(tags.GPU)
+@pytest.mark.tags(tags.WEEKLY)
 @pytest.mark.parametrize(
     "gpu_operator_version", NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS.keys()
 )
@@ -181,7 +96,7 @@ def test_deploy_nvdia_gpu_operator(
         LOG.warn(msg)
         pytest.skip(msg)
 
-    instance_release = _get_harness_instance_os_release(instance)
+    instance_release = util.get_os_version_id_for_instance(instance)
     if (
         instance_release
         not in NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS[gpu_operator_version]
@@ -226,7 +141,7 @@ def test_deploy_nvdia_gpu_operator(
     # on an AWS `g4dn.xlarge` instance (4 vCPUs/16GiB RAM), so we offer a
     # generous timeout of 15 minutes:
     for daemonset in daemonsets:
-        wait_for_gpu_operator_daemonset(
+        util.wait_for_daemonset(
             instance,
             daemonset,
             namespace=test_namespace,
@@ -235,9 +150,13 @@ def test_deploy_nvdia_gpu_operator(
         )
 
     # Deploy a sample CUDA app and let it run to completion:
+    pod_spec_file = config.MANIFESTS_DIR / "cuda-vectoradd-nvidia-gpu-test-pod.yaml"
+    pod_spec = pod_spec_file.read_text().format(
+        NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME
+    )
     instance.exec(
         ["k8s", "kubectl", "-n", test_namespace, "apply", "-f", "-"],
-        input=NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_SPEC.encode(),
+        input=pod_spec.encode(),
     )
     util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
