@@ -1,14 +1,6 @@
 name: Detect Microcluster Version Change
 
 on:
-  push:
-    paths:
-      - "src/k8s/pkg/k8sd/database/sql/migrations/**"
-      - "src/k8s/pkg/k8sd/database/schema.go"
-    branches:
-      - main
-      - KU-2322/microcluster-version-change-warning
-
   pull_request:
     paths:
       - "src/k8s/pkg/k8sd/database/sql/migrations/**"
