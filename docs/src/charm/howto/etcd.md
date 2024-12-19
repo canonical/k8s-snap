@@ -75,7 +75,7 @@ juju integrate etcd easyrsa
 Deploy the control plane units of {{product}} with the command:
 
 ```bash
-juju deploy k8s --config datastore=etcd -n 3
+juju deploy k8s --config bootstrap-datastore=etcd -n 3
 ```
 
 This command deploys 3 units of the {{product}} control plane (`k8s`)
