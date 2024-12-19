@@ -1,4 +1,4 @@
-name: Auto-update branches
+name: Auto-update flavor branches
 
 on:
   push:
@@ -45,3 +45,4 @@ jobs:
       - name: Push to ${{ steps.determine.outputs.branch }}
         run: |
           git push origin --force ${{ steps.determine.outputs.branch }}
+ 
