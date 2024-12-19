@@ -7,3 +7,4 @@ CREATE TABLE feature_status (
     enabled     BOOLEAN NOT NULL,
     UNIQUE(name)
 )
+-- TODO rm me
