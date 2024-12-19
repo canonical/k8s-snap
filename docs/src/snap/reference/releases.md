@@ -11,6 +11,7 @@ and backwards-incompatible changes.
 :titlesonly:
 :maxdepth: 2
 /src/snap/reference/versions/1.31
+/src/snap/reference/versions/1.32
 ```
 
 
