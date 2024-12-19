@@ -1,0 +1,40 @@
+name: Detect Microcluster Version Change
+
+on:
+  push:
+    paths:
+      - "src/k8s/pkg/k8sd/database/sql/migrations/**"
+      - "src/k8s/pkg/k8sd/database/schema.go"
+    branches:
+      - main
+      - KU-2322/microcluster-version-change-warning
+
+  pull_request:
+    paths:
+      - "src/k8s/pkg/k8sd/database/sql/migrations/**"
+      - "src/k8s/pkg/k8sd/database/schema.go"
+
+jobs:
+  create-comment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create Microcluster Warning Message
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          header: Microcluster Version Changes Detected
+          message: |
+            ### Microcluster Version Changes Detected
+
+            :warning: **Warning:** This pull request contains changes to the microcluster version.
+
+            Please ensure that the changes are intentional and have been reviewed by the appropriate team members.
+
+            ### Adding a migration:
+            You should not change the Microcluster migration files in interim Kubernetes releases to ensure a smooth
+            upgrade path from one LTS to the next. In case of upgrade failures, we need to be able to rollback to the last Kubernetes LTS which is only possible if the microcluster migrations have not been changed.
+
+            Do not under any circumstances remove any migrations and never change the order of migrations in the microcluster schema files.
