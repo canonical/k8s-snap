@@ -24,7 +24,6 @@ var (
 		schemaApplyMigration("worker-tokens", "001-add-expiry.sql"),
 		schemaApplyMigration("worker-nodes", "001-delete.sql"),
 	}
-	// testing
 
 	//go:embed sql/migrations
 	sqlMigrations embed.FS
