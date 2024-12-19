@@ -62,6 +62,24 @@ function collect_sbom {
   cp --no-preserve=mode,ownership /snap/k8s/current/bom.json "$INSPECT_DUMP"/sbom.json
 }
 
+function collect_system_info {
+  mkdir -p $INSPECT_DUMP/sys
+  log_info "Copy processes list to the final report tarball"
+  ps -ef > $INSPECT_DUMP/sys/ps
+
+  log_info "Copy disk usage information to the final report tarball"
+  df -h | grep "^/" &> $INSPECT_DUMP/sys/disk_usage
+
+  log_info "Copy memory usage information to the final report tarball"
+  free -m > $INSPECT_DUMP/sys/memory_usage
+
+  log_info "Copy node uptime to the final report tarball"
+  uptime > $INSPECT_DUMP/sys/uptime
+
+  log_info "Copy /etc/os-release to the final report tarball"
+  cp /etc/os-release $INSPECT_DUMP/sys/etc-os-release
+}
+
 function collect_k8s_diagnostics {
   log_info "Copy uname to the final report tarball"
   uname -a &>"$INSPECT_DUMP/uname.log"
@@ -207,6 +225,9 @@ printf -- 'Collecting SBOM\n'
 collect_sbom
 
 printf -- 'Collecting system information\n'
+collect_system_info
+
+printf -- 'Collecting snap and related information\n'
 collect_k8s_diagnostics
 
 printf -- 'Collecting networking information\n'
