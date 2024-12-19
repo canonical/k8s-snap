@@ -10,7 +10,6 @@ import (
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
-	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -92,13 +91,9 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 				log.Error(err, "Failed to create k8s-dqlite client: %w")
 			}
 
-			log.Info("Cleaning up k8s-dqlite directory")
-			if err := os.RemoveAll(snap.K8sDqliteStateDir()); err != nil {
-				return fmt.Errorf("failed to cleanup k8s-dqlite state directory: %w", err)
-			}
 		case "external":
 			log.Info("Cleaning up external datastore certificates")
-			if _, err := setup.EnsureExtDatastorePKI(snap, &pki.ExternalDatastorePKI{}); err != nil {
+			if err := setup.RemoveExtDatastorePKIFiles(snap); err != nil {
 				log.Error(err, "Failed to cleanup external datastore certificates")
 			}
 		default:
@@ -107,6 +102,10 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Error(err, "Failed to retrieve cluster config")
 	}
 
+	log.Info("Cleaning up k8s-dqlite directory")
+	if err := os.RemoveAll(snap.K8sDqliteStateDir()); err != nil {
+		return fmt.Errorf("failed to cleanup k8s-dqlite state directory: %w", err)
+	}
 	for _, dir := range []string{snap.ServiceArgumentsDir()} {
 		log.WithValues("directory", dir).Info("Cleaning up config files", dir)
 		if err := os.RemoveAll(dir); err != nil {
@@ -118,7 +117,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 	// Trying to detect the node type is not reliable as the node might have been marked as worker
 	// or not, depending on which step it failed.
 	log.Info("Cleaning up worker certificates")
-	if _, err := setup.EnsureWorkerPKI(snap, &pki.WorkerNodePKI{}); err != nil {
+	if err := setup.RemoveWorkerPKIFiles(snap); err != nil {
 		log.Error(err, "failed to cleanup worker certificates")
 	}
 
@@ -130,7 +129,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 	}
 
 	log.Info("Cleaning up control plane certificates")
-	if _, err := setup.EnsureControlPlanePKI(snap, &pki.ControlPlanePKI{}); err != nil {
+	if err := setup.RemoveControlNodePKIFiles(snap); err != nil {
 		log.Error(err, "failed to cleanup control plane certificates")
 	}
 
@@ -143,6 +142,11 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Info("Stopping control plane services")
 		if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
 			log.Error(err, "Failed to stop control-plane services")
+		}
+
+		log.Info("Stopping k8s-dqlite")
+		if err := snaputil.StopK8sDqliteServices(ctx, snap); err != nil {
+			log.Error(err, "Failed to stop k8s-dqlite service")
 		}
 	}
 
