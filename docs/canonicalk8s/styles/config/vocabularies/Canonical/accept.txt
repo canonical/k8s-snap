@@ -221,6 +221,7 @@ linux
 Lite's
 LoadBalancer
 localhost
+logfile
 Lookaside
 lookups
 loopback
@@ -281,6 +282,7 @@ PPSs
 proc
 programmatically
 provisioner
+Pre
 PRs
 PV
 qdisc
@@ -339,6 +341,7 @@ UIDs
 unix
 unschedulable
 unsquashed
+uuid
 Velero
 vf
 VF
