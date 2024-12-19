@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net"
 	"os"
 
@@ -177,17 +178,20 @@ func tryCleanupContainerdPaths(log log.Logger, s snap.Snap) {
 		}
 
 		// Check directory exists before attempting to remove:
-		if _, err := os.Stat(dirpath); os.IsNotExist(err) {
+		if stat, err := os.Stat(dirpath); os.IsNotExist(err) {
 			log.Info("Containerd directory doesn't exist; skipping cleanup", "directory", dirpath)
 		} else {
-			// NOTE(aznashwan): because of the convoluted interfaces-based way the snap
-			// composes and creates the original lockfiles (see k8sd/setup/containerd.go)
-			// this check is meant to defend against accidental code/configuration errors which
-			// might lead to the root FS being deleted:
-			realPath, err := os.Readlink(dirpath)
-			if err != nil {
-				log.Error(err, fmt.Sprintf("Failed to os.Readlink the directory path for lockfile %q pointing to %q. Skipping cleanup", lockpath, dirpath))
-				continue
+			realPath := dirpath
+			if stat.Mode()&fs.ModeSymlink != 0 {
+				// NOTE(aznashwan): because of the convoluted interfaces-based way the snap
+				// composes and creates the original lockfiles (see k8sd/setup/containerd.go)
+				// this check is meant to defend against accidental code/configuration errors which
+				// might lead to the root FS being deleted:
+				realPath, err = os.Readlink(dirpath)
+				if err != nil {
+					log.Error(err, fmt.Sprintf("Failed to os.Readlink the directory path for lockfile %q pointing to %q. Skipping cleanup", lockpath, dirpath))
+					continue
+				}
 			}
 
 			if realPath == "/" {
