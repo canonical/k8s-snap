@@ -7,7 +7,7 @@ cluster. Keeping up-to-date ensures you have the latest bug-fixes
 and security patches for smooth operation of your cluster.
 
 New minor versions of Kubernetes are set to release three
-times per year. You can check the latest release version
+times per year. Check the latest release version
 on the Kubernetes release page on GitHub.
 
 ```{note} Kubernetes will not automatically handle minor
@@ -17,7 +17,7 @@ Attended upgrades are required when you wish to upgrade
 whether to a patch or minor version.
 ```
 
-You can see which version of each application is currently deployed by running:
+Determine which version of each application is currently deployed by running:
 
 <!-- markdownlint-disable -->
 ```sh
@@ -55,21 +55,19 @@ Machine  State    Address         Inst id              Base          AZ         
 ## Before you begin
 
 As with all upgrades, there is a possibility that there may be
-unforeseen difficulties. It is highly recommended that you make
+unforeseen difficulties. It is highly recommended to make
 a backup of any important data, including any running workloads.
 For more details on creating backups, see the separate
 [docs on backups][backup-restore].
 
 
-You should also make sure:
+Verify that:
 
 * The machine from which you will perform the backup has sufficient
   internet access to retrieve updated software
 * Your cluster is running normally
 * Your Juju client and controller/models are running the same,
   stable version of Juju (see the [Juju docs][juju-docs])
-* You read the [Upgrade notes][upgrade-notes] to see if any
-  caveats apply to the versions you are upgrading to/from
 * You read the [Upstream release notes][upstream-notes] for details
   of Kubernetes deprecation notices and API changes that may impact
   your workloads
@@ -109,11 +107,11 @@ This outputs a list of applications in the model:
 * the current charm revision  (ex. `1001`)
 * the next potential charm revision (ex. `ch:amd64/k8s-1002`)
 
-If the `can-upgrade-to` revision is `null`, you are at the most
-stable release in this channel and you should continue with the
+If the `can-upgrade-to` revision is `null`, the charm is on the most
+stable release within this channel.  Continue with the
 [Pre Upgrade Check](#the-pre-upgrade-check).
 
-Otherwise, continue with the [Upgrade Patch](upgrade-patch) instructions.
+Otherwise, complete the [Upgrade Patch](upgrade-patch) instructions first.
 
 
 ```{caution} Only update the charm to the next minor version.
@@ -149,15 +147,16 @@ juju status k8s --watch 5s
 ```
 
 The `refresh` command instructs the juju controller to follow a new
-charm channel related to the Kubernetes release and use the new charm
-revision of the application's channel to upgrade each unit. The
-charm code is simultaneously replaced on each unit, then the `k8s`
-snap is updated unit-by-unit in order to maintain a highly-available
-kube-api-server endpoint, starting with the Juju leader unit for the
-application.
-During the upgrade process, the application status message and the `k8s` leader
-unit message will display the current progress, listing the `k8s` and
-`k8s-worker` units still pending upgrades.
+charm `channel`. The Kubernetes charm will be upgraded to the lasted
+revision within that channel. The charm code is simultaneously replaced
+on each unit, then the `k8s` snap is updated unit-by-unit in order to
+maintain a highly-available kube-api-server endpoint, starting with the
+Juju leader unit for each application.
+
+During the upgrade process, the application status message and the
+`k8s` leader unit message will display the current progress,
+listing the `k8s` and `k8s-worker` units still pending upgrades.
+
 After the `k8s` charm is upgraded, the application `Version` from `juju status`
 will reflect the updated version of the control-plane nodes making up the cluster.
 
@@ -200,7 +199,7 @@ juju status
 ... should indicate that all units are active/idle and the correct
 version of **Kubernetes** is listed in the application's **Version**
 
-It is recommended that you run a [cluster validation][cluster-validation]
+Run a [cluster validation][cluster-validation]
 to ensure that the cluster is fully functional.
 
 <!-- LINKS -->
@@ -211,6 +210,5 @@ to ensure that the cluster is fully functional.
 [juju-docs]:           https://juju.is/docs/juju/upgrade-models
 [release-notes]:       ../reference/releases
 [upgrade-notes]:       ../reference/upgrade-notes
-[upgrade-patch]:       ./upgrade-patch
-[upstream-notes]:      https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.31.md#deprecation
+[upstream-notes]:      https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.32.md#deprecation
 [version-skew-policy]: https://kubernetes.io/releases/version-skew-policy/

@@ -68,8 +68,6 @@ You should also make sure:
 * Your cluster is running normally
 * Your Juju client and controller/models are running the same,
   stable version of Juju (see the [Juju docs][juju-docs])
-* You read the [Upgrade notes][upgrade-notes] to see if any
-  caveats apply to the versions you are upgrading to/from
 * You read the [Upstream release notes][upstream-notes] for details
   of Kubernetes deprecation notices and API changes that may impact
   your workloads
@@ -109,8 +107,9 @@ This outputs list of applications in the model:
 * the current charm revision  (ex. `1001`)
 * the next potential charm revision (ex. `ch:amd64/k8s-1002`)
 
-If the `can-upgrade-to` revision is `null`, you are at the most
-stable release in this channel and there is no patch upgrade.
+If the `can-upgrade-to` revision is `null`, the charm is on the most
+stable release within this channel and there is no patch upgrade to
+complete.
 
 Otherwise continue with the [Pre Upgrade Check](#the-pre-upgrade-check)
 
@@ -141,11 +140,14 @@ juju status k8s --watch 5s
 ```
 
 The `refresh` command instructs the juju controller to use the new charm
-revision of the application's charm channel to upgrade each unit. The
-charm code is simultaneously replaced on each unit, then the `k8s`
-snap is updated unit-by-unit in order to maintain a highly-available
-kube-api-server endpoint, starting with the Juju leader unit for the
-application.
+revision within the current charm `channel`. The charm code is simultaneously
+replaced on each unit, then the `k8s` snap is updated unit-by-unit in order
+to maintain a highly-available kube-api-server endpoint, starting with the
+Juju leader unit for the application.
+
+During the upgrade process, the application status message and the
+`k8s` leader unit message will display the current progress,
+listing the `k8s` and `k8s-worker` units still pending upgrades.
 
 After the `k8s` charm is upgraded, the application `Version` from `juju status`
 will reflect the updated version of the control-plane nodes making up the cluster.
@@ -199,6 +201,4 @@ to ensure that the cluster is fully functional.
 [cluster-validation]: ./validate
 [juju-docs]:          https://juju.is/docs/juju/upgrade-models
 [release-notes]:      ../reference/releases
-[upgrade-notes]:      ../reference/upgrade-notes
-[upstream-notes]:     https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.31.md#deprecation
-
+[upstream-notes]:     https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.32.md#deprecation
