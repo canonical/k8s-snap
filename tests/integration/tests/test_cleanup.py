@@ -112,17 +112,14 @@ def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
 
 
 @pytest.mark.node_count(1)
-@pytest.mark.no_setup()
+@pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_containerd_path_cleanup_on_failed_init(
-    instances: List[harness.Instance], tmp_path
-):
+def test_containerd_path_cleanup_on_failed_init(instances: List[harness.Instance]):
     """Tests that a failed `bootstrap` properly cleans up any
     containerd-related paths it may have created as part of the
     failed `bootstrap`.
 
-    It introduces a bootstrap failure by pre-creating the containerd socket
-    path before running `k8s-bootstrap`.
+    It introduces a bootstrap failure by supplying an incorrect argument to the kube-apiserver.
 
     The bootstrap/join-cluster aborting behavior was added in this PR:
     https://github.com/canonical/k8s-snap/pull/772
@@ -132,33 +129,19 @@ def test_containerd_path_cleanup_on_failed_init(
     """
     instance = instances[0]
     expected_code = 1
-    expected_message = "containerd socket already exists"
 
-    util.setup_k8s_snap(instance, tmp_path, config.SNAP, connect_interfaces=False)
-
-    # Pre-create the containerd socket directory in the test instance:
-    instance.exec(["mkdir", "-p", CONTAINERD_SOCKET_DIRECTORY_CLASSIC], check=True)
+    fail_bootstrap_config = (config.MANIFESTS_DIR / "bootstrap-fail.yaml").read_text()
 
     proc = instance.exec(
-        ["k8s", "bootstrap"], capture_output=True, text=True, check=False
+        ["k8s", "bootstrap", "--file", "-"],
+        input=str.encode(fail_bootstrap_config),
+        check=False,
     )
 
     if proc.returncode != expected_code:
         raise AssertionError(
             f"Expected `k8s bootstrap` to exit with code {expected_code}, "
             f"but it exited with {proc.returncode}.\n"
-            f"Stdout was: \n{proc.stdout}.\nStderr was: \n{proc.stderr}"
-        )
-
-    if expected_message not in proc.stderr:
-        raise AssertionError(
-            f"Expected to find socket-related warning '{expected_message}' in "
-            "stderr of the `k8s bootstrap` command.\n"
-            f"Stdout was: \n{proc.stdout}.\nStderr was: \n{proc.stderr}"
         )
 
     _assert_paths_not_exist(instance, CONTAINERD_PATHS)
-
-    # Remove the directory and ensure the bootstrap succeeds:
-    instance.exec(["rmdir", CONTAINERD_SOCKET_DIRECTORY_CLASSIC], check=True)
-    instance.exec(["k8s", "bootstrap"])

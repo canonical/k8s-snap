@@ -1,0 +1,18 @@
+# Contains the bootstrap configuration for the smoke test.
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+  ingress:
+    enabled: true
+  load-balancer:
+    enabled: true
+  local-storage:
+    enabled: true
+  gateway:
+    enabled: true
+  metrics-server:
+    enabled: true
+extra-node-kube-apiserver-args:
+  --foo: bar
