@@ -100,7 +100,7 @@ Upon application, the module exports the following outputs:
 | `provides`| Map of `provides` endpoints |
 | `requires`|  Map of `requires` endpoints |
 
-### Deploying the charms
+## Deploying the charms
 
 Please navigate to the root module's directory and run the following
 commands:
