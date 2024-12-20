@@ -1,8 +1,8 @@
 # Release notes
 
-This is an index page for all the available releases of {{product}} charms. Each entry
-will take you to version specific information including new features, bug fixes
-and backwards-incompatible changes.
+This is an index page for all the available releases of the {{product}} 
+charms. Each entry will take you to version specific information including 
+new features, bug fixes and backwards-incompatible changes.
 
 ## Releases
 
@@ -21,7 +21,8 @@ available on the main Ubuntu website, on the [release cycle page][].
 
 ## {{product}} Releases
 
-{{product}} charms are Juju operators for {{product}} snap. For the latest changes in the snap, see the [snap release page][].
+{{product}} charms are Juju operators for the {{product}} snap. 
+For the latest changes in the snap, see the [snap release page][].
 
 <!-- LINKS -->
 
