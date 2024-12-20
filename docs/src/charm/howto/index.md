@@ -16,6 +16,7 @@ Overview <self>
 
 charm
 install-lxd
+install-terraform
 openstack
 Integrate with etcd <etcd>
 Integrate with ceph-csi <ceph-csi>
