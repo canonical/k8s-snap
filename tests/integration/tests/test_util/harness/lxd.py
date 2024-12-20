@@ -131,8 +131,9 @@ class LXDHarness(Harness):
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"Failed to create LXD container {instance_id}") from e
 
-        stubbornly(retries=3, delay_s=5).exec(["snap", "wait", "system", "seed.loaded"])
-        return Instance(self, instance_id)
+        instance = Instance(self, instance_id)
+        stubbornly(retries=3, delay_s=5).on(instance).exec(["snap", "wait", "system", "seed.loaded"])
+        return instance
 
     def _configure_profile(self, profile_name: str, profile_config: str):
         LOG.debug("Checking for LXD profile %s", profile_name)
