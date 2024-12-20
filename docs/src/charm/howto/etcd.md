@@ -47,8 +47,8 @@ crucial, particularly if you opt for an external datastore like **etcd**.
     juju deploy etcd
     ```
 
-    This setup is straightforward but not recommended for production environments
-    due to a lack of high availability.
+    This setup is straightforward but not recommended for production
+    environments due to a lack of high availability.
 
 - **High Availability Setup**:
   - For environments where high availability is crucial, deploy etcd across at
@@ -58,7 +58,8 @@ crucial, particularly if you opt for an external datastore like **etcd**.
     juju deploy etcd -n 3
     ```
 
-    This ensures that your etcd cluster remains available even if one node fails.
+    This ensures that your etcd cluster remains available even if one node
+    fails.
 
 ## Integrating etcd with EasyRSA
 
@@ -75,7 +76,7 @@ juju integrate etcd easyrsa
 Deploy the control plane units of {{product}} with the command:
 
 ```bash
-juju deploy k8s --config datastore=etcd -n 3
+juju deploy k8s --config bootstrap-datastore=etcd -n 3
 ```
 
 This command deploys 3 units of the {{product}} control plane (`k8s`)
