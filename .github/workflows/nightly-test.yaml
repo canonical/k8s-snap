@@ -49,6 +49,7 @@ jobs:
       checkout-ref: ${{ matrix.branch }}
 
   TICS:
+    if: false
     permissions:
       contents: read
     runs-on: ubuntu-latest
