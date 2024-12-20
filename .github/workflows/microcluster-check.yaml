@@ -1,4 +1,4 @@
-name: Detect Microcluster Version Change
+name: Detect Microcluster Schema Change
 
 on:
   pull_request:
@@ -17,9 +17,9 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          header: Microcluster Version Changes Detected
+          header: Microcluster Schema Changes Detected
           message: |
-            ### Microcluster Version Changes Detected
+            ### Microcluster Schema Changes Detected
 
             :warning: **Warning:** This pull request contains changes to the microcluster version.
 
