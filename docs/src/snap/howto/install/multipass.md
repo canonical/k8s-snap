@@ -113,9 +113,9 @@ multipass purge
 <!-- markdownlint-disable MD053 -->
 [Multipass]:https://multipass.run/
 [snap-support]: https://snapcraft.io/docs/installing-snapd
-[Multipass-options]: https://multipass.run/docs/tutorial#p-71169-create-a-customised-instance
+[Multipass-options]: https://canonical.com/multipass/docs/tutorial#p-71169-create-a-customised-instance
 [install instructions]: ./snap
 [Getting started]: ../../tutorial/getting-started
 [Multipass website]: https://multipass.run/docs
-[latest Window version]:https://multipass.run/download/windows
-[latest macOS version]:https://multipass.run/download/macos
+[latest Windows version]:https://canonical.com/multipass/download/windows
+[latest macOS version]:https://canonical.com/multipass/download/macos
