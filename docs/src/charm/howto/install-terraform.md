@@ -8,27 +8,28 @@ the [Terraform Juju Provider][juju-provider-tf].
 This guide requires the following:
 
 - A Juju controller and model 
-<!-- TODO remove juju prerequisites once ground up module is available -->
+<!-- TODO remove Juju prerequisites once ground up module is available -->
 - The Terraform cli, which can be installed via the [snap store][terraform]
 
 ## Authentication
 
-As a first step, authenticate the Terraform Juju Provider with the juju
-controller by choosing one of the options outlined in the
+As a first step, authenticate the Terraform Juju Provider with the Juju
+controller. Choose one of the options outlined in the
 [provider documentation][auth].
 
 ## Terraform Module creation
 
-The Terraform deployment is done using a high-level module that specifies the
-juju model to deploy the submodules to. The k8s charm and the k8s-worker charm
-each live in a separate module referenced by the high-level module.
+The Terraform deployment is done using a root module that specifies the
+Juju model to deploy the submodules to. The root module also references
+the k8s charm and the k8s-worker charm that each live in a separate child
+module.
 
-### High-level module
-<!-- TODO replace this section once we have a juju ground up module -->
+### Root module
+<!-- TODO replace this section once we have a Juju ground up module -->
 
-The high-level module ensures that Terraform is aware of the `juju_model`
+The root module ensures that Terraform is aware of the `juju_model`
 dependency of the charm module. Additionally, it contains the path to the k8s
-and k8s-worker modules:
+and k8s-worker child modules:
 
 Example `main.tf`:
 
@@ -47,6 +48,10 @@ module "k8s-worker" {
 }
 ```
 
+```{note} 
+Please ensure that the root module references the correct source path for the `k8s` and `k8s-worker` modules.
+```
+
 Example `versions.tf`:
 
 ```hcl
@@ -63,7 +68,16 @@ terraform {
 
 ### Charm modules
 
-The charm modules for the k8s and k8s-worker charms offer the following
+Please download the charm modules from Github at:
+
+```
+git clone https://github.com/canonical/k8s-operator.git
+```
+
+Find the control-plane module at `k8s-operator/charms/worker/k8s/terraform` and
+the k8s-worker module at `k8s-operator/tree/main/charms/worker/terraform`.
+
+The charm module for the k8s charm offers the following
 configuration options:
 
 | Name | Type | Description | Required | Default |
@@ -86,23 +100,9 @@ Upon application, the module exports the following outputs:
 | `provides`| Map of `provides` endpoints |
 | `requires`|  Map of `requires` endpoints |
 
-Please download the charm modules from github at:
-
-```
-git clone https://github.com/canonical/k8s-operator.git
-```
-
-Find the control-plane module at `k8s-operator/charms/worker/k8s/terraform` and
-the k8s-worker module at `k8s-operator/tree/main/charms/worker/terraform`.
-
-```{note} 
-Please ensure that the high-level directory is pointing to the correct path of
-the charm modules.
-```
-
 ### Deploying the charms
 
-Please navigate to the high-level module directory and run the following
+Please navigate to the root module's directory and run the following
 commands:
 
 ```bash
@@ -111,7 +111,7 @@ terraform apply
 ```
 
 The `terraform apply` command will deploy the k8s and k8s-worker charms to the
-model. Watch the deployment progress by running:
+Juju model. Watch the deployment progress by running:
 
 ```bash
 juju status --watch 5s
