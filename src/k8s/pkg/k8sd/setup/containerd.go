@@ -91,6 +91,21 @@ func defaultContainerdConfig(
 // Containerd configures configuration and arguments for containerd on the local node.
 // Optionally, a number of registry mirrors and auths can be configured.
 func Containerd(snap snap.Snap, extraContainerdConfig map[string]any, extraArgs map[string]*string) error {
+	// We create the directories here since PreInitCheck is called before this
+	// This ensures we only create the directories if we are going to configure containerd
+	for _, dir := range []string{
+		snap.ContainerdConfigDir(),
+		snap.ContainerdExtraConfigDir(),
+		snap.ContainerdRegistryConfigDir(),
+	} {
+		if dir == "" {
+			continue
+		}
+		if err := os.MkdirAll(dir, 0o700); err != nil {
+			return fmt.Errorf("failed to create required directory: %w", err)
+		}
+	}
+
 	configToml := defaultContainerdConfig(
 		snap.CNIConfDir(),
 		snap.CNIBinDir(),
