@@ -137,7 +137,10 @@ redirects = {}
 
 # Links to ignore when checking links
 linkcheck_ignore = [
-    'http://127.0.0.1:8000'
+    'http://127.0.0.1:8000',
+    'http://rocks.canonical.com',
+    'about',
+    'https://ceph.io/'
     ]
 
 # Pages on which to ignore anchors
@@ -166,7 +169,7 @@ custom_extensions = [
     'canonical.custom-rst-roles',
     'canonical.terminal-output',
     'notfound.extension',
-    'sphinxcontrib.cairosvgconverter', 
+    'sphinxcontrib.cairosvgconverter',
     ]
 
 # Add custom required Python modules that must be added to the
@@ -231,3 +234,11 @@ rst_prolog = '''
 .. role:: h2
     :class: hclass2
 '''
+
+custom_linkcheck_anchors_ignore_for_url = [
+    'https://matrix.to',
+    'https://ubuntu.com/about/release-cycle',
+    'https://juju.is/docs/juju/relation',
+    'https://canonical.com/multipass/docs/tutorial',
+    'https://microk8s.io/docs/how-to-cis-harden'
+]

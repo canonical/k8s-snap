@@ -328,10 +328,10 @@ Ceph documentation: [Intro to Ceph].
 
 <!-- LINKS -->
 
-[Ceph]: https://ceph.com/
+[Ceph]: https://ceph.io/
 [getting-started-guide]: ../../tutorial/getting-started.md
 [block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
 [placement groups]: https://docs.ceph.com/en/mimic/rados/operations/placement-groups/
-[Intro to Ceph]: https://docs.ceph.com/en/latest/start/intro/
+[Intro to Ceph]: https://docs.ceph.com/en/reef/start/
 [authorisation capabilities page]:[https://docs.ceph.com/en/latest/rados/operations/user-management/#authorization-capabilities]
 [example ConfigMap]:https://github.com/ceph/ceph-csi/blob/devel/examples/kms/vault/kms-config.yaml

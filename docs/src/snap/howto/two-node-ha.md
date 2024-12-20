@@ -407,7 +407,7 @@ To recover DRBD, use following procedure:
 
 ```
 # On the stale node:
-sudo drbdadm secondary r0 
+sudo drbdadm secondary r0
 sudo drbdadm disconnect r0
 sudo drbdadm -- --discard-my-data connect r0
 
@@ -425,6 +425,6 @@ sudo drbdadm connect r0
 [getting started]: ../tutorial/getting-started
 [add/remove nodes]: ../tutorial/add-remove-nodes
 [Pacemaker]: https://clusterlabs.org/pacemaker/
-[Corosync]: https://clusterlabs.org/corosync.html
+[Corosync]: https://corosync.github.io/corosync/
 [Pacemaker fencing]: https://clusterlabs.org/pacemaker/doc/2.1/Pacemaker_Explained/html/fencing.html
 [split brain]: https://en.wikipedia.org/wiki/Split-brain_(computing)
