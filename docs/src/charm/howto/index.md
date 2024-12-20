@@ -24,7 +24,9 @@ proxy
 cos-lite
 contribute
 custom-registry
-
+Upgrade patch version <upgrade-patch>
+Upgrade minor version <upgrade-minor>
+Validate the cluster <validate>
 ```
 
 ---
