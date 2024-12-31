@@ -7,18 +7,22 @@
 # elevated permissions (sudo).
 #
 # Usage:
-#   ./inspect.sh [output_file]
+#   ./inspect.sh [output_file] [--detailed]
 #
 # Arguments:
 #   output_file  (Optional) The full path and filename for the generated tarball.
 #                If not provided, a default filename based on the current date
 #                and time will be used.
+#   --detailed   (Optional) Acquire detailed debugging information, including logs
+#                from all Kubernetes namespaces.
 #
 # Example:
 #   ./inspect.sh /path/to/output.tar.gz
 #   ./inspect.sh  # This will generate a tarball with a default name.
+#   ./inspect.sh --detailed  # Obtain logs from all k8s namespaces.
 
 INSPECT_DUMP=$(pwd)/inspection-report
+DETAILED=0
 
 function log_success {
   printf -- '\033[32m SUCCESS: \033[0m %s\n' "$1"
@@ -54,8 +58,11 @@ function collect_args {
 
 function collect_cluster_info {
   log_info "Copy k8s cluster-info dump to the final report tarball"
-  # TODO: add a verbose mode that collects logs from all namespaces (--all-namespaces).
-  k8s kubectl cluster-info dump --output-directory "$INSPECT_DUMP/cluster-info" &>/dev/null
+  local FLAGS=""
+  if [[ "$DETAILED" == "1" ]]; then
+    FLAGS="--all-namespaces"
+  fi
+  k8s kubectl cluster-info dump $FLAGS --output-directory "$INSPECT_DUMP/cluster-info" &>/dev/null
 }
 
 function collect_sbom {
@@ -172,6 +179,25 @@ if [ "$EUID" -ne 0 ]; then
   printf -- "Elevated permissions are needed for this command. Please use sudo."
   exit 1
 fi
+
+POSITIONAL_ARGS=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --detailed)
+      DETAILED=1
+      shift
+      ;;
+    -*|--*)
+      echo "Unknown argument: $1"
+      exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+set -- "${POSITIONAL_ARGS[@]}"
 
 rm -rf "$INSPECT_DUMP"
 mkdir -p "$INSPECT_DUMP"
