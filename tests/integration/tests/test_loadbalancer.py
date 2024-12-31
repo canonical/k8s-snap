@@ -14,13 +14,34 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
-def test_loadbalancer(instances: List[harness.Instance]):
-    instance = instances[0]
+@pytest.mark.disable_k8s_bootstrapping()
+def test_loadbalancer_ipv4(instances: List[harness.Instance]):
+    _test_loadbalancer(instances, ipv6=False)
 
+
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.network_type("dualstack")
+def test_loadbalancer_ipv6(instances: List[harness.Instance]):
+    _test_loadbalancer(instances, ipv6=True)
+
+
+def _test_loadbalancer(instances: List[harness.Instance], ipv6=False):
+    instance = instances[0]
     tester_instance = instances[1]
 
-    instance_default_ip = util.get_default_ip(instance)
-    tester_instance_default_ip = util.get_default_ip(tester_instance)
+    if ipv6:
+        bootstrap_config = (MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
+        instance.exec(
+            ["k8s", "bootstrap", "--file", "-", "--address", "::/0"],
+            input=str.encode(bootstrap_config),
+        )
+    else:
+        instance.exec(["k8s", "bootstrap"])
+
+    instance_default_ip = util.get_default_ip(instance, ipv6=ipv6)
+    tester_instance_default_ip = util.get_default_ip(tester_instance, ipv6=ipv6)
 
     instance_default_cidr = util.get_default_cidr(instance, instance_default_ip)
 
