@@ -379,13 +379,13 @@ def get_default_ip(instance: harness.Instance, ipv6=False):
     # default via 10.42.254.1 dev eth0 proto dhcp src 10.42.254.197 metric 100
     # ---
     # Fetching the default IP address from the output, e.g. 10.42.254.197
-    addr_family = "-6" if ipv6 else "-4"
     if ipv6:
         p = instance.exec(
-            ["ip", "-json", "-6", "addr", "show", "scope", "global"], capture_output=True
+            ["ip", "-json", "-6", "addr", "show", "scope", "global"],
+            capture_output=True,
         )
         addr_json = json.loads(p.stdout.decode())
-        return addr_json[0]['addr_info'][0]['local']
+        return addr_json[0]["addr_info"][0]["local"]
     else:
         p = instance.exec(
             ["ip", "-o", "-4", "route", "show", "to", "default"], capture_output=True
