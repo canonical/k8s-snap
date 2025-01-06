@@ -1,15 +1,15 @@
 # How to use an alternative CNI
 
 While {{product}} ships with a default [Container Network Interface] (CNI) that
-we guarantee is compatible with our distribution, you may want to use a
+we guarantee is compatible with our distribution, it's possible to use a
 different CNI plugin for your specific networking requirements. This guide
 explains how to safely replace the default CNI with an alternative solution.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 
-- You have root or sudo access to the machine.
+- Root or sudo access to the machine.
 - Basic understanding of Kubernetes networking concepts.
 - Basic knowledge of Helm.
 
@@ -31,7 +31,7 @@ cluster-config:
     enabled: false
 ```
 
-Then bootstrap the cluster with this configuration:
+Then, bootstrap the cluster with this configuration:
 
 ```
 sudo k8s bootstrap --file bootstrap-config.yaml
@@ -40,7 +40,7 @@ sudo k8s bootstrap --file bootstrap-config.yaml
 ## Configure Helm repository
 
 Add the CNI's Helm repository to {{product}}'s Helm installation. This guide
-uses Calico as an example:
+uses [Calico] as an example:
 
 ```
 sudo k8s helm repo add projectcalico https://docs.tigera.io/calico/charts
@@ -73,7 +73,7 @@ tigeraOperator:
 EOF
 ```
 
-Once you've created the values file, create the required namespace.
+After saving the values file, create the required namespace:
 
 ```
 sudo k8s kubectl create namespace tigera-operator
@@ -87,13 +87,13 @@ sudo k8s helm install calico projectcalico/tigera-operator --version v3.28.0 -f 
 
 ## Verify deployment
 
-Monitor the pod status:
+Monitor the status of the calico pods:
 
 ```
 watch sudo k8s kubectl get pods -n calico-system
 ```
 
-You should see output similar to:
+If Calico is deployed successfully, the output will be similar to:
 
 ```
 NAME                                       READY   STATUS    RESTARTS   AGE
@@ -103,5 +103,23 @@ calico-typha-56f55cb75-cj2jk               1/1     Running   0          22h
 csi-node-driver-vth9t                      2/2     Running   0          22h
 ```
 
+## Reverting
+
+If the deployment does not work as expected, you can always revert to the
+default networking configuration.
+
+```
+sudo k8s helm uninstall calico --namespace tigera-operator
+```
+
+```
+sudo k8s kubectl delete namespace tigera-operator
+```
+
+```
+sudo k8s enable ingress gateway network
+```
+
 <!-- Links -->
 [Container Network Interface]: https://github.com/containernetworking/cni
+[Calico]: https://docs.tigera.io/
