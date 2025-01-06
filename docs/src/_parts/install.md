@@ -8,19 +8,19 @@ lxc exec k8s -- sudo snap install k8s --classic --channel=1.31-classic/candidate
 sudo snap download k8s --channel 1.31-classic/candidate --basename k8s
 <!-- offline end -->
 <!-- juju control start -->
-juju deploy k8s --channel=1.31/candidate
+juju deploy k8s --channel=1.32/stable
 <!-- juju control end -->
 <!-- juju worker start -->
-juju deploy k8s-worker --channel=1.31/candidate -n 2
+juju deploy k8s-worker --channel=1.32/stable -n 2
 <!-- juju worker end -->
 <!-- juju control constraints start -->
-juju deploy k8s --channel=1.31/candidate --constraints='cores=2 mem=16G root-disk=40G'
+juju deploy k8s --channel=1.32/stable --constraints='cores=2 mem=16G root-disk=40G'
 <!-- juju control constraints end -->
 <!-- juju worker constraints start -->
-juju deploy k8s-worker --channel=1.31/candidate --constraints='cores=2 mem=16G root-disk=40G'
+juju deploy k8s-worker --channel=1.32/stable --constraints='cores=2 mem=16G root-disk=40G'
 <!-- juju worker constraints end -->
 <!-- juju vm start -->
-juju deploy k8s --channel=latest/edge \
+juju deploy k8s --channel=latest/stable \
     --base "ubuntu@22.04" \
     --constraints "cores=2 mem=8G root-disk=16G virt-type=virtual-machine"
 <!-- juju vm end -->
