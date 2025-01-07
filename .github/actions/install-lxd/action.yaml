@@ -24,7 +24,9 @@ runs:
       run: |
         sudo lxd init --auto
         sudo usermod --append --groups lxd $USER
-        sg lxd -c 'lxc version'
+        newgrp lxd <<EOF
+        lxc version
+        EOF
     # Docker sets iptables rules that interfere with LXD.
     # https://documentation.ubuntu.com/lxd/en/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
     - name: Apply Docker iptables workaround
