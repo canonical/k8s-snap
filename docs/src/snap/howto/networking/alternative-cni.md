@@ -1,7 +1,7 @@
 # How to use an alternative CNI
 
 While {{product}} ships with a default [Container Network Interface] (CNI) that
-we guarantee is compatible with our distribution, it's possible to use a
+we ensure is fully compatible with our distribution, it's possible to use a
 different CNI plugin for your specific networking requirements. This guide
 explains how to safely replace the default CNI with an alternative solution.
 
@@ -11,7 +11,7 @@ This guide assumes the following:
 
 - Root or sudo access to the machine.
 - Basic understanding of Kubernetes networking concepts.
-- Basic knowledge of Helm.
+- Basic knowledge of [Helm].
 
 ## Disable default network implementation
 
@@ -108,13 +108,19 @@ csi-node-driver-vth9t                      2/2     Running   0          22h
 If the deployment does not work as expected, you can always revert to the
 default networking configuration.
 
+Remove all resources associated with Calico:
+
 ```
 sudo k8s helm uninstall calico --namespace tigera-operator
 ```
 
+Remove the alternative CNI's namespace:
+
 ```
 sudo k8s kubectl delete namespace tigera-operator
 ```
+
+Enable the default networking features:
 
 ```
 sudo k8s enable ingress gateway network
@@ -123,3 +129,4 @@ sudo k8s enable ingress gateway network
 <!-- Links -->
 [Container Network Interface]: https://github.com/containernetworking/cni
 [Calico]: https://docs.tigera.io/
+[Helm]: https://helm.sh/docs
