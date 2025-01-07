@@ -43,7 +43,7 @@ jobs:
             out_snap=k8s.snap
           fi
 
-          sg lxd -c 'snapcraft --use-lxd'
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft --use-lxd
           mv k8s_*.snap $out_snap
 
           echo "snap-artifact=$out_snap" >> "$GITHUB_OUTPUT"
