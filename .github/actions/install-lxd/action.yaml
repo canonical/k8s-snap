@@ -23,14 +23,10 @@ runs:
       shell: bash
       run: |
         sudo lxd init --auto
-    - name: Add user to lxd group
-      shell: bash
-      run: |
         sudo usermod --append --groups lxd $USER
-    - name: Check lxd version
-      shell: bash
-      run: |
-        sg lxd -c 'lxc version'
+        # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
+        # See https://github.com/actions/runner-images/issues/9932#issuecomment-2573170305
+        sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc version'
     # Docker sets iptables rules that interfere with LXD.
     # https://documentation.ubuntu.com/lxd/en/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
     - name: Apply Docker iptables workaround
