@@ -12,7 +12,13 @@ runs:
     - name: Install lxd snap
       shell: bash
       run: |
-        sudo snap refresh lxd --channel ${{ inputs.channel }}
+        if ! snap list lxd &> /dev/null; then
+          echo "Installing lxd snap"
+          sudo snap install lxd --channel ${{ inputs.channel }}
+        else
+          echo "lxd snap found, refreshing to specified channel"
+          sudo snap refresh lxd --channel ${{ inputs.channel }}
+        fi
     - name: Initialize lxd
       shell: bash
       run: |
