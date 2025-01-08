@@ -38,10 +38,13 @@ spec:
 |------|------|-------------|---------|
 | `path` | `string` | Where the file should be created | `""` |
 | `content` | `string` | Content of the created file | `""` |
+| `contentFrom` | `struct` | A reference to a secret containing the content of the file. Overwrites `content`. | `nil` |
 | `permissions` | `string` | Permissions of the file to create, e.g. "0600" | `""` |
+| `encoding` | `string` | Encoding of the file to create. One of `base64`, `gzip` and `gzip+base64` | `""` |
 | `owner` | `string` | Owner of the file to create, e.g. "root:root" | `""` |
 
 **Example Usage:**
+- Using `content`:
 ```yaml
 spec:
     files:
@@ -51,6 +54,64 @@ spec:
             echo "hello from my-file
         permissions: "0500"
         owner: root:root
+```
+- Using `contentFrom`:
+```yaml
+spec:
+    files:
+        path: "/path/to/my-file"
+        contentFrom:
+            secret:
+                # Name of the secret in the CK8sBootstrapConfig's namespace to use.
+                name: my-secret
+                # Key is the key in the secret's data map for this value.
+                key: my-key
+        permissions: "0500"
+        owner: root:root
+```
+
+### `bootstrapConfig`
+**Type:** `struct`
+
+**Required:** no
+
+`bootstrapConfig` is configuration override to use upon bootstrapping nodes.
+The structure of the `bootstrapConfig` is defined in the [Bootstrap configuration file reference].
+
+**Fields:**
+
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| `content` | `string` | Content of the file. If this is set, `contentFrom` is ignored | `""` |
+| `contentFrom` | `struct` | A reference to a secret containing the content of the file | `nil` |
+
+**Example Usage:**
+- Using `content`:
+```yaml
+spec:
+    bootstrapConfig:
+        content: |
+            cluster-config:
+            network:
+                enabled: true
+            dns:
+                enabled: true
+                cluster-domain: cluster.local
+            ingress:
+                enabled: true
+            load-balancer:
+                enabled: true
+```
+- Using `contentFrom`:
+```yaml
+spec:
+    bootstrapConfig:
+        contentFrom:
+            secret:
+                # Name of the secret in the CK8sBootstrapConfig's namespace to use.
+                name: my-secret
+                # Key is the key in the secret's data map for this value.
+                key: my-key
 ```
 
 ### `bootCommands`
@@ -220,6 +281,4 @@ spec:
 <!-- LINKS -->
 [Install custom {{product}} on machines]: ../howto/custom-ck8s.md
 [etcd best practices]: https://etcd.io/docs/v3.5/faq/#why-an-odd-number-of-cluster-members
-
-
-
+[Bootstrap configuration file reference]: ../../snap/reference/bootstrap-config-reference.md
