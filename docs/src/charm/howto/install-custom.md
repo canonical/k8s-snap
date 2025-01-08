@@ -1,4 +1,4 @@
-# Installing with Custom Configuration
+# Installing with custom configuration
 
 This guide will walk you through deploying {{product}} using Juju with custom
 configuration options.
@@ -6,11 +6,11 @@ configuration options.
 ## What you'll need
 
 This guide assumes the following:
-- You have Juju installed and have added credentials for a cloud and
-bootstrapped a controller
+-  You have Juju installed on your system with your cloud credentials
+configured and a controller bootstrapped
 - A Juju model is created and selected
 
-## Creating the Configuration File
+## Creating the configuration file
 
 Before deploying the charm, create a YAML file with your desired configuration
 options. Here's an example configuration, which for this guide we'll save as
@@ -54,7 +54,7 @@ align with your requirements.
 
 ## Deploying the Charm with Custom Configuration
 
-Deploy the k8s charm with your custom configuration:
+Deploy the `k8s` charm with your custom configuration:
 
 ```bash
 juju deploy k8s --config ./k8s-config.yaml

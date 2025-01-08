@@ -1,4 +1,4 @@
-## Adding Worker Nodes with Custom Configurations
+# Adding worker nodes with custom configurations
 
 This guide will walk you through how to deploy multiple `k8s-worker`
 applications with different configurations, to create node groups with specific
@@ -9,7 +9,7 @@ capabilities or requirements.
 This guide assumes the following:
 - A working Kubernetes cluster deployed with the `k8s` charm
 
-### Example Worker Configuration
+## Example Worker Configuration
 
 In this example, we will create two `k8s-worker` applications with different
 configuration options.
@@ -37,7 +37,8 @@ gpu-workers:
   node-labels: "gpu=true"
 ```
 
-Deploy the worker applications with the custom configurations:
+Deploy the worker applications with the custom configurations and integrate them
+with the `k8s` application:
 
 ```bash
 juju deploy k8s-worker memory-workers --config ./worker-memory-config.yaml
