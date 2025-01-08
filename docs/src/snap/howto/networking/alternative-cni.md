@@ -29,6 +29,7 @@ cat <<EOF > bootstrap-config.yaml
 cluster-config:
   network:
     enabled: false
+EOF
 ```
 
 Then, bootstrap the cluster with this configuration:
