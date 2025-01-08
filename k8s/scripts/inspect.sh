@@ -7,22 +7,24 @@
 # elevated permissions (sudo).
 #
 # Usage:
-#   ./inspect.sh [output_file] [--detailed]
+#   ./inspect.sh [output_file] [--all-namespaces]
 #
 # Arguments:
-#   output_file  (Optional) The full path and filename for the generated tarball.
-#                If not provided, a default filename based on the current date
-#                and time will be used.
-#   --detailed   (Optional) Acquire detailed debugging information, including logs
-#                from all Kubernetes namespaces.
+#   output_file        (Optional) The full path and filename for the generated tarball.
+#                      If not provided, a default filename based on the current date
+#                      and time will be used.
+#   --all-namespaces   (Optional) Acquire detailed debugging information, including logs
+#                      from all Kubernetes namespaces.
 #
 # Example:
 #   ./inspect.sh /path/to/output.tar.gz
 #   ./inspect.sh  # This will generate a tarball with a default name.
-#   ./inspect.sh --detailed  # Obtain logs from all k8s namespaces.
+#   ./inspect.sh --all-namespaces  # Obtain logs from all k8s namespaces.
 
 INSPECT_DUMP=$(pwd)/inspection-report
-DETAILED=0
+# We won't fetch all namespaces by default to avoid logging potentially sensitive
+# user data.
+ALL_NAMESPACES=0
 
 function log_success {
   printf -- '\033[32m SUCCESS: \033[0m %s\n' "$1"
@@ -59,7 +61,7 @@ function collect_args {
 function collect_cluster_info {
   log_info "Copy k8s cluster-info dump to the final report tarball"
   local FLAGS=""
-  if [[ "$DETAILED" == "1" ]]; then
+  if [[ "$ALL_NAMESPACES" == "1" ]]; then
     FLAGS="--all-namespaces"
   fi
   k8s kubectl cluster-info dump $FLAGS --output-directory "$INSPECT_DUMP/cluster-info" &>/dev/null
@@ -183,8 +185,8 @@ fi
 POSITIONAL_ARGS=()
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --detailed)
-      DETAILED=1
+    --all-namespaces)
+      ALL_NAMESPACES=1
       shift
       ;;
     -*|--*)

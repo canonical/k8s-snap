@@ -56,7 +56,7 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
         instance_id,
         [
             "/snap/k8s/current/k8s/scripts/inspect.sh",
-            "--detailed",
+            "--all-namespaces",
             "/inspection-report.tar.gz",
         ],
         capture_output=True,
