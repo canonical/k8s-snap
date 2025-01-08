@@ -63,6 +63,33 @@ function collect_sbom {
   cp --no-preserve=mode,ownership /snap/k8s/current/bom.json "$INSPECT_DUMP"/sbom.json
 }
 
+function collect_system_info {
+  mkdir -p $INSPECT_DUMP/sys
+  log_info "Copy processes list to the final report tarball"
+  ps -ef > $INSPECT_DUMP/sys/ps
+
+  log_info "Copy disk usage information to the final report tarball"
+  df -h | grep "^/" &> $INSPECT_DUMP/sys/disk_usage
+
+  log_info "Copy /proc/mounts to the final report tarball"
+  cp /proc/mounts $INSPECT_DUMP/sys/proc-mounts
+
+  log_info "Copy memory usage information to the final report tarball"
+  free -m > $INSPECT_DUMP/sys/memory_usage
+
+  log_info "Copy swap information to the final report tarball"
+  swapon > $INSPECT_DUMP/sys/swap
+
+  log_info "Copy node uptime to the final report tarball"
+  uptime > $INSPECT_DUMP/sys/uptime
+
+  log_info "Copy /etc/os-release to the final report tarball"
+  cp /etc/os-release $INSPECT_DUMP/sys/etc-os-release
+
+  log_info "Copy loaded kernel modules to the final report tarball"
+  lsmod > $INSPECT_DUMP/sys/loaded_kernel_modules
+}
+
 function collect_k8s_diagnostics {
   log_info "Copy uname to the final report tarball"
   uname -a &>"$INSPECT_DUMP/uname.log"
@@ -133,7 +160,7 @@ function collect_network_diagnostics {
 
   ip6tables-save &>"$INSPECT_DUMP/iptables6.log" || true
   ip6tables-legacy-save &>"$INSPECT_DUMP/iptables6-legacy.log" || true
-  ss -6 -plnt &>"$INSPECT_DUMP/ss6-plnt.log" || true
+  ss -plntu &>"$INSPECT_DUMP/ss-plntu.log" || true
   grep -Ei "^(HTTP_PROXY|HTTPS_PROXY|NO_PROXY)=" /etc/environment > "$INSPECT_DUMP/proxy_in_etc_environment"
 }
 
@@ -208,6 +235,9 @@ printf -- 'Collecting SBOM\n'
 collect_sbom
 
 printf -- 'Collecting system information\n'
+collect_system_info
+
+printf -- 'Collecting snap and related information\n'
 collect_k8s_diagnostics
 
 printf -- 'Collecting networking information\n'
