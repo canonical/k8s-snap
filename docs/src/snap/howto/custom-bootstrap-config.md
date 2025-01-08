@@ -2,8 +2,8 @@
 
 When creating a {{ product }} cluster that differs from the default
 configuration you can choose to use a custom bootstrap configuration.
-The CLI's interactive mode or a custom bootstrap config file allow you to 
-modify the configuration of the first node that will join your cluster. 
+The CLI's interactive mode or a custom bootstrap configuration file allow you
+to modify the configuration of the first node that will join your cluster. 
 
 ## Configuration Options
 
