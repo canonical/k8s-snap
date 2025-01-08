@@ -26,6 +26,7 @@ two-node-ha
 Set up Enhanced Platform Awareness <epa>
 contribute
 Get support <support>
+Managing Upgrades <upgrades>
 ```
 
 ---
