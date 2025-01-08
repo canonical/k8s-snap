@@ -5,3 +5,5 @@
 k8s::common::setup_env
 
 k8s::cmd::k8s x-snapd-config reconcile
+
+k8s::containerd::ensure_systemd_defaults
