@@ -52,7 +52,7 @@ deployment and cannot be changed afterward. Always review the
 align with your requirements.
 ```
 
-## Deploying the Charm with Custom Configuration
+## Deploying the charm with custom configuration
 
 Deploy the `k8s` charm with your custom configuration:
 
@@ -60,7 +60,7 @@ Deploy the `k8s` charm with your custom configuration:
 juju deploy k8s --config ./k8s-config.yaml
 ```
 
-## Bootstrap the Cluster
+## Bootstrap the cluster
 
 Monitor the installation progress:
 

@@ -9,7 +9,7 @@ capabilities or requirements.
 This guide assumes the following:
 - A working Kubernetes cluster deployed with the `k8s` charm
 
-## Example Worker Configuration
+## Example worker configuration
 
 In this example, we will create two `k8s-worker` applications with different
 configuration options.
