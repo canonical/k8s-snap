@@ -18,6 +18,7 @@ install/index
 networking/index
 storage/index
 security/index
+custom-bootstrap-config
 Use an external datastore <external-datastore>
 backup-restore
 refresh-certs
