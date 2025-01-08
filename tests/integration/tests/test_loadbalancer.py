@@ -2,6 +2,7 @@
 # Copyright 2025 Canonical, Ltd.
 #
 import logging
+from enum import Enum
 from pathlib import Path
 from typing import List
 
@@ -12,11 +13,17 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
+class K8sNetType(Enum):
+    ipv4 = "ipv4"
+    ipv6 = "ipv6"
+    dualstack = "dualstack"
+
+
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
 @pytest.mark.disable_k8s_bootstrapping()
 def test_loadbalancer_ipv4(instances: List[harness.Instance]):
-    _test_loadbalancer(instances, ipv6=False)
+    _test_loadbalancer(instances, k8s_net_type=K8sNetType.ipv4)
 
 
 @pytest.mark.node_count(2)
@@ -26,7 +33,7 @@ def test_loadbalancer_ipv6_only(instances: List[harness.Instance]):
     pytest.xfail(
         "Cilium ipv6 only unsupported: https://github.com/cilium/cilium/issues/15082"
     )
-    _test_loadbalancer(instances, ipv6=True)
+    _test_loadbalancer(instances, k8s_net_type=K8sNetType.ipv6)
 
 
 @pytest.mark.node_count(2)
@@ -35,22 +42,23 @@ def test_loadbalancer_ipv6_only(instances: List[harness.Instance]):
 @pytest.mark.dualstack()
 @pytest.mark.network_type("dualstack")
 def test_loadbalancer_ipv6_dualstack(instances: List[harness.Instance]):
-    _test_loadbalancer(instances, ipv6=True, dualstack=True)
+    _test_loadbalancer(instances, k8s_net_type=K8sNetType.dualstack)
 
 
-def _test_loadbalancer(instances: List[harness.Instance], ipv6=False, dualstack=False):
+def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetType):
     instance = instances[0]
     tester_instance = instances[1]
 
-    if ipv6:
-        bootstrap_args = []
-        if dualstack:
-            bootstrap_config = (MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
-        else:
-            bootstrap_config = (MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
-            bootstrap_args += ["--address", "::/0"]
+    if k8s_net_type == K8sNetType.ipv6:
+        bootstrap_config = (MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
         instance.exec(
-            ["k8s", "bootstrap", "--file", "-", *bootstrap_args],
+            ["k8s", "bootstrap", "--file", "-", "--address", "::/0"],
+            input=str.encode(bootstrap_config),
+        )
+    elif k8s_net_type == K8sNetType.dualstack:
+        bootstrap_config = (MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
+        instance.exec(
+            ["k8s", "bootstrap", "--file", "-"],
             input=str.encode(bootstrap_config),
         )
     else:
@@ -58,7 +66,7 @@ def _test_loadbalancer(instances: List[harness.Instance], ipv6=False, dualstack=
 
     lb_cidrs = []
 
-    def get_lb_cidr(ipv6_cidr):
+    def get_lb_cidr(ipv6_cidr: bool):
         instance_default_ip = util.get_default_ip(instance, ipv6=ipv6_cidr)
         tester_instance_default_ip = util.get_default_ip(
             tester_instance, ipv6=ipv6_cidr
@@ -70,9 +78,9 @@ def _test_loadbalancer(instances: List[harness.Instance], ipv6=False, dualstack=
         )
         return lb_cidr
 
-    if dualstack or not ipv6:
+    if k8s_net_type in (K8sNetType.ipv4, K8sNetType.dualstack):
         lb_cidrs.append(get_lb_cidr(ipv6_cidr=False))
-    if ipv6:
+    if k8s_net_type in (K8sNetType.ipv6, K8sNetType.dualstack):
         lb_cidrs.append(get_lb_cidr(ipv6_cidr=True))
     lb_cidr_str = ",".join(lb_cidrs)
 

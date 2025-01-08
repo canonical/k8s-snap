@@ -358,7 +358,7 @@ def join_cluster(instance: harness.Instance, join_token: str):
 
 
 def is_ipv6(ip: str) -> bool:
-    addr = ipaddress.ip_address(ip.strip("'"))
+    addr = ipaddress.ip_address(ip)
     return isinstance(addr, ipaddress.IPv6Address)
 
 
@@ -536,7 +536,7 @@ def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
     net = ipaddress.ip_network(parent_cidr, False)
     ipv6 = isinstance(net, ipaddress.IPv6Network)
     if ipv6:
-        ip_range = 124
+        ip_range = 126
     else:
         ip_range = 30
 
@@ -544,7 +544,7 @@ def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
     # we search for a /30 cidr block(4 total ips, 2 available)
     # that doesn't contain the excluded ips to avoid collisions
     # /30 because this is the smallest CIDR cilium hands out IPs from.
-    # For ipv6, we use a /124 block that contains 16 total ips.
+    # For ipv6, we use a /126 block that contains 4 total ips.
     for i in range(4, 255, 4):
         lb_net = ipaddress.ip_network(f"{str(net[0]+i)}/{ip_range}", False)
 
