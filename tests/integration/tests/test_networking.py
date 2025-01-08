@@ -1,5 +1,5 @@
 #
-# Copyright 2024 Canonical, Ltd.
+# Copyright 2025 Canonical, Ltd.
 #
 import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address
