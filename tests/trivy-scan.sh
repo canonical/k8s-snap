@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR=$(dirname "$BASH_SOURCE")
+SCRIPT_DIR=$(realpath $(dirname "$BASH_SOURCE"))
 
 set -ex
 cd "${SCRIPT_DIR}/.."

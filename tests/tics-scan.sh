@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR=$(dirname "$BASH_SOURCE")
+SCRIPT_DIR=$(realpath $(dirname "$BASH_SOURCE"))
 
 set -ex
 cd "${SCRIPT_DIR}/.."
+
+sudo apt-get update
+sudo apt-get install -y python3-venv
+python3 -m venv .venv/tics
+source .venv/tics/bin/activate
 
 # Install python dependencies
 pip install -r tests/integration/requirements-test.txt
@@ -27,8 +32,8 @@ go install honnef.co/go/tools/cmd/staticcheck@v0.5.1
 # We load the dqlite libs here instead of doing through make because TICS
 # will try to build parts of the project itself
 sudo add-apt-repository -y ppa:dqlite/dev
-sudo apt install dqlite-tools-v2 libdqlite1.17-dev
+sudo apt-get install -y dqlite-tools-v2 libdqlite1.17-dev
 sudo make clean
 go build -a ./...
 
-TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $HOME/work/k8s-snap/k8s-snap/
+TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $SCRIPT_DIR/..
