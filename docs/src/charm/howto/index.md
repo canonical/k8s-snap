@@ -17,6 +17,8 @@ Overview <self>
 charm
 install-lxd
 install-terraform
+Install with custom configuration <install-custom>
+Add worker nodes with custom configurations <custom-workers>
 openstack
 Integrate with etcd <etcd>
 Integrate with ceph-csi <ceph-csi>
