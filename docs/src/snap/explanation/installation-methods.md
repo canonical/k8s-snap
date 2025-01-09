@@ -47,7 +47,7 @@ creating, configuring, and managing multiple Kubernetes clusters.
 
 If you plan to deploy and operate a large deployment with multiple
 Kubernetes clusters, you can use the {{ product }}'s CAPI providers. Follow the
-[cluster-provisioning-with-CAPI guide] to deploy and operate {{ product }} with
+[CAPI guide] to deploy and operate {{ product }} with
 the help of the CAPI providers.
 
 <!-- LINKS -->
@@ -64,5 +64,5 @@ the help of the CAPI providers.
 [getting-started guide]: /src/snap/tutorial/getting-started.md
 [Terraform's Juju provider]: https://github.com/juju/terraform-provider-juju/
 [installing-with-terraform]: /src/charm/howto/install-terraform.md
-[cluster-provisioning-with-CAPI guide]: src/capi/tutorial/getting-started.md
+[CAPI guide]: /src/capi/tutorial/getting-started.md
 [Cluster API]: https://cluster-api.sigs.k8s.io/
