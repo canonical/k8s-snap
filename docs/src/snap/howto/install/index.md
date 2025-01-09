@@ -16,4 +16,5 @@ Install from a snap <snap.md>
 multipass
 Install in LXD <lxd.md>
 Install in air-gapped environments <offline.md>
+Uninstall the snap <uninstall.md>
 ```
