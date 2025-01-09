@@ -8,13 +8,13 @@ and how to put a hold on upgrades if desired.
 
 ## Important Considerations Before Upgrading
 
-- According to the [upstream Kubernetes][1], skipping **minor** versions while 
+- According to the [upstream Kubernetes], skipping **minor** versions while 
 upgrading is not supported. For more details, please visit the
-[Version Skew Policy][2].
+[Version Skew Policy].
 - Before performing an upgrade, it's important to back up the cluster data. 
-This can be done by following the steps outlined in the [backup guide][3].
+This can be done by following the steps outlined in the [backup guide].
 - For more information on managing snap updates, please refer to the 
-[snap documentation][4].
+[snap documentation].
 
 ## Patch Upgrade
 
@@ -100,9 +100,7 @@ snap refresh k8s --hold=24h
 ```
 
 <!-- LINKS -->
-[1]: https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/
-[2]: https://kubernetes.io/docs/setup/release/version-skew-policy/
-[3]: ./backup-restore.md
-[4]: https://snapcraft.io/docs/managing-updates
-[5]: ../../charm/index.md
-[6]: ../../capi/index.md
+[upstream Kubernetes]: https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/
+[Version Skew Policy]: https://kubernetes.io/docs/setup/release/version-skew-policy/
+[backup guide]: ./backup-restore.md
+[snap documentation]: https://snapcraft.io/docs/managing-updates
