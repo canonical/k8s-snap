@@ -21,7 +21,7 @@ Home <self>
 :maxdepth: 6
 
 src/about.md
-Choose an installation method <src/snap/installation-methods.md>
+Choose an installation method <src/snap/explanation/installation-methods.md>
 Deploy from Snap package <src/snap/index.md>
 Deploy with Juju <src/charm/index.md>
 Deploy with Cluster API <src/capi/index.md>

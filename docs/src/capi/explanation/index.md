@@ -14,6 +14,7 @@ Overview <self>
 :glob:
 
 about
+installation-methods.md
 security
 capi-ck8s.md
 in-place-upgrades.md
