@@ -30,7 +30,7 @@ snaps:
 snap list k8s
 ```
 
-which should produce an output similar to:
+This command should produce an output similar to:
 
 ```
 error: no matching snaps installed
