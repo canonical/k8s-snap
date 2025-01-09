@@ -1,18 +1,24 @@
 # Charm configuration options reference
 
-This reference section details the configuration options available for the
-`k8s` and `k8s-worker` charms. These options can be set at various points
+This reference section provides the sites where you can find the configuration
+options for the `k8s` and `k8s-worker` charms. These options can be set at various points
 during the charm's lifecycle. Some options are limited to the bootstrap
 process, while others can be modified at any time. Options restricted to
 bootstrap are explicitly noted in their descriptions and prefixed with
 `bootstrap-`.
 
-## Charm configuration options for `k8s` charm
+## Configuration options for `k8s` charm
 
-```{include} ../../_parts/k8s-charmcraft.md
-```
+The configuration options for the `k8s` charm are available on the
+Charmhub configurations [page][k8s charmhub configurations].
 
-## Charm configuration options for `k8s-worker` charm
+## Configuration options for `k8s-worker` charm
 
-```{include} ../../_parts/k8s-worker-charmcraft.md
-```
+The configuration options for the `k8s-worker` charm are available on the
+Charmhub configurations [page][k8s-worker charmhub configurations].
+
+
+<!-- LINKS -->
+
+[k8s charmhub configurations]: https://charmhub.io/k8s/configurations
+[k8s-worker charmhub configurations]: https://charmhub.io/k8s-worker/configurations
