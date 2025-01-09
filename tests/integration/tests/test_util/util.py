@@ -7,6 +7,7 @@ import logging
 import re
 import shlex
 import subprocess
+import time
 import urllib.request
 from datetime import datetime
 from functools import partial
@@ -554,3 +555,75 @@ def check_file_paths_exist(
         p: not (f"cannot access '{p}': No such file or directory" in process.stderr)
         for p in paths
     }
+
+
+def get_os_version_id_for_instance(instance: harness.Instance) -> str:
+    """Returns the version of the OS on the given harness Instance
+    by reading the `VERSION_ID` from `/etc/os-release`.
+    """
+    proc = instance.exec(["cat", "/etc/os-release"], capture_output=True)
+
+    release = None
+    var = "VERSION_ID"
+    for line in proc.stdout.split(b"\n"):
+        line = line.decode()
+        if line.startswith(var):
+            release = line.lstrip(f"{var}=")
+            break
+
+    if release is None:
+        raise ValueError(
+            f"Failed to parse OS release var '{var}' from OS release "
+            f"info: {proc.stdout}"
+        )
+
+    return release
+
+
+def wait_for_daemonset(
+    instance: harness.Instance,
+    name: str,
+    namespace: str = "default",
+    retry_times: int = 5,
+    retry_delay_s: int = 60,
+    expected_pods_ready: int = 1,
+):
+    """Waits for the daemonset with the given name to have at least
+    `expected_pods_ready` pods ready."""
+    proc = None
+    for i in range(retry_times):
+        # NOTE: we can't reliably use `rollout status` on Daemonsets unless
+        # they have `RollingUpdate` strategy, so we must go by the number of
+        # pods which are Ready.
+        proc = instance.exec(
+            [
+                "k8s",
+                "kubectl",
+                "-n",
+                namespace,
+                "get",
+                "daemonset",
+                name,
+                "-o",
+                "jsonpath={.status.numberReady}",
+            ],
+            check=True,
+            capture_output=True,
+        )
+        if int(proc.stdout.decode()) >= expected_pods_ready:
+            LOG.info(
+                f"Successfully waited for daemonset '{name}' after "
+                f"{(i+1)*retry_delay_s} seconds"
+            )
+            return
+
+        LOG.info(
+            f"Waiting {retry_delay_s} seconds for daemonset '{name}'.\n"
+            f"code: {proc.returncode}\nstdout: {proc.stdout}\nstderr: {proc.stderr}"
+        )
+        time.sleep(retry_delay_s)
+
+    raise AssertionError(
+        f"Daemonset '{name}' failed to have at least one pod ready after "
+        f"{retry_times} x {retry_delay_s} seconds."
+    )
