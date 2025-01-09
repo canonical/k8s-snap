@@ -23,10 +23,10 @@ backup-restore
 refresh-certs
 restore-quorum
 two-node-ha
+Managing upgrades <upgrades>
 Set up Enhanced Platform Awareness <epa>
 contribute
 Get support <support>
-Managing Upgrades <upgrades>
 ```
 
 ---
