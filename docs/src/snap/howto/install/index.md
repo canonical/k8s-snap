@@ -13,6 +13,7 @@ the current How-to guides below.
 :titlesonly:
 
 Install from a snap <snap.md>
+custom-bootstrap-config
 multipass
 Install in LXD <lxd.md>
 Install in air-gapped environments <offline.md>
