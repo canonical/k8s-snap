@@ -5,11 +5,17 @@ configuration you can choose to use a custom bootstrap configuration.
 The CLI's interactive mode or a custom bootstrap configuration file allow you
 to modify the configuration of the first node that will join your cluster. 
 
-## Configuration Options
+## Configuration options
 
-Please consult the [bootstrap-configuration-reference page] for all of the
-available configuration options and their defaults. These configuration options
-may only be adjusted on bootstrap and not after the cluster is bootstrapped.
+Please consult the [reference page] for all of the
+available configuration options and their defaults. 
+
+``` {note}
+Most of these configuration options are set during the initial bootstrapping
+and cannot be modified afterward. Runtime changes may be unsupported and
+could require deploying a new cluster. Refer to the reference page to
+determine if an option allows later modifications.
+```
 
 ## Interactive mode
 
@@ -30,19 +36,18 @@ Please set the Pod CIDR: [10.1.0.0/16]: 10.1.0.0/16,fd01::/108
 Please set the Service CIDR: [10.152.183.0/24]: 10.152.183.0/24,fd98::/108
 ```
 
-The output for this example would be:
+The expected output shows your node's ip that will differ from this example:
 
 ```
 Bootstrapping the cluster. This may take a few seconds, please wait.
-Bootstrapped a new Kubernetes cluster with node address "192.168.3.117:6400".
+Bootstrapped a new Kubernetes cluster with node address "192.122.3.111:6400".
 The node will be 'Ready' to host workloads after the CNI is deployed successfully.
 ```
 
-## Bootstrap Configuration File
+## Bootstrap configuration file
 
-If your deployment requires a more fine tuned configuration, use the bootstrap
-configuration file. A good starting point can be the default
-[bootstrap-config-full.yaml]. By default the network, dns and gateway features
+If your deployment requires a more fine-tuned configuration, use the bootstrap
+configuration file. By default the network, dns and gateway features
 are enabled, but the ingress, load-balancer and local-storage features are
 disabled.
 
@@ -58,11 +63,10 @@ cluster-config:
 EOF
 ```
 
-
 Then, apply the bootstrap configuration file:
 
 ```
-sudo k8s bootstrap --timeout 10m --file /path/to/bootstrap.yaml
+sudo k8s bootstrap --file /path/to/bootstrap.yaml
 ```
 
 To verify any changes to the built-in features run:
@@ -73,5 +77,4 @@ sudo k8s status
 
 <!-- LINKS -->
 
-[bootstrap-configuration-reference page]: /src/snap/reference/bootstrap-config-reference.md
-[bootstrap-config-full.yaml]: https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/main/src/k8s/cmd/k8s/testdata/bootstrap-config-full.yaml
+[reference page]: /src/snap/reference/bootstrap-config-reference.md
