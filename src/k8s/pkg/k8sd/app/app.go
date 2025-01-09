@@ -19,6 +19,7 @@ import (
 	"github.com/canonical/microcluster/v2/client"
 	"github.com/canonical/microcluster/v2/microcluster"
 	"github.com/canonical/microcluster/v2/state"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 // Config defines configuration for the k8sd app.
@@ -63,8 +64,8 @@ type App struct {
 	csrsigningController         *csrsigning.Controller
 
 	// updateNodeConfigController
-	triggerUpdateNodeConfigControllerCh chan struct{}
-	updateNodeConfigController          *controllers.UpdateNodeConfigurationController
+	nodeConfigReconciler *controllers.NodeConfigurationReconciler
+	manager              ctrl.Manager
 
 	// featureController
 	triggerFeatureControllerNetworkCh       chan struct{}
@@ -121,13 +122,10 @@ func New(cfg Config) (*App, error) {
 		log.L().Info("control-plane-config-controller disabled via config")
 	}
 
-	app.triggerUpdateNodeConfigControllerCh = make(chan struct{}, 1)
-
 	if !cfg.DisableUpdateNodeConfigController {
-		app.updateNodeConfigController = controllers.NewUpdateNodeConfigurationController(
-			cfg.Snap,
+		app.nodeConfigReconciler = controllers.NewNodeConfigurationReconciler(
+			app.config.Snap,
 			app.readyWg.Wait,
-			app.triggerUpdateNodeConfigControllerCh,
 		)
 	} else {
 		log.L().Info("update-node-config-controller disabled via config")
