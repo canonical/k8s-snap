@@ -26,18 +26,22 @@ These updates ensure that the latest changes in the installed track are applied.
 Patch upgrades can also be triggered manually by following the steps below.
 
 1. **List available revisions:**
+
 ```
 snap info k8s
 ```
 
 2. **Refresh the snap:**
+
 ```
 snap refresh k8s
 ```
 
 3. **Verify the upgrade:**
+
 Ensure that the upgrade was successful by checking the version of the snap and 
 confirming that the cluster is ready:
+
 ```
 snap info k8s
 sudo k8s status --wait-ready
@@ -51,20 +55,25 @@ To upgrade to a new minor version, the snap channel needs to be changed.
 
 
 1. **List available channels:**
+
 ```
 snap info k8s
 ```
 
 2. **Change the snap channel:**
+
 The {{product}} snap channel can be changed by using the `snap refresh` 
 command.
+
 ```
 snap refresh --channel=1.33/stable k8s
 ```
 
 3. **Verify the upgrade:**
+
 Ensure that the upgrade was successful by checking the version of the snap 
 and confirming that the cluster is ready:
+
 ```
 snap info k8s
 sudo k8s status --wait-ready
@@ -79,10 +88,13 @@ In a multi-node cluster, the upgrade should be performed on all nodes.
 To prevent automatic updates, the snap can be tied to a specific revision. 
 `snap refresh --hold[=<duration>]` holds snap refreshes for a specified 
 duration (or forever, if no value is specified).
+
 ```
 snap refresh k8s --hold
 ```
+
 Or specify a time window:
+
 ```
 snap refresh k8s --hold=24h
 ```
