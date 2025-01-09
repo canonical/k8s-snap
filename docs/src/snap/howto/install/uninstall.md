@@ -1,4 +1,4 @@
-# How to uninstall the {{ product }} snap
+# How to Uninstall the {{ product }} Snap
 
 This guide provides step-by-step instructions for removing the {{ product }}
 snap from your system.
