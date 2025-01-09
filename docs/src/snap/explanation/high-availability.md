@@ -1,17 +1,17 @@
 # High Availability
 
-High availability (HA) is a core feature of Canonical Kubernetes, ensuring that
+High availability (HA) is a core feature of {{ product }}, ensuring that
 a Kubernetes cluster remains operational and resilient, even when nodes or
 critical components encounter failures. This capability is crucial for
 maintaining continuous service for applications and workloads running in
 production environments.
 
-HA is automatically enabled in Canonical Kubernetes for clusters with three or
+HA is automatically enabled in {{ product }} for clusters with three or
 more nodes independent of the deployment method. By distributing key components
 across multiple nodes, HA reduces the risk of downtime and service
 interruptions, offering built-in redundancy and fault tolerance.
 
-## Key Components of a Highly Available Kubernetes Cluster
+## Key Components of a Highly Available Cluster
 
 A highly available Kubernetes cluster exhibits the following characteristics:
 
@@ -31,7 +31,7 @@ single point of failure from rendering the cluster inoperable.
 
 ### 3. **Highly Available Datastore**
 
-By default, Canonical Kubernetes uses **dqlite** to manage the Kubernetes
+By default, {{ product }} uses **dqlite** to manage the Kubernetes
 cluster state. Dqlite leverages the Raft consensus algorithm for leader
 election and voting, ensuring reliable data replication and failover
 capabilities. When a leader node fails, a new leader is elected seamlessly
