@@ -12,6 +12,7 @@ Overview <self>
 ```{toctree}
 :titlesonly:
 about
+installation-methods.md
 channels
 security
 ```
