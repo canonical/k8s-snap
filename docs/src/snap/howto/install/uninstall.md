@@ -23,9 +23,9 @@ For a complete removal, including all cluster data, use the `--purge` option:
 sudo snap remove k8s --purge
 ```
 
-### Verify removal
+## Confirm snap removal
 
-To confirm the snap has been successfully removed, check the list of installed
+To confirm the snap is successfully removed, check the list of installed
 snaps:
 
 ```
