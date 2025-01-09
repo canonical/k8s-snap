@@ -5,9 +5,7 @@ snap from your system.
 
 ---
 
-## Steps to Uninstall
-
-### Remove the snap
+## Removing the k8s snap
 
 To uninstall the `k8s` snap, run the following command:
 
