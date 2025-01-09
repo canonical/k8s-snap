@@ -1,0 +1,45 @@
+name: Auto-update pre-release branches
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - .github/workflows/update-pre-release-branches.yaml
+  schedule:
+    - cron: "0 0 * * *" # Runs every midnight
+
+permissions:
+  contents: read
+
+jobs:
+  update-branches:
+    permissions:
+      contents: write  # for Git to git push
+    runs-on: ubuntu-latest
+    outputs:
+      preRelease: ${{ steps.determine.outputs.preRelease }}
+      branch: ${{ steps.determine.outputs.branch }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.BOT_SSH_KEY }}
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install Python dependencies
+        run: pip3 install packaging requests
+      - name: Define git credentials
+        run: |
+          # Needed to create commits.
+          git config --global user.name "Github Actions"
+          git config --global user.email "worker@org.com"
+      - name: 'Prepare pre-release git branch'
+        run: |
+          python3 ./build-scripts/k8s_release.py prepare_prerelease_git_branch
+      - name: Clean obsolete branches
+        run: |
+          python3 ./build-scripts/k8s_release.py clean_obsolete_git_branches
