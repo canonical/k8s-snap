@@ -219,3 +219,16 @@ k8s::util::load_kernel_modules() {
 
   modprobe $@
 }
+
+k8s::containerd::ensure_systemd_defaults() {
+  k8s::common::setup_env
+
+  local override_dir="/etc/systemd/system/snap.k8s.containerd.service.d"
+  local override_file="$SNAP/k8s/systemd/containerd-defaults.conf"
+
+  if ! [ -f "$override_dir/containerd-defaults.conf" ]; then
+    mkdir -p "$override_dir"
+    cp "$override_file" "$override_dir/"
+  fi
+
+}
