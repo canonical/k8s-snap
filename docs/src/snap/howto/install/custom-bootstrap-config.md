@@ -3,7 +3,7 @@
 When creating a {{ product }} cluster that differs from the default
 configuration you can choose to use a custom bootstrap configuration.
 The CLI's interactive mode or a custom bootstrap configuration file allow you
-to modify the configuration of the first node that will join your cluster. 
+to modify the configuration of the first node of your cluster. 
 
 ## Configuration options
 
@@ -47,19 +47,21 @@ The node will be 'Ready' to host workloads after the CNI is deployed successfull
 ## Bootstrap configuration file
 
 If your deployment requires a more fine-tuned configuration, use the bootstrap
-configuration file. By default the network, dns and gateway features
-are enabled, but the ingress, load-balancer and local-storage features are
-disabled.
+configuration file. 
 
+``` {note}
+By default all features including network, dns, gateway, ingress, load-balancer
+and local-storage are disabled.
+```
 
-For this example, create a custom bootstrap configuration file that disables
+For this example, create a custom bootstrap configuration file that enables
 the network feature:
 
 ```yaml
 cat <<EOF > bootstrap.yaml
 cluster-config:
   network:
-    enabled: false
+    enabled: true
 EOF
 ```
 
