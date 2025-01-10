@@ -19,11 +19,13 @@ To increase the control plane's capacity or ensure high availability, you can
 add more units to the `k8s` application:
 
 ```
-juju add-unit k8s -n 2
+juju add-unit k8s -n 1
 ```
 
 ```{tip}
 For high availability, we recommend deploying at least three `k8s` charm units.
+Use `juju status` to view all the units in your cluster and monitor their
+status.
 ```
 
 Similarly, you can add more worker nodes when your workload demands increase:
@@ -109,7 +111,7 @@ Alternatively, if you are a `yq` user, the same can be achieved with:
 juju run k8s/0 get-kubeconfig | yq '.kubeconfig' -r >> ~/.kube/config
 ```
 
-You can now confirm Kubectl can read the kubeconfig file:
+You can now confirm `kubectl` can read the kubeconfig file:
 
 ```
 kubectl config show

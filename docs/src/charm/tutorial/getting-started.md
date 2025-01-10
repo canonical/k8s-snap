@@ -12,14 +12,11 @@ Kubernetes and some common first steps.
 - How to install {{product}}
 - Making a cluster
 - Deploying extra workers
-- Using `kubectl`
 
 ## What you will need
 
 - The [Juju client][]
 - Access to a Juju-supported cloud for creating the required instances
-- [Kubectl] for interacting with the cluster (installation instructions are
-  included in this tutorial)
 
 
 ## 1. Get prepared
@@ -83,10 +80,6 @@ juju status --watch 2s
 When the status reports that K8s is "idle/ready" you have successfully deployed
 a {{product}} control-plane using Juju.
 
-```{note}
-For High Availability you will need at least three units of the `k8s` charm.
-```
-
 ## 3. Deploy a worker
 
 Before we start doing things in Kubernetes, we should consider adding a worker.
@@ -131,7 +124,6 @@ charms are on the way to simplify usage and extend the base functionality of
 
 [Juju client]: https://juju.is/docs/juju/install-and-manage-the-client
 [Juju tutorial]: https://juju.is/docs/juju/tutorial
-[Kubectl]: https://kubernetes.io/docs/reference/kubectl/
 [the channel explanation page]: ../../snap/explanation/channels
 [releases page]: ../reference/releases
 [basic operations]: ./basic-operations.md
