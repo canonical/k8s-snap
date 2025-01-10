@@ -32,5 +32,16 @@ runs:
     - name: Apply Docker iptables workaround
       shell: bash
       run: |
-        sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
-        sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+        set -x
+        ip a
+        ip r
+
+        bridges=('lxdbr0' 'dualstack-br0' 'ipv6-br0')
+        for i in ${bridges[@]}; do
+          set +e
+          sudo iptables  -I DOCKER-USER -i $i -j ACCEPT
+          sudo ip6tables -I DOCKER-USER -i $i -j ACCEPT
+          sudo iptables  -I DOCKER-USER -o $i -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          sudo ip6tables -I DOCKER-USER -o $i -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          set -e
+        done
