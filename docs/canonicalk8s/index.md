@@ -7,6 +7,12 @@ create and manage a scalable cluster suitable for all use cases.
 You can find out more about {{product}} on this [overview page] or
 see a more detailed explanation in our [architecture documentation].
 
+
+<!-- TODO Link to choosing an install method when created -->
+**[Choosing a {{product}} installation method ›](src/snap/explanation/installation-methods.md)**
+Find out more about which {{product}} installation method is best for your projects needs.
+
+
 ![Illustration depicting working on components and clouds][logo]
 
 ```{toctree}
@@ -34,36 +40,29 @@ Release notes <src/releases.md>
 
 ```{grid-item-card}
 :link: src/snap/
-### [Install K8s from a snap ›](src/snap/index)
-^^^
-Our tutorials, How To guides and other pages will explain how to install,
+### [ Install with a snap ›](src/snap/index)
+
+Our tutorials, how-to guides and other pages will explain how to install,
  configure and use the {{product}} 'k8s' snap. This is a great option if you are new to Kubernetes.
 ```
 
 ```{grid-item-card}
 :link: src/charm/
-### [Deploy K8s using Juju ›](src/charm/index)
-^^^
-Our tutorials, How To guides and other pages will explain how to install,
+### [Deploy with Juju ›](src/charm/index)
+
+Our tutorials, how-to guides and other pages will explain how to install,
  configure and use the {{product}} 'k8s' charm.
 ```
 
 
 ```{grid-item-card}
 :link: src/capi/
-### [Deploy K8s using Cluster API ›](src/capi/index)
-^^^
-Our tutorials, guides and explanation pages will explain how to install,
+### [Deploy with Cluster API ›](src/capi/index)
+
+Our tutorials, how-to guides and other pages will explain how to install,
  configure and use {{product}} through CAPI.
 ```
 
-```{grid-item-card}
-:link: about
-### [Overview of {{product}} ›](about)
-^^^
-Find out more about {{product}}, what services are included and get the
-answers to some common questions.
-```
 ````
 
 ---
@@ -89,5 +88,5 @@ and constructive feedback.
 [community]: src/snap/reference/community
 [contribute]: src/snap/howto/contribute
 [releases]: src/snap/reference/releases
-[overview page]: about
+[overview page]: src/about
 [architecture documentation]: src/snap/reference/architecture
