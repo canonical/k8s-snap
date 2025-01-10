@@ -18,6 +18,7 @@ channels
 clustering
 ingress
 epa
+high-availability
 security
 cis
 ```
