@@ -34,22 +34,37 @@ and k8s-worker child modules:
 Example `main.tf`:
 
 ```hcl
-data "juju_model" "testing" {
-  name = "juju-myk8s"
+provider "juju" {}
+
+resource "juju_model" "this" {
+  name = "juju-myk8s"  # name of the juju model
 }
+
+variable "k8s" {
+  description = "K8s deployment shared configuration"
+  channel = string
+  default = "1.xx/stable"
+}
+
 module "k8s" {
-  source = "path-to/k8s"
-  juju_model = module.juju_model.testing.name
+  source = "git::https://github.com/canonical/k8s-operator//charms/worker/k8s/terraform?ref=main"
+
+  model = juju_model.this.name
+  channel = var.k8s.channel
+  units = 3
 }
 
 module "k8s-worker" {
-  source = "path-to/k8s-worker"
-  juju_model = module.juju_model.testing.name
+  source = "git::https://github.com/canonical/k8s-operator//charms/worker/terraform?ref=main"
+  model = juju_model.this.name
+  channel = var.k8s.channel
+  units = 2
 }
 ```
 
 ```{note} 
 Please ensure that the root module references the correct source path for the `k8s` and `k8s-worker` modules.
+Also, ensure you replace the k8s.channel with {{version}}/stable
 ```
 
 Example `versions.tf`:
@@ -68,14 +83,8 @@ terraform {
 
 ### Charm modules
 
-Please download the charm modules from Github at:
-
-```
-git clone https://github.com/canonical/k8s-operator.git
-```
-
-Find the control-plane module at `k8s-operator/charms/worker/k8s/terraform` and
-the k8s-worker module at `k8s-operator/tree/main/charms/worker/terraform`.
+Find the `k8s` module at `//charms/worker/k8s/terraform` and
+the `k8s-worker` module at `//charms/worker/terraform`.
 
 The charm module for the k8s charm offers the following
 configuration options:
@@ -84,7 +93,7 @@ configuration options:
 | - | - | - | - | - |
 | `app_name`| string | Application name | False | k8s |
 | `base` | string | Ubuntu base to deploy the charm onto | False | ubuntu@24.04 |
-| `channel`| string | Channel that the charm is deployed from | False | 1.30/edge |
+| `channel`| string | Channel that the charm is deployed from | False | null |
 | `config`| map(string) | Map of the charm configuration options | False | {} |
 | `constraints` | string | Juju constraints to apply for this application | False | arch=amd64 |
 | `model`| string | Name of the model that the charm is deployed on | True | null |
@@ -97,7 +106,7 @@ Upon application, the module exports the following outputs:
 | Name | Description |
 | - | - |
 | `app_name`|  Application name |
-| `provides`| Map of `provides` endpoints |
+| `provides`|  Map of `provides` endpoints |
 | `requires`|  Map of `requires` endpoints |
 
 ## Deploying the charms
@@ -107,6 +116,7 @@ commands:
 
 ```bash
 terraform init
+terraform plan
 terraform apply
 ```
 
