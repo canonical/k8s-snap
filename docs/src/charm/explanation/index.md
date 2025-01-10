@@ -17,6 +17,7 @@ channels
 ingress
 load-balancer
 security
+Upgrading <upgrade.md>
 ```
 
 For topics specifically relating to the snap version of {{product}},

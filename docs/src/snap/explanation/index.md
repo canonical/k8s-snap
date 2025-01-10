@@ -18,6 +18,7 @@ channels
 clustering
 ingress
 load-balancer
+Upgrading <upgrade.md>
 epa
 high-availability
 security
