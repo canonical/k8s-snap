@@ -1,9 +1,8 @@
-# How to Uninstall the {{ product }} Snap
+# How to uninstall the {{product}} snap
 
 This guide provides step-by-step instructions for removing the {{ product }}
 snap from your system.
 
----
 
 ## Removing the k8s snap
 
