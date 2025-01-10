@@ -110,8 +110,10 @@ juju integrate k8s k8s-worker:containerd
 juju integrate k8s k8s-worker:cos-tokens
 ```
 
-After a short time, the worker node will share information with the control plane
-and be joined to the cluster.
+After a short time, the worker node will share information with the
+control plane and be joined to the cluster. Use
+`juju status --relations` to monitor the status of your units and their
+established relations.
 
 ## Next steps
 

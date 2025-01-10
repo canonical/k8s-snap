@@ -22,10 +22,11 @@ add more units to the `k8s` application:
 juju add-unit k8s -n 1
 ```
 
-```{tip}
-For high availability, we recommend deploying at least three `k8s` charm units.
 Use `juju status` to view all the units in your cluster and monitor their
 status.
+
+```{tip}
+For high availability, we recommend deploying at least three `k8s` charm units.
 ```
 
 Similarly, you can add more worker nodes when your workload demands increase:
@@ -67,7 +68,8 @@ If you don't already have `kubectl`, it can be installed from a snap:
 sudo snap install kubectl --classic
 ```
 
-If you have just installed it, you should also create a file to contain the configuration:
+If you have just installed it, you should also create a file to contain
+the configuration:
 
 ```
 mkdir ~/.kube
