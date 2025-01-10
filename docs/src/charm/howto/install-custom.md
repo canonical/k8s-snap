@@ -35,8 +35,10 @@ k8s:
   dns-cluster-domain: "cluster.local"
   dns-upstream-nameservers: "8.8.8.8 8.8.4.4"
 
-  # Add custom node labels
-  node-labels: "environment=production zone=us-east-1"
+  # Add/Remove custom node labels
+  # Using <key>=<value> one can ensure the label is added to all the nodes of this application
+  # Using <key>=-       one can ensure the label is removed from all the nodes of this application
+  node-labels: "environment=production zone=us-east-1 node-role.kubernetes.io/worker=-"
 
   # Configure local storage
   local-storage-enabled: true
