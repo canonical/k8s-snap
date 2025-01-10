@@ -16,6 +16,7 @@ charms
 proxy
 architecture
 charm-configurations
+troubleshooting
 Community <community>
 
 ```
