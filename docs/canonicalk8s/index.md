@@ -7,13 +7,16 @@ create and manage a scalable cluster suitable for all use cases.
 You can find out more about {{product}} on this [overview page] or
 see a more detailed explanation in our [architecture documentation].
 
+{{product}} can be deployed as a standalone snap, as a charm as part of a Juju cluster or with Cluster API. Find out more about which {{product}} installation method is best for your
+project's needs with
+**[choosing a {{product}} installation method.](src/snap/explanation/installation-methods.md)**
 
-<!-- TODO Link to choosing an install method when created -->
-**[Choosing a {{product}} installation method ›](src/snap/explanation/installation-methods.md)**
-Find out more about which {{product}} installation method is best for your projects needs.
-
+Or if would like to jump straight in, head to the
+[snap getting started tutorial!](src/snap/tutorial/getting-started.md)
 
 ![Illustration depicting working on components and clouds][logo]
+
+## In this documentation
 
 ```{toctree}
 :hidden:
@@ -36,7 +39,7 @@ Release notes <src/releases.md>
 
 ```
 
-````{grid} 1 1 2 2
+````{grid} 1 1 1 1
 
 ```{grid-item-card}
 :link: src/snap/
