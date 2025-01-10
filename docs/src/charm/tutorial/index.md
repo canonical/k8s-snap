@@ -12,6 +12,7 @@ Overview <self>
 :glob:
 :titlesonly:
 getting-started
+basic-operations
 ```
 
 ---
