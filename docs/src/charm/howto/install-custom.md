@@ -6,6 +6,7 @@ configuration options.
 ## What you'll need
 
 This guide assumes the following:
+
 -  You have Juju installed on your system with your cloud credentials
 configured and a controller bootstrapped
 - A Juju model is created and selected
@@ -44,6 +45,7 @@ k8s:
   local-storage-enabled: true
   local-storage-reclaim-policy: "Retain"
 ```
+
 You can find a full list of configuration options in the
 [charm configurations] page.
 
