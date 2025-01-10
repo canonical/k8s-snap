@@ -14,6 +14,7 @@ Overview <self>
 about
 channels
 security
+Upgrading <upgrade.md>
 ```
 
 For topics specifically relating to the snap version of {{product}},

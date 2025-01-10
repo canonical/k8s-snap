@@ -16,6 +16,7 @@ certificates
 channels
 clustering
 ingress
+Upgrading <upgrade.md>
 epa
 security
 cis
