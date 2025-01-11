@@ -1,9 +1,9 @@
 # Upgrading with {{product}}
 
-Upgrading your cluster to the lastest Kubernetes version is a critical part of
+Upgrading your cluster to the latest Kubernetes version is a critical part of
 maintaining a healthy cluster. It provides enhanced security in the form
 of the latest security patches as well as increased stability and performance
-by incorporating the lastest optimizations and features. The [release cadence]
+by incorporating the latest optimizations and features. The [release cadence]
 of {{product}} follows the [release cycle] set by upstream Kubernetes.
 
 
@@ -39,7 +39,7 @@ the original install method must be used.
 ## Snap upgrades
 
 Updates for the {{product}} snap are checked several times a day with the
-default [snap refersh fucntionality]. Patch upgrades will be applied
+default [snap refresh fucntionality]. Patch upgrades will be applied
 automatically unless they are manually stopped. Changes applied during the
 latest refresh to the snap can be viewed using the command `snap change`.
 Minor version upgrades need manual intervention and must be carried out on all
@@ -62,7 +62,7 @@ the next channel based on the paramaters provided. The charm code
 is simultaneously replaced on each unit. Then, the k8s snap is updated
 unit-by-unit. This is in order to maintain a highly-available kube-api-server
 endpoint, starting with the Juju leader unit for the application. To ensure a
-smoothe upgrade process, the pre-upgrade-check should be run before
+smooth upgrade process, the pre-upgrade-check should be run before
 all upgrades. This ensures that you cluster is in a stable and ready state for
 an upgrade.
 
@@ -75,7 +75,7 @@ on [upgrading your cluster by a minor version].
 
 High availability is automatically enabled in {{ product }} for clusters with
 three or more nodes independent of the deployment method. Clusters without high
-availability must be extra viligent on backing up cluster data before starting
+availability must be extra viligant on backing up cluster data before starting
 the upgrade process and also must be aware of potential service disruptions
 during cluster upgades. It is also important to understand that Kubernetes will
 only upgrade and if necessary migrate, components relating specifically to
@@ -89,7 +89,7 @@ deprecated APIs.
 When upgrading with {{product}} best practices should be followed:
 
 - Check the release notes associated with the release and pay
-particular attention to any deprecations or imcompatible changes being
+particular attention to any deprecations or incompatible changes being
 introduced that may affect your cluster.
 - Create a backup of all the information in the cluster.
 - Upgrade the control plane nodes before upgrading the worker nodes.
@@ -104,6 +104,6 @@ to completion before upgrading the next node.
 [release cycle]: https://kubernetes.io/releases/release/
 [managing cluster upgrades]: ../howto/upgrades
 [upgrading your cluster by a minor version]: ../../charm/howto/upgrade-minor/
-[snap refersh fucntionality]:https://snapcraft.io/docs/refresh-awareness
+[snap refresh fucntionality]:https://snapcraft.io/docs/refresh-awareness
 [version skew policy]: https://kubernetes.io/releases/version-skew-policy/
 [explanation page]: channels.md
