@@ -11,8 +11,9 @@ see a more detailed explanation in our [architecture documentation].
 Juju cluster or with Cluster API. Find out more about which {{product}}
 installation method is best for your
 project's needs with
+<!-- markdownlint-disable -->
 **[choosing a {{product}} installation method.](src/snap/explanation/installation-methods.md)**
-
+<!-- markdownlint-restore -->
 Or if would like to jump straight in, head to the
 [snap getting started tutorial!](src/snap/tutorial/getting-started.md)
 
