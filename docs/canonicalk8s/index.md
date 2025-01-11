@@ -7,7 +7,9 @@ create and manage a scalable cluster suitable for all use cases.
 You can find out more about {{product}} on this [overview page] or
 see a more detailed explanation in our [architecture documentation].
 
-{{product}} can be deployed as a standalone snap, as a charm as part of a Juju cluster or with Cluster API. Find out more about which {{product}} installation method is best for your
+{{product}} can be deployed as a standalone snap, as a charm as part of a
+Juju cluster or with Cluster API. Find out more about which {{product}}
+installation method is best for your
 project's needs with
 **[choosing a {{product}} installation method.](src/snap/explanation/installation-methods.md)**
 
