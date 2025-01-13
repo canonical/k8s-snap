@@ -26,6 +26,7 @@ custom-registry
 Upgrade patch version <upgrade-patch>
 Upgrade minor version <upgrade-minor>
 Validate the cluster <validate>
+Troubleshooting <troubleshooting>
 ```
 
 ---
