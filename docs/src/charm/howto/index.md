@@ -14,10 +14,7 @@ Overview <self>
 :glob:
 :titlesonly:
 
-charm
-install-lxd
-install-terraform
-Install with custom configuration <install-custom>
+install/index
 Add worker nodes with custom configurations <custom-workers>
 openstack
 Integrate with etcd <etcd>
