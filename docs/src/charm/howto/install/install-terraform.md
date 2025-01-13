@@ -36,27 +36,26 @@ Example `main.tf`:
 ```hcl
 provider "juju" {}
 
-resource "juju_model" "this" {
-  name = "juju-myk8s"  # name of the juju model
+resource "juju_model" "my_model" {
+  name = "juju-myk8s"
 }
 
 variable "k8s" {
   description = "K8s deployment shared configuration"
-  channel = string
-  default = "1.xx/stable"
+  type        = string
 }
 
 module "k8s" {
-  source = "git::https://github.com/canonical/k8s-operator//charms/worker/k8s/terraform?ref=main"
+  source  = "git::https://github.com/canonical/k8s-operator//charms/worker/k8s/terraform?ref=main"
 
-  model = juju_model.this.name
+  model   = juju_model.my_model.name
   channel = var.k8s.channel
   units = 3
 }
 
 module "k8s-worker" {
-  source = "git::https://github.com/canonical/k8s-operator//charms/worker/terraform?ref=main"
-  model = juju_model.this.name
+  source  = "git::https://github.com/canonical/k8s-operator//charms/worker/terraform?ref=main"
+  model   = juju_model.my_model.name
   channel = var.k8s.channel
   units = 2
 }
@@ -64,7 +63,6 @@ module "k8s-worker" {
 
 ```{note} 
 Please ensure that the root module references the correct source path for the `k8s` and `k8s-worker` modules.
-Also, ensure you replace the k8s.channel with {{version}}/stable
 ```
 
 Example `versions.tf`:
@@ -116,9 +114,17 @@ commands:
 
 ```bash
 terraform init
+export TF_VAR_channel=<charm channel>
 terraform plan
 terraform apply
 ```
+
+```{note} 
+Make sure the deployment [channel] is set with:
+
+&ensp;export TF_VAR_channel={{channel}}
+```
+
 
 The `terraform apply` command will deploy the k8s and k8s-worker charms to the
 Juju model. Watch the deployment progress by running:
@@ -130,5 +136,6 @@ juju status --watch 5s
 <!-- LINKS -->
 [juju-provider-tf]: https://github.com/juju/terraform-provider-juju/
 [auth]: https://registry.terraform.io/providers/juju/juju/latest/docs#authentication
+[channel]: ../../explanation/channels.md
 [terraform]: https://snapcraft.io/terraform
 
