@@ -12,15 +12,11 @@ Kubernetes and some common first steps.
 - How to install {{product}}
 - Making a cluster
 - Deploying extra workers
-- Using Kubectl
 
 ## What you will need
 
-- Ubuntu 22.04 LTS or 20.04 LTS
 - The [Juju client][]
 - Access to a Juju-supported cloud for creating the required instances
-- [Kubectl] for interacting with the cluster (installation instructions are
-  included in this tutorial)
 
 
 ## 1. Get prepared
@@ -84,10 +80,6 @@ juju status --watch 2s
 When the status reports that K8s is "idle/ready" you have successfully deployed
 a {{product}} control-plane using Juju.
 
-```{note} For High Availability you will need at least three units of the k8s
-   charm. Scaling the deployment is covered below.
-```
-
 ## 3. Deploy a worker
 
 Before we start doing things in Kubernetes, we should consider adding a worker.
@@ -110,133 +102,30 @@ fetched earlier also includes a list of the relations possible, and from this
 we can see that the k8s-worker requires "cluster: k8s-cluster".
 
 To connect these charms and effectively add the worker to our cluster, we use
-the 'integrate' command, adding the interface we wish to connect.
+the `integrate` command, adding the interface we wish to connect.
 
 ```
 juju integrate k8s k8s-worker:cluster
+juju integrate k8s k8s-worker:containerd
+juju integrate k8s k8s-worker:cos-tokens
 ```
 
-After a short time, the worker node will share information with the control plane
-and be joined to the cluster.
-
-## 4. Scale the cluster (Optional)
-
-If one worker doesn't seem like enough, we can easily add more:
-
-```
-juju add-unit k8s-worker -n 1
-```
-
-This will create an additional instance running the k8s-worker charm. Juju
-manages all instances of the same application together, so there is no need to
-add the integration again. If you check the Juju status, you should see that a
-new unit is created, and now you have `k8s-worker/0` and `k8s-worker/1`
-
-
-## 5. Use Kubectl
-
-[Kubectl][] is the standard upstream tool for interacting with a Kubernetes
-cluster. This is the command that can be used to inspect and manage your
-cluster.
-
-If you don't already have `kubectl`, it can be installed from a snap:
-
-```
-sudo snap install kubectl --classic
-```
-
-If you have just installed it, you should also create a file to contain the configuration:
-
-```
-mkdir ~/.kube
-```
-
-To fetch the configuration information from the cluster we can run:
-
-```
-juju run k8s/0 get-kubeconfig
-```
-
-The Juju action is a piece of code which runs on a unit to perform a specific
-task. In this case it collects the cluster information - the YAML formatted
-details of the cluster and the keys required to connect to it.
-
-```{warning}  If you already have Kubectl and are using it to manage other clusters,
-   you should edit the relevant parts of the cluster yaml output and append them to
-   your current kubeconfig file.
-```
-
-We can use pipe to append your cluster's kubeconfig information directly to a
-config file which will just require a bit of editing:
-
-```
-juju run k8s/0 get-kubeconfig >> ~/.kube/config
-```
-
-The output includes the root of the YAML, `kubeconfig: |`, so we can just use an
-editor to remove that line:
-
-```
-nano ~/.kube/config
-```
-
-Please use the editor of your choice to delete the first line and save the file.
-
-Alternatively, if you are a `yq` user, the same can be achieved with:
-
-```
-juju run k8s/0 get-kubeconfig | yq '.kubeconfig' -r >> ~/.kube/config
-```
-
-You can now confirm Kubectl can read the kubeconfig file:
-
-```
-kubectl config show
-```
-
-...which should output something like this:
-
-```
-apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority-data: DATA+OMITTED
-    server: https://10.158.52.236:6443
-  name: k8s
-contexts:
-- context:
-    cluster: k8s
-    user: k8s-user
-  name: k8s
-current-context: k8s
-kind: Config
-preferences: {}
-users:
-- name: k8s-user
-  user:
-    token: REDACTED
-```
-
-You can then further confirm that it is possible to inspect the cluster by
-running a simple command such as :
-
-```
-kubectl get pods -A
-```
-
-This should return some pods, confirming the command can reach the cluster.
+After a short time, the worker node will share information with the
+control plane and be joined to the cluster. Use
+`juju status --relations` to monitor the status of your units and their
+established relations.
 
 ## Next steps
 
-Congratulations - you now have a functional Kubernetes cluster! In the near
-future more charms are on the way to simplify usage and extend the base
-functionality of {{product}}. Bookmark the [releases page] to keep
-informed of updates.
+Congratulations — you now have a functional {{ product }} cluster! You can
+start exploring the [basic operations] with the charm. In the near future more
+charms are on the way to simplify usage and extend the base functionality of
+{{product}}. Bookmark the [releases page] to keep informed of updates.
 
 <!-- LINKS -->
 
 [Juju client]: https://juju.is/docs/juju/install-and-manage-the-client
 [Juju tutorial]: https://juju.is/docs/juju/tutorial
-[Kubectl]: https://kubernetes.io/docs/reference/kubectl/
 [the channel explanation page]: ../../snap/explanation/channels
 [releases page]: ../reference/releases
+[basic operations]: ./basic-operations.md
