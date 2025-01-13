@@ -1,14 +1,14 @@
 # Troubleshooting
 
 This page provides techniques for troubleshooting common {{product}}
-issues dealing specifically with the charm
+issues dealing specifically with the charm.
 
 
-## Adjusting kubernetes node labels
+## Adjusting Kubernetes node labels
 
 ### Problem
 
-Control Plane or Worker nodes are automatically marked with a label that is unwanted. 
+Control-Plane or Worker nodes are automatically marked with a label that is unwanted. 
 
 For example, the control-plane node may be marked with both control-plane and worker roles
 
@@ -19,7 +19,7 @@ node-role.kubernetes.io/worker=
 
 ### Explanation
 
-Each kubernetes node comes with a set of node labels enabled by default. The k8s charm defaults with both 
+Each kubernetes node comes with a set of node labels enabled by default. The k8s snap defaults with both 
 control-plane and worker role labels, while the worker node only has a role label.
 
 For example, consider the following simply deployment with a worker and a control-plane
@@ -70,8 +70,3 @@ To remove the worker node-rule on a control-plane:
 ```sh
 juju config k8s node-labels="node-role.kubernetes.io/worker=-"
 ```
-
-
-
-<!-- LINKS -->
-
