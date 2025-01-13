@@ -32,7 +32,7 @@ juju add-unit k8s-worker -n 1
 ```
 
 This command deploys an additional instance of the `k8s-worker` charm. No extra
-configurations is needed as Juju manages all instances within the same
+configuration is needed as Juju manages all instances within the same
 application. After running this command, new units will appear in your cluster,
 such as `k8s-worker/0` and `k8s-worker/1`.
 
@@ -58,7 +58,7 @@ Replace the unit name with the appropriate application name (e.g., `k8s` or
 cluster. This is the command that can be used to inspect and manage your
 cluster.
 
-If necessary `kubectl`, it can be installed from a snap:
+If necessary, `kubectl` can be installed from a snap:
 
 ```
 sudo snap install kubectl --classic
