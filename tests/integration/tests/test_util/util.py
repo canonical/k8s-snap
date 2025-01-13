@@ -357,26 +357,40 @@ def join_cluster(instance: harness.Instance, join_token: str):
     instance.exec(["k8s", "join-cluster", join_token])
 
 
+def is_ipv6(ip: str) -> bool:
+    addr = ipaddress.ip_address(ip)
+    return isinstance(addr, ipaddress.IPv6Address)
+
+
 def get_default_cidr(instance: harness.Instance, instance_default_ip: str):
     # ----
     # 1:  lo    inet 127.0.0.1/8 scope host lo .....
     # 28: eth0  inet 10.42.254.197/24 metric 100 brd 10.42.254.255 scope global dynamic eth0 ....
     # ----
     # Fetching the cidr for the default interface by matching with instance ip from the output
-    p = instance.exec(["ip", "-o", "-f", "inet", "addr", "show"], capture_output=True)
+    addr_family = "-6" if is_ipv6(instance_default_ip) else "-4"
+    p = instance.exec(["ip", "-o", addr_family, "addr", "show"], capture_output=True)
     out = p.stdout.decode().split(" ")
     return [i for i in out if instance_default_ip in i][0]
 
 
-def get_default_ip(instance: harness.Instance):
+def get_default_ip(instance: harness.Instance, ipv6=False):
     # ---
     # default via 10.42.254.1 dev eth0 proto dhcp src 10.42.254.197 metric 100
     # ---
     # Fetching the default IP address from the output, e.g. 10.42.254.197
-    p = instance.exec(
-        ["ip", "-o", "-4", "route", "show", "to", "default"], capture_output=True
-    )
-    return p.stdout.decode().split(" ")[8]
+    if ipv6:
+        p = instance.exec(
+            ["ip", "-json", "-6", "addr", "show", "scope", "global"],
+            capture_output=True,
+        )
+        addr_json = json.loads(p.stdout.decode())
+        return addr_json[0]["addr_info"][0]["local"]
+    else:
+        p = instance.exec(
+            ["ip", "-o", "-4", "route", "show", "to", "default"], capture_output=True
+        )
+        return p.stdout.decode().split(" ")[8]
 
 
 def get_global_unicast_ipv6(instance: harness.Instance, interface="eth0") -> str | None:
@@ -519,14 +533,20 @@ def previous_track(snap_version: str) -> str:
 
 def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
     """Find a suitable CIDR for LoadBalancer services"""
-    net = ipaddress.IPv4Network(parent_cidr, False)
+    net = ipaddress.ip_network(parent_cidr, False)
+    ipv6 = isinstance(net, ipaddress.IPv6Network)
+    if ipv6:
+        ip_range = 126
+    else:
+        ip_range = 30
 
     # Starting from the first IP address from the parent cidr,
     # we search for a /30 cidr block(4 total ips, 2 available)
     # that doesn't contain the excluded ips to avoid collisions
-    # /30 because this is the smallest CIDR cilium hands out IPs from
+    # /30 because this is the smallest CIDR cilium hands out IPs from.
+    # For ipv6, we use a /126 block that contains 4 total ips.
     for i in range(4, 255, 4):
-        lb_net = ipaddress.IPv4Network(f"{str(net[0]+i)}/30", False)
+        lb_net = ipaddress.ip_network(f"{str(net[0]+i)}/{ip_range}", False)
 
         contains_excluded = False
         for excluded in excluded_ips:
