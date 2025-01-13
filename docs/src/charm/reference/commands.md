@@ -1,9 +1,4 @@
 # Command reference
 
-These are the commands provided by the k8s charm:
-
-```{include} ../../_parts/commands/charm/pre-upgrade-check.md
-```
-
-```{include} ../../_parts/commands/charm/pre-upgrade-check.md
-```
+The up-to-date list of commands is on the Charmhub page:
+[https://charmhub.io/k8s/actionhttps://charmhub.io/k8s/actions]
