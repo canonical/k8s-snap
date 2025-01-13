@@ -15,6 +15,7 @@ releases
 charms
 proxy
 architecture
+Ports and Services <ports-and-services>
 charm-configurations
 Community <community>
 
