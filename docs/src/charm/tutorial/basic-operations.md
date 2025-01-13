@@ -1,10 +1,10 @@
-# Basic operations with the charm
+# Basic {{ product }} charm operations
 
 This tutorial walks you through common management tasks for your {{ product }}
-cluster using the `k8s` charm. You'll learn how to scale your cluster, manage
-workers, and interact with it using `kubectl`.
+cluster using the `k8s` control plane charm. You will learn how to scale your
+cluster, manage workers, and interact with the cluster using `kubectl`.
 
-## What you will need
+## Prerequisites
 
 - A running {{ product }} cluster deployed with the `k8s` charm
 - The Juju [client][Juju client]
@@ -15,8 +15,8 @@ workers, and interact with it using `kubectl`.
 The `k8s` charm provides flexibility to scale your cluster as needed by adding
 or removing control plane nodes or worker nodes.
 
-To increase the control plane's capacity or ensure high availability, you can
-add more units to the `k8s` application:
+To increase the control plane's capacity or ensure [high availability], you
+can add more units of the `k8s` application:
 
 ```
 juju add-unit k8s -n 1
@@ -25,19 +25,15 @@ juju add-unit k8s -n 1
 Use `juju status` to view all the units in your cluster and monitor their
 status.
 
-```{tip}
-For high availability, we recommend deploying at least three `k8s` charm units.
-```
-
 Similarly, you can add more worker nodes when your workload demands increase:
 
 ```
 juju add-unit k8s-worker -n 1
 ```
 
-This command deploys an additional instance of the `k8s-worker` charm. Juju
-manages all instances within the same application, so no extra configuration
-is needed. After running this command, new units will appear in your cluster,
+This command deploys an additional instance of the `k8s-worker` charm. No extra
+configurations is needed as Juju manages all instances within the same
+application. After running this command, new units will appear in your cluster,
 such as `k8s-worker/0` and `k8s-worker/1`.
 
 To scale up multiple units at once, adjust the unit count:
@@ -58,24 +54,23 @@ Replace the unit name with the appropriate application name (e.g., `k8s` or
 
 ## Set up `kubectl`
 
-[kubectl][] is the standard upstream tool for interacting with a Kubernetes
+[kubectl] is the standard upstream tool for interacting with a Kubernetes
 cluster. This is the command that can be used to inspect and manage your
 cluster.
 
-If you don't already have `kubectl`, it can be installed from a snap:
+If necessary `kubectl`, it can be installed from a snap:
 
 ```
 sudo snap install kubectl --classic
 ```
 
-If you have just installed it, you should also create a file to contain
-the configuration:
+Create a directory to house the kubeconfig:
 
 ```
 mkdir ~/.kube
 ```
 
-To fetch the configuration information from the cluster we can run:
+Fetch the configuration information from the cluster:
 
 ```
 juju run k8s/0 get-kubeconfig
@@ -86,40 +81,25 @@ task. In this case it collects the cluster information - the YAML formatted
 details of the cluster and the keys required to connect to it.
 
 ```{warning}
-If you already have `kubectl` and are using it to manage other clusters, you
-should edit the relevant parts of the cluster yaml output and append them to
+If you already have `kubectl` installed and are using it to manage other
+clusters, edit the relevant parts of the cluster yaml output and append them to
 your current kubeconfig file.
 ```
 
-We can use pipe to append your cluster's kubeconfig information directly to a
-config file which will just require a bit of editing:
+Use `yq` to append your cluster's kubeconfig information directly to the
+config file:
 
 ```
-juju run k8s/0 get-kubeconfig >> ~/.kube/config
+juju run k8s/0 get-kubeconfig | yq '.kubeconfig' >> ~/.kube/config
 ```
 
-The output includes the root of the YAML, `kubeconfig: |`, so we can just use an
-editor to remove that line:
-
-```
-vim ~/.kube/config
-```
-
-Please use the editor of your choice to delete the first line and save the file.
-
-Alternatively, if you are a `yq` user, the same can be achieved with:
-
-```
-juju run k8s/0 get-kubeconfig | yq '.kubeconfig' -r >> ~/.kube/config
-```
-
-You can now confirm `kubectl` can read the kubeconfig file:
+Confirm that `kubectl` can read the kubeconfig file:
 
 ```
 kubectl config show
 ```
 
-...which should output something like this:
+The output will be similar to this:
 
 ```
 apiVersion: v1
@@ -142,18 +122,18 @@ users:
     token: REDACTED
 ```
 
-You can then further confirm that it is possible to inspect the cluster by
-running a simple command such as :
+Run a simple command to inspect your cluster:
 
 ```
 kubectl get pods -A
 ```
 
-This should return some pods, confirming the command can reach the cluster.
+This command returns a list of pods, confirming that `kubectl` can reach the
+cluster.
 
 ## Next steps
 
-Now that you're familiar with basic cluster operations, you might want to:
+Now that you are familiar with the basic cluster operations, learn to:
 
 - Deploy applications to your cluster
 - Configure storage solutions like [Ceph]
@@ -166,6 +146,7 @@ documentation and release [notes][release notes].
 
 [Ceph]: ../howto/ceph-csi
 [COS]: ../howto/cos-lite
+[high availability]: ../../snap/explanation/high-availability
 [Juju client]: https://juju.is/docs/juju/install-and-manage-the-client
 [Kubectl]: https://kubernetes.io/docs/reference/kubectl/
 [release notes]: ../reference/releases
