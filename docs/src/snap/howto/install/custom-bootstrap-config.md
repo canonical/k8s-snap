@@ -50,8 +50,9 @@ If your deployment requires a more fine-tuned configuration, use the bootstrap
 configuration file. 
 
 ``` {note}
-By default all features including network, dns, gateway, ingress, load-balancer
-and local-storage are disabled.
+When using the custom configuration file on bootstrap, all features including
+network, dns, gateway, ingress, load-balancer and local-storage are disabled
+by default.
 ```
 
 For this example, create a custom bootstrap configuration file that enables
