@@ -36,8 +36,8 @@ Example `main.tf`:
 ```hcl
 provider "juju" {}
 
-resource "juju_model" "this" {
-  name = "juju-myk8s"  # name of the juju model
+resource "juju_model" "my_model" {
+  name = "juju-myk8s"
 }
 
 variable "k8s" {
@@ -49,14 +49,14 @@ variable "k8s" {
 module "k8s" {
   source = "git::https://github.com/canonical/k8s-operator//charms/worker/k8s/terraform?ref=main"
 
-  model = juju_model.this.name
+  model = juju_model.my_model.name
   channel = var.k8s.channel
   units = 3
 }
 
 module "k8s-worker" {
   source = "git::https://github.com/canonical/k8s-operator//charms/worker/terraform?ref=main"
-  model = juju_model.this.name
+  model = juju_model.my_model.name
   channel = var.k8s.channel
   units = 2
 }
