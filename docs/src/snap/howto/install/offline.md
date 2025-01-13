@@ -122,7 +122,7 @@ ghcr.io/canonical/k8s-snap/sig-storage/csi-provisioner:v5.0.1
 ghcr.io/canonical/k8s-snap/sig-storage/csi-resizer:v1.11.1
 ghcr.io/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1
 ghcr.io/canonical/metrics-server:0.7.0-ck2
-ghcr.io/canonical/rawfile-localpv:0.8.0-ck4
+ghcr.io/canonical/rawfile-localpv:0.8.1
 ```
 
 A list of images can also be found in the `images.txt` file when the
@@ -159,9 +159,8 @@ This requires three steps:
    push to your registry mirror.
 3. Configure the {{product}} container runtime (`containerd`) to load
    images from the private registry mirror instead of the upstream source. This
-   will be described in the
-   [Configure registry mirrors](#container-runtime-option-b-configure-registry-mirrors)
-   section.
+   will be described in the [Configure registry mirrors](
+   #container-runtime-option-b-configure-registry-mirrors) section.
 
 To load images into the private registry, a machine is needed with access to
 any upstream registries (e.g. `docker.io`) and the private mirror.
