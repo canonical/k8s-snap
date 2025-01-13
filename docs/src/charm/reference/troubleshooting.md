@@ -8,9 +8,11 @@ issues dealing specifically with the charm.
 
 ### Problem
 
-Control-Plane or Worker nodes are automatically marked with a label that is unwanted. 
+Control-Plane or Worker nodes are automatically marked with a label that is
+unwanted.
 
-For example, the control-plane node may be marked with both control-plane and worker roles
+For example, the control-plane node may be marked with both control-plane and
+worker roles
 
 ```
 node-role.kubernetes.io/control-plane=
@@ -19,10 +21,13 @@ node-role.kubernetes.io/worker=
 
 ### Explanation
 
-Each kubernetes node comes with a set of node labels enabled by default. The k8s snap defaults with both 
-control-plane and worker role labels, while the worker node only has a role label.
+Each kubernetes node comes with a set of node labels enabled by default. The k8s
+snap defaults with both control-plane and worker role labels, while the worker
+node only has a role label.
 
-For example, consider the following simply deployment with a worker and a control-plane
+For example, consider the following simply deployment with a worker and a
+control-plane.
+
 ```sh
 $ sudo k8s kubectl get nodes
 NAME            STATUS   ROLES                  AGE     VERSION
@@ -33,7 +38,8 @@ juju-c212aa-2   Ready    control-plane,worker   3h44m   v1.32.0
 
 ### Solution
 
-Adjusting the roles (or any label) be executed by adjusting the applications' configuration of `node-labels`
+Adjusting the roles (or any label) be executed by adjusting the application's
+configuration of `node-labels`.
 
 To add another node label:
 
