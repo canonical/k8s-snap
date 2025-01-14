@@ -20,26 +20,28 @@ For more information on channels see the [explanation page].
 
 ## Sequential upgrades
 
-Upgrades must always be done sequentially. It is not recommended to upgrade by
+Upgrades of control plane nodes
+must always be done sequentially. It is not recommended to upgrade by
 more than one minor version at a time (for example upgrading from 1.31 to 1.33
 is not supported). Changing between minor releases (for example upgrading
 from 1.31 to 1.32) is also only recommended when you are on the
 latest patch of the current version (for example 1.31.x where x is the latest
 available patch in 1.31 channel). This is in line with upstream Kubernetes
-[version skew policy].
+[version skew policy]. For worker nodes, upgrading
+with a skew of up to three versions is acceptable.
 
 ## Upgrade approach
 
 It is important to upgrade your cluster with the same method you used to install
-the cluster. If you have deployed {{product}} using Juju, you must refresh
+the cluster. If you have deployed {{product}} using Juju, you should refresh
 using Juju controller commands. Similarly with snap and CAPI deployments,
-the original install method must be used.
+the original install method should be used.
 
 
 ## Snap upgrades
 
 Updates for the {{product}} snap are checked several times a day with the
-default [snap refresh fucntionality]. Patch upgrades will be applied
+default [snap refresh functionality]. Patch upgrades will be applied
 automatically unless they are manually stopped. Changes applied during the
 latest refresh to the snap can be viewed using the command `snap change`.
 Minor version upgrades need manual intervention and must be carried out on all
@@ -47,24 +49,27 @@ snaps individually. The length of time taken to upgrade the snap will depend
 largely on your local setup, the services running on the cluster, resources
 available to the cluster,the intensity of the workloads etc.
 
-If you would like to manage the upgrading of your cluster using the snap please
+If you would like to manage the upgrading of your cluster using the snap, please
 see the how-to guide on [managing cluster upgrades].
 
 ## Charm upgrades
 
 Upgrading the charm must be done manually for both patch and minor upgrades on
-a per model basis. To ensure that the revision of the charm always matches the
-revision of the snap it orchestrates, the `refresh` function of the snap has
-been frozen and all upgrades must be done through Juju. The `juju refresh`
-command instructs the Juju controller
+a per model basis. To ensure that the revision of the charm matches the
+revision of the snap it orchestrates, the automatic `refresh` function of the
+snap has been placed on hold in this deployment method. The snap can still be
+manually updated by running a [targeted snap refresh], but all upgrades should
+be done through Juju. The `juju refresh`command instructs the Juju controller
 to use the new charm revision within the current charm channel or to upgrade to
 the next channel based on the parameters provided. The charm code
 is simultaneously replaced on each unit. Then, the k8s snap is updated
 unit-by-unit. This is in order to maintain a highly-available kube-api-server
 endpoint, starting with the Juju leader unit for the application. To ensure a
-smooth upgrade process, the pre-upgrade-check should be run before
-all upgrades. This ensures that you cluster is in a stable and ready state for
-an upgrade.
+smooth upgrade process, the mandatory pre-upgrade-check is run before
+all upgrades. In addition to verifying the cluster's health,
+the pre-upgrade-check also creates the upgrade stack which
+will be used after the charm is upgraded. The upgrade stack is
+used to orchestrate the upgrade process across the k8s or k8s-worker units.
 
 If you would like to upgrade your cluster using Juju please see the how-to guide
 on [upgrading your cluster by a minor version].
@@ -78,11 +83,12 @@ three or more nodes independent of the deployment method. Clusters without high
 availability must be extra vigilant on backing up cluster data before starting
 the upgrade process and also must be aware of potential service disruptions
 during cluster upgades. It is also important to understand that Kubernetes will
-only upgrade and if necessary migrate, components relating specifically to
-elements of Kubernetes installed and configured as part of Kubernetes. This may
+only upgrade and if necessary migrate, components of Kubernetes installed and
+configured as part of Kubernetes. This may
 not include any customized configuration of Kubernetes, or no-build-in
 generated objects (e.g. storage classes) or deployments which rely on
-deprecated APIs.
+deprecated APIs. To find out more about high availability in a {{product}}
+cluster see the [high availabililty explanation page].
 
 ## Updating a cluster best practices
 
@@ -104,6 +110,8 @@ to completion before upgrading the next node.
 [release cycle]: https://kubernetes.io/releases/release/
 [managing cluster upgrades]: ../howto/upgrades
 [upgrading your cluster by a minor version]: ../../charm/howto/upgrade-minor/
-[snap refresh fucntionality]:https://snapcraft.io/docs/refresh-awareness
+[snap refresh functionality]:https://snapcraft.io/docs/refresh-awareness
 [version skew policy]: https://kubernetes.io/releases/version-skew-policy/
 [explanation page]: channels.md
+[high availabililty explanation page]: high-availability.md
+[targeted snap refresh]:https://snapcraft.io/docs/managing-updates#p-32248-if-snaps-are-specified
