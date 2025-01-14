@@ -25,16 +25,20 @@ Each kubernetes node comes with a set of node labels enabled by default. The k8s
 snap defaults with both control-plane and worker role labels, while the worker
 node only has a role label.
 
-For example, consider the following simply deployment with a worker and a
+For example, consider the following simple deployment with a worker and a
 control-plane.
 
 ```sh
-$ sudo k8s kubectl get nodes
+sudo k8s kubectl get nodes
+```
+
+Outputs
+
+```
 NAME            STATUS   ROLES                  AGE     VERSION
 juju-c212aa-1   Ready    worker                 3h37m   v1.32.0
 juju-c212aa-2   Ready    control-plane,worker   3h44m   v1.32.0
 ```
-
 
 ### Solution
 
