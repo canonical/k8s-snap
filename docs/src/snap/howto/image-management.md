@@ -22,18 +22,8 @@ ctr is an unsupported debug and administrative client for interacting with the c
 
 Since {{product}} needs containerd to operate, we bundle the containerd binary
 at `/snap/k8s/current/bin/ctr`. Although the containerd binary is in the snap
-installation folder, the location of the containerd socket will depend on the
-confinement mode of the snap.
-
-| Description                | Strict path                                             | Classic path                      |
-|----------------------------|----------------------------------------------------|------------------------------|
-| Config Directory           | /var/snap/k8s/common/etc/containerd                | /etc/containerd              |
-| Extra config directory     | /var/snap/k8s/common/etc/containerd/conf.d         | /etc/containerd/conf.d       |
-| Registry config directory  | /var/snap/k8s/common/etc/containerd/hosts.d        | /etc/containerd/hosts.d      |
-| Root directory             | /var/snap/k8s/common/var/lib/containerd            | /var/lib/containerd          |
-| Socket directory           | /var/snap/k8s/common/run/containerd                | /run/containerd              |
-| Socket path                | /var/snap/k8s/common/run/containerd/containerd.sock| /run/containerd/containerd.sock |
-| State directory            | /var/snap/k8s/common/run/containerd                | /run/containerd              |
+installation folder, the containerd socket is located at
+`/run/containerd/containerd.sock`.
 
 ## Listing all images
 
