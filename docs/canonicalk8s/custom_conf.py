@@ -86,7 +86,10 @@ html_context = {
 
     # Change to the Mattermost channel you want to link to
     # (use an empty value if you don't want to link)
-    'matrix': 'https://matrix.to/#/#k8s:ubuntu.com',
+    # 'matrix': 'https://matrix.to/#/#k8s:ubuntu.com',
+
+    # Adding slack channel
+    'slack': 'https://kubernetes.slack.com/archives/CG1V2CAMB',
 
     # Change to the GitHub URL for your project
     'github_url': 'https://github.com/canonical/k8s-snap',

@@ -15,7 +15,6 @@ more experienced users. There are a number of ways to get in touch:
 
 - Using the [Kubernetes slack][slack]: find us in the #canonical-kubernetes
   channel
-- In the public [Matrix room][matrix]
 - On the [Ubuntu Discourse][discourse]
 
 For more formal support, please see the support options available to you on the
@@ -65,7 +64,6 @@ the guidelines for participation.
 <!-- LINKS -->
 
 [slack]: http://slack.kubernetes.io/
-[matrix]: https://matrix.to/#/#k8s:ubuntu.com
 [Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
 [bugs]: https://github.com/canonical/k8s-snap/issues
 [Contributing guide]: /src/snap/howto/contribute.md
