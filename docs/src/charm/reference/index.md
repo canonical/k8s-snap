@@ -16,7 +16,7 @@ charms
 proxy
 architecture
 Community <community>
-commands
+actions
 ```
 
 ## Other documentation types

@@ -1,4 +1,4 @@
-# Charm command reference
+# Charm action reference
 
 The up-to-date list of commands are available on Charmhub:
 
