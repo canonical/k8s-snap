@@ -4,7 +4,7 @@
 instead of the bundled dqlite datastore.
 This guide walks you through configuring an external etcd datastore.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 

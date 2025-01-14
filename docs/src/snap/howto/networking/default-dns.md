@@ -5,7 +5,7 @@ essential for internal cluster communication. When enabled, the DNS facilitates
 service discovery by assigning each service a DNS name. When disabled, you can
 integrate a custom DNS solution into your cluster.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 

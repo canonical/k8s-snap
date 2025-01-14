@@ -5,7 +5,7 @@ solutions like Amazon EBS. This guide provides steps to configure IAM policies,
 deploy the cloud controller manager, and set up the necessary drivers for you
 to take advantage of cloud storage solutions in the context of Kubernetes.
 
-## What you'll need
+## Prerequisites
 
 This guide is for AWS and assumes the following:
 

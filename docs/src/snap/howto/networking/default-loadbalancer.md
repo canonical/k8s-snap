@@ -4,7 +4,7 @@
 essential service for all deployments, it is not enabled by default. This guide
 explains how to configure and enable the load-balancer.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 

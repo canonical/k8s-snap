@@ -4,7 +4,7 @@
 enabled, it tells your cluster how external HTTP and HTTPS traffic should be
 routed to its services.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 
@@ -41,7 +41,7 @@ sudo k8s help enable
 Discover your configuration options by running:
 
 ```
-sudo k8s get ingress 
+sudo k8s get ingress
 ```
 
 You should see three options:

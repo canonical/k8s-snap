@@ -5,7 +5,7 @@ called Cilium. The network component allows cluster administrators to leverage
 software-defined networking to automatically scale and secure network policies
 across their cluster.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 
@@ -62,7 +62,7 @@ sudo k8s kubectl exec -it cilium-97vcw -n kube-system -c cilium-agent \
   -- cilium status
 ```
 
-You should see a wide range of metrics and configuration values for your 
+You should see a wide range of metrics and configuration values for your
 cluster.
 
 ## Disable Network
@@ -70,13 +70,13 @@ cluster.
 You can `disable` the built-in network:
 
 ``` {warning}
-   If you have an active cluster, disabling Network may impact external 
+   If you have an active cluster, disabling Network may impact external
    access to services within your cluster.
-   Ensure that you have alternative configurations in place before 
+   Ensure that you have alternative configurations in place before
    disabling Network.
 ```
 
-If your underlying network is cilium you will have to run 
+If your underlying network is cilium you will have to run
 `sudo k8s disable gateway` before disabling network.
 
 ```
