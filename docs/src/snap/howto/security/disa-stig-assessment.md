@@ -10,7 +10,7 @@ potential security concerns for a Kubernetes deployment.
 {{product}} aligns with many DISA STIG compliance recommendations by default.
 However, additional hardening steps are required to fully meet the standard.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 

@@ -14,7 +14,7 @@ needs. This guide covers:
   * Manually configuring and auditing each CIS hardening recommendation
 
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 

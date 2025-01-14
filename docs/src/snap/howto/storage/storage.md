@@ -4,7 +4,7 @@
 cluster, especially for single-node support. This guide walks you through
 enabling and configuring this feature.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 

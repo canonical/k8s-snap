@@ -3,7 +3,7 @@
 {{product}} is packaged as a [snap], available from the
 snap store for all supported platforms.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 

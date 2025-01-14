@@ -10,7 +10,7 @@ networking components. Finally, the steps needed to test every EPA feature:
 HugePages, Real-time Kernel, CPU Pinning / NUMA Topology Awareness and
 SR-IOV/DPDK.
 
-## What you'll need
+## Prerequisites
 
 - An Ubuntu Pro subscription (required for real-time kernel)
 - Ubuntu instances **or** a MAAS environment to run {{product}} on

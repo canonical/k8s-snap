@@ -3,7 +3,7 @@
 {{product}} is packaged as a [charm], available from Charmhub for all
 supported platforms.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 
