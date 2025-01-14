@@ -14,6 +14,10 @@ This guide assumes the following:
   (see How-to [Install {{product}} from a snap][snap-install-howto]).
 - You have a bootstrapped cluster
 
+```{important}
+ctr is an unsupported debug and administrative client for interacting with the containerd daemon. Because it is unsupported, the commands, options, and operations are not guaranteed to be backward compatible or stable from release to release of the containerd project. [Source]
+```
+
 ## Paths and confinement modes
 
 Since {{product}} needs containerd to operate, we bundle the containerd binary
@@ -78,3 +82,4 @@ docker.io/library/hello-world:latest
 <!-- LINKS -->
 
 [snap-install-howto]: ./install/snap
+[Source]: https://manpages.debian.org/testing/containerd/ctr.8.en.html
