@@ -18,7 +18,7 @@ This guide assumes the following:
 ctr is an unsupported debug and administrative client for interacting with the containerd daemon. Because it is unsupported, the commands, options, and operations are not guaranteed to be backward compatible or stable from release to release of the containerd project. [Source]
 ```
 
-## Paths and confinement modes
+## Paths
 
 Since {{product}} needs containerd to operate, we bundle the containerd binary
 at `/snap/k8s/current/bin/ctr`. Although the containerd binary is in the snap
