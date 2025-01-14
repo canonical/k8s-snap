@@ -3,7 +3,7 @@
 {{ product }} can be installed in a variety of ways, depending on your needs and
 preferences. All installation methods provide a fully functional cluster with
 upstream Kubernetes and additional built-in features such as networking, ingress
-and storage. Your choice may be influenced by the cluster size, the 
+and storage. Your choice may be influenced by the cluster size, the
 environment you are deploying to, and the life cycle management tools that you
 prefer to use. The following sections describe the different installation
 methods:
@@ -43,7 +43,7 @@ guide.
 ## Cluster API (CAPI)
 
 [Cluster API] is a Kubernetes sub-project that provides declarative APIs for
-creating, configuring, and managing multiple Kubernetes clusters. 
+creating, configuring, and managing multiple Kubernetes clusters.
 
 If you plan to deploy and operate a large deployment with multiple
 Kubernetes clusters, you can use the {{ product }}'s CAPI providers. Follow the
@@ -63,6 +63,6 @@ the help of the CAPI providers.
 [worker charm]: https://charmhub.io/k8s-worker
 [getting-started guide]: /src/snap/tutorial/getting-started.md
 [Terraform's Juju provider]: https://github.com/juju/terraform-provider-juju/
-[installing-with-terraform]: /src/charm/howto/install-terraform.md
+[installing-with-terraform]: /src/charm/howto/install/install-terraform
 [CAPI guide]: /src/capi/tutorial/getting-started.md
 [Cluster API]: https://cluster-api.sigs.k8s.io/
