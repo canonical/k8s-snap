@@ -11,7 +11,7 @@ Configuration options for the network feature.
 **Type:** `bool`<br>
 
 Determines if the feature should be enabled.
-If omitted defaults to `true`
+If omitted defaults to `false`
 
 ### cluster-config.dns
 **Type:** `object`<br>
@@ -22,7 +22,7 @@ Configuration options for the dns feature.
 **Type:** `bool`<br>
 
 Determines if the feature should be enabled.
-If omitted defaults to `true`
+If omitted defaults to `false`
 
 ### cluster-config.dns.cluster-domain
 **Type:** `string`<br>
@@ -170,7 +170,7 @@ Configuration options for the gateway feature.
 **Type:** `bool`<br>
 
 Determines if the feature should be enabled.
-If omitted defaults to `true`.
+If omitted defaults to `false`.
 
 ### cluster-config.metrics-server
 **Type:** `object`<br>
