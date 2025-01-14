@@ -24,3 +24,6 @@ juju deploy k8s --channel=latest/stable \
     --base "ubuntu@22.04" \
     --constraints "cores=2 mem=8G root-disk=16G virt-type=virtual-machine"
 <!-- juju vm end -->
+<!-- juju controlplane custom config start -->
+juju deploy k8s --config ./k8s-config.yaml --channel=1.32/stable
+<!-- juju controlplane custom config end -->

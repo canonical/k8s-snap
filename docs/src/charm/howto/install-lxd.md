@@ -1,10 +1,8 @@
 # Installing to localhost/LXD
 
 The main [install instructions][install] cover most situations for installing
-{{product}} using a charm. However, there are a few scenarios that require
-additional steps. These include: want to install {{product}} from a charm.
-There are a couple of scenarios which require some extra steps however. These
-are:
+{{product}} using a charm. However, there are two scenarios which
+require some extra steps. These are:
 
 - deploying to the 'localhost' cloud
 - deploying to a container on a machine (i.e. when installing a bundle or using
