@@ -36,10 +36,16 @@ k8s:
   dns-cluster-domain: "cluster.local"
   dns-upstream-nameservers: "8.8.8.8 8.8.4.4"
 
-  # Add/Remove custom node labels
-  # Using <key>=<value> one can ensure the label is added to all the nodes of this application
-  # Using <key>=-       one can ensure the label is removed from all the nodes of this application
-  node-labels: "environment=production zone=us-east-1 node-role.kubernetes.io/worker=-"
+  # Add & Remove node-labels from the snap's default labels
+  #   The k8s snap applies its default labels, these labels define what
+  #   are added or removed from those defaults
+  # <key>=<value> ensures the label is added to all the nodes of this application
+  # <key>=-       ensures the label is removed from all the nodes of this application
+  # See charm-configuration notes for more information regarding node labelling
+  node-labels: >-
+    environment=production
+    node-role.kubernetes.io/worker=-
+    zone=us-east-1
 
   # Configure local storage
   local-storage-enabled: true
