@@ -89,8 +89,8 @@ Use `juju status` to watch these units approach the active/idle state.
 <!-- LINKS -->
 
 [Installing]:    ./index
-[channels]:      ../explanation/channels
+[channels]:      ../../explanation/channels
 [credentials]:   https://juju.is/docs/juju/credentials
 [juju]:          https://juju.is/docs/juju/install-juju
 [charm]:         https://juju.is/docs/juju/charmed-operator
-[localhost]:     ../howto/install-lxd
+[localhost]:     install-lxd
