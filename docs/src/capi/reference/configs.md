@@ -245,6 +245,143 @@ spec:
         enableDefaultNetwork: true
 ```
 
+
+### `snapstoreProxyScheme`
+
+**Type:** `string`
+
+**Required:** no
+
+The snap store proxy domain's scheme, e.g. "http" or "https" without "://".
+Defaults to `http`.
+
+**Example Usage:**
+
+```yaml
+spec:
+    snapstoreProxyScheme: "https"
+```
+
+### `snapstoreProxyDomain`
+
+**Type:** `string`
+
+**Required:** no
+
+The snap store proxy domain.
+
+**Example Usage:**
+
+```yaml
+spec:
+    snapstoreProxyDomain: "my.proxy.domain"
+```
+
+### `snapstoreProxyID`
+
+**Type:** `string`
+
+**Required:** no
+
+The snap store proxy ID.
+
+**Example Usage:**
+
+```yaml
+spec:
+    snapstoreProxyID: "my-proxy-id"
+```
+
+### `httpsProxy`
+
+**Type:** `string`
+
+**Required:** no
+
+The `HTTPS_PROXY` configuration.
+
+**Example Usage:**
+
+```yaml
+spec:
+    httpsProxy: "https://my.proxy.domain:8080"
+```
+
+### `httpProxy`
+
+**Type:** `string`
+
+**Required:** no
+
+The `HTTP_PROXY` configuration.
+
+**Example Usage:**
+
+```yaml
+spec:
+    httpProxy: "http://my.proxy.domain:8080"
+```
+
+### `noProxy`
+
+**Type:** `string`
+
+**Required:** no
+
+The `NO_PROXY` configuration.
+
+**Example Usage:**
+
+```yaml
+spec:
+    noProxy: "localhost,127.0.0.1"
+```
+
+### `channel`
+
+**Type:** `string`
+
+**Required:** no
+
+The channel to use for the snap install.
+
+**Example Usage:**
+
+```yaml
+spec:
+    channel: "1.32-classic/candidate"
+```
+
+### `revision`
+
+**Type:** `string`
+
+**Required:** no
+
+The revision to use for the snap install.
+
+**Example Usage:**
+
+```yaml
+spec:
+    channel: "1234"
+```
+
+### `localPath`
+
+**Type:** `string`
+
+**Required:** no
+
+The local path to use for the snap install.
+
+**Example Usage:**
+
+```yaml
+spec:
+    localPath: "/path/to/custom/k8s.snap"
+```
+
 ### `nodeName`
 
 **Type:** `string`
