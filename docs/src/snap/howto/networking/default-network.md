@@ -34,7 +34,7 @@ sudo k8s enable network
 For more information on the command, execute:
 
 ```
-sudo k8s enable network --help
+sudo k8s enable --help
 ```
 
 ## Configure Network
@@ -42,7 +42,7 @@ sudo k8s enable network --help
 It is not possible to reconfigure the network on a running cluster as this will
 lead to unreachable pods/services and nodes. Any configuration options the CNI
 needs to be aware of (e.g. pod and service CIDR, IPv6 support) are set during
-the cluster bootstrap (“k8s bootstrap” command).
+the cluster bootstrap (`k8s bootstrap` command).
 
 ### Check Network details
 
@@ -76,7 +76,7 @@ You can `disable` the built-in network:
    disabling Network.
 ```
 
-If your underlying network is cilium you will have to run
+If your underlying network is Cilium you will have to run
 `sudo k8s disable gateway` before disabling network.
 
 ```
@@ -86,7 +86,7 @@ sudo k8s disable network
 For more information on this command, run:
 
 ```
-sudo k8s disable network --help
+sudo k8s disable --help
 ```
 
 <!-- LINKS -->
