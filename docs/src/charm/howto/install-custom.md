@@ -3,7 +3,7 @@
 This guide will walk you through deploying {{product}} using Juju with custom
 configuration options.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 
