@@ -16,4 +16,5 @@ Install from a charm <charm.md>
 Install in LXD <install-lxd.md>
 Install with Terraform <install-terraform.md>
 Install with a custom configuration <install-custom.md>
+Install with custom worker configuration <custom-workers.md>
 ```
