@@ -2,8 +2,8 @@
 
 {{product}} uses the containerd runtime to manage images, which in turn uses
 runc to run containers. Some users may need to use containerd's capabilities
-directly, for example if they do not have access to our default image registry,
-they may wish import images manually.
+directly. For example, if they do not have access to our default image
+registry, they may wish import images manually.
 
 ## What you'll need
 
