@@ -88,7 +88,7 @@ configured as part of Kubernetes. This may
 not include any customized configuration of Kubernetes, or no-build-in
 generated objects (e.g. storage classes) or deployments which rely on
 deprecated APIs. To find out more about high availability in a {{product}}
-cluster see the [high availabililty explanation page].
+cluster see the [high availability explanation page].
 
 ## Updating a cluster best practices
 
@@ -113,5 +113,5 @@ to completion before upgrading the next node.
 [snap refresh functionality]:https://snapcraft.io/docs/refresh-awareness
 [version skew policy]: https://kubernetes.io/releases/version-skew-policy/
 [explanation page]: channels.md
-[high availabililty explanation page]: high-availability.md
+[high availability explanation page]: high-availability.md
 [targeted snap refresh]:https://snapcraft.io/docs/managing-updates#p-32248-if-snaps-are-specified
