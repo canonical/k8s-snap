@@ -6,6 +6,7 @@ configuration options.
 ## What you'll need
 
 This guide assumes the following:
+
 -  You have Juju installed on your system with your cloud credentials
 configured and a controller bootstrapped
 - A Juju model is created and selected
@@ -42,6 +43,7 @@ k8s:
   local-storage-enabled: true
   local-storage-reclaim-policy: "Retain"
 ```
+
 You can find a full list of configuration options in the
 [charm configurations] page.
 
@@ -56,8 +58,9 @@ align with your requirements.
 
 Deploy the `k8s` charm with your custom configuration:
 
-```bash
-juju deploy k8s --config ./k8s-config.yaml
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- juju controlplane custom config start -->
+:end-before: <!-- juju controlplane custom config end -->
 ```
 
 ## Bootstrap the cluster
