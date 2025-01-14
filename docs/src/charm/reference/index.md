@@ -19,7 +19,7 @@ Ports and Services <ports-and-services>
 charm-configurations
 troubleshooting
 Community <community>
-
+actions
 ```
 
 ## Other documentation types
