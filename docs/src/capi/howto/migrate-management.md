@@ -3,7 +3,7 @@
 Management cluster migration is a really powerful operation in the cluster’s 
 lifecycle as it allows admins to move the management cluster in a more 
 reliable substrate or perform maintenance tasks without disruptions.
-Rhis guide will walk you through the migration of a management cluster.
+This guide will walk you through the migration of a management cluster.
 
 ## Prerequisites
 
