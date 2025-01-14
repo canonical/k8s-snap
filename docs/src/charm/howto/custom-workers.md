@@ -4,7 +4,7 @@ This guide will walk you through how to deploy multiple `k8s-worker`
 applications with different configurations, to create node groups with specific
 capabilities or requirements.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 - A working Kubernetes cluster deployed with the `k8s` charm
@@ -60,4 +60,3 @@ juju status --watch 1s
 
 <!-- LINKS -->
 [charm configuration]: https://charmhub.io/k8s/configurations
-

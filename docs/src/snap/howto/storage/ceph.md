@@ -9,7 +9,7 @@ volume. RBD stands for RADOS Block Device and it is the abstraction used by Ceph
 to provide reliable and distributed storage. This how-to guide is adapted from
 [block-devices-and-kubernetes].
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 

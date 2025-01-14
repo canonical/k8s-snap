@@ -6,7 +6,7 @@ storage solution for {{product}}.
 The ``ceph-csi`` plugin automatically provisions and attaches the Ceph volumes
 to Kubernetes workloads.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes that you have an existing {{product}} cluster.
 See the [charm installation] guide for more details.
