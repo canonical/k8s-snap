@@ -11,7 +11,7 @@ other low-level tasks, allowing users to define their desired cluster
 configuration using simple YAML manifests. This makes it easier to create and
 manage clusters in a repeatable and consistent manner, regardless of the
 underlying infrastructure. In this way a wide range of infrastructure providers
-has been made available, including but not limited to Amazon Web Services
+has been made available, including but not limited to MAAS, Amazon Web Services
 (AWS), Microsoft Azure, Google Cloud Platform (GCP), and OpenStack.
 
 CAPI also abstracts the provisioning and management of Kubernetes clusters
@@ -29,8 +29,7 @@ With {{product}} CAPI you can:
     - rolling upgrades for HA clusters and worker nodes
     - in-place upgrades for non-HA control planes and worker nodes
 
-Please refer to the “Tutorial” section for concrete examples on CAPI deployments:
-
+Please refer to the [“Tutorial” section] for concrete examples on CAPI deployments.
 
 ## CAPI architecture
 
@@ -64,7 +63,9 @@ clusters it manages, such as a public cloud or an on-premises data centre. It
 serves as a centralised location for managing the configuration, policies, and
 security of multiple managed clusters. By leveraging the management cluster,
 users can easily create and manage a fleet of Kubernetes clusters in a
-consistent and repeatable manner.
+consistent and repeatable manner. Although it's also possible to maintain the
+CAPI providers in the workload cluster (or any secondary cluster). 
+Read more about this in the [upstream docs around pivoting].
 
 The {{product}} team maintains the two providers required for integrating with CAPI:
 
@@ -84,7 +85,8 @@ The {{product}} team maintains the two providers required for integrating with C
   underlying Kubernetes distribution. Its main tasks are to update the machine
   state and to generate the kubeconfig file used for accessing the cluster. The
   kubeconfig file is stored as a secret which the user can then retrieve using
-  the `clusterctl` command.
+  the `clusterctl` command. This component also handles the upgrade process for
+  the control plane nodes.
 
 ```{figure} ../../assets/capi-ck8s.svg
    :width: 100%
@@ -92,3 +94,7 @@ The {{product}} team maintains the two providers required for integrating with C
 
    Deployment of components
 ```
+
+<!-- LINKS -->
+[“Tutorial” section]: ./tutorial
+[Pivot section]: https://cluster-api.sigs.k8s.io/clusterctl/commands/move#pivot
