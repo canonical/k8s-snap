@@ -25,6 +25,7 @@ restore-quorum
 two-node-ha
 Managing upgrades <upgrades>
 Set up Enhanced Platform Awareness <epa>
+Manage images <image-management.md>
 contribute
 Get support <support>
 ```
