@@ -40,7 +40,18 @@ namespace.
 You can view a list of all images {{product}} has registered with containerd:
 
 ```
-root@k8s:~# sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --namespace k8s.io images list
+sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --namespace k8s.io images list -q
+```
+
+You should see:
+
+```
+ghcr.io/canonical/cilium-operator-generic:1.16.3-ck0
+ghcr.io/canonical/cilium-operator-generic@sha256:e02dcce1e175312bf4dc2da6a97df49456a8eef6b2a1a9f2d68d4342dc0d3664
+ghcr.io/canonical/k8s-snap/pause:3.10
+ghcr.io/canonical/k8s-snap/pause@sha256:ee6521f290b2168b6e0935a181d4cff9be1ac3f505666ef0e3c98fae8199917a
+sha256:27e1954b8e6cbf80ddccbb54f1b0cb78111c3cafe28d742044ecb6cbb22f9d1c
+sha256:873ed75102791e5b0b8a7fcd41606c92fcec98d56d05ead4ac5131650004c136
 ```
 
 
@@ -55,10 +66,13 @@ sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --names
 Verify it was pulled:
 
 ```
-root@k8s:~# sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --namespace k8s.io images list | grep hello
+sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --namespace k8s.io images list -q | grep hello
+```
 
+You should see:
+
+```
 docker.io/library/hello-world:latest
-...
 ```
 
 <!-- LINKS -->
