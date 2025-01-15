@@ -41,7 +41,7 @@ def get_ingress_service_node_port(p):
 def get_external_service_ip(instance: harness.Instance, service_namespace) -> str:
     try_count = 0
     ingress_ip = None
-    while ingress_ip is None and try_count < 20:
+    while not ingress_ip and try_count < 60:
         try_count += 1
         for svcns in service_namespace:
             svc = svcns["service"]
@@ -64,7 +64,7 @@ def get_external_service_ip(instance: harness.Instance, service_namespace) -> st
                     .stdout.decode()
                     .replace("'", "")
                 )
-                if ingress_ip is not None:
+                if ingress_ip:
                     return ingress_ip
             except subprocess.CalledProcessError:
                 ingress_ip = None
