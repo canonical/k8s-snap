@@ -75,8 +75,8 @@ these steps:
 1. Clone the `k8s-snap-api` repository from
    https://github.com/canonical/k8s-snap-api
 
-2. Add a module replace directive in your src/k8s/go.mod file to point to your
-   local API copy. For example:
+2. Add a module replace directive in your `src/k8s/go.mod` file to point to
+   your local API copy. For example:
 
 ```
 module github.com/canonical/k8s
@@ -92,9 +92,9 @@ require (
 
 3. Make your API changes in the local copy
 
-4. Create a separate PR in the k8s-snap-api repository with your API changes
+4. Create a separate PR in the `k8s-snap-api` repository with your API changes
 
-5. Reference your k8s-snap-api PR in your main k8s-snap PR
+5. Reference your `k8s-snap-api` PR in your main `k8s-snap` PR
 
 ### Contribute changes
 
