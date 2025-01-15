@@ -112,6 +112,12 @@
     </div>
     {% endif %}
 
+    {% if slack %}
+    <div class="ask-slack">
+      <a class="muted-link" href="{{ slack }}">Ask a question on Slack</a>
+    </div>
+    {% endif %}
+
     {% if github_url and github_version and github_folder %}
 
     {% if github_issues %}
