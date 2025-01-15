@@ -1,11 +1,11 @@
-# Providers Configurations
+# Providers configurations
 
 {{product}} bootstrap and control plane providers (CABPCK and CACPCK) 
 can be configured to aid the cluster admin in reaching the desired 
 state for the workload cluster. In this section we will go through 
 different configurations that each one of these providers expose.
 
-## Common Configurations
+## Common configurations
 
 The following configurations are available for both bootstrap and control 
 plane providers.
@@ -27,7 +27,7 @@ To install a specific track or risk level, see
 [Install custom {{product}} on machines] guide.
 ```
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -54,7 +54,7 @@ existing files.
 | `encoding`    | `string` | Encoding of the file to create. One of `base64`, `gzip` and `gzip+base64`         | `""`    |
 | `owner`       | `string` | Owner of the file to create, e.g. "root:root"                                     | `""`    |
 
-**Example Usage:**
+**Example usage:**
 
 - Using `content`:
 
@@ -102,7 +102,7 @@ nodes. The structure of the `bootstrapConfig` is defined in the
 | `content`     | `string` | Content of the file. If this is set, `contentFrom` is ignored | `""`    |
 | `contentFrom` | `struct` | A reference to a secret containing the content of the file    | `nil`   |
 
-**Example Usage:**
+**Example usage:**
 
 - Using `content`:
 
@@ -144,7 +144,7 @@ spec:
 `bootCommands` specifies extra commands to run in cloud-init early in the 
 boot process.
 
-**Example Usage:** 
+**Example usage:** 
 
 ```yaml
 spec:
@@ -167,7 +167,7 @@ k8s-snap setup runs.
 on machines. See [Install custom {{product}} on machines] guide for more info.
 ```
 
-**Example Usage:** 
+**Example usage:** 
 
 ```yaml
 spec:
@@ -185,7 +185,7 @@ spec:
 `postRunCommands` specifies extra commands to run in cloud-init after 
 k8s-snap setup runs.
 
-**Example Usage:** 
+**Example usage:** 
 
 ```yaml
 spec:
@@ -206,7 +206,7 @@ k8s-snap on the machine. The user is expected to install k8s-snap
 manually with [`preRunCommands`](#preRunCommands), or provide an image 
 with k8s-snap pre-installed.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -232,7 +232,7 @@ spec:
 | `enableDefaultNetwork`       | `bool`              | Specifies whether to enable the default CNI.                  | `true`  |
 
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -255,7 +255,7 @@ spec:
 The snap store proxy domain's scheme, e.g. "http" or "https" without "://".
 Defaults to `http`.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -270,7 +270,7 @@ spec:
 
 The snap store proxy domain.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -285,7 +285,7 @@ spec:
 
 The snap store proxy ID.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -300,7 +300,7 @@ spec:
 
 The `HTTPS_PROXY` configuration.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -315,7 +315,7 @@ spec:
 
 The `HTTP_PROXY` configuration.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -330,7 +330,7 @@ spec:
 
 The `NO_PROXY` configuration.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -345,7 +345,7 @@ spec:
 
 The channel to use for the snap install.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -360,7 +360,7 @@ spec:
 
 The revision to use for the snap install.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -375,7 +375,7 @@ spec:
 
 The local path to use for the snap install.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -393,7 +393,7 @@ for clouds where the cloud-provider has specific pre-requisites about the
 node names. It is typically set in Jinja template form, e.g. 
 `"{{ ds.meta_data.local_hostname }}"`.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -414,7 +414,7 @@ provider.
 `replicas` is the number of desired machines. Defaults to 1. When stacked 
 etcd is used only odd numbers are permitted, as per [etcd best practice].
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
@@ -443,7 +443,7 @@ spec:
 | `microclusterPort`          | `int`                       | The port to use for MicroCluster. If unset, ":2380" (etcd peer) will be used.                  | `":2380"` |
 | `extraKubeAPIServerArgs`    | `map[string]string`         | Extra arguments to add to kube-apiserver.                                                      | `map[]`   |
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:

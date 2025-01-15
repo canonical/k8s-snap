@@ -7,7 +7,7 @@ pairs that can be used to reflect additional metadata for CAPI resources.
 
 The following annotations can be set on CAPI `Machine` resources.
 
-### In-place Upgrade
+### In-place upgrade
 
 | Name                                                      | Description                                          | Values                                                                                                    | Set by user |
 |-----------------------------------------------------------|------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|-------------|
@@ -17,14 +17,14 @@ The following annotations can be set on CAPI `Machine` resources.
 | `v1beta2.k8sd.io/in-place-upgrade-change-id`              | The ID of the currently running upgrade              | ID string                                                                                                 | no          |
 | `v1beta2.k8sd.io/in-place-upgrade-last-failed-attempt-at` | The time of the last failed upgrade attempt          | RFC1123Z timestamp                                                                                        | no          |
 
-### Refresh Certificates
+### Refresh certificates
 
 | Name                                          | Description                                                                    | Values                                                                                                                                                                                      | Set by user |
 |-----------------------------------------------|--------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
 | `v1beta2.k8sd.io/refresh-certificates`        | The requested duration (TTL) that the refreshed certificates should expire in. | Duration (TTL) string. A number followed by a unit e.g.: `1mo`, `1y`, `90d`<br>Allowed units: Any unit supported by `time.ParseDuration` as well as `y` (year), `mo` (month) and `d` (day). | yes         |
 | `v1beta2.k8sd.io/refresh-certificates-status` | The status of the certificate refresh request.                                 | in-progress\|done\|failed                                                                                                                                                                   | no          |
 
-### Certificates Expiry
+### Certificates expiry
 
 | Name                                           | Description                                    | Values            | Set by user |
 |------------------------------------------------|------------------------------------------------|-------------------|-------------|
