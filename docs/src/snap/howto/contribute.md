@@ -84,7 +84,7 @@ For faster reviews, ensure your PR:
 * Has a clear title and description of the changes
 * Links to related issues
 * Includes test cases if relevant
-* Contains only changes that are relevant to the PR's stated purpose
+* Contains only changes that are relevant to the PRs stated purpose
 * Wraps documentation lines at 80 characters
 
 Draft PRs are welcome for early feedback, please mark them as such.
