@@ -3,7 +3,7 @@
 An IPv6-only Kubernetes cluster operates exclusively using IPv6 addresses,
 without support for IPv4. This configuration is ideal for environments that
 are transitioning away from IPv4 or want to take full advantage of IPv6's
-expanded address space. This document, explains how to set up
+expanded address space. This document explains how to set up
 an IPv6-only cluster, including key configurations and necessary checks
 to ensure proper setup.
 
@@ -32,11 +32,14 @@ CIDRs for pods and services:
 sudo k8s bootstrap --timeout 10m --interactive
 ```
 
+When asked `Which features would you like to enable?`, press Enter to enable
+the default components.
+
 When prompted, set the pod and service CIDRs to IPv6 ranges. For example:
 
 ```
-Please set the Pod CIDR: [fd01::/108]
-Please set the Service CIDR: [fd98::/108]
+Please set the Pod CIDR: fd01::/108
+Please set the Service CIDR: fd98::/108
 ```
 
 Alternatively, these values can be configured in a bootstrap configuration file
