@@ -111,7 +111,7 @@ For faster reviews, ensure your PR:
 * Links to related issues
 * Includes test cases if relevant
 * Contains only changes that are relevant to the PRs stated purpose
-* Wraps documentation lines at 80 characters
+* Updates relevant documentation
 
 Draft PRs are welcome for early feedback, please mark them as such.
 
