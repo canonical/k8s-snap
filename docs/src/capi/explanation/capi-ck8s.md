@@ -56,23 +56,16 @@ resources necessary for creating and managing additional Kubernetes clusters.
 It is important to note that the management cluster is not intended to support
 any other workload, as the workloads are expected to run on the provisioned
 clusters. As a result, the provisioned clusters are referred to as workload
-clusters.
-
-Typically, the management cluster runs in a separate environment from the
-clusters it manages, such as a public cloud or an on-premises data centre. It
-serves as a centralised location for managing the configuration, policies, and
-security of multiple managed clusters. By leveraging the management cluster,
-users can easily create and manage a fleet of Kubernetes clusters in a
-consistent and repeatable manner. While CAPI providers mostly live on the 
-management cluster, it's also possible to maintain the them in the workload 
-cluster. Read more about this in the [upstream docs around pivoting].
+clusters. While CAPI providers mostly live on the management cluster, it's 
+also possible to maintain the them in the workload cluster. 
+Read more about this in the [upstream docs around pivoting].
 
 The {{product}} team maintains the two providers required for integrating with CAPI:
 
 - The Cluster API Bootstrap Provider {{product}} (**CABPCK**) responsible for
   provisioning the nodes in the cluster and preparing them to be joined to the
   Kubernetes control plane. When you use the CABPCK you define a Kubernetes
-  Cluster object that describes the desired state of the new cluster and
+  `Cluster` object that describes the desired state of the new cluster and
   includes the number and type of nodes in the cluster, as well as any
   additional configuration settings. The Bootstrap Provider then creates the
   necessary resources in the Kubernetes API server to bring the cluster up to
