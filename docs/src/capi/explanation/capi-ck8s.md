@@ -63,9 +63,9 @@ clusters it manages, such as a public cloud or an on-premises data centre. It
 serves as a centralised location for managing the configuration, policies, and
 security of multiple managed clusters. By leveraging the management cluster,
 users can easily create and manage a fleet of Kubernetes clusters in a
-consistent and repeatable manner. Although it's also possible to maintain the
-CAPI providers in the workload cluster (or any secondary cluster). 
-Read more about this in the [upstream docs around pivoting].
+consistent and repeatable manner. While CAPI providers mostly live on the 
+management cluster, it's also possible to maintain the them in the workload 
+cluster. Read more about this in the [upstream docs around pivoting].
 
 The {{product}} team maintains the two providers required for integrating with CAPI:
 
@@ -97,4 +97,4 @@ The {{product}} team maintains the two providers required for integrating with C
 
 <!-- LINKS -->
 [tutorial section]: ./tutorial
-[Pivot section]: https://cluster-api.sigs.k8s.io/clusterctl/commands/move#pivot
+[upstream docs around pivoting]: https://cluster-api.sigs.k8s.io/clusterctl/commands/move#pivot

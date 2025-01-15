@@ -21,7 +21,7 @@ details on the required setup.
 
 This guide will call the generated cluster spec manifest `cluster.yaml`.
 
-## Using config spec
+## Using the configuration specification
 
 {{product}} can be installed on machines using a specific `channel`, 
 `revision` or `localPath` by specifying the respective field in the spec 
@@ -31,7 +31,7 @@ of the machine.
 spec:
   ...
   spec:
-    channel: 1.32-classic/candidate
+    channel: 1.xx-classic/candidate
     # Or
     revision: 1234
     # Or
@@ -67,9 +67,9 @@ Now the new control plane nodes that are created using this manifest will have
 the `1.31-classic/candidate` {{product}} snap installed on them!
 
 ```{note}
-If you're only interested in installing a specific channel, revision, or 
-form the local path, it's recommended to 
-[use the config spec](#using-config-spec).
+[Use the configuration specification](#using-config-spec), 
+if you're only interested in installing a specific channel, revision, or 
+form the local path.
 ```
 
 <!-- LINKS -->

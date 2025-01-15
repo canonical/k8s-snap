@@ -2,7 +2,7 @@
 
 Management cluster migration allows admins to move the management cluster 
 to a different substrate or perform maintenance tasks without disruptions.
-This guide will walk you through the migration of a management cluster.
+This guide walks you through the migration of a management cluster.
 
 ## Prerequisites
 
@@ -13,8 +13,7 @@ installed and configured.
 
 Before migrating a cluster, ensure that both the target and source management 
 clusters run the same version of providers (infrastructure, bootstrap, 
-control plane). To do so, `clusterctl init` should be called against the 
-target cluster:
+control plane). Use `clusterctl init` to target the cluster::
 
 ```
 clusterctl get kubeconfig <provisioned-cluster> > targetconfig

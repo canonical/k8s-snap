@@ -5,12 +5,12 @@ providers of a management cluster.
 
 ## Prerequisites
 
-- A {{product}} CAPI management cluster with providers installed and 
-configured.
+- A {{product}} CAPI management cluster with installed and 
+configured providers.
 
 ## Check for updates
 
-With `clusterctl`, check if there are any new versions of the running 
+Check whether there are any new versions of your running 
 providers:
 
 ```

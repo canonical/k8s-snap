@@ -16,7 +16,7 @@ curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.3/
 sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 ```
 
-For more `clusterctl` versions head to the [upstream release page][clusterctl-release-page].
+For more `clusterctl` versions refer to the [upstream release page][clusterctl-release-page].
 
 ## Set up a management cluster
 
@@ -59,7 +59,7 @@ sudo mv clusterawsadm /usr/local/bin
 
 `clusterawsadm` helps you bootstrapping the AWS environment that CAPI will use.
 It will also create the necessary IAM roles for you. For more `clusterawsadm` 
-versions head to the [upstream release page][clusterawsadm-release-page].
+versions refer to the [upstream release page][clusterawsadm-release-page].
 
 Start by setting up environment variables defining the AWS account to use, if
 these are not already defined:
