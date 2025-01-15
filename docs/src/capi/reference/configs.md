@@ -31,7 +31,7 @@ To install a specific track or risk level, see
 
 ```yaml
 spec:
-    version: 1.30
+  version: 1.30
 ```
 
 ### `files`
@@ -60,29 +60,29 @@ existing files.
 
 ```yaml
 spec:
-    files:
-        path: "/path/to/my-file"
-        content: |
-            #!/bin/bash -xe
-            echo "hello from my-file
-        permissions: "0500"
-        owner: root:root
+  files:
+    path: "/path/to/my-file"
+    content: |
+      #!/bin/bash -xe
+      echo "hello from my-file
+    permissions: "0500"
+    owner: root:root
 ```
 
 - Using `contentFrom`:
 
 ```yaml
 spec:
-    files:
-        path: "/path/to/my-file"
-        contentFrom:
-            secret:
-                # Name of the secret in the CK8sBootstrapConfig's namespace to use.
-                name: my-secret
-                # Key is the key in the secret's data map for this value.
-                key: my-key
-        permissions: "0500"
-        owner: root:root
+  files:
+    path: "/path/to/my-file"
+    contentFrom:
+      secret:
+        # Name of the secret in the CK8sBootstrapConfig's namespace to use.
+        name: my-secret
+        # Key is the key in the secret's data map for this value.
+        key: my-key
+    permissions: "0500"
+    owner: root:root
 ```
 
 ### `bootstrapConfig`
@@ -108,31 +108,31 @@ nodes. The structure of the `bootstrapConfig` is defined in the
 
 ```yaml
 spec:
-    bootstrapConfig:
-        content: |
-            cluster-config:
-            network:
-                enabled: true
-            dns:
-                enabled: true
-                cluster-domain: cluster.local
-            ingress:
-                enabled: true
-            load-balancer:
-                enabled: true
+  bootstrapConfig:
+    content: |
+      cluster-config:
+      network:
+          enabled: true
+      dns:
+          enabled: true
+          cluster-domain: cluster.local
+      ingress:
+          enabled: true
+      load-balancer:
+          enabled: true
 ```
 
 - Using `contentFrom`:
 
 ```yaml
 spec:
-    bootstrapConfig:
-        contentFrom:
-            secret:
-                # Name of the secret in the CK8sBootstrapConfig's namespace to use.
-                name: my-secret
-                # Key is the key in the secret's data map for this value.
-                key: my-key
+  bootstrapConfig:
+    contentFrom:
+      secret:
+        # Name of the secret in the CK8sBootstrapConfig's namespace to use.
+        name: my-secret
+        # Key is the key in the secret's data map for this value.
+        key: my-key
 ```
 
 ### `bootCommands`
@@ -148,9 +148,9 @@ boot process.
 
 ```yaml
 spec:
-    bootCommands: 
-        - echo "first-command"
-        - echo "second-command"
+  bootCommands: 
+    - echo "first-command"
+    - echo "second-command"
 ```
 
 ### `preRunCommands`
@@ -171,9 +171,9 @@ on machines. See [Install custom {{product}} on machines] guide for more info.
 
 ```yaml
 spec:
-    preRunCommands:
-        - echo "first-command"
-        - echo "second-command"
+  preRunCommands:
+    - echo "first-command"
+    - echo "second-command"
 ```
 
 ### `postRunCommands`
@@ -189,9 +189,9 @@ k8s-snap setup runs.
 
 ```yaml
 spec:
-    postRunCommands:
-        - echo "first-command"
-        - echo "second-command"
+  postRunCommands:
+    - echo "first-command"
+    - echo "second-command"
 ```
 
 ### `airGapped`
@@ -210,7 +210,7 @@ with k8s-snap pre-installed.
 
 ```yaml
 spec:
-    airGapped: true
+  airGapped: true
 ```
 
 ### `initConfig`
@@ -236,13 +236,13 @@ spec:
 
 ```yaml
 spec:
-    initConfig:
-        annotations:
-            annotationKey: "annotationValue"
-        enableDefaultDNS: false
-        enableDefaultLocalStorage: true
-        enableDefaultMetricsServer: false
-        enableDefaultNetwork: true
+  initConfig:
+    annotations:
+      annotationKey: "annotationValue"
+    enableDefaultDNS: false
+    enableDefaultLocalStorage: true
+    enableDefaultMetricsServer: false
+    enableDefaultNetwork: true
 ```
 
 
@@ -259,7 +259,7 @@ Defaults to `http`.
 
 ```yaml
 spec:
-    snapstoreProxyScheme: "https"
+  snapstoreProxyScheme: "https"
 ```
 
 ### `snapstoreProxyDomain`
@@ -274,7 +274,7 @@ The snap store proxy domain.
 
 ```yaml
 spec:
-    snapstoreProxyDomain: "my.proxy.domain"
+  snapstoreProxyDomain: "my.proxy.domain"
 ```
 
 ### `snapstoreProxyID`
@@ -289,7 +289,7 @@ The snap store proxy ID.
 
 ```yaml
 spec:
-    snapstoreProxyID: "my-proxy-id"
+  snapstoreProxyID: "my-proxy-id"
 ```
 
 ### `httpsProxy`
@@ -304,7 +304,7 @@ The `HTTPS_PROXY` configuration.
 
 ```yaml
 spec:
-    httpsProxy: "https://my.proxy.domain:8080"
+  httpsProxy: "https://my.proxy.domain:8080"
 ```
 
 ### `httpProxy`
@@ -319,7 +319,7 @@ The `HTTP_PROXY` configuration.
 
 ```yaml
 spec:
-    httpProxy: "http://my.proxy.domain:8080"
+  httpProxy: "http://my.proxy.domain:8080"
 ```
 
 ### `noProxy`
@@ -334,7 +334,7 @@ The `NO_PROXY` configuration.
 
 ```yaml
 spec:
-    noProxy: "localhost,127.0.0.1"
+  noProxy: "localhost,127.0.0.1"
 ```
 
 ### `channel`
@@ -349,7 +349,7 @@ The channel to use for the snap install.
 
 ```yaml
 spec:
-    channel: "1.32-classic/candidate"
+  channel: "1.32-classic/candidate"
 ```
 
 ### `revision`
@@ -364,7 +364,7 @@ The revision to use for the snap install.
 
 ```yaml
 spec:
-    channel: "1234"
+  channel: "1234"
 ```
 
 ### `localPath`
@@ -379,7 +379,7 @@ The local path to use for the snap install.
 
 ```yaml
 spec:
-    localPath: "/path/to/custom/k8s.snap"
+  localPath: "/path/to/custom/k8s.snap"
 ```
 
 ### `nodeName`
@@ -397,7 +397,7 @@ node names. It is typically set in Jinja template form, e.g.
 
 ```yaml
 spec:
-    nodeName: "{{ ds.meta_data.local_hostname }}"
+  nodeName: "{{ ds.meta_data.local_hostname }}"
 ```
 
 ## Control plane provider (CACPCK)
@@ -418,7 +418,7 @@ etcd is used only odd numbers are permitted, as per [etcd best practice].
 
 ```yaml
 spec:
-    replicas: 2
+  replicas: 2
 ```
 
 ### `controlPlane`
@@ -447,21 +447,21 @@ spec:
 
 ```yaml
 spec:
-    controlPlane:
-        extraSANs:
-            - extra.san
-        cloudProvider: external
-        nodeTaints:
-            - myTaint
-        datastoreType: k8s-dqlite
-        datastoreServersSecretRef:
-            name: sfName
-            key: sfKey
-        k8sDqlitePort: 2379
-        microclusterAddress: my.address
-        microclusterPort: ":2380"
-        extraKubeAPIServerArgs:
-            argKey: argVal
+  controlPlane:
+    extraSANs:
+      - extra.san
+    cloudProvider: external
+    nodeTaints:
+      - myTaint
+    datastoreType: k8s-dqlite
+    datastoreServersSecretRef:
+      name: sfName
+      key: sfKey
+    k8sDqlitePort: 2379
+    microclusterAddress: my.address
+    microclusterPort: ":2380"
+    extraKubeAPIServerArgs:
+      argKey: argVal
 ```
 
 <!-- LINKS -->
