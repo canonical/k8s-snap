@@ -1,12 +1,12 @@
 # How to integrate {{product}} with etcd
 
-Integrating **etcd** with your {{product}} deployment provides a
+Integrating [etcd][] with your {{product}} deployment provides a
 robust, distributed key-value store that is essential for storing critical
 data needed for Kubernetes' clustering operations. This guide will walk you
 through the process of deploying {{product}} with an external etcd
 cluster.
 
-## What you will need
+## Prerequisites
 
 - A Juju controller with access to a cloud environment (see the [Juju setup]
   guide for more information).
@@ -63,7 +63,7 @@ crucial, particularly if you opt for an external datastore like **etcd**.
 
 ## Integrating etcd with EasyRSA
 
-Now you have to integrate etcd with your certificate authority; this will issue
+Now you have to integrate etcd with your certificate authority. This will issue
 the required certificates for secure communication between etcd and your
 {{product}} cluster:
 
@@ -138,7 +138,7 @@ Machine  State    Address         Inst id              Base          AZ         
 <!-- markdownlint-restore -->
 
 <!-- LINKS -->
-
+[etcd]: https://etcd.io
 [easyrsa-charm]: https://charmhub.io/easyrsa
 [vault-charm]: https://charmhub.io/vault
 [Juju setup]: https://juju.is/docs/juju/tutorial
