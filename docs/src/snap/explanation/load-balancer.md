@@ -27,7 +27,7 @@ should consider using your cloud-provider's load balancing solution instead.
 
 ## IP address allocation
 
-The load balancer feature assigns and unassigns IP addresses
+The load balancer feature assigns and releases IP addresses
 for services of type LoadBalancer from a pool of IPs. Learn how to configure
 the IP address pool with the [default load balancer] guide.
 
