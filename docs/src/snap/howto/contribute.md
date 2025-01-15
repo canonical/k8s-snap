@@ -66,6 +66,32 @@ no longer needed, this container can be removed:
 lxc delete snapcraft-k8s
 ```
 
+### Making a change to the API
+
+The Canonical Kubernetes codebase references the `k8s-snap-api` package
+extensively. While contributing, you may run into a situation where it's
+necessary to change something in the API. To achieve this, you should use a mod
+replace directive to point to the local `k8s-snap-api` module.
+
+**Note:** Your PR will not build successfully on GitHub until your change in
+`k8s-snap-api` is merged. If you have to modify the API, please create another
+PR in the `k8s-snap-api` repository and mention it in your `k8s-snap` PR.
+
+For example, if you cloned `k8s-snap-api` to `src/k8s/k8s-snap-api`, then you
+should add the replace directive to `src/k8s/go.mod` like so:
+
+```
+module github.com/canonical/k8s
+
+go 1.23.0
+
+replace github.com/canonical/k8s-snap-api => /home/user/ubuntu/k8s-snap/src/k8s/k8s-snap-api
+
+require (
+   ...
+)
+```
+
 ### Contribute changes
 
 We welcome any improvements and bug-fixes to the {{product}} code.
