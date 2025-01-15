@@ -1,4 +1,4 @@
-# Configure {{ product }} cluster using Juju
+# Configure a {{ product }} cluster using Juju
 
 This guide provides instructions for configuring a {{ product }} cluster using
 Juju. The DNS feature is used as an example to demonstrate the various
@@ -7,7 +7,7 @@ configuration patterns and methods.
 ## Prerequisites
 
 This guide assumes the following:
-- Juju CLI installed on your machine
+- [Juju][juju install] CLI installed on your machine
 - A working Kubernetes cluster deployed with the `k8s` charm
 
 ## Understanding the charm configuration
@@ -20,9 +20,9 @@ for customizing your cluster.
 
 ```{important}
 When setting up your cluster for the first time, you will have access to
-certain configuration settings that cannot be changed later. Be sure to check
-the charm's documentation beforehand to understand the available configuration
-options.
+certain configuration settings (prefixed with `bootstrap-`) that cannot be
+changed later. Be sure to check the charm's documentation beforehand to
+understand the available configuration options.
 ```
 
 The charm's configuration options include:
@@ -105,5 +105,6 @@ juju config k8s-worker
 ```
 
 <!-- LINKS -->
+[juju install]: https://juju.is/docs/juju/install-and-manage-the-client
 [k8s configuration]: https://charmhub.io/k8s/configurations
 [k8s-worker configuration]: https://charmhub.io/k8s-worker/configurations
