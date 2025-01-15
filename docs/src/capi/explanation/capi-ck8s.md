@@ -29,7 +29,8 @@ With {{product}} CAPI you can:
     - rolling upgrades for HA clusters and worker nodes
     - in-place upgrades for non-HA control planes and worker nodes
 
-Please refer to the [tutorial section] for concrete examples on CAPI deployments.
+Please refer to the [tutorial section] for concrete examples on CAPI 
+deployments.
 
 ## CAPI architecture
 
@@ -60,7 +61,8 @@ clusters. While CAPI providers mostly live on the management cluster, it's
 also possible to maintain the them in the workload cluster. 
 Read more about this in the [upstream docs around pivoting].
 
-The {{product}} team maintains the two providers required for integrating with CAPI:
+The {{product}} team maintains the two providers required for integrating 
+with CAPI:
 
 - The Cluster API Bootstrap Provider {{product}} (**CABPCK**) responsible for
   provisioning the nodes in the cluster and preparing them to be joined to the
