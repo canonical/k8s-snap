@@ -7,6 +7,7 @@ configuration patterns and methods.
 ## Prerequisites
 
 This guide assumes the following:
+
 - [Juju][juju install] CLI installed on your machine
 - A working Kubernetes cluster deployed with the `k8s` charm
 
@@ -26,7 +27,9 @@ understand the available configuration options.
 ```
 
 The charm's configuration options include:
-- **Cluster features**, prefixed by the feature name (e.g., DNS, gateway, ingress):
+
+- **Cluster features**, prefixed by the feature name (e.g., DNS, gateway,
+  ingress):
   - An enable/disable flag (e.g., `dns-enabled`)
   - Feature specific configuration options (e.g., `dns-cluster-domain`)
 - **Cluster wide configurations** (e.g., labels, taints).
