@@ -29,7 +29,7 @@ With {{product}} CAPI you can:
     - rolling upgrades for HA clusters and worker nodes
     - in-place upgrades for non-HA control planes and worker nodes
 
-Please refer to the [“Tutorial” section] for concrete examples on CAPI deployments.
+Please refer to the [tutorial section] for concrete examples on CAPI deployments.
 
 ## CAPI architecture
 
@@ -96,5 +96,5 @@ The {{product}} team maintains the two providers required for integrating with C
 ```
 
 <!-- LINKS -->
-[“Tutorial” section]: ./tutorial
+[tutorial section]: ./tutorial
 [Pivot section]: https://cluster-api.sigs.k8s.io/clusterctl/commands/move#pivot
