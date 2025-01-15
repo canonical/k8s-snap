@@ -1,4 +1,4 @@
-# Configure a Custom Registry
+# Configure a custom registry
 
 The `k8s` charm can be configured to use a custom container registry for its
 container images. This is particularly useful if you have a private registry or
