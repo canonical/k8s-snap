@@ -69,16 +69,14 @@ lxc delete snapcraft-k8s
 ### Making a change to the API
 
 The Canonical Kubernetes codebase references the `k8s-snap-api` package
-extensively. While contributing, you may run into a situation where it's
-necessary to change something in the API. To achieve this, you should use a mod
-replace directive to point to the local `k8s-snap-api` module.
+extensively. When contributing changes that require API modifications, follow
+these steps:
 
-**Note:** Your PR will not build successfully on GitHub until your change in
-`k8s-snap-api` is merged. If you have to modify the API, please create another
-PR in the `k8s-snap-api` repository and mention it in your `k8s-snap` PR.
+1. Clone the `k8s-snap-api` repository from
+   https://github.com/canonical/k8s-snap-api
 
-For example, if you cloned `k8s-snap-api` to `src/k8s/k8s-snap-api`, then you
-should add the replace directive to `src/k8s/go.mod` like so:
+2. Add a module replace directive in your src/k8s/go.mod file to point to your
+   local API copy. For example:
 
 ```
 module github.com/canonical/k8s
@@ -91,6 +89,12 @@ require (
    ...
 )
 ```
+
+3. Make your API changes in the local copy
+
+4. Create a separate PR in the k8s-snap-api repository with your API changes
+
+5. Reference your k8s-snap-api PR in your main k8s-snap PR
 
 ### Contribute changes
 
