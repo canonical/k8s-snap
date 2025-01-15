@@ -44,9 +44,11 @@ sudo systemctl restart snap.k8s.containerd.service
 ```
 
 
-```{note} Include the CIDRs **10.152.183.0/24** and **10.1.0.0/16** in both the
-`no_proxy` and `NO_PROXY` environment variables, as they are the default Kubernetes service and pod CIDRs, respectively. If you are using different service or pod CIDRs, update this setting
-accordingly.
+```{note}
+Include the CIDRs **10.152.183.0/24** and **10.1.0.0/16** in both the
+`no_proxy` and `NO_PROXY` environment variables. They are the default
+Kubernetes service and pod CIDRs, respectively. If you are using different
+service or pod CIDRs, update this setting accordingly.
 ```
 
 ## Adding proxy configuration for the k8s charms
