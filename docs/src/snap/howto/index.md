@@ -27,6 +27,7 @@ Managing upgrades <upgrades>
 Set up Enhanced Platform Awareness <epa>
 contribute
 Get support <support>
+troubleshooting
 ```
 
 ---
