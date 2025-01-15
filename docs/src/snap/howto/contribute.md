@@ -30,7 +30,7 @@ This will take some time as the build process fetches dependencies, stages the
 ‘parts’ of the snap and creates the snap package itself. The snap itself will
 be fetched from the build environment and placed in the local project
 directory. Note that the LXD container used for building will be stopped, but
-not deleted. This is in case there were any errors or artefacts you may wish to
+not deleted. This is in case there were any errors or artifacts you may wish to
 inspect.
 
 ### Install the snap
@@ -40,7 +40,7 @@ is a safeguard to make sure the user is aware that the snap is not signed by
 the snap store, and is not confined:
 
 ```
-sudo snap install k8s_v1.29.2_multi.snap --dangerous --classic
+sudo snap install k8s_v1.32.1_multi.snap --dangerous --classic
 ```
 
 ```{note} You will not be able to install this snap if there is already a
@@ -72,6 +72,23 @@ We welcome any improvements and bug-fixes to the {{product}} code.
 Once you have tested your changes, please make a pull request on the [code
 repository][code repo] and we will review it as soon as possible.
 
+## PR review process
+
+When you create your PR, a member of the team will review it. Your PR must
+receive at least one approval from a Canonical Kubernetes team member before
+it's eligible to be merged.
+
+For faster reviews, ensure your PR:
+
+* Passes all automated tests
+* Has a clear title and description of the changes
+* Links to related issues
+* Includes test cases if relevant
+* Contains only changes that are relevant to the PR's stated purpose
+* Wraps documentation lines at 80 characters
+
+Draft PRs are welcome for early feedback, please mark them as such.
+
 ## Contribute to the documentation
 
 Our aim is to provide easy-to-understand documentation on all aspects of
@@ -97,7 +114,7 @@ Every page of documentation should fit into one of those categories. If it
 doesn't you may consider if it is actually two pages (e.g. a How to *and* an
 explanation).
 
-We have included some tips and outlines of the different types of docs we 
+We have included some tips and outlines of the different types of docs we
 create to help you get started:
 
 - [Tutorial template][]
