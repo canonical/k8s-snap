@@ -90,11 +90,11 @@ require (
 )
 ```
 
-3. Make your API changes in the local copy
+3. Make your API changes in the local copy.
 
-4. Create a separate PR in the `k8s-snap-api` repository with your API changes
+4. Create a separate PR in the `k8s-snap-api` repository with your API changes.
 
-5. Reference your `k8s-snap-api` PR in your main `k8s-snap` PR
+5. Reference your `k8s-snap-api` PR in your main `k8s-snap` PR.
 
 ### Contribute changes
 
