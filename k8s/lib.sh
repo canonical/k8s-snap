@@ -190,7 +190,12 @@ k8s::common::execute_service() {
   declare -a args="($(cat "${SNAP_COMMON}/args/${service_name}"))"
 
   set -xe
-  exec "${SNAP}/bin/${service_name}" "${args[@]}"
+  if [[ -f "${SNAP_COMMON}/args/${service_name}-env" ]]; then
+    mapfile -t env_vars < "${SNAP_COMMON}/args/${service_name}-env"
+    exec env -S "${env_vars[@]}" "${SNAP}/bin/${service_name}" "${args[@]}"
+  else
+    exec "${SNAP}/bin/${service_name}" "${args[@]}"
+  fi
 }
 
 # Initialize a single-node k8sd cluster
