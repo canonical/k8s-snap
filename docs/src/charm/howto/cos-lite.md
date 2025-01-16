@@ -11,7 +11,7 @@ deployment with a {{product}} deployment.
 
 This document assumes that you have a controller with an installation of
 {{product}}. If you have not yet installed {{product}}, please see
-["Installing {{product}}"][how-to-install].
+[Installing {{product}}][how-to-install].
 
 ## Preparing a platform for COS Lite
 
@@ -55,11 +55,12 @@ KUBECONFIG=./kubeconfig juju add-k8s k8s-cloud
 
 ## Deploying COS Lite on the K8s cloud
 
-On the K8s cloud, create a new model and deploy the `cos-lite` bundle:
+On the K8s cloud, create a new model and deploy the `cos-lite` bundle.
+Use the --trust flag to grant the applications access to your cloud credentials.
 
 ```
 juju add-model cos-lite k8s-cloud
-juju deploy cos-lite
+juju deploy cos-lite --trust
 ```
 
 Make the COS Lite endpoints available for

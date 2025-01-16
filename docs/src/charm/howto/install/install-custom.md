@@ -66,8 +66,9 @@ align with your requirements.
 
 Deploy the `k8s` charm with your custom configuration:
 
-```bash
-juju deploy k8s --config ./k8s-config.yaml
+```{literalinclude} ../../_parts/install.md
+:start-after: <!-- juju controlplane custom config start -->
+:end-before: <!-- juju controlplane custom config end -->
 ```
 
 ## Bootstrap the cluster

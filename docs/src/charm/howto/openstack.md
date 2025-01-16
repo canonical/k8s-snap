@@ -23,7 +23,7 @@ applications are deployed and relations are established between the
 applications. These include the openstack integrator, cloud
 controller, and cinder-csi charm.
 
-### OpenStack Overlay Configurations:
+### OpenStack overlay configurations:
 
 Refer to the base overlay [openstack-overlay.yaml][openstack-overlay] and
 modify it as needed.
@@ -37,8 +37,10 @@ applications:
     base: ubuntu@22.04
   openstack-cloud-controller:
     charm: openstack-cloud-controller
+    base: ubuntu@22.04
   cinder-csi:
     charm: cinder-csi
+    base: ubuntu@22.04
 relations:
   - [openstack-cloud-controller:kube-control,            k8s:kube-control]
   - [cinder-csi:kube-control,                            k8s:kube-control]
@@ -47,7 +49,7 @@ relations:
   - [cinder-csi:openstack,                               openstack-integrator:clients]
 ```
 
-### Deploying the Overlay Template
+### Deploying the overlay template
 
 Deploy the {{product}} bundle on OpenStack using the modified overlay:
 
@@ -61,12 +63,12 @@ juju deploy canonical-kubernetes --overlay ~/path/openstack-overlay.yaml --trust
 juju run k8s/leader get-kubeconfig | yq eval '.kubeconfig' > kubeconfig
 ```
 
-The {{product}} bundle is now deployed and integrated with OpenStack. Run 
+The {{product}} bundle is now deployed and integrated with OpenStack. Run
 `juju status --watch 1s` to monitor the deployment. It is possible that your
 deployment will take a few minutes until all the components are up and running.
 
 ```{note}
-Resources allocated by Kubernetes or the integrator are usually cleaned up automatically when no longer needed. However, it is recommended to periodically, and particularly after tearing down a cluster, use the OpenStack administration tools to make sure all unused resources have been successfully released. 
+Resources allocated by Kubernetes or the integrator are usually cleaned up automatically when no longer needed. However, it is recommended to periodically, and particularly after tearing down a cluster, use the OpenStack administration tools to make sure all unused resources have been successfully released.
 ```
 
 

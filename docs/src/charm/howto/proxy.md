@@ -22,7 +22,7 @@ juju model-config \
 ```
 
 ```{note} The **10.152.183.0/24** CIDR needs to be covered in the juju-no-proxy
-   list as it is the Kubernetes service CIDR. Without this any pods will not be 
+   list as it is the Kubernetes service CIDR. Without this no pods will be
    able to reach the cluster's kubernetes-api. You should also exclude the range
    used by pods (which defaults to **10.1.0.0/16**) and any required
    local networks.

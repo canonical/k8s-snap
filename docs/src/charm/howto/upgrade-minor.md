@@ -8,7 +8,7 @@ and security patches for smooth operation of your cluster.
 
 New minor versions of Kubernetes are set to release three
 times per year. Check the latest release version
-on the Kubernetes release page on GitHub.
+on the [Kubernetes release page][].
 
 ```{note} Kubernetes will not automatically handle minor
 release upgrades. The cluster will not perform an unattended
@@ -73,7 +73,7 @@ Verify that:
   your workloads
 
 
-It is also important to understand that Kubernetes will only 
+It is also important to understand that Kubernetes will only
 upgrade and if necessary migrate, components relating specifically
 to elements of Kubernetes installed and configured as part of Kubernetes.
 This may not include any customized configuration of Kubernetes,
@@ -85,12 +85,12 @@ rely on deprecated APIs.
 ### Deciding if an upgrade is available
 
 Juju will contact [charmhub] daily to find new revisions of charms
-deployed in your models. To see if the `k8s` or `k8s-worker` charms 
+deployed in your models. To see if the `k8s` or `k8s-worker` charms
 can be upgraded, set with the following:
 
 ```sh
 juju status --format=json | \
-   jq '.applications | 
+   jq '.applications |
         to_entries[] | {
            application: .key,
            "charm-name": .value["charm-name"],
@@ -101,6 +101,7 @@ juju status --format=json | \
 ```
 
 This outputs a list of applications in the model:
+
 * the name of the application (ex. `k8s`)
 * the charm used by the application (ex. `k8s`)
 * the kubernetes channel this charm follows (ex. `1.31/stable`)
@@ -125,7 +126,7 @@ See Kubernetes' [Version Skew Policy][version-skew-policy]
 ### The pre-upgrade-check
 
 Before running an upgrade, check that the cluster is
-steady and ready for upgrade. The charm will perform checks 
+steady and ready for upgrade. The charm will perform checks
 necessary to confirm the cluster is in safe working order before
 upgrading.
 
@@ -158,7 +159,8 @@ During the upgrade process, the application status message and the
 listing the `k8s` and `k8s-worker` units still pending upgrades.
 
 After the `k8s` charm is upgraded, the application `Version` from `juju status`
-will reflect the updated version of the control-plane nodes making up the cluster.
+will reflect the updated version of the control-plane nodes making up the
+cluster.
 
 #### Worker units (k8s-worker)
 
@@ -178,7 +180,8 @@ charm code is simultaneously replaced on each unit, then the `k8s`
 snap is updated unit-by-unit, starting with the Juju leader unit for the
 application.
 
-After the `k8s-worker` charm is upgraded, the application `Version` from `juju status`
+After the `k8s-worker` charm is upgraded, the application `Version`
+from `juju status`
 will reflect the updated version of the worker nodes making up the cluster.
 
 ```{note} Repeat [this section](#worker-units-k8s-worker) for every
@@ -204,6 +207,7 @@ to ensure that the cluster is fully functional.
 
 <!-- LINKS -->
 
+[Kubernetes release page]: https://kubernetes.io/releases/
 [backup-restore]:      ../../snap/howto/backup-restore
 [charmhub]:            https://charmhub.io/k8s
 [cluster-validation]:  ./validate

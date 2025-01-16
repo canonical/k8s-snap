@@ -11,17 +11,15 @@ Overview <self>
 ```{toctree}
 :titlesonly:
 
-releases
-charms
-proxy
-architecture
+Charms <charms>
+Architecture <architecture>
+Configuration options <charm-configurations>
 Ports and Services <ports-and-services>
-charm-configurations
+proxy
+Actions <actions>
 troubleshooting
 Community <community>
-actions
-troubleshooting
-
+releases
 ```
 
 ## Other documentation types

@@ -19,8 +19,9 @@ load-balancer
 security
 ```
 
-For topics specifically relating to the snap version of {{product}},
-please see the [explanation topic].
+This page covers both general and charm-related topics.
+For information specific to the snap version of {{product}},
+please refer to the relevant [explanation page].
 
 ---
 
@@ -42,4 +43,4 @@ details or information such as the command reference or release notes.
 [Tutorials section]: ../tutorial/index
 [How-to guides]:     ../howto/index
 [Reference section]: ../reference/index
-[explanation topic]: ../../snap/explanation/index.md
+[explanation page]: ../../snap/explanation/index.md
