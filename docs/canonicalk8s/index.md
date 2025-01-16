@@ -10,7 +10,7 @@ that are necessary to have a fully functioning cluster all in one convenient
 location - a snap!
 
 Staying up-to-date with upstream Kubernetes security
-patches and updates with {{product}} is a seamless expereince, freeing up time
+patches and updates with {{product}} is a seamless experience, freeing up time
 for application
 development and innovation without having to worry about the infrastructure.
 
