@@ -28,7 +28,7 @@ Set up Enhanced Platform Awareness <epa>
 Manage images <image-management.md>
 contribute
 Get support <support>
-troubleshooting
+Troubleshooting <troubleshooting>
 ```
 
 ---
