@@ -29,6 +29,9 @@ cluster bootstrap process. The key configuration parameters are:
    sudo k8s bootstrap --timeout 10m --interactive
    ```
 
+   When asked `Which features would you like to enable?`, press Enter to enable
+   the default components.
+
    When prompted, set the Pod CIDR and Service CIDR:
 
    ```
@@ -59,39 +62,32 @@ cluster bootstrap process. The key configuration parameters are:
    ```
 
    To test that the cluster is configured with dual-stack, apply the following
-   manifest that creates a service with `ipFamilyPolicy: RequireDualStack`. 
-   It also creates an nginx deployment sample workload. 
+   manifest that creates a service with `ipFamilyPolicy: RequireDualStack`.
+   It also creates an nginx deployment sample workload.
 
    ```
    sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/how-to-dualstack-manifest.yaml
-   ``` 
+   ```
 
 1. **Check IPv6 Connectivity**
 
    Retrieve the service details and ensure that an IPv6 address is assigned:
 
    ```sh
-   sudo k8s kubectl get service -A
+   sudo k8s kubectl describe service nginx-dualstack
    ```
 
-   The output should be similar to:
+   The output should contain a line like:
+
    ```
-   root@k8s-dualstack:/k8s-snap# sudo k8s kubectl get svc -A
-   NAMESPACE     NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)         AGE
-   default       kubernetes                          ClusterIP   10.152.183.1     <none>        443/TCP         4m12s
-   default       nginx6                              NodePort    fd98::7534       <none>        80:32748/TCP    8s
-   kube-system   ck-storage-rawfile-csi-controller   ClusterIP   None             <none>        <none>          4m11s
-   kube-system   ck-storage-rawfile-csi-node         ClusterIP   10.152.183.172   <none>        9100/TCP        4m11s
-   kube-system   coredns                             ClusterIP   10.152.183.69    <none>        53/UDP,53/TCP   4m12s
-   kube-system   hubble-peer                         ClusterIP   10.152.183.217   <none>        443/TCP         4m11s
-   kube-system   metrics-server                      ClusterIP   10.152.183.108   <none>        443/TCP         4m11s
+   IPs: 10.152.183.170,fd98::6f88
    ```
 
    Test the connectivity to the deployed application using the IPv6 address
    from the retrieved output:
 
    ```sh
-   curl http://[fd98::7534]/
+   curl http://[fd98::6f88]/
    ```
 
    You should see a response from the Nginx server, confirming that IPv6 is
