@@ -1,4 +1,4 @@
-# Refreshing Workload Cluster Certificates
+# Refreshing workload cluster certificates
 
 This how-to will walk you through the steps to refresh the certificates for
 both control plane and worker nodes in your {{product}} Cluster API cluster.
@@ -20,7 +20,7 @@ checking the `CK8sConfigTemplate` resource for the cluster to see if a
 `BootstrapConfig` value was provided with the necessary certificates.
 ```
 
-### Refresh Control Plane Node Certificates
+### Refresh control plane node certificates
 
 To refresh the certificates on control plane nodes, follow these steps for each
 control plane node in your workload cluster:
@@ -65,7 +65,7 @@ the machine resource:
 "machine.cluster.x-k8s.io/certificates-expiry": "2034-10-25T14:25:23-05:00"
 ```
 
-### Refresh Worker Node Certificates
+### Refresh worker node certificates
 
 To refresh the certificates on worker nodes, follow these steps for each worker
 node in your workload cluster:

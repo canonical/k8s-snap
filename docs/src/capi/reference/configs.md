@@ -1,11 +1,11 @@
-# Providers Configurations
+# Providers configurations
 
 {{product}} bootstrap and control plane providers (CABPCK and CACPCK) 
 can be configured to aid the cluster admin in reaching the desired 
 state for the workload cluster. In this section we will go through 
 different configurations that each one of these providers expose.
 
-## Common Configurations
+## Common configurations
 
 The following configurations are available for both bootstrap and control 
 plane providers.
@@ -27,11 +27,11 @@ To install a specific track or risk level, see
 [Install custom {{product}} on machines] guide.
 ```
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
-    version: 1.30
+  version: 1.30
 ```
 
 ### `files`
@@ -54,35 +54,35 @@ existing files.
 | `encoding`    | `string` | Encoding of the file to create. One of `base64`, `gzip` and `gzip+base64`         | `""`    |
 | `owner`       | `string` | Owner of the file to create, e.g. "root:root"                                     | `""`    |
 
-**Example Usage:**
+**Example usage:**
 
 - Using `content`:
 
 ```yaml
 spec:
-    files:
-        path: "/path/to/my-file"
-        content: |
-            #!/bin/bash -xe
-            echo "hello from my-file
-        permissions: "0500"
-        owner: root:root
+  files:
+    path: "/path/to/my-file"
+    content: |
+      #!/bin/bash -xe
+      echo "hello from my-file
+    permissions: "0500"
+    owner: root:root
 ```
 
 - Using `contentFrom`:
 
 ```yaml
 spec:
-    files:
-        path: "/path/to/my-file"
-        contentFrom:
-            secret:
-                # Name of the secret in the CK8sBootstrapConfig's namespace to use.
-                name: my-secret
-                # Key is the key in the secret's data map for this value.
-                key: my-key
-        permissions: "0500"
-        owner: root:root
+  files:
+    path: "/path/to/my-file"
+    contentFrom:
+      secret:
+        # Name of the secret in the CK8sBootstrapConfig's namespace to use.
+        name: my-secret
+        # Key is the key in the secret's data map for this value.
+        key: my-key
+    permissions: "0500"
+    owner: root:root
 ```
 
 ### `bootstrapConfig`
@@ -102,37 +102,37 @@ nodes. The structure of the `bootstrapConfig` is defined in the
 | `content`     | `string` | Content of the file. If this is set, `contentFrom` is ignored | `""`    |
 | `contentFrom` | `struct` | A reference to a secret containing the content of the file    | `nil`   |
 
-**Example Usage:**
+**Example usage:**
 
 - Using `content`:
 
 ```yaml
 spec:
-    bootstrapConfig:
-        content: |
-            cluster-config:
-            network:
-                enabled: true
-            dns:
-                enabled: true
-                cluster-domain: cluster.local
-            ingress:
-                enabled: true
-            load-balancer:
-                enabled: true
+  bootstrapConfig:
+    content: |
+      cluster-config:
+      network:
+          enabled: true
+      dns:
+          enabled: true
+          cluster-domain: cluster.local
+      ingress:
+          enabled: true
+      load-balancer:
+          enabled: true
 ```
 
 - Using `contentFrom`:
 
 ```yaml
 spec:
-    bootstrapConfig:
-        contentFrom:
-            secret:
-                # Name of the secret in the CK8sBootstrapConfig's namespace to use.
-                name: my-secret
-                # Key is the key in the secret's data map for this value.
-                key: my-key
+  bootstrapConfig:
+    contentFrom:
+      secret:
+        # Name of the secret in the CK8sBootstrapConfig's namespace to use.
+        name: my-secret
+        # Key is the key in the secret's data map for this value.
+        key: my-key
 ```
 
 ### `bootCommands`
@@ -144,13 +144,13 @@ spec:
 `bootCommands` specifies extra commands to run in cloud-init early in the 
 boot process.
 
-**Example Usage:** 
+**Example usage:** 
 
 ```yaml
 spec:
-    bootCommands: 
-        - echo "first-command"
-        - echo "second-command"
+  bootCommands: 
+    - echo "first-command"
+    - echo "second-command"
 ```
 
 ### `preRunCommands`
@@ -167,13 +167,13 @@ k8s-snap setup runs.
 on machines. See [Install custom {{product}} on machines] guide for more info.
 ```
 
-**Example Usage:** 
+**Example usage:** 
 
 ```yaml
 spec:
-    preRunCommands:
-        - echo "first-command"
-        - echo "second-command"
+  preRunCommands:
+    - echo "first-command"
+    - echo "second-command"
 ```
 
 ### `postRunCommands`
@@ -185,13 +185,13 @@ spec:
 `postRunCommands` specifies extra commands to run in cloud-init after 
 k8s-snap setup runs.
 
-**Example Usage:** 
+**Example usage:** 
 
 ```yaml
 spec:
-    postRunCommands:
-        - echo "first-command"
-        - echo "second-command"
+  postRunCommands:
+    - echo "first-command"
+    - echo "second-command"
 ```
 
 ### `airGapped`
@@ -206,11 +206,11 @@ k8s-snap on the machine. The user is expected to install k8s-snap
 manually with [`preRunCommands`](#preRunCommands), or provide an image 
 with k8s-snap pre-installed.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
-    airGapped: true
+  airGapped: true
 ```
 
 ### `initConfig`
@@ -232,17 +232,154 @@ spec:
 | `enableDefaultNetwork`       | `bool`              | Specifies whether to enable the default CNI.                  | `true`  |
 
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
-    initConfig:
-        annotations:
-            annotationKey: "annotationValue"
-        enableDefaultDNS: false
-        enableDefaultLocalStorage: true
-        enableDefaultMetricsServer: false
-        enableDefaultNetwork: true
+  initConfig:
+    annotations:
+      annotationKey: "annotationValue"
+    enableDefaultDNS: false
+    enableDefaultLocalStorage: true
+    enableDefaultMetricsServer: false
+    enableDefaultNetwork: true
+```
+
+
+### `snapstoreProxyScheme`
+
+**Type:** `string`
+
+**Required:** no
+
+The snap store proxy domain's scheme, e.g. "http" or "https" without "://".
+Defaults to `http`.
+
+**Example usage:**
+
+```yaml
+spec:
+  snapstoreProxyScheme: "https"
+```
+
+### `snapstoreProxyDomain`
+
+**Type:** `string`
+
+**Required:** no
+
+The snap store proxy domain.
+
+**Example usage:**
+
+```yaml
+spec:
+  snapstoreProxyDomain: "my.proxy.domain"
+```
+
+### `snapstoreProxyID`
+
+**Type:** `string`
+
+**Required:** no
+
+The snap store proxy ID.
+
+**Example usage:**
+
+```yaml
+spec:
+  snapstoreProxyID: "my-proxy-id"
+```
+
+### `httpsProxy`
+
+**Type:** `string`
+
+**Required:** no
+
+The `HTTPS_PROXY` configuration.
+
+**Example usage:**
+
+```yaml
+spec:
+  httpsProxy: "https://my.proxy.domain:8080"
+```
+
+### `httpProxy`
+
+**Type:** `string`
+
+**Required:** no
+
+The `HTTP_PROXY` configuration.
+
+**Example usage:**
+
+```yaml
+spec:
+  httpProxy: "http://my.proxy.domain:8080"
+```
+
+### `noProxy`
+
+**Type:** `string`
+
+**Required:** no
+
+The `NO_PROXY` configuration.
+
+**Example usage:**
+
+```yaml
+spec:
+  noProxy: "localhost,127.0.0.1"
+```
+
+### `channel`
+
+**Type:** `string`
+
+**Required:** no
+
+The channel to use for the snap install.
+
+**Example usage:**
+
+```yaml
+spec:
+  channel: "1.32-classic/candidate"
+```
+
+### `revision`
+
+**Type:** `string`
+
+**Required:** no
+
+The revision to use for the snap install.
+
+**Example usage:**
+
+```yaml
+spec:
+  channel: "1234"
+```
+
+### `localPath`
+
+**Type:** `string`
+
+**Required:** no
+
+The local path to use for the snap install.
+
+**Example usage:**
+
+```yaml
+spec:
+  localPath: "/path/to/custom/k8s.snap"
 ```
 
 ### `nodeName`
@@ -256,11 +393,11 @@ for clouds where the cloud-provider has specific pre-requisites about the
 node names. It is typically set in Jinja template form, e.g. 
 `"{{ ds.meta_data.local_hostname }}"`.
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
-    nodeName: "{{ ds.meta_data.local_hostname }}"
+  nodeName: "{{ ds.meta_data.local_hostname }}"
 ```
 
 ## Control plane provider (CACPCK)
@@ -277,11 +414,11 @@ provider.
 `replicas` is the number of desired machines. Defaults to 1. When stacked 
 etcd is used only odd numbers are permitted, as per [etcd best practice].
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
-    replicas: 2
+  replicas: 2
 ```
 
 ### `controlPlane`
@@ -306,25 +443,25 @@ spec:
 | `microclusterPort`          | `int`                       | The port to use for MicroCluster. If unset, ":2380" (etcd peer) will be used.                  | `":2380"` |
 | `extraKubeAPIServerArgs`    | `map[string]string`         | Extra arguments to add to kube-apiserver.                                                      | `map[]`   |
 
-**Example Usage:**
+**Example usage:**
 
 ```yaml
 spec:
-    controlPlane:
-        extraSANs:
-            - extra.san
-        cloudProvider: external
-        nodeTaints:
-            - myTaint
-        datastoreType: k8s-dqlite
-        datastoreServersSecretRef:
-            name: sfName
-            key: sfKey
-        k8sDqlitePort: 2379
-        microclusterAddress: my.address
-        microclusterPort: ":2380"
-        extraKubeAPIServerArgs:
-            argKey: argVal
+  controlPlane:
+    extraSANs:
+      - extra.san
+    cloudProvider: external
+    nodeTaints:
+      - myTaint
+    datastoreType: k8s-dqlite
+    datastoreServersSecretRef:
+      name: sfName
+      key: sfKey
+    k8sDqlitePort: 2379
+    microclusterAddress: my.address
+    microclusterPort: ":2380"
+    extraKubeAPIServerArgs:
+      argKey: argVal
 ```
 
 <!-- LINKS -->
