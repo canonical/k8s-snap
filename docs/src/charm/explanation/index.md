@@ -14,6 +14,8 @@ Overview <self>
 about
 installation-methods.md
 channels
+ingress
+load-balancer
 security
 ```
 
