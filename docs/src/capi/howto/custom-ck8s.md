@@ -1,12 +1,9 @@
 # Install custom {{product}} on machines
 
 By default, the `version` field in the machine specifications will determine 
-which {{product}} version is downloaded from the `stable` risk level. While 
-you can install different versions of the `stable` risk level by changing the 
-`version` field, extra steps should be taken if you're willing to install 
-a specific risk level, revision, or install the snap from local path.
-This guide walks you through the process of installing custom {{product}} 
-on workload cluster machines.
+which {{product}} **version** is downloaded from the `stable` risk level.
+This guide walks you through the process of installing {{product}} 
+with a specific **risk level**, **revision**, or from a **local path**.
 
 ## Prerequisites
 
@@ -28,6 +25,9 @@ This guide will call the generated cluster spec manifest `cluster.yaml`.
 of the machine.
 
 ```yaml
+apiVersion: controlplane.cluster.x-k8s.io/v1beta2
+kind: CK8sControlPlane
+...
 spec:
   ...
   spec:
@@ -43,8 +43,9 @@ machine at the specified path on boot.
 
 ## Overwrite the existing `install.sh` script
 
-The `install.sh` script can be overwritten to install a custom {{product}} 
-snap on the machine. This can be done by adding a `files` field to the 
+Running the `install.sh` script is one of the steps that `cloud-init` performs
+on machines and can be overwritten to install a custom {{product}} 
+snap. This can be done by adding a `files` field to the 
 `spec` of the machine with a specific `path`.
 
 ```yaml
