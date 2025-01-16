@@ -77,9 +77,9 @@ desired values for your DNS configuration.
 {{product}} also allows you to disable the built-in DNS,
 if you desire a custom solution:
 
-``` {warning} Disabling DNS will disrupt internal cluster communication. Ensure
+```{warning} Disabling DNS will disrupt internal cluster communication. Ensure
 a suitable custom DNS solution is in place before disabling. You can re-enable
-DNS at any point, and your cluster will return to normal functionality.```
+DNS at any point, and your cluster will return to normal functionality.
 ```
 
 ```
