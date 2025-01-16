@@ -1,8 +1,8 @@
 # How to use default Ingress
 
-{{product}} allows you to configure Ingress into your cluster. When
-enabled, it tells your cluster how external HTTP and HTTPS traffic should be
-routed to its services.
+{{product}} enables you to configure Ingress for your cluster. When enabled, it
+directs external HTTP and HTTPS traffic to the appropriate services within the
+cluster.
 
 ## Prerequisites
 
@@ -50,7 +50,8 @@ You should see three options:
 - `default-tls-secret`: Name of the TLS (Transport Layer Security) Secret in
   the kube-system namespace that will be used as the default Ingress
   certificate
-- `enable-proxy-protocol`: If set, proxy protocol will be enabled for the Ingress
+- `enable-proxy-protocol`: If set, proxy protocol will be enabled for the
+  Ingress
 
 ### TLS Secret
 
@@ -88,9 +89,9 @@ requirements.
 
 You can `disable` the built-in ingress:
 
-``` {warning} Disabling Ingress may impact external access to services within
-    your cluster.
-    Ensure that you have alternative configurations in place before disabling Ingress.
+```{warning}
+Disabling Ingress may impact external access to services within your cluster.
+Ensure that you have alternative configurations in place before disabling Ingress.
 ```
 
 ```
