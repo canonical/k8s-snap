@@ -16,7 +16,7 @@ maintain and easy to upgrade.
 
 ## What else comes with it?
 
-In addition to the upstream Kubernetes services, 
+In addition to the upstream Kubernetes services,
 {{product}} also includes:
 
 - a DNS service for the node
@@ -32,9 +32,10 @@ In addition to the upstream Kubernetes services,
 The {{product}} snap can be installed on a Linux OS, wherever it may be: run it
 in several local containers or VMs for example, or use it on public/private
 cloud instances. For deploying with [Juju], a machine [charm] to deploy the
-snap is also available. 
+snap is also available.
 For deployment using Cluster API, a Bootstrap and
-Control-plane provider have also been created.
+Control-plane provider have also been created. See the [choosing an installation
+method] page to see which method best suits your project's needs.
 
 ## Can I use it to make a cluster?
 
@@ -66,3 +67,4 @@ visit the [Ubuntu support] page.
 [Community page]: community.md
 [Ubuntu Pro]:  https://ubuntu.com/pro
 [Ubuntu support]: https://ubuntu.com/support
+[choosing an installation method]: /src/snap/explanation/installation-methods.md
