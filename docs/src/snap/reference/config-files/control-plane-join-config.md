@@ -7,5 +7,6 @@ This reference section provides all available options for control plane nodes.
 
 ## Configuration options
 
-```{include} ../../_parts/control_plane_join_config.md
+```{literalinclude} /src/_parts/control_plane_join_config.yaml
+:language: yaml
 ```

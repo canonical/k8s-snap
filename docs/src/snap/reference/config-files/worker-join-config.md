@@ -7,5 +7,6 @@ This reference section provides all available options for worker nodes.
 
 ## Configuration options
 
-```{include} ../../_parts/worker_join_config.md
+```{literalinclude} /src/_parts/worker_join_config.yaml
+:language: yaml
 ```
