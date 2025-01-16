@@ -4,16 +4,41 @@
 opinionated distribution of **Kubernetes** which includes everything needed to
 create and manage a scalable cluster suitable for all use cases.
 
-You can find out more about {{product}} on this [overview page] or
-see a more detailed explanation in our [architecture documentation].
+{{product}} builds upon upstream Kubernetes by providing all the extra services
+such as a container runtime, a CNI, DNS services, an ingress gateway and more
+that are necessary to have a fully functioning cluster all in one convenient
+location - a snap!
+
+Staying up-to-date with upstream Kubernetes security
+patches and updates with {{product}} is a seamless experience, freeing up time
+for application
+development and innovation without having to worry about the infrastructure.
+
+Whether you are deploying a small cluster to get accustomed to Kubernetes or a
+huge enterprise level deployment across the globe, {{product}} can cater to
+your needs. If would like to jump straight in, head to the
+[snap getting started tutorial!](src/snap/tutorial/getting-started.md)
 
 ![Illustration depicting working on components and clouds][logo]
+
+---
+
+## In this documentation
+<!-- markdownlint-disable -->
+{{product}} can be deployed as a standalone snap, as a charm as part of a
+Juju cluster or with Cluster API. Find out more about which {{product}}
+installation method is best for your
+project's needs with
+**[choosing a {{product}} installation method.](src/snap/explanation/installation-methods.md)**
+<!-- markdownlint-restore -->
 
 ```{toctree}
 :hidden:
 :titlesonly:
-Home <self>
+Canonical Kubernetes documentation <self>
 ```
+
+---
 
 ```{toctree}
 :hidden:
@@ -21,7 +46,6 @@ Home <self>
 :maxdepth: 6
 
 src/about.md
-Choose an installation method <src/snap/explanation/installation-methods.md>
 Deploy from Snap package <src/snap/index.md>
 Deploy with Juju <src/charm/index.md>
 Deploy with Cluster API <src/capi/index.md>
@@ -30,40 +54,33 @@ Release notes <src/releases.md>
 
 ```
 
-````{grid} 1 1 2 2
+````{grid} 1 1 1 1
 
 ```{grid-item-card}
 :link: src/snap/
-### [Install K8s from a snap ›](src/snap/index)
-^^^
-Our tutorials, How To guides and other pages will explain how to install,
- configure and use the {{product}} 'k8s' snap. This is a great option if you are new to Kubernetes.
+### [Install with a snap ›](src/snap/index)
+
+Our tutorials, how-to guides and other pages will explain how to install,
+ configure and use the {{product}} 'k8s' snap. If you are new to Kubernetes, start here.
 ```
 
 ```{grid-item-card}
 :link: src/charm/
-### [Deploy K8s using Juju ›](src/charm/index)
-^^^
-Our tutorials, How To guides and other pages will explain how to install,
+### [Deploy with Juju ›](src/charm/index)
+
+Our tutorials, how-to guides and other pages will explain how to install,
  configure and use the {{product}} 'k8s' charm.
 ```
 
 
 ```{grid-item-card}
 :link: src/capi/
-### [Deploy K8s using Cluster API ›](src/capi/index)
-^^^
-Our tutorials, guides and explanation pages will explain how to install,
+### [Deploy with Cluster API ›](src/capi/index)
+
+Our tutorials, how-to guides and other pages will explain how to install,
  configure and use {{product}} through CAPI.
 ```
 
-```{grid-item-card}
-:link: about
-### [Overview of {{product}} ›](about)
-^^^
-Find out more about {{product}}, what services are included and get the
-answers to some common questions.
-```
 ````
 
 ---
@@ -89,5 +106,3 @@ and constructive feedback.
 [community]: src/snap/reference/community
 [contribute]: src/snap/howto/contribute
 [releases]: src/snap/reference/releases
-[overview page]: about
-[architecture documentation]: src/snap/reference/architecture
