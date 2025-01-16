@@ -83,7 +83,7 @@ Update the control plane resource `CK8sControlPlane` so that it is configured to
 store the Kubernetes state in etcd. Add the following additional configuration
 to the cluster template `cluster-template.yaml`:
 
-```
+```yaml
 apiVersion: controlplane.cluster.x-k8s.io/v1beta2
 kind: CK8sControlPlane
 metadata:

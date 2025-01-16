@@ -1,8 +1,8 @@
 # Explanation
 
-For a better understanding of how {{product}} works and related
+For a better understanding of how {{product}} CAPI works and related
 topics such as security, these pages will help expand your knowledge and
-help you get the most out of Kubernetes.
+help you get the most out of Kubernetes and Cluster API.
 
 ```{toctree}
 :hidden:
