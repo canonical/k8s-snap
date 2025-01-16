@@ -191,7 +191,7 @@ k8s::common::execute_service() {
 
   set -xe
   if [[ -f "${SNAP_COMMON}/args/${service_name}-env" ]]; then
-    declare -a env_vars="$(cat "${SNAP_COMMON}/args/${service_name}-env")"
+    mapfile -t env_vars < "${SNAP_COMMON}/args/${service_name}-env"
     exec env -S "${env_vars[@]}" "${SNAP}/bin/${service_name}" "${args[@]}"
   else
     exec "${SNAP}/bin/${service_name}" "${args[@]}"
