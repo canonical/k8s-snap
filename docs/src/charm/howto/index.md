@@ -16,6 +16,7 @@ Overview <self>
 
 install/index
 Add worker nodes with custom configurations <custom-workers>
+Configure the cluster <configure-cluster>
 openstack
 Integrate with etcd <etcd>
 Integrate with ceph-csi <ceph-csi>
