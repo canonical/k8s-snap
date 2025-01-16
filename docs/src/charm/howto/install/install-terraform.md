@@ -40,29 +40,69 @@ resource "juju_model" "my_model" {
   name = "juju-myk8s"
 }
 
-variable "k8s" {
-  description = "K8s deployment shared configuration"
-  type        = string
-}
-
 module "k8s" {
   source  = "git::https://github.com/canonical/k8s-operator//charms/worker/k8s/terraform?ref=main"
 
   model   = juju_model.my_model.name
-  channel = var.k8s.channel
+  channel = var.channel
   units = 3
 }
 
 module "k8s-worker" {
   source  = "git::https://github.com/canonical/k8s-operator//charms/worker/terraform?ref=main"
   model   = juju_model.my_model.name
-  channel = var.k8s.channel
+  channel = var.channel
   units = 2
 }
 ```
 
-```{note} 
-Please ensure that the root module references the correct source path for the `k8s` and `k8s-worker` modules.
+Example `variables.tf`:
+
+```hcl
+variable "channel" {
+  description = "K8s deployment channel"
+  type        = string
+}
+```
+
+Example `integrations.tf`:
+
+```hcl
+resource "juju_integration" "k8s_cluster_integration" {
+  model = juju_model.my_model.name
+  application {
+    name      = module.k8s.app_name
+    endpoint  = module.k8s.provides.k8s_cluster
+  }
+  application {
+    name      = module.k8s-worker.app_name
+    endpoint  = module.k8s-worker.requires.cluster
+  }
+}
+
+resource "juju_integration" "k8s_containerd" {
+  model = juju_model.my_model.name
+  application {
+    name      = module.k8s.app_name
+    endpoint  = module.k8s.provides.containerd
+  }
+  application {
+    name      = module.k8s-worker.app_name
+    endpoint  = module.k8s-worker.requires.containerd
+  }
+}
+
+resource "juju_integration" "k8s_cos_worker_tokens" {
+  model = juju_model.my_model.name
+  application {
+    name      = module.k8s.app_name
+    endpoint  = module.k8s.provides.cos_worker_tokens
+  }
+  application {
+    name      = module.k8s-worker.app_name
+    endpoint  = module.k8s-worker.requires.cos_tokens
+  }
+}
 ```
 
 Example `versions.tf`:
