@@ -20,6 +20,8 @@ charm-configurations
 troubleshooting
 Community <community>
 actions
+troubleshooting
+
 ```
 
 ## Other documentation types
