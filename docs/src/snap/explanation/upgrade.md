@@ -23,8 +23,10 @@ For more information on channels see the [explanation page].
 Upgrades of control plane nodes
 must always be done sequentially. It is not recommended to upgrade by
 more than one minor version at a time (for example upgrading from 1.31 to 1.33
-is **not** supported). When upgrading between minor releases, for instance from 1.31 to 1.32, first upgrade to the
-latest patch of the current version. In this example you would check the 1.31 channel for the latest patch: 1.31.x. This is in line with upstream Kubernetes
+is **not** supported). When upgrading between minor releases, for instance from
+1.31 to 1.32, first upgrade to the
+latest patch of the current version. In this example you would check the 1.31
+channel for the latest patch: 1.31.x. This is in line with upstream Kubernetes
 [version skew policy]. For worker nodes, upgrading
 with a skew of up to three versions is acceptable.
 
