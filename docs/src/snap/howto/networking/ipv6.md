@@ -28,6 +28,13 @@ only IPv6 CIDRs are used.
 Start by bootstrapping the Kubernetes cluster and providing only IPv6
 CIDRs for pods and services:
 
+```{important}
+To run an IPv6-only cluster on a host with both IPv4 and IPv6 interfaces,
+you must include `--address ::/0` in the bootstrap and join commands.
+Without this option, the snap will attempt to bind to the IPv4 interface,
+which will fail if only IPv6 CIDRs are configured.
+```
+
 ```bash
 sudo k8s bootstrap --timeout 10m --interactive
 ```
@@ -35,8 +42,8 @@ sudo k8s bootstrap --timeout 10m --interactive
 When prompted, set the pod and service CIDRs to IPv6 ranges. For example:
 
 ```
-Please set the Pod CIDR: [fd01::/108]
-Please set the Service CIDR: [fd98::/108]
+Please set the Pod CIDR: fd01::/108
+Please set the Service CIDR: fd98::/108
 ```
 
 Alternatively, these values can be configured in a bootstrap configuration file
