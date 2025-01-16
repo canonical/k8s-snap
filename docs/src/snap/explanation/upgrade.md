@@ -1,4 +1,4 @@
-# Upgrading with {{product}}
+# Upgrading {{product}}
 
 Upgrading your cluster to the latest Kubernetes version is a critical part of
 maintaining a healthy cluster. It provides enhanced security in the form
@@ -12,7 +12,7 @@ of {{product}} follows the [release cycle] set by upstream Kubernetes.
 Patch upgrades address bug fixes and are typically safe, introducing no
 breaking changes.
 Patch upgrades do not change the channel selected (for example a patch upgrade
-from stable/1.32.0 to stable/1.32.1). Minor versions upgrades add new
+from stable/1.32.0 to stable/1.32.1). Minor version upgrades add new
 features or deprecate existing features without breaking changes. These upgrades
 change the version of the channel selected
 (for example a minor upgrade from stable/1.32.x to stable/1.33.x).
@@ -23,18 +23,16 @@ For more information on channels see the [explanation page].
 Upgrades of control plane nodes
 must always be done sequentially. It is not recommended to upgrade by
 more than one minor version at a time (for example upgrading from 1.31 to 1.33
-is not supported). Changing between minor releases (for example upgrading
-from 1.31 to 1.32) is also only recommended when you are on the
-latest patch of the current version (for example 1.31.x where x is the latest
-available patch in 1.31 channel). This is in line with upstream Kubernetes
+is **not** supported). When upgrading between minor releases, for instance from 1.31 to 1.32, first upgrade to the
+latest patch of the current version. In this example you would check the 1.31 channel for the latest patch: 1.31.x. This is in line with upstream Kubernetes
 [version skew policy]. For worker nodes, upgrading
 with a skew of up to three versions is acceptable.
 
 ## Upgrade approach
 
-It is important to upgrade your cluster with the same method you used to install
-the cluster. If you have deployed {{product}} using Juju, you should refresh
-using Juju controller commands. Similarly with snap and CAPI deployments,
+It is important to upgrade your cluster with the same method that you used to install
+the cluster. If you have deployed {{product}} using Juju, you should upgrade your cluster
+using Juju controller commands. Similarly, with snap and CAPI deployments,
 the original install method should be used.
 
 
@@ -42,12 +40,16 @@ the original install method should be used.
 
 Updates for the {{product}} snap are checked several times a day with the
 default [snap refresh functionality]. Patch upgrades will be applied
-automatically unless they are manually stopped. Changes applied during the
-latest refresh to the snap can be viewed using the command `snap change`.
-Minor version upgrades need manual intervention and must be carried out on all
-snaps individually. The length of time taken to upgrade the snap will depend
-largely on your local setup, the services running on the cluster, resources
-available to the cluster,the intensity of the workloads etc.
+automatically unless they are manually stopped or a version of the snap is
+pinned. It is not recommended to pin the version of your snap unless you have a
+justified reason for doing so. Pinning the version leads to a less secure and
+reliable deployment as the snap will not receive the latest updates. Changes
+applied during the latest refresh to the snap can be viewed using the command
+`snap change`. Minor version upgrades need manual intervention and must be
+carried out on all snaps individually. The length of time taken to upgrade the
+snap will depend largely on your local setup, the services running on the
+cluster, the resources available to the cluster, the intensity of the workloads
+etc.
 
 If you would like to manage the upgrading of your cluster using the snap, please
 see the how-to guide on [managing cluster upgrades].
@@ -80,7 +82,7 @@ on [upgrading your cluster by a minor version].
 
 High availability is automatically enabled in {{ product }} for clusters with
 three or more nodes independent of the deployment method. Clusters without high
-availability must be extra vigilant on backing up cluster data before starting
+availability must be extra vigilant on [backing up cluster data] before starting
 the upgrade process and also must be aware of potential service disruptions
 during cluster upgades. It is also important to understand that Kubernetes will
 only upgrade and if necessary migrate, components of Kubernetes installed and
@@ -94,7 +96,7 @@ cluster see the [high availability explanation page].
 
 When upgrading with {{product}} best practices should be followed:
 
-- Check the release notes associated with the release and pay
+- Check the [release notes] associated with the release and pay
 particular attention to any deprecations or incompatible changes being
 introduced that may affect your cluster.
 - Create a backup of all the information in the cluster.
@@ -115,3 +117,5 @@ to completion before upgrading the next node.
 [explanation page]: channels.md
 [high availability explanation page]: high-availability.md
 [targeted snap refresh]:https://snapcraft.io/docs/managing-updates#p-32248-if-snaps-are-specified
+[release notes]: /src/releases
+[backing up cluster data]: /src/snap/howto/backup-restore.md
