@@ -15,9 +15,11 @@ Overview <self>
 
 about
 installation-methods.md
-security
+ingress
+load-balancer
 capi-ck8s.md
 in-place-upgrades.md
+security
 ```
 
 
