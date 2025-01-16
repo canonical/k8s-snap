@@ -83,7 +83,7 @@ module github.com/canonical/k8s
 
 go 1.23.0
 
-replace github.com/canonical/k8s-snap-api => /home/user/ubuntu/k8s-snap/src/k8s/k8s-snap-api
+replace github.com/canonical/k8s-snap-api => /path/to/k8s-snap-api
 
 require (
    ...
@@ -95,6 +95,9 @@ require (
 4. Create a separate PR in the `k8s-snap-api` repository with your API changes.
 
 5. Reference your `k8s-snap-api` PR in your main `k8s-snap` PR.
+
+6. Once the k8s-snap-api PR is merged and tagged, remove the replace directive
+   and update k8s-snap-api version in your k8s-snap PR
 
 ### Contribute changes
 
@@ -116,8 +119,6 @@ For faster reviews, ensure your PR:
 * Includes test cases if relevant
 * Contains only changes that are relevant to the PRs stated purpose
 * Updates relevant documentation
-
-Draft PRs are welcome for early feedback, please mark them as such.
 
 ## Contribute to the documentation
 
