@@ -12,9 +12,11 @@ placing it in your PATH. For example, at the time this guide was written,
 for `amd64` you would run:
 
 ```
-curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.0/clusterctl-linux-amd64 -o clusterctl
+curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.3/clusterctl-linux-amd64 -o clusterctl
 sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
 ```
+
+For more `clusterctl` versions refer to the [upstream release page][clusterctl-release-page].
 
 ## Set up a management cluster
 
@@ -56,7 +58,8 @@ sudo mv clusterawsadm /usr/local/bin
 ```
 
 `clusterawsadm` helps you bootstrapping the AWS environment that CAPI will use.
-It will also create the necessary IAM roles for you.
+It will also create the necessary IAM roles for you. For more `clusterawsadm` 
+versions refer to the [upstream release page][clusterawsadm-release-page].
 
 Start by setting up environment variables defining the AWS account to use, if
 these are not already defined:
@@ -140,9 +143,9 @@ You are now all set to deploy the MAAS CAPI infrastructure provider.
 ````
 `````
 
-## Initialise the management cluster
+## Initialize the management cluster
 
-To initialise the management cluster with the latest released version of the
+To initialize the management cluster with the latest released version of the
 providers and the infrastructure of your choice:
 
 ```
@@ -157,7 +160,7 @@ provision.
 
 You can generate a cluster manifest for a selected set of commonly used
 infrastructures via templates provided by the {{product}} team.
-Ensure you have initialised the desired infrastructure provider and fetch
+Ensure you have initialized the desired infrastructure provider and fetch
 the {{product}} provider repository:
 
 ```
@@ -215,13 +218,13 @@ After the first control plane node is provisioned, you can get the kubeconfig
 of the workload cluster:
 
 ```
-clusterctl get kubeconfig ${CLUSTER_NAME} ${CLUSTER_NAME}-kubeconfig
+clusterctl get kubeconfig ${CLUSTER_NAME} > ./${CLUSTER_NAME}-kubeconfig
 ```
 
 You can then see the workload nodes using:
 
 ```
-KUBECONFIG=./kubeconfig sudo k8s kubectl get node
+KUBECONFIG=./${CLUSTER_NAME}-kubeconfig sudo k8s kubectl get node
 ```
 
 ## Delete the cluster
@@ -236,3 +239,5 @@ sudo k8s kubectl delete cluster ${CLUSTER_NAME}
 [upstream instructions]: https://cluster-api.sigs.k8s.io/user/quick-start#install-clusterctl
 [CloudFormation]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html
 [IAM]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html
+[clusterctl-release-page]: https://github.com/kubernetes-sigs/cluster-api/releases
+[clusterawsadm-release-page]: https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases

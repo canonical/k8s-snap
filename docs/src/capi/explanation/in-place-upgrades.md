@@ -1,4 +1,4 @@
-# In-Place Upgrades
+# In-place upgrades
 
 Regularly upgrading the Kubernetes version of the machines in a cluster 
 is important. While rolling upgrades are a popular strategy, certain 
@@ -49,7 +49,7 @@ For a complete list of annotations and their values please
 refer to the [annotations reference page][4]. This explanation proceeds 
 to use abbreviations of the mentioned labels.
 
-### Single Machine In-Place Upgrade Controller
+### Single machine in-place upgrade controller
 
 The Machine objects can be marked with the `upgrade-to` annotation to 
 trigger an in-place upgrade for that machine. While watching for changes 

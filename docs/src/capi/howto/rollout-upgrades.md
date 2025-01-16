@@ -20,6 +20,11 @@ details on the required setup.
 This guide refers to the workload cluster as `c1` and its
 kubeconfig as `c1-kubeconfig.yaml`.
 
+```{note}
+Rollout upgrades are recommended for HA clusters. For non-HA clusters, please 
+refer to the [in-place upgrade guide].
+```
+
 ## Check the current cluster status
 
 Prior to the upgrade, ensure that the management cluster is in a healthy
@@ -37,7 +42,6 @@ kubectl --kubeconfig c1-kubeconfig.yaml get nodes -o wide
 
 ```{note} For rollout upgrades, only the minor version should be updated.
 ```
-<!-- TODO(ben): add reference to in-place upgrades once we have those docs. -->
 
 ## Update the control plane
 
@@ -122,3 +126,5 @@ kubectl get machines -A
 
 <!-- LINKS -->
 [getting-started]: ../tutorial/getting-started.md
+[in-place upgrade guide]: ./in-place-upgrades.md
+```
