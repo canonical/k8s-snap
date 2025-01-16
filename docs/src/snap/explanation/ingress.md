@@ -17,7 +17,7 @@ services, and external resources, ensuring smooth traffic flow within the cluste
 The current implementation of {{product}} leverages a widely adopted
 CNI (Container Network Interface) called [Cilium][Cilium].
 If you wish to use a different network plugin
-the implementation and configuration falls under your responsibility.
+please follow the [alternative-cni] guide.
 
 Learn how to use the {{product}} default network in the [networking how-to guide][Network].
 
@@ -78,8 +78,10 @@ outlining rules that direct traffic to your application's Kubernetes service.
 
 <!-- LINKS -->
 
+[alternative-cni]: ../howto/networking/alternative-cni
 [Ingress]: ../howto/networking/default-ingress
 [Network]: ../howto/networking/default-network
+[LoadBalancer]: load-balancer
 [Cilium]: https://cilium.io/
 [network plugin]: https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/
 [Service]: https://kubernetes.io/docs/concepts/services-networking/service/

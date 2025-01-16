@@ -17,6 +17,7 @@ certificates
 channels
 clustering
 ingress
+load-balancer
 epa
 high-availability
 security

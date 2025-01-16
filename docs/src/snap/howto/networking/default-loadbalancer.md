@@ -78,7 +78,11 @@ The default load-balancer can be disabled again with:
 sudo k8s disable load-balancer
 ```
 
+## Next Step
+
+- Learn more in the [Load-Balancer] explanation page.
 
 <!-- LINKS -->
 [CIDR]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing
 [getting-started-guide]: ../../tutorial/getting-started
+[Load-Balancer]: ../../explanation/load-balance-workloads.md
