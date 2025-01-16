@@ -1,4 +1,4 @@
-# Command reference
+# Commands
 
 These are the commands provided by the k8s snap:
 
