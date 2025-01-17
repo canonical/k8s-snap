@@ -49,7 +49,7 @@ administrator or a user policy needs to be followed.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes Controller Manager is a background process that embeds core
 > control loops regulating cluster system state through the API Server. Every
@@ -110,7 +110,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Manual
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Creating namespaces for user-managed resources is important when implementing
 > Role-Based Access Controls (RBAC). RBAC allows for the authorization of users
@@ -142,7 +142,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > By default, the API server will listen on two ports. One port is the secure
 > port and the other port is called the "localhost port". This port is also
@@ -179,7 +179,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubelet serves a small REST API with read access to port 10255. The read-only
 > port for Kubernetes provides no authentication or authorization security
@@ -244,7 +244,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > By default, the API server will listen on two ports and addresses. One
 > address is the secure address and the other address is called the "insecure
@@ -312,7 +312,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes API Server controls Kubernetes via an API interface. A user
 > who has access to the API essentially has root access to the entire
@@ -377,7 +377,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > A user who has access to the Kubelet essentially has root access to the nodes
 > contained within the Kubernetes Control Plane. To control access, users must
@@ -447,7 +447,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubelet is the primary agent on each node. The API server communicates with
 > each kubelet to perform tasks such as starting/stopping pods. By default,
@@ -514,7 +514,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Allowing kubelet to set a staticPodPath gives containers with root access
 > permissions to traverse the hosting filesystem. The danger comes when the
@@ -585,7 +585,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Manual
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Secrets, such as passwords, keys, tokens, and certificates should not be
 > stored as environment variables. These environment variables are accessible
@@ -613,7 +613,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > System kernel is responsible for memory, disk, and task management. The
 > kernel provides a gateway between the system hardware and software.
@@ -680,7 +680,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Enabling the admissions webhook allows for Kubernetes to apply policies
 > against objects that are to be created, read, updated, or deleted. By
@@ -750,7 +750,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Enabling the admissions webhook allows for Kubernetes to apply policies
 > against objects that are to be created, read, updated, or deleted. By
@@ -782,7 +782,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes basic authentication sends and receives request containing
 > username, uid, groups, and other fields over a clear text HTTP communication.
@@ -845,7 +845,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes token authentication uses password known as secrets in a plain
 > text file. This file contains sensitive information such as token, username
@@ -911,7 +911,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes control plane and external communication is managed by API Server.
 > The main implementation of the API Server is to manage hardware resources for
@@ -1036,7 +1036,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Manual
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > An admission controller intercepts and processes requests to the Kubernetes
 > API prior to persistence of the object, but after the request is
@@ -1072,7 +1072,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > PodSecurity admission controller is a component that validates and enforces
 > security policies for pods running within a Kubernetes cluster. It is
@@ -1146,7 +1146,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes Controller Manager will prohibit the use of SSL and
 > unauthorized versions of TLS protocols to properly secure communication.
@@ -1207,7 +1207,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes Scheduler will prohibit the use of SSL and unauthorized
 > versions of TLS protocols to properly secure communication.
@@ -1267,7 +1267,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes API Server will prohibit the use of SSL and unauthorized
 > versions of TLS protocols to properly secure communication.
@@ -1324,7 +1324,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes etcd will prohibit the use of SSL and unauthorized versions of TLS
 > protocols to properly secure communication.
@@ -1464,7 +1464,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes API Server will prohibit the use of SSL and unauthorized
 > versions of TLS protocols to properly secure communication.
@@ -1535,7 +1535,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > To mitigate the risk of unauthorized access to sensitive information by
 > entities that have been issued certificates by DOD-approved PKIs, all DOD
@@ -1609,7 +1609,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Limiting the number of attack vectors and implementing authentication and
 > encryption on the endpoints available to external sources is paramount when
@@ -1670,7 +1670,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Limiting the number of attack vectors and implementing authentication and
 > encryption on the endpoints available to external sources is paramount when
@@ -1728,7 +1728,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > By default, the API server will listen on what is rightfully called the
 > secure port, port 6443. Any requests to this port will perform authentication
@@ -1793,7 +1793,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Worker Nodes are maintained and monitored by the Control Plane. Direct access
 > and manipulation of the nodes should not take place by administrators. Worker
@@ -1822,7 +1822,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Worker Nodes are maintained and monitored by the Control Plane. Direct access
 > and manipulation of the nodes must not take place by administrators. Worker
@@ -1851,7 +1851,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > While the Kubernetes dashboard is not inherently insecure on its own, it is
 > often coupled with a misconfiguration of Role-Based Access control (RBAC)
@@ -1883,7 +1883,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > One of the tools heavily used to interact with containers in the Kubernetes
 > cluster is kubectl. The command is the tool System Administrators used to
@@ -1918,7 +1918,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Protecting the audit data from change or deletion is important when an attack
 > occurs. One way an attacker can cover their tracks is to change or delete
@@ -1955,7 +1955,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes allows a user to configure kubelets with dynamic configurations.
 > When dynamic configuration is used, the kubelet will watch for changes to the
@@ -1988,7 +1988,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes allows alpha API calls within the API server. The alpha features
 > are disabled by default since they are not ready for production and likely to
@@ -2050,7 +2050,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > When Kubernetes is started, components and user services are started for
 > auditing startup events, and events for components and services, it is
@@ -2112,7 +2112,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Within Kubernetes, audit data for all components is generated by the API
 > server. This audit data is important when there are issues, to include
@@ -2193,7 +2193,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes allows for the overriding of hostnames. Allowing this feature to
 > be implemented within the kubelets may break the TLS setup between the
@@ -2252,7 +2252,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The manifest files contain the runtime configuration of the API server,
 > proxy, scheduler, controller, and etcd. If an attacker can gain access to
@@ -2322,7 +2322,7 @@ start with `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The kubelet configuration file contains the runtime configuration of the
 > kubelet service. If an attacker can gain access to this file, changes can be
@@ -2428,7 +2428,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The kubelet configuration file contains the runtime configuration of the
 > kubelet service. If an attacker can gain access to this file, changes can be
@@ -2535,7 +2535,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The manifest files contain the runtime configuration of the API server,
 > scheduler, controller, and etcd. If an attacker can gain access to these
@@ -2597,7 +2597,7 @@ start with `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes profiling provides the ability to analyze and troubleshoot
 > Controller Manager events over a web interface on a host port. Enabling this
@@ -2656,7 +2656,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Manual
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes API Server PPSs must be controlled and conform to the PPSM CAL.
 > Those PPS that fall outside the PPSM CAL must be blocked. Instructions on the
@@ -2682,7 +2682,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Manual
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes Scheduler PPS must be controlled and conform to the PPSM CAL.
 > Those ports, protocols, and services that fall outside the PPSM CAL must be
@@ -2709,7 +2709,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Manual
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes Controller ports, protocols, and services must be controlled and
 > conform to the PPSM CAL. Those PPS that fall outside the PPSM CAL must be
@@ -2736,7 +2736,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes etcd PPS must be controlled and conform to the PPSM CAL. Those PPS
 > that fall outside the PPSM CAL must be blocked. Instructions on the PPSM can
@@ -2765,7 +2765,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Manual
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Privileged ports are those ports below 1024 and that require system
 > privileges for their use. If containers can use these ports, the container
@@ -2797,7 +2797,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Manual
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Separating user functionality from management functionality is a requirement
 > for all the components within the Kubernetes Control Plane. Without the
@@ -2829,7 +2829,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes API server communicates to the kubelet service on the nodes to
 > deploy, update, and delete resources. If an attacker were able to get between
@@ -2893,7 +2893,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes control plane and external communication are managed by API
 > Server. The main implementation of the API Server is to manage hardware
@@ -2963,7 +2963,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes container and pod configuration are maintained by Kubelet. Kubelet
 > agents register nodes with the API Server, mount volume storage, and perform
@@ -3036,7 +3036,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes Controller Manager is responsible for creating service
 > accounts and tokens for the API Server, maintaining the correct number of
@@ -3106,7 +3106,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes control plane and external communication is managed by API Server.
 > The main implementation of the API Server is to manage hardware resources for
@@ -3229,7 +3229,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes container and pod configuration are maintained by Kubelet. Kubelet
 > agents register nodes with the API Server, mount volume storage, and perform
@@ -3378,7 +3378,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes container and pod configuration are maintained by Kubelet. Kubelet
 > agents register nodes with the API Server, mount volume storage, and perform
@@ -3450,7 +3450,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes container and pod configuration are maintained by Kubelet. Kubelet
 > agents register nodes with the API Server, mount volume storage, and perform
@@ -3520,7 +3520,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes container and pod configuration are maintained by Kubelet. Kubelet
 > agents register nodes with the API Server, mount volume storage, and perform
@@ -3601,7 +3601,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes stores configuration and state information in a distributed
 > key-value store called etcd. Anyone who can write to etcd can effectively
@@ -3745,7 +3745,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes stores configuration and state information in a distributed
 > key-value store called etcd. Anyone who can write to etcd can effectively
@@ -3886,7 +3886,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes stores configuration and state information in a distributed
 > key-value store called etcd. Anyone who can write to etcd can effectively
@@ -4022,7 +4022,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes stores configuration and state information in a distributed
 > key-value store called etcd. Anyone who can write to etcd can effectively
@@ -4164,7 +4164,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes stores configuration and state information in a distributed
 > key-value store called etcd. Anyone who can write to etcd can effectively
@@ -4305,7 +4305,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes stores configuration and state information in a distributed
 key-value store called etcd. Anyone who can write to etcd can effectively
@@ -4379,7 +4379,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes stores configuration and state information in a distributed
 key-value store called etcd. Anyone who can write to etcd can effectively
@@ -4450,7 +4450,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes API Server request timeouts sets the duration a request stays open
 before timing out. Since the API Server is the central component in the
@@ -4505,7 +4505,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Previous versions of Kubernetes components that are not removed after updates
 have been installed may be exploited by adversaries by allowing the
@@ -4531,7 +4531,7 @@ always be at the desired security state.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes software must stay up to date with the latest patches, service
 packs, and hot fixes. Not updating the Kubernetes control plane will expose the
@@ -4583,7 +4583,7 @@ authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes manifests are those files that contain the arguments and
 settings for the Control Plane services. These services are etcd, the api
@@ -4652,7 +4652,7 @@ start with `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes etcd key-value store provides a way to store data to the
 Control Plane. If these files can be changed, data to API object and the
@@ -4709,7 +4709,7 @@ start with `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes conf files contain the arguments and settings for the Control
 Plane services. These services are controller and scheduler. If these files can
@@ -4754,7 +4754,7 @@ start with `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes Kube Proxy kubeconfig contain the argument and setting for the
 Control Planes. These settings contain network rules for restricting network
@@ -4848,7 +4848,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes Kube Proxy kubeconfig contain the argument and setting for the
 Control Planes. These settings contain network rules for restricting network
@@ -4937,7 +4937,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes kubelet certificate authority file contains settings for the
 Kubernetes Node TLS certificate authority. Any request presenting a client
@@ -5031,7 +5031,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes kube proxy kubeconfig contain the argument and setting for the
 Control Planes. These settings contain network rules for restricting network
@@ -5120,7 +5120,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes PKI directory contains all certificates (.crt files)
 supporting secure network communications in the Kubernetes Control Plane. If
@@ -5181,7 +5181,7 @@ start with `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes kubelet agent registers nodes with the API Server, mounts
 volume storage for pods, and performs health checks to containers within pods.
@@ -5265,7 +5265,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes kubelet agent registers nodes with the API server and performs
 health checks to containers within pods. If these files can be modified, the
@@ -5348,7 +5348,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes kubeeadm.conf contains sensitive information regarding the
 cluster nodes configuration. If this file can be modified, the Kubernetes
@@ -5376,7 +5376,7 @@ the security settings within the document are implemented through this file.
 
 #### Class: Not Applicable
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes kubeadm.conf contains sensitive information regarding the
 cluster nodes configuration. If this file can be modified, the Kubernetes
@@ -5404,7 +5404,7 @@ the security settings within the document are implemented through this file.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes kubelet agent registers nodes with the API server and performs
 health checks to containers within pods. If this file can be modified, the
@@ -5507,7 +5507,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes kubelet agent registers nodes with the API Server and performs
 health checks to containers within pods. If this file can be modified, the
@@ -5603,7 +5603,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes etcd key-value store provides a way to store data to the
 Control Plane. If these files can be changed, data to API object and Control
@@ -5658,7 +5658,7 @@ start with `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes admin kubeconfig files contain the arguments and settings for
 the Control Plane services. These services are controller and scheduler. If
@@ -5701,7 +5701,7 @@ start with `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes API Server validates and configures pods and services for the API
 object. The REST operation provides frontend functionality to the cluster share
@@ -5758,7 +5758,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes API Server must be set for enough storage to retain log
 information over the period required. When audit logs are large in size, the
@@ -5813,7 +5813,7 @@ equal to `100`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes API Server must set enough storage to retain logs for
 monitoring suspicious activity and system misconfiguration, and provide
@@ -5867,7 +5867,7 @@ equal to `10`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes API Server must set enough storage to retain logs for
 monitoring suspicious activity and system misconfiguration, and provide
@@ -5918,7 +5918,7 @@ The output should indicate a `audit-log-maxage` value of 30.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Kubernetes API Server validates and configures pods and services for the API
 object. The REST operation provides frontend functionality to the cluster share
@@ -5972,7 +5972,7 @@ The final line of the output will be `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes PKI directory contains all certificates (.crt files)
 supporting secure network communications in the Kubernetes Control Plane. If
@@ -6018,7 +6018,7 @@ start with `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > The Kubernetes PKI directory contains all certificate key files supporting
 secure network communications in the Kubernetes Control Plane. If these files
@@ -6066,7 +6066,7 @@ start with `PASS`.
 
 #### Class: Deployment
 
-#### Upstream Finding Description:
+#### Upstream finding description:
 
 > Idle connections from the Kubelet can be used by unauthorized users to
 perform malicious activity to the nodes, pods, containers, and cluster within
