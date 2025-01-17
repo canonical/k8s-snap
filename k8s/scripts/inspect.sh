@@ -7,14 +7,16 @@
 # elevated permissions (sudo).
 #
 # Usage:
-#   ./inspect.sh [output_file] [--all-namespaces]
+#   ./inspect.sh [output_file] [--all-namespaces] [--num-snap-log-entries 100000]
 #
 # Arguments:
-#   output_file        (Optional) The full path and filename for the generated tarball.
-#                      If not provided, a default filename based on the current date
-#                      and time will be used.
-#   --all-namespaces   (Optional) Acquire detailed debugging information, including logs
-#                      from all Kubernetes namespaces.
+#   output_file             (Optional) The full path and filename for the generated tarball.
+#                           If not provided, a default filename based on the current date
+#                           and time will be used.
+#   --all-namespaces        (Optional) Acquire detailed debugging information, including logs
+#                           from all Kubernetes namespaces.
+#   --num-snap-log-entries  (Optional) The maximum number of log entries to collect
+#                           from snap services. Default: 100000.
 #
 # Example:
 #   ./inspect.sh /path/to/output.tar.gz
@@ -25,6 +27,7 @@ INSPECT_DUMP=$(pwd)/inspection-report
 # We won't fetch all namespaces by default to avoid logging potentially sensitive
 # user data.
 ALL_NAMESPACES=0
+NUM_SNAP_LOG_ENTRIES=100000
 
 function log_success {
   printf -- '\033[32m SUCCESS: \033[0m %s\n' "$1"
@@ -97,6 +100,9 @@ function collect_system_info {
 
   log_info "Copy loaded kernel modules to the final report tarball"
   lsmod > $INSPECT_DUMP/sys/loaded_kernel_modules
+
+  log_info "Copy dmesg entries"
+  dmesg -H > $INSPECT_DUMP/sys/dmesg
 }
 
 function collect_k8s_diagnostics {
@@ -107,7 +113,7 @@ function collect_k8s_diagnostics {
   snap version &>"$INSPECT_DUMP/snap-version.log"
   snap list k8s &>"$INSPECT_DUMP/snap-list-k8s.log"
   snap services k8s &>"$INSPECT_DUMP/snap-services-k8s.log"
-  snap logs k8s -n 10000 &>"$INSPECT_DUMP/snap-logs-k8s.log"
+  snap logs k8s -n $NUM_SNAP_LOG_ENTRIES &>"$INSPECT_DUMP/snap-logs-k8s.log"
 
   log_info "Copy k8s diagnostics to the final report tarball"
   k8s kubectl version &>"$INSPECT_DUMP/k8s-version.log"
@@ -145,7 +151,7 @@ function collect_service_diagnostics {
     log_warning "Service $service has restarted $n_restarts times due to errors"
   fi
 
-  journalctl -n 100000 -u "snap.$service" &>"$INSPECT_DUMP/$service/journal.log"
+  journalctl -n "$NUM_SNAP_LOG_ENTRIES" -u "snap.$service" &>"$INSPECT_DUMP/$service/journal.log"
 }
 
 function collect_registry_mirror_logs {
@@ -214,6 +220,11 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --all-namespaces)
       ALL_NAMESPACES=1
+      shift
+      ;;
+    --num-snap-log-entries)
+      shift
+      NUM_SNAP_LOG_ENTRIES="$1"
       shift
       ;;
     -*|--*)
