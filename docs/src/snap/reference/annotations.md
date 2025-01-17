@@ -14,7 +14,9 @@ cluster-config:
         k8sd/v1alpha/lifecycle/skip-stop-services-on-remove: true
 ```
 
-Please refer to the [Kubernetes website] for more information on annnotations.
+```{note}
+v1alpha annotations are experimental and subject to change or removal in future {{product}} releases
+```
 
 ## `k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove`
 
@@ -23,7 +25,7 @@ Please refer to the [Kubernetes website] for more information on annnotations.
 | **Values**| "true"\|"false"|
 | **Description**| If set, only MicroCluster and file cleanup are performed.  This is helpful when an external controller (e.g., CAPI) manages the Kubernetes node lifecycle. By default,  k8sd will remove the Kubernetes node when it is removed from the cluster. |
 
-## `k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove`
+## `k8sd/v1alpha/lifecycle/skip-stop-services-on-remove`
 
 |   |   |
 |---|---|
@@ -36,111 +38,6 @@ Please refer to the [Kubernetes website] for more information on annnotations.
 |---|---|
 |**Values**| "true"\|"false"|
 |**Description**|If set, certificate signing requests created by worker nodes are auto approved.|
-
-## `k8sd/v1alpha1/calico/apiserver-enabled`
-
-|   |   |
-|---|---|
-|**Values**| "true"\|"false"|
-|**Description**|Enable the installation of the Calico API server to enable management of Calico APIs using kubectl.|
-
-## `k8sd/v1alpha1/calico/encapsulation-v4`
-
-|   |   |
-|---|---|
-|**Values**| “IPIP”\|”VXLAN”\|”IPIPCrossSubnet”\|”VXLANCrossSubnet”\|”None”|
-|**Description**|The type of encapsulation to use on the IPv4 pool.|
-
-## `k8sd/v1alpha1/calico/encapsulation-v6`
-
-|   |   |
-|---|---|
-|**Values**| “IPIP”\|”VXLAN”\|”IPIPCrossSubnet”\|”VXLANCrossSubnet”\|”None”|
-|**Description**|The type of encapsulation to use on the IPv6 pool.|
-
-## `k8sd/v1alpha1/calico/autodetection-v4/firstFound`
-
-|   |   |
-|---|---|
-|**Values**| "true"\|"false"|
-|**Description**|Use default interface matching parameters to select an interface, performing best-effort filtering based on well-known interface names.|
-
-## `k8sd/v1alpha1/calico/autodetection-v4/kubernetes`
-
-|   |   |
-|---|---|
-|**Values**| “NodeInternalIP”|
-|**Description**|Configure Calico to detect node addresses based on the Kubernetes API.|
-
-## `k8sd/v1alpha1/calico/autodetection-v4/interface`
-
-|   |   |
-|---|---|
-|**Values**| string |
-|**Description**|Enable IP auto-detection based on interfaces that match the given regex.|
-
-## `k8sd/v1alpha1/calico/autodetection-v4/skipInterface`
-
-|   |   |
-|---|---|
-|**Values**| string |
-|**Description**|Enable IP auto-detection based on interfaces that do not match the given regex.|
-
-## `k8sd/v1alpha1/calico/autodetection-v4/canReach`
-
-|   |   |
-|---|---|
-|**Values**| string |
-|**Description**|Enable IP auto-detection based on which source address on the node is used to reach the specified IP or domain.|
-
-## `k8sd/v1alpha1/calico/autodetection-v4/cidrs`
-
-|   |   |
-|---|---|
-|**Values**| \[] (string values comma separated) |
-|**Description**|Enable IP auto-detection based on which addresses on the nodes are within one of the provided CIDRs.|
-
-## `k8sd/v1alpha1/calico/autodetection-v6/firstFound` 
-
-|   |   |
-|---|---|
-|**Values**| "true"\|"false" |
-|**Description**|Use default interface matching parameters to select an interface, performing best-effort filtering based on well-known interface names.|
-
-## `k8sd/v1alpha1/calico/autodetection-v6/kubernetes`
-
-|   |   |
-|---|---|
-|**Values**| “NodeInternalIP” |
-|**Description**|Configure Calico to detect node addresses based on the Kubernetes API.|
-
-## `k8sd/v1alpha1/calico/autodetection-v6/interface`
-
-|   |   |
-|---|---|
-|**Values**| string |
-|**Description**|Enable IP auto-detection based on interfaces that match the given regex.|
-
-## `k8sd/v1alpha1/calico/autodetection-v6/skipInterface`
-
-|   |   |
-|---|---|
-|**Values**| string |
-|**Description**|Enable IP auto-detection based on interfaces that do not match the given regex.|
-
-## `k8sd/v1alpha1/calico/autodetection-v6/canReach` 
-
-|   |   |
-|---|---|
-|**Values**| string |
-|**Description**|Enable IP auto-detection based on which source address on the node is used to reach the specified IP or domain.|
-
-## `k8sd/v1alpha1/calico/autodetection-v6/cidrs`
-
-|   |   |
-|---|---|
-|**Values**| \[] (string values comma separated) |
-|**Description**|Enable IP auto-detection based on which addresses on the nodes are within one of the provided CIDRs.|
 
 ## `k8sd/v1alpha1/cilium/cni-exclusive`
 
@@ -156,7 +53,7 @@ Please refer to the [Kubernetes website] for more information on annnotations.
 |**Values**| string|
 |**Description**|List of devices facing cluster/external network (used for BPF NodePort, BPF masquerading and host firewall); supports `+` as wildcard in device name, e.g. `eth+,ens+` |
 
-## `k8sd/v1alpha1/cilium/direct-routing-device` 
+## `k8sd/v1alpha1/cilium/direct-routing-device`
 
 |   |   |
 |---|---|
