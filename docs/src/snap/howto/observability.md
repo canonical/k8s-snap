@@ -1,4 +1,4 @@
-# How to use Prometheus with Canonical K8s
+# How to use Prometheus with {{product}}
 
 Observability is an essential component in any system for understanding,
 managing, and improving its performance and reliability. The main pillars of
@@ -27,7 +27,7 @@ This guide assumes the following:
 Prometheus and its operator can be installed with a Helm chart. Start by
 adding the community Helm chart repository to your system:
 
-```bash
+```
 sudo k8s helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 sudo k8s helm repo update
 ```
@@ -35,7 +35,7 @@ sudo k8s helm repo update
 Before deploying the Helm chart, you can customize it with a `values.yaml`
 file. You can generate it by running:
 
-```bash
+```
 sudo k8s helm show values prometheus-community/kube-prometheus-stack > values.yaml
 ```
 
@@ -47,14 +47,14 @@ Grafana. If the `storageClassName` field is not set, the cluster's default
 created for your persistent storage solution of choice. You can list them by
 running the following:
 
-```bash
+```
 sudo k8s kubectl get storageclass
 ```
 
 After the Prometheus deployment has been customized with the
 `values.yaml` file, run the following command:
 
-```bash
+```
 sudo k8s helm install prometheus prometheus-community/kube-prometheus-stack \
   --create-namespace --namespace observability -f values.yaml
 ```
@@ -65,22 +65,18 @@ Note that this Helm chart installs a few dependent charts:
 - `prometheus-community/prometheus-node-exporter`
 - `grafana/grafana`
 
-Visit https://github.com/prometheus-operator/kube-prometheus for instructions
-on how to configure the Alertmanager and Prometheus instances using the
-Prometheus Operator.
-
 ## Verify that Prometheus is running
 
 It is recommended to ensure that Prometheus initialises properly and is running
 without issues. Check that the Prometheus pods are running:
 
-```bash
+```
 sudo k8s kubectl get pods -n observability -l "app.kubernetes.io/name=prometheus"
 ```
 
 Next, connect to the Prometheus dashboard through its Kubernetes Service:
 
-```bash
+```
 SVC_NAME="prometheus-kube-prometheus-prometheus"
 sudo k8s kubectl get -n observability svc/$SVC_NAME
 CLUSTER_IP="$(sudo k8s kubectl get -n observability svc/$SVC_NAME -o jsonpath='{.spec.clusterIP}')"
@@ -92,14 +88,14 @@ If you do not have access to the cluster network, or if the Prometheus
 Kubernetes service is not exposed externally, you can instead create a
 temporary local port-forward to the Prometheus dashboard:
 
-```bash
+```
 export POD_NAME=$(sudo k8s kubectl get pods --namespace observability -l "app.kubernetes.io/name=prometheus" -o jsonpath="{.items[0].metadata.name}")
 sudo k8s kubectl --namespace observability port-forward $POD_NAME 9090
 ```
 
 You can check the metrics that have been scraped so far by running:
 
-```bash
+```
 curl -s http://${CLUSTER_IP}:${CLUSTER_IP_PORT}/metrics
 ```
 
@@ -112,13 +108,13 @@ logs, and traces.
 If you've deployed Prometheus with the Helm chart above, you should already
 have Grafana deployed in your cluster:
 
-```bash
+```
 sudo k8s kubectl get pods -n observability -l "app.kubernetes.io/name=grafana"
 ```
 
 Next, connect to the Grafana dashboard through its Kubernetes service:
 
-```bash
+```
 SVC_NAME="prometheus-grafana"
 sudo k8s kubectl get -n observability svc/$SVC_NAME
 CLUSTER_IP="$(sudo k8s kubectl get -n observability svc/$SVC_NAME -o jsonpath='{.spec.clusterIP}')"
@@ -130,18 +126,19 @@ If you do not have access to the cluster network, or if the Grafana Kubernetes
 service is not exposed externally, you can instead create a temporary local
 port-forward to the Grafana dashboard:
 
-```bash
+```
 export POD_NAME=$(sudo k8s kubectl get pods --namespace observability -l "app.kubernetes.io/name=grafana" -o jsonpath="{.items[0].metadata.name}")
 sudo k8s kubectl --namespace observability port-forward $POD_NAME 3000
 ```
 
 The default username/password for Grafana are: `admin`/`prom-operator`
 
-# Removing Prometheus
+## Removing Prometheus
 
-Prometheus and its related components can be removed by running:
+Prometheus and its related components (including Grafana) can be removed by
+running:
 
-```bash
+```
 sudo k8s helm delete prometheus -n observability
 ```
 
@@ -149,7 +146,7 @@ sudo k8s helm delete prometheus -n observability
 > services may not deleted when removing Prometheus. You can check them
 > by running:
 
-``` bash
+```
 sudo k8s kubectl get -n observability pvc
 sudo k8s kubectl get pv
 ```
@@ -158,6 +155,6 @@ sudo k8s kubectl get pv
 
 [Prometheus]: https://prometheus.io/
 [snap-install-howto]: ./install/snap.md
-[getting-started-guide]: ../../tutorial/getting-started.md
+[getting-started-guide]: ../tutorial/getting-started.md
 [enable-storage]: ./storage/index.md
 [Grafana]: https://grafana.com/
