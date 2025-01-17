@@ -1,7 +1,6 @@
 # Install with Multipass (Ubuntu/macOS/Windows)
 
-[Multipass] is a simple way to run Ubuntu in a virtual machine, no matter
-what your underlying OS. It is the recommended way to run {{product}} on
+[Multipass] provides an easy way to run Ubuntu in a virtual machine, regardless of your underlying operating system. It is the recommended way to run {{product}} on
 Windows and macOS systems, and is equally useful for running multiple instances
 of the `k8s` snap on Ubuntu too.
 
