@@ -6,7 +6,7 @@ with industry-standard frameworks such as CIS and DISA STIG.
 
 {{product}} aligns with many security recommendations by
 default. However, since implementing all security recommendations
-would comes at the expense of compatibility and/or performance we expect
+would come at the expense of compatibility and/or performance we expect
 cluster administrators to follow post deployment hardening steps based on their
 needs.
 
@@ -24,7 +24,7 @@ compliance.
 ```
 
 
-## CIS and DISA STIG Hardening
+## CIS and DISA STIG hardening
 
 To assess compliance to DISA STIG recommendations, please see
 [DISA STIG assessment page].
