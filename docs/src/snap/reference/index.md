@@ -12,13 +12,11 @@ Overview <self>
 :titlesonly:
 
 releases
+config-files/index
 commands
 ports-and-services
 annotations
 certificates
-bootstrap-config-reference
-control-plane-join-config-reference
-worker-join-config-reference
 proxy
 troubleshooting
 architecture
