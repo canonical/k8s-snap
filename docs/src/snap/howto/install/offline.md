@@ -1,17 +1,17 @@
 # Installing {{product}} in air-gapped environments
 
-There are situations where it is necessary or desirable to run Canonical
-Kubernetes on a machine that is not connected to the internet. Based on
-different degrees of separation from the network, different solutions are
-offered to accomplish this goal. This guide documents any necessary extra
-preparation for air-gap deployments, as well the steps that are needed to
-successfully deploy {{product}} in such environments.
+There are situations where it is necessary or desirable to run {{product}}
+on a machine that is not connected to the internet. Based on different degrees
+of separation from the network, different solutions are offered to accomplish
+this goal. This guide documents any necessary extra preparation for air-gap
+deployments, as well the steps that are needed to successfully deploy
+{{product}} in such environments.
 
-## Prepare for Deployment
+## Prepare for deployment
 
-In preparation for the offline deployment download the Canonical
-Kubernetes snap, fulfil the networking requirements based on your scenario and
-handle images for workloads and {{product}} features.
+In preparation for the offline deployment download the {{product}} snap,
+fulfil the networking requirements based on your scenario and handle images for
+workloads and {{product}} features.
 
 ### Download the {{product}} snap
 
@@ -28,7 +28,7 @@ Besides the snaps, this will also download the corresponding assert files which
 are necessary to verify the integrity of the packages.
 
 ```{note}
-Update the version of k8s by adjusting the channel parameter.
+Update the version of `k8s` by adjusting the channel parameter.
 For more information on channels visit the
 [channels explanation](../../explanation/channels.md).
 ```
@@ -38,7 +38,7 @@ Future updates to the `k8s` snap may require a different version of the core
 snap.
 ```
 
-### Network Requirements
+### Network requirements
 
 Air-gap deployments are typically associated with a number of constraints and
 restrictions when it comes to the networking connectivity of the machines.
@@ -126,7 +126,7 @@ ghcr.io/canonical/rawfile-localpv:0.8.1
 ```
 
 A list of images can also be found in the `images.txt` file when the
-downloaded k8s snap is unsquashed.
+downloaded `k8s` snap is unsquashed.
 
 Please ensure that the images used by workloads are tracked as well.
 
@@ -263,7 +263,7 @@ create a `hosts.toml` file. Here's an example that configures
 
 ##### HTTP registry
 
-In `/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/hosts.toml`
+In `/etc/containerd/hosts.d/ghcr.io/hosts.toml`
 add the configuration:
 
 ```
@@ -275,9 +275,9 @@ capabilities = ["pull", "resolve"]
 
 HTTPS requires the additionally specification of the registry CA certificate.
 Copy the certificate to
-`/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt`.
+`/etc/containerd/hosts.d/ghcr.io/ca.crt`.
 Then add the configuration in
-`/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/hosts.toml`:
+`/etc/containerd/hosts.d/ghcr.io/hosts.toml`:
 
 ```
 [host."https://10.10.10.10:5050"]

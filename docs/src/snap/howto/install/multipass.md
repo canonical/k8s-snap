@@ -1,9 +1,9 @@
-# Install with Multipass (Ubuntu/Mac/Windows)
+# Install with Multipass (Ubuntu/macOS/Windows)
 
-[Multipass][]is a simple way to run Ubuntu in a
-virtual machine, no matter what your underlying OS. It is the recommended way
-to run {{product}} on Windows and macOS systems, and is equally useful
-for running multiple instances of the `k8s` snap on Ubuntu too.
+[Multipass] is a simple way to run Ubuntu in a virtual machine, no matter
+what your underlying OS. It is the recommended way to run {{product}} on
+Windows and macOS systems, and is equally useful for running multiple instances
+of the `k8s` snap on Ubuntu too.
 
 ## Install Multipass
 
@@ -13,8 +13,8 @@ Choose your OS for the install procedure
 
 ```{group-tab} Ubuntu/Linux
 
-Multipass is shipped as a snap for Ubuntu and other OSes which support the
-[snap package system][snap-support].
+Multipass is shipped as a snap for Ubuntu and other Linux distributions which
+support the [snap package system][snap-support].
 
     sudo snap install multipass
 
@@ -26,8 +26,8 @@ Multipass is shipped as a snap for Ubuntu and other OSes which support the
 Windows users should download and install the Multipass installer from the
 website.
 
-The [latest Windows version][] is available to download,
-though you may wish to visit the [Multipass website][] for more details.
+The [latest Windows version][] is available to download, though you may wish
+to visit the [Multipass website][] for more details.
 
 
 ```
@@ -55,12 +55,12 @@ and 20G of disk space for each instance.
 Open a terminal (or Shell on Windows) and enter the following command:
 
 ```
-multipass launch 22.04 --name k8s-node --memory 4G --disk 20G --cpus 2
+multipass launch 24.04 --name k8s-node --memory 4G --disk 20G --cpus 2
 ```
 
 This command specifies:
 
-- `22.04`: The Ubuntu image used as the basis for the instance
+- `24.04`: The Ubuntu image used as the base for the instance
 - `--name`: The name by which you will refer to the instance
 - `--memory`: The memory to allocate
 - `--disk`: The disk space to allocate
@@ -105,8 +105,7 @@ multipass stop k8s-node
 And it can be permanently removed with:
 
 ```
-multipass delete k8s-node
-multipass purge
+multipass delete k8s-node -p
 ```
 
 <!-- LINKS -->
