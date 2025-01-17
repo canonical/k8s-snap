@@ -78,9 +78,9 @@ outlining rules that direct traffic to your application's Kubernetes service.
 
 <!-- LINKS -->
 
-[alternative-cni]: ../howto/networking/alternative-cni
-[Ingress]: ../howto/networking/default-ingress
-[Network]: ../howto/networking/default-network
+[alternative-cni]: ../../snap/howto/networking/alternative-cni
+[Ingress]: ../../snap/howto/networking/default-ingress
+[Network]: ../../snap/howto/networking/default-network
 [LoadBalancer]: load-balancer
 [Cilium]: https://cilium.io/
 [network plugin]: https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/
