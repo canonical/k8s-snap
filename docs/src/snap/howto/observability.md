@@ -2,7 +2,7 @@
 
 Observability is an essential component in any system for understanding,
 managing, and improving its performance and reliability. The main pillars of
-observability are: metrics, logs, traces.
+observability are metrics, logs and traces.
 
 One of these pillars is covered by [Prometheus][Prometheus], an open-source
 systems monitoring and alerting toolkit designed to collect, process, and query
@@ -10,7 +10,7 @@ time-series metrics.
 
 This guide walks you through installing Prometheus in a {{product}} environment.
 
-## What you'll need
+## Prerequisites
 
 This guide assumes the following:
 
@@ -24,7 +24,7 @@ This guide assumes the following:
 
 ## Install Prometheus
 
-Prometheus and its operator can be installed through a Helm chart. Start by
+Prometheus and its operator can be installed with a Helm chart. Start by
 adding the community Helm chart repository to your system:
 
 ```bash
@@ -32,7 +32,7 @@ sudo k8s helm repo add prometheus-community https://prometheus-community.github.
 sudo k8s helm repo update
 ```
 
-Before deploying the Helm chart, you can customize it through a `values.yaml`
+Before deploying the Helm chart, you can customize it with a `values.yaml`
 file. You can generate it by running:
 
 ```bash
@@ -51,7 +51,7 @@ running the following:
 sudo k8s kubectl get storageclass
 ```
 
-After the Prometheus deployment has been customized appropriately through the
+After the Prometheus deployment has been customized with the
 `values.yaml` file, run the following command:
 
 ```bash
@@ -72,7 +72,7 @@ Prometheus Operator.
 ## Verify that Prometheus is running
 
 It is recommended to ensure that Prometheus initialises properly and is running
-without issues. Check that the Prometheus Pods are running:
+without issues. Check that the Prometheus pods are running:
 
 ```bash
 sudo k8s kubectl get pods -n observability -l "app.kubernetes.io/name=prometheus"
@@ -88,7 +88,7 @@ CLUSTER_IP_PORT="$(sudo k8s kubectl get -n observability svc/$SVC_NAME -o jsonpa
 echo "Prometheus dashboard URL (ClusterIP): http://${CLUSTER_IP}:${CLUSTER_IP_PORT}/graph"
 ```
 
-If you do not have access to the cluster network, and if the Prometheus
+If you do not have access to the cluster network, or if the Prometheus
 Kubernetes service is not exposed externally, you can instead create a
 temporary local port-forward to the Prometheus dashboard:
 
@@ -97,7 +97,7 @@ export POD_NAME=$(sudo k8s kubectl get pods --namespace observability -l "app.ku
 sudo k8s kubectl --namespace observability port-forward $POD_NAME 9090
 ```
 
-You can check the metrics scraped by Prometheus by running:
+You can check the metrics that have been scraped so far by running:
 
 ```bash
 curl -s http://${CLUSTER_IP}:${CLUSTER_IP_PORT}/metrics
@@ -110,13 +110,13 @@ application that enables you query, visualize, alert on, and explore metrics,
 logs, and traces.
 
 If you've deployed Prometheus with the Helm chart above, you should already
-have deployed in your cluster:
+have Grafana deployed in your cluster:
 
 ```bash
 sudo k8s kubectl get pods -n observability -l "app.kubernetes.io/name=grafana"
 ```
 
-Next, connect to the Grafana dashboard through its Kubernetes Service:
+Next, connect to the Grafana dashboard through its Kubernetes service:
 
 ```bash
 SVC_NAME="prometheus-grafana"
@@ -126,7 +126,7 @@ CLUSTER_IP_PORT="$(sudo k8s kubectl get -n observability svc/$SVC_NAME -o jsonpa
 echo "Grafana dashboard URL (ClusterIP): http://${CLUSTER_IP}:${CLUSTER_IP_PORT}/"
 ```
 
-If you do not have access to the cluster network, and if the Grafana Kubernetes
+If you do not have access to the cluster network, or if the Grafana Kubernetes
 service is not exposed externally, you can instead create a temporary local
 port-forward to the Grafana dashboard:
 
@@ -135,7 +135,7 @@ export POD_NAME=$(sudo k8s kubectl get pods --namespace observability -l "app.ku
 sudo k8s kubectl --namespace observability port-forward $POD_NAME 3000
 ```
 
-The default username/password for Grafana are: `admin/prom-operator`
+The default username/password for Grafana are: `admin`/`prom-operator`
 
 # Removing Prometheus
 
@@ -146,7 +146,7 @@ sudo k8s helm delete prometheus -n observability
 ```
 
 > **_NOTE:_**: The Persistent Volumes created for Prometheus and its related
-> services may not deleted when when removing Prometheus. You can check them
+> services may not deleted when removing Prometheus. You can check them
 > by running:
 
 ``` bash
