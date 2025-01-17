@@ -19,8 +19,9 @@ This guide assumes the following:
 
 ## Enable Local Storage
 
-When bootstrapping the snap, the storage feature is not enabled by
-default. To enable it, execute the following command:
+The storage feature is enabled by default when bootstrapping the snap. However,
+if you have used a custom bootstrap configuration or disabled the feature, you
+can enable it using the following command:
 
 ```
 sudo k8s enable local-storage
