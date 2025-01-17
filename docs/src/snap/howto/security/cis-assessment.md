@@ -4,7 +4,7 @@ CIS Hardening refers to the process of implementing security configurations that
 align with the benchmarks set by the [Center for Internet Security (CIS)].
 Out of the box {{product}} complies with the majority of the recommended
 CIS security configurations. Since implementing all security recommendations
-would comes at the expense of compatibility and/or performance we expect
+would come at the expense of compatibility and/or performance we expect
 cluster administrators to follow post deployment hardening steps based on their
 needs. This guide covers:
 
@@ -38,7 +38,7 @@ Download the latest [kube-bench release] on your Kubernetes nodes. Make sure
 to select the appropriate binary version.
 
 For example, to download the Linux binary, use the following command. Replace
-`KB` by the version listed in the releases page.
+`KB` by the version listed in the releases page:
 
 ```
 KB=8.0
@@ -54,7 +54,7 @@ tar -xvf kube-bench_0.$KB\_linux_amd64.tar.gz
 sudo mv kube-bench /usr/local/bin/
 ```
 
-Verify kube-bench installation.
+Verify kube-bench installation:
 
 ```
 kube-bench version
@@ -62,7 +62,7 @@ kube-bench version
 
 The output should list the version installed.
 
-Install `kubectl` and configure it to interact with the cluster.
+Install `kubectl` and configure it to interact with the cluster:
 
 ```{warning}
 This will override your ~/.kube/config if you already have kubectl installed in your cluster.
@@ -144,9 +144,9 @@ and, when possible, provide information on how to comply with each
 one manually. This can be used for manually auditing the CIS
 hardening state of a cluster.
 
-### Control Plane Security Configuration
+### Control plane security configuration
 
-#### Control Plane Node Configuration Files
+#### Control plane node configuration files
 
 ##### CIS Control 1.1.1
 
@@ -1662,7 +1662,7 @@ AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES
 _256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384
 ```
 
-#### Controller Manager
+#### Controller manager
 
 ##### CIS Control 1.3.1
 
@@ -1928,9 +1928,9 @@ and restart the kube-scheduler service
 ---bind-address=127.0.0.1
 ```
 
-### Datastore Node Configuration
+### Datastore node configuration
 
-#### Datastore Node Configuration
+#### Datastore node configuration
 
 ##### CIS Control 2.1
 
@@ -2065,9 +2065,9 @@ communication uses certificates
 created upon cluster setup.
 
 
-### Control Plane Configuration
+### Control plane configuration
 
-#### Authentication and Authorization
+#### Authentication and authorization
 
 ##### CIS Control 3.1.1
 
@@ -2137,9 +2137,9 @@ is recommended
 (the most basic level of logging).
 
 
-### Worker Node Security Configuration
+### Worker node security configuration
 
-#### Worker Node Configuration Files
+#### Worker node configuration files
 
 ##### CIS Control 4.1.1
 
@@ -2868,9 +2868,9 @@ H_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_
 RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
 ```
 
-### Kubernetes Policies
+### Kubernetes policies
 
-#### RBAC and Service Accounts
+#### RBAC and service accounts
 
 ##### CIS Control 5.1.1
 
@@ -2991,7 +2991,7 @@ Where possible, remove the impersonate, bind and escalate
 rights from subjects.
 
 
-#### Pod Security Standards
+#### Pod security standards
 
 ##### CIS Control 5.2.1 / DISA STIG V-254800
 
@@ -3188,7 +3188,7 @@ workloads to restrict the
 admission of containers which use `hostPort` sections.
 
 
-#### Network Policies and CNI
+#### Network policies and CNI
 
 ##### CIS Control 5.3.1
 
@@ -3219,7 +3219,7 @@ Follow the documentation and create NetworkPolicy objects as
 you need them.
 
 
-#### Secrets Management
+#### Secrets management
 
 ##### CIS Control 5.4.1
 
@@ -3250,7 +3250,7 @@ cloud provider or a third-party
 secrets management solution.
 
 
-#### Extensible Admission Control
+#### Extensible admission control
 
 ##### CIS Control 5.5.1
 
@@ -3266,7 +3266,7 @@ Follow the Kubernetes documentation and setup image
 provenance.
 
 
-#### General Policies
+#### General policies
 
 ##### CIS Control 5.7.1
 

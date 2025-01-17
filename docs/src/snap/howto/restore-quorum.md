@@ -1,4 +1,4 @@
-# Recovering a Cluster After Quorum Loss
+# Recovering a cluster after quorum loss
 
 Highly available {{product}} clusters can survive losing one or more
 nodes. [Dqlite], the default datastore, implements a [Raft] based protocol
@@ -11,14 +11,14 @@ steps outlined in this document.
 
 ```{note}
 This guide can be used to recover the default {{product}} datastore,
-dqlite. Persistent volumes on the lost nodes are *not* recovered.
+Dqlite. Persistent volumes on the lost nodes are *not* recovered.
 ```
 
-## Dqlite Configuration
+## Dqlite configuration
 
-Be aware that {{product}} uses not one, but two dqlite databases:
+Be aware that {{product}} uses not one, but two Dqlite databases:
 
-* k8s-dqlite - used by Kubernetes itself
+* k8s-dqlite - used by Kubernetes itself (as an ETCD replacement)
 * k8sd - Kubernetes cluster management data
 
 Each database has its own state directory:
@@ -29,8 +29,8 @@ Each database has its own state directory:
 The state directory normally contains:
 
 * ``info.yaml`` - the id, address and cluster role of this node
-* ``cluster.yaml`` - the state of the cluster, as seen by this dqlite node.
-  It includes the same information as info.yaml, but for all cluster nodes.
+* ``cluster.yaml`` - the state of the cluster, as seen by this Dqlite node.
+  It includes the same information as info.yaml, but for all cluster nodes
 * ``00000abcxx-00000abcxx``, ``open-abc`` - database segments
 * ``cluster.crt``, ``cluster.key`` - node certificates
 * ``snapshot-abc-abc-abc.meta``
@@ -53,7 +53,7 @@ Dqlite cluster members have one of the following roles:
 | 1         | stand-by  | yes                 | no                         |
 | 2         | spare     | no                  | no                         |
 
-## Stop {{product}} Services on All Nodes
+## Stop {{product}} services on all nodes
 
 Before recovering the cluster, all remaining {{product}} services
 must be stopped. Use the following command on every node:
@@ -62,7 +62,7 @@ must be stopped. Use the following command on every node:
 sudo snap stop k8s
 ```
 
-## Recover the Database
+## Recover the database
 
 Choose one of the remaining alive cluster nodes that has the most recent
 version of the Raft log.
@@ -73,7 +73,7 @@ Update the ``cluster.yaml`` files, changing the role of the lost nodes to
 files were moved across nodes.
 
 The following command guides us through the recovery process, prompting a text
-editor with informative inline comments for each of the dqlite configuration
+editor with informative inline comments for each of the Dqlite configuration
 files.
 
 ```
@@ -112,11 +112,12 @@ sudo snap start k8s
 ```
 
 Ensure that the services started successfully by using
-``sudo snap services k8s``. Use ``k8s status --wait-ready`` to wait for the
+``sudo snap services k8s``. Use ``sudo k8s status --wait-ready`` to wait for the
 cluster to become ready.
 
 You may notice that we have not returned to an HA cluster yet:
 ``high availability: no``. This is expected as we need to recover
+the remaining nodes.
 
 ## Recover the remaining nodes
 
