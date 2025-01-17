@@ -12,7 +12,7 @@ Overview <self>
 :glob:
 :titlesonly:
 getting-started
-kubectl
+Basic operations with kubectl <kubectl>
 add-remove-nodes
 ```
 
