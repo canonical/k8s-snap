@@ -15,7 +15,8 @@ by listing all available options and their details. See below for an example.
 The following example configures and enables certain features, sets an external
 cloud provider, marks the control plane nodes as unschedulable, changes the pod
 and service CIDRs from the defaults and adds an extra SAN to the generated
-certificates. It is also available to download [here][example-config].
+certificates. It is also available to download {download}`here
+</src/assets/example-bootstrap-config.yaml>`.
 
 ```{literalinclude} /src/assets/example-bootstrap-config.yaml
 :language: yaml
