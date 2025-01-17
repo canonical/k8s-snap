@@ -34,22 +34,75 @@ and k8s-worker child modules:
 Example `main.tf`:
 
 ```hcl
-data "juju_model" "testing" {
+provider "juju" {}
+
+resource "juju_model" "my_model" {
   name = "juju-myk8s"
 }
+
 module "k8s" {
-  source = "path-to/k8s"
-  juju_model = module.juju_model.testing.name
+  source  = "git::https://github.com/canonical/k8s-operator//charms/worker/k8s/terraform?ref=main"
+
+  model   = juju_model.my_model.name
+  channel = var.channel
+  units = 3
 }
 
 module "k8s-worker" {
-  source = "path-to/k8s-worker"
-  juju_model = module.juju_model.testing.name
+  source  = "git::https://github.com/canonical/k8s-operator//charms/worker/terraform?ref=main"
+  model   = juju_model.my_model.name
+  channel = var.channel
+  units = 2
 }
 ```
 
-```{note} 
-Please ensure that the root module references the correct source path for the `k8s` and `k8s-worker` modules.
+Example `variables.tf`:
+
+```hcl
+variable "channel" {
+  description = "K8s deployment channel"
+  type        = string
+}
+```
+
+Example `integrations.tf`:
+
+```hcl
+resource "juju_integration" "k8s_cluster_integration" {
+  model = juju_model.my_model.name
+  application {
+    name      = module.k8s.app_name
+    endpoint  = module.k8s.provides.k8s_cluster
+  }
+  application {
+    name      = module.k8s-worker.app_name
+    endpoint  = module.k8s-worker.requires.cluster
+  }
+}
+
+resource "juju_integration" "k8s_containerd" {
+  model = juju_model.my_model.name
+  application {
+    name      = module.k8s.app_name
+    endpoint  = module.k8s.provides.containerd
+  }
+  application {
+    name      = module.k8s-worker.app_name
+    endpoint  = module.k8s-worker.requires.containerd
+  }
+}
+
+resource "juju_integration" "k8s_cos_worker_tokens" {
+  model = juju_model.my_model.name
+  application {
+    name      = module.k8s.app_name
+    endpoint  = module.k8s.provides.cos_worker_tokens
+  }
+  application {
+    name      = module.k8s-worker.app_name
+    endpoint  = module.k8s-worker.requires.cos_tokens
+  }
+}
 ```
 
 Example `versions.tf`:
@@ -68,14 +121,8 @@ terraform {
 
 ### Charm modules
 
-Please download the charm modules from Github at:
-
-```
-git clone https://github.com/canonical/k8s-operator.git
-```
-
-Find the control-plane module at `k8s-operator/charms/worker/k8s/terraform` and
-the k8s-worker module at `k8s-operator/tree/main/charms/worker/terraform`.
+Find the `k8s` module at `//charms/worker/k8s/terraform` and
+the `k8s-worker` module at `//charms/worker/terraform`.
 
 The charm module for the k8s charm offers the following
 configuration options:
@@ -84,7 +131,7 @@ configuration options:
 | - | - | - | - | - |
 | `app_name`| string | Application name | False | k8s |
 | `base` | string | Ubuntu base to deploy the charm onto | False | ubuntu@24.04 |
-| `channel`| string | Channel that the charm is deployed from | False | 1.30/edge |
+| `channel`| string | Channel that the charm is deployed from | False | null |
 | `config`| map(string) | Map of the charm configuration options | False | {} |
 | `constraints` | string | Juju constraints to apply for this application | False | arch=amd64 |
 | `model`| string | Name of the model that the charm is deployed on | True | null |
@@ -97,7 +144,7 @@ Upon application, the module exports the following outputs:
 | Name | Description |
 | - | - |
 | `app_name`|  Application name |
-| `provides`| Map of `provides` endpoints |
+| `provides`|  Map of `provides` endpoints |
 | `requires`|  Map of `requires` endpoints |
 
 ## Deploying the charms
@@ -107,8 +154,17 @@ commands:
 
 ```bash
 terraform init
+export TF_VAR_channel=<charm channel>
+terraform plan
 terraform apply
 ```
+
+```{note} 
+Make sure the deployment [channel] is set with:
+
+&ensp;export TF_VAR_channel={{channel}}
+```
+
 
 The `terraform apply` command will deploy the k8s and k8s-worker charms to the
 Juju model. Watch the deployment progress by running:
@@ -120,5 +176,6 @@ juju status --watch 5s
 <!-- LINKS -->
 [juju-provider-tf]: https://github.com/juju/terraform-provider-juju/
 [auth]: https://registry.terraform.io/providers/juju/juju/latest/docs#authentication
+[channel]: ../../explanation/channels.md
 [terraform]: https://snapcraft.io/terraform
 
