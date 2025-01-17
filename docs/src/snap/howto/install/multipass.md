@@ -1,8 +1,9 @@
 # Install with Multipass (Ubuntu/macOS/Windows)
 
-[Multipass] provides an easy way to run Ubuntu in a virtual machine, regardless of your underlying operating system. It is the recommended way to run {{product}} on
-Windows and macOS systems, and is equally useful for running multiple instances
-of the `k8s` snap on Ubuntu too.
+[Multipass] provides an easy way to run Ubuntu in a virtual machine, regardless
+of your underlying operating system. It is the recommended way to run {{product}}
+on Windows and macOS systems, and is equally useful for running multiple
+instances of the `k8s` snap on Ubuntu too.
 
 ## Install Multipass
 
@@ -104,7 +105,7 @@ multipass stop k8s-node
 And it can be permanently removed with:
 
 ```
-multipass delete k8s-node -p
+multipass delete k8s-node --purge
 ```
 
 <!-- LINKS -->
