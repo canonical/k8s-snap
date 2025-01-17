@@ -90,7 +90,7 @@ data:
   config.json: |-
     [
       {
-        "clusterID": "fsid 6d5c12c9-6dfb-445a-940f-301aa7de0f29",
+        "clusterID": "6d5c12c9-6dfb-445a-940f-301aa7de0f29",
         "monitors": [
           "10.0.0.136:6789",
         ]
@@ -200,7 +200,7 @@ Create the ceph-csi provisioner and node plugins:
 
 ```
 wget https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml
-:
+
 kubectl apply -f csi-rbdplugin-provisioner.yaml
 
 wget https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-rbdplugin.yaml
@@ -227,7 +227,7 @@ metadata:
    name: csi-rbd-sc
 provisioner: rbd.csi.ceph.com
 parameters:
-   clusterID: b9127830-b0cc-4e34-aa47-9d1a2e9949a8
+   clusterID: 6d5c12c9-6dfb-445a-940f-301aa7de0f29
    pool: kubernetes
    imageFeatures: layering
    csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
