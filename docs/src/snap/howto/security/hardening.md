@@ -26,7 +26,7 @@ compliance.
 
 ## CIS and DISA STIG Hardening
 
-If you would like to apply further DISA STIG recommendations, please see
+To assess compliance to DISA STIG recommendations, please see
 [DISA STIG assessment page].
 
 To assess compliance to the CIS hardening guidelines, please see the [CIS
