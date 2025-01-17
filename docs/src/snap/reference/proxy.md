@@ -28,7 +28,7 @@ local traffic.
 ## Configuring
 
 For the `k8s` snap, proxy configuration is controlled by editing the
-`etc/environment` file mentioned above. There is an example in the
+`/etc/environment` file mentioned above. There is an example in the
 [How to guide for configuring proxies for the k8s snap][].
 
 For charms deployed by Juju, proxies are managed by configuring the model. See
