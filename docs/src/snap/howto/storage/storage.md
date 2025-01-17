@@ -4,6 +4,11 @@
 cluster, especially for single-node support. This guide walks you through
 enabling and configuring this feature.
 
+```{warning}
+Local storage will not survive node removal, so it may not be suitable for
+certain setups, such as production multi-node clusters.
+```
+
 ## Prerequisites
 
 This guide assumes the following:
