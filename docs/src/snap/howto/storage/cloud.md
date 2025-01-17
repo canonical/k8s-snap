@@ -20,7 +20,7 @@ AWS APIs. The policies provided here are quite open and should be scoped down
 based on your security requirements.
 
 You will most likely want to create a role for your instance. You can call this
-role "k8s-control-plane" or "k8s-worker". Then, define and attach the following
+role `k8s-control-plane` or `k8s-worker`. Then, define and attach the following
 policies to the role. Once the role is created with the required policies,
 attach the role to the instance.
 
@@ -131,7 +131,7 @@ For a worker node:
 A cluster using the AWS cloud provider needs to label existing nodes and
 resources with a ClusterID or the kube-controller-manager will not start. Add
 the following tag to your instance, making sure to replace the placeholder id
-with your own (this can simply be "k8s" or "my-k8s-cluster").
+with your own (this can simply be `k8s` or `my-k8s-cluster`).
 
 ```
 kubernetes.io/cluster/<your-cluster-id>=owned
