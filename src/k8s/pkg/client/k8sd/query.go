@@ -38,8 +38,5 @@ func query[T any](ctx context.Context, c *k8sd, method, path string, in any, out
 // isTemporary checks if an error is temporary and should be retried.
 // This function is tighly coupled with the error messages returned by microcluster and should not contain any genery error checks.
 func isTemporary(err error) bool {
-	if strings.Contains(err.Error(), "Database is still starting") {
-		return true
-	}
-	return false
+	return strings.Contains(err.Error(), "Database is still starting")
 }
