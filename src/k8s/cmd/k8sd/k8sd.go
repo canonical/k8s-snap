@@ -14,7 +14,7 @@ var rootCmdOpts struct {
 	stateDir                            string
 	pprofAddress                        string
 	disableNodeConfigController         bool
-	disableNodeLabelController			bool
+	disableNodeLabelController          bool
 	disableControlPlaneConfigController bool
 	disableFeatureController            bool
 	disableUpdateNodeConfigController   bool
@@ -50,7 +50,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				Snap:                                env.Snap,
 				PprofAddress:                        rootCmdOpts.pprofAddress,
 				DisableNodeConfigController:         rootCmdOpts.disableNodeConfigController,
-				DisableNodeLabelController:			 rootCmdOpts.disableNodeLabelController,
+				DisableNodeLabelController:          rootCmdOpts.disableNodeLabelController,
 				DisableControlPlaneConfigController: rootCmdOpts.disableControlPlaneConfigController,
 				DisableUpdateNodeConfigController:   rootCmdOpts.disableUpdateNodeConfigController,
 				DisableFeatureController:            rootCmdOpts.disableFeatureController,

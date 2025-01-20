@@ -41,7 +41,7 @@ func (c *NodeLabelController) Run(ctx context.Context) {
 		}
 
 		if err := client.WatchNode(
-				ctx, hostname, func(node *v1.Node) error { return c.reconcile(ctx, node) }); err != nil {
+			ctx, hostname, func(node *v1.Node) error { return c.reconcile(ctx, node) }); err != nil {
 			// The watch may fail during bootstrap or service start-up.
 			log.WithValues("node name", hostname).Error(err, "Failed to watch node")
 		}

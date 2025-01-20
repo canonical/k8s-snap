@@ -61,7 +61,7 @@ type App struct {
 	readyWg sync.WaitGroup
 
 	nodeConfigController         *controllers.NodeConfigurationController
-	nodeLabelController 		 *controllers.NodeLabelController
+	nodeLabelController          *controllers.NodeLabelController
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
 	csrsigningController         *csrsigning.Controller
 
