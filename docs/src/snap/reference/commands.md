@@ -1,4 +1,4 @@
-# Command reference
+# Commands
 
 These are the commands provided by the k8s snap:
 
@@ -47,5 +47,13 @@ These are the commands provided by the k8s snap:
 ```
 
 ```{include} ../../_parts/commands/k8s_status.md
+   :end-before: '### SEE ALSO'
+```
+
+```{include} ../../_parts/commands/k8s_refresh-certs.md
+   :end-before: '### SEE ALSO'
+```
+
+```{include} ../../_parts/commands/k8s_completion.md
    :end-before: '### SEE ALSO'
 ```
