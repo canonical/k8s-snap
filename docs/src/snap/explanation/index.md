@@ -13,14 +13,14 @@ Overview <self>
 :titlesonly:
 about
 installation-methods.md
-certificates
 channels
 clustering
+high-availability
+certificates
 ingress
 load-balancer
 Upgrading <upgrade.md>
 epa
-high-availability
 security
 cis
 ```

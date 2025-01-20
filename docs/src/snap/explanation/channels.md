@@ -11,8 +11,8 @@ cases) specify a channel. The channel specified is made up of two components;
 the **track** and the **risk level**.
 
 The track matches the minor version of upstream Kubernetes. For example,
-specifying the `1.30` track will match upstream releases of the same minor
-version ("1.30.0", "1.30.1", "1.30.x" etc.). Releases of {{product}}
+specifying the `1.32` track will match upstream releases of the same minor
+version ("1.32.0", "1.32.1", "1.32.x" etc.). Releases of {{product}}
 closely follow the upstream releases and usually follow within 24 hours.
 
 The 'risk level' component of the channel is one of the following:
@@ -43,7 +43,7 @@ More information can be found in the [Snapcraft documentation][]
 ## Updates and switching channels
 
 Updates for upstream patch releases will happen automatically by default. For
-example, if you have selected the channel `1.30/stable`, your snap will refresh
+example, if you have selected the channel `1.32-classic/stable`, your snap will refresh
 itself regularly keeping your cluster up-to-date with the latest patches.
 For deployments where this behaviour is undesirable you are given the option to
 postpone, schedule or even block automatic updates.
@@ -69,7 +69,7 @@ factors. We can give some general guidance for the following cases:
 - **I want to always be on the latest stable version matching a specific
 upstream K8s release (recommended).**
 
-Specify the release, for example: `--channel=1.30/stable`.
+Specify the release, for example: `--channel=1.32-classic/stable`.
 
 - **I want to test-drive a pre-stable release**
 
