@@ -7,7 +7,7 @@ scalability. In {{product}} the addition of `k8sd` to the Kubernetes
 ecosystem introduces enhanced capabilities for cluster coordination and
 management.
 
-## Kubernetes Cluster Topology
+## Kubernetes cluster topology
 
 A Kubernetes cluster consists of at least one control plane node and multiple
 worker nodes. Each node is a server (physical or virtual) that runs
@@ -20,7 +20,7 @@ This is the overview of a {{product}} cluster:
 
 ![cluster6][]
 
-## The Role of `k8sd` in Kubernetes Clustering
+## The role of `k8sd` in Kubernetes clustering
 
 `k8sd` plays a vital role in the {{product}} architecture, enhancing
 the functionality of both the Control Plane and Worker nodes through the use
@@ -29,12 +29,12 @@ adding or removing nodes and integrating them into the cluster. It also
 manages essential features like DNS and networking within the cluster,
 streamlining the entire process for a more efficient operation.
 
-## Integration into the Kubernetes Cluster Topology
+## Integration into the Kubernetes cluster topology
 
 For {{product}}, the detailed view of the two types of node is as
 follows:
 
-### Control Plane Node
+### Control plane node
 
 The control plane node orchestrates the cluster, making decisions about
 scheduling, deployment and management. With the addition of `k8sd`, the control
@@ -53,7 +53,7 @@ plane node's components include:
 - **k8sd**: Implements and exposes the operations functionality needed for
     managing the Kubernetes cluster.
 
-### Worker Node
+### Worker node
 
 Worker nodes are responsible for running the applications and workloads. Worker
 nodes, can interact with the `k8sd` API, gaining capabilities to manage its

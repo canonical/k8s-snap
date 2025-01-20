@@ -21,7 +21,7 @@ please follow the [alternative-cni] guide.
 
 Learn how to use the {{product}} default network in the [networking how-to guide][Network].
 
-## Kubernetes Pods and Services
+## Kubernetes pods and services
 
 In Kubernetes, the smallest unit is a pod, which encapsulates application containers.
 Since pods are ephemeral and their IP addresses change when destroyed and restarted,
