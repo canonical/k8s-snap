@@ -13,19 +13,20 @@ This is also a requirement for the default Ingress to function.
 Since upstream Kubernetes comes without a network provider,
 it requires the use of a [network plugin][network plugin].
 This network plugin facilitates communication between pods,
-services, and external resources, ensuring smooth traffic flow within the cluster.
-The current implementation of {{product}} leverages a widely adopted
+services, and external resources, ensuring smooth traffic flow within the
+cluster. The current implementation of {{product}} leverages a widely adopted
 CNI (Container Network Interface) called [Cilium][Cilium].
 If you wish to use a different network plugin
 please follow the [alternative-cni] guide.
 
-Learn how to use the {{product}} default network in the [networking how-to guide][Network].
+Learn how to use the {{product}} default network
+in the [networking how-to guide][Network].
 
 ## Kubernetes pods and services
 
-In Kubernetes, the smallest unit is a pod, which encapsulates application containers.
-Since pods are ephemeral and their IP addresses change when destroyed and restarted,
-they are exposed through services.
+In Kubernetes, the smallest unit is a pod, which encapsulates application
+containers. Since pods are ephemeral and their IP addresses change when
+destroyed and restarted, they are exposed through services.
 Services offer a stable network interface by providing discoverable names and
 load balancing functionality for managing a set of pods.
 For further details on Kubernetes Services,
@@ -34,8 +35,8 @@ refer to the [upstream Kubernetes Service documentation][Service].
 ## Ingress
 
 [Ingress][Ingress K8s] is a Kubernetes resource that manages
-external access by handling both HTTP and HTTPS traffic to services within your cluster.
-Traffic routed through the Ingress is directed to a service,
+external access by handling both HTTP and HTTPS traffic to services within
+your cluster. Traffic routed through the Ingress is directed to a service,
 which in turn forwards it to the relevant pod
 running the desired application within a container.
 
@@ -46,13 +47,14 @@ for up to date information on the available rules and their implementation.
 
 While the Ingress resource manages the routing rules for the incoming traffic,
 the [Ingress Controller][Ingress Controller] is responsible for implementing
-those rules by configuring the underlying networking infrastructure of the cluster.
-Ingress does not work without an Ingress Controller.
+those rules by configuring the underlying networking infrastructure of
+the cluster. Ingress does not work without an Ingress Controller.
 
 The Ingress Controller also serves as a layer 7 (HTTP/HTTPS) load balancer
-that routes traffic from outside of your cluster to services inside of your cluster.
-Please do not confuse this with the Kubernetes Service LoadBalancer type
-which operates at layer 4 and routes traffic directly to individual pods.
+that routes traffic from outside of your cluster to services
+inside of your cluster. Please do not confuse this with the 
+Kubernetes Service LoadBalancer type which operates at layer 4 and routes
+traffic directly to individual pods.
 
 ![cluster6][]
 
@@ -78,9 +80,9 @@ outlining rules that direct traffic to your application's Kubernetes service.
 
 <!-- LINKS -->
 
-[alternative-cni]: ../howto/networking/alternative-cni
-[Ingress]: ../howto/networking/default-ingress
-[Network]: ../howto/networking/default-network
+[alternative-cni]: ../../snap/howto/networking/alternative-cni
+[Ingress]: ../../snap/howto/networking/default-ingress
+[Network]: ../../snap/howto/networking/default-network
 [LoadBalancer]: load-balancer
 [Cilium]: https://cilium.io/
 [network plugin]: https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/
