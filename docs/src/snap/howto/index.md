@@ -27,6 +27,7 @@ Managing upgrades <upgrades>
 Set up Enhanced Platform Awareness <epa>
 Manage images <image-management.md>
 contribute
+Developer setup <dev-setup.md>
 Get support <support>
 Troubleshooting <troubleshooting>
 ```
