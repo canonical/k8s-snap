@@ -19,6 +19,7 @@ This guide assumes the following:
   (see How-to [Install {{product}} from a snap][snap-install-howto]).
 - You have a bootstrapped {{product}} cluster (see the [Getting Started][
   getting-started-guide] guide).
+- You have [installed Helm][install-helm].
 - You have enabled a persistent storage solution in your cluster
   (see How-to [Enable persistent storage][enable-storage]).
 
@@ -28,15 +29,15 @@ Prometheus and its operator can be installed with a Helm chart. Start by
 adding the community Helm chart repository to your system:
 
 ```
-sudo k8s helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-sudo k8s helm repo update
+sudo helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+sudo helm repo update
 ```
 
 Before deploying the Helm chart, you can customize it with a `values.yaml`
 file. You can generate it by running:
 
 ```
-sudo k8s helm show values prometheus-community/kube-prometheus-stack > values.yaml
+sudo helm show values prometheus-community/kube-prometheus-stack > values.yaml
 ```
 
 In order to ensure High Availability for the Prometheus services, make sure to
@@ -55,7 +56,7 @@ After the Prometheus deployment has been customized with the
 `values.yaml` file, run the following command:
 
 ```
-sudo k8s helm install prometheus prometheus-community/kube-prometheus-stack \
+sudo helm install prometheus prometheus-community/kube-prometheus-stack \
   --create-namespace --namespace observability -f values.yaml
 ```
 
@@ -67,7 +68,7 @@ Note that this Helm chart installs a few dependent charts:
 
 ## Verify that Prometheus is running
 
-It is recommended to ensure that Prometheus initialises properly and is running
+It is recommended to ensure that Prometheus initializes properly and is running
 without issues. Check that the Prometheus pods are running:
 
 ```
@@ -139,7 +140,7 @@ Prometheus and its related components (including Grafana) can be removed by
 running:
 
 ```
-sudo k8s helm delete prometheus -n observability
+sudo helm delete prometheus -n observability
 ```
 
 > **_NOTE:_**: The Persistent Volumes created for Prometheus and its related
@@ -156,5 +157,6 @@ sudo k8s kubectl get pv
 [Prometheus]: https://prometheus.io/
 [snap-install-howto]: ./install/snap.md
 [getting-started-guide]: ../tutorial/getting-started.md
+[install-helm]: ../explanation/package-management.md
 [enable-storage]: ./storage/index.md
 [Grafana]: https://grafana.com/
