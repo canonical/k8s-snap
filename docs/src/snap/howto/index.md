@@ -19,6 +19,7 @@ networking/index
 storage/index
 security/index
 Use an external datastore <external-datastore>
+Set up cluster observability  <observability>
 backup-restore
 refresh-certs
 restore-quorum
