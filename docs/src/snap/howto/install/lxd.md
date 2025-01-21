@@ -1,4 +1,4 @@
-# Install {{product}} in LXD
+# How to install {{product}} in LXD
 
 {{product}} can also be installed inside an LXD container. This is a
 great way, for example, to test out clustered {{product}} without the

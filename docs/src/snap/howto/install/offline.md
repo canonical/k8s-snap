@@ -1,4 +1,4 @@
-# Installing {{product}} in air-gapped environments
+# How to install {{product}} in air-gapped environments
 
 There are situations where it is necessary or desirable to run {{product}}
 on a machine that is not connected to the internet. Based on different degrees

@@ -1,4 +1,4 @@
-# Install with Multipass (Ubuntu/macOS/Windows)
+# How to install {{product}} with Multipass (Ubuntu/macOS/Windows)
 
 [Multipass] provides an easy way to run Ubuntu in a virtual machine, regardless
 of your underlying operating system. It is the recommended way to run

@@ -26,7 +26,7 @@ Upgrade minor version <upgrade-minor>
 Upgrade patch version <upgrade-patch>
 Validate the cluster <validate>
 Troubleshooting <troubleshooting>
-contribute
+Contribute to Canonical Kubernetes <contribute>
 ```
 
 ---

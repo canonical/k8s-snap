@@ -1,4 +1,4 @@
-# Refreshing Kubernetes Certificates
+# How to refresh Kubernetes Certificates
 
 To keep your {{product}} cluster secure and functional, it is essential
 to regularly refresh its certificates. Certificates in Kubernetes ensure

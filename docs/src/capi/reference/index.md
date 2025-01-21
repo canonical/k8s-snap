@@ -12,7 +12,7 @@ Overview <self>
 :titlesonly:
 releases
 annotations
-Ports and Services <ports-and-services>
+Ports and services <ports-and-services>
 Community <community>
 configs
 

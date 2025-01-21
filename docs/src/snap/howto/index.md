@@ -21,13 +21,13 @@ security/index
 Use an external datastore <external-datastore>
 Set up cluster observability  <observability>
 backup-restore
-refresh-certs
-restore-quorum
+Refresh Kubernetes Certificates <refresh-certs>
+Recover a cluster after quorum loss <restore-quorum>
 two-node-ha
-Managing upgrades <upgrades>
+Manage upgrades <upgrades>
 Set up Enhanced Platform Awareness <epa>
 Manage images <image-management.md>
-contribute
+Contribute to Canonical Kubernetes <contribute>
 Get support <support>
 Troubleshooting <troubleshooting>
 ```

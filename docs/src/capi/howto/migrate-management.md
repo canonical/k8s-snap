@@ -1,18 +1,18 @@
-# Migrate the management cluster
+# How to migrate the management cluster
 
-Management cluster migration allows admins to move the management cluster 
+Management cluster migration allows admins to move the management cluster
 to a different substrate or perform maintenance tasks without disruptions.
 This guide walks you through the migration of a management cluster.
 
 ## Prerequisites
 
-- A {{product}} CAPI management cluster with Cluster API and providers 
+- A {{product}} CAPI management cluster with Cluster API and providers
 installed and configured.
 
 ## Configure the target cluster
 
-Before migrating a cluster, ensure that both the target and source management 
-clusters run the same version of providers (infrastructure, bootstrap, 
+Before migrating a cluster, ensure that both the target and source management
+clusters run the same version of providers (infrastructure, bootstrap,
 control plane). Use `clusterctl init` to target the cluster::
 
 ```

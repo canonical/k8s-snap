@@ -14,13 +14,13 @@ Overview <self>
 :glob:
 :titlesonly:
 
+Install custom Canonical Kubernetes <custom-ck8s>
 Use external etcd <external-etcd.md>
-rollout-upgrades
-in-place-upgrades
-upgrade-providers
-migrate-management
-custom-ck8s
-refresh-certs
+Upgrade the Kubernetes version <rollout-upgrades>
+Perform an in-place upgrade <in-place-upgrades>
+Upgrade the providers of a management cluster <upgrade-providers>
+Migrate the management cluster <migrate-management>
+Refresh workload cluster certificates <refresh-certs>
 ```
 
 ---
