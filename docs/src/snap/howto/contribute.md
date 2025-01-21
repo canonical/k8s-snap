@@ -47,6 +47,15 @@ sudo snap install k8s_v1.32.1_multi.snap --dangerous --classic
    k8s snap installed on your system.
 ```
 
+```{note}
+The snap may conflict with other software such as Docker or containerd,
+which is why we recommend using a clean, isolated environment such as a
+VM or LXD container.
+
+See the [development env guide] if you'd rather install the snap directly
+on your development machine.
+```
+
 Once you have verified the current snap build works, it can be removed with:
 
 ```
@@ -200,3 +209,4 @@ press `F5` in your browser to reload the page without caching)!
 [How to template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/_parts/template-howto
 [Explanation template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/_parts/template-explanation
 [Reference template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/_parts/template-reference
+[development env guide]: ./install/dev-env.md

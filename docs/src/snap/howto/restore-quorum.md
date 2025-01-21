@@ -14,44 +14,7 @@ This guide can be used to recover the default {{product}} datastore,
 Dqlite. Persistent volumes on the lost nodes are *not* recovered.
 ```
 
-## Dqlite configuration
-
-Be aware that {{product}} uses not one, but two Dqlite databases:
-
-* k8s-dqlite - used by Kubernetes itself (as an ETCD replacement)
-* k8sd - Kubernetes cluster management data
-
-Each database has its own state directory:
-
-* ``/var/snap/k8s/common/var/lib/k8s-dqlite``
-* ``/var/snap/k8s/common/var/lib/k8sd/state``
-
-The state directory normally contains:
-
-* ``info.yaml`` - the id, address and cluster role of this node
-* ``cluster.yaml`` - the state of the cluster, as seen by this Dqlite node.
-  It includes the same information as info.yaml, but for all cluster nodes
-* ``00000abcxx-00000abcxx``, ``open-abc`` - database segments
-* ``cluster.crt``, ``cluster.key`` - node certificates
-* ``snapshot-abc-abc-abc.meta``
-* ``metadata{1,2}``
-* ``*.sock`` - control unix sockets
-
-K8sd contains additional files to manage cluster memberships and member's
-secure communication:
-
-* ``server.crt``, ``server.key`` certificates
-* ``truststore`` folder, containing trusted certificates
-* ``daemon.yaml`` - k8sd daemon configuration
-* separate ``database`` folder
-
-Dqlite cluster members have one of the following roles:
-
-| Role enum | Role name | Replicates database | Voting in leader elections |
-|-----------|-----------|---------------------|----------------------------|
-| 0         | voter     | yes                 | yes                        |
-| 1         | stand-by  | yes                 | no                         |
-| 2         | spare     | no                  | no                         |
+Please consult the [Dqlite configuration reference] before moving forward.
 
 ## Stop {{product}} services on all nodes
 
@@ -184,4 +147,5 @@ gateway                   enabled
 
 <!-- LINKS -->
 [Dqlite]: https://dqlite.io/
+[Dqlite configuration reference]: ../reference/dqlite.md
 [Raft]: https://raft.github.io/
