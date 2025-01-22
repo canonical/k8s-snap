@@ -12,7 +12,7 @@ installed, you can skip the Multipass setup and go to [step 2](step2).
 
 ## Before starting
 
-In this article, "**control plane**" refers to the Multipass VM that operates
+In this tutorial, "**control plane**" refers to the Multipass VM that operates
 the control plane, while "**worker**" denotes the Multipass VM running the
 worker node.
 
