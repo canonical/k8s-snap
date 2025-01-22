@@ -120,9 +120,9 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 			if tc.fileExists {
 				existingFailureDomainStr := fmt.Sprintf("%v", tc.existingFailureDomain)
 				// For simplicity, we'll assume matching dqlite failure domains
-				err := os.WriteFile(k8sDqliteFailureDomainFile, []byte(existingFailureDomainStr), 0644)
+				err := os.WriteFile(k8sDqliteFailureDomainFile, []byte(existingFailureDomainStr), 0o644)
 				g.Expect(err).ToNot(HaveOccurred())
-				err = os.WriteFile(k8sdFailureDomainFile, []byte(existingFailureDomainStr), 0644)
+				err = os.WriteFile(k8sdFailureDomainFile, []byte(existingFailureDomainStr), 0o644)
 				g.Expect(err).ToNot(HaveOccurred())
 			} else {
 				exists, err := utils.FileExists(k8sDqliteFailureDomainFile)
