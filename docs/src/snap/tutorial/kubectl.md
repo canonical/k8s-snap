@@ -5,31 +5,31 @@ cluster's control plane, using the Kubernetes API. This guide outlines how some
 of the everyday operations of your Kubernetes cluster can be managed with this
 tool.
 
-## What you will need
+## Prerequisites
 
 Before you begin, make sure you have the following:
 
 - A bootstrapped {{product}} cluster (See
   [Getting Started])
-- You are using the built-in `kubectl` command from the snap.
 
 ### 1. The kubectl command
 
 The `kubectl` command communicates with the
 [Kubernetes API server][kubernetes-api-server].
 
-The `kubectl` command included with {{product}} is built from the
-original upstream source into the `k8s` snap you have installed.
+{{product}} includes a `kubectl` which is built from the
+original upstream source into the `k8s` snap you have installed and is
+configured to work with the cluster out of the box.
 
 ### 2. How to use kubectl
 
 To access `kubectl`, run the following:
 
 ```
-sudo k8s kubectl 
+sudo k8s kubectl
 ```
 
-This will display a list of commands possible with `kubectl`. 
+This will display a list of commands possible with `kubectl`.
 
 > **Note**: Only control plane nodes can use the `kubectl` command. Worker
 > nodes do not have access to this command.

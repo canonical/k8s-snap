@@ -3,9 +3,9 @@
 Installing {{product}} should only take a few minutes. This tutorial
 explains how to install the snap package and some typical operations.
 
-## What you will need
+## Prerequisites
 
-- An Ubuntu 22.04 LTS or 20.04 LTS environment to run the commands (or
+- An Ubuntu environment to run the commands (or
   another operating system which supports snapd - see the
   [snapd documentation](https://snapcraft.io/docs/installing-snapd))
 - System Requirements: Your machine should have at least 40G disk space
@@ -53,6 +53,13 @@ sudo k8s status
 
 It may take a few moments for the cluster to be ready. Confirm that {{product}}
 has transitioned to the `cluster status ready` state by running:
+
+```{important}
+By default, the command waits a few minutes before timing out.
+On a very slow network connection, this default timeout might be insufficient, resulting in a "Context cancelled" error.
+In that case, you can either increase the timeout using the `--timeout` flag or re-run the command to
+continue waiting until the cluster is ready.
+```
 
 ```
 sudo k8s status --wait-ready
@@ -122,7 +129,6 @@ To remove the NGINX workload, execute the following command:
 
 ```
 sudo k8s kubectl delete deployment nginx
-
 ```
 
 To verify that the pod has been removed, you can check the status of pods by
