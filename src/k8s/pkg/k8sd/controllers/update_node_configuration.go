@@ -68,7 +68,7 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 			continue
 		}
 
-		client, err := getNewK8sClientWithRetries(ctx, c.snap)
+		client, err := getNewK8sClientWithRetries(ctx, c.snap, true)
 		if err != nil {
 			log.Error(err, "Failed to create a Kubernetes client")
 		}

@@ -36,7 +36,7 @@ func (c *NodeLabelController) Run(ctx context.Context) {
 	log.Info("Starting node label controller", "hostname", hostname)
 
 	for {
-		client, err := getNewK8sClientWithRetries(ctx, c.snap)
+		client, err := getNewK8sClientWithRetries(ctx, c.snap, false)
 		if err != nil {
 			log.Error(err, "Failed to create a Kubernetes client")
 		}

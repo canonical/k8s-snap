@@ -8,9 +8,18 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-func getNewK8sClientWithRetries(ctx context.Context, snapObj snap.Snap) (*kubernetes.Client, error) {
+func getNewK8sClientWithRetries(ctx context.Context, snapObj snap.Snap, admin bool) (*kubernetes.Client, error) {
 	for {
-		client, err := snapObj.KubernetesNodeClient("kube-system")
+		var err error
+		var client *kubernetes.Client
+		if admin {
+			// use admin client
+			client, err = snapObj.KubernetesClient("kube-system")
+		} else {
+			// use node client
+			client, err = snapObj.KubernetesNodeClient("kube-system")
+		}
+
 		if err == nil {
 			return client, nil
 		}

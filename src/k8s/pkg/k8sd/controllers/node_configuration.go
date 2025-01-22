@@ -37,7 +37,7 @@ func (c *NodeConfigurationController) Run(ctx context.Context, getRSAKey func(co
 	log.Info("Starting node configuration controller")
 
 	for {
-		client, err := getNewK8sClientWithRetries(ctx, c.snap)
+		client, err := getNewK8sClientWithRetries(ctx, c.snap, false)
 		if err != nil {
 			log.Error(err, "Failed to create a Kubernetes client")
 		}
