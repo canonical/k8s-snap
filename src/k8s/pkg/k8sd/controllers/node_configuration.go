@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -27,21 +26,6 @@ func NewNodeConfigurationController(snap snap.Snap, waitReady func()) *NodeConfi
 	}
 }
 
-func (c *NodeConfigurationController) retryNewK8sClient(ctx context.Context) (*kubernetes.Client, error) {
-	for {
-		client, err := c.snap.KubernetesNodeClient("kube-system")
-		if err == nil {
-			return client, nil
-		}
-
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(3 * time.Second):
-		}
-	}
-}
-
 func (c *NodeConfigurationController) Run(ctx context.Context, getRSAKey func(context.Context) (*rsa.PublicKey, error)) {
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "node-configuration"))
 	log := log.FromContext(ctx)
@@ -53,7 +37,7 @@ func (c *NodeConfigurationController) Run(ctx context.Context, getRSAKey func(co
 	log.Info("Starting node configuration controller")
 
 	for {
-		client, err := c.retryNewK8sClient(ctx)
+		client, err := getNewK8sClientWithRetries(ctx, c.snap)
 		if err != nil {
 			log.Error(err, "Failed to create a Kubernetes client")
 		}

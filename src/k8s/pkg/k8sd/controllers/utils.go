@@ -8,7 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 )
 
-func GetNewK8sClientWithRetries(ctx context.Context, snapObj snap.Snap) (*kubernetes.Client, error) {
+func getNewK8sClientWithRetries(ctx context.Context, snapObj snap.Snap) (*kubernetes.Client, error) {
 	for {
 		client, err := snapObj.KubernetesNodeClient("kube-system")
 		if err == nil {

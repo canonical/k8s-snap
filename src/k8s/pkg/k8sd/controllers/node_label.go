@@ -35,13 +35,13 @@ func (c *NodeLabelController) Run(ctx context.Context) {
 	log.Info("Starting node label controller", "hostname", hostname)
 
 	for {
-		client, err := GetNewK8sClientWithRetries(ctx, c.snap)
+		client, err := getNewK8sClientWithRetries(ctx, c.snap)
 		if err != nil {
 			log.Error(err, "Failed to create a Kubernetes client")
 		}
 
 		if err := client.WatchNode(
-			ctx, hostname, func(node *v1.Node) error { return c.reconcile(ctx, node) }); err != nil {
+				ctx, hostname, func(node *v1.Node) error { return c.reconcile(ctx, node) }); err != nil {
 			// The watch may fail during bootstrap or service start-up.
 			log.WithValues("node name", hostname).Error(err, "Failed to watch node")
 		}
@@ -83,7 +83,7 @@ func (c *NodeLabelController) reconcileFailureDomain(ctx context.Context, node *
 
 		// TODO: k8sd restarts itself, is it safe to do so?
 		if err := c.snap.RestartService(ctx, "k8sd"); err != nil {
-			return fmt.Errorf("failed to restart k8s-dqlite to apply failure domain: %w", err)
+			return fmt.Errorf("failed to restart Fk8s-dqlite to apply failure domain: %w", err)
 		}
 		// We shouldn't actually get here.
 	}
