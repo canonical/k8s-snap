@@ -12,7 +12,8 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-// Checksum (sha256) node labels to produce uint64 failure domain identifiers.
+// NodeLabelToDqliteFailureDomain hashes (sha256) node labels to produce
+// uint64 failure domain identifiers.
 func NodeLabelToDqliteFailureDomain(label string) uint64 {
 	sha256Sum := sha256.Sum256([]byte(label))
 	// Select the first 8 bytes of the sha256 hash.
