@@ -95,8 +95,7 @@ func (c *NodeLabelController) reconcile(ctx context.Context, node *v1.Node) erro
 	log := log.FromContext(ctx)
 	log.Info("reconciling node labels", "name", node.Name)
 
-	err := c.reconcileFailureDomain(ctx, node)
-	if err != nil {
+	if err := c.reconcileFailureDomain(ctx, node); err != nil {
 		return fmt.Errorf("failed to reconcile failure domain: %w", err)
 	}
 
