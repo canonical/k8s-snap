@@ -41,7 +41,7 @@ function log_info {
   printf -- '\033[34m INFO: \033[0m %s\n' "$1"
 }
 
-function log_warning {
+function log_warning() {
   printf -- '\033[33m WARNING: \033[0m %s\n' "$1"
 }
 
@@ -69,7 +69,9 @@ function run_with_timeout {
 }
 
 function is_service_active {
-  local service=$1
+  local service
+  service=$1
+
   systemctl status "snap.$service" | grep -q "active (running)"
 }
 
@@ -94,33 +96,33 @@ function collect_sbom {
 }
 
 function collect_system_info {
-  mkdir -p "$INSPECT_DUMP"/sys
+  mkdir -p $INSPECT_DUMP/sys
   log_info "Copy processes list to the final report tarball"
-  ps -ef >"$INSPECT_DUMP"/sys/ps
+  ps -ef > $INSPECT_DUMP/sys/ps
 
   log_info "Copy disk usage information to the final report tarball"
-  df -h | grep "^/" &>"$INSPECT_DUMP"/sys/disk_usage
+  df -h | grep "^/" &> $INSPECT_DUMP/sys/disk_usage
 
   log_info "Copy /proc/mounts to the final report tarball"
-  cp /proc/mounts "$INSPECT_DUMP"/sys/proc-mounts
+  cp /proc/mounts $INSPECT_DUMP/sys/proc-mounts
 
   log_info "Copy memory usage information to the final report tarball"
-  free -m >"$INSPECT_DUMP"/sys/memory_usage
+  free -m > $INSPECT_DUMP/sys/memory_usage
 
   log_info "Copy swap information to the final report tarball"
-  swapon >"$INSPECT_DUMP"/sys/swap
+  swapon > $INSPECT_DUMP/sys/swap
 
   log_info "Copy node uptime to the final report tarball"
-  uptime >"$INSPECT_DUMP"/sys/uptime
+  uptime > $INSPECT_DUMP/sys/uptime
 
   log_info "Copy /etc/os-release to the final report tarball"
-  cp /etc/os-release "$INSPECT_DUMP"/sys/etc-os-release
+  cp /etc/os-release $INSPECT_DUMP/sys/etc-os-release
 
   log_info "Copy loaded kernel modules to the final report tarball"
-  lsmod >"$INSPECT_DUMP"/sys/loaded_kernel_modules
+  lsmod > $INSPECT_DUMP/sys/loaded_kernel_modules
 
   log_info "Copy dmesg entries"
-  dmesg -H >"$INSPECT_DUMP"/sys/dmesg
+  dmesg -H > $INSPECT_DUMP/sys/dmesg
 }
 
 function collect_k8s_diagnostics {
@@ -131,7 +133,7 @@ function collect_k8s_diagnostics {
   snap version &>"$INSPECT_DUMP/snap-version.log"
   snap list k8s &>"$INSPECT_DUMP/snap-list-k8s.log"
   snap services k8s &>"$INSPECT_DUMP/snap-services-k8s.log"
-  snap logs k8s -n "$NUM_SNAP_LOG_ENTRIES" &>"$INSPECT_DUMP/snap-logs-k8s.log"
+  snap logs k8s -n $NUM_SNAP_LOG_ENTRIES &>"$INSPECT_DUMP/snap-logs-k8s.log"
 
   log_info "Copy k8s diagnostics to the final report tarball"
   run_with_timeout "k8s kubectl version &>$INSPECT_DUMP/k8s-version.log"
@@ -150,18 +152,20 @@ function collect_k8s_diagnostics {
 }
 
 function collect_service_diagnostics {
-  local service=$1
+  local service
+  service=$1
 
   mkdir -p "$INSPECT_DUMP/$service"
 
-  local status_file="$INSPECT_DUMP/$service/systemctl.log"
+  local status_file
+  status_file="$INSPECT_DUMP/$service/systemctl.log"
 
   systemctl status "snap.$service" &>"$status_file"
 
   local n_restarts
   n_restarts=$(systemctl show "snap.$service" -p NRestarts | cut -d'=' -f2)
 
-  printf -- "%s -> %s\n" "$service" "$n_restarts" >>"$INSPECT_DUMP/nrestarts.log"
+  printf -- "%s -> %s\n" "$service" "$n_restarts" >> "$INSPECT_DUMP/nrestarts.log"
 
   if [ "$n_restarts" -gt 0 ]; then
     log_warning "Service $service has restarted $n_restarts times due to errors"
@@ -171,14 +175,12 @@ function collect_service_diagnostics {
 }
 
 function collect_registry_mirror_logs {
-  local mirror_units
-  mirror_units=$(systemctl list-unit-files --state=enabled | grep "registry-" | awk '{print $1}')
-
+  local mirror_units=`systemctl list-unit-files --state=enabled | grep "registry-" | awk '{print $1}'`
   if [ -n "$mirror_units" ]; then
     mkdir -p "$INSPECT_DUMP/mirrors"
 
     for mirror_unit in $mirror_units; do
-      journalctl -n "$NUM_SNAP_LOG_ENTRIES" -u "$mirror_unit" &>"$INSPECT_DUMP/mirrors/$mirror_unit.log"
+      journalctl -n 100000 -u "$mirror_unit" &>"$INSPECT_DUMP/mirrors/$mirror_unit.log"
     done
   fi
 }
@@ -194,11 +196,12 @@ function collect_network_diagnostics {
   ip6tables-save &>"$INSPECT_DUMP/iptables6.log" || true
   ip6tables-legacy-save &>"$INSPECT_DUMP/iptables6-legacy.log" || true
   ss -plntu &>"$INSPECT_DUMP/ss-plntu.log" || true
-  grep -Ei "^(HTTP_PROXY|HTTPS_PROXY|NO_PROXY)=" /etc/environment >"$INSPECT_DUMP/proxy_in_etc_environment"
+  grep -Ei "^(HTTP_PROXY|HTTPS_PROXY|NO_PROXY)=" /etc/environment > "$INSPECT_DUMP/proxy_in_etc_environment"
 }
 
 function check_expected_services {
-  local services=("$@")
+  local services
+  services=("$@")
 
   for service in "${services[@]}"; do
     collect_service_diagnostics "$service"
@@ -224,8 +227,7 @@ function build_report_tarball {
 
   tar -C "$(pwd)" -cf "${output_file%.gz}" inspection-report &>/dev/null
   gzip "${output_file%.gz}" -f
-  log_success "$(printf "Report tarball is at %s\n" "$output_file")"
-  printf "           Report directory is at %s\n" "$INSPECT_DUMP"
+  log_success "Report tarball is at $output_file"
 }
 
 if [ "$EUID" -ne 0 ]; then
@@ -237,28 +239,28 @@ POSITIONAL_ARGS=()
 while [[ $# -gt 0 ]]; do
   # shellcheck disable=SC2221,SC2222
   case $1 in
-  --all-namespaces)
-    ALL_NAMESPACES=1
-    shift
-    ;;
-  --num-snap-log-entries)
-    shift
-    NUM_SNAP_LOG_ENTRIES="$1"
-    shift
-    ;;
+    --all-namespaces)
+      ALL_NAMESPACES=1
+      shift
+      ;;
+    --num-snap-log-entries)
+      shift
+      NUM_SNAP_LOG_ENTRIES="$1"
+      shift
+      ;;
   --timeout)
     shift
     TIMEOUT="$1"
     shift
     ;;
   -* | --*)
-    echo "Unknown argument: $1"
-    exit 1
-    ;;
-  *)
-    POSITIONAL_ARGS+=("$1")
-    shift
-    ;;
+      echo "Unknown argument: $1"
+      exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1")
+      shift
+      ;;
   esac
 done
 set -- "${POSITIONAL_ARGS[@]}"
@@ -317,8 +319,8 @@ matches=$(grep -rlEi "BEGIN CERTIFICATE|PRIVATE KEY" inspection-report)
 if [ -n "$matches" ]; then
   matches_comma_separated=$(echo "$matches" | tr '\n' ',')
   log_warning_red 'Unexpected private key or certificate found in the report:'
-  printf "           Found in the following files: %s\n" "${matches_comma_separated%,}"
-  printf '           Please remove the private key or certificate from the report before sharing.\n'
+  log_warning_red "Found in the following files: ${matches_comma_separated%,}"
+  log_warning_red 'Please remove the private key or certificate from the report before sharing.'
 fi
 
 printf -- 'Building the report tarball\n'
