@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/canonical/k8s/pkg/log"
@@ -58,32 +59,58 @@ func (c *NodeLabelController) reconcileFailureDomain(ctx context.Context, node *
 	log := log.FromContext(ctx)
 
 	azLabel, azFound := node.Labels["topology.kubernetes.io/zone"]
+	var failureDomain uint64
 	if azFound {
 		log.Info("Node availability zone found", "label", azLabel)
+		// k8s-dqlite expects the failure domain (availability zone) to be an uint64
+		// value defined in $dbStateDir/failure-domain. Both k8s-snap Dqlite databases
+		// need to be updated (k8sd and k8s-dqlite).
+		failureDomain = snaputil.NodeLabelToDqliteFailureDomain(azLabel)
 	} else {
-		log.Info("The node availability zone label is unset, skipping...")
-		return nil
+		log.Info("The node availability zone label is unset, clearing failure domain")
+		failureDomain = 0
 	}
 
-	// k8s-dqlite expects the failure domain (availability zone) to be an uint64
-	// value defined in $dbStateDir/failure-domain. Both k8s-snap Dqlite databases
-	// need to be updated (k8sd and k8s-dqlite).
-	failureDomain := snaputil.NodeLabelToDqliteFailureDomain(azLabel)
 	log.Info("Setting failure domain", "failure domain", failureDomain, "availability zone", azLabel)
-	needsRestart, err := snaputil.UpdateDqliteFailureDomain(c.snap, failureDomain)
+	err := c.updateDqliteFailureDomain(ctx, c.snap, failureDomain)
 	if err != nil {
 		return fmt.Errorf("failed to update failure-domain, error: %w", err)
 	}
-	log.Info("Updated failure domain", "restart needed", needsRestart)
 
-	if needsRestart {
-		if err := c.snap.RestartService(ctx, "k8s-dqlite"); err != nil {
+	return nil
+}
+
+func (c *NodeLabelController) updateDqliteFailureDomain(ctx context.Context, snap snap.Snap, failureDomain uint64) error {
+	log := log.FromContext(ctx)
+
+	// We need to update both k8s-snap Dqlite databases (k8sd and k8s-dqlite).
+	k8sDqliteStateDir := snap.K8sDqliteStateDir()
+	k8sdDbStateDir := filepath.Join(snap.K8sdStateDir(), "database")
+
+	log.Info("Updating k8s-dqlite failure domain", "failure domain", failureDomain)
+	modified, err := snaputil.UpdateDqliteFailureDomain(failureDomain, k8sDqliteStateDir)
+	if err != nil {
+		return err
+	}
+	log.Info("Updated k8s-dqlite failure domain", "restart needed", modified)
+
+	if modified {
+		if err = c.snap.RestartService(ctx, "k8s-dqlite"); err != nil {
 			return fmt.Errorf("failed to restart k8s-dqlite to apply failure domain: %w", err)
 		}
+	}
 
-		// TODO: k8sd restarts itself, is it safe to do so?
+	log.Info("Updating k8sd failure domain", "failure domain", failureDomain)
+	modified, err = snaputil.UpdateDqliteFailureDomain(failureDomain, k8sdDbStateDir)
+	if err != nil {
+		return err
+	}
+	log.Info("Updated k8sd failure domain", "restart needed", modified)
+	// TODO: use Microcluster API once it becomes available. This should
+	// prevent a service restart, at the moment k8sd needs to restart itself.
+	if modified {
 		if err := c.snap.RestartService(ctx, "k8sd"); err != nil {
-			return fmt.Errorf("failed to restart Fk8s-dqlite to apply failure domain: %w", err)
+			return fmt.Errorf("failed to restart k8sd to apply failure domain: %w", err)
 		}
 		// We shouldn't actually get here.
 	}
