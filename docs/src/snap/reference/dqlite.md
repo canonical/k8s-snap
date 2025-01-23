@@ -53,8 +53,8 @@ sudo /snap/k8s/current/bin/dqlite \
 
 The ``.leader`` command displays the current cluster leader.
 
-The kine key-value pairs are stored in the ``kine`` database and can be retrieved
-like so:
+The kine key-value pairs are stored in the ``kine`` database and can be
+retrieved like so:
 
 ```
 select id, name, value from kine limit 100;
