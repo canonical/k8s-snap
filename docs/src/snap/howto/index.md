@@ -20,7 +20,7 @@ storage/index
 security/index
 Use an external datastore <external-datastore>
 Set up cluster observability  <observability>
-backup-restore
+Back up and restore <backup-restore>
 Refresh Kubernetes Certificates <refresh-certs>
 Recover a cluster after quorum loss <restore-quorum>
 two-node-ha
