@@ -6,7 +6,7 @@ by listing all available options and their details. See below for an example.
 
 ## Configuration options
 
-```{include} ../../_parts/bootstrap_config.md
+```{include} /src/_parts/bootstrap_config.md
 ```
 
 
