@@ -37,7 +37,7 @@ page][channels] for an explanation of the different types of channel.
 
 The charm can be installed with the `juju` command:
 
-```{literalinclude} ../../_parts/install.md
+```{literalinclude} /src/_parts/install.md
 :start-after: <!-- juju control start -->
 :end-before: <!-- juju control end -->
 ```
@@ -78,7 +78,7 @@ After deployment, integrate these new nodes with control-plane units so they joi
 the cluster.
 
 
-```{literalinclude} ../../_parts/install.md
+```{literalinclude} /src/_parts/install.md
 :start-after: <!-- juju worker start -->
 :end-before: <!-- juju worker end -->
 :append: juju integrate k8s k8s-worker:cluster
