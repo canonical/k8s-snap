@@ -4,7 +4,7 @@
 # Add custom requirements to the custom_required_modules
 # array in the custom_conf.py file and run:
 # make clean && make install
-GitPython
+GitPython>=3.1.41
 canonical-sphinx-extensions
 furo
 linkify-it-py
