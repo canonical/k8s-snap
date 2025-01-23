@@ -15,7 +15,6 @@ Overview <self>
 :titlesonly:
 
 install/index
-Add worker nodes with custom configurations <custom-workers>
 Configure the cluster <configure-cluster>
 Integrate with OpenStack <openstack>
 Integrate with etcd <etcd>
