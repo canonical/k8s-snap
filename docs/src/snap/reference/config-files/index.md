@@ -13,7 +13,6 @@ file.
 :glob:
 :titlesonly:
 
-Install from a snap <snap.md>
 bootstrap-config
 control-plane-join-config
 worker-join-config
