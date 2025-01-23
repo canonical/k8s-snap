@@ -8,11 +8,10 @@ please take note of the following considerations.
 
 ## Containerd conflicts
 
-In classic confinement mode, {{product}} uses the default containerd paths.
-This means that a {{product}} installation will conflict with any existing
-system configuration where containerd is already installed. For example,
-if you have Docker installed, or another Kubernetes distribution that uses
-containerd.
+{{product}} uses the default containerd paths, which means that a {{product}}
+installation will conflict with any existing system configuration where
+containerd is already installed. For example, if you have Docker installed,
+or another Kubernetes distribution that uses containerd.
 
 You may specify a custom containerd path like so:
 
