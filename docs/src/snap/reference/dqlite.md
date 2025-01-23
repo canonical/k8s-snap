@@ -59,3 +59,13 @@ like so:
 ```
 select id, name, value from kine limit 100;
 ```
+
+Use ``/snap/k8s/current/bin/k8sd sql`` to issue k8sd sql commands.
+Note that a very limited subset of SQL syntax is available, however the
+following can be used to enumerate the tables:
+
+```
+/snap/k8s/current/bin/k8sd sql \
+  --state-dir /var/snap/k8s/common/var/lib/k8sd/state
+  "SELECT * FROM sqlite_master WHERE type='table'"
+```
