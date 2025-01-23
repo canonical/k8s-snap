@@ -61,6 +61,7 @@ def test_node_availability_zone(
     # that the cluster remains functional.
     iterations = 10
     for iteration in range(iterations):
+        LOG.info("Starting iteration: %s", iteration)
         az_suffix = f"-{iteration}"
 
         # Apply the AZ labels.
@@ -83,8 +84,12 @@ def test_node_availability_zone(
             az = _get_az(instance, same_az, az_suffix)
             failure_domain = _get_failure_domain(az)
 
-            LOG.info("Node: %s, az: %s, expected failure domain: %s",
-                     instance.id, az, failure_domain)
+            LOG.info(
+                "Node: %s, az: %s, expected failure domain: %s",
+                instance.id,
+                az,
+                failure_domain,
+            )
             util.stubbornly(retries=5, delay_s=10).on(instance).until(
                 lambda p: str(failure_domain) in p.stdout.decode()
             ).exec(
@@ -100,4 +105,6 @@ def test_node_availability_zone(
             ).exec(["cat", "/var/snap/k8s/common/var/lib/k8s-dqlite/failure-domain"])
 
         # Make sure that the nodes remain available.
-        util.stubbornly(retries=5, delay_s=10).until(util.ready_nodes(initial_node) == 3)
+        util.stubbornly(retries=5, delay_s=10).until(
+            util.ready_nodes(initial_node) == 3
+        )
