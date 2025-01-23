@@ -17,6 +17,8 @@
 #                           from all Kubernetes namespaces.
 #   --num-snap-log-entries  (Optional) The maximum number of log entries to collect
 #                           from snap services. Default: 100000.
+#   --timeout               (Optional) The maximum time in seconds to wait for a command.
+#                           Default: 180s.
 #
 # Example:
 #   ./inspect.sh /path/to/output.tar.gz
@@ -24,10 +26,12 @@
 #   ./inspect.sh --all-namespaces  # Obtain logs from all k8s namespaces.
 
 INSPECT_DUMP=$(pwd)/inspection-report
+TIMEOUT_LOG="$INSPECT_DUMP"/timeout_warnings.log
 # We won't fetch all namespaces by default to avoid logging potentially sensitive
 # user data.
 ALL_NAMESPACES=0
 NUM_SNAP_LOG_ENTRIES=100000
+TIMEOUT=180s
 
 function log_success {
   printf -- '\033[32m SUCCESS: \033[0m %s\n' "$1"
@@ -49,6 +53,21 @@ function is_control_plane_node {
   k8s local-node-status | grep -q "control-plane"
 }
 
+# Run a command with a timeout. If the command times out, log the command to the
+# timeout log file. Returns the exit code of the command, or the 124 exit code.
+function run_with_timeout {
+  local args=("$@")
+  timeout "$TIMEOUT" bash -c "${args[@]}"
+
+  local exit_code=$?
+
+  if [ $exit_code -eq 124 ]; then
+    echo "${args[@]}" >>"$TIMEOUT_LOG"
+  fi
+
+  return $exit_code
+}
+
 function is_service_active {
   local service
   service=$1
@@ -67,7 +86,8 @@ function collect_cluster_info {
   if [[ "$ALL_NAMESPACES" == "1" ]]; then
     FLAGS="--all-namespaces"
   fi
-  k8s kubectl cluster-info dump $FLAGS --output-directory "$INSPECT_DUMP/cluster-info" &>/dev/null
+
+  run_with_timeout "k8s kubectl cluster-info dump $FLAGS --output-directory $INSPECT_DUMP/cluster-info &>/dev/null"
 }
 
 function collect_sbom {
@@ -116,11 +136,11 @@ function collect_k8s_diagnostics {
   snap logs k8s -n $NUM_SNAP_LOG_ENTRIES &>"$INSPECT_DUMP/snap-logs-k8s.log"
 
   log_info "Copy k8s diagnostics to the final report tarball"
-  k8s kubectl version &>"$INSPECT_DUMP/k8s-version.log"
-  k8s status &>"$INSPECT_DUMP/k8s-status.log"
-  k8s get &>"$INSPECT_DUMP/k8s-get.log"
-  k8s kubectl get cm k8sd-config -n kube-system -o yaml &>"$INSPECT_DUMP/k8s.k8sd/k8sd-configmap.log"
-  k8s kubectl get cm -n kube-system &>"$INSPECT_DUMP/k8s-configmaps.log"
+  run_with_timeout "k8s kubectl version &>$INSPECT_DUMP/k8s-version.log"
+  run_with_timeout "k8s status &>$INSPECT_DUMP/k8s-status.log"
+  run_with_timeout "k8s get &>$INSPECT_DUMP/k8s-get.log"
+  run_with_timeout "k8s kubectl get cm k8sd-config -n kube-system -o yaml &>$INSPECT_DUMP/k8s.k8sd/k8sd-configmap.log"
+  run_with_timeout "k8s kubectl get cm -n kube-system &>$INSPECT_DUMP/k8s-configmaps.log"
 
   cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml "$INSPECT_DUMP/k8s.k8s-dqlite/k8s-dqlite-cluster.yaml"
   cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml "$INSPECT_DUMP/k8s.k8s-dqlite/k8s-dqlite-info.yaml"
@@ -217,6 +237,7 @@ fi
 
 POSITIONAL_ARGS=()
 while [[ $# -gt 0 ]]; do
+  # shellcheck disable=SC2221,SC2222
   case $1 in
     --all-namespaces)
       ALL_NAMESPACES=1
@@ -227,7 +248,12 @@ while [[ $# -gt 0 ]]; do
       NUM_SNAP_LOG_ENTRIES="$1"
       shift
       ;;
-    -*|--*)
+  --timeout)
+    shift
+    TIMEOUT="$1"
+    shift
+    ;;
+  -* | --*)
       echo "Unknown argument: $1"
       exit 1
       ;;
@@ -281,6 +307,13 @@ collect_k8s_diagnostics
 
 printf -- 'Collecting networking information\n'
 collect_network_diagnostics
+
+if [ -f "$TIMEOUT_LOG" ]; then
+  timeout_count=$(wc -l <"$TIMEOUT_LOG")
+  if [ "$timeout_count" -gt 0 ]; then
+    log_warning "$(printf '%d commands timed out. See %s for details.' "$timeout_count" "$TIMEOUT_LOG")"
+  fi
+fi
 
 matches=$(grep -rlEi "BEGIN CERTIFICATE|PRIVATE KEY" inspection-report)
 if [ -n "$matches" ]; then
