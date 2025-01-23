@@ -1,4 +1,4 @@
-# Integrating with OpenStack
+# How to integrate with OpenStack
 
 This guide explains how to integrate {{product}} with the OpenStack cloud
 platform. The `openstack-integrator` charm simplifies working with {{product}}
@@ -49,7 +49,7 @@ relations:
   - [cinder-csi:openstack,                               openstack-integrator:clients]
 ```
 
-### Deploying the overlay template
+### Deploy the overlay template
 
 Deploy the {{product}} bundle on OpenStack using the modified overlay:
 

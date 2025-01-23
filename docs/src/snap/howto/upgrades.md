@@ -83,7 +83,7 @@ sudo k8s status --wait-ready
 In a multi-node cluster, the upgrade should be performed on all nodes.
 ```
 
-## Freezing upgrades
+## Freeze upgrades
 
 To prevent automatic updates, the snap can be tied to a specific revision.
 `snap refresh --hold[=<duration>]` holds snap refreshes for a specified

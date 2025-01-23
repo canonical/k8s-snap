@@ -1,4 +1,4 @@
-# Configure a {{ product }} cluster using Juju
+# How to configure a {{ product }} cluster using Juju
 
 This guide provides instructions for configuring a {{ product }} cluster using
 Juju. The DNS feature is used as an example to demonstrate the various

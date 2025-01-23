@@ -1,4 +1,4 @@
-# Integrating with COS Lite
+# How to integrate with COS Lite
 
 It is often advisable to have a monitoring solution which will run whether the
 cluster itself is running or not. It may also be useful to integrate monitoring

@@ -1,10 +1,16 @@
 # How to troubleshoot {{product}}
 
-Identifying issues in a Kubernetes cluster can be difficult, especially to new users. With {{product}} we aim to make deploying and managing your cluster as easy as possible. This how-to guide will walk you through the steps to troubleshoot your {{product}} cluster.
+Identifying issues in a Kubernetes cluster can be difficult, especially to new
+users. With {{product}} we aim to make deploying and managing your cluster as
+easy as possible. This how-to guide will walk you through the steps to
+troubleshoot your {{product}} cluster.
 
 ## Common issues
 
-Maybe your issue has already been solved? Check out the [troubleshooting reference][charm-troubleshooting-reference] page to see a list of common issues and their solutions. Otherwise continue with this guide to help troubleshoot your {{product}} cluster.
+Maybe your issue has already been solved? Check out the
+[troubleshooting reference][charm-troubleshooting-reference] page to see a list
+of common issues and their solutions. Otherwise continue with this guide to
+help troubleshoot your {{product}} cluster.
 
 ## Check the cluster status
 
@@ -15,6 +21,7 @@ juju status
 ```
 
 You should see a command output similar to the following:
+
 ```
 Model        Controller           Cloud/Region         Version  SLA          Timestamp
 k8s-testing  localhost-localhost  localhost/localhost  3.6.1    unsupported  09:06:50Z
@@ -31,14 +38,20 @@ Machine  State    Address        Inst id        Base          AZ  Message
 0        started  10.94.106.136  juju-380ff2-0  ubuntu@24.04      Running
 1        started  10.94.106.154  juju-380ff2-1  ubuntu@24.04      Running
 ```
+
 Interpreting the Output:
+
 - The `Workload` column shows the status of a given service.
-- The `Message` section details the health of a given service in the cluster. 
+- The `Message` section details the health of a given service in the cluster.
 - The `Agent` column reflects any activity of the Juju agent.
 
-During deployment and maintenance the workload status will reflect the node's activity. An example workload may display `maintenance` along with the message details: `Ensuring snap installation`.
+During deployment and maintenance the workload status will reflect the node's
+activity. An example workload may display `maintenance` along with the message
+details: `Ensuring snap installation`.
 
-During normal cluster operation the `Workload` column reads `active`, the `Agent` column shows `idle`, and the messages will either read `Ready` or another descriptive term.
+During normal cluster operation the `Workload` column reads `active`, the
+`Agent` column shows `idle`, and the messages will either read `Ready` or
+another descriptive term.
 
 ## Test the API server health
 
@@ -58,7 +71,8 @@ Verify that the API server is healthy and reachable by running:
 kubectl --kubeconfig cluster-kubeconfig.yaml get all
 ```
 
-This command lists resources that exist under the default namespace. If the API server is healthy you should see a command output similar to the following:
+This command lists resources that exist under the default namespace. If the API
+server is healthy you should see a command output similar to the following:
 
 ```
 NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
@@ -84,15 +98,19 @@ juju exec --unit k8s/0 -- journalctl -u snap.k8s.kube-apiserver
 ```
 
 A failure can mean that:
+
 * The API server is not reachable due to network issues or firewall limitations
 * The API server on the particular node is unhealthy
 * The control-plane node that's being reached is down
 
-Try reaching the API server on a different unit by retrieving the kubeconfig file with `juju run <k8s/unit#> get-kubeconfig`. Please replace `#` with the desired unit's number.
+Try reaching the API server on a different unit by retrieving the kubeconfig
+file with `juju run <k8s/unit#> get-kubeconfig`. Please replace `#` with the
+desired unit's number.
 
 ## Check the cluster nodes' health
 
-Confirm that the nodes in the cluster are healthy by looking for the `Ready` status:
+Confirm that the nodes in the cluster are healthy by looking for the `Ready`
+status:
 
 ```
 kubectl --kubeconfig cluster-kubeconfig.yaml get nodes
@@ -107,23 +125,27 @@ juju-380ff2-1   Ready    worker                 77s     v1.32.0
 ```
 
 
-## Troubleshooting an unhealthy node
+## Troubleshoot an unhealthy node
 
-Every healthy {{ product }} node has certain services up and running. The required services depend on the type of node.
+Every healthy {{ product }} node has certain services up and running. The
+required services depend on the type of node.
 
 Services running on both the control plane and worker nodes:
+
 * `k8sd`
 * `kubelet`
 * `containerd`
 * `kube-proxy`
 
 Services running only on the control-plane nodes:
+
 * `kube-apiserver`
 * `kube-controller-manager`
 * `kube-scheduler`
 * `k8s-dqlite`
 
 Services running only on the worker nodes:
+
 * `k8s-apiserver-proxy`
 
 SSH into the unhealthy node by running:
@@ -144,11 +166,13 @@ Check the logs of a failing service by executing:
 sudo journalctl -xe -u snap.k8s.<service>
 ```
 
-If the issue indicates a problem with the configuration of the services on the node, examine the arguments used to run these services.
+If the issue indicates a problem with the configuration of the services on the
+node, examine the arguments used to run these services.
 
-The arguments of a service on the failing node can be examined by reading the file located at `/var/snap/k8s/common/args/<service>`.
+The arguments of a service on the failing node can be examined by reading the
+file located at `/var/snap/k8s/common/args/<service>`.
 
-## Investigating system pods' health
+## Investigate system pods' health
 
 Check whether all of the cluster's pods are `Running` and `Ready`:
 
@@ -156,9 +180,11 @@ Check whether all of the cluster's pods are `Running` and `Ready`:
 kubectl --kubeconfig cluster-kubeconfig.yaml get pods -n kube-system
 ```
 
-The pods in the `kube-system` namespace belong to {{product}}' features such as `network`. Unhealthy pods could be related to configuration issues or nodes not meeting certain requirements.
+The pods in the `kube-system` namespace belong to {{product}}' features such as
+`network`. Unhealthy pods could be related to configuration issues or nodes not
+meeting certain requirements.
 
-## Troubleshooting a failing pod
+## Troubleshoot a failing pod
 
 Look at the events on a failing pod by running:
 
@@ -172,13 +198,17 @@ Check the logs on a failing pod by executing:
 kubectl --kubeconfig cluster-kubeconfig.yaml logs <pod-name> -n <namespace>
 ```
 
-You can check out the upstream [debug pods documentation][] for more information.
+You can check out the upstream [debug pods documentation][] for more
+information.
 
-## Using the built-in inspection script
+## Use the built-in inspection script
 
-{{product}} ships with a script to compile a complete report on {{product}} and its underlying system. This is an essential tool for bug reports and for investigating whether a system is (or isn’t) working.
+{{product}} ships with a script to compile a complete report on {{product}} and
+its underlying system. This is an essential tool for bug reports and for
+investigating whether a system is (or isn’t) working.
 
-Inspection script can be executed on a specific unit by running the following commands:
+Inspection script can be executed on a specific unit by running the following
+commands:
 
 ```
 juju exec --unit <k8s/unit#> -- sudo /snap/k8s/current/k8s/scripts/inspect.sh /home/ubuntu/inspection-report.tar.gz
@@ -186,6 +216,7 @@ juju scp <k8s/unit#>:/home/ubuntu/inspection-report.tar.gz ./
 ```
 
 The command output is similar to the following:
+
 ```
 Collecting service information
 Running inspection on a control-plane node
@@ -214,25 +245,37 @@ Building the report tarball
  SUCCESS:  Report tarball is at /home/ubuntu/inspection-report.tar.gz
 ```
 
-Use the report to ensure that all necessary services are running and dive into every aspect of the system.
+Use the report to ensure that all necessary services are running and dive into
+every aspect of the system.
 
-## Collecting debug information
+## Collect debug information
 
-To collect comprehensive debug output from your {{product}} cluster, install and run [juju-crashdump][] on a computer that has the Juju client installed. Please ensure that the current controller and model are pointing at your {{product}} deployment.
+To collect comprehensive debug output from your {{product}} cluster, install
+and run [juju-crashdump][] on a computer that has the Juju client installed.
+Please ensure that the current controller and model are pointing at your
+{{product}} deployment.
 
 ```
 sudo snap install juju-crashdump --classic --channel edge
 juju-crashdump -a debug-layer -a config
 ```
 
-Running the `juju-crashdump` script will generate a tarball of debug information that includes [systemd][] unit status and logs, Juju logs, charm unit data, and Kubernetes cluster information. Please include the generated tarball when filing a bug.
+Running the `juju-crashdump` script will generate a tarball of debug
+information that includes [systemd][] unit status and logs, Juju logs, charm
+unit data, and Kubernetes cluster information. Please include the generated
+tarball when filing a bug.
 
-## Reporting a bug
-If you cannot solve your issue and believe that the fault may lie in {{product}}, please [file an issue on the project repository][].
+## Report a bug
 
-Help us deal effectively with issues by including the report obtained from the inspect script, the tarball obtained from `juju-crashdump`, as well as any additional logs, and a summary of the issue.
+If you cannot solve your issue and believe that the fault may lie in
+{{product}}, please [file an issue on the project repository][].
 
-You can check out the upstream [debug documentation][] for more details on troubleshooting a Kubernetes cluster.
+Help us deal effectively with issues by including the report obtained from the
+inspect script, the tarball obtained from `juju-crashdump`, as well as any
+additional logs, and a summary of the issue.
+
+You can check out the upstream [debug documentation][] for more details on
+troubleshooting a Kubernetes cluster.
 
 <!-- Links -->
 

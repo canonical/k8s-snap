@@ -1,4 +1,4 @@
-# {{product}} hardening guide
+# How to harden your {{product}} cluster
 
 The {{product}} hardening guide provides actionable steps to enhance the
 security posture of your deployment. These steps are designed to help you align

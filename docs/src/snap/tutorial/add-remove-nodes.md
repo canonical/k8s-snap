@@ -1,4 +1,4 @@
-# Adding and removing nodes
+# Add and remove nodes
 
 Typical production clusters are hosted across multiple data centres and cloud
 environments, enabling them to leverage geographical distribution for improved

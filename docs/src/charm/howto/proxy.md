@@ -1,10 +1,10 @@
-# Configuring proxy settings for K8s
+# How to configure proxy settings for K8s
 
 {{product}} packages a number of utilities (for example curl, helm) which need
 to fetch resources they expect to find on the internet. In a constrained
 network environment, such access is usually controlled through proxies.
 
-## Adding proxy configuration for the k8s charms
+## Add proxy configuration for the k8s charms
 
 For the charm deployments of {{product}}, Juju manages proxy
 configuration through the [Juju model].

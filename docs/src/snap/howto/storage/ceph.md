@@ -1,4 +1,4 @@
-# How to use Ceph storage with Canonical K8s
+# How to use Ceph storage with {{product}}
 
 Distributed, redundant storage is a must-have when you want to develop reliable
 applications. [Ceph] is a storage solution which provides exactly that, and is
@@ -48,7 +48,8 @@ capabilities to administer your Ceph cluster:
 ceph auth get-or-create client.kubernetes mon 'profile rbd' osd 'profile rbd pool=kubernetes' mgr 'profile rbd pool=kubernetes'
 ```
 
-For more information on user capabilities in Ceph, see the [authorisation capabilities page][]
+For more information on user capabilities in Ceph, see the
+[authorisation capabilities page][]
 
 ```
 [client.kubernetes]
@@ -130,8 +131,8 @@ Then apply:
 kubectl apply -f csi-kms-config-map.yaml
 ```
 
-If you do need to configure a KMS provider, an [example ConfigMap][] is available
-in the Ceph repository.
+If you do need to configure a KMS provider, an [example ConfigMap][] is
+available in the Ceph repository.
 
 Create the `ceph-config-map.yaml` which will be stored inside a `ceph.conf` file
 in the CSI containers. This `ceph.conf` file will be used by Ceph daemons on
@@ -311,9 +312,9 @@ kubectl apply -f pod.yaml
 
 ## Verify that the pod is using the RBD PV
 
-To verify that the `csi-rbd-demo-pod` is indeed using a RBD Persistent Volume, run
-the following commands, you should see information related to attached volumes
-in both of their outputs:
+To verify that the `csi-rbd-demo-pod` is indeed using a RBD Persistent Volume,
+run the following commands, you should see information related to attached
+volumes in both of their outputs:
 
 ```
 kubectl describe pvc rbd-pvc

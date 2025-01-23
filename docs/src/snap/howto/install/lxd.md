@@ -4,7 +4,7 @@
 great way, for example, to test out clustered {{product}} without the
 need for multiple physical hosts.
 
-## Installing LXD
+## Install LXD
 
 You can install [LXD] via snaps:
 
@@ -178,7 +178,7 @@ address that we noted earlier.
 curl 10.122.174.30:32750
 ```
 
-## Stop/Remove the container
+## Stop/remove the container
 
 The `k8s` container you created will keep running in the background until it is
 either stopped or the host computer is shut down. You can stop the running

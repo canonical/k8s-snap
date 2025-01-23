@@ -1,13 +1,13 @@
-# Installing with Terraform
+# How to install with Terraform
 
 This guide walks you through the process of installing {{ product }} using
-the [Terraform Juju Provider][juju-provider-tf]. 
+the [Terraform Juju Provider][juju-provider-tf].
 
 ## Prerequisites
 
 This guide requires the following:
 
-- A Juju controller and model 
+- A Juju controller and model
 <!-- TODO remove Juju prerequisites once ground up module is available -->
 - The Terraform cli, which can be installed via the [snap store][terraform]
 
@@ -17,7 +17,7 @@ As a first step, authenticate the Terraform Juju Provider with the Juju
 controller. Choose one of the options outlined in the
 [provider documentation][auth].
 
-## Terraform Module creation
+## Terraform module creation
 
 The Terraform deployment is done using a root module that specifies the
 Juju model to deploy the submodules to. The root module also references
@@ -159,7 +159,7 @@ terraform plan
 terraform apply
 ```
 
-```{note} 
+```{note}
 Make sure the deployment [channel] is set with:
 
 &ensp;export TF_VAR_channel={{channel}}
@@ -178,4 +178,3 @@ juju status --watch 5s
 [auth]: https://registry.terraform.io/providers/juju/juju/latest/docs#authentication
 [channel]: ../../explanation/channels.md
 [terraform]: https://snapcraft.io/terraform
-

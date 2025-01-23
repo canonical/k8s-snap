@@ -1,4 +1,4 @@
-# CIS compliance
+# How to assess CIS compliance
 
 CIS Hardening refers to the process of implementing security configurations that
 align with the benchmarks set by the [Center for Internet Security (CIS)].
