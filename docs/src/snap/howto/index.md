@@ -23,7 +23,6 @@ Set up cluster observability  <observability>
 Back up and restore <backup-restore>
 Refresh Kubernetes Certificates <refresh-certs>
 Recover a cluster after quorum loss <restore-quorum>
-two-node-ha
 Manage upgrades <upgrades>
 Set up Enhanced Platform Awareness <epa>
 Manage images <image-management.md>
