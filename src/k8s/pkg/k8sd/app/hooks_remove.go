@@ -115,14 +115,6 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		}
 	}
 
-	// Perform all cleanup steps regardless of if this is a worker node or control plane.
-	// Trying to detect the node type is not reliable as the node might have been marked as worker
-	// or not, depending on which step it failed.
-	log.Info("Cleaning up worker certificates")
-	if _, err := setup.EnsureWorkerPKI(snap, &pki.WorkerNodePKI{}); err != nil {
-		log.Error(err, "failed to cleanup worker certificates")
-	}
-
 	log.Info("Removing worker node mark")
 	if err := snaputil.MarkAsWorkerNode(snap, false); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
@@ -130,12 +122,24 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		}
 	}
 
-	log.Info("Cleaning up control plane certificates")
-	if _, err := setup.EnsureControlPlanePKI(snap, &pki.ControlPlanePKI{}); err != nil {
-		log.Error(err, "failed to cleanup control plane certificates")
-	}
-
+	// NOTE(claudiub): We should only remove the certificates only if we're stopping the Kubernetes
+	// services as well. Removing them without stopping the services will result in the services
+	// being paralyzed and unable to continue their function, including potential Pod evictions
+	// started by CAPI.
 	if _, ok := cfg.Annotations.Get(apiv1_annotations.AnnotationSkipStopServicesOnRemove); !ok {
+		// Perform all cleanup steps regardless of if this is a worker node or control plane.
+		// Trying to detect the node type is not reliable as the node might have been marked as worker
+		// or not, depending on which step it failed.
+		log.Info("Cleaning up worker certificates")
+		if _, err := setup.EnsureWorkerPKI(snap, &pki.WorkerNodePKI{}); err != nil {
+			log.Error(err, "failed to cleanup worker certificates")
+		}
+
+		log.Info("Cleaning up control plane certificates")
+		if _, err := setup.EnsureControlPlanePKI(snap, &pki.ControlPlanePKI{}); err != nil {
+			log.Error(err, "failed to cleanup control plane certificates")
+		}
+
 		log.Info("Stopping worker services")
 		if err := snaputil.StopWorkerServices(ctx, snap); err != nil {
 			log.Error(err, "Failed to stop worker services")
@@ -150,9 +154,9 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		if err := snaputil.StopK8sDqliteServices(ctx, snap); err != nil {
 			log.Error(err, "Failed to stop k8s-dqlite service")
 		}
-	}
 
-	tryCleanupContainerdPaths(log, snap)
+		tryCleanupContainerdPaths(log, snap)
+	}
 
 	return nil
 }
