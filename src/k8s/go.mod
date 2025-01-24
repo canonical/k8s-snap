@@ -7,7 +7,7 @@ toolchain go1.23.4
 require (
 	dario.cat/mergo v1.0.0
 	github.com/canonical/go-dqlite/v2 v2.0.0
-	github.com/canonical/k8s-snap-api v1.0.15
+	github.com/canonical/k8s-snap-api v1.0.16
 	github.com/canonical/lxd v0.0.0-20250113143058-52441d41dab7
 	github.com/canonical/microcluster/v2 v2.1.1-0.20250115174915-f2320c71e720
 	github.com/go-logr/logr v1.4.2
