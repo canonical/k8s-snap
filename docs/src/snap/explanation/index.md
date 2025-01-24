@@ -19,7 +19,7 @@ high-availability
 certificates
 ingress
 load-balancer
-Upgrading <upgrade.md>
+Upgrades <upgrade.md>
 epa
 security
 cis

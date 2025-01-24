@@ -1,8 +1,8 @@
-# How to use the default load-balancer
+# How to use the default load balancer
 
-{{product}} includes a default load-balancer. As this is not an
+{{product}} includes a default load balancer. As this is not an
 essential service for all deployments, it is not enabled by default. This guide
-explains how to configure and enable the load-balancer.
+explains how to configure and enable the `load-balancer`.
 
 ## Prerequisites
 
@@ -14,17 +14,17 @@ This guide assumes the following:
 
 ## Check the status and configuration
 
-Find out whether load-balancer is enabled or disabled with the following
+Find out whether load balancer is enabled or disabled with the following
 command:
 
 ```
 sudo k8s status
 ```
 
-The load-balancer is not enabled by default, it won't be listed on the status
+The load balancer is not enabled by default, it won't be listed on the status
 output unless it has been subsequently enabled.
 
-To check the current configuration of the load-balancer, run the following:
+To check the current configuration of the `load-balancer`, run the following:
 
 ```
 sudo k8s get load-balancer
@@ -57,9 +57,9 @@ simultaneously. E.g.
 sudo k8s set load-balancer.bgp-mode=true load-balancer.bgp-local-asn=64512 load-balancer.bgp-peer-address=10.0.10.63 load-balancer.bgp-peer-asn=64512 load-balancer.bgp-peer-port=7012
 ```
 
-## Enable the load-balancer
+## Enable the load balancer
 
-To enable the load-balancer, run:
+To enable the load balancer, run:
 
 ```
 sudo k8s enable load-balancer
@@ -72,13 +72,13 @@ sudo k8s status
 ```
 
 ```{important}
-If you run `k8s status` soon after enabling the load-balancer in BGP mode,
-`k8s status` might report errors. Please wait a few moments for the load-balancer to finish deploying and try again.
+If you run `k8s status` soon after enabling the load balancer in BGP mode,
+`k8s status` might report errors. Please wait a few moments for the load balancer to finish deploying and try again.
 ```
 
-## Disable the load-balancer
+## Disable the load balancer
 
-The default load-balancer can be disabled again with:
+The default load balancer can be disabled again with:
 
 ```
 sudo k8s disable load-balancer
@@ -86,7 +86,7 @@ sudo k8s disable load-balancer
 
 ## Next Step
 
-- Learn more in the [Load-Balancer] explanation page.
+- Learn more in the [Load Balancer] explanation page.
 
 <!-- LINKS -->
 [CIDR]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing

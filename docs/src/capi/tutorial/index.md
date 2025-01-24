@@ -11,7 +11,7 @@ Overview <self>
 ```{toctree}
 :glob:
 :titlesonly:
-getting-started
+Getting started <getting-started>
 ```
 
 ---

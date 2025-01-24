@@ -1,4 +1,4 @@
-# Refreshing workload cluster certificates
+# How to refresh workload cluster certificates
 
 This how-to will walk you through the steps to refresh the certificates for
 both control plane and worker nodes in your {{product}} Cluster API cluster.

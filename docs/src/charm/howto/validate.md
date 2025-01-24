@@ -1,20 +1,20 @@
-# How to Validate {{product}}
+# How to validate {{product}}
 
 End-to-end (e2e) tests for **Kubernetes** provide a mechanism
 to test the behavior of the system. This is a useful indicator
-that the cluster is performing properly, as well as a good 
+that the cluster is performing properly, as well as a good
 validation of any code changes.
 
-For **{{product}}**, these tests are encapsulated 
+For **{{product}}**, these tests are encapsulated
 in an additional **Juju** charm which can be added to your cluster.
 Actual testing is then run through the charm's actions.
 
 
-```{caution} Your cluster will need to have at least two 
+```{caution} Your cluster will need to have at least two
 running worker units for the `e2e` test to run properly.
 ```
 
-## Deploying the kubernetes-e2e charm
+## Deploy the kubernetes-e2e charm
 
 Add the charm to your cluster:
 
@@ -27,7 +27,7 @@ This relates to the installed version of Kubernetes. You can check which
 version your cluster is set to by running:
 
 ```bash
-juju status k8s 
+juju status k8s
 ```
 
 The output will be in the form of `version.number/risk`, e.g `1.31/stable`. You should set
@@ -43,9 +43,10 @@ Finally we relate the charm to `k8s`:
 juju integrate kubernetes-e2e:kube-control k8s:kube-control
 ```
 
-It may take some moments for these relations to establish. Once the connections are made, the charm will update its status to "Ready to test."
+It may take some moments for these relations to establish. Once the connections
+are made, the charm will update its status to "Ready to test."
 
-## Running the default tests
+## Run the default tests
 
 The tests are configured as a **Juju** _action_. To run the default tests:
 
@@ -53,7 +54,8 @@ The tests are configured as a **Juju** _action_. To run the default tests:
 juju run kubernetes-e2e/0 test --background
 ```
 
-The command will return with a number for that specific action operation. 
+The command will return with a number for that specific action operation.
+
 ```console
 Scheduled operation 25 with task 26
 Check operation status with 'juju show-operation 25'
@@ -62,7 +64,7 @@ Check task status with 'juju show-task 26'
 
 See the section on [Test output](#test-output) below for details.
 
-## Running specific tests
+## Run specific tests
 
 The complete set of **Kubernetes** e2e tests is more fully described in the
 [upstream Kubernetes documentation][e2e-upstream]. In some cases you may wish
@@ -78,7 +80,8 @@ juju run kubernetes-e2e/0 test skip='\[(Flaky|Slow|Serial)\]'  --background
 
 Note that the brackets for the regex need to be escaped as shown.
 
-Running this command will return a uuid for that specific test run, as with the default case.
+Running this command will return a uuid for that specific test run, as with the
+default case.
 
 ## Test output
 
@@ -89,7 +92,7 @@ juju show-operation 25
 ```
 
 where `25` is the id of the scheduled operation when the test was initiated.
-This will return YAML output indicating the current status, 
+This will return YAML output indicating the current status,
 which can be either `running`, `completed` or `failed`.
 
 ```yaml
@@ -141,10 +144,10 @@ tasks:
       log: /home/ubuntu/26.log.tar.gz
 ```
 
-If the tests fail, or you want to look through the detail of each test, you can examine the
-detailed log.
+If the tests fail, or you want to look through the detail of each test, you can
+examine the detailed log.
 
-## Viewing test logs
+## View test logs
 
 The test logfile is stored as a file on the test instance. The filename
 corresponds to the id of the action which created it, with a '.log'
@@ -173,7 +176,7 @@ The uncompressed logs in particular can be very large and quickly
 fill up storage.
 ```
 
-## Upgrading the e2e tests
+## Upgrade the e2e tests
 
 When an update is available, the `kubernetes-e2e` charm can be upgraded with the command:
 
@@ -184,4 +187,3 @@ juju refresh kubernetes-e2e --channel=${release}
 <!--LINKS -->
 
 [e2e-upstream]: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-testing/e2e-tests.md
-

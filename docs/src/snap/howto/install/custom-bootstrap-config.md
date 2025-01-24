@@ -1,14 +1,14 @@
-# Custom bootstrap configuration
+# How to install {{product}} with a custom bootstrap configuration
 
 When creating a {{ product }} cluster that differs from the default
 configuration you can choose to use a custom bootstrap configuration.
 The CLI's interactive mode or a custom bootstrap configuration file allow you
-to modify the configuration of the first node of your cluster. 
+to modify the configuration of the first node of your cluster.
 
 ## Configuration options
 
 Please consult the [reference page] for all of the
-available configuration options and their defaults. 
+available configuration options and their defaults.
 
 ``` {note}
 Most of these configuration options are set during the initial bootstrapping
@@ -47,7 +47,7 @@ The node will be 'Ready' to host workloads after the CNI is deployed successfull
 ## Bootstrap configuration file
 
 If your deployment requires a more fine-tuned configuration, use the bootstrap
-configuration file. 
+configuration file.
 
 ``` {note}
 When using the custom configuration file on bootstrap, all features including

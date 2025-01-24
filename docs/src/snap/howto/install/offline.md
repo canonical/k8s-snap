@@ -1,4 +1,4 @@
-# Installing {{product}} in air-gapped environments
+# How to install {{product}} in air-gapped environments
 
 There are situations where it is necessary or desirable to run {{product}}
 on a machine that is not connected to the internet. Based on different degrees
@@ -55,7 +55,7 @@ ports used by {{product}}.  -->
 
 #### Default Gateway
 
-In cases where the air-gap environment does not have a default gateway,
+In cases where the air-gap environment does not have a default Gateway,
 add a dummy default route on the `eth0` interface using the following command:
 
 ```
@@ -130,7 +130,7 @@ downloaded `k8s` snap is unsquashed.
 
 Please ensure that the images used by workloads are tracked as well.
 
-#### Images Option A: via an HTTP proxy
+#### Images option A: via an HTTP proxy
 
 In many cases, the nodes of the air-gap deployment may not have direct access
 to upstream registries, but can reach them through the [use of an HTTP
@@ -140,7 +140,7 @@ The configuration of the proxy is out of the scope of this documentation.
 
 <!-- markdownlint-disable MD022 -->
 (private-registry)=
-#### Images Option B: private registry mirror
+#### Images option B: private registry mirror
 <!-- markdownlint-enable MD022 -->
 
 In case regulations and/or network constraints do not permit the cluster nodes
@@ -195,7 +195,7 @@ this are described in [Side-load images](#side-load).
 
 <!-- markdownlint-disable MD022 -->
 (side-load)=
-#### Images Option C: Side-load images
+#### Images option C: Side-load images
 <!-- markdownlint-enable MD022 -->
 
 Image side-loading is the process of loading all required OCI images directly
@@ -240,12 +240,12 @@ sudo snap ack k8s.assert && sudo snap install ./k8s.snap --classic
 
 Repeat the above for all nodes of the cluster.
 
-### Step 2: Container Runtime
+### Step 2: Container runtime
 
 The container runtime must be configured to fetch images properly.
 Choose one of the following options:
 
-#### Container Runtime Option A: Configure HTTP proxy for registries
+#### Container runtime option A: Configure HTTP proxy for registries
 
 Create or edit the
 `/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`
@@ -253,7 +253,7 @@ file on each node and set the appropriate `http_proxy`, `https_proxy` and
 `no_proxy` variables as described in the
 [adding proxy configuration section][proxy].
 
-#### Container Runtime Option B: Configure registry mirrors
+#### Container runtime option B: Configure registry mirrors
 
 This requires having already set up a registry mirror, as explained in the
 preparation section on the private registry mirror. Complete the following
@@ -285,7 +285,7 @@ capabilities = ["pull", "resolve"]
 ca = "/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt"
 ```
 
-#### Container Runtime Option C: Side-load images
+#### Container runtime option C: Side-load images
 
 This is only required if choosing to [side-load images](#side-load). Make sure
 that the directory `/var/snap/k8s/common/images` directory exists, then copy

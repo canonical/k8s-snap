@@ -1,7 +1,7 @@
 # Release notes
 
-This is an index page for all the available releases of the {{product}} 
-charms. Each entry will take you to version specific information including 
+This is an index page for all the available releases of the {{product}}
+charms. Each entry will take you to version specific information including
 new features, bug fixes and backwards-incompatible changes.
 
 ## Releases
@@ -16,12 +16,12 @@ new features, bug fixes and backwards-incompatible changes.
 
 ## Release policy and schedule
 
-Our release cadence and support window for all Kubernetes-related products are 
+Our release cadence and support window for all Kubernetes-related products are
 available on the main Ubuntu website, on the [release cycle page][].
 
-## {{product}} Releases
+## {{product}} releases
 
-{{product}} charms are Juju operators for the {{product}} snap. 
+{{product}} charms are Juju operators for the {{product}} snap.
 For the latest changes in the snap, see the [snap release page][].
 
 <!-- LINKS -->

@@ -1,4 +1,4 @@
-# Install {{product}} from a charm
+# How to install {{product}} from a charm
 
 {{product}} is packaged as a [charm], available from Charmhub for all
 supported platforms.

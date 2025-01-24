@@ -1,4 +1,4 @@
-# Install with Multipass (Ubuntu/macOS/Windows)
+# How to install {{product}} with Multipass (Ubuntu/macOS/Windows)
 
 [Multipass] provides an easy way to run Ubuntu in a virtual machine, regardless
 of your underlying operating system. It is the recommended way to run
@@ -92,7 +92,7 @@ exit
 
 ...and you will be returned to the original terminal session.
 
-## Stop/Remove the instance
+## Stop/remove the instance
 
 The instance you created will keep running in the background until it is either
 stopped or the host computer is shut down. You can stop the running instance at
