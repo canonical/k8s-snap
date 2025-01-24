@@ -1,4 +1,4 @@
-# How to Upgrade {{product}} to the next patch revision
+# How to upgrade {{product}} to the next patch revision
 
 It is recommended that you keep your Kubernetes deployment
 updated to the latest available stable version. You should
@@ -82,7 +82,7 @@ rely on deprecated APIs.
 
 ## Specific upgrade instructions
 
-### Deciding if an upgrade is available
+### Decide if an upgrade is available
 
 Juju will contact [charmhub] daily to find new revisions of charms
 deployed in your models. To see if the `k8s` or `k8s-worker` charms
@@ -129,7 +129,7 @@ juju run k8s/leader pre-upgrade-check
 If no error appears, the `pre-upgrade-check` completed successfully.
 
 
-### Refreshing charm applications
+### Refresh charm applications
 
 #### Control Plane units (k8s)
 
@@ -181,7 +181,7 @@ applications appear in the same model.
 ```
 
 
-## Verify an Upgrade
+## Verify an upgrade
 
 Once an upgrade is complete, confirm the successful upgrade by running:
 

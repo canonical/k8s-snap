@@ -1,5 +1,4 @@
-
-# Assess DISA STIG for {{product}}
+# How to assess DISA STIG for {{product}}
 
 Security Technical Implementation Guides (STIGs) are developed by the Defense
 Information System Agency (DISA) for the U.S. Department of Defense (DoD).

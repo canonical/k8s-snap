@@ -1,4 +1,4 @@
-# Perform an in-place upgrade for a machine
+# How to perform an in-place upgrade for a machine
 
 This guide walks you through the steps to perform an in-place upgrade for a
 Cluster API managed machine.
@@ -35,7 +35,7 @@ kubectl --kubeconfig c1-kubeconfig.yaml get nodes -o wide
 
 ## Annotate the machine
 
-In this first step, annotate the Machine resource with 
+In this first step, annotate the Machine resource with
 the in-place upgrade annotation. In this example, the machine
 is called `c1-control-plane-xyzbw`.
 
@@ -49,7 +49,7 @@ kubectl annotate machine c1-control-plane-xyzbw "v1beta2.k8sd.io/in-place-upgrad
   e.g. `channel=1.30-classic/stable`
 * `revision=<revision>` which refreshes k8s to the given revision.
   e.g. `revision=123`
-* `localPath=<path>` which refreshes k8s with the snap file from 
+* `localPath=<path>` which refreshes k8s with the snap file from
   the given absolute path. e.g. `localPath=full/path/to/k8s.snap`
 
 Please refer to the [ClusterAPI Annotations Reference][annotations-reference]

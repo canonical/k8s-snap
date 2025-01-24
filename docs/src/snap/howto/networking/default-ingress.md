@@ -53,7 +53,7 @@ You should see three options:
 - `enable-proxy-protocol`: If set, proxy protocol will be enabled for the
   Ingress
 
-### TLS Secret
+### TLS secret
 
 You can create a TLS secret by following the official
 [Kubernetes documentation][kubectl-create-secret-TLS/].
@@ -68,7 +68,7 @@ sudo k8s set ingress.default-tls-secret=<new-default-tls-secret>
 Replace `<new-default-tls-secret>` with the desired value for your Ingress
 configuration.
 
-### Proxy Protocol
+### Proxy protocol
 
 Enabling the proxy protocol allows passing client connection information to the
 backend service.

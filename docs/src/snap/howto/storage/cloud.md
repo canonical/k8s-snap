@@ -13,7 +13,7 @@ This guide is for AWS and assumes the following:
 - You can create roles and policies in AWS
 
 
-## Set IAM Policies
+## Set IAM policies
 
 Your instance will need a few IAM policies to be able to communicate with the
 AWS APIs. The policies provided here are quite open and should be scoped down

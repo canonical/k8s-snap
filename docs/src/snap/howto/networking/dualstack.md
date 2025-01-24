@@ -69,7 +69,7 @@ cluster bootstrap process. The key configuration parameters are:
    sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/how-to-dualstack-manifest.yaml
    ```
 
-1. **Check IPv6 Connectivity**
+1. **Check IPv6 connectivity**
 
    Retrieve the service details and ensure that an IPv6 address is assigned:
 
@@ -94,7 +94,7 @@ cluster bootstrap process. The key configuration parameters are:
    working.
 
 
-## CIDR Size Limitations
+## CIDR size limitations
 
 When setting up dual-stack networking, it is important to consider the
 limitations regarding CIDR size:

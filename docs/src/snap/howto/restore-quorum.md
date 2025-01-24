@@ -1,4 +1,4 @@
-# Recovering a cluster after quorum loss
+# How to recover a cluster after quorum loss
 
 Highly available {{product}} clusters can survive losing one or more
 nodes. [Dqlite], the default datastore, implements a [Raft] based protocol

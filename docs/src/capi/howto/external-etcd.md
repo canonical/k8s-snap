@@ -1,4 +1,4 @@
-# Use external etcd with Cluster API
+# How to use external etcd with Cluster API
 
 To replace the built-in datastore with an external etcd to
 manage the Kubernetes state in the Cluster API (CAPI) workload cluster follow

@@ -1,4 +1,4 @@
-# Upgrade the Kubernetes version of a cluster
+# How to upgrade the Kubernetes version of a cluster
 
 This guide walks you through the steps to rollout an upgrade for a
 Cluster API managed Kubernetes cluster. The upgrade process includes updating
@@ -21,7 +21,7 @@ This guide refers to the workload cluster as `c1` and its
 kubeconfig as `c1-kubeconfig.yaml`.
 
 ```{note}
-Rollout upgrades are recommended for HA clusters. For non-HA clusters, please 
+Rollout upgrades are recommended for HA clusters. For non-HA clusters, please
 refer to the [in-place upgrade guide].
 ```
 
@@ -127,4 +127,3 @@ kubectl get machines -A
 <!-- LINKS -->
 [getting-started]: ../tutorial/getting-started.md
 [in-place upgrade guide]: ./in-place-upgrades.md
-```

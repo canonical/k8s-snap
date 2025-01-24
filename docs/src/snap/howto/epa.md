@@ -16,7 +16,7 @@ SR-IOV/DPDK.
 - Ubuntu instances **or** a MAAS environment to run {{product}} on
 
 
-## Prepare the Environment
+## Prepare the environment
 
 
 `````{tabs}
@@ -329,9 +329,10 @@ EPA capabilities.
    :end-before: <!-- snap end -->
    ```
 
-2. Create a file called *configuration.yaml* or download it {download}`here </src/assets/configuration.yaml>`. In this configuration file we let
-   the snap start with its default CNI (calico), with CoreDNS deployed and we
-   also point k8s to the external etcd.
+2. Create a file called *configuration.yaml* or download it
+{download}`here </src/assets/configuration.yaml>`. In this configuration file
+we let the snap start with its default CNI (calico), with CoreDNS deployed and
+we also point k8s to the external etcd.
 
 ```{literalinclude} /src/assets/configuration.yaml
 :language: yaml
@@ -697,7 +698,7 @@ T: 0 ( 2965) P:80 I:1000 C: 241486 Min:      3 Act:    4 Avg:    3 Max:      18
 
 ```
 
-### Test CPU Pinning and NUMA
+### Test CPU pinning and NUMA
 
 First check if CPU Manager and NUMA Topology Manager is set up in the worker
 node:

@@ -1,4 +1,4 @@
-# How to set up an IPv6-Only Cluster
+# How to set up an IPv6-only cluster
 
 An IPv6-only Kubernetes cluster operates exclusively using IPv6 addresses,
 without support for IPv4. This configuration is ideal for environments that
@@ -17,7 +17,7 @@ to handle IPv6 traffic.
 - Any underlying infrastructure (e.g. cloud providers, bare metal setups)
 must be IPv6-compatible.
 
-## Setting Up an IPv6-Only Cluster
+## Set up an IPv6-only cluster
 
 The process of creating an IPv6-only cluster involves specifying only IPv6
 CIDRs for pods and services during the bootstrap process. Unlike dual-stack,
@@ -63,7 +63,7 @@ Specify the configuration file during the bootstrapping process:
 sudo k8s bootstrap --file bootstrap-config.yaml
 ```
 
-2. **Verify Pod and Service Creation**
+2. **Verify Pod and Service creation**
 
 Once the cluster is up, verify that all pods are running:
 
@@ -78,7 +78,7 @@ connectivity of the IPv6-only cluster:
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/src/assets/how-to-ipv6-only-manifest.yaml
 ```
 
-3. **Verify IPv6 Connectivity**
+3. **Verify IPv6 connectivity**
 
 Retrieve the service details to confirm an IPv6 address is assigned:
 
@@ -102,9 +102,9 @@ curl http://[fd98::7534]/
 A welcome message from the nginx web-server is displayed when IPv6
 connectivity is set up correctly.
 
-## IPv6-Only Cluster Considerations
+## IPv6-only cluster considerations
 
-**Service and Pod CIDR Sizing**
+**Service and Pod CIDR sizing**
 
 Use `/108` as the maximum size for Service CIDRs. Larger ranges (e.g., `/64`)
 may lead to allocation errors or Kubernetes failing to initialise the IPv6

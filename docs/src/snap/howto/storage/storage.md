@@ -17,7 +17,7 @@ This guide assumes the following:
 - You have a bootstrapped {{product}} cluster (see the
   [getting-started-guide])
 
-## Enable Local Storage
+## Enable local storage
 
 The storage feature is enabled by default when bootstrapping the snap. However,
 if you have used a custom bootstrap configuration or disabled the feature, you
@@ -27,7 +27,7 @@ can enable it using the following command:
 sudo k8s enable local-storage
 ```
 
-## Configure Local Storage
+## Configure local storage
 
 While the storage option comes with sensible defaults, you can customise it to
 meet your requirements. Obtain the current configuration by running:
@@ -53,7 +53,7 @@ The local-storage feature provides the following configuration options:
   is not changed. If this flag is not set and the cluster does not have a
   default class set then the class from the local-storage becomes the default.
 
-## Disable Local Storage
+## Disable local storage
 
 The local storage option is only suitable for single-node clusters and
 development environments as it has no multi node data replication. For a

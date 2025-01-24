@@ -1,4 +1,4 @@
-# Choosing an installation method
+# Choose an installation method
 
 {{ product }} can be installed in a variety of ways, depending on your needs and
 preferences. All installation methods provide a fully functional cluster with

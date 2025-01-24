@@ -14,7 +14,7 @@ Overview <self>
 Charms <charms>
 Architecture <architecture>
 Configuration options <charm-configurations>
-Ports and Services <ports-and-services>
+Ports and services <ports-and-services>
 proxy
 Actions <actions>
 troubleshooting

@@ -1,4 +1,4 @@
-# Adding worker nodes with custom configurations
+# How to add worker nodes with custom configurations
 
 This guide will walk you through how to deploy multiple `k8s-worker`
 applications with different configurations, to create node groups with specific
@@ -7,6 +7,7 @@ capabilities or requirements.
 ## Prerequisites
 
 This guide assumes the following:
+
 - A working Kubernetes cluster deployed with the `k8s` charm
 
 ## Example worker configuration
@@ -24,6 +25,7 @@ your worker nodes.
 ```
 
 1. Workers for memory-intensive workloads (`worker-memory-config.yaml`):
+
 ```yaml
 memory-workers:
   bootstrap-node-taints: "workload=memory:NoSchedule"
@@ -31,6 +33,7 @@ memory-workers:
 ```
 
 2. Workers for GPU workloads (`worker-gpu-config.yaml`):
+
 ```yaml
 gpu-workers:
   bootstrap-node-taints: "accelerator=nvidia:NoSchedule"
