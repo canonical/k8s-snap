@@ -43,7 +43,7 @@ func TestSetDefaults(t *testing.T) {
 		LoadBalancer: types.LoadBalancer{
 			Enabled:        utils.Pointer(false),
 			CIDRs:          utils.Pointer([]string{}),
-			L2Mode:         utils.Pointer(false),
+			L2Mode:         utils.Pointer(true),
 			L2Interfaces:   utils.Pointer([]string{}),
 			BGPMode:        utils.Pointer(false),
 			BGPLocalASN:    utils.Pointer(0),

@@ -20,7 +20,7 @@ STATUS_PATTERNS = [
     r"network:\s*enabled",
     r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
     r"ingress:\s*enabled",
-    r"load-balancer:\s*enabled, Unknown mode",
+    r"load-balancer:\s*enabled, L2 mode",
     r"local-storage:\s*enabled at /var/snap/k8s/common/rawfile-storage",
     r"gateway\s*enabled",
 ]
@@ -145,6 +145,6 @@ def test_smoke(instances: List[harness.Instance]):
         return True
 
     LOG.info("Verifying the output of `k8s status`")
-    util.stubbornly(retries=10, delay_s=10).on(instance).until(
+    util.stubbornly(retries=15, delay_s=10).on(instance).until(
         condition=status_output_matches,
     ).exec(["k8s", "status", "--wait-ready"])

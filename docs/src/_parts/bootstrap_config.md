@@ -93,7 +93,7 @@ Sets the CIDRs used for assigning IP addresses to Kubernetes services with type
 **Type:** `bool`<br>
 
 Determines if L2 mode should be enabled.
-If omitted defaults to `false`.
+If omitted defaults to `true`.
 
 ### cluster-config.load-balancer.l2-interfaces
 **Type:** `[]string`<br>
