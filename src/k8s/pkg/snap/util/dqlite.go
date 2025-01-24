@@ -75,8 +75,7 @@ func UpdateDqliteFailureDomain(failureDomain uint64, dbStateDir string) (bool, e
 		return false, nil
 	} else {
 		// Updating failure domain.
-		err := os.WriteFile(failureDomainFile, []byte(failureDomainStr), 0o644)
-		if err != nil {
+		if err := os.WriteFile(failureDomainFile, []byte(failureDomainStr), 0o644); err != nil {
 			return false, fmt.Errorf("failed to update failure-domain file %s: %w", failureDomainFile, err)
 		}
 		return true, nil

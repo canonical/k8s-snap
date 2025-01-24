@@ -72,8 +72,7 @@ func (c *NodeLabelController) reconcileFailureDomain(ctx context.Context, node *
 	}
 
 	log.Info("Setting failure domain", "failure domain", failureDomain, "availability zone", azLabel)
-	err := c.updateDqliteFailureDomain(ctx, c.snap, failureDomain)
-	if err != nil {
+	if err := c.updateDqliteFailureDomain(ctx, c.snap, failureDomain); err != nil {
 		return fmt.Errorf("failed to update failure-domain, error: %w", err)
 	}
 
