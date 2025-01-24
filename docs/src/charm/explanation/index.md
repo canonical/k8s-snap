@@ -17,7 +17,7 @@ channels
 ingress
 load-balancer
 security
-Upgrading <upgrade.md>
+Upgrades <upgrade.md>
 ```
 
 This page covers both general and charm-related topics.

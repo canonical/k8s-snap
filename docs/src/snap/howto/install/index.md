@@ -1,4 +1,4 @@
-# Installing {{product}}
+# Install {{product}}
 
 ```{toctree}
 :hidden:
@@ -12,10 +12,10 @@ the current How-to guides below.
 :glob:
 :titlesonly:
 
-Install from a snap <snap.md>
-custom-bootstrap-config
-multipass
-Install in LXD <lxd.md>
-Install in air-gapped environments <offline.md>
+... from a snap <snap.md>
+... with a custom bootstrap configuration <custom-bootstrap-config>
+... with Multipass <multipass>
+... in LXD <lxd.md>
+... in air-gapped environments <offline.md>
 Uninstall the snap <uninstall.md>
 ```

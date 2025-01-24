@@ -1,4 +1,4 @@
-# Cluster Certificates and Configuration Directories
+# Cluster certificates and configuration directories
 
 This reference page provides an overview of certificate authorities (CAs),
 certificates and configuration directories in use by a {{ product }} cluster.
@@ -37,7 +37,7 @@ their issuance.
 | `root@$hostname`                          | Client    | `/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt`             | Communication between k8sd nodes | `self-signed`      |
 
 
-## Configuration Files for Kubernetes Components
+## Configuration files for Kubernetes components
 
 The following tables provide an overview of the configuration files used to
 communicate with the cluster services.

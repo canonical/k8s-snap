@@ -17,9 +17,9 @@ post-deployment. Planning for your datastore needs ahead of time is
 crucial, particularly if you opt for an external datastore like **etcd**.
 ```
 
-## Preparing the Deployment
+## Prepare the Deployment
 
-1. **Creating the Deployment Model**:
+1. **Create the Deployment model**:
   Begin by creating a Juju model specifically for your {{product}}
   cluster deployment.
 
@@ -27,7 +27,7 @@ crucial, particularly if you opt for an external datastore like **etcd**.
   juju add-model my-cluster
   ```
 
-2. **Deploying Certificate Authority**:
+2. **Deploy the Certificate Authority**:
   etcd requires a secure means of communication between its components.
   Therefore, we require a certificate authority such as [EasyRSA][easyrsa-charm]
   or [Vault][vault-charm]. Check the respective charm documentation for detailed
@@ -38,9 +38,9 @@ crucial, particularly if you opt for an external datastore like **etcd**.
   juju deploy easyrsa
   ```
 
-## Deploying etcd
+## Deploy etcd
 
-- **Single Node Deployment**:
+- **Single node Deployment**:
   - To deploy a basic etcd instance on a single node, use the command:
 
     ```bash
@@ -50,7 +50,7 @@ crucial, particularly if you opt for an external datastore like **etcd**.
     This setup is straightforward but not recommended for production
     environments due to a lack of high availability.
 
-- **High Availability Setup**:
+- **High Availability setup**:
   - For environments where high availability is crucial, deploy etcd across at
     least three nodes:
 
@@ -61,7 +61,7 @@ crucial, particularly if you opt for an external datastore like **etcd**.
     This ensures that your etcd cluster remains available even if one node
     fails.
 
-## Integrating etcd with EasyRSA
+## Integrate etcd with EasyRSA
 
 Now you have to integrate etcd with your certificate authority. This will issue
 the required certificates for secure communication between etcd and your
@@ -71,7 +71,7 @@ the required certificates for secure communication between etcd and your
 juju integrate etcd easyrsa
 ```
 
-## Deploying {{product}}
+## Deploy {{product}}
 
 Deploy the control plane units of {{product}} with the command:
 
@@ -88,7 +88,7 @@ Remember to run `juju expose k8s`. This will open the required
 ports to reach your cluster from outside.
 ```
 
-## Integrating {{product}} with etcd
+## Integrate {{product}} with etcd
 
 Now that we have both the etcd datastore deployed alongside our Canonical
 Kubernetes cluster, it is time to integrate our cluster with our etcd datastore.

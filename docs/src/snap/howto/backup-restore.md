@@ -1,4 +1,4 @@
-# Backup and restore
+# How to backup and restore a {{product}} cluster
 
 [Velero][] is a popular open source backup solution for Kubernetes. Its core
 implementation is a controller running in the cluster that oversees the backup
@@ -63,12 +63,12 @@ sudo k8s kubectl expose deployment nginx -n workloads --port 80
 
 ## Install Velero
 
-Download the Velero binary from the 
+Download the Velero binary from the
 [releases page on GitHub][releases] and place it in our `PATH`. In this case we
 install the v1.14.1 Linux binary for AMD64 under `/usr/local/bin`:
 
 ```bash
-wget https://github.com/vmware-tanzu/velero/releases/download/v1.14.0/velero-v1.14.0-linux-amd64.tar.gz 
+wget https://github.com/vmware-tanzu/velero/releases/download/v1.14.0/velero-v1.14.0-linux-amd64.tar.gz
 tar -xzf velero-v1.14.0-linux-amd64.tar.gz
 chmod +x velero-v1.14.0-linux-amd64/velero
 sudo chown root:root velero-v1.14.0-linux-amd64/velero
@@ -119,12 +119,12 @@ velero install \
 ## Backup workloads
 
 To backup the `workloads` namespace we use the `--include-namespaces` argument:
- 
+
 ```bash
 velero backup create workloads-backup --include-namespaces=workloads
 ```
 
-```{note} Please see the 
+```{note} Please see the
 [official Velero documentation](https://velero.io/docs/v1.14/file-system-backup/#to-back-up)
 for details on how to backup persistent volumes and the supported volume types.
 ```
@@ -133,10 +133,10 @@ To check the progress of a backup operation we use `describe`, providing the
 backup name:
 
 ```bash
-velero backup describe workloads-backup 
+velero backup describe workloads-backup
 ```
 
-In the output you should see this operation completed: 
+In the output you should see this operation completed:
 
 ```bash
 Name:         workloads-backup
@@ -286,7 +286,7 @@ options it is also very easy to use. You are required to set up a backup
 strategy based on the backend that will hold the backups and the scheduling of
 the backups. The rest is taken care of by the tool itself.
 
-    
+
 <!-- Links -->
 
 [Velero]: https://velero.io/

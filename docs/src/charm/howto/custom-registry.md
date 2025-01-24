@@ -1,4 +1,4 @@
-# Configure a custom registry
+# How to configure a custom registry
 
 The `k8s` charm can be configured to use a custom container registry for its
 container images. This is particularly useful if you have a private registry or
@@ -12,7 +12,7 @@ charm to pull images from a custom registry.
 - Access to a custom container registry from the cluster (e.g., docker registry
   or Harbor).
 
-## Configure the Charm
+## Configure the charm
 
 To configure the charm to use a custom registry, you need to set the
 `containerd_custom_registries` configuration option. This options allows
@@ -43,7 +43,7 @@ progress by running:
 juju status --watch 2s
 ```
 
-## Verify the Configuration
+## Verify the configuration
 
 Once the charm is configured and active, verify that the custom registry is
 configured correctly by creating a new workload and ensuring that the images

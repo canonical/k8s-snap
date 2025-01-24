@@ -1,23 +1,23 @@
-# Upgrading the providers of a management cluster
+# How to upgrade the providers of a management cluster
 
-This guide will walk you through the process of upgrading the 
+This guide will walk you through the process of upgrading the
 providers of a management cluster.
 
 ## Prerequisites
 
-- A {{product}} CAPI management cluster with installed and 
+- A {{product}} CAPI management cluster with installed and
 configured providers.
 
 ## Check for updates
 
-Check whether there are any new versions of your running 
+Check whether there are any new versions of your running
 providers:
 
 ```
 clusterctl upgrade plan
 ```
 
-The output shows the existing version of each provider as well 
+The output shows the existing version of each provider as well
 as the next available version:
 
 ```text

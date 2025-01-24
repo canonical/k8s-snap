@@ -1,4 +1,4 @@
-# Installing with custom configuration
+# How to install with custom configuration
 
 This guide will walk you through deploying {{product}} using Juju with custom
 configuration options.

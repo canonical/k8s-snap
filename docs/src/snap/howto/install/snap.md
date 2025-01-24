@@ -1,4 +1,4 @@
-# Install {{product}} from a snap
+# How to install {{product}} from a snap
 
 {{product}} is packaged as a [snap], available from the
 snap store for all supported platforms.

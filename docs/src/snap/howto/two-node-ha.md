@@ -145,8 +145,8 @@ sudo mkfs.ext4 /dev/drbd0
 sudo drbdadm down r0
 ```
 
-Add the DRBD device to the ``multipathd`` blacklist, ensuring that the `multipath`
-service will not attempt to manage this device:
+Add the DRBD device to the ``multipathd`` blacklist, ensuring that the
+`multipath`service will not attempt to manage this device:
 
 ```
 sudo cat <<EOF | sudo tee -a /etc/multipath.conf

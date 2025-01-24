@@ -1,4 +1,4 @@
-# Configure proxy settings for K8s
+# How to configure proxy settings for K8s
 
 {{product}} packages a number of utilities (for example curl, Helm) which need
 to fetch resources they expect to find on the internet. In a restricted
