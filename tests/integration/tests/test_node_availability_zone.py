@@ -106,5 +106,5 @@ def test_node_availability_zone(
 
         # Make sure that the nodes remain available.
         util.stubbornly(retries=5, delay_s=10).until(
-            util.ready_nodes(initial_node) == 3
+            lambda p: util.ready_nodes(initial_node) == 3
         )
