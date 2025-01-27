@@ -10,13 +10,13 @@ the foundational aspects of clustering using {{product}} without the
 complexities of a full-scale, production setup. If your nodes are already
 installed, you can skip the Multipass setup and go to [step 2](step2).
 
-## Before starting
+## Before we begin
 
 In this tutorial, "**control plane**" refers to the Multipass VM that operates
 the control plane, while "**worker**" denotes the Multipass VM running the
 worker node.
 
-## What you will need
+## Prerequisites
 
 - Multipass (See [Multipass Installation][Multipass Installation])
 
@@ -33,7 +33,6 @@ multipass launch 22.04 --name worker -m 4G -c 4 -d 8G
 ```
 
 This step can take a few minutes as Multipass creates the new virtual machines.
-It's normal and expected.
 
 Once the virtual machine has been created, you can run commands on it by
 opening a shell. For example:
@@ -58,15 +57,15 @@ Install {{product}} on both VMs with the following command:
 ### 2. Bootstrap your control plane node
 
 <!-- markdownlint-restore -->
+
+{{product}} allows you to create two types of nodes: control plane and
+worker nodes. In this example, we just initialise a control plane node.
+
 Bootstrap the control plane node with default configuration:
 
 ```
 sudo k8s bootstrap
 ```
-
-{{product}} allows you to create two types of nodes: control plane and
-worker nodes. In this example, we just initialised a control plane node, now
-let's create a worker node.
 
 Generate the token required for the worker node to join the cluster by executing
 the following command on the control-plane node:
@@ -125,9 +124,10 @@ It is important to clean-up your nodes before tearing down the VMs.
 
 Keep in mind the consequences of removing nodes:
 
-```{warning} Do not remove the leader node.
-If you have less than 3 nodes and you remove any node you will lose availability
-   of your cluster.
+```{warning} If you have less than 3 control plane nodes the cluster
+is not in high availability mode. In such a setup the first node, ie the node you called
+`k8s bootstrap` on, plays the role of the leader. If you remove the leader
+you will lose availability of your cluster.
 ```
 
 To tear down the entire cluster, execute:

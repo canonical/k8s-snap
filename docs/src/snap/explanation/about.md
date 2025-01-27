@@ -3,16 +3,15 @@
 At its core, {{product}} is a full implementation of upstream
 [Kubernetes] delivered in a compact, secure, reliable [snap] package. As the
 upstream Kubernetes services are not all that is required for a fully
-functional cluster, additional services and features are built in. You can
-deploy the snap and have a single-node cluster up and running in minutes.
+functional cluster, additional services and features are built in.
 
 ## Why a snap?
 
 Snaps are self-contained, simple to install, secure, cross-platform, and
 dependency-free. They can be installed on any Linux system which supports the
 `snapd` service (see the [snapd documentation] for more information). Security
-and robustness are their key features, alongside being easy to install, easy to
-maintain and easy to upgrade.
+and robustness are their key features, alongside being easy to install,
+maintain and upgrade.
 
 ## What else comes with it?
 
@@ -41,8 +40,8 @@ method] page to see which method best suits your project's needs.
 
 Yes. {{product}} is designed to be eminently scalable. You can start
 with a single node and add more as and when the need arises. Scale up or down
-at any time. Systems with more than three nodes will automatically become
-Highly Available.
+at any time. Systems with more than three control plane nodes will automatically
+become Highly Available.
 
 ## Does it come with support?
 
