@@ -3,12 +3,12 @@
 This rapidly growing community is a diverse bunch of people - developers,
 Kubernetes admins, inventors, researchers, students… and we all share the joy
 of a reliable, flexible, secure, timely version of upstream Kubernetes. The
-team recognise the important role each and every user plays in the success of
+team recognizes the important role each and every user plays in the success of
 the project as a whole and how valuable your contributions are.
 
 ## Do you have questions?
 
-Do you have questions about {{product}}? Perhaps you want some ideas
+Do you have questions about {{product}}? Perhaps you want to share some ideas
 on how to best achieve a certain goal or maybe some aspect of your Kubernetes
 doesn't behave the way you expect. Perhaps you'd just like some advice from
 more experienced users. There are a number of ways to get in touch:

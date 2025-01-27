@@ -32,8 +32,8 @@ wget https://raw.githubusercontent.com/canonical/k8s-snap/main/tests/integration
 ```
 <!-- markdownlint-restore -->
 
-```{note} For an explanation of the settings in this file, [see below]
-(explain-rules)
+```{note} For an explanation of the settings in this file,
+[see below](explain-rules)
 ```
 
 To pipe the content of the file into the k8s LXD profile, run:
@@ -107,7 +107,7 @@ you can access it via the LXD container’s IP address. This can be done using
 `k8s kubectl expose`. This example will expose the deployment’s port 80 to a
 port assigned by Kubernetes.
 
-In this example, we will use [Microbot] as it provides a simple HTTP endpoint
+We will use [Microbot] as it provides a simple HTTP endpoint
 to expose. These steps can be applied to any other deployment.
 
 First, initialise the k8s cluster with
@@ -129,7 +129,7 @@ Then check that the deployment has come up.
 lxc exec k8s -- sudo k8s kubectl get all
 ```
 
-...should return output similar to:
+...should return an output similar to:
 
 <!-- markdownlint-disable -->
 ```
@@ -194,9 +194,13 @@ And it can be permanently removed with:
 lxc delete k8s
 ```
 
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable -->
 (explain-rules)=
-
 ## Explanation of custom LXD rules
+
+
+<!-- markdownlint-restore -->
 
 **linux.kernel_modules**: Comma separated list of kernel modules to load before
 starting the container

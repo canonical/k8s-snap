@@ -17,7 +17,7 @@ Before you begin, make sure you have the following:
 The `kubectl` command communicates with the
 [Kubernetes API server][kubernetes-api-server].
 
-{{product}} includes a `kubectl` which is built from the
+{{product}} includes `kubectl`, built from the
 original upstream source into the `k8s` snap you have installed and is
 configured to work with the cluster out of the box.
 

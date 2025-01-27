@@ -16,7 +16,7 @@ development and innovation without having to worry about the infrastructure.
 
 Whether you are deploying a small cluster to get accustomed to Kubernetes or a
 huge enterprise level deployment across the globe, {{product}} can cater to
-your needs. If would like to jump straight in, head to the
+your needs. If you would like to jump straight in, head to the
 [snap getting started tutorial!](src/snap/tutorial/getting-started.md)
 
 ![Illustration depicting working on components and clouds][logo]
