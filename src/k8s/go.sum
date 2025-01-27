@@ -57,8 +57,8 @@ github.com/canonical/k8s-snap-api v1.0.16 h1:j1VPvWimgRt3P5uRtD2ZCPGalSFvU5AJ/Jb
 github.com/canonical/k8s-snap-api v1.0.16/go.mod h1:LDPoIYCeYnfgOFrwVPJ/4edGU264w7BB7g0GsVi36AY=
 github.com/canonical/lxd v0.0.0-20250113143058-52441d41dab7 h1:lZCOt9/1KowNdnWXjfA1/51Uj7+R0fKtByos9EVrYn4=
 github.com/canonical/lxd v0.0.0-20250113143058-52441d41dab7/go.mod h1:4Ssm3YxIz8wyazciTLDR9V0aR2GPlGIHb+S0182T5pA=
-github.com/canonical/microcluster/v2 v2.1.1-0.20250115174915-f2320c71e720 h1:LLegPoZ5bY/PGx3x1xtzggy2xvQvZ5sCw6jlQJ3BRFg=
-github.com/canonical/microcluster/v2 v2.1.1-0.20250115174915-f2320c71e720/go.mod h1:DWYya9ecaO3StX9VuKmL9NoGvT7ol3VuMg0Mjyy19fQ=
+github.com/canonical/microcluster/v2 v2.1.1-0.20250127104725-631889214b18 h1:h5VJaUnE4gAKPolBTJ11HMRTEN5JyA+oR4gHkoK//6o=
+github.com/canonical/microcluster/v2 v2.1.1-0.20250127104725-631889214b18/go.mod h1:DWYya9ecaO3StX9VuKmL9NoGvT7ol3VuMg0Mjyy19fQ=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chai2010/gettext-go v1.0.2 h1:1Lwwip6Q2QGsAdl/ZKPCwTe9fe0CjlUbqj5bFNSjIRk=
