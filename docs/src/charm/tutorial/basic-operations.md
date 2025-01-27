@@ -96,7 +96,7 @@ juju run k8s/0 get-kubeconfig | yq '.kubeconfig' >> ~/.kube/config
 Confirm that `kubectl` can read the kubeconfig file:
 
 ```
-kubectl config show
+kubectl config view
 ```
 
 The output will be similar to this:
