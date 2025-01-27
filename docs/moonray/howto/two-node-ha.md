@@ -1,4 +1,4 @@
-# Two-Node High-Availability with Dqlite
+# Two-node High-Availability with Dqlite
 
 High availability (HA) is a mandatory requirement for most production-grade
 Kubernetes deployments, usually implying three or more nodes.
@@ -28,10 +28,9 @@ standby node, allowing access to the latest Dqlite database version.
 
 Additional recovery steps are automated and invoked through Pacemaker.
 
-### Prerequisites:
+### Prerequisites
 
 * Please ensure that both nodes are part of the Kubernetes cluster.
-  See the [getting started] and [add/remove nodes] guides.
 * The user associated with the HA service has SSH access to the peer node and
   passwordless sudo configured. For simplicity, the default "ubuntu" user can
   be used.
@@ -420,10 +419,7 @@ sudo drbdadm connect r0
 [Raft]: https://raft.github.io/
 [Distributed Replicated Block Device]: https://ubuntu.com/server/docs/distributed-replicated-block-device-drbd
 [Dqlite recovery guide]: restore-quorum
-[external datastore guide]: external-datastore
 [two-node-ha.sh script]: https://github.com/canonical/k8s-snap/blob/main/k8s/hack/two-node-ha.sh
-[getting started]: ../tutorial/getting-started
-[add/remove nodes]: ../tutorial/add-remove-nodes
 [Pacemaker]: https://clusterlabs.org/pacemaker/
 [Corosync]: https://corosync.github.io/corosync/
 [Pacemaker fencing]: https://clusterlabs.org/pacemaker/doc/2.1/Pacemaker_Explained/html/fencing.html

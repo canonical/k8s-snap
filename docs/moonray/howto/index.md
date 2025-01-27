@@ -15,6 +15,7 @@ Overview <self>
 :titlesonly:
 install
 networking/index
+two-node-ha
 ```
 
 ---
