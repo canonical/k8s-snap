@@ -13,6 +13,5 @@ if [[ "$DEBUG_BUILD" == "y" ]]; then
 else
   go build \
   -tags dqlite,libsqlite3 \
-  -ldflags '-s -w' \
   "${@}"
 fi
