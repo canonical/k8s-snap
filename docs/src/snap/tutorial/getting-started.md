@@ -51,33 +51,21 @@ should run:
 sudo k8s status
 ```
 
-It may take a few moments for the cluster to be ready. Confirm that {{product}}
-has transitioned to the `cluster status ready` state by running:
-
 ```{important}
 By default, the command waits a few minutes before timing out.
-On a very slow network connection, this default timeout might be insufficient, resulting in a "Context cancelled" error.
-In that case, you can either increase the timeout using the `--timeout` flag or re-run the command to
+On a very slow network connection, this default timeout might be insufficient,
+resulting in a "Context cancelled" error. In that case, you can either increase
+the timeout using the  `--timeout` flag or re-run the command to
 continue waiting until the cluster is ready.
 ```
+
+It may take a few moments for the cluster to be ready. Use `k8s status` to wait
+for {{product}} to get to a `cluster status ready` state by running:
+
 
 ```
 sudo k8s status --wait-ready
 ```
-
-Run the following command to list all the pods in the `kube-system`
-namespace:
-
-```
-sudo k8s kubectl get pods -n kube-system
-```
-
-You will observe at least three pods running. The functions of these three pods
-are:
-
-- **CoreDNS**: Provides DNS resolution services.
-- **Network operator**: Manages the life-cycle of the networking solution.
-- **Network agent**: Facilitates network management.
 
 ### 5. Access Kubernetes
 
@@ -96,6 +84,21 @@ sudo k8s kubectl get nodes
 ```
 sudo k8s kubectl get services
 ```
+
+Run the following command to list all the pods in the `kube-system`
+namespace:
+
+```
+sudo k8s kubectl get pods -n kube-system
+```
+
+You will observe at least three pods running. The functions of these three pods
+are:
+
+- **CoreDNS**: Provides DNS resolution services.
+- **Network operator**: Manages the life-cycle of the networking solution.
+- **Network agent**: Facilitates network management.
+
 
 ### 6. Deploy an app
 
