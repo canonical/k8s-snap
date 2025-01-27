@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -33,21 +32,6 @@ func NewUpdateNodeConfigurationController(snap snap.Snap, waitReady func(), trig
 
 		triggerCh:    triggerCh,
 		reconciledCh: make(chan struct{}, 1),
-	}
-}
-
-func (c *UpdateNodeConfigurationController) retryNewK8sClient(ctx context.Context) (*kubernetes.Client, error) {
-	for {
-		client, err := c.snap.KubernetesClient("kube-system")
-		if err == nil {
-			return client, nil
-		}
-
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(3 * time.Second):
-		}
 	}
 }
 
@@ -84,9 +68,9 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 			continue
 		}
 
-		client, err := c.retryNewK8sClient(ctx)
+		client, err := getNewK8sClientWithRetries(ctx, c.snap, true)
 		if err != nil {
-			log.Error(err, "Failed to create Kubernetes client")
+			log.Error(err, "Failed to create a Kubernetes client")
 		}
 
 		if err := c.reconcile(ctx, client, config); err != nil {
