@@ -302,8 +302,8 @@ by running the command:
 sudo k8s bootstrap --address MY-NODE-IP
 ```
 
-Add and remove nodes as described in the
-[add-and-remove-nodes tutorial][nodes].
+Adding nodes requires the same steps to be repeated but instead of
+bootstrapping you would need to join the node to the cluster.
 
 After a while, confirm that all the cluster nodes show up in the output of the
 `sudo k8s kubectl get node` command.
