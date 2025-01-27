@@ -8,6 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -23,7 +24,7 @@ const (
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, _ string, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
+func ApplyNetwork(ctx context.Context, snap snap.Snap, _ state.State, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
 	if !network.GetEnabled() {

@@ -1,10 +1,9 @@
-package app_test
+package utils
 
 import (
 	"net/netip"
 	"testing"
 
-	"github.com/canonical/k8s/pkg/k8sd/app"
 	mctypes "github.com/canonical/microcluster/v2/rest/types"
 	. "github.com/onsi/gomega"
 )
@@ -40,7 +39,7 @@ func TestDetermineLocalhostAddress(t *testing.T) {
 			},
 		}
 
-		localhostAddress, err := app.DetermineLocalhostAddress(mockMembers)
+		localhostAddress, err := DetermineLocalhostAddress(mockMembers)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(localhostAddress).To(Equal("127.0.0.1"))
@@ -76,7 +75,7 @@ func TestDetermineLocalhostAddress(t *testing.T) {
 			},
 		}
 
-		localhostAddress, err := app.DetermineLocalhostAddress(mockMembers)
+		localhostAddress, err := DetermineLocalhostAddress(mockMembers)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(localhostAddress).To(Equal("[::1]"))
@@ -112,7 +111,7 @@ func TestDetermineLocalhostAddress(t *testing.T) {
 			},
 		}
 
-		localhostAddress, err := app.DetermineLocalhostAddress(mockMembers)
+		localhostAddress, err := DetermineLocalhostAddress(mockMembers)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(localhostAddress).To(Equal("[::1]"))

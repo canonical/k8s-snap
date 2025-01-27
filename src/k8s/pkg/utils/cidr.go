@@ -166,6 +166,48 @@ func GetDefaultAddress() (ipv4, ipv6 string, err error) {
 	return ipv4, ipv6, nil
 }
 
+// FindCIDRForIP returns the CIDR block that contains the given IP address.
+func FindCIDRForIP(nodeIp net.IP) (cidr string, err error) {
+	// Get a list of network interfaces.
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", fmt.Errorf("failed to get network interfaces: %w", err)
+	}
+
+	// Loop through each network interface
+	for _, iface := range interfaces {
+		// Skip interfaces that are down
+		if iface.Flags&net.FlagUp == 0 {
+			continue
+		}
+
+		// Get a list of addresses for the current interface.
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return "", fmt.Errorf("failed to get addresses for interface %q: %w", iface.Name, err)
+		}
+
+		// Loop through each address
+		for _, addr := range addrs {
+			// Parse the address to get the IP
+			var ipNet *net.IPNet
+
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ipNet = v
+			default:
+				continue
+			}
+
+			if ipNet.Contains(nodeIp) {
+				return ipNet.String(), nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no CIDR found for IP %q", nodeIp.String())
+}
+
 // SplitCIDRStrings parses the given CIDR string and returns the respective IPv4 and IPv6 CIDRs.
 func SplitCIDRStrings(cidrString string) (string, string, error) {
 	clusterCIDRs := strings.Split(cidrString, ",")
