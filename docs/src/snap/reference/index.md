@@ -20,6 +20,7 @@ certificates
 proxy
 troubleshooting
 architecture
+dqlite
 Community <community>
 ```
 

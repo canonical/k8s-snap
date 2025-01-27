@@ -20,6 +20,15 @@ If you cannot meet these requirements, please see the [Installing][] page for
 alternative options.
 ```
 
+```{note}
+The snap may conflict with other software such as Docker or containerd,
+which is why we recommend using a clean, isolated environment such as a
+VM or LXD container when trying out {{product}}.
+
+See the [development env guide] if you'd rather install the snap directly
+on your development machine.
+```
+
 ## Check available channels (optional)
 
 It is a good idea to check the available channels before installing the snap.
@@ -77,3 +86,4 @@ ready state.
 [snap]: https://snapcraft.io/docs
 [snapd support]: https://snapcraft.io/docs/installing-snapd
 [bootstrap]: ../../reference/bootstrap-config-reference
+[development env guide]: ./dev-env.md
