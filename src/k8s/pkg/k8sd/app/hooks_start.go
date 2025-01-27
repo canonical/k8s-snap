@@ -40,6 +40,11 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		})
 	}
 
+	// start node label controller
+	if a.nodeLabelController != nil {
+		go a.nodeLabelController.Run(ctx)
+	}
+
 	// start control plane config controller
 	if a.controlPlaneConfigController != nil {
 		go a.controlPlaneConfigController.Run(ctx, func(ctx context.Context) (types.ClusterConfig, error) {
