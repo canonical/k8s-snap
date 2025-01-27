@@ -104,6 +104,14 @@ We recommend running {{product}} in an isolated environment, for this purpose,
 you can create a LXD container for your installation. See
 [Install {{product}} in LXD][lxd-install] for instructions.
 
+As an alternative, you may specify a custom containerd path like so:
+
+```bash
+cat <<EOF | sudo k8s bootstrap --file -
+containerd-base-dir: $containerdBaseDir
+EOF
+```
+
 <!-- LINKS -->
 
 [lxd-install]: ../howto/install/lxd.md
