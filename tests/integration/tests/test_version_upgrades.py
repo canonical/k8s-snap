@@ -97,8 +97,7 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
         )
         if len(channels) < 2:
             pytest.fail(
-                f"Need at least 2 channels to downgrade, got {
-                    len(channels)} for flavour {flavour}"
+                f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {flavour}"
             )
         current_channel = channels[0]
 
