@@ -28,10 +28,11 @@ func query[T any](ctx context.Context, c *k8sd, method, path string, in any, out
 				return false, nil
 			}
 			if bootstrapPending(err) {
-				log.FromContext(ctx).Info(
-					"The cluster hasn't been initialized yet. " +
-					"Please use 'sudo k8s bootstrap' to create a new cluster " +
-					"or 'sudo k8s join-cluster' to join an existing one.")
+				return false, fmt.Errorf(
+					"the cluster hasn't been initialized yet. "+
+						"Please use 'sudo k8s bootstrap' to create a new cluster "+
+						"or 'sudo k8s join-cluster' to join an existing one."+
+						" Attempted k8sd query: %s /%s: %w", method, path, err)
 			}
 			return false, fmt.Errorf("failed to %s /%s: %w", method, path, err)
 		}
