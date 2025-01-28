@@ -88,6 +88,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		newRefreshCertsCmd(env),
 		newSetCmd(env),
 		newGetCmd(env),
+		newInspectCmd(env),
 	)
 
 	// hidden commands

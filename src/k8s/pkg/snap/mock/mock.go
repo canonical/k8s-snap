@@ -35,6 +35,8 @@ type Mock struct {
 	ContainerdSocketDir         string
 	ContainerdSocketPath        string
 	ContainerdStateDir          string
+	K8sScriptsDir			    string
+	K8sInspectScriptPath        string
 	K8sdStateDir                string
 	K8sDqliteStateDir           string
 	ServiceArgumentsDir         string
@@ -167,6 +169,15 @@ func (s *Snap) ContainerdExtraConfigDir() string {
 func (s *Snap) ContainerdRegistryConfigDir() string {
 	return s.Mock.ContainerdRegistryConfigDir
 }
+
+func (s *snap) K8sScriptsDir() string {
+	return s.Mock.K8sScriptsDir
+}
+
+func (s *snap) K8sInspectScriptPath() string {
+	return s.Mock.K8sInspectScriptPath
+}
+
 
 func (s *Snap) KubernetesConfigDir() string {
 	return s.Mock.KubernetesConfigDir
