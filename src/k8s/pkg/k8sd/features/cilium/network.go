@@ -3,6 +3,7 @@ package cilium
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/client/helm"
@@ -11,17 +12,18 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
-	networkDeleteFailedMsgTmpl = "Failed to delete Cilium Network, the error was: %v"
-	networkDeployFailedMsgTmpl = "Failed to deploy Cilium Network, the error was: %v"
+	NetworkDeleteFailedMsgTmpl = "Failed to delete Cilium Network, the error was: %v"
+	NetworkDeployFailedMsgTmpl = "Failed to deploy Cilium Network, the error was: %v"
 )
 
 // required for unittests.
 var (
-	getMountPath            = utils.GetMountPath
-	getMountPropagationType = utils.GetMountPropagationType
+	GetMountPath            = utils.GetMountPath
+	GetMountPropagationType = utils.GetMountPropagationType
 )
 
 // ApplyNetwork will deploy Cilium when network.Enabled is true.
@@ -32,7 +34,7 @@ var (
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
+func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
 	if !network.GetEnabled() {
@@ -41,7 +43,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, 
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: CiliumAgentImageTag,
-				Message: fmt.Sprintf(networkDeleteFailedMsgTmpl, err),
+				Message: fmt.Sprintf(NetworkDeleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
@@ -57,7 +59,57 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	c, err := s.Leader()
+	if err != nil {
+		err = fmt.Errorf("failed to get leader client: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	clusterMembers, err := c.GetClusterMembers(ctx)
+	if err != nil {
+		err = fmt.Errorf("failed to get cluster members: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	localhostAddress, err := utils.DetermineLocalhostAddress(clusterMembers)
+	if err != nil {
+		err = fmt.Errorf("failed to determine localhost address: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	nodeIP := net.ParseIP(s.Address().Hostname())
+	if nodeIP == nil {
+		err = fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	defaultCidr, err := utils.FindCIDRForIP(nodeIP)
+	if err != nil {
+		err = fmt.Errorf("failed to find cidr of default interface: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -67,7 +119,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
 	}
 
@@ -135,28 +187,35 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, 
 		"enableRuntimeDeviceDetection": true,
 	}
 
+	// If we are deploying with IPv6 only, we need to set the routing mode to native
+	if ipv4CIDR == "" && ipv6CIDR != "" {
+		values["routingMode"] = "native"
+		values["ipv6NativeRoutingCIDR"] = defaultCidr
+		values["autoDirectNodeRoutes"] = true
+	}
+
 	if config.devices != "" {
 		values["devices"] = config.devices
 	}
 
 	if snap.Strict() {
-		bpfMnt, err := getMountPath("bpf")
+		bpfMnt, err := GetMountPath("bpf")
 		if err != nil {
 			err = fmt.Errorf("failed to get bpf mount path: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: CiliumAgentImageTag,
-				Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+				Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 			}, err
 		}
 
-		cgrMnt, err := getMountPath("cgroup2")
+		cgrMnt, err := GetMountPath("cgroup2")
 		if err != nil {
 			err = fmt.Errorf("failed to get cgroup2 mount path: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: CiliumAgentImageTag,
-				Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+				Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 			}, err
 		}
 
@@ -173,13 +232,13 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, 
 			"hostRoot": cgrMnt,
 		}
 	} else {
-		pt, err := getMountPropagationType("/sys")
+		pt, err := GetMountPropagationType("/sys")
 		if err != nil {
 			err = fmt.Errorf("failed to get mount propagation type for /sys: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: CiliumAgentImageTag,
-				Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+				Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 			}, err
 		}
 		if pt == utils.MountPropagationPrivate {
@@ -193,7 +252,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, 
 				return types.FeatureStatus{
 					Enabled: false,
 					Version: CiliumAgentImageTag,
-					Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+					Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 				}, err
 			}
 
@@ -201,7 +260,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, 
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: CiliumAgentImageTag,
-				Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+				Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 			}, err
 		}
 	}
@@ -211,7 +270,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, localhostAddress string, 
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(networkDeployFailedMsgTmpl, err),
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
 	}
 
