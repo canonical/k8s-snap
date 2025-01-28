@@ -10,8 +10,6 @@ The directories are organised like this:
 ├── _build
 │   ├── {contains the generated docs}
 ├── README.md
-├── src
-│   ├──{source files for the docs}
 ├── canonicalk8s
 │   ├──{sphinx build tools for creating the docs for Canonical K8s}
 ├── moonray

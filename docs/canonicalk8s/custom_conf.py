@@ -192,7 +192,7 @@ custom_required_modules = [
 custom_excludes = [
     'doc-cheat-sheet*',
     '_parts/*',
-    'src/_parts'
+    '/_parts'
     ]
 
 # Add CSS files (located in .sphinx/_static/)

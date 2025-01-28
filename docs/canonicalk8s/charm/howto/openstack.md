@@ -71,10 +71,8 @@ deployment will take a few minutes until all the components are up and running.
 Resources allocated by Kubernetes or the integrator are usually cleaned up automatically when no longer needed. However, it is recommended to periodically, and particularly after tearing down a cluster, use the OpenStack administration tools to make sure all unused resources have been successfully released.
 ```
 
-
-
 <!-- LINKS -->
 [openstack]: https://www.openstack.org/
-[proxy]: https://documentation.ubuntu.com/canonical-kubernetes/main/src/charm/howto/proxy/
+[proxy]: /charm/howto/proxy
 [bundle]: https://github.com/canonical/k8s-bundles/blob/main/main/bundle.yaml
 [openstack-overlay]: https://github.com/canonical/k8s-bundles/blob/main/overlays/openstack.yaml
