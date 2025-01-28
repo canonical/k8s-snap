@@ -1,2 +1,2 @@
-```{include} ../../snap/explanation/installation-methods.md
+```{include} /snap/explanation/installation-methods.md
 ```

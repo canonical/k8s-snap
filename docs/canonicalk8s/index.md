@@ -57,7 +57,7 @@ Release notes </releases.md>
 ````{grid} 1 1 1 1
 
 ```{grid-item-card}
-:link: src/snap/
+:link: snap/index.md
 ### [Install with a snap ›](/snap/index)
 
 Our tutorials, how-to guides and other pages will explain how to install,
@@ -65,7 +65,7 @@ Our tutorials, how-to guides and other pages will explain how to install,
 ```
 
 ```{grid-item-card}
-:link: src/charm/
+:link: charm/index.md
 ### [Deploy with Juju ›](/charm/index)
 
 Our tutorials, how-to guides and other pages will explain how to install,
@@ -74,7 +74,7 @@ Our tutorials, how-to guides and other pages will explain how to install,
 
 
 ```{grid-item-card}
-:link: src/capi/
+:link: capi/index.md
 ### [Deploy with Cluster API ›](/capi/index)
 
 Our tutorials, how-to guides and other pages will explain how to install,

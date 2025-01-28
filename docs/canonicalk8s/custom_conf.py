@@ -143,7 +143,9 @@ linkcheck_ignore = [
     'http://127.0.0.1:8000',
     'http://rocks.canonical.com',
     'about',
-    'https://ceph.io/'
+    'https://ceph.io/',
+    'https://charmhub.io/k8s/',
+    'https://charmhub.io/k8s-worker/'
     ]
 
 # Pages on which to ignore anchors
@@ -243,5 +245,7 @@ custom_linkcheck_anchors_ignore_for_url = [
     'https://ubuntu.com/about/release-cycle',
     'https://juju.is/docs/juju/relation',
     'https://canonical.com/multipass/docs/tutorial',
-    'https://microk8s.io/docs/how-to-cis-harden'
+    'https://microk8s.io/docs/how-to-cis-harden',
+    'https://registry.terraform.io/providers/juju/juju/latest/docs',
+    'https://snapcraft.io/docs/managing-updates'
 ]
