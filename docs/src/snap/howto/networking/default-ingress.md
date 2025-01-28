@@ -36,6 +36,12 @@ For more information on the command, execute:
 sudo k8s help enable
 ```
 
+```{warning}
+The Kubernetes Service created for the ingress controller is set to single
+stack networking(IPv4 or IPv6) by default. The Service can be manually
+patched with `ipFamilyPolicy: PreferDualStack` to enable dual stack networking.
+```
+
 ## Configure Ingress
 
 Discover your configuration options by running:
