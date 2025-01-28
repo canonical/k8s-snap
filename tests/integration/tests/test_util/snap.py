@@ -68,6 +68,7 @@ def get_most_stable_channels(
     include_latest: bool = True,
     min_release: Optional[str] = None,
     max_release: Optional[str] = None,
+    reverse: bool = False,
 ) -> List[str]:
     """Get an ascending list of latest channels based on the number of channels
     flavour and architecture."""
@@ -99,7 +100,9 @@ def get_most_stable_channels(
             channel_map[version_key] = (channel, risk)
 
     # Sort channels by major and minor version (ascending order)
-    sorted_versions = sorted(channel_map.keys(), key=lambda v: (v[0], v[1]))
+    sorted_versions = sorted(
+        channel_map.keys(), key=lambda v: (v[0], v[1]), reverse=reverse
+    )
 
     # Extract only the channel names
     final_channels = [channel_map[v][0] for v in sorted_versions[:num_of_channels]]
