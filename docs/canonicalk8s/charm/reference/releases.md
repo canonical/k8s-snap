@@ -10,7 +10,7 @@ new features, bug fixes and backwards-incompatible changes.
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
-/src/charm/reference/versions/1.32
+/charm/reference/versions/1.32
 ```
 
 

@@ -20,7 +20,7 @@ Please evaluate the implications of each configuration before applying it.
 These steps are common to the hardening process for both CIS and DISA STIG
 compliance.
 
-```{include} ../../../_parts/common_hardening.md
+```{include} /_parts/common_hardening.md
 ```
 
 

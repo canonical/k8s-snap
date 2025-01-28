@@ -285,9 +285,9 @@ With these preparation steps we have enabled the features of EPA:
 ````{group-tab} MAAS
 
 To prepare a machine for CPU isolation, HugePages, real-time kernel,
-SR-IOV and DPDK we leverage cloud-init through MAAS available to download {download}`here </src/assets/how-to-epa-maas-cloud-init>`.
+SR-IOV and DPDK we leverage cloud-init through MAAS available to download {download}`here </assets/how-to-epa-maas-cloud-init>`.
 
-```{literalinclude} /src/assets/how-to-epa-maas-cloud-init
+```{literalinclude} /assets/how-to-epa-maas-cloud-init
 ```
 
 ```{note}
@@ -330,11 +330,11 @@ EPA capabilities.
    ```
 
 2. Create a file called *configuration.yaml* or download it
-{download}`here </src/assets/configuration.yaml>`. In this configuration file
+{download}`here </assets/configuration.yaml>`. In this configuration file
 we let the snap start with its default CNI (calico), with CoreDNS deployed and
 we also point k8s to the external etcd.
 
-```{literalinclude} /src/assets/configuration.yaml
+```{literalinclude} /assets/configuration.yaml
 :language: yaml
 ```
 

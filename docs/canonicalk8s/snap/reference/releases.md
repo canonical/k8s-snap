@@ -10,14 +10,14 @@ and backwards-incompatible changes.
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
-/src/snap/reference/versions/1.31
-/src/snap/reference/versions/1.32
+/snap/reference/versions/1.31
+/snap/reference/versions/1.32
 ```
 
 
 ## Release policy and schedule
 
-Our release cadence and support window for all Kubernetes-related products are 
+Our release cadence and support window for all Kubernetes-related products are
 available on the main Ubuntu website, on the [release cycle page][].
 
 <!-- LINKS -->

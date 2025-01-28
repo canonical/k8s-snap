@@ -17,5 +17,6 @@ the current How-to guides below.
 ... with Multipass <multipass>
 ... in LXD <lxd.md>
 ... in air-gapped environments <offline.md>
+... in development environments <dev-env.md>
 Uninstall the snap <uninstall.md>
 ```

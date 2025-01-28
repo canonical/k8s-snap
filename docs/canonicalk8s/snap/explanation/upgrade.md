@@ -119,5 +119,5 @@ to completion before upgrading the next node.
 [explanation page]: channels.md
 [high availability explanation page]: high-availability.md
 [targeted snap refresh]:https://snapcraft.io/docs/managing-updates#p-32248-if-snaps-are-specified
-[release notes]: /src/releases
-[backing up cluster data]: /src/snap/howto/backup-restore.md
+[release notes]: releases
+[backing up cluster data]: /snap/howto/backup-restore.md

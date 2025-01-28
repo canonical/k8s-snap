@@ -7,5 +7,5 @@ This reference section provides all available options for control plane nodes.
 
 ## Configuration options
 
-```{include} /src/_parts/control_plane_join_config.md
+```{include} /_parts/control_plane_join_config.md
 ```

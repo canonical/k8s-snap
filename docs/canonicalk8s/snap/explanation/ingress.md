@@ -52,7 +52,7 @@ the cluster. Ingress does not work without an Ingress Controller.
 
 The Ingress Controller also serves as a layer 7 (HTTP/HTTPS) load balancer
 that routes traffic from outside of your cluster to services
-inside of your cluster. Please do not confuse this with the 
+inside of your cluster. Please do not confuse this with the
 Kubernetes Service LoadBalancer type which operates at layer 4 and routes
 traffic directly to individual pods.
 
@@ -80,9 +80,9 @@ outlining rules that direct traffic to your application's Kubernetes service.
 
 <!-- LINKS -->
 
-[alternative-cni]: ../../snap/howto/networking/alternative-cni
-[Ingress]: ../../snap/howto/networking/default-ingress
-[Network]: ../../snap/howto/networking/default-network
+[alternative-cni]: /snap/howto/networking/alternative-cni
+[Ingress]: /snap/howto/networking/default-ingress
+[Network]: /snap/howto/networking/default-network
 [LoadBalancer]: load-balancer
 [Cilium]: https://cilium.io/
 [network plugin]: https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/

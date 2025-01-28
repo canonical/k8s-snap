@@ -7,5 +7,5 @@ This reference section provides all available options for worker nodes.
 
 ## Configuration options
 
-```{include} /src/_parts/worker_join_config.md
+```{include} /_parts/worker_join_config.md
 ```

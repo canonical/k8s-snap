@@ -58,11 +58,11 @@ the help of the CAPI providers.
 [Multipass]: https://canonical.com/multipass
 [LXD]: https://canonical.com/lxd
 [Juju]: https://juju.is
-[juju-cli guide]: /src/charm/tutorial/getting-started.md
+[juju-cli guide]: /charm/tutorial/getting-started.md
 [control plane charm]: https://charmhub.io/k8s
 [worker charm]: https://charmhub.io/k8s-worker
-[getting-started guide]: /src/snap/tutorial/getting-started.md
+[getting-started guide]: /snap/tutorial/getting-started.md
 [Terraform's Juju provider]: https://github.com/juju/terraform-provider-juju/
-[installing-with-terraform]: /src/charm/howto/install/install-terraform
-[CAPI guide]: /src/capi/tutorial/getting-started.md
+[installing-with-terraform]: /charm/howto/install/install-terraform
+[CAPI guide]: /capi/tutorial/getting-started.md
 [Cluster API]: https://cluster-api.sigs.k8s.io/

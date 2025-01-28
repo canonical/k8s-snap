@@ -10,8 +10,8 @@ and backwards-incompatible changes.
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
-Snap release notes </src/snap/reference/releases.md>
-Charm release notes </src/charm/reference/releases.md>
+Snap release notes </snap/reference/releases.md>
+Charm release notes </charm/reference/releases.md>
 ```
 
 

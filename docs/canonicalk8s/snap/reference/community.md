@@ -66,6 +66,6 @@ the guidelines for participation.
 [slack]: http://slack.kubernetes.io/
 [Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
 [bugs]: https://github.com/canonical/k8s-snap/issues
-[Contributing guide]: /src/snap/howto/contribute.md
-[Developer guide]: /src/snap/howto/contribute.md
+[Contributing guide]: /snap/howto/contribute.md
+[Developer guide]: /snap/howto/contribute.md
 [support]: https://ubuntu.com/support

@@ -29,7 +29,7 @@ This guide assumes the following:
 By completing these steps, you can ensure your cluster achieves does not fail
 any of the CIS hardening recommendations.
 
-```{include} ../../../_parts/common_hardening.md
+```{include} /_parts/common_hardening.md
 ```
 
 ## Assess CIS hardening with kube-bench

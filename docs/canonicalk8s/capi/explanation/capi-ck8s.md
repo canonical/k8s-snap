@@ -29,7 +29,7 @@ With {{product}} CAPI you can:
     - rolling upgrades for HA clusters and worker nodes
     - in-place upgrades for non-HA control planes and worker nodes
 
-Please refer to the [tutorial section] for concrete examples on CAPI 
+Please refer to the [tutorial section] for concrete examples on CAPI
 deployments.
 
 ## CAPI architecture
@@ -57,11 +57,11 @@ resources necessary for creating and managing additional Kubernetes clusters.
 It is important to note that the management cluster is not intended to support
 any other workload, as the workloads are expected to run on the provisioned
 clusters. As a result, the provisioned clusters are referred to as workload
-clusters. While CAPI providers mostly live on the management cluster, it's 
-also possible to maintain the them in the workload cluster. 
+clusters. While CAPI providers mostly live on the management cluster, it's
+also possible to maintain the them in the workload cluster.
 Read more about this in the [upstream docs around pivoting].
 
-The {{product}} team maintains the two providers required for integrating 
+The {{product}} team maintains the two providers required for integrating
 with CAPI:
 
 - The Cluster API Bootstrap Provider {{product}} (**CABPCK**) responsible for
@@ -91,5 +91,5 @@ with CAPI:
 ```
 
 <!-- LINKS -->
-[tutorial section]: ./tutorial
+[tutorial section]: ../tutorial/index
 [upstream docs around pivoting]: https://cluster-api.sigs.k8s.io/clusterctl/commands/move#pivot

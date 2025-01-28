@@ -37,7 +37,7 @@ page][channels] for an explanation of the different types of channel.
 
 The charm can be installed with the `juju` command:
 
-```{literalinclude} /src/_parts/install.md
+```{literalinclude} /_parts/install.md
 :start-after: <!-- juju control start -->
 :end-before: <!-- juju control end -->
 ```
@@ -52,8 +52,8 @@ juju status --watch 1s
 ```
 
 This command will output a message confirming the charm is deployed and the
-cluster is bootstrapped. It is recommended to ensure that the cluster initialises
-properly and is running with no issues.
+cluster is bootstrapped. It is recommended to ensure that the cluster
+initialises properly and is running with no issues.
 
 Once the unit is active/idle, You'll know the cluster is installed.
 
@@ -72,13 +72,13 @@ Use `juju status` to watch these units approach active/idle
 
 ## Adding Workers
 
-In many cases, it is desirable to have additional 'worker only' units in the cluster.
-Rather than adding more control-plane units, we'll deploy the `k8s-worker` charm.
-After deployment, integrate these new nodes with control-plane units so they join
-the cluster.
+In many cases, it is desirable to have additional 'worker only' units in
+the cluster. Rather than adding more control-plane units, we'll deploy
+the `k8s-worker` charm. After deployment, integrate these new nodes with
+control-plane units so they join the cluster.
 
 
-```{literalinclude} /src/_parts/install.md
+```{literalinclude} /_parts/install.md
 :start-after: <!-- juju worker start -->
 :end-before: <!-- juju worker end -->
 :append: juju integrate k8s k8s-worker:cluster

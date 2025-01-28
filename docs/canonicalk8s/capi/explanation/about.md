@@ -1,2 +1,2 @@
-```{include} ../../snap/explanation/about.md
+```{include} /snap/explanation/about.md
 ```

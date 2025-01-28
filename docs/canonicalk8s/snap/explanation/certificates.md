@@ -54,7 +54,8 @@ requirements.
 
 ## Performing certificate refreshes
 
-If you would like to refresh the certificates of your {{product}} cluster see our [how-to guide].
+If you would like to refresh the certificates of your {{product}} cluster see
+our [how-to guide].
 
 <!-- LINKS -->
 

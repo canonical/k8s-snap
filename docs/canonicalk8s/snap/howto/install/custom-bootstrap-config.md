@@ -1,4 +1,4 @@
-# How to install {{product}} with a custom bootstrap configuration
+# How to install with a custom bootstrap configuration
 
 When creating a {{ product }} cluster that differs from the default
 configuration you can choose to use a custom bootstrap configuration.
@@ -80,4 +80,4 @@ sudo k8s status
 
 <!-- LINKS -->
 
-[reference page]: /src/snap/reference/bootstrap-config-reference.md
+[reference page]: /snap/reference/bootstrap-config-reference.md
