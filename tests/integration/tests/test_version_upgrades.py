@@ -102,8 +102,7 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
         current_channel = channels[0]
 
     LOG.info(
-        f"Bootstrap node on {
-            current_channel} and downgrade through channels: {channels[1:]}"
+        f"Bootstrap node on {current_channel} and downgrade through channels: {channels[1:]}"
     )
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
