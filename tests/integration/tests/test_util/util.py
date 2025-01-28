@@ -252,7 +252,7 @@ def wait_until_k8s_ready(
     instances: List[harness.Instance],
     retries: int = config.DEFAULT_WAIT_RETRIES,
     delay_s: int = config.DEFAULT_WAIT_DELAY_S,
-    node_names: Mapping[str, str] = {},
+    node_names: Optional[dict[str, str]] = None,
 ):
     """
     Validates that the K8s node is in Ready state.
@@ -261,21 +261,32 @@ def wait_until_k8s_ready(
     If the instance name is different from the hostname, the instance name should be passed to the
     node_names dictionary, e.g. {"instance_id": "node_name"}.
     """
+    if node_names is None:
+        node_names = {}
+
     instance_id_node_name_map = {}
     for instance in instances:
-        node_name = node_names.get(instance.id)
-        if node_name is None:
-            node_name = hostname(instance)
+        node_name = node_names.get(instance.id, hostname(instance))
+        LOG.info(f"Checking if Kubelet is ready on '{instance.id}' (node: {node_name})")
 
-        result = (
-            stubbornly(retries=retries, delay_s=delay_s)
-            .on(control_node)
-            .until(lambda p: " Ready" in p.stdout.decode())
-            .exec(["k8s", "kubectl", "get", "node", node_name, "--no-headers"])
-        )
-        LOG.info(f"Kubelet registered successfully on instance '{instance.id}'")
-        LOG.info("%s", result.stdout.decode())
-        instance_id_node_name_map[instance.id] = node_name
+        try:
+            result = (
+                stubbornly(retries=retries, delay_s=delay_s)
+                .on(control_node)
+                .until(lambda p: " Ready" in p.stdout.decode())
+                .exec(["k8s", "kubectl", "get", "node", node_name, "--no-headers"])
+            )
+            instance_id_node_name_map[instance.id] = node_name
+            LOG.info(
+                f"Kubelet registered successfully on instance '{instance.id}' (node: {node_name})"
+            )
+            LOG.info("Command output: %s", result.stdout.decode())
+
+        except Exception as e:
+            LOG.error(
+                f"Failed to verify readiness of instance '{instance.id}' (node: {node_name}): {e}"
+            )
+            raise
     LOG.info(
         "Successfully checked Kubelet registered on all harness instances: "
         f"{instance_id_node_name_map}"
