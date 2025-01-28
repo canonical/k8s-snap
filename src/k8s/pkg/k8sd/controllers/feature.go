@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 // FeatureController manages the lifecycle of built-in Canonical Kubernetes features on a running cluster.
@@ -72,19 +73,17 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 func (c *FeatureController) Run(
 	ctx context.Context,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
-	getLocalhostAddress func() (string, error),
+	getState func() state.State,
 	notifyDNSChangedIP func(ctx context.Context, dnsIP string) error,
 	setFeatureStatus func(ctx context.Context, name types.FeatureName, featureStatus types.FeatureStatus) error,
 ) {
 	c.waitReady()
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 
+	s := getState()
+
 	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		localhostAddress, err := getLocalhostAddress()
-		if err != nil {
-			return types.FeatureStatus{Enabled: false, Message: "failed to determine the localhost address"}, fmt.Errorf("failed to get localhost address: %w", err)
-		}
-		return features.Implementation.ApplyNetwork(ctx, c.snap, localhostAddress, cfg.APIServer, cfg.Network, cfg.Annotations)
+		return features.Implementation.ApplyNetwork(ctx, c.snap, s, cfg.APIServer, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
