@@ -170,11 +170,11 @@ func (s *Snap) ContainerdRegistryConfigDir() string {
 	return s.Mock.ContainerdRegistryConfigDir
 }
 
-func (s *snap) K8sScriptsDir() string {
+func (s *Snap) K8sScriptsDir() string {
 	return s.Mock.K8sScriptsDir
 }
 
-func (s *snap) K8sInspectScriptPath() string {
+func (s *Snap) K8sInspectScriptPath() string {
 	return s.Mock.K8sInspectScriptPath
 }
 
