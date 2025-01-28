@@ -22,7 +22,7 @@ diagnostics, network diagnostics, and more. The command needs to be run with
 elevated permissions (sudo).
 
 Arguments:
-  output_file             (Optional) The full path and filename for the generated tarball.
+  output-file             (Optional) The full path and filename for the generated tarball.
                           If not provided, a default filename based on the current date
                           and time will be used.
   --all-namespaces        (Optional) Acquire detailed debugging information, including logs
