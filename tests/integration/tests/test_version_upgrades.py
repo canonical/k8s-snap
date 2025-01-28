@@ -59,7 +59,8 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
 
         # Log the current snap version on the node.
         out = cp.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
-        LOG.info(f"Current snap version: {out.stdout.decode().strip()}")
+        latest_version = out.stdout.decode().strip().split("\n")[-1]
+        LOG.info(f"Current snap version: {latest_version}")
 
         # note: the `--classic` flag will be ignored by snapd for strict snaps.
         cp.exec(
@@ -123,7 +124,8 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
             f">>> Initiating downgrade + rollback segment from {current_channel} → {channel}"
         )
         out = cp.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
-        LOG.info(f"Current snap version: {out.stdout.decode().strip().split('\n')[-1]}")
+        latest_version = out.stdout.decode().strip().split("\n")[-1]
+        LOG.info(f"Current snap version: {latest_version}")
 
         LOG.info(f"Step 1. Downgrade {cp.id} from {current_channel} → {channel}")
         # note: the `--classic` flag will be ignored by snapd for strict snaps.
