@@ -262,6 +262,7 @@ def wait_until_k8s_ready(
     retries: int = config.DEFAULT_WAIT_RETRIES,
     delay_s: int = config.DEFAULT_WAIT_DELAY_S,
     node_names: Mapping[str, str] = {},
+    output: bool = True,
 ):
     """
     Validates that the K8s node is in Ready state.
@@ -282,13 +283,15 @@ def wait_until_k8s_ready(
             .until(lambda p: " Ready" in p.stdout.decode())
             .exec(["k8s", "kubectl", "get", "node", node_name, "--no-headers"])
         )
-        LOG.info(f"Kubelet registered successfully on instance '{instance.id}'")
-        LOG.info("%s", result.stdout.decode())
+        if output:
+            LOG.info(f"Kubelet registered successfully on instance '{instance.id}'")
+            LOG.info("%s", result.stdout.decode().strip())
         instance_id_node_name_map[instance.id] = node_name
-    LOG.info(
-        "Successfully checked Kubelet registered on all harness instances: "
-        f"{instance_id_node_name_map}"
-    )
+    if output:
+        LOG.info(
+            "Successfully checked Kubelet registered on all harness instances: "
+            f"{instance_id_node_name_map}"
+        )
 
 
 def wait_for_dns(instance: harness.Instance):
