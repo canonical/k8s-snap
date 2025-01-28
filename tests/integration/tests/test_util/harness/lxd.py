@@ -224,8 +224,14 @@ class LXDHarness(Harness):
             raise HarnessError(f"unknown instance {instance_id}")
 
         LOG.debug("Execute command %s in instance %s", command, instance_id)
+
+        if ">" in " ".join(command):
+            command_str = " ".join(command)
+        else:
+            command_str = shlex.join(command)
+
         return run(
-            ["lxc", "shell", instance_id, "--", "bash", "-c", shlex.join(command)],
+            ["lxc", "shell", instance_id, "--", "bash", "-c", command_str],
             **kwargs,
         )
 

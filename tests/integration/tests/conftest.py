@@ -57,6 +57,8 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
         [
             "/snap/k8s/current/k8s/scripts/inspect.sh",
             "--all-namespaces",
+            "--core-dump-dir",
+            config.CORE_DUMP_DIR,
             "/inspection-report.tar.gz",
         ],
         capture_output=True,
@@ -251,6 +253,7 @@ def instances(
                 instance.exec(["snap", "install", remote_path])
 
         if not no_setup:
+            util.setup_core_dumps(instance)
             util.setup_k8s_snap(instance, tmp_path, snap)
 
             if config.USE_LOCAL_MIRROR:
