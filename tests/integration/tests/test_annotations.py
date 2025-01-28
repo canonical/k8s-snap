@@ -10,7 +10,7 @@ from test_util import config, harness, tags, util
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.node_count(3)
+@pytest.mark.node_count(4)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-no-k8s-node-remove.yaml").read_text()
 )
@@ -18,19 +18,23 @@ LOG = logging.getLogger(__name__)
 def test_no_remove(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp = instances[1]
-    joining_worker = instances[2]
+    joining_cp_2 = instances[2]
+    joining_worker = instances[3]
 
     join_token = util.get_join_token(cluster_node, joining_cp)
+    join_token_2 = util.get_join_token(cluster_node, joining_cp_2)
     join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
     util.join_cluster(joining_cp, join_token)
+    util.join_cluster(joining_cp_2, join_token_2)
     util.join_cluster(joining_worker, join_token_worker)
 
     util.wait_until_k8s_ready(cluster_node, instances)
     nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 3, "nodes should have joined cluster"
+    assert len(nodes) == 4, "nodes should have joined cluster"
 
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "control-plane" in util.get_local_node_status(joining_cp)
+    assert "control-plane" in util.get_local_node_status(joining_cp_2)
     assert "worker" in util.get_local_node_status(joining_worker)
 
     # TODO: k8sd sometimes fails when requested to remove nodes immediately
@@ -47,13 +51,13 @@ def test_no_remove(instances: List[harness.Instance]):
         ["k8s", "remove-node", joining_cp.id]
     )
     nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 3, "cp node should not have been removed from cluster"
+    assert len(nodes) == 4, "cp node should not have been removed from cluster"
     cluster_node.exec(["k8s", "remove-node", joining_worker.id])
     nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 3, "worker node should not have been removed from cluster"
+    assert len(nodes) == 4, "worker node should not have been removed from cluster"
 
 
-@pytest.mark.node_count(3)
+@pytest.mark.node_count(4)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-skip-service-stop.yaml").read_text()
 )
@@ -61,10 +65,14 @@ def test_no_remove(instances: List[harness.Instance]):
 def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp = instances[1]
-    worker = instances[2]
+    joining_cp_2 = instances[2]
+    worker = instances[3]
 
     join_token = util.get_join_token(cluster_node, joining_cp)
     util.join_cluster(joining_cp, join_token)
+
+    join_token_2 = util.get_join_token(cluster_node, joining_cp_2)
+    util.join_cluster(joining_cp_2, join_token_2)
 
     join_token_worker = util.get_join_token(cluster_node, worker, "--worker")
     util.join_cluster(worker, join_token_worker)
@@ -76,7 +84,7 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
         ["k8s", "remove-node", joining_cp.id]
     )
     nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 2, "cp node should have been removed from the cluster"
+    assert len(nodes) == 3, "cp node should have been removed from the cluster"
     services = joining_cp.exec(
         ["snap", "services", "k8s"], capture_output=True, text=True
     ).stdout.split("\n")[1:-1]
@@ -90,7 +98,7 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
 
     cluster_node.exec(["k8s", "remove-node", worker.id])
     nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 1, "worker node should have been removed from the cluster"
+    assert len(nodes) == 2, "worker node should have been removed from the cluster"
     services = worker.exec(
         ["snap", "services", "k8s"], capture_output=True, text=True
     ).stdout.split("\n")[1:-1]
