@@ -31,6 +31,7 @@ Arguments:
                           from snap services. Default: 100000.
   --timeout               (Optional) The maximum time in seconds to wait for a command.
                           Default: 180s.
+  --core-dump-dir         (Optional) Core dump location. Default: /var/crash.
 `,
 		DisableFlagParsing: true,
 		PreRun:             chainPreRunHooks(hookRequireRoot(env)),
