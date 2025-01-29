@@ -64,7 +64,9 @@ func TestK8sEnableCmd(t *testing.T) {
 
 			stdout := &bytes.Buffer{}
 			stderr := &bytes.Buffer{}
-			mockClient := &k8sdmock.Mock{}
+			mockClient := &k8sdmock.Mock{
+				NodeStatusInitialized: true,
+			}
 			var returnCode int
 			env := cmdutil.ExecutionEnvironment{
 				Stdout: stdout,
