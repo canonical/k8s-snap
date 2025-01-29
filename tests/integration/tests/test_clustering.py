@@ -124,6 +124,7 @@ extra-sans:
         text=True,
     )
 
+    util.wait_until_k8s_ready(cluster_node, [cluster_node, joining_cp])
     out = cluster_node.exec(
         ["k8s", "get-join-token", "my-token-2"],
         capture_output=True,
