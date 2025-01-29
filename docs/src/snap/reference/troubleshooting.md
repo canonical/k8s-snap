@@ -112,6 +112,45 @@ containerd-base-dir: $containerdBaseDir
 EOF
 ```
 
+## Increased memory and CPU usage in dqlite
+
+### Problem
+
+The datastore used for {{product}} dqlite, reported an [issue #196] of increased
+memory and CPU usage over time. This was particually evident in smaller
+clusters.
+
+### Explanation
+
+This issue was caused due to an unoptimized configuration of dqlite for smaller
+clusters. Currently, the default snapshot configuration is 1024 for the
+threshold and 8192 for trailing which is too large for small clusters. Only
+setting the trailing parameter in a configuration yaml automatically sets the
+threshold to 0 leading to increased CPU usage.
+
+### Solution
+
+Apply a tuning.yaml custom configuration to the dqlite datastore in order to
+adjust the trailing and threshold snapshot values. The trailing parameter
+should be twice to four times the threshold value. Create the tuning.yaml
+file and place it in the dqlite directory
+`/var/snap/microk8s/current/var/kubernetes/backend/tuning.yaml`:
+
+```
+snapshot:
+  trailing: 512
+  threshold: 384
+```
+
+Restart dqlite:
+
+```
+sudo snap restart microk8s.daemon-k8s-dqlite
+```
+
+Work is being done to make these configuration changes dynamic in future
+releases.
+
 <!-- LINKS -->
 
 [lxd-install]: ../howto/install/lxd.md
@@ -120,3 +159,4 @@ EOF
 [kubernetes-125923]: https://github.com/kubernetes/kubernetes/pull/125923
 [kubernetes-122955-2020403422]: https://github.com/kubernetes/kubernetes/issues/122955#issuecomment-2020403422
 [@haircommander]: https://github.com/haircommander
+[issue #196]: https://github.com/canonical/k8s-dqlite/issues/196#issuecomment-2621527026
