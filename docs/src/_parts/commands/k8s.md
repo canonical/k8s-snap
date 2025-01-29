@@ -16,6 +16,7 @@ Canonical Kubernetes CLI
 * [k8s enable](k8s_enable.md)	 - Enable core cluster features
 * [k8s get](k8s_get.md)	 - Get cluster configuration
 * [k8s get-join-token](k8s_get-join-token.md)	 - Create a token for a node to join the cluster
+* [k8s inspect](k8s_inspect.md)	 - Generate inspection report
 * [k8s join-cluster](k8s_join-cluster.md)	 - Join a cluster using the provided token
 * [k8s kubectl](k8s_kubectl.md)	 - Integrated Kubernetes kubectl client
 * [k8s refresh-certs](k8s_refresh-certs.md)	 - Refresh the certificates of the running node

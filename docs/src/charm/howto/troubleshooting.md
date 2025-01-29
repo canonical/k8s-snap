@@ -201,17 +201,17 @@ kubectl --kubeconfig cluster-kubeconfig.yaml logs <pod-name> -n <namespace>
 You can check out the upstream [debug pods documentation][] for more
 information.
 
-## Use the built-in inspection script
+## Use the built-in inspection command
 
-{{product}} ships with a script to compile a complete report on {{product}} and
+{{product}} ships with a command to compile a complete report on {{product}} and
 its underlying system. This is an essential tool for bug reports and for
 investigating whether a system is (or isn’t) working.
 
-Inspection script can be executed on a specific unit by running the following
+The inspection command can be executed on a specific unit by running the following
 commands:
 
 ```
-juju exec --unit <k8s/unit#> -- sudo /snap/k8s/current/k8s/scripts/inspect.sh /home/ubuntu/inspection-report.tar.gz
+juju exec --unit <k8s/unit#> -- sudo k8s inspect /home/ubuntu/inspection-report.tar.gz
 juju scp <k8s/unit#>:/home/ubuntu/inspection-report.tar.gz ./
 ```
 
