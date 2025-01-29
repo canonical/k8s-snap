@@ -19,6 +19,7 @@
 #                           from snap services. Default: 100000.
 #   --timeout               (Optional) The maximum time in seconds to wait for a command.
 #                           Default: 180s.
+#   --core-dump-dir         (Optional) Core dump location. Default: /var/crash.
 #
 # Example:
 #   ./inspect.sh /path/to/output.tar.gz
@@ -32,6 +33,7 @@ TIMEOUT_LOG="$INSPECT_DUMP"/timeout_warnings.log
 ALL_NAMESPACES=0
 NUM_SNAP_LOG_ENTRIES=100000
 TIMEOUT=180s
+CORE_DUMP_DIR="/var/crash"
 
 function log_success {
   printf -- '\033[32m SUCCESS: \033[0m %s\n' "$1"
@@ -185,6 +187,17 @@ function collect_registry_mirror_logs {
   fi
 }
 
+function collect_core_dumps {
+  mkdir -p "$INSPECT_DUMP/core_dumps"
+  if [[ -d $CORE_DUMP_DIR ]]; then
+    local dump_dir_size=`du -sh $CORE_DUMP_DIR`
+    log_info "Collecting core dumps from $CORE_DUMP_DIR. Size: $dump_dir_size"
+    cp $CORE_DUMP_DIR/* "$INSPECT_DUMP/core_dumps/"
+  else
+    log_info "Core dump directory missing, skipping..."
+  fi
+}
+
 function collect_network_diagnostics {
   log_info "Copy network diagnostics to the final report tarball"
   ip a &>"$INSPECT_DUMP/ip-a.log" || true
@@ -248,12 +261,17 @@ while [[ $# -gt 0 ]]; do
       NUM_SNAP_LOG_ENTRIES="$1"
       shift
       ;;
-  --timeout)
-    shift
-    TIMEOUT="$1"
-    shift
-    ;;
-  -* | --*)
+    --timeout)
+      shift
+      TIMEOUT="$1"
+      shift
+      ;;
+    --core-dump-dir)
+      shift
+      CORE_DUMP_DIR="$1"
+      shift
+      ;;
+    -*|--*)
       echo "Unknown argument: $1"
       exit 1
       ;;
@@ -301,6 +319,8 @@ collect_sbom
 
 printf -- 'Collecting system information\n'
 collect_system_info
+
+collect_core_dumps
 
 printf -- 'Collecting snap and related information\n'
 collect_k8s_diagnostics

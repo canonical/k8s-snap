@@ -136,6 +136,12 @@ class JujuHarness(Harness):
         check = kwargs.pop("check", True)
         stdout = kwargs.pop("stdout", None)
         stderr = kwargs.pop("stderr", None)
+
+        if ">" in " ".join(command):
+            command_str = " ".join(command)
+        else:
+            command_str = shlex.join(command)
+
         input = f" <<EOF\n{b.decode()}\nEOF" if (b := kwargs.pop("input", None)) else ""
         s_result = run(
             [
@@ -154,7 +160,7 @@ class JujuHarness(Harness):
                 "-E",
                 "bash",
                 "-c",
-                shlex.join(command) + input,
+                command_str + input,
             ],
             capture_output=True,
             check=False,

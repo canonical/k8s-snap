@@ -190,6 +190,8 @@ k8s::common::execute_service() {
   declare -a args="($(cat "${SNAP_COMMON}/args/${service_name}"))"
 
   set -xe
+  ulimit -c unlimited
+  export GOTRACEBACK="crash"
   if [[ -f "${SNAP_COMMON}/args/${service_name}-env" ]]; then
     mapfile -t env_vars < "${SNAP_COMMON}/args/${service_name}-env"
     exec env -S "${env_vars[@]}" "${SNAP}/bin/${service_name}" "${args[@]}"

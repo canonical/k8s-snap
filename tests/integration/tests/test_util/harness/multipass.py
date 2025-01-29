@@ -106,6 +106,12 @@ class MultipassHarness(Harness):
             raise HarnessError(f"unknown instance {instance_id}")
 
         LOG.debug("Execute command %s in instance %s", command, instance_id)
+
+        if ">" in " ".join(command):
+            command_str = " ".join(command)
+        else:
+            command_str = shlex.join(command)
+
         return run(
             [
                 "multipass",
@@ -115,7 +121,7 @@ class MultipassHarness(Harness):
                 "sudo",
                 "bash",
                 "-c",
-                shlex.join(command),
+                command_str,
             ],
             **kwargs,
         )

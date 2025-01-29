@@ -4,6 +4,7 @@
 import ipaddress
 import json
 import logging
+import os
 import re
 import shlex
 import subprocess
@@ -159,6 +160,14 @@ def _as_int(value: Optional[str]) -> Optional[int]:
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def setup_core_dumps(instance: harness.Instance):
+    core_pattern = os.path.join(config.CORE_DUMP_DIR, config.CORE_DUMP_PATTERN)
+    LOG.info("Configuring core dumps. Pattern: %s", core_pattern)
+    instance.exec(["echo", core_pattern, ">", "/proc/sys/kernel/core_pattern"])
+    instance.exec(["echo", "1", ">", "/proc/sys/fs/suid_dumpable"])
+    instance.exec(["snap", "set", "system", "system.coredump.enable=true"])
 
 
 def setup_k8s_snap(
