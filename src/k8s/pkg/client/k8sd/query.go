@@ -27,6 +27,11 @@ func query[T any](ctx context.Context, c *k8sd, method, path string, in any, out
 				log.FromContext(ctx).Info("Temporary error from k8sd: %v", err)
 				return false, nil
 			}
+			if bootstrapPending(err) {
+				return false, fmt.Errorf(
+					"the cluster hasn't been initialized yet. "+
+						" Attempted k8sd query: %s /%s: %w", method, path, err)
+			}
 			return false, fmt.Errorf("failed to %s /%s: %w", method, path, err)
 		}
 		return true, nil
@@ -48,4 +53,10 @@ func isTemporary(err error) bool {
 		return true
 	}
 	return false
+}
+
+// bootstrapPending checks if an error was caused by the fact that the cluster
+// has not been initialized yet.
+func bootstrapPending(err error) bool {
+	return strings.Contains(err.Error(), "Database is not yet initialized")
 }

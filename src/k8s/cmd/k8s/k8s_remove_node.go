@@ -41,6 +41,16 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
+			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
+				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			} else if !initialized {
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				env.Exit(1)
+				return
+			}
+
 			name := args[0]
 
 			cmd.PrintErrf("Removing %q from the Kubernetes cluster. This may take a few seconds, please wait.\n", name)
