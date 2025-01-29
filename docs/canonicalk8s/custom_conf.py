@@ -99,7 +99,7 @@ html_context = {
 
     # Change to the folder that contains the documentation
     # (usually "/" or "/docs/")
-    'github_folder': '/docs/',
+    'github_folder': '/docs/canonicalk8s/',
 
     # Change to an empty value if your GitHub repo doesn't have issues enabled.
     # This will disable the feedback button and the issue link in the footer.
@@ -161,6 +161,8 @@ custom_linkcheck_anchors_ignore_for_url = []
 
 # Remove this variable to disable the MyST parser extensions.
 custom_myst_extensions = []
+
+suppress_warnings = ["myst.xref_missing", "myst.iref_ambiguous"]
 
 # Add custom Sphinx extensions as needed.
 # This array contains recommended extensions that should be used.
