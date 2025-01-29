@@ -117,7 +117,7 @@ EOF
 ### Problem
 
 The datastore used for {{product}} dqlite, reported an [issue #196] of increased
-memory and CPU usage over time. This was particually evident in smaller
+memory and CPU usage over time. This was particularly evident in smaller
 clusters.
 
 ### Explanation
@@ -134,7 +134,7 @@ Apply a tuning.yaml custom configuration to the dqlite datastore in order to
 adjust the trailing and threshold snapshot values. The trailing parameter
 should be twice to four times the threshold value. Create the tuning.yaml
 file and place it in the dqlite directory
-`/var/snap/microk8s/current/var/kubernetes/backend/tuning.yaml`:
+`/var/snap/k8s/common/var/lib/k8s-dqlite/tuning.yaml`:
 
 ```
 snapshot:
@@ -145,7 +145,7 @@ snapshot:
 Restart dqlite:
 
 ```
-sudo snap restart microk8s.daemon-k8s-dqlite
+sudo k8s restart k8s-dqlite
 ```
 
 Work is being done to make these configuration changes dynamic in future
