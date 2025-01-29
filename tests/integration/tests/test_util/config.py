@@ -51,6 +51,10 @@ SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "lxd"
 # after the tests complete.
 SKIP_CLEANUP = (os.getenv("TEST_SKIP_CLEANUP") or "") == "1"
 
+# Note that when using containers, this will override the host configuration.
+CORE_DUMP_PATTERN = (os.getenv("TEST_CORE_DUMP_PATTERN")) or r"core-%e.%p.%h"
+CORE_DUMP_DIR = (os.getenv("TEST_CORE_DUMP_DIR")) or "/var/crash"
+
 # INSPECTION_REPORTS_DIR is the directory where inspection reports are stored.
 # If empty, no reports are generated.
 INSPECTION_REPORTS_DIR = os.getenv("TEST_INSPECTION_REPORTS_DIR")
