@@ -10,6 +10,7 @@ COS
 Charmed
 Charmed Kubeflow
 Charmhub
+CRDs
 Data Integrator
 Grafana
 Juju
