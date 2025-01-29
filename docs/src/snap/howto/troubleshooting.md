@@ -175,17 +175,17 @@ sudo k8s kubectl logs <pod-name> -n <namespace>
 You can check out the upstream [debug pods documentation][] for more
 information.
 
-## Using the built-in inspection script
+## Using the built-in inspection command
 
-{{product}} ships with a script to compile a complete report on {{product}} and
+{{product}} ships with a command to compile a complete report on {{product}} and
 its underlying system. This is an essential tool for bug reports and for
 investigating whether a system is (or isn’t) working.
 
-Run the inspection script, by entering the command (admin privileges are
+Run the inspection command, by entering the command (admin privileges are
 required to collect all the data):
 
 ```
-sudo /snap/k8s/current/k8s/scripts/inspect.sh
+sudo k8s inspect
 ```
 
 The command output is similar to the following:
