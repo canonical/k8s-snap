@@ -32,6 +32,27 @@ To enable Gateway, run:
 sudo k8s enable gateway
 ```
 
+## Deploy sample workload
+
+As Gateway is enabled, we have the GatewayClass called `ck-gateway` already
+deployed. View the default GatewayClass:
+
+```
+sudo k8s kubectl get GatewayClass
+```
+
+A [sample workload] is available as part of our integration test
+suite. This deploys a standard Nginx server with a Service to expose the
+ClusterIP. A Gateway that points to our GatewayClass and a HTTPRoute that
+specifies routing of HTTP requests from our Gateway to the Nginx Service
+are also deployed.
+
+Deploy the sample workload:
+
+```
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/main/tests/integration/templates/gateway-test.yaml
+```
+
 ## Disable gateway
 
 You can `disable` the built-in Gateway:
@@ -47,3 +68,4 @@ sudo k8s disable gateway
 [gateway API]:https://gateway-api.sigs.k8s.io/
 [getting-started-guide]: ../../tutorial/getting-started
 [kubectl-guide]: ../../tutorial/kubectl
+[sample workload]: https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/main/tests/integration/templates/gateway-test.yaml
