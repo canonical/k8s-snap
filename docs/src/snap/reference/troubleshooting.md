@@ -145,7 +145,7 @@ snapshot:
 Restart dqlite:
 
 ```
-sudo k8s restart k8s-dqlite
+sudo snap restart snap.k8s.k8s-dqlite
 ```
 
 Work is being done to make these configuration changes dynamic in future
