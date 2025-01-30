@@ -22,6 +22,6 @@ jobs:
       - uses: DavidAnson/markdownlint-cli2-action@v16
         if: steps.changed-markdown-files.outputs.any_changed == 'true'
         with:
-          config: "docs/.sphinx/.markdownlint.json"
+          config: "docs/canonicalk8s/.sphinx/.markdownlint.json"
           globs: ${{ steps.changed-markdown-files.outputs.all_changed_files }}
           separator: ","
