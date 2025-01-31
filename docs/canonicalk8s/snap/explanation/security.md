@@ -61,7 +61,7 @@ check the [roadmap][] for current areas of work.
 
 [Kubernetes Security documentation]: https://kubernetes.io/docs/concepts/security/overview/
 [snap documentation]: https://snapcraft.io/docs/security-policies
-[rocks-security]: https://canonical-rockcraft.readthedocs-hosted.com/en/latest/explanation/rockcraft/
+[rocks-security]: https://documentation.ubuntu.com/rockcraft/en/latest/explanation/rockcraft.html
 [roadmap]: ../reference/roadmap
 [Amazon Web Services security]: https://aws.amazon.com/security/
 [Google Cloud Platform security]:https://cloud.google.com/security

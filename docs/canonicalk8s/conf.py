@@ -192,7 +192,7 @@ html_js_files.extend(custom_html_js_files)
 #    except InvalidGitRepositoryError:
 #        cwd = os.getcwd()
 #        ghfolder = html_context['github_source'][:-1]
-#        
+#
 #        if ghfolder and cwd.endswith(ghfolder):
 #            repo = Repo(cwd.rpartition(ghfolder)[0])
 #        else:
@@ -225,6 +225,7 @@ if os.path.exists('./reuse/substitutions.yaml'):
   with open('./reuse/substitutions.yaml', 'r') as fd:
       myst_substitutions = yaml.safe_load(fd.read())
 
+suppress_warnings = ["myst.xref_missing", "myst.iref_ambiguous"]
 
 ############################################################
 ### PDF configuration
