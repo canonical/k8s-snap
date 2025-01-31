@@ -15,6 +15,7 @@ annotations
 Ports and services <ports-and-services>
 Community <community>
 configs
+troubleshooting
 
 ```
 
