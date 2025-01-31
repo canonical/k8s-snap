@@ -189,12 +189,12 @@ function collect_registry_mirror_logs {
 
 function collect_core_dumps {
   mkdir -p "$INSPECT_DUMP/core_dumps"
-  if [[ -d $CORE_DUMP_DIR ]]; then
+  if [[ -d $CORE_DUMP_DIR && ! -z `ls -A $CORE_DUMP_DIR` ]]; then
     local dump_dir_size=`du -sh $CORE_DUMP_DIR`
     log_info "Collecting core dumps from $CORE_DUMP_DIR. Size: $dump_dir_size"
     cp $CORE_DUMP_DIR/* "$INSPECT_DUMP/core_dumps/"
   else
-    log_info "Core dump directory missing, skipping..."
+    log_info "Core dump directory empty or missing, skipping..."
   fi
 }
 
