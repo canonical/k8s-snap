@@ -369,7 +369,7 @@ subjects:
 You can apply the CCM manifest easily by running the following command:
 
 ```bash
-sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/assets/how-to-cloud-storage-aws-ccm.yaml
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/assets/how-to-cloud-storage-aws-ccm.yaml
 ```
 
 After a moment, you should see the cloud controller manager pod was

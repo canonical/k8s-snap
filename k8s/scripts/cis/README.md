@@ -37,16 +37,16 @@ pip install -r requirements.txt
 Run the script
 
 ```sh
-python3 cis-yaml-to-md.py --input-dir=./kube-bench/cfg/ck8s-cis-1.24 --output-dir=../../../docs/_parts/cis/
+python3 cis-yaml-to-md.py --input-dir=./kube-bench/cfg/ck8s-cis-1.24 --output-dir=../../../docs/canonicalk8s/_parts/cis/
 ```
 
 You should see the following output:
 
 ```sh
-INFO:__main__:Rendered kube-bench/cfg/ck8s-cis-1.24/policies.yaml to ../../../docs/_parts/cis/policies.md.
-INFO:__main__:Rendered kube-bench/cfg/ck8s-cis-1.24/master.yaml to ../../../docs/_parts/cis/master.md.
-INFO:__main__:Rendered kube-bench/cfg/ck8s-cis-1.24/node.yaml to ../../../docs/_parts/cis/node.md.
-INFO:__main__:Rendered kube-bench/cfg/ck8s-cis-1.24/controlplane.yaml to ../../../docs/_parts/cis/controlplane.md.
-INFO:__main__:Rendered kube-bench/cfg/ck8s-cis-1.24/etcd.yaml to ../../../docs/_parts/cis/etcd.md.
+INFO:__main__:Rendered kube-bench/cfg/ck8s-cis-1.24/policies.yaml to ../../../docs/canonicalk8s/_parts/cis/policies.md.
+INFO:__main__:Rendered kube-bench/cfg/ck8s-cis-1.24/master.yaml to ../../../docs/canonicalk8s/_parts/cis/master.md.
+INFO:__main__:Rendered kube-bench/cfg/ck8s-cis-1.24/node.yaml to ../../../docs/canonicalk8s/_parts/cis/node.md.
+INFO:__main__:Rendered kube-bench/cfg/ck8s-cis-1.24/controlplane.yaml to ../../../docs/canonicalk8s/_parts/cis/controlplane.md.
+INFO:__main__:Rendered kube-bench/cfg/ck8s-cis-1.24/etcd.yaml to ../../../docs/_parts/canonicalk8s/cis/etcd.md.
 INFO:__main__:Rendered report.md.
 ```
