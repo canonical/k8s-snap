@@ -22,6 +22,7 @@ Perform an in-place upgrade <in-place-upgrades>
 Upgrade the providers of a management cluster <upgrade-providers>
 Migrate the management cluster <migrate-management>
 Refresh workload cluster certificates <refresh-certs>
+How to use intermediate CAs with Vault <intermediate-ca>
 Troubleshooting <troubleshooting>
 ```
 
