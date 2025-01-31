@@ -130,7 +130,7 @@ node to lag behind the leader before it consumes the updated snapshot of the
 leader. Currently, the default snapshot configuration is 1024 for the
 threshold and 8192 for trailing which is too large for small clusters. Only
 setting the trailing parameter in a configuration yaml automatically sets the
-threshold to 0 leading to a snapshot being taken every transaction and 
+threshold to 0. This leads to a snapshot being taken every transaction and 
 increased CPU usage.
 
 ### Solution
