@@ -70,7 +70,7 @@ case "${BASE_DISTRO}" in
     lxc shell tmp-builder -- bash -c 'snap wait core seed.loaded'
     lxc shell tmp-builder -- bash -c 'snap install '"${BASE_SNAP}"
     # NOTE(aznashwan): 'nf_conntrack' required by kube-proxy:
-    lxc shell tmp-builder -- bash -c 'apt update && apt install -y "linux-modules-$(uname -r)"}'
+    lxc shell tmp-builder -- bash -c 'apt update && apt install -y "linux-modules-$(uname -r)"'
     ;;
   almalinux)
     # install snapd and ensure /snap/bin is in the environment
