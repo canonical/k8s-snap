@@ -1,4 +1,4 @@
-# How to use default Gateway
+# How to use the default Gateway
 
 {{product}} enables you to configure advanced networking of your cluster using
 [gateway API]. When enabled, the necessary CRDs and GatewayClass are generated
@@ -52,6 +52,22 @@ Deploy the sample workload:
 ```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/main/tests/integration/templates/gateway-test.yaml
 ```
+
+View the workload and service deployed:
+
+```
+sudo k8s kubectl get all -owide
+```
+
+Verify the Nginx pod is reachable by curling the 
+ClusterIP of the Nginx service `service/my-nginx` 
+shown in the output above:
+
+```
+curl 10.152.183.181  
+```
+
+The output should display a welcome to Nginx message. 
 
 ## Disable gateway
 
