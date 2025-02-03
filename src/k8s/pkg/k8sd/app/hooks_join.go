@@ -132,6 +132,16 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	certificates.FrontProxyClientKey = joinConfig.GetFrontProxyClientKey()
 	certificates.KubeletCert = joinConfig.GetKubeletCert()
 	certificates.KubeletKey = joinConfig.GetKubeletKey()
+	certificates.AdminClientCert = joinConfig.GetAdminClientCert()
+	certificates.AdminClientKey = joinConfig.GetAdminClientKey()
+	certificates.KubeControllerManagerClientCert = joinConfig.GetKubeControllerManagerClientCert()
+	certificates.KubeControllerManagerClientKey = joinConfig.GetKubeControllerManagerClientKey()
+	certificates.KubeSchedulerClientCert = joinConfig.GetKubeSchedulerClientCert()
+	certificates.KubeSchedulerClientKey = joinConfig.GetKubeSchedulerClientKey()
+	certificates.KubeProxyClientCert = joinConfig.GetKubeProxyClientCert()
+	certificates.KubeProxyClientKey = joinConfig.GetKubeProxyClientKey()
+	certificates.KubeletClientCert = joinConfig.GetKubeletClientCert()
+	certificates.KubeletClientKey = joinConfig.GetKubeletClientKey()
 
 	// generate missing certificates
 	if err := certificates.CompleteCertificates(); err != nil {

@@ -15,6 +15,18 @@ If omitted defaults to an auto generated certificate.
 The client key to be used for the front proxy.
 If omitted defaults to an auto generated key.
 
+### admin-client-crt
+**Type:** `string`<br>
+
+The admin client certificate to be used for Kubernetes services.
+If omitted defaults to an auto generated certificate.
+
+### admin-client-key
+**Type:** `string`<br>
+
+The admin client key to be used for Kubernetes services.
+If omitted defaults to an auto generated key.
+
 ### kube-proxy-client-crt
 **Type:** `string`<br>
 
