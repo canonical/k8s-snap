@@ -18,10 +18,10 @@ jobs:
           files: |
             docs/**/*.md
           files_ignore: |
-            docs/src/_parts/**
+            docs/canonicalk8s/_parts/**
       - uses: DavidAnson/markdownlint-cli2-action@v16
         if: steps.changed-markdown-files.outputs.any_changed == 'true'
         with:
-          config: "docs/src/.markdownlint.json"
+          config: "docs/canonicalk8s/.sphinx/.markdownlint.json"
           globs: ${{ steps.changed-markdown-files.outputs.all_changed_files }}
           separator: ","
