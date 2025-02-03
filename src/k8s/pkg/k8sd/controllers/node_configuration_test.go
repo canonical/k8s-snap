@@ -140,7 +140,7 @@ func TestConfigPropagation(t *testing.T) {
 			expectRestart: true,
 		},
 		{
-			name: "ExpectedSignature",
+			name: "MissingPrivKey",
 			configmap: &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
 				Data: map[string]string{
