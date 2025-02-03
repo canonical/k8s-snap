@@ -276,15 +276,18 @@ def instances(
         LOG.warning("Skipping clean-up of instances, delete them on your own")
         return
 
+    # Collect all the reports before initiating the cleanup so that we won't
+    # affect the state of the observed cluster.
+    if config.INSPECTION_REPORTS_DIR:
+        for instance in instances:
+            LOG.debug("Generating inspection reports for test instances")
+            _generate_inspection_report(h, instance.id)
+
     # Cleanup after each test.
     # We cannot execute _harness_clean() here as this would also
     # remove session scoped instances. The harness ensures that everything is cleaned up
     # at the end of the test session.
     for instance in instances:
-        if config.INSPECTION_REPORTS_DIR is not None:
-            LOG.debug("Generating inspection reports for test instances")
-            _generate_inspection_report(h, instance.id)
-
         try:
             util.remove_k8s_snap(instance)
         finally:
