@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/rsa"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	. "github.com/onsi/gomega"
@@ -26,11 +28,19 @@ func TestConfigPropagation(t *testing.T) {
 
 	g := NewWithT(t)
 
+	privKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	g.Expect(err).To(Not(HaveOccurred()))
+
+	wrongPrivKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	g.Expect(err).To(Not(HaveOccurred()))
+
 	tests := []struct {
 		name          string
 		configmap     *corev1.ConfigMap
 		expectArgs    map[string]string
 		expectRestart bool
+		privKey       *rsa.PrivateKey
+		pubKey        *rsa.PublicKey
 	}{
 		{
 			name: "Initial",
@@ -110,6 +120,62 @@ func TestConfigPropagation(t *testing.T) {
 				"--cloud-provider": "provider",
 			},
 		},
+		{
+			name: "WithSignature",
+			configmap: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
+				Data: map[string]string{
+					"cluster-dns":    "10.152.1.1",
+					"cluster-domain": "test-cluster.local",
+					"cloud-provider": "provider",
+				},
+			},
+			expectArgs: map[string]string{
+				"--cluster-dns":    "10.152.1.1",
+				"--cluster-domain": "test-cluster.local",
+				"--cloud-provider": "provider",
+			},
+			privKey:       privKey,
+			pubKey:        &privKey.PublicKey,
+			expectRestart: true,
+		},
+		{
+			name: "MissingPrivKey",
+			configmap: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
+				Data: map[string]string{
+					"cluster-dns":    "10.152.1.1",
+					"cluster-domain": "test-cluster2.local",
+					"cloud-provider": "provider",
+				},
+			},
+			expectArgs: map[string]string{
+				"--cluster-dns":    "10.152.1.1",
+				"--cluster-domain": "test-cluster.local",
+				"--cloud-provider": "provider",
+			},
+			pubKey:        &privKey.PublicKey,
+			expectRestart: false,
+		},
+		{
+			name: "InvalidSignature",
+			configmap: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
+				Data: map[string]string{
+					"cluster-dns":    "10.152.1.1",
+					"cluster-domain": "test-cluster2.local",
+					"cloud-provider": "provider",
+				},
+			},
+			expectArgs: map[string]string{
+				"--cluster-dns":    "10.152.1.1",
+				"--cluster-domain": "test-cluster.local",
+				"--cloud-provider": "provider",
+			},
+			privKey:       wrongPrivKey,
+			pubKey:        &privKey.PublicKey,
+			expectRestart: false,
+		},
 	}
 
 	clientset := fake.NewSimpleClientset()
@@ -129,8 +195,9 @@ func TestConfigPropagation(t *testing.T) {
 
 	ctrl := NewNodeConfigurationController(s, func() {})
 
-	// TODO: add test with signing key
-	go ctrl.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) { return nil, nil })
+	keyCh := make(chan *rsa.PublicKey)
+
+	go ctrl.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) { return <-keyCh, nil })
 	defer watcher.Stop()
 
 	for _, tc := range tests {
@@ -139,7 +206,17 @@ func TestConfigPropagation(t *testing.T) {
 
 			g := NewWithT(t)
 
+			if tc.privKey != nil {
+				kubelet, err := types.KubeletFromConfigMap(tc.configmap.Data, nil)
+				g.Expect(err).To(Not(HaveOccurred()))
+
+				tc.configmap.Data, err = kubelet.ToConfigMap(tc.privKey)
+				g.Expect(err).To(Not(HaveOccurred()))
+			}
+
 			watcher.Add(tc.configmap)
+
+			keyCh <- tc.pubKey
 
 			// TODO: this is to ensure that the controller has handled the event. This should ideally
 			// be replaced with something like a "<-sentCh" instead

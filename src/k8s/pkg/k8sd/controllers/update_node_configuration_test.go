@@ -2,6 +2,7 @@ package controllers_test
 
 import (
 	"context"
+	"crypto/rsa"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	"github.com/canonical/k8s/pkg/utils"
+	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,6 +21,11 @@ import (
 )
 
 func TestUpdateNodeConfigurationController(t *testing.T) {
+	g := NewWithT(t)
+
+	privPEM, pubPEM, err := pkiutil.GenerateRSAKey(2048)
+	g.Expect(err).To(Not(HaveOccurred()))
+
 	testCases := []struct {
 		name            string
 		initialConfig   types.ClusterConfig
@@ -31,6 +38,20 @@ func TestUpdateNodeConfigurationController(t *testing.T) {
 			expectedConfig: types.ClusterConfig{
 				Kubelet: types.Kubelet{
 					ClusterDomain: utils.Pointer("cluster.local"),
+				},
+			},
+			expectedFailure: false,
+		},
+		{
+			name:          "ControlPlane_DefaultConfig_WithClusterConfigurationKeys",
+			initialConfig: types.ClusterConfig{},
+			expectedConfig: types.ClusterConfig{
+				Kubelet: types.Kubelet{
+					ClusterDomain: utils.Pointer("cluster.local"),
+				},
+				Certificates: types.Certificates{
+					K8sdPublicKey:  utils.Pointer(pubPEM),
+					K8sdPrivateKey: utils.Pointer(privPEM),
 				},
 			},
 			expectedFailure: false,
@@ -51,7 +72,6 @@ func TestUpdateNodeConfigurationController(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			// TODO: add tests with a signed configmap
 			configProvider := &configProvider{config: tc.expectedConfig}
 			kubeletConfigMap, err := tc.initialConfig.Kubelet.ToConfigMap(nil)
 			g.Expect(err).ToNot(HaveOccurred())
@@ -94,7 +114,16 @@ func TestUpdateNodeConfigurationController(t *testing.T) {
 
 			result, err := clientset.CoreV1().ConfigMaps("kube-system").Get(ctx, "k8sd-config", metav1.GetOptions{})
 			g.Expect(err).ToNot(HaveOccurred())
-			expectedConfigMap, err := tc.expectedConfig.Kubelet.ToConfigMap(nil)
+
+			var priv *rsa.PrivateKey
+			if tc.expectedConfig.Certificates.K8sdPrivateKey != nil {
+				privKey, err := pkiutil.LoadRSAPrivateKey(tc.expectedConfig.Certificates.GetK8sdPrivateKey())
+				g.Expect(err).To(Not(HaveOccurred()))
+
+				priv = privKey
+			}
+
+			expectedConfigMap, err := tc.expectedConfig.Kubelet.ToConfigMap(priv)
 			g.Expect(err).ToNot(HaveOccurred())
 			if tc.expectedFailure {
 				g.Expect(result.Data).ToNot(Equal(expectedConfigMap))
