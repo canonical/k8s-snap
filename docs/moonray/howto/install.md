@@ -1,4 +1,4 @@
-```{include} ../../src/snap/howto/install/snap.md
+```{include} /snap/howto/install/snap.md
 
 ```
 
