@@ -21,7 +21,6 @@ Cilium's VXLAN port you can run the following command:
 sudo k8s set annotations="k8sd/v1alpha1/cilium/tunnel-port=<PORT-NUMBER>"
 ```
 
-
 ```{note}
 v1alpha annotations are experimental and subject to change or removal in future {{product}} releases
 ```
