@@ -145,7 +145,7 @@ func TestConfigPropagation(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
 				Data: map[string]string{
 					"cluster-dns":    "10.152.1.1",
-					"cluster-domain": "test-cluster.local",
+					"cluster-domain": "test-cluster2.local",
 					"cloud-provider": "provider",
 				},
 			},
@@ -163,7 +163,7 @@ func TestConfigPropagation(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
 				Data: map[string]string{
 					"cluster-dns":    "10.152.1.1",
-					"cluster-domain": "test-cluster.local",
+					"cluster-domain": "test-cluster2.local",
 					"cloud-provider": "provider",
 				},
 			},
