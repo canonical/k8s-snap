@@ -60,62 +60,6 @@ func TestConfigPropagation(t *testing.T) {
 			expectRestart: true,
 		},
 		{
-			name: "InitialWithSignature",
-			configmap: &corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
-				Data: map[string]string{
-					"cluster-dns":    "10.152.1.1",
-					"cluster-domain": "test-cluster.local",
-					"cloud-provider": "provider",
-				},
-			},
-			expectArgs: map[string]string{
-				"--cluster-dns":    "10.152.1.1",
-				"--cluster-domain": "test-cluster.local",
-				"--cloud-provider": "provider",
-			},
-			privKey:       privKey,
-			pubKey:        &privKey.PublicKey,
-			expectRestart: true,
-		},
-		{
-			name: "InitialExpectedSignature",
-			configmap: &corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
-				Data: map[string]string{
-					"cluster-dns":    "10.152.1.1",
-					"cluster-domain": "test-cluster.local",
-					"cloud-provider": "provider",
-				},
-			},
-			expectArgs: map[string]string{
-				"--cluster-dns":    "10.152.1.1",
-				"--cluster-domain": "test-cluster.local",
-				"--cloud-provider": "provider",
-			},
-			pubKey:        &privKey.PublicKey,
-			expectRestart: false,
-		},
-		{
-			name: "InitialInvalidSignature",
-			configmap: &corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
-				Data: map[string]string{
-					"cluster-dns":    "10.152.1.1",
-					"cluster-domain": "test-cluster.local",
-					"cloud-provider": "provider",
-				},
-			},
-			expectArgs: map[string]string{
-				"--cluster-dns":    "10.152.1.1",
-				"--cluster-domain": "test-cluster.local",
-				"--cloud-provider": "provider",
-			},
-			privKey:       wrongPrivKey,
-			pubKey:        &privKey.PublicKey,
-			expectRestart: false,
-		},
-		{
 			name: "IgnoreUnknownFields",
 			configmap: &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
@@ -175,6 +119,62 @@ func TestConfigPropagation(t *testing.T) {
 				"--cluster-dns":    "10.152.1.3",
 				"--cloud-provider": "provider",
 			},
+		},
+		{
+			name: "WithSignature",
+			configmap: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
+				Data: map[string]string{
+					"cluster-dns":    "10.152.1.1",
+					"cluster-domain": "test-cluster.local",
+					"cloud-provider": "provider",
+				},
+			},
+			expectArgs: map[string]string{
+				"--cluster-dns":    "10.152.1.1",
+				"--cluster-domain": "test-cluster.local",
+				"--cloud-provider": "provider",
+			},
+			privKey:       privKey,
+			pubKey:        &privKey.PublicKey,
+			expectRestart: true,
+		},
+		{
+			name: "ExpectedSignature",
+			configmap: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
+				Data: map[string]string{
+					"cluster-dns":    "10.152.1.1",
+					"cluster-domain": "test-cluster.local",
+					"cloud-provider": "provider",
+				},
+			},
+			expectArgs: map[string]string{
+				"--cluster-dns":    "10.152.1.1",
+				"--cluster-domain": "test-cluster.local",
+				"--cloud-provider": "provider",
+			},
+			pubKey:        &privKey.PublicKey,
+			expectRestart: false,
+		},
+		{
+			name: "InvalidSignature",
+			configmap: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
+				Data: map[string]string{
+					"cluster-dns":    "10.152.1.1",
+					"cluster-domain": "test-cluster.local",
+					"cloud-provider": "provider",
+				},
+			},
+			expectArgs: map[string]string{
+				"--cluster-dns":    "10.152.1.1",
+				"--cluster-domain": "test-cluster.local",
+				"--cloud-provider": "provider",
+			},
+			privKey:       wrongPrivKey,
+			pubKey:        &privKey.PublicKey,
+			expectRestart: false,
 		},
 	}
 
