@@ -14,7 +14,7 @@ VENVDIR       = $(SPHINXDIR)/venv
 PA11Y         = $(SPHINXDIR)/node_modules/pa11y/bin/pa11y.js --config $(SPHINXDIR)/pa11y.json
 VENV          = $(VENVDIR)/bin/activate
 TARGET        = *
-ALLFILES      =  *.rst **/*.rst
+ALLFILES      =  *.md **/*.md
 ADDPREREQS    ?=
 REQPDFPACKS   = latexmk fonts-freefont-otf texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended texlive-font-utils texlive-lang-cjk texlive-xetex plantuml xindy tex-gyre dvipng
 CONFIRM_SUDO    ?= N
@@ -77,7 +77,7 @@ woke-install:
 		fi \
 	}
 
-	spellcheck-install:
+spellcheck-install:
 	@type aspell >/dev/null 2>&1 || \
 	{ \
 		echo "Installing system-wide \"aspell\" packages..."; \
