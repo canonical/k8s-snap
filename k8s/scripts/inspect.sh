@@ -31,7 +31,7 @@ TIMEOUT_LOG="$INSPECT_DUMP"/timeout_warnings.log
 # We won't fetch all namespaces by default to avoid logging potentially sensitive
 # user data.
 ALL_NAMESPACES=0
-NUM_SNAP_LOG_ENTRIES=100000
+NUM_SNAP_LOG_ENTRIES=1000000
 TIMEOUT=180s
 CORE_DUMP_DIR="/var/crash"
 
