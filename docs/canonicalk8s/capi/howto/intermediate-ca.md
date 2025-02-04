@@ -4,7 +4,8 @@ By default, the ClusterAPI provider will generate self-signed CA certificates
 for the workload clusters.
 
 Follow this guide to prepare an intermediate Certificate Authority (CA) using
-[HashiCorp Vault] and then configure ClusterAPI to use the generated certificates.
+[HashiCorp Vault] and then configure ClusterAPI to use the generated
+certificates.
 
 ## Prepare Vault
 
@@ -79,8 +80,7 @@ cat myca/intermediate-signed.json | jq -r '.data.certificate' \
 
 The Cluster API provider expects the CA certificates to be specified as
 Kubernetes secrets named ``${cluster-name}-${purpose}``, where ``cluster-name``
-is the name of the workload cluster and purpose is one of the following:
-
+is the name of the workload cluster and ``purpose`` is one of the following:
 
 | Purpose suffix     | Description             |
 |--------------------|-------------------------|
@@ -92,17 +92,16 @@ is the name of the workload cluster and purpose is one of the following:
 The secrets must have ``Opaque`` type, containing the ``tls.crt`` and
 ``tls.key`` fields.
 
-Let's assume that we want to bootstrap a workload cluster named ``mycluster`` and
-use the newly generated intermediate CA certificate. We'd first create the
+Let's assume that we want to bootstrap a workload cluster named ``mycluster``
+and use the newly generated intermediate CA certificate. We'd first create the
 following secret on the management cluster:
 
 ```
-workloadClusterName="mycluster"
 cat <<EOF > myca/ca-secret.yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: $workloadClusterName-ca
+  name: mycluster
 type: Opaque
 stringData:
   tls.crt: |
@@ -118,5 +117,10 @@ Now apply the CA certificate:
 kubectl apply -f myca/ca-secret.yaml
 ```
 
+The workload cluster will now retrieve the CA from the secret during
+bootstrapping. Refer to the [provisioning guide] for further instructions on
+completing the process.
+
 <!--LINKS -->
 [HashiCorp Vault]: https://developer.hashicorp.com/vault/docs
+[provisioning guide]: ./provision.md
