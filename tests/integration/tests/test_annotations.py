@@ -24,11 +24,12 @@ def test_no_remove(instances: List[harness.Instance]):
     join_token = util.get_join_token(cluster_node, joining_cp)
     join_token_2 = util.get_join_token(cluster_node, joining_cp_2)
     join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
+
     util.join_cluster(joining_cp, join_token)
     util.wait_until_k8s_ready(cluster_node, [joining_cp])
     util.join_cluster(joining_cp_2, join_token_2)
     util.wait_until_k8s_ready(cluster_node, [joining_cp, joining_cp_2])
-    util.join_cluster(joining_worker, join_token_worker)
+    util.join_cluster(joining_worker, join_token_worker, worker=True)
     util.wait_until_k8s_ready(cluster_node, instances)
 
     nodes = util.ready_nodes(cluster_node)

@@ -374,15 +374,29 @@ def get_join_token(
 
 
 # Join an existing cluster.
-def join_cluster(instance: harness.Instance, join_token: str):
+def join_cluster(instance: harness.Instance, join_token: str, worker=False):
     join_cfg = {
-        "extra-node-kubelet-args": {
-            "--v": "6",
-        },
         "extra-node-containerd-args": {
             "--log-level": "debug",
         },
+        "extra-node-kubelet-args": {
+            "--v": "6",
+        },
     }
+    if not worker:
+        join_cfg.update(
+            {
+                "extra-node-kube-apiserver-args": {
+                    "--v": "6",
+                },
+                "extra-node-kube-controller-manager-args": {
+                    "--v": "6",
+                },
+                "extra-node-kube-scheduler-args": {
+                    "--v": "6",
+                },
+            }
+        )
     instance.exec(
         ["k8s", "join-cluster", join_token, "--file", "-"],
         input=str.encode(yaml.safe_dump(join_cfg)),
