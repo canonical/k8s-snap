@@ -290,17 +290,6 @@ func TestMergeClusterConfig_Scenarios(t *testing.T) {
 			},
 		},
 		{
-			name: "LoadBalancer/NeedNetwork",
-			old: types.ClusterConfig{
-				Network:      types.Network{Enabled: utils.Pointer(true)},
-				LoadBalancer: types.LoadBalancer{Enabled: utils.Pointer(true)},
-			},
-			new: types.ClusterConfig{
-				Network: types.Network{Enabled: utils.Pointer(false)},
-			},
-			expectErr: true,
-		},
-		{
 			name: "LoadBalancer/DisableWithNetwork",
 			old: types.ClusterConfig{
 				Network:      types.Network{Enabled: utils.Pointer(true)},

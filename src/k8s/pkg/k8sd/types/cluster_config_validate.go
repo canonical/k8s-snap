@@ -105,9 +105,6 @@ func (c *ClusterConfig) Validate() error {
 		if c.Gateway.GetEnabled() {
 			return fmt.Errorf("gateway requires network to be enabled")
 		}
-		if c.LoadBalancer.GetEnabled() {
-			return fmt.Errorf("load-balancer requires network to be enabled")
-		}
 		if c.Ingress.GetEnabled() {
 			return fmt.Errorf("ingress requires network to be enabled")
 		}
