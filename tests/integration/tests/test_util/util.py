@@ -14,6 +14,7 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable, List, Mapping, Optional, Union
+import yaml
 
 import pytest
 from tenacity import (
@@ -374,7 +375,17 @@ def get_join_token(
 
 # Join an existing cluster.
 def join_cluster(instance: harness.Instance, join_token: str):
-    instance.exec(["k8s", "join-cluster", join_token])
+    join_cfg = {
+        'extra-node-kubelet-args': {
+            '--v': '6',
+        },
+        'extra-node-containerd-args': {
+            '--log-level': 'debug',
+        }
+    }
+    instance.exec(
+        ["k8s", "join-cluster", join_token, '--file', '-'],
+        input=str.encode(yaml.safe_dump(join_cfg)))
 
 
 def is_ipv6(ip: str) -> bool:
