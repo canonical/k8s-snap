@@ -134,7 +134,7 @@ linkcheck: install
 	exit 0
 
 woke: woke-install
-	woke $(ALLFILES) --exit-1-on-failure \
+	woke $(TARGET) --exit-1-on-failure \
 -c https://raw.githubusercontent.com/canonical/Inclusive-naming/main/config.yml
 
 pa11y: pa11y-install html
