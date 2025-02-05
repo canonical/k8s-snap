@@ -380,7 +380,7 @@ def join_cluster(instance: harness.Instance, join_token: str, worker=False):
             "--log-level": "debug",
         },
         "extra-node-kubelet-args": {
-            "--v": "6",
+            "--v": "8",
         },
     }
     if not worker:
