@@ -24,7 +24,14 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
 
     bootstrap_conf = yaml.safe_dump(
         {
-            "cluster-config": {"network": {"enabled": True}, "dns": {"enabled": True}},
+            "cluster-config": {
+                "network": {"enabled": True},
+                "dns": {"enabled": True},
+                "metrics-server": {"enabled": True},
+                "annotations": {
+                    "k8sd/v1alpha/lifecycle/skip-cleanup-kubernetes-node-on-remove": True,
+                },
+            },
             "datastore-type": "external",
             "datastore-servers": etcd_cluster.client_urls,
             "datastore-ca-crt": etcd_cluster.ca_cert,
