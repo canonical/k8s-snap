@@ -300,13 +300,46 @@ def wait_until_k8s_ready(
                 f"(node: {node_name}): {e}, attempting kubelet restart."
             )
             try:
-                instance.exec(["snap", "restart", "k8s.kubelet"])
+                instance.exec(
+                    [
+                        "k8s",
+                        "kubectl",
+                        "-n",
+                        "kube-system",
+                        "patch",
+                        "daemonset",
+                        "cilium",
+                        "-p",
+                        '{"spec": {"template": {"spec": {"nodeSelector": {"non-existing": "true"}}}}}',
+                    ]
+                )
+
+                time.sleep(10)
+
+                instance.exec(
+                    [
+                        "k8s",
+                        "kubectl",
+                        "-n",
+                        "kube-system",
+                        "patch",
+                        "daemonset",
+                        "cilium",
+                        "--type",
+                        "json",
+                        "-p",
+                        '[{"op": "remove", "path": "/spec/template/spec/nodeSelector/non-existing"}]',
+                    ]
+                )
+
                 wait_node()
             except Exception as ex:
-                LOG.error(f"Instance unavailable even after kubelet restart: {ex}")
+                LOG.error(
+                    f"Instance unavailable even after recreating cilium pods: {ex}"
+                )
                 raise ex
 
-            LOG.error("Instance available after kubelet restart")
+            LOG.error("Instance available after recreating cilium pods")
             raise e
 
     LOG.info(
