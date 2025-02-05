@@ -279,7 +279,7 @@ def wait_until_k8s_ready(
         node_name = node_names.get(instance.id, hostname(instance))
         LOG.info(f"Checking if Kubelet is ready on '{instance.id}' (node: {node_name})")
 
-        try:
+        def wait_node():
             result = (
                 stubbornly(retries=retries, delay_s=delay_s)
                 .on(control_node)
@@ -292,11 +292,23 @@ def wait_until_k8s_ready(
             )
             LOG.info("Command output: %s", result.stdout.decode())
 
+        try:
+            wait_node()
         except Exception as e:
             LOG.error(
-                f"Failed to verify readiness of instance '{instance.id}' (node: {node_name}): {e}"
+                f"Failed to verify readiness of instance '{instance.id}' "
+                f"(node: {node_name}): {e}, attempting kubelet restart."
             )
-            raise
+            try:
+                instance.exec(["snap", "restart", "k8s.kubelet"])
+                wait_node()
+            except Exception as ex:
+                LOG.error(f"Instance unavailable even after kubelet restart: {ex}")
+                raise ex
+
+            LOG.error("Instance available after kubelet restart")
+            raise e
+
     LOG.info(
         "Successfully checked Kubelet registered on all harness instances: "
         f"{instance_id_node_name_map}"
