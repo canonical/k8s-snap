@@ -13,12 +13,14 @@ from test_util.etcd import EtcdCluster
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.node_count(1)
+@pytest.mark.node_count(2)
 @pytest.mark.etcd_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
 def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     k8s_instance = instances[0]
+    cluster_node = k8s_instance
+    joining_cp = instances[1]
 
     bootstrap_conf = yaml.safe_dump(
         {
@@ -100,3 +102,7 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     )
     response = json.loads(resp.stdout.decode())
     assert response["error_code"] == 400, "changing the datastore type should fail"
+
+    join_token = util.get_join_token(cluster_node, joining_cp)
+    util.join_cluster(joining_cp, join_token)
+    util.wait_until_k8s_ready(cluster_node, [joining_cp])
