@@ -10,9 +10,9 @@ on:
       - autoupdate/moonray
       - 'release-[0-9]+.[0-9]+'
       - 'autoupdate/release-[0-9]+.[0-9]+-strict'
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
+  # pull_request:
+  #   paths-ignore:
+  #     - 'docs/**'
 
 permissions:
   contents: read
