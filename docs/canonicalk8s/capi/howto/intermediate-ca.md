@@ -121,6 +121,12 @@ The workload cluster will now retrieve the CA from the secret during
 bootstrapping. Refer to the [provisioning guide] for further instructions on
 completing the process.
 
+# Further reading
+
+See this [Vault article] for more details on how to integrate Vault as a
+Kubernetes certificate manager.
+
 <!--LINKS -->
 [HashiCorp Vault]: https://developer.hashicorp.com/vault/docs
 [provisioning guide]: ./provision.md
+[Vault article]: https://support.hashicorp.com/hc/en-us/articles/21920341210899-Create-an-Intermediate-CA-in-Kubernetes-using-Vault-as-a-certificate-manager
