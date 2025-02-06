@@ -18,6 +18,13 @@ You may specify a custom containerd path like so:
 ```bash
 cat <<EOF | sudo k8s bootstrap --file -
 containerd-base-dir: $containerdBaseDir
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+  local-storage:
+    enabled: true
 EOF
 ```
 
