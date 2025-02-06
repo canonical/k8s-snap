@@ -62,6 +62,9 @@ def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
     containerd_path_bootstrap_config = (
         config.MANIFESTS_DIR / "bootstrap-containerd-path.yaml"
     ).read_text()
+    containerd_path_join_config = """
+containerd-base-dir: /home/ubuntu
+"""
 
     main.exec(
         ["k8s", "bootstrap", "--file", "-"],
@@ -71,7 +74,7 @@ def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
     join_token = util.get_join_token(main, joiner)
     joiner.exec(
         ["k8s", "join-cluster", join_token, "--file", "-"],
-        input=str.encode(containerd_path_bootstrap_config),
+        input=str.encode(containerd_path_join_config),
     )
 
     boostrap_config = yaml.safe_load(containerd_path_bootstrap_config)
@@ -104,6 +107,11 @@ def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
         # Check that the containerd-related folders are in the new locations.
         # If one of them is missing, this should have a non-zero exit code.
         instance.exec(["ls", *new_containerd_paths], check=True)
+
+    # Ensure that the cluster actually becomes available.
+    util.wait_until_k8s_ready(main, instances)
+    nodes = util.ready_nodes(main)
+    assert len(nodes) == 2, "nodes should have joined cluster"
 
     for instance in instances:
         util.remove_k8s_snap(instance)
