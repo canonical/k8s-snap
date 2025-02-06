@@ -149,6 +149,7 @@ def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
     latest_release = get_latest_release()
     LOG.info("Latest k8s release: %s", latest_release)
 
+    latest_risk_level = None
     if not is_stable_release(latest_release):
         # e.g. 1.XX.0-alpha
         latest_risk_level = latest_release.rsplit(".", 1)[0]
