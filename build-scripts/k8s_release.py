@@ -145,8 +145,14 @@ def prepare_prerelease_git_branch(project_basedir: str, remote: str = "origin"):
 
 def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
     """Remove obsolete pre-release git branches."""
+    # e.g. 1.XX.0-alpha.0
     latest_release = get_latest_release()
     LOG.info("Latest k8s release: %s", latest_release)
+
+    latest_risk_level = None
+    if not is_stable_release(latest_release):
+        # e.g. 1.XX.0-alpha
+        latest_risk_level = latest_release.rsplit(".", 1)[0]
 
     _exec(["git", "fetch", remote], cwd=project_basedir)
 
@@ -154,13 +160,20 @@ def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
     for outstanding_prerelease in obsolete_prereleases:
         branch = get_prerelease_git_branch(outstanding_prerelease)
 
+        if latest_risk_level and latest_risk_level in branch:
+            # The git branch corresponds to the latest risk-level, keep it.
+            # e.g. the autoupdate/v1.33.0-alpha should not be removed if the
+            #      latest release is v1.33.0-alpha.1
+            LOG.info("Keeping current risk-level branch: %s", branch)
+            continue
+
         if _branch_exists(
             f"{remote}/{branch}", remote=True, project_basedir=project_basedir
         ):
             LOG.info("Cleaning up obsolete pre-release branch: %s", branch)
             _exec(["git", "push", remote, "--delete", branch], cwd=project_basedir)
         else:
-            LOG.info("Obsolete branch not found, skpping: %s", branch)
+            LOG.info("Obsolete branch not found, skipping: %s", branch)
 
 
 if __name__ == "__main__":
@@ -188,6 +201,7 @@ if __name__ == "__main__":
     cmd.add_argument("--remote", dest="remote", help="Git remote.", default="origin")
 
     subparsers.add_parser("get_outstanding_prerelease")
+    subparsers.add_parser("get_obsolete_prereleases")
     subparsers.add_parser("remove_obsolete_prereleases")
 
     kwargs = vars(parser.parse_args())
