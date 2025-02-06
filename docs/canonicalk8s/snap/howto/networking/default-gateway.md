@@ -75,10 +75,10 @@ should return the welcome to Nginx message. This means the Nginx
 server is accessible from within the cluster. In this example:
 
 ```
-curl 10.152.183.189
+curl 10.152.183.189:80
 ```
 
-To gain access from outside the cluster, the Gateway needs an 
+To gain access from outside of the cluster, the Gateway needs an 
 external IP address which will be provided with the load balancer.
 
 ```
