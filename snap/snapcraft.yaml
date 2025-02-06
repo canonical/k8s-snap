@@ -22,7 +22,7 @@ parts:
   build-deps:
     plugin: nil
     build-snaps:
-      - go/1.23/stable
+      - go/1.23-fips/stable
     build-packages:
       - autoconf
       - automake
@@ -42,6 +42,7 @@ parts:
       - libnfnetlink-dev
       - libseccomp-dev
       - libtool
+      - libssl-dev
       - pkg-config
       - rsync
       - tcl
@@ -93,6 +94,7 @@ parts:
   kubernetes:
     after: [build-deps]
     plugin: nil
+    build-attributes: [no-patchelf]
     source: build-scripts
     override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh kubernetes
 
