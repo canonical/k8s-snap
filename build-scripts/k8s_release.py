@@ -127,6 +127,8 @@ def prepare_prerelease_git_branch(project_basedir: str, remote: str = "origin"):
         LOG.info("No outstanding k8s pre-release.")
         return
 
+    _exec(["git", "checkout", "-b", branch])
+
     _update_prerelease_k8s_component(project_basedir, str(prerelease))
 
     _exec(
@@ -139,7 +141,6 @@ def prepare_prerelease_git_branch(project_basedir: str, remote: str = "origin"):
     )
 
     branch = get_prerelease_git_branch(str(prerelease))
-    _exec(["git", "checkout", "-b", branch])
     _exec(["git", "push", remote, branch, "--force"])
 
 
