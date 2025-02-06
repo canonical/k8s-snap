@@ -22,7 +22,7 @@ parts:
   build-deps:
     plugin: nil
     build-snaps:
-      - go/1.24/stable
+      - go/1.23-fips/stable
     build-attributes: [enable-patchelf]
     build-packages:
       - sudo
@@ -44,6 +44,7 @@ parts:
       - libnfnetlink-dev
       - libseccomp-dev
       - libtool
+      - libssl-dev
       - pkg-config
       - rsync
       - tcl
@@ -99,8 +100,8 @@ parts:
   kubernetes:
     after: [build-deps]
     plugin: nil
+    build-attributes: [no-patchelf]
     source: build-scripts
-    build-attributes: [enable-patchelf]
     override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh kubernetes
 
   kubernetes-version:

@@ -6,7 +6,7 @@ mkdir -p "${INSTALL}"
 export KUBE_GIT_VERSION_FILE="${PWD}/.version.sh"
 
 for app in kubernetes; do
-  make WHAT="cmd/${app}" KUBE_STATIC_OVERRIDES="${app}" GOFLAGS="-tags=providerless"
+  make GOEXPERIMENT=opensslcrypto WHAT="cmd/${app}" KUBE_CGO_OVERRIDES="${app}" GOFLAGS="-tags=providerless,goexperiment.systemcrypto,linux,cgo"
   cp _output/bin/"${app}" "${INSTALL}/${app}"
 done
 

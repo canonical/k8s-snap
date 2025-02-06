@@ -5,6 +5,8 @@
 # Configure execution environment, locales and XDG to use paths from SNAP
 # Example: 'k8s::common::setup_env'
 k8s::common::setup_env() {
+  GOFIPS=1
+
   if [ -n "$_K8S_ENV_SETUP_ONCE" ]; then
     return 0
   fi
