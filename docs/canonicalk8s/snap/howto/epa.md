@@ -331,7 +331,7 @@ EPA capabilities.
 
 2. Create a file called *configuration.yaml* or download it
 {download}`here </assets/configuration.yaml>`. In this configuration file
-we let the snap start with its default CNI (calico), with CoreDNS deployed and
+we let the snap start with its default CNI (cilium), with CoreDNS deployed and
 we also point k8s to the external etcd.
 
 ```{literalinclude} /assets/configuration.yaml
