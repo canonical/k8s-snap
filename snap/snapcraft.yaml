@@ -56,7 +56,7 @@ parts:
     build-attributes: [enable-patchelf]
     override-prime: ""
     override-build: |
-      DQLITE_STAGING_DIR="${SNAPCRAFT_STAGE}/static-dqlite-deps"
+      DQLITE_STAGING_DIR="${SNAPCRAFT_STAGE}/dynamic-dqlite-deps"
       if [ -d "${DQLITE_STAGING_DIR}" ]; then
         rm -rf "${DQLITE_STAGING_DIR}"
       fi
@@ -64,7 +64,7 @@ parts:
       cp -rv * "${DQLITE_STAGING_DIR}"
 
       # Build dqlite libraries on the staging area
-      "${DQLITE_STAGING_DIR}/static-dqlite.sh"
+      "${DQLITE_STAGING_DIR}/dynamic-dqlite.sh"
 
   k8s-dqlite:
     after: [dqlite]
@@ -81,7 +81,7 @@ parts:
     override-build: |
       INSTALL="${SNAPCRAFT_PART_INSTALL}"
 
-      export DQLITE_BUILD_SCRIPTS_DIR="${SNAPCRAFT_STAGE}/static-dqlite-deps"
+      export DQLITE_BUILD_SCRIPTS_DIR="${SNAPCRAFT_STAGE}/dynamic-dqlite-deps"
       make static -j
 
       mkdir -p "${INSTALL}/bin"
@@ -182,6 +182,7 @@ parts:
       - libnss-resolve
       - libnss-myhostname
       - libnss-mymachines
+      - libuv1
       - members
       - nano
       - net-tools
