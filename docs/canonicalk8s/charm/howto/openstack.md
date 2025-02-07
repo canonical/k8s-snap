@@ -47,6 +47,7 @@ relations:
   - [openstack-cloud-controller:external-cloud-provider, k8s:external-cloud-provider]
   - [openstack-cloud-controller:openstack,               openstack-integrator:clients]
   - [cinder-csi:openstack,                               openstack-integrator:clients]
+  - [openstack-integrator:lb-consumers,                  k8s:external-load-balancer]
 ```
 
 ### Deploy the overlay template
