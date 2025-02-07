@@ -4956,7 +4956,7 @@ security settings within the document are implemented through this file.
 > also be set to be more restrictive.
 >
 > Finding V-242450 defines the associated file ownership requirements. Finding
-> V-242451 deines the associated directory ownership requirements.
+> V-242451 defines the associated directory ownership requirements.
 >
 
 
