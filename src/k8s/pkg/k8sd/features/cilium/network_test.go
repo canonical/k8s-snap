@@ -8,6 +8,7 @@ import (
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations/cilium"
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -50,7 +51,8 @@ func TestNetworkDisabled(t *testing.T) {
 				SecurePort: ptr.To(6443),
 			}
 
-			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, nil)
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
 
 			g.Expect(err).To(MatchError(applyErr))
 			g.Expect(status.Enabled).To(BeFalse())
@@ -80,7 +82,8 @@ func TestNetworkDisabled(t *testing.T) {
 				SecurePort: ptr.To(6443),
 			}
 
-			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, nil)
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
@@ -115,7 +118,8 @@ func TestNetworkEnabled(t *testing.T) {
 				SecurePort: ptr.To(6443),
 			}
 
-			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, nil)
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
@@ -141,7 +145,8 @@ func TestNetworkEnabled(t *testing.T) {
 				SecurePort: ptr.To(6443),
 			}
 
-			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, annotations)
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, annotations)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
@@ -175,7 +180,8 @@ func TestNetworkEnabled(t *testing.T) {
 				SecurePort: ptr.To(6443),
 			}
 
-			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, annotations)
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, annotations)
 
 			g.Expect(err).To(MatchError(applyErr))
 			g.Expect(status.Enabled).To(BeFalse())
@@ -211,7 +217,8 @@ func TestNetworkEnabled(t *testing.T) {
 				apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
 				apiv1_annotations.AnnotationCNIExclusive:        "true",
 			}
-			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, testAnnotations)
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, testAnnotations)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
@@ -249,7 +256,9 @@ func TestNetworkEnabled(t *testing.T) {
 				apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
 				apiv1_annotations.AnnotationSCTPEnabled:         "true",
 			}
-			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, testAnnotations)
+
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, testAnnotations)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
@@ -300,7 +309,8 @@ func TestNetworkMountPath(t *testing.T) {
 					return tc.name, nil
 				}
 
-				status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, nil)
+				mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+				status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
 
 				g.Expect(err).To(HaveOccurred())
 				g.Expect(err).To(MatchError(mountPathErr))
@@ -337,7 +347,8 @@ func TestNetworkMountPropagationType(t *testing.T) {
 				SecurePort: ptr.To(6443),
 			}
 
-			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, nil)
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(err).To(MatchError(mountErr))
@@ -372,7 +383,8 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			logger := ktesting.NewLogger(t, ktesting.NewConfig(ktesting.BufferLogs(true)))
 			ctx := klog.NewContext(context.Background(), logger)
 
-			status, err := cilium.ApplyNetwork(ctx, snapM, s, apiserver, network, nil)
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(ctx, snapM, mc, s, apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
@@ -409,7 +421,8 @@ func TestNetworkMountPropagationType(t *testing.T) {
 				SecurePort: ptr.To(6443),
 			}
 
-			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, nil)
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
@@ -440,7 +453,8 @@ func TestNetworkMountPropagationType(t *testing.T) {
 				SecurePort: ptr.To(6443),
 			}
 
-			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, nil)
+			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())

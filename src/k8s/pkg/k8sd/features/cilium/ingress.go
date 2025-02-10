@@ -30,8 +30,7 @@ const (
 // deployment.
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
-	m := snap.HelmClient()
+func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	var values map[string]any
 	if ingress.GetEnabled() {
 		values = map[string]any{

@@ -7,6 +7,7 @@ import (
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations/calico"
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/k8sd/features/calico"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -46,7 +47,8 @@ func TestDisabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, nil, apiserver, network, nil)
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
+		status, err := calico.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -75,7 +77,8 @@ func TestDisabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, nil, apiserver, network, nil)
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
+		status, err := calico.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -108,7 +111,8 @@ func TestEnabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, nil, apiserver, network, defaultAnnotations)
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
+		status, err := calico.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, defaultAnnotations)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -133,7 +137,8 @@ func TestEnabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, nil, apiserver, network, defaultAnnotations)
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
+		status, err := calico.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, defaultAnnotations)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -161,7 +166,8 @@ func TestEnabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, nil, apiserver, network, defaultAnnotations)
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
+		status, err := calico.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, defaultAnnotations)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -192,7 +198,8 @@ func TestEnabled(t *testing.T) {
 			SecurePort: ptr.To(6443),
 		}
 
-		status, err := calico.ApplyNetwork(context.Background(), snapM, nil, apiserver, network, defaultAnnotations)
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
+		status, err := calico.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, defaultAnnotations)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
