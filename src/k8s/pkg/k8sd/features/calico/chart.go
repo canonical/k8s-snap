@@ -1,17 +1,21 @@
 package calico
 
 import (
-	"path/filepath"
+	"embed"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
 
+//go:embed all:charts
+var ChartFS embed.FS
+
 var (
 	// ChartCalico represents manifests to deploy Calico.
 	ChartCalico = helm.InstallableChart{
-		Name:         "ck-network",
-		Namespace:    "tigera-operator",
-		ManifestPath: filepath.Join("charts", "tigera-operator-v3.28.0.tgz"),
+		Name:             "tigera-operator",
+		Version:          "v3.28.0",
+		InstallName:      "ck-network",
+		InstallNamespace: "tigera-operator",
 	}
 
 	// Note: Tigera is the company behind Calico and the tigera-operator is the operator for Calico.

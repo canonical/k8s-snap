@@ -22,9 +22,7 @@ const (
 // deployment.
 // ApplyMetricsServer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsServer, annotations types.Annotations) (types.FeatureStatus, error) {
-	m := snap.HelmClient()
-
+func ApplyMetricsServer(ctx context.Context, snap snap.Snap, m helm.Client, cfg types.MetricsServer, annotations types.Annotations) (types.FeatureStatus, error) {
 	config := internalConfig(annotations)
 
 	values := map[string]any{

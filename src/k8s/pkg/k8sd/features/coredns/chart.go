@@ -1,17 +1,21 @@
 package coredns
 
 import (
-	"path/filepath"
+	"embed"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
 
+//go:embed all:charts
+var ChartFS embed.FS
+
 var (
 	// chartCoreDNS represents manifests to deploy CoreDNS.
 	Chart = helm.InstallableChart{
-		Name:         "ck-dns",
-		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "coredns-1.36.2.tgz"),
+		Name:             "coredns",
+		Version:          "1.36.2",
+		InstallName:      "ck-dns",
+		InstallNamespace: "kube-system",
 	}
 
 	// imageRepo is the image to use for CoreDNS.

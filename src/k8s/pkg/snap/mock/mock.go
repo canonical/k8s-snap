@@ -242,7 +242,7 @@ func (s *Snap) KubernetesNodeClient(namespace string) (*kubernetes.Client, error
 	return s.Mock.KubernetesNodeClient, nil
 }
 
-func (s *Snap) HelmClient() helm.Client {
+func (s *Snap) HelmClient(chartLoader helm.ChartLoader) helm.Client {
 	return s.Mock.HelmClient
 }
 

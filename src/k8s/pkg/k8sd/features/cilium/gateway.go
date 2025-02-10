@@ -22,16 +22,14 @@ const (
 // deployment.
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	if gateway.GetEnabled() {
-		return enableGateway(ctx, snap)
+		return enableGateway(ctx, snap, m)
 	}
-	return disableGateway(ctx, snap, network)
+	return disableGateway(ctx, snap, m, network)
 }
 
-func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, error) {
-	m := snap.HelmClient()
-
+func enableGateway(ctx context.Context, snap snap.Snap, m helm.Client) (types.FeatureStatus, error) {
 	// Install Gateway API CRDs
 	if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, nil); err != nil {
 		err = fmt.Errorf("failed to install Gateway API CRDs: %w", err)
@@ -86,9 +84,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 	}, nil
 }
 
-func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) (types.FeatureStatus, error) {
-	m := snap.HelmClient()
-
+func disableGateway(ctx context.Context, snap snap.Snap, m helm.Client, network types.Network) (types.FeatureStatus, error) {
 	// Delete our GatewayClass named ck-gateway
 	if _, err := m.Apply(ctx, chartGatewayClass, helm.StateDeleted, nil); err != nil {
 		err = fmt.Errorf("failed to delete Gateway API GatewayClass: %w", err)

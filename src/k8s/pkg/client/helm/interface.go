@@ -1,6 +1,10 @@
 package helm
 
-import "context"
+import (
+	"context"
+
+	"helm.sh/helm/v3/pkg/chart"
+)
 
 // Client handles the lifecycle of charts (manifests + config) on the cluster.
 type Client interface {
@@ -10,4 +14,10 @@ type Client interface {
 	// When state is StateDeleted, Apply will ensure that the chart is removed. If the chart is not installed, this is a no-op. Apply returns true if the chart was previously installed.
 	// Apply returns an error in case of failure.
 	Apply(ctx context.Context, f InstallableChart, desired State, values map[string]any) (bool, error)
+}
+
+// ChartLoader handles the loading of charts from various sources.
+type ChartLoader interface {
+	// Load loads a chart
+	Load(ctx context.Context, f InstallableChart) (*chart.Chart, error)
 }
