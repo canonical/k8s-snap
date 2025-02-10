@@ -50,6 +50,16 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Post:              rest.EndpointAction{Handler: e.postClusterBootstrap},
 			AllowedBeforeInit: true,
 		},
+		{
+			Name: "ChartIndex",
+			Path: "k8sd/charts/index.yaml",
+			Get:  rest.EndpointAction{Handler: e.getHelmChartsIndex, AccessHandler: e.restrictWorkers, AllowUntrusted: true},
+		},
+		{
+			Name: "InsertChart",
+			Path: "k8sd/charts",
+			Post: rest.EndpointAction{Handler: e.postHelmChart, AccessHandler: e.restrictWorkers, AllowUntrusted: true},
+		},
 		// Node
 		// Returns the status (e.g. current role) of the local node (control-plane, worker or unknown).
 		{
