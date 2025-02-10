@@ -25,9 +25,7 @@ const (
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 // Contour CRDS are applied through a ck-contour common chart (Overlap with gateway).
-func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
-	m := snap.HelmClient()
-
+func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress types.Ingress, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	if !ingress.GetEnabled() {
 		if _, err := m.Apply(ctx, chartContour, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall ingress: %w", err)
@@ -45,7 +43,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 	}
 
 	// Apply common contour CRDS, these are shared with gateway
-	if err := applyCommonContourCRDS(ctx, snap, true); err != nil {
+	if err := applyCommonContourCRDS(ctx, snap, m, true); err != nil {
 		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -164,8 +162,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ 
 
 // applyCommonContourCRDS will install the common contour CRDS when enabled is true.
 // These CRDS are shared between the contour ingress and the gateway feature.
-func applyCommonContourCRDS(ctx context.Context, snap snap.Snap, enabled bool) error {
-	m := snap.HelmClient()
+func applyCommonContourCRDS(ctx context.Context, snap snap.Snap, m helm.Client, enabled bool) error {
 	if enabled {
 		if _, err := m.Apply(ctx, chartCommonContourCRDS, helm.StatePresent, nil); err != nil {
 			return fmt.Errorf("failed to install common CRDS: %w", err)

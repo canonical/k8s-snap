@@ -3,6 +3,7 @@ package calico
 import (
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/k8sd/charts"
 	"github.com/canonical/k8s/pkg/k8sd/images"
 )
 
@@ -21,4 +22,6 @@ func init() {
 		fmt.Sprintf("%s/pod2daemon-flexvol:%s", calicoImageRepo, CalicoTag),
 		fmt.Sprintf("%s/typha:%s", calicoImageRepo, CalicoTag),
 	)
+
+	charts.Register(&ChartFS)
 }
