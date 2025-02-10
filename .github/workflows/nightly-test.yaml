@@ -81,6 +81,11 @@ jobs:
           # Install python dependencies
           pip install -r tests/integration/requirements-test.txt
           pip install -r tests/integration/requirements-dev.txt
+          # Needed by pylint (TICSQServer), used in build-scripts, k8s/scripts/cis
+          pip install requests jinja2 semver
+
+          # Integration tests are importing a local test_util module. Needed for pylint.
+          export PYTHONPATH="$PYTHONPATH:$(pwd)/tests/integration/tests"
 
           cd src/k8s
 
