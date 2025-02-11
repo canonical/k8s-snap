@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  spell-check:
+  doc-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,6 +19,14 @@ jobs:
         name: Spell Check
         run: vale --glob='*.{md,txt,rst}' .
         working-directory: docs/canonicalk8s
+
+      - name: Link Check
+        id: linkcheck-step
+        if: success() || failure()
+        uses: canonical/documentation-workflows/linkcheck@main
+        with:
+          working-directory: docs/canonicalk8s
+
       #  continue-on-error: true
       # - if: ${{ github.event_name == 'pull_request' && steps.spell-check.outcome == 'failure' }}
         # uses: actions/github-script@v6
