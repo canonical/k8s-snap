@@ -4,20 +4,20 @@
 
 # You can set these variables from the command line, and also
 # from the environment for the first two.
-SPHINXDIR     = .sphinx
-SPHINXOPTS    ?= -c . -d $(SPHINXDIR)/.doctrees -j auto
-SPHINXBUILD   ?= sphinx-build
-SOURCEDIR     = .
-METRICSDIR    = $(SOURCEDIR)/.sphinx/metrics
-BUILDDIR      = _build
-VENVDIR       = $(SPHINXDIR)/venv
-PA11Y         = $(SPHINXDIR)/node_modules/pa11y/bin/pa11y.js --config $(SPHINXDIR)/pa11y.json
-VENV          = $(VENVDIR)/bin/activate
-TARGET        = *
-ALLFILES      =  *.md **/*.md
-ADDPREREQS    ?=
-REQPDFPACKS   = latexmk fonts-freefont-otf texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended texlive-font-utils texlive-lang-cjk texlive-xetex plantuml xindy tex-gyre dvipng
+SPHINXDIR       = .sphinx
+SPHINXOPTS      ?= -c . -d $(SPHINXDIR)/.doctrees -j auto
+SPHINXBUILD     ?= $(VENVDIR)/bin/sphinx-build
+SOURCEDIR       = .
+BUILDDIR        = _build
+VENVDIR         = $(SPHINXDIR)/venv
+PA11Y           = $(SPHINXDIR)/node_modules/pa11y/bin/pa11y.js --config $(SPHINXDIR)/pa11y.json
+VENV         	   = $(VENVDIR)/bin/activate
+TARGET          = *
+ALLFILES        =  *.rst **/*.rst
+METRICSDIR      = $(SOURCEDIR)/.sphinx/metrics
+REQPDFPACKS     = latexmk fonts-freefont-otf texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended texlive-font-utils texlive-lang-cjk texlive-xetex plantuml xindy tex-gyre dvipng
 CONFIRM_SUDO    ?= N
+VALE_CONFIG     = $(SPHINXDIR)/vale.ini
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -41,7 +41,7 @@ help:
 
 .PHONY: full-help woke-install spellcheck-install pa11y-install install run html \
         epub serve clean clean-doc spelling spellcheck linkcheck woke \
-        allmetrics pa11y pdf-prep-force pdf-prep pdf Makefile.sp vale bash
+        allmetrics pa11y pdf-prep-force pdf-prep pdf Makefile.sp vale-install vale
 
 full-help: $(VENVDIR)
 	@. $(VENV); $(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
@@ -62,21 +62,6 @@ $(VENVDIR):
 	@. $(VENV); pip list --local --format=freeze > $(VENVDIR)/pip_list.txt
 	@touch $(VENVDIR)
 
-woke-install:
-	@type woke >/dev/null 2>&1 || \
-	{ \
-		echo "Installing system-wide \"woke\" snap..."; \
-		confirm_sudo=$(CONFIRM_SUDO); \
-		if [ "$$confirm_sudo" != "y" ] && [ "$$confirm_sudo" != "Y" ]; then \
-			read -p "This requires sudo privileges. Proceed? [y/N]: " confirm_sudo; \
-		fi; \
-		if [ "$$confirm_sudo" = "y" ] || [ "$$confirm_sudo" = "Y" ]; then \
-			sudo snap install woke; \
-		else \
-			echo "Installation cancelled."; \
-		fi \
-	}
-
 spellcheck-install:
 	@type aspell >/dev/null 2>&1 || \
 	{ \
@@ -91,6 +76,7 @@ spellcheck-install:
 			echo "Installation cancelled."; \
 		fi \
 	}
+
 pa11y-install:
 	@type $(PA11Y) >/dev/null 2>&1 || { \
 			echo "Installing \"pa11y\" from npm... \n"; \
@@ -118,7 +104,7 @@ clean: clean-doc
 	rm -rf $(VENVDIR)
 	rm -rf $(SPHINXDIR)/node_modules/
 	rm -rf $(SPHINXDIR)/styles
-	rm -rf $(SPHINXDIR)/vale.ini
+	rm -rf $(VALE_CONFIG)
 
 clean-doc:
 	git clean -fx "$(BUILDDIR)"
@@ -133,23 +119,28 @@ linkcheck: install
 	. $(VENV) ; $(SPHINXBUILD) -b linkcheck "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) || { grep --color -F "[broken]" "$(BUILDDIR)/output.txt"; exit 1; }
 	exit 0
 
-woke: woke-install
-	woke $(TARGET) --exit-1-on-failure \
--c https://raw.githubusercontent.com/canonical/Inclusive-naming/main/config.yml
-
 pa11y: pa11y-install html
 	find $(BUILDDIR) -name *.html -print0 | xargs -n 1 -0 $(PA11Y)
 
-vale: install
-	@. $(VENV); test -d $(SPHINXDIR)/venv/lib/python*/site-packages/vale || pip install vale
-	@. $(VENV); test -f $(SPHINXDIR)/vale.ini || python3 $(SPHINXDIR)/get_vale_conf.py
-	@. $(VENV); find $(SPHINXDIR)/venv/lib/python*/site-packages/vale/vale_bin -size 195c -exec vale --config "$(SPHINXDIR)/vale.ini" $(TARGET) > /dev/null \;
+vale-install: install
+	@. $(VENV); test -d $(SPHINXDIR)/venv/lib/python*/site-packages/vale || pip install rst2html vale
+	@. $(VENV); test -f $(VALE_CONFIG) || python3 $(SPHINXDIR)/get_vale_conf.py
+	@printf '.Name=="Canonical.400-Enforce-inclusive-terms"' > $(SPHINXDIR)/styles/woke.filter
+	@printf '.Level=="error"' > $(SPHINXDIR)/styles/error.filter
+	@. $(VENV); find $(SPHINXDIR)/venv/lib/python*/site-packages/vale/vale_bin -size 195c -exec vale --config "$(VALE_CONFIG)" $(TARGET) > /dev/null \;
+
+woke: vale-install
 	@cat $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept.txt > $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept_backup.txt
 	@cat $(SPHINXDIR)/.wordlist.txt $(SOURCEDIR)/.custom_wordlist.txt >> $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept.txt
-	@echo ""
-	@echo "Running Vale against $(TARGET). To change target set TARGET= with make command"
-	@echo ""
-	@. $(VENV); vale --config "$(SPHINXDIR)/vale.ini" --glob='*.{md,txt,rst}' $(TARGET) || true
+	@printf "Running Vale acceptable term check against $(TARGET). To change target set TARGET= with make command\n"
+	@. $(VENV); vale --config="$(VALE_CONFIG)" --filter='$(SPHINXDIR)/styles/woke.filter' --glob='*.{md,rst}' $(TARGET) || true
+	@cat $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept_backup.txt > $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept.txt && rm $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept_backup.txt
+
+vale: vale-install
+	@cat $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept.txt > $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept_backup.txt
+	@cat $(SPHINXDIR)/.wordlist.txt $(SOURCEDIR)/.custom_wordlist.txt >> $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept.txt
+	@printf "Running Vale against $(TARGET). To change target set TARGET= with make command\n"
+	@. $(VENV); vale --config="$(VALE_CONFIG)" --filter='$(SPHINXDIR)/styles/error.filter' --glob='*.{md,rst}' $(TARGET) || true
 	@cat $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept_backup.txt > $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept.txt && rm $(SPHINXDIR)/styles/config/vocabularies/Canonical/accept_backup.txt
 
 pdf-prep: install
@@ -177,11 +168,10 @@ allmetrics: html
 	@echo "Checking for existence of vale..."
 	. $(VENV)
 	@. $(VENV); test -d $(SPHINXDIR)/venv/lib/python*/site-packages/vale || pip install vale
-	@. $(VENV); test -f $(SPHINXDIR)/vale.ini || python3 $(SPHINXDIR)/get_vale_conf.py
-	@. $(VENV); find $(SPHINXDIR)/venv/lib/python*/site-packages/vale/vale_bin -size 195c -exec vale --config "$(SPHINXDIR)/vale.ini" $(TARGET) > /dev/null \;
+	@. $(VENV); test -f $(VALE_CONFIG) || python3 $(SPHINXDIR)/get_vale_conf.py
+	@. $(VENV); find $(SPHINXDIR)/venv/lib/python*/site-packages/vale/vale_bin -size 195c -exec vale --config "$(VALE_CONFIG)" $(TARGET) > /dev/null \;
 	@eval '$(METRICSDIR)/source_metrics.sh $(PWD)'
 	@eval '$(METRICSDIR)/build_metrics.sh $(PWD) $(METRICSDIR)'
-
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).

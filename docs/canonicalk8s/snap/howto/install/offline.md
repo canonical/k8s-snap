@@ -56,7 +56,7 @@ ports used by {{product}}.  -->
 #### Default Gateway
 
 In cases where the air-gap environment does not have a default Gateway,
-add a dummy default route on the `eth0` interface using the following command:
+add a placeholder default route on the `eth0` interface using the following command:
 
 ```
 ip route add default dev eth0
@@ -67,9 +67,9 @@ Ensure that `eth0` is the name of the default network interface used for
 pod-to-pod communication.
 ```
 
-The dummy gateway will only be used by the Kubernetes services to
+The placeholder gateway will only be used by the Kubernetes services to
 know which interface to use, actual connectivity to the internet is not
-required. Ensure that the dummy gateway rule survives a node reboot.
+required. Ensure that the placeholder gateway rule survives a node reboot.
 
 #### Ensure proxy access
 

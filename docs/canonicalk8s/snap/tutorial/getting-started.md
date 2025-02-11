@@ -224,8 +224,8 @@ This option ensures complete removal of the snap and its associated data.
 - Explore Kubernetes commands with our [Command Reference Guide]
 - Learn how to set up a multi-node environment by [Adding and Removing Nodes]
 - Configure storage options: [Storage]
-- Master Kubernetes networking concepts: [Networking]
-- Discover how to enable and configure Ingress resources: [Ingress]
+- Discover Kubernetes networking concepts: [Networking]
+- Learn how to enable and configure Ingress resources: [Ingress]
 
 <!-- LINKS -->
 
