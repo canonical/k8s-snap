@@ -1,4 +1,4 @@
-name: Documentation Spelling Check
+name: Documentation Checks
 
 on:
   workflow_dispatch:
@@ -12,7 +12,9 @@ jobs:
   doc-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Install vale
         run: sudo snap install vale
       - id: spell-check
@@ -24,6 +26,13 @@ jobs:
         id: linkcheck-step
         if: success() || failure()
         uses: canonical/documentation-workflows/linkcheck@main
+        with:
+          working-directory: docs/canonicalk8s
+
+      - name: Inclusive Language Check
+        id: woke-step
+        if: success() || failure()
+        uses: canonical/documentation-workflows/inclusive-language@main
         with:
           working-directory: docs/canonicalk8s
 
