@@ -99,7 +99,7 @@ If `direct-routing-device` is left undefined, it is automatically set to the dev
 
 ### Solution
 
-Idetify the default route used for the cluster. The `route` command is part of the net-tools Debian package.
+Identify the default route used for the cluster. The `route` command is part of the net-tools Debian package.
 
 ```
 route
@@ -114,7 +114,7 @@ default         _gateway        0.0.0.0         UG    0      0        0 br-ex
 172.27.20.0     0.0.0.0         255.255.254.0   U     0      0        0 br-ex
 ```
 
-The `br-ex` interface is the default interace used for this cluster. Apply the annotation to the node adding bridge interfaces `br+` to the `devices` list:
+The `br-ex` interface is the default interface used for this cluster. Apply the annotation to the node adding bridge interfaces `br+` to the `devices` list:
 
 ```
 juju config k8s cluster-annotations="k8sd/v1alpha1/cilium/devices=br+"
