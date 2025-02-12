@@ -1,9 +1,9 @@
-# How to join worker nodes with custom configuration
+# How to join worker nodes with a custom configuration
 
 When creating a {{ product }} cluster you may need to join a worker node with
 a configuration that differs from the default. For example, the worker node
 may need to use alternative certificates for security reasons or the worker
-node has specific networking requirements that must be configured at node creation.
+node may have specific networking requirements that must be configured at node creation.
 Passing extra command line arguments or a configuration file
 at cluster join allows you to modify the configuration of your worker node.
 
@@ -23,26 +23,17 @@ To discover the configuration options available as command line arguments, on th
 sudo k8s join-cluster --help
 ```
 
-The options are:
-
-- `address`: microcluster address or CIDR of the node
-- `file` : path to the YAML file containing your custom cluster join configuration
-- `h`, `help`: help for join-cluster
-- `name`: node name
-- `output-format`: set the output format to plain, json or yaml
-- `timeout`: the max time to wait for the command to execute
-
 ### Configuration file
 
 More configuration options are available when a configuration file is specified. Please consult the [reference page] for all of the
 available configuration options and their defaults.
 
-## Join a custom worker with command line arguments
+## Command line arguments
 
-In this example, the worker node will be named custom-worker in the cluster, rather than defaulting to hostname of the machine.
+In this example, the name of the new worker node joining the cluster is specified through command line arguments, rather than defaulting to the hostname of the worker machine.
 
 A join token must be generated on the control node of the cluster. It must be specified the join token is for a `--worker` node. The name given for the worker node
-in this example is custom-worker which is not the default hostname.
+in this example is `custom-worker` which is not the default hostname.
 
 ```
 sudo k8s get-join-token custom-worker --worker
@@ -69,7 +60,9 @@ sudo k8s kubectl get nodes
 
 The output should list the `custom-worker` node in a `Ready` state.
 
-## Join a custom worker with a configuration file
+## Configuration file
+
+In this example, the configuration file provided at cluster join will set the proxy mode of the worker machine to `ipvs`.
 
 A join token must be generated on the control node of the cluster. It must be specified the join token is for a `--worker` node. The name given for the worker node
 in this example is worker-machine which is the default hostname.
@@ -85,11 +78,12 @@ On the new worker machine, install the snap:
 :end-before: <!-- snap end -->
 ```
 
-Create a `custom_config.yaml` file that...
+Create a `custom_config.yaml` file that sets the intended custom configurations.
 
 ```
 cat <<EOF > custom_config.yaml
-
+extra-node-kube-proxy-args:
+    "--proxy-mode" : "ipvs"
 EOF
 ```
 
@@ -107,12 +101,13 @@ sudo k8s kubectl get nodes
 
 The output should list the worker-machine node as in a `Ready` state.
 
-Also verify the config file change we made has been implemented on the worker node.
+Also verify the proxy mode configuration has been applied to the worker node by checking the logs of kube-proxy on the worker machine:
 
 ```
-what did we change?
+sudo journalctl -u snap.k8s.kube-proxy | grep ipvs
 ```
-//verify that it has the param we set above
+
+The output should show the proxy-mode is `ipvs`.
 
 <!-- LINKS -->
 
