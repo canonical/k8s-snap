@@ -54,15 +54,13 @@ useful.
 
 As with previously released Kubernetes software from Canonical, we aim to
 satisfy the needs of various security compliance standards. This is a process
-that will take some time however. Please watch out for future announcements and
-check the [roadmap][] for current areas of work.
+that will take some time however.
 
 <!-- LINKS -->
 
 [Kubernetes Security documentation]: https://kubernetes.io/docs/concepts/security/overview/
 [snap documentation]: https://snapcraft.io/docs/security-policies
 [rocks-security]: https://documentation.ubuntu.com/rockcraft/en/latest/explanation/rockcraft.html
-[roadmap]: ../reference/roadmap
 [Amazon Web Services security]: https://aws.amazon.com/security/
 [Google Cloud Platform security]:https://cloud.google.com/security
 [Metal As A Service(MAAS) hardening]:https://maas.io/docs/how-to-enhance-maas-security
