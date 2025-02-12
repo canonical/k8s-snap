@@ -392,6 +392,7 @@ cybersecurity
 uid
 runc
 unoptimized
+HTTPRoute
 namespaces
 upgrader
 reources
