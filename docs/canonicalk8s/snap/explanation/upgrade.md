@@ -86,7 +86,7 @@ High availability is automatically enabled in {{ product }} for clusters with
 three or more nodes independent of the deployment method. Clusters without high
 availability must be extra vigilant on [backing up cluster data] before starting
 the upgrade process and also must be aware of potential service disruptions
-during cluster upgades. It is also important to understand that Kubernetes will
+during cluster upgrades. It is also important to understand that Kubernetes will
 only upgrade and if necessary migrate, components of Kubernetes installed and
 configured as part of Kubernetes. This may
 not include any customized configuration of Kubernetes, or no-build-in

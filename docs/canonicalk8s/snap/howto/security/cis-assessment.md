@@ -2967,15 +2967,14 @@ account tokens to disable it.
 ##### CIS Control 5.1.7
 
 **Description:**
-
+<!-- vale off -->
 Avoid use of system:masters group
 
 
 **Remediation:**
-
 Remove the system:masters group from all users in the
 cluster.
-
+<!-- vale on -->
 
 ##### CIS Control 5.1.8
 
@@ -3139,7 +3138,7 @@ assigned
 
 Review the use of capabilities in applications running on
 your cluster. Where a namespace
-contains applicaions which do not require any Linux
+contains applications which do not require any Linux
 capabilities to operate consider adding
 a PSP which forbids the admission of containers which do not
 drop all capabilities.

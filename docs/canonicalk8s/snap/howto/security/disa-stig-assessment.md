@@ -917,7 +917,7 @@ The final line of the output will be `PASS`.
 > pods and container using horizontal or vertical scaling. Anyone who can gain
 > access to the API Server can effectively control your Kubernetes
 > architecture. Using authenticity protection, the communication can be
-> protected against man-in-the-middle attacks/session hijacking and the
+> protected against person-in-the-middle attacks/session hijacking and the
 > insertion of false information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -1151,7 +1151,7 @@ The final line of the output will be `PASS`.
 > unauthorized versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, man-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
 > users or services from the container platform runtime, registry, and key
 > store. To enable the minimum version of TLS to be used by the Kubernetes
 > Controller Manager, the setting "tls-min-version" must be set.
@@ -1212,7 +1212,7 @@ The final line of the output will be `PASS`.
 > versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, man-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "tls-min-version" must be set.
@@ -1272,7 +1272,7 @@ The final line of the output will be `PASS`.
 > versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, man-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "tls-min-version" must be set.
@@ -1329,7 +1329,7 @@ The final line of the output will be `PASS`.
 > protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, man-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "--auto-tls" must be set.
@@ -1469,7 +1469,7 @@ The final line of the output will be `PASS`.
 > versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, man-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "--peer-auto-tls" must be set.
@@ -2899,7 +2899,7 @@ The final line of the output will be `PASS`.
 > resources for pods and containers using horizontal or vertical scaling.
 > Anyone who can access the API Server can effectively control the Kubernetes
 > architecture. Using authenticity protection, the communication can be
-> protected against man-in-the-middle attacks/session hijacking and the
+> protected against person-in-the-middle attacks/session hijacking and the
 > insertion of false information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -2969,7 +2969,7 @@ The final line of the output will be `PASS`.
 > health checks for containers and pods. Anyone who gains access to Kubelet
 > agents can effectively control applications within the pods and containers.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3045,7 +3045,7 @@ The final line of the output will be `PASS`.
 > Anyone who gains access to the Controller Manager can generate backdoor
 > accounts, take possession of, or diminish system performance without
 > detection > by disabling system notification. Using authenticity protection,
-> the > communication can be protected against man-in-the-middle
+> the > communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -3112,7 +3112,7 @@ The final line of the output will be `PASS`.
 > pods and container using horizontal or vertical scaling. Anyone who can
 > access the API Server can effectively control the Kubernetes architecture.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3235,7 +3235,7 @@ The final line of the output will be `PASS`.
 > health checks for containers and pods. Anyone who gains access to Kubelet
 > agents can effectively control applications within the pods and containers.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3384,7 +3384,7 @@ The final line of the output will be `PASS`.
 > health checks for containers and pods. Anyone who gains access to Kubelet
 > agents can effectively control applications within the pods and containers.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3456,7 +3456,7 @@ The final line of the output will be `PASS`.
 > health checks for containers and pods. Anyone who gains access to Kubelet
 > agents can effectively control applications within the pods and containers.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3526,7 +3526,7 @@ The final line of the output will be `PASS`.
 > health checks for containers and pods. Anyone who gains access to Kubelet
 > agents can effectively control applications within the pods and containers.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3606,7 +3606,7 @@ The final line of the output will be `PASS`.
 > key-value store called etcd. Anyone who can write to etcd can effectively
 > control the Kubernetes cluster. Even just reading the contents of etcd could
 > easily provide helpful hints to a would-be attacker. Using authenticity
-> protection, the communication can be protected against man-in-the-middle
+> protection, the communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -3750,7 +3750,7 @@ The final line of the output will be `PASS`.
 > key-value store called etcd. Anyone who can write to etcd can effectively
 > control a Kubernetes cluster. Even just reading the contents of etcd could
 > easily provide helpful hints to a would-be attacker. Using authenticity
-> protection, the communication can be protected against man-in-the-middle
+> protection, the communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -3891,7 +3891,7 @@ The final line of the output will be `PASS`.
 > key-value store called etcd. Anyone who can write to etcd can effectively
 > control a Kubernetes cluster. Even just reading the contents of etcd could
 > easily provide helpful hints to a would-be attacker. Using authenticity
-> protection, the communication can be protected against man-in-the-middle
+> protection, the communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -4027,7 +4027,7 @@ The final line of the output will be `PASS`.
 > key-value store called etcd. Anyone who can write to etcd can effectively
 > control the Kubernetes cluster. Even just reading the contents of etcd could
 > easily provide helpful hints to a would-be attacker. Using authenticity
-> protection, the communication can be protected against man-in-the-middle
+> protection, the communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -4169,7 +4169,7 @@ The final line of the output will be `PASS`.
 > key-value store called etcd. Anyone who can write to etcd can effectively
 > control a Kubernetes cluster. Even just reading the contents of etcd could
 > easily provide helpful hints to a would-be attacker. Using authenticity
-> protection, the communication can be protected against man-in-the-middle
+> protection, the communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -4310,7 +4310,7 @@ The final line of the output will be `PASS`.
 key-value store called etcd. Anyone who can write to etcd can effectively
 control the Kubernetes cluster. Even just reading the contents of etcd could
 easily provide helpful hints to a would-be attacker. Using authenticity
-protection, the communication can be protected against man-in-the-middle
+protection, the communication can be protected against person-in-the-middle
 attacks/session hijacking and the insertion of false information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -4384,7 +4384,7 @@ The final line of the output will be `PASS`.
 key-value store called etcd. Anyone who can write to etcd can effectively
 control a Kubernetes cluster. Even just reading the contents of etcd could
 easily provide helpful hints to a would-be attacker. Using authenticity
-protection, the communication can be protected against man-in-the-middle
+protection, the communication can be protected against person-in-the-middle
 attacks/session hijacking and the insertion of false information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -4956,7 +4956,7 @@ security settings within the document are implemented through this file.
 > also be set to be more restrictive.
 >
 > Finding V-242450 defines the associated file ownership requirements. Finding
-> V-242451 deines the associated directory ownership requirements.
+> V-242451 defines the associated directory ownership requirements.
 >
 
 
