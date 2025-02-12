@@ -72,7 +72,8 @@ service/my-nginx                    ClusterIP      10.152.183.37    <none>      
 
 Curling the ClusterIP of `cilium-gateway-my-gateway` or `my-nginx` 
 should return the welcome to Nginx message. This means the Nginx 
-server is accessible from within the cluster. In this example:
+server is accessible from within the cluster. In this example
+the IP address is 10.152.183.189:80:
 
 ```
 curl 10.152.183.189:80
