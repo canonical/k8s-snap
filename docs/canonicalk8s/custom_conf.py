@@ -118,6 +118,9 @@ html_context = {
     "display_contributors_since": ""
 }
 
+html_copy_source = False
+html_show_sourcelink = False
+
 # If your project is on documentation.ubuntu.com, specify the project
 # slug (for example, "lxd") here.
 slug = "canonical-kubernetes"
