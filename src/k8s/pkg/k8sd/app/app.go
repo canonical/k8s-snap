@@ -52,6 +52,8 @@ type Config struct {
 	// FeatureControllerMaxRetryAttempts is the maximum number of retry attempts for the reconcile loop
 	// of the feature controller. Zero or negative values mean no limit.
 	FeatureControllerMaxRetryAttempts int
+	// DrainConnectionsTimeout is the amount of time to allow for all connections to drain when shutting down.
+	DrainConnectionsTimeout time.Duration
 }
 
 // App is the k8sd microcluster instance.
@@ -265,12 +267,13 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 	}
 
 	err := a.cluster.Start(ctx, microcluster.DaemonArgs{
-		Version:          string(apiv1.K8sdAPIVersion),
-		Verbose:          a.config.Verbose,
-		Debug:            a.config.Debug,
-		Hooks:            hooks,
-		ExtensionServers: api.New(ctx, a),
-		ExtensionsSchema: database.SchemaExtensions,
+		Version:                 string(apiv1.K8sdAPIVersion),
+		Verbose:                 a.config.Verbose,
+		Debug:                   a.config.Debug,
+		Hooks:                   hooks,
+		ExtensionServers:        api.New(ctx, a, a.config.DrainConnectionsTimeout),
+		ExtensionsSchema:        database.SchemaExtensions,
+		DrainConnectionsTimeout: a.config.DrainConnectionsTimeout,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
