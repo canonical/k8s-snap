@@ -36,8 +36,8 @@ In this example, the name of the new worker node joining the cluster is
 specified through command line arguments, rather than defaulting to the 
 hostname of the worker machine.
 
-A join token must be generated on the control node of the cluster. It must be
-specified the join token is for a `--worker` node. The name given for the worker
+A join token must be generated on the control node of the cluster. Specify
+the join token is for a `--worker` node. The name given for the worker
 node in this example is `custom-worker` which is not the default hostname.
 
 ```
@@ -74,9 +74,9 @@ The output should list the `custom-worker` node in a `Ready` state.
 In this example, the configuration file provided at cluster join will set the 
 proxy mode of the worker machine to `ipvs`.
 
-A join token must be generated on the control node of the cluster. It must be 
-specified the join token is for a `--worker` node. The name given for the worker
-node in this example is worker-machine which is the default hostname.
+A join token must be generated on the control plane node of the cluster. 
+Specify the join token is for a `--worker` node. The name given for the 
+worker node in this example is worker-machine which is the default hostname.
 
 ```
 sudo k8s get-join-token worker-machine --worker
