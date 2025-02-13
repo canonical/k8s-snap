@@ -1,6 +1,8 @@
 package k8sd
 
 import (
+	"time"
+
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/k8sd/app"
 	"github.com/canonical/k8s/pkg/log"
@@ -19,6 +21,7 @@ var rootCmdOpts struct {
 	disableFeatureController            bool
 	disableUpdateNodeConfigController   bool
 	disableCSRSigningController         bool
+	drainConnectionsTimeout             time.Duration
 }
 
 func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Command) {
@@ -55,6 +58,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				DisableUpdateNodeConfigController:   rootCmdOpts.disableUpdateNodeConfigController,
 				DisableFeatureController:            rootCmdOpts.disableFeatureController,
 				DisableCSRSigningController:         rootCmdOpts.disableCSRSigningController,
+				DrainConnectionsTimeout:             rootCmdOpts.drainConnectionsTimeout,
 			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to initialize k8sd: %v", err)
@@ -88,6 +92,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 	cmd.Flags().Uint("port", 0, "Default port for the HTTP API")
 	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")
+	cmd.Flags().DurationVar(&rootCmdOpts.drainConnectionsTimeout, "drain-connection-timeout", 10*time.Second, "amount of time to allow for all connections to drain when shutting down")
 
 	cmd.AddCommand(newSqlCmd(env))
 
