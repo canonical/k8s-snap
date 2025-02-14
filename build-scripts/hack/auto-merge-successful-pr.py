@@ -28,13 +28,13 @@ def check_pr_passed(pr_number) -> bool:
     """Check if all status checks passed for the given PR."""
     checks_json = sh(f"gh pr checks {pr_number} --json bucket")
     checks = json.loads(checks_json)
-    return all(check["bucket"] == "pass" for check in checks)
+    return all(check["bucket"] in ["pass", "skipping"] for check in checks)
 
 
 def approve_and_merge_pr(pr_number) -> None:
     """Approve and merge the PR."""
-    print(APPROVE_MSG.format(pr_number) + "Proceeding with merge...")
-    sh(f'gh pr review {pr_number} --comment -b "{APPROVE_MSG.format(pr_number)}"')
+    print(APPROVE_MSG.format(pr_number) + " Proceeding with merge...")
+    sh(f'gh pr review {pr_number} --approve -b "{APPROVE_MSG.format(pr_number)}"')
     sh(f"gh pr merge {pr_number} --admin --squash")
 
 
