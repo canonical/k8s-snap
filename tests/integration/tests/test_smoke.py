@@ -172,7 +172,7 @@ def test_bootstrap_config(instances: List[harness.Instance]):
     toggle_ingress_enabled(cp_node)
 
     LOG.info("Verifying the bootstrap config does not change after changing cluster config")
-    new_cp_resp = get_bootstrap_config(cp_node) 
+    new_cp_resp = get_bootstrap_config(cp_node)
     new_worker_resp = get_bootstrap_config(worker_node)
 
     assert cp_resp["clusterConfig"] == new_cp_resp["clusterConfig"]
@@ -181,6 +181,7 @@ def test_bootstrap_config(instances: List[harness.Instance]):
     assert worker_resp["datastore"] == new_worker_resp["datastore"]
     assert cp_resp["nodeTaints"] == new_cp_resp["nodeTaints"]
     assert worker_resp["nodeTaints"] == new_worker_resp["nodeTaints"]
+
 
 def get_bootstrap_config(instance: harness.Instance) -> Any:
     """Get the cluster bootstrap config."""
@@ -203,7 +204,7 @@ def get_bootstrap_config(instance: harness.Instance) -> Any:
     assert (
         response["error"] == ""
     ), f"Failed to get cluster bootstrap config. {response=}"
-    
+
     metadata = response.get("metadata")
     assert (
         metadata is not None
@@ -219,6 +220,7 @@ def get_bootstrap_config(instance: harness.Instance) -> Any:
     ), "Node taints not found in the cluster bootstrap config response."
 
     return metadata
+
 
 def toggle_ingress_enabled(instance: harness.Instance) -> None:
     """Toggle the ingress enabled status and wait for the cluster to be ready."""
