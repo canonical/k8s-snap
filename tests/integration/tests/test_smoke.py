@@ -160,7 +160,11 @@ def test_bootstrap_config(instances: List[harness.Instance]):
     cp_node = instances[0]
     worker_node = instances[1]
     join_token = util.get_join_token(cp_node, worker_node, "--worker")
-    util.join_cluster(worker_node, join_token, (config.MANIFESTS_DIR / "worker-join-smoke.yaml").read_text())
+    util.join_cluster(
+        worker_node,
+        join_token,
+        (config.MANIFESTS_DIR / "worker-join-smoke.yaml").read_text(),
+    )
 
     util.wait_until_k8s_ready(cp_node, instances)
     nodes = util.ready_nodes(cp_node)
@@ -172,7 +176,9 @@ def test_bootstrap_config(instances: List[harness.Instance]):
 
     toggle_ingress_enabled(cp_node)
 
-    LOG.info("Verifying the bootstrap config does not change after changing cluster config")
+    LOG.info(
+        "Verifying the bootstrap config does not change after changing cluster config"
+    )
     new_cp_resp = get_bootstrap_config(cp_node)
     new_worker_resp = get_bootstrap_config(worker_node)
 
