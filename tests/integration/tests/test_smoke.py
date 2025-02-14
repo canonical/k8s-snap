@@ -149,6 +149,7 @@ def test_smoke(instances: List[harness.Instance]):
         condition=status_output_matches,
     ).exec(["k8s", "status", "--wait-ready"])
 
+
 @pytest.mark.node_count(2)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-smoke.yaml").read_text()
