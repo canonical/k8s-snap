@@ -13,6 +13,16 @@ Configuration options for the network feature.
 Determines if the feature should be enabled.
 If omitted defaults to `true`
 
+### cluster-config.network.pod-cidr
+**Type:** `string`<br>
+
+PodCIDR is the CIDR range for the pods in the cluster.
+
+### cluster-config.network.service-cidr
+**Type:** `string`<br>
+
+ServiceCIDR is the CIDR range for the services in the cluster.
+
 ### cluster-config.dns
 **Type:** `object`<br>
 

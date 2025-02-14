@@ -130,7 +130,9 @@ func ClusterConfigFromUserFacing(u apiv1.UserFacingClusterConfig) (ClusterConfig
 func (c ClusterConfig) ToUserFacing() apiv1.UserFacingClusterConfig {
 	return apiv1.UserFacingClusterConfig{
 		Network: apiv1.NetworkConfig{
-			Enabled: c.Network.Enabled,
+			Enabled:     c.Network.Enabled,
+			PodCIDR:     c.Network.PodCIDR,
+			ServiceCIDR: c.Network.ServiceCIDR,
 		},
 		DNS: apiv1.DNSConfig{
 			Enabled:             c.DNS.Enabled,

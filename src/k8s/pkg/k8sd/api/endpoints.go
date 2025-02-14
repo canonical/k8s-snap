@@ -114,6 +114,12 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Put:  rest.EndpointAction{Handler: e.putClusterConfig, AccessHandler: e.restrictWorkers},
 			Get:  rest.EndpointAction{Handler: e.getClusterConfig, AccessHandler: e.restrictWorkers},
 		},
+		// Get the config that the cluster was bootstrapped with.
+		{
+			Name: "ClusterBootstrapConfig",
+			Path: apiv1.GetClusterBootstrapConfigRPC,
+			Get:  rest.EndpointAction{Handler: e.getClusterBootstrapConfig},
+		},
 		// Kubernetes auth tokens and token review webhook for kube-apiserver
 		{
 			Name:   "KubernetesAuthTokens",
