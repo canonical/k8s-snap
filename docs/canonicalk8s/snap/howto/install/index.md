@@ -18,5 +18,6 @@ the current How-to guides below.
 ... in LXD <lxd.md>
 ... in air-gapped environments <offline.md>
 ... in development environments <dev-env.md>
+... with custom worker configuration <custom-worker.md>
 Uninstall the snap <uninstall.md>
 ```
