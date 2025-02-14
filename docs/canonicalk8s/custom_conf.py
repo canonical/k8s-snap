@@ -148,7 +148,8 @@ linkcheck_ignore = [
     'about',
     'https://ceph.io/',
     'https://charmhub.io/k8s/',
-    'https://charmhub.io/k8s-worker/'
+    'https://charmhub.io/k8s-worker/',
+    'http://slack.kubernetes.io/'
     ]
 
 # Pages on which to ignore anchors
