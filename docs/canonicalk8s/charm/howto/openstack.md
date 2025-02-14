@@ -14,7 +14,8 @@ To follow this guide, you will need:
 - Octavia available both to support Kubernetes LoadBalancer services and to
   support the creation of a load balancer for the Kubernetes API.
 - A valid [proxy configuration][proxy] in constrained environments.
-- Before deploying the {{product}} bundle, make sure to apply the following
+
+Before deploying {{product}}, make sure to apply the following
 configuration on the Juju model:
 
 ```
