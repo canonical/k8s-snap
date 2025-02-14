@@ -15,6 +15,22 @@ To follow this guide, you will need:
   support the creation of a load balancer for the Kubernetes API.
 - A valid [proxy configuration][proxy] in constrained environments.
 
+Before deploying {{product}}, make sure to apply the following
+configuration on the Juju model:
+
+```
+juju model-config container-networking-method=local fan-config=
+```
+
+Otherwise you might notice the Cilium pods failing with the following message:
+
+```
+failed to start: daemon creation failed: error while initializing daemon: failed 
+while reinitializing datapath: failed to setup vxlan tunnel device: setting up 
+vxlan device: creating vxlan device: setting up device cilium_vxlan: address 
+already in use
+```
+
 ## Installing {{product}} on OpenStack
 
 To deploy the {{product}} [bundle][bundle] on OpenStack you need an overlay
