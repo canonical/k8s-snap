@@ -11,6 +11,7 @@ import (
 	testenv "github.com/canonical/k8s/pkg/utils/microcluster"
 	"github.com/canonical/microcluster/v2/state"
 	. "github.com/onsi/gomega"
+	"k8s.io/utils/ptr"
 )
 
 func TestClusterConfig(t *testing.T) {
@@ -116,6 +117,44 @@ func TestClusterConfig(t *testing.T) {
 				g.Expect(err).To(Not(HaveOccurred()))
 				g.Expect(clusterConfig).To(Equal(expectedClusterConfig))
 				return nil
+			})
+			g.Expect(err).To(Not(HaveOccurred()))
+		})
+
+		t.Run("SetBootstrapConfig", func(t *testing.T) {
+			g := NewWithT(t)
+			expBootstrapConfig := types.ClusterConfig{}
+			expBootstrapConfig.SetDefaults()
+
+			err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+				return database.SetClusterBootstrapConfig(context.Background(), tx, expBootstrapConfig)
+			})
+			g.Expect(err).To(Not(HaveOccurred()))
+
+			err = s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+				bootstrapConfig, err := database.GetClusterBootstrapConfig(ctx, tx)
+				g.Expect(bootstrapConfig).To(Equal(expBootstrapConfig))
+				return err
+			})
+			g.Expect(err).To(Not(HaveOccurred()))
+
+			newConfig := expBootstrapConfig
+			// Toggle the network enabled field as an example of a change
+			if *newConfig.Network.Enabled {
+				newConfig.Network.Enabled = ptr.To(false)
+			} else {
+				newConfig.Network.Enabled = ptr.To(true)
+			}
+
+			err = s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+				return database.SetClusterBootstrapConfig(context.Background(), tx, newConfig)
+			})
+			g.Expect(err).To(Not(HaveOccurred()))
+
+			err = s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+				bootstrapConfig, err := database.GetClusterBootstrapConfig(ctx, tx)
+				g.Expect(bootstrapConfig).To(Equal(expBootstrapConfig))
+				return err
 			})
 			g.Expect(err).To(Not(HaveOccurred()))
 		})

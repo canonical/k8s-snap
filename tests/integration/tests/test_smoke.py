@@ -5,7 +5,7 @@ import json
 import logging
 import re
 import subprocess
-from typing import List
+from typing import Any, List
 
 import pytest
 from test_util import config, harness, tags, util
@@ -148,3 +148,84 @@ def test_smoke(instances: List[harness.Instance]):
     util.stubbornly(retries=15, delay_s=10).on(instance).until(
         condition=status_output_matches,
     ).exec(["k8s", "status", "--wait-ready"])
+
+@pytest.mark.node_count(2)
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-smoke.yaml").read_text()
+)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_bootstrap_config(instances: List[harness.Instance]):
+    """Verify that the bootstrap config does not change after changing the cluster config."""
+    cp_node = instances[0]
+    worker_node = instances[1]
+    join_token = util.get_join_token(cp_node, worker_node, "--worker")
+    util.join_cluster(worker_node, join_token, (config.MANIFESTS_DIR / "worker-join-smoke.yaml").read_text())
+
+    util.wait_until_k8s_ready(cp_node, instances)
+    nodes = util.ready_nodes(cp_node)
+    assert len(nodes) == 2, "worker should have joined cluster"
+
+    LOG.info("Verifying the bootstrap config does not change")
+    cp_resp = get_bootstrap_config(cp_node)
+    worker_resp = get_bootstrap_config(worker_node)
+
+    toggle_ingress_enabled(cp_node)
+
+    LOG.info("Verifying the bootstrap config does not change after changing cluster config")
+    new_cp_resp = get_bootstrap_config(cp_node) 
+    new_worker_resp = get_bootstrap_config(worker_node)
+
+    assert cp_resp["clusterConfig"] == new_cp_resp["clusterConfig"]
+    assert worker_resp["clusterConfig"] == new_worker_resp["clusterConfig"]
+    assert cp_resp["datastore"] == new_cp_resp["datastore"]
+    assert worker_resp["datastore"] == new_worker_resp["datastore"]
+    assert cp_resp["nodeTaints"] == new_cp_resp["nodeTaints"]
+    assert worker_resp["nodeTaints"] == new_worker_resp["nodeTaints"]
+
+def get_bootstrap_config(instance: harness.Instance) -> Any:
+    """Get the cluster bootstrap config."""
+    resp = instance.exec(
+        [
+            "curl",
+            "-H",
+            "Content-Type: application/json",
+            "--unix-socket",
+            "/var/snap/k8s/common/var/lib/k8sd/state/control.socket",
+            "http://localhost/1.0/k8sd/cluster/config/bootstrap",
+        ],
+        capture_output=True,
+    )
+    assert resp.returncode == 0, f"Failed to get cluster bootstrap config. {resp=}"
+    response = json.loads(resp.stdout.decode())
+    assert (
+        response["error_code"] == 0
+    ), f"Failed to get cluster bootstrap config. {response=}"
+    assert (
+        response["error"] == ""
+    ), f"Failed to get cluster bootstrap config. {response=}"
+    
+    metadata = response.get("metadata")
+    assert (
+        metadata is not None
+    ), "Metadata not found in the cluster bootstrap config response."
+    assert (
+        metadata.get("clusterConfig") is not None
+    ), "Config not found in the cluster bootstrap config response."
+    assert (
+        metadata.get("datastore") is not None
+    ), "Datastore not found in the cluster bootstrap config response."
+    assert (
+        metadata.get("nodeTaints") is not None
+    ), "Node taints not found in the cluster bootstrap config response."
+
+    return metadata
+
+def toggle_ingress_enabled(instance: harness.Instance) -> None:
+    """Toggle the ingress enabled status and wait for the cluster to be ready."""
+    resp = instance.exec("k8s get ingress.enabled".split(), capture_output=True)
+    assert resp.returncode == 0, f"Failed to get ingress enabled status. {resp=}"
+    is_enabled = "true" in resp.stdout.decode().strip()
+    LOG.info(f"Toggling ingress enabled from {is_enabled=}")
+    resp = instance.exec(f"k8s set ingress.enabled={not is_enabled}".split())
+    assert resp.returncode == 0, f"Failed to toggle ingress enabled {resp=}"
+    util.wait_until_k8s_ready(instance, [instance])

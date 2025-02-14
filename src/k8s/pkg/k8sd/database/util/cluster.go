@@ -27,3 +27,20 @@ func GetClusterConfig(ctx context.Context, state state.State) (types.ClusterConf
 
 	return clusterConfig, nil
 }
+
+// GetClusterBootstrapConfig is a convenience wrapper around the database call to get the cluster bootstrap config.
+func GetClusterBootstrapConfig(ctx context.Context, state state.State) (types.ClusterConfig, error) {
+	var config types.ClusterConfig
+
+	if err := state.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		if config, err = database.GetClusterBootstrapConfig(ctx, tx); err != nil {
+			return fmt.Errorf("failed to get cluster bootstrap config from database: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return types.ClusterConfig{}, fmt.Errorf("failed to perform get cluster bootstrap config transaction: %w", err)
+	}
+
+	return config, nil
+}

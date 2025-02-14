@@ -10,9 +10,22 @@ import (
 	"github.com/canonical/microcluster/v2/cluster"
 )
 
-var clusterConfigsStmts = map[string]int{
-	"insert-v1alpha2": MustPrepareStatement("cluster-configs", "insert-v1alpha2.sql"),
-	"select-v1alpha2": MustPrepareStatement("cluster-configs", "select-v1alpha2.sql"),
+const (
+	clusterConfigsDir string = "cluster-configs"
+)
+
+type clusterConfigsStmtsSchema struct {
+	insertV1alpha2          int
+	insertBootstrapV1alpha2 int
+	selectV1alpha2          int
+	selectBootstrapV1alpha2 int
+}
+
+var clusterConfigsStmts = clusterConfigsStmtsSchema{
+	insertV1alpha2:          MustPrepareStatement(clusterConfigsDir, "insert-v1alpha2.sql"),
+	insertBootstrapV1alpha2: MustPrepareStatement(clusterConfigsDir, "insert-bootstrap-v1alpha2.sql"),
+	selectV1alpha2:          MustPrepareStatement(clusterConfigsDir, "select-v1alpha2.sql"),
+	selectBootstrapV1alpha2: MustPrepareStatement(clusterConfigsDir, "select-bootstrap-v1alpha2.sql"),
 }
 
 // SetClusterConfig updates the cluster configuration with any non-empty values that are set.
@@ -32,7 +45,7 @@ func SetClusterConfig(ctx context.Context, tx *sql.Tx, new types.ClusterConfig) 
 	if err != nil {
 		return types.ClusterConfig{}, fmt.Errorf("failed to encode cluster config: %w", err)
 	}
-	insertTxStmt, err := cluster.Stmt(tx, clusterConfigsStmts["insert-v1alpha2"])
+	insertTxStmt, err := cluster.Stmt(tx, clusterConfigsStmts.insertV1alpha2)
 	if err != nil {
 		return types.ClusterConfig{}, fmt.Errorf("failed to prepare insert statement: %w", err)
 	}
@@ -42,9 +55,30 @@ func SetClusterConfig(ctx context.Context, tx *sql.Tx, new types.ClusterConfig) 
 	return config, nil
 }
 
+// SetClusterBootstrapConfig sets the cluster bootstrap configuration.
+// SetClusterBootstrapConfig will ignore the insertion command if the configuration is already set.
+// For workers, SetClusterBootstrapConfig sets the config that the worker was joined (bootstrapped) with.
+func SetClusterBootstrapConfig(ctx context.Context, tx *sql.Tx, config types.ClusterConfig) error {
+	b, err := json.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("failed to encode cluster bootstrap config: %w", err)
+	}
+
+	insertTxStmt, err := cluster.Stmt(tx, clusterConfigsStmts.insertBootstrapV1alpha2)
+	if err != nil {
+		return fmt.Errorf("failed to prepare insert bootstrap config statement: %w", err)
+	}
+
+	if _, err := insertTxStmt.ExecContext(ctx, string(b)); err != nil {
+		return fmt.Errorf("failed to insert v1alpha2 bootstrap config: %w", err)
+	}
+
+	return nil
+}
+
 // GetClusterConfig retrieves the cluster configuration from the database.
 func GetClusterConfig(ctx context.Context, tx *sql.Tx) (types.ClusterConfig, error) {
-	txStmt, err := cluster.Stmt(tx, clusterConfigsStmts["select-v1alpha2"])
+	txStmt, err := cluster.Stmt(tx, clusterConfigsStmts.selectV1alpha2)
 	if err != nil {
 		return types.ClusterConfig{}, fmt.Errorf("failed to prepare statement: %w", err)
 	}
@@ -60,6 +94,30 @@ func GetClusterConfig(ctx context.Context, tx *sql.Tx) (types.ClusterConfig, err
 	var clusterConfig types.ClusterConfig
 	if err := json.Unmarshal([]byte(s), &clusterConfig); err != nil {
 		return types.ClusterConfig{}, fmt.Errorf("failed to parse v1alpha2 config: %w", err)
+	}
+
+	return clusterConfig, nil
+}
+
+// GetClusterBootstrapConfig retrieves the cluster bootstrap configuration from the database.
+// For workers, GetClusterBootstrapConfig returns the config that the worker was joined (bootstrapped) with.
+func GetClusterBootstrapConfig(ctx context.Context, tx *sql.Tx) (types.ClusterConfig, error) {
+	txStmt, err := cluster.Stmt(tx, clusterConfigsStmts.selectBootstrapV1alpha2)
+	if err != nil {
+		return types.ClusterConfig{}, fmt.Errorf("failed to prepare get bootstrap config statement: %w", err)
+	}
+
+	var s string
+	if err := txStmt.QueryRowContext(ctx).Scan(&s); err != nil {
+		if err == sql.ErrNoRows {
+			return types.ClusterConfig{}, nil
+		}
+		return types.ClusterConfig{}, fmt.Errorf("failed to retrieve v1alpha2 bootstrap config: %w", err)
+	}
+
+	var clusterConfig types.ClusterConfig
+	if err := json.Unmarshal([]byte(s), &clusterConfig); err != nil {
+		return types.ClusterConfig{}, fmt.Errorf("failed to parse v1alpha2 bootstrap config: %w", err)
 	}
 
 	return clusterConfig, nil

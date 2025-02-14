@@ -1,4 +1,7 @@
 # Contains the bootstrap configuration for the smoke test.
+control-plane-taints: 
+  - "taint1=:PreferNoSchedule"
+  - "taint2=value:PreferNoSchedule"
 cluster-config:
   network:
     enabled: true
