@@ -118,6 +118,9 @@ html_context = {
     "display_contributors_since": ""
 }
 
+html_copy_source = False
+html_show_sourcelink = False
+
 # If your project is on documentation.ubuntu.com, specify the project
 # slug (for example, "lxd") here.
 slug = "canonical-kubernetes"
@@ -145,7 +148,8 @@ linkcheck_ignore = [
     'about',
     'https://ceph.io/',
     'https://charmhub.io/k8s/',
-    'https://charmhub.io/k8s-worker/'
+    'https://charmhub.io/k8s-worker/',
+    'http://slack.kubernetes.io/'
     ]
 
 # Pages on which to ignore anchors
