@@ -93,7 +93,7 @@ def test_ingress(instances: List[harness.Instance]):
     result = (
         util.stubbornly(retries=20, delay_s=3)
         .on(instance)
-        .until(lambda p: get_ingress_service_node_port(p) is not None)
+        .until(lambda p: get_ingress_service_node_port(p))
         .exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
     )
 

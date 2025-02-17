@@ -43,7 +43,7 @@ def get_gateway_service_node_port(p):
 def get_external_service_ip(instance: harness.Instance) -> str:
     try_count = 0
     gateway_ip = None
-    while gateway_ip is None and try_count < 5:
+    while not gateway_ip and try_count < 5:
         try_count += 1
         try:
             gateway_ip = (
@@ -116,12 +116,12 @@ def test_gateway(instances: List[harness.Instance]):
     result = (
         util.stubbornly(retries=10, delay_s=3)
         .on(instance)
-        .until(lambda p: get_gateway_service_node_port(p) is not None)
+        .until(lambda p: get_gateway_service_node_port(p))
         .exec(["k8s", "kubectl", "get", "service", "-o", "json"])
     )
     gateway_http_port = get_gateway_service_node_port(result)
 
-    assert gateway_http_port is not None, "No Gateway nodePort found."
+    assert gateway_http_port, "No Gateway nodePort found."
 
     # Test the Gateway service via loadbalancer IP.
     util.stubbornly(retries=10, delay_s=5).on(instance).until(
@@ -129,7 +129,7 @@ def test_gateway(instances: List[harness.Instance]):
     ).exec(["curl", f"localhost:{gateway_http_port}"])
 
     gateway_ip = get_external_service_ip(instance)
-    assert gateway_ip is not None, "No Gateway IP found."
+    assert gateway_ip, "No Gateway IP found."
     util.stubbornly(retries=10, delay_s=5).on(instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"{gateway_ip}", "-H", "Host: foo.bar.com"])
