@@ -53,6 +53,10 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 			"name":      "coredns",
 			"clusterIP": kubelet.GetClusterDNS(),
 		},
+		"serviceAccount": map[string]any{
+			"create": true,
+			"name":   "coredns",
+		},
 		"deployment": map[string]any{
 			"name": "coredns",
 		},
