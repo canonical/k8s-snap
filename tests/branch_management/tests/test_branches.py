@@ -25,7 +25,7 @@ def _sh(*args, **kwargs):
 
 def _branch_flavours(branch: str = None):
     patch_dir = Path("build-scripts/patches")
-    branch = "HEAD" if branch is None else branch
+    branch = "HEAD" if not branch else branch
     cmd = f"git ls-tree --full-tree -r --name-only origin/{branch} {patch_dir}"
     output = _sh(cmd.split())
     patches = set(

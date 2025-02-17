@@ -103,7 +103,7 @@ def h() -> harness.Harness:
 
     yield h
 
-    if config.INSPECTION_REPORTS_DIR is not None:
+    if config.INSPECTION_REPORTS_DIR:
         for instance_id in h.instances:
             LOG.debug("Generating inspection reports for session instances")
             _generate_inspection_report(h, instance_id)
@@ -241,7 +241,7 @@ def instances(
     if not disable_k8s_bootstrapping and not no_setup:
         first_node, *_ = instances
 
-        if bootstrap_config is not None:
+        if bootstrap_config:
             first_node.exec(
                 ["k8s", "bootstrap", "--file", "-"],
                 input=str.encode(bootstrap_config),
