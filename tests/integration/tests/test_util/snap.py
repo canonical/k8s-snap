@@ -82,9 +82,9 @@ def get_most_stable_channels(
     for channel, major, minor, risk in arch_flavor_channels:
         version_key = (int(major), int(minor))
 
-        if min_release is not None:
+        if min_release:
             _min_release = major_minor(min_release)
-            if _min_release is not None and version_key < _min_release:
+            if _min_release and version_key < _min_release:
                 continue
 
         if version_key not in channel_map or RISK_LEVELS.index(

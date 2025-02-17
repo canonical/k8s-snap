@@ -91,7 +91,7 @@ class LXDHarness(Harness):
             )
 
         if network_type.lower() == "dualstack":
-            if self.dualstack_profile is None:
+            if not self.dualstack_profile:
                 raise ValueError(
                     "LXD `dualstack_profile` must be set for network_type=dualstack"
                 )
