@@ -23,4 +23,5 @@ Canonical Kubernetes CLI
 * [k8s remove-node](k8s_remove-node.md)	 - Remove a node from the cluster
 * [k8s set](k8s_set.md)	 - Set cluster configuration
 * [k8s status](k8s_status.md)	 - Retrieve the current status of the cluster
+* [k8s update-certs](k8s_update-certs.md)	 - Update the running node's certificates with user provided certificates
 

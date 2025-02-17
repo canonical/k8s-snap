@@ -86,6 +86,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		newEnableCmd(env),
 		newDisableCmd(env),
 		newRefreshCertsCmd(env),
+		newUpdateCertsCmd(env),
 		newSetCmd(env),
 		newGetCmd(env),
 		newInspectCmd(env),

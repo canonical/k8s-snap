@@ -41,6 +41,9 @@ type Mock struct {
 	RefreshCertificatesRunCalledWith  apiv1.RefreshCertificatesRunRequest
 	RefreshCertificatesRunResponse    apiv1.RefreshCertificatesRunResponse
 	RefreshCertificatesRunErr         error
+	UpdateCertificatesCalledWith      apiv1.UpdateCertificatesRequest
+	UpdateCertificatesResponse        apiv1.UpdateCertificatesResponse
+	UpdateCertificatesErr             error
 
 	// k8sd.UserClient
 	KubeConfigCalledWith apiv1.KubeConfigRequest
@@ -86,6 +89,10 @@ func (m *Mock) RefreshCertificatesPlan(_ context.Context, request apiv1.RefreshC
 
 func (m *Mock) RefreshCertificatesRun(_ context.Context, request apiv1.RefreshCertificatesRunRequest) (apiv1.RefreshCertificatesRunResponse, error) {
 	return m.RefreshCertificatesRunResponse, m.RefreshCertificatesRunErr
+}
+
+func (m *Mock) UpdateCertificates(_ context.Context, request apiv1.UpdateCertificatesRequest) (apiv1.UpdateCertificatesResponse, error) {
+	return m.UpdateCertificatesResponse, m.UpdateCertificatesErr
 }
 
 func (m *Mock) GetClusterConfig(_ context.Context) (apiv1.GetClusterConfigResponse, error) {
