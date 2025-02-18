@@ -75,15 +75,17 @@ jobs:
           # https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
 
           arch=${{ inputs.arch }}
-          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}_ubuntu-24.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}_ubuntu-24.04-${arch}.charm
+          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
+          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
 
           juju download k8s \
             --channel ${{ inputs.charm-channel }} \
-            --filepath $k8sCharmFile
+            --filepath $k8sCharmFile \
+            --base ubuntu@22.04
           juju download k8s-worker \
             --channel ${{ inputs.charm-channel }} \
-            --filepath $k8sWorkerChamFile
+            --filepath $k8sWorkerChamFile \
+            --base ubuntu@22.04
       - name: Bootstrap Juju controller (lxd)
         run: |
           juju bootstrap localhost lxd
