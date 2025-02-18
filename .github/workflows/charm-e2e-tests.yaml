@@ -93,5 +93,5 @@ jobs:
             -- env -- \
             tox -e integration \
             -- \
-            --lxd-containers --charm-file $charmFile \
+            --charm-file $charmFile \
             --snap-installation-resource $snapInstallRes
