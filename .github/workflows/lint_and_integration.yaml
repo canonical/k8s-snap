@@ -140,7 +140,7 @@ jobs:
   #     security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
 
   charm-e2e-tests:
-    name: Charmm e2e tests
+    name: Charm e2e tests
     strategy:
       fail-fast: false
     # needs: [build-snap, go-lint-and-unit, python-lint]
