@@ -47,20 +47,6 @@ jobs:
         run: |
           mkdir snap_installation
           mv ${{ steps.download-snap.outputs.snap-path }} snap_installation/k8s.snap
-          cat > snap_installation/snap_installation.yaml <<EOF
-          amd64:
-            - install-type: file
-              name: k8s
-              filename: ./k8s.snap
-              dangerous: true
-              classic: true
-          arm64:
-            - install-type: file
-              name: k8s
-              filename: ./k8s.snap
-              dangerous: true
-              classic: true
-          EOF
           tar cvzf snap_installation.tar.gz -C snap_installation/ .
       - name: Install charmcraft
         run: |
