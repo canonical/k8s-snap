@@ -72,11 +72,11 @@ jobs:
         run: |
           # The operator tests expect the charm file name to have the
           # ${charmName}_ prefix and include the arch and ubuntu base.
-          https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
+          # https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
 
           arch=${{ inputs.arch }}
-          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}_ubuntu-24.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}_ubuntu-24.04-${arch}.charm
+          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-24.04-${arch}.charm
+          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-24.04-${arch}.charm
 
           juju download k8s \
             --channel ${{ inputs.charm-channel }} \
@@ -97,16 +97,18 @@ jobs:
           set -x
 
           arch=${{ inputs.arch }}
-          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}_ubuntu-24.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}_ubuntu-24.04-${arch}.charm
+          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-24.04-${arch}.charm
+          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-24.04-${arch}.charm
 
           ls -lh $charmFile
           ls -lh $snapInstallRes
+
           cd k8s-operator
           sudo --user "$USER" --preserve-env --preserve-env=PATH \
             -- env -- \
             tox -e integration \
             -- \
+            --series noble \
             --charm-file $k8sCharmFile \
             --charm-file $k8sWorkerChamFile \
             --snap-installation-resource $snapInstallRes
