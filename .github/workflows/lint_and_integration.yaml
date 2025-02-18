@@ -18,14 +18,14 @@ permissions:
   contents: read
 
 jobs:
-  build-snap:
-    name: Build k8s-snap ${{ matrix.patch }}
-    uses: ./.github/workflows/build-snap.yaml
-    strategy:
-      matrix:
-        patch: ["", "moonray"]
-    with:
-      flavor: ${{ matrix.patch }}
+  # build-snap:
+  #   name: Build k8s-snap ${{ matrix.patch }}
+  #   uses: ./.github/workflows/build-snap.yaml
+  #   strategy:
+  #     matrix:
+  #       patch: ["", "moonray"]
+  #   with:
+  #     flavor: ${{ matrix.patch }}
 
   # test-branches:
   #   name: Test Branch Management
@@ -144,9 +144,10 @@ jobs:
     strategy:
       fail-fast: false
     # needs: [build-snap, go-lint-and-unit, python-lint]
-    needs: [build-snap]
+    # needs: [build-snap]
     uses: ./.github/workflows/charm-e2e-tests.yaml
     with:
       arch: amd64
-      artifact: k8s.snap
+      # artifact: k8s.snap
+      channel: latest/edge
       charm-channel: latest/edge

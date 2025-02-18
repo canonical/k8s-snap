@@ -85,6 +85,9 @@ jobs:
         run: |
           charmFile=${GITHUB_WORKSPACE}/k8s.charm
           snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
+          set -x
+          ls -lh $charmFile
+          ls -lh $snapInstallRes
           cd k8s-operator
           sudo --user "$USER" --preserve-env --preserve-env=PATH \
             -- env -- \
