@@ -46,7 +46,7 @@ jobs:
       - name: Generate snap tarball
         run: |
           mkdir snap_installation
-          mv ${{ inputs.artifact }} snap_installation/k8s.snap
+          mv ${{ steps.download-snap.outputs.snap-path }} snap_installation/k8s.snap
           cat > snap_installation/snap_installation.yaml <<EOF
           amd64:
             - install-type: file
