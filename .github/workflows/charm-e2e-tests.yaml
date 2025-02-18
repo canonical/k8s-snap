@@ -80,6 +80,9 @@ jobs:
           repository: canonical/k8s-operator
           ref: main
           path: k8s-operator
+      - name: Disable lxd ipv6
+        run: |
+          lxc network set lxdbr0 ipv6.address none
       - name: Run e2e tests
         run: |
           set -x
