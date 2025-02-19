@@ -12,7 +12,9 @@ Overview <self>
 
 ## Installation
 
-Installation follows a very similar pattern on all platforms, but some minor differences must be addressed in each case. You may also want to customize the installation of your {{product}} nodes.
+Installation follows a very similar pattern on all platforms, but some minor
+differences must be addressed in each case. You may also want to customize the
+installation of your {{product}} nodes.
 
 ```{toctree}
 :titlesonly:
@@ -21,7 +23,8 @@ Install <install/index>
 
 ## Networking
 
-{{product}} comes with default networking features for a fully functioning cluster. More advanced features can be enabled by a few configuration steps.
+{{product}} comes with default networking features for a fully functioning
+cluster. More advanced features can be enabled by a few configuration steps.
 
 ```{toctree}
 :titlesonly:
@@ -39,7 +42,8 @@ security/index
 
 ## Storage
 
-Specific storage needs of your cluster can be met by setting up persistent storage or replacing the default datastore with an external one such as `etcd`.
+Specific storage needs of your cluster can be met by setting up persistent
+storage or replacing the default datastore with an external one such as `etcd`.
 
 ```{toctree}
 :titlesonly:
@@ -74,7 +78,9 @@ Back up and restore <backup-restore>
 
 ## Monitoring and troubleshooting
 
-Sometimes things go wrong and you need to troubleshoot. Having observability set up on your cluster can greatly increase the rate at which a problem is identified and solved.
+Sometimes things go wrong and you need to troubleshoot. Having observability
+set up on your cluster can greatly increase the rate at which a problem is
+identified and solved.
 
 ```{toctree}
 :titlesonly:
@@ -86,7 +92,8 @@ Get support <support>
 
 ## Enhanced Platform Awareness
 
-EPA utilizes server hardware capabilities in the {{product}} cluster. It exposes technologies
+EPA utilizes server hardware capabilities in the {{product}} cluster. It
+exposes technologies
 such as HugePages, CPU pinning, SR-IOV and more.
 
 ```{toctree}

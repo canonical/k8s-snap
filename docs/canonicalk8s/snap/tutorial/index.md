@@ -1,7 +1,8 @@
 # Tutorials
 
 This section contains a step-by-step guide to help you start exploring how to
-install and use {{product}}. Our tutorials aim to provide a learning experience as you first get started with {{product}}.
+install and use {{product}}. Our tutorials aim to provide a learning experience
+as you first get started with {{product}}.
 
 ```{toctree}
 :hidden:
@@ -10,7 +11,8 @@ Overview <self>
 
 ## Getting started
 
-This tutorial walks through the installation of {{product}} and deploys a sample workload.
+This tutorial walks through the installation of {{product}} and deploys a
+sample workload.
 
 ```{toctree}
 :glob:

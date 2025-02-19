@@ -37,7 +37,8 @@ config-files/index
 
 ## Release notes
 
-New features, bug fixes, deprecations and more are included in the release notes for each version.
+New features, bug fixes, deprecations and more are included in the release
+notes for each version.
 
 ```{toctree}
 :titlesonly:

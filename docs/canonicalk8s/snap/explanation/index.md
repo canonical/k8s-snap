@@ -11,7 +11,8 @@ Overview <self>
 
 ## {{product}} fundamentals
 
-Understand what is {{product}} and how to choose a deployment and management method that best suits your orchestration needs.
+Understand what is {{product}} and how to choose a deployment and management
+method that best suits your orchestration needs.
 
 ```{toctree}
 :titlesonly:
@@ -31,7 +32,8 @@ channels
 
 ## Cluster management
 
-Understand the steps taken by {{product}} to ease the task of cluster management.
+Understand the steps taken by {{product}} to ease the task of cluster
+management.
 
 ```{toctree}
 :titlesonly:
@@ -53,7 +55,8 @@ load-balancer
 
 ## Security and compliance
 
-Understand how security plays a vital role in {{product}} and what has been done to strive for compliance with industry standards.
+Understand how security plays a vital role in {{product}} and what has been
+done to strive for compliance with industry standards.
 
 ```{toctree}
 :titlesonly:
