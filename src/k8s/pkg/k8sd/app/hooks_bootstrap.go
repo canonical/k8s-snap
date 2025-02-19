@@ -205,6 +205,15 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		return fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err)
 	}
 
+	// NOTE(Hue): This is how the taints are set for the worker nodes in the charm.
+	// https://github.com/canonical/k8s-operator/blob/bd9ebbda153053f9bfd6e66a93d2afb629a6cfd8/charms/worker/k8s/src/config/extra_args.py#L89
+	var taints []string
+	if taintsStr, ok := joinConfig.ExtraNodeKubeletArgs["--register-with-taints"]; ok {
+		if taintsStr != nil {
+			taints = strings.Split(*taintsStr, ",")
+		}
+	}
+
 	// Write worker node configuration to dqlite
 	//
 	// Worker nodes only use a subset of the ClusterConfig struct. At the moment, these are:
@@ -231,6 +240,16 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		Annotations: response.Annotations,
 	}
 
+	if len(taints) > 0 {
+		cfg.Kubelet = types.Kubelet{
+			// NOTE(Hue): We set the worker taints here so that the charm
+			// can later prevent the user from changing these taints through charm config.
+			// These taints for the worker nodes are set by the `bootstrap-node-taints` charm config.
+			// https://github.com/canonical/k8s-operator/blob/bd9ebbda153053f9bfd6e66a93d2afb629a6cfd8/charms/worker/charmcraft.yaml#L67
+			WorkerTaints: utils.Pointer(taints),
+		}
+	}
+
 	serviceConfigs := types.K8sServiceConfigs{
 		ExtraNodeKubeletArgs:   joinConfig.ExtraNodeKubeletArgs,
 		ExtraNodeKubeProxyArgs: joinConfig.ExtraNodeKubeProxyArgs,
@@ -254,7 +273,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	if err := setup.Containerd(snap, joinConfig.ExtraNodeContainerdConfig, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.KubeletWorker(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs); err != nil {
+	if err := setup.KubeletWorker(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs, taints); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
 	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, localhostAddress, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
