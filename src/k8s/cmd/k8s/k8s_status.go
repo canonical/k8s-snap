@@ -19,6 +19,7 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:    "status",
 		Short:  "Retrieve the current status of the cluster",
 		Long:   "Retrieve the current status of the cluster as well as deployment status of core features.",
+		Args:   cobra.NoArgs,
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Run: func(cmd *cobra.Command, args []string) {
 			if opts.timeout < minTimeout {

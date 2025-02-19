@@ -14,6 +14,7 @@ func newLocalNodeStatusCommand(env cmdutil.ExecutionEnvironment) *cobra.Command 
 		Short:  "Retrieve the current status of the local node",
 		Hidden: true,
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
+		Args:   cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			client, err := env.Snap.K8sdClient("")
 			if err != nil {
