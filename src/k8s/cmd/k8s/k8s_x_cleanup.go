@@ -17,6 +17,7 @@ func newXCleanupCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cleanupNetworkCmd := &cobra.Command{
 		Use:   string(features.Network),
 		Short: "Cleanup left-over network resources",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			defer cancel()

@@ -18,6 +18,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	disableCmd := &cobra.Command{
 		Use:   "disable",
 		Short: "Disable the use of snap get/set to manage the cluster configuration",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := snapdconfig.Disable(cmd.Context(), env.Snap); err != nil {
 				cmd.PrintErrf("Error: failed to disable snapd configuration: %v\n", err)
@@ -28,6 +29,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	reconcileCmd := &cobra.Command{
 		Use:   "reconcile",
 		Short: "Reconcile the cluster configuration changes from k8s {set,get} <-> snap {set,get} k8s",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			mode, empty, err := snapdconfig.ParseMeta(cmd.Context(), env.Snap)
 			if err != nil {

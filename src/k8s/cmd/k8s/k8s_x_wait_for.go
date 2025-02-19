@@ -17,6 +17,7 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	waitForDNSCmd := &cobra.Command{
 		Use:   string(features.DNS),
 		Short: "Wait for DNS to be ready",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			defer cancel()
@@ -37,6 +38,7 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	waitForNetworkCmd := &cobra.Command{
 		Use:   string(features.Network),
 		Short: "Wait for Network to be ready",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			defer cancel()

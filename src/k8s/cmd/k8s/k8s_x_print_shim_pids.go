@@ -9,6 +9,7 @@ var xPrintShimPidsCmd = &cobra.Command{
 	Use:    "x-print-shim-pids",
 	Short:  "Print list of PIDs started by the containerd shim and pause processes",
 	Hidden: true,
+	Args:   cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		pids, err := shims.RunningContainerdShimPIDs(cmd.Context())
 		if err != nil {

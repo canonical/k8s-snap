@@ -19,6 +19,7 @@ func newGenerateDocsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Use:    "generate-docs",
 		Hidden: true,
 		Short:  "Generate markdown documentation",
+		Args:   cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			outPath := path.Join(opts.outputDir, "commands")
 			if err := doc.GenMarkdownTree(cmd.Parent(), outPath); err != nil {
