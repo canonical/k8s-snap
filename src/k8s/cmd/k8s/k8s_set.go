@@ -42,7 +42,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			for _, arg := range args {
-				if err := updateConfigMapstructure(&config, arg); err != nil {
+				if err := updateConfigMapstructure(cmd, &config, arg); err != nil {
 					cmd.PrintErrf("Error: Invalid option %q.\n\nThe error was: %v\n", arg, err)
 					env.Exit(1)
 				}
@@ -102,7 +102,7 @@ var knownSetKeys = map[string]struct{}{
 	fmt.Sprintf("%s.enabled", features.Network):               {},
 }
 
-func updateConfigMapstructure(config *apiv1.UserFacingClusterConfig, arg string) error {
+func updateConfigMapstructure(cmd *cobra.Command, config *apiv1.UserFacingClusterConfig, arg string) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		TagName:          "json",
 		WeaklyTypedInput: true,
@@ -133,6 +133,11 @@ func updateConfigMapstructure(config *apiv1.UserFacingClusterConfig, arg string)
 	if err := decoder.Decode(toRecursiveMap(key, value)); err != nil {
 		return fmt.Errorf("invalid option %q: %w", arg, err)
 	}
+
+	if key == fmt.Sprintf("%s.reclaim-policy", features.LocalStorage) {
+		cmd.PrintErrf("WARNING: for the reclaim policy changes to take effect, disable and re-enable the local-storage feature.\n")
+	}
+
 	return nil
 }
 

@@ -53,6 +53,12 @@ The local-storage feature provides the following configuration options:
   is not changed. If this flag is not set and the cluster does not have a
   default class set then the class from the local-storage becomes the default.
 
+
+Please set the desired reclaim policy before enabling the ``local-storage``
+feature. Subsequent changes will require disabling and re-enabling
+``local-storage``.
+
+
 ## Disable local storage
 
 The local storage option is only suitable for single-node clusters and

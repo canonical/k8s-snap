@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
+	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
@@ -187,8 +188,11 @@ func Test_updateConfigMapstructure(t *testing.T) {
 			t.Run(tc.val, func(t *testing.T) {
 				g := NewWithT(t)
 
+				env := cmdutil.DefaultExecutionEnvironment()
+				cmd := newSetCmd(env)
+
 				var cfg apiv1.UserFacingClusterConfig
-				err := updateConfigMapstructure(&cfg, tc.val)
+				err := updateConfigMapstructure(cmd, &cfg, tc.val)
 				if tc.expectErr {
 					g.Expect(err).To(HaveOccurred())
 				} else {
