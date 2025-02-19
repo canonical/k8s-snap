@@ -106,4 +106,4 @@ jobs:
             --charm-file $k8sCharmFile \
             --charm-file $k8sWorkerChamFile \
             --snap-installation-resource $snapInstallRes \
-            -k test_k8s
+            -k test_nodes_ready
