@@ -25,4 +25,4 @@ If you would like to apply CIS hardening to your cluster see our [how-to guide].
 [benchmarks]: https://www.cisecurity.org/cis-benchmarks
 [Center for Internet Security]: https://www.cisecurity.org/
 [CIS Kubernetes Benchmark]: https://www.cisecurity.org/benchmark/kubernetes
-[how-to guide]: ../howto/cis-hardening.md
+[how-to guide]: /snap/howto/security/cis-assessment.md
