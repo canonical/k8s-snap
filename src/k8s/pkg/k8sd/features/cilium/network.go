@@ -153,6 +153,9 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 			"binPath":   "/opt/cni/bin",
 			"exclusive": config.cniExclusive,
 		},
+		"sctp": map[string]any{
+			"enabled": config.sctpEnabled,
+		},
 		"operator": map[string]any{
 			"replicas": 1,
 			"image": map[string]any{

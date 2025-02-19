@@ -60,6 +60,13 @@ v1alpha annotations are experimental and subject to change or removal in future 
 |**Values**| string|
 |**Description**|Device name used to connect nodes in direct routing mode (used by BPF NodePort, BPF host routing); if empty, automatically set to a device with k8s InternalIP/ExternalIP or with a default route. Bridge type devices are ignored in automatic selection|
 
+## `k8sd/v1alpha1/cilium/sctp/enabled`
+
+|   |   |
+|---|---|
+|**Values**| "true"\|"false"|
+|**Description**|Enable the Cilium SCTP feature.|
+
 ## `k8sd/v1alpha1/cilium/vlan-bpf-bypass`
 
 |   |   |
