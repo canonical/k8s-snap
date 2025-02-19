@@ -7,7 +7,8 @@ import (
 )
 
 // getIPv46Addresses returns an IPv4 and IPv6 pair if possible, from the local network interface which has the
-// given IP address.
+// given IP address. This looks through all the interface's IPs to find a global unicast IP of the opposite
+// type (IPv4 / IPv6) from the input IP.
 // getIPv46Addresses will return an array containing only the given IP address if the pair could not be found.
 // If the given IP address cannot be found locally, an error will be returned.
 func getIPv46Addresses(ip net.IP) ([]net.IP, error) {
