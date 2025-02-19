@@ -47,6 +47,7 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Short:  "Bootstrap a new Kubernetes cluster",
 		Long:   "Generate certificates, configure service arguments and start the Kubernetes services.",
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat), hookCheckLXD()),
+		Args:   cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			snapdClient, err := snapd.NewClient()
 			if err != nil {
