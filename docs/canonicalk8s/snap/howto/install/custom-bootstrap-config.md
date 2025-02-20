@@ -80,4 +80,4 @@ sudo k8s status
 
 <!-- LINKS -->
 
-[reference page]: /snap/reference/bootstrap-config-reference.md
+[reference page]: /snap/reference/config-files/bootstrap-config.md
