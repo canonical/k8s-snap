@@ -376,6 +376,21 @@ func TestMergeClusterConfig_Scenarios(t *testing.T) {
 			},
 		},
 		{
+			name: "LocalStorage/ChangeReclaimPolicy",
+			old: types.ClusterConfig{
+				LocalStorage: types.LocalStorage{
+					Enabled:       utils.Pointer(true),
+					ReclaimPolicy: utils.Pointer("Delete"),
+				},
+			},
+			new: types.ClusterConfig{
+				LocalStorage: types.LocalStorage{
+					ReclaimPolicy: utils.Pointer("Retain"),
+				},
+			},
+			expectErr: true,
+		},
+		{
 			name: "LocalStorage/RequirePath",
 			new: types.ClusterConfig{
 				LocalStorage: types.LocalStorage{
