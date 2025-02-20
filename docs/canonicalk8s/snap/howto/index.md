@@ -31,15 +31,6 @@ cluster. More advanced features can be enabled by a few configuration steps.
 networking/index
 ```
 
-## Security
-
-Harden your cluster according to industry standards.
-
-```{toctree}
-:titlesonly:
-security/index
-```
-
 ## Storage
 
 Specific storage needs of your cluster can be met by setting up persistent
@@ -49,6 +40,15 @@ storage or replacing the default datastore with an external one such as `etcd`.
 :titlesonly:
 storage/index
 Use an external datastore <external-datastore>
+```
+
+## Security
+
+Harden your cluster according to industry standards.
+
+```{toctree}
+:titlesonly:
+security/index
 ```
 
 ## Cluster upgrades and refreshes
@@ -93,8 +93,7 @@ Get support <support>
 ## Enhanced Platform Awareness
 
 EPA utilizes server hardware capabilities in the {{product}} cluster. It
-exposes technologies
-such as HugePages, CPU pinning, SR-IOV and more.
+exposes technologies such as HugePages, CPU pinning, SR-IOV and more.
 
 ```{toctree}
 :titlesonly:

@@ -11,7 +11,7 @@ Overview <self>
 
 ## {{product}} fundamentals
 
-Understand what is {{product}} and how to choose a deployment and management
+Understand what {{product}} is and how to choose a deployment and management
 method that best suits your orchestration needs.
 
 ```{toctree}
