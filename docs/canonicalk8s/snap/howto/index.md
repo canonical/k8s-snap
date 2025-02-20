@@ -22,7 +22,7 @@ Use an external datastore <external-datastore>
 Set up cluster observability  <observability>
 Back up and restore <backup-restore>
 Refresh Kubernetes Certificates <refresh-certs>
-Use intermediate CAs with Vault <intermediate-ca>
+Use intermediate CAs with Vault <intermediate-ca.md>
 Recover a cluster after quorum loss <restore-quorum>
 Manage upgrades <upgrades>
 Set up Enhanced Platform Awareness <epa>
