@@ -17,18 +17,12 @@ Overview <self>
 :titlesonly:
 Provision a Canonical Kubernetes cluster <provision>
 Install custom Canonical Kubernetes <custom-ck8s>
-Migrate the management cluster <migrate-management>
-```
-
-## External datastore
-
-```{toctree}
-:glob:
-:titlesonly:
-Use external etcd <external-etcd.md>
 ```
 
 ## Upgrade
+
+Perform important cluster maintenance by upgrading the Kubernetes version and
+more.
 
 ```{toctree}
 :glob:
@@ -44,10 +38,30 @@ Upgrade the providers of a management cluster <upgrade-providers>
 :glob:
 :titlesonly:
 Refresh workload cluster certificates <refresh-certs>
-Use intermediate CAs with Vault <intermediate-ca>
+Use intermediate CAs with Vault <intermediate-ca.md>
+```
+
+## External datastore
+
+```{toctree}
+:glob:
+:titlesonly:
+Use external etcd <external-etcd.md>
+```
+
+## Cluster migration
+
+Migrate your management cluster to a different substrate.
+
+```{toctree}
+:glob:
+:titlesonly:
+Migrate the management cluster <migrate-management>
 ```
 
 ## Troubleshooting
+
+Debug issues in your cluster.
 
 ```{toctree}
 :glob:

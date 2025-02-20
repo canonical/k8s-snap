@@ -28,6 +28,17 @@ additional metadata.
 annotations
 ```
 
+## Providers configurations
+
+{{product}} bootstrap and control plane providers can be configured in order for
+the workload cluster to reach the desired state.
+
+```{toctree}
+:titlesonly:
+configs
+
+```
+
 ## Networking
 
 ```{toctree}

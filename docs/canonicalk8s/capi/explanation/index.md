@@ -11,7 +11,7 @@ Overview <self>
 
 ## {{product}} fundamentals
 
-Understand what is {{product}} and how to choose a deployment and management
+Understand what {{product}} is and how to choose a deployment and management
 method that best suits your orchestration needs.
 
 ```{toctree}
@@ -23,6 +23,8 @@ capi-ck8s.md
 
 ## Networking
 
+Understand the networking capabilities in Canonical Kubernetes.
+
 ```{toctree}
 :titlesonly:
 :glob:
@@ -31,6 +33,9 @@ load-balancer
 ```
 
 ## Upgrades
+
+Understand how to carry out in-place upgrades of your {{product}} cluter with
+CAPI.
 
 ```{toctree}
 :titlesonly:
