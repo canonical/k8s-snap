@@ -9,19 +9,44 @@ help you get the most out of Kubernetes and Cluster API.
 Overview <self>
 ```
 
+## {{product}} fundamentals
+
+Understand what is {{product}} and how to choose a deployment and management
+method that best suits your orchestration needs.
+
 ```{toctree}
 :titlesonly:
-:glob:
-
 about
 installation-methods.md
 capi-ck8s.md
-ingress
-load-balancer
-in-place-upgrades.md
-security
 ```
 
+## Networking
+
+```{toctree}
+:titlesonly:
+:glob:
+ingress
+load-balancer
+```
+
+## Upgrades
+
+```{toctree}
+:titlesonly:
+:glob:
+in-place-upgrades.md
+```
+
+## Security
+
+Understand how security plays a vital role in {{product}}.
+
+```{toctree}
+:titlesonly:
+:glob:
+security
+```
 
 
 ---

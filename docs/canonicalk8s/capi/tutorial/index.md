@@ -8,6 +8,11 @@ install and use {{product}} with Cluster API.
 Overview <self>
 ```
 
+## Getting started
+
+This tutorial walks through the installation of {{product}} on the
+infrastrucutre provider of your choice.
+
 ```{toctree}
 :glob:
 :titlesonly:
