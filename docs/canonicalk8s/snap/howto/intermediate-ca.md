@@ -56,5 +56,5 @@ Kubernetes certificate manager.
 
 <!--LINKS -->
 [HashiCorp Vault]: https://developer.hashicorp.com/vault/docs
-[bootstrap configuration file]: /snap/reference/bootstrap-config-reference.md
+[bootstrap configuration file]: /snap/reference/config-files/bootstrap-config.md
 [Vault article]: https://support.hashicorp.com/hc/en-us/articles/21920341210899-Create-an-Intermediate-CA-in-Kubernetes-using-Vault-as-a-certificate-manager
