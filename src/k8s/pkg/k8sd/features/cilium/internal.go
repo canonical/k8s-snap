@@ -24,6 +24,7 @@ type config struct {
 	vlanBPFBypass       []int
 	cniExclusive        bool
 	tunnelPort          int
+	sctpEnabled         bool
 }
 
 func validatePort(portStr string) (int, error) {
@@ -98,6 +99,10 @@ func internalConfig(annotations types.Annotations) (config, error) {
 		c.tunnelPort = tunnelPort
 	} else {
 		c.tunnelPort = ciliumDefaultVXLANPort
+	}
+
+	if _, ok := annotations.Get(apiv1_annotations.AnnotationSCTPEnabled); ok {
+		c.sctpEnabled = true
 	}
 
 	return c, nil
