@@ -6,6 +6,7 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
+	"io/fs"
 	"reflect"
 	"strings"
 )
@@ -49,7 +50,11 @@ func getStructTypeFromDoc(packageDoc *doc.Package, structName string) (*ast.Stru
 
 func parsePackageDir(packageDir string) (*ast.Package, error) {
 	fset := token.NewFileSet()
-	packages, err := parser.ParseDir(fset, packageDir, nil, parser.ParseComments)
+	// NOTE(Hue): We only want to parse non-test files.
+	nonTestPackagesFilter := func(info fs.FileInfo) bool {
+		return !strings.HasSuffix(info.Name(), "_test.go")
+	}
+	packages, err := parser.ParseDir(fset, packageDir, nonTestPackagesFilter, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't parse go package: %s", packageDir)
 	}
