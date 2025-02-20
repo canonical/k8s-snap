@@ -139,13 +139,35 @@ jobs:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
 
+  get-charm-channel:
+    name: Determine the charm channel
+    outputs:
+      charm-channel: ${{ steps.parse-branch.outputs.charm-channel }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse branch name
+        id: parse-branch
+        env:
+          # Use either the base (destination) branch name for PRs or
+          # "ref_name" on push.
+          BRANCH_NAME: ${{ github.base_ref || github.ref_name }}
+        run: |
+          release=$(echo $BRANCH_NAME | grep -Po "release-\d+\.\d+" | cut -d "-" -f 2)
+          if [[ -n $release ]]; then
+            # Stable releases don't have an "edge" track, we'll use beta.
+            channel="$release/beta"
+          else
+            channel=latest/edge
+          fi
+          echo "charm-channel=$channel" >> "$GITHUB_OUTPUT"
+
   charm-e2e-tests:
     name: Charm e2e tests
     strategy:
       fail-fast: false
-    needs: [build-snap, go-lint-and-unit, python-lint]
+    needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel]
     uses: ./.github/workflows/charm-e2e-tests.yaml
     with:
       arch: amd64
       artifact: k8s.snap
-      charm-channel: latest/edge
+      charm-channel: ${{ needs.get-charm-channel.outputs.charm-channel }}
