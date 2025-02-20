@@ -42,18 +42,18 @@ def test_cluster_config(instances: List[harness.Instance]):
             "pod-cidr": "10.1.0.0/16",
             "service-cidr": "10.152.183.0/24",
         },
-        "dns":{
+        "dns": {
             "enabled": True,
             "cluster-domain": "cluster.local",
             "service-ip": "10.152.183.200",
             "upstream-nameservers": ["/etc/resolv.conf"],
         },
-        "ingress":{
+        "ingress": {
             "enabled": True,
             "default-tls-secret": "",
             "enable-proxy-protocol": False,
         },
-        "load-balancer":{
+        "load-balancer": {
             "enabled": True,
             "cidrs": [],
             "l2-mode": True,
@@ -64,35 +64,65 @@ def test_cluster_config(instances: List[harness.Instance]):
             "bgp-peer-asn": 0,
             "bgp-peer-port": 0,
         },
-        "local-storage":{
+        "local-storage": {
             "enabled": True,
             "local-path": "/var/snap/k8s/common/rawfile-storage",
             "reclaim-policy": "Delete",
             "default": True,
         },
-        "gateway":{
+        "gateway": {
             "enabled": True,
         },
-        "metrics-server":{
+        "metrics-server": {
             "enabled": True,
         },
     }
     exp_cp_datastore = {"type": "k8s-dqlite"}
     exp_cp_taints = ["taint1=:PreferNoSchedule", "taint2=value:PreferNoSchedule"]
-    exp_worker_taints = ["workerTaint1=:PreferNoSchedule", "workerTaint2=workerValue:PreferNoSchedule"]
+    exp_worker_taints = [
+        "workerTaint1=:PreferNoSchedule",
+        "workerTaint2=workerValue:PreferNoSchedule",
+    ]
 
-    assert cp_resp["datastore"] == exp_cp_datastore, f"Mismatch in {cp_resp['datastore']} and {exp_cp_datastore=}"
-    assert cp_resp["nodeTaints"] == exp_cp_taints, f"Mismatch in {cp_resp['nodeTaints']} and {exp_cp_taints=}"
-    assert worker_resp["nodeTaints"] == exp_worker_taints, f"Mismatch in {worker_resp['nodeTaints']} and {exp_worker_taints=}"
-    assert cp_resp["status"]["network"] == exp_cp_config["network"], f"Mismatch in {cp_resp['status']['network']} and {exp_cp_config['network']=}"
-    assert cp_resp["status"]["dns"]["enabled"] == exp_cp_config["dns"]["enabled"], f"Mismatch in {cp_resp['status']['dns']['enabled']} and {exp_cp_config['dns']['enabled']=}"
-    assert cp_resp["status"]["dns"]["cluster-domain"] == exp_cp_config["dns"]["cluster-domain"], f"Mismatch in {cp_resp['status']['dns']['cluster-domain']} and {exp_cp_config['dns']['cluster-domain']=}"
-    assert cp_resp["status"]["dns"]["upstream-nameservers"] == exp_cp_config["dns"]["upstream-nameservers"], f"Mismatch in {cp_resp['status']['dns']['upstream-nameservers']} and {exp_cp_config['dns']['upstream-nameservers']=}"
-    assert cp_resp["status"]["ingress"] == exp_cp_config["ingress"], f"Mismatch in {cp_resp['status']['ingress']} and {exp_cp_config['ingress']=}"
-    assert cp_resp["status"]["load-balancer"] == exp_cp_config["load-balancer"], f"Mismatch in {cp_resp['status']['load-balancer']} and {exp_cp_config['load-balancer']=}"
-    assert cp_resp["status"]["local-storage"] == exp_cp_config["local-storage"], f"Mismatch in {cp_resp['status']['local-storage']} and {exp_cp_config['local-storage']=}"
-    assert cp_resp["status"]["gateway"] == exp_cp_config["gateway"], f"Mismatch in {cp_resp['status']['gateway']} and {exp_cp_config['gateway']=}"
-    assert cp_resp["status"]["metrics-server"] == exp_cp_config["metrics-server"], f"Mismatch in {cp_resp['status']['metrics-server']} and {exp_cp_config['metrics-server']=}"
+    assert (
+        cp_resp["datastore"] == exp_cp_datastore
+    ), f"Mismatch in {cp_resp['datastore']} and {exp_cp_datastore=}"
+    assert (
+        cp_resp["nodeTaints"] == exp_cp_taints
+    ), f"Mismatch in {cp_resp['nodeTaints']} and {exp_cp_taints=}"
+    assert (
+        worker_resp["nodeTaints"] == exp_worker_taints
+    ), f"Mismatch in {worker_resp['nodeTaints']} and {exp_worker_taints=}"
+    assert (
+        cp_resp["status"]["network"] == exp_cp_config["network"]
+    ), f"Mismatch in {cp_resp['status']['network']} and {exp_cp_config['network']=}"
+    assert (
+        cp_resp["status"]["dns"]["enabled"] == exp_cp_config["dns"]["enabled"]
+    ), f"Mismatch in {cp_resp['status']['dns']['enabled']} and {exp_cp_config['dns']['enabled']=}"
+    assert (
+        cp_resp["status"]["dns"]["cluster-domain"]
+        == exp_cp_config["dns"]["cluster-domain"]
+    ), f"Mismatch in {cp_resp['status']['dns']['cluster-domain']} and {exp_cp_config['dns']['cluster-domain']=}"
+    assert (
+        cp_resp["status"]["dns"]["upstream-nameservers"]
+        == exp_cp_config["dns"]["upstream-nameservers"]
+    ), f"Mismatch in {cp_resp['status']['dns']['upstream-nameservers']} and "
+    "{exp_cp_config['dns']['upstream-nameservers']=}"
+    assert (
+        cp_resp["status"]["ingress"] == exp_cp_config["ingress"]
+    ), f"Mismatch in {cp_resp['status']['ingress']} and {exp_cp_config['ingress']=}"
+    assert (
+        cp_resp["status"]["load-balancer"] == exp_cp_config["load-balancer"]
+    ), f"Mismatch in {cp_resp['status']['load-balancer']} and {exp_cp_config['load-balancer']=}"
+    assert (
+        cp_resp["status"]["local-storage"] == exp_cp_config["local-storage"]
+    ), f"Mismatch in {cp_resp['status']['local-storage']} and {exp_cp_config['local-storage']=}"
+    assert (
+        cp_resp["status"]["gateway"] == exp_cp_config["gateway"]
+    ), f"Mismatch in {cp_resp['status']['gateway']} and {exp_cp_config['gateway']=}"
+    assert (
+        cp_resp["status"]["metrics-server"] == exp_cp_config["metrics-server"]
+    ), f"Mismatch in {cp_resp['status']['metrics-server']} and {exp_cp_config['metrics-server']=}"
 
 
 def get_cluster_config(instance: harness.Instance) -> Any:
@@ -110,17 +140,11 @@ def get_cluster_config(instance: harness.Instance) -> Any:
     )
     assert resp.returncode == 0, f"Failed to get cluster config. {resp=}"
     response = json.loads(resp.stdout.decode())
-    assert (
-        response["error_code"] == 0
-    ), f"Failed to get cluster config. {response=}"
-    assert (
-        response["error"] == ""
-    ), f"Failed to get cluster config. {response=}"
+    assert response["error_code"] == 0, f"Failed to get cluster config. {response=}"
+    assert response["error"] == "", f"Failed to get cluster config. {response=}"
 
     metadata = response.get("metadata")
-    assert (
-        metadata is not None
-    ), "Metadata not found in the cluster config response."
+    assert metadata is not None, "Metadata not found in the cluster config response."
     assert (
         metadata.get("status") is not None
     ), "Config not found in the cluster config response."
