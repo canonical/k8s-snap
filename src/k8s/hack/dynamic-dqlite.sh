@@ -91,8 +91,15 @@ if [ ! -f "${BUILD_DIR}/dqlite/libdqlite.la" ]; then
   (
     cd "${BUILD_DIR}"
     rm -rf dqlite
-    git clone "${REPO_DQLITE}" --depth 1 --branch "${TAG_DQLITE}" > /dev/null
-    cd dqlite
+    if [[ -n  ${COMMIT_DQLITE} ]]; then
+      # --branch doesn't accept a commit, we need to do a separate checkout.
+      git clone "${REPO_DQLITE}" > /dev/null
+      cd dqlite
+      git checkout ${COMMIT_DQLITE}
+    else
+      git clone "${REPO_DQLITE}" --depth 1 --branch "${TAG_DQLITE}" > /dev/null
+      cd dqlite
+    fi
     autoreconf -i > /dev/null
     ./configure --enable-build-raft \
       CFLAGS=" -g -I${BUILD_DIR}/sqlite -I${BUILD_DIR}/libuv/include -I${BUILD_DIR}/lz4/lib -Werror=implicit-function-declaration" \

@@ -16,4 +16,7 @@ TAG_LIBNSL="v2.0.1"
 TAG_LIBUV="v1.48.0"
 TAG_LIBLZ4="v1.9.4"
 TAG_SQLITE="version-3.45.1"
-TAG_DQLITE="v1.17.1"
+# TODO: update the Dqlite tag once we get a new release after v1.18.0 and
+# drop "COMMIT_DQLITE".
+# TAG_DQLITE="v1.18.0"
+COMMIT_DQLITE="4c49d229ffffa6589469a0a7117860bd6df355e7"
