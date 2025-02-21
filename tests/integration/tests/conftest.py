@@ -110,12 +110,7 @@ def h() -> harness.Harness:
 
 @pytest.fixture(scope="session")
 def registry(h: harness.Harness) -> Optional[Registry]:
-    if config.USE_LOCAL_MIRROR:
-        yield Registry(h)
-    else:
-        # local image mirror disabled, avoid initializing the
-        # registry mirror instance.
-        yield None
+    yield Registry(h)
 
 
 @pytest.fixture(scope="session", autouse=True)
