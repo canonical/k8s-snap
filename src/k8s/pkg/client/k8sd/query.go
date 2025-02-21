@@ -9,7 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/lxd/shared/api"
-	"github.com/canonical/microcluster/v3/rest/types"
+	"github.com/canonical/microcluster/v2/rest/types"
 )
 
 // query is a helper method for sending requests to the k8sd client with common error checking and automatic retries.

@@ -4,7 +4,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/microcluster/v3/microcluster"
+	"github.com/canonical/microcluster/v2/microcluster"
 )
 
 func (a *App) MicroCluster() *microcluster.MicroCluster {

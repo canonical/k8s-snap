@@ -6,20 +6,20 @@ toolchain go1.23.4
 
 require (
 	dario.cat/mergo v1.0.0
-	github.com/canonical/go-dqlite/v3 v3.0.0
+	github.com/canonical/go-dqlite/v2 v2.0.0
 	github.com/canonical/k8s-snap-api v1.0.18
-	github.com/canonical/lxd v0.0.0-20250114180824-cc21f909e416
-	github.com/canonical/microcluster/v3 v3.0.0-20250217121741-142098b8e5b1
+	github.com/canonical/lxd v0.0.0-20250113143058-52441d41dab7
+	github.com/canonical/microcluster/v2 v2.1.1-0.20250127104725-631889214b18
 	github.com/go-logr/logr v1.4.2
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/sys/mountinfo v0.7.1
 	github.com/onsi/gomega v1.36.2
 	github.com/pelletier/go-toml v1.9.5
-	github.com/spf13/cobra v1.9.1
+	github.com/spf13/cobra v1.8.1
 	golang.org/x/mod v0.22.0
 	golang.org/x/net v0.34.0
 	golang.org/x/sync v0.10.0
-	golang.org/x/sys v0.30.0
+	golang.org/x/sys v0.29.0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.15.3
 	k8s.io/api v0.31.3
@@ -144,7 +144,7 @@ require (
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/cast v1.7.1 // indirect
-	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect

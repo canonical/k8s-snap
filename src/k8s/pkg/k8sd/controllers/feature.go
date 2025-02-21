@@ -10,7 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/microcluster/v3/state"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 // FeatureController manages the lifecycle of built-in Canonical Kubernetes features on a running cluster.

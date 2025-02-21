@@ -2,7 +2,7 @@ package mock
 
 import (
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/microcluster/v3/microcluster"
+	"github.com/canonical/microcluster/v2/microcluster"
 )
 
 type Provider struct {

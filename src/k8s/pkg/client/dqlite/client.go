@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/canonical/go-dqlite/v3/app"
-	"github.com/canonical/go-dqlite/v3/client"
+	"github.com/canonical/go-dqlite/v2/app"
+	"github.com/canonical/go-dqlite/v2/client"
 )
 
 type ClientOpts struct {

@@ -16,9 +16,9 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
-	"github.com/canonical/microcluster/v3/client"
-	"github.com/canonical/microcluster/v3/microcluster"
-	"github.com/canonical/microcluster/v3/state"
+	"github.com/canonical/microcluster/v2/client"
+	"github.com/canonical/microcluster/v2/microcluster"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 // Config defines configuration for the k8sd app.

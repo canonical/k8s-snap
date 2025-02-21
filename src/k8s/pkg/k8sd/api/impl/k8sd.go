@@ -8,7 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	nodeutil "github.com/canonical/k8s/pkg/utils/node"
-	"github.com/canonical/microcluster/v3/state"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 // GetClusterMembers retrieves information about the members of the cluster.

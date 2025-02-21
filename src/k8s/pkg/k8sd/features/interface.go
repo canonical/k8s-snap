@@ -5,7 +5,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/microcluster/v3/state"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 // Interface abstracts the management of built-in Canonical Kubernetes features.

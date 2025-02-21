@@ -4,7 +4,7 @@ import (
 	"net/netip"
 	"testing"
 
-	mctypes "github.com/canonical/microcluster/v3/rest/types"
+	mctypes "github.com/canonical/microcluster/v2/rest/types"
 	. "github.com/onsi/gomega"
 )
 

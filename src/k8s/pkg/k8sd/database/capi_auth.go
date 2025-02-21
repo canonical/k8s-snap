@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/canonical/microcluster/v3/cluster"
+	"github.com/canonical/microcluster/v2/cluster"
 )
 
 var clusterAPIConfigsStmts = map[string]int{

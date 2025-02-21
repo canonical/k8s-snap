@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/v3/state"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 func (e *Endpoints) ValidateNodeTokenAccessHandler(tokenHeaderName string) func(s state.State, r *http.Request) (bool, response.Response) {
