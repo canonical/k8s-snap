@@ -3,9 +3,9 @@
 #
 import logging
 import os
+import subprocess
 from pathlib import Path
 from string import Template
-import subprocess
 from typing import List, Optional
 
 from test_util import config
