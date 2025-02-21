@@ -59,7 +59,7 @@ Migrate your management cluster to a different substrate.
 Migrate the management cluster <migrate-management>
 ```
 
-## Troubleshooting
+## Troubleshoot
 
 Debug issues in your cluster.
 
