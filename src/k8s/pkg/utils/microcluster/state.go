@@ -8,7 +8,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/app"
 	"github.com/canonical/k8s/pkg/snap/mock"
-	"github.com/canonical/microcluster/v2/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
 const (

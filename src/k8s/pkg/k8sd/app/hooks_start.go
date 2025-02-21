@@ -13,7 +13,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
-	"github.com/canonical/microcluster/v2/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
 func (a *App) onStart(ctx context.Context, s state.State) error {

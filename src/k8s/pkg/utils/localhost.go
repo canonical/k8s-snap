@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	mctypes "github.com/canonical/microcluster/v2/rest/types"
+	mctypes "github.com/canonical/microcluster/v3/rest/types"
 )
 
 func DetermineLocalhostAddress(clusterMembers []mctypes.ClusterMember) (string, error) {

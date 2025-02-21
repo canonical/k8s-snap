@@ -8,7 +8,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/v2/state"
+	"github.com/canonical/microcluster/v3/state"
 )
 
 func ValidateCAPIAuthTokenAccessHandler(tokenHeaderName string) func(s state.State, r *http.Request) (bool, response.Response) {
