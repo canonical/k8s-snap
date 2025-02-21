@@ -55,7 +55,7 @@ The workload cluster will now retrieve the CA from the secret during
 bootstrapping. Refer to the [provisioning guide] for further instructions on
 completing the process.
 
-# Further reading
+## Further reading
 
 See this [Vault article] for more details on how to integrate Vault as a
 Kubernetes certificate manager.

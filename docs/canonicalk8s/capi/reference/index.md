@@ -8,16 +8,64 @@ information such as the command reference or release notes.
 Overview <self>
 ```
 
+## Release notes
+
+New features, bug fixes, deprecations and more are included in the release
+notes for each version.
+
 ```{toctree}
 :titlesonly:
 releases
+```
+
+## Annotations
+
+A list of annotations that can be applied to CAPI resources to reflect
+additional metadata.
+
+```{toctree}
+:titlesonly:
 annotations
-Ports and services <ports-and-services>
-Community <community>
+```
+
+## Providers configurations
+
+{{product}} bootstrap and control plane providers can be configured in order for
+the workload cluster to reach the desired state.
+
+```{toctree}
+:titlesonly:
 configs
 troubleshooting
 
 ```
+
+## Networking
+
+```{toctree}
+:titlesonly:
+Ports and services <ports-and-services>
+
+```
+
+## Providers configurations
+
+{{product}} bootstrap and control plane providers can be configured to reach
+the desired state for the workload cluster.
+
+```{toctree}
+:titlesonly:
+configs
+```
+
+## Contributing
+
+```{toctree}
+:titlesonly:
+Community <community>
+```
+
+---
 
 ## Other documentation types
 
