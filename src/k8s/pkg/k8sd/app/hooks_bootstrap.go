@@ -208,10 +208,8 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	// NOTE(Hue): This is how the taints are set for the worker nodes in the charm.
 	// https://github.com/canonical/k8s-operator/blob/bd9ebbda153053f9bfd6e66a93d2afb629a6cfd8/charms/worker/k8s/src/config/extra_args.py#L89
 	var taints []string
-	if taintsStr, ok := joinConfig.ExtraNodeKubeletArgs["--register-with-taints"]; ok {
-		if taintsStr != nil {
-			taints = strings.Split(*taintsStr, ",")
-		}
+	if taintsStr, ok := joinConfig.ExtraNodeKubeletArgs["--register-with-taints"]; ok && taintsStr != nil {
+		taints = strings.Split(*taintsStr, ",")
 	}
 
 	// Write worker node configuration to dqlite

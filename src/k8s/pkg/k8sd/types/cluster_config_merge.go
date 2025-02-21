@@ -78,7 +78,7 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		{name: "load balancer CIDRs", val: &config.LoadBalancer.CIDRs, old: existing.LoadBalancer.CIDRs, new: new.LoadBalancer.CIDRs, allowChange: true},
 		{name: "load balancer L2 interfaces", val: &config.LoadBalancer.L2Interfaces, old: existing.LoadBalancer.L2Interfaces, new: new.LoadBalancer.L2Interfaces, allowChange: true},
 		{name: "control-plane register with taints", val: &config.Kubelet.ControlPlaneTaints, old: existing.Kubelet.ControlPlaneTaints, new: new.Kubelet.ControlPlaneTaints, allowChange: false},
-		{name: "worker kubelet register with taints", val: &config.Kubelet.WorkerTaints, old: existing.Kubelet.WorkerTaints, new: new.Kubelet.WorkerTaints, allowChange: false},
+		{name: "worker register with taints", val: &config.Kubelet.WorkerTaints, old: existing.Kubelet.WorkerTaints, new: new.Kubelet.WorkerTaints, allowChange: false},
 	} {
 		if *i.val, err = mergeSliceField(i.old, i.new, i.allowChange); err != nil {
 			return ClusterConfig{}, fmt.Errorf("prevented update of %s: %w", i.name, err)
