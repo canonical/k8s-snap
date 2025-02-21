@@ -60,7 +60,7 @@ that will take some time however.
 
 [Kubernetes Security documentation]: https://kubernetes.io/docs/concepts/security/overview/
 [snap documentation]: https://snapcraft.io/docs/security-policies
-[rocks-security]: https://documentation.ubuntu.com/rockcraft/en/latest/explanation/rockcraft.html
+[rocks-security]: https://documentation.ubuntu.com/rockcraft/en/latest/explanation/rockcraft/
 [Amazon Web Services security]: https://aws.amazon.com/security/
 [Google Cloud Platform security]:https://cloud.google.com/security
 [Metal As A Service(MAAS) hardening]:https://maas.io/docs/how-to-enhance-maas-security
