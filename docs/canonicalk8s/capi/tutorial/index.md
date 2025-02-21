@@ -11,7 +11,7 @@ Overview <self>
 ## Getting started
 
 This tutorial walks through the installation of {{product}} on the
-infrastrucutre provider of your choice.
+infrastructure provider of your choice.
 
 ```{toctree}
 :glob:

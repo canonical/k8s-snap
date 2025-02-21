@@ -34,7 +34,7 @@ load-balancer
 
 ## Upgrades
 
-Understand how to carry out in-place upgrades of your {{product}} cluter with
+Understand how to carry out in-place upgrades of your {{product}} cluster with
 CAPI.
 
 ```{toctree}
