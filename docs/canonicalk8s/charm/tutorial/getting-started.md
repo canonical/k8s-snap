@@ -18,7 +18,6 @@ Kubernetes and some common first steps.
 - The [Juju client][]
 - Access to a Juju-supported cloud for creating the required instances
 
-
 ## 1. Get prepared
 
 Deploying charms with Juju requires a substrate or backing cloud to actually
@@ -29,8 +28,8 @@ deploy with.
 Before installing anything, we should first check what versions of the charm
 are available. Charms are published to 'channels' which reflect both a specific
 release version and the maturity or stability of that code. Sometimes we may
-wish to run on the latest stable version, sometimes the goal is to test out
-upcoming features or test migration to a new version. Channels are covered in
+wish to run on the latest stable version, other times the goal is to test out
+upcoming features or to test migration to a new version. Channels are covered in
 more detail in [the channel explanation page] if you want to learn more.
 The currently available versions of the charm can be discovered by running:
 
@@ -51,8 +50,8 @@ source so the available channels should match. Running the commands will output
 basic information about the charm, including a list of the available channels
 at the end.
 
-Charm deployments default to "latest/stable", but if you want to chose a
-specific version it can be indicated when deploying with the `--channel=`
+Charm deployments default to "latest/stable", but if you want to choose a
+specific version, it can be indicated when deploying with the `--channel=`
 argument, for example `--channel=latest/edge`.
 
 ## 2. Deploy the K8s charm
@@ -60,7 +59,7 @@ argument, for example `--channel=latest/edge`.
 To make sure that Juju creates an instance which has enough resources to
 actually run Kubernetes, we will make use of 'constraints'. These specify the
 minimums required. For the Kubernetes control plane (`k8s` charm), the
-recommendation is two CPU cores, 16GB of memory and 40GB of disk space. Now we
+recommendation is two CPU cores, 16GB of memory and 40GB of disk space. Now, we
 can go ahead and create a cluster:
 
 ```{literalinclude} ../../_parts/install.md
@@ -68,7 +67,7 @@ can go ahead and create a cluster:
 :end-before: <!-- juju control constraints end -->
 ```
 
-At this point Juju will fetch the charm from Charmhub, create a new instance
+At this point, Juju will fetch the charm from Charmhub, create a new instance
 according to your specification and configure and install the Kubernetes
 components (i.e. the `k8s` snap ). This may take a few minutes depending on
 your cloud. You can monitor progress by watching the Juju status output:
@@ -95,7 +94,7 @@ worker node in a similar way to the original K8s node:
 ```
 
 Once again, this will take a few minutes. In this case though, the `k8s-worker`
-application won't settle into a 'Ready' status, because it requires a
+application won't settle into a 'Ready' status. That is because it requires a
 connection to the control plane. This is handled in Juju by integrating the
 charms so they can communicate using a standard interface. The charm info we
 fetched earlier also includes a list of the relations possible, and from this
