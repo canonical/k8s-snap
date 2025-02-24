@@ -20,23 +20,23 @@ import (
 	"github.com/canonical/microcluster/v2/state"
 )
 
-func (e *Endpoints) postUpdateCertificates(s state.State, r *http.Request) response.Response {
+func (e *Endpoints) postRefreshCertsUpdate(s state.State, r *http.Request) response.Response {
 	snap := e.provider.Snap()
 	isWorker, err := snaputil.IsWorker(snap)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to check if node is a worker: %w", err))
 	}
 	if isWorker {
-		return updateCertificatesWorker(s, r, snap)
+		return refreshCertsUpdateWorker(s, r, snap)
 	}
-	return updateCertificatesControlPlane(s, r, snap)
+	return refreshCertsUpdateControlPlane(s, r, snap)
 }
 
-// updateCertificatesControlPlane updates the certificates for a control plane node.
-func updateCertificatesControlPlane(s state.State, r *http.Request, snap snap.Snap) response.Response {
+// refreshCertsUpdateControlPlane updates the external certificates for a control plane node.
+func refreshCertsUpdateControlPlane(s state.State, r *http.Request, snap snap.Snap) response.Response {
 	log := log.FromContext(r.Context())
 
-	req := apiv1.UpdateCertificatesRequest{}
+	req := apiv1.RefreshCertificatesUpdateRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -123,7 +123,7 @@ func updateCertificatesControlPlane(s state.State, r *http.Request, snap snap.Sn
 			close(readyCh)
 		}()
 
-		err := response.SyncResponse(true, apiv1.UpdateCertificatesResponse{}).Render(w, r)
+		err := response.SyncResponse(true, apiv1.RefreshCertificatesUpdateResponse{}).Render(w, r)
 		if err != nil {
 			return fmt.Errorf("failed to render response: %w", err)
 		}
@@ -138,11 +138,11 @@ func updateCertificatesControlPlane(s state.State, r *http.Request, snap snap.Sn
 	})
 }
 
-// updateCertificatesWorker updates the certificates for a worker node.
-func updateCertificatesWorker(s state.State, r *http.Request, snap snap.Snap) response.Response {
+// refreshCertsUpdateWorker updates the external certificates for a worker node.
+func refreshCertsUpdateWorker(s state.State, r *http.Request, snap snap.Snap) response.Response {
 	log := log.FromContext(r.Context())
 
-	req := apiv1.UpdateCertificatesRequest{}
+	req := apiv1.RefreshCertificatesUpdateRequest{}
 	if err := utils.NewStrictJSONDecoder(r.Body).Decode(&req); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to parse request: %w", err))
 	}
@@ -210,7 +210,7 @@ func updateCertificatesWorker(s state.State, r *http.Request, snap snap.Snap) re
 			close(readyCh)
 		}()
 
-		err := response.SyncResponse(true, apiv1.UpdateCertificatesResponse{}).Render(w, r)
+		err := response.SyncResponse(true, apiv1.RefreshCertificatesUpdateResponse{}).Render(w, r)
 		if err != nil {
 			return fmt.Errorf("failed to render response: %w", err)
 		}

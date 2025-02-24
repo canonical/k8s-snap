@@ -7,13 +7,13 @@ toolchain go1.23.4
 require (
 	dario.cat/mergo v1.0.0
 	github.com/canonical/go-dqlite/v2 v2.0.0
-	github.com/canonical/k8s-snap-api v1.0.18-0.20250217213644-e0993f7255d9
+	github.com/canonical/k8s-snap-api v1.0.19-0.20250224225216-4abe97adc5bb
 	github.com/canonical/lxd v0.0.0-20250113143058-52441d41dab7
 	github.com/canonical/microcluster/v2 v2.1.1-0.20250127104725-631889214b18
 	github.com/go-logr/logr v1.4.2
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/sys/mountinfo v0.7.1
-	github.com/onsi/gomega v1.33.1
+	github.com/onsi/gomega v1.36.2
 	github.com/pelletier/go-toml v1.9.5
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/mod v0.22.0

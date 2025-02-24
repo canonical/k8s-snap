@@ -14,6 +14,6 @@ func (c *k8sd) RefreshCertificatesRun(ctx context.Context, request apiv1.Refresh
 	return query(ctx, c, "POST", apiv1.RefreshCertificatesRunRPC, request, &apiv1.RefreshCertificatesRunResponse{})
 }
 
-func (c *k8sd) UpdateCertificates(ctx context.Context, request apiv1.UpdateCertificatesRequest) (apiv1.UpdateCertificatesResponse, error) {
-	return query(ctx, c, "POST", apiv1.UpdateCertificatesRPC, request, &apiv1.UpdateCertificatesResponse{})
+func (c *k8sd) RefreshCertificatesUpdate(ctx context.Context, request apiv1.RefreshCertificatesUpdateRequest) (apiv1.RefreshCertificatesUpdateResponse, error) {
+	return query(ctx, c, "POST", apiv1.RefreshCertificatesUpdateRPC, request, &apiv1.RefreshCertificatesUpdateResponse{})
 }
