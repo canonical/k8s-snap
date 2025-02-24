@@ -8,10 +8,24 @@ install and use {{product}}.
 Overview <self>
 ```
 
+## Getting started
+
+This tutorial walks through the installation of a {{product}} cluster and adds a
+worker node.
+
 ```{toctree}
 :glob:
 :titlesonly:
 getting-started
+```
+
+## Cluster operations
+
+Now that you have a {{product}} cluster, learn about what you can do with it!
+
+```{toctree}
+:glob:
+:titlesonly:
 basic-operations
 ```
 

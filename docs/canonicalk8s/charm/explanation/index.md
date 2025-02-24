@@ -4,25 +4,62 @@ For a better understanding of how {{product}} works and related
 topics such as security, these pages will help expand your knowledge and
 help you get the most out of Kubernetes.
 
+This page covers both general and charm-related topics.
+For information specific to the snap version of {{product}},
+please refer to the relevant [explanation page].
+
 ```{toctree}
 :hidden:
 Overview <self>
 ```
 
+## {{product}} fundamentals
+
+Understand what {{product}} is and how to choose a deployment and management
+method that best suits your orchestration needs.
+
 ```{toctree}
 :titlesonly:
 about
 installation-methods.md
+```
+
+## Charms
+
+Understand which charm channel is right for your deployment.
+
+```{toctree}
+:titlesonly:
 channels
+```
+
+## Networking
+
+Understand the networking capabilities in {{product}}.
+
+```{toctree}
+:titlesonly:
 ingress
 load-balancer
-security
+```
+
+## Upgrades
+
+Understand the upgrade process with {{product}}.
+
+```{toctree}
+:titlesonly:
 Upgrades <upgrade.md>
 ```
 
-This page covers both general and charm-related topics.
-For information specific to the snap version of {{product}},
-please refer to the relevant [explanation page].
+## Security
+
+Understand how security plays a vital role in Canonical Kubernetes.
+
+```{toctree}
+:titlesonly:
+security
+```
 
 ---
 
