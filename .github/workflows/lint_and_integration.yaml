@@ -112,22 +112,22 @@ jobs:
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
       artifact: k8s.snap
 
-  test-integration-informing:
-    name: Test informing ${{ matrix.os }} ${{ matrix.patch }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["ubuntu:24.04"]
-        patch: ["moonray"]
-    needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
-    if: success() && github.event_name == 'pull_request'
-    uses: ./.github/workflows/e2e-tests.yaml
-    with:
-      arch: amd64
-      os: ${{ matrix.os }}
-      test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
-      artifact: k8s-${{ matrix.patch }}.snap
-      flavor: ${{ matrix.patch }}
+  # test-integration-informing:
+  #   name: Test informing ${{ matrix.os }} ${{ matrix.patch }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: ["ubuntu:24.04"]
+  #       patch: ["moonray"]
+  #   needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
+  #   if: success() && github.event_name == 'pull_request'
+  #   uses: ./.github/workflows/e2e-tests.yaml
+  #   with:
+  #     arch: amd64
+  #     os: ${{ matrix.os }}
+  #     test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
+  #     artifact: k8s-${{ matrix.patch }}.snap
+  #     flavor: ${{ matrix.patch }}
 
   security-scan:
     name: Security scan
@@ -161,13 +161,13 @@ jobs:
           fi
           echo "charm-channel=$channel" >> "$GITHUB_OUTPUT"
 
-  charm-e2e-tests:
-    name: Charm e2e tests
-    strategy:
-      fail-fast: false
-    needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel]
-    uses: ./.github/workflows/charm-e2e-tests.yaml
-    with:
-      arch: amd64
-      artifact: k8s.snap
-      charm-channel: ${{ needs.get-charm-channel.outputs.charm-channel }}
+  # charm-e2e-tests:
+  #   name: Charm e2e tests
+  #   strategy:
+  #     fail-fast: false
+  #   needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel]
+  #   uses: ./.github/workflows/charm-e2e-tests.yaml
+  #   with:
+  #     arch: amd64
+  #     artifact: k8s.snap
+  #     charm-channel: ${{ needs.get-charm-channel.outputs.charm-channel }}

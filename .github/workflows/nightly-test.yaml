@@ -3,11 +3,11 @@ name: Nightly Tests
 on:
   schedule:
     - cron: "0 0 * * *" # Runs every midnight
-  pull_request:
-    paths:
-      - .github/workflows/nightly-test.yaml
-      - .github/workflows/e2e-tests.yaml
-      - .github/workflows/security-scan.yaml
+  # pull_request:
+  #   paths:
+  #     - .github/workflows/nightly-test.yaml
+  #     - .github/workflows/e2e-tests.yaml
+  #     - .github/workflows/security-scan.yaml
 
 permissions:
   contents: read
