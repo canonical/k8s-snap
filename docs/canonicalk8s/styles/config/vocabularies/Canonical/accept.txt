@@ -10,6 +10,7 @@ COS
 Charmed
 Charmed Kubeflow
 Charmhub
+CRDs
 Data Integrator
 Grafana
 Juju
@@ -377,6 +378,7 @@ cybersecurity
 uid
 runc
 unoptimized
+HTTPRoute
 namespaces
 upgrader
 reources

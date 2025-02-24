@@ -95,12 +95,8 @@ def test_smoke(instances: List[harness.Instance]):
         response["error_code"] == 0
     ), "Failed to generate join token using CAPI endpoints."
     metadata = response.get("metadata")
-    assert (
-        metadata is not None
-    ), "Metadata not found in the generate-join-token response."
-    assert (
-        metadata.get("token") is not None
-    ), "Token not found in the generate-join-token response."
+    assert metadata, "Metadata not found in the generate-join-token response."
+    assert metadata.get("token"), "Token not found in the generate-join-token response."
 
     resp = instance.exec(
         [
@@ -121,9 +117,7 @@ def test_smoke(instances: List[harness.Instance]):
         response["error_code"] == 0
     ), "Failed to get certificate expiry using CAPI endpoints."
     metadata = response.get("metadata")
-    assert (
-        metadata is not None
-    ), "Metadata not found in the certificate expiry response."
+    assert metadata, "Metadata not found in the certificate expiry response."
     assert util.is_valid_rfc3339(
         metadata.get("expiry-date")
     ), "Token not found in the certificate expiry response."
@@ -138,7 +132,7 @@ def test_smoke(instances: List[harness.Instance]):
 
         for i in range(len(result_lines)):
             line, pattern = result_lines[i], STATUS_PATTERNS[i]
-            if re.search(pattern, line) is None:
+            if not re.search(pattern, line):
                 LOG.info(f"could not match `{line.strip()}` with `{pattern}`")
                 return False
 

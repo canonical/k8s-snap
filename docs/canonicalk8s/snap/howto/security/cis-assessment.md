@@ -2967,15 +2967,14 @@ account tokens to disable it.
 ##### CIS Control 5.1.7
 
 **Description:**
-
+<!-- vale off -->
 Avoid use of system:masters group
 
 
 **Remediation:**
-
 Remove the system:masters group from all users in the
 cluster.
-
+<!-- vale on -->
 
 ##### CIS Control 5.1.8
 

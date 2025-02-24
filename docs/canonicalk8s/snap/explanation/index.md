@@ -9,21 +9,60 @@ get the most out of Kubernetes.
 Overview <self>
 ```
 
+## {{product}} fundamentals
+
+Understand what {{product}} is and how to choose a deployment and management
+method that best suits your orchestration needs.
+
 ```{toctree}
 :titlesonly:
 about
 installation-methods.md
-channels
 clustering
+```
+
+## Snaps
+
+Understand which snap channel is right for your deployment.
+
+```{toctree}
+:titlesonly:
+channels
+```
+
+## Cluster management
+
+Understand the steps taken by {{product}} to ease the task of cluster
+management.
+
+```{toctree}
+:titlesonly:
 high-availability
-certificates
+Upgrades <upgrade.md>
+package-management
+epa
+```
+
+## Networking
+
+Understand the networking capabilities in {{product}}.
+
+```{toctree}
+:titlesonly:
 ingress
 load-balancer
-Upgrades <upgrade.md>
-epa
+```
+
+## Security and compliance
+
+Understand how security plays a vital role in {{product}} and what has been
+done to strive for compliance with industry standards.
+
+```{toctree}
+:titlesonly:
 security
 cis
-package-management
+certificates
 ```
 
 ---

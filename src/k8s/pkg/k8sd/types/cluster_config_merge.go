@@ -49,7 +49,7 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		// apiserver
 		{name: "kube-apiserver authorization mode", val: &config.APIServer.AuthorizationMode, old: existing.APIServer.AuthorizationMode, new: new.APIServer.AuthorizationMode, allowChange: true},
 		// kubelet
-		{name: "kubelet cluster DNS", val: &config.Kubelet.ClusterDNS, old: existing.Kubelet.ClusterDNS, new: new.Kubelet.ClusterDNS, allowChange: !existing.DNS.GetEnabled() || !new.DNS.GetEnabled()},
+		{name: "kubelet cluster DNS", val: &config.Kubelet.ClusterDNS, old: existing.Kubelet.ClusterDNS, new: new.Kubelet.ClusterDNS, allowChange: !boolFieldRemainedEnabled(existing.DNS.Enabled, new.DNS.Enabled)},
 		{name: "kubelet cluster domain", val: &config.Kubelet.ClusterDomain, old: existing.Kubelet.ClusterDomain, new: new.Kubelet.ClusterDomain, allowChange: true},
 		{name: "kubelet cloud provider", val: &config.Kubelet.CloudProvider, old: existing.Kubelet.CloudProvider, new: new.Kubelet.CloudProvider, allowChange: true},
 		// ingress
@@ -57,8 +57,8 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		// load balancer
 		{name: "load balancer BGP peer address", val: &config.LoadBalancer.BGPPeerAddress, old: existing.LoadBalancer.BGPPeerAddress, new: new.LoadBalancer.BGPPeerAddress, allowChange: true},
 		// local storage
-		{name: "local storage path", val: &config.LocalStorage.LocalPath, old: existing.LocalStorage.LocalPath, new: new.LocalStorage.LocalPath, allowChange: !existing.LocalStorage.GetEnabled() || !new.LocalStorage.GetEnabled()},
-		{name: "local storage reclaim policy", val: &config.LocalStorage.ReclaimPolicy, old: existing.LocalStorage.ReclaimPolicy, new: new.LocalStorage.ReclaimPolicy, allowChange: !existing.LocalStorage.GetEnabled() || !new.LocalStorage.GetEnabled()},
+		{name: "local storage path", val: &config.LocalStorage.LocalPath, old: existing.LocalStorage.LocalPath, new: new.LocalStorage.LocalPath, allowChange: !boolFieldRemainedEnabled(existing.LocalStorage.Enabled, new.LocalStorage.Enabled)},
+		{name: "local storage reclaim policy", val: &config.LocalStorage.ReclaimPolicy, old: existing.LocalStorage.ReclaimPolicy, new: new.LocalStorage.ReclaimPolicy, allowChange: !boolFieldRemainedEnabled(existing.LocalStorage.Enabled, new.LocalStorage.Enabled)},
 	} {
 		if *i.val, err = mergeField(i.old, i.new, i.allowChange); err != nil {
 			return ClusterConfig{}, fmt.Errorf("prevented update of %s: %w", i.name, err)

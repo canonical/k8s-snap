@@ -24,6 +24,7 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "refresh-certs",
 		Short: "Refresh the certificates of the running node",
+    Args:   cobra.NoArgs,
 		PreRun: chainPreRunHooks(hookRequireRoot(env), func(cmd *cobra.Command, args []string) {
 			if opts.externalCerts == "" && opts.expiresIn == "" {
 				cmd.PrintErrln("Error: --expires-in flag is required when not using --external-certificates.")

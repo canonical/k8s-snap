@@ -1,10 +1,5 @@
 # Install {{product}}
 
-```{toctree}
-:hidden:
-Install <self>
-```
-
 There's more than one way to install {{product}}. You'll find links to
 the current How-to guides below.
 
@@ -18,5 +13,6 @@ the current How-to guides below.
 ... in LXD <lxd.md>
 ... in air-gapped environments <offline.md>
 ... in development environments <dev-env.md>
+... with custom worker configuration <custom-worker.md>
 Uninstall the snap <uninstall.md>
 ```

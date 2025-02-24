@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/app"
+	"github.com/canonical/k8s/pkg/snap/mock"
 	"github.com/canonical/microcluster/v2/state"
 )
 
@@ -45,8 +46,14 @@ func WithState(t *testing.T, f func(context.Context, state.State)) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	snapMock := mock.Snap{
+		Mock: mock.Mock{
+			K8sDqliteStateDir: t.TempDir(),
+		},
+	}
 	app, err := app.New(app.Config{
 		StateDir: t.TempDir(),
+		Snap:     &snapMock,
 	})
 	if err != nil {
 		t.Fatalf("failed to create microcluster app: %v", err)

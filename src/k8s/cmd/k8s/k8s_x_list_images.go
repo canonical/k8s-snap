@@ -13,6 +13,7 @@ func newListImagesCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Hidden:  true,
 		Aliases: []string{"list-images"},
 		Short:   "List all images used by this build",
+		Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Println(strings.Join(images.Images(), "\n"))
 		},

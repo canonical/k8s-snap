@@ -49,7 +49,7 @@ class Retriable:
     def __init__(self, retry_kwargs: Optional[Mapping[str, Any]]) -> None:
         self._condition = None
         self._run = partial(run, capture_output=True)
-        if retry_kwargs is None:
+        if not retry_kwargs:
             retry_kwargs = {}
         self._retry_kwargs = retry_kwargs
 
@@ -129,15 +129,15 @@ def stubbornly(
 
     def _before_sleep(retry_state: RetryCallState):
         attempt = retry_state.attempt_number
-        tries = f"/{retries}" if retries is not None else ""
+        tries = f"/{retries}" if retries else ""
         errstr = ""
         if retry_state.outcome:
             errstr = f" Error: {retry_state.outcome.exception()}"
         LOG.info(f"Attempt {attempt}{tries} failed.{errstr}")
         LOG.info(f"Retrying in {delay_s} seconds...")
 
-    waits = wait_fixed(delay_s) if delay_s is not None else wait_fixed(0)
-    stops = stop_after_attempt(retries) if retries is not None else stop_never
+    waits = wait_fixed(delay_s) if delay_s else wait_fixed(0)
+    stops = stop_after_attempt(retries) if retries else stop_never
     exceptions = exceptions or (Exception,)  # default to retry on all exceptions
 
     retry_args = dict(
@@ -273,7 +273,7 @@ def wait_until_k8s_ready(
     instance_id_node_name_map = {}
     for instance in instances:
         node_name = node_names.get(instance.id)
-        if node_name is None:
+        if not node_name:
             node_name = hostname(instance)
 
         result = (
@@ -600,7 +600,7 @@ def get_os_version_id_for_instance(instance: harness.Instance) -> str:
             release = line.lstrip(f"{var}=")
             break
 
-    if release is None:
+    if not release:
         raise ValueError(
             f"Failed to parse OS release var '{var}' from OS release "
             f"info: {proc.stdout}"

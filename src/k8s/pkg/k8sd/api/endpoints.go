@@ -3,6 +3,7 @@ package api
 
 import (
 	"context"
+	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/microcluster/v2/rest"
@@ -15,7 +16,7 @@ type Endpoints struct {
 
 // New creates a new API server instance.
 // Context is the context to use for the API servers endpoints.
-func New(ctx context.Context, provider Provider) map[string]rest.Server {
+func New(ctx context.Context, provider Provider, drainConnectionsTimeout time.Duration) map[string]rest.Server {
 	k8sd := &Endpoints{
 		context:  ctx,
 		provider: provider,
@@ -31,6 +32,7 @@ func New(ctx context.Context, provider Provider) map[string]rest.Server {
 					Endpoints:  k8sd.Endpoints(),
 				},
 			},
+			DrainConnectionsTimeout: drainConnectionsTimeout,
 		},
 	}
 }
