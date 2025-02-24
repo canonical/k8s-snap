@@ -88,11 +88,11 @@ def test_cluster_config(instances: List[harness.Instance]):
         cp_resp["datastore"] == exp_cp_datastore
     ), f"Mismatch in {cp_resp['datastore']} and {exp_cp_datastore=}"
     assert (
-        cp_resp["nodeTaints"] == exp_cp_taints
-    ), f"Mismatch in {cp_resp['nodeTaints']} and {exp_cp_taints=}"
+        cp_resp["node-taints"] == exp_cp_taints
+    ), f"Mismatch in {cp_resp['node-taints']} and {exp_cp_taints=}"
     assert (
-        worker_resp["nodeTaints"] == exp_worker_taints
-    ), f"Mismatch in {worker_resp['nodeTaints']} and {exp_worker_taints=}"
+        worker_resp["node-taints"] == exp_worker_taints
+    ), f"Mismatch in {worker_resp['node-taints']} and {exp_worker_taints=}"
     assert (
         cp_resp["status"]["network"] == exp_cp_config["network"]
     ), f"Mismatch in {cp_resp['status']['network']} and {exp_cp_config['network']=}"
@@ -152,7 +152,7 @@ def get_cluster_config(instance: harness.Instance) -> Any:
         metadata.get("datastore") is not None
     ), "Datastore not found in the cluster config response."
     assert (
-        metadata.get("nodeTaints") is not None
+        metadata.get("node-taints") is not None
     ), "Node taints not found in the cluster config response."
 
     return metadata
