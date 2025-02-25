@@ -72,6 +72,8 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					env.Exit(1)
 					return
 				}
+				cmd.Println("External certificates have been successfully updated.")
+				return
 			}
 
 			// Default internal certificates refresh.
