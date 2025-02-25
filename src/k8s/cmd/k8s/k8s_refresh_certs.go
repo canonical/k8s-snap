@@ -129,7 +129,7 @@ func getCertificatesFromYAML(env cmdutil.ExecutionEnvironment, filePath string) 
 	if filePath == "-" {
 		b, err = io.ReadAll(env.Stdin)
 		if err != nil {
-			return apiv1.RefreshCertificatesUpdateRequest{}, fmt.Errorf("failed to read config from stdin: %w", err)
+			return apiv1.RefreshCertificatesUpdateRequest{}, fmt.Errorf("failed to read certificates from stdin: %w", err)
 		}
 	} else {
 		b, err = os.ReadFile(filePath)
@@ -140,7 +140,7 @@ func getCertificatesFromYAML(env cmdutil.ExecutionEnvironment, filePath string) 
 
 	var config apiv1.RefreshCertificatesUpdateRequest
 	if err := yaml.UnmarshalStrict(b, &config); err != nil {
-		return apiv1.RefreshCertificatesUpdateRequest{}, fmt.Errorf("failed to parse YAML config file: %w", err)
+		return apiv1.RefreshCertificatesUpdateRequest{}, fmt.Errorf("failed to parse YAML certificates file: %w", err)
 	}
 
 	return config, nil

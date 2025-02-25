@@ -92,6 +92,7 @@ func (m *Mock) RefreshCertificatesRun(_ context.Context, request apiv1.RefreshCe
 }
 
 func (m *Mock) RefreshCertificatesUpdate(_ context.Context, request apiv1.RefreshCertificatesUpdateRequest) (apiv1.RefreshCertificatesUpdateResponse, error) {
+	m.RefreshCertificatesUpdateCalledWith = request
 	return m.RefreshCertificatesUpdateResponse, m.RefreshCertificatesUpdateErr
 }
 
