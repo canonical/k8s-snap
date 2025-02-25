@@ -88,6 +88,12 @@ deployment will take a few minutes until all the components are up and running.
 Resources allocated by Kubernetes or the integrator are usually cleaned up automatically when no longer needed. However, it is recommended to periodically, and particularly after tearing down a cluster, use the OpenStack administration tools to make sure all unused resources have been successfully released.
 ```
 
+```{note}
+The Openstack Octavia load balancer creates a `healthmonitor` of type `TLS-HELLO` 
+which simply ensures the back-end servers respond to SSLv3 client hello messages. 
+It will not check any other health metrics, like status code or body contents.
+```
+
 <!-- LINKS -->
 [openstack]: https://www.openstack.org/
 [proxy]: /charm/howto/proxy
