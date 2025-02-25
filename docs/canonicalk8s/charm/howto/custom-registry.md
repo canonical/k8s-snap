@@ -27,7 +27,7 @@ For example, to configure the charm to use a custom registry at
 follows:
 
 ```
-juju config k8s containerd_custom_registries='[{
+juju config k8s containerd-custom-registries='[{
     "url": "http://myregistry.example.com:5000",
     "host": "myregistry.example.com:5000",
     "username": "myuser",
