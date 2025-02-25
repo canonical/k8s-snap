@@ -49,6 +49,13 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
 	}
 
+	// nodeIPs will be passed to kubelet as the --node-ip parameter, allowing it to have multiple node IPs,
+	// including IPv4 and IPv6 addresses for dualstacks.
+	nodeIPs, err := utils.GetIPv46Addresses(nodeIP)
+	if err != nil {
+		return fmt.Errorf("failed to get local node IPs for kubelet: %w", err)
+	}
+
 	var localhostAddress string
 	if nodeIP.To4() == nil {
 		localhostAddress = "[::1]"
@@ -205,7 +212,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	if err := setup.Containerd(snap, joinConfig.ExtraNodeContainerdConfig, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), joinConfig.ExtraNodeKubeletArgs); err != nil {
+	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIPs, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
 	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), localhostAddress, joinConfig.ExtraNodeKubeProxyArgs); err != nil {

@@ -36,17 +36,17 @@ var (
 )
 
 // KubeletControlPlane configures kubelet on a control plane node.
-func KubeletControlPlane(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, registerWithTaints []string, extraArgs map[string]*string) error {
-	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, registerWithTaints, kubeletControlPlaneLabels, extraArgs)
+func KubeletControlPlane(snap snap.Snap, hostname string, nodeIPs []net.IP, clusterDNS string, clusterDomain string, cloudProvider string, registerWithTaints []string, extraArgs map[string]*string) error {
+	return kubelet(snap, hostname, nodeIPs, clusterDNS, clusterDomain, cloudProvider, registerWithTaints, kubeletControlPlaneLabels, extraArgs)
 }
 
 // KubeletWorker configures kubelet on a worker node.
-func KubeletWorker(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, extraArgs map[string]*string) error {
-	return kubelet(snap, hostname, nodeIP, clusterDNS, clusterDomain, cloudProvider, nil, kubeletWorkerLabels, extraArgs)
+func KubeletWorker(snap snap.Snap, hostname string, nodeIPs []net.IP, clusterDNS string, clusterDomain string, cloudProvider string, extraArgs map[string]*string) error {
+	return kubelet(snap, hostname, nodeIPs, clusterDNS, clusterDomain, cloudProvider, nil, kubeletWorkerLabels, extraArgs)
 }
 
 // kubelet configures kubelet on the local node.
-func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, clusterDomain string, cloudProvider string, taints []string, labels []string, extraArgs map[string]*string) error {
+func kubelet(snap snap.Snap, hostname string, nodeIPs []net.IP, clusterDNS string, clusterDomain string, cloudProvider string, taints []string, labels []string, extraArgs map[string]*string) error {
 	args := map[string]string{
 		"--authorization-mode":           "Webhook",
 		"--anonymous-auth":               "false",
@@ -80,8 +80,15 @@ func kubelet(snap snap.Snap, hostname string, nodeIP net.IP, clusterDNS string, 
 	if clusterDomain != "" {
 		args["--cluster-domain"] = clusterDomain
 	}
-	if nodeIP != nil && !nodeIP.IsLoopback() {
-		args["--node-ip"] = nodeIP.String()
+
+	ips := []string{}
+	for _, nodeIP := range nodeIPs {
+		if !nodeIP.IsLoopback() {
+			ips = append(ips, nodeIP.String())
+		}
+	}
+	if len(ips) > 0 {
+		args["--node-ip"] = strings.Join(ips, ",")
 	}
 	if _, err := snaputil.UpdateServiceArguments(snap, "kubelet", args, nil); err != nil {
 		return fmt.Errorf("failed to render arguments file: %w", err)
