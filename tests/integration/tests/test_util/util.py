@@ -170,6 +170,16 @@ def setup_core_dumps(instance: harness.Instance):
     instance.exec(["snap", "set", "system", "system.coredump.enable=true"])
 
 
+def apply_cgroups_workaround(instance: harness.Instance):
+    # https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/troubleshooting/#kubelet-error-failed-to-initialize-top-level-qos-containers
+    LOG.info("Enabling systemd cgroup delegation for kubelet.")
+    instance.exec(["mkdir", "-p", "/etc/systemd/system/snap.k8s.kubelet.service.d"])
+    instance.exec(
+        ["cat", ">", "/etc/systemd/system/snap.k8s.kubelet.service.d/delegate.conf"],
+        input=str.encode("[Service]\nDelegate=yes\n"),
+    )
+
+
 def setup_k8s_snap(
     instance: harness.Instance,
     tmp_path: Path,
@@ -192,6 +202,8 @@ def setup_k8s_snap(
 
     if not which_snap:
         pytest.fail("Set TEST_SNAP to the channel, revision, or path to the snap")
+
+    apply_cgroups_workaround(instance)
 
     if isinstance(which_snap, str) and which_snap.startswith("/"):
         LOG.info("Install k8s snap by path")
