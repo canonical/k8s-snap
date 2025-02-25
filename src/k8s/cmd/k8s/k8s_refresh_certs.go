@@ -66,8 +66,7 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					env.Exit(1)
 					return
 				}
-				_, err = client.RefreshCertificatesUpdate(ctx, certificates)
-				if err != nil {
+				if _, err := client.RefreshCertificatesUpdate(ctx, certificates); err != nil {
 					cmd.PrintErrf("Error: Failed to refresh external certificates: %v\n", err)
 					env.Exit(1)
 					return
@@ -114,7 +113,7 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.Printf("Certificates have been successfully refreshed, and will expire at %v.\n", expiryTimeUNIX)
 		},
 	}
-	cmd.Flags().StringVar(&opts.externalCerts, "external-certificates", "", "path to a YAML file containing external certificate data in PEM format. If the cluster was bootstrapped with external certificates, the certificates will be updated.")
+	cmd.Flags().StringVar(&opts.externalCerts, "external-certificates", "", "path to a YAML file containing external certificate data in PEM format. If the cluster was bootstrapped with external certificates, the certificates will be updated. Use '-' to read from stdin.")
 	cmd.Flags().StringVar(&opts.expiresIn, "expires-in", "", "the time until the certificates expire, e.g., 1h, 2d, 4mo, 5y. Aditionally, any valid time unit for ParseDuration is accepted.")
 	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 	cmd.Flags().StringArrayVar(&opts.extraSANs, "extra-sans", []string{}, "extra SANs to add to the certificates.")

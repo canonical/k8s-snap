@@ -23,6 +23,7 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
+	nodeutil "github.com/canonical/k8s/pkg/utils/node"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
@@ -143,28 +144,13 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 	// NOTE: Restart the control plane services in a separate goroutine to avoid
 	// restarting the API server, which would break the k8sd proxy connection
 	// and cause missed responses in the proxy side.
-	readyCh := make(chan error)
-	go func() {
-		// NOTE: Create a new context independent of the request context to ensure
-		// the restart process is not cancelled by the client.
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-		defer cancel()
-
-		select {
-		case err := <-readyCh:
-			if err != nil {
-				log.Error(err, "Failed to refresh certificates")
-				return
-			}
-		case <-ctx.Done():
-			log.Error(ctx.Err(), "Timeout waiting for certificates to be refreshed")
-			return
-		}
-
+	restartFn := func(ctx context.Context) error {
 		if err := snaputil.RestartControlPlaneServices(ctx, snap); err != nil {
-			log.Error(err, "Failed to restart control plane services")
+			return fmt.Errorf("failed to restart control plane services: %w", err)
 		}
-	}()
+		return nil
+	}
+	readyCh := nodeutil.StartAsyncRestart(log, restartFn)
 
 	apiServerCert, _, err := pkiutil.LoadCertificate(certificates.APIServerCert, "")
 	if err != nil {
@@ -173,26 +159,8 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 
 	expirationTimeUNIX := apiServerCert.NotAfter.Unix()
 
-	return response.ManualResponse(func(w http.ResponseWriter) (rerr error) {
-		defer func() {
-			readyCh <- rerr
-			close(readyCh)
-		}()
-
-		err := response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
-			ExpirationSeconds: int(expirationTimeUNIX),
-		}).Render(w, r)
-		if err != nil {
-			return fmt.Errorf("failed to render response: %w", err)
-		}
-
-		f, ok := w.(http.Flusher)
-		if !ok {
-			return fmt.Errorf("ResponseWriter is not type http.Flusher")
-		}
-
-		f.Flush()
-		return nil
+	return utils.SyncManualResponseWithSignal(readyCh, apiv1.RefreshCertificatesRunResponse{
+		ExpirationSeconds: int(expirationTimeUNIX),
 	})
 }
 
@@ -371,31 +339,17 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	// NOTE: Restart the worker services in a separate goroutine to avoid
 	// restarting the kube-proxy and kubelet, which would break the
 	// proxy connection and cause missed responses in the proxy side.
-	readyCh := make(chan error, 1)
-	go func() {
-		// NOTE: Create a new context independent of the request context to ensure
-		// the restart process is not cancelled by the client.
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-		defer cancel()
-
-		select {
-		case err := <-readyCh:
-			if err != nil {
-				log.Error(err, "Failed to refresh certificates")
-				return
-			}
-		case <-ctx.Done():
-			log.Error(ctx.Err(), "Timeout waiting for certificates to be refreshed")
-			return
-		}
-
+	restartFn := func(ctx context.Context) error {
 		if err := snap.RestartService(ctx, "kubelet"); err != nil {
-			log.Error(err, "Failed to restart kubelet")
+			return fmt.Errorf("failed to restart kubelet: %w", err)
 		}
+
 		if err := snap.RestartService(ctx, "kube-proxy"); err != nil {
-			log.Error(err, "Failed to restart kube-proxy")
+			return fmt.Errorf("failed to restart kube-proxy: %w", err)
 		}
-	}()
+		return nil
+	}
+	readyCh := nodeutil.StartAsyncRestart(log, restartFn)
 
 	cert, _, err := pkiutil.LoadCertificate(certificates.KubeletCert, "")
 	if err != nil {
@@ -404,26 +358,10 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 
 	expirationTimeUNIX := cert.NotAfter.Unix()
 
-	return response.ManualResponse(func(w http.ResponseWriter) (rerr error) {
-		defer func() {
-			readyCh <- rerr
-			close(readyCh)
-		}()
-		err := response.SyncResponse(true, apiv1.RefreshCertificatesRunResponse{
-			ExpirationSeconds: int(expirationTimeUNIX),
-		}).Render(w, r)
-		if err != nil {
-			return fmt.Errorf("failed to render response: %w", err)
-		}
-
-		f, ok := w.(http.Flusher)
-		if !ok {
-			return fmt.Errorf("ResponseWriter is not type http.Flusher")
-		}
-
-		f.Flush()
-		return nil
+	return utils.SyncManualResponseWithSignal(readyCh, apiv1.RefreshCertificatesRunResponse{
+		ExpirationSeconds: int(expirationTimeUNIX),
 	})
+
 }
 
 // isCertificateSigningRequestApprovedAndIssued checks if the certificate

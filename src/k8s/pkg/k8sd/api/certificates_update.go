@@ -16,6 +16,7 @@ import (
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
+	nodeutil "github.com/canonical/k8s/pkg/utils/node"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
 )
@@ -115,27 +116,9 @@ func refreshCertsUpdateControlPlane(s state.State, r *http.Request, snap snap.Sn
 		}
 		return nil
 	}
-	readyCh := startAsyncRestart(log, restartFn)
+	readyCh := nodeutil.StartAsyncRestart(log, restartFn)
 
-	return response.ManualResponse(func(w http.ResponseWriter) (rerr error) {
-		defer func() {
-			readyCh <- rerr
-			close(readyCh)
-		}()
-
-		err := response.SyncResponse(true, apiv1.RefreshCertificatesUpdateResponse{}).Render(w, r)
-		if err != nil {
-			return fmt.Errorf("failed to render response: %w", err)
-		}
-
-		f, ok := w.(http.Flusher)
-		if !ok {
-			return fmt.Errorf("ResponseWriter is not type http.Flusher")
-		}
-
-		f.Flush()
-		return nil
-	})
+	return utils.SyncManualResponseWithSignal(readyCh, apiv1.RefreshCertificatesUpdateResponse{})
 }
 
 // refreshCertsUpdateWorker updates the external certificates for a worker node.
@@ -202,50 +185,7 @@ func refreshCertsUpdateWorker(s state.State, r *http.Request, snap snap.Snap) re
 		return nil
 	}
 
-	readyCh := startAsyncRestart(log, restartFn)
+	readyCh := nodeutil.StartAsyncRestart(log, restartFn)
 
-	return response.ManualResponse(func(w http.ResponseWriter) (rerr error) {
-		defer func() {
-			readyCh <- rerr
-			close(readyCh)
-		}()
-
-		err := response.SyncResponse(true, apiv1.RefreshCertificatesUpdateResponse{}).Render(w, r)
-		if err != nil {
-			return fmt.Errorf("failed to render response: %w", err)
-		}
-
-		f, ok := w.(http.Flusher)
-		if !ok {
-			return fmt.Errorf("ResponseWriter is not type http.Flusher")
-		}
-
-		f.Flush()
-		return nil
-	})
-}
-
-// startAsyncRestart initiates an asynchronous service restart process after receiving a ready signal.
-func startAsyncRestart(logger log.Logger, restartFn func(context.Context) error) chan error {
-	readyCh := make(chan error, 1)
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-		defer cancel()
-
-		select {
-		case err := <-readyCh:
-			if err != nil {
-				logger.Error(err, "Operation failed before restart")
-				return
-			}
-		case <-ctx.Done():
-			logger.Error(ctx.Err(), "Timeout waiting for operation")
-			return
-		}
-
-		if err := restartFn(ctx); err != nil {
-			logger.Error(err, "Failed to restart services")
-		}
-	}()
-	return readyCh
+	return utils.SyncManualResponseWithSignal(readyCh, apiv1.RefreshCertificatesUpdateResponse{})
 }
