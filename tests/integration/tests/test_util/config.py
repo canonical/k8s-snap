@@ -68,6 +68,15 @@ LXD_PROFILE = (
     or (DIR / ".." / ".." / "lxd-profile.yaml").read_text()
 )
 
+# Use LXD vms instead of containers.
+LXD_VMS = os.getenv("TEST_LXD_VMS", "1") == "1"
+
+# The number of cpus for LXD VMs.
+LXD_VM_CPUS = os.getenv("TEST_LXD_VM_CPUS") or "2"
+
+# The amount of memory for LXD VMs.
+LXD_VM_MEMORY = os.getenv("TEST_LXD_VM_MEMORY") or "2GB"
+
 # LXD_DUALSTACK_NETWORK is the network to use for LXD containers with dualstack configured.
 LXD_DUALSTACK_NETWORK = os.getenv("TEST_LXD_DUALSTACK_NETWORK") or "dualstack-br0"
 
