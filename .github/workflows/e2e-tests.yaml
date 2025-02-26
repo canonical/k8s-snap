@@ -75,7 +75,7 @@ jobs:
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "artifact_name=inspection-reports-${{ inputs.os }}" | sed 's/:/-/g' >> $GITHUB_ENV
+          echo "artifact_name=inspection-reports-${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
