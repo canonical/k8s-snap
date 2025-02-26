@@ -85,6 +85,11 @@ class LXDHarness(Harness):
             self.profile,
         ]
 
+        if config.LXD_VMS:
+            launch_lxd_command += ["--vm"]
+            launch_lxd_command += ["-c", f"limits.cpu={config.LXD_VM_CPUS}"]
+            launch_lxd_command += ["-c", f"limits.memory={config.LXD_VM_MEMORY}"]
+
         if network_type.lower() not in ["ipv4", "dualstack", "ipv6"]:
             raise HarnessError(
                 f"unknown network type {network_type}, need to be one of 'IPv4', 'IPv6', 'dualstack'"
@@ -132,7 +137,7 @@ class LXDHarness(Harness):
             raise HarnessError(f"Failed to create LXD container {instance_id}") from e
 
         instance = Instance(self, instance_id)
-        stubbornly(retries=3, delay_s=5).on(instance).exec(
+        stubbornly(retries=20, delay_s=5).on(instance).exec(
             ["snap", "wait", "system", "seed.loaded"]
         )
         return instance
