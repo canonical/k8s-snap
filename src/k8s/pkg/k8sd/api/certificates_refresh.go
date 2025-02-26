@@ -361,7 +361,6 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 	return utils.SyncManualResponseWithSignal(readyCh, apiv1.RefreshCertificatesRunResponse{
 		ExpirationSeconds: int(expirationTimeUNIX),
 	})
-
 }
 
 // isCertificateSigningRequestApprovedAndIssued checks if the certificate

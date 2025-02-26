@@ -24,7 +24,7 @@ func response(status int, v []byte) lxd.Response {
 	})
 }
 
-// responseRenderer is a function that renders a response to the response writer
+// responseRenderer is a function that renders a response to the response writer.
 type responseRenderer func(w http.ResponseWriter, r *http.Request) error
 
 // manualResponseWithSignal creates a manual response that flushes the response to
