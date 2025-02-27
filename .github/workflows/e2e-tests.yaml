@@ -33,7 +33,7 @@ on:
 jobs:
   test-integration:
     name: Integration Test ${{ inputs.os }} ${{ inputs.arch }} ${{ inputs.artifact }}
-    runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-large' }}
+    runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-xlarge' }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
