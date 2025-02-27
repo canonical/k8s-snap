@@ -5,6 +5,7 @@ import (
 	"time"
 
 	cmdutil "github.com/canonical/k8s/cmd/util"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/spf13/cobra"
@@ -75,6 +76,18 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			switch mode.Orb {
 			case "k8sd":
+				isWorker, err := snaputil.IsWorker(env.Snap)
+				if err != nil {
+					cmd.PrintErrf("Error: failed to check if the node is a worker: %v\n", err)
+					env.Exit(1)
+					return
+				}
+				if isWorker {
+					cmd.PrintErrln("Error: this command must be run on the control-plane node")
+					env.Exit(1)
+					return
+				}
+
 				response, err := client.GetClusterConfig(cmd.Context())
 				if err != nil {
 					cmd.PrintErrf("Error: failed to retrieve cluster configuration: %v\n", err)

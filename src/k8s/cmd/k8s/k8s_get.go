@@ -9,6 +9,7 @@ import (
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/k8sd/features"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/spf13/cobra"
 )
 
@@ -45,6 +46,18 @@ func newGetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			} else if !initialized {
 				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				env.Exit(1)
+				return
+			}
+
+			isWorker, err := snaputil.IsWorker(env.Snap)
+			if err != nil {
+				cmd.PrintErrf("Error: failed to check if the node is a worker: %v\n", err)
+				env.Exit(1)
+				return
+			}
+			if isWorker {
+				cmd.PrintErrln("Error: this command must be run on the control-plane node")
 				env.Exit(1)
 				return
 			}

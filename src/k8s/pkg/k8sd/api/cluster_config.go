@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
@@ -59,7 +60,22 @@ func (e *Endpoints) getClusterConfig(s state.State, r *http.Request) response.Re
 		return response.InternalError(fmt.Errorf("failed to retrieve cluster configuration: %w", err))
 	}
 
+	var nodeTaints *[]string
+	snap := e.provider.Snap()
+	isWorker, err := snaputil.IsWorker(snap)
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to check if node is a worker: %w", err))
+	}
+
+	if isWorker {
+		nodeTaints = config.Kubelet.WorkerTaints
+	} else {
+		nodeTaints = config.Kubelet.ControlPlaneTaints
+	}
+
 	return response.SyncResponse(true, &apiv1.GetClusterConfigResponse{
-		Config: config.ToUserFacing(),
+		Config:     config.ToUserFacing(),
+		Datastore:  config.Datastore.ToUserFacing(),
+		NodeTaints: nodeTaints,
 	})
 }
