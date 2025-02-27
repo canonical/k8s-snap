@@ -25,7 +25,7 @@ var (
 	chartGateway = helm.InstallableChart{
 		Name:         "ck-gateway",
 		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "gateway-api-1.1.0.tgz"),
+		ManifestPath: filepath.Join("charts", "gateway-api-1.1.1.tgz"),
 	}
 
 	// chartGatewayClass represents a manifest to deploy a GatewayClass called ck-gateway.
