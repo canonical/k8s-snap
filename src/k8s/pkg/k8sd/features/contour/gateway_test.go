@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features/contour"
@@ -37,7 +38,8 @@ func TestGatewayDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		status, err := contour.ApplyGateway(context.Background(), snapM, gateway, network, nil)
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
+		status, err := contour.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
@@ -60,7 +62,8 @@ func TestGatewayDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		status, err := contour.ApplyGateway(context.Background(), snapM, gateway, network, nil)
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
+		status, err := contour.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -88,7 +91,8 @@ func TestGatewayEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		status, err := contour.ApplyGateway(context.Background(), snapM, gateway, network, nil)
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
+		status, err := contour.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -137,7 +141,8 @@ func TestGatewayEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		status, err := contour.ApplyGateway(context.Background(), snapM, gateway, network, nil)
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
+		status, err := contour.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -197,7 +202,9 @@ func TestGatewayEnabled(t *testing.T) {
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel()
-		status, err := contour.ApplyGateway(ctx, snapM, gateway, network, nil)
+
+		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
+		status, err := contour.ApplyGateway(ctx, snapM, mc, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring("failed to wait for required contour common CRDs"))

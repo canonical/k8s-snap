@@ -1,17 +1,21 @@
 package localpv
 
 import (
-	"path/filepath"
+	"embed"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
 
+//go:embed all:charts
+var ChartFS embed.FS
+
 var (
 	// Chart represents manifests to deploy Rawfile LocalPV CSI.
 	Chart = helm.InstallableChart{
-		Name:         "ck-storage",
-		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "rawfile-csi-0.9.0.tgz"),
+		Name:             "rawfile-csi",
+		Version:          "0.9.0",
+		InstallName:      "ck-storage",
+		InstallNamespace: "kube-system",
 	}
 
 	// imageRepo is the repository to use for Rawfile LocalPV CSI.
