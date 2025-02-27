@@ -13,3 +13,7 @@ func (c *k8sd) RefreshCertificatesPlan(ctx context.Context, request apiv1.Refres
 func (c *k8sd) RefreshCertificatesRun(ctx context.Context, request apiv1.RefreshCertificatesRunRequest) (apiv1.RefreshCertificatesRunResponse, error) {
 	return query(ctx, c, "POST", apiv1.RefreshCertificatesRunRPC, request, &apiv1.RefreshCertificatesRunResponse{})
 }
+
+func (c *k8sd) RefreshCertificatesUpdate(ctx context.Context, request apiv1.RefreshCertificatesUpdateRequest) (apiv1.RefreshCertificatesUpdateResponse, error) {
+	return query(ctx, c, "POST", apiv1.RefreshCertificatesUpdateRPC, request, &apiv1.RefreshCertificatesUpdateResponse{})
+}
