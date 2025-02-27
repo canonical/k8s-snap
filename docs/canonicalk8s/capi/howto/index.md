@@ -17,6 +17,7 @@ Overview <self>
 :titlesonly:
 Provision a Canonical Kubernetes cluster <provision>
 Install custom Canonical Kubernetes <custom-ck8s>
+Use custom bootstrap configuration <custom-bootstrap-config>
 ```
 
 ## Upgrade
