@@ -40,7 +40,7 @@ jobs:
         with:
           python-version: '3.8'
       - name: Install tox
-        run: pip install tox
+        run: sudo apt-get install -y tox
       - name: Run branch_management tests
         run: |
           tox -c tests/branch_management -e test
@@ -56,7 +56,7 @@ jobs:
         with:
           python-version: '3.10'
       - name: Install tox
-        run: pip install tox
+        run: sudo apt-get install -y tox
       - name: Lint
         run: |
           cd tests/integration && tox -e lint
