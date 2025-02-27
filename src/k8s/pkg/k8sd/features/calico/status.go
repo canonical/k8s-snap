@@ -8,6 +8,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	EnabledMsg  = "enabled"
+	DisabledMsg = "disabled"
+)
+
 // CheckNetwork checks the status of the Calico pods in the Kubernetes cluster.
 // We verify that the tigera-operator and calico-node pods are Ready and in Running state.
 func CheckNetwork(ctx context.Context, snap snap.Snap) error {
