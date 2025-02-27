@@ -8,8 +8,10 @@ import (
 )
 
 func init() {
+	metricsServerImage := FeatureMetricsServer.GetImage(MetricsServerImageName)
+
 	images.Register(
-		fmt.Sprintf("%s:%s", imageRepo, imageTag),
+		fmt.Sprintf("%s:%s", metricsServerImage.GetURI(), metricsServerImage.Tag),
 	)
 
 	charts.Register(&ChartFS)
