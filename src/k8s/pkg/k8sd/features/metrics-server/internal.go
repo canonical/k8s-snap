@@ -11,10 +11,7 @@ type config struct {
 }
 
 func internalConfig(annotations types.Annotations) config {
-	config := config{
-		imageRepo: imageRepo,
-		imageTag:  imageTag,
-	}
+	config := config{}
 
 	if v, ok := annotations.Get(apiv1_annotations.AnnotationImageRepo); ok {
 		config.imageRepo = v

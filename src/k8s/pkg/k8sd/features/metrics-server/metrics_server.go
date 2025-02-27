@@ -23,20 +23,45 @@ const (
 // ApplyMetricsServer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func ApplyMetricsServer(ctx context.Context, snap snap.Snap, m helm.Client, cfg types.MetricsServer, annotations types.Annotations) (types.FeatureStatus, error) {
-	config := internalConfig(annotations)
+	metricsServerImage := FeatureMetricsServer.GetImage(MetricsServerImageName)
+	imageTag := metricsServerImage.Tag
 
-	values := map[string]any{
-		"image": map[string]any{
-			"repository": config.imageRepo,
-			"tag":        config.imageTag,
-		},
-		"securityContext": map[string]any{
-			// ROCKs with Pebble as the entrypoint do not work with this option.
-			"readOnlyRootFilesystem": false,
-		},
+	config := config{}
+
+	if config.imageTag != "" {
+		imageTag = config.imageTag
 	}
 
-	_, err := m.Apply(ctx, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
+	var values Values = map[string]any{}
+
+	if err := values.applyDefaultValues(); err != nil {
+		err = fmt.Errorf("failed to apply default values: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
+	}
+
+	if err := values.ApplyImageOverrides(); err != nil {
+		err = fmt.Errorf("failed to apply image overrides: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
+	}
+
+	if err := values.ApplyAnnotations(annotations); err != nil {
+		err = fmt.Errorf("failed to apply annotations: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
+	}
+
+	_, err := m.Apply(ctx, FeatureMetricsServer.GetChart(MetricsServerChartName), helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
 	if err != nil {
 		if cfg.GetEnabled() {
 			err = fmt.Errorf("failed to install metrics server chart: %w", err)
