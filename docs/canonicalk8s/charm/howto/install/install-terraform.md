@@ -73,7 +73,7 @@ terraform {
   required_providers {
     juju = {
       source  = "juju/juju"
-      version = "~> 0.16.0"
+      version = ">= 0.14.0, < 1.0.0"
     }
   }
 }
@@ -120,7 +120,7 @@ Please navigate to the root module's directory and run the following
 commands:
 
 ```bash
-terraform init
+terraform init --upgrade
 terraform plan
 terraform apply
 ```
