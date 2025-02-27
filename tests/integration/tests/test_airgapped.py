@@ -10,6 +10,7 @@ from test_util import harness, registry, tags, util
 
 REGISTRY_PORT = 5000
 
+
 def setup_proxy(proxy: harness.Instance):
     """Installs and configures Squid proxy on the given instance."""
     proxy.exec("apt install squid --yes".split())
@@ -87,7 +88,8 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
     )
 
     # Export the proxy settings and verify connectivity through proxy.
-    # This is required because the proxy settings are not available to the Python subprocess shell that runs the connectivity test.
+    # This is required because the proxy settings are not available to the Python
+    # subprocess shell that runs the connectivity test.
     instance.exec(
         "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com".split()
     )
