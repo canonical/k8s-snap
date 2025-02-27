@@ -83,16 +83,16 @@ jobs:
       - name: Send vulnerability records
         run: |
           # get script that sends scan results from Kubeflow CI repo
-          CI_REPO="https://github.com/canonical/kubeflow-ci.git"
+          CI_REPO="https://github.com/claudiubelu/kubeflow-ci.git"
           mkdir -p kubeflow-ci
           cd kubeflow-ci
           git init -q
           git remote add -f origin "$CI_REPO" &> /dev/null
           git sparse-checkout set scripts/cve-reports/send-scan.py
-          git pull -q origin main
+          git pull -q origin cve-reports-jira-token
           cd -
 
           # send scans from supplied directory
           for sarif in $(ls ./manual-trivy/sarifs/*.sarif); do
-            ./kubeflow-ci/scripts/cve-reports/send-scan.py --report-path="$sarif" --jira-url=${{ secrets.JIRA_URL }} --add-github-meta
+            ./kubeflow-ci/scripts/cve-reports/send-scan.py --report-path="$sarif" --jira-url="${{ secrets.CVE_JIRA_WEBHOOK_URL }}" --jira-auth-token="${{ secrets.CVE_JIRA_WEBHOOK_TOKEN }}" --add-github-meta --minimum-level=HIGH
           done
