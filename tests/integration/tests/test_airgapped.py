@@ -8,10 +8,11 @@ from typing import List
 import pytest
 from test_util import harness, registry, tags, util
 
+REGISTRY_PORT = 5000
 
 def setup_proxy(proxy: harness.Instance):
     """Installs and configures Squid proxy on the given instance."""
-    proxy.exec("sudo apt install squid --yes".split())
+    proxy.exec("apt install squid --yes".split())
     proxy.exec("echo 'http_access allow all' >> /etc/squid/conf.d/allow.conf".split())
     time.sleep(1)
     proxy.exec("systemctl restart squid.service".split())
@@ -75,7 +76,7 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
     configure_proxy_env(instance, proxy_ip, instance_ip)
     restrict_network(instance, allow_ports=[3128])
 
-    # Verify connectivity
+    # Verify connectivity without the proxy is blocked.
     assert (
         instance.exec(
             "curl -I -4 --noproxy '*' https://www.google.com".split(),
@@ -84,6 +85,9 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
         ).returncode
         == 7
     )
+
+    # Export the proxy settings and verify connectivity through proxy.
+    # This is required because the proxy settings are not available to the Python subprocess shell that runs the connectivity test.
     instance.exec(
         "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com".split()
     )
@@ -109,7 +113,7 @@ def test_airgapped_with_proxy_setup_and_image_mirror(
     configure_proxy_env(registry.instance, proxy_ip, registry_ip)
     restrict_network(registry.instance, allow_ports=[3128])
 
-    # Verify connectivity
+    # Verify connectivity without the proxy is blocked.
     assert (
         registry.instance.exec(
             "curl -I -4 --noproxy '*' https://www.google.com".split(),
@@ -118,6 +122,7 @@ def test_airgapped_with_proxy_setup_and_image_mirror(
         ).returncode
         == 7
     )
+    # Verify connectivity through the proxy.
     registry.instance.exec(
         "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com".split()
     )
@@ -130,7 +135,7 @@ def test_airgapped_with_proxy_setup_and_image_mirror(
     images = out.stdout.splitlines()
     for image in images:
         link = "/".join(image.split("/")[1:])
-        tag = f"{registry_ip}:5000/{link}"
+        tag = f"{registry_ip}:{REGISTRY_PORT}/{link}"
         registry.instance.exec(
             "export $(grep -v '^#' /etc/environment | xargs) && "
             + f"/snap/k8s/current/bin/ctr images pull --all-platforms {image}".split()
@@ -172,7 +177,7 @@ def test_airgapped_with_proxy_setup_and_image_mirror(
         == 7
     )
 
-    restrict_network(instance, allow_ports=[5000])
+    restrict_network(instance, allow_ports=[REGISTRY_PORT])
     util.setup_k8s_snap(instance, Path("/"))
     registry.apply_configuration(instance)
     instance.exec("sudo k8s bootstrap".split())
