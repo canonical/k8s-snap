@@ -177,9 +177,9 @@ juju run ceph-csi-alt/leader list-resources
 
 #### Namespace collisions
 
-Many of the Kubernetes Resources managed by the `ceph-csi` charm are namespaced
-resourced.  Let's make sure we adjust the config for `ceph-csi-alt` application
-so that it doesn't collide with the `ceph-csi` application.
+Many of the Kubernetes Resources managed by the `ceph-csi` charm have an 
+associated namespace. Let's make sure we adjust the config for the
+`ceph-csi-alt` application so that it doesn't collide with `ceph-csi`.
 
 ```
 juju exec k8s/leader -- k8s kubectl create namespace ceph-csi-alt
@@ -191,8 +191,8 @@ drop off, but there could still be collisions to investigate.
 
 #### Storage Class collisions
 
-StorageClass Kubernetes Resources managed by the `ceph-csi` charm are not
-namespaced resources but rather cluster-wide.
+StorageClass Kubernetes Resources managed by the `ceph-csi` charm are
+cluster-wide resources and have no namespace.
 
 For each of the supported storage class types, there is an independent formatter
 for that class type.
@@ -212,8 +212,8 @@ juju config ceph-csi-alt cephfs-storage-class-name-formatter="cephfs-{name}-{app
 
 #### RBAC collisions
 
-RBAC Kubernetes Resources managed by the `ceph-csi` charm are not namespaced
-resources but rather cluster-wide. Two such resources are `ClusterRole` and
+RBAC Kubernetes Resources managed by the `ceph-csi` charm are cluster-wide
+resources and have no namespace. Two such resources are `ClusterRole` and
 `ClusterRoleBinding`.
 
 The charm can be configured to craft separate names for these resources.  The
