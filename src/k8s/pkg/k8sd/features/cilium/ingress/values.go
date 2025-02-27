@@ -1,0 +1,55 @@
+package ingress
+
+import (
+	"fmt"
+
+	"dario.cat/mergo"
+	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
+	"github.com/canonical/k8s/pkg/k8sd/types"
+)
+
+type CiliumValues cilium_network.Values
+
+func (v CiliumValues) ApplyDefaultValues() error {
+	values := FeatureIngress.GetDefaultValues(cilium_network.CiliumChartName)
+
+	if err := mergo.Merge(&v, CiliumValues(values), mergo.WithOverride); err != nil {
+		return fmt.Errorf("failed to merge default values: %w", err)
+	}
+
+	return nil
+}
+
+func (v CiliumValues) ApplyClusterConfiguration(ingress types.Ingress) error {
+	values := map[string]any{
+		"ingressController": map[string]any{
+			IngressOptionEnabled:             true,
+			IngressOptionDefaultSecretName:   ingress.GetDefaultTLSSecret(),
+			IngressOptionEnableProxyProtocol: ingress.GetEnableProxyProtocol(),
+		},
+	}
+
+	if err := mergo.Merge(&v, CiliumValues(values), mergo.WithOverride); err != nil {
+		return fmt.Errorf("failed to merge cluster configuration: %w", err)
+	}
+
+	return nil
+}
+
+func (v CiliumValues) ApplyDisableConfiguration() error {
+	values := map[string]any{
+		"ingressController": map[string]any{
+			IngressOptionEnabled:                false,
+			IngressOptionLoadBalancerMode:       "",
+			IngressOptionDefaultSecretNamespace: "",
+			IngressOptionDefaultSecretName:      "",
+			IngressOptionEnableProxyProtocol:    false,
+		},
+	}
+
+	if err := mergo.Merge(&v, CiliumValues(values), mergo.WithOverride); err != nil {
+		return fmt.Errorf("failed to merge disable configuration: %w", err)
+	}
+
+	return nil
+}
