@@ -1,9 +1,9 @@
 #!/bin/bash
 
-VERSION="v1.1.0"
-DIR=`realpath $(dirname "${0}")`
+VERSION="v1.1.1"
+DIR=$(realpath $(dirname "${0}"))
 
-CHARTS_PATH="$DIR/../../k8s/components/charts"
+CHARTS_PATH="$DIR/../../k8s/manifests/charts"
 
 cd "$CHARTS_PATH"
 
