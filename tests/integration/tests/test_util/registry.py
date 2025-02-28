@@ -3,6 +3,7 @@
 #
 import logging
 import os
+import subprocess
 from pathlib import Path
 from string import Template
 from typing import List, Optional
@@ -164,6 +165,16 @@ class Registry:
             str: The IP address of the registry.
         """
         return self._ip
+
+    def exec(self, command: List[str], **kwargs) -> subprocess.CompletedProcess:
+        """
+        Execute a command on the registry instance.
+
+        Args:
+            command (List[str]): The command to execute
+            **kwargs: Additional keyword arguments to pass to the exec
+        """
+        return self.instance.exec(command, **kwargs)
 
     # Configure the specified instance to use this registry mirror.
     def apply_configuration(self, instance, containerd_basedir="/etc/containerd"):
