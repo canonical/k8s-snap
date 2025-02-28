@@ -21,7 +21,7 @@ controller. Choose one of the options outlined in the
 
 The Terraform deployment is done using a root module that specifies the
 Juju model to deploy the submodules to. The root module also references
-the k8s-bundle module which helps to build the juju model. 
+the k8s-bundle module which helps to build the Juju model. 
 
 ### Root module
 <!-- TODO replace this section once we have a Juju ground up module -->
@@ -32,7 +32,7 @@ k8s-bundle child modules:
 
 Example `main.tf`:
 
-```hcl
+```
 module "k8s" {
   source  = "git::https://github.com/canonical/k8s-bundles//terraform?ref=main"
   model   = {
@@ -50,7 +50,7 @@ Specific charm configuration options can be found on charmhub.io for charms
 
 Example `manifest.yaml`:
 
-```hcl
+```
 k8s:
   units: 3
   base: ubuntu@24.04
@@ -67,7 +67,7 @@ k8s_worker:
 
 Example `versions.tf`:
 
-```hcl
+```
 terraform {
   required_version = ">= 1.6"
   required_providers {
@@ -81,10 +81,17 @@ terraform {
 
 ### Cloud Integrations
 
-The bundle will support various cloud integrations, to integrate {{ product }}
-with the underlying cloud substrate. Rather than presume one desires the cloud
-integrations, the main terraform module should select which cloud integration
-is desired. See [k8s-bundles] for more offerings.
+The base modules support various cloud integration charms to integrate
+{{ product }} with the underlying cloud substrate. Rather than presume a cloud
+integration, the main terraform module requires one to select the cloud
+integration desired. See [k8s-bundles] to see how to integrate with Openstack or
+other cloud-providers.
+
+### CSI Integrations
+
+The base modules default to a local node CSI, but come with charm support for
+multiple CSI options. See [k8s-bundles] for details on how to configure to
+integrate with Ceph or another CSI.
 
 ### Charm modules
 
