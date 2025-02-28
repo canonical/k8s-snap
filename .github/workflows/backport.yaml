@@ -58,7 +58,7 @@ jobs:
 
       - name: Label backports with automerge and approve
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
           for pr_number in ${{ steps.create_backports.outputs.created_pull_numbers }}; do
             gh pr edit "$pr_number" --add-label "automerge"

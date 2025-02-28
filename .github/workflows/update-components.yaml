@@ -55,3 +55,4 @@ jobs:
             automerge
           delete-branch: true
           base: ${{ matrix.branch }}
+          token: ${{ secrets.BOT_TOKEN }}
