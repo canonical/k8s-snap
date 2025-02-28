@@ -7,7 +7,7 @@ The ``ceph-csi`` provisioner attaches the Ceph volumes to Kubernetes workloads.
 
 ## Prerequisites
 
-This guide assumes that you have an existing {{product}} cluster.
+This guide assumes an existing {{product}} cluster.
 See the [charm installation] guide for more details.
 
 In case of localhost/LXD Juju clouds, please make sure that the K8s units are
@@ -131,13 +131,13 @@ sudo k8s kubectl wait pod/pv-writer-test \
 
 ## Relate to multiple Ceph clusters
 
-So far, this guide demonstrates to how to integrate with a single ceph cluster
-represented by the single `ceph-mon` application. But {{product}} supports
-multiple ceph clusters via the same set of charms deployed again as different
-applications.
+So far, this guide demonstrates to how to integrate with a single Ceph cluster
+represented by the single `ceph-mon` application. However {{product}} supports
+multiple Ceph clusters. The same `ceph-mon`, `ceph-osd`, and `ceph-csi` charms
+can be deployed again as separate Juju applications with different names.
 
 Deploy an alternate Ceph cluster containing one monitor and one storage unit
-(OSDs). Again, lets limit the resources allocated.
+(OSDs) -- again limiting the resources allocated.
 
 ```
 juju deploy -n 1 ceph-mon-alt ceph-mon \
@@ -156,18 +156,16 @@ juju integrate ceph-osd-alt:mon ceph-mon-alt:osd
 
 These applications still uses the same charms, but represent new application
 instances.  A new ceph-cluster via `ceph-mon-alt` and `ceph-osd-alt` and a new
-integration with kubernetes by `ceph-csi-alt`.
+integration with Kubernetes by `ceph-csi-alt`.
 
-There are some Kubernetes Resources which collide in this deployment style
-and the admin will notice the `ceph-csi-alt` charm blocks because those conflict
-are detected.
-
-The `ceph-csi-alt` unit may end up in the `blocked` state with a status:
+There are some Kubernetes Resources which collide in this deployment style.
+The admin will notice the `ceph-csi-alt` application in the blocked state with
+a status detailing the resource conflicts it detects:
 
 example)
 `10 Kubernetes resource collisions (action: list-resources)`
 
-By running an action on the charm, we can list those collisions:
+List the collisions by running an action on the charm:
 
 ```
 juju run ceph-csi-alt/leader list-resources
@@ -178,31 +176,30 @@ juju run ceph-csi-alt/leader list-resources
 #### Namespace collisions
 
 Many of the Kubernetes Resources managed by the `ceph-csi` charm have an 
-associated namespace. Let's make sure we adjust the config for the
-`ceph-csi-alt` application so that it doesn't collide with `ceph-csi`.
+associated namespace. Ensure the configuration for the `ceph-csi-alt`
+application changes so that it doesn't collide with `ceph-csi`.
 
 ```
 juju exec k8s/leader -- k8s kubectl create namespace ceph-csi-alt
 juju config ceph-csi-alt namespace=ceph-csi-alt
 ```
 
-After this we should see the number of collisions between the two applications
-drop off, but there could still be collisions to investigate.
+After this, the number of collisions between the two applications drop off,
+but there could still be collisions to investigate.
 
 #### Storage Class collisions
 
 StorageClass Kubernetes Resources managed by the `ceph-csi` charm are
 cluster-wide resources and have no namespace.
 
-For each of the supported storage class types, there is an independent formatter
-for that class type.
+For each of the supported StorageClass types, there is an independent formatter.
 
-For `ext4`, see [ceph-ext4-storage-class-name-formatter]
-For `xfs`, see [ceph-xfs-storage-class-name-formatter]
-For `cephfs`, see [cephfs-storage-class-name-formatter]
+* `ext4`, see [ceph-ext4-storage-class-name-formatter]
+* `xfs`, see [ceph-xfs-storage-class-name-formatter]
+* `cephfs`, see [cephfs-storage-class-name-formatter]
 
-Each formatter has similar but potentially distinct formatting rules, so
-take time to plan your storage-class names accordingly.
+Each formatter has similar, but distinct formatting rules, so take care to plan
+the storage-class names accordingly.
 
 example)
 
@@ -217,7 +214,7 @@ resources and have no namespace. Two such resources are `ClusterRole` and
 `ClusterRoleBinding`.
 
 The charm can be configured to craft separate names for these resources.  The
-juju admin can format the names of these objects using a custom formatter.
+Juju admin can format the names of these objects using a custom formatter.
 
 See [ceph-rbac-name-formatter] docs for more details.
 
