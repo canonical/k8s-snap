@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	lxd "github.com/canonical/lxd/lxd/response"
@@ -20,5 +21,39 @@ func response(status int, v []byte) lxd.Response {
 		w.Write(v)
 		w.Write([]byte("\n"))
 		return nil
+	})
+}
+
+// responseRenderer is a function that renders a response to the response writer.
+type responseRenderer func(w http.ResponseWriter, r *http.Request) error
+
+// manualResponseWithSignal creates a manual response that flushes the response to
+// the client and signals completion on the given channel.
+func manualResponseWithSignal(readyCh chan error, renderer responseRenderer) lxd.Response {
+	return lxd.ManualResponse(func(w http.ResponseWriter) (rerr error) {
+		defer func() {
+			readyCh <- rerr
+			close(readyCh)
+		}()
+
+		if err := renderer(w, nil); err != nil {
+			return fmt.Errorf("failed to render response: %w", err)
+		}
+
+		f, ok := w.(http.Flusher)
+		if !ok {
+			return fmt.Errorf("ResponseWriter is not type http.Flusher")
+		}
+
+		f.Flush()
+		return nil
+	})
+}
+
+// SyncManualResponseWithSignal is a convenience wrapper for manualResponseWithSignal
+// that renders a standard SyncResponse.
+func SyncManualResponseWithSignal(readyCh chan error, result any) lxd.Response {
+	return manualResponseWithSignal(readyCh, func(w http.ResponseWriter, r *http.Request) error {
+		return lxd.SyncResponse(true, result).Render(w, r)
 	})
 }
