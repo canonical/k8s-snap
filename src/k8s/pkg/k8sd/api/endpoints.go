@@ -112,7 +112,7 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Name: "ClusterConfig",
 			Path: apiv1.GetClusterConfigRPC, // == apiv1.SetClusterConfigRPC
 			Put:  rest.EndpointAction{Handler: e.putClusterConfig, AccessHandler: e.restrictWorkers},
-			Get:  rest.EndpointAction{Handler: e.getClusterConfig, AccessHandler: e.restrictWorkers},
+			Get:  rest.EndpointAction{Handler: e.getClusterConfig},
 		},
 		// Kubernetes auth tokens and token review webhook for kube-apiserver
 		{
