@@ -42,7 +42,7 @@ jobs:
       - name: Install lxd
         uses: ./.github/actions/install-lxd
       - name: Install tox
-        run: pip install tox
+        run: sudo apt-get install -y tox
       - name: Generate snap tarball
         run: |
           mkdir snap_installation

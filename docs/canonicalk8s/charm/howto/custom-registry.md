@@ -15,19 +15,19 @@ charm to pull images from a custom registry.
 ## Configure the charm
 
 To configure the charm to use a custom registry, you need to set the
-`containerd_custom_registries` configuration option. This options allows
+`containerd-custom-registries` configuration option. This options allows
 the charm to configure `containerd` to pull images from registries that require
 authentication. This configuration option should be a JSON-formatted array of
-credential objects. For more details on the `containerd_custom_registries`
+credential objects. For more details on the `containerd-custom-registries`
 option, refer to the [charm configurations] documentation.
 
 For example, to configure the charm to use a custom registry at
 `myregistry.example.com:5000` with the username `myuser` and password
-`mypassword`, set the `containerd_custom_registries` configuration option as
+`mypassword`, set the `containerd-custom-registries` configuration option as
 follows:
 
 ```
-juju config k8s containerd_custom_registries='[{
+juju config k8s containerd-custom-registries='[{
     "url": "http://myregistry.example.com:5000",
     "host": "myregistry.example.com:5000",
     "username": "myuser",
