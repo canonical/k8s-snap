@@ -20,6 +20,6 @@ jobs:
           python-version: '3.12'
       - name: Auto-merge pull requests if all status checks pass
         env:
-          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
             build-scripts/hack/auto-merge-successful-pr.py
