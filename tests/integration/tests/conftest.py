@@ -315,7 +315,7 @@ def instances(
         try:
             LOG.debug(f"Generating inspection reports for test instance: {instance_id}")
             _generate_inspection_report(h, instance_id)
-        finally:
+        except Exception:
             LOG.exception("failed to collect inspection report")
 
     threads = []
