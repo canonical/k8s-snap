@@ -141,6 +141,11 @@ VERSION_UPGRADE_CHANNELS = (
 # Only relevant when using 'recent' in VERSION_UPGRADE_CHANNELS.
 VERSION_UPGRADE_MIN_RELEASE = os.environ.get("TEST_VERSION_UPGRADE_MIN_RELEASE")
 
+# Same usage as VERSION_UPGRADE_MIN_RELEASE but for downgrades.
+VERSION_DOWNGRADE_CHANNELS = (
+    os.environ.get("TEST_VERSION_DOWNGRADE_CHANNELS", "").strip().split()
+)
+
 # A list of space-separated channels for which the strict interface tests should be run in sequential order.
 # Alternatively, use 'recent <num> strict' to get the latest <num> channels for strict.
 STRICT_INTERFACE_CHANNELS = (
