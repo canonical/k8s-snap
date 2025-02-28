@@ -8,7 +8,13 @@ A clear and concise description of how your changes address the above issue.
 
 ## Issue
 
-Include a link to the ticket or issue number if applicable.
+Include a link to the Github issue number if applicable.
+
+## Backport
+
+Should this PR be backported? If so, to which release?
+
+<!-- Label the PR with `backport release-1.XX` to automatically create a backport once this PR is merged -->
 
 ## Checklist
 
@@ -18,5 +24,6 @@ Include a link to the ticket or issue number if applicable.
 - [ ] Covered by integration tests
 - [ ] Documentation updated
 - [ ] CLA signed
+- [ ] Backport label added if necessary 
 
 If any item on the checklist is not complete, please provide justification why.
