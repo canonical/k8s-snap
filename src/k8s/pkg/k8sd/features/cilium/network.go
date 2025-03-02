@@ -34,9 +34,7 @@ var (
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
-	m := snap.HelmClient()
-
+func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, s state.State, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
 	if !network.GetEnabled() {
 		if _, err := m.Apply(ctx, ChartCilium, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall network: %w", err)
