@@ -4,7 +4,7 @@ While we do our best to keep up to date with the latest security issues, we
 appreciate it when members of the community report any security vulnerabilities
 or concerns found in {{product}}.
 
-## File a Private Security Report
+## File a private security report
 
 Go to the {{product}} GitHub and file a [Private Security Report]. There you
 will be prompted to include the following information:
