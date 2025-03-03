@@ -62,7 +62,7 @@ jobs:
         with:
           python-version: '3.8'
       - name: Install tox
-        run: pip install tox
+        run: sudo apt-get install -y tox
       - name: Run branch_management tests
         run: |
           tox -c tests/branch_management -e test
@@ -73,7 +73,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
-    runs-on: ["self-hosted", "Linux", "AMD64", "jammy", "large"]
+    runs-on: ["self-hosted", "Linux", "AMD64", "noble", "large"]
     needs: build
 
     steps:
@@ -84,7 +84,7 @@ jobs:
         with:
           python-version: '3.10'
       - name: Install tox
-        run: pip install tox
+        run: sudo apt-get install -y tox
       - name: Install lxd
         run: |
           sudo snap refresh lxd --channel 5.21/stable
