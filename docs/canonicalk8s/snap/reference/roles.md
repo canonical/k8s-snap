@@ -14,7 +14,7 @@ When bootstrapping a cluster, {{product}} assigns the following roles to nodes:
 ## Rationale
 
 Most kubernetes implementations (like kubeadm) set a NoSchedule taint on
-control-plane nodes as a security measure to isolate control planes from
+control plane nodes as a security measure to isolate control planes from
 workloads.
 
 {{product}} intentionally allows workload scheduling on control plane nodes to
@@ -26,7 +26,7 @@ However, users should be aware that:
   recommended
 
 If you decide to deploy a multi-node cluster, you can set a taint on the
-control-plane node using this command:
+control plane node using this command:
 
 ## Modifying default behaviour
 
