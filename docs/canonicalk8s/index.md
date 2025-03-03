@@ -38,8 +38,6 @@ project's needs with
 Canonical Kubernetes documentation <self>
 ```
 
----
-
 ```{toctree}
 :hidden:
 :titlesonly:
