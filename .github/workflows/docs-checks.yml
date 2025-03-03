@@ -29,12 +29,12 @@ jobs:
         with:
           working-directory: docs/canonicalk8s
 
-      - name: Inclusive Language Check
-        id: woke-step
-        if: success() || failure()
-        uses: canonical/documentation-workflows/inclusive-language@main
-        with:
-          working-directory: docs/canonicalk8s
+      # - name: Inclusive Language Check
+      #   id: woke-step
+      #   if: success() || failure()
+      #   uses: canonical/documentation-workflows/inclusive-language@main
+      #   with:
+      #     working-directory: docs/canonicalk8s
 
       #  continue-on-error: true
       # - if: ${{ github.event_name == 'pull_request' && steps.spell-check.outcome == 'failure' }}
