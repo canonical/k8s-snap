@@ -3,12 +3,11 @@
 [Ceph] can be used to hold Kubernetes persistent volumes and is the recommended
 storage solution for {{product}}.
 
-The ``ceph-csi`` plugin automatically provisions and attaches the Ceph volumes
-to Kubernetes workloads.
+The ``ceph-csi`` provisioner attaches the Ceph volumes to Kubernetes workloads.
 
 ## Prerequisites
 
-This guide assumes that you have an existing {{product}} cluster.
+This guide assumes an existing {{product}} cluster.
 See the [charm installation] guide for more details.
 
 In case of localhost/LXD Juju clouds, please make sure that the K8s units are
@@ -23,20 +22,21 @@ an adequate amount of resources must be allocated:
 
 ## Deploying Ceph
 
-Deploy a Ceph cluster containing one monitor and three storage units
-(OSDs). In this example, a limited amount of reources is being allocated.
+Deploy a Ceph cluster containing one monitor and one storage unit
+(OSDs). In this example, a limited amount of resources is being allocated.
 
 ```
 juju deploy -n 1 ceph-mon \
     --constraints "cores=2 mem=4G root-disk=16G" \
-    --config monitor-count=1
-juju deploy -n 3 ceph-osd \
+    --config monitor-count=1 \
+    --config expected-osd-count=1
+juju deploy -n 1 ceph-osd \
     --constraints "cores=2 mem=4G root-disk=16G" \
     --storage osd-devices=1G,1 --storage osd-journals=1G,1
 juju integrate ceph-osd:mon ceph-mon:osd
 ```
 
-If using LXD, configure the OSD units to use VM containers by adding the
+If using LXD, configure the OSD unit to use VM containers by adding the
 constraint: ``virt-type=virtual-machine``.
 
 Once the units are ready, deploy ``ceph-csi``. By default, this enables
