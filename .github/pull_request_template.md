@@ -18,7 +18,7 @@ Should this PR be backported? If so, to which release?
 
 ## Checklist
 
-<!-- Update when we decide on this in PR #1113-->
+<!-- TODO(Niamh): Update when we decide on this in PR #1113-->
 - [ ] PR title formatted as `type: title`
 - [ ] Covered by unit tests
 - [ ] Covered by integration tests
