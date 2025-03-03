@@ -241,6 +241,7 @@ MicroCluster
 MicroK
 MicroK8s
 MinIO
+mitigations
 modprobe
 Moonray
 mq
