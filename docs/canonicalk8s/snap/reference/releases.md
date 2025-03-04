@@ -10,7 +10,6 @@ and backwards-incompatible changes.
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
-/snap/reference/versions/1.31
 /snap/reference/versions/1.32
 ```
 
