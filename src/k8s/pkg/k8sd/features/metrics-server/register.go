@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/k8sd/charts"
+	"github.com/canonical/k8s/pkg/k8sd/features/manifests"
 	"github.com/canonical/k8s/pkg/k8sd/images"
 )
 
@@ -15,4 +16,6 @@ func init() {
 	)
 
 	charts.Register(&ChartFS)
+
+	manifests.Register(&manifest)
 }

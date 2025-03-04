@@ -3,6 +3,7 @@ package network
 import (
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/k8sd/features/manifests"
 	"github.com/canonical/k8s/pkg/k8sd/images"
 )
 
@@ -14,4 +15,6 @@ func init() {
 		fmt.Sprintf("%s:%s", ciliumAgentImage.GetURI(), ciliumAgentImage.Tag),
 		fmt.Sprintf("%s-generic:%s", ciliumOperatorImage.GetURI(), ciliumOperatorImage.Tag),
 	)
+
+	manifests.Register(&manifest)
 }

@@ -3,6 +3,7 @@ package network
 import (
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/k8sd/features/manifests"
 	"github.com/canonical/k8s/pkg/k8sd/images"
 )
 
@@ -25,4 +26,6 @@ func init() {
 		fmt.Sprintf("%s/pod2daemon-flexvol:%s", calicoImage.GetURI(), calicoImage.Tag),
 		fmt.Sprintf("%s/typha:%s", calicoImage.GetURI(), calicoImage.Tag),
 	)
+
+	manifests.Register(&manifest)
 }
