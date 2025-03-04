@@ -28,7 +28,7 @@ However, users should be aware that:
 If you decide to deploy a multi-node cluster, you can set a taint on the
 control plane node using this command:
 
-## Modifying default behaviour
+## Enforcing control plane isolation
 
 To apply standard Kubernetes security practices in a multi-node cluster, you
 can add the recommended taint to control plane nodes:
