@@ -142,6 +142,10 @@ redirects = {}
 ############################################################
 
 # Links to ignore when checking links
+# https://www.stigviewer.com is missing intermediate CAs, and Python SSL module
+# is not performing AIA chasing, leading to the error:
+# "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate"
+# See more: https://github.com/python/cpython/issues/62817
 linkcheck_ignore = [
     'http://127.0.0.1:8000',
     'http://rocks.canonical.com',
@@ -149,7 +153,8 @@ linkcheck_ignore = [
     'https://ceph.io/',
     'https://charmhub.io/k8s/',
     'https://charmhub.io/k8s-worker/',
-    'http://slack.kubernetes.io/'
+    'http://slack.kubernetes.io/',
+    r'https://www\.stigviewer\.com/.*',
     ]
 
 # Pages on which to ignore anchors
