@@ -29,6 +29,11 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		go a.helmChartController.Run(ctx, s)
 	}
 
+	// start feature manifest controller
+	if a.featureManifestController != nil {
+		go a.featureManifestController.Run(ctx, s)
+	}
+
 	// start node config controller
 	if a.nodeConfigController != nil {
 		go a.nodeConfigController.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) {
