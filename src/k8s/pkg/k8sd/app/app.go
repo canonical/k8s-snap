@@ -47,6 +47,8 @@ type Config struct {
 	DisableCSRSigningController bool
 	// DisableHelmChartController is a bool flag to disable helm chart controller.
 	DisableHelmChartController bool
+	// DisableFeatureManifestController is a bool flag to disable feature manifest controller.
+	DisableFeatureManifestController bool
 	// DrainConnectionsTimeout is the amount of time to allow for all connections to drain when shutting down.
 	DrainConnectionsTimeout time.Duration
 }
@@ -69,6 +71,7 @@ type App struct {
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
 	csrsigningController         *csrsigning.Controller
 	helmChartController          *controllers.HelmChartController
+	featureManifestController    *controllers.FeatureManifestController
 
 	// updateNodeConfigController
 	triggerUpdateNodeConfigControllerCh chan struct{}
@@ -126,6 +129,15 @@ func New(cfg Config) (*App, error) {
 		)
 	} else {
 		log.L().Info("helm-chart-controller disabled via config")
+	}
+
+	if !cfg.DisableFeatureManifestController {
+		app.featureManifestController = controllers.NewFeatureManifestController(
+			cfg.Snap,
+			app.readyWg.Wait,
+		)
+	} else {
+		log.L().Info("feature-manifest-controller disabled via config")
 	}
 
 	if !cfg.DisableNodeLabelController {
