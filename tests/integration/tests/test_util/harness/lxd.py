@@ -185,10 +185,13 @@ class LXDHarness(Harness):
             "Copying file %s to instance %s at %s", source, instance_id, destination
         )
         try:
+            env = dict(os.environ)
+            env["SNAP_CONFINE_DEBUG"] = "1"
             self.exec(
                 instance_id,
                 ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
                 capture_output=True,
+                env=env,
             )
             run(
                 ["lxc", "file", "push", source, f"{instance_id}{destination}"],
@@ -199,6 +202,7 @@ class LXDHarness(Harness):
             LOG.error(f"  {e.returncode=}")
             LOG.error(f"  {e.stdout.decode()=}")
             LOG.error(f"  {e.stderr.decode()=}")
+            run(["sudo", "aa-status"])
             raise HarnessError("failed to push file") from e
 
     def pull_file(self, instance_id: str, source: str, destination: str):
