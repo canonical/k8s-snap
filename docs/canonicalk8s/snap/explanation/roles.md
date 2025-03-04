@@ -31,7 +31,7 @@ control plane node using this command:
 ## Enforcing control plane isolation
 
 To apply standard Kubernetes security practices in a multi-node cluster, you
-can add the recommended taint to control plane nodes:
+can set a taint on the control plane node using the `taint` command:
 
 ```
 sudo k8s kubectl taint node node1 node-role.kubernetes.io/control-plane:NoSchedule
