@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        release: ["latest/edge"]
+        release: ["1.32-classic/edge"]
       fail-fast: false # TODO: remove once arm64 works
 
     runs-on: ${{ matrix.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-large' }}
