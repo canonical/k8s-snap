@@ -185,13 +185,10 @@ class LXDHarness(Harness):
             "Copying file %s to instance %s at %s", source, instance_id, destination
         )
         try:
-            env = dict(os.environ)
-            env["SNAP_CONFINE_DEBUG"] = "1"
             self.exec(
                 instance_id,
                 ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
                 capture_output=True,
-                env=env,
             )
             run(
                 ["lxc", "file", "push", source, f"{instance_id}{destination}"],
@@ -226,6 +223,9 @@ class LXDHarness(Harness):
     def exec(self, instance_id: str, command: list, **kwargs):
         if instance_id not in self.instances:
             raise HarnessError(f"unknown instance {instance_id}")
+        env = dict(os.environ)
+        env["SNAP_CONFINE_DEBUG"] = "1"
+        kwargs["env"] = env
 
         LOG.debug("Execute command %s in instance %s", command, instance_id)
 
