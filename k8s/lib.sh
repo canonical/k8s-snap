@@ -101,8 +101,16 @@ k8s::remove::containerd() {
   # this is to prevent removing containerd when it is not installed by the snap.
   # NOTE: do NOT include .containerd-base-dir! By default, it will contain "/".
   for file in "containerd-socket-path" "containerd-config-dir" "containerd-root-dir" "containerd-cni-bin-dir"; do
-    if [ -f "$SNAP_COMMON/lock/$file" ]; then
-      rm -rf $(cat "$SNAP_COMMON/lock/$file")
+    local lockpath="$SNAP_COMMON/lock/$file"
+    if [ -f "$lockpath" ]; then
+      local dirpath=$(cat "$SNAP_COMMON/lock/$file")
+
+      if [ $(readlink -m "$dirpath") = "/" ]; then
+        echo "WARN: lockfile '$lockpath' points to root ('/'). Skipping cleanup."
+        continue
+      fi
+
+      rm -rf "$dirpath"
     fi
   done
 }
@@ -182,7 +190,14 @@ k8s::common::execute_service() {
   declare -a args="($(cat "${SNAP_COMMON}/args/${service_name}"))"
 
   set -xe
-  exec "${SNAP}/bin/${service_name}" "${args[@]}"
+  ulimit -c unlimited
+  export GOTRACEBACK="crash"
+  if [[ -f "${SNAP_COMMON}/args/${service_name}-env" ]]; then
+    mapfile -t env_vars < "${SNAP_COMMON}/args/${service_name}-env"
+    exec env -S "${env_vars[@]}" "${SNAP}/bin/${service_name}" "${args[@]}"
+  else
+    exec "${SNAP}/bin/${service_name}" "${args[@]}"
+  fi
 }
 
 # Initialize a single-node k8sd cluster
@@ -210,4 +225,17 @@ k8s::util::load_kernel_modules() {
   k8s::common::setup_env
 
   modprobe $@
+}
+
+k8s::containerd::ensure_systemd_defaults() {
+  k8s::common::setup_env
+
+  local override_dir="/etc/systemd/system/snap.k8s.containerd.service.d"
+  local override_file="$SNAP/k8s/systemd/containerd-defaults.conf"
+
+  if ! [ -f "$override_dir/containerd-defaults.conf" ]; then
+    mkdir -p "$override_dir"
+    cp "$override_file" "$override_dir/"
+  fi
+
 }

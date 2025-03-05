@@ -19,9 +19,6 @@ func EnsureAllDirectories(snap snap.Snap) error {
 
 	for _, dir := range []string{
 		snap.CNIConfDir(),
-		snap.ContainerdConfigDir(),
-		snap.ContainerdExtraConfigDir(),
-		snap.ContainerdRegistryConfigDir(),
 		snap.K8sDqliteStateDir(),
 		snap.KubernetesConfigDir(),
 		snap.KubernetesPKIDir(),

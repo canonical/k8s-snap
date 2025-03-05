@@ -99,7 +99,7 @@ html_context = {
 
     # Change to the folder that contains the documentation
     # (usually "/" or "/docs/")
-    'github_folder': '/docs/',
+    'github_folder': '/docs/canonicalk8s/',
 
     # Change to an empty value if your GitHub repo doesn't have issues enabled.
     # This will disable the feedback button and the issue link in the footer.
@@ -140,7 +140,12 @@ redirects = {}
 
 # Links to ignore when checking links
 linkcheck_ignore = [
-    'http://127.0.0.1:8000'
+    'http://127.0.0.1:8000',
+    'http://rocks.canonical.com',
+    'about',
+    'https://ceph.io/',
+    'https://charmhub.io/k8s/',
+    'https://charmhub.io/k8s-worker/'
     ]
 
 # Pages on which to ignore anchors
@@ -157,6 +162,8 @@ custom_linkcheck_anchors_ignore_for_url = []
 # Remove this variable to disable the MyST parser extensions.
 custom_myst_extensions = []
 
+suppress_warnings = ["myst.xref_missing", "myst.iref_ambiguous"]
+
 # Add custom Sphinx extensions as needed.
 # This array contains recommended extensions that should be used.
 # NOTE: The following extensions are handled automatically and do
@@ -169,7 +176,7 @@ custom_extensions = [
     'canonical.custom-rst-roles',
     'canonical.terminal-output',
     'notfound.extension',
-    'sphinxcontrib.cairosvgconverter', 
+    'sphinxcontrib.cairosvgconverter',
     ]
 
 # Add custom required Python modules that must be added to the
@@ -187,7 +194,7 @@ custom_required_modules = [
 custom_excludes = [
     'doc-cheat-sheet*',
     '_parts/*',
-    'src/_parts'
+    '/_parts'
     ]
 
 # Add CSS files (located in .sphinx/_static/)
@@ -234,3 +241,13 @@ rst_prolog = '''
 .. role:: h2
     :class: hclass2
 '''
+
+custom_linkcheck_anchors_ignore_for_url = [
+    'https://matrix.to',
+    'https://ubuntu.com/about/release-cycle',
+    'https://juju.is/docs/juju/relation',
+    'https://canonical.com/multipass/docs/tutorial',
+    'https://microk8s.io/docs/how-to-cis-harden',
+    'https://registry.terraform.io/providers/juju/juju/latest/docs',
+    'https://snapcraft.io/docs/managing-updates'
+]

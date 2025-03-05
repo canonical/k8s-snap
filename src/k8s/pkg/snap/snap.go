@@ -286,6 +286,14 @@ func (s *snap) ContainerdRegistryConfigDir() string {
 	return filepath.Join(s.containerdBaseDir, "etc", "containerd", "hosts.d")
 }
 
+func (s *snap) K8sScriptsDir() string {
+	return filepath.Join(s.snapDir, "k8s", "scripts")
+}
+
+func (s *snap) K8sInspectScriptPath() string {
+	return filepath.Join(s.K8sScriptsDir(), "inspect.sh")
+}
+
 func (s *snap) restClientGetter(path string, namespace string) genericclioptions.RESTClientGetter {
 	flags := &genericclioptions.ConfigFlags{
 		KubeConfig: utils.Pointer(path),

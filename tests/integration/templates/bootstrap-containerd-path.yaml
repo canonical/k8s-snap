@@ -1,2 +1,9 @@
 # Contains the bootstrap configuration for the containerd-related paths test.
 containerd-base-dir: /home/ubuntu
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+  local-storage:
+    enabled: true

@@ -1,12 +1,11 @@
 #
-# Copyright 2024 Canonical, Ltd.
+# Copyright 2025 Canonical, Ltd.
 #
 import logging
 import os
 import shlex
 import subprocess
 from pathlib import Path
-from typing import List
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
@@ -92,6 +91,10 @@ class LXDHarness(Harness):
             )
 
         if network_type.lower() == "dualstack":
+            if self.dualstack_profile is None:
+                raise ValueError(
+                    "LXD `dualstack_profile` must be set for network_type=dualstack"
+                )
             launch_lxd_command.extend(["-p", self.dualstack_profile])
 
         if network_type.lower() == "ipv6":
@@ -128,8 +131,11 @@ class LXDHarness(Harness):
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"Failed to create LXD container {instance_id}") from e
 
-        self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
-        return Instance(self, instance_id)
+        instance = Instance(self, instance_id)
+        stubbornly(retries=3, delay_s=5).on(instance).exec(
+            ["snap", "wait", "system", "seed.loaded"]
+        )
+        return instance
 
     def _configure_profile(self, profile_name: str, profile_config: str):
         LOG.debug("Checking for LXD profile %s", profile_name)
@@ -154,7 +160,7 @@ class LXDHarness(Harness):
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"Failed to configure LXD profile {profile_name}") from e
 
-    def _configure_network(self, network_name: str, *network_args: List[str]):
+    def _configure_network(self, network_name: str, *network_args: str):
         LOG.debug("Checking for LXD network %s", network_name)
         try:
             run(["lxc", "network", "show", network_name])
@@ -218,8 +224,14 @@ class LXDHarness(Harness):
             raise HarnessError(f"unknown instance {instance_id}")
 
         LOG.debug("Execute command %s in instance %s", command, instance_id)
+
+        if ">" in " ".join(command):
+            command_str = " ".join(command)
+        else:
+            command_str = shlex.join(command)
+
         return run(
-            ["lxc", "shell", instance_id, "--", "bash", "-c", shlex.join(command)],
+            ["lxc", "shell", instance_id, "--", "bash", "-c", command_str],
             **kwargs,
         )
 

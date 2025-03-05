@@ -15,11 +15,11 @@ k8s_*.txt
 
 # ignore docs ephemerals
 
-/docs/_build
-/docs/tools/.sphinx/venv/
-/docs/tools/.sphinx/warnings.txt
-/docs/tools/.sphinx/.wordlist.dic
-/docs/tools/.sphinx/.doctrees/
-/docs/tools/.sphinx/node_modules
-/docs/tools/.sphinx/styles/*
-/docs/tools/.sphinx/vale.ini
+/docs/canonicalk8s/_build
+/docs/canonicalk8s/.sphinx/venv/
+/docs/canonicalk8s/.sphinx/warnings.txt
+/docs/canonicalk8s/.sphinx/.wordlist.dic
+/docs/canonicalk8s/.sphinx/.doctrees/
+/docs/canonicalk8s/.sphinx/node_modules
+/docs/canonicalk8s/.sphinx/styles/*
+/docs/canonicalk8s/.sphinx/vale.ini

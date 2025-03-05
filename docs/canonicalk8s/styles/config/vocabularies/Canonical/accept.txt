@@ -1,4 +1,5 @@
 ACLs
+Alertmanager
 APIs
 AWS EKS
 Anbox
@@ -221,6 +222,7 @@ linux
 Lite's
 LoadBalancer
 localhost
+logfile
 Lookaside
 lookups
 loopback
@@ -281,6 +283,7 @@ PPSs
 proc
 programmatically
 provisioner
+Pre
 PRs
 PV
 qdisc
@@ -339,6 +342,7 @@ UIDs
 unix
 unschedulable
 unsquashed
+uuid
 Velero
 vf
 VF
@@ -365,3 +369,33 @@ _How
 _Example
 _parts
 _Read
+PKIs
+sshd
+CTOs
+DTMs
+cybersecurity
+uid
+runc
+unoptimized
+namespaces
+upgrader
+reources
+PVCs
+IPs
+iptables
+daemonsets
+CNIs
+https_proxy
+http_proxy
+literalinclude
+kubelets
+clusterrolebindings
+clusterroles
+Namespaces
+RBACs
+misconfiguration
+hostnames
+FQDNs
+clientCAFile
+IAVMs
+kubeadm

@@ -7,15 +7,15 @@ The directories are organised like this:
 
 ```
 
-├── _build
-│   ├── {contains the generated docs}
 ├── README.md
-├── src
-│   ├──{source files for the docs}
 ├── canonicalk8s
+│   ├── _build
+│   │   ├── {contains the generated docs}
 │   ├──{sphinx build tools for creating the docs for Canonical K8s}
+│   ├──{source files for canonicalk8s docs}
 ├── moonray
 │   ├──{sphinx build tools for creating the docs for Canonical K8s}
+│   ├──{source files for moonray docs}
 ```
 
 ## Building the docs

@@ -1,5 +1,5 @@
 #
-# Copyright 2024 Canonical, Ltd.
+# Copyright 2025 Canonical, Ltd.
 #
 import subprocess
 from functools import cached_property, partial
@@ -43,8 +43,7 @@ class Instance:
 
 class Harness:
     """Abstract how integration tests can start and manage multiple machines. This allows
-    writing integration tests that can run on the local machine, LXD, or Multipass with minimum
-    effort.
+    writing integration tests that can run on LXD, or Multipass with minimum effort.
     """
 
     name: str

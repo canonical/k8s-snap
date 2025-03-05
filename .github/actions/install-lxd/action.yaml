@@ -1,0 +1,47 @@
+name: Install lxd
+
+inputs:
+  channel:
+    description: lxd snap channel.
+    type: string
+    default: "5.21/stable"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install lxd snap
+      shell: bash
+      run: |
+        if ! snap list lxd &> /dev/null; then
+          echo "Installing lxd snap"
+          sudo snap install lxd --channel ${{ inputs.channel }}
+        else
+          echo "lxd snap found, refreshing to specified channel"
+          sudo snap refresh lxd --channel ${{ inputs.channel }}
+        fi
+    - name: Initialize lxd
+      shell: bash
+      run: |
+        sudo lxd init --auto
+        sudo usermod --append --groups lxd $USER
+        # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
+        # See https://github.com/actions/runner-images/issues/9932#issuecomment-2573170305
+        sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc version
+    # Docker sets iptables rules that interfere with LXD.
+    # https://documentation.ubuntu.com/lxd/en/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
+    - name: Apply Docker iptables workaround
+      shell: bash
+      run: |
+        set -x
+        ip a
+        ip r
+
+        bridges=('lxdbr0' 'dualstack-br0' 'ipv6-br0')
+        for i in ${bridges[@]}; do
+          set +e
+          sudo iptables  -I DOCKER-USER -i $i -j ACCEPT
+          sudo ip6tables -I DOCKER-USER -i $i -j ACCEPT
+          sudo iptables  -I DOCKER-USER -o $i -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          sudo ip6tables -I DOCKER-USER -o $i -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          set -e
+        done

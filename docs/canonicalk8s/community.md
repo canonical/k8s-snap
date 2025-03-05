@@ -1,2 +1,2 @@
-```{include} src/snap/reference/community.md
+```{include} /snap/reference/community.md
 ```

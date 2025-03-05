@@ -23,6 +23,8 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if !opts.worker && len(args) == 0 {
 				cmd.PrintErrln("Error: A node name is required for control-plane nodes.")
+				env.Exit(1)
+				return
 			}
 
 			var name string
@@ -44,6 +46,17 @@ func newGetJoinTokenCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
+
+			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
+				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
+			} else if !initialized {
+				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
+				env.Exit(1)
+				return
+			}
+
 			token, err := client.GetJoinToken(ctx, apiv1.GetJoinTokenRequest{Name: name, Worker: opts.worker, TTL: opts.ttl})
 			if err != nil {
 				cmd.PrintErrf("Error: Could not generate a join token for %q.\n\nThe error was: %v\n", name, err)

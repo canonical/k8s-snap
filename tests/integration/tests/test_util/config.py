@@ -1,5 +1,5 @@
 #
-# Copyright 2024 Canonical, Ltd.
+# Copyright 2025 Canonical, Ltd.
 #
 import json
 import os
@@ -44,12 +44,16 @@ SNAP = os.getenv("TEST_SNAP")
 SNAP_NAME = os.getenv("TEST_SNAP_NAME") or "k8s"
 
 # SUBSTRATE is the substrate to use for running the integration tests.
-# One of 'local' (default), 'lxd', 'juju', or 'multipass'.
-SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "local"
+# One of 'lxd' (default), 'juju', or 'multipass'.
+SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "lxd"
 
 # SKIP_CLEANUP can be used to prevent machines to be automatically destroyed
 # after the tests complete.
 SKIP_CLEANUP = (os.getenv("TEST_SKIP_CLEANUP") or "") == "1"
+
+# Note that when using containers, this will override the host configuration.
+CORE_DUMP_PATTERN = (os.getenv("TEST_CORE_DUMP_PATTERN")) or r"core-%e.%p.%h"
+CORE_DUMP_DIR = (os.getenv("TEST_CORE_DUMP_DIR")) or "/var/crash"
 
 # INSPECTION_REPORTS_DIR is the directory where inspection reports are stored.
 # If empty, no reports are generated.

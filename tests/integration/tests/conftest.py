@@ -1,5 +1,5 @@
 #
-# Copyright 2024 Canonical, Ltd.
+# Copyright 2025 Canonical, Ltd.
 #
 import itertools
 import logging
@@ -54,7 +54,13 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
     inspection_path = Path(config.INSPECTION_REPORTS_DIR)
     result = h.exec(
         instance_id,
-        ["/snap/k8s/current/k8s/scripts/inspect.sh", "/inspection-report.tar.gz"],
+        [
+            "/snap/k8s/current/k8s/scripts/inspect.sh",
+            "--all-namespaces",
+            "--core-dump-dir",
+            config.CORE_DUMP_DIR,
+            "/inspection-report.tar.gz",
+        ],
         capture_output=True,
         text=True,
         check=False,
@@ -81,9 +87,7 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 @pytest.fixture(scope="session")
 def h() -> harness.Harness:
     LOG.debug("Create harness for %s", config.SUBSTRATE)
-    if config.SUBSTRATE == "local":
-        h = harness.LocalHarness()
-    elif config.SUBSTRATE == "lxd":
+    if config.SUBSTRATE == "lxd":
         h = harness.LXDHarness()
     elif config.SUBSTRATE == "multipass":
         h = harness.MultipassHarness()
@@ -91,7 +95,7 @@ def h() -> harness.Harness:
         h = harness.JujuHarness()
     else:
         raise harness.HarnessError(
-            "TEST_SUBSTRATE must be one of: local, lxd, multipass, juju"
+            "TEST_SUBSTRATE must be one of: lxd, multipass, juju"
         )
 
     yield h
@@ -249,6 +253,7 @@ def instances(
                 instance.exec(["snap", "install", remote_path])
 
         if not no_setup:
+            util.setup_core_dumps(instance)
             util.setup_k8s_snap(instance, tmp_path, snap)
 
             if config.USE_LOCAL_MIRROR:
@@ -271,15 +276,18 @@ def instances(
         LOG.warning("Skipping clean-up of instances, delete them on your own")
         return
 
+    # Collect all the reports before initiating the cleanup so that we won't
+    # affect the state of the observed cluster.
+    if config.INSPECTION_REPORTS_DIR:
+        for instance in instances:
+            LOG.debug("Generating inspection reports for test instances")
+            _generate_inspection_report(h, instance.id)
+
     # Cleanup after each test.
     # We cannot execute _harness_clean() here as this would also
     # remove session scoped instances. The harness ensures that everything is cleaned up
     # at the end of the test session.
     for instance in instances:
-        if config.INSPECTION_REPORTS_DIR is not None:
-            LOG.debug("Generating inspection reports for test instances")
-            _generate_inspection_report(h, instance.id)
-
         try:
             util.remove_k8s_snap(instance)
         finally:

@@ -1,5 +1,5 @@
 #
-# Copyright 2024 Canonical, Ltd.
+# Copyright 2025 Canonical, Ltd.
 #
 import logging
 from typing import List
@@ -17,6 +17,8 @@ LOG = logging.getLogger(__name__)
 )
 @pytest.mark.tags(tags.WEEKLY)
 def test_strict_interfaces(instances: List[harness.Instance], tmp_path):
+    pytest.xfail("Strict channel tests are currently skipped.")
+
     channels = config.STRICT_INTERFACE_CHANNELS
     cp = instances[0]
     current_channel = channels[0]

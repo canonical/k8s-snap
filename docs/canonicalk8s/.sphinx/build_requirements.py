@@ -84,7 +84,7 @@ if __name__ == "__main__":
         "sphinx-design",
         "sphinxcontrib-jquery",
         "watchfiles",
-        "GitPython"
+        "GitPython>=3.1.41"
 
     ]
 

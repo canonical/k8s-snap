@@ -61,7 +61,7 @@ func (c *ClusterConfig) SetDefaults() {
 		c.LoadBalancer.CIDRs = utils.Pointer([]string{})
 	}
 	if c.LoadBalancer.L2Mode == nil {
-		c.LoadBalancer.L2Mode = utils.Pointer(false)
+		c.LoadBalancer.L2Mode = utils.Pointer(true)
 	}
 	if c.LoadBalancer.L2Interfaces == nil {
 		c.LoadBalancer.L2Interfaces = utils.Pointer([]string{})
