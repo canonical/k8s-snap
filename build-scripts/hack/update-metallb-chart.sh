@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="0.14.8"
+VERSION="0.14.9"
 DIR=$(realpath $(dirname "${0}"))
 
 CHARTS_PATH="$DIR/../../k8s/manifests/charts"
