@@ -10,8 +10,8 @@ import (
 
 type Values map[string]any
 
-func (v Values) ApplyImageOverrides() error {
-	coreDNSImage := FeatureDNS.GetImage(CoreDNSImageName)
+func (v Values) ApplyImageOverrides(manifest types.FeatureManifest) error {
+	coreDNSImage := manifest.GetImage(CoreDNSImageName)
 
 	values := map[string]any{
 		"image": map[string]any{

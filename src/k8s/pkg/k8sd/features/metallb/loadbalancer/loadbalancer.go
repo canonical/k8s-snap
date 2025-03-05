@@ -20,7 +20,7 @@ const (
 // ApplyLoadBalancer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-	metalLBControllerImage := FeatureLoadBalancer.GetImage(MetalLBControllerImageName)
+	metalLBControllerImage := r.Manifest().GetImage(MetalLBControllerImageName)
 
 	loadbalancer := cfg.LoadBalancer
 
@@ -74,11 +74,11 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 func (r reconciler) disableLoadBalancer(ctx context.Context) error {
 	helmClient := r.HelmClient()
 
-	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(LoadBalancerChartName), helm.StateDeleted, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(LoadBalancerChartName), helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall MetalLB LoadBalancer chart: %w", err)
 	}
 
-	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(MetalLBChartName), helm.StateDeleted, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(MetalLBChartName), helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall MetalLB chart: %w", err)
 	}
 	return nil
@@ -93,11 +93,11 @@ func (r reconciler) enableLoadBalancer(ctx context.Context, loadbalancer types.L
 		return fmt.Errorf("failed to apply default values: %w", err)
 	}
 
-	if err := metalLBValues.ApplyImageOverrides(); err != nil {
+	if err := metalLBValues.ApplyImageOverrides(r.Manifest()); err != nil {
 		return fmt.Errorf("failed to apply image overrides: %w", err)
 	}
 
-	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(MetalLBChartName), helm.StatePresent, metalLBValues); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(MetalLBChartName), helm.StatePresent, metalLBValues); err != nil {
 		return fmt.Errorf("failed to apply MetalLB configuration: %w", err)
 	}
 
@@ -115,7 +115,7 @@ func (r reconciler) enableLoadBalancer(ctx context.Context, loadbalancer types.L
 		return fmt.Errorf("failed to apply cluster configuration: %w", err)
 	}
 
-	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(LoadBalancerChartName), helm.StatePresent, values); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(LoadBalancerChartName), helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to apply MetalLB LoadBalancer configuration: %w", err)
 	}
 

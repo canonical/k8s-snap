@@ -31,7 +31,7 @@ var (
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-	ciliumAgentImage := FeatureNetwork.GetImage(CiliumAgentImageName)
+	ciliumAgentImage := r.Manifest().GetImage(CiliumAgentImageName)
 
 	helmClient := r.HelmClient()
 	snap := r.Snap()
@@ -41,7 +41,7 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 	annotations := cfg.Annotations
 
 	if !network.GetEnabled() {
-		if _, err := helmClient.Apply(ctx, FeatureNetwork.GetChart(CiliumChartName), helm.StateDeleted, nil); err != nil {
+		if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(CiliumChartName), helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall network: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -67,7 +67,7 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 		}, err
 	}
 
-	if err := values.ApplyImageOverrides(); err != nil {
+	if err := values.ApplyImageOverrides(r.Manifest()); err != nil {
 		err = fmt.Errorf("failed to calculate image overrides: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -116,7 +116,7 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 		}
 	}
 
-	if _, err := helmClient.Apply(ctx, FeatureNetwork.GetChart(CiliumChartName), helm.StatePresent, values); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(CiliumChartName), helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to enable network: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

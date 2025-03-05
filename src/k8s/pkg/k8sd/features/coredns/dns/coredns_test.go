@@ -48,7 +48,7 @@ func TestDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(coredns_dns.Manifest, snapM, mc, nil, func() {})
 		reconciler := coredns_dns.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -57,10 +57,10 @@ func TestDisabled(t *testing.T) {
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
 		g.Expect(status.Message).To(ContainSubstring("failed to uninstall coredns"))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(coredns_dns.FeatureDNS.GetImage(coredns_dns.CoreDNSImageName).Tag))
+		g.Expect(status.Version).To(Equal(coredns_dns.Manifest.GetImage(coredns_dns.CoreDNSImageName).Tag))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(coredns_dns.FeatureDNS.GetChart(coredns_dns.CoreDNSChartName)))
+		g.Expect(callArgs.Chart).To(Equal(coredns_dns.Manifest.GetChart(coredns_dns.CoreDNSChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(callArgs.Values).To(BeNil())
 	})
@@ -82,7 +82,7 @@ func TestDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(coredns_dns.Manifest, snapM, mc, nil, func() {})
 		reconciler := coredns_dns.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -90,11 +90,11 @@ func TestDisabled(t *testing.T) {
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(status.Message).To(Equal("disabled"))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(coredns_dns.FeatureDNS.GetImage(coredns_dns.CoreDNSImageName).Tag))
+		g.Expect(status.Version).To(Equal(coredns_dns.Manifest.GetImage(coredns_dns.CoreDNSImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(coredns_dns.FeatureDNS.GetChart(coredns_dns.CoreDNSChartName)))
+		g.Expect(callArgs.Chart).To(Equal(coredns_dns.Manifest.GetChart(coredns_dns.CoreDNSChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(callArgs.Values).To(BeNil())
 	})
@@ -125,7 +125,7 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(coredns_dns.Manifest, snapM, mc, nil, func() {})
 		reconciler := coredns_dns.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -134,10 +134,10 @@ func TestEnabled(t *testing.T) {
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
 		g.Expect(status.Message).To(ContainSubstring("failed to apply coredns"))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(coredns_dns.FeatureDNS.GetImage(coredns_dns.CoreDNSImageName).Tag))
+		g.Expect(status.Version).To(Equal(coredns_dns.Manifest.GetImage(coredns_dns.CoreDNSImageName).Tag))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(coredns_dns.FeatureDNS.GetChart(coredns_dns.CoreDNSChartName)))
+		g.Expect(callArgs.Chart).To(Equal(coredns_dns.Manifest.GetChart(coredns_dns.CoreDNSChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 		validateValues(g, callArgs.Values, cfg.DNS, cfg.Kubelet)
 	})
@@ -161,7 +161,7 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(coredns_dns.Manifest, snapM, mc, nil, func() {})
 		reconciler := coredns_dns.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -169,11 +169,11 @@ func TestEnabled(t *testing.T) {
 		g.Expect(err).To(MatchError(ContainSubstring("services \"coredns\" not found")))
 		g.Expect(status.Message).To(ContainSubstring("failed to retrieve the coredns service"))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(coredns_dns.FeatureDNS.GetImage(coredns_dns.CoreDNSImageName).Tag))
+		g.Expect(status.Version).To(Equal(coredns_dns.Manifest.GetImage(coredns_dns.CoreDNSImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(coredns_dns.FeatureDNS.GetChart(coredns_dns.CoreDNSChartName)))
+		g.Expect(callArgs.Chart).To(Equal(coredns_dns.Manifest.GetChart(coredns_dns.CoreDNSChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 		validateValues(g, callArgs.Values, cfg.DNS, cfg.Kubelet)
 	})
@@ -210,7 +210,7 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(coredns_dns.Manifest, snapM, mc, nil, func() {})
 		reconciler := coredns_dns.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -218,11 +218,11 @@ func TestEnabled(t *testing.T) {
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(status.Message).To(ContainSubstring("enabled at " + clusterIp))
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(coredns_dns.FeatureDNS.GetImage(coredns_dns.CoreDNSImageName).Tag))
+		g.Expect(status.Version).To(Equal(coredns_dns.Manifest.GetImage(coredns_dns.CoreDNSImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(coredns_dns.FeatureDNS.GetChart(coredns_dns.CoreDNSChartName)))
+		g.Expect(callArgs.Chart).To(Equal(coredns_dns.Manifest.GetChart(coredns_dns.CoreDNSChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 		validateValues(g, callArgs.Values, cfg.DNS, cfg.Kubelet)
 	})

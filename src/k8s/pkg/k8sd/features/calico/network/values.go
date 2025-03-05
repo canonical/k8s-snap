@@ -26,10 +26,10 @@ func (v Values) ApplyDefaultValues() error {
 	return nil
 }
 
-func (v Values) ApplyImageOverrides() error {
-	tigeraOperatorImage := FeatureNetwork.GetImage(TigeraOperatorImageName)
-	calicoCtlImage := FeatureNetwork.GetImage(CalicoCtlImageName)
-	calicoImage := FeatureNetwork.GetImage(CalicoImageName)
+func (v Values) ApplyImageOverrides(manifest types.FeatureManifest) error {
+	tigeraOperatorImage := manifest.GetImage(TigeraOperatorImageName)
+	calicoCtlImage := manifest.GetImage(CalicoCtlImageName)
+	calicoImage := manifest.GetImage(CalicoImageName)
 
 	values := map[string]any{
 		"tigeraOperator": map[string]any{

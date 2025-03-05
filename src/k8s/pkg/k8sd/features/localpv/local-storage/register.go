@@ -8,11 +8,11 @@ import (
 )
 
 func init() {
-	rawFileImage := FeatureLocalStorage.GetImage(RawFileImageName)
-	csiNodeDriverImage := FeatureLocalStorage.GetImage(CSINodeDriverImageName)
-	csiProvisionerImage := FeatureLocalStorage.GetImage(CSIProvisionerImageName)
-	csiResizerImage := FeatureLocalStorage.GetImage(CSIResizerImageName)
-	csiSnapshotterImage := FeatureLocalStorage.GetImage(CSISnapshotterImageName)
+	rawFileImage := Manifest.GetImage(RawFileImageName)
+	csiNodeDriverImage := Manifest.GetImage(CSINodeDriverImageName)
+	csiProvisionerImage := Manifest.GetImage(CSIProvisionerImageName)
+	csiResizerImage := Manifest.GetImage(CSIResizerImageName)
+	csiSnapshotterImage := Manifest.GetImage(CSISnapshotterImageName)
 
 	images.Register(
 		// Rawfile LocalPV CSI driver images
@@ -24,5 +24,5 @@ func init() {
 		fmt.Sprintf("%s:%s", csiSnapshotterImage.GetURI(), csiSnapshotterImage.Tag),
 	)
 
-	features.Register(&manifest)
+	features.Register(&Manifest)
 }
