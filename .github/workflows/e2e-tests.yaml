@@ -1,4 +1,4 @@
-name: Run k8s-snap e2e tests
+name: Run e2e tests
 
 permissions:
   contents: read
@@ -32,7 +32,7 @@ on:
 
 jobs:
   test-integration:
-    name: "${{ inputs.os }} :: (${{ inputs.arch }}) :: ${{ inputs.artifact }}"
+    name: Tests
     runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-noble-large' || 'self-hosted-linux-amd64-noble-large' }}
     steps:
       - name: Check out code
