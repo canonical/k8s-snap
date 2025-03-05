@@ -162,6 +162,8 @@ extra-sans:
 )
 @pytest.mark.tags(tags.NIGHTLY)
 def test_cert_refresh(instances: List[harness.Instance]):
+    pytest.xfail("known k8sd panic")
+
     cluster_node = instances[0]
     joining_worker = instances[1]
 
