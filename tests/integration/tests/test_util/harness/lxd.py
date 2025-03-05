@@ -263,6 +263,8 @@ class LXDHarness(Harness):
 
         self.instances.discard(instance_id)
 
-    # def cleanup(self):
+    def cleanup(self):
+        pass
+
     #     for instance_id in self.instances.copy():
     #         self.delete_instance(instance_id)
