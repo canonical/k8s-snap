@@ -6,3 +6,4 @@ tenacity==8.2.3
 pylint==3.2.5
 cryptography==43.0.3
 hvac==2.3.0
+pytest-sugar==1.0.0
