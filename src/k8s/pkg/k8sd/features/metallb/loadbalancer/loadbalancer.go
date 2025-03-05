@@ -7,7 +7,6 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/features/metallb"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
 )
 
@@ -20,11 +19,11 @@ const (
 // deployment.
 // ApplyLoadBalancer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r LoadBalancerReconciler) ApplyLoadBalancer(ctx context.Context, loadbalancer types.LoadBalancer, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	metalLBControllerImage := FeatureLoadBalancer.GetImage(MetalLBControllerImageName)
 
 	if !loadbalancer.GetEnabled() {
-		if err := disableLoadBalancer(ctx, snap, m, network); err != nil {
+		if err := r.disableLoadBalancer(ctx); err != nil {
 			err = fmt.Errorf("failed to disable LoadBalancer: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -39,7 +38,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, loadb
 		}, nil
 	}
 
-	if err := enableLoadBalancer(ctx, snap, m, loadbalancer, network); err != nil {
+	if err := r.enableLoadBalancer(ctx, loadbalancer); err != nil {
 		err = fmt.Errorf("failed to enable LoadBalancer: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -70,18 +69,22 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, loadb
 	}
 }
 
-func disableLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, network types.Network) error {
-	if _, err := m.Apply(ctx, FeatureLoadBalancer.GetChart(LoadBalancerChartName), helm.StateDeleted, nil); err != nil {
+func (r LoadBalancerReconciler) disableLoadBalancer(ctx context.Context) error {
+	helmClient := r.HelmClient()
+
+	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(LoadBalancerChartName), helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall MetalLB LoadBalancer chart: %w", err)
 	}
 
-	if _, err := m.Apply(ctx, FeatureLoadBalancer.GetChart(MetalLBChartName), helm.StateDeleted, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(MetalLBChartName), helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall MetalLB chart: %w", err)
 	}
 	return nil
 }
 
-func enableLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, loadbalancer types.LoadBalancer, network types.Network) error {
+func (r LoadBalancerReconciler) enableLoadBalancer(ctx context.Context, loadbalancer types.LoadBalancer) error {
+	helmClient := r.HelmClient()
+
 	var metalLBValues MetalLBValues = map[string]any{}
 
 	if err := metalLBValues.applyDefaultValues(); err != nil {
@@ -92,11 +95,11 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, load
 		return fmt.Errorf("failed to apply image overrides: %w", err)
 	}
 
-	if _, err := m.Apply(ctx, FeatureLoadBalancer.GetChart(MetalLBChartName), helm.StatePresent, metalLBValues); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(MetalLBChartName), helm.StatePresent, metalLBValues); err != nil {
 		return fmt.Errorf("failed to apply MetalLB configuration: %w", err)
 	}
 
-	if err := waitForRequiredLoadBalancerCRDs(ctx, snap, loadbalancer.GetBGPMode()); err != nil {
+	if err := r.waitForRequiredLoadBalancerCRDs(ctx, loadbalancer.GetBGPMode()); err != nil {
 		return fmt.Errorf("failed to wait for required MetalLB CRDs: %w", err)
 	}
 
@@ -110,15 +113,15 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, load
 		return fmt.Errorf("failed to apply cluster configuration: %w", err)
 	}
 
-	if _, err := m.Apply(ctx, FeatureLoadBalancer.GetChart(LoadBalancerChartName), helm.StatePresent, values); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(LoadBalancerChartName), helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to apply MetalLB LoadBalancer configuration: %w", err)
 	}
 
 	return nil
 }
 
-func waitForRequiredLoadBalancerCRDs(ctx context.Context, snap snap.Snap, bgpMode bool) error {
-	client, err := snap.KubernetesClient("")
+func (r LoadBalancerReconciler) waitForRequiredLoadBalancerCRDs(ctx context.Context, bgpMode bool) error {
+	client, err := r.Snap().KubernetesClient("")
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}

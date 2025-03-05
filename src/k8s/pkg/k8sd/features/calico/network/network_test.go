@@ -49,7 +49,10 @@ func TestDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
-		status, err := calico_network.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, nil)
+
+		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -79,7 +82,10 @@ func TestDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
-		status, err := calico_network.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, nil)
+
+		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -113,7 +119,10 @@ func TestEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
-		status, err := calico_network.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, defaultAnnotations)
+
+		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, defaultAnnotations)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -139,7 +148,10 @@ func TestEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
-		status, err := calico_network.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, defaultAnnotations)
+
+		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, defaultAnnotations)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -168,7 +180,10 @@ func TestEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
-		status, err := calico_network.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, defaultAnnotations)
+
+		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, defaultAnnotations)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -200,7 +215,10 @@ func TestEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
-		status, err := calico_network.ApplyNetwork(context.Background(), snapM, mc, nil, apiserver, network, defaultAnnotations)
+
+		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, defaultAnnotations)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())

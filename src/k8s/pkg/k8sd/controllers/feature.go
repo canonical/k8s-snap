@@ -8,6 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	"github.com/canonical/k8s/pkg/k8sd/features"
+	"github.com/canonical/k8s/pkg/k8sd/features/implementation"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -83,31 +84,38 @@ func (c *FeatureController) Run(
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 
 	go c.reconcileLoop(ctx, getState, getClusterConfig, setFeatureStatus, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(client helm.Client, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyNetwork(ctx, c.snap, client, getState(), cfg.APIServer, cfg.Network, cfg.Annotations)
+		reconciler := implementation.Implementation.NewNetworkReconciler(c.snap, client, getState())
+		return reconciler.ApplyNetwork(ctx, cfg.APIServer, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getState, getClusterConfig, setFeatureStatus, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(client helm.Client, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyGateway(ctx, c.snap, client, cfg.Gateway, cfg.Network, cfg.Annotations)
+		reconciler := implementation.Implementation.NewGatewayReconciler(c.snap, client, getState())
+		return reconciler.ApplyGateway(ctx, cfg.Gateway, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getState, getClusterConfig, setFeatureStatus, features.Ingress, c.triggerIngressCh, c.reconciledIngressCh, func(client helm.Client, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyIngress(ctx, c.snap, client, cfg.Ingress, cfg.Network, cfg.Annotations)
+		reconciler := implementation.Implementation.NewIngressReconciler(c.snap, client, getState())
+		return reconciler.ApplyIngress(ctx, cfg.Ingress, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getState, getClusterConfig, setFeatureStatus, features.LoadBalancer, c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(client helm.Client, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyLoadBalancer(ctx, c.snap, client, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
+		reconciler := implementation.Implementation.NewLoadBalancerReconciler(c.snap, client, getState())
+		return reconciler.ApplyLoadBalancer(ctx, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getState, getClusterConfig, setFeatureStatus, features.LocalStorage, c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(client helm.Client, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyLocalStorage(ctx, c.snap, client, cfg.LocalStorage, cfg.Annotations)
+		reconciler := implementation.Implementation.NewLocalStorageReconciler(c.snap, client, getState())
+		return reconciler.ApplyLocalStorage(ctx, cfg.LocalStorage, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getState, getClusterConfig, setFeatureStatus, features.MetricsServer, c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(client helm.Client, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyMetricsServer(ctx, c.snap, client, cfg.MetricsServer, cfg.Annotations)
+		reconciler := implementation.Implementation.NewMetricsServerReconciler(c.snap, client, getState())
+		return reconciler.ApplyMetricsServer(ctx, cfg.MetricsServer, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getState, getClusterConfig, setFeatureStatus, features.DNS, c.triggerDNSCh, c.reconciledDNSCh, func(client helm.Client, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		featureStatus, dnsIP, err := features.Implementation.ApplyDNS(ctx, c.snap, client, cfg.DNS, cfg.Kubelet, cfg.Annotations)
+		reconciler := implementation.Implementation.NewDNSReconciler(c.snap, client, getState())
+		featureStatus, dnsIP, err := reconciler.ApplyDNS(ctx, cfg.DNS, cfg.Kubelet, cfg.Annotations)
 
 		if err != nil {
 			return featureStatus, fmt.Errorf("failed to apply DNS configuration: %w", err)

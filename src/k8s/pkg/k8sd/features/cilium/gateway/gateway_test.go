@@ -42,7 +42,9 @@ func TestGatewayEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -69,7 +71,10 @@ func TestGatewayEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -103,7 +108,10 @@ func TestGatewayEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -145,7 +153,10 @@ func TestGatewayEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -173,7 +184,10 @@ func TestGatewayDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -199,7 +213,10 @@ func TestGatewayDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
@@ -231,7 +248,10 @@ func TestGatewayDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
@@ -271,7 +291,8 @@ func TestGatewayDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())

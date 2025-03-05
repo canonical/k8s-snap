@@ -43,7 +43,10 @@ func TestLoadBalancerDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+
+		reconciler := cilium_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, types.Network{}, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -74,7 +77,10 @@ func TestLoadBalancerDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, networkCfg, nil)
+
+		reconciler := cilium_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, networkCfg, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -118,7 +124,10 @@ func TestLoadBalancerEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, networkCfg, nil)
+
+		reconciler := cilium_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, networkCfg, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -220,7 +229,10 @@ func TestLoadBalancerEnabled(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, networkCfg, nil)
+
+			reconciler := cilium_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+
+			status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, networkCfg, nil)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())

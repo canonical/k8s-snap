@@ -8,7 +8,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 const (
@@ -24,18 +23,21 @@ const (
 // deployment.
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r GatewayReconciler) ApplyGateway(ctx context.Context, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	if gateway.GetEnabled() {
-		return enableGateway(ctx, snap, m, gateway)
+		return r.enableGateway(ctx, gateway)
 	}
-	return disableGateway(ctx, snap, m, network)
+	return r.disableGateway(ctx, network)
 }
 
-func enableGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway types.Gateway) (types.FeatureStatus, error) {
+func (r GatewayReconciler) enableGateway(ctx context.Context, gateway types.Gateway) (types.FeatureStatus, error) {
 	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
 
+	helmClient := r.HelmClient()
+	snap := r.Snap()
+
 	// Install Gateway API CRDs
-	if _, err := m.Apply(ctx, FeatureGateway.GetChart(GatewayChartName), helm.StatePresent, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureGateway.GetChart(GatewayChartName), helm.StatePresent, nil); err != nil {
 		err = fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -45,7 +47,7 @@ func enableGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway t
 	}
 
 	// Apply our GatewayClass named ck-gateway
-	if _, err := m.Apply(ctx, FeatureGateway.GetChart(GatewayClassChartName), helm.StatePresent, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureGateway.GetChart(GatewayClassChartName), helm.StatePresent, nil); err != nil {
 		err = fmt.Errorf("failed to install Gateway API GatewayClass: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -65,7 +67,7 @@ func enableGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway t
 		}, err
 	}
 
-	changed, err := m.Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnly, ciliumValues)
+	changed, err := helmClient.Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnly, ciliumValues)
 	if err != nil {
 		err = fmt.Errorf("failed to upgrade Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{
@@ -99,11 +101,14 @@ func enableGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway t
 	}, nil
 }
 
-func disableGateway(ctx context.Context, snap snap.Snap, m helm.Client, network types.Network) (types.FeatureStatus, error) {
+func (r GatewayReconciler) disableGateway(ctx context.Context, network types.Network) (types.FeatureStatus, error) {
 	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
 
+	helmClient := r.HelmClient()
+	snap := r.Snap()
+
 	// Delete our GatewayClass named ck-gateway
-	if _, err := m.Apply(ctx, FeatureGateway.GetChart(GatewayClassChartName), helm.StateDeleted, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureGateway.GetChart(GatewayClassChartName), helm.StateDeleted, nil); err != nil {
 		err = fmt.Errorf("failed to delete Gateway API GatewayClass: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -123,7 +128,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, m helm.Client, network 
 		}, err
 	}
 
-	changed, err := m.Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues)
+	changed, err := helmClient.Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues)
 	if err != nil {
 		err = fmt.Errorf("failed to delete Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{
@@ -135,7 +140,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, m helm.Client, network 
 
 	// Remove Gateway CRDs if the Gateway feature is disabled.
 	// This is done after the Cilium update as cilium requires the CRDs to be present for cleanups.
-	if _, err := m.Apply(ctx, FeatureGateway.GetChart(GatewayChartName), helm.StateDeleted, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureGateway.GetChart(GatewayChartName), helm.StateDeleted, nil); err != nil {
 		err = fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

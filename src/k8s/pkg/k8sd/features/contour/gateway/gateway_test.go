@@ -40,7 +40,10 @@ func TestGatewayDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		reconciler := contour_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
@@ -64,7 +67,10 @@ func TestGatewayDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		reconciler := contour_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -93,7 +99,10 @@ func TestGatewayEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		reconciler := contour_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -143,7 +152,10 @@ func TestGatewayEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		reconciler := contour_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -205,7 +217,10 @@ func TestGatewayEnabled(t *testing.T) {
 		defer cancel()
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour_gateway.ApplyGateway(ctx, snapM, mc, gateway, network, nil)
+
+		reconciler := contour_gateway.NewGatewayReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyGateway(ctx, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring("failed to wait for required contour common CRDs"))

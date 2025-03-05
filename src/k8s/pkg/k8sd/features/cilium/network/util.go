@@ -5,11 +5,12 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/log"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-func VerifyMountPropagation(ctx context.Context, snap snap.Snap) error {
+func (r NetworkReconciler) verifyMountPropagation(ctx context.Context) error {
+	snap := r.Snap()
+
 	pt, err := GetMountPropagationType("/sys")
 	if err != nil {
 		return fmt.Errorf("failed to get mount propagation type for /sys: %w", err)

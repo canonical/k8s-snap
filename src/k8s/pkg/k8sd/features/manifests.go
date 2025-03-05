@@ -1,4 +1,4 @@
-package manifests
+package features
 
 import "github.com/canonical/k8s/pkg/k8sd/types"
 

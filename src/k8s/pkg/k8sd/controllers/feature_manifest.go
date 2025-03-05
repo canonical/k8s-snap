@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
-	"github.com/canonical/k8s/pkg/k8sd/features/manifests"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -45,7 +45,7 @@ func (c *FeatureManifestController) Run(ctx context.Context, s state.State) {
 
 		var retryRequired bool
 
-		for _, featureManifest := range manifests.Manifests() {
+		for _, featureManifest := range features.Manifests() {
 			log := log.WithValues("feature", featureManifest.GetName(), "version", featureManifest.GetVersion())
 
 			if err := c.reconcile(ctx, s, featureManifest); err != nil {

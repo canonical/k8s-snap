@@ -37,7 +37,10 @@ func TestDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&localpv.ChartFS))
-		status, err := localpv_local_storage.ApplyLocalStorage(context.Background(), snapM, mc, cfg, nil)
+
+		reconciler := localpv_local_storage.NewLocalStorageReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyLocalStorage(context.Background(), cfg, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -68,7 +71,10 @@ func TestDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&localpv.ChartFS))
-		status, err := localpv_local_storage.ApplyLocalStorage(context.Background(), snapM, mc, cfg, nil)
+
+		reconciler := localpv_local_storage.NewLocalStorageReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyLocalStorage(context.Background(), cfg, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -104,7 +110,9 @@ func TestEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&localpv.ChartFS))
-		status, err := localpv_local_storage.ApplyLocalStorage(context.Background(), snapM, mc, cfg, nil)
+
+		reconciler := localpv_local_storage.NewLocalStorageReconciler(snapM, mc, nil)
+		status, err := reconciler.ApplyLocalStorage(context.Background(), cfg, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -135,7 +143,10 @@ func TestEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&localpv.ChartFS))
-		status, err := localpv_local_storage.ApplyLocalStorage(context.Background(), snapM, mc, cfg, nil)
+
+		reconciler := localpv_local_storage.NewLocalStorageReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyLocalStorage(context.Background(), cfg, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())

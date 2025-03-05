@@ -8,7 +8,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 const (
@@ -32,7 +31,7 @@ const (
 // deployment.
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r IngressReconciler) ApplyIngress(ctx context.Context, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
 
 	var ciliumValues CiliumValues = map[string]any{}
@@ -66,7 +65,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 		}
 	}
 
-	changed, err := m.Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues)
+	changed, err := r.HelmClient().Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues)
 	if err != nil {
 		if network.GetEnabled() {
 			err = fmt.Errorf("failed to enable ingress: %w", err)
@@ -109,7 +108,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 		}, nil
 	}
 
-	if err := cilium.RolloutRestartCilium(ctx, snap, 3); err != nil {
+	if err := cilium.RolloutRestartCilium(ctx, r.Snap(), 3); err != nil {
 		err = fmt.Errorf("failed to rollout restart cilium to apply ingress: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

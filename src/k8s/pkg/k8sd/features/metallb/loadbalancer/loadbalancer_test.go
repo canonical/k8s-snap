@@ -38,7 +38,10 @@ func TestDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+
+		reconciler := metallb_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, types.Network{}, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -65,7 +68,10 @@ func TestDisabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+
+		reconciler := metallb_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, types.Network{}, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -103,7 +109,10 @@ func TestEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+
+		reconciler := metallb_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, types.Network{}, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -166,7 +175,10 @@ func TestEnabled(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+
+		reconciler := metallb_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, types.Network{}, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())

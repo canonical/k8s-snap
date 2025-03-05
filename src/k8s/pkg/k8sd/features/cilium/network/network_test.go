@@ -53,7 +53,10 @@ func TestNetworkDisabled(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
 
 			g.Expect(err).To(MatchError(applyErr))
 			g.Expect(status.Enabled).To(BeFalse())
@@ -84,7 +87,10 @@ func TestNetworkDisabled(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
@@ -120,7 +126,10 @@ func TestNetworkEnabled(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
@@ -147,7 +156,10 @@ func TestNetworkEnabled(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, annotations)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, annotations)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
@@ -182,7 +194,10 @@ func TestNetworkEnabled(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, annotations)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, annotations)
 
 			g.Expect(err).To(MatchError(applyErr))
 			g.Expect(status.Enabled).To(BeFalse())
@@ -219,7 +234,10 @@ func TestNetworkEnabled(t *testing.T) {
 				apiv1_annotations.AnnotationCNIExclusive:        "true",
 			}
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, testAnnotations)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, testAnnotations)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
@@ -259,7 +277,10 @@ func TestNetworkEnabled(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, testAnnotations)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, testAnnotations)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
@@ -312,7 +333,10 @@ func TestNetworkMountPath(t *testing.T) {
 				}
 
 				mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-				status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+				reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+				status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
 
 				g.Expect(err).To(HaveOccurred())
 				g.Expect(err).To(MatchError(mountPathErr))
@@ -350,7 +374,10 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(err).To(MatchError(mountErr))
@@ -386,7 +413,10 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			ctx := klog.NewContext(context.Background(), logger)
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(ctx, snapM, mc, s, apiserver, network, nil)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(ctx, apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
@@ -424,7 +454,10 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
@@ -456,7 +489,10 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			reconciler := cilium_network.NewNetworkReconciler(snapM, mc, s)
+
+			status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())

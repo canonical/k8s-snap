@@ -99,7 +99,10 @@ func TestIngress(t *testing.T) {
 				EnableProxyProtocol: ptr.To(tc.enableProxyProtocol),
 			}
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_ingress.ApplyIngress(context.Background(), snapM, mc, ingress, network, nil)
+
+			reconciler := cilium_ingress.NewIngressReconciler(snapM, mc, nil)
+
+			status, err := reconciler.ApplyIngress(context.Background(), ingress, network, nil)
 
 			if tc.helmErr == nil {
 				g.Expect(err).To(Not(HaveOccurred()))
@@ -146,7 +149,10 @@ func TestIngressRollout(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_ingress.ApplyIngress(context.Background(), snapM, mc, ingress, network, nil)
+
+		reconciler := cilium_ingress.NewIngressReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyIngress(context.Background(), ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -192,7 +198,10 @@ func TestIngressRollout(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_ingress.ApplyIngress(context.Background(), snapM, mc, ingress, network, nil)
+
+		reconciler := cilium_ingress.NewIngressReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyIngress(context.Background(), ingress, network, nil)
 
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(status.Enabled).To(BeTrue())

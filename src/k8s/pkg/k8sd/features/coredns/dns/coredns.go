@@ -6,7 +6,6 @@ import (
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 const (
@@ -24,11 +23,13 @@ const (
 // deployment.
 // ApplyDNS returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyDNS(ctx context.Context, snap snap.Snap, m helm.Client, dns types.DNS, kubelet types.Kubelet, _ types.Annotations) (types.FeatureStatus, string, error) {
+func (r DNSReconciler) ApplyDNS(ctx context.Context, dns types.DNS, kubelet types.Kubelet, _ types.Annotations) (types.FeatureStatus, string, error) {
 	coreDNSImage := FeatureDNS.GetImage(CoreDNSImageName)
 
+	helmClient := r.HelmClient()
+
 	if !dns.GetEnabled() {
-		if _, err := m.Apply(ctx, FeatureDNS.GetChart(CoreDNSChartName), helm.StateDeleted, nil); err != nil {
+		if _, err := helmClient.Apply(ctx, FeatureDNS.GetChart(CoreDNSChartName), helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall coredns: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -63,7 +64,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, m helm.Client, dns types.DNS,
 		}, "", err
 	}
 
-	if _, err := m.Apply(ctx, FeatureDNS.GetChart(CoreDNSChartName), helm.StatePresent, values); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureDNS.GetChart(CoreDNSChartName), helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to apply coredns: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -72,7 +73,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, m helm.Client, dns types.DNS,
 		}, "", err
 	}
 
-	client, err := snap.KubernetesClient("")
+	client, err := r.Snap().KubernetesClient("")
 	if err != nil {
 		err = fmt.Errorf("failed to create kubernetes client: %w", err)
 		return types.FeatureStatus{
