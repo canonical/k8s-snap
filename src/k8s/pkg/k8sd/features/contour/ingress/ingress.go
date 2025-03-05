@@ -25,11 +25,13 @@ const (
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 // Contour CRDS are applied through a ck-contour common chart (Overlap with gateway).
-func (r IngressReconciler) ApplyIngress(ctx context.Context, ingress types.Ingress, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
 	contourIngressContourImage := FeatureIngress.GetImage(ContourIngressContourImageName)
 
 	helmClient := r.HelmClient()
 	snap := r.Snap()
+
+	ingress := cfg.Ingress
 
 	if !ingress.GetEnabled() {
 		if _, err := helmClient.Apply(ctx, FeatureIngress.GetChart(ChartContourName), helm.StateDeleted, nil); err != nil {

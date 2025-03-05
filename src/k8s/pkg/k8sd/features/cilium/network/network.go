@@ -30,11 +30,15 @@ var (
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func (r NetworkReconciler) ApplyNetwork(ctx context.Context, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
 	ciliumAgentImage := FeatureNetwork.GetImage(CiliumAgentImageName)
 
 	helmClient := r.HelmClient()
 	snap := r.Snap()
+
+	network := cfg.Network
+	apiserver := cfg.APIServer
+	annotations := cfg.Annotations
 
 	if !network.GetEnabled() {
 		if _, err := helmClient.Apply(ctx, FeatureNetwork.GetChart(CiliumChartName), helm.StateDeleted, nil); err != nil {
@@ -128,7 +132,7 @@ func (r NetworkReconciler) ApplyNetwork(ctx context.Context, apiserver types.API
 	}, nil
 }
 
-func (r NetworkReconciler) verifyMountPropagation(ctx context.Context) error {
+func (r reconciler) verifyMountPropagation(ctx context.Context) error {
 	snap := r.Snap()
 
 	pt, err := GetMountPropagationType("/sys")

@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_ingress "github.com/canonical/k8s/pkg/k8sd/features/cilium/ingress"
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
@@ -90,19 +91,23 @@ func TestIngress(t *testing.T) {
 					HelmClient: helmM,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(tc.networkEnabled),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(tc.networkEnabled),
+				},
+				Ingress: types.Ingress{
+					Enabled:             ptr.To(tc.ingressEnabled),
+					DefaultTLSSecret:    ptr.To(tc.defaultSecretName),
+					EnableProxyProtocol: ptr.To(tc.enableProxyProtocol),
+				},
 			}
-			ingress := types.Ingress{
-				Enabled:             ptr.To(tc.ingressEnabled),
-				DefaultTLSSecret:    ptr.To(tc.defaultSecretName),
-				EnableProxyProtocol: ptr.To(tc.enableProxyProtocol),
-			}
+
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-			reconciler := cilium_ingress.NewIngressReconciler(snapM, mc, nil)
+			base := features.NewReconciler(snapM, mc, nil, func() {})
+			reconciler := cilium_ingress.NewReconciler(base)
 
-			status, err := reconciler.ApplyIngress(context.Background(), ingress, network, nil)
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			if tc.helmErr == nil {
 				g.Expect(err).To(Not(HaveOccurred()))
@@ -116,7 +121,7 @@ func TestIngress(t *testing.T) {
 
 			callArgs := helmM.ApplyCalledWith[0]
 			g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
-			validateIngressValues(g, callArgs.Values, ingress)
+			validateIngressValues(g, callArgs.Values, cfg.Ingress)
 		})
 	}
 }
@@ -144,15 +149,19 @@ func TestIngressRollout(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		ingress := types.Ingress{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Ingress: types.Ingress{
+				Enabled: ptr.To(true),
+			},
 		}
+
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_ingress.NewIngressReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_ingress.NewReconciler(base)
 
-		status, err := reconciler.ApplyIngress(context.Background(), ingress, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -162,7 +171,7 @@ func TestIngressRollout(t *testing.T) {
 
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
-		validateIngressValues(g, callArgs.Values, ingress)
+		validateIngressValues(g, callArgs.Values, cfg.Ingress)
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -193,15 +202,19 @@ func TestIngressRollout(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		ingress := types.Ingress{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Ingress: types.Ingress{
+				Enabled: ptr.To(true),
+			},
 		}
+
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_ingress.NewIngressReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_ingress.NewReconciler(base)
 
-		status, err := reconciler.ApplyIngress(context.Background(), ingress, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(status.Enabled).To(BeTrue())
@@ -211,7 +224,7 @@ func TestIngressRollout(t *testing.T) {
 
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
-		validateIngressValues(g, callArgs.Values, ingress)
+		validateIngressValues(g, callArgs.Values, cfg.Ingress)
 	})
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/contour"
 	contour_ingress "github.com/canonical/k8s/pkg/k8sd/features/contour/ingress"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -35,16 +36,19 @@ func TestIngressDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		ingress := types.Ingress{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Ingress: types.Ingress{
+				Enabled: ptr.To(false),
+			},
+			Network: types.Network{},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_ingress.NewIngressReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_ingress.NewReconciler(base)
 
-		status, err := reconciler.ApplyIngress(context.Background(), ingress, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -63,16 +67,19 @@ func TestIngressDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		ingress := types.Ingress{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Ingress: types.Ingress{
+				Enabled: ptr.To(false),
+			},
+			Network: types.Network{},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_ingress.NewIngressReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_ingress.NewReconciler(base)
 
-		status, err := reconciler.ApplyIngress(context.Background(), ingress, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -95,16 +102,19 @@ func TestIngressEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		ingress := types.Ingress{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Ingress: types.Ingress{
+				Enabled: ptr.To(true),
+			},
+			Network: types.Network{},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_ingress.NewIngressReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_ingress.NewReconciler(base)
 
-		status, err := reconciler.ApplyIngress(context.Background(), ingress, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -154,25 +164,28 @@ func TestIngressEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		ingress := types.Ingress{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Ingress: types.Ingress{
+				Enabled: ptr.To(true),
+			},
+			Network: types.Network{},
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_ingress.NewIngressReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_ingress.NewReconciler(base)
 
-		status, err := reconciler.ApplyIngress(ctx, ingress, network, nil)
+		status, err := reconciler.Reconcile(ctx, cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
-		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, ingress)
+		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, cfg.Ingress)
 	})
 
 	t.Run("SuccessWithEnabledProxyProtocol", func(t *testing.T) {
@@ -215,26 +228,29 @@ func TestIngressEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		ingress := types.Ingress{
-			Enabled:             ptr.To(true),
-			EnableProxyProtocol: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Ingress: types.Ingress{
+				Enabled:             ptr.To(true),
+				EnableProxyProtocol: ptr.To(true),
+			},
+			Network: types.Network{},
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_ingress.NewIngressReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_ingress.NewReconciler(base)
 
-		status, err := reconciler.ApplyIngress(ctx, ingress, network, nil)
+		status, err := reconciler.Reconcile(ctx, cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
-		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, ingress)
+		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, cfg.Ingress)
 	})
 
 	t.Run("SuccessWithDefaultTLSSecret", func(t *testing.T) {
@@ -278,26 +294,29 @@ func TestIngressEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		ingress := types.Ingress{
-			Enabled:          ptr.To(true),
-			DefaultTLSSecret: ptr.To(defaultTLSSecret),
+		cfg := types.ClusterConfig{
+			Ingress: types.Ingress{
+				Enabled:          ptr.To(true),
+				DefaultTLSSecret: ptr.To(defaultTLSSecret),
+			},
+			Network: types.Network{},
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_ingress.NewIngressReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_ingress.NewReconciler(base)
 
-		status, err := reconciler.ApplyIngress(ctx, ingress, network, nil)
+		status, err := reconciler.Reconcile(ctx, cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
-		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, ingress)
+		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, cfg.Ingress)
 		g.Expect(helmM.ApplyCalledWith[2].Values["defaultTLSSecret"]).To(Equal(defaultTLSSecret))
 	})
 
@@ -332,18 +351,21 @@ func TestIngressEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		ingress := types.Ingress{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Ingress: types.Ingress{
+				Enabled: ptr.To(true),
+			},
+			Network: types.Network{},
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel()
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_ingress.NewIngressReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_ingress.NewReconciler(base)
 
-		status, err := reconciler.ApplyIngress(ctx, ingress, network, nil)
+		status, err := reconciler.Reconcile(ctx, cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -392,18 +414,21 @@ func TestIngressEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		ingress := types.Ingress{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Ingress: types.Ingress{
+				Enabled: ptr.To(true),
+			},
+			Network: types.Network{},
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_ingress.NewIngressReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_ingress.NewReconciler(base)
 
-		status, err := reconciler.ApplyIngress(ctx, ingress, network, nil)
+		status, err := reconciler.Reconcile(ctx, cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring("failed to rollout restart contour to apply ingress"))

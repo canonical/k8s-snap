@@ -8,6 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/localpv"
 	localpv_local_storage "github.com/canonical/k8s/pkg/k8sd/features/localpv/local-storage"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -29,18 +30,21 @@ func TestDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.LocalStorage{
-			Enabled:       ptr.To(false),
-			Default:       ptr.To(true),
-			ReclaimPolicy: ptr.To("reclaim-policy"),
-			LocalPath:     ptr.To("local-path"),
+		cfg := types.ClusterConfig{
+			LocalStorage: types.LocalStorage{
+				Enabled:       ptr.To(false),
+				Default:       ptr.To(true),
+				ReclaimPolicy: ptr.To("reclaim-policy"),
+				LocalPath:     ptr.To("local-path"),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&localpv.ChartFS))
 
-		reconciler := localpv_local_storage.NewLocalStorageReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := localpv_local_storage.NewReconciler(base)
 
-		status, err := reconciler.ApplyLocalStorage(context.Background(), cfg, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -52,7 +56,7 @@ func TestDisabled(t *testing.T) {
 		g.Expect(callArgs.Chart).To(Equal(localpv_local_storage.FeatureLocalStorage.GetChart(localpv_local_storage.RawFileChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 
-		validateValues(g, callArgs.Values, cfg)
+		validateValues(g, callArgs.Values, cfg.LocalStorage)
 	})
 	t.Run("Success", func(t *testing.T) {
 		g := NewWithT(t)
@@ -63,18 +67,21 @@ func TestDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.LocalStorage{
-			Enabled:       ptr.To(false),
-			Default:       ptr.To(true),
-			ReclaimPolicy: ptr.To("reclaim-policy"),
-			LocalPath:     ptr.To("local-path"),
+		cfg := types.ClusterConfig{
+			LocalStorage: types.LocalStorage{
+				Enabled:       ptr.To(false),
+				Default:       ptr.To(true),
+				ReclaimPolicy: ptr.To("reclaim-policy"),
+				LocalPath:     ptr.To("local-path"),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&localpv.ChartFS))
 
-		reconciler := localpv_local_storage.NewLocalStorageReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := localpv_local_storage.NewReconciler(base)
 
-		status, err := reconciler.ApplyLocalStorage(context.Background(), cfg, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -85,7 +92,7 @@ func TestDisabled(t *testing.T) {
 		g.Expect(callArgs.Chart).To(Equal(localpv_local_storage.FeatureLocalStorage.GetChart(localpv_local_storage.RawFileChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 
-		validateValues(g, callArgs.Values, cfg)
+		validateValues(g, callArgs.Values, cfg.LocalStorage)
 	})
 }
 
@@ -102,17 +109,21 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.LocalStorage{
-			Enabled:       ptr.To(true),
-			Default:       ptr.To(true),
-			ReclaimPolicy: ptr.To("reclaim-policy"),
-			LocalPath:     ptr.To("local-path"),
+		cfg := types.ClusterConfig{
+			LocalStorage: types.LocalStorage{
+				Enabled:       ptr.To(true),
+				Default:       ptr.To(true),
+				ReclaimPolicy: ptr.To("reclaim-policy"),
+				LocalPath:     ptr.To("local-path"),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&localpv.ChartFS))
 
-		reconciler := localpv_local_storage.NewLocalStorageReconciler(snapM, mc, nil)
-		status, err := reconciler.ApplyLocalStorage(context.Background(), cfg, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := localpv_local_storage.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -124,7 +135,7 @@ func TestEnabled(t *testing.T) {
 		g.Expect(callArgs.Chart).To(Equal(localpv_local_storage.FeatureLocalStorage.GetChart(localpv_local_storage.RawFileChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 
-		validateValues(g, callArgs.Values, cfg)
+		validateValues(g, callArgs.Values, cfg.LocalStorage)
 	})
 	t.Run("Success", func(t *testing.T) {
 		g := NewWithT(t)
@@ -135,18 +146,21 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		cfg := types.LocalStorage{
-			Enabled:       ptr.To(true),
-			Default:       ptr.To(true),
-			ReclaimPolicy: ptr.To("reclaim-policy"),
-			LocalPath:     ptr.To("local-path"),
+		cfg := types.ClusterConfig{
+			LocalStorage: types.LocalStorage{
+				Enabled:       ptr.To(true),
+				Default:       ptr.To(true),
+				ReclaimPolicy: ptr.To("reclaim-policy"),
+				LocalPath:     ptr.To("local-path"),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&localpv.ChartFS))
 
-		reconciler := localpv_local_storage.NewLocalStorageReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := localpv_local_storage.NewReconciler(base)
 
-		status, err := reconciler.ApplyLocalStorage(context.Background(), cfg, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -157,7 +171,7 @@ func TestEnabled(t *testing.T) {
 		g.Expect(callArgs.Chart).To(Equal(localpv_local_storage.FeatureLocalStorage.GetChart(localpv_local_storage.RawFileChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 
-		validateValues(g, callArgs.Values, cfg)
+		validateValues(g, callArgs.Values, cfg.LocalStorage)
 	})
 }
 

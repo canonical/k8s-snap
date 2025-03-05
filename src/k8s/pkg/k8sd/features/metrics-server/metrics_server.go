@@ -21,9 +21,12 @@ const (
 // deployment.
 // ApplyMetricsServer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func (r MetricsServerReconciler) ApplyMetricsServer(ctx context.Context, cfg types.MetricsServer, annotations types.Annotations) (types.FeatureStatus, error) {
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
 	metricsServerImage := FeatureMetricsServer.GetImage(MetricsServerImageName)
 	imageTag := metricsServerImage.Tag
+
+	metricsServer := cfg.MetricsServer
+	annotations := cfg.Annotations
 
 	config := config{}
 
@@ -60,9 +63,9 @@ func (r MetricsServerReconciler) ApplyMetricsServer(ctx context.Context, cfg typ
 		}, err
 	}
 
-	_, err := r.HelmClient().Apply(ctx, FeatureMetricsServer.GetChart(MetricsServerChartName), helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
+	_, err := r.HelmClient().Apply(ctx, FeatureMetricsServer.GetChart(MetricsServerChartName), helm.StatePresentOrDeleted(metricsServer.GetEnabled()), values)
 	if err != nil {
-		if cfg.GetEnabled() {
+		if metricsServer.GetEnabled() {
 			err = fmt.Errorf("failed to install metrics server chart: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -78,7 +81,7 @@ func (r MetricsServerReconciler) ApplyMetricsServer(ctx context.Context, cfg typ
 			}, err
 		}
 	} else {
-		if cfg.GetEnabled() {
+		if metricsServer.GetEnabled() {
 			return types.FeatureStatus{
 				Enabled: true,
 				Version: imageTag,

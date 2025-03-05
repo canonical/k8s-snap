@@ -19,8 +19,10 @@ const (
 // deployment.
 // ApplyLoadBalancer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func (r LoadBalancerReconciler) ApplyLoadBalancer(ctx context.Context, loadbalancer types.LoadBalancer, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
 	metalLBControllerImage := FeatureLoadBalancer.GetImage(MetalLBControllerImageName)
+
+	loadbalancer := cfg.LoadBalancer
 
 	if !loadbalancer.GetEnabled() {
 		if err := r.disableLoadBalancer(ctx); err != nil {
@@ -69,7 +71,7 @@ func (r LoadBalancerReconciler) ApplyLoadBalancer(ctx context.Context, loadbalan
 	}
 }
 
-func (r LoadBalancerReconciler) disableLoadBalancer(ctx context.Context) error {
+func (r reconciler) disableLoadBalancer(ctx context.Context) error {
 	helmClient := r.HelmClient()
 
 	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(LoadBalancerChartName), helm.StateDeleted, nil); err != nil {
@@ -82,7 +84,7 @@ func (r LoadBalancerReconciler) disableLoadBalancer(ctx context.Context) error {
 	return nil
 }
 
-func (r LoadBalancerReconciler) enableLoadBalancer(ctx context.Context, loadbalancer types.LoadBalancer) error {
+func (r reconciler) enableLoadBalancer(ctx context.Context, loadbalancer types.LoadBalancer) error {
 	helmClient := r.HelmClient()
 
 	var metalLBValues MetalLBValues = map[string]any{}
@@ -120,7 +122,7 @@ func (r LoadBalancerReconciler) enableLoadBalancer(ctx context.Context, loadbala
 	return nil
 }
 
-func (r LoadBalancerReconciler) waitForRequiredLoadBalancerCRDs(ctx context.Context, bgpMode bool) error {
+func (r reconciler) waitForRequiredLoadBalancerCRDs(ctx context.Context, bgpMode bool) error {
 	client, err := r.Snap().KubernetesClient("")
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)

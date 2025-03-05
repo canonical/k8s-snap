@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_gateway "github.com/canonical/k8s/pkg/k8sd/features/cilium/gateway"
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
@@ -35,16 +36,19 @@ func TestGatewayEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -65,16 +69,19 @@ func TestGatewayEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -102,16 +109,19 @@ func TestGatewayEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -147,16 +157,19 @@ func TestGatewayEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -178,16 +191,19 @@ func TestGatewayDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(false),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -208,15 +224,20 @@ func TestGatewayDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(false),
+			},
 		}
+
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
+
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
@@ -243,15 +264,20 @@ func TestGatewayDisabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(false),
+			},
 		}
+
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
+
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
@@ -286,13 +312,19 @@ func TestGatewayDisabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(false),
+			},
 		}
+
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		reconciler := cilium_gateway.NewGatewayReconciler(snapM, mc, nil)
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())

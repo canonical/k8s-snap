@@ -20,13 +20,13 @@ import (
 // MetricsServer is used for metrics-server.
 // LocalPV Rawfile CSI is used for local-storage.
 var Implementation features.Interface = &implementation{
-	newDNSReconciler:           coredns_dns.NewDNSReconciler,
-	newNetworkReconciler:       cilium_network.NewNetworkReconciler,
-	newLoadBalancerReconciler:  metallb_loadbalancer.NewLoadBalancerReconciler,
-	newIngressReconciler:       cilium_ingress.NewIngressReconciler,
-	newGatewayReconciler:       cilium_gateway.NewGatewayReconciler,
-	newMetricsServerReconciler: metrics_server.NewMetricsServerReconciler,
-	newLocalStorageReconciler:  localpv_local_storage.NewLocalStorageReconciler,
+	newDNSReconciler:           coredns_dns.NewReconciler,
+	newNetworkReconciler:       cilium_network.NewReconciler,
+	newLoadBalancerReconciler:  metallb_loadbalancer.NewReconciler,
+	newIngressReconciler:       cilium_ingress.NewReconciler,
+	newGatewayReconciler:       cilium_gateway.NewReconciler,
+	newMetricsServerReconciler: metrics_server.NewReconciler,
+	newLocalStorageReconciler:  localpv_local_storage.NewReconciler,
 }
 
 // StatusChecks implements the Canonical Kubernetes built-in feature status checks.
