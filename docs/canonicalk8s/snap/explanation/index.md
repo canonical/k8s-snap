@@ -41,6 +41,7 @@ high-availability
 Upgrades <upgrade.md>
 package-management
 epa
+roles
 ```
 
 ## Networking
