@@ -25,9 +25,6 @@ However, users should be aware that:
 - For production multi-node clusters, isolating the control plane is
   recommended
 
-If you decide to deploy a multi-node cluster, you can set a taint on the
-control plane node using this command:
-
 ## Enforcing control plane isolation
 
 To apply standard Kubernetes security practices in a multi-node cluster, you
