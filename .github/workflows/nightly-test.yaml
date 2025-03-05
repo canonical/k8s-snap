@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   test-integration:
-    name: Integration Test ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.release }}
+    name: Integration Test
     strategy:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
