@@ -159,7 +159,7 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 
 	expirationTimeUNIX := apiServerCert.NotAfter.Unix()
 
-	return utils.SyncManualResponseWithSignal(readyCh, apiv1.RefreshCertificatesRunResponse{
+	return utils.SyncManualResponseWithSignal(r, readyCh, apiv1.RefreshCertificatesRunResponse{
 		ExpirationSeconds: int(expirationTimeUNIX),
 	})
 }
@@ -358,7 +358,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 
 	expirationTimeUNIX := cert.NotAfter.Unix()
 
-	return utils.SyncManualResponseWithSignal(readyCh, apiv1.RefreshCertificatesRunResponse{
+	return utils.SyncManualResponseWithSignal(r, readyCh, apiv1.RefreshCertificatesRunResponse{
 		ExpirationSeconds: int(expirationTimeUNIX),
 	})
 }
