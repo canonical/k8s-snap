@@ -18,22 +18,22 @@ import (
 // Implementation contains the moonray features for Canonical Kubernetes.
 // TODO: Replace default by moonray.
 var Implementation features.Interface = &implementation{
-	newDNSReconciler:           coredns_dns.NewDNSReconciler,
-	newNetworkReconciler:       calico_network.NewNetworkReconciler,
-	newLoadBalancerReconciler:  metallb_loadbalancer.NewLoadBalancerReconciler,
-	newIngressReconciler:       contour_ingress.NewIngressReconciler,
-	newGatewayReconciler:       contour_gateway.NewGatewayReconciler,
-	newMetricsServerReconciler: metrics_server.NewMetricsServerReconciler,
-	newLocalStorageReconciler:  localpv_local_storage.NewLocalStorageReconciler,
+	newDNSReconciler:           coredns_dns.NewReconciler,
+	newNetworkReconciler:       calico_network.NewReconciler,
+	newLoadBalancerReconciler:  metallb_loadbalancer.NewReconciler,
+	newIngressReconciler:       contour_ingress.NewReconciler,
+	newGatewayReconciler:       contour_gateway.NewReconciler,
+	newMetricsServerReconciler: metrics_server.NewReconciler,
+	newLocalStorageReconciler:  localpv_local_storage.NewReconciler,
 }
 
 // StatusChecks implements the Canonical Kubernetes moonray feature status checks.
 // TODO: Replace default by moonray.
-var StatusChecks StatusInterface = &statusChecks{
+var StatusChecks features.StatusInterface = &statusChecks{
 	checkNetwork: calico.CheckNetwork,
 	checkDNS:     coredns.CheckDNS,
 }
 
-var Cleanup CleanupInterface = &cleanup{
+var Cleanup features.CleanupInterface = &cleanup{
 	cleanupNetwork: calico.CleanupNetwork,
 }

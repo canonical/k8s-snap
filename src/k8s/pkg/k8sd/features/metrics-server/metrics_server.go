@@ -22,7 +22,7 @@ const (
 // ApplyMetricsServer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-	metricsServerImage := FeatureMetricsServer.GetImage(MetricsServerImageName)
+	metricsServerImage := r.Manifest().GetImage(MetricsServerImageName)
 	imageTag := metricsServerImage.Tag
 
 	metricsServer := cfg.MetricsServer
@@ -45,7 +45,7 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 		}, err
 	}
 
-	if err := values.ApplyImageOverrides(); err != nil {
+	if err := values.ApplyImageOverrides(r.Manifest()); err != nil {
 		err = fmt.Errorf("failed to apply image overrides: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -63,7 +63,7 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 		}, err
 	}
 
-	_, err := r.HelmClient().Apply(ctx, FeatureMetricsServer.GetChart(MetricsServerChartName), helm.StatePresentOrDeleted(metricsServer.GetEnabled()), values)
+	_, err := r.HelmClient().Apply(ctx, r.Manifest().GetChart(MetricsServerChartName), helm.StatePresentOrDeleted(metricsServer.GetEnabled()), values)
 	if err != nil {
 		if metricsServer.GetEnabled() {
 			err = fmt.Errorf("failed to install metrics server chart: %w", err)

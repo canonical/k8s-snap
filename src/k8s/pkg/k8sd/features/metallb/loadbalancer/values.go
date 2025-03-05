@@ -31,10 +31,10 @@ func (v MetalLBValues) applyDefaultValues() error {
 	return nil
 }
 
-func (v MetalLBValues) ApplyImageOverrides() error {
-	metalLBControllerImage := FeatureLoadBalancer.GetImage(MetalLBControllerImageName)
-	metalLBSpeakerImage := FeatureLoadBalancer.GetImage(MetalLBSpeakerImageName)
-	frrImage := FeatureLoadBalancer.GetImage(FRRImageName)
+func (v MetalLBValues) ApplyImageOverrides(manifest types.FeatureManifest) error {
+	metalLBControllerImage := manifest.GetImage(MetalLBControllerImageName)
+	metalLBSpeakerImage := manifest.GetImage(MetalLBSpeakerImageName)
+	frrImage := manifest.GetImage(FRRImageName)
 
 	values := map[string]any{
 		"controller": map[string]any{

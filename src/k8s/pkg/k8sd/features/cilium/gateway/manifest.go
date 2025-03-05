@@ -10,7 +10,7 @@ var (
 	GatewayClassChartName = "ck-gateway-cilium"
 )
 
-var manifest = types.FeatureManifest{
+var Manifest = types.FeatureManifest{
 	Name:    "gateway",
 	Version: "1.0.0",
 
@@ -29,5 +29,3 @@ var manifest = types.FeatureManifest{
 		},
 	},
 }
-
-var FeatureGateway types.Feature = manifest

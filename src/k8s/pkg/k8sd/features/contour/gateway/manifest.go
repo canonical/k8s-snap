@@ -6,13 +6,14 @@ import (
 )
 
 var (
-	ChartGatewayName = "ck-gateway-contour"
+	ChartGatewayName           = "ck-gateway-contour"
+	ChartCommonContourCRDSName = "ck-contour-common"
 
 	ContourGatewayProvisionerEnvoyImageName   = "envoy-gateway"
 	ContourGatewayProvisionerContourImageName = "contour-gateway"
 )
 
-var manifest = types.FeatureManifest{
+var Manifest = types.FeatureManifest{
 	Name:    "gateway",
 	Version: "1.0.0",
 	Charts: map[string]helm.InstallableChart{
@@ -20,6 +21,12 @@ var manifest = types.FeatureManifest{
 			Name:             "ck-gateway-contour",
 			Version:          "1.28.2",
 			InstallName:      "ck-gateway",
+			InstallNamespace: "projectcontour",
+		},
+		ChartCommonContourCRDSName: {
+			Name:             "ck-contour-common",
+			Version:          "1.28.2",
+			InstallName:      "ck-contour-common",
 			InstallNamespace: "projectcontour",
 		},
 	},
@@ -37,5 +44,3 @@ var manifest = types.FeatureManifest{
 		},
 	},
 }
-
-var FeatureGateway types.Feature = manifest

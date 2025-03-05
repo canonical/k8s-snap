@@ -8,9 +8,9 @@ import (
 )
 
 func init() {
-	metalLBControllerImage := FeatureLoadBalancer.GetImage(MetalLBControllerImageName)
-	metalLBSpeakerImage := FeatureLoadBalancer.GetImage(MetalLBSpeakerImageName)
-	frrImage := FeatureLoadBalancer.GetImage(FRRImageName)
+	metalLBControllerImage := Manifest.GetImage(MetalLBControllerImageName)
+	metalLBSpeakerImage := Manifest.GetImage(MetalLBSpeakerImageName)
+	frrImage := Manifest.GetImage(FRRImageName)
 
 	images.Register(
 		fmt.Sprintf("%s:%s", metalLBControllerImage.GetURI(), metalLBControllerImage.Tag),
@@ -18,5 +18,5 @@ func init() {
 		fmt.Sprintf("%s:%s", frrImage.GetURI(), frrImage.Tag),
 	)
 
-	features.Register(&manifest)
+	features.Register(&Manifest)
 }

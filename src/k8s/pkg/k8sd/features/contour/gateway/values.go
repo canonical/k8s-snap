@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"dario.cat/mergo"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 )
 
 type Values map[string]any
 
-func (v Values) ApplyImageOverrides() error {
-	contourGatewayProvisionerContourImage := FeatureGateway.GetImage(ContourGatewayProvisionerContourImageName)
-	contourGatewayProvisionerEnvoyImage := FeatureGateway.GetImage(ContourGatewayProvisionerEnvoyImageName)
+func (v Values) ApplyImageOverrides(manifest types.FeatureManifest) error {
+	contourGatewayProvisionerContourImage := manifest.GetImage(ContourGatewayProvisionerContourImageName)
+	contourGatewayProvisionerEnvoyImage := manifest.GetImage(ContourGatewayProvisionerEnvoyImageName)
 
 	values := map[string]any{
 		"projectcontour": map[string]any{

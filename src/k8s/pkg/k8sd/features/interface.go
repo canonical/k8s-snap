@@ -11,6 +11,8 @@ import (
 )
 
 type BaseReconciler struct {
+	manifest types.FeatureManifest
+
 	snap       snap.Snap
 	helmClient helm.Client
 	state      state.State
@@ -18,14 +20,19 @@ type BaseReconciler struct {
 	notifyUpdateNodeConfigController func()
 }
 
-func NewReconciler(snap snap.Snap, helmClient helm.Client, state state.State, notifyUpdateNodeConfigController func()) BaseReconciler {
+func NewReconciler(manifest types.FeatureManifest, snap snap.Snap, helmClient helm.Client, state state.State, notifyUpdateNodeConfigController func()) BaseReconciler {
 	return BaseReconciler{
+		manifest:   manifest,
 		snap:       snap,
 		helmClient: helmClient,
 		state:      state,
 
 		notifyUpdateNodeConfigController: notifyUpdateNodeConfigController,
 	}
+}
+
+func (r *BaseReconciler) Manifest() types.FeatureManifest {
+	return r.manifest
 }
 
 func (r *BaseReconciler) Snap() snap.Snap {

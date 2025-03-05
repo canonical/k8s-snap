@@ -52,9 +52,9 @@ func (v Values) applyDefaultValues() error {
 	return nil
 }
 
-func (v Values) ApplyImageOverrides() error {
-	ciliumAgentImage := FeatureNetwork.GetImage(CiliumAgentImageName)
-	ciliumOperatorImage := FeatureNetwork.GetImage(CiliumOperatorImageName)
+func (v Values) ApplyImageOverrides(manifest types.FeatureManifest) error {
+	ciliumAgentImage := manifest.GetImage(CiliumAgentImageName)
+	ciliumOperatorImage := manifest.GetImage(CiliumOperatorImageName)
 
 	values := map[string]any{
 		"image": map[string]any{

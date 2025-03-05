@@ -42,7 +42,7 @@ func TestDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(metallb_loadbalancer.Manifest, snapM, mc, nil, func() {})
 		reconciler := metallb_loadbalancer.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -50,11 +50,11 @@ func TestDisabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
+		g.Expect(status.Version).To(Equal(metallb_loadbalancer.Manifest.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
+		g.Expect(callArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(callArgs.Values).To(BeNil())
 	})
@@ -75,7 +75,7 @@ func TestDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(metallb_loadbalancer.Manifest, snapM, mc, nil, func() {})
 		reconciler := metallb_loadbalancer.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -83,16 +83,16 @@ func TestDisabled(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(metallb.DisabledMsg))
-		g.Expect(status.Version).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
+		g.Expect(status.Version).To(Equal(metallb_loadbalancer.Manifest.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
 		firstCallArgs := helmM.ApplyCalledWith[0]
-		g.Expect(firstCallArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
+		g.Expect(firstCallArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
 		g.Expect(firstCallArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(firstCallArgs.Values).To(BeNil())
 
 		secondCallArgs := helmM.ApplyCalledWith[1]
-		g.Expect(secondCallArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.MetalLBChartName)))
+		g.Expect(secondCallArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.MetalLBChartName)))
 		g.Expect(secondCallArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(secondCallArgs.Values).To(BeNil())
 	})
@@ -119,7 +119,7 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(metallb_loadbalancer.Manifest, snapM, mc, nil, func() {})
 		reconciler := metallb_loadbalancer.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -127,11 +127,11 @@ func TestEnabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
+		g.Expect(status.Version).To(Equal(metallb_loadbalancer.Manifest.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.MetalLBChartName)))
+		g.Expect(callArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.MetalLBChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 		// we don't validate values since it's just a static struct
 		// and won't be changed by configurations
@@ -188,25 +188,25 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(metallb_loadbalancer.Manifest, snapM, mc, nil, func() {})
 		reconciler := metallb_loadbalancer.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
+		g.Expect(status.Version).To(Equal(metallb_loadbalancer.Manifest.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
 		firstCallArgs := helmM.ApplyCalledWith[0]
-		g.Expect(firstCallArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.MetalLBChartName)))
+		g.Expect(firstCallArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.MetalLBChartName)))
 		g.Expect(firstCallArgs.State).To(Equal(helm.StatePresent))
 		// we don't validate values since it's just a static struct
 		// and won't be changed by configurations
 		g.Expect(firstCallArgs.Values).ToNot(BeNil())
 
 		secondCallArgs := helmM.ApplyCalledWith[1]
-		g.Expect(secondCallArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
+		g.Expect(secondCallArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
 		g.Expect(secondCallArgs.State).To(Equal(helm.StatePresent))
 		validateLoadBalancerValues(g, secondCallArgs.Values, cfg.LoadBalancer)
 	})

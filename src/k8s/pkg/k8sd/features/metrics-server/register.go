@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	metricsServerImage := FeatureMetricsServer.GetImage(MetricsServerImageName)
+	metricsServerImage := Manifest.GetImage(MetricsServerImageName)
 
 	images.Register(
 		fmt.Sprintf("%s:%s", metricsServerImage.GetURI(), metricsServerImage.Tag),
@@ -17,5 +17,5 @@ func init() {
 
 	charts.Register(&ChartFS)
 
-	features.Register(&manifest)
+	features.Register(&Manifest)
 }
