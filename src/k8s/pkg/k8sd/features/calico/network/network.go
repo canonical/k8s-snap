@@ -7,8 +7,6 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/features/calico"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -22,11 +20,13 @@ const (
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, _ state.State, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
+func (r NetworkReconciler) ApplyNetwork(ctx context.Context, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
 	calicoImage := FeatureNetwork.GetImage(CalicoImageName)
 
+	helmClient := r.HelmClient()
+
 	if !network.GetEnabled() {
-		if _, err := m.Apply(ctx, FeatureNetwork.GetChart(CalicoChartName), helm.StateDeleted, nil); err != nil {
+		if _, err := helmClient.Apply(ctx, FeatureNetwork.GetChart(CalicoChartName), helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall network: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -80,7 +80,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, _ state.St
 		}, err
 	}
 
-	if _, err := m.Apply(ctx, FeatureNetwork.GetChart(CalicoChartName), helm.StatePresent, values); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureNetwork.GetChart(CalicoChartName), helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to enable network: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

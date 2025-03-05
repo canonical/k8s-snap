@@ -8,7 +8,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/features/contour"
 	contour_ingress "github.com/canonical/k8s/pkg/k8sd/features/contour/ingress"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 const (
@@ -23,11 +22,14 @@ const (
 // deployment.
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r GatewayReconciler) ApplyGateway(ctx context.Context, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	contourGatewayProvisionerContourImage := FeatureGateway.GetImage(ContourGatewayProvisionerContourImageName)
 
+	helmClient := r.HelmClient()
+	snap := r.Snap()
+
 	if !gateway.GetEnabled() {
-		if _, err := m.Apply(ctx, FeatureGateway.GetChart(ChartGatewayName), helm.StateDeleted, nil); err != nil {
+		if _, err := helmClient.Apply(ctx, FeatureGateway.GetChart(ChartGatewayName), helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -43,7 +45,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway ty
 	}
 
 	// Apply common contour CRDS, these are shared with ingress
-	if err := contour_ingress.ApplyCommonContourCRDS(ctx, snap, m, true); err != nil {
+	if err := contour_ingress.ApplyCommonContourCRDS(ctx, snap, helmClient, true); err != nil {
 		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -72,7 +74,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway ty
 		}, err
 	}
 
-	if _, err := m.Apply(ctx, FeatureGateway.GetChart(ChartGatewayName), helm.StatePresent, values); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureGateway.GetChart(ChartGatewayName), helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to install the contour gateway chart: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

@@ -7,7 +7,6 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/features/localpv"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 const (
@@ -21,7 +20,7 @@ const (
 // deployment.
 // ApplyLocalStorage returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyLocalStorage(ctx context.Context, snap snap.Snap, m helm.Client, cfg types.LocalStorage, _ types.Annotations) (types.FeatureStatus, error) {
+func (r LocalStorageReconciler) ApplyLocalStorage(ctx context.Context, cfg types.LocalStorage, _ types.Annotations) (types.FeatureStatus, error) {
 	rawFileImage := FeatureLocalStorage.GetImage(RawFileImageName)
 
 	var values Values = map[string]any{}
@@ -53,7 +52,7 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, m helm.Client, cfg t
 		}, err
 	}
 
-	if _, err := m.Apply(ctx, FeatureLocalStorage.GetChart(RawFileChartName), helm.StatePresentOrDeleted(cfg.GetEnabled()), values); err != nil {
+	if _, err := r.HelmClient().Apply(ctx, FeatureLocalStorage.GetChart(RawFileChartName), helm.StatePresentOrDeleted(cfg.GetEnabled()), values); err != nil {
 		if cfg.GetEnabled() {
 			err = fmt.Errorf("failed to install rawfile-csi helm package: %w", err)
 			return types.FeatureStatus{

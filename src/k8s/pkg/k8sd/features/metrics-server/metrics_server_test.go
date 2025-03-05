@@ -69,7 +69,10 @@ func TestApplyMetricsServer(t *testing.T) {
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&metrics_server.ChartFS))
-			status, err := metrics_server.ApplyMetricsServer(context.Background(), snapM, mc, tc.config, nil)
+
+			reconciler := metrics_server.NewMetricsServerReconciler(snapM, mc, nil)
+
+			status, err := reconciler.ApplyMetricsServer(context.Background(), tc.config, nil)
 			if tc.helmError == nil {
 				g.Expect(err).ToNot(HaveOccurred())
 			} else {
@@ -110,7 +113,10 @@ func TestApplyMetricsServer(t *testing.T) {
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metrics_server.ChartFS))
-		status, err := metrics_server.ApplyMetricsServer(context.Background(), snapM, mc, cfg, annotations)
+
+		reconciler := metrics_server.NewMetricsServerReconciler(snapM, mc, nil)
+
+		status, err := reconciler.ApplyMetricsServer(context.Background(), cfg, annotations)
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(h.ApplyCalledWith).To(ConsistOf(HaveField("Values", HaveKeyWithValue("image", SatisfyAll(
 			HaveKeyWithValue("repository", "custom-image"),

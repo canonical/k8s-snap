@@ -25,11 +25,14 @@ const (
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 // Contour CRDS are applied through a ck-contour common chart (Overlap with gateway).
-func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress types.Ingress, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r IngressReconciler) ApplyIngress(ctx context.Context, ingress types.Ingress, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	contourIngressContourImage := FeatureIngress.GetImage(ContourIngressContourImageName)
 
+	helmClient := r.HelmClient()
+	snap := r.Snap()
+
 	if !ingress.GetEnabled() {
-		if _, err := m.Apply(ctx, FeatureIngress.GetChart(ChartContourName), helm.StateDeleted, nil); err != nil {
+		if _, err := helmClient.Apply(ctx, FeatureIngress.GetChart(ChartContourName), helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall ingress: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -45,7 +48,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 	}
 
 	// Apply common contour CRDS, these are shared with gateway
-	if err := ApplyCommonContourCRDS(ctx, snap, m, true); err != nil {
+	if err := ApplyCommonContourCRDS(ctx, snap, helmClient, true); err != nil {
 		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -92,7 +95,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 		}, err
 	}
 
-	changed, err := m.Apply(ctx, FeatureIngress.GetChart(ChartContourName), helm.StatePresent, values)
+	changed, err := helmClient.Apply(ctx, FeatureIngress.GetChart(ChartContourName), helm.StatePresent, values)
 	if err != nil {
 		err = fmt.Errorf("failed to enable ingress: %w", err)
 		return types.FeatureStatus{
@@ -128,7 +131,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 			}, err
 		}
 
-		if _, err := m.Apply(ctx, FeatureIngress.GetChart(ChartDefaultTLSName), helm.StatePresent, tlsValues); err != nil {
+		if _, err := helmClient.Apply(ctx, FeatureIngress.GetChart(ChartDefaultTLSName), helm.StatePresent, tlsValues); err != nil {
 			err = fmt.Errorf("failed to install the delegation resource for default TLS secret: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -143,7 +146,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 		}, nil
 	}
 
-	if _, err := m.Apply(ctx, FeatureIngress.GetChart(ChartDefaultTLSName), helm.StateDeleted, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureIngress.GetChart(ChartDefaultTLSName), helm.StateDeleted, nil); err != nil {
 		err = fmt.Errorf("failed to uninstall the delegation resource for default TLS secret: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -162,15 +165,15 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 
 // applyCommonContourCRDS will install the common contour CRDS when enabled is true.
 // These CRDS are shared between the contour ingress and the gateway feature.
-func ApplyCommonContourCRDS(ctx context.Context, snap snap.Snap, m helm.Client, enabled bool) error {
+func ApplyCommonContourCRDS(ctx context.Context, snap snap.Snap, helmClient helm.Client, enabled bool) error {
 	if enabled {
-		if _, err := m.Apply(ctx, FeatureIngress.GetChart(ChartCommonContourCRDSName), helm.StatePresent, nil); err != nil {
+		if _, err := helmClient.Apply(ctx, FeatureIngress.GetChart(ChartCommonContourCRDSName), helm.StatePresent, nil); err != nil {
 			return fmt.Errorf("failed to install common CRDS: %w", err)
 		}
 		return nil
 	}
 
-	if _, err := m.Apply(ctx, FeatureIngress.GetChart(ChartCommonContourCRDSName), helm.StateDeleted, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, FeatureIngress.GetChart(ChartCommonContourCRDSName), helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall common CRDS: %w", err)
 	}
 

@@ -3,7 +3,7 @@ package loadbalancer
 import (
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/k8sd/features/manifests"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/images"
 )
 
@@ -18,5 +18,5 @@ func init() {
 		fmt.Sprintf("%s:%s", frrImage.GetURI(), frrImage.Tag),
 	)
 
-	manifests.Register(&manifest)
+	features.Register(&manifest)
 }

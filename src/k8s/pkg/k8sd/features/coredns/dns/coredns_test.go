@@ -41,7 +41,9 @@ func TestDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
 
-		status, str, err := coredns_dns.ApplyDNS(context.Background(), snapM, mc, dns, kubelet, nil)
+		reconciler := coredns_dns.NewDNSReconciler(snapM, mc, nil)
+
+		status, str, err := reconciler.ApplyDNS(context.Background(), dns, kubelet, nil)
 
 		g.Expect(err).To(MatchError(ContainSubstring(applyErr.Error())))
 		g.Expect(str).To(BeEmpty())
@@ -70,7 +72,9 @@ func TestDisabled(t *testing.T) {
 		kubelet := types.Kubelet{}
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
 
-		status, str, err := coredns_dns.ApplyDNS(context.Background(), snapM, mc, dns, kubelet, nil)
+		reconciler := coredns_dns.NewDNSReconciler(snapM, mc, nil)
+
+		status, str, err := reconciler.ApplyDNS(context.Background(), dns, kubelet, nil)
 
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(str).To(BeEmpty())
@@ -106,7 +110,9 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
 
-		status, str, err := coredns_dns.ApplyDNS(context.Background(), snapM, mc, dns, kubelet, nil)
+		reconciler := coredns_dns.NewDNSReconciler(snapM, mc, nil)
+
+		status, str, err := reconciler.ApplyDNS(context.Background(), dns, kubelet, nil)
 
 		g.Expect(err).To(MatchError(ContainSubstring(applyErr.Error())))
 		g.Expect(str).To(BeEmpty())
@@ -138,7 +144,9 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
 
-		status, str, err := coredns_dns.ApplyDNS(context.Background(), snapM, mc, dns, kubelet, nil)
+		reconciler := coredns_dns.NewDNSReconciler(snapM, mc, nil)
+
+		status, str, err := reconciler.ApplyDNS(context.Background(), dns, kubelet, nil)
 
 		g.Expect(err).To(MatchError(ContainSubstring("services \"coredns\" not found")))
 		g.Expect(str).To(BeEmpty())
@@ -179,7 +187,10 @@ func TestEnabled(t *testing.T) {
 		kubelet := types.Kubelet{}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
-		status, str, err := coredns_dns.ApplyDNS(context.Background(), snapM, mc, dns, kubelet, nil)
+
+		reconciler := coredns_dns.NewDNSReconciler(snapM, mc, nil)
+
+		status, str, err := reconciler.ApplyDNS(context.Background(), dns, kubelet, nil)
 
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(str).To(Equal(clusterIp))

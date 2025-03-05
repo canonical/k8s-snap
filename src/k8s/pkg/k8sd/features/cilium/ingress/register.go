@@ -1,9 +1,7 @@
 package ingress
 
-import (
-	"github.com/canonical/k8s/pkg/k8sd/features/manifests"
-)
+import "github.com/canonical/k8s/pkg/k8sd/features"
 
 func init() {
-	manifests.Register(&manifest)
+	features.Register(&manifest)
 }

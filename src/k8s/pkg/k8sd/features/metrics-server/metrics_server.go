@@ -6,7 +6,6 @@ import (
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 const (
@@ -22,7 +21,7 @@ const (
 // deployment.
 // ApplyMetricsServer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyMetricsServer(ctx context.Context, snap snap.Snap, m helm.Client, cfg types.MetricsServer, annotations types.Annotations) (types.FeatureStatus, error) {
+func (r MetricsServerReconciler) ApplyMetricsServer(ctx context.Context, cfg types.MetricsServer, annotations types.Annotations) (types.FeatureStatus, error) {
 	metricsServerImage := FeatureMetricsServer.GetImage(MetricsServerImageName)
 	imageTag := metricsServerImage.Tag
 
@@ -61,7 +60,7 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, m helm.Client, cfg 
 		}, err
 	}
 
-	_, err := m.Apply(ctx, FeatureMetricsServer.GetChart(MetricsServerChartName), helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
+	_, err := r.HelmClient().Apply(ctx, FeatureMetricsServer.GetChart(MetricsServerChartName), helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
 	if err != nil {
 		if cfg.GetEnabled() {
 			err = fmt.Errorf("failed to install metrics server chart: %w", err)

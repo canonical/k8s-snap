@@ -1,8 +1,9 @@
 //go:build ignore
 
-package features
+package implementation
 
 import (
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/calico"
 	calico_network "github.com/canonical/k8s/pkg/k8sd/features/calico/network"
 	contour_gateway "github.com/canonical/k8s/pkg/k8sd/features/contour/gateway"
@@ -16,14 +17,14 @@ import (
 
 // Implementation contains the moonray features for Canonical Kubernetes.
 // TODO: Replace default by moonray.
-var Implementation Interface = &implementation{
-	applyDNS:           coredns_dns.ApplyDNS,
-	applyNetwork:       calico_network.ApplyNetwork,
-	applyLoadBalancer:  metallb_loadbalancer.ApplyLoadBalancer,
-	applyIngress:       contour_ingress.ApplyIngress,
-	applyGateway:       contour_gateway.ApplyGateway,
-	applyMetricsServer: metrics_server.ApplyMetricsServer,
-	applyLocalStorage:  localpv_local_storage.ApplyLocalStorage,
+var Implementation features.Interface = &implementation{
+	newDNSReconciler:           coredns_dns.NewDNSReconciler,
+	newNetworkReconciler:       calico_network.NewNetworkReconciler,
+	newLoadBalancerReconciler:  metallb_loadbalancer.NewLoadBalancerReconciler,
+	newIngressReconciler:       contour_ingress.NewIngressReconciler,
+	newGatewayReconciler:       contour_gateway.NewGatewayReconciler,
+	newMetricsServerReconciler: metrics_server.NewMetricsServerReconciler,
+	newLocalStorageReconciler:  localpv_local_storage.NewLocalStorageReconciler,
 }
 
 // StatusChecks implements the Canonical Kubernetes moonray feature status checks.
