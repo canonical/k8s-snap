@@ -8,13 +8,13 @@ import (
 )
 
 func init() {
-	ciliumAgentImage := FeatureNetwork.GetImage(CiliumAgentImageName)
-	ciliumOperatorImage := FeatureNetwork.GetImage(CiliumOperatorImageName)
+	ciliumAgentImage := Manifest.GetImage(CiliumAgentImageName)
+	ciliumOperatorImage := Manifest.GetImage(CiliumOperatorImageName)
 
 	images.Register(
 		fmt.Sprintf("%s:%s", ciliumAgentImage.GetURI(), ciliumAgentImage.Tag),
 		fmt.Sprintf("%s-generic:%s", ciliumOperatorImage.GetURI(), ciliumOperatorImage.Tag),
 	)
 
-	features.Register(&manifest)
+	features.Register(&Manifest)
 }

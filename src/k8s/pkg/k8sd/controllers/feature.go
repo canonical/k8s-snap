@@ -102,6 +102,7 @@ func (c *FeatureController) reconcile(
 	ctx context.Context,
 	s state.State,
 	notifyUpdateNodeConfigController func(),
+	featureName types.FeatureName,
 	newReconciler func(base features.BaseReconciler) features.Reconciler,
 	updateFeatureStatus func(context.Context, types.FeatureStatus) error,
 ) error {
@@ -113,7 +114,13 @@ func (c *FeatureController) reconcile(
 	// helm client with database loader
 	m := c.snap.HelmClient(loader.NewDatabaseLoader(s))
 
-	base := features.NewReconciler(c.snap, m, s, notifyUpdateNodeConfigController)
+	// get feature manifest
+	manifest, err := c.getFeatureManifest(ctx, s, featureName)
+	if err != nil {
+		return fmt.Errorf("failed to get feature manifest: %w", err)
+	}
+
+	base := features.NewReconciler(*manifest, c.snap, m, s, notifyUpdateNodeConfigController)
 	reconciler := newReconciler(base)
 
 	status, applyErr := reconciler.Reconcile(ctx, cfg)
@@ -143,7 +150,7 @@ func (c *FeatureController) reconcileLoop(
 		case <-ctx.Done():
 			return
 		case <-triggerCh:
-			if err := c.reconcile(ctx, s, notifyUpdateNodeConfigController, newReconciler, func(ctx context.Context, status types.FeatureStatus) error {
+			if err := c.reconcile(ctx, s, notifyUpdateNodeConfigController, featureName, newReconciler, func(ctx context.Context, status types.FeatureStatus) error {
 				return c.setFeatureStatus(ctx, s, featureName, status)
 			}); err != nil {
 				log.FromContext(ctx).WithValues("feature", featureName).Error(err, "Failed to apply feature configuration")
@@ -176,4 +183,21 @@ func (c *FeatureController) setFeatureStatus(ctx context.Context, s state.State,
 		return fmt.Errorf("database transaction to set feature status failed: %w", err)
 	}
 	return nil
+}
+
+func (c *FeatureController) getFeatureManifest(ctx context.Context, s state.State, name types.FeatureName) (*types.FeatureManifest, error) {
+	var manifest *types.FeatureManifest
+
+	if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		manifest, err = database.GetFeatureManifest(ctx, tx, string(name), "1.0.0")
+		if err != nil {
+			return fmt.Errorf("failed to get feature manifest from database: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("failed to perform feature manifest transaction request: %w", err)
+	}
+
+	return manifest, nil
 }

@@ -2,13 +2,17 @@ package loadbalancer
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils/control"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -26,13 +30,23 @@ const (
 // ApplyLoadBalancer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
+	networkManifest, err := r.getNetworkManifest(ctx)
+	if err != nil {
+		err = fmt.Errorf("failed to get network manifest: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: "",
+			Message: fmt.Sprintf(LbDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	ciliumAgentImageTag := networkManifest.GetImage(cilium_network.CiliumAgentImageName).Tag
 
 	network := cfg.Network
 	loadbalancer := cfg.LoadBalancer
 
 	if !loadbalancer.GetEnabled() {
-		if err := r.disableLoadBalancer(ctx, network); err != nil {
+		if err := r.disableLoadBalancer(ctx, networkManifest, network); err != nil {
 			err = fmt.Errorf("failed to disable LoadBalancer: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -47,7 +61,7 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 		}, nil
 	}
 
-	if err := r.enableLoadBalancer(ctx, loadbalancer, network); err != nil {
+	if err := r.enableLoadBalancer(ctx, networkManifest, loadbalancer, network); err != nil {
 		err = fmt.Errorf("failed to enable LoadBalancer: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -78,10 +92,10 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 	}
 }
 
-func (r reconciler) disableLoadBalancer(ctx context.Context, network types.Network) error {
+func (r reconciler) disableLoadBalancer(ctx context.Context, networkManifest *types.FeatureManifest, network types.Network) error {
 	helmClient := r.HelmClient()
 
-	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(LoadbalancerChartName), helm.StateDeleted, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(LoadbalancerChartName), helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall LoadBalancer manifests: %w", err)
 	}
 
@@ -91,13 +105,13 @@ func (r reconciler) disableLoadBalancer(ctx context.Context, network types.Netwo
 		return fmt.Errorf("failed to apply disable configuration: %w", err)
 	}
 
-	if _, err := helmClient.Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues); err != nil {
+	if _, err := helmClient.Apply(ctx, networkManifest.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues); err != nil {
 		return fmt.Errorf("failed to refresh network to apply LoadBalancer configuration: %w", err)
 	}
 	return nil
 }
 
-func (r reconciler) enableLoadBalancer(ctx context.Context, loadbalancer types.LoadBalancer, network types.Network) error {
+func (r reconciler) enableLoadBalancer(ctx context.Context, networkManifest *types.FeatureManifest, loadbalancer types.LoadBalancer, network types.Network) error {
 	var ciliumValues CiliumValues = map[string]any{}
 	helmClient := r.HelmClient()
 	snap := r.Snap()
@@ -110,7 +124,7 @@ func (r reconciler) enableLoadBalancer(ctx context.Context, loadbalancer types.L
 		return fmt.Errorf("failed to apply cluster configuration: %w", err)
 	}
 
-	changed, err := helmClient.Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues)
+	changed, err := helmClient.Apply(ctx, networkManifest.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues)
 	if err != nil {
 		return fmt.Errorf("failed to update Cilium configuration for LoadBalancer: %w", err)
 	}
@@ -129,7 +143,7 @@ func (r reconciler) enableLoadBalancer(ctx context.Context, loadbalancer types.L
 		return fmt.Errorf("failed to apply cluster configuration: %w", err)
 	}
 
-	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(LoadbalancerChartName), helm.StatePresent, values); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(LoadbalancerChartName), helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to apply LoadBalancer configuration: %w", err)
 	}
 
@@ -171,4 +185,25 @@ func (r reconciler) waitForRequiredLoadBalancerCRDs(ctx context.Context, bgpMode
 		}
 		return requiredCount == 0, nil
 	})
+}
+
+func (r reconciler) getNetworkManifest(ctx context.Context) (*types.FeatureManifest, error) {
+	return GetNetworkManifest(ctx, r.State())
+}
+
+var GetNetworkManifest = func(ctx context.Context, state state.State) (*types.FeatureManifest, error) {
+	var networkManifest *types.FeatureManifest
+
+	if err := state.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		networkManifest, err = database.GetFeatureManifest(ctx, tx, string(features.Network), "1.0.0")
+		if err != nil {
+			return fmt.Errorf("failed to get network manifest from database: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("failed to perform network manifest transaction request: %w", err)
+	}
+
+	return networkManifest, nil
 }

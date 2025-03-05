@@ -8,11 +8,11 @@ import (
 )
 
 func init() {
-	coreDNSImage := FeatureDNS.GetImage(CoreDNSImageName)
+	coreDNSImage := Manifest.GetImage(CoreDNSImageName)
 
 	images.Register(
 		fmt.Sprintf("%s:%s", coreDNSImage.GetURI(), coreDNSImage.Tag),
 	)
 
-	features.Register(&manifest)
+	features.Register(&Manifest)
 }

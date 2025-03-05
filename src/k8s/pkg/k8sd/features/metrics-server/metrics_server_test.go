@@ -74,7 +74,7 @@ func TestApplyMetricsServer(t *testing.T) {
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&metrics_server.ChartFS))
 
-			base := features.NewReconciler(snapM, mc, nil, func() {})
+			base := features.NewReconciler(metrics_server.Manifest, snapM, mc, nil, func() {})
 			reconciler := metrics_server.NewReconciler(base)
 
 			status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -121,7 +121,7 @@ func TestApplyMetricsServer(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metrics_server.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(metrics_server.Manifest, snapM, mc, nil, func() {})
 		reconciler := metrics_server.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"dario.cat/mergo"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 )
 
 type Values map[string]any
@@ -23,8 +24,8 @@ func (v Values) applyDefaultValues() error {
 	return nil
 }
 
-func (v Values) ApplyImageOverrides() error {
-	metricsServerImage := FeatureMetricsServer.GetImage(MetricsServerImageName)
+func (v Values) ApplyImageOverrides(manifest types.FeatureManifest) error {
+	metricsServerImage := manifest.GetImage(MetricsServerImageName)
 
 	values := map[string]any{
 		"image": map[string]any{

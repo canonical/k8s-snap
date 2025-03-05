@@ -8,9 +8,9 @@ import (
 )
 
 func init() {
-	tigeraOperatorImage := FeatureNetwork.GetImage(TigeraOperatorImageName)
-	calicoCtlImage := FeatureNetwork.GetImage(CalicoCtlImageName)
-	calicoImage := FeatureNetwork.GetImage(CalicoImageName)
+	tigeraOperatorImage := Manifest.GetImage(TigeraOperatorImageName)
+	calicoCtlImage := Manifest.GetImage(CalicoCtlImageName)
+	calicoImage := Manifest.GetImage(CalicoImageName)
 
 	images.Register(
 		// Tigera images
@@ -27,5 +27,5 @@ func init() {
 		fmt.Sprintf("%s/typha:%s", calicoImage.GetURI(), calicoImage.Tag),
 	)
 
-	features.Register(&manifest)
+	features.Register(&Manifest)
 }

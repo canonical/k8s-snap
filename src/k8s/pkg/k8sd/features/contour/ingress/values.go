@@ -30,9 +30,9 @@ func (v Values) applyDefaultValues() error {
 	return nil
 }
 
-func (v Values) ApplyImageOverrides() error {
-	contourIngressContourImage := FeatureIngress.GetImage(ContourIngressContourImageName)
-	contourIngressEnvoyImage := FeatureIngress.GetImage(ContourIngressEnvoyImageName)
+func (v Values) ApplyImageOverrides(manifest types.FeatureManifest) error {
+	contourIngressContourImage := manifest.GetImage(ContourIngressContourImageName)
+	contourIngressEnvoyImage := manifest.GetImage(ContourIngressEnvoyImageName)
 
 	values := map[string]any{
 		"envoy": map[string]any{

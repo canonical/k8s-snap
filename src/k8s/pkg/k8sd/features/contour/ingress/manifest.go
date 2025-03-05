@@ -14,7 +14,7 @@ var (
 	ContourIngressContourImageName = "contour-ingress"
 )
 
-var manifest = types.FeatureManifest{
+var Manifest = types.FeatureManifest{
 	Name:    "ingress",
 	Version: "1.0.0",
 	Charts: map[string]helm.InstallableChart{
@@ -51,5 +51,3 @@ var manifest = types.FeatureManifest{
 		},
 	},
 }
-
-var FeatureIngress types.Feature = manifest

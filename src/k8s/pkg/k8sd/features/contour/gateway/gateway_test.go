@@ -44,7 +44,7 @@ func TestGatewayDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_gateway.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_gateway.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -52,7 +52,7 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(contour_gateway.FeatureGateway.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_gateway.Manifest.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour_gateway.GatewayDeleteFailedMsgTmpl, err)))
 	})
 
@@ -74,14 +74,14 @@ func TestGatewayDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_gateway.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_gateway.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(contour_gateway.FeatureGateway.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_gateway.Manifest.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(contour.DisabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
@@ -109,7 +109,7 @@ func TestGatewayEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_gateway.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_gateway.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -117,7 +117,7 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(contour_gateway.FeatureGateway.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_gateway.Manifest.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour_gateway.GatewayDeployFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
@@ -164,14 +164,14 @@ func TestGatewayEnabled(t *testing.T) {
 		}
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_gateway.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_gateway.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(contour_gateway.FeatureGateway.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_gateway.Manifest.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
@@ -180,14 +180,14 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(ok).To(BeTrue())
 		contourImage, ok := contourValues["image"].(map[string]any)
 		g.Expect(ok).To(BeTrue())
-		g.Expect(contourImage["repository"]).To(Equal(contour_gateway.FeatureGateway.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).GetURI()))
-		g.Expect(contourImage["tag"]).To(Equal(contour_gateway.FeatureGateway.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
+		g.Expect(contourImage["repository"]).To(Equal(contour_gateway.Manifest.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).GetURI()))
+		g.Expect(contourImage["tag"]).To(Equal(contour_gateway.Manifest.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
 		envoyValues, ok := values["envoyproxy"].(map[string]any)
 		g.Expect(ok).To(BeTrue())
 		envoyImage, ok := envoyValues["image"].(map[string]any)
 		g.Expect(ok).To(BeTrue())
-		g.Expect(envoyImage["repository"]).To(Equal(contour_gateway.FeatureGateway.GetImage(contour_gateway.ContourGatewayProvisionerEnvoyImageName).GetURI()))
-		g.Expect(envoyImage["tag"]).To(Equal(contour_gateway.FeatureGateway.GetImage(contour_gateway.ContourGatewayProvisionerEnvoyImageName).Tag))
+		g.Expect(envoyImage["repository"]).To(Equal(contour_gateway.Manifest.GetImage(contour_gateway.ContourGatewayProvisionerEnvoyImageName).GetURI()))
+		g.Expect(envoyImage["tag"]).To(Equal(contour_gateway.Manifest.GetImage(contour_gateway.ContourGatewayProvisionerEnvoyImageName).Tag))
 	})
 
 	t.Run("CrdDeploymentFailed", func(t *testing.T) {
@@ -232,7 +232,7 @@ func TestGatewayEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_gateway.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_gateway.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(ctx, cfg)
@@ -240,7 +240,7 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring("failed to wait for required contour common CRDs"))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(contour_gateway.FeatureGateway.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_gateway.Manifest.GetImage(contour_gateway.ContourGatewayProvisionerContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour_gateway.GatewayDeployFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})

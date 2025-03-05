@@ -28,7 +28,7 @@ const (
 // ApplyDNS returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
-	coreDNSImage := FeatureDNS.GetImage(CoreDNSImageName)
+	coreDNSImage := r.Manifest().GetImage(CoreDNSImageName)
 
 	dns := cfg.DNS
 	kubelet := cfg.Kubelet
@@ -36,7 +36,7 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 	helmClient := r.HelmClient()
 
 	if !dns.GetEnabled() {
-		if _, err := helmClient.Apply(ctx, FeatureDNS.GetChart(CoreDNSChartName), helm.StateDeleted, nil); err != nil {
+		if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(CoreDNSChartName), helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall coredns: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -53,7 +53,7 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 
 	var values Values = map[string]any{}
 
-	if err := values.ApplyImageOverrides(); err != nil {
+	if err := values.ApplyImageOverrides(r.Manifest()); err != nil {
 		err = fmt.Errorf("failed to apply image overrides: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -71,7 +71,7 @@ func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (typ
 		}, err
 	}
 
-	if _, err := helmClient.Apply(ctx, FeatureDNS.GetChart(CoreDNSChartName), helm.StatePresent, values); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(CoreDNSChartName), helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to apply coredns: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

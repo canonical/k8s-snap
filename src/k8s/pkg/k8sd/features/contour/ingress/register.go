@@ -8,13 +8,13 @@ import (
 )
 
 func init() {
-	contourIngressContourImage := FeatureIngress.GetImage(ContourIngressContourImageName)
-	contourIngressEnvoyImage := FeatureIngress.GetImage(ContourIngressEnvoyImageName)
+	contourIngressContourImage := Manifest.GetImage(ContourIngressContourImageName)
+	contourIngressEnvoyImage := Manifest.GetImage(ContourIngressEnvoyImageName)
 
 	images.Register(
 		fmt.Sprintf("%s:%s", contourIngressEnvoyImage.GetURI(), contourIngressEnvoyImage.Tag),
 		fmt.Sprintf("%s:%s", contourIngressContourImage.GetURI(), contourIngressContourImage.Tag),
 	)
 
-	features.Register(&manifest)
+	features.Register(&Manifest)
 }

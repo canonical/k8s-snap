@@ -20,13 +20,6 @@ func (i Image) GetURI() string {
 	return fmt.Sprintf("%s/%s", i.Registry, i.Repository)
 }
 
-type Feature interface {
-	GetName() string
-	GetVersion() string
-	GetChart(name string) helm.InstallableChart
-	GetImage(name string) Image
-}
-
 type FeatureManifest struct {
 	Name    string `yaml:"name,omitempty"`
 	Version string `yaml:"version,omitempty"`

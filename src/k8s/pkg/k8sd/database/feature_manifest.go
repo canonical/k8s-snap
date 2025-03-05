@@ -26,7 +26,7 @@ func GetFeatureManifest(ctx context.Context, tx *sql.Tx, name string, version st
 
 	err = selectTxStmt.QueryRowContext(ctx, name, version).Scan(&name, &version, &manifestBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query helm chart: %w", err)
+		return nil, fmt.Errorf("failed to query feature manifest: %w", err)
 	}
 
 	var manifest types.FeatureManifest

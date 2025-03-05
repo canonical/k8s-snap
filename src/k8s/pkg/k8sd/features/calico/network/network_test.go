@@ -53,7 +53,7 @@ func TestDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(calico_network.Manifest, snapM, mc, nil, func() {})
 		reconciler := calico_network.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -61,11 +61,11 @@ func TestDisabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(calico_network.FeatureNetwork.GetImage(calico_network.CalicoImageName).Tag))
+		g.Expect(status.Version).To(Equal(calico_network.Manifest.GetImage(calico_network.CalicoImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(calico_network.FeatureNetwork.GetChart(calico_network.CalicoChartName)))
+		g.Expect(callArgs.Chart).To(Equal(calico_network.Manifest.GetChart(calico_network.CalicoChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(callArgs.Values).To(BeNil())
 	})
@@ -89,7 +89,7 @@ func TestDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(calico_network.Manifest, snapM, mc, nil, func() {})
 		reconciler := calico_network.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -97,11 +97,11 @@ func TestDisabled(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(calico.DisabledMsg))
-		g.Expect(status.Version).To(Equal(calico_network.FeatureNetwork.GetImage(calico_network.CalicoImageName).Tag))
+		g.Expect(status.Version).To(Equal(calico_network.Manifest.GetImage(calico_network.CalicoImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(calico_network.FeatureNetwork.GetChart(calico_network.CalicoChartName)))
+		g.Expect(callArgs.Chart).To(Equal(calico_network.Manifest.GetChart(calico_network.CalicoChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(callArgs.Values).To(BeNil())
 	})
@@ -130,14 +130,14 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(calico_network.Manifest, snapM, mc, nil, func() {})
 		reconciler := calico_network.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(calico_network.FeatureNetwork.GetImage(calico_network.CalicoImageName).Tag))
+		g.Expect(status.Version).To(Equal(calico_network.Manifest.GetImage(calico_network.CalicoImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 	t.Run("InvalidServiceCIDR", func(t *testing.T) {
@@ -163,14 +163,14 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(calico_network.Manifest, snapM, mc, nil, func() {})
 		reconciler := calico_network.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(calico_network.FeatureNetwork.GetImage(calico_network.CalicoImageName).Tag))
+		g.Expect(status.Version).To(Equal(calico_network.Manifest.GetImage(calico_network.CalicoImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 	})
 	t.Run("HelmApplyFails", func(t *testing.T) {
@@ -199,7 +199,7 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(calico_network.Manifest, snapM, mc, nil, func() {})
 		reconciler := calico_network.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -207,11 +207,11 @@ func TestEnabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(calico_network.FeatureNetwork.GetImage(calico_network.CalicoImageName).Tag))
+		g.Expect(status.Version).To(Equal(calico_network.Manifest.GetImage(calico_network.CalicoImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(calico_network.FeatureNetwork.GetChart(calico_network.CalicoChartName)))
+		g.Expect(callArgs.Chart).To(Equal(calico_network.Manifest.GetChart(calico_network.CalicoChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 		validateValues(t, callArgs.Values, cfg.Network)
 	})
@@ -238,7 +238,7 @@ func TestEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(calico_network.Manifest, snapM, mc, nil, func() {})
 		reconciler := calico_network.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -246,11 +246,11 @@ func TestEnabled(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Message).To(Equal(calico.EnabledMsg))
-		g.Expect(status.Version).To(Equal(calico_network.FeatureNetwork.GetImage(calico_network.CalicoImageName).Tag))
+		g.Expect(status.Version).To(Equal(calico_network.Manifest.GetImage(calico_network.CalicoImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(calico_network.FeatureNetwork.GetChart(calico_network.CalicoChartName)))
+		g.Expect(callArgs.Chart).To(Equal(calico_network.Manifest.GetChart(calico_network.CalicoChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 		validateValues(t, callArgs.Values, cfg.Network)
 	})

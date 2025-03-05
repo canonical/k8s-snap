@@ -1,13 +1,11 @@
 package network
 
 import (
-	"context"
 	"fmt"
 
 	"dario.cat/mergo"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/microcluster/v2/state"
 )
 
 type Values map[string]any
@@ -26,10 +24,10 @@ func (v Values) applyDefaultValues() error {
 	return nil
 }
 
-func (v Values) ApplyImageOverrides() error {
-	tigeraOperatorImage := FeatureNetwork.GetImage(TigeraOperatorImageName)
-	calicoCtlImage := FeatureNetwork.GetImage(CalicoCtlImageName)
-	calicoImage := FeatureNetwork.GetImage(CalicoImageName)
+func (v Values) ApplyImageOverrides(manifest types.FeatureManifest) error {
+	tigeraOperatorImage := manifest.GetImage(TigeraOperatorImageName)
+	calicoCtlImage := manifest.GetImage(CalicoCtlImageName)
+	calicoImage := manifest.GetImage(CalicoImageName)
 
 	values := map[string]any{
 		"tigeraOperator": map[string]any{
@@ -53,7 +51,7 @@ func (v Values) ApplyImageOverrides() error {
 	return nil
 }
 
-func (v Values) applyClusterConfiguration(ctx context.Context, s state.State, apiserver types.APIServer, network types.Network) error {
+func (v Values) applyClusterConfiguration(network types.Network) error {
 	podIpPools := []map[string]any{}
 	ipv4PodCIDR, ipv6PodCIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	if err != nil {

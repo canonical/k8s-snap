@@ -16,6 +16,7 @@ import (
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
+	"github.com/canonical/microcluster/v2/state"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,6 +28,9 @@ import (
 // NOTE(hue): status.Message is not checked sometimes to avoid unnecessary complexity
 
 func TestLoadBalancerDisabled(t *testing.T) {
+	cilium_loadbalancer.GetNetworkManifest = func(ctx context.Context, state state.State) (*types.FeatureManifest, error) {
+		return &cilium_network.Manifest, nil
+	}
 	t.Run("HelmApplyFails", func(t *testing.T) {
 		g := NewWithT(t)
 
@@ -47,7 +51,7 @@ func TestLoadBalancerDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(cilium_loadbalancer.Manifest, snapM, mc, nil, func() {})
 		reconciler := cilium_loadbalancer.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -55,11 +59,11 @@ func TestLoadBalancerDisabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_loadbalancer.LbDeleteFailedMsgTmpl, err)))
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(cilium_loadbalancer.FeatureLoadBalancer.GetChart(cilium_loadbalancer.LoadbalancerChartName)))
+		g.Expect(callArgs.Chart).To(Equal(cilium_loadbalancer.Manifest.GetChart(cilium_loadbalancer.LoadbalancerChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(callArgs.Values).To(BeNil())
 	})
@@ -84,7 +88,7 @@ func TestLoadBalancerDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(cilium_loadbalancer.Manifest, snapM, mc, nil, func() {})
 		reconciler := cilium_loadbalancer.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -92,22 +96,25 @@ func TestLoadBalancerDisabled(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
 		firstCallArgs := helmM.ApplyCalledWith[0]
-		g.Expect(firstCallArgs.Chart).To(Equal(cilium_loadbalancer.FeatureLoadBalancer.GetChart(cilium_loadbalancer.LoadbalancerChartName)))
+		g.Expect(firstCallArgs.Chart).To(Equal(cilium_loadbalancer.Manifest.GetChart(cilium_loadbalancer.LoadbalancerChartName)))
 		g.Expect(firstCallArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(firstCallArgs.Values).To(BeNil())
 
 		// checking helm apply for network since it's enabled
 		secondCallArgs := helmM.ApplyCalledWith[1]
-		g.Expect(secondCallArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+		g.Expect(secondCallArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 		g.Expect(secondCallArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(cfg.Network.GetEnabled())))
 	})
 }
 
 func TestLoadBalancerEnabled(t *testing.T) {
+	cilium_loadbalancer.GetNetworkManifest = func(ctx context.Context, state state.State) (*types.FeatureManifest, error) {
+		return &cilium_network.Manifest, nil
+	}
 	t.Run("HelmApplyFails", func(t *testing.T) {
 		g := NewWithT(t)
 
@@ -134,7 +141,7 @@ func TestLoadBalancerEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(cilium_loadbalancer.Manifest, snapM, mc, nil, func() {})
 		reconciler := cilium_loadbalancer.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -142,11 +149,11 @@ func TestLoadBalancerEnabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_loadbalancer.LbDeployFailedMsgTmpl, err)))
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+		g.Expect(callArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(cfg.Network.GetEnabled())))
 		l2announcements, ok := callArgs.Values["l2announcements"].(map[string]any)
 		g.Expect(ok).To(BeTrue())
@@ -242,20 +249,20 @@ func TestLoadBalancerEnabled(t *testing.T) {
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-			base := features.NewReconciler(snapM, mc, nil, func() {})
+			base := features.NewReconciler(cilium_loadbalancer.Manifest, snapM, mc, nil, func() {})
 			reconciler := cilium_loadbalancer.NewReconciler(base)
 
 			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(status.Message).To(Equal(tc.statusMessage))
 
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
 			firstCallArgs := helmM.ApplyCalledWith[0]
-			g.Expect(firstCallArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+			g.Expect(firstCallArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 			g.Expect(firstCallArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(cfg.Network.GetEnabled())))
 			l2announcements, ok := firstCallArgs.Values["l2announcements"].(map[string]any)
 			g.Expect(ok).To(BeTrue())
@@ -265,7 +272,7 @@ func TestLoadBalancerEnabled(t *testing.T) {
 			g.Expect(bgpControlPlane["enabled"]).To(Equal(cfg.LoadBalancer.GetBGPMode()))
 
 			secondCallArgs := helmM.ApplyCalledWith[1]
-			g.Expect(secondCallArgs.Chart).To(Equal(cilium_loadbalancer.FeatureLoadBalancer.GetChart(cilium_loadbalancer.LoadbalancerChartName)))
+			g.Expect(secondCallArgs.Chart).To(Equal(cilium_loadbalancer.Manifest.GetChart(cilium_loadbalancer.LoadbalancerChartName)))
 			g.Expect(secondCallArgs.State).To(Equal(helm.StatePresent))
 			validateLoadBalancerValues(t, secondCallArgs.Values, cfg.LoadBalancer)
 

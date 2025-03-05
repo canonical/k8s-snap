@@ -45,7 +45,7 @@ func TestIngressDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_ingress.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_ingress.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -53,7 +53,7 @@ func TestIngressDisabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour_ingress.IngressDeleteFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
@@ -76,14 +76,14 @@ func TestIngressDisabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_ingress.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_ingress.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(contour.DisabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
@@ -111,7 +111,7 @@ func TestIngressEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_ingress.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_ingress.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(context.Background(), cfg)
@@ -119,7 +119,7 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour_ingress.IngressDeployFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
@@ -175,14 +175,14 @@ func TestIngressEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_ingress.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_ingress.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(ctx, cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
 		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, cfg.Ingress)
@@ -240,14 +240,14 @@ func TestIngressEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_ingress.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_ingress.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(ctx, cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
 		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, cfg.Ingress)
@@ -306,14 +306,14 @@ func TestIngressEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_ingress.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_ingress.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(ctx, cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(contour.EnabledMsg))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(3))
 		validateIngressValues(g, helmM.ApplyCalledWith[1].Values, cfg.Ingress)
@@ -362,14 +362,14 @@ func TestIngressEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_ingress.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_ingress.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(ctx, cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour_ingress.IngressDeployFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
@@ -425,7 +425,7 @@ func TestIngressEnabled(t *testing.T) {
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		base := features.NewReconciler(snapM, mc, nil, func() {})
+		base := features.NewReconciler(contour_ingress.Manifest, snapM, mc, nil, func() {})
 		reconciler := contour_ingress.NewReconciler(base)
 
 		status, err := reconciler.Reconcile(ctx, cfg)
@@ -433,7 +433,7 @@ func TestIngressEnabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring("failed to rollout restart contour to apply ingress"))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
+		g.Expect(status.Version).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(contour_ingress.IngressDeployFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 	})
@@ -444,14 +444,14 @@ func validateIngressValues(g Gomega, values map[string]interface{}, ingress type
 	g.Expect(ok).To(BeTrue())
 	contourImage, ok := contourValues["image"].(map[string]any)
 	g.Expect(ok).To(BeTrue())
-	g.Expect(contourImage["repository"]).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).GetURI()))
-	g.Expect(contourImage["tag"]).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
+	g.Expect(contourImage["repository"]).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressContourImageName).GetURI()))
+	g.Expect(contourImage["tag"]).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressContourImageName).Tag))
 	envoyValues, ok := values["envoy"].(map[string]any)
 	g.Expect(ok).To(BeTrue())
 	envoyImage, ok := envoyValues["image"].(map[string]any)
 	g.Expect(ok).To(BeTrue())
-	g.Expect(envoyImage["repository"]).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressEnvoyImageName).GetURI()))
-	g.Expect(envoyImage["tag"]).To(Equal(contour_ingress.FeatureIngress.GetImage(contour_ingress.ContourIngressEnvoyImageName).Tag))
+	g.Expect(envoyImage["repository"]).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressEnvoyImageName).GetURI()))
+	g.Expect(envoyImage["tag"]).To(Equal(contour_ingress.Manifest.GetImage(contour_ingress.ContourIngressEnvoyImageName).Tag))
 
 	if ingress.GetEnableProxyProtocol() {
 		conturExtraValues, ok := values["contour"].(map[string]any)
