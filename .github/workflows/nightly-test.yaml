@@ -21,6 +21,12 @@ jobs:
         arch: ["amd64", "arm64"]
         release: ["1.32-classic/edge"]
       fail-fast: false # TODO: remove once arm64 works
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel: ${{ matrix.channel }}
+      test-tags: 'up_to_nightly'
 
   Trivy:
     permissions:
