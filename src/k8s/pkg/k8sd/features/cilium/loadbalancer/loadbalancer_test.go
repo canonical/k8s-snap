@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_loadbalancer "github.com/canonical/k8s/pkg/k8sd/features/cilium/loadbalancer"
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
@@ -38,15 +39,18 @@ func TestLoadBalancerDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(false),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_loadbalancer.NewReconciler(base)
 
-		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, types.Network{}, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -69,18 +73,21 @@ func TestLoadBalancerDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(false),
-		}
-		networkCfg := types.Network{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(false),
+			},
+			Network: types.Network{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_loadbalancer.NewReconciler(base)
 
-		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, networkCfg, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -96,7 +103,7 @@ func TestLoadBalancerDisabled(t *testing.T) {
 		// checking helm apply for network since it's enabled
 		secondCallArgs := helmM.ApplyCalledWith[1]
 		g.Expect(secondCallArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
-		g.Expect(secondCallArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(networkCfg.GetEnabled())))
+		g.Expect(secondCallArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(cfg.Network.GetEnabled())))
 	})
 }
 
@@ -113,21 +120,24 @@ func TestLoadBalancerEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(true),
-			// setting both modes to true for testing purposes
-			L2Mode:  ptr.To(true),
-			BGPMode: ptr.To(true),
-		}
-		networkCfg := types.Network{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(true),
+				// setting both modes to true for testing purposes
+				L2Mode:  ptr.To(true),
+				BGPMode: ptr.To(true),
+			},
+			Network: types.Network{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		reconciler := cilium_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := cilium_loadbalancer.NewReconciler(base)
 
-		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, networkCfg, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -137,13 +147,13 @@ func TestLoadBalancerEnabled(t *testing.T) {
 
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
-		g.Expect(callArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(networkCfg.GetEnabled())))
+		g.Expect(callArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(cfg.Network.GetEnabled())))
 		l2announcements, ok := callArgs.Values["l2announcements"].(map[string]any)
 		g.Expect(ok).To(BeTrue())
-		g.Expect(l2announcements["enabled"]).To(Equal(lbCfg.GetL2Mode()))
+		g.Expect(l2announcements["enabled"]).To(Equal(cfg.LoadBalancer.GetL2Mode()))
 		bgpControlPlane, ok := callArgs.Values["bgpControlPlane"].(map[string]any)
 		g.Expect(ok).To(BeTrue())
-		g.Expect(bgpControlPlane["enabled"]).To(Equal(lbCfg.GetBGPMode()))
+		g.Expect(bgpControlPlane["enabled"]).To(Equal(cfg.LoadBalancer.GetBGPMode()))
 	})
 
 	for _, tc := range []struct {
@@ -209,30 +219,33 @@ func TestLoadBalancerEnabled(t *testing.T) {
 					KubernetesClient: &kubernetes.Client{Interface: clientset},
 				},
 			}
-			lbCfg := types.LoadBalancer{
-				Enabled: ptr.To(true),
-				// setting both modes to true for testing purposes
-				L2Mode:         ptr.To(tc.l2Mode),
-				L2Interfaces:   ptr.To([]string{"eth0", "eth1"}),
-				BGPMode:        ptr.To(tc.bGPMode),
-				BGPLocalASN:    ptr.To(64512),
-				BGPPeerAddress: ptr.To("10.0.0.1/32"),
-				BGPPeerASN:     ptr.To(64513),
-				BGPPeerPort:    ptr.To(179),
-				CIDRs:          ptr.To([]string{"192.0.2.0/24"}),
-				IPRanges: ptr.To([]types.LoadBalancer_IPRange{
-					{Start: "20.0.20.100", Stop: "20.0.20.200"},
-				}),
-			}
-			networkCfg := types.Network{
-				Enabled: ptr.To(true),
+			cfg := types.ClusterConfig{
+				LoadBalancer: types.LoadBalancer{
+					Enabled: ptr.To(true),
+					// setting both modes to true for testing purposes
+					L2Mode:         ptr.To(tc.l2Mode),
+					L2Interfaces:   ptr.To([]string{"eth0", "eth1"}),
+					BGPMode:        ptr.To(tc.bGPMode),
+					BGPLocalASN:    ptr.To(64512),
+					BGPPeerAddress: ptr.To("10.0.0.1/32"),
+					BGPPeerASN:     ptr.To(64513),
+					BGPPeerPort:    ptr.To(179),
+					CIDRs:          ptr.To([]string{"192.0.2.0/24"}),
+					IPRanges: ptr.To([]types.LoadBalancer_IPRange{
+						{Start: "20.0.20.100", Stop: "20.0.20.200"},
+					}),
+				},
+				Network: types.Network{
+					Enabled: ptr.To(true),
+				},
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-			reconciler := cilium_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+			base := features.NewReconciler(snapM, mc, nil, func() {})
+			reconciler := cilium_loadbalancer.NewReconciler(base)
 
-			status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, networkCfg, nil)
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
@@ -243,18 +256,18 @@ func TestLoadBalancerEnabled(t *testing.T) {
 
 			firstCallArgs := helmM.ApplyCalledWith[0]
 			g.Expect(firstCallArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
-			g.Expect(firstCallArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(networkCfg.GetEnabled())))
+			g.Expect(firstCallArgs.State).To(Equal(helm.StateUpgradeOnlyOrDeleted(cfg.Network.GetEnabled())))
 			l2announcements, ok := firstCallArgs.Values["l2announcements"].(map[string]any)
 			g.Expect(ok).To(BeTrue())
-			g.Expect(l2announcements["enabled"]).To(Equal(lbCfg.GetL2Mode()))
+			g.Expect(l2announcements["enabled"]).To(Equal(cfg.LoadBalancer.GetL2Mode()))
 			bgpControlPlane, ok := firstCallArgs.Values["bgpControlPlane"].(map[string]any)
 			g.Expect(ok).To(BeTrue())
-			g.Expect(bgpControlPlane["enabled"]).To(Equal(lbCfg.GetBGPMode()))
+			g.Expect(bgpControlPlane["enabled"]).To(Equal(cfg.LoadBalancer.GetBGPMode()))
 
 			secondCallArgs := helmM.ApplyCalledWith[1]
 			g.Expect(secondCallArgs.Chart).To(Equal(cilium_loadbalancer.FeatureLoadBalancer.GetChart(cilium_loadbalancer.LoadbalancerChartName)))
 			g.Expect(secondCallArgs.State).To(Equal(helm.StatePresent))
-			validateLoadBalancerValues(t, secondCallArgs.Values, lbCfg)
+			validateLoadBalancerValues(t, secondCallArgs.Values, cfg.LoadBalancer)
 
 			// check if cilium-operator and cilium daemonset are restarted
 			deployment, err := clientset.AppsV1().Deployments("kube-system").Get(context.Background(), "cilium-operator", metav1.GetOptions{})

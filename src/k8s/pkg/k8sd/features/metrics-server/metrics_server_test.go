@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	metrics_server "github.com/canonical/k8s/pkg/k8sd/features/metrics-server"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
@@ -67,12 +68,17 @@ func TestApplyMetricsServer(t *testing.T) {
 					HelmClient: h,
 				},
 			}
+			cfg := types.ClusterConfig{
+				MetricsServer: tc.config,
+			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&metrics_server.ChartFS))
 
-			reconciler := metrics_server.NewMetricsServerReconciler(snapM, mc, nil)
+			base := features.NewReconciler(snapM, mc, nil, func() {})
+			reconciler := metrics_server.NewReconciler(base)
 
-			status, err := reconciler.ApplyMetricsServer(context.Background(), tc.config, nil)
+			status, err := reconciler.Reconcile(context.Background(), cfg)
+
 			if tc.helmError == nil {
 				g.Expect(err).ToNot(HaveOccurred())
 			} else {
@@ -103,20 +109,23 @@ func TestApplyMetricsServer(t *testing.T) {
 				HelmClient: h,
 			},
 		}
-
-		cfg := types.MetricsServer{
-			Enabled: utils.Pointer(true),
-		}
-		annotations := types.Annotations{
-			apiv1_annotations.AnnotationImageRepo: "custom-image",
-			apiv1_annotations.AnnotationImageTag:  "custom-tag",
+		cfg := types.ClusterConfig{
+			MetricsServer: types.MetricsServer{
+				Enabled: utils.Pointer(true),
+			},
+			Annotations: types.Annotations{
+				apiv1_annotations.AnnotationImageRepo: "custom-image",
+				apiv1_annotations.AnnotationImageTag:  "custom-tag",
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metrics_server.ChartFS))
 
-		reconciler := metrics_server.NewMetricsServerReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := metrics_server.NewReconciler(base)
 
-		status, err := reconciler.ApplyMetricsServer(context.Background(), cfg, annotations)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
+
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(h.ApplyCalledWith).To(ConsistOf(HaveField("Values", HaveKeyWithValue("image", SatisfyAll(
 			HaveKeyWithValue("repository", "custom-image"),

@@ -20,10 +20,14 @@ const (
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func (r NetworkReconciler) ApplyNetwork(ctx context.Context, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
 	calicoImage := FeatureNetwork.GetImage(CalicoImageName)
 
 	helmClient := r.HelmClient()
+
+	network := cfg.Network
+	apiserver := cfg.APIServer
+	annotations := cfg.Annotations
 
 	if !network.GetEnabled() {
 		if _, err := helmClient.Apply(ctx, FeatureNetwork.GetChart(CalicoChartName), helm.StateDeleted, nil); err != nil {

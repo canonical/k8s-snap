@@ -8,7 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
-func (r NetworkReconciler) verifyMountPropagation(ctx context.Context) error {
+func (r reconciler) verifyMountPropagation(ctx context.Context) error {
 	snap := r.Snap()
 
 	pt, err := GetMountPropagationType("/sys")

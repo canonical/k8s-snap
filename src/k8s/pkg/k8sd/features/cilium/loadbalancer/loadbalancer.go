@@ -25,8 +25,11 @@ const (
 // deployment.
 // ApplyLoadBalancer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func (r LoadBalancerReconciler) ApplyLoadBalancer(ctx context.Context, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
 	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
+
+	network := cfg.Network
+	loadbalancer := cfg.LoadBalancer
 
 	if !loadbalancer.GetEnabled() {
 		if err := r.disableLoadBalancer(ctx, network); err != nil {
@@ -75,7 +78,7 @@ func (r LoadBalancerReconciler) ApplyLoadBalancer(ctx context.Context, loadbalan
 	}
 }
 
-func (r LoadBalancerReconciler) disableLoadBalancer(ctx context.Context, network types.Network) error {
+func (r reconciler) disableLoadBalancer(ctx context.Context, network types.Network) error {
 	helmClient := r.HelmClient()
 
 	if _, err := helmClient.Apply(ctx, FeatureLoadBalancer.GetChart(LoadbalancerChartName), helm.StateDeleted, nil); err != nil {
@@ -94,7 +97,7 @@ func (r LoadBalancerReconciler) disableLoadBalancer(ctx context.Context, network
 	return nil
 }
 
-func (r LoadBalancerReconciler) enableLoadBalancer(ctx context.Context, loadbalancer types.LoadBalancer, network types.Network) error {
+func (r reconciler) enableLoadBalancer(ctx context.Context, loadbalancer types.LoadBalancer, network types.Network) error {
 	var ciliumValues CiliumValues = map[string]any{}
 	helmClient := r.HelmClient()
 	snap := r.Snap()
@@ -140,7 +143,7 @@ func (r LoadBalancerReconciler) enableLoadBalancer(ctx context.Context, loadbala
 	return nil
 }
 
-func (r LoadBalancerReconciler) waitForRequiredLoadBalancerCRDs(ctx context.Context, bgpMode bool) error {
+func (r reconciler) waitForRequiredLoadBalancerCRDs(ctx context.Context, bgpMode bool) error {
 	client, err := r.Snap().KubernetesClient("")
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)

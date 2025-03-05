@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/metallb"
 	metallb_loadbalancer "github.com/canonical/k8s/pkg/k8sd/features/metallb/loadbalancer"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -33,15 +34,18 @@ func TestDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(false),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
 
-		reconciler := metallb_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := metallb_loadbalancer.NewReconciler(base)
 
-		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, types.Network{}, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -63,15 +67,18 @@ func TestDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(false),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
 
-		reconciler := metallb_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := metallb_loadbalancer.NewReconciler(base)
 
-		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, types.Network{}, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -104,15 +111,18 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
 
-		reconciler := metallb_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := metallb_loadbalancer.NewReconciler(base)
 
-		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, types.Network{}, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -158,27 +168,30 @@ func TestEnabled(t *testing.T) {
 				},
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(true),
-			// setting both modes to true for testing purposes
-			L2Mode:         ptr.To(true),
-			L2Interfaces:   ptr.To([]string{"eth0", "eth1"}),
-			BGPMode:        ptr.To(true),
-			BGPLocalASN:    ptr.To(64512),
-			BGPPeerAddress: ptr.To("10.0.0.1/32"),
-			BGPPeerASN:     ptr.To(64513),
-			BGPPeerPort:    ptr.To(179),
-			CIDRs:          ptr.To([]string{"192.0.2.0/24"}),
-			IPRanges: ptr.To([]types.LoadBalancer_IPRange{
-				{Start: "20.0.20.100", Stop: "20.0.20.200"},
-			}),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(true),
+				// setting both modes to true for testing purposes
+				L2Mode:         ptr.To(true),
+				L2Interfaces:   ptr.To([]string{"eth0", "eth1"}),
+				BGPMode:        ptr.To(true),
+				BGPLocalASN:    ptr.To(64512),
+				BGPPeerAddress: ptr.To("10.0.0.1/32"),
+				BGPPeerASN:     ptr.To(64513),
+				BGPPeerPort:    ptr.To(179),
+				CIDRs:          ptr.To([]string{"192.0.2.0/24"}),
+				IPRanges: ptr.To([]types.LoadBalancer_IPRange{
+					{Start: "20.0.20.100", Stop: "20.0.20.200"},
+				}),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
 
-		reconciler := metallb_loadbalancer.NewLoadBalancerReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := metallb_loadbalancer.NewReconciler(base)
 
-		status, err := reconciler.ApplyLoadBalancer(context.Background(), lbCfg, types.Network{}, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -195,7 +208,7 @@ func TestEnabled(t *testing.T) {
 		secondCallArgs := helmM.ApplyCalledWith[1]
 		g.Expect(secondCallArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
 		g.Expect(secondCallArgs.State).To(Equal(helm.StatePresent))
-		validateLoadBalancerValues(g, secondCallArgs.Values, lbCfg)
+		validateLoadBalancerValues(g, secondCallArgs.Values, cfg.LoadBalancer)
 	})
 }
 

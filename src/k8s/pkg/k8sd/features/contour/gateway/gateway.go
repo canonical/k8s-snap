@@ -22,11 +22,13 @@ const (
 // deployment.
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func (r GatewayReconciler) ApplyGateway(ctx context.Context, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
 	contourGatewayProvisionerContourImage := FeatureGateway.GetImage(ContourGatewayProvisionerContourImageName)
 
 	helmClient := r.HelmClient()
 	snap := r.Snap()
+
+	gateway := cfg.Gateway
 
 	if !gateway.GetEnabled() {
 		if _, err := helmClient.Apply(ctx, FeatureGateway.GetChart(ChartGatewayName), helm.StateDeleted, nil); err != nil {

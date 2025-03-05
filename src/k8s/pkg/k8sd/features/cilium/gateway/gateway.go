@@ -23,14 +23,17 @@ const (
 // deployment.
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func (r GatewayReconciler) ApplyGateway(ctx context.Context, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	gateway := cfg.Gateway
+	network := cfg.Network
+
 	if gateway.GetEnabled() {
 		return r.enableGateway(ctx, gateway)
 	}
 	return r.disableGateway(ctx, network)
 }
 
-func (r GatewayReconciler) enableGateway(ctx context.Context, gateway types.Gateway) (types.FeatureStatus, error) {
+func (r reconciler) enableGateway(ctx context.Context, gateway types.Gateway) (types.FeatureStatus, error) {
 	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
 
 	helmClient := r.HelmClient()
@@ -101,7 +104,7 @@ func (r GatewayReconciler) enableGateway(ctx context.Context, gateway types.Gate
 	}, nil
 }
 
-func (r GatewayReconciler) disableGateway(ctx context.Context, network types.Network) (types.FeatureStatus, error) {
+func (r reconciler) disableGateway(ctx context.Context, network types.Network) (types.FeatureStatus, error) {
 	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
 
 	helmClient := r.HelmClient()

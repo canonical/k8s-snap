@@ -31,8 +31,11 @@ const (
 // deployment.
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func (r IngressReconciler) ApplyIngress(ctx context.Context, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
 	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
+
+	network := cfg.Network
+	ingress := cfg.Ingress
 
 	var ciliumValues CiliumValues = map[string]any{}
 

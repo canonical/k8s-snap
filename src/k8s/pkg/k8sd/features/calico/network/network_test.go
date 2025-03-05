@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/calico"
 	calico_network "github.com/canonical/k8s/pkg/k8sd/features/calico/network"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -41,18 +42,21 @@ func TestDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{
-			Enabled: ptr.To(false),
-		}
-		apiserver := types.APIServer{
-			SecurePort: ptr.To(6443),
+		cfg := types.ClusterConfig{
+			Network: types.Network{
+				Enabled: ptr.To(false),
+			},
+			APIServer: types.APIServer{
+				SecurePort: ptr.To(6443),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := calico_network.NewReconciler(base)
 
-		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -74,18 +78,21 @@ func TestDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{
-			Enabled: ptr.To(false),
-		}
-		apiserver := types.APIServer{
-			SecurePort: ptr.To(6443),
+		cfg := types.ClusterConfig{
+			Network: types.Network{
+				Enabled: ptr.To(false),
+			},
+			APIServer: types.APIServer{
+				SecurePort: ptr.To(6443),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := calico_network.NewReconciler(base)
 
-		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -110,19 +117,23 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{
-			Enabled: ptr.To(true),
-			PodCIDR: ptr.To("invalid-cidr"),
-		}
-		apiserver := types.APIServer{
-			SecurePort: ptr.To(6443),
+		cfg := types.ClusterConfig{
+			Network: types.Network{
+				Enabled: ptr.To(true),
+				PodCIDR: ptr.To("invalid-cidr"),
+			},
+			APIServer: types.APIServer{
+				SecurePort: ptr.To(6443),
+			},
+			Annotations: defaultAnnotations,
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := calico_network.NewReconciler(base)
 
-		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, defaultAnnotations)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -138,20 +149,24 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{
-			Enabled:     ptr.To(true),
-			PodCIDR:     ptr.To("192.0.2.0/24,2001:db8::/32"),
-			ServiceCIDR: ptr.To("invalid-cidr"),
-		}
-		apiserver := types.APIServer{
-			SecurePort: ptr.To(6443),
+		cfg := types.ClusterConfig{
+			Network: types.Network{
+				Enabled:     ptr.To(true),
+				PodCIDR:     ptr.To("192.0.2.0/24,2001:db8::/32"),
+				ServiceCIDR: ptr.To("invalid-cidr"),
+			},
+			APIServer: types.APIServer{
+				SecurePort: ptr.To(6443),
+			},
+			Annotations: defaultAnnotations,
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := calico_network.NewReconciler(base)
 
-		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, defaultAnnotations)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -170,20 +185,24 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{
-			Enabled:     ptr.To(true),
-			PodCIDR:     ptr.To("192.0.2.0/24,2001:db8::/32"),
-			ServiceCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
-		}
-		apiserver := types.APIServer{
-			SecurePort: ptr.To(6443),
+		cfg := types.ClusterConfig{
+			Network: types.Network{
+				Enabled:     ptr.To(true),
+				PodCIDR:     ptr.To("192.0.2.0/24,2001:db8::/32"),
+				ServiceCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+			},
+			APIServer: types.APIServer{
+				SecurePort: ptr.To(6443),
+			},
+			Annotations: defaultAnnotations,
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := calico_network.NewReconciler(base)
 
-		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, defaultAnnotations)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -194,7 +213,7 @@ func TestEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(calico_network.FeatureNetwork.GetChart(calico_network.CalicoChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-		validateValues(t, callArgs.Values, network)
+		validateValues(t, callArgs.Values, cfg.Network)
 	})
 	t.Run("Success", func(t *testing.T) {
 		g := NewWithT(t)
@@ -205,20 +224,24 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{
-			Enabled:     ptr.To(true),
-			PodCIDR:     ptr.To("192.0.2.0/24,2001:db8::/32"),
-			ServiceCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
-		}
-		apiserver := types.APIServer{
-			SecurePort: ptr.To(6443),
+		cfg := types.ClusterConfig{
+			Network: types.Network{
+				Enabled:     ptr.To(true),
+				PodCIDR:     ptr.To("192.0.2.0/24,2001:db8::/32"),
+				ServiceCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+			},
+			APIServer: types.APIServer{
+				SecurePort: ptr.To(6443),
+			},
+			Annotations: defaultAnnotations,
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&calico.ChartFS))
 
-		reconciler := calico_network.NewNetworkReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := calico_network.NewReconciler(base)
 
-		status, err := reconciler.ApplyNetwork(context.Background(), apiserver, network, defaultAnnotations)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -229,7 +252,7 @@ func TestEnabled(t *testing.T) {
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(calico_network.FeatureNetwork.GetChart(calico_network.CalicoChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-		validateValues(t, callArgs.Values, network)
+		validateValues(t, callArgs.Values, cfg.Network)
 	})
 }
 

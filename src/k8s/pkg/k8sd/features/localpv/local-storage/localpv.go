@@ -20,8 +20,10 @@ const (
 // deployment.
 // ApplyLocalStorage returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func (r LocalStorageReconciler) ApplyLocalStorage(ctx context.Context, cfg types.LocalStorage, _ types.Annotations) (types.FeatureStatus, error) {
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
 	rawFileImage := FeatureLocalStorage.GetImage(RawFileImageName)
+
+	localStorage := cfg.LocalStorage
 
 	var values Values = map[string]any{}
 
@@ -43,7 +45,7 @@ func (r LocalStorageReconciler) ApplyLocalStorage(ctx context.Context, cfg types
 		}, err
 	}
 
-	if err := values.applyClusterConfiguration(cfg); err != nil {
+	if err := values.applyClusterConfiguration(localStorage); err != nil {
 		err = fmt.Errorf("failed to apply cluster configuration: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -52,8 +54,8 @@ func (r LocalStorageReconciler) ApplyLocalStorage(ctx context.Context, cfg types
 		}, err
 	}
 
-	if _, err := r.HelmClient().Apply(ctx, FeatureLocalStorage.GetChart(RawFileChartName), helm.StatePresentOrDeleted(cfg.GetEnabled()), values); err != nil {
-		if cfg.GetEnabled() {
+	if _, err := r.HelmClient().Apply(ctx, FeatureLocalStorage.GetChart(RawFileChartName), helm.StatePresentOrDeleted(localStorage.GetEnabled()), values); err != nil {
+		if localStorage.GetEnabled() {
 			err = fmt.Errorf("failed to install rawfile-csi helm package: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -70,11 +72,11 @@ func (r LocalStorageReconciler) ApplyLocalStorage(ctx context.Context, cfg types
 		}
 	}
 
-	if cfg.GetEnabled() {
+	if localStorage.GetEnabled() {
 		return types.FeatureStatus{
 			Enabled: true,
 			Version: rawFileImage.Tag,
-			Message: fmt.Sprintf(localpv.EnabledMsg, cfg.GetLocalPath()),
+			Message: fmt.Sprintf(localpv.EnabledMsg, localStorage.GetLocalPath()),
 		}, nil
 	} else {
 		return types.FeatureStatus{

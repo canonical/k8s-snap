@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/contour"
 	contour_gateway "github.com/canonical/k8s/pkg/k8sd/features/contour/gateway"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -34,16 +35,19 @@ func TestGatewayDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Gateway: types.Gateway{
+				Enabled: ptr.To(false),
+			},
+			Network: types.Network{},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
@@ -61,16 +65,19 @@ func TestGatewayDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Gateway: types.Gateway{
+				Enabled: ptr.To(false),
+			},
+			Network: types.Network{},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -93,16 +100,19 @@ func TestGatewayEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
+			Network: types.Network{},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -146,16 +156,18 @@ func TestGatewayEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
+			Network: types.Network{},
 		}
-
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(context.Background(), gateway, network, nil)
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -209,18 +221,21 @@ func TestGatewayEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
+			Network: types.Network{},
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel()
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
 
-		reconciler := contour_gateway.NewGatewayReconciler(snapM, mc, nil)
+		base := features.NewReconciler(snapM, mc, nil, func() {})
+		reconciler := contour_gateway.NewReconciler(base)
 
-		status, err := reconciler.ApplyGateway(ctx, gateway, network, nil)
+		status, err := reconciler.Reconcile(ctx, cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring("failed to wait for required contour common CRDs"))

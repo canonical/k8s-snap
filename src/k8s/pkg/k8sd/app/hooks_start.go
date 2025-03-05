@@ -3,15 +3,11 @@ package app
 import (
 	"context"
 	"crypto/rsa"
-	"database/sql"
 	"fmt"
-	"time"
 
-	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
-	"github.com/canonical/k8s/pkg/utils"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	"github.com/canonical/microcluster/v2/state"
 )
@@ -73,44 +69,8 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 	if a.featureController != nil {
 		go a.featureController.Run(
 			ctx,
-			func(ctx context.Context) (types.ClusterConfig, error) {
-				return databaseutil.GetClusterConfig(ctx, s)
-			},
-			func() state.State {
-				return s
-			},
-			func(ctx context.Context, dnsIP string) error {
-				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-					if _, err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
-						Kubelet: types.Kubelet{ClusterDNS: utils.Pointer(dnsIP)},
-					}); err != nil {
-						return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)
-					}
-					return nil
-				}); err != nil {
-					return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
-				}
-
-				// DNS IP has changed, notify node config controller
-				a.NotifyUpdateNodeConfigController()
-
-				return nil
-			},
-			func(ctx context.Context, name types.FeatureName, featureStatus types.FeatureStatus) error {
-				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-					// we set timestamp here in order to reduce the clutter. otherwise we will need to
-					// set .UpdatedAt field in a lot of places for every event/error.
-					// this is not 100% accurate but should be good enough
-					featureStatus.UpdatedAt = time.Now()
-					if err := database.SetFeatureStatus(ctx, tx, name, featureStatus); err != nil {
-						return fmt.Errorf("failed to set feature status in db for %q: %w", name, err)
-					}
-					return nil
-				}); err != nil {
-					return fmt.Errorf("database transaction to set feature status failed: %w", err)
-				}
-				return nil
-			},
+			s,
+			a.NotifyUpdateNodeConfigController,
 		)
 	}
 
