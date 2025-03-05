@@ -200,6 +200,11 @@ class LXDHarness(Harness):
             LOG.error(f"  {e.stdout.decode()=}")
             LOG.error(f"  {e.stderr.decode()=}")
             run(["sudo", "aa-status"])
+            run(["sudo", "ls", "/sys/kernel/security/apparmor/policy/namespaces/"])
+            run(
+                ["sudo cat /sys/kernel/security/apparmor/profiles | grep '^:'"],
+                shell=True,
+            )
             raise HarnessError("failed to push file") from e
 
     def pull_file(self, instance_id: str, source: str, destination: str):
@@ -223,9 +228,9 @@ class LXDHarness(Harness):
     def exec(self, instance_id: str, command: list, **kwargs):
         if instance_id not in self.instances:
             raise HarnessError(f"unknown instance {instance_id}")
-        env = dict(os.environ)
-        env["SNAP_CONFINE_DEBUG"] = "1"
-        kwargs["env"] = env
+        # env = dict(os.environ)
+        # env["SNAP_CONFINE_DEBUG"] = "1"
+        # kwargs["env"] = env
 
         LOG.debug("Execute command %s in instance %s", command, instance_id)
 
