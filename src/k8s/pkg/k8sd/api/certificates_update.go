@@ -118,7 +118,7 @@ func refreshCertsUpdateControlPlane(s state.State, r *http.Request, snap snap.Sn
 	}
 	readyCh := nodeutil.StartAsyncRestart(log, restartFn)
 
-	return utils.SyncManualResponseWithSignal(readyCh, apiv1.RefreshCertificatesUpdateResponse{})
+	return utils.SyncManualResponseWithSignal(r, readyCh, apiv1.RefreshCertificatesUpdateResponse{})
 }
 
 // refreshCertsUpdateWorker updates the external certificates for a worker node.
@@ -187,5 +187,5 @@ func refreshCertsUpdateWorker(s state.State, r *http.Request, snap snap.Snap) re
 
 	readyCh := nodeutil.StartAsyncRestart(log, restartFn)
 
-	return utils.SyncManualResponseWithSignal(readyCh, apiv1.RefreshCertificatesUpdateResponse{})
+	return utils.SyncManualResponseWithSignal(r, readyCh, apiv1.RefreshCertificatesUpdateResponse{})
 }

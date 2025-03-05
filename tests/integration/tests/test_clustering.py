@@ -171,7 +171,6 @@ def test_cert_refresh(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, instances)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "nodes should have joined cluster"
-
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "worker" in util.get_local_node_status(joining_worker)
 

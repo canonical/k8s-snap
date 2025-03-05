@@ -29,14 +29,14 @@ type responseRenderer func(w http.ResponseWriter, r *http.Request) error
 
 // manualResponseWithSignal creates a manual response that flushes the response to
 // the client and signals completion on the given channel.
-func manualResponseWithSignal(readyCh chan error, renderer responseRenderer) lxd.Response {
+func manualResponseWithSignal(readyCh chan error, r *http.Request, renderer responseRenderer) lxd.Response {
 	return lxd.ManualResponse(func(w http.ResponseWriter) (rerr error) {
 		defer func() {
 			readyCh <- rerr
 			close(readyCh)
 		}()
 
-		if err := renderer(w, nil); err != nil {
+		if err := renderer(w, r); err != nil {
 			return fmt.Errorf("failed to render response: %w", err)
 		}
 
@@ -52,8 +52,8 @@ func manualResponseWithSignal(readyCh chan error, renderer responseRenderer) lxd
 
 // SyncManualResponseWithSignal is a convenience wrapper for manualResponseWithSignal
 // that renders a standard SyncResponse.
-func SyncManualResponseWithSignal(readyCh chan error, result any) lxd.Response {
-	return manualResponseWithSignal(readyCh, func(w http.ResponseWriter, r *http.Request) error {
+func SyncManualResponseWithSignal(req *http.Request, readyCh chan error, result any) lxd.Response {
+	return manualResponseWithSignal(readyCh, req, func(w http.ResponseWriter, r *http.Request) error {
 		return lxd.SyncResponse(true, result).Render(w, r)
 	})
 }
