@@ -20,7 +20,7 @@ sudo lxd init
 
 ## Start an LXD VM for {{product}}
 
-We can now create the VM that {{product}} will run in.
+Create the VM that {{product}} will run in.
 
 ```
 lxc launch ubuntu:22.04 k8s-vm --vm -c limits.cpu=2 -c limits.memory=4GB
@@ -28,7 +28,7 @@ lxc launch ubuntu:22.04 k8s-vm --vm -c limits.cpu=2 -c limits.memory=4GB
 
 ## Install {{product}} in an LXD VM
 
-First, we’ll need to install {{product}} within the VM.
+Install {{product}} within the VM.
 
 ```{literalinclude} ../../../_parts/install.md
 :start-after: <!-- lxd start -->
@@ -123,7 +123,7 @@ lxc exec k8s-vm -- sudo k8s kubectl expose deployment microbot --type=NodePort -
 
 <!-- markdownlint-restore -->
 
-We can now get the assigned port. In this example, it’s `32750`:
+Get the assigned port. In this example, it’s `32750`:
 
 ```
 lxc exec k8s-vm -- sudo k8s kubectl get service microbot-service
@@ -136,8 +136,8 @@ NAME               TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
 microbot-service   NodePort   10.152.183.188   <none>        80:32750/TCP   27m
 ```
 
-With this, we can access Microbot from our host but using the VM’s
-address that we noted earlier.
+With this, access Microbot from our host but using the VM’s address that we
+noted earlier.
 
 ```
 curl 10.122.174.30:32750
@@ -146,8 +146,8 @@ curl 10.122.174.30:32750
 ## Stop/remove the VM
 
 The `k8s-vm` VM you created will keep running in the background until it is
-either stopped or the host computer is shut down. You can stop the running
-VM at any time by running:
+either stopped or the host computer is shut down. Stop the running VM at any
+time by running:
 
 ```
 lxc stop k8s-vm
