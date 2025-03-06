@@ -4,10 +4,10 @@
 great way, for example, to test out clustered {{product}} without the
 need for multiple physical hosts.
 
-Why an LXD virtual machine and not a container? LXD is about to remove the
-support for privileged containers and some Kubernetes services, such as the
-Cilium CNI, cannot run inside unprivileged containers. Furthermore, by using
-virtual machine we ensure that the Kubernetes environment is well isolated.
+Why an LXD virtual machine and not a container? LXD privileged containers are
+no longer supported and some Kubernetes services, such as the Cilium CNI,
+cannot run inside unprivileged containers. Furthermore, by using virtual
+machine we ensure that the Kubernetes environment is well isolated.
 
 ## Install LXD
 
