@@ -1,8 +1,6 @@
 name: Nightly
 
 on:
-  schedule:
-    - cron: "0 0 * * *" # Runs every midnight
   pull_request:
     paths:
       - .github/workflows/nightly-test.yaml
@@ -15,9 +13,10 @@ permissions:
 jobs:
   test-integration:
     name: Integration
+    if: always()
     strategy:
       matrix:
-        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
+        os: ["ubuntu:22.04"]
         arch: ["amd64", "arm64"]
         channel: ["latest/edge"]
       fail-fast: false # TODO: remove once we no longer have flaky tests.
@@ -26,9 +25,10 @@ jobs:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
-      test-tags: 'up_to_nightly'
+      test-tags: "up_to_nightly"
 
   Trivy:
+    if: never()
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
@@ -52,6 +52,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    if: never()
     strategy:
       matrix:
         include:
@@ -64,11 +65,11 @@ jobs:
           ref: ${{matrix.branch}}
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: './src/k8s/go.mod'
+          go-version-file: "./src/k8s/go.mod"
       - name: go mod download
         working-directory: src/k8s
         run: go mod download

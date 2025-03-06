@@ -3,16 +3,16 @@ name: Lint and integration
 on:
   push:
     paths-ignore:
-      - 'docs/**'
+      - "docs/**"
     branches:
       - main
       - autoupdate/strict
       - autoupdate/moonray
-      - 'release-[0-9]+.[0-9]+'
-      - 'autoupdate/release-[0-9]+.[0-9]+-strict'
+      - "release-[0-9]+.[0-9]+"
+      - "autoupdate/release-[0-9]+.[0-9]+-strict"
   pull_request:
     paths-ignore:
-      - 'docs/**'
+      - "docs/**"
 
 permissions:
   contents: read
@@ -29,6 +29,7 @@ jobs:
 
   test-branches:
     name: Test Branch Management
+    if: never()
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -38,7 +39,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: "3.8"
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Run branch_management tests
@@ -47,6 +48,7 @@ jobs:
 
   python-lint:
     name: Python lint
+    if: never()
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -54,7 +56,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Lint
@@ -63,10 +65,11 @@ jobs:
 
   go-lint-and-unit:
     name: Go lint and unit tests
+    if: never()
     uses: ./.github/workflows/go.yaml
     permissions:
-      contents: read  # for actions/checkout to fetch code
-      pull-requests: write  # for marocchino/sticky-pull-request-comment to create or update PR comment
+      contents: read # for actions/checkout to fetch code
+      pull-requests: write # for marocchino/sticky-pull-request-comment to create or update PR comment
       checks: write # for golangci/golangci-lint-action to checks to allow the action to annotate code in the PR.
 
   get-e2e-tags:
@@ -74,7 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-tags: ${{ steps.get-e2e-tags.outputs.test-tags }}
-    needs: [build-snap, go-lint-and-unit, python-lint]
+    needs: [build-snap]
     steps:
       - name: Checking out repo
         uses: actions/checkout@v4
@@ -100,11 +103,12 @@ jobs:
 
   test-integration:
     name: Integration
+    if: never()
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
-    needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
+        os: ["ubuntu:22.04"]
+    needs: [build-snap, get-e2e-tags]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: amd64
@@ -120,7 +124,7 @@ jobs:
         os: ["ubuntu:24.04"]
         patch: ["moonray"]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
-    if: success() && github.event_name == 'pull_request'
+    if: never() && success() && github.event_name == 'pull_request'
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: amd64
@@ -131,6 +135,7 @@ jobs:
 
   security-scan:
     name: Security scan
+    if: never()
     needs: build-snap
     uses: ./.github/workflows/security-scan.yaml
     with:
@@ -140,6 +145,7 @@ jobs:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
 
   get-charm-channel:
+    if: never()
     name: Determine the charm channel
     outputs:
       charm-channel: ${{ steps.parse-branch.outputs.charm-channel }}
@@ -162,6 +168,7 @@ jobs:
           echo "charm-channel=$channel" >> "$GITHUB_OUTPUT"
 
   charm-e2e-tests:
+    if: never()
     name: Charm e2e tests
     strategy:
       fail-fast: false

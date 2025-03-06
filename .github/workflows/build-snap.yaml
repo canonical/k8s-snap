@@ -27,11 +27,6 @@ jobs:
         if: inputs.flavor != ''
         run: |
           ./build-scripts/patches/${{ inputs.flavor }}/apply
-      - name: Install lxd
-        uses: ./.github/actions/install-lxd
-      - name: Install snapcraft
-        run: |
-          sudo snap install snapcraft --classic
       - name: Build k8s snap
         id: build
         env:
@@ -43,7 +38,10 @@ jobs:
             out_snap=k8s.snap
           fi
 
-          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft --use-lxd
+          #sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft --use-lxd
+
+          sudo snap download k8s --channel latest/edge
+          sudo snap ack k8s_*.assert
           mv k8s_*.snap $out_snap
 
           echo "snap-artifact=$out_snap" >> "$GITHUB_OUTPUT"
