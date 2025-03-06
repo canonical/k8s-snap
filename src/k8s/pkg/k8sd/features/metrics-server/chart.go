@@ -1,17 +1,21 @@
 package metrics_server
 
 import (
-	"path/filepath"
+	"embed"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
 
+//go:embed all:charts
+var ChartFS embed.FS
+
 var (
 	// chart represents manifests to deploy metrics-server.
 	chart = helm.InstallableChart{
-		Name:         "metrics-server",
-		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "metrics-server-3.12.2.tgz"),
+		Name:             "metrics-server",
+		Version:          "3.12.2",
+		InstallName:      "metrics-server",
+		InstallNamespace: "kube-system",
 	}
 
 	// imageRepo is the image to use for metrics-server.

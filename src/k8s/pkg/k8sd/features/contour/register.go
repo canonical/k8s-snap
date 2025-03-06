@@ -3,6 +3,7 @@ package contour
 import (
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/k8sd/charts"
 	"github.com/canonical/k8s/pkg/k8sd/images"
 )
 
@@ -13,4 +14,6 @@ func init() {
 		fmt.Sprintf("%s:%s", ContourGatewayProvisionerContourImageRepo, ContourGatewayProvisionerContourImageTag),
 		fmt.Sprintf("%s:%s", ContourGatewayProvisionerEnvoyImageRepo, ContourGatewayProvisionerEnvoyImageTag),
 	)
+
+	charts.Register(&ChartFS)
 }

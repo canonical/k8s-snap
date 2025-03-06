@@ -21,9 +21,9 @@ const (
 // deployment.
 // ApplyLoadBalancer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	if !loadbalancer.GetEnabled() {
-		if err := disableLoadBalancer(ctx, snap, network); err != nil {
+		if err := disableLoadBalancer(ctx, snap, m, network); err != nil {
 			err = fmt.Errorf("failed to disable LoadBalancer: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -38,7 +38,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 		}, nil
 	}
 
-	if err := enableLoadBalancer(ctx, snap, loadbalancer, network); err != nil {
+	if err := enableLoadBalancer(ctx, snap, m, loadbalancer, network); err != nil {
 		err = fmt.Errorf("failed to enable LoadBalancer: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -69,9 +69,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 	}
 }
 
-func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Network) error {
-	m := snap.HelmClient()
-
+func disableLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, network types.Network) error {
 	if _, err := m.Apply(ctx, ChartMetalLBLoadBalancer, helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall MetalLB LoadBalancer chart: %w", err)
 	}
@@ -82,9 +80,7 @@ func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Netw
 	return nil
 }
 
-func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network) error {
-	m := snap.HelmClient()
-
+func enableLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, loadbalancer types.LoadBalancer, network types.Network) error {
 	metalLBValues := map[string]any{
 		"controller": map[string]any{
 			"image": map[string]any{

@@ -24,9 +24,7 @@ const (
 // deployment.
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
-	m := snap.HelmClient()
-
+func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	if !gateway.GetEnabled() {
 		if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
@@ -44,7 +42,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, ne
 	}
 
 	// Apply common contour CRDS, these are shared with ingress
-	if err := applyCommonContourCRDS(ctx, snap, true); err != nil {
+	if err := applyCommonContourCRDS(ctx, snap, m, true); err != nil {
 		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
