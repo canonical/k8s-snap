@@ -140,8 +140,10 @@ def test_airgapped_with_proxy_setup_and_image_mirror(
         link = "/".join(image.split("/")[1:])
         tag = f"{registry_ip}:{REGISTRY_PORT}/{link}"
         registry.exec(
-            "export $(grep -v '^#' /etc/environment | xargs) && "
-            + f"/snap/k8s/current/bin/ctr images pull --all-platforms {image}".split()
+            (
+                "export $(grep -v '^#' /etc/environment | xargs) && "
+                + f"/snap/k8s/current/bin/ctr images pull --all-platforms {image}"
+            ).split()
         )
         registry.exec(
             "export $(grep -v '^#' /etc/environment | xargs) && "
