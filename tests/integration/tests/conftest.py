@@ -263,7 +263,7 @@ def instances(
                     instance.exec(["snap", "install", remote_path])
 
             if not no_setup:
-                util.setup_core_dumps(instance)
+                # util.setup_core_dumps(instance)
                 util.setup_k8s_snap(instance, tmp_path, snap_version)
 
                 if config.USE_LOCAL_MIRROR:
