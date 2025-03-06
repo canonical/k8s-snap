@@ -1,24 +1,19 @@
 package api
 
 import (
-	"crypto/rsa"
-	"crypto/x509"
-	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"path/filepath"
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
-	"github.com/canonical/lxd/lxd/response"
-	"github.com/canonical/microcluster/v2/state"
-
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
+	"github.com/canonical/lxd/lxd/response"
+	"github.com/canonical/microcluster/v2/state"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -118,24 +113,21 @@ func readKubeconfigCertificates(kubeconfigDir string, configs []string) ([]apiv1
 	for _, config := range configs {
 		kubeConfig, err := clientcmd.LoadFromFile(filepath.Join(kubeconfigDir, config))
 		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				continue
-			}
-			return certificates, fmt.Errorf("failed to load kubeconfig %s: %w", config, err)
+			return nil, fmt.Errorf("failed to load kubeconfig %s: %w", config, err)
 		}
 
 		authInfo, exists := kubeConfig.AuthInfos["k8s-user"]
 		if !exists {
-			return certificates, fmt.Errorf("user 'k8s-user' not found in kubeconfig %s", config)
+			return nil, fmt.Errorf("user 'k8s-user' not found in kubeconfig %s", config)
 		}
 
 		if authInfo.ClientCertificateData == nil {
-			return certificates, fmt.Errorf("no client certificate data found in kubeconfig %s", config)
+			return nil, fmt.Errorf("no client certificate data found in kubeconfig %s", config)
 		}
 
 		cert, _, err := pkiutil.LoadCertificate(string(authInfo.ClientCertificateData), "")
 		if err != nil {
-			return certificates, fmt.Errorf("failed to load certificate data from kubeconfig %s: %w", config, err)
+			return nil, fmt.Errorf("failed to load certificate data from kubeconfig %s: %w", config, err)
 		}
 
 		certificates = append(certificates, apiv1.CertificateStatus{
@@ -192,7 +184,7 @@ func readCertificateAuthorities(clusterConfig *types.ClusterConfig) ([]apiv1.Cer
 func loadCertificateStatusesFromDir(baseDir string, certNames []string) ([]apiv1.CertificateStatus, error) {
 	var certs []apiv1.CertificateStatus
 	for _, certName := range certNames {
-		cert, _, err := loadCertificatePairFromDir(baseDir, certName)
+		cert, _, err := pkiutil.LoadCertificatePairFromDir(baseDir, certName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to extract information from certificate %s: %w", certName, err)
 		}
@@ -203,25 +195,6 @@ func loadCertificateStatusesFromDir(baseDir string, certNames []string) ([]apiv1
 		})
 	}
 	return certs, nil
-}
-
-// loadCertificatePairFromDir reads the certificate and corresponding private
-// key files for the given certificate name from the specified directory. It
-// expects the files to be named "<name>.crt" and "<name>.key".
-func loadCertificatePairFromDir(baseDir string, name string) (*x509.Certificate, *rsa.PrivateKey, error) {
-	certBytes, err := os.ReadFile(filepath.Join(baseDir, fmt.Sprintf("%s.crt", name)))
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read %s.crt: %w", name, err)
-	}
-	keyBytes, err := os.ReadFile(filepath.Join(baseDir, fmt.Sprintf("%s.key", name)))
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read %s.key: %w", name, err)
-	}
-	cert, key, err := pkiutil.LoadCertificate(string(certBytes), string(keyBytes))
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse %s certificate: %w", name, err)
-	}
-	return cert, key, nil
 }
 
 // updateExternallyManaged updates the ExternallyManaged field for each
