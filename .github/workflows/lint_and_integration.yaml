@@ -1,4 +1,4 @@
-name: Lint and integration tests
+name: Lint and integration
 
 on:
   push:
@@ -99,7 +99,7 @@ jobs:
           echo "test-tags=$tags" >> "$GITHUB_OUTPUT"
 
   test-integration:
-    name: Test ${{ matrix.os }}
+    name: Integration
     strategy:
       fail-fast: false
       matrix:
@@ -113,7 +113,7 @@ jobs:
       artifact: k8s.snap
 
   test-integration-informing:
-    name: Test informing ${{ matrix.os }} ${{ matrix.patch }}
+    name: Informing
     strategy:
       fail-fast: false
       matrix:
