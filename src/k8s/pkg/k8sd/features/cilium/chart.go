@@ -13,7 +13,7 @@ var (
 	// ChartCilium represents manifests to deploy Cilium.
 	ChartCilium = helm.InstallableChart{
 		Name:             "cilium",
-		Version:          "1.16.7",
+		Version:          "1.17.1",
 		InstallName:      "ck-network",
 		InstallNamespace: "kube-system",
 	}
@@ -29,7 +29,7 @@ var (
 	// chartGateway represents manifests to deploy Gateway API CRDs.
 	chartGateway = helm.InstallableChart{
 		Name:             "gateway-api",
-		Version:          "1.1.1",
+		Version:          "1.2.0",
 		InstallName:      "ck-gateway",
 		InstallNamespace: "kube-system",
 	}
@@ -46,11 +46,11 @@ var (
 	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
 
 	// CiliumAgentImageTag is the tag to use for the cilium-agent image.
-	CiliumAgentImageTag = "1.16.7-ck0"
+	CiliumAgentImageTag = "1.17.1-ck0"
 
 	// ciliumOperatorImageRepo is the image to use for cilium-operator.
 	ciliumOperatorImageRepo = "ghcr.io/canonical/cilium-operator"
 
 	// ciliumOperatorImageTag is the tag to use for the cilium-operator image.
-	ciliumOperatorImageTag = "1.16.7-ck0"
+	ciliumOperatorImageTag = "1.17.1-ck0"
 )
