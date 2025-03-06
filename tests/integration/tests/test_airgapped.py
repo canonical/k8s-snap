@@ -146,8 +146,10 @@ def test_airgapped_with_proxy_setup_and_image_mirror(
             ).split()
         )
         registry.exec(
-            "export $(grep -v '^#' /etc/environment | xargs) && "
-            + f"/snap/k8s/current/bin/ctr images tag {image} {tag}".split()
+            (
+                "export $(grep -v '^#' /etc/environment | xargs) && "
+                + f"/snap/k8s/current/bin/ctr images tag {image} {tag}"
+            ).split()
         )
 
         # The 443 port is required to upload to the local registry. So, we need to temporarily allow it.
@@ -155,8 +157,10 @@ def test_airgapped_with_proxy_setup_and_image_mirror(
         registry.exec("iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT".split())
 
         registry.exec(
-            "export $(grep -v '^#' /etc/environment | xargs) && "
-            + f"/snap/k8s/current/bin/ctr images push --plain-http {tag}".split()
+            (
+                "export $(grep -v '^#' /etc/environment | xargs) && "
+                + f"/snap/k8s/current/bin/ctr images push --plain-http {tag}"
+            ).split()
         )
 
         registry.exec("iptables -D OUTPUT -p tcp --dport 443 -j ACCEPT".split())
