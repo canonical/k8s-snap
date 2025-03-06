@@ -106,6 +106,11 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Path: apiv1.RefreshCertificatesUpdateRPC,
 			Post: rest.EndpointAction{Handler: e.postRefreshCertsUpdate},
 		},
+		{
+			Name: "CertsStatus",
+			Path: apiv1.CertificatesStatusRPC,
+			Get:  rest.EndpointAction{Handler: e.getCertificatesStatus},
+		},
 		// Kubeconfig
 		{
 			Name: "Kubeconfig",

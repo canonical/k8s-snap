@@ -43,6 +43,8 @@ type ClusterMaintenanceClient interface {
 	RefreshCertificatesRun(context.Context, apiv1.RefreshCertificatesRunRequest) (apiv1.RefreshCertificatesRunResponse, error)
 	// RefreshCertificatesUpdate updates the Kubernetes certificates of the node.
 	RefreshCertificatesUpdate(context.Context, apiv1.RefreshCertificatesUpdateRequest) (apiv1.RefreshCertificatesUpdateResponse, error)
+	// CertificatesStatus shows the status of the node's certificates.
+	CertificatesStatus(context.Context, apiv1.CertificatesStatusRequest) (apiv1.CertificatesStatusResponse, error)
 }
 
 // UserClient implements methods to enable accessing the cluster.
