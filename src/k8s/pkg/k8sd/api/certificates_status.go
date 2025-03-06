@@ -17,6 +17,36 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+var (
+	controlPlaneCertificateNames = []string{
+		"apiserver",
+		"apiserver-kubelet-client",
+		"front-proxy-client",
+		"kubelet",
+	}
+
+	controlPlaneKubeconfigs = []string{
+		"admin.conf",
+		"controller.conf",
+		"kubelet.conf",
+		"proxy.conf",
+		"scheduler.conf",
+	}
+
+	dataStoreCertificateNames = []string{
+		"client",
+	}
+
+	workerCertificateNames = []string{
+		"kubelet",
+	}
+
+	workerKubeconfigs = []string{
+		"kubelet.conf",
+		"proxy.conf",
+	}
+)
+
 func (e *Endpoints) getCertificatesStatus(s state.State, r *http.Request) response.Response {
 	snap := e.provider.Snap()
 	isWorker, err := snaputil.IsWorker(snap)
@@ -42,14 +72,12 @@ func getCertsStatusControlPlane(s state.State, r *http.Request, snap snap.Snap) 
 		return response.InternalError(fmt.Errorf("failed to read certificates authorities: %w", err))
 	}
 
-	certsNames := []string{"apiserver", "apiserver-kubelet-client", "front-proxy-client", "kubelet"}
-	nodeCerts, err := loadCertificateStatusesFromDir(snap.KubernetesPKIDir(), certsNames)
+	nodeCerts, err := loadCertificateStatusesFromDir(snap.KubernetesPKIDir(), controlPlaneCertificateNames)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to read node certificates: %w", err))
 	}
 
-	kubeConfigs := []string{"admin.conf", "controller.conf", "kubelet.conf", "proxy.conf", "scheduler.conf"}
-	kubeConfigCerts, err := readKubeconfigCertificates(snap.KubernetesConfigDir(), kubeConfigs)
+	kubeConfigCerts, err := readKubeconfigCertificates(snap.KubernetesConfigDir(), controlPlaneKubeconfigs)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to read kubeconfig certificates: %w", err))
 	}
@@ -59,7 +87,7 @@ func getCertsStatusControlPlane(s state.State, r *http.Request, snap snap.Snap) 
 	certificates = append(certificates, kubeConfigCerts...)
 
 	if clusterConfig.Datastore.GetType() == "external" {
-		dataStoreCerts, err := loadCertificateStatusesFromDir(snap.EtcdPKIDir(), []string{"client"})
+		dataStoreCerts, err := loadCertificateStatusesFromDir(snap.EtcdPKIDir(), dataStoreCertificateNames)
 		if err != nil {
 			return response.InternalError(fmt.Errorf("failed to read datastore certificates: %w", err))
 		}
@@ -76,14 +104,12 @@ func getCertsStatusControlPlane(s state.State, r *http.Request, snap snap.Snap) 
 // getCertsStatusWorker collects certificate status information for worker
 // nodes. It reads worker certificates and kubeconfig certificates.
 func getCertsStatusWorker(s state.State, r *http.Request, snap snap.Snap) response.Response {
-	certsNames := []string{"kubelet"}
-	nodeCerts, err := loadCertificateStatusesFromDir(snap.KubernetesPKIDir(), certsNames)
+	nodeCerts, err := loadCertificateStatusesFromDir(snap.KubernetesPKIDir(), workerCertificateNames)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to read node certificates: %w", err))
 	}
 
-	kubeConfigs := []string{"kubelet.conf", "proxy.conf"}
-	kubeConfigCerts, err := readKubeconfigCertificates(snap.KubernetesConfigDir(), kubeConfigs)
+	kubeConfigCerts, err := readKubeconfigCertificates(snap.KubernetesConfigDir(), workerKubeconfigs)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to read kubeconfig certificates: %w", err))
 	}
