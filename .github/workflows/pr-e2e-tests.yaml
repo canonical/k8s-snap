@@ -1,0 +1,24 @@
+name: PR E2E Tests
+
+on:
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+
+permissions:
+  contents: read
+
+jobs:
+  test-integration:
+    name: Integration
+    strategy:
+      matrix:
+        os: ["ubuntu:24.04"]
+        arch: ["amd64"]
+        channel: ["latest/edge"]
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel: ${{ matrix.channel }}
+      test-tags: "pull_request"
