@@ -10,11 +10,13 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_gateway "github.com/canonical/k8s/pkg/k8sd/features/cilium/gateway"
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
+	"github.com/canonical/microcluster/v2/state"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,6 +25,9 @@ import (
 )
 
 func TestGatewayEnabled(t *testing.T) {
+	cilium_gateway.GetNetworkManifest = func(ctx context.Context, state state.State) (*types.FeatureManifest, error) {
+		return &cilium_network.Manifest, nil
+	}
 	t.Run("HelmApplyErr", func(t *testing.T) {
 		g := NewWithT(t)
 
@@ -35,19 +40,24 @@ func TestGatewayEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
 
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+		base := features.NewReconciler(cilium_gateway.Manifest, snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_gateway.GatewayDeployFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
@@ -63,21 +73,27 @@ func TestGatewayEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		base := features.NewReconciler(cilium_gateway.Manifest, snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
 
 		helmCiliumArgs := helmM.ApplyCalledWith[2]
-		g.Expect(helmCiliumArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+		g.Expect(helmCiliumArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 		g.Expect(helmCiliumArgs.State).To(Equal(helm.StateUpgradeOnly))
 		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(BeTrue())
 	})
@@ -97,17 +113,23 @@ func TestGatewayEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		base := features.NewReconciler(cilium_gateway.Manifest, snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_gateway.GatewayDeployFailedMsgTmpl, err)))
 	})
 
@@ -139,22 +161,31 @@ func TestGatewayEnabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		base := features.NewReconciler(cilium_gateway.Manifest, snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
 	})
 }
 
 func TestGatewayDisabled(t *testing.T) {
+	cilium_gateway.GetNetworkManifest = func(ctx context.Context, state state.State) (*types.FeatureManifest, error) {
+		return &cilium_network.Manifest, nil
+	}
 	t.Run("HelmApplyErr", func(t *testing.T) {
 		g := NewWithT(t)
 
@@ -167,18 +198,24 @@ func TestGatewayDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(false),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		base := features.NewReconciler(cilium_gateway.Manifest, snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_gateway.GatewayDeleteFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
@@ -194,19 +231,27 @@ func TestGatewayDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(false),
+			},
 		}
+
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		base := features.NewReconciler(cilium_gateway.Manifest, snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
+
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
 
 		helmCiliumArgs := helmM.ApplyCalledWith[1]
-		g.Expect(helmCiliumArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+		g.Expect(helmCiliumArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 		g.Expect(helmCiliumArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(helmCiliumArgs.Values["gatewayAPI"].(map[string]any)["enabled"]).To(BeFalse())
 	})
@@ -226,15 +271,23 @@ func TestGatewayDisabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(false),
+			},
 		}
+
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		base := features.NewReconciler(cilium_gateway.Manifest, snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
+
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_gateway.GatewayDeployFailedMsgTmpl, err)))
 	})
 
@@ -266,16 +319,23 @@ func TestGatewayDisabled(t *testing.T) {
 				},
 			},
 		}
-		network := types.Network{}
-		gateway := types.Gateway{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			Network: types.Network{},
+			Gateway: types.Gateway{
+				Enabled: ptr.To(false),
+			},
 		}
+
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium_gateway.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		base := features.NewReconciler(cilium_gateway.Manifest, snapM, mc, nil, func() {})
+		reconciler := cilium_gateway.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+		g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 		g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
 	})
 }

@@ -15,7 +15,7 @@ var (
 	CSISnapshotterImageName = "csi-snapshotter"
 )
 
-var manifest = types.FeatureManifest{
+var Manifest = types.FeatureManifest{
 	Name:    "local-storage",
 	Version: "1.0.0",
 	Charts: map[string]helm.InstallableChart{
@@ -55,5 +55,3 @@ var manifest = types.FeatureManifest{
 		},
 	},
 }
-
-var FeatureLocalStorage types.Feature = manifest

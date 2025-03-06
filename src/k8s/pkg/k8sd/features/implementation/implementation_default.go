@@ -1,6 +1,7 @@
-package features
+package implementation
 
 import (
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_gateway "github.com/canonical/k8s/pkg/k8sd/features/cilium/gateway"
 	cilium_ingress "github.com/canonical/k8s/pkg/k8sd/features/cilium/ingress"
@@ -18,22 +19,22 @@ import (
 // CoreDNS is used for DNS.
 // MetricsServer is used for metrics-server.
 // LocalPV Rawfile CSI is used for local-storage.
-var Implementation Interface = &implementation{
-	applyDNS:           coredns_dns.ApplyDNS,
-	applyNetwork:       cilium_network.ApplyNetwork,
-	applyLoadBalancer:  metallb_loadbalancer.ApplyLoadBalancer,
-	applyIngress:       cilium_ingress.ApplyIngress,
-	applyGateway:       cilium_gateway.ApplyGateway,
-	applyMetricsServer: metrics_server.ApplyMetricsServer,
-	applyLocalStorage:  localpv_local_storage.ApplyLocalStorage,
+var Implementation features.Interface = &implementation{
+	newDNSReconciler:           coredns_dns.NewReconciler,
+	newNetworkReconciler:       cilium_network.NewReconciler,
+	newLoadBalancerReconciler:  metallb_loadbalancer.NewReconciler,
+	newIngressReconciler:       cilium_ingress.NewReconciler,
+	newGatewayReconciler:       cilium_gateway.NewReconciler,
+	newMetricsServerReconciler: metrics_server.NewReconciler,
+	newLocalStorageReconciler:  localpv_local_storage.NewReconciler,
 }
 
 // StatusChecks implements the Canonical Kubernetes built-in feature status checks.
-var StatusChecks StatusInterface = &statusChecks{
+var StatusChecks features.StatusInterface = &statusChecks{
 	checkNetwork: cilium.CheckNetwork,
 	checkDNS:     coredns.CheckDNS,
 }
 
-var Cleanup CleanupInterface = &cleanup{
+var Cleanup features.CleanupInterface = &cleanup{
 	cleanupNetwork: cilium.CleanupNetwork,
 }

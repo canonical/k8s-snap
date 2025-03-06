@@ -2,13 +2,16 @@ package ingress
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -32,8 +35,21 @@ const (
 // deployment.
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
-	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	networkManifest, err := r.getNetworkManifest(ctx)
+	if err != nil {
+		err = fmt.Errorf("failed to get network manifest: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: "",
+			Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	ciliumAgentImageTag := networkManifest.GetImage(cilium_network.CiliumAgentImageName).Tag
+
+	network := cfg.Network
+	ingress := cfg.Ingress
 
 	var ciliumValues CiliumValues = map[string]any{}
 
@@ -66,7 +82,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 		}
 	}
 
-	changed, err := m.Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues)
+	changed, err := r.HelmClient().Apply(ctx, networkManifest.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues)
 	if err != nil {
 		if network.GetEnabled() {
 			err = fmt.Errorf("failed to enable ingress: %w", err)
@@ -109,7 +125,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 		}, nil
 	}
 
-	if err := cilium.RolloutRestartCilium(ctx, snap, 3); err != nil {
+	if err := cilium.RolloutRestartCilium(ctx, r.Snap(), 3); err != nil {
 		err = fmt.Errorf("failed to rollout restart cilium to apply ingress: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -123,4 +139,25 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 		Version: ciliumAgentImageTag,
 		Message: cilium.EnabledMsg,
 	}, nil
+}
+
+func (r reconciler) getNetworkManifest(ctx context.Context) (*types.FeatureManifest, error) {
+	return GetNetworkManifest(ctx, r.State())
+}
+
+var GetNetworkManifest = func(ctx context.Context, state state.State) (*types.FeatureManifest, error) {
+	var networkManifest *types.FeatureManifest
+
+	if err := state.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		networkManifest, err = database.GetFeatureManifest(ctx, tx, string(features.Network), "1.0.0")
+		if err != nil {
+			return fmt.Errorf("failed to get cluster config from database: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("failed to perform cluster config transaction request: %w", err)
+	}
+
+	return networkManifest, nil
 }

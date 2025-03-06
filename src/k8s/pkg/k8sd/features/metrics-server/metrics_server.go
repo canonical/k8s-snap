@@ -6,7 +6,6 @@ import (
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 const (
@@ -22,9 +21,12 @@ const (
 // deployment.
 // ApplyMetricsServer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyMetricsServer(ctx context.Context, snap snap.Snap, m helm.Client, cfg types.MetricsServer, annotations types.Annotations) (types.FeatureStatus, error) {
-	metricsServerImage := FeatureMetricsServer.GetImage(MetricsServerImageName)
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	metricsServerImage := r.Manifest().GetImage(MetricsServerImageName)
 	imageTag := metricsServerImage.Tag
+
+	metricsServer := cfg.MetricsServer
+	annotations := cfg.Annotations
 
 	config := config{}
 
@@ -43,7 +45,7 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, m helm.Client, cfg 
 		}, err
 	}
 
-	if err := values.ApplyImageOverrides(); err != nil {
+	if err := values.ApplyImageOverrides(r.Manifest()); err != nil {
 		err = fmt.Errorf("failed to apply image overrides: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -61,9 +63,9 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, m helm.Client, cfg 
 		}, err
 	}
 
-	_, err := m.Apply(ctx, FeatureMetricsServer.GetChart(MetricsServerChartName), helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
+	_, err := r.HelmClient().Apply(ctx, r.Manifest().GetChart(MetricsServerChartName), helm.StatePresentOrDeleted(metricsServer.GetEnabled()), values)
 	if err != nil {
-		if cfg.GetEnabled() {
+		if metricsServer.GetEnabled() {
 			err = fmt.Errorf("failed to install metrics server chart: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -79,7 +81,7 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, m helm.Client, cfg 
 			}, err
 		}
 	} else {
-		if cfg.GetEnabled() {
+		if metricsServer.GetEnabled() {
 			return types.FeatureStatus{
 				Enabled: true,
 				Version: imageTag,
