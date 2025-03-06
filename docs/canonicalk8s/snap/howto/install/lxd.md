@@ -23,7 +23,7 @@ sudo lxd init
 We can now create the VM that {{product}} will run in.
 
 ```
-lxc launch ubuntu:22.04 k8s --vm -c limits.cpu=2 -c limits.memory=4GB
+lxc launch ubuntu:22.04 k8s-vm --vm -c limits.cpu=2 -c limits.memory=4GB
 ```
 
 ## Install {{product}} in an LXD VM
@@ -51,14 +51,14 @@ Simply note the interface IP address from the command:
 
 <!-- markdownlint-disable -->
 ```
-lxc list k8s
+lxc list k8s-vm
 ```
 ```
-+------+---------+------------------------+------------------------------------------------+-----------------+-----------+
-| NAME |  STATE  |         IPV4           |                     IPV6                       |      TYPE       | SNAPSHOTS |
-+------+---------+------------------------+------------------------------------------------+-----------------+-----------+
-| k8s  | RUNNING | 10.122.174.30 (enp5s0) | fd42:80c6:c3e:445a:216:3eff:fe8d:add9 (enp5s0) | VIRTUAL-MACHINE | 0         |
-+------+---------+------------------------+------------------------------------------------+-----------------+-----------+
++--------+---------+------------------------+------------------------------------------------+-----------------+-----------+
+|  NAME  |  STATE  |         IPV4           |                     IPV6                       |      TYPE       | SNAPSHOTS |
++--------+---------+------------------------+------------------------------------------------+-----------------+-----------+
+| k8s-vm | RUNNING | 10.122.174.30 (enp5s0) | fd42:80c6:c3e:445a:216:3eff:fe8d:add9 (enp5s0) | VIRTUAL-MACHINE | 0         |
++--------+---------+------------------------+------------------------------------------------+-----------------+-----------+
 ```
 
 <!-- markdownlint-restore -->
@@ -78,20 +78,20 @@ to expose. These steps can be applied to any other deployment.
 First, initialise the k8s cluster with
 
 ```
-lxc exec k8s -- sudo k8s bootstrap
+lxc exec k8s-vm -- sudo k8s bootstrap
 ```
 
 Now, let’s deploy Microbot (please note this image only works on `x86_64`).
 
 ```
-lxc exec k8s -- sudo k8s kubectl create deployment \
+lxc exec k8s-vm -- sudo k8s kubectl create deployment \
   microbot --image=dontrebootme/microbot:v1
 ```
 
 Then check that the deployment has come up.
 
 ```
-lxc exec k8s -- sudo k8s kubectl get all
+lxc exec k8s-vm -- sudo k8s kubectl get all
 ```
 
 ...should return an output similar to:
@@ -118,7 +118,7 @@ VM by using the `expose` command.
 <!-- markdownlint-disable -->
 
 ```
-lxc exec k8s -- sudo k8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
+lxc exec k8s-vm -- sudo k8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
 ```
 
 <!-- markdownlint-restore -->
@@ -126,7 +126,7 @@ lxc exec k8s -- sudo k8s kubectl expose deployment microbot --type=NodePort --po
 We can now get the assigned port. In this example, it’s `32750`:
 
 ```
-lxc exec k8s -- sudo k8s kubectl get service microbot-service
+lxc exec k8s-vm -- sudo k8s kubectl get service microbot-service
 ```
 
 ...returns output similar to:
@@ -145,18 +145,18 @@ curl 10.122.174.30:32750
 
 ## Stop/remove the VM
 
-The `k8s` VM you created will keep running in the background until it is
+The `k8s-vm` VM you created will keep running in the background until it is
 either stopped or the host computer is shut down. You can stop the running
 VM at any time by running:
 
 ```
-lxc stop k8s
+lxc stop k8s-vm
 ```
 
 And it can be permanently removed with:
 
 ```
-lxc delete k8s
+lxc delete k8s-vm
 ```
 
 [LXD]: https://canonical.com/lxd
