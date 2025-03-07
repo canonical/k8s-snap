@@ -39,6 +39,7 @@ aws-machine-0$ k8s kubectl get nodes -ojson | jq '.items[].metadata.labels'
 
 This label is applied by the charm operator only if the node is not already
 labeled with `topology.kubernetes.io/zone`. This means:
+
 - If the node is labeled with `topology.kubernetes.io/zone` by a component or
 controller other than the charm operator, the operator will not overwrite 
 this label.
