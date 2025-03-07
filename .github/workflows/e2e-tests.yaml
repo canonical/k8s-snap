@@ -75,10 +75,16 @@ jobs:
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "artifact_name=inspection-reports-${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
+          echo "artifact_name=inspection-reports-${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.channel }}" | sed 's/[:\/]/-/g' >> $GITHUB_ENV
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.artifact_name }}
           path: ${{ github.workspace }}/inspection-reports.tar.gz
+      - name: Upload CNCF conformance report artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+         name: sonobuoy-e2e-${{ env.artifact_name }}
+         path: tests/integration/sonobuoy_e2e.tar.gz
