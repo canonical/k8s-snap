@@ -24,6 +24,7 @@ Learn about the `k8s` and `k8s-worker` charms, their configurations and actions.
 Charms <charms>
 Configuration options <charm-configurations>
 Actions <actions>
+Availability Zones <az>
 ```
 
 ## Networking
