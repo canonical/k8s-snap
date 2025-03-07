@@ -57,7 +57,7 @@ jobs:
             4. Add the `no-semantic` label to bypass this check
             
       # Delete a previous comment when the issue has been resolved
-      - if: ${{ steps.lint_pr_title.outputs.error_message == null || steps.check_wip.outputs.is_wip == 'true' }}
+      - if: ${{ steps.lint_pr_title.outputs.error_message == null || steps.check_wip.outputs.is_wip == 'true' || contains(github.event.pull_request.labels.*.name, 'no-semantic') }}
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: pr-title-lint-error
