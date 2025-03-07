@@ -41,7 +41,7 @@ jobs:
             Note: If your PR is a work in progress, mark it as Draft and prefix the title with [WIP]
 
       # Delete a previous comment when the issue has been resolved
-      - if: ${{ steps.lint_pr_title.outputs.error_message == null }}
+      - if: ${{ steps.lint_pr_title.outputs.error_message == null }} || startsWith(github.event.pull_request.title, '[WIP]' }}
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: pr-title-lint-error
