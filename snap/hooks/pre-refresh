@@ -1,0 +1,9 @@
+#!/bin/bash -e
+. "$SNAP/k8s/lib.sh"
+
+k8s::common::setup_env
+
+# disable snap set/get on snap refresh as microcluster need to sync first.
+# the sync will be enabled again after the refresh.
+echo "Disabling snapd config sync during snap refresh"
+k8s::cmd::k8s x-snapd-config disable
