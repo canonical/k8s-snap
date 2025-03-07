@@ -26,7 +26,7 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, m helm.Client, cfg t
 
 	var values Values = map[string]any{}
 
-	if err := values.ApplyDefaultValues(); err != nil {
+	if err := values.applyDefaultValues(); err != nil {
 		err = fmt.Errorf("failed to apply default values: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -44,7 +44,7 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, m helm.Client, cfg t
 		}, err
 	}
 
-	if err := values.ApplyClusterConfiguration(cfg); err != nil {
+	if err := values.applyClusterConfiguration(cfg); err != nil {
 		err = fmt.Errorf("failed to apply cluster configuration: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

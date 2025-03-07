@@ -34,7 +34,7 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, m helm.Client, cfg 
 
 	var values Values = map[string]any{}
 
-	if err := values.ApplyDefaultValues(); err != nil {
+	if err := values.applyDefaultValues(); err != nil {
 		err = fmt.Errorf("failed to apply default values: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

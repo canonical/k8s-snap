@@ -9,7 +9,7 @@ import (
 
 type MetalLBValues map[string]interface{}
 
-func (v MetalLBValues) ApplyDefaultValues() error {
+func (v MetalLBValues) applyDefaultValues() error {
 	values := map[string]any{
 		"controller": map[string]any{
 			"command": "/controller",
@@ -66,7 +66,7 @@ func (v MetalLBValues) ApplyImageOverrides() error {
 
 type Values map[string]any
 
-func (v Values) ApplyDefaultValues() error {
+func (v Values) applyDefaultValues() error {
 	values := map[string]any{
 		"driver": "metallb",
 	}
@@ -78,7 +78,7 @@ func (v Values) ApplyDefaultValues() error {
 	return nil
 }
 
-func (v Values) ApplyClusterConfiguration(loadbalancer types.LoadBalancer) error {
+func (v Values) applyClusterConfiguration(loadbalancer types.LoadBalancer) error {
 	cidrs := []map[string]any{}
 	for _, cidr := range loadbalancer.GetCIDRs() {
 		cidrs = append(cidrs, map[string]any{"cidr": cidr})

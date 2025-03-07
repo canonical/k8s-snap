@@ -14,7 +14,7 @@ import (
 
 type Values map[string]any
 
-func (v Values) ApplyDefaultValues() error {
+func (v Values) applyDefaultValues() error {
 	values := map[string]any{
 		"image": map[string]any{
 			"useDigest": false,
@@ -77,7 +77,7 @@ func (v Values) ApplyImageOverrides() error {
 	return nil
 }
 
-func (v Values) ApplyClusterConfiguration(ctx context.Context, s state.State, apiserver types.APIServer, network types.Network) error {
+func (v Values) applyClusterConfiguration(ctx context.Context, s state.State, apiserver types.APIServer, network types.Network) error {
 	c, err := s.Leader()
 	if err != nil {
 		return fmt.Errorf("failed to get leader client: %w", err)

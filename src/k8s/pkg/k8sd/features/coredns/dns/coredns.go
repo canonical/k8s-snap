@@ -54,7 +54,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, m helm.Client, dns types.DNS,
 		}, "", err
 	}
 
-	if err := values.ApplyClusterConfiguration(dns, kubelet); err != nil {
+	if err := values.applyClusterConfiguration(dns, kubelet); err != nil {
 		err = fmt.Errorf("failed to apply cluster configuration: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

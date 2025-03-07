@@ -56,7 +56,7 @@ func enableGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway t
 
 	var ciliumValues CiliumValues = map[string]any{}
 
-	if err := ciliumValues.ApplyClusterConfiguration(gateway); err != nil {
+	if err := ciliumValues.applyClusterConfiguration(gateway); err != nil {
 		err = fmt.Errorf("failed to apply cluster configuration: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -114,7 +114,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, m helm.Client, network 
 
 	var ciliumValues CiliumValues = map[string]any{}
 
-	if err := ciliumValues.ApplyDisableConfiguration(); err != nil {
+	if err := ciliumValues.applyDisableConfiguration(); err != nil {
 		err = fmt.Errorf("failed to apply disable configuration: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

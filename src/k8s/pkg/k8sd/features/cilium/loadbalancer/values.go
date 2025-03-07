@@ -10,7 +10,7 @@ import (
 
 type CiliumValues cilium_network.Values
 
-func (v CiliumValues) ApplyDefaultValues() error {
+func (v CiliumValues) applyDefaultValues() error {
 	values := map[string]any{
 		"externalIPs": map[string]any{
 			"enabled": true,
@@ -30,7 +30,7 @@ func (v CiliumValues) ApplyDefaultValues() error {
 	return nil
 }
 
-func (v CiliumValues) ApplyClusterConfiguration(loadbalancer types.LoadBalancer) error {
+func (v CiliumValues) applyClusterConfiguration(loadbalancer types.LoadBalancer) error {
 	values := map[string]any{
 		"l2announcements": map[string]any{
 			"enabled": loadbalancer.GetL2Mode(),
@@ -47,7 +47,7 @@ func (v CiliumValues) ApplyClusterConfiguration(loadbalancer types.LoadBalancer)
 	return nil
 }
 
-func (v CiliumValues) ApplyDisableConfiguration() error {
+func (v CiliumValues) applyDisableConfiguration() error {
 	values := map[string]any{
 		"l2announcements": map[string]any{
 			"enabled": false,
@@ -75,7 +75,7 @@ func (v CiliumValues) ApplyDisableConfiguration() error {
 
 type Values map[string]any
 
-func (v Values) ApplyDefaultValues() error {
+func (v Values) applyDefaultValues() error {
 	values := map[string]any{
 		"driver": "cilium",
 	}
@@ -87,7 +87,7 @@ func (v Values) ApplyDefaultValues() error {
 	return nil
 }
 
-func (v Values) ApplyClusterConfiguration(loadbalancer types.LoadBalancer) error {
+func (v Values) applyClusterConfiguration(loadbalancer types.LoadBalancer) error {
 	cidrs := []map[string]any{}
 	for _, cidr := range loadbalancer.GetCIDRs() {
 		cidrs = append(cidrs, map[string]any{"cidr": cidr})

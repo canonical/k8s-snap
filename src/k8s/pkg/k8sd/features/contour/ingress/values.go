@@ -9,7 +9,7 @@ import (
 
 type Values map[string]any
 
-func (v Values) ApplyDefaultValues() error {
+func (v Values) applyDefaultValues() error {
 	values := map[string]any{
 		"envoy-service-namespace": "projectcontour",
 		"envoy-service-name":      "envoy",
@@ -58,7 +58,7 @@ func (v Values) ApplyImageOverrides() error {
 	return nil
 }
 
-func (v Values) ApplyClusterConfiguration(ingress types.Ingress) error {
+func (v Values) applyClusterConfiguration(ingress types.Ingress) error {
 	var values map[string]any
 	if ingress.GetEnableProxyProtocol() {
 		values = map[string]any{
@@ -77,7 +77,7 @@ func (v Values) ApplyClusterConfiguration(ingress types.Ingress) error {
 
 type TLSValues map[string]any
 
-func (v TLSValues) ApplyClusterConfiguration(ingress types.Ingress) error {
+func (v TLSValues) applyClusterConfiguration(ingress types.Ingress) error {
 	values := map[string]any{
 		"defaultTLSSecret": ingress.GetDefaultTLSSecret(),
 	}

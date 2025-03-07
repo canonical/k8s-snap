@@ -44,7 +44,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, _ state.St
 
 	var values Values = map[string]any{}
 
-	if err := values.ApplyDefaultValues(); err != nil {
+	if err := values.applyDefaultValues(); err != nil {
 		err = fmt.Errorf("failed to apply default values: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -62,7 +62,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, _ state.St
 		}, err
 	}
 
-	if err := values.ApplyClusterConfiguration(ctx, nil, apiserver, network); err != nil {
+	if err := values.applyClusterConfiguration(ctx, nil, apiserver, network); err != nil {
 		err = fmt.Errorf("failed to calculate cluster config values: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

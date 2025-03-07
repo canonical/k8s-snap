@@ -7,7 +7,6 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/microcluster/v2/state"
@@ -53,7 +52,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, s state.St
 
 	var values Values = map[string]any{}
 
-	if err := values.ApplyDefaultValues(); err != nil {
+	if err := values.applyDefaultValues(); err != nil {
 		err = fmt.Errorf("failed to apply default values: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -82,7 +81,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, s state.St
 		}
 	}
 
-	if err := values.ApplyClusterConfiguration(ctx, s, apiserver, network); err != nil {
+	if err := values.applyClusterConfiguration(ctx, s, apiserver, network); err != nil {
 		err = fmt.Errorf("failed to calculate cluster config values: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -125,26 +124,4 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, s state.St
 		Version: ciliumAgentImage.Tag,
 		Message: cilium.EnabledMsg,
 	}, nil
-}
-
-func VerifyMountPropagation(ctx context.Context, snap snap.Snap) error {
-	pt, err := GetMountPropagationType("/sys")
-	if err != nil {
-		return fmt.Errorf("failed to get mount propagation type for /sys: %w", err)
-	}
-
-	if pt == utils.MountPropagationPrivate {
-		onLXD, err := snap.OnLXD(ctx)
-		if err != nil {
-			logger := log.FromContext(ctx)
-			logger.Error(err, "Failed to check if running on LXD")
-		}
-		if onLXD {
-			return fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
-		}
-
-		return fmt.Errorf("/sys is not a shared mount")
-	}
-
-	return nil
 }

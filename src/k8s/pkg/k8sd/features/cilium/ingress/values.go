@@ -10,7 +10,7 @@ import (
 
 type CiliumValues cilium_network.Values
 
-func (v CiliumValues) ApplyDefaultValues() error {
+func (v CiliumValues) applyDefaultValues() error {
 	values := map[string]any{
 		"ingressController": map[string]any{
 			"loadbalancerMode":       "shared",
@@ -25,7 +25,7 @@ func (v CiliumValues) ApplyDefaultValues() error {
 	return nil
 }
 
-func (v CiliumValues) ApplyClusterConfiguration(ingress types.Ingress) error {
+func (v CiliumValues) applyClusterConfiguration(ingress types.Ingress) error {
 	values := map[string]any{
 		"ingressController": map[string]any{
 			IngressOptionEnabled:             ingress.GetEnabled(),
@@ -41,7 +41,7 @@ func (v CiliumValues) ApplyClusterConfiguration(ingress types.Ingress) error {
 	return nil
 }
 
-func (v CiliumValues) ApplyDisableConfiguration() error {
+func (v CiliumValues) applyDisableConfiguration() error {
 	values := map[string]any{
 		"ingressController": map[string]any{
 			IngressOptionEnabled:                false,

@@ -27,7 +27,7 @@ func (v Values) ApplyImageOverrides() error {
 	return nil
 }
 
-func (v Values) ApplyClusterConfiguration(dns types.DNS, kubelet types.Kubelet) error {
+func (v Values) applyClusterConfiguration(dns types.DNS, kubelet types.Kubelet) error {
 	values := map[string]any{
 		"service": map[string]any{
 			"name":      "coredns",

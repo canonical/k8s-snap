@@ -65,7 +65,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 
 	var values Values = map[string]any{}
 
-	if err := values.ApplyDefaultValues(); err != nil {
+	if err := values.applyDefaultValues(); err != nil {
 		err = fmt.Errorf("failed to apply default values: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -83,7 +83,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 		}, err
 	}
 
-	if err := values.ApplyClusterConfiguration(ingress); err != nil {
+	if err := values.applyClusterConfiguration(ingress); err != nil {
 		err = fmt.Errorf("failed to apply cluster configuration: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -119,7 +119,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 	if ingress.GetDefaultTLSSecret() != "" {
 		var tlsValues TLSValues = map[string]any{}
 
-		if err := tlsValues.ApplyClusterConfiguration(ingress); err != nil {
+		if err := tlsValues.applyClusterConfiguration(ingress); err != nil {
 			err = fmt.Errorf("failed to apply cluster configuration: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,

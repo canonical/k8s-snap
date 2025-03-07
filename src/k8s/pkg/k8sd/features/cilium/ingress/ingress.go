@@ -38,7 +38,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 	var ciliumValues CiliumValues = map[string]any{}
 
 	if ingress.GetEnabled() {
-		if err := ciliumValues.ApplyDefaultValues(); err != nil {
+		if err := ciliumValues.applyDefaultValues(); err != nil {
 			err = fmt.Errorf("failed to apply default values: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -47,7 +47,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 			}, err
 		}
 
-		if err := ciliumValues.ApplyClusterConfiguration(ingress); err != nil {
+		if err := ciliumValues.applyClusterConfiguration(ingress); err != nil {
 			err = fmt.Errorf("failed to apply cluster configuration: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -56,7 +56,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, m helm.Client, ingress ty
 			}, err
 		}
 	} else {
-		if err := ciliumValues.ApplyDisableConfiguration(); err != nil {
+		if err := ciliumValues.applyDisableConfiguration(); err != nil {
 			err = fmt.Errorf("failed to apply disable configuration: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,

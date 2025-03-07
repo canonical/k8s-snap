@@ -10,7 +10,7 @@ import (
 
 type CiliumValues cilium_network.Values
 
-func (v CiliumValues) ApplyClusterConfiguration(gateway types.Gateway) error {
+func (v CiliumValues) applyClusterConfiguration(gateway types.Gateway) error {
 	values := map[string]any{
 		"gatewayAPI": map[string]any{
 			"enabled": gateway.GetEnabled(),
@@ -24,7 +24,7 @@ func (v CiliumValues) ApplyClusterConfiguration(gateway types.Gateway) error {
 	return nil
 }
 
-func (v CiliumValues) ApplyDisableConfiguration() error {
+func (v CiliumValues) applyDisableConfiguration() error {
 	values := map[string]any{
 		"gatewayAPI": map[string]any{
 			"enabled": false,

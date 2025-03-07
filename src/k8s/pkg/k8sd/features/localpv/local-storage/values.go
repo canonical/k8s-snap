@@ -9,7 +9,7 @@ import (
 
 type Values map[string]any
 
-func (v Values) ApplyDefaultValues() error {
+func (v Values) applyDefaultValues() error {
 	values := map[string]any{
 		"storageClass": map[string]any{
 			"enabled": true,
@@ -64,7 +64,7 @@ func (v Values) ApplyImageOverrides() error {
 	return nil
 }
 
-func (v Values) ApplyClusterConfiguration(cfg types.LocalStorage) error {
+func (v Values) applyClusterConfiguration(cfg types.LocalStorage) error {
 	values := map[string]any{
 		"storageClass": map[string]any{
 			"isDefault":     cfg.GetDefault(),

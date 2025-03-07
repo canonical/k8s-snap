@@ -8,7 +8,7 @@ import (
 
 type Values map[string]any
 
-func (v Values) ApplyDefaultValues() error {
+func (v Values) applyDefaultValues() error {
 	values := map[string]any{
 		"securityContext": map[string]any{
 			// ROCKs with Pebble as the entrypoint do not work with this option.

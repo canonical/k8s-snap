@@ -83,7 +83,7 @@ func disableLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, net
 
 	var ciliumValues CiliumValues = map[string]any{}
 
-	if err := ciliumValues.ApplyDisableConfiguration(); err != nil {
+	if err := ciliumValues.applyDisableConfiguration(); err != nil {
 		return fmt.Errorf("failed to apply disable configuration: %w", err)
 	}
 
@@ -96,11 +96,11 @@ func disableLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, net
 func enableLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, loadbalancer types.LoadBalancer, network types.Network) error {
 	var ciliumValues CiliumValues = map[string]any{}
 
-	if err := ciliumValues.ApplyDefaultValues(); err != nil {
+	if err := ciliumValues.applyDefaultValues(); err != nil {
 		return fmt.Errorf("failed to apply default values: %w", err)
 	}
 
-	if err := ciliumValues.ApplyClusterConfiguration(loadbalancer); err != nil {
+	if err := ciliumValues.applyClusterConfiguration(loadbalancer); err != nil {
 		return fmt.Errorf("failed to apply cluster configuration: %w", err)
 	}
 
@@ -115,11 +115,11 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, m helm.Client, load
 
 	var values Values = map[string]any{}
 
-	if err := values.ApplyDefaultValues(); err != nil {
+	if err := values.applyDefaultValues(); err != nil {
 		return fmt.Errorf("failed to apply default values: %w", err)
 	}
 
-	if err := values.ApplyClusterConfiguration(loadbalancer); err != nil {
+	if err := values.applyClusterConfiguration(loadbalancer); err != nil {
 		return fmt.Errorf("failed to apply cluster configuration: %w", err)
 	}
 
