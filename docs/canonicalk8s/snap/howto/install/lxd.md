@@ -11,7 +11,7 @@ machine we ensure that the Kubernetes environment is well isolated.
 
 ## Install LXD
 
-You can install [LXD] via snaps:
+Install [LXD] via snaps:
 
 ```
 sudo snap install lxd

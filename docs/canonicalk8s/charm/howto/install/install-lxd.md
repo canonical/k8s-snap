@@ -10,11 +10,15 @@ Juju can leverage LXD by:
 - deploying to a container on a machine (i.e. when installing a bundle or using
   the 'to:' directive to install to an existing machine)
 
+```{warning}
 LXD privileged containers are no longer supported and some Kubernetes services,
 such as the Cilium CNI, cannot run inside unprivileged containers.
+```
 
 As such, we recommend using LXD virtual machines, which also ensure that the
 Kubernetes environment is well isolated.
+
+## Deploy an LXD VM
 
 We can use Juju constraints to request virtual machines to be used instead
 of containers and specify the amount of resources to allocate.
