@@ -1,0 +1,68 @@
+name: "Lint PR"
+
+on:
+  pull_request:
+    # will run on adding or removing labels, converting to draft or ready, etc.
+    types: [opened, edited, synchronize, reopened, ready_for_review, converted_to_draft, labeled, unlabeled]
+
+permissions:
+  pull-requests: write # to comment
+  statuses: write # to set status
+
+jobs:
+  main:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    steps:
+      # no-semantic label is handled by the next step.
+      - name: Check if PR is WIP
+        id: check_wip
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          IS_DRAFT="${{ github.event.pull_request.draft }}"
+          if [[ "$PR_TITLE" == \[WIP\]* ]] || [[ "$IS_DRAFT" == "true" ]]; then
+            echo "is_wip=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_wip=false" >> $GITHUB_OUTPUT
+          fi
+      - uses: amannn/action-semantic-pull-request@v5
+        id: lint_pr_title
+        if: steps.check_wip.outputs.is_wip == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          ignoreLabels: |
+            automerge
+            no-semantic
+          wip: true
+      - uses: marocchino/sticky-pull-request-comment@v2
+        # When the previous steps fails, the workflow would stop. By adding always()
+        # we continue the execution with the populated error message.
+        if: always() && steps.check_wip.outputs.is_wip == 'false' && steps.lint_pr_title.outputs.error_message != null
+        with:
+          header: pr-title-lint-error
+          message: |
+            Hey there and thank you for opening this pull request! 👋🏼
+
+            We require pull request titles to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/) and it looks like your proposed title needs to be adjusted.
+
+            Details:
+
+            ```
+            ${{ steps.lint_pr_title.outputs.error_message }}
+            ```
+
+            Note: If your PR is a work in progress, you can do one or more of:
+            1. Update the PR title to follow the specification
+            2. Mark this PR as Draft
+            3. Prefix your title with [WIP]
+            4. Add the `no-semantic` label to bypass this check
+            
+      # Delete a previous comment when the issue has been resolved
+      # or when the PR is converted to Draft or when the no-semantic
+      # label is added.
+      - if: ${{ steps.lint_pr_title.outputs.error_message == null || steps.check_wip.outputs.is_wip == 'true' || contains(github.event.pull_request.labels.*.name, 'no-semantic') }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-title-lint-error
+          delete: true
