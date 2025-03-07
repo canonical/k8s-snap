@@ -2,6 +2,7 @@ name: "Lint PR"
 
 on:
   pull_request:
+    # will run on adding or removing labels, converting to draft or ready, etc.
     types: [opened, edited, synchronize, reopened, ready_for_review, converted_to_draft, labeled, unlabeled]
 
 permissions:
@@ -13,6 +14,7 @@ jobs:
     name: Validate PR title
     runs-on: ubuntu-latest
     steps:
+      # no-semantic label is handled by the next step.
       - name: Check if PR is WIP
         id: check_wip
         run: |
@@ -34,8 +36,8 @@ jobs:
             no-semantic
           wip: true
       - uses: marocchino/sticky-pull-request-comment@v2
-        # When the previous steps fails, the workflow would stop. By adding this
-        # condition you can continue the execution with the populated error message.
+        # When the previous steps fails, the workflow would stop. By adding always()
+        # we continue the execution with the populated error message.
         if: always() && steps.check_wip.outputs.is_wip == 'false' && steps.lint_pr_title.outputs.error_message != null
         with:
           header: pr-title-lint-error
@@ -57,6 +59,8 @@ jobs:
             4. Add the `no-semantic` label to bypass this check
             
       # Delete a previous comment when the issue has been resolved
+      # or when the PR is converted to Draft or when the no-semantic
+      # label is added.
       - if: ${{ steps.lint_pr_title.outputs.error_message == null || steps.check_wip.outputs.is_wip == 'true' || contains(github.event.pull_request.labels.*.name, 'no-semantic') }}
         uses: marocchino/sticky-pull-request-comment@v2
         with:
