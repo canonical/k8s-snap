@@ -1,0 +1,10 @@
+#!/bin/bash -e
+. "$SNAP/k8s/lib.sh"
+
+k8s::common::setup_env
+
+# Enable the snap config reconciler after the snap refresh completes.
+# The reconcile command will synchronize the k8sd configuration with the snap config
+# and then set the meta orb to "snapd," effectively re-enabling the sync process.
+echo "Re-enabling snapd config sync after snap refresh"
+k8s::cmd::k8s x-snapd-config reconcile
