@@ -1,13 +1,14 @@
 # Availability Zones
 
-An availability zone customizes where the hardware spawned by Juju 
-is provisioned to improve redundancy in case of an outage.
+An availability zone determines the specific location where Juju 
+provisions hardware, enhancing redundancy and resilience in case 
+of an outage.
 
 When using Juju with a cloud that supports availability zones, the [zone]
 can be specified either via a [placement directive], a [constraint], or 
 will be automatically selected by Juju.
 
-In the following example, {{product}} charm is deployed on AWS in the
+In the following example, the {{product}} charm is deployed on AWS in the
 `us-east-1` region with the `us-east-1a` availability zone:
 
 ```
