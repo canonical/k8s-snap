@@ -17,7 +17,7 @@ jobs:
         release: ["latest/edge"]
       fail-fast: false # TODO: remove once arm64 works
 
-    runs-on: ${{ matrix.arch == 'arm64' && ["self-hosted", "Linux", "ARM64", "jammy", "large"] || ["self-hosted", "Linux", "AMD64", "jammy", "large"] }}
+    runs-on: ${{ matrix.arch == 'arm64' && ["self-hosted", "Linux", "ARM64", "jammy", "large"] || ["self-hosted", "Linux", "AMD64", "noble", "large"] }}
 
     steps:
       - name: Checking out repo
@@ -26,7 +26,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y tox
-          sudo snap refresh lxd --channel 5.21/stable
+          sudo snap install lxd --channel 5.21/stable
           sudo lxd init --auto
           sudo usermod --append --groups lxd $USER
           sg lxd -c 'lxc version'
