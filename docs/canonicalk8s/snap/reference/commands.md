@@ -10,6 +10,10 @@ These are the commands provided by the k8s snap:
    :end-before: '### SEE ALSO'
 ```
 
+```{include} /_parts/commands/k8s_certs-status.md
+   :end-before: '### SEE ALSO'
+```
+
 ```{include} /_parts/commands/k8s_config.md
    :end-before: '### SEE ALSO'
 ```

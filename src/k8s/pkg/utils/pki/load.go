@@ -5,6 +5,8 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"os"
+	"path/filepath"
 )
 
 // LoadCertificate parses the PEM blocks and returns the certificate and private key.
@@ -93,4 +95,23 @@ func LoadCertificateRequest(csrPEM string) (*x509.CertificateRequest, error) {
 		return parsed, nil
 	}
 	return nil, fmt.Errorf("unknown certificate request block type %q", pb.Type)
+}
+
+// loadCertificatePairFromDir reads the certificate and corresponding private
+// key files for the given certificate name from the specified directory. It
+// expects the files to be named "<name>.crt" and "<name>.key".
+func LoadCertificatePairFromDir(baseDir string, name string) (*x509.Certificate, *rsa.PrivateKey, error) {
+	certBytes, err := os.ReadFile(filepath.Join(baseDir, fmt.Sprintf("%s.crt", name)))
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to read %s.crt: %w", name, err)
+	}
+	keyBytes, err := os.ReadFile(filepath.Join(baseDir, fmt.Sprintf("%s.key", name)))
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to read %s.key: %w", name, err)
+	}
+	cert, key, err := LoadCertificate(string(certBytes), string(keyBytes))
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse %s certificate: %w", name, err)
+	}
+	return cert, key, nil
 }

@@ -11,6 +11,7 @@ Canonical Kubernetes CLI
 ### SEE ALSO
 
 * [k8s bootstrap](k8s_bootstrap.md)	 - Bootstrap a new Kubernetes cluster
+* [k8s certs-status](k8s_certs-status.md)	 - Display certificate and certificate authority expiration details
 * [k8s completion](k8s_completion.md)	 - Generate the autocompletion script for the specified shell
 * [k8s disable](k8s_disable.md)	 - Disable core cluster features
 * [k8s enable](k8s_enable.md)	 - Enable core cluster features
