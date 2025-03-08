@@ -2,7 +2,7 @@
 
 CONTOUR_VERSION="v1.28.2"
 DIR=$(realpath $(dirname "${0}"))
-CHARTS_PATH="$DIR/../../k8s/components/charts"
+CHARTS_PATH="$DIR/../../src/k8s/pkg/k8sd/features/contour/charts"
 
 cd "$CHARTS_PATH"
 # Download the common CRDs
@@ -44,7 +44,7 @@ cp contour-src/examples/gateway-provisioner/03-gateway-provisioner.yaml ck-gatew
 # change gateway provisioner image to use the values from values.yaml
 sed -i "s|image: ghcr.io/projectcontour/contour:${CONTOUR_VERSION}|image: \"{{ .Values.projectcontour.image.repository }}:{{ .Values.projectcontour.image.tag }}\"|" ck-gateway-contour/templates/03-gateway-provisioner.yaml
 
-# Add image args to the gateway provisioner 
+# Add image args to the gateway provisioner
 sed -i '/^        - --enable-leader-election$/a\ \ \ \ \ \ \ \ - --envoy-image={{ .Values.envoyproxy.image.repository }}:{{ .Values.envoyproxy.image.tag }}\n\ \ \ \ \ \ \ \ - --contour-image={{ .Values.projectcontour.image.repository }}:{{ .Values.projectcontour.image.tag }}' ck-gateway-contour/templates/03-gateway-provisioner.yaml
 
 # Add values.yaml

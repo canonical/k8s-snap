@@ -27,7 +27,7 @@ LOG = logging.getLogger(__name__)
 DIR = Path(__file__).absolute().parent
 SNAPCRAFT = DIR.parent.parent / "snap/snapcraft.yaml"
 COMPONENTS = DIR.parent / "components"
-CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
+CHARTS = DIR.parent.parent / "src" / "k8s" / "pkg" / "k8sd" / "features" / "coredns" / "charts"
 
 # Version marker for latest Kubernetes version. Expected to be one of:
 #
