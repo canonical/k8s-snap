@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 10 * * *"
-  pull_request: # TODO rm for test
 
 permissions:
   contents: read
@@ -21,7 +20,6 @@ jobs:
         branch:
           # Keep main branch up to date
           - main
-          - fix-update-components
           # Supported release branches
           - release-1.32
           - release-1.31
