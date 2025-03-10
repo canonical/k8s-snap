@@ -21,6 +21,7 @@ jobs:
         branch:
           # Keep main branch up to date
           - main
+          - fix-update-components
           # Supported release branches
           - release-1.32
           - release-1.31
