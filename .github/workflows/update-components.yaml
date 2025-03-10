@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 10 * * *"
+  pull_request: # TODO rm for test
 
 permissions:
   contents: read
