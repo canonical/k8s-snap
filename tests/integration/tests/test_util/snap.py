@@ -67,6 +67,7 @@ def get_most_stable_channels(
     arch: str,
     include_latest: bool = True,
     min_release: Optional[str] = None,
+    max_release: Optional[str] = None,
 ) -> List[str]:
     """Get an ascending list of latest channels based on the number of channels
     flavour and architecture."""
@@ -85,6 +86,11 @@ def get_most_stable_channels(
         if min_release:
             _min_release = major_minor(min_release)
             if _min_release and version_key < _min_release:
+                continue
+
+        if max_release is not None:
+            _max_release = major_minor(max_release)
+            if _max_release is not None and version_key > _max_release:
                 continue
 
         if version_key not in channel_map or RISK_LEVELS.index(
