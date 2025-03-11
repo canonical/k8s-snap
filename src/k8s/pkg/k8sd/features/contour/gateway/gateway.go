@@ -6,9 +6,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/features/contour"
-	contour_ingress "github.com/canonical/k8s/pkg/k8sd/features/contour/ingress"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 const (
@@ -23,11 +21,16 @@ const (
 // deployment.
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
-	contourGatewayProvisionerContourImage := FeatureGateway.GetImage(ContourGatewayProvisionerContourImageName)
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	contourGatewayProvisionerContourImage := r.Manifest().GetImage(ContourGatewayProvisionerContourImageName)
+
+	helmClient := r.HelmClient()
+	snap := r.Snap()
+
+	gateway := cfg.Gateway
 
 	if !gateway.GetEnabled() {
-		if _, err := m.Apply(ctx, FeatureGateway.GetChart(ChartGatewayName), helm.StateDeleted, nil); err != nil {
+		if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(ChartGatewayName), helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall the contour gateway chart: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -43,7 +46,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway ty
 	}
 
 	// Apply common contour CRDS, these are shared with ingress
-	if err := contour_ingress.ApplyCommonContourCRDS(ctx, snap, m, true); err != nil {
+	if err := r.applyCommonContourCRDS(ctx, true); err != nil {
 		err = fmt.Errorf("failed to apply common contour CRDS: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -63,7 +66,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway ty
 
 	var values Values = map[string]any{}
 
-	if err := values.ApplyImageOverrides(); err != nil {
+	if err := values.ApplyImageOverrides(r.Manifest()); err != nil {
 		err = fmt.Errorf("failed to apply image overrides: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -72,7 +75,7 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway ty
 		}, err
 	}
 
-	if _, err := m.Apply(ctx, FeatureGateway.GetChart(ChartGatewayName), helm.StatePresent, values); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(ChartGatewayName), helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to install the contour gateway chart: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -86,4 +89,23 @@ func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway ty
 		Version: contourGatewayProvisionerContourImage.Tag,
 		Message: contour.EnabledMsg,
 	}, nil
+}
+
+// applyCommonContourCRDS will install the common contour CRDS when enabled is true.
+// These CRDS are shared between the contour ingress and the gateway feature.
+func (r reconciler) applyCommonContourCRDS(ctx context.Context, enabled bool) error {
+	helmClient := r.HelmClient()
+
+	if enabled {
+		if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(ChartCommonContourCRDSName), helm.StatePresent, nil); err != nil {
+			return fmt.Errorf("failed to install common CRDS: %w", err)
+		}
+		return nil
+	}
+
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(ChartCommonContourCRDSName), helm.StateDeleted, nil); err != nil {
+		return fmt.Errorf("failed to uninstall common CRDS: %w", err)
+	}
+
+	return nil
 }

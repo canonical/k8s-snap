@@ -7,9 +7,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -31,11 +29,18 @@ var (
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, s state.State, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
-	ciliumAgentImage := FeatureNetwork.GetImage(CiliumAgentImageName)
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	ciliumAgentImage := r.Manifest().GetImage(CiliumAgentImageName)
+
+	helmClient := r.HelmClient()
+	snap := r.Snap()
+
+	network := cfg.Network
+	apiserver := cfg.APIServer
+	annotations := cfg.Annotations
 
 	if !network.GetEnabled() {
-		if _, err := m.Apply(ctx, FeatureNetwork.GetChart(CiliumChartName), helm.StateDeleted, nil); err != nil {
+		if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(CiliumChartName), helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall network: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -61,7 +66,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, s state.St
 		}, err
 	}
 
-	if err := values.ApplyImageOverrides(); err != nil {
+	if err := values.ApplyImageOverrides(r.Manifest()); err != nil {
 		err = fmt.Errorf("failed to calculate image overrides: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -81,7 +86,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, s state.St
 		}
 	}
 
-	if err := values.applyClusterConfiguration(ctx, s, apiserver, network); err != nil {
+	if err := values.applyClusterConfiguration(ctx, r.State(), apiserver, network); err != nil {
 		err = fmt.Errorf("failed to calculate cluster config values: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -100,7 +105,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, s state.St
 	}
 
 	if !snap.Strict() {
-		if err := VerifyMountPropagation(ctx, snap); err != nil {
+		if err := r.verifyMountPropagation(ctx); err != nil {
 			err = fmt.Errorf("failed to check mount propagation: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -110,7 +115,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, m helm.Client, s state.St
 		}
 	}
 
-	if _, err := m.Apply(ctx, FeatureNetwork.GetChart(CiliumChartName), helm.StatePresent, values); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(CiliumChartName), helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to enable network: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

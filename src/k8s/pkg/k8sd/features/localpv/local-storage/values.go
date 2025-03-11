@@ -29,12 +29,12 @@ func (v Values) applyDefaultValues() error {
 	return nil
 }
 
-func (v Values) ApplyImageOverrides() error {
-	rawFileImage := FeatureLocalStorage.GetImage(RawFileImageName)
-	csiNodeDriverImage := FeatureLocalStorage.GetImage(CSINodeDriverImageName)
-	csiProvisionerImage := FeatureLocalStorage.GetImage(CSIProvisionerImageName)
-	csiResizerImage := FeatureLocalStorage.GetImage(CSIResizerImageName)
-	csiSnapshotterImage := FeatureLocalStorage.GetImage(CSISnapshotterImageName)
+func (v Values) ApplyImageOverrides(manifest types.FeatureManifest) error {
+	rawFileImage := manifest.GetImage(RawFileImageName)
+	csiNodeDriverImage := manifest.GetImage(CSINodeDriverImageName)
+	csiProvisionerImage := manifest.GetImage(CSIProvisionerImageName)
+	csiResizerImage := manifest.GetImage(CSIResizerImageName)
+	csiSnapshotterImage := manifest.GetImage(CSISnapshotterImageName)
 
 	values := map[string]any{
 		"controller": map[string]any{

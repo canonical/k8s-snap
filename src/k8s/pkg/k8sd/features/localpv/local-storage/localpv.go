@@ -7,7 +7,6 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/features/localpv"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
 )
 
 const (
@@ -21,8 +20,10 @@ const (
 // deployment.
 // ApplyLocalStorage returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyLocalStorage(ctx context.Context, snap snap.Snap, m helm.Client, cfg types.LocalStorage, _ types.Annotations) (types.FeatureStatus, error) {
-	rawFileImage := FeatureLocalStorage.GetImage(RawFileImageName)
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	rawFileImage := r.Manifest().GetImage(RawFileImageName)
+
+	localStorage := cfg.LocalStorage
 
 	var values Values = map[string]any{}
 
@@ -35,7 +36,7 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, m helm.Client, cfg t
 		}, err
 	}
 
-	if err := values.ApplyImageOverrides(); err != nil {
+	if err := values.ApplyImageOverrides(r.Manifest()); err != nil {
 		err = fmt.Errorf("failed to apply image overrides: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -44,7 +45,7 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, m helm.Client, cfg t
 		}, err
 	}
 
-	if err := values.applyClusterConfiguration(cfg); err != nil {
+	if err := values.applyClusterConfiguration(localStorage); err != nil {
 		err = fmt.Errorf("failed to apply cluster configuration: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -53,8 +54,8 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, m helm.Client, cfg t
 		}, err
 	}
 
-	if _, err := m.Apply(ctx, FeatureLocalStorage.GetChart(RawFileChartName), helm.StatePresentOrDeleted(cfg.GetEnabled()), values); err != nil {
-		if cfg.GetEnabled() {
+	if _, err := r.HelmClient().Apply(ctx, r.Manifest().GetChart(RawFileChartName), helm.StatePresentOrDeleted(localStorage.GetEnabled()), values); err != nil {
+		if localStorage.GetEnabled() {
 			err = fmt.Errorf("failed to install rawfile-csi helm package: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -71,11 +72,11 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, m helm.Client, cfg t
 		}
 	}
 
-	if cfg.GetEnabled() {
+	if localStorage.GetEnabled() {
 		return types.FeatureStatus{
 			Enabled: true,
 			Version: rawFileImage.Tag,
-			Message: fmt.Sprintf(localpv.EnabledMsg, cfg.GetLocalPath()),
+			Message: fmt.Sprintf(localpv.EnabledMsg, localStorage.GetLocalPath()),
 		}, nil
 	} else {
 		return types.FeatureStatus{

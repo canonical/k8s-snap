@@ -1,33 +1,32 @@
-From 4f26e12832ef73b5c76a59cf3209d4f1f5b0aa3b Mon Sep 17 00:00:00 2001
+From e562152feba57305b2edfe1d9e5d8f5343f7819d Mon Sep 17 00:00:00 2001
 From: k8s-bot <k8s-bot@canonical.com>
 Date: Thu, 6 Jun 2024 10:34:52 +0200
 Subject: [PATCH] Moonray
 
 ---
- src/k8s/pkg/k8sd/features/implementation_default.go | 2 ++
- src/k8s/pkg/k8sd/features/implementation_moonray.go | 2 --
+ .../pkg/k8sd/features/implementation/implementation_default.go  | 2 ++
+ .../pkg/k8sd/features/implementation/implementation_moonray.go  | 2 --
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/src/k8s/pkg/k8sd/features/implementation_default.go b/src/k8s/pkg/k8sd/features/implementation_default.go
-index aeb1729..184f2ce 100644
---- a/src/k8s/pkg/k8sd/features/implementation_default.go
-+++ b/src/k8s/pkg/k8sd/features/implementation_default.go
+diff --git a/src/k8s/pkg/k8sd/features/implementation/implementation_default.go b/src/k8s/pkg/k8sd/features/implementation/implementation_default.go
+index 37dcf98c..57e1acba 100644
+--- a/src/k8s/pkg/k8sd/features/implementation/implementation_default.go
++++ b/src/k8s/pkg/k8sd/features/implementation/implementation_default.go
 @@ -1,3 +1,5 @@
 +//go:build ignore
 +
- package features
+ package implementation
  
  import (
-diff --git a/src/k8s/pkg/k8sd/features/implementation_moonray.go b/src/k8s/pkg/k8sd/features/implementation_moonray.go
-index dece19d..5933221 100644
---- a/src/k8s/pkg/k8sd/features/implementation_moonray.go
-+++ b/src/k8s/pkg/k8sd/features/implementation_moonray.go
+diff --git a/src/k8s/pkg/k8sd/features/implementation/implementation_moonray.go b/src/k8s/pkg/k8sd/features/implementation/implementation_moonray.go
+index a228b66e..352aca41 100644
+--- a/src/k8s/pkg/k8sd/features/implementation/implementation_moonray.go
++++ b/src/k8s/pkg/k8sd/features/implementation/implementation_moonray.go
 @@ -1,5 +1,3 @@
 -//go:build ignore
 -
- package features
+ package implementation
  
  import (
 -- 
-2.34.1
-
+2.43.0

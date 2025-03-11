@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -45,24 +46,30 @@ func TestNetworkDisabled(t *testing.T) {
 					HelmClient: helmM,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(false),
-			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(false),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).To(MatchError(applyErr))
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_network.NetworkDeleteFailedMsgTmpl, err)))
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
-			g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+			g.Expect(callArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 			g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 			g.Expect(callArgs.Values).To(BeNil())
 		})
@@ -76,24 +83,30 @@ func TestNetworkDisabled(t *testing.T) {
 					HelmClient: helmM,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(false),
-			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(false),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
-			g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+			g.Expect(callArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 			g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 			g.Expect(callArgs.Values).To(BeNil())
 		})
@@ -111,20 +124,26 @@ func TestNetworkEnabled(t *testing.T) {
 					HelmClient: helmM,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(true),
-				PodCIDR: ptr.To("invalid-cidr"),
-			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(true),
+					PodCIDR: ptr.To("invalid-cidr"),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		})
 
@@ -138,27 +157,34 @@ func TestNetworkEnabled(t *testing.T) {
 					Strict:     true,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(true),
-				PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
-			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(true),
+					PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
+				Annotations: annotations,
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, annotations)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
 			g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
-			g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+			g.Expect(callArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 			g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-			validateNetworkValues(g, callArgs.Values, network, snapM)
+			validateNetworkValues(g, callArgs.Values, cfg.Network, snapM)
 		})
 
 		t.Run("HelmApplyFails", func(t *testing.T) {
@@ -173,27 +199,34 @@ func TestNetworkEnabled(t *testing.T) {
 					HelmClient: helmM,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(true),
-				PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
-			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(true),
+					PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
+				Annotations: annotations,
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, annotations)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).To(MatchError(applyErr))
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_network.NetworkDeployFailedMsgTmpl, err)))
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
-			g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+			g.Expect(callArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 			g.Expect(callArgs.State).To(Equal(helm.StatePresent))
-			validateNetworkValues(g, callArgs.Values, network, snapM)
+			validateNetworkValues(g, callArgs.Values, cfg.Network, snapM)
 		})
 
 		t.Run("CNIExclusive", func(t *testing.T) {
@@ -205,30 +238,36 @@ func TestNetworkEnabled(t *testing.T) {
 					HelmClient: helmM,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(true),
-				PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
-			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(true),
+					PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
+				Annotations: types.Annotations{
+					apiv1_annotations.AnnotationDevices:             "eth+ lxdbr+",
+					apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
+					apiv1_annotations.AnnotationCNIExclusive:        "true",
+				},
 			}
 
-			testAnnotations := types.Annotations{
-				apiv1_annotations.AnnotationDevices:             "eth+ lxdbr+",
-				apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
-				apiv1_annotations.AnnotationCNIExclusive:        "true",
-			}
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, testAnnotations)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
 			g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
-			g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+			g.Expect(callArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 			g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 
 			cniValues := callArgs.Values["cni"].(map[string]interface{})
@@ -244,31 +283,36 @@ func TestNetworkEnabled(t *testing.T) {
 					HelmClient: helmM,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(true),
-				PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
-			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
-			}
-
-			testAnnotations := types.Annotations{
-				apiv1_annotations.AnnotationDevices:             "eth+ lxdbr+",
-				apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
-				apiv1_annotations.AnnotationSCTPEnabled:         "true",
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(true),
+					PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
+				Annotations: types.Annotations{
+					apiv1_annotations.AnnotationDevices:             "eth+ lxdbr+",
+					apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
+					apiv1_annotations.AnnotationSCTPEnabled:         "true",
+				},
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, testAnnotations)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
 			g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
-			g.Expect(callArgs.Chart).To(Equal(cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName)))
+			g.Expect(callArgs.Chart).To(Equal(cilium_network.Manifest.GetChart(cilium_network.CiliumChartName)))
 			g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 
 			sctpValues := callArgs.Values["sctp"].(map[string]interface{})
@@ -296,12 +340,14 @@ func TestNetworkMountPath(t *testing.T) {
 						Strict:     true,
 					},
 				}
-				network := types.Network{
-					Enabled: ptr.To(true),
-					PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
-				}
-				apiserver := types.APIServer{
-					SecurePort: ptr.To(6443),
+				cfg := types.ClusterConfig{
+					Network: types.Network{
+						Enabled: ptr.To(true),
+						PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+					},
+					APIServer: types.APIServer{
+						SecurePort: ptr.To(6443),
+					},
 				}
 
 				cilium_network.GetMountPath = func(fsType string) (string, error) {
@@ -312,13 +358,17 @@ func TestNetworkMountPath(t *testing.T) {
 				}
 
 				mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-				status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+				base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+				reconciler := cilium_network.NewReconciler(base)
+
+				status, err := reconciler.Reconcile(context.Background(), cfg)
 
 				g.Expect(err).To(HaveOccurred())
 				g.Expect(err).To(MatchError(mountPathErr))
 				g.Expect(status.Enabled).To(BeFalse())
 				g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_network.NetworkDeployFailedMsgTmpl, err)))
-				g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+				g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 				g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 			})
 		}
@@ -341,23 +391,29 @@ func TestNetworkMountPropagationType(t *testing.T) {
 					Strict:     false,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(true),
-				PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
-			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(true),
+					PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(err).To(MatchError(mountErr))
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_network.NetworkDeployFailedMsgTmpl, err)))
 
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		})
 
@@ -375,24 +431,31 @@ func TestNetworkMountPropagationType(t *testing.T) {
 					OnLXDErr:   errors.New("failed to check LXD"),
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(true),
-				PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(true),
+					PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
 			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
-			}
+
 			logger := ktesting.NewLogger(t, ktesting.NewConfig(ktesting.BufferLogs(true)))
 			ctx := klog.NewContext(context.Background(), logger)
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(ctx, snapM, mc, s, apiserver, network, nil)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(ctx, cfg)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_network.NetworkDeployFailedMsgTmpl, err)))
 
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 			testingLogger, ok := logger.GetSink().(ktesting.Underlier)
 			if !ok {
@@ -415,22 +478,28 @@ func TestNetworkMountPropagationType(t *testing.T) {
 					OnLXD:      true,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(true),
-				PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
-			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(true),
+					PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_network.NetworkDeployFailedMsgTmpl, err)))
 
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		})
 
@@ -447,22 +516,28 @@ func TestNetworkMountPropagationType(t *testing.T) {
 					Strict:     false,
 				},
 			}
-			network := types.Network{
-				Enabled: ptr.To(true),
-				PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
-			}
-			apiserver := types.APIServer{
-				SecurePort: ptr.To(6443),
+			cfg := types.ClusterConfig{
+				Network: types.Network{
+					Enabled: ptr.To(true),
+					PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+				},
+				APIServer: types.APIServer{
+					SecurePort: ptr.To(6443),
+				},
 			}
 
 			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium_network.ApplyNetwork(context.Background(), snapM, mc, s, apiserver, network, nil)
+
+			base := features.NewReconciler(cilium_network.Manifest, snapM, mc, s, func() {})
+			reconciler := cilium_network.NewReconciler(base)
+
+			status, err := reconciler.Reconcile(context.Background(), cfg)
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium_network.NetworkDeployFailedMsgTmpl, err)))
 
-			g.Expect(status.Version).To(Equal(cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag))
+			g.Expect(status.Version).To(Equal(cilium_network.Manifest.GetImage(cilium_network.CiliumAgentImageName).Tag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		})
 	})

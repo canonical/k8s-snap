@@ -14,7 +14,7 @@ var (
 	FRRImageName               = "frr"
 )
 
-var manifest = types.FeatureManifest{
+var Manifest = types.FeatureManifest{
 	Name:    "loadbalancer",
 	Version: "1.0.0",
 	Charts: map[string]helm.InstallableChart{
@@ -50,5 +50,3 @@ var manifest = types.FeatureManifest{
 		},
 	},
 }
-
-var FeatureLoadBalancer types.Feature = manifest

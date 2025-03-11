@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/k8sd/charts"
-	"github.com/canonical/k8s/pkg/k8sd/features/manifests"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/images"
 )
 
 func init() {
-	metricsServerImage := FeatureMetricsServer.GetImage(MetricsServerImageName)
+	metricsServerImage := Manifest.GetImage(MetricsServerImageName)
 
 	images.Register(
 		fmt.Sprintf("%s:%s", metricsServerImage.GetURI(), metricsServerImage.Tag),
@@ -17,5 +17,5 @@ func init() {
 
 	charts.Register(&ChartFS)
 
-	manifests.Register(&manifest)
+	features.Register(&Manifest)
 }

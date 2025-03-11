@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/metallb"
 	metallb_loadbalancer "github.com/canonical/k8s/pkg/k8sd/features/metallb/loadbalancer"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -33,21 +34,27 @@ func TestDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(false),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+
+		base := features.NewReconciler(metallb_loadbalancer.Manifest, snapM, mc, nil, func() {})
+		reconciler := metallb_loadbalancer.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
+		g.Expect(status.Version).To(Equal(metallb_loadbalancer.Manifest.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
+		g.Expect(callArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(callArgs.Values).To(BeNil())
 	})
@@ -60,26 +67,32 @@ func TestDisabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(false),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(false),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+
+		base := features.NewReconciler(metallb_loadbalancer.Manifest, snapM, mc, nil, func() {})
+		reconciler := metallb_loadbalancer.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(metallb.DisabledMsg))
-		g.Expect(status.Version).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
+		g.Expect(status.Version).To(Equal(metallb_loadbalancer.Manifest.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
 		firstCallArgs := helmM.ApplyCalledWith[0]
-		g.Expect(firstCallArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
+		g.Expect(firstCallArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
 		g.Expect(firstCallArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(firstCallArgs.Values).To(BeNil())
 
 		secondCallArgs := helmM.ApplyCalledWith[1]
-		g.Expect(secondCallArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.MetalLBChartName)))
+		g.Expect(secondCallArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.MetalLBChartName)))
 		g.Expect(secondCallArgs.State).To(Equal(helm.StateDeleted))
 		g.Expect(secondCallArgs.Values).To(BeNil())
 	})
@@ -98,21 +111,27 @@ func TestEnabled(t *testing.T) {
 				HelmClient: helmM,
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(true),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(true),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+
+		base := features.NewReconciler(metallb_loadbalancer.Manifest, snapM, mc, nil, func() {})
+		reconciler := metallb_loadbalancer.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
+		g.Expect(status.Version).To(Equal(metallb_loadbalancer.Manifest.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
-		g.Expect(callArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.MetalLBChartName)))
+		g.Expect(callArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.MetalLBChartName)))
 		g.Expect(callArgs.State).To(Equal(helm.StatePresent))
 		// we don't validate values since it's just a static struct
 		// and won't be changed by configurations
@@ -149,41 +168,47 @@ func TestEnabled(t *testing.T) {
 				},
 			},
 		}
-		lbCfg := types.LoadBalancer{
-			Enabled: ptr.To(true),
-			// setting both modes to true for testing purposes
-			L2Mode:         ptr.To(true),
-			L2Interfaces:   ptr.To([]string{"eth0", "eth1"}),
-			BGPMode:        ptr.To(true),
-			BGPLocalASN:    ptr.To(64512),
-			BGPPeerAddress: ptr.To("10.0.0.1/32"),
-			BGPPeerASN:     ptr.To(64513),
-			BGPPeerPort:    ptr.To(179),
-			CIDRs:          ptr.To([]string{"192.0.2.0/24"}),
-			IPRanges: ptr.To([]types.LoadBalancer_IPRange{
-				{Start: "20.0.20.100", Stop: "20.0.20.200"},
-			}),
+		cfg := types.ClusterConfig{
+			LoadBalancer: types.LoadBalancer{
+				Enabled: ptr.To(true),
+				// setting both modes to true for testing purposes
+				L2Mode:         ptr.To(true),
+				L2Interfaces:   ptr.To([]string{"eth0", "eth1"}),
+				BGPMode:        ptr.To(true),
+				BGPLocalASN:    ptr.To(64512),
+				BGPPeerAddress: ptr.To("10.0.0.1/32"),
+				BGPPeerASN:     ptr.To(64513),
+				BGPPeerPort:    ptr.To(179),
+				CIDRs:          ptr.To([]string{"192.0.2.0/24"}),
+				IPRanges: ptr.To([]types.LoadBalancer_IPRange{
+					{Start: "20.0.20.100", Stop: "20.0.20.200"},
+				}),
+			},
 		}
 
 		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb_loadbalancer.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+
+		base := features.NewReconciler(metallb_loadbalancer.Manifest, snapM, mc, nil, func() {})
+		reconciler := metallb_loadbalancer.NewReconciler(base)
+
+		status, err := reconciler.Reconcile(context.Background(), cfg)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
+		g.Expect(status.Version).To(Equal(metallb_loadbalancer.Manifest.GetImage(metallb_loadbalancer.MetalLBControllerImageName).Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
 		firstCallArgs := helmM.ApplyCalledWith[0]
-		g.Expect(firstCallArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.MetalLBChartName)))
+		g.Expect(firstCallArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.MetalLBChartName)))
 		g.Expect(firstCallArgs.State).To(Equal(helm.StatePresent))
 		// we don't validate values since it's just a static struct
 		// and won't be changed by configurations
 		g.Expect(firstCallArgs.Values).ToNot(BeNil())
 
 		secondCallArgs := helmM.ApplyCalledWith[1]
-		g.Expect(secondCallArgs.Chart).To(Equal(metallb_loadbalancer.FeatureLoadBalancer.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
+		g.Expect(secondCallArgs.Chart).To(Equal(metallb_loadbalancer.Manifest.GetChart(metallb_loadbalancer.LoadBalancerChartName)))
 		g.Expect(secondCallArgs.State).To(Equal(helm.StatePresent))
-		validateLoadBalancerValues(g, secondCallArgs.Values, lbCfg)
+		validateLoadBalancerValues(g, secondCallArgs.Values, cfg.LoadBalancer)
 	})
 }
 

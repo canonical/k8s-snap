@@ -3,14 +3,14 @@ package network
 import (
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/k8sd/features/manifests"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/images"
 )
 
 func init() {
-	tigeraOperatorImage := FeatureNetwork.GetImage(TigeraOperatorImageName)
-	calicoCtlImage := FeatureNetwork.GetImage(CalicoCtlImageName)
-	calicoImage := FeatureNetwork.GetImage(CalicoImageName)
+	tigeraOperatorImage := Manifest.GetImage(TigeraOperatorImageName)
+	calicoCtlImage := Manifest.GetImage(CalicoCtlImageName)
+	calicoImage := Manifest.GetImage(CalicoImageName)
 
 	images.Register(
 		// Tigera images
@@ -27,5 +27,5 @@ func init() {
 		fmt.Sprintf("%s/typha:%s", calicoImage.GetURI(), calicoImage.Tag),
 	)
 
-	manifests.Register(&manifest)
+	features.Register(&Manifest)
 }

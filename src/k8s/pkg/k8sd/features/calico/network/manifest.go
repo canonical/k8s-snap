@@ -13,7 +13,7 @@ var (
 	CalicoCtlImageName      = "calicoctl"
 )
 
-var manifest = types.FeatureManifest{
+var Manifest = types.FeatureManifest{
 	Name:    "network",
 	Version: "1.0.0",
 	Charts: map[string]helm.InstallableChart{
@@ -43,5 +43,3 @@ var manifest = types.FeatureManifest{
 		},
 	},
 }
-
-var FeatureNetwork types.Feature = manifest

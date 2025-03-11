@@ -2,13 +2,16 @@ package gateway
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	cilium_network "github.com/canonical/k8s/pkg/k8sd/features/cilium/network"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -24,18 +27,34 @@ const (
 // deployment.
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
-	if gateway.GetEnabled() {
-		return enableGateway(ctx, snap, m, gateway)
+func (r reconciler) Reconcile(ctx context.Context, cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	networkManifest, err := r.getNetworkManifest(ctx)
+	if err != nil {
+		err = fmt.Errorf("failed to get network manifest: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: "",
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
+		}, err
 	}
-	return disableGateway(ctx, snap, m, network)
+
+	gateway := cfg.Gateway
+	network := cfg.Network
+
+	if gateway.GetEnabled() {
+		return r.enableGateway(ctx, networkManifest, gateway)
+	}
+	return r.disableGateway(ctx, networkManifest, network)
 }
 
-func enableGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway types.Gateway) (types.FeatureStatus, error) {
-	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
+func (r reconciler) enableGateway(ctx context.Context, networkManifest *types.FeatureManifest, gateway types.Gateway) (types.FeatureStatus, error) {
+	ciliumAgentImageTag := networkManifest.GetImage(cilium_network.CiliumAgentImageName).Tag
+
+	helmClient := r.HelmClient()
+	snap := r.Snap()
 
 	// Install Gateway API CRDs
-	if _, err := m.Apply(ctx, FeatureGateway.GetChart(GatewayChartName), helm.StatePresent, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(GatewayChartName), helm.StatePresent, nil); err != nil {
 		err = fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -45,7 +64,7 @@ func enableGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway t
 	}
 
 	// Apply our GatewayClass named ck-gateway
-	if _, err := m.Apply(ctx, FeatureGateway.GetChart(GatewayClassChartName), helm.StatePresent, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(GatewayClassChartName), helm.StatePresent, nil); err != nil {
 		err = fmt.Errorf("failed to install Gateway API GatewayClass: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -65,7 +84,7 @@ func enableGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway t
 		}, err
 	}
 
-	changed, err := m.Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnly, ciliumValues)
+	changed, err := helmClient.Apply(ctx, networkManifest.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnly, ciliumValues)
 	if err != nil {
 		err = fmt.Errorf("failed to upgrade Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{
@@ -99,11 +118,14 @@ func enableGateway(ctx context.Context, snap snap.Snap, m helm.Client, gateway t
 	}, nil
 }
 
-func disableGateway(ctx context.Context, snap snap.Snap, m helm.Client, network types.Network) (types.FeatureStatus, error) {
-	ciliumAgentImageTag := cilium_network.FeatureNetwork.GetImage(cilium_network.CiliumAgentImageName).Tag
+func (r reconciler) disableGateway(ctx context.Context, networkManifest *types.FeatureManifest, network types.Network) (types.FeatureStatus, error) {
+	ciliumAgentImageTag := networkManifest.GetImage(cilium_network.CiliumAgentImageName).Tag
+
+	helmClient := r.HelmClient()
+	snap := r.Snap()
 
 	// Delete our GatewayClass named ck-gateway
-	if _, err := m.Apply(ctx, FeatureGateway.GetChart(GatewayClassChartName), helm.StateDeleted, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(GatewayClassChartName), helm.StateDeleted, nil); err != nil {
 		err = fmt.Errorf("failed to delete Gateway API GatewayClass: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -123,7 +145,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, m helm.Client, network 
 		}, err
 	}
 
-	changed, err := m.Apply(ctx, cilium_network.FeatureNetwork.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues)
+	changed, err := helmClient.Apply(ctx, networkManifest.GetChart(cilium_network.CiliumChartName), helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), ciliumValues)
 	if err != nil {
 		err = fmt.Errorf("failed to delete Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{
@@ -135,7 +157,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, m helm.Client, network 
 
 	// Remove Gateway CRDs if the Gateway feature is disabled.
 	// This is done after the Cilium update as cilium requires the CRDs to be present for cleanups.
-	if _, err := m.Apply(ctx, FeatureGateway.GetChart(GatewayChartName), helm.StateDeleted, nil); err != nil {
+	if _, err := helmClient.Apply(ctx, r.Manifest().GetChart(GatewayChartName), helm.StateDeleted, nil); err != nil {
 		err = fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -166,4 +188,25 @@ func disableGateway(ctx context.Context, snap snap.Snap, m helm.Client, network 
 		Version: ciliumAgentImageTag,
 		Message: cilium.DisabledMsg,
 	}, nil
+}
+
+func (r reconciler) getNetworkManifest(ctx context.Context) (*types.FeatureManifest, error) {
+	return GetNetworkManifest(ctx, r.State())
+}
+
+var GetNetworkManifest = func(ctx context.Context, state state.State) (*types.FeatureManifest, error) {
+	var networkManifest *types.FeatureManifest
+
+	if err := state.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		networkManifest, err = database.GetFeatureManifest(ctx, tx, string(features.Network), "1.0.0")
+		if err != nil {
+			return fmt.Errorf("failed to get cluster config from database: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("failed to perform cluster config transaction request: %w", err)
+	}
+
+	return networkManifest, nil
 }
