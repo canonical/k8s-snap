@@ -70,6 +70,10 @@ Environment="NO_PROXY=10.1.0.0/16,10.152.183.0/24,192.168.0.0/16,127.0.0.1,172.1
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
 def test_airgapped_with_proxy(instances: List[harness.Instance]):
+    pytest.xfail(
+        "Airgapped test may have networking-related side effects, causing other tests to fail. Skipped."
+    )
+
     proxy, instance = instances
     proxy_ip = util.get_default_ip(proxy)
     instance_ip = util.get_default_ip(instance)
@@ -108,6 +112,10 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
 def test_airgapped_with_proxy_setup_and_image_mirror(
     instances: List[harness.Instance], registry: registry.Registry
 ):
+    pytest.xfail(
+        "Airgapped test may have networking-related side effects, causing other tests to fail. Skipped."
+    )
+
     proxy, instance = instances
     proxy_ip = util.get_default_ip(proxy)
     registry_ip = util.get_default_ip(registry.instance)
