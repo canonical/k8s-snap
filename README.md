@@ -6,12 +6,13 @@
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/k8s)
 
 **Canonical Kubernetes** is an opinionated distribution of Kubernetes which
-includes everything needed to create and manage a scalable
+includes all the tools needed to create and manage a scalable
 [Cloud Native Computing Foundation](https://www.cncf.io)-conformant cluster with
-LTS. Canonical Kubernetes builds on the main Kubernetes project by providing all
+[LTS](https://canonical.com/blog/12-year-lts-for-kubernetes). Canonical
+Kubernetes builds on the main Kubernetes project by providing all
 the necessary pieces for a zero-ops experience, such as ingress, DNS,
 networking, and so on. Whether you are a complete beginner to Kubernetes or a
-seasoned system admin, Canonical Kubernetes provides a way to easily deploy a
+seasoned system administrator, Canonical Kubernetes provides a way to easily deploy a
 cluster allowing you to focus on applications over infrastructure.
 
 ## Basic usage
