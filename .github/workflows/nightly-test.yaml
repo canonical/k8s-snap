@@ -16,6 +16,15 @@ jobs:
     steps:
       - name: Set current formatted date as env variable
         run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
+      - name: Generate Mattermost Message
+        run: |
+          if [[ "${{ github.workflow_run.conclusion }}" == "success" ]]; then
+            echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully." >> $GITHUB_ENV
+          else
+            echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-crew please fix ASAP. [View Run](${{
+              github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
+          fi
+
       - name: Notify Mattermost
         uses: mattermost/action-mattermost-notify@master
         with:
@@ -27,7 +36,7 @@ jobs:
                   "fallback": "k8s-snap Nightly CI Status",
                   "color": "${{ github.workflow_run.conclusion == 'success' && 'good' || 'danger' }}",
                   "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
-                  "text": "${{ github.workflow_run.conclusion == 'success' && ':white_check_mark: *Success!* CI completed successfully.' || ':x: *Failure!* CI failed, @k8s-crew please fix ASAP. [View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'}}",
+                  "text": ${{ env.MM_TEXT }},
                   "footer": "GitHub Actions"
                 }
               ]
