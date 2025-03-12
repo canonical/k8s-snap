@@ -1,7 +1,7 @@
 name: "Lint PR"
 
 on:
-  pull_request:
+  pull_request_target:
     # will run on adding or removing labels, converting to draft or ready, etc.
     types: [opened, edited, synchronize, reopened, ready_for_review, converted_to_draft, labeled, unlabeled]
 
