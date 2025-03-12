@@ -90,6 +90,10 @@ jobs:
             if git diff HEAD HEAD~1 --name-only | grep "tests/"; then
               tags="up_to_weekly"
             fi
+            # Run all tests if there are any changes to the Kubernetes components / features.
+            if git diff HEAD HEAD~1 --name-only | grep "k8sd/features/.*/"; then
+              tags="up_to_weekly"
+            fi
             # Run all tests on backports.
             if echo ${{ github.base_ref }} | grep "release-"; then
               tags="up_to_weekly"
