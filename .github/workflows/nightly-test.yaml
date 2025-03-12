@@ -9,11 +9,13 @@ permissions:
   contents: read
 
 jobs:
-
   Mattermost:
+    runs-on: ubuntu-latest
     name: Notify Mattermost
     if: ${{ always() }}
-    uses: mattermost/action-mattermost-notify@master
-    with:
-      MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_WEBHOOK_URL }}
-      TEXT: "**Kubernetes Snap Nightly CI Status** - $(date -u '+%Y-%m-%d') - ${{ (github.workflow_run.conclusion == 'success' && ':white_check_mark: *Success!* The CI completed successfully.') || (':x: *Failure!* @k8s-crew The CI failed. [View Run](' || github.server_url || '/' || github.repository || '/actions/runs/' || github.run_id || ')') }}"
+    steps:
+      - name: Notify Mattermost
+        uses: mattermost/action-mattermost-notify@master
+        with:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_WEBHOOK_URL }}
+          TEXT: "**Kubernetes Snap Nightly CI Status** - $(date -u '+%Y-%m-%d') - ${{ (github.workflow_run.conclusion == 'success' && ':white_check_mark: *Success!* The CI completed successfully.') || (':x: *Failure!* @k8s-crew The CI failed. [View Run](' || github.server_url || '/' || github.repository || '/actions/runs/' || github.run_id || ')') }}"
