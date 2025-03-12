@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
- test-integration:
+  test-integration:
     name: Integration
     strategy:
       matrix:
