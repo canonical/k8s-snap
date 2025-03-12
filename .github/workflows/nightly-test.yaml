@@ -31,7 +31,7 @@ jobs:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
           PAYLOAD: |
             {
-              'attachements': [
+              "attachements": [
                 {
                   "fallback": "k8s-snap Nightly CI Status",
                   "color": "${{ github.workflow_run.conclusion == 'success' && 'good' || 'danger' }}",
