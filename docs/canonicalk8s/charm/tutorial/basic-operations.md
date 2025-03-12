@@ -90,7 +90,7 @@ Use `yq` to append your cluster's kubeconfig information directly to the
 config file:
 
 ```
-juju run k8s/0 get-kubeconfig | yq '.kubeconfig' >> ~/.kube/config
+juju run k8s/0 get-kubeconfig | yq -r '.kubeconfig' >> ~/.kube/config
 ```
 
 Confirm that `kubectl` can read the kubeconfig file:
