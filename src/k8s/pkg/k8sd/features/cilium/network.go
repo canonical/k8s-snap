@@ -212,6 +212,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		"k8sServicePort": apiserver.GetSecurePort(),
 		// This flag enables the runtime device detection which is set to true by default in Cilium 1.16+
 		"enableRuntimeDeviceDetection": true,
+		"sessionAffinity":              true,
 		"tunnelPort":                   config.tunnelPort,
 	}
 
