@@ -113,7 +113,9 @@ jobs:
 
   Mattermost:
     name: Notify Mattermost
-    if: ${{ always() }}
+    # Notify on success or failure but only if the event is a scheduled run.
+    # We don't want to ping people of failed PRs.
+    if: ${{ always() && github.event_name == 'schedule' }}
     # Note: Update results check below if you change the "needs" list.
     needs: [test-integration, Trivy, TICS]
     runs-on: ubuntu-latest
@@ -127,7 +129,6 @@ jobs:
           else
             echo "RESULT=failure" >> $GITHUB_ENV
           fi
-
       - name: Generate Mattermost Message
         run: |
           if [[ "${{ env.RESULT }}" == "success" ]]; then
@@ -136,7 +137,6 @@ jobs:
             echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-crew please fix ASAP. [View Run](${{
               github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
           fi
-
       - name: Notify Mattermost
         uses: mattermost/action-mattermost-notify@master
         with:
