@@ -227,6 +227,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		// This flag enables the runtime device detection which is set to true by default in Cilium 1.16+
 		"enableRuntimeDeviceDetection": true,
 		"tunnelPort":                   config.tunnelPort,
+		"sessionAffinity":              true,
 	}
 
 	// If we are deploying with IPv6 only, we need to set the routing mode to native
