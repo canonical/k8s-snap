@@ -14,8 +14,19 @@ jobs:
     name: Notify Mattermost
     if: ${{ always() }}
     steps:
+      - name: Set current formatted date as env variable
+        run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
       - name: Notify Mattermost
         uses: mattermost/action-mattermost-notify@master
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
-          TEXT: "**Kubernetes Snap Nightly CI Status** - $(date -u '+%Y-%m-%d') - ${{ (github.workflow_run.conclusion == 'success' && ':white_check_mark: *Success!* The CI completed successfully.') || (':x: *Failure!* @k8s-crew The CI failed. [View Run](' || github.server_url || '/' || github.repository || '/actions/runs/' || github.run_id || ')') }}"
+          ATTACHMENTS: |
+            [
+              {
+                "fallback": "Kubernetes Snap Nightly CI Status",
+                "color": "${{ github.workflow_run.conclusion == 'success' && 'good' || 'danger' }}",
+                "title": "Kubernetes Snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
+                "text": "${{ github.workflow_run.conclusion == 'success' && ':white_check_mark: *Success!* The k8s-snap nightly CI completed successfully.' || ':x: *Failure!* @k8s-crew The CI failed. [View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'}}",
+                "footer": "GitHub Actions"
+              }
+            ]
