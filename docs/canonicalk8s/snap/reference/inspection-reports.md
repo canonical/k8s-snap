@@ -2,7 +2,7 @@
 
 {{product}} ships with a command to compile a complete report on {{product}} and
 its underlying system. This is an essential tool for bug reports and for
-investigating whether a system is (or isn’t) working.
+investigating why a system is not working.
 
 The resulting report is a tarball containing service arguments and logs, SBOM,
 system diagnostics, network diagnostics and more.
