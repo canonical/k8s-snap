@@ -3,6 +3,8 @@
 This page provides techniques for troubleshooting common {{product}}
 issues.
 
+Make sure to also check the [troubleshooting how-to guide] for more details on
+how to verify the status of {{product}} services.
 
 ## Kubectl error: `dial tcp 127.0.0.1:6443: connect: connection refused`
 
@@ -177,6 +179,7 @@ priority value that is greater than `100`.
 
 <!-- LINKS -->
 
+[troubleshooting how-to guide]: ../howto/troubleshooting.md
 [lxd-install]: ../howto/install/lxd.md
 [kubeconfig file]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
 [kubernetes-122955]: https://github.com/kubernetes/kubernetes/issues/122955
