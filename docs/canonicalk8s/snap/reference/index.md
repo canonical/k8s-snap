@@ -61,6 +61,7 @@ Common issues faced by users and their solutions.
 ```{toctree}
 :titlesonly:
 troubleshooting
+inspection-reports
 ```
 
 ## Security

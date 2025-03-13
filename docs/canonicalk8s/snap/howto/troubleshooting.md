@@ -188,38 +188,7 @@ required to collect all the data):
 sudo k8s inspect
 ```
 
-The command output is similar to the following:
-
-```
-Collecting service information
-Running inspection on a control-plane node
- INFO:  Service k8s.containerd is running
- INFO:  Service k8s.kube-proxy is running
- INFO:  Service k8s.k8s-dqlite is running
- INFO:  Service k8s.k8sd is running
- INFO:  Service k8s.kube-apiserver is running
- INFO:  Service k8s.kube-controller-manager is running
- INFO:  Service k8s.kube-scheduler is running
- INFO:  Service k8s.kubelet is running
-Collecting registry mirror logs
-Collecting service arguments
- INFO:  Copy service args to the final report tarball
-Collecting k8s cluster-info
- INFO:  Copy k8s cluster-info dump to the final report tarball
-Collecting SBOM
- INFO:  Copy SBOM to the final report tarball
-Collecting system information
- INFO:  Copy uname to the final report tarball
- INFO:  Copy snap diagnostics to the final report tarball
- INFO:  Copy k8s diagnostics to the final report tarball
-Collecting networking information
- INFO:  Copy network diagnostics to the final report tarball
-Building the report tarball
- SUCCESS:  Report tarball is at /root/inspection-report-20250109_132806.tar.gz
-```
-
-Use the report to ensure that all necessary services are running and dive into
-every aspect of the system.
+See the [inspection report reference page] for more details.
 
 ## Report a bug
 
@@ -238,3 +207,4 @@ troubleshooting a Kubernetes cluster.
 [snap-troubleshooting-reference]: ../reference/troubleshooting
 [debug pods documentation]: https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods
 [debug documentation]: https://kubernetes.io/docs/tasks/debug
+[inspection report reference page]: /snap/reference/inspection-reports.md
