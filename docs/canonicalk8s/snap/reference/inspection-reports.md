@@ -13,6 +13,10 @@ inspect the report and remove any information deemed sensitive before sharing
 it.
 ```
 
+The command tries to limit the report size and avoid private user data. It
+also accepts a few arguments that control how and what will be collected.
+See the following sections for more details.
+
 Check the following script to see how the inspection report gets generated:
 https://github.com/canonical/k8s-snap/blob/release-1.32/k8s/scripts/inspect.sh
 
