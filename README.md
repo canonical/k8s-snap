@@ -1,55 +1,104 @@
 # Canonical Kubernetes Snap
+
 [![End to End Tests](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml/badge.svg)](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml)
 [![](https://snapcraft.io/k8s/badge.svg)](https://snapcraft.io/k8s)
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/k8s)
 
+**Canonical Kubernetes** is an opinionated distribution of Kubernetes which
+includes all the tools needed to create and manage a scalable cluster with
+[LTS](https://canonical.com/blog/12-year-lts-for-kubernetes). Canonical
+Kubernetes builds on the main Kubernetes project by providing all
+the necessary pieces for a zero-ops experience, such as Ingress, DNS,
+networking, and so on. Whether you are a complete beginner to Kubernetes or a
+seasoned system administrator, Canonical Kubernetes provides a way to easily
+deploy a cluster allowing you to focus on applications over infrastructure.
 
+## Basic usage
 
-**Canonical Kubernetes** is the fastest, easiest way to deploy a fully-conformant Kubernetes cluster. Harnessing pure upstream Kubernetes, this distribution adds the missing pieces (e.g. ingress, dns, networking) for a zero-ops experience.
+Canonical Kubernetes provides a way for you to easily enable, disable, and
+configure the essential default Kubernetes features in your cluster.
 
-For more information and instructions, please see the official documentation at: [https://documentation.ubuntu.com/canonical-kubernetes](https://documentation.ubuntu.com/canonical-kubernetes/)
-
-## Quickstart
-
-Install Canonical Kubernetes and initialise the cluster with:
+For example, if you want a load balancer with L2 mode enabled, run:
 
 ```bash
-sudo snap install k8s --channel=1.32-classic/stable --classic
-sudo k8s bootstrap
+sudo k8s enable load-balancer
+sudo k8s set load-balancer.l2-mode=true
 ```
 
-Confirm the installation was successful:
+Or, if you want to disable the default local storage before implementing your
+own storage solution, run:
 
 ```bash
-sudo k8s status
+sudo k8s disable local-storage
 ```
 
-Use `kubectl` to interact with k8s:
+Use kubectl to interact with k8s just as you would with any other Kubernetes
+cluster:
 
 ```bash
 sudo k8s kubectl get pods -A
 ```
 
-Remove the snap with:
+If you want to explore the possibilities of what you can do with Canonical
+Kubernetes, be sure to check out its
+[how-to guides](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/)
+.
+
+## Installation
+
+Canonical Kubernetes is available for Ubuntu 22.04 and higher. It's also
+available in other Linux distributions that support
+[snaps](https://snapcraft.io/).
+
+Install the snap:
 
 ```bash
-sudo snap remove k8s --purge
+sudo snap install k8s --channel=1.32-classic/stable --classic
 ```
 
-
-## Build the project from source
-
-To build the Kubernetes snap on an Ubuntu machine you need Snapcraft.
+Initialize the cluster:
 
 ```bash
-sudo snap install snapcraft --classic
+sudo k8s bootstrap
 ```
 
-Building the project by running `snapcraft` in the root of this repository. Snapcraft spawns a VM managed by Multipass and builds the snap inside it. If you don’t have Multipass installed, snapcraft will first prompt for its automatic installation.
+If you would like to customize the deployment, see our
+[installation guides](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/)
+.
 
-After snapcraft completes, you can install the newly compiled snap:
+## Documentation
 
-```bash
-sudo snap install k8s_*.snap --classic --dangerous
-```
+The
+[Canonical Kubernetes documentation](https://documentation.ubuntu.com/canonical-kubernetes/)
+provides information about how to grow your cluster by adding additional nodes,
+how your cluster can stay up-to-date with the latest Kubernetes releases
+automatically, backing up your cluster, and much more.
+
+## Community and support
+
+Do you have questions about Canonical Kubernetes? Perhaps you'd like some advice
+from more experienced users or discuss how to achieve a certain goal? Get in
+touch on the
+[#canonical-kubernetes channel on the Kubenetes Slack workspace](http://slack.kubernetes.io/)
+.
+
+You can report any bugs or issues you find on
+[GitHub](https://github.com/canonical/k8s-snap/issues).
+
+Canonical Kubernetes is covered by the
+[Ubuntu Code of Conduct](https://ubuntu.com/community/ethos/code-of-conduct).
+
+## Contribute to Canonical Kubernetes
+
+Canonical Kubernetes is a proudly open source project and we welcome and
+encourage contributions to the code and documentation. If you are interested,
+take a look at our
+[contributing guide](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/contribute/)
+.
+
+## License and copyright
+
+Canonical Kubernetes is released under the [GPL-3.0 license](LICENSE).
+
+© 2015-2025 Canonical Ltd.
