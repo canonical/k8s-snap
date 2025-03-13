@@ -12,6 +12,7 @@ on:
 permissions:
   contents: read
 
+# DUMMY COMMENT TO TRIGGER A CHANGE
 jobs:
   test-integration:
     name: Integration

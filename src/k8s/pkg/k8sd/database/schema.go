@@ -24,6 +24,7 @@ var (
 		schemaApplyMigration("worker-tokens", "001-add-expiry.sql"),
 		schemaApplyMigration("worker-nodes", "001-delete.sql"),
 		schemaApplyMigration("helm-charts", "002-create.sql"),
+		schemaApplyMigration("feature-manifests", "002-create.sql"),
 	}
 
 	//go:embed sql/migrations
