@@ -18,21 +18,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: dummy step
-        run: exit 1
+        run: exit 0
 
   Trivy:
     name: Trivy
     runs-on: ubuntu-latest
     steps:
       - name: dummy step
-        run: exit 1
+        run: exit 0
 
   TICS:
     name: TICS
     runs-on: ubuntu-latest
     steps:
       - name: dummy step
-        run: exit 1
+        run: exit 0
 
   Mattermost:
     name: Notify Mattermost
