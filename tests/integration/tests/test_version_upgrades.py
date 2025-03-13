@@ -78,6 +78,18 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
 )
 @pytest.mark.tags(tags.NIGHTLY)
 def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp_path):
+    """
+    This test will downgrade the snap through the channels, and at each downgrade, attempt a rollback.
+
+    Example of downgrading while rolling back through channels:
+    Channels from config:  1.32-classic/stable, 1.31-classic/stable
+    Segment 1: 1.32-classic/stable -> 1.31-classic/stable -> 1.32-classic/stable -> 1.31-classic/stable
+
+    Example 2 of downgrading while rolling back through channels:
+    Channels from config: 1.32-classic/stable 1.32-classic/beta 1.31-classic/stable
+    Segment 1: 1.32-classic/stable -> 1.32-classic/beta -> 1.32-classic/stable -> 1.32-classic/beta
+    Segment 2: 1.32-classic/beta -> 1.31-classic/stable -> 1.32-classic/beta -> 1.31-classic/stable
+    """
     channels = config.VERSION_DOWNGRADE_CHANNELS
     cp = instances[0]
     current_channel = channels[0]
@@ -112,12 +124,6 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
 
     util.wait_until_k8s_ready(cp, instances)
     LOG.info(f"Installed {cp.id} on channel {current_channel}")
-
-    # This test will downgrade the snap through the channels, and at each downgrade, attempt a rollback.
-    # Example of downgrading while rolling back through channels:
-    # Channels:  1.32-classic/stable, 1.31-classic/stable
-    # Segment 1: 1.32-classic/stable -> 1.31-classic/stable -> 1.32-classic/stable
-    # Segment 2: 1.31-classic/stable -> 1.30-classic/stable -> 1.31-classic/stable
 
     for channel in channels[1:]:
         LOG.info(
