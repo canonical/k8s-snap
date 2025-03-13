@@ -9,7 +9,7 @@
 includes all the tools needed to create and manage a scalable cluster with
 [LTS](https://canonical.com/blog/12-year-lts-for-kubernetes). Canonical
 Kubernetes builds on the main Kubernetes project by providing all
-the necessary pieces for a zero-ops experience, such as ingress, DNS,
+the necessary pieces for a zero-ops experience, such as Ingress, DNS,
 networking, and so on. Whether you are a complete beginner to Kubernetes or a
 seasoned system administrator, Canonical Kubernetes provides a way to easily
 deploy a cluster allowing you to focus on applications over infrastructure.
