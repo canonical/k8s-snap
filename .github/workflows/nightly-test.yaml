@@ -56,7 +56,7 @@ jobs:
         run: |
           if [[ "${{ env.RESULT }}" == "success" ]]; then
             echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
-              github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"" >> $GITHUB_ENV
+              github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
           else
             echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-crew please fix ASAP. [View Run](${{
               github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
