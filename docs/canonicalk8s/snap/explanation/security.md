@@ -26,8 +26,8 @@ access to alter cluster resources they are entitled to. For more information on
 creating users, assigning access levels and what access these levels bestow,
 please check the following pages of Juju documentation:
 
-- [Juju user types] - describes the different types of users supported by Juju and
-their abilities.
+- [Juju user types] - describes the different types of users supported by Juju
+and their abilities.
 - [Working with multiple users] - A how-to guide on sharing control of a cluster
 with multiple Juju users.
 - [Machine authentication] - describes how SSH keys are stored and used by Juju.
