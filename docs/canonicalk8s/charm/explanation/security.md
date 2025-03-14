@@ -16,12 +16,13 @@ effective ways to keep your cluster secure. Deploying {{product}} as a snap
 allows our users to automatically consume the latest updates with snap refreshes
 taking place several times a day. The `k8s` snap is deployed with `classic`
 confinement meaning that the snap has access to system resources in order to be
-able to deploy the cluster successfully. Other risk mitigating steps have been
-taken to secure the `k8s` snap Kubernetes cluster such as Role Based Access
-Control (RBAC) enabled as default as well as TLS encrypted communication using
-self-signed certificates for communication within the cluster. For more
-information on confinement levels and security in snaps, see the
-[snapcraft documentation].
+able to deploy the cluster successfully. See the
+[snapcraft documentation](https://snapcraft.io/docs/security-policies) for more
+information on confinement levels and security in snaps. Other risk mitigating
+steps have been taken to secure the `k8s` snap Kubernetes cluster such as Role
+Based Access Control (RBAC) enabled as default as well as TLS encrypted
+communication using self-signed certificates for communication within the
+cluster.
 
 
 <!-- charm only -->
@@ -102,7 +103,6 @@ hardening on our [CIS explanation page].
 [Defense Information System Agency (DISA) Security Technical Implementation
 Guides (STIG) for Kubernetes]: https://www.stigviewer.com/stig/kubernetes/
 [Kubernetes Security documentation]: https://kubernetes.io/docs/concepts/security/overview/
-[snapcraft documentation]: https://snapcraft.io/docs/security-policies
 [rocks-security]: https://documentation.ubuntu.com/rockcraft/en/latest/explanation/rockcraft/
 [Amazon Web Services security]: https://aws.amazon.com/security/
 [Google Cloud Platform security]:https://cloud.google.com/security
