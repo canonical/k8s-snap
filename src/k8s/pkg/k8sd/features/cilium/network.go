@@ -173,9 +173,10 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 			"enabled": true,
 		},
 		"cni": map[string]any{
-			"confPath":  "/etc/cni/net.d",
-			"binPath":   "/opt/cni/bin",
-			"exclusive": config.cniExclusive,
+			"confPath":     "/etc/cni/net.d",
+			"binPath":      "/opt/cni/bin",
+			"exclusive":    config.cniExclusive,
+			"chainingMode": "portmap",
 		},
 		"sctp": map[string]any{
 			"enabled": config.sctpEnabled,
@@ -213,7 +214,12 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		// This flag enables the runtime device detection which is set to true by default in Cilium 1.16+
 		"enableRuntimeDeviceDetection": true,
 		"sessionAffinity":              true,
-		"tunnelPort":                   config.tunnelPort,
+		"loadBalancer": map[string]any{
+			"protocolDifferentiation": map[string]any{
+				"enabled": true,
+			},
+		},
+		"tunnelPort": config.tunnelPort,
 	}
 
 	// If we are deploying with IPv6 only, we need to set the routing mode to native
