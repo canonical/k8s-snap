@@ -27,7 +27,7 @@ LOG = logging.getLogger(__name__)
 DIR = Path(__file__).absolute().parent
 SNAPCRAFT = DIR.parent.parent / "snap/snapcraft.yaml"
 COMPONENTS = DIR.parent / "components"
-FEATURES = DIR.parent.parent / "src" / "k8s" / "pkg" / "k8sd" / "features"
+CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
 
 # Version marker for latest Kubernetes version. Expected to be one of:
 #
@@ -45,12 +45,10 @@ HELM_RELEASE_BRANCH = "release-3.14"
 # Contour Helm repository and chart version
 CONTOUR_HELM_REPO = "https://charts.bitnami.com/bitnami"
 CONTOUR_CHART_VERSION = "17.0.4"
-CONTOUR_CHART_DESTINATION = FEATURES / "contour" / "charts"
 
 # MetalLB Helm repository and chart version
 METALLB_REPO = "https://metallb.github.io/metallb"
 METALLB_CHART_VERSION = "0.14.8"
-METALLB_CHART_DESTINATION = FEATURES / "metallb" / "charts"
 
 
 def get_kubernetes_version() -> str:
@@ -82,7 +80,7 @@ def pull_contour_chart() -> None:
         CONTOUR_HELM_REPO,
         CONTOUR_CHART_VERSION,
     )
-    util.helm_pull("contour", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION, CONTOUR_CHART_DESTINATION)
+    util.helm_pull("contour", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION, CHARTS)
 
 
 def get_containerd_version() -> str:
@@ -113,7 +111,7 @@ def get_helm_version() -> str:
 
 def pull_metallb_chart() -> None:
     LOG.info("Pulling MetalLB chart @ %s", METALLB_CHART_VERSION)
-    util.helm_pull("metallb", METALLB_REPO, METALLB_CHART_VERSION, METALLB_CHART_DESTINATION)
+    util.helm_pull("metallb", METALLB_REPO, METALLB_CHART_VERSION, CHARTS)
 
 
 def update_component_versions(dry_run: bool):
