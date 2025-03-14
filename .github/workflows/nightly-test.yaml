@@ -110,3 +110,46 @@ jobs:
           go build -a ./...
 
           TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $HOME/work/k8s-snap/k8s-snap/
+
+  Mattermost:
+    name: Notify Mattermost
+    # Notify on success or failure but only if the event is a scheduled run.
+    # We don't want to ping people of failed PRs.
+    if: ${{ always() && github.event_name == 'schedule' }}
+    # Note: Update results check below if you change the "needs" list.
+    needs: [test-integration, Trivy, TICS]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set current formatted date as env variable
+        run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
+      - name: Test results
+        run: |
+          if [[ "${{ needs.test-integration.result }}" == "success" || "${{ needs.Trivy.result }}" == "success" || "${{ needs.TICS.result }}" == "success" ]]; then
+            echo "RESULT=success" >> $GITHUB_ENV
+          else
+            echo "RESULT=failure" >> $GITHUB_ENV
+          fi
+      - name: Generate Mattermost Message
+        run: |
+          if [[ "${{ env.RESULT }}" == "success" ]]; then
+            echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
+              github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
+          else
+            echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-crew please fix ASAP. [View Run](${{
+              github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
+          fi
+      - name: Notify Mattermost
+        uses: mattermost/action-mattermost-notify@master
+        with:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
+          PAYLOAD: |
+            {
+              "attachments": [
+                {
+                  "fallback": "k8s-snap Nightly CI Status",
+                  "color": "${{ env.RESULT == 'success' && 'good' || 'danger' }}",
+                  "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
+                  "text": "${{ env.MM_TEXT }}"
+                }
+              ]
+            }
