@@ -190,9 +190,10 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 			"enabled": true,
 		},
 		"cni": map[string]any{
-			"confPath":  "/etc/cni/net.d",
-			"binPath":   "/opt/cni/bin",
-			"exclusive": config.cniExclusive,
+			"confPath":     "/etc/cni/net.d",
+			"binPath":      "/opt/cni/bin",
+			"exclusive":    config.cniExclusive,
+			"chainingMode": "portmap",
 		},
 		"operator": map[string]any{
 			"replicas": 1,
@@ -228,6 +229,11 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		"enableRuntimeDeviceDetection": true,
 		"tunnelPort":                   config.tunnelPort,
 		"sessionAffinity":              true,
+		"loadBalancer": map[string]any{
+			"protocolDifferentiation": map[string]any{
+				"enabled": true,
+			},
+		},
 	}
 
 	// If we are deploying with IPv6 only, we need to set the routing mode to native
