@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features/contour"
@@ -39,8 +38,7 @@ func TestIngressDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour.ApplyIngress(context.Background(), snapM, mc, ingress, network, nil)
+		status, err := contour.ApplyIngress(context.Background(), snapM, ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -64,8 +62,7 @@ func TestIngressDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour.ApplyIngress(context.Background(), snapM, mc, ingress, network, nil)
+		status, err := contour.ApplyIngress(context.Background(), snapM, ingress, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -93,8 +90,7 @@ func TestIngressEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour.ApplyIngress(context.Background(), snapM, mc, ingress, network, nil)
+		status, err := contour.ApplyIngress(context.Background(), snapM, ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -151,8 +147,7 @@ func TestIngressEnabled(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour.ApplyIngress(ctx, snapM, mc, ingress, network, nil)
+		status, err := contour.ApplyIngress(ctx, snapM, ingress, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -210,8 +205,7 @@ func TestIngressEnabled(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour.ApplyIngress(ctx, snapM, mc, ingress, network, nil)
+		status, err := contour.ApplyIngress(ctx, snapM, ingress, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -270,8 +264,7 @@ func TestIngressEnabled(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour.ApplyIngress(ctx, snapM, mc, ingress, network, nil)
+		status, err := contour.ApplyIngress(ctx, snapM, ingress, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -320,8 +313,7 @@ func TestIngressEnabled(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel()
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour.ApplyIngress(ctx, snapM, mc, ingress, network, nil)
+		status, err := contour.ApplyIngress(ctx, snapM, ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -377,8 +369,7 @@ func TestIngressEnabled(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&contour.ChartFS))
-		status, err := contour.ApplyIngress(ctx, snapM, mc, ingress, network, nil)
+		status, err := contour.ApplyIngress(ctx, snapM, ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring("failed to rollout restart contour to apply ingress"))

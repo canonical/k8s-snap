@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/canonical/k8s/pkg/client/helm"
-	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
@@ -38,9 +37,7 @@ func TestGatewayEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-
-		status, err := cilium.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -66,8 +63,7 @@ func TestGatewayEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -100,8 +96,7 @@ func TestGatewayEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -142,8 +137,7 @@ func TestGatewayEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -170,8 +164,7 @@ func TestGatewayDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -196,8 +189,7 @@ func TestGatewayDisabled(t *testing.T) {
 		gateway := types.Gateway{
 			Enabled: ptr.To(false),
 		}
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
@@ -228,8 +220,7 @@ func TestGatewayDisabled(t *testing.T) {
 		gateway := types.Gateway{
 			Enabled: ptr.To(false),
 		}
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
@@ -268,8 +259,8 @@ func TestGatewayDisabled(t *testing.T) {
 		gateway := types.Gateway{
 			Enabled: ptr.To(false),
 		}
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium.ApplyGateway(context.Background(), snapM, mc, gateway, network, nil)
+
+		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())

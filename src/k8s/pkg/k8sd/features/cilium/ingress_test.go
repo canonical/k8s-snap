@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
@@ -96,8 +95,8 @@ func TestIngress(t *testing.T) {
 				DefaultTLSSecret:    ptr.To(tc.defaultSecretName),
 				EnableProxyProtocol: ptr.To(tc.enableProxyProtocol),
 			}
-			mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-			status, err := cilium.ApplyIngress(context.Background(), snapM, mc, ingress, network, nil)
+
+			status, err := cilium.ApplyIngress(context.Background(), snapM, ingress, network, nil)
 
 			if tc.helmErr == nil {
 				g.Expect(err).To(Not(HaveOccurred()))
@@ -143,8 +142,8 @@ func TestIngressRollout(t *testing.T) {
 		ingress := types.Ingress{
 			Enabled: ptr.To(true),
 		}
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium.ApplyIngress(context.Background(), snapM, mc, ingress, network, nil)
+
+		status, err := cilium.ApplyIngress(context.Background(), snapM, ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -189,8 +188,8 @@ func TestIngressRollout(t *testing.T) {
 		ingress := types.Ingress{
 			Enabled: ptr.To(true),
 		}
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&cilium.ChartFS))
-		status, err := cilium.ApplyIngress(context.Background(), snapM, mc, ingress, network, nil)
+
+		status, err := cilium.ApplyIngress(context.Background(), snapM, ingress, network, nil)
 
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(status.Enabled).To(BeTrue())
