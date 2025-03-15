@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/canonical/k8s/pkg/client/helm"
-	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features/metallb"
@@ -36,8 +35,7 @@ func TestDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+		status, err := metallb.ApplyLoadBalancer(context.Background(), snapM, lbCfg, types.Network{}, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -63,8 +61,7 @@ func TestDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+		status, err := metallb.ApplyLoadBalancer(context.Background(), snapM, lbCfg, types.Network{}, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -101,8 +98,7 @@ func TestEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+		status, err := metallb.ApplyLoadBalancer(context.Background(), snapM, lbCfg, types.Network{}, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -164,8 +160,7 @@ func TestEnabled(t *testing.T) {
 			}),
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&metallb.ChartFS))
-		status, err := metallb.ApplyLoadBalancer(context.Background(), snapM, mc, lbCfg, types.Network{}, nil)
+		status, err := metallb.ApplyLoadBalancer(context.Background(), snapM, lbCfg, types.Network{}, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())

@@ -17,7 +17,6 @@ var rootCmdOpts struct {
 	pprofAddress                        string
 	disableNodeConfigController         bool
 	disableNodeLabelController          bool
-	disableHelmChartController          bool
 	disableControlPlaneConfigController bool
 	disableFeatureController            bool
 	disableUpdateNodeConfigController   bool
@@ -55,7 +54,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				PprofAddress:                        rootCmdOpts.pprofAddress,
 				DisableNodeConfigController:         rootCmdOpts.disableNodeConfigController,
 				DisableNodeLabelController:          rootCmdOpts.disableNodeLabelController,
-				DisableHelmChartController:          rootCmdOpts.disableHelmChartController,
 				DisableControlPlaneConfigController: rootCmdOpts.disableControlPlaneConfigController,
 				DisableUpdateNodeConfigController:   rootCmdOpts.disableUpdateNodeConfigController,
 				DisableFeatureController:            rootCmdOpts.disableFeatureController,
@@ -87,7 +85,6 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.pprofAddress, "pprof-address", "", "Listen address for pprof endpoints, e.g. \"127.0.0.1:4217\"")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableNodeConfigController, "disable-node-config-controller", false, "Disable the Node Config Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableNodeLabelController, "disable-node-label-controller", false, "Disable the Node Label Controller")
-	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableHelmChartController, "disable-helm-chart-controller", false, "Disable the Helm Chart Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableControlPlaneConfigController, "disable-control-plane-config-controller", false, "Disable the Control Plane Config Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableUpdateNodeConfigController, "disable-update-node-config-controller", false, "Disable the Update Node Config Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableFeatureController, "disable-feature-controller", false, "Disable the Feature Controller")

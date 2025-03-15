@@ -312,12 +312,12 @@ func (s *snap) KubernetesNodeClient(namespace string) (*kubernetes.Client, error
 	return kubernetes.NewClient(s.restClientGetter(filepath.Join(s.KubernetesConfigDir(), "kubelet.conf"), namespace))
 }
 
-func (s *snap) HelmClient(chartLoader helm.ChartLoader) helm.Client {
+func (s *snap) HelmClient() helm.Client {
 	return helm.NewClient(
+		filepath.Join(s.snapDir, "k8s", "manifests"),
 		func(namespace string) genericclioptions.RESTClientGetter {
 			return s.restClientGetter(filepath.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
 		},
-		chartLoader,
 	)
 }
 

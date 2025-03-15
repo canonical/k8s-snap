@@ -24,11 +24,6 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		}
 	}()
 
-	// start helm chart controller
-	if a.helmChartController != nil {
-		go a.helmChartController.Run(ctx, s)
-	}
-
 	// start node config controller
 	if a.nodeConfigController != nil {
 		go a.nodeConfigController.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) {

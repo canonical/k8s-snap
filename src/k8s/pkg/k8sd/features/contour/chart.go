@@ -1,44 +1,37 @@
 package contour
 
 import (
-	"embed"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
-
-//go:embed all:charts
-var ChartFS embed.FS
 
 var (
 	// chartContour represents manifests to deploy Contour.
 	// This excludes shared CRDs.
 	chartContour = helm.InstallableChart{
-		Name:             "contour",
-		Version:          "17.0.4",
-		InstallName:      "ck-ingress",
-		InstallNamespace: "projectcontour",
+		Name:         "ck-ingress",
+		Namespace:    "projectcontour",
+		ManifestPath: filepath.Join("charts", "contour-17.0.4.tgz"),
 	}
 	// chartGateway represents manifests to deploy Contour Gateway.
 	// This excludes shared CRDs.
 	chartGateway = helm.InstallableChart{
-		Name:             "ck-gateway-contour",
-		Version:          "1.28.2",
-		InstallName:      "ck-gateway",
-		InstallNamespace: "projectcontour",
+		Name:         "ck-gateway",
+		Namespace:    "projectcontour",
+		ManifestPath: filepath.Join("charts", "ck-gateway-contour-1.28.2.tgz"),
 	}
 	// chartDefaultTLS represents manifests to deploy a delegation resource for the default TLS secret.
 	chartDefaultTLS = helm.InstallableChart{
-		Name:             "ck-ingress-tls",
-		Version:          "0.1.0",
-		InstallName:      "ck-ingress-tls",
-		InstallNamespace: "projectcontour-root",
+		Name:         "ck-ingress-tls",
+		Namespace:    "projectcontour-root",
+		ManifestPath: filepath.Join("charts", "ck-ingress-tls"),
 	}
 	// chartCommonContourCRDS represents manifests to deploy common Contour CRDs.
 	chartCommonContourCRDS = helm.InstallableChart{
-		Name:             "ck-contour-common",
-		Version:          "1.28.2",
-		InstallName:      "ck-contour-common",
-		InstallNamespace: "projectcontour",
+		Name:         "ck-contour-common",
+		Namespace:    "projectcontour",
+		ManifestPath: filepath.Join("charts", "ck-contour-common-1.28.2.tgz"),
 	}
 
 	// ContourGatewayProvisionerEnvoyImageRepo represents the image to use for envoy in the gateway.
