@@ -12,13 +12,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: tj-actions/changed-files@v44
-        id: changed-markdown-files
-        with:
-          files: |
-            docs/**/*.md
-          files_ignore: |
-            docs/canonicalk8s/_parts/**
       - uses: DavidAnson/markdownlint-cli2-action@v16
         if: steps.changed-markdown-files.outputs.any_changed == 'true'
         with:
