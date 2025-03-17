@@ -155,6 +155,7 @@ linkcheck_ignore = [
     'https://charmhub.io/k8s-worker/',
     'http://slack.kubernetes.io/',
     r'https://www\.stigviewer\.com/.*',
+    'https://www.squid-cache.org/',
     ]
 
 # Pages on which to ignore anchors
