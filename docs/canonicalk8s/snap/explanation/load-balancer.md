@@ -78,7 +78,7 @@ When you expose a service with a load balancer, the following steps occur:
 <!-- LINKS -->
 
 [Ingress]: ingress
-[default load balancer]: ../howto/networking/default-loadbalancer
+[default load balancer]: /snap/howto/networking/default-loadbalancer
 [kube-proxy]: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/
 [ARP]: https://en.wikipedia.org/wiki/Address_Resolution_Protocol
 [NDP]: https://en.wikipedia.org/wiki/Neighbor_Discovery_Protocol
