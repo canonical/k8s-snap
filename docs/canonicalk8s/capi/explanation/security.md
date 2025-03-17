@@ -1,2 +1,2 @@
-```{include} ../../snap/explanation/security.md
+```{include} /charm/explanation/security.md
 ```
