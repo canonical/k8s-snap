@@ -14,7 +14,8 @@ are provided.
 
 Keeping up to date with the latest security patches is one of the most
 effective ways to keep your cluster secure. Deploying {{product}} as a snap
-allows our users to automatically consume the latest updates with snap refreshes
+allows our users to automatically consume the latest security patches with snap
+refreshes
 taking place several times a day. The `k8s` snap is deployed with `classic`
 confinement meaning that the snap has access to system resources in order to be
 able to deploy the cluster successfully. See the
