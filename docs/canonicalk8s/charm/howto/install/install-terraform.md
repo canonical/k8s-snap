@@ -57,7 +57,7 @@ k8s:
   constraints: arch=amd64 cores=2 mem=4096M root-disk=16384M
   channel: 1.32/stable
   config: {}
-k8s_worker:
+k8s-worker:
   units: 2
   base: ubuntu@24.04
   constraints: arch=amd64 cores=2 mem=8192M root-disk=16384M
