@@ -103,7 +103,6 @@ resource "juju_integration" "k8s_cos_worker_tokens" {
     endpoint  = module.k8s-worker.requires.cos_tokens
   }
 }
-```
 
 Example `versions.tf`:
 
