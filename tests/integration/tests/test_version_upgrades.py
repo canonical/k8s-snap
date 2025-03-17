@@ -138,7 +138,7 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
         cp.exec(
             ["snap", "refresh", config.SNAP_NAME, "--channel", channel, "--classic"]
         )
-        util.wait_until_k8s_ready(cp, instances, output=False)
+        util.wait_until_k8s_ready(cp, instances)
 
         last_channel = current_channel
         current_channel = channel
@@ -155,7 +155,7 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
                 "--classic",
             ]
         )
-        util.wait_until_k8s_ready(cp, instances, output=False)
+        util.wait_until_k8s_ready(cp, instances)
 
         LOG.info(
             f"Step 3. Final downgrade to channel from {last_channel} → {current_channel}"
@@ -170,11 +170,10 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
                 "--classic",
             ]
         )
-        util.wait_until_k8s_ready(cp, instances, output=False)
+        util.wait_until_k8s_ready(cp, instances)
 
-        if channel == channels[-1]:
-            LOG.info(">>> Rollback test complete. All downgrade segments verified.")
-        else:
-            LOG.info(
-                ">>> Rollback segment complete. Proceeding to next downgrade segment."
-            )
+        LOG.info(
+            ">>> Rollback segment complete. Proceeding to next downgrade segment."
+        )
+
+    LOG.info(">>> Rollback test complete. All downgrade segments verified.")
