@@ -59,3 +59,22 @@ def test_dns(instances: List[harness.Instance]):
     )
 
     assert "can't resolve" not in result.stdout.decode()
+
+    # Assert that coredns is not using the default service account name.
+    result = instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "-n",
+            "kube-system",
+            "deployment.apps/coredns",
+            "-o",
+            "jsonpath='{.spec.template.spec.serviceAccount}'",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    assert (
+        "'coredns'" == result.stdout
+    ), "Expected coredns serviceaccount to be 'coredns', not {result.stdout}"
