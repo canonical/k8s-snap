@@ -172,8 +172,6 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
         )
         util.wait_until_k8s_ready(cp, instances)
 
-        LOG.info(
-            ">>> Rollback segment complete. Proceeding to next downgrade segment."
-        )
+        LOG.info(">>> Rollback segment complete. Proceeding to next downgrade segment.")
 
     LOG.info(">>> Rollback test complete. All downgrade segments verified.")
