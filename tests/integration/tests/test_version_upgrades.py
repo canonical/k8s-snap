@@ -127,13 +127,13 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
 
     for channel in channels[1:]:
         LOG.info(
-            f">>> Initiating downgrade + rollback segment from {current_channel} → {channel}"
+            f"Initiating downgrade + rollback segment from {current_channel} → {channel}"
         )
         out = cp.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
         latest_version = out.stdout.decode().strip().split("\n")[-1]
         LOG.info(f"Current snap version: {latest_version}")
 
-        LOG.info(f"Step 1. Downgrade {cp.id} from {current_channel} → {channel}")
+        LOG.debug(f"Step 1. Downgrade {cp.id} from {current_channel} → {channel}")
         # note: the `--classic` flag will be ignored by snapd for strict snaps.
         cp.exec(
             ["snap", "refresh", config.SNAP_NAME, "--channel", channel, "--classic"]
@@ -143,7 +143,7 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
         last_channel = current_channel
         current_channel = channel
 
-        LOG.info(f"Step 2. Roll back from {current_channel} → {last_channel}")
+        LOG.debug(f"Step 2. Roll back from {current_channel} → {last_channel}")
         # note: the `--classic` flag will be ignored by snapd for strict snaps.
         cp.exec(
             [
@@ -157,7 +157,7 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
         )
         util.wait_until_k8s_ready(cp, instances)
 
-        LOG.info(
+        LOG.debug(
             f"Step 3. Final downgrade to channel from {last_channel} → {current_channel}"
         )
         cp.exec(
@@ -172,6 +172,6 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
         )
         util.wait_until_k8s_ready(cp, instances)
 
-        LOG.info(">>> Rollback segment complete. Proceeding to next downgrade segment.")
+        LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
 
-    LOG.info(">>> Rollback test complete. All downgrade segments verified.")
+    LOG.info("Rollback test complete. All downgrade segments verified.")
