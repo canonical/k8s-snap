@@ -98,7 +98,7 @@ hardening on our [CIS explanation page].
 [Machine authentication]: https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/ssh-key/
 [Working with multiple users]: https://canonical-juju.readthedocs-hosted.com/en/latest/user/howto/manage-users
 [Juju user types]: https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/user/
-[CIS explanation page]: /snap/explanation/cis
+[CIS explanation page]: /snap/explanation/security/cis
 [hardening guide]: /snap/howto/security/hardening
 [Center for Internet Security (CIS) Kubernetes benchmark]: https://www.cisecurity.org/benchmark/kubernetes
 [Defense Information System Agency (DISA) Security Technical Implementation
