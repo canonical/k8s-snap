@@ -49,7 +49,7 @@ jobs:
           RESULTS=$(echo '${{ toJson(needs) }}' | jq -c 'map(.result)')
           echo "Results: $RESULTS"
 
-          if echo "$RESULTS" | jq 'all(.[] == "success")'; then
+          if echo "$RESULTS" | jq -e 'all(.[] == "success")'; then
             echo "RESULT=success" >> $GITHUB_ENV
           else
             echo "RESULT=failure" >> $GITHUB_ENV
