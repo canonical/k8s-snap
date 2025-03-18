@@ -124,7 +124,7 @@ jobs:
         run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
       - name: Test results
         run: |
-          if [[ "${{ needs.test-integration.result }}" == "success" || "${{ needs.Trivy.result }}" == "success" || "${{ needs.TICS.result }}" == "success" ]]; then
+          if [[ "${{ needs.test-integration.result }}" == "success" && "${{ needs.Trivy.result }}" == "success" && "${{ needs.TICS.result }}" == "success" ]]; then
             echo "RESULT=success" >> $GITHUB_ENV
           else
             echo "RESULT=failure" >> $GITHUB_ENV
