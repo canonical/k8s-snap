@@ -46,7 +46,7 @@ jobs:
         run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
       - name: Test results
         run: |
-          RESULTS=$(echo '${{ toJson(needs) }}' | jq -c 'map(.result)')
+          RESULTS=$(echo '${{ toJson(needs) }}' | jq -c 'map(.result | tostring)')
           echo "Results: $RESULTS"
 
           if echo "$RESULTS" | jq -e 'all(.[] == "success")'; then
