@@ -40,7 +40,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Apply patches
         if: inputs.flavor != ''
         run: |
@@ -65,6 +65,8 @@ jobs:
           # Test the latest (up to) 6 releases for the flavour
           # TODO(ben): upgrade nightly to run all flavours
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6 classic"
+          # TODO(etienne): change to "recent" when 1.33 is stable
+          TEST_VERSION_DOWNGRADE_CHANNELS: "1.32-classic/stable 1.32-classic/beta 1.31-classic/stable 1.31-classic/beta"
           # Upgrading from 1.30 is not supported.
           TEST_VERSION_UPGRADE_MIN_RELEASE: "1.31"
           TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
