@@ -3,7 +3,7 @@
 VERSION="3.12.2"
 DIR=$(realpath $(dirname "${0}"))
 
-CHARTS_PATH="$DIR/../../src/k8s/pkg/k8sd/features/metrics-server/charts"
+CHARTS_PATH="$DIR/../../k8s/manifests/charts"
 
 cd "$CHARTS_PATH"
 

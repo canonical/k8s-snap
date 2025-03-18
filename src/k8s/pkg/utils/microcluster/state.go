@@ -81,21 +81,9 @@ func WithState(t *testing.T, f func(context.Context, state.State)) {
 		t.Fatalf("microcluster app was not ready in time: %v", err)
 	}
 
-	// Bootstrapping should be retried to address intermittent failures related to ports being in use.
-	for {
-		nextIdx++
-
-		if err := app.MicroCluster().NewCluster(ctx, fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), nil); err != nil {
-			t.Logf("microcluster app failed to bootstrap: %v", err)
-		} else {
-			break
-		}
-
-		select {
-		case <-ctx.Done():
-			t.Fatalf("context cancelled while waiting for microcluster to bootstrap")
-		case <-time.After(1 * time.Second):
-		}
+	nextIdx++
+	if err := app.MicroCluster().NewCluster(ctx, fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), nil); err != nil {
+		t.Fatalf("microcluster app failed to bootstrap: %v", err)
 	}
 
 	select {

@@ -1,29 +1,24 @@
 package metallb
 
 import (
-	"embed"
+	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 )
 
-//go:embed all:charts
-var ChartFS embed.FS
-
 var (
 	// ChartMetalLB represents manifests to deploy MetalLB speaker and controller.
 	ChartMetalLB = helm.InstallableChart{
-		Name:             "metallb",
-		Version:          "0.14.9",
-		InstallName:      "metallb",
-		InstallNamespace: "metallb-system",
+		Name:         "metallb",
+		Namespace:    "metallb-system",
+		ManifestPath: filepath.Join("charts", "metallb-0.14.9.tgz"),
 	}
 
 	// ChartMetalLBLoadBalancer represents manifests to deploy MetalLB L2 or BGP resources.
 	ChartMetalLBLoadBalancer = helm.InstallableChart{
-		Name:             "ck-loadbalancer",
-		Version:          "0.1.1",
-		InstallName:      "metallb-loadbalancer",
-		InstallNamespace: "metallb-system",
+		Name:         "metallb-loadbalancer",
+		Namespace:    "metallb-system",
+		ManifestPath: filepath.Join("charts", "ck-loadbalancer"),
 	}
 
 	// controllerImageRepo is the image to use for metallb-controller.

@@ -25,7 +25,9 @@ const (
 // deployment.
 // ApplyDNS returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyDNS(ctx context.Context, snap snap.Snap, m helm.Client, dns types.DNS, kubelet types.Kubelet, _ types.Annotations) (types.FeatureStatus, string, error) {
+func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.Kubelet, _ types.Annotations) (types.FeatureStatus, string, error) {
+	m := snap.HelmClient()
+
 	if !dns.GetEnabled() {
 		if _, err := m.Apply(ctx, Chart, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall coredns: %w", err)

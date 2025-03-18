@@ -22,7 +22,9 @@ const (
 // deployment.
 // ApplyLocalStorage returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyLocalStorage(ctx context.Context, snap snap.Snap, m helm.Client, cfg types.LocalStorage, _ types.Annotations) (types.FeatureStatus, error) {
+func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStorage, _ types.Annotations) (types.FeatureStatus, error) {
+	m := snap.HelmClient()
+
 	values := map[string]any{
 		"storageClass": map[string]any{
 			"enabled":       true,

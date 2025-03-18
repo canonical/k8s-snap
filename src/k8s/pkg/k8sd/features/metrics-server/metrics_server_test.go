@@ -7,7 +7,6 @@ import (
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations/metrics-server"
 	"github.com/canonical/k8s/pkg/client/helm"
-	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	metrics_server "github.com/canonical/k8s/pkg/k8sd/features/metrics-server"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -62,14 +61,13 @@ func TestApplyMetricsServer(t *testing.T) {
 			h := &helmmock.Mock{
 				ApplyErr: tc.helmError,
 			}
-			snapM := &snapmock.Snap{
+			s := &snapmock.Snap{
 				Mock: snapmock.Mock{
 					HelmClient: h,
 				},
 			}
 
-			mc := snapM.HelmClient(loader.NewEmbedLoader(&metrics_server.ChartFS))
-			status, err := metrics_server.ApplyMetricsServer(context.Background(), snapM, mc, tc.config, nil)
+			status, err := metrics_server.ApplyMetricsServer(context.Background(), s, tc.config, nil)
 			if tc.helmError == nil {
 				g.Expect(err).ToNot(HaveOccurred())
 			} else {
@@ -77,8 +75,8 @@ func TestApplyMetricsServer(t *testing.T) {
 			}
 
 			g.Expect(h.ApplyCalledWith).To(ConsistOf(SatisfyAll(
-				HaveField("Chart.InstallName", Equal("metrics-server")),
-				HaveField("Chart.InstallNamespace", Equal("kube-system")),
+				HaveField("Chart.Name", Equal("metrics-server")),
+				HaveField("Chart.Namespace", Equal("kube-system")),
 				HaveField("State", Equal(tc.expectState)),
 			)))
 			switch {
@@ -95,7 +93,7 @@ func TestApplyMetricsServer(t *testing.T) {
 	t.Run("Annotations", func(t *testing.T) {
 		g := NewWithT(t)
 		h := &helmmock.Mock{}
-		snapM := &snapmock.Snap{
+		s := &snapmock.Snap{
 			Mock: snapmock.Mock{
 				HelmClient: h,
 			},
@@ -109,8 +107,7 @@ func TestApplyMetricsServer(t *testing.T) {
 			apiv1_annotations.AnnotationImageTag:  "custom-tag",
 		}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&metrics_server.ChartFS))
-		status, err := metrics_server.ApplyMetricsServer(context.Background(), snapM, mc, cfg, annotations)
+		status, err := metrics_server.ApplyMetricsServer(context.Background(), s, cfg, annotations)
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(h.ApplyCalledWith).To(ConsistOf(HaveField("Values", HaveKeyWithValue("image", SatisfyAll(
 			HaveKeyWithValue("repository", "custom-image"),

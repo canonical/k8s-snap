@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/canonical/k8s/pkg/client/helm"
-	"github.com/canonical/k8s/pkg/client/helm/loader"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features/coredns"
@@ -38,9 +37,7 @@ func TestDisabled(t *testing.T) {
 		}
 		kubelet := types.Kubelet{}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
-
-		status, str, err := coredns.ApplyDNS(context.Background(), snapM, mc, dns, kubelet, nil)
+		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
 
 		g.Expect(err).To(MatchError(ContainSubstring(applyErr.Error())))
 		g.Expect(str).To(BeEmpty())
@@ -67,9 +64,8 @@ func TestDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 		kubelet := types.Kubelet{}
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
 
-		status, str, err := coredns.ApplyDNS(context.Background(), snapM, mc, dns, kubelet, nil)
+		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
 
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(str).To(BeEmpty())
@@ -103,9 +99,7 @@ func TestEnabled(t *testing.T) {
 		}
 		kubelet := types.Kubelet{}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
-
-		status, str, err := coredns.ApplyDNS(context.Background(), snapM, mc, dns, kubelet, nil)
+		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
 
 		g.Expect(err).To(MatchError(ContainSubstring(applyErr.Error())))
 		g.Expect(str).To(BeEmpty())
@@ -135,9 +129,7 @@ func TestEnabled(t *testing.T) {
 		}
 		kubelet := types.Kubelet{}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
-
-		status, str, err := coredns.ApplyDNS(context.Background(), snapM, mc, dns, kubelet, nil)
+		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
 
 		g.Expect(err).To(MatchError(ContainSubstring("services \"coredns\" not found")))
 		g.Expect(str).To(BeEmpty())
@@ -177,8 +169,7 @@ func TestEnabled(t *testing.T) {
 		}
 		kubelet := types.Kubelet{}
 
-		mc := snapM.HelmClient(loader.NewEmbedLoader(&coredns.ChartFS))
-		status, str, err := coredns.ApplyDNS(context.Background(), snapM, mc, dns, kubelet, nil)
+		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
 
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(str).To(Equal(clusterIp))

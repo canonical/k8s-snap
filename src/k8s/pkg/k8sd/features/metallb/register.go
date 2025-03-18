@@ -3,7 +3,6 @@ package metallb
 import (
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/k8sd/charts"
 	"github.com/canonical/k8s/pkg/k8sd/images"
 )
 
@@ -13,6 +12,4 @@ func init() {
 		fmt.Sprintf("%s:%s", speakerImageRepo, speakerImageTag),
 		fmt.Sprintf("%s:%s", frrImageRepo, frrImageTag),
 	)
-
-	charts.Register(&ChartFS)
 }

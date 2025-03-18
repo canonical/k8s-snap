@@ -65,7 +65,7 @@ type Snap interface {
 	KubernetesClient(namespace string) (*kubernetes.Client, error)     // admin kubernetes client
 	KubernetesNodeClient(namespace string) (*kubernetes.Client, error) // node kubernetes client
 
-	HelmClient(helm.ChartLoader) helm.Client // admin helm client
+	HelmClient() helm.Client // admin helm client
 
 	K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) // go-dqlite client for k8s-dqlite
 
