@@ -46,11 +46,10 @@ jobs:
         run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
       - name: Test results
         run: |
-          echo {{ needs }}
           RESULTS=$(echo '${{ toJson(needs) }}' | jq -r 'map(.result) | @json')
           echo "Results: $RESULTS"
 
-          if [[ "${{ needs.test-integration.result }}" == "success" && "${{ needs.Trivy.result }}" == "success" && "${{ needs.TICS.result }}" == "success" ]]; then
+          if echo "$RESULTS" | jq 'all(.[] == "success")'; then
             echo "RESULT=success" >> $GITHUB_ENV
           else
             echo "RESULT=failure" >> $GITHUB_ENV
@@ -61,7 +60,7 @@ jobs:
             echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
               github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
           else
-            echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-crew please fix ASAP. [View Run](${{
+            echo "MM_TEXT=:x: *Failure!* please fix ASAP. [View Run](${{
               github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
           fi
       - name: Notify Mattermost
