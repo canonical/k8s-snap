@@ -284,5 +284,6 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 
 	log.Info("Marking node as ready")
 	a.readyWg.Done()
+
 	return nil
 }
