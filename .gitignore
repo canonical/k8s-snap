@@ -23,3 +23,7 @@ k8s_*.txt
 /docs/canonicalk8s/.sphinx/node_modules
 /docs/canonicalk8s/.sphinx/styles/*
 /docs/canonicalk8s/.sphinx/vale.ini
+
+*.assert
+.trivy
+squashfs-root
