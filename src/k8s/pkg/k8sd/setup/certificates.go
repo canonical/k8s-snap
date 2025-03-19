@@ -127,19 +127,29 @@ func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) (bool, err
 	})
 }
 
+// ReadControlPlanePKI reads the existing control plane PKI files and kubeconfig files,
+// populating a ControlPlanePKI structure with their contents.
+// The readManaged parameter controls which certificates to read:
+// - If readManaged=true: only reads certificates where CA keys are present (internally managed)
 // - If readManaged=false: only reads certificates where CA keys are missing (externally managed).
 func ReadControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI, readManaged bool) error {
 	caKeyPath := filepath.Join(snap.KubernetesPKIDir(), "ca.key")
-	_, caKeyErr := os.Stat(caKeyPath)
-	caKeyExists := caKeyErr == nil
+	caKeyExists, err := utils.FileExists(caKeyPath)
+	if err != nil {
+		return fmt.Errorf("failed to check if ca.key exists: %w", err)
+	}
 
 	clientCAKeyPath := filepath.Join(snap.KubernetesPKIDir(), "client-ca.key")
-	_, clientCAKeyErr := os.Stat(clientCAKeyPath)
-	clientCAKeyExists := clientCAKeyErr == nil
+	clientCAKeyExists, err := utils.FileExists(clientCAKeyPath)
+	if err != nil {
+		return fmt.Errorf("failed to check if client-ca.key exists: %w", err)
+	}
 
 	frontProxyCAKeyPath := filepath.Join(snap.KubernetesPKIDir(), "front-proxy-ca.key")
-	_, frontProxyCAKeyErr := os.Stat(frontProxyCAKeyPath)
-	frontProxyCAKeyExists := frontProxyCAKeyErr == nil
+	frontProxyCAKeyExists, err := utils.FileExists(frontProxyCAKeyPath)
+	if err != nil {
+		return fmt.Errorf("failed to check if front-proxy-ca.key: %w", err)
+	}
 
 	fileFields := map[string]struct {
 		field *string
@@ -218,6 +228,10 @@ func ReadControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI, read
 
 	for filePath, info := range fileFields {
 		if !info.read {
+			// NOTE: Skip files that are not marked for reading
+			// based on the presence of required keys and the
+			// readManaged flag. This ensures only relevant PKI
+			// files are loaded.
 			continue
 		}
 
@@ -264,15 +278,13 @@ func ReadControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI, read
 
 	for configName, info := range kubeconfigFields {
 		if !info.read {
+			// NOTE: Skip kubeconfig files that are not marked for
+			// reading based on the presence of the client-ca key
+			// and the readManaged flag.
 			continue
 		}
 
 		configPath := filepath.Join(snap.KubernetesConfigDir(), configName)
-
-		_, err := os.Stat(configPath)
-		if err != nil {
-			return fmt.Errorf("failed to check kubeconfig %s: %w", configName, err)
-		}
 
 		kubeConfig, err := clientcmd.LoadFromFile(configPath)
 		if err != nil {
