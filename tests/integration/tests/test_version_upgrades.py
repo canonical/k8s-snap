@@ -33,9 +33,7 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
             int(num_channels),
             flavour,
             cp.arch,
-            include_latest=False,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
-            max_release="1.32",
         )
         if len(channels) < 2:
             pytest.fail(
