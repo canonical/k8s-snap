@@ -67,7 +67,7 @@ access at rest.
 Key Management: Key lengths for AES encryption in Dqlite typically utilize
 AES-256 for robust data security. -->
 
-## Cryptographic technology being exposed to the user for their use
+## Configure cryptography in {{product}}
 <!-- Guidance:
 Cryptographic technology being exposed to the user for their use
 In this section list/describe the cryptographic technology that is exposed for
@@ -123,4 +123,5 @@ operation of Kubernetes components.
 Source: Go Standard Library -->
 
 ## Recommended usage and settings
-<!-- leave as default / set up certain components  -->
+<!-- leave as default / set up certain components / link to certificates how-tos
+could link to usage section above -->
