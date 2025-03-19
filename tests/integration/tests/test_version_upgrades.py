@@ -33,7 +33,6 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
             int(num_channels),
             flavour,
             cp.arch,
-            include_latest=False,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
         )
         if len(channels) < 2:
