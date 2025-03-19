@@ -233,6 +233,7 @@ def test_version_downgrades_with_rollback(
 
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
+
 @pytest.mark.tags(tags.NIGHTLY)
 def test_feature_upgrades(instances: List[harness.Instance]):
     # Test the feature upgrades work
@@ -251,6 +252,4 @@ def test_feature_upgrades(instances: List[harness.Instance]):
         "k8s kubectl apply -f -".split(),
         input=str.encode(Path(config.MANIFESTS_DIR / "upgrade.yaml").read_text()),
     )
-    cp.exec(
-        "k8s kubectl get upgrade cluster-upgrade".split()
-    )
+    cp.exec("k8s kubectl get upgrade cluster-upgrade".split())
