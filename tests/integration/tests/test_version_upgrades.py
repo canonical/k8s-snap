@@ -42,7 +42,6 @@ def test_version_upgrades(
             int(num_channels),
             flavour,
             cp.arch,
-            include_latest=False,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
         )
         if len(channels) < 2:
