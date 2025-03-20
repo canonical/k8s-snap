@@ -126,7 +126,7 @@ jobs:
         run: |
           RESULTS=$(echo '${{ toJson(needs) }}' | jq -c '[.[] | .result]')
 
-          if echo $RESULTS | jq 'all(. == "success")'; then
+          if echo $RESULTS | jq -e 'all(. == "success")'; then
             echo "RESULT=success" >> $GITHUB_ENV
           else
             echo "RESULT=failure" >> $GITHUB_ENV
@@ -137,7 +137,7 @@ jobs:
             echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
               github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
           else
-            echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-crew please fix ASAP. [View Run](${{
+            echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-engineers please fix ASAP. [View Run](${{
               github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
           fi
       - name: Notify Mattermost
