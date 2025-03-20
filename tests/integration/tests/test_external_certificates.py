@@ -177,7 +177,7 @@ def check_nginx_pod_runs(instance: harness.Instance):
 
 def delete_nginx_pod(instance: harness.Instance):
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
-    instance.exec(["k8s", "kubectl", "delete", "-f", "-"], input=manifest.read_bytes())
+    instance.exec(["k8s", "kubectl", "delete", "-f", str(manifest)])
 
 
 @pytest.mark.node_count(3)
@@ -314,7 +314,7 @@ def test_vault_certificates(instances: List[harness.Instance]):
     bootstrap_certs.update(cp_certs)
     bootstrap_certs.update(worker_certs)
 
-    create_and_assign_certs(client, bootstrap_certs.items(), bootstrap_certs)
+    create_and_assign_certs(client, bootstrap_certs.items(), bootstrap_config)
 
     # For BootstrapConfig, only this key has a different format.
     bootstrap_config["kube-ControllerManager-client-key"] = bootstrap_config[
@@ -396,7 +396,7 @@ def test_vault_certificates(instances: List[harness.Instance]):
         input=str.encode(yaml.dump(new_cp_certs)),
     )
     new_worker_certs = {}
-    create_and_assign_certs(client, worker_certs.items(), new_cp_certs)
+    create_and_assign_certs(client, worker_certs.items(), new_worker_certs)
     worker_node.exec(
         ["k8s", "refresh-certs", "--external-certificates", "-"],
         input=str.encode(yaml.dump(new_worker_certs)),
