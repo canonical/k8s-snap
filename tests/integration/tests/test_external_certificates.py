@@ -177,7 +177,7 @@ def check_nginx_pod_runs(instance: harness.Instance):
 
 def delete_nginx_pod(instance: harness.Instance):
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
-    instance.exec(["k8s", "kubectl", "delete", "-f", str(manifest)])
+    instance.exec(["k8s", "kubectl", "delete", "-f", "-"], input=manifest.read_bytes())
 
 
 @pytest.mark.node_count(3)
