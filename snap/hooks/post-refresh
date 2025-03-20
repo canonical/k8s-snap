@@ -3,8 +3,10 @@
 
 k8s::common::setup_env
 
-# Enable the snap config reconciler after the snap refresh completes.
-# The reconcile command will synchronize the k8sd configuration with the snap config
-# and then set the meta orb to "snapd," effectively re-enabling the sync process.
-echo "Re-enabling snapd config sync after snap refresh"
-k8s::cmd::k8s x-snapd-config reconcile
+# Indicate that an update has been performed.
+# Many actions require k8sd to be active which is not
+# the case in the snap hook. Hence, we use a lock file
+# to indicate that an update has been performed and
+# run a custom post-refresh hook in the k8sd service.
+mkdir -p "$SNAP_COMMON/lock"
+touch "$SNAP_COMMON/lock/post-refresh"
