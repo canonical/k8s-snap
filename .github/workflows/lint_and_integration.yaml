@@ -138,7 +138,7 @@ jobs:
     needs: build-snap
     uses: ./.github/workflows/security-scan.yaml
     with:
-      artifact: ${{ needs.build-snap.outputs.snap-artifact}}
+      artifact: ${{ needs.build-snap.outputs.snap-artifact }}
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results

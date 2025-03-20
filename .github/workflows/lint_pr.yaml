@@ -17,9 +17,10 @@ jobs:
       # no-semantic label is handled by the next step.
       - name: Check if PR is WIP
         id: check_wip
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          IS_DRAFT="${{ github.event.pull_request.draft }}"
           if [[ "$PR_TITLE" == \[WIP\]* ]] || [[ "$IS_DRAFT" == "true" ]]; then
             echo "is_wip=true" >> $GITHUB_OUTPUT
           else

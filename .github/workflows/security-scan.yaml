@@ -53,7 +53,8 @@ jobs:
           clean: 'false'
       - name: Run Trivy vulnerability scanner
         run: |
-          $GITHUB_WORKSPACE/trivy-scan.sh ${{ steps.download-snap.outputs.snap-path }
+          cp $GITHUB_WORKSPACE/trivy-scan.sh ./tests/trivy-scan.sh
+          ./tests/trivy-scan.sh ${{ steps.download-snap.outputs.snap-path }}
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:

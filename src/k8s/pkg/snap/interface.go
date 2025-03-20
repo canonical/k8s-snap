@@ -28,6 +28,7 @@ type Snap interface {
 
 	Refresh(ctx context.Context, to types.RefreshOpts) (string, error)                // snap refresh --no-wait [k8s --channel $track | k8s --revision $revision | $path ]
 	RefreshStatus(ctx context.Context, changeID string) (*types.RefreshStatus, error) // snap tasks $changeID
+	PostRefreshLockPath() string                                                      // /var/snap/k8s/common/lock/post-refresh - lock file to indicate the first run after a snap refresh
 
 	CNIConfDir() string       // /etc/cni/net.d
 	CNIBinDir() string        // /opt/cni/bin

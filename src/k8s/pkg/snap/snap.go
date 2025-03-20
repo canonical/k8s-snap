@@ -137,6 +137,11 @@ func (s *snap) RefreshStatus(ctx context.Context, changeID string) (*types.Refre
 	return status, nil
 }
 
+// PostRefreshLockPath returns the path to the post-refresh lock file.
+func (s *snap) PostRefreshLockPath() string {
+	return filepath.Join(s.LockFilesDir(), "post-refresh")
+}
+
 type snapcraftYml struct {
 	Confinement string `yaml:"confinement"`
 }

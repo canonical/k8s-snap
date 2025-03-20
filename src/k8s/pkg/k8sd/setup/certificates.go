@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // ensureFile creates fname with the specified contents, mode and owner bits.
@@ -101,8 +102,9 @@ func EnsureControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI) (b
 		filepath.Join(snap.KubernetesPKIDir(), "apiserver.crt"):                certificates.APIServerCert,
 		filepath.Join(snap.KubernetesPKIDir(), "apiserver.key"):                certificates.APIServerKey,
 		filepath.Join(snap.KubernetesPKIDir(), "ca.crt"):                       certificates.CACert,
-		filepath.Join(snap.KubernetesPKIDir(), "client-ca.crt"):                certificates.ClientCACert,
 		filepath.Join(snap.KubernetesPKIDir(), "ca.key"):                       certificates.CAKey,
+		filepath.Join(snap.KubernetesPKIDir(), "client-ca.crt"):                certificates.ClientCACert,
+		filepath.Join(snap.KubernetesPKIDir(), "client-ca.key"):                certificates.ClientCAKey,
 		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-ca.crt"):           certificates.FrontProxyCACert,
 		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-ca.key"):           certificates.FrontProxyCAKey,
 		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-client.crt"):       certificates.FrontProxyClientCert,
@@ -123,4 +125,185 @@ func EnsureWorkerPKI(snap snap.Snap, certificates *pki.WorkerNodePKI) (bool, err
 		filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt"):   certificates.KubeletCert,
 		filepath.Join(snap.KubernetesPKIDir(), "kubelet.key"):   certificates.KubeletKey,
 	})
+}
+
+// ReadControlPlanePKI reads the existing control plane PKI files and kubeconfig files,
+// populating a ControlPlanePKI structure with their contents.
+// The readManaged parameter controls which certificates to read:
+// - If readManaged=true: only reads certificates where CA keys are present (internally managed)
+// - If readManaged=false: only reads certificates where CA keys are missing (externally managed).
+func ReadControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI, readManaged bool) error {
+	caKeyPath := filepath.Join(snap.KubernetesPKIDir(), "ca.key")
+	caKeyExists, err := utils.FileExists(caKeyPath)
+	if err != nil {
+		return fmt.Errorf("failed to check if ca.key exists: %w", err)
+	}
+
+	clientCAKeyPath := filepath.Join(snap.KubernetesPKIDir(), "client-ca.key")
+	clientCAKeyExists, err := utils.FileExists(clientCAKeyPath)
+	if err != nil {
+		return fmt.Errorf("failed to check if client-ca.key exists: %w", err)
+	}
+
+	frontProxyCAKeyPath := filepath.Join(snap.KubernetesPKIDir(), "front-proxy-ca.key")
+	frontProxyCAKeyExists, err := utils.FileExists(frontProxyCAKeyPath)
+	if err != nil {
+		return fmt.Errorf("failed to check if front-proxy-ca.key: %w", err)
+	}
+
+	fileFields := map[string]struct {
+		field *string
+		read  bool
+	}{
+		// CA certificates
+		filepath.Join(snap.KubernetesPKIDir(), "ca.crt"): {
+			field: &certificates.CACert,
+			read:  true,
+		},
+		filepath.Join(snap.KubernetesPKIDir(), "client-ca.crt"): {
+			field: &certificates.ClientCACert,
+			read:  true,
+		},
+		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-ca.crt"): {
+			field: &certificates.FrontProxyCACert,
+			read:  true,
+		},
+
+		// CA keys
+		filepath.Join(snap.KubernetesPKIDir(), "ca.key"): {
+			field: &certificates.CAKey,
+			read:  readManaged && caKeyExists,
+		},
+		filepath.Join(snap.KubernetesPKIDir(), "client-ca.key"): {
+			field: &certificates.ClientCAKey,
+			read:  readManaged && clientCAKeyExists,
+		},
+		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-ca.key"): {
+			field: &certificates.FrontProxyCAKey,
+			read:  readManaged && frontProxyCAKeyExists,
+		},
+
+		// Certificates
+		// NOTE: read is using the XNOR operation.
+		filepath.Join(snap.KubernetesPKIDir(), "apiserver.crt"): {
+			field: &certificates.APIServerCert,
+			read:  readManaged == caKeyExists,
+		},
+		filepath.Join(snap.KubernetesPKIDir(), "apiserver.key"): {
+			field: &certificates.APIServerKey,
+			read:  readManaged == caKeyExists,
+		},
+
+		filepath.Join(snap.KubernetesPKIDir(), "kubelet.crt"): {
+			field: &certificates.KubeletCert,
+			read:  readManaged == caKeyExists,
+		},
+		filepath.Join(snap.KubernetesPKIDir(), "kubelet.key"): {
+			field: &certificates.KubeletKey,
+			read:  readManaged == caKeyExists,
+		},
+
+		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-client.crt"): {
+			field: &certificates.FrontProxyClientCert,
+			read:  readManaged == frontProxyCAKeyExists,
+		},
+		filepath.Join(snap.KubernetesPKIDir(), "front-proxy-client.key"): {
+			field: &certificates.FrontProxyClientKey,
+			read:  readManaged == frontProxyCAKeyExists,
+		},
+
+		filepath.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.crt"): {
+			field: &certificates.APIServerKubeletClientCert,
+			read:  readManaged == clientCAKeyExists,
+		},
+		filepath.Join(snap.KubernetesPKIDir(), "apiserver-kubelet-client.key"): {
+			field: &certificates.APIServerKubeletClientKey,
+			read:  readManaged == clientCAKeyExists,
+		},
+		filepath.Join(snap.KubernetesPKIDir(), "serviceaccount.key"): {
+			field: &certificates.ServiceAccountKey,
+			read:  true,
+		},
+	}
+
+	for filePath, info := range fileFields {
+		if !info.read {
+			// NOTE: Skip files that are not marked for reading
+			// based on the presence of required keys and the
+			// readManaged flag. This ensures only relevant PKI
+			// files are loaded.
+			continue
+		}
+
+		content, err := os.ReadFile(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to read file %s: %w", filePath, err)
+		}
+		if info.field != nil {
+			*info.field = string(content)
+		}
+	}
+
+	kubeconfigFields := map[string]struct {
+		certField *string
+		keyField  *string
+		read      bool
+	}{
+		"admin.conf": {
+			certField: &certificates.AdminClientCert,
+			keyField:  &certificates.AdminClientKey,
+			read:      readManaged == clientCAKeyExists,
+		},
+		"controller.conf": {
+			certField: &certificates.KubeControllerManagerClientCert,
+			keyField:  &certificates.KubeControllerManagerClientKey,
+			read:      readManaged == clientCAKeyExists,
+		},
+		"scheduler.conf": {
+			certField: &certificates.KubeSchedulerClientCert,
+			keyField:  &certificates.KubeSchedulerClientKey,
+			read:      readManaged == clientCAKeyExists,
+		},
+		"proxy.conf": {
+			certField: &certificates.KubeProxyClientCert,
+			keyField:  &certificates.KubeProxyClientKey,
+			read:      readManaged == clientCAKeyExists,
+		},
+		"kubelet.conf": {
+			certField: &certificates.KubeletClientCert,
+			keyField:  &certificates.KubeletClientKey,
+			read:      readManaged == clientCAKeyExists,
+		},
+	}
+
+	for configName, info := range kubeconfigFields {
+		if !info.read {
+			// NOTE: Skip kubeconfig files that are not marked for
+			// reading based on the presence of the client-ca key
+			// and the readManaged flag.
+			continue
+		}
+
+		configPath := filepath.Join(snap.KubernetesConfigDir(), configName)
+
+		kubeConfig, err := clientcmd.LoadFromFile(configPath)
+		if err != nil {
+			return fmt.Errorf("failed to load kubeconfig %s: %w", configName, err)
+		}
+
+		authInfo, exists := kubeConfig.AuthInfos["k8s-user"]
+		if !exists {
+			return fmt.Errorf("user 'k8s-user' not found in kubeconfig %s", configName)
+		}
+
+		if authInfo.ClientCertificateData != nil && info.certField != nil {
+			*info.certField = string(authInfo.ClientCertificateData)
+		}
+
+		if authInfo.ClientKeyData != nil && info.keyField != nil {
+			*info.keyField = string(authInfo.ClientKeyData)
+		}
+	}
+
+	return nil
 }
