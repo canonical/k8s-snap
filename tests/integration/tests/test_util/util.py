@@ -175,6 +175,7 @@ def setup_k8s_snap(
     tmp_path: Path,
     snap: Optional[str] = None,
     connect_interfaces=True,
+    retry=False,
 ):
     """Installs and sets up the snap on the given instance and connects the interfaces.
 
@@ -208,7 +209,16 @@ def setup_k8s_snap(
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
 
-    instance.exec(cmd)
+    result = instance.exec(cmd)
+    retries = 0
+    while retry and retries < 10 and result.returncode != 0:
+        LOG.info("Retry k8s snap installation")
+        instance.exec(["snap", "remove", config.SNAP_NAME, "--purge"])
+        instance.exec(cmd)
+        retries += 1
+    if retries >= 10:
+        pytest.fail("Failed to install k8s snap after 10 retries")
+
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
@@ -581,7 +591,7 @@ def check_file_paths_exist(
     """
     process = instance.exec(["ls", *paths], capture_output=True, text=True, check=False)
     return {
-        p: not (f"cannot access '{p}': No such file or directory" in process.stderr)
+        p: f"cannot access '{p}': No such file or directory" not in process.stderr
         for p in paths
     }
 
