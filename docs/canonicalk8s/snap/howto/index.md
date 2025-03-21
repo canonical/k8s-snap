@@ -57,6 +57,7 @@ security/index
 :titlesonly:
 Manage upgrades <upgrades>
 Refresh Kubernetes Certificates <refresh-certs>
+Refresh External Certificates <refresh-external-certs>
 Use intermediate CAs with Vault <intermediate-ca.md>
 ```
 

@@ -16,4 +16,5 @@ file.
 bootstrap-config
 control-plane-join-config
 worker-join-config
+refresh-external-certs-config
 ```
