@@ -94,6 +94,7 @@ This will assign an external IP to `cilium-gateway-my-gateway`.
 sudo k8s set load-balancer.cidrs=10.0.1.0/28 load-balancer.l2-mode=true
 sudo k8s kubectl get service cilium-gateway-my-gateway
 ```
+
 Get the external IP of the Gateway from the output.
 
 ```
