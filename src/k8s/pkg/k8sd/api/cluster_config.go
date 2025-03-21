@@ -40,7 +40,10 @@ func (e *Endpoints) putClusterConfig(s state.State, r *http.Request) response.Re
 	}
 
 	e.provider.NotifyUpdateNodeConfigController()
-	e.provider.NotifyFeatureController(
+
+	if err := e.provider.NotifyOrForwardFeatureReconcilation(
+		r.Context(),
+		s,
 		!requestedConfig.Network.Empty(),
 		!requestedConfig.Gateway.Empty(),
 		!requestedConfig.Ingress.Empty(),
@@ -48,7 +51,9 @@ func (e *Endpoints) putClusterConfig(s state.State, r *http.Request) response.Re
 		!requestedConfig.LocalStorage.Empty(),
 		!requestedConfig.MetricsServer.Empty(),
 		!requestedConfig.DNS.Empty() || !requestedConfig.Kubelet.Empty(),
-	)
+	); err != nil {
+		return response.InternalError(fmt.Errorf("failed to notify or forward feature reconciliation: %w", err))
+	}
 
 	return response.SyncResponse(true, &apiv1.SetClusterConfigResponse{})
 }

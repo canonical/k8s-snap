@@ -78,11 +78,9 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 	if a.featureController != nil {
 		go a.featureController.Run(
 			ctx,
+			s,
 			func(ctx context.Context) (types.ClusterConfig, error) {
 				return databaseutil.GetClusterConfig(ctx, s)
-			},
-			func() state.State {
-				return s
 			},
 			func(ctx context.Context, dnsIP string) error {
 				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
