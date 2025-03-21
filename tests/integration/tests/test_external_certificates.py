@@ -377,8 +377,18 @@ def test_vault_certificates(instances: List[harness.Instance]):
     check_nginx_pod_runs(instance)
     delete_nginx_pod(instance)
 
-    # Refresh the PKIs across the cluster.
+    # Refresh all cluster's nodes PKI.
     leader_cp_certs = {}
+    worker_certs["kubelet"] = CertOpts(
+        common_name=f"system:node:{bootstrap_node_hostname}",
+        role=NODES_ROLE,
+        alt_names=[bootstrap_node_hostname],
+        ip_sans=["127.0.0.1", bootstrap_node_ip],
+    )
+    worker_certs["kubelet-client"] = CertOpts(
+        common_name=f"system:node:{bootstrap_node_hostname}",
+        role=NODES_ROLE,
+    )
     create_and_assign_certs(
         client, itertools.chain(cp_certs.items(), worker_certs.items()), leader_cp_certs
     )
@@ -388,6 +398,16 @@ def test_vault_certificates(instances: List[harness.Instance]):
     )
 
     new_cp_certs = {}
+    worker_certs["kubelet"] = CertOpts(
+        common_name=f"system:node:{cp_node_hostname}",
+        role=NODES_ROLE,
+        alt_names=[cp_node_hostname],
+        ip_sans=["127.0.0.1", cp_node_ip],
+    )
+    worker_certs["kubelet-client"] = CertOpts(
+        common_name=f"system:node:{cp_node_hostname}",
+        role=NODES_ROLE,
+    )
     create_and_assign_certs(
         client, itertools.chain(cp_certs.items(), worker_certs.items()), new_cp_certs
     )
@@ -395,7 +415,18 @@ def test_vault_certificates(instances: List[harness.Instance]):
         ["k8s", "refresh-certs", "--external-certificates", "-"],
         input=str.encode(yaml.dump(new_cp_certs)),
     )
+
     new_worker_certs = {}
+    worker_certs["kubelet"] = CertOpts(
+        common_name=f"system:node:{worker_hostname}",
+        role=NODES_ROLE,
+        alt_names=[worker_hostname],
+        ip_sans=["127.0.0.1", worker_ip],
+    )
+    worker_certs["kubelet-client"] = CertOpts(
+        common_name=f"system:node:{worker_hostname}",
+        role=NODES_ROLE,
+    )
     create_and_assign_certs(client, worker_certs.items(), new_worker_certs)
     worker_node.exec(
         ["k8s", "refresh-certs", "--external-certificates", "-"],
