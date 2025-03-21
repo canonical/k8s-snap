@@ -18,9 +18,12 @@ on a control plane node.
 To simplify the process and avoid complex CLI commands, the `refresh-certs`
 command accepts new node certificates via the `--external-certificates`
 argument with a YAML-formatted file. For a complete list of available
-certificate keys, see the [reference page].
+certificate keys, see the
+[certificates refresh configuration file reference page][reference page].
 
-Refer to the {{ product }} [certificates] documentation to determine which
+Refer to the {{ product }}
+[cluster certificates and configuration directories][certificates]
+documentation to determine which
 certificates are required for each node.
 
 ```{note} If you are managing some of the Certificate Authorities (CAs)

@@ -32,7 +32,8 @@ machine.cluster.x-k8s.io/my-cluster-worker-md-0-8zlzv-7vff7   my-cluster   my-cl
 
 ## Check providers status
 
-{{product}} cluster provisioning failures could happen in multiple providers used in CAPI.
+{{product}} cluster provisioning failures could happen in multiple providers
+used in CAPI.
 
 Check the {{product}} bootstrap provider logs:
 
@@ -60,7 +61,8 @@ k8s kubectl logs -n <infrastructure-provider-namespace> <infrastructure-provider
 
 ## Test the API server health
 
-Fetch the kubeconfig file for a {{product}} cluster provisioned through CAPI by running:
+Fetch the kubeconfig file for a {{product}} cluster provisioned through CAPI by
+running:
 
 ```
 clusterctl get kubeconfig ${CLUSTER_NAME} > ./${CLUSTER_NAME}-kubeconfig.yaml
@@ -132,7 +134,8 @@ Services running only on the worker nodes:
 
 * `k8s-apiserver-proxy`
 
-Make the necessary adjustments for SSH access depending on your infrastructure provider and SSH into the unhealthy node with:
+Make the necessary adjustments for SSH access depending on your infrastructure
+provider and SSH into the unhealthy node with:
 
 ```
 ssh <user>@<node>
@@ -191,8 +194,8 @@ information.
 its underlying system. This is an essential tool for bug reports and for
 investigating whether a system is (or isn’t) working.
 
-The inspection script can be executed on a specific node by running the following
-commands:
+The inspection script can be executed on a specific node by running the
+following commands:
 
 ```
 ssh -t <user>@<node> -- sudo k8s inspect /home/<user>/inspection-report.tar.gz
