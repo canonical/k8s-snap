@@ -498,7 +498,7 @@ def previous_track(snap_version: str) -> str:
     LOG.debug("Determining previous track for %s", snap_version)
 
     if not snap_version:
-        assumed = "latest"
+        assumed = config.DEFAULT_PREVIOUS_TRACK
         LOG.info(
             "Cannot determine previous track for undefined snap -- assume %s",
             snap_version,
@@ -507,7 +507,7 @@ def previous_track(snap_version: str) -> str:
         return assumed
 
     if snap_version.startswith("/") or _as_int(snap_version) is not None:
-        assumed = "latest"
+        assumed = config.DEFAULT_PREVIOUS_TRACK
         LOG.info(
             "Cannot determine previous track for %s -- assume %s", snap_version, assumed
         )
