@@ -124,6 +124,12 @@ func (e *Endpoints) Endpoints() []rest.Endpoint {
 			Put:  rest.EndpointAction{Handler: e.putClusterConfig, AccessHandler: e.restrictWorkers},
 			Get:  rest.EndpointAction{Handler: e.getClusterConfig, AccessHandler: e.restrictWorkers},
 		},
+		// Features reconciliation
+		{
+			Name: "ReconcileFeatures",
+			Path: apiv1.ReconcileFeaturesRPC,
+			Post: rest.EndpointAction{Handler: e.postFeaturesReconcile, AccessHandler: e.restrictWorkers},
+		},
 		// Kubernetes auth tokens and token review webhook for kube-apiserver
 		{
 			Name:   "KubernetesAuthTokens",
