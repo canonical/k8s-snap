@@ -4,6 +4,7 @@
 import json
 import os
 from pathlib import Path
+from packaging.version import Version
 
 DIR = Path(__file__).absolute().parent
 
@@ -172,3 +173,37 @@ DEFAULT_MIRROR_LIST = [
 
 # Local mirror configuration.
 MIRROR_LIST = json.loads(os.getenv("TEST_MIRROR_LIST", "{}")) or DEFAULT_MIRROR_LIST
+
+# The snap track that's getting tested.
+SNAP_TRACK = os.getenv("TEST_SNAP_CHANNEL", "").strip().split("/")[0]
+
+def _get_default_previous_track(current_track: str) -> str:
+    """Get the previous track for the current snap track.
+    
+    Examples:
+        latest -> latest (not changed)
+        1.32 -> 1.31
+        1.32-classic -> 1.31-classic
+        2.0 -> ValueError (cannot downgrade from a major version when minor is 0)
+    """
+    _latest = "latest"
+
+    if current_track in [_latest, ""]:
+        # NOTE(Hue): We don't change the latest track mainly because we 
+        # might've intentionally introduced a breaking change in the latest track.
+        # This decision is to avoid flakiness and 
+        return _latest
+
+    current_maj_min, *suffix = current_track.split("-", 1)
+    current_version = Version(current_maj_min)
+    if current_version.minor == 0:
+        raise ValueError(f"{current_version}: Cannot downgrade from a major version")
+
+    prev_track = str(f"{current_version.major}.{current_version.minor - 1}")
+    if suffix:
+        prev_track += "-" + suffix[0]
+
+    return prev_track
+
+# The previous track for the current snap track.
+DEFAULT_PREVIOUS_TRACK = _get_default_previous_track(SNAP_TRACK)

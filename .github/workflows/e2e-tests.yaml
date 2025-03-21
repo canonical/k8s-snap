@@ -58,6 +58,7 @@ jobs:
       - name: Run e2e tests
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
+          TEST_SNAP_CHANNEL: ${{ inputs.channel }}
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
