@@ -172,3 +172,6 @@ DEFAULT_MIRROR_LIST = [
 
 # Local mirror configuration.
 MIRROR_LIST = json.loads(os.getenv("TEST_MIRROR_LIST", "{}")) or DEFAULT_MIRROR_LIST
+
+# The default previous track of the snap.
+DEFAULT_PREVIOUS_TRACK = os.getenv("TEST_DEFAULT_PREVIOUS_TRACK", "latest")
