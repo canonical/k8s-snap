@@ -55,6 +55,15 @@ func newGenerateDocsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
+			outPath = path.Join(opts.outputDir, "refresh_certificates_request.md")
+			err = docgen.MarkdownFromJsonStructToFile(apiv1.RefreshCertificatesUpdateRequest{}, outPath, opts.projectDir)
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to generate markdown documentation for refresh certificates request\n\n")
+				cmd.PrintErrf("Error: %v", err)
+				env.Exit(1)
+				return
+			}
+
 			cmd.Printf("Generated documentation in %s\n", opts.outputDir)
 		},
 	}

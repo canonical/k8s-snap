@@ -25,8 +25,8 @@ The 'risk level' component of the channel is one of the following:
 Note that for each track, not all risk levels are guaranteed to be available.
 For example, there may be a new upstream version in development which only has
 an `edge` level. For a mature release, there may no longer be any `beta` or
-`candidate`. In these cases, if you specify a risk level which has no releases for
-that track the snap system will choose the closest available release with a
+`candidate`. In these cases, if you specify a risk level which has no releases
+for that track the snap system will choose the closest available release with a
 lower risk level. Whatever risk level specified is the **maximum** risk level
 of the snap that will be installed - if you choose `candidate` you will never
 get `edge` for example.
@@ -43,10 +43,10 @@ More information can be found in the [Snapcraft documentation][]
 ## Updates and switching channels
 
 Updates for upstream patch releases will happen automatically by default. For
-example, if you have selected the channel `1.32-classic/stable`, your snap will refresh
-itself regularly keeping your cluster up-to-date with the latest patches.
-For deployments where this behaviour is undesirable you are given the option to
-postpone, schedule or even block automatic updates.
+example, if you have selected the channel `1.32-classic/stable`, your snap will
+refresh itself regularly keeping your cluster up-to-date with the latest
+patches. For deployments where this behaviour is undesirable you are given the
+option to postpone, schedule or even block automatic updates.
 The [Snap refreshes documentation] page outlines how to configure these options.
 
 To change the channel of an already installed snap, the `refresh` command can

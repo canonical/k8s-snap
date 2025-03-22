@@ -62,4 +62,4 @@ our [how-to guide].
 [CIS]: https://www.cisecurity.org/controls
 [Transport Layer Security]: https://datatracker.ietf.org/doc/html/rfc8446
 [X.509]: https://datatracker.ietf.org/doc/html/rfc5280
-[how-to guide]: ../howto/refresh-certs
+[how-to guide]: ../howto/security/refresh-certs.md
