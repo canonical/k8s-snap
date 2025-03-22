@@ -84,3 +84,9 @@ jobs:
         with:
           name: ${{ env.artifact_name }}
           path: ${{ github.workspace }}/inspection-reports.tar.gz
+      - name: Upload CNCF conformance report artifact
+        if: ${{ failure() && contains(inputs.test-tags, 'conformance_tests') }}
+        uses: actions/upload-artifact@v4
+        with:
+         name: sonobuoy-e2e-${{ env.artifact_name }}
+         path: tests/integration/sonobuoy_e2e.tar.gz
