@@ -80,6 +80,7 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 		filepath.Join(tempDir, "apiserver.key"),
 		filepath.Join(tempDir, "ca.crt"),
 		filepath.Join(tempDir, "client-ca.crt"),
+		filepath.Join(tempDir, "client-ca.key"),
 		filepath.Join(tempDir, "front-proxy-ca.crt"),
 		filepath.Join(tempDir, "front-proxy-client.crt"),
 		filepath.Join(tempDir, "front-proxy-client.key"),
