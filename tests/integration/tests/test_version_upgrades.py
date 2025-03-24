@@ -236,18 +236,18 @@ def test_version_downgrades_with_rollback(
 
 @pytest.mark.tags(tags.NIGHTLY)
 def test_feature_upgrades(instances: List[harness.Instance]):
-    # Test the feature upgrades work
-    # Note(ben): This test is a work in progress and will
-    # be expanded with new tests as the feature upgrades work takes shape.
-    # Once this work is complete, this test will likely be merged with the
-    # test_version_upgrades test above and create a single test for all upgrades.
+    """Test the feature upgrades work
+    Note(ben): This test is a work in progress and will
+    be expanded with new tests as the feature upgrades work takes shape.
+    Once this work is complete, this test will likely be merged with the
+    test_version_upgrades test above and create a single test for all upgrades."""
 
     cp = instances[0]
 
     # Verify that the UpgradeCRD is known to the cluster
     cp.exec("k8s kubectl get crd upgrades.k8sd.io".split())
 
-    # Test that the UpgradeCRD can be created and start in "Preparing" state
+    # Test that the UpgradeCRD can be created.
     cp.exec(
         "k8s kubectl apply -f -".split(),
         input=str.encode(Path(config.MANIFESTS_DIR / "upgrade.yaml").read_text()),
