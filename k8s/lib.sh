@@ -179,6 +179,13 @@ k8s::util::wait_kube_apiserver() {
   done
 }
 
+# Source arguments and substitute environment variables. Will fail if we cannot read the file.
+k8s::util::parse_arguments_file() {
+  arguments_file_path="$1"
+
+  declare -ag parsed_args="($(cat $arguments_file_path))"  
+}
+
 # Execute a "$SNAP/bin/$service" with arguments from "$SNAP_DATA/args/$service"
 # Example: 'k8s::common::execute_service kubelet'
 k8s::common::execute_service() {
@@ -186,17 +193,16 @@ k8s::common::execute_service() {
 
   k8s::common::setup_env
 
-  # Source arguments and substitute environment variables. Will fail if we cannot read the file.
-  declare -a args="($(cat "${SNAP_COMMON}/args/${service_name}"))"
+  k8s::util::parse_arguments_file ${SNAP_COMMON}/args/${service_name}
 
   set -xe
   ulimit -c unlimited
   export GOTRACEBACK="crash"
   if [[ -f "${SNAP_COMMON}/args/${service_name}-env" ]]; then
     mapfile -t env_vars < "${SNAP_COMMON}/args/${service_name}-env"
-    exec env -S "${env_vars[@]}" "${SNAP}/bin/${service_name}" "${args[@]}"
+    exec env -S "${env_vars[@]}" "${SNAP}/bin/${service_name}" "${parsed_args[@]}"
   else
-    exec "${SNAP}/bin/${service_name}" "${args[@]}"
+    exec "${SNAP}/bin/${service_name}" "${parsed_args[@]}"
   fi
 }
 
