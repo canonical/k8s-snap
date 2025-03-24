@@ -79,15 +79,16 @@ func TestEnsureControlPlanePKI(t *testing.T) {
 		filepath.Join(tempDir, "apiserver.crt"),
 		filepath.Join(tempDir, "apiserver.key"),
 		filepath.Join(tempDir, "ca.crt"),
+		filepath.Join(tempDir, "ca.key"),
 		filepath.Join(tempDir, "client-ca.crt"),
+		filepath.Join(tempDir, "client-ca.key"),
 		filepath.Join(tempDir, "front-proxy-ca.crt"),
+		filepath.Join(tempDir, "front-proxy-ca.key"),
 		filepath.Join(tempDir, "front-proxy-client.crt"),
 		filepath.Join(tempDir, "front-proxy-client.key"),
 		filepath.Join(tempDir, "kubelet.crt"),
 		filepath.Join(tempDir, "kubelet.key"),
 		filepath.Join(tempDir, "serviceaccount.key"),
-		filepath.Join(tempDir, "ca.key"),
-		filepath.Join(tempDir, "front-proxy-ca.key"),
 	}
 
 	for _, file := range expectedFiles {
