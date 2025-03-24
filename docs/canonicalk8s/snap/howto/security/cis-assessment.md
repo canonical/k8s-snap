@@ -1248,7 +1248,7 @@ on the control plane node and set the --audit-log-path
 parameter to a suitable path and
 file where you would like audit logs to be written.
 
-`--audit-log-path=/var/log/apiserver/audit.log`
+`--audit-log-path=/var/log/kubernetes/audit.log`
 
 
 **Audit (as root):**
@@ -1260,7 +1260,7 @@ file where you would like audit logs to be written.
 **Expected output:**
 
 ```
---audit-log-path=/var/log/apiserver/audit.log
+--audit-log-path=/var/log/kubernetes/audit.log
 ```
 
 ##### CIS Control 1.2.19

@@ -1,10 +1,83 @@
 ### Control plane nodes
 
+#### Control Plane Security
+
+Kubernetes documentation on [controlling_access][] to the API informs on topics
+such as **Transport Security**, **AAA (Authentication,Authorization,Auditing)**,
+and **Admission control**. Much of this discusses how to limit access to
+authorized users and disable access to unauthorized users.
+
+#### Role Based Access Control
+
+Kubernetes documentation on [rbac][access_authn_authz] informs how to
+enforce RBAC policies to limit access to cluster resources, and define roles
+and permissions aligned with the principle of least privilege to prevent
+unauthorized access to critical operations.
+
+#### Secrets Encryption at Rest
+Kubernetes documentation on [encrypting secrets][encryption_at_rest] informs how
+to ensure that the key-value store encrypts secrets rather than leaving it as
+base64 encoded values.
+
+this guide indicates one should set the `--encryption-provider-config` file
+as an argument to the kubernetes apiserver.
+
+Create the `EncryptionConfiguration` file under `/var/snap/k8s/common/etc/encryption/`
+and update the kube-apiserver arguments.
+
+```
+sudo sh -c '
+mkdir -p /var/snap/k8s/common/etc/encryption/
+cat >/var/snap/k8s/common/etc/encryption/enc.yaml << EOL
+kind: "EncryptionConfig"
+apiVersion: apiserver.config.k8s.io/v1
+resources:
+- resources: ["secrets"]
+  providers:
+  - aesgcm:
+      keys:
+      - name: key1
+        secret: ${BASE 64 ENCODED SECRET}
+  - identity: {}
+EOL
+chmod 600 /var/snap/k8s/common/etc/encryption/enc.yaml
+cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
+--encyrption-provider-config=/var/snap/k8s/common/etc/enc.yaml
+EOL'
+```
+
+This ensures that cluster `secrets` resources are encrypted in the key-value
+store. Securing the contents of this key file is left as a separate exercise.
+
+
+#### Configuring Authorization Modes
+Enforce RBAC (Role-Based Access Control) policies to limit access to cluster
+resources. Define roles and permissions aligned with the principle of least
+privilege to prevent unauthorized access to critical operations.
+
+Confirm the value of the apiserver [`authorization-mode`][authorization_mode]
+value
+* includes `RBAC`
+* doesn't include `AlwaysAllow`
+
+```
+sudo grep authorization-mode /var/snap/k8s/common/args/kube-apiserver | \
+    grep -q "RBAC" && echo "okay" || echo "missing"
+sudo grep authorization-mode /var/snap/k8s/common/args/kube-apiserver | \
+    grep -q "AlwaysAllow" && echo "Remove AlwaysAllow" || echo "okay"
+```
+
+By default, the value is `Node,RBAC`
+* `Node`: 
+  A special-purpose authorization mode that grants permissions
+  to kubelets based on the pods they are scheduled to run.
+
+
 #### Configure log auditing
 
 ```{note}
 Configuring log auditing requires the cluster administrator's input and
-may incurr performance penalties in the form of disk I/O.
+may incur performance penalties in the form of disk I/O.
 ```
 
 Create an audit-policy.yaml file under `/var/snap/k8s/common/etc/` and specify
@@ -26,7 +99,7 @@ Enable auditing at the API server level by adding the following arguments.
 
 ```
 sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
---audit-log-path=/var/log/apiserver/audit.log
+--audit-log-path=/var/log/kubernetes/audit.log
 --audit-log-maxage=30
 --audit-log-maxbackup=10
 --audit-log-maxsize=100
@@ -231,3 +304,7 @@ sudo systemctl restart snap.k8s.kubelet
 <!-- Links -->
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
+[controlling_access]: https://kubernetes.io/docs/concepts/security/controlling-access/
+[access_authn_authz]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+[encryption_at_rest]: https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/
+[authorization_mode]: https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules
