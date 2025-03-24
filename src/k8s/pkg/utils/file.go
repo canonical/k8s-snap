@@ -290,3 +290,8 @@ func WriteFile(name string, data []byte, perm fs.FileMode) error {
 
 	return nil
 }
+
+// IsYaml returns true if the file has a yaml or yml extension.
+func IsYaml(file string) bool {
+	return filepath.Ext(strings.ToLower(file)) == ".yaml" || filepath.Ext(strings.ToLower(file)) == ".yml"
+}
