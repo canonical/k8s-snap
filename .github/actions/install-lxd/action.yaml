@@ -9,6 +9,12 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Apply snap workaround
+      shell: bash
+      run: |
+        # This is supposed to help with the snap installation failures:
+        # "https://api.snapcraft.io/v2/snaps/refresh": context canceled.
+        sudo apt-get install -y xdelta3
     - name: Install lxd snap
       shell: bash
       run: |

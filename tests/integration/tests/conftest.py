@@ -229,6 +229,9 @@ def instances(
         instance = h.new_instance(network_type=network_type)
         instances.append(instance)
 
+        instance.exec(["apt-get", "update"])
+        instance.exec(["apt-get", "install", "-y", "xdelta3"])
+
         if config.PRELOAD_SNAPS:
             for preloaded_snap in PRELOADED_SNAPS:
                 ack_file = f"{preloaded_snap}.assert"
