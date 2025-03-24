@@ -9,13 +9,24 @@ spec:
     plural: upgrades
     singular: upgrade
   # The Upgrade CRD is only relevant for the internal upgrade controller.
-  scope: Namespaced
+  scope: Cluster
   versions:
     - name: v1alpha
       served: true  # Serve this version in API requests
       storage: true  # Store custom objects in this version
       subresources:
         status: {}  # Allows `status` updates separately
+      additionalPrinterColumns:
+        - name: Phase
+          type: string
+          description: "Current upgrade phase."
+          jsonPath: ".status.phase"
+        - name: UpgradedNodes
+          type: array
+          items:
+            type: string
+          description: "Number of nodes that have been upgraded."
+          jsonPath: ".status.upgradedNodes"
       schema:
         openAPIV3Schema:
           type: object

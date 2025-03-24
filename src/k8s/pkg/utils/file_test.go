@@ -272,3 +272,49 @@ func TestWriteFile(t *testing.T) {
 		})
 	}
 }
+
+func TestIsYaml(t *testing.T) {
+	tests := []struct {
+		name     string
+		filename string
+		want     bool
+	}{
+		{
+			name:     "lowercase yml extension",
+			filename: "my/yaml/file.yml",
+			want:     true,
+		},
+		{
+			name:     "lowercase yaml extension",
+			filename: "my/yaml/file.yaml",
+			want:     true,
+		},
+		{
+			name:     "uppercase YAML extension",
+			filename: "my/yaml/file.YAML",
+			want:     true,
+		},
+		{
+			name:     "uppercase YML extension",
+			filename: "my/yaml/file.YML",
+			want:     true,
+		},
+		{
+			name:     "no extension",
+			filename: "my/yaml/file",
+			want:     false,
+		},
+		{
+			name:     "non-yaml extension",
+			filename: "my/yaml/file.txt",
+			want:     false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := NewWithT(t)
+			g.Expect(utils.IsYaml(tt.filename)).To(Equal(tt.want))
+		})
+	}
+}

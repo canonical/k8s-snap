@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
@@ -32,8 +33,7 @@ func (c *Client) ApplyCRDs(ctx context.Context, crdsDir string) error {
 
 		crdPath := filepath.Join(crdsDir, file.Name())
 
-		err := c.ApplyCRD(ctx, crdPath)
-		if err != nil {
+		if err := c.ApplyCRD(ctx, crdPath); err != nil {
 			return fmt.Errorf("failed to apply CRD %s: %w", file.Name(), err)
 		}
 	}
@@ -61,25 +61,23 @@ func (c *Client) ApplyCRD(ctx context.Context, filePath string) error {
 	// Decode YAML into an unstructured object
 	dec := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 	obj := &unstructured.Unstructured{}
-	_, _, err = dec.Decode(yamlFile, nil, obj)
-	if err != nil {
+	if _, _, err := dec.Decode(yamlFile, nil, obj); err != nil {
 		return fmt.Errorf("failed to decode YAML: %w", err)
 	}
 
 	// Convert unstructured object to a CRD
 	crd := &apiextensionsv1.CustomResourceDefinition{}
-	err = c.convertUnstructuredToCRD(obj, crd)
-	if err != nil {
+	if err := c.convertUnstructuredToCRD(obj, crd); err != nil {
 		return fmt.Errorf("failed to convert to CRD: %w", err)
 	}
 
-	// Create or update the CRD using the API Extensions client
+	// TODO(ben): Consider using `Apply` instead.
 	existing, err := apiExtClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, crd.Name, v1.GetOptions{})
 	if err == nil {
 		// CRD exists, update it
 		crd.ResourceVersion = existing.ResourceVersion
 		_, err = apiExtClient.ApiextensionsV1().CustomResourceDefinitions().Update(ctx, crd, v1.UpdateOptions{})
-	} else {
+	} else if apierrors.IsNotFound(err) {
 		// CRD doesn't exist, create it
 		_, err = apiExtClient.ApiextensionsV1().CustomResourceDefinitions().Create(ctx, crd, v1.CreateOptions{})
 	}
