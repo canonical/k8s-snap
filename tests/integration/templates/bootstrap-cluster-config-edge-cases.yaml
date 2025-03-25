@@ -15,7 +15,7 @@ cluster-config:
     enabled: true
   metrics-server:
     enabled: true
-  extra-node-kubelet-args:
-    --cgroup-driver: systemd
-    --hostname-override: dev
-    --eviction-hard: 'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'
+extra-node-kubelet-args:
+  --cgroup-driver: systemd
+  --hostname-override: dev
+  --eviction-hard: 'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'
