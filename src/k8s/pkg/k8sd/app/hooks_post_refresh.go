@@ -10,6 +10,10 @@ import (
 	"github.com/canonical/microcluster/v2/state"
 )
 
+// postRefreshHook is executed after the node is ready after a `snap refresh` operation
+// See nodeReadyHook for details on when a node is considered ready.
+// Note that the postRefreshHook is NOT executed after a `snap install` operation which is
+// different to the underlying snap hook.
 func (a *App) postRefreshHook(ctx context.Context, s state.State) error {
 	log := log.FromContext(ctx).WithValues("hook", "post-refresh")
 	log.Info("Running post-refresh hook")
