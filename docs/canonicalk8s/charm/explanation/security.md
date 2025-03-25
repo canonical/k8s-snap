@@ -93,10 +93,6 @@ post deployment hardening steps listed in our [hardening guide] and enforce
 any of the remaining guidelines according to their needs. Read more about CIS
 hardening on our [CIS explanation page].
 
-## Risks
-
-## Information Security
-
 <!-- LINKS -->
 [Juju security documentation]:https://canonical-juju.readthedocs-hosted.com/en/latest/user/explanation/juju-security/
 [Machine authentication]: https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/ssh-key/
