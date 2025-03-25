@@ -1,8 +1,11 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
+import json
 import logging
+import os
 from pathlib import Path
+import time
 from typing import List
 
 import pytest
@@ -269,22 +272,97 @@ def test_version_downgrades_with_rollback(
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
 
+@pytest.mark.node_count(3)
+@pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_feature_upgrades(instances: List[harness.Instance]):
+def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     """Test the feature upgrades work
     Note(ben): This test is a work in progress and will
     be expanded with new tests as the feature upgrades work takes shape.
     Once this work is complete, this test will likely be merged with the
-    test_version_upgrades test above and create a single test for all upgrades."""
+    test_version_upgrades test above and create a single test for all upgrades.
 
-    cp = instances[0]
+    It is not possible to:
+        * do a snap refresh to a local snap
+        * upload the same snap revision to different branches
+    Therefore we need to:
+        * upload the snap to two different branches and perform an upgrade between them
+          (we rely on/need to test pre-refresh hooks so this cannot be done by upgrading from an existing revision)
+        * Need to do a dummy modification to the snap to make it possible to upload the same revision to different branches
+
+    """
+    assert (
+        config.SNAPCRAFT_STORE_CREDENTIALS is not None
+    ), "SNAPCRAFT_STORE_CREDENTIALS must be set to run this test"
+
+    assert config.SNAP is not None, "SNAP must be set to run this test"
+
+    start_branch = "latest/edge/ci-upgrade-test-1"
+    target_branch = "latest/edge/ci-upgrade-test-2"
+
+    os.environ["SNAPCRAFT_STORE_CREDENTIALS"] = config.SNAPCRAFT_STORE_CREDENTIALS
+
+    # unsquash, add dummy change to ensure uniqueness in store, squash, upload to branches
+    # note: we also add a dummy change to the first branch as the test would otherwise fail if a PR only introduces test changes.
+    unsquash_path = tmp_path / "k8s-snap-unsquashed"
+    util.run(f"unsquashfs -d {unsquash_path} {config.SNAP}".split())
+    for idx, branch in enumerate([start_branch, target_branch]):
+        # create a random dummy file to ensure the snap is unique
+        util.run(f"touch { unsquash_path/f"{time.time()}" }".split())
+        util.run(
+            f"snapcraft pack {unsquash_path} -o {tmp_path / f"k8s-snap-modified-{idx+1}.snap"}".split()
+        )
+        util.run(
+            f"snapcraft upload { tmp_path / f"k8s-snap-modified-{idx+1}.snap"} --release={branch}".split()
+        )
+
+    main = instances[0]
+
+    for instance in instances:
+        instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
+
+    main.exec(["k8s", "bootstrap"])
+    for instance in instances[1:]:
+        token = util.get_join_token(main, instance)
+        instance.exec(["k8s", "join-cluster", token])
+
+    util.wait_until_k8s_ready(instance, instances)
 
     # Verify that the UpgradeCRD is known to the cluster
-    cp.exec("k8s kubectl get crd upgrades.k8sd.io".split())
+    main.exec("k8s kubectl get crd upgrades.k8sd.io".split())
 
-    # Test that the UpgradeCRD can be created.
-    cp.exec(
-        "k8s kubectl apply -f -".split(),
-        input=str.encode(Path(config.MANIFESTS_DIR / "upgrade.yaml").read_text()),
-    )
-    cp.exec("k8s kubectl get upgrade cluster-upgrade".split())
+    # Refresh each node after eachother and verify that the upgrade CR is updated correctly.
+    for idx, instance in enumerate(instances):
+        instance.exec(f"snap refresh k8s --channel={target_branch}".split())
+
+        # TODO(ben): Check if this wait is really required, if yes - why?
+        expected_instances = [instance.id for instance in instances[: idx + 1]]
+        util.stubbornly(retries=15, delay_s=5).on(instance).until(
+            lambda p: _waiting_for_upgraded_nodes(
+                json.loads(p.stdout), expected_instances
+            ),
+        ).exec(
+            "k8s kubectl get upgrade -o=jsonpath={.items[0].status.upgradedNodes}".split(),
+            capture_output=True,
+            text=True,
+        )
+
+        phase = instance.exec(
+            "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
+            capture_output=True,
+            text=True,
+        ).stdout
+
+        if idx == len(instances) - 1:
+            assert (
+                phase == "FeatureUpgrade"
+            ), f"After the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
+        else:
+            assert (
+                phase == "NodeUpgrade"
+            ), f"While upgrading, expected phase to be NodeUpgrade but got {phase}"
+
+
+def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> True:
+    LOG.info("Waiting for upgraded nodes %s to be: %s", upgraded_nodes, expected_nodes)
+    return set(upgraded_nodes) == set(expected_nodes)
