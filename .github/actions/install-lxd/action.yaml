@@ -12,6 +12,10 @@ runs:
     - name: Install lxd snap
       shell: bash
       run: |
+        # note(ben): Temporary workaround until snapd/snapcraft issue is resolved.
+        sudo apt-get update
+        sudo apt-get install xdelta3 --yes
+
         if ! snap list lxd &> /dev/null; then
           echo "Installing lxd snap"
           sudo snap install lxd --channel ${{ inputs.channel }}
