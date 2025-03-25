@@ -252,6 +252,7 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 // The node is ready if:
 // - the microcluster database is accessible
 // - the kubernetes endpoint is reachable.
+// - the onNodeReady hook succeeds.
 func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	log := log.FromContext(ctx).WithValues("startup", "waitForReady")
 
