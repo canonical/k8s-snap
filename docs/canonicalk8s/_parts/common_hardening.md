@@ -2,7 +2,7 @@
 
 #### Control Plane Security
 
-Kubernetes documentation on [controlling_access][] to the API informs on topics
+Kubernetes documentation on [controlling access][controlling_access] to the API informs on topics
 such as **Transport Security**, **AAA (Authentication,Authorization,Auditing)**,
 and **Admission control**. Much of this discusses how to limit access to
 authorized users and disable access to unauthorized users.
