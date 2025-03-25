@@ -77,8 +77,8 @@ and much more.
 [Configuration files]:/snap/reference/config-files/index
 [How to report a security issue]:/snap/howto/security/report-security-issue.md
 [Cluster certificates and configuration reference]: /snap/reference/certificates/
-[How to refresh Kubernetes certificates]:/snap/howto/refresh-certs.md
-[How to use intermediate CAs with Vault]:/snap/howto/intermediate-ca.md
+[How to refresh Kubernetes certificates]:/snap/howto/security/refresh-certs.md
+[How to use intermediate CAs with Vault]:/snap/howto/security/intermediate-ca.md
 [How to assess for DISA STIG compliance]:/snap/howto/security/disa-stig-assessment.md
 [How to assess for CIS compliance]: /snap/howto/security/cis-assessment.md
 [Release notes]:/snap/reference/releases.md
