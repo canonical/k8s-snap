@@ -190,6 +190,8 @@ def setup_k8s_snap(
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
 
+    LOG.info("Installing k8s-snap: %s", which_snap)
+
     if not which_snap:
         pytest.fail("Set TEST_SNAP to the channel, revision, or path to the snap")
 
