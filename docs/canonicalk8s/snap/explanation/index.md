@@ -61,7 +61,7 @@ done to strive for compliance with industry standards.
 
 ```{toctree}
 :titlesonly:
-security/index
+Security <security/index>
 ```
 
 ---

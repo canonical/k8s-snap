@@ -1,20 +1,8 @@
 # Security in {{product}}
-<!--
-```{toctree}
-:hidden:
-Overview <self>
-``` -->
 
 This page provides links to the various pages across our documentation that
 have security implications on {{product}}.
 
-<!-- ```{toctree}
-:titlesonly:
-Overview <security>
-cryptography
-cis
-certificates
-``` -->
 ## Security pages
 
 Visit our dedicated security explanation pages to learn more in depth about
@@ -28,9 +16,11 @@ certificates
 cis
 ```
 
-We also provide a how-to guide on reporting a security vulnerability.
+We also provide how-to guides on reporting a security vulnerability and
+hardening your cluster.
 
 - [How to report a security issue]
+- [How to harden your cluster]
 
 ## Authentication
 
@@ -77,14 +67,6 @@ understand the security posture of {{product}} such as what ports are exposed,
 what are the different security configuration options available during bootstrap
 and much more.
 
-<!-- Architecture: provides the architectural components of Canonical Kubernetes, key to understand the different components to secure in a cluster.
-
-Bootstrap configuration file reference: provides the format of this file by listing all available options and their details, including:
-how to setup the default tls secret for ingress
-the datastore certificates when an external datastore (like etcd) is used
-the certificates to be used for Kubernetes services, front proxy, kube-apiserver, kubelet, kube-proxy, kube-scheduler, service account and admin client -->
-
-
 - [Architecture]
 - [Ports and services]
 - [Configuration files]
@@ -104,3 +86,4 @@ the certificates to be used for Kubernetes services, front proxy, kube-apiserver
 [Certificates explanation]: certificates
 [CIS hardening explanation]: cis
 [How to install in air-gapped environments]:/snap/howto/install/offline/
+[How to harden your cluster]: /snap/howto/security/hardening.md
