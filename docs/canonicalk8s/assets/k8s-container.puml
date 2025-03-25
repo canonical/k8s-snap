@@ -11,7 +11,7 @@ top to bottom direction
 Person(K8sAdmin, "K8s Admin", $descr="Responsible for the K8s cluster, has elevated permissions", $tags="", $link="")
 Person(K8sUser, "K8s User", $descr="Interact with the workloads hosted in K8s", $tags="", $link="")
 System(CharmK8s, "Charm K8s", $descr="Orchestrating the lifecycle management of K8s", $tags="", $link="")
-System(Externaldatastore, "External datastore", $descr="etcd or k8s-dqlite", $tags="", $link="")
+System(Externaldatastore, "External datastore", $descr="etcd", $tags="", $link="")
 
 System_Boundary("K8sSnapDistribution_boundary", "K8s Snap Distribution", $tags="") {
   Container(K8sSnapDistribution.KubernetesControlPlane, "Kubernetes Control Plane", $techn="", $descr="API server, kubelet, kube-proxy, scheduler, kube-controller", $tags="", $link="")
@@ -28,7 +28,7 @@ Rel(K8sUser, K8sSnapDistribution.Kubectl, "Interacts with workloads hosted in K8
 Rel(CharmK8s, K8sSnapDistribution.K8sd, "Orchestrates the lifecycle management of K8s", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.K8sddatastore, "Stores data in", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.KubernetesControlPlane, K8sSnapDistribution.Kubernetesdatastore, "Stores data in", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.Kubernetesdatastore, Externaldatastore, "May be replaced by any", $techn="Any", $tags="", $link="")
+Rel(K8sSnapDistribution.Kubernetesdatastore, Externaldatastore, "May be replaced by", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.KubernetesControlPlane, "Configures", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.KubernetesControlPlane, K8sSnapDistribution.ContainerRuntime, "Uses", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.Kubectl, K8sSnapDistribution.KubernetesControlPlane, "Sends API requests", $techn="", $tags="", $link="")
