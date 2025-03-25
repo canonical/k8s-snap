@@ -42,6 +42,7 @@ type Mock struct {
 	ServiceArgumentsDir         string
 	ServiceExtraConfigDir       string
 	LockFilesDir                string
+	PostRefreshLockPath         string
 	NodeTokenFile               string
 	KubernetesClient            *kubernetes.Client
 	KubernetesNodeClient        *kubernetes.Client
@@ -112,6 +113,10 @@ func (s *Snap) Refresh(ctx context.Context, opts types.RefreshOpts) (string, err
 
 func (s *Snap) RefreshStatus(ctx context.Context, changeID string) (*types.RefreshStatus, error) {
 	return nil, nil
+}
+
+func (s *Snap) PostRefreshLockPath() string {
+	return s.Mock.PostRefreshLockPath
 }
 
 func (s *Snap) Strict() bool {

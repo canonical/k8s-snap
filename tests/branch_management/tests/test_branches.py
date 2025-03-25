@@ -1,16 +1,23 @@
 #
-# Copyright 2024 Canonical, Ltd.
+# Copyright 2025 Canonical, Ltd.
 #
 import functools
 import logging
+import re
 import subprocess
 from pathlib import Path
 
 import requests
+import semver
+import yaml
 
 log = logging.getLogger(__name__)
 K8S_GH_REPO = "https://github.com/canonical/k8s-snap.git/"
 K8S_LP_REPO = " https://git.launchpad.net/k8s"
+
+DIR = Path(__file__).absolute().parent
+PROJECT_BASE_DIR = DIR / ".." / ".." / ".."
+COMPONENTS_DIR = PROJECT_BASE_DIR / "build-scripts" / "components"
 
 
 def _sh(*args, **kwargs):
@@ -125,3 +132,54 @@ def test_tip_recipes():
     We should ensure that a launchpad recipes always exist for tip to be build with
     """
     _confirm_all_recipes_exist("latest", "main")
+
+
+def _get_k8s_component_version() -> semver.Version:
+    k8s_version_file = COMPONENTS_DIR / "kubernetes" / "version"
+    with open(k8s_version_file, "r") as f:
+        version_str = f.read().strip("\n ").lstrip("v")
+        return semver.Version.parse(version_str, optional_minor_and_patch=True)
+
+
+def _get_k8s_docs_version() -> semver.Version:
+    substitutions_file = (
+        PROJECT_BASE_DIR / "docs" / "canonicalk8s" / "reuse" / "substitutions.yaml"
+    )
+    with open(substitutions_file, "r") as f:
+        substitutions = yaml.safe_load(f.read())
+        assert (
+            "version" in substitutions
+        ), "substitutions.yaml doesn't contain the k8s version"
+
+        version_str = substitutions["version"].lstrip("v")
+        return semver.Version.parse(version_str, optional_minor_and_patch=True)
+
+
+def _check_k8s_channel_version(exp_version: semver.Version, path: Path):
+    with open(path, "r") as f:
+        channel_re = r"channel[ =](\d+)\.(\d+)"
+        for line in f.readlines():
+            matches = re.findall(channel_re, line)
+            for match in matches:
+                assert len(match) == 2
+                assert str(exp_version.major) == match[0]
+                assert str(exp_version.minor) == match[1]
+
+
+def test_k8s_version():
+    """Ensure that the k8s component version matches the one from the docs."""
+    component_version = _get_k8s_component_version()
+    docs_version = _get_k8s_docs_version()
+
+    assert (
+        component_version.major == docs_version.major
+        and component_version.minor == docs_version.minor
+    )
+
+    install_parts_file = (
+        PROJECT_BASE_DIR / "docs" / "canonicalk8s" / "_parts" / "install.md"
+    )
+    readme_file = PROJECT_BASE_DIR / "README.md"
+
+    _check_k8s_channel_version(component_version, install_parts_file)
+    _check_k8s_channel_version(component_version, readme_file)

@@ -119,6 +119,10 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 		IncludeMachineAddressSANs: true,
 	})
 
+	if err := setup.ReadControlPlanePKI(snap, certificates, false); err != nil {
+		return response.InternalError(fmt.Errorf("failed to read unmanaged control plane certificates: %w", err))
+	}
+
 	certificates.CACert = clusterConfig.Certificates.GetCACert()
 	certificates.CAKey = clusterConfig.Certificates.GetCAKey()
 	certificates.ClientCACert = clusterConfig.Certificates.GetClientCACert()
