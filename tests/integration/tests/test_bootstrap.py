@@ -20,6 +20,7 @@ def test_microk8s_installed(instances: List[harness.Instance]):
 
 
 @pytest.mark.node_count(1)
+@pytest.mark.tags(tags.PULL_REQUEST)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-cluster-config-edge-cases.yaml").read_text()
 )
