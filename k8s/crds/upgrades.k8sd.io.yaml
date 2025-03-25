@@ -21,12 +21,6 @@ spec:
           type: string
           description: "Current upgrade phase."
           jsonPath: ".status.phase"
-        - name: UpgradedNodes
-          type: array
-          items:
-            type: string
-          description: "Number of nodes that have been upgraded."
-          jsonPath: ".status.upgradedNodes"
       schema:
         openAPIV3Schema:
           type: object
