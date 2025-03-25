@@ -17,7 +17,10 @@ if [ ! -f "${BUILD_DIR}/libtirpc/src/libtirpc.la" ]; then
   (
     cd "${BUILD_DIR}"
     rm -rf libtirpc
-    git clone "${REPO_LIBTIRPC}" --depth 1 --branch "${TAG_LIBTIRPC}" > /dev/null
+    for i in $(seq 1 5); do
+      git clone "${REPO_LIBTIRPC}" --depth 1 --branch "${TAG_LIBTIRPC}" >/dev/null && break
+      sleep 5
+    done
     cd libtirpc
     chmod +x autogen.sh
     ./autogen.sh > /dev/null
