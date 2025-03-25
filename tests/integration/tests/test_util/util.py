@@ -212,7 +212,8 @@ def setup_k8s_snap(
     instance.exec(["apt", "update"])
     instance.exec(["apt", "install", "xdelta3", "--yes"])
 
-    instance.exec(cmd)
+    stubbornly(retries=3, delay_s=5).on(instance).exec(cmd)
+    
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
