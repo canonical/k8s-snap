@@ -379,6 +379,10 @@ def test_vault_certificates(instances: List[harness.Instance]):
 
     # Refresh all cluster's nodes PKI.
     leader_cp_certs = {}
+    cp_certs["apiserver-kubelet-client"] = CertOpts(
+            common_name="apiserver-kubelet-client",
+            role=MASTERS_ROLE,
+    )
     worker_certs["kubelet"] = CertOpts(
         common_name=f"system:node:{bootstrap_node_hostname}",
         role=NODES_ROLE,
