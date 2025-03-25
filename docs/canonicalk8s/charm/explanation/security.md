@@ -1,4 +1,3 @@
-
 # Security overview of {{product}}
 
 This page provides an overview of various aspects of security to be considered

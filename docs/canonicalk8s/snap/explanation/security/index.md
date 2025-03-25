@@ -11,10 +11,10 @@ security in {{product}}.
 ```{toctree}
 :titlesonly:
 Security overview <security>
-Cryptography <cryptography>
 certificates
 cis
 ```
+<!-- Add back in once we have this page complete Cryptography <cryptography> -->
 
 We also provide how-to guides on reporting a security vulnerability and
 hardening your cluster.
