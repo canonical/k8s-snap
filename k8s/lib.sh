@@ -9,11 +9,9 @@ k8s::common::setup_env() {
     return 0
   fi
 
-  local SNAP_CURRENT="${SNAP%"${SNAP_REVISION}"}current"
-
   # Configure PATH, LD_LIBRARY_PATH
-  export PATH="$SNAP_CURRENT/usr/bin:$SNAP_CURRENT/bin:$SNAP_CURRENT/usr/sbin:$SNAP_CURRENT/sbin:$REAL_PATH"
-  export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$SNAP_CURRENT/lib:$SNAP_CURRENT/usr/lib:$SNAP_CURRENT/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP_CURRENT/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP_CURRENT/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/ceph:${REAL_LD_LIBRARY_PATH:-}"
+  export PATH="$SNAP/usr/bin:$SNAP/bin:$SNAP/usr/sbin:$SNAP/sbin:$REAL_PATH"
+  export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/ceph:${REAL_LD_LIBRARY_PATH:-}"
 
   # NOTE(neoaggelos/2023-08-14):
   # we cannot list system locales from snap. instead, we attempt
@@ -238,4 +236,38 @@ k8s::containerd::ensure_systemd_defaults() {
     cp "$override_file" "$override_dir/"
   fi
 
+}
+
+# Returns the name of the upgrade that is currently in progress.
+k8s::upgrade::in_progress_upgrade() {
+  k8s::common::setup_env
+  k8s::cmd::k8s kubectl get upgrade --no-headers -o json  | jq '.items[] | select(.status.phase != "Failed" and .status.phase != "Completed") | .metadata.name'
+}
+
+k8s::upgrade::prepare() {
+  k8s::common::setup_env
+
+  mkdir -p "$SNAP_COMMON/logs"
+
+  echo "Preparing for upgrade." >> "$SNAP_COMMON/logs/upgrade.log"
+  echo "Current upgrade CRDs:" >> "$SNAP_COMMON/logs/upgrade.log"
+  k8s::cmd::k8s kubectl get upgrade --no-headers -o json >> "$SNAP_COMMON/logs/upgrade.log"
+
+  # Create a new Upgrade CRD to track the upgrade across the cluster if there is none in progress.
+  upgrade_name=$(k8s::upgrade::in_progress_upgrade)
+  echo "Upgrade name: $upgrade_name" >> "$SNAP_COMMON/logs/upgrade.log"
+
+  if [[ -n "$upgrade_name" ]]; then
+      echo "Upgrade in-progress: $upgrade_name" >> "$SNAP_COMMON/logs/upgrade.log"
+      k8s::cmd::k8s kubectl get upgrade --no-headers -o json >> "$SNAP_COMMON/logs/upgrade.log"
+  else
+      echo "Creating a new Upgrade CRD to track the upgrade across the cluster." >> "$SNAP_COMMON/logs/upgrade.log"
+      k8s::cmd::k8s kubectl get upgrade --no-headers -o json >> "$SNAP_COMMON/logs/upgrade.log"
+
+      kubernetes_version=$(k8s::cmd::k8s kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
+      upgrade_name="cluster-upgrade-$kubernetes_version"
+      cat $SNAP/k8s/manifests/upgrade.yaml | sed s/"{{CLUSTER_UPGRADE_NAME}}"/"$upgrade_name"/ | k8s::cmd::k8s kubectl create -f - >> "$SNAP_COMMON/logs/upgrade.log"
+      # Note(ben): This will be done by the upgrade controller in the future.
+      k8s::cmd::k8s kubectl patch upgrade "$upgrade_name" --type=merge -p '{"status":{"phase":"NodeUpgrade", "upgradedNodes": []}}' --subresource status >> "$SNAP_COMMON/logs/upgrade.log"
+  fi
 }

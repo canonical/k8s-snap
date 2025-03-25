@@ -15,6 +15,7 @@ import (
 // The node is ready if:
 // - the microcluster database is accessible
 // - the kubernetes endpoint is reachable.
+// - the onNodeReady hook succeeds.
 // Note that this is not a microcluster hook, but a custom k8sd hook.
 func (a *App) onNodeReady(ctx context.Context, s state.State) error {
 	log := log.FromContext(ctx).WithValues("hook", "onNodeReady")
