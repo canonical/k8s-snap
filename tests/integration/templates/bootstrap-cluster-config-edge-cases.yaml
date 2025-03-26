@@ -18,4 +18,4 @@ cluster-config:
 extra-node-kubelet-args:
   --cgroup-driver: systemd
   --hostname-override: dev
-  --eviction-hard: 'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'
+  --eviction-hard: "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'""
