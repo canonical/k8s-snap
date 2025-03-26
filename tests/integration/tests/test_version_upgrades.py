@@ -6,19 +6,28 @@ from typing import List
 
 import pytest
 from test_util import config, harness, snap, tags, util
+from test_util.registry import Registry
 
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.node_count(1)
+@pytest.mark.node_count(4)
 @pytest.mark.no_setup()
 @pytest.mark.skipif(
     not config.VERSION_UPGRADE_CHANNELS, reason="No upgrade channels configured"
 )
 @pytest.mark.tags(tags.NIGHTLY)
-def test_version_upgrades(instances: List[harness.Instance], tmp_path):
+def test_version_upgrades(
+    instances: List[harness.Instance],
+    tmp_path,
+    containerd_cfgdir: str,
+    registry: Registry,
+):
     channels = config.VERSION_UPGRADE_CHANNELS
     cp = instances[0]
+    cp1 = instances[1]
+    cp2 = instances[2]
+    w0 = instances[3]
     current_channel = channels[0]
 
     if current_channel.lower() == "recent":
@@ -51,24 +60,45 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
     util.setup_k8s_snap(cp, tmp_path, current_channel)
     cp.exec(["k8s", "bootstrap"])
 
+    for instance in instances[1:]:
+        util.setup_k8s_snap(instance, tmp_path, current_channel)
+
+    if config.USE_LOCAL_MIRROR:
+        for instance in instances:
+            registry.apply_configuration(instance, containerd_cfgdir)
+
+    join_token_cp1 = util.get_join_token(cp, cp1)
+    join_token_cp2 = util.get_join_token(cp, cp2)
+    join_token_w0 = util.get_join_token(cp, w0, "--worker")
+
+    util.join_cluster(cp1, join_token_cp1)
+    util.join_cluster(cp2, join_token_cp2)
+    util.join_cluster(w0, join_token_w0)
+
     util.wait_until_k8s_ready(cp, instances)
-    LOG.info(f"Installed {cp.id} on channel {current_channel}")
+    nodes = util.ready_nodes(cp)
+    assert len(nodes) == 4, "all nodes should have joined cluster"
+
+    LOG.info(f"Installed {len(instances)} nodes on channel {current_channel}")
 
     for channel in channels[1:]:
-        LOG.info(f"Upgrading {cp.id} from {current_channel} to channel {channel}")
+        for instance in instances:
+            LOG.info(
+                f"Upgrading {instance.id} from {current_channel} to channel {channel}"
+            )
 
-        # Log the current snap version on the node.
-        out = cp.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
-        latest_version = out.stdout.decode().strip().split("\n")[-1]
-        LOG.info(f"Current snap version: {latest_version}")
+            # Log the current snap version on the node.
+            out = instance.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
+            latest_version = out.stdout.decode().strip().split("\n")[-1]
+            LOG.info(f"Current snap version: {latest_version}")
 
-        # note: the `--classic` flag will be ignored by snapd for strict snaps.
-        cp.exec(
-            ["snap", "refresh", config.SNAP_NAME, "--channel", channel, "--classic"]
-        )
-        util.wait_until_k8s_ready(cp, instances)
-        current_channel = channel
-        LOG.info(f"Upgraded {cp.id} on channel {channel}")
+            # note: the `--classic` flag will be ignored by snapd for strict snaps.
+            instance.exec(
+                ["snap", "refresh", config.SNAP_NAME, "--channel", channel, "--classic"]
+            )
+            util.wait_until_k8s_ready(cp, instances)
+            current_channel = channel
+            LOG.info(f"Upgraded {instance.id} on channel {channel}")
 
 
 @pytest.mark.node_count(1)
