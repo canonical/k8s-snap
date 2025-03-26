@@ -34,8 +34,6 @@ Rel(Juju.JujuController, Juju.K8s, "Manages", $techn="", $tags="", $link="")
 Rel(Juju.JujuController, Juju.K8sWorker, "Manages", $techn="", $tags="", $link="")
 Rel(Administrator, Juju.JujuClient, "Uses", $techn="", $tags="", $link="")
 Rel(Juju.JujuClient, Juju.JujuController, "Manages", $techn="", $tags="", $link="")
-
-' Example of relationship from System_Boundary to Container
 Rel(Juju.ApiManager, K8sSnap.K8sd, "Manages", $techn="", $tags="", $link="")
 
 SHOW_LEGEND(true)
