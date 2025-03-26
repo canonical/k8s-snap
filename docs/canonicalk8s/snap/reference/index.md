@@ -68,6 +68,7 @@ inspection-reports
 
 ```{toctree}
 :titlesonly:
+Security <security>
 certificates
 ```
 
