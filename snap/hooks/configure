@@ -4,6 +4,10 @@
 
 k8s::common::setup_env
 
-k8s::cmd::k8s x-snapd-config reconcile
+if k8s::util::is_control_plane_node; then
+    k8s::cmd::k8s x-snapd-config reconcile
+else
+    echo "Not a control plane node, skipping config reconciliation."
+fi
 
 k8s::containerd::ensure_systemd_defaults

@@ -161,6 +161,14 @@ k8s::util::default_interface() {
   ip route show default | awk '{for(i=1; i<NF; i++) if ($i=="dev") print $(i+1)}' | head -1
 }
 
+k8s::util::is_control_plane_node() {
+  if k8s::cmd::k8s local-node-status | grep -q "control-plane"; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # Wait for containerd socket to be ready
 # Example: 'k8s::util::wait_containerd_socket'
 k8s::util::wait_containerd_socket() {
