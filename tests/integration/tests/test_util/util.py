@@ -508,7 +508,7 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     addr = "https://dl.k8s.io/release/stable{dash_maj}.txt".format(
         dash_maj=f"-{maj}" if maj else ""
     )
-    LOG.info("Getting current version from %s", addr)
+    LOG.info("Getting upstream version from %s", addr)
     with urllib.request.urlopen(addr) as r:
         stable = r.read().decode().strip()
         return major_minor(stable)
