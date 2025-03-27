@@ -29,6 +29,7 @@ from test_util import config, harness
 LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
 TRACK_RE = re.compile(r"^(\d+)\.(\d+)(\S*)$")
+MAIN_BRANCH = "main"
 
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
@@ -522,7 +523,7 @@ def _pervious_track_from_branch(branch: str) -> Optional[str]:
     Returns:
         the previous track or None if fails to determine
     """
-    if branch == "main":
+    if branch == MAIN_BRANCH:
         # NOTE(Hue): `latest/stable` is not populated at the moment.
         # When it is, we should return `latest` instead.
         LOG.info("Getting current version from upstream k8s")
@@ -568,7 +569,7 @@ def previous_track(snap_version: str) -> str:
         return assumed
 
     if snap_version.startswith("/") or _as_int(snap_version) is not None:
-        branch = config.GH_BASE_REF or config.GH_REF or "main"
+        branch = config.GH_BASE_REF or config.GH_REF or MAIN_BRANCH
         prev = _pervious_track_from_branch(branch)
         if prev:
             LOG.info(
