@@ -6,6 +6,7 @@ import (
 
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/k8sd/features"
+	"github.com/canonical/k8s/pkg/k8sd/features/featureset"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +23,7 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			defer cancel()
 			if err := control.WaitUntilReady(ctx, func() (bool, error) {
-				err := features.StatusChecks.CheckDNS(cmd.Context(), env.Snap)
+				err := featureset.StatusChecks.CheckDNS(cmd.Context(), env.Snap)
 				if err != nil {
 					cmd.PrintErrf("DNS not ready yet: %v\n", err.Error())
 				}
@@ -43,7 +44,7 @@ func newXWaitForCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			defer cancel()
 			if err := control.WaitUntilReady(ctx, func() (bool, error) {
-				err := features.StatusChecks.CheckNetwork(cmd.Context(), env.Snap)
+				err := featureset.StatusChecks.CheckNetwork(cmd.Context(), env.Snap)
 				if err != nil {
 					cmd.PrintErrf("network not ready yet: %v\n", err.Error())
 				}

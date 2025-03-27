@@ -6,6 +6,8 @@ import (
 
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/k8sd/features"
+	"github.com/canonical/k8s/pkg/k8sd/features/featureset"
+
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +24,7 @@ func newXCleanupCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			defer cancel()
 
-			if err := features.Cleanup.CleanupNetwork(ctx, env.Snap); err != nil {
+			if err := featureset.Cleanup.CleanupNetwork(ctx, env.Snap); err != nil {
 				cmd.PrintErrf("Error: failed to cleanup network: %v\n", err)
 				env.Exit(1)
 			}

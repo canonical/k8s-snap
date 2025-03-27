@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/features"
+	"github.com/canonical/k8s/pkg/k8sd/features/featureset"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -82,31 +83,31 @@ func (c *FeatureController) Run(
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 
 	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyNetwork(ctx, c.snap, s, cfg.APIServer, cfg.Network, cfg.Annotations)
+		return featureset.Reconcile.ApplyNetwork(ctx, c.snap, s, cfg.APIServer, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
+		return featureset.Reconcile.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.Ingress, c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
+		return featureset.Reconcile.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.LoadBalancer, c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
+		return featureset.Reconcile.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.LocalStorage, c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyLocalStorage(ctx, c.snap, cfg.LocalStorage, cfg.Annotations)
+		return featureset.Reconcile.ApplyLocalStorage(ctx, c.snap, cfg.LocalStorage, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.MetricsServer, c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyMetricsServer(ctx, c.snap, cfg.MetricsServer, cfg.Annotations)
+		return featureset.Reconcile.ApplyMetricsServer(ctx, c.snap, cfg.MetricsServer, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.DNS, c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		featureStatus, dnsIP, err := features.Implementation.ApplyDNS(ctx, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
+		featureStatus, dnsIP, err := featureset.Reconcile.ApplyDNS(ctx, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
 
 		if err != nil {
 			return featureStatus, fmt.Errorf("failed to apply DNS configuration: %w", err)

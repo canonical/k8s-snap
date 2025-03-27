@@ -1,8 +1,9 @@
 //go:build ignore
 
-package features
+package featureset
 
 import (
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/calico"
 	"github.com/canonical/k8s/pkg/k8sd/features/contour"
 	"github.com/canonical/k8s/pkg/k8sd/features/coredns"
@@ -13,7 +14,7 @@ import (
 
 // Implementation contains the moonray features for Canonical Kubernetes.
 // TODO: Replace default by moonray.
-var Implementation Interface = &implementation{
+var Reconcile features.ReconcileInterface = &implementation{
 	applyDNS:           coredns.ApplyDNS,
 	applyNetwork:       calico.ApplyNetwork,
 	applyLoadBalancer:  metallb.ApplyLoadBalancer,
@@ -25,11 +26,11 @@ var Implementation Interface = &implementation{
 
 // StatusChecks implements the Canonical Kubernetes moonray feature status checks.
 // TODO: Replace default by moonray.
-var StatusChecks StatusInterface = &statusChecks{
+var StatusChecks features.StatusInterface = &statusChecks{
 	checkNetwork: calico.CheckNetwork,
 	checkDNS:     coredns.CheckDNS,
 }
 
-var Cleanup CleanupInterface = &cleanup{
+var Cleanup features.CleanupInterface = &cleanup{
 	cleanupNetwork: calico.CleanupNetwork,
 }
