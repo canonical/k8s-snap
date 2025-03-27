@@ -5,7 +5,7 @@ have security implications on {{product}}.
 
 ## Security pages
 
-- [Security overview]
+- [Security overview explanation]
 - [How to report a security issue]
 - [How to harden your cluster]
 
@@ -61,10 +61,10 @@ and much more.
 [How to assess for CIS compliance]: /snap/howto/security/cis-assessment.md
 [Release notes]:/snap/reference/releases.md
 [How to upgrade the Canonical Kubernetes snap]:/snap/howto/upgrades.md
-[Certificates explanation]: certificates
-[CIS hardening explanation]: cis
+[Certificates explanation]: /snap/explanation/security/certificates
+[CIS hardening explanation]: /snap/explanation/security/cis
 [How to install in air-gapped environments]:/snap/howto/install/offline/
 [How to harden your cluster]: /snap/howto/security/hardening.md
-[Security overview]: /snap/explanation/security-overview
+[Security overview explanation]: /snap/explanation/security/security-overview
 [Certificates]: /snap/explanation/security/certificates
 [CIS hardening]: /snap/explanation/security/cis
