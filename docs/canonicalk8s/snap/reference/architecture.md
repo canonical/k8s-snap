@@ -141,8 +141,8 @@ and flexible {{product}} deployment managed through Juju.
 
 [cluster1]: https://assets.ubuntu.com/v1/dfc43753-cluster1.svg
 [cluster2]: https://assets.ubuntu.com/v1/f634743e-k8sd.svg
-[cluster4]: https://assets.ubuntu.com/v1/24fd1773-cluster4.svg
-[cluster5]: https://assets.ubuntu.com/v1/bcfe150f-overview.svg 
+[cluster4]: https://assets.ubuntu.com/v1/53a083a9-charms.svg
+[cluster5]: https://assets.ubuntu.com/v1/bcfe150f-overview.svg
 
 <!-- LINKS -->
 [C4 model]:           https://c4model.com/
