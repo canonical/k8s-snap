@@ -11,7 +11,7 @@ import (
 // ReconcileInterface abstracts the management of built-in Canonical Kubernetes features.
 type ReconcileInterface interface {
 	// ApplyDNS is used to configure the DNS feature on Canonical Kubernetes.
-	ApplyDNS(context.Context, state.State, snap.Snap, types.DNS, types.Kubelet, types.Annotations) (types.FeatureStatus, string, error)
+	ApplyDNS(context.Context, state.State, snap.Snap, types.DNS, types.Kubelet, types.Annotations) (types.FeatureStatus, error)
 	// ApplyNetwork is used to configure the network feature on Canonical Kubernetes.
 	ApplyNetwork(context.Context, state.State, snap.Snap, types.APIServer, types.Network, types.Annotations) (types.FeatureStatus, error)
 	// ApplyLoadBalancer is used to configure the load-balancer feature on Canonical Kubernetes.

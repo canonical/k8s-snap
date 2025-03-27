@@ -10,7 +10,7 @@ import (
 
 // implementation implements Interface.
 type implementation struct {
-	applyDNS           func(context.Context, state.State, snap.Snap, types.DNS, types.Kubelet, types.Annotations) (types.FeatureStatus, string, error)
+	applyDNS           func(context.Context, state.State, snap.Snap, types.DNS, types.Kubelet, types.Annotations) (types.FeatureStatus, error)
 	applyNetwork       func(context.Context, state.State, snap.Snap, types.APIServer, types.Network, types.Annotations) (types.FeatureStatus, error)
 	applyLoadBalancer  func(context.Context, state.State, snap.Snap, types.LoadBalancer, types.Network, types.Annotations) (types.FeatureStatus, error)
 	applyIngress       func(context.Context, state.State, snap.Snap, types.Ingress, types.Network, types.Annotations) (types.FeatureStatus, error)
@@ -19,7 +19,7 @@ type implementation struct {
 	applyLocalStorage  func(context.Context, state.State, snap.Snap, types.LocalStorage, types.Annotations) (types.FeatureStatus, error)
 }
 
-func (i *implementation) ApplyDNS(ctx context.Context, s state.State, snap snap.Snap, dns types.DNS, kubelet types.Kubelet, annotations types.Annotations) (types.FeatureStatus, string, error) {
+func (i *implementation) ApplyDNS(ctx context.Context, s state.State, snap snap.Snap, dns types.DNS, kubelet types.Kubelet, annotations types.Annotations) (types.FeatureStatus, error) {
 	return i.applyDNS(ctx, s, snap, dns, kubelet, annotations)
 }
 

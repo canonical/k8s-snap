@@ -16,6 +16,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 	microclusterutil "github.com/canonical/k8s/pkg/utils/microcluster"
 	"github.com/canonical/microcluster/v2/state"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // FeatureController manages the lifecycle of built-in Canonical Kubernetes features on a running cluster.
@@ -78,7 +79,7 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 func (c *FeatureController) Run(
 	ctx context.Context,
 	s state.State,
-	notifyDNSChangedIP func(ctx context.Context, dnsIP string) error,
+	notifyUpdateNodeConfigController func(),
 ) {
 	c.waitReady()
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
@@ -108,21 +109,10 @@ func (c *FeatureController) Run(
 	})
 
 	go c.reconcileLoop(ctx, s, features.DNS, c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		featureStatus, dnsIP, err := featureset.Reconcile.ApplyDNS(ctx, s, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
-
-		if err != nil {
-			return featureStatus, fmt.Errorf("failed to apply DNS configuration: %w", err)
-		} else if dnsIP != "" {
-			if err := notifyDNSChangedIP(ctx, dnsIP); err != nil {
-				// we already have featureStatus.Message which contains wrapped error of the Apply<Feature>
-				// (or empty if no error occurs). we further wrap the error to add the DNS IP change error to the message
-				changeErr := fmt.Errorf("failed to update DNS IP address to %s: %w", dnsIP, err)
-				featureStatus.Message = fmt.Sprintf("%s: %v", featureStatus.Message, changeErr)
-				return featureStatus, changeErr
-			}
-		}
-		return featureStatus, nil
+		return featureset.Reconcile.ApplyDNS(ctx, s, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
 	})
+
+	go c.reconcileClusterDNS(ctx, s, notifyUpdateNodeConfigController)
 }
 
 func (c *FeatureController) reconcile(
@@ -208,4 +198,60 @@ func (c *FeatureController) setFeatureStatus(ctx context.Context, s state.State,
 
 func (c *FeatureController) getClusterConfig(ctx context.Context, s state.State) (types.ClusterConfig, error) {
 	return databaseutil.GetClusterConfig(ctx, s)
+}
+
+func (c *FeatureController) notifyClusterDNSChange(ctx context.Context, s state.State, notifyUpdateNodeConfigController func()) {
+	log := log.FromContext(ctx)
+	for {
+		cfg, err := c.getClusterConfig(ctx, s)
+		if err != nil {
+			log.Error(err, "Failed to retrieve cluster configuration")
+			continue
+		}
+
+		client, err := getNewK8sClientWithRetries(ctx, c.snap, false)
+		if err != nil {
+			log.Error(err, "Failed to create a Kubernetes client")
+			continue
+		}
+
+		configMap, err := client.CoreV1().ConfigMaps("kube-system").Get(ctx, "k8sd-config", metav1.GetOptions{})
+		if err != nil {
+			log.Error(err, "Failed to get k8sd-config configmap")
+			continue
+		}
+
+		current := ""
+		if cfg.Kubelet.ClusterDNS != nil {
+			current = *cfg.Kubelet.ClusterDNS
+		}
+
+		existing, ok := configMap.Data["cluster-dns"]
+		if !ok {
+			existing = ""
+		}
+
+		if existing != current {
+			log.Info("Cluster DNS changed, notifying update node configuration controller")
+			notifyUpdateNodeConfigController()
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(3 * time.Second):
+		}
+	}
+}
+
+func (c *FeatureController) reconcileClusterDNS(ctx context.Context, s state.State, notifyUpdateNodeConfigController func()) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-c.reconciledDNSCh:
+			c.notifyClusterDNSChange(ctx, s, notifyUpdateNodeConfigController)
+		}
+	}
 }

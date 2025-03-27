@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/features/coredns/internal"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/v2/state"
@@ -26,7 +27,7 @@ const (
 // deployment.
 // ApplyDNS returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyDNS(ctx context.Context, _ state.State, snap snap.Snap, dns types.DNS, kubelet types.Kubelet, _ types.Annotations) (types.FeatureStatus, string, error) {
+func ApplyDNS(ctx context.Context, s state.State, snap snap.Snap, dns types.DNS, kubelet types.Kubelet, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
 	if !dns.GetEnabled() {
@@ -36,13 +37,21 @@ func ApplyDNS(ctx context.Context, _ state.State, snap snap.Snap, dns types.DNS,
 				Enabled: false,
 				Version: ImageTag,
 				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
-			}, "", err
+			}, err
+		}
+		if err := internal.UpdateClusterDNS(ctx, s, ""); err != nil {
+			err = fmt.Errorf("failed to update cluster DNS: %w", err)
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: ImageTag,
+				Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: ImageTag,
 			Message: disabledMsg,
-		}, "", nil
+		}, nil
 	}
 
 	values := map[string]any{
@@ -93,7 +102,7 @@ func ApplyDNS(ctx context.Context, _ state.State, snap snap.Snap, dns types.DNS,
 			Enabled: false,
 			Version: ImageTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
-		}, "", err
+		}, err
 	}
 
 	client, err := snap.KubernetesClient("")
@@ -103,8 +112,9 @@ func ApplyDNS(ctx context.Context, _ state.State, snap snap.Snap, dns types.DNS,
 			Enabled: false,
 			Version: ImageTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
-		}, "", err
+		}, err
 	}
+
 	dnsIP, err := client.GetServiceClusterIP(ctx, "coredns", "kube-system")
 	if err != nil {
 		err = fmt.Errorf("failed to retrieve the coredns service: %w", err)
@@ -112,12 +122,21 @@ func ApplyDNS(ctx context.Context, _ state.State, snap snap.Snap, dns types.DNS,
 			Enabled: false,
 			Version: ImageTag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
-		}, "", err
+		}, err
+	}
+
+	if err := internal.UpdateClusterDNS(ctx, s, dnsIP); err != nil {
+		err = fmt.Errorf("failed to update cluster DNS: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ImageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
 		Version: ImageTag,
 		Message: fmt.Sprintf(enabledMsgTmpl, dnsIP),
-	}, dnsIP, err
+	}, err
 }

@@ -3,11 +3,9 @@ package app
 import (
 	"context"
 	"crypto/rsa"
-	"database/sql"
 	"fmt"
 	"os"
 
-	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
@@ -78,23 +76,7 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		go a.featureController.Run(
 			ctx,
 			s,
-			func(ctx context.Context, dnsIP string) error {
-				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-					if _, err := database.SetClusterConfig(ctx, tx, types.ClusterConfig{
-						Kubelet: types.Kubelet{ClusterDNS: utils.Pointer(dnsIP)},
-					}); err != nil {
-						return fmt.Errorf("failed to update cluster configuration for dns=%s: %w", dnsIP, err)
-					}
-					return nil
-				}); err != nil {
-					return fmt.Errorf("database transaction to update cluster configuration failed: %w", err)
-				}
-
-				// DNS IP has changed, notify node config controller
-				a.NotifyUpdateNodeConfigController()
-
-				return nil
-			},
+			a.NotifyUpdateNodeConfigController,
 		)
 	}
 
