@@ -57,15 +57,12 @@ def test_version_upgrades(
     )
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
-    util.setup_k8s_snap(cp, tmp_path, current_channel)
-    cp.exec(["k8s", "bootstrap"])
-
-    for instance in instances[1:]:
+    for instance in instances:
         util.setup_k8s_snap(instance, tmp_path, current_channel)
-
-    if config.USE_LOCAL_MIRROR:
-        for instance in instances:
+        if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
+
+    cp.exec(["k8s", "bootstrap"])
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
@@ -157,15 +154,12 @@ def test_version_downgrades_with_rollback(
     )
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
-    util.setup_k8s_snap(cp, tmp_path, current_channel)
-    cp.exec(["k8s", "bootstrap"])
-
-    for instance in instances[1:]:
+    for instance in instances:
         util.setup_k8s_snap(instance, tmp_path, current_channel)
-
-    if config.USE_LOCAL_MIRROR:
-        for instance in instances:
+        if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
+
+    cp.exec(["k8s", "bootstrap"])
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
