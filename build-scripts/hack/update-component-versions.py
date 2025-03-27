@@ -14,6 +14,7 @@ import argparse
 import logging
 import sys
 import yaml
+from packaging.version import Version
 from pathlib import Path
 import re
 import util
@@ -39,8 +40,11 @@ KUBERNETES_VERSION_MARKER = "https://dl.k8s.io/release/stable.txt"
 # Containerd release branch to track. The most recent tag in the branch will be used.
 CONTAINERD_RELEASE_BRANCH = "release/1.6"
 
-# Helm release branch to track. The most recent tag in the branch will be used.
-HELM_RELEASE_BRANCH = "release-3.14"
+# Helm release semver limit
+#
+# - None for main branch
+# - Version("3.14") (e.g. for release candidate builds)
+HELM_BRANCH, HELM_RELEASE_SEMVER = "main", None
 
 # Contour Helm repository and chart version
 CONTOUR_HELM_REPO = "https://charts.bitnami.com/bitnami"
@@ -87,7 +91,9 @@ def get_containerd_version() -> str:
     """Update containerd version using latest tag of specified branch"""
     containerd_repo = util.read_file(COMPONENTS / "containerd/repository")
 
-    with util.git_repo(containerd_repo, CONTAINERD_RELEASE_BRANCH, shallow=False) as dir:
+    with util.git_repo(
+        containerd_repo, CONTAINERD_RELEASE_BRANCH, shallow=False
+    ) as dir:
         # Get the latest tagged release from the current branch
         return util.parse_output(["git", "describe", "--tags", "--abbrev=0"], cwd=dir)
 
@@ -104,9 +110,35 @@ def get_runc_version() -> str:
 
 def get_helm_version() -> str:
     """Get latest version of helm"""
+
+    def helm_release_tags(version: None | Version) -> bool:
+        """Only include non-prerelease and non-devrelease versions."""
+        return (
+            version is not None
+            and not version.is_prerelease
+            and not version.is_devrelease
+            and (
+                not HELM_RELEASE_SEMVER
+                or (version.major, version.minor)
+                == (HELM_RELEASE_SEMVER.major, HELM_RELEASE_SEMVER.minor)
+            )
+        )
+
     helm_repo = util.read_file(COMPONENTS / "helm/repository")
-    with util.git_repo(helm_repo, HELM_RELEASE_BRANCH, shallow=False) as dir:
-        return util.parse_output(["git", "describe", "--tags", "--abbrev=0"], cwd=dir)
+    with util.git_repo(helm_repo, HELM_BRANCH, shallow=False) as dir:
+        tags = util.parse_output(["git", "tag"], cwd=dir).split()
+        releases = sorted(filter(helm_release_tags, map(parse_version, tags)))
+        if not releases:
+            raise ValueError("No valid helm releases found")
+
+        return f"v{releases[-1]}"
+
+
+def parse_version(version: str) -> Version | None:
+    try:
+        return Version(version.removeprefix("v"))
+    except ValueError:
+        return None
 
 
 def pull_metallb_chart() -> None:
@@ -147,7 +179,7 @@ def update_go_version(dry_run: bool):
         go_version = response.read().decode("utf-8").strip()
 
     LOG.info("Upstream go version is %s", go_version)
-    go_snap = f'go/{".".join(go_version.split(".")[:2])}/stable'
+    go_snap = f"go/{'.'.join(go_version.split('.')[:2])}/stable"
     snapcraft_yaml = SNAPCRAFT.read_text()
     if f"- {go_snap}" in snapcraft_yaml:
         LOG.info("snapcraft.yaml already contains go version %s", go_snap)
