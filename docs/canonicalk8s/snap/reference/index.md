@@ -80,6 +80,22 @@ troubleshooting
 inspection-reports
 ```
 
+## Security
+
+```{toctree}
+:titlesonly:
+certificates
+crypto
+```
+
+## Networking
+
+```{toctree}
+:titlesonly:
+proxy
+ports-and-services
+```
+
 ## Contributing
 
 ```{toctree}

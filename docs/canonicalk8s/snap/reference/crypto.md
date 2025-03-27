@@ -1,4 +1,4 @@
-# {{product}} cryptography
+# Cryptography
 
 This reference page provides an overview of the {{product}} cryptography
 posture.
