@@ -17,7 +17,7 @@ jobs:
     name: Integration
     strategy:
       matrix:
-        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
+        os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
         channel: ["latest/edge"]
       fail-fast: false # TODO: remove once we no longer have flaky tests.
