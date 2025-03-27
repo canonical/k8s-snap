@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
+	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/featureset"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -77,36 +79,35 @@ func (c *FeatureController) Run(
 	s state.State,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
 	notifyDNSChangedIP func(ctx context.Context, dnsIP string) error,
-	setFeatureStatus func(ctx context.Context, name types.FeatureName, featureStatus types.FeatureStatus) error,
 ) {
 	c.waitReady()
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, s, getClusterConfig, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return featureset.Reconcile.ApplyNetwork(ctx, c.snap, s, cfg.APIServer, cfg.Network, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, s, getClusterConfig, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return featureset.Reconcile.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.Ingress, c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, s, getClusterConfig, features.Ingress, c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return featureset.Reconcile.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.LoadBalancer, c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, s, getClusterConfig, features.LoadBalancer, c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return featureset.Reconcile.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.LocalStorage, c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, s, getClusterConfig, features.LocalStorage, c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return featureset.Reconcile.ApplyLocalStorage(ctx, c.snap, cfg.LocalStorage, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.MetricsServer, c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, s, getClusterConfig, features.MetricsServer, c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		return featureset.Reconcile.ApplyMetricsServer(ctx, c.snap, cfg.MetricsServer, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.DNS, c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+	go c.reconcileLoop(ctx, s, getClusterConfig, features.DNS, c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
 		featureStatus, dnsIP, err := featureset.Reconcile.ApplyDNS(ctx, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
 
 		if err != nil {
@@ -152,7 +153,6 @@ func (c *FeatureController) reconcileLoop(
 	ctx context.Context,
 	s state.State,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
-	setFeatureStatus func(ctx context.Context, name types.FeatureName, status types.FeatureStatus) error,
 	featureName types.FeatureName,
 	triggerCh chan struct{},
 	reconciledCh chan<- struct{},
@@ -177,7 +177,7 @@ func (c *FeatureController) reconcileLoop(
 			}
 
 			if err := c.reconcile(ctx, getClusterConfig, apply, func(ctx context.Context, status types.FeatureStatus) error {
-				return setFeatureStatus(ctx, featureName, status)
+				return c.setFeatureStatus(ctx, s, featureName, status)
 			}); err != nil {
 				log.Error(err, "Failed to apply feature configuration")
 
@@ -189,4 +189,20 @@ func (c *FeatureController) reconcileLoop(
 
 		}
 	}
+}
+
+func (c *FeatureController) setFeatureStatus(ctx context.Context, s state.State, name types.FeatureName, featureStatus types.FeatureStatus) error {
+	if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		// we set timestamp here in order to reduce the clutter. otherwise we will need to
+		// set .UpdatedAt field in a lot of places for every event/error.
+		// this is not 100% accurate but should be good enough
+		featureStatus.UpdatedAt = time.Now()
+		if err := database.SetFeatureStatus(ctx, tx, name, featureStatus); err != nil {
+			return fmt.Errorf("failed to set feature status in db for %q: %w", name, err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("database transaction to set feature status failed: %w", err)
+	}
+	return nil
 }

@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
@@ -97,21 +96,6 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 				// DNS IP has changed, notify node config controller
 				a.NotifyUpdateNodeConfigController()
 
-				return nil
-			},
-			func(ctx context.Context, name types.FeatureName, featureStatus types.FeatureStatus) error {
-				if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-					// we set timestamp here in order to reduce the clutter. otherwise we will need to
-					// set .UpdatedAt field in a lot of places for every event/error.
-					// this is not 100% accurate but should be good enough
-					featureStatus.UpdatedAt = time.Now()
-					if err := database.SetFeatureStatus(ctx, tx, name, featureStatus); err != nil {
-						return fmt.Errorf("failed to set feature status in db for %q: %w", name, err)
-					}
-					return nil
-				}); err != nil {
-					return fmt.Errorf("database transaction to set feature status failed: %w", err)
-				}
 				return nil
 			},
 		)
