@@ -8,6 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -25,7 +26,7 @@ const (
 // deployment.
 // ApplyDNS returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.Kubelet, _ types.Annotations) (types.FeatureStatus, string, error) {
+func ApplyDNS(ctx context.Context, _ state.State, snap snap.Snap, dns types.DNS, kubelet types.Kubelet, _ types.Annotations) (types.FeatureStatus, string, error) {
 	m := snap.HelmClient()
 
 	if !dns.GetEnabled() {

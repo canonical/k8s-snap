@@ -37,7 +37,7 @@ func TestGatewayDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		status, err := contour.ApplyGateway(context.Background(), snapM, gateway, network, nil)
+		status, err := contour.ApplyGateway(context.Background(), nil, snapM, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring(applyErr.Error()))
@@ -60,7 +60,7 @@ func TestGatewayDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		status, err := contour.ApplyGateway(context.Background(), snapM, gateway, network, nil)
+		status, err := contour.ApplyGateway(context.Background(), nil, snapM, gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -88,7 +88,7 @@ func TestGatewayEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		status, err := contour.ApplyGateway(context.Background(), snapM, gateway, network, nil)
+		status, err := contour.ApplyGateway(context.Background(), nil, snapM, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -137,7 +137,7 @@ func TestGatewayEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		status, err := contour.ApplyGateway(context.Background(), snapM, gateway, network, nil)
+		status, err := contour.ApplyGateway(context.Background(), nil, snapM, gateway, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -197,7 +197,7 @@ func TestGatewayEnabled(t *testing.T) {
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel()
-		status, err := contour.ApplyGateway(ctx, snapM, gateway, network, nil)
+		status, err := contour.ApplyGateway(ctx, nil, snapM, gateway, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring("failed to wait for required contour common CRDs"))

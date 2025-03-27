@@ -39,7 +39,7 @@ func TestLoadBalancerDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		status, err := cilium.ApplyLoadBalancer(context.Background(), snapM, lbCfg, types.Network{}, nil)
+		status, err := cilium.ApplyLoadBalancer(context.Background(), nil, snapM, lbCfg, types.Network{}, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -69,7 +69,7 @@ func TestLoadBalancerDisabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		status, err := cilium.ApplyLoadBalancer(context.Background(), snapM, lbCfg, networkCfg, nil)
+		status, err := cilium.ApplyLoadBalancer(context.Background(), nil, snapM, lbCfg, networkCfg, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -112,7 +112,7 @@ func TestLoadBalancerEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		status, err := cilium.ApplyLoadBalancer(context.Background(), snapM, lbCfg, networkCfg, nil)
+		status, err := cilium.ApplyLoadBalancer(context.Background(), nil, snapM, lbCfg, networkCfg, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -213,7 +213,7 @@ func TestLoadBalancerEnabled(t *testing.T) {
 				Enabled: ptr.To(true),
 			}
 
-			status, err := cilium.ApplyLoadBalancer(context.Background(), snapM, lbCfg, networkCfg, nil)
+			status, err := cilium.ApplyLoadBalancer(context.Background(), nil, snapM, lbCfg, networkCfg, nil)
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())

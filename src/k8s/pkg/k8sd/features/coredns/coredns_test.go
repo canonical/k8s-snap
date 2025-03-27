@@ -37,7 +37,7 @@ func TestDisabled(t *testing.T) {
 		}
 		kubelet := types.Kubelet{}
 
-		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
+		status, str, err := coredns.ApplyDNS(context.Background(), nil, snapM, dns, kubelet, nil)
 
 		g.Expect(err).To(MatchError(ContainSubstring(applyErr.Error())))
 		g.Expect(str).To(BeEmpty())
@@ -65,7 +65,7 @@ func TestDisabled(t *testing.T) {
 		}
 		kubelet := types.Kubelet{}
 
-		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
+		status, str, err := coredns.ApplyDNS(context.Background(), nil, snapM, dns, kubelet, nil)
 
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(str).To(BeEmpty())
@@ -99,7 +99,7 @@ func TestEnabled(t *testing.T) {
 		}
 		kubelet := types.Kubelet{}
 
-		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
+		status, str, err := coredns.ApplyDNS(context.Background(), nil, snapM, dns, kubelet, nil)
 
 		g.Expect(err).To(MatchError(ContainSubstring(applyErr.Error())))
 		g.Expect(str).To(BeEmpty())
@@ -129,7 +129,7 @@ func TestEnabled(t *testing.T) {
 		}
 		kubelet := types.Kubelet{}
 
-		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
+		status, str, err := coredns.ApplyDNS(context.Background(), nil, snapM, dns, kubelet, nil)
 
 		g.Expect(err).To(MatchError(ContainSubstring("services \"coredns\" not found")))
 		g.Expect(str).To(BeEmpty())
@@ -169,7 +169,7 @@ func TestEnabled(t *testing.T) {
 		}
 		kubelet := types.Kubelet{}
 
-		status, str, err := coredns.ApplyDNS(context.Background(), snapM, dns, kubelet, nil)
+		status, str, err := coredns.ApplyDNS(context.Background(), nil, snapM, dns, kubelet, nil)
 
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(str).To(Equal(clusterIp))

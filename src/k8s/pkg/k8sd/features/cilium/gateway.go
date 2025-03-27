@@ -7,6 +7,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
 // deployment.
 // ApplyGateway returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyGateway(ctx context.Context, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func ApplyGateway(ctx context.Context, _ state.State, snap snap.Snap, gateway types.Gateway, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	if gateway.GetEnabled() {
 		return enableGateway(ctx, snap)
 	}

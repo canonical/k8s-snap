@@ -38,7 +38,7 @@ func TestIngressDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		status, err := contour.ApplyIngress(context.Background(), snapM, ingress, network, nil)
+		status, err := contour.ApplyIngress(context.Background(), nil, snapM, ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -62,7 +62,7 @@ func TestIngressDisabled(t *testing.T) {
 			Enabled: ptr.To(false),
 		}
 
-		status, err := contour.ApplyIngress(context.Background(), snapM, ingress, network, nil)
+		status, err := contour.ApplyIngress(context.Background(), nil, snapM, ingress, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -90,7 +90,7 @@ func TestIngressEnabled(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		status, err := contour.ApplyIngress(context.Background(), snapM, ingress, network, nil)
+		status, err := contour.ApplyIngress(context.Background(), nil, snapM, ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
@@ -147,7 +147,7 @@ func TestIngressEnabled(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
-		status, err := contour.ApplyIngress(ctx, snapM, ingress, network, nil)
+		status, err := contour.ApplyIngress(ctx, nil, snapM, ingress, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -205,7 +205,7 @@ func TestIngressEnabled(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
-		status, err := contour.ApplyIngress(ctx, snapM, ingress, network, nil)
+		status, err := contour.ApplyIngress(ctx, nil, snapM, ingress, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -264,7 +264,7 @@ func TestIngressEnabled(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
-		status, err := contour.ApplyIngress(ctx, snapM, ingress, network, nil)
+		status, err := contour.ApplyIngress(ctx, nil, snapM, ingress, network, nil)
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
@@ -313,7 +313,7 @@ func TestIngressEnabled(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel()
 
-		status, err := contour.ApplyIngress(ctx, snapM, ingress, network, nil)
+		status, err := contour.ApplyIngress(ctx, nil, snapM, ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -369,7 +369,7 @@ func TestIngressEnabled(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
-		status, err := contour.ApplyIngress(ctx, snapM, ingress, network, nil)
+		status, err := contour.ApplyIngress(ctx, nil, snapM, ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err.Error()).To(ContainSubstring("failed to rollout restart contour to apply ingress"))

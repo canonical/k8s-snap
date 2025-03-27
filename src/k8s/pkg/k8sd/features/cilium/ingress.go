@@ -7,6 +7,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -30,7 +31,7 @@ const (
 // deployment.
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func ApplyIngress(ctx context.Context, _ state.State, snap snap.Snap, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 	var values map[string]any
 	if ingress.GetEnabled() {

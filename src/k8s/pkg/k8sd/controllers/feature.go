@@ -84,31 +84,31 @@ func (c *FeatureController) Run(
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 
 	go c.reconcileLoop(ctx, s, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return featureset.Reconcile.ApplyNetwork(ctx, c.snap, s, cfg.APIServer, cfg.Network, cfg.Annotations)
+		return featureset.Reconcile.ApplyNetwork(ctx, s, c.snap, cfg.APIServer, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return featureset.Reconcile.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
+		return featureset.Reconcile.ApplyGateway(ctx, s, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, features.Ingress, c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return featureset.Reconcile.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
+		return featureset.Reconcile.ApplyIngress(ctx, s, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, features.LoadBalancer, c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return featureset.Reconcile.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
+		return featureset.Reconcile.ApplyLoadBalancer(ctx, s, c.snap, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, features.LocalStorage, c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return featureset.Reconcile.ApplyLocalStorage(ctx, c.snap, cfg.LocalStorage, cfg.Annotations)
+		return featureset.Reconcile.ApplyLocalStorage(ctx, s, c.snap, cfg.LocalStorage, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, features.MetricsServer, c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return featureset.Reconcile.ApplyMetricsServer(ctx, c.snap, cfg.MetricsServer, cfg.Annotations)
+		return featureset.Reconcile.ApplyMetricsServer(ctx, s, c.snap, cfg.MetricsServer, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, s, features.DNS, c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		featureStatus, dnsIP, err := featureset.Reconcile.ApplyDNS(ctx, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
+		featureStatus, dnsIP, err := featureset.Reconcile.ApplyDNS(ctx, s, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
 
 		if err != nil {
 			return featureStatus, fmt.Errorf("failed to apply DNS configuration: %w", err)

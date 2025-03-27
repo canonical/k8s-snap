@@ -34,7 +34,7 @@ func TestDisabled(t *testing.T) {
 			LocalPath:     ptr.To("local-path"),
 		}
 
-		status, err := localpv.ApplyLocalStorage(context.Background(), snapM, cfg, nil)
+		status, err := localpv.ApplyLocalStorage(context.Background(), nil, snapM, cfg, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -64,7 +64,7 @@ func TestDisabled(t *testing.T) {
 			LocalPath:     ptr.To("local-path"),
 		}
 
-		status, err := localpv.ApplyLocalStorage(context.Background(), snapM, cfg, nil)
+		status, err := localpv.ApplyLocalStorage(context.Background(), nil, snapM, cfg, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -99,7 +99,7 @@ func TestEnabled(t *testing.T) {
 			LocalPath:     ptr.To("local-path"),
 		}
 
-		status, err := localpv.ApplyLocalStorage(context.Background(), snapM, cfg, nil)
+		status, err := localpv.ApplyLocalStorage(context.Background(), nil, snapM, cfg, nil)
 
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
@@ -129,7 +129,7 @@ func TestEnabled(t *testing.T) {
 			LocalPath:     ptr.To("local-path"),
 		}
 
-		status, err := localpv.ApplyLocalStorage(context.Background(), snapM, cfg, nil)
+		status, err := localpv.ApplyLocalStorage(context.Background(), nil, snapM, cfg, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())

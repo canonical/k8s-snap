@@ -8,6 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -21,7 +22,7 @@ const (
 // deployment.
 // ApplyLoadBalancer returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func ApplyLoadBalancer(ctx context.Context, _ state.State, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	if !loadbalancer.GetEnabled() {
 		if err := disableLoadBalancer(ctx, snap, network); err != nil {
 			err = fmt.Errorf("failed to disable LoadBalancer: %w", err)

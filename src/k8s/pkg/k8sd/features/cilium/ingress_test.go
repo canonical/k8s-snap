@@ -96,7 +96,7 @@ func TestIngress(t *testing.T) {
 				EnableProxyProtocol: ptr.To(tc.enableProxyProtocol),
 			}
 
-			status, err := cilium.ApplyIngress(context.Background(), snapM, ingress, network, nil)
+			status, err := cilium.ApplyIngress(context.Background(), nil, snapM, ingress, network, nil)
 
 			if tc.helmErr == nil {
 				g.Expect(err).To(Not(HaveOccurred()))
@@ -143,7 +143,7 @@ func TestIngressRollout(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		status, err := cilium.ApplyIngress(context.Background(), snapM, ingress, network, nil)
+		status, err := cilium.ApplyIngress(context.Background(), nil, snapM, ingress, network, nil)
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
@@ -189,7 +189,7 @@ func TestIngressRollout(t *testing.T) {
 			Enabled: ptr.To(true),
 		}
 
-		status, err := cilium.ApplyIngress(context.Background(), snapM, ingress, network, nil)
+		status, err := cilium.ApplyIngress(context.Background(), nil, snapM, ingress, network, nil)
 
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(status.Enabled).To(BeTrue())
