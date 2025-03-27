@@ -10,7 +10,7 @@ top to bottom direction
 
 Person(Administrator, "Administrator", $descr="", $tags="", $link="")
 
-System_Boundary("Charm_boundary", "Charm", $tags="") {
+System_Boundary("Charm_boundary", "Charms", $tags="") {
   Container(Juju.K8s, "K8s", $techn="Charmed Operator", $descr="K8s Charm", $tags="", $link="")
   Container(Juju.K8sWorker, "K8s Worker", $techn="Charmed Operator", $descr="K8s Worker Charm", $tags="", $link="")
   Container(Juju.ApiManager, "K8sd API Manager", $techn="Python", $descr="API Call to K8s", $tags="", $link="")
