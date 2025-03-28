@@ -92,7 +92,9 @@ jobs:
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "artifact_suffix=${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.flavor}}" | sed 's/:/-/g' >> $GITHUB_ENV
+          RANDOM_SUFFIX=$(printf "%04X" $((RANDOM % 65536)))  # Generate a 4-character hex string
+          echo "artifact_suffix=${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.flavor }}-${RANDOM_SUFFIX}" | sed 's/:/-/g' >> $GITHUB_ENV
+
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
