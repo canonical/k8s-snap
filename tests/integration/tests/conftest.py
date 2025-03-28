@@ -227,6 +227,15 @@ def instances(
     for _, snap in zip(range(node_count), snap_versions(request)):
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(network_type=network_type)
+
+        instance.exec("mkdir -p /etc/systemd/system/snapd.service.d".split())
+        instance.exec("touch /etc/systemd/system/snapd.service.d/override.conf".split())
+        # write file
+        instance.exec(
+            "echo -e '[Service]\nEnvironment=SNAPD_STANDBY_WAIT=1m' > /etc/systemd/system/snapd.service.d/override.conf".split()
+        )
+        instance.exec("systemctl daemon-reload".split())
+        instance.exec("systemctl restart snapd.service".split())
         instances.append(instance)
 
         if config.PRELOAD_SNAPS:
