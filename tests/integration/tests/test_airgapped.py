@@ -148,7 +148,7 @@ def test_airgapped_with_proxy_setup_and_image_mirror(
         registry.exec(
             (
                 "export $(grep -v '^#' /etc/environment | xargs) && "
-                + f"/snap/k8s/current/bin/ctr images pull --all-platforms {image}"
+                + f"/snap/k8s/current/bin/ctr images pull --all-platforms {image} > /dev/null"
             ).split()
         )
         registry.exec(
@@ -165,7 +165,7 @@ def test_airgapped_with_proxy_setup_and_image_mirror(
         registry.exec(
             (
                 "export $(grep -v '^#' /etc/environment | xargs) && "
-                + f"/snap/k8s/current/bin/ctr images push --plain-http {tag}"
+                + f"/snap/k8s/current/bin/ctr images push --plain-http {tag} > /dev/null"
             ).split()
         )
 
