@@ -42,7 +42,7 @@ storage/index
 Use an external datastore <external-datastore>
 ```
 
-## Security
+## Security and compliance
 
 Harden your cluster according to industry standards.
 
