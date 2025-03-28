@@ -12,7 +12,11 @@ LOG = logging.getLogger(__name__)
 
 @contextlib.contextmanager
 def git_repo(
-    repo_url: str, repo_tag: str, shallow: bool = True, retry: int = 5
+    repo_url: str,
+    repo_tag: str,
+    shallow: bool = True,
+    retry_n: int = 5,
+    retry_delay: int = 5,
 ) -> Generator[Path, Any, Any]:
     """
     Clone a git repository on a temporary directory and return the directory.
@@ -31,17 +35,17 @@ def git_repo(
         if shallow:
             cmd.extend(["--depth", "1"])
         LOG.info("Cloning %s @ %s (shallow=%s)", repo_url, repo_tag, shallow)
-        for attempt in range(0, retry):
+        for attempt in range(0, retry_n):
             try:
                 parse_output(cmd)
                 break
             except subprocess.CalledProcessError as e:
-                if attempt == retry - 1:
+                if attempt == retry_n - 1:
                     raise e
                 LOG.warning(
-                    f"Failed to clone {repo_url} @ {repo_tag}, retrying in {retry}s"
+                    f"Failed to clone {repo_url} @ {repo_tag}, retrying in {retry_delay}s"
                 )
-                time.sleep(5)
+                time.sleep(retry_delay)
         yield Path(tmpdir)
 
 
