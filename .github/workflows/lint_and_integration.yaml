@@ -107,7 +107,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu:22.04"]
+        os: ["ubuntu:24.04"]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
