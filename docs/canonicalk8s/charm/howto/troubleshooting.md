@@ -207,8 +207,8 @@ information.
 its underlying system. This is an essential tool for bug reports and for
 investigating whether a system is (or isn’t) working.
 
-The inspection command can be executed on a specific unit by running the following
-commands:
+The inspection command can be executed on a specific unit by running the
+following commands:
 
 ```
 juju exec --unit <k8s/unit#> -- sudo k8s inspect /home/ubuntu/inspection-report.tar.gz

@@ -12,8 +12,8 @@ This guide assumes the following:
 - You have root or sudo access to the machine
 - You have an internet connection
 - The target machine has sufficient memory and disk space. To accommodate
-  workloads, we recommend a system with ***at least*** 20G of disk space and 4G of
-  memory.
+  workloads, we recommend a system with ***at least*** 20G of disk space and
+  4G of memory.
 
 ```{note}
 If you cannot meet these requirements, please see the [Installing][] page for
@@ -59,11 +59,12 @@ step is to `bootstrap` the cluster to activate the services:
 sudo k8s bootstrap
 ```
 
-This command will output a message confirming local cluster services have been started.
+This command will output a message confirming local cluster services have been
+started.
 
 ```{note}
-Additional configuration is possible by passing a YAML file. The various options are described
-in the [bootstrap reference documentation][bootstrap].
+Additional configuration is possible by passing a YAML file. The various
+options are described in the [bootstrap reference documentation][bootstrap].
 ```
 
 ## Confirm the cluster is ready

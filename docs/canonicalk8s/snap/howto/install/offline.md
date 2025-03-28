@@ -56,7 +56,8 @@ ports used by {{product}}.  -->
 #### Default Gateway
 
 In cases where the air-gap environment does not have a default Gateway,
-add a placeholder default route on the `eth0` interface using the following command:
+add a placeholder default route on the `eth0` interface using the following
+command:
 
 ```
 ip route add default dev eth0

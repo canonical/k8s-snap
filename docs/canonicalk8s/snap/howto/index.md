@@ -56,8 +56,6 @@ security/index
 ```{toctree}
 :titlesonly:
 Manage upgrades <upgrades>
-Refresh Kubernetes Certificates <refresh-certs>
-Use intermediate CAs with Vault <intermediate-ca.md>
 ```
 
 ## Manage images
