@@ -232,7 +232,8 @@ def instances(
         instance.exec("touch /etc/systemd/system/snapd.service.d/override.conf".split())
         # write file
         instance.exec(
-            "echo -e '[Service]\nEnvironment=SNAPD_STANDBY_WAIT=1m' > /etc/systemd/system/snapd.service.d/override.conf".split()
+            'sh -c \'echo -e "[Service]\\nEnvironment=SNAPD_STANDBY_WAIT=1m" '
+            "> /etc/systemd/system/snapd.service.d/override.conf'".split()
         )
         instance.exec("systemctl daemon-reload".split())
         instance.exec("systemctl restart snapd.service".split())
