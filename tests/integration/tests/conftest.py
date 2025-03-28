@@ -19,6 +19,17 @@ pytest_plugins = ("pytest_tagging",)
 # into the harness instances to reduce the number of downloads.
 PRELOADED_SNAPS = ["snapd", "core20"]
 
+def pytest_configure():
+    # Set up CLI logging
+    logging.basicConfig(level=logging._nameToLevel[config.LOG_CLI_LEVEL], format="%(asctime)s - %(levelname)s - %(message)s")
+
+    # Set up file logging
+    if config.LOG_FILE_PATH is not None:
+        file_handler = logging.FileHandler(config.LOG_FILE_PATH)
+        file_handler.setLevel(logging._nameToLevel[config.LOG_FILE_LEVEL])
+        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+
+    logging.getLogger().addHandler(file_handler)
 
 def pytest_itemcollected(item):
     """
