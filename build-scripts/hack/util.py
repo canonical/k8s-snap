@@ -11,7 +11,8 @@ from tenacity import (
     retry,
     retry_if_exception_type,
     stop_after_attempt,
-    wait_fixed,
+    wait_exponential,
+    wait_random,
 )
 
 LOG = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def git_repo(
 def _clone_with_retry(cmd: list[str]):
     @retry(
         retry=retry_if_exception_type(subprocess.CalledProcessError),
-        wait=wait_fixed(5),
+        wait=wait_exponential(multiplier=1, min=1, max=60) + wait_random(0, 3),
         stop=stop_after_attempt(15),
         before_sleep=before_sleep_log(LOG, logging.WARNING),
     )
