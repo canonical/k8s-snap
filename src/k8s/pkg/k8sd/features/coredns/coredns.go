@@ -3,7 +3,6 @@ package coredns
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/features/coredns/internal"
@@ -54,46 +53,33 @@ func ApplyDNS(ctx context.Context, s state.State, snap snap.Snap, dns types.DNS,
 		}, nil
 	}
 
-	values := map[string]any{
-		"image": map[string]any{
-			"repository": imageRepo,
-			"tag":        ImageTag,
-		},
-		"service": map[string]any{
-			"name":      "coredns",
-			"clusterIP": kubelet.GetClusterDNS(),
-		},
-		"serviceAccount": map[string]any{
-			"create": true,
-			"name":   "coredns",
-		},
-		"deployment": map[string]any{
-			"name": "coredns",
-		},
-		"servers": []map[string]any{
-			{
-				"zones": []map[string]any{
-					{"zone": "."},
-				},
-				"port": 53,
-				"plugins": []map[string]any{
-					{"name": "errors"},
-					{"name": "health", "configBlock": "lameduck 5s"},
-					{"name": "ready"},
-					{
-						"name":        "kubernetes",
-						"parameters":  fmt.Sprintf("%s in-addr.arpa ip6.arpa", kubelet.GetClusterDomain()),
-						"configBlock": "pods insecure\nfallthrough in-addr.arpa ip6.arpa\nttl 30",
-					},
-					{"name": "prometheus", "parameters": "0.0.0.0:9153"},
-					{"name": "forward", "parameters": fmt.Sprintf(". %s", strings.Join(dns.GetUpstreamNameservers(), " "))},
-					{"name": "cache", "parameters": "30"},
-					{"name": "loop"},
-					{"name": "reload"},
-					{"name": "loadbalance"},
-				},
-			},
-		},
+	values := dnsValues{}
+
+	if err := values.applyDefaults(); err != nil {
+		err = fmt.Errorf("failed to apply defaults: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ImageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
+	}
+
+	if err := values.applyImages(); err != nil {
+		err = fmt.Errorf("failed to apply images: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ImageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
+	}
+
+	if err := values.applyClusterConfig(dns, kubelet); err != nil {
+		err = fmt.Errorf("failed to apply cluster config: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: ImageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
 	}
 
 	if _, err := m.Apply(ctx, Chart, helm.StatePresent, values); err != nil {

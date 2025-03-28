@@ -33,26 +33,30 @@ const (
 // returned FeatureStatus.
 func ApplyIngress(ctx context.Context, _ state.State, snap snap.Snap, ingress types.Ingress, network types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
-	var values map[string]any
+	var values ingressValues
 	if ingress.GetEnabled() {
-		values = map[string]any{
-			"ingressController": map[string]any{
-				IngressOptionEnabled:                true,
-				IngressOptionLoadBalancerMode:       IngressOptionLoadBalancerModeShared,
-				IngressOptionDefaultSecretNamespace: IngressOptionDefaultSecretNamespaceKubeSystem,
-				IngressOptionDefaultSecretName:      ingress.GetDefaultTLSSecret(),
-				IngressOptionEnableProxyProtocol:    ingress.GetEnableProxyProtocol(),
-			},
+		if err := values.applyDefaults(); err != nil {
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: CiliumAgentImageTag,
+				Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
+			}, err
+		}
+
+		if err := values.applyClusterConfig(ingress); err != nil {
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: CiliumAgentImageTag,
+				Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
+			}, err
 		}
 	} else {
-		values = map[string]any{
-			"ingressController": map[string]any{
-				IngressOptionEnabled:                false,
-				IngressOptionLoadBalancerMode:       "",
-				IngressOptionDefaultSecretNamespace: "",
-				IngressOptionDefaultSecretName:      "",
-				IngressOptionEnableProxyProtocol:    false,
-			},
+		if err := values.applyDisable(); err != nil {
+			return types.FeatureStatus{
+				Enabled: false,
+				Version: CiliumAgentImageTag,
+				Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
+			}, err
 		}
 	}
 

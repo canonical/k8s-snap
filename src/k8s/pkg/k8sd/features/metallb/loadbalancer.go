@@ -86,31 +86,16 @@ func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Netw
 func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.LoadBalancer, network types.Network) error {
 	m := snap.HelmClient()
 
-	metalLBValues := map[string]any{
-		"controller": map[string]any{
-			"image": map[string]any{
-				"repository": controllerImageRepo,
-				"tag":        ControllerImageTag,
-			},
-			"command": "/controller",
-		},
-		"speaker": map[string]any{
-			"image": map[string]any{
-				"repository": speakerImageRepo,
-				"tag":        speakerImageTag,
-			},
-			"command": "/speaker",
-			// TODO(neoaggelos): make frr enable/disable configurable through an annotation
-			// We keep it disabled by default
-			"frr": map[string]any{
-				"enabled": false,
-				"image": map[string]any{
-					"repository": frrImageRepo,
-					"tag":        frrImageTag,
-				},
-			},
-		},
+	metalLBValues := metalLBValues{}
+
+	if err := metalLBValues.applyDefaults(); err != nil {
+		return fmt.Errorf("failed to apply defaults: %w", err)
 	}
+
+	if err := metalLBValues.applyImages(); err != nil {
+		return fmt.Errorf("failed to apply images: %w", err)
+	}
+
 	if _, err := m.Apply(ctx, ChartMetalLB, helm.StatePresent, metalLBValues); err != nil {
 		return fmt.Errorf("failed to apply MetalLB configuration: %w", err)
 	}
@@ -127,26 +112,14 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 		cidrs = append(cidrs, map[string]any{"start": ipRange.Start, "stop": ipRange.Stop})
 	}
 
-	values := map[string]any{
-		"driver": "metallb",
-		"l2": map[string]any{
-			"enabled":    loadbalancer.GetL2Mode(),
-			"interfaces": loadbalancer.GetL2Interfaces(),
-		},
-		"ipPool": map[string]any{
-			"cidrs": cidrs,
-		},
-		"bgp": map[string]any{
-			"enabled":  loadbalancer.GetBGPMode(),
-			"localASN": loadbalancer.GetBGPLocalASN(),
-			"neighbors": []map[string]any{
-				{
-					"peerAddress": loadbalancer.GetBGPPeerAddress(),
-					"peerASN":     loadbalancer.GetBGPPeerASN(),
-					"peerPort":    loadbalancer.GetBGPPeerPort(),
-				},
-			},
-		},
+	values := loadBalancerValues{}
+
+	if err := values.applyDefaults(); err != nil {
+		return fmt.Errorf("failed to apply defaults: %w", err)
+	}
+
+	if err := values.applyClusterConfig(loadbalancer); err != nil {
+		return fmt.Errorf("failed to apply cluster config: %w", err)
 	}
 
 	if _, err := m.Apply(ctx, ChartMetalLBLoadBalancer, helm.StatePresent, values); err != nil {

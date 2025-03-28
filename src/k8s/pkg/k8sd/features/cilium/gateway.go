@@ -53,7 +53,17 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		}, err
 	}
 
-	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnly, map[string]any{"gatewayAPI": map[string]any{"enabled": true}})
+	values := gatewayValues{}
+
+	if err := values.applyDefaults(); err != nil {
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnly, values)
 	if err != nil {
 		err = fmt.Errorf("failed to upgrade Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{
@@ -100,7 +110,17 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 		}, err
 	}
 
-	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), map[string]any{"gatewayAPI": map[string]any{"enabled": false}})
+	values := gatewayValues{}
+
+	if err := values.applyDisable(); err != nil {
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
 	if err != nil {
 		err = fmt.Errorf("failed to delete Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{

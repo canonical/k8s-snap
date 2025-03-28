@@ -26,17 +26,33 @@ const (
 func ApplyMetricsServer(ctx context.Context, _ state.State, snap snap.Snap, cfg types.MetricsServer, annotations types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
-	config := internalConfig(annotations)
+	values := metricsServerValues{}
 
-	values := map[string]any{
-		"image": map[string]any{
-			"repository": config.imageRepo,
-			"tag":        config.imageTag,
-		},
-		"securityContext": map[string]any{
-			// ROCKs with Pebble as the entrypoint do not work with this option.
-			"readOnlyRootFilesystem": false,
-		},
+	if err := values.applyDefaults(); err != nil {
+		err = fmt.Errorf("failed to apply defaults: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
+	}
+
+	if err := values.applyImages(); err != nil {
+		err = fmt.Errorf("failed to apply images: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
+	}
+
+	if err := values.applyAnnotations(annotations); err != nil {
+		err = fmt.Errorf("failed to apply annotations: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: imageTag,
+			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
+		}, err
 	}
 
 	_, err := m.Apply(ctx, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
