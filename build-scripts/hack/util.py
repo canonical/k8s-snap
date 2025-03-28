@@ -47,7 +47,7 @@ def git_repo(
 @retry(
     retry=retry_if_exception_type(subprocess.CalledProcessError),
     wait=wait_exponential(multiplier=1, min=1, max=180),
-    stop=stop_after_attempt(5),
+    stop=stop_after_attempt(10),
     before_sleep=before_sleep_log(LOG, logging.WARNING),
 )
 def _run_with_retry(cmd: list[str]):
