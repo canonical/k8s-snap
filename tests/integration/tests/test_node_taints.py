@@ -67,10 +67,10 @@ def get_node_taints(instance: harness.Instance) -> Any:
         ],
         capture_output=True,
     )
-    assert resp.returncode == 0, f"Failed to get node status. {resp=}"
+    assert resp.returncode == 0, "Failed to get node status."
     response = json.loads(resp.stdout.decode())
-    assert response["error_code"] == 0, f"Failed to get node status. {response=}"
-    assert response["error"] == "", f"Failed to get node status. {response=}"
+    assert response["error_code"] == 0, "Failed to get node status."
+    assert response["error"] == "", "Failed to get node status."
 
     metadata = response.get("metadata")
     assert metadata is not None, "Metadata not found in the node status response."
