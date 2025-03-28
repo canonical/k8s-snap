@@ -33,7 +33,7 @@ on:
 jobs:
   test-integration:
     name: Tests
-    runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-noble-large' || 'self-hosted-linux-amd64-noble-large' }}
+    runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-noble-large' || 'self-hosted-linux-amd64-jammy-large' }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
