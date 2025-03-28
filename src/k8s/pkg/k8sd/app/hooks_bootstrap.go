@@ -260,7 +260,13 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	if err := setup.Containerd(snap, joinConfig.ExtraNodeContainerdConfig, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.KubeletWorker(snap, s.Name(), nodeIPs, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs); err != nil {
+
+	var taints []string
+	if taintsStr, ok := joinConfig.ExtraNodeKubeletArgs["--register-with-taints"]; ok && taintsStr != nil {
+		taints = strings.Split(*taintsStr, ",")
+	}
+
+	if err := setup.KubeletWorker(snap, s.Name(), nodeIPs, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs, taints); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
 	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, localhostAddress, joinConfig.ExtraNodeKubeProxyArgs); err != nil {

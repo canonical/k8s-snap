@@ -3,6 +3,7 @@ package setup_test
 import (
 	"net"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -212,9 +213,10 @@ func TestKubelet(t *testing.T) {
 
 		// Create a mock snap
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
+		taints := []string{"taint1=", "taint2=value"}
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", nil)).To(Succeed())
+		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", nil, taints)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -234,7 +236,7 @@ func TestKubelet(t *testing.T) {
 			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "kubelet.conf")},
 			{key: "--node-labels", expectedVal: expectedWorkerLabels},
 			{key: "--read-only-port", expectedVal: "0"},
-			{key: "--register-with-taints", expectedVal: ""},
+			{key: "--register-with-taints", expectedVal: strings.Join(taints, ",")},
 			{key: "--root-dir", expectedVal: s.Mock.KubeletRootDir},
 			{key: "--serialize-image-pulls", expectedVal: "false"},
 			{key: "--tls-cipher-suites", expectedVal: kubeletTLSCipherSuites},
@@ -271,8 +273,10 @@ func TestKubelet(t *testing.T) {
 			"--cloud-provider": nil,
 		}
 
+		taints := []string{"taint1=", "taint2=value"}
+
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", extraArgs)).To(Succeed())
+		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", extraArgs, taints)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -292,7 +296,7 @@ func TestKubelet(t *testing.T) {
 			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "kubelet.conf")},
 			{key: "--node-labels", expectedVal: expectedWorkerLabels},
 			{key: "--read-only-port", expectedVal: "0"},
-			{key: "--register-with-taints", expectedVal: ""},
+			{key: "--register-with-taints", expectedVal: strings.Join(taints, ",")},
 			{key: "--root-dir", expectedVal: s.Mock.KubeletRootDir},
 			{key: "--serialize-image-pulls", expectedVal: "false"},
 			{key: "--tls-cipher-suites", expectedVal: kubeletTLSCipherSuites},
@@ -327,9 +331,10 @@ func TestKubelet(t *testing.T) {
 
 		// Create a mock snap
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
+		taints := []string{"taint1=", "taint2=value"}
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{}, "", "", "", nil)).To(Succeed())
+		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{}, "", "", "", nil, taints)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -349,7 +354,7 @@ func TestKubelet(t *testing.T) {
 			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "kubelet.conf")},
 			{key: "--node-labels", expectedVal: expectedWorkerLabels},
 			{key: "--read-only-port", expectedVal: "0"},
-			{key: "--register-with-taints", expectedVal: ""},
+			{key: "--register-with-taints", expectedVal: strings.Join(taints, ",")},
 			{key: "--root-dir", expectedVal: s.Mock.KubeletRootDir},
 			{key: "--serialize-image-pulls", expectedVal: "false"},
 			{key: "--tls-cipher-suites", expectedVal: kubeletTLSCipherSuites},
@@ -386,7 +391,9 @@ func TestKubelet(t *testing.T) {
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 
-		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", nil)).ToNot(Succeed())
+		taints := []string{"taint1=", "taint2=value"}
+
+		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", nil, taints)).ToNot(Succeed())
 	})
 
 	t.Run("HostnameOverride", func(t *testing.T) {
