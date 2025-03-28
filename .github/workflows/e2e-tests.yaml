@@ -33,7 +33,7 @@ on:
 jobs:
   test-integration:
     name: Tests
-    runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-noble-large' || 'self-hosted-linux-amd64-noble-large' }}
+    runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-noble-large' || 'self-hosted-linux-amd64-jammy-large' }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -71,6 +71,7 @@ jobs:
           TEST_VERSION_UPGRADE_MIN_RELEASE: "1.31"
           TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
           TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
+          TEST_SKIP_CLEANUP: 1
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }}
       - name: Prepare inspection reports
@@ -84,3 +85,6 @@ jobs:
         with:
           name: ${{ env.artifact_name }}
           path: ${{ github.workspace }}/inspection-reports.tar.gz
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: canonical/action-tmate@main
