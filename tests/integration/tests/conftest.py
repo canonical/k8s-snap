@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
-from test_util import config as test_config
+import test_util.config as test_config
 from test_util import harness, tags, util
 from test_util.etcd import EtcdCluster
 from test_util.registry import Registry
@@ -160,7 +160,7 @@ def pytest_configure(config):
             logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
         )
 
-    logging.getLogger().addHandler(file_handler)
+        logging.getLogger().addHandler(file_handler)
 
 
 @pytest.fixture(scope="function")
