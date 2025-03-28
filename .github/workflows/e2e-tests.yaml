@@ -29,6 +29,18 @@ on:
         description: Test flavor (e.g. moonray or strict)
         default: ""
         type: string
+      log-file-path:
+        description: Log file to upload on failure
+        default: "${{ github.workspace }}/e2e-debug.log"
+        type: string
+      log-file-level:
+        description: Log file logging level
+        default: "DEBUG"
+        type: string
+      log-cli-level:
+        description: Log file logging level
+        default: "INFO"
+        type: string
 
 jobs:
   test-integration:
@@ -57,6 +69,9 @@ jobs:
         run: sudo apt-get install -y tox
       - name: Run e2e tests
         env:
+          TEST_LOG_CLI_LEVEL: ${{ inputs.log-cli-level }}
+          TEST_LOG_FILE_PATH: ${{ inputs.log-file-path }}
+          TEST_LOG_FILE_LEVEL: ${{ inputs.log-file-level }}
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ inputs.os }}
@@ -73,14 +88,20 @@ jobs:
           TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }}
-      - name: Prepare inspection reports
+      - name: Prepare debug suffix
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "artifact_name=inspection-reports-${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
+          echo "artifact_suffix=${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.flavor}}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.artifact_name }}
+          name: inspection-reports-${{ env.artifact_suffix }}
           path: ${{ github.workspace }}/inspection-reports.tar.gz
+      - name: Upload debug logs artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-logs-${{ env.artifact_suffix }}
+          path: ${{ inputs.log-file-path }}
