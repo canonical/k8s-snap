@@ -112,3 +112,9 @@ class Harness:
         If the operation fails, a HarnessError is raised.
         """
         raise NotImplementedError
+
+    def log_environment_info(self):
+        """Log any relevant environment information before and after each test.
+        This allows us to identify leaked resources.
+        """
+        pass

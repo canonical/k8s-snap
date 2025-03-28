@@ -108,6 +108,18 @@ def h() -> harness.Harness:
     _harness_clean(h)
 
 
+@pytest.fixture(autouse=True)
+def log_environment_info(h: harness.Harness):
+    """Log any relevant environment information before and after each test.
+    This allows us to identify leaked resources.
+    """
+    LOG.info("Environment info before test:")
+    h.log_environment_info()
+    yield
+    LOG.info("Environment info after test:")
+    h.log_environment_info()
+
+
 @pytest.fixture(scope="session")
 def registry(h: harness.Harness) -> Optional[Registry]:
     yield Registry(h)
@@ -277,6 +289,9 @@ def instances(
         for instance in instances:
             LOG.debug("Generating inspection reports for test instances")
             _generate_inspection_report(h, instance.id)
+
+    LOG.info("Environment info before cleanup:")
+    h.log_environment_info()
 
     # Cleanup after each test.
     # We cannot execute _harness_clean() here as this would also
