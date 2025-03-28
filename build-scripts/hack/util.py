@@ -12,11 +12,6 @@ LOG = logging.getLogger(__name__)
 
 
 @contextlib.contextmanager
-@retry(
-    retry=retry_if_exception_type(subprocess.CalledProcessError),
-    wait=wait_fixed(5),
-    stop=stop_after_attempt(15),
-)
 def git_repo(
     repo_url: str,
     repo_tag: str,
@@ -39,8 +34,20 @@ def git_repo(
         if shallow:
             cmd.extend(["--depth", "1"])
         LOG.info("Cloning %s @ %s (shallow=%s)", repo_url, repo_tag, shallow)
-        parse_output(cmd)
+        _clone_with_retry(cmd)
         yield Path(tmpdir)
+
+
+def _clone_with_retry(cmd: list[str]):
+    @retry(
+        retry=retry_if_exception_type(subprocess.CalledProcessError),
+        wait=wait_fixed(5),
+        stop=stop_after_attempt(15),
+    )
+    def _run():
+        parse_output(cmd)
+
+    _run()
 
 
 def parse_output(*args, **kwargs):

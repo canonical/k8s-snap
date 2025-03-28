@@ -126,7 +126,7 @@ def k8s_snap_c_dqlite_components(manifest, extra_files):
     for component in repos:
         repo_url = repos[component]
         repo_tag = tags[component]
-        with util.git_repo(repo_url, repo_tag) as dir:
+        with util.git_repo(repo_url + "gibberish", repo_tag) as dir:
             repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
 
         manifest["snap"]["k8s-snap"][component] = {
