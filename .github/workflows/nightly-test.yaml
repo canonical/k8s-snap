@@ -27,6 +27,7 @@ jobs:
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_nightly'
+      log-file-path: ${{ github.workspace }}/e2e-debug.log
 
   Trivy:
     permissions:

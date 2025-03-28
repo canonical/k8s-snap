@@ -31,7 +31,7 @@ on:
         type: string
       log-file-path:
         description: Log file to upload on failure
-        default: "${{ github.workspace }}/e2e-debug.log"
+        default: ""
         type: string
       log-file-level:
         description: Log file logging level

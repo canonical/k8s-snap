@@ -115,6 +115,7 @@ jobs:
       os: ${{ matrix.os }}
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
       artifact: k8s.snap
+      log-file-path: ${{ github.workspace }}/e2e-debug.log
 
   test-integration-informing:
     name: Informing
@@ -132,6 +133,7 @@ jobs:
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
       artifact: k8s-${{ matrix.patch }}.snap
       flavor: ${{ matrix.patch }}
+      log-file-path: ${{ github.workspace }}/e2e-debug.log
 
   security-scan:
     name: Security scan
