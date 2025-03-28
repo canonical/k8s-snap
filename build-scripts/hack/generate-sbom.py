@@ -15,9 +15,10 @@ import logging
 import sys
 import tarfile
 import tempfile
-import yaml
 from pathlib import Path
+
 import util
+import yaml
 
 logging.basicConfig(level=logging.INFO)
 
@@ -145,10 +146,14 @@ def rock_cilium(manifest, extra_files):
     with util.git_repo(CILIUM_ROCK_REPO, CILIUM_ROCK_TAG) as d:
         rock_repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=d)
         rockcraft = (d / f"{CILIUM_VERSION}/cilium/rockcraft.yaml").read_text()
-        operator_rockcraft = (d / f"{CILIUM_VERSION}/cilium-operator-generic/rockcraft.yaml").read_text()
+        operator_rockcraft = (
+            d / f"{CILIUM_VERSION}/cilium-operator-generic/rockcraft.yaml"
+        ).read_text()
 
         extra_files[f"cilium/{CILIUM_VERSION}/rockcraft.yaml"] = rockcraft
-        extra_files[f"cilium-operator-generic/{CILIUM_VERSION}/rockcraft.yaml"] = operator_rockcraft
+        extra_files[f"cilium-operator-generic/{CILIUM_VERSION}/rockcraft.yaml"] = (
+            operator_rockcraft
+        )
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["cilium"]["source"]
@@ -237,7 +242,9 @@ def rock_metrics_server(manifest, extra_files):
         # TODO(ben): This should not be hard coded.
         rockcraft = (d / f"{METRICS_SERVER_VERSION}/rockcraft.yaml").read_text()
 
-        extra_files[f"metrics-server/{METRICS_SERVER_VERSION}/rockcraft.yaml"] = rockcraft
+        extra_files[f"metrics-server/{METRICS_SERVER_VERSION}/rockcraft.yaml"] = (
+            rockcraft
+        )
 
         rockcraft_yaml = yaml.safe_load(rockcraft)
         repo_url = rockcraft_yaml["parts"]["metrics-server"]["source"]
