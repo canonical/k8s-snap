@@ -1,17 +1,18 @@
 import contextlib
-from typing import Any, Generator
-import tempfile
-import subprocess
 import logging
-from urllib.request import urlopen
+import subprocess
+import tempfile
+import time
 from pathlib import Path
+from typing import Any, Generator
+from urllib.request import urlopen
 
 LOG = logging.getLogger(__name__)
 
 
 @contextlib.contextmanager
 def git_repo(
-    repo_url: str, repo_tag: str, shallow: bool = True
+    repo_url: str, repo_tag: str, shallow: bool = True, retry: int = 5
 ) -> Generator[Path, Any, Any]:
     """
     Clone a git repository on a temporary directory and return the directory.
@@ -30,7 +31,17 @@ def git_repo(
         if shallow:
             cmd.extend(["--depth", "1"])
         LOG.info("Cloning %s @ %s (shallow=%s)", repo_url, repo_tag, shallow)
-        parse_output(cmd)
+        for attempt in range(0, retry):
+            try:
+                parse_output(cmd)
+                break
+            except subprocess.CalledProcessError as e:
+                if attempt == retry - 1:
+                    raise e
+                LOG.warning(
+                    f"Failed to clone {repo_url} @ {repo_tag}, retrying in {retry}s"
+                )
+                time.sleep(5)
         yield Path(tmpdir)
 
 
@@ -61,8 +72,10 @@ def helm_pull(chart, repo_url: str, version: str, destination: Path) -> None:
             "--version",
             version,
             "--destination",
-            destination
+            destination,
         ]
     )
 
-    LOG.info("Pulled helm chart %s @ %s as %s to %s", chart, version, repo_url, destination)
+    LOG.info(
+        "Pulled helm chart %s @ %s as %s to %s", chart, version, repo_url, destination
+    )
