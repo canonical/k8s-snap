@@ -6,7 +6,13 @@ from pathlib import Path
 from typing import Any, Generator
 from urllib.request import urlopen
 
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -43,6 +49,7 @@ def _clone_with_retry(cmd: list[str]):
         retry=retry_if_exception_type(subprocess.CalledProcessError),
         wait=wait_fixed(5),
         stop=stop_after_attempt(15),
+        before_sleep=before_sleep_log(LOG, logging.WARNING),
     )
     def _run():
         parse_output(cmd)
