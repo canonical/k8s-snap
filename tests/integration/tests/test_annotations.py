@@ -26,8 +26,6 @@ def test_no_remove(instances: List[harness.Instance]):
     util.join_cluster(joining_worker, join_token_worker)
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 3, "nodes should have joined cluster"
 
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "control-plane" in util.get_local_node_status(joining_cp)

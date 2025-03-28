@@ -47,8 +47,6 @@ def test_node_availability_zone(
     util.join_cluster(joining_cplane_node_2, join_token_2)
 
     util.wait_until_k8s_ready(initial_node, instances)
-    nodes = util.ready_nodes(initial_node)
-    assert len(nodes) == 3, "all nodes should have joined cluster"
 
     def _get_az(instance, same_az, suffix):
         if same_az:
@@ -105,6 +103,4 @@ def test_node_availability_zone(
             ).exec(["cat", "/var/snap/k8s/common/var/lib/k8s-dqlite/failure-domain"])
 
         # Make sure that the nodes remain available.
-        util.stubbornly(retries=5, delay_s=10).until(
-            lambda p: util.ready_nodes(initial_node) == 3
-        )
+        util.wait_until_k8s_ready(initial_node, instances)

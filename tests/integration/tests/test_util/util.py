@@ -18,6 +18,7 @@ from typing import Any, Callable, List, Mapping, Optional, Union
 import pytest
 from tenacity import (
     RetryCallState,
+    Retrying,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -274,25 +275,69 @@ def wait_until_k8s_ready(
     If the instance name is different from the hostname, the instance name should be passed to the
     node_names dictionary, e.g. {"instance_id": "node_name"}.
     """
-    instance_id_node_name_map = {}
     for instance in instances:
         node_name = node_names.get(instance.id)
         if not node_name:
             node_name = hostname(instance)
 
-        result = (
-            stubbornly(retries=retries, delay_s=delay_s)
-            .on(control_node)
-            .until(lambda p: " Ready" in p.stdout.decode())
-            .exec(["k8s", "kubectl", "get", "node", node_name, "--no-headers"])
-        )
-        LOG.info(f"Kubelet registered successfully on instance '{instance.id}'")
-        LOG.info("%s", result.stdout.decode().strip())
-        instance_id_node_name_map[instance.id] = node_name
-        LOG.info(
-            "Successfully checked Kubelet registered on all harness instances: "
-            f"{instance_id_node_name_map}"
-        )
+        for attempt in Retrying(
+            stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)
+        ):
+            with attempt:
+                assert is_node_ready(control_node, node_name)
+
+    LOG.info("Successfully checked Kubelet registered on all harness instances.")
+    result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
+    LOG.info("%s", result.stdout.decode().strip())
+
+
+def is_node_ready(
+    control_node: harness.Instance,
+    node_name: str = "",
+    node_dict: Optional[dict] = None,
+) -> bool:
+    if not (node_name or node_dict):
+        raise ValueError("No node name or dict specified.")
+
+    try:
+        if not node_dict:
+            out = control_node.exec(
+                [
+                    "k8s",
+                    "kubectl",
+                    "get",
+                    "node",
+                    node_name,
+                    "-o",
+                    "json",
+                    "--no-headers",
+                ],
+                capture_output=True,
+            )
+            node_dict = json.loads(out.stdout.decode())
+        if not node_name:
+            node_name = node_dict["metadata"]["name"]
+
+        for condition in node_dict["status"]["conditions"]:
+            # TODO: consider having a map that explicitly defines the state
+            # of each condition. Another option would be to rely solely on the
+            # "Ready" condition.
+            if condition["type"] == "Ready":
+                exp_status = "True"
+            else:
+                exp_status = "False"
+            if condition["status"] != exp_status:
+                LOG.info(
+                    f"Node not ready yet: {node_name}, "
+                    f"condition {condition['type']}={condition['status']}"
+                )
+                return False
+    except Exception as ex:
+        LOG.info(f"Node not ready yet: {node_name}, failed to retrieve node info: {ex}")
+        return False
+
+    LOG.info(f"Node ready: {node_name}")
+    return True
 
 
 def wait_for_dns(instance: harness.Instance):
@@ -346,11 +391,7 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
     return [
         node
         for node in get_nodes(control_node)
-        if all(
-            condition["status"] == "False"
-            for condition in node["status"]["conditions"]
-            if condition["type"] != "Ready"
-        )
+        if is_node_ready(control_node, node_dict=node)
     ]
 
 

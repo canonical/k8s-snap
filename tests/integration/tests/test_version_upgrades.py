@@ -73,8 +73,6 @@ def test_version_upgrades(
     util.join_cluster(w0, join_token_w0)
 
     util.wait_until_k8s_ready(cp, instances)
-    nodes = util.ready_nodes(cp)
-    assert len(nodes) == 4, "all nodes should have joined cluster"
 
     LOG.info(f"Installed {len(instances)} nodes on channel {current_channel}")
 
@@ -176,8 +174,6 @@ def test_version_downgrades_with_rollback(
     # util.join_cluster(w0, join_token_w0)
 
     util.wait_until_k8s_ready(cp, instances)
-    nodes = util.ready_nodes(cp)
-    assert len(nodes) == len(instances), "all nodes should have joined cluster"
 
     for channel in channels[1:]:
         for instance in instances:
