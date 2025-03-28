@@ -12,7 +12,6 @@ from tenacity import (
     retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    wait_random,
 )
 
 LOG = logging.getLogger(__name__)
@@ -41,21 +40,18 @@ def git_repo(
         if shallow:
             cmd.extend(["--depth", "1"])
         LOG.info("Cloning %s @ %s (shallow=%s)", repo_url, repo_tag, shallow)
-        _clone_with_retry(cmd)
+        _run_with_retry(cmd)
         yield Path(tmpdir)
 
 
-def _clone_with_retry(cmd: list[str]):
-    @retry(
-        retry=retry_if_exception_type(subprocess.CalledProcessError),
-        wait=wait_exponential(multiplier=1, min=1, max=60) + wait_random(0, 3),
-        stop=stop_after_attempt(15),
-        before_sleep=before_sleep_log(LOG, logging.WARNING),
-    )
-    def _run():
-        parse_output(cmd)
-
-    _run()
+@retry(
+    retry=retry_if_exception_type(subprocess.CalledProcessError),
+    wait=wait_exponential(multiplier=1, min=1, max=180),
+    stop=stop_after_attempt(5),
+    before_sleep=before_sleep_log(LOG, logging.WARNING),
+)
+def _run_with_retry(cmd: list[str]):
+    parse_output(cmd)
 
 
 def parse_output(*args, **kwargs):
