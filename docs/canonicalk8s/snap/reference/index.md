@@ -45,6 +45,14 @@ notes for each version.
 releases
 ```
 
+## Security
+
+```{toctree}
+:titlesonly:
+Security <security>
+certificates
+```
+
 ## Annotations
 
 A list of annotations that can be applied to a node on cluster bootstrap.
@@ -52,6 +60,14 @@ A list of annotations that can be applied to a node on cluster bootstrap.
 ```{toctree}
 :titlesonly:
 annotations
+```
+
+## Networking
+
+```{toctree}
+:titlesonly:
+proxy
+ports-and-services
 ```
 
 ## Troubleshooting
@@ -62,21 +78,6 @@ Common issues faced by users and their solutions.
 :titlesonly:
 troubleshooting
 inspection-reports
-```
-
-## Security
-
-```{toctree}
-:titlesonly:
-certificates
-```
-
-## Networking
-
-```{toctree}
-:titlesonly:
-proxy
-ports-and-services
 ```
 
 ## Contributing
