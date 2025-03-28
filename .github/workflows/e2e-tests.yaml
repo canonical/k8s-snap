@@ -109,7 +109,7 @@ jobs:
       - name: Run e2e tests
         env:
           TEST_LOG_CLI_LEVEL: ${{ inputs.log-cli-level }}
-          TEST_LOG_FILE_PATH: ${{ inputs.log-file-path }}
+          TEST_LOG_FILE_PATH: ${{ github.workspace }}/e2e.log
           TEST_LOG_FILE_LEVEL: ${{ inputs.log-file-level }}
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
           TEST_SUBSTRATE: lxd
@@ -144,7 +144,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: debug-logs-${{ env.artifact_suffix }}
-          path: ${{ inputs.log-file-path }}
+          path: ${{ github.workspace }}/e2e.log
       - name: Upload CNCF conformance report artifact
         if: ${{ failure() && contains(inputs.test-tags, 'conformance_tests') }}
         uses: actions/upload-artifact@v4
