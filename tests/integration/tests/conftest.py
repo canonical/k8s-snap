@@ -148,8 +148,8 @@ def snapd_preload() -> None:
         )
 
 
-def pytest_configure(config):
-    config.addinivalue_line(
+def pytest_configure(conf):
+    conf.addinivalue_line(
         "markers",
         "bootstrap_config: Provide a custom bootstrap config to the bootstrapping node.\n"
         "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.\n"
