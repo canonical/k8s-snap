@@ -21,7 +21,7 @@ def test_control_plane_taints(instances: List[harness.Instance]):
     retries = 10
 
     while retries and not (nodes := util.get_nodes(k8s_instance)):
-        LOG.info("Waiting for Nodes")
+        LOG.debug("Waiting for Nodes")
         time.sleep(3)
         retries -= 1
     assert len(nodes) == 1, "Should have found one node in 30 sec"
