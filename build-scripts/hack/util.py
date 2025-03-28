@@ -2,21 +2,25 @@ import contextlib
 import logging
 import subprocess
 import tempfile
-import time
 from pathlib import Path
 from typing import Any, Generator
 from urllib.request import urlopen
+
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 LOG = logging.getLogger(__name__)
 
 
 @contextlib.contextmanager
+@retry(
+    retry=retry_if_exception_type(subprocess.CalledProcessError),
+    wait=wait_fixed(5),
+    stop=stop_after_attempt(15),
+)
 def git_repo(
     repo_url: str,
     repo_tag: str,
     shallow: bool = True,
-    retry_n: int = 5,
-    retry_delay: int = 5,
 ) -> Generator[Path, Any, Any]:
     """
     Clone a git repository on a temporary directory and return the directory.
@@ -35,17 +39,7 @@ def git_repo(
         if shallow:
             cmd.extend(["--depth", "1"])
         LOG.info("Cloning %s @ %s (shallow=%s)", repo_url, repo_tag, shallow)
-        for attempt in range(0, retry_n):
-            try:
-                parse_output(cmd)
-                break
-            except subprocess.CalledProcessError as e:
-                if attempt == retry_n - 1:
-                    raise e
-                LOG.warning(
-                    f"Failed to clone {repo_url} @ {repo_tag}, retrying in {retry_delay}s"
-                )
-                time.sleep(retry_delay)
+        parse_output(cmd)
         yield Path(tmpdir)
 
 
