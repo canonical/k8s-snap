@@ -107,11 +107,11 @@ def test_ingress(instances: List[harness.Instance]):
         input=Path(manifest).read_bytes(),
     )
 
-    LOG.info("Waiting for nginx pod to show up...")
+    LOG.debug("Waiting for nginx pod to show up...")
     util.stubbornly(retries=5, delay_s=10).on(instance).until(
         lambda p: "my-nginx" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
-    LOG.info("Nginx pod showed up.")
+    LOG.debug("Nginx pod showed up.")
 
     util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [

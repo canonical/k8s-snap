@@ -45,7 +45,7 @@ def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     )
     assert p.returncode != 0, "k8s-dqlite service is still active"
 
-    LOG.info("Add new etcd nodes")
+    LOG.debug("Add new etcd nodes")
     etcd_cluster.add_nodes(2)
 
     # Update server-urls in cluster

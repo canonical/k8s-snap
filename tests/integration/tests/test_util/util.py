@@ -142,8 +142,8 @@ def stubbornly(
         errstr = ""
         if retry_state.outcome:
             errstr = f" Error: {retry_state.outcome.exception()}"
-        LOG.info(f"Attempt {attempt}{tries} failed.{errstr}")
-        LOG.info(f"Retrying in {delay_s} seconds...")
+        LOG.debug(f"Attempt {attempt}{tries} failed.{errstr}")
+        LOG.debug(f"Retrying in {delay_s} seconds...")
 
     waits = wait_fixed(delay_s) if delay_s else wait_fixed(0)
     stops = stop_after_attempt(retries) if retries else stop_never
@@ -214,7 +214,7 @@ def preload_snaps(instance: harness.Instance):
 
 def setup_core_dumps(instance: harness.Instance):
     core_pattern = os.path.join(config.CORE_DUMP_DIR, config.CORE_DUMP_PATTERN)
-    LOG.info("Configuring core dumps. Pattern: %s", core_pattern)
+    LOG.debug("Configuring core dumps. Pattern: %s", core_pattern)
     instance.exec(["echo", core_pattern, ">", "/proc/sys/kernel/core_pattern"])
     instance.exec(["echo", "1", ">", "/proc/sys/fs/suid_dumpable"])
     instance.exec(["snap", "set", "system", "system.coredump.enable=true"])
@@ -247,18 +247,18 @@ def setup_k8s_snap(
         )
 
     if isinstance(which_snap, str) and which_snap.startswith("/"):
-        LOG.info("Install k8s snap by path")
+        LOG.debug("Install k8s snap by path")
         snap_path = (tmp_path / "k8s.snap").as_posix()
         instance.send_file(which_snap, snap_path)
         cmd += ["--dangerous", snap_path]
     elif _as_int(which_snap):
-        LOG.info("Install k8s snap by revision")
+        LOG.debug("Install k8s snap by revision")
         cmd += [config.SNAP_NAME, "--revision", which_snap]
     elif "/" in which_snap or which_snap in RISKS:
-        LOG.info("Install k8s snap by specific channel: %s", which_snap)
+        LOG.debug("Install k8s snap by specific channel: %s", which_snap)
         cmd += [config.SNAP_NAME, "--channel", which_snap]
     elif channel := tracks_least_risk(which_snap, instance.arch):
-        LOG.info("Install k8s snap by least risky channel: %s", channel)
+        LOG.debug("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
 
     # TODO(ben): Remove this temporary workaround once the snapstore issue is resolved.
@@ -267,17 +267,17 @@ def setup_k8s_snap(
 
     instance.exec(cmd)
     if connect_interfaces:
-        LOG.info("Ensure k8s interfaces and network requirements")
+        LOG.debug("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
 
 
 def remove_k8s_snap(instance: harness.Instance):
-    LOG.info("Uninstall k8s...")
+    LOG.debug("Uninstall k8s...")
     stubbornly(retries=20, delay_s=5).on(instance).exec(
         ["snap", "remove", config.SNAP_NAME, "--purge"]
     )
 
-    LOG.info("Waiting for shims to go away...")
+    LOG.debug("Waiting for shims to go away...")
     stubbornly(retries=20, delay_s=5).on(instance).until(
         lambda p: all(
             x not in p.stdout.decode()
@@ -285,7 +285,7 @@ def remove_k8s_snap(instance: harness.Instance):
         )
     ).exec(["ps", "-fea"])
 
-    LOG.info("Waiting for kubelet and containerd mounts to go away...")
+    LOG.debug("Waiting for kubelet and containerd mounts to go away...")
     stubbornly(retries=20, delay_s=5).on(instance).until(
         lambda p: all(
             x not in p.stdout.decode()
@@ -307,7 +307,7 @@ def remove_k8s_snap(instance: harness.Instance):
     # ip netns delete cni-UUID3
     # Cannot remove namespace file "/run/netns/cni-UUID3": Device or resource busy
 
-    # LOG.info("Waiting for CNI network namespaces to go away...")
+    # LOG.debug("Waiting for CNI network namespaces to go away...")
     # stubbornly(retries=5, delay_s=5).on(instance).until(
     #     lambda p: "cni-" not in p.stdout.decode()
     # ).exec(["ip", "netns", "list"])
@@ -339,9 +339,9 @@ def wait_until_k8s_ready(
                 assert is_node_ready(control_node, node_name)
                 check_snap_services_ready(instance)
 
-    LOG.info("Successfully checked Kubelet registered on all harness instances.")
+    LOG.debug("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
-    LOG.info("%s", result.stdout.decode().strip())
+    LOG.debug("%s", result.stdout.decode().strip())
 
 
 def is_node_ready(
@@ -380,27 +380,29 @@ def is_node_ready(
             else:
                 exp_status = "False"
             if condition["status"] != exp_status:
-                LOG.info(
+                LOG.debug(
                     f"Node not ready yet: {node_name}, "
                     f"condition {condition['type']}={condition['status']}"
                 )
                 return False
 
     except Exception as ex:
-        LOG.info(f"Node not ready yet: {node_name}, failed to retrieve node info: {ex}")
+        LOG.debug(
+            f"Node not ready yet: {node_name}, failed to retrieve node info: {ex}"
+        )
         return False
 
-    LOG.info(f"Node ready: {node_name}")
+    LOG.debug(f"Node ready: {node_name}")
     return True
 
 
 def wait_for_dns(instance: harness.Instance):
-    LOG.info("Waiting for DNS to be ready")
+    LOG.debug("Waiting for DNS to be ready")
     instance.exec(["k8s", "x-wait-for", "dns", "--timeout", "20m"])
 
 
 def wait_for_network(instance: harness.Instance):
-    LOG.info("Waiting for network to be ready")
+    LOG.debug("Waiting for network to be ready")
     instance.exec(["k8s", "x-wait-for", "network", "--timeout", "20m"])
 
 
@@ -573,7 +575,7 @@ def tracks_least_risk(track: str, arch: str) -> str:
         raise ValueError(f"No risks found for track: {track}")
     risk_level = {"stable": 0, "candidate": 1, "beta": 2, "edge": 3}
     channel = f"{track}/{min(risks, key=lambda r: risk_level[r])}"
-    LOG.info("Least risk channel from track %s is %s", track, channel)
+    LOG.debug("Least risk channel from track %s is %s", track, channel)
     return channel
 
 
@@ -609,7 +611,7 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     addr = "https://dl.k8s.io/release/stable{dash_maj}.txt".format(
         dash_maj=f"-{maj}" if maj else ""
     )
-    LOG.info("Getting upstream version from %s", addr)
+    LOG.debug("Getting upstream version from %s", addr)
     with urllib.request.urlopen(addr) as r:
         stable = r.read().decode().strip()
         return major_minor(stable)
@@ -627,16 +629,16 @@ def _previous_track_from_branch(branch: str) -> Optional[str]:
     if branch == MAIN_BRANCH:
         # NOTE(Hue): `latest/stable` is not populated at the moment.
         # When it is, we should return `latest` instead.
-        LOG.info("Getting current version from upstream k8s")
+        LOG.debug("Getting current version from upstream k8s")
         # For the main branch, the previous track is the latest release-branch, e.g.
         # `1.32/stable` for `main` branch which matches the current upstream version.
         maj_min = _major_minor_from_stable_upstream()
         if not maj_min:
-            LOG.info("Failed to determine upstream version")
+            LOG.debug("Failed to determine upstream version")
             return None
 
     elif branch.startswith("release-"):
-        LOG.info("Getting current version from branch %s", branch)
+        LOG.debug("Getting current version from branch %s", branch)
         maj_min = major_minor(branch.lstrip("release-"))
         # Get the previous version from the branch, e.g. for branch `release-1.32` we want `1.31`
         if maj_min:
@@ -646,7 +648,7 @@ def _previous_track_from_branch(branch: str) -> Optional[str]:
             else:
                 maj_min = (_maj, _min - 1)
     else:
-        LOG.info(
+        LOG.debug(
             "Branch is neither `main` nor `release-X.Y`. Can't determine previous track."
         )
         return None
@@ -668,7 +670,7 @@ def previous_track(snap_version: str) -> str:
 
     if not snap_version:
         assumed = "latest"
-        LOG.info(
+        LOG.debug(
             "Cannot determine previous track for undefined snap -- assume %s",
             snap_version,
             assumed,
@@ -679,12 +681,12 @@ def previous_track(snap_version: str) -> str:
         branch = config.GH_BASE_REF or config.GH_REF or MAIN_BRANCH
         prev = _previous_track_from_branch(branch)
         if prev:
-            LOG.info(
+            LOG.debug(
                 "Previous track for %s from branch %s is %s", snap_version, branch, prev
             )
             return prev
         else:
-            LOG.info(
+            LOG.debug(
                 "Previous track for %s from branch %s is not found -- assume latest",
                 snap_version,
                 branch,
@@ -708,7 +710,7 @@ def previous_track(snap_version: str) -> str:
 
     flavor_track = _get_flavor()
     track = f"{maj_min[0]}.{maj_min[1]}" + (flavor_track and f"-{flavor_track}")
-    LOG.info("Previous track for %s is from track: %s", snap_version, track)
+    LOG.debug("Previous track for %s is from track: %s", snap_version, track)
     return track
 
 
@@ -812,13 +814,13 @@ def wait_for_daemonset(
             capture_output=True,
         )
         if int(proc.stdout.decode()) >= expected_pods_ready:
-            LOG.info(
+            LOG.debug(
                 f"Successfully waited for daemonset '{name}' after "
                 f"{(i+1)*retry_delay_s} seconds"
             )
             return
 
-        LOG.info(
+        LOG.debug(
             f"Waiting {retry_delay_s} seconds for daemonset '{name}'.\n"
             f"code: {proc.returncode}\nstdout: {proc.stdout}\nstderr: {proc.stderr}"
         )

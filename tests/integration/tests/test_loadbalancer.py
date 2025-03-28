@@ -40,7 +40,6 @@ def test_loadbalancer_ipv6_only(instances: List[harness.Instance]):
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.dualstack()
 @pytest.mark.network_type("dualstack")
 def test_loadbalancer_ipv6_dualstack(instances: List[harness.Instance]):
     _test_loadbalancer(instances, k8s_net_type=K8sNetType.dualstack)
@@ -104,11 +103,11 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
         input=Path(manifest).read_bytes(),
     )
 
-    LOG.info("Waiting for nginx pod to show up...")
+    LOG.debug("Waiting for nginx pod to show up...")
     util.stubbornly(retries=5, delay_s=10).on(instance).until(
         lambda p: "my-nginx" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
-    LOG.info("Nginx pod showed up.")
+    LOG.debug("Nginx pod showed up.")
 
     util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [

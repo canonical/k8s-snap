@@ -35,7 +35,7 @@ def test_strict_interfaces(instances: List[harness.Instance], tmp_path):
 
         # Log the current snap version on the node.
         out = cp.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
-        LOG.info(f"Current snap version: {out.stdout.decode().strip()}")
+        LOG.debug(f"Current snap version: {out.stdout.decode().strip()}")
 
         check_snap_interfaces(cp, config.SNAP_NAME)
 

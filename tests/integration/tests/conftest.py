@@ -8,7 +8,9 @@ from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
 from pytest_subunit import SubunitTerminalReporter
-from test_util import config, harness, tags, util
+from test_util import harness, tags, util
+from test_util import config as test_config
+from test_util import harness, tags, util
 from test_util.etcd import EtcdCluster
 from test_util.registry import Registry
 
@@ -35,7 +37,7 @@ def pytest_itemcollected(item):
 def _harness_clean(h: harness.Harness):
     "Clean up created instances within the test harness."
 
-    if config.SKIP_CLEANUP:
+    if test_config.SKIP_CLEANUP:
         LOG.warning(
             "Skipping harness cleanup. "
             "It is your job now to clean up cloud resources"
@@ -49,14 +51,14 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
     LOG.debug("Generating inspection report for %s", instance_id)
 
     try:
-        inspection_path = Path(config.INSPECTION_REPORTS_DIR)
+        inspection_path = Path(test_config.INSPECTION_REPORTS_DIR)
         result = h.exec(
             instance_id,
             [
                 "/snap/k8s/current/k8s/scripts/inspect.sh",
                 "--all-namespaces",
                 "--core-dump-dir",
-                config.CORE_DUMP_DIR,
+                test_config.CORE_DUMP_DIR,
                 "/inspection-report.tar.gz",
             ],
             capture_output=True,
@@ -90,12 +92,12 @@ def validate_test_config():
 
 @pytest.fixture(scope="session")
 def h() -> harness.Harness:
-    LOG.debug("Create harness for %s", config.SUBSTRATE)
-    if config.SUBSTRATE == "lxd":
+    LOG.debug("Create harness for %s", test_config.SUBSTRATE)
+    if test_config.SUBSTRATE == "lxd":
         h = harness.LXDHarness()
-    elif config.SUBSTRATE == "multipass":
+    elif test_config.SUBSTRATE == "multipass":
         h = harness.MultipassHarness()
-    elif config.SUBSTRATE == "juju":
+    elif test_config.SUBSTRATE == "juju":
         h = harness.JujuHarness()
     else:
         raise harness.HarnessError(
@@ -104,7 +106,7 @@ def h() -> harness.Harness:
 
     yield h
 
-    if config.INSPECTION_REPORTS_DIR:
+    if test_config.INSPECTION_REPORTS_DIR:
         for instance_id in h.instances:
             LOG.debug("Generating inspection reports for session instances")
             _generate_inspection_report(h, instance_id)
@@ -117,16 +119,16 @@ def log_environment_info(h: harness.Harness):
     """Log any relevant environment information before and after each test.
     This allows us to identify leaked resources.
     """
-    LOG.info("Environment info before test:")
+    LOG.debug("Environment info before test:")
     h.log_environment_info()
     yield
-    LOG.info("Environment info after test:")
+    LOG.debug("Environment info after test:")
     h.log_environment_info()
 
 
 @pytest.fixture(scope="session")
 def registry(h: harness.Harness) -> Optional[Registry]:
-    if config.USE_LOCAL_MIRROR:
+    if test_config.USE_LOCAL_MIRROR:
         yield Registry(h)
     else:
         LOG.info("Local registry mirror disabled!")
@@ -158,15 +160,51 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
-        "bootstrap_config: Provide a custom bootstrap config to the bootstrapping node.\n"
-        "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.\n"
-        "no_setup: No setup steps (pushing snap, bootstrapping etc.) are performed on any node for this test.\n"
-        "containerd_cfgdir: The instance containerd config directory, defaults to /etc/containerd."
-        "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).\n"
-        "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
-        "node_count: Mark a test to specify how many instance nodes need to be created\n"
-        "snap_versions: Mark a test to specify snap_versions for each node\n",
+        "bootstrap_config: Provide a custom bootstrap config to the bootstrapping node.",
     )
+    config.addinivalue_line(
+        "markers",
+        "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.",
+    )
+    config.addinivalue_line(
+        "markers",
+        "no_setup: No setup steps (pushing snap, bootstrapping etc.) are performed on any node for this test.",
+    )
+    config.addinivalue_line(
+        "markers",
+        "containerd_cfgdir: The instance containerd config directory, defaults to /etc/containerd.",
+    )
+    config.addinivalue_line(
+        "markers",
+        "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).",
+    )
+    config.addinivalue_line(
+        "markers",
+        "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)",
+    )
+    config.addinivalue_line(
+        "markers",
+        "node_count: Mark a test to specify how many instance nodes need to be created",
+    )
+    config.addinivalue_line(
+        "markers", "snap_versions: Mark a test to specify snap_versions for each node"
+    )
+
+    config.option.showcapture = "no"
+    # Set up CLI logging
+    if test_config.LOG_CLI:
+        config.option.log_cli_level = test_config.LOG_CLI_LEVEL
+        config.option.log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s"
+        config.option.log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+    # Set up file logging
+    if test_config.LOG_FILE_PATH is not None:
+        config.option.log_file = test_config.LOG_FILE_PATH
+        config.option.log_file_level = test_config.LOG_FILE_LEVEL
+        config.option.log_file_format = (
+            "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+        )
+        config.option.log_file_date_format = "%Y-%m-%d %H:%M:%S"
 
     if config.option.subunit:
         # Get the standard terminal reporter plugin and replace it with ours.
@@ -255,7 +293,7 @@ def instances(
     if node_count <= 0:
         pytest.xfail("Test requested 0 or fewer instances, skip this test.")
 
-    LOG.info(f"Creating {node_count} instances")
+    LOG.debug(f"Creating {node_count} instances")
     instances: List[harness.Instance] = []
 
     for _, snap in zip(range(node_count), snap_versions(request)):
@@ -269,7 +307,7 @@ def instances(
             util.setup_core_dumps(instance)
             util.setup_k8s_snap(instance, tmp_path, snap)
 
-            if config.USE_LOCAL_MIRROR:
+            if test_config.USE_LOCAL_MIRROR:
                 registry.apply_configuration(instance, containerd_cfgdir)
 
     if not disable_k8s_bootstrapping and not no_setup:
@@ -285,18 +323,18 @@ def instances(
 
     yield instances
 
-    if config.SKIP_CLEANUP:
+    if test_config.SKIP_CLEANUP:
         LOG.warning("Skipping clean-up of instances, delete them on your own")
         return
 
     # Collect all the reports before initiating the cleanup so that we won't
     # affect the state of the observed cluster.
-    if config.INSPECTION_REPORTS_DIR:
+    if test_config.INSPECTION_REPORTS_DIR:
         for instance in instances:
             LOG.debug("Generating inspection reports for test instances")
             _generate_inspection_report(h, instance.id)
 
-    LOG.info("Environment info before cleanup:")
+    LOG.debug("Environment info before cleanup:")
     h.log_environment_info()
 
     # Cleanup after each test.
@@ -324,11 +362,11 @@ def etcd_cluster(
     h: harness.Harness, etcd_count: int
 ) -> Generator[EtcdCluster, None, None]:
     """Construct etcd instances for a cluster."""
-    LOG.info(f"Creating {etcd_count} etcd instances")
+    LOG.debug(f"Creating {etcd_count} etcd instances")
 
     cluster = EtcdCluster(h, initial_node_count=etcd_count)
 
     yield cluster
 
-    LOG.info(f"Cleaning up {etcd_count} etcd instances")
+    LOG.debug(f"Cleaning up {etcd_count} etcd instances")
     cluster.cleanup()

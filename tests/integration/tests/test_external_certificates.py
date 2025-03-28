@@ -72,7 +72,7 @@ def wait_for_vault(client: hvac.Client, timeout: int = 30):
             client.sys.read_health_status()
             return True
         except requests.exceptions.ConnectionError:
-            LOG.info("Vault API is not yet available.")
+            LOG.debug("Vault API is not yet available.")
         except Exception:
             pass
 
@@ -84,17 +84,17 @@ def wait_for_vault(client: hvac.Client, timeout: int = 30):
 def setup_vault(instance: harness.Instance, instance_ip: str):
     """Install and initialize Vault."""
 
-    LOG.info("Installing Vault.")
+    LOG.debug("Installing Vault.")
     instance.exec(["snap", "install", "vault"])
     instance.exec(["snap", "start", "vault"])
 
-    LOG.info("Waiting for Vault to become available.")
+    LOG.debug("Waiting for Vault to become available.")
     url = f"http://{instance_ip}:8200"
     client = hvac.Client(url)
     available = wait_for_vault(client)
     assert available, "Expected Vault to be available"
 
-    LOG.info("Initializing Vault.")
+    LOG.debug("Initializing Vault.")
     result = client.sys.initialize(1, 1)
     keys = result["keys"]
     root_token = result["root_token"]
@@ -201,7 +201,7 @@ def test_vault_intermediate_ca(instances: List[harness.Instance]):
     instance_ip = util.get_default_ip(instance)
     client = setup_vault(instance, instance_ip)
 
-    LOG.info("Vault setup is ready. Creating certificates.")
+    LOG.debug("Vault setup is ready. Creating certificates.")
 
     # Enable and tune PKI.
     client.sys.enable_secrets_engine("pki", config={"max_lease_ttl": "6h"})
@@ -214,7 +214,7 @@ def test_vault_intermediate_ca(instances: List[harness.Instance]):
     client_ca_cert, client_ca_key = create_intermediate_ca(client, instance_ip)
     proxy_ca_cert, proxy_ca_key = create_intermediate_ca(client, instance_ip)
 
-    LOG.info("Certificates are ready. Bootstrapping.")
+    LOG.debug("Certificates are ready. Bootstrapping.")
 
     # Bootstrap K8s.
     bootstrap_config = dict(DEFAULT_BOOTSTRAP_CONFIG)
@@ -265,7 +265,7 @@ def test_vault_certificates(instances: List[harness.Instance]):
     worker_hostname = util.hostname(worker_node)
 
     client = setup_vault(instance, bootstrap_node_ip)
-    LOG.info("Vault setup is ready. Creating certificates.")
+    LOG.debug("Vault setup is ready. Creating certificates.")
 
     # Enable and tune PKI.
     client.sys.enable_secrets_engine("pki", config={"max_lease_ttl": "6h"})
@@ -332,7 +332,7 @@ def test_vault_certificates(instances: List[harness.Instance]):
     ]
     bootstrap_config.pop("kube-controller-manager-client-key")
 
-    LOG.info("Certificates are ready. Bootstrapping.")
+    LOG.debug("Certificates are ready. Bootstrapping.")
     instance.exec(
         ["k8s", "bootstrap", "--file", "-"],
         input=str.encode(yaml.dump(bootstrap_config)),

@@ -34,10 +34,10 @@ def _check_nvidia_gpu_present(instance: harness.Instance) -> bool:
 
     for line in proc.stdout.split("\n"):
         if "NVIDIA Corporation" in line:
-            LOG.info(f"Found NVIDIA GPU in lspci output: {line}")
+            LOG.debug(f"Found NVIDIA GPU in lspci output: {line}")
             return True
 
-    LOG.info(f"Failed to find NVIDIA GPU in lspci output: {proc.stdout}")
+    LOG.debug(f"Failed to find NVIDIA GPU in lspci output: {proc.stdout}")
     return False
 
 
@@ -52,7 +52,7 @@ def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, boo
             if line.startswith(mod):
                 modules_present[mod] = True
 
-    LOG.info(f"Located the following Nvidia kernel modules {modules_present}")
+    LOG.debug(f"Located the following Nvidia kernel modules {modules_present}")
     return modules_present
 
 

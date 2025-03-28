@@ -59,7 +59,7 @@ def test_node_availability_zone(
     # that the cluster remains functional.
     iterations = 10
     for iteration in range(iterations):
-        LOG.info("Starting iteration: %s", iteration)
+        LOG.debug("Starting iteration: %s", iteration)
         az_suffix = f"-{iteration}"
 
         # Apply the AZ labels.
@@ -82,7 +82,7 @@ def test_node_availability_zone(
             az = _get_az(instance, same_az, az_suffix)
             failure_domain = _get_failure_domain(az)
 
-            LOG.info(
+            LOG.debug(
                 "Node: %s, az: %s, expected failure domain: %s",
                 instance.id,
                 az,
