@@ -51,30 +51,30 @@ def _harness_clean(h: harness.Harness):
 def _generate_inspection_report(h: harness.Harness, instance_id: str):
     LOG.debug("Generating inspection report for %s", instance_id)
 
-    inspection_path = Path(config.INSPECTION_REPORTS_DIR)
-    result = h.exec(
-        instance_id,
-        [
-            "/snap/k8s/current/k8s/scripts/inspect.sh",
-            "--all-namespaces",
-            "--core-dump-dir",
-            config.CORE_DUMP_DIR,
-            "/inspection-report.tar.gz",
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
-    report_log = inspection_path / instance_id / "inspection_report_logs.txt"
-    with report_log.open("w") as f:
-        f.write("stdout:\n")
-        f.write(result.stdout)
-        f.write("stderr:\n")
-        f.write(result.stderr)
-
     try:
+        inspection_path = Path(config.INSPECTION_REPORTS_DIR)
+        result = h.exec(
+            instance_id,
+            [
+                "/snap/k8s/current/k8s/scripts/inspect.sh",
+                "--all-namespaces",
+                "--core-dump-dir",
+                config.CORE_DUMP_DIR,
+                "/inspection-report.tar.gz",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
+        report_log = inspection_path / instance_id / "inspection_report_logs.txt"
+        with report_log.open("w") as f:
+            f.write("stdout:\n")
+            f.write(result.stdout)
+            f.write("stderr:\n")
+            f.write(result.stderr)
+
         h.pull_file(
             instance_id,
             "/inspection-report.tar.gz",
