@@ -69,6 +69,7 @@ inspection-reports
 ```{toctree}
 :titlesonly:
 certificates
+crypto
 ```
 
 ## Networking
