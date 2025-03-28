@@ -140,7 +140,7 @@ and flexible {{product}} deployment managed through Juju.
 <!-- IMAGES -->
 
 [cluster1]: https://assets.ubuntu.com/v1/dfc43753-cluster1.svg
-[cluster2]: https://assets.ubuntu.com/v1/f634743e-k8sd.svg
+[cluster2]: https://assets.ubuntu.com/v1/d74833fe-k8sd.svg
 [cluster4]: https://assets.ubuntu.com/v1/53a083a9-charms.svg
 [cluster5]: https://assets.ubuntu.com/v1/bcfe150f-overview.svg
 
