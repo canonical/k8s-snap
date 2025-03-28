@@ -238,6 +238,8 @@ Snapcraft
 snapd
 SR-IOV
 src
+stderr
+stdout
 stackexchange
 stgraber
 STONITH
