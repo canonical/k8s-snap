@@ -60,6 +60,9 @@ func (e *Endpoints) getClusterConfig(s state.State, r *http.Request) response.Re
 	}
 
 	return response.SyncResponse(true, &apiv1.GetClusterConfigResponse{
-		Config: config.ToUserFacing(),
+		Config:      config.ToUserFacing(),
+		Datastore:   config.Datastore.ToUserFacing(),
+		PodCIDR:     config.Network.PodCIDR,
+		ServiceCIDR: config.Network.ServiceCIDR,
 	})
 }

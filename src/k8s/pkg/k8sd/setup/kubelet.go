@@ -41,8 +41,8 @@ func KubeletControlPlane(snap snap.Snap, hostname string, nodeIPs []net.IP, clus
 }
 
 // KubeletWorker configures kubelet on a worker node.
-func KubeletWorker(snap snap.Snap, hostname string, nodeIPs []net.IP, clusterDNS string, clusterDomain string, cloudProvider string, extraArgs map[string]*string) error {
-	return kubelet(snap, hostname, nodeIPs, clusterDNS, clusterDomain, cloudProvider, nil, kubeletWorkerLabels, extraArgs)
+func KubeletWorker(snap snap.Snap, hostname string, nodeIPs []net.IP, clusterDNS string, clusterDomain string, cloudProvider string, extraArgs map[string]*string, taints []string) error {
+	return kubelet(snap, hostname, nodeIPs, clusterDNS, clusterDomain, cloudProvider, taints, kubeletWorkerLabels, extraArgs)
 }
 
 // kubelet configures kubelet on the local node.
