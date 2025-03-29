@@ -21,7 +21,7 @@ type InternalWorkerNodeToken struct {
 // internalWorkerNodeTokenSerializeMagicString is used to validate serialized worker node tokens.
 const internalWorkerNodeTokenSerializeMagicString = "m!!"
 
-var encoding = base64.RawStdEncoding
+var encoding = base64.StdEncoding
 
 type serializableWorkerNodeInfo struct {
 	InternalWorkerNodeToken
