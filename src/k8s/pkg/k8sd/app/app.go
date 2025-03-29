@@ -278,7 +278,13 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 		return fmt.Errorf("failed to wait for kubernetes endpoint: %w", err)
 	}
 
+	log.V(1).Info("Execute onNodeReady hook")
+	if err := a.onNodeReady(ctx); err != nil {
+		return fmt.Errorf("failed to execute onNodeReady hook: %w", err)
+	}
+
 	log.V(1).Info("Marking node as ready")
 	a.readyWg.Done()
+
 	return nil
 }
