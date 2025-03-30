@@ -288,7 +288,8 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     Therefore we need to:
         * upload the snap to two different branches and perform an upgrade between them
           (we rely on/need to test pre-refresh hooks so this cannot be done by upgrading from an existing revision)
-        * Need to do a dummy modification to the snap to make it possible to upload the same revision to different branches
+        * Need to do a dummy modification to the snap to make it possible to upload the same
+           revision to different branches
 
     """
     assert (
@@ -303,7 +304,8 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     os.environ["SNAPCRAFT_STORE_CREDENTIALS"] = config.SNAPCRAFT_STORE_CREDENTIALS
 
     # unsquash, add dummy change to ensure uniqueness in store, squash, upload to branches
-    # note: we also add a dummy change to the first branch as the test would otherwise fail if a PR only introduces test changes.
+    # note: we also add a dummy change to the first branch as the test would otherwise
+    # fail if a PR only introduces test changes.
     unsquash_path = tmp_path / "k8s-snap-unsquashed"
     util.run(f"unsquashfs -d {unsquash_path} {config.SNAP}".split())
     for idx, branch in enumerate([start_branch, target_branch]):
@@ -329,7 +331,7 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     # Verify that the UpgradeCRD is known to the cluster
     main.exec("k8s kubectl get crd upgrades.k8sd.io".split())
 
-    # Refresh each node after eachother and verify that the upgrade CR is updated correctly.
+    # Refresh each node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
         instance.exec(f"snap refresh k8s --channel={target_branch}".split())
 
