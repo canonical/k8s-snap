@@ -148,7 +148,9 @@ VERSION_DOWNGRADE_CHANNELS = (
 
 # SNAPCRAFT_STORE_CREDENTIALS is the credentials to use when accessing the snap store.
 # Required to upload test snaps to branches.
-SNAPCRAFT_STORE_CREDENTIALS = ( os.environ.get("TEST_SNAPCRAFT_STORE_CREDENTIALS") or None).strip()
+SNAPCRAFT_STORE_CREDENTIALS = (
+    os.environ.get("TEST_SNAPCRAFT_STORE_CREDENTIALS") or None
+).strip()
 
 # A list of space-separated channels for which the strict interface tests should be run in sequential order.
 # Alternatively, use 'recent <num> strict' to get the latest <num> channels for strict.
