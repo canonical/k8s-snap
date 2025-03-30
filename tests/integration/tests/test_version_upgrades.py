@@ -187,20 +187,15 @@ def test_version_downgrades_with_rollback(instances: List[harness.Instance], tmp
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
-    """Test the feature upgrades work
-    Note(ben): This test is a work in progress and will
-    be expanded with new tests as the feature upgrades work takes shape.
-    Once this work is complete, this test will likely be merged with the
-    test_version_upgrades test above and create a single test for all upgrades.
+    """Verify that feature upgrades function correctly.
 
-    It is not possible to:
-        * do a snap refresh to a local snap
-        * upload the same snap revision to different branches
-    Therefore we need to:
-        * upload the snap to two different branches and perform an upgrade between them
-          (we rely on/need to test pre-refresh hooks so this cannot be done by upgrading from an existing revision)
-        * Need to do a dummy modification to the snap to make it possible to upload the same
-           revision to different branches
+    Note: This is an interim test that will be expanded as feature upgrades mature.
+    Eventually, it will merge with test_version_upgrades to create a unified upgrade test.
+
+    This test will spin up a three cp cluster on 1.32-classic/stable, and then upgrade to the snap.
+    The test will then verify that the upgrade CR is updated correctly and that the feature version
+    is upgraded to the latest version.
+    The test will also verify that the feature version is not upgraded until all nodes are upgraded.
 
     """
     assert (
@@ -253,6 +248,10 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
 
     # Refresh each node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
+        # Fake the pre-refresh hook for this test (see docstring above)
+        if idx == 0:
+            instance.exec("k8s kubectl apply -f -".split(), input=config.MANIFESTS_DIR / "upgrade.yaml")
+            instance.exec('k8s kubectl patch upgrade "cluster-upgrade" --type=merge -p \'{"status":{"phase":"NodeUpgrade", "upgradedNodes": []}}\' --subresource status'.split())
         instance.exec(f"snap refresh k8s --channel={target_branch}".split())
 
         # TODO(ben): Check if this wait is really required, if yes - why?
@@ -277,10 +276,35 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
             assert (
                 phase == "FeatureUpgrade"
             ), f"After the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
+
+            # Feature version should eventually be upgraded.
+            util.stubbornly(retries=15, delay_s=5).on(instance).until(
+                lambda p: "ghcr.io/canonical/coredns:1.11.4-ck1" in p.stdout,
+            ).exec(
+                "k8s kubectl get deployment coredns -n kube-system -o jsonpath='{.spec.template.spec.containers[0].image}'".split(),
+                capture_output=True,
+                text=True,
+            )
+            phase = instance.exec(
+                "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
+                capture_output=True,
+                text=True,
+            ).stdout
+            assert (
+                phase == "Completed"
+            ), f"After the feature upgrade, expected phase to be Completed but got {phase}"
         else:
             assert (
                 phase == "NodeUpgrade"
             ), f"While upgrading, expected phase to be NodeUpgrade but got {phase}"
+            coredns_image = instance.exec(
+                "k8s kubectl get deployment coredns -n kube-system -o jsonpath='{.spec.template.spec.containers[0].image}'".split(),
+                capture_output=True,
+                text=True,
+            )
+            assert (
+                "ghcr.io/canonical/coredns:1.11.3-ck0" in coredns_image.stdout
+            ), "The feature version should not be upgraded yet"
 
 
 def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> True:

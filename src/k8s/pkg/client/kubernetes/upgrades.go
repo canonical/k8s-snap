@@ -54,7 +54,7 @@ func NewUpgrade(name string) Upgrade {
 	}
 }
 
-func (c *Client) K8sdIoRestClient() (*rest.RESTClient, error) {
+func (c *Client) k8sdIoRestClient() (*rest.RESTClient, error) {
 	k8sdConfig := c.RESTConfig()
 	k8sdConfig.GroupVersion = &schema.GroupVersion{Group: group, Version: version}
 	k8sdConfig.NegotiatedSerializer = serializer.NewCodecFactory(runtime.NewScheme())
@@ -71,7 +71,7 @@ func (c *Client) K8sdIoRestClient() (*rest.RESTClient, error) {
 func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 	log := log.FromContext(ctx).WithValues("upgrades", "GetInProgressUpgrade")
 
-	restClient, err := c.K8sdIoRestClient()
+	restClient, err := c.k8sdIoRestClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create REST client for k8sd.io group: %w", err)
 	}
@@ -85,7 +85,6 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 		return nil, fmt.Errorf("failed to get upgrades: %w", err)
 	}
 
-	log.Info("Got upgrades", "upgrades", string(upgrades))
 	var result struct {
 		Items []Upgrade `json:"items"`
 	}
@@ -117,7 +116,7 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 // CreateUpgrade creates a new upgrade CR.
 func (c *Client) CreateUpgrade(ctx context.Context, upgrade Upgrade) error {
 	log := log.FromContext(ctx).WithValues("upgrades", "createUpgrade")
-	restClient, err := c.K8sdIoRestClient()
+	restClient, err := c.k8sdIoRestClient()
 	if err != nil {
 		return fmt.Errorf("failed to create REST client for k8sd.io group: %w", err)
 	}
@@ -150,7 +149,7 @@ func (c *Client) CreateUpgrade(ctx context.Context, upgrade Upgrade) error {
 func (c *Client) PatchUpgradeStatus(ctx context.Context, upgradeName string, status Status) error {
 	log := log.FromContext(ctx).WithValues("upgrades", "PatchUpgrade", "upgrade", upgradeName, "status", status)
 
-	restClient, err := c.K8sdIoRestClient()
+	restClient, err := c.k8sdIoRestClient()
 	if err != nil {
 		return fmt.Errorf("failed to create REST client for k8sd.io group: %w", err)
 	}
