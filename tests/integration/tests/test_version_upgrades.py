@@ -4,8 +4,8 @@
 import json
 import logging
 import os
-from pathlib import Path
 import time
+from pathlib import Path
 from typing import List
 
 import pytest
@@ -308,13 +308,11 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     util.run(f"unsquashfs -d {unsquash_path} {config.SNAP}".split())
     for idx, branch in enumerate([start_branch, target_branch]):
         # create a random dummy file to ensure the snap is unique
-        util.run(f"touch { unsquash_path/f"{time.time()}" }".split())
-        util.run(
-            f"snapcraft pack {unsquash_path} -o {tmp_path / f"k8s-snap-modified-{idx+1}.snap"}".split()
-        )
-        util.run(
-            f"snapcraft upload { tmp_path / f"k8s-snap-modified-{idx+1}.snap"} --release={branch}".split()
-        )
+        dummy_file = unsquash_path / f"{time.time()}"
+        util.run(f"touch {dummy_file}".split())
+        modified_snap_path = tmp_path / f"k8s-snap-modified-{idx+1}.snap"
+        util.run(f"snapcraft pack {unsquash_path} -o {modified_snap_path}".split())
+        util.run(f"snapcraft upload {modified_snap_path} --release={branch}".split())
 
     main = instances[0]
 

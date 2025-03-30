@@ -98,7 +98,8 @@ func (c *Client) MarkNodeUpgradeDone(ctx context.Context, nodeName string) error
 	}
 
 	// Append the node to the existing list
-	updatedNodes := append(upgrade.Status.UpgradedNodes, nodeName)
+	updatedNodes := upgrade.Status.UpgradedNodes
+	updatedNodes = append(updatedNodes, nodeName)
 
 	// Create a patch with only the updated nodes
 	patch := map[string]interface{}{
