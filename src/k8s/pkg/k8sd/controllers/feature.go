@@ -2,16 +2,21 @@ package controllers
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
+	"github.com/canonical/k8s/pkg/k8sd/database"
+	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/features"
+	"github.com/canonical/k8s/pkg/k8sd/features/featureset"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 	microclusterutil "github.com/canonical/k8s/pkg/utils/microcluster"
 	"github.com/canonical/microcluster/v2/state"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // FeatureController manages the lifecycle of built-in Canonical Kubernetes features on a running cluster.
@@ -74,62 +79,49 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 func (c *FeatureController) Run(
 	ctx context.Context,
 	s state.State,
-	getClusterConfig func(context.Context) (types.ClusterConfig, error),
-	notifyDNSChangedIP func(ctx context.Context, dnsIP string) error,
-	setFeatureStatus func(ctx context.Context, name types.FeatureName, featureStatus types.FeatureStatus) error,
+	notifyUpdateNodeConfigController func(),
 ) {
 	c.waitReady()
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyNetwork(ctx, c.snap, s, cfg.APIServer, cfg.Network, cfg.Annotations)
+	go c.reconcileLoop(ctx, s, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		return featureset.Reconcile.ApplyNetwork(ctx, s, c.snap, cfg.APIServer, cfg.Network, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
+	go c.reconcileLoop(ctx, s, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		return featureset.Reconcile.ApplyGateway(ctx, s, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.Ingress, c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
+	go c.reconcileLoop(ctx, s, features.Ingress, c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		return featureset.Reconcile.ApplyIngress(ctx, s, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.LoadBalancer, c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyLoadBalancer(ctx, c.snap, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
+	go c.reconcileLoop(ctx, s, features.LoadBalancer, c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		return featureset.Reconcile.ApplyLoadBalancer(ctx, s, c.snap, cfg.LoadBalancer, cfg.Network, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.LocalStorage, c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyLocalStorage(ctx, c.snap, cfg.LocalStorage, cfg.Annotations)
+	go c.reconcileLoop(ctx, s, features.LocalStorage, c.triggerLocalStorageCh, c.reconciledLocalStorageCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		return featureset.Reconcile.ApplyLocalStorage(ctx, s, c.snap, cfg.LocalStorage, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.MetricsServer, c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyMetricsServer(ctx, c.snap, cfg.MetricsServer, cfg.Annotations)
+	go c.reconcileLoop(ctx, s, features.MetricsServer, c.triggerMetricsServerCh, c.reconciledMetricsServerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		return featureset.Reconcile.ApplyMetricsServer(ctx, s, c.snap, cfg.MetricsServer, cfg.Annotations)
 	})
 
-	go c.reconcileLoop(ctx, s, getClusterConfig, setFeatureStatus, features.DNS, c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		featureStatus, dnsIP, err := features.Implementation.ApplyDNS(ctx, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
-
-		if err != nil {
-			return featureStatus, fmt.Errorf("failed to apply DNS configuration: %w", err)
-		} else if dnsIP != "" {
-			if err := notifyDNSChangedIP(ctx, dnsIP); err != nil {
-				// we already have featureStatus.Message which contains wrapped error of the Apply<Feature>
-				// (or empty if no error occurs). we further wrap the error to add the DNS IP change error to the message
-				changeErr := fmt.Errorf("failed to update DNS IP address to %s: %w", dnsIP, err)
-				featureStatus.Message = fmt.Sprintf("%s: %v", featureStatus.Message, changeErr)
-				return featureStatus, changeErr
-			}
-		}
-		return featureStatus, nil
+	go c.reconcileLoop(ctx, s, features.DNS, c.triggerDNSCh, c.reconciledDNSCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		return featureset.Reconcile.ApplyDNS(ctx, s, c.snap, cfg.DNS, cfg.Kubelet, cfg.Annotations)
 	})
+
+	go c.reconcileClusterDNS(ctx, s, notifyUpdateNodeConfigController)
 }
 
 func (c *FeatureController) reconcile(
 	ctx context.Context,
-	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+	s state.State,
 	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
 	updateFeatureStatus func(context.Context, types.FeatureStatus) error,
 ) error {
-	cfg, err := getClusterConfig(ctx)
+	cfg, err := c.getClusterConfig(ctx, s)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve cluster configuration: %w", err)
 	}
@@ -150,8 +142,6 @@ func (c *FeatureController) reconcile(
 func (c *FeatureController) reconcileLoop(
 	ctx context.Context,
 	s state.State,
-	getClusterConfig func(context.Context) (types.ClusterConfig, error),
-	setFeatureStatus func(ctx context.Context, name types.FeatureName, status types.FeatureStatus) error,
 	featureName types.FeatureName,
 	triggerCh chan struct{},
 	reconciledCh chan<- struct{},
@@ -175,8 +165,8 @@ func (c *FeatureController) reconcileLoop(
 				continue
 			}
 
-			if err := c.reconcile(ctx, getClusterConfig, apply, func(ctx context.Context, status types.FeatureStatus) error {
-				return setFeatureStatus(ctx, featureName, status)
+			if err := c.reconcile(ctx, s, apply, func(ctx context.Context, status types.FeatureStatus) error {
+				return c.setFeatureStatus(ctx, s, featureName, status)
 			}); err != nil {
 				log.Error(err, "Failed to apply feature configuration")
 
@@ -186,6 +176,82 @@ func (c *FeatureController) reconcileLoop(
 				utils.MaybeNotify(reconciledCh)
 			}
 
+		}
+	}
+}
+
+func (c *FeatureController) setFeatureStatus(ctx context.Context, s state.State, name types.FeatureName, featureStatus types.FeatureStatus) error {
+	if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		// we set timestamp here in order to reduce the clutter. otherwise we will need to
+		// set .UpdatedAt field in a lot of places for every event/error.
+		// this is not 100% accurate but should be good enough
+		featureStatus.UpdatedAt = time.Now()
+		if err := database.SetFeatureStatus(ctx, tx, name, featureStatus); err != nil {
+			return fmt.Errorf("failed to set feature status in db for %q: %w", name, err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("database transaction to set feature status failed: %w", err)
+	}
+	return nil
+}
+
+func (c *FeatureController) getClusterConfig(ctx context.Context, s state.State) (types.ClusterConfig, error) {
+	return databaseutil.GetClusterConfig(ctx, s)
+}
+
+func (c *FeatureController) notifyClusterDNSChange(ctx context.Context, s state.State, notifyUpdateNodeConfigController func()) {
+	log := log.FromContext(ctx)
+	for {
+		cfg, err := c.getClusterConfig(ctx, s)
+		if err != nil {
+			log.Error(err, "Failed to retrieve cluster configuration")
+			continue
+		}
+
+		client, err := getNewK8sClientWithRetries(ctx, c.snap, false)
+		if err != nil {
+			log.Error(err, "Failed to create a Kubernetes client")
+			continue
+		}
+
+		configMap, err := client.CoreV1().ConfigMaps("kube-system").Get(ctx, "k8sd-config", metav1.GetOptions{})
+		if err != nil {
+			log.Error(err, "Failed to get k8sd-config configmap")
+			continue
+		}
+
+		current := ""
+		if cfg.Kubelet.ClusterDNS != nil {
+			current = *cfg.Kubelet.ClusterDNS
+		}
+
+		existing, ok := configMap.Data["cluster-dns"]
+		if !ok {
+			existing = ""
+		}
+
+		if existing != current {
+			log.Info("Cluster DNS changed, notifying update node configuration controller")
+			notifyUpdateNodeConfigController()
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(3 * time.Second):
+		}
+	}
+}
+
+func (c *FeatureController) reconcileClusterDNS(ctx context.Context, s state.State, notifyUpdateNodeConfigController func()) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-c.reconciledDNSCh:
+			c.notifyClusterDNSChange(ctx, s, notifyUpdateNodeConfigController)
 		}
 	}
 }

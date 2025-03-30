@@ -3,10 +3,9 @@ package cilium
 import (
 	"context"
 	"fmt"
-	"net"
-	"strings"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -26,6 +25,8 @@ var (
 	GetMountPropagationType = utils.GetMountPropagationType
 )
 
+const NETWORK_VERSION = "v1.0.0"
+
 // ApplyNetwork will deploy Cilium when network.Enabled is true.
 // ApplyNetwork will remove Cilium when network.Enabled is false.
 // ApplyNetwork requires that bpf and cgroups2 are already mounted and available when running under strict snap confinement. If they are not, it will fail (since Cilium will not have the required permissions to mount them).
@@ -34,11 +35,11 @@ var (
 // deployment.
 // ApplyNetwork returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
-func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
+func ApplyNetwork(ctx context.Context, s state.State, snap snap.Snap, apiserver types.APIServer, network types.Network, annotations types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
 	if !network.GetEnabled() {
-		if _, err := m.Apply(ctx, ChartCilium, helm.StateDeleted, nil); err != nil {
+		if _, err := m.Apply(ctx, features.Network, NETWORK_VERSION, ChartCilium, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall network: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -53,9 +54,10 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		}, nil
 	}
 
-	config, err := internalConfig(annotations)
-	if err != nil {
-		err = fmt.Errorf("failed to parse annotations: %w", err)
+	values := networkValues{}
+
+	if err := values.applyDefaults(); err != nil {
+		err := fmt.Errorf("failed to apply defaults: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
@@ -63,185 +65,45 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		}, err
 	}
 
-	c, err := s.Leader()
-	if err != nil {
-		err = fmt.Errorf("failed to get leader client: %w", err)
+	if err := values.applyImages(); err != nil {
+		err := fmt.Errorf("failed to apply images: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
 			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
-	}
-
-	clusterMembers, err := c.GetClusterMembers(ctx)
-	if err != nil {
-		err = fmt.Errorf("failed to get cluster members: %w", err)
-		return types.FeatureStatus{
-			Enabled: false,
-			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
-		}, err
-	}
-
-	localhostAddress, err := utils.DetermineLocalhostAddress(clusterMembers)
-	if err != nil {
-		err = fmt.Errorf("failed to determine localhost address: %w", err)
-		return types.FeatureStatus{
-			Enabled: false,
-			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
-		}, err
-	}
-
-	nodeIP := net.ParseIP(s.Address().Hostname())
-	if nodeIP == nil {
-		err = fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
-		return types.FeatureStatus{
-			Enabled: false,
-			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
-		}, err
-	}
-
-	defaultCidr, err := utils.FindCIDRForIP(nodeIP)
-	if err != nil {
-		err = fmt.Errorf("failed to find cidr of default interface: %w", err)
-		return types.FeatureStatus{
-			Enabled: false,
-			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
-		}, err
-	}
-
-	ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
-	if err != nil {
-		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %w", err)
-		return types.FeatureStatus{
-			Enabled: false,
-			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
-		}, err
-	}
-
-	ciliumNodePortValues := map[string]any{
-		"enabled": true,
-		// kube-proxy also binds to the same port for health checks so we need to disable it
-		"enableHealthCheck": false,
-	}
-
-	if config.directRoutingDevice != "" {
-		ciliumNodePortValues["directRoutingDevice"] = config.directRoutingDevice
-	}
-
-	bpfValues := map[string]any{}
-	if config.vlanBPFBypass != nil {
-		bpfValues["vlanBypass"] = config.vlanBPFBypass
-	}
-
-	values := map[string]any{
-		"bpf": bpfValues,
-		"image": map[string]any{
-			"repository": ciliumAgentImageRepo,
-			"tag":        CiliumAgentImageTag,
-			"useDigest":  false,
-		},
-		"socketLB": map[string]any{
-			"enabled": true,
-		},
-		"cni": map[string]any{
-			"confPath":     "/etc/cni/net.d",
-			"binPath":      "/opt/cni/bin",
-			"exclusive":    config.cniExclusive,
-			"chainingMode": "portmap",
-		},
-		"sctp": map[string]any{
-			"enabled": config.sctpEnabled,
-		},
-		"operator": map[string]any{
-			"replicas": 1,
-			"image": map[string]any{
-				"repository": ciliumOperatorImageRepo,
-				"tag":        ciliumOperatorImageTag,
-				"useDigest":  false,
-			},
-		},
-		"ipv4": map[string]any{
-			"enabled": ipv4CIDR != "",
-		},
-		"ipv6": map[string]any{
-			"enabled": ipv6CIDR != "",
-		},
-		"ipam": map[string]any{
-			"operator": map[string]any{
-				"clusterPoolIPv4PodCIDRList": ipv4CIDR,
-				"clusterPoolIPv6PodCIDRList": ipv6CIDR,
-			},
-		},
-		"envoy": map[string]any{
-			"enabled": false, // 1.16+ installs envoy as a standalone daemonset by default if not explicitly disabled
-		},
-		// https://docs.cilium.io/en/v1.15/network/kubernetes/kubeproxy-free/#kube-proxy-hybrid-modes
-		"nodePort":                 ciliumNodePortValues,
-		"disableEnvoyVersionCheck": true,
-		// socketLB requires an endpoint to the apiserver that's not managed by the kube-proxy
-		// so we point to the localhost:secureport to talk to either the kube-apiserver or the kube-apiserver-proxy
-		"k8sServiceHost": strings.Trim(localhostAddress, "[]"), // Cilium already adds the brackets for ipv6 addresses, so we need to remove them
-		"k8sServicePort": apiserver.GetSecurePort(),
-		// This flag enables the runtime device detection which is set to true by default in Cilium 1.16+
-		"enableRuntimeDeviceDetection": true,
-		"sessionAffinity":              true,
-		"loadBalancer": map[string]any{
-			"protocolDifferentiation": map[string]any{
-				"enabled": true,
-			},
-		},
-	}
-
-	// If we are deploying with IPv6 only, we need to set the routing mode to native
-	if ipv4CIDR == "" && ipv6CIDR != "" {
-		values["routingMode"] = "native"
-		values["ipv6NativeRoutingCIDR"] = defaultCidr
-		values["autoDirectNodeRoutes"] = true
-	}
-
-	if config.devices != "" {
-		values["devices"] = config.devices
 	}
 
 	if snap.Strict() {
-		bpfMnt, err := GetMountPath("bpf")
-		if err != nil {
-			err = fmt.Errorf("failed to get bpf mount path: %w", err)
+		if err := values.applyStrict(); err != nil {
+			err := fmt.Errorf("failed to apply strict configuration: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
 				Version: CiliumAgentImageTag,
 				Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 			}, err
 		}
+	}
 
-		cgrMnt, err := GetMountPath("cgroup2")
-		if err != nil {
-			err = fmt.Errorf("failed to get cgroup2 mount path: %w", err)
-			return types.FeatureStatus{
-				Enabled: false,
-				Version: CiliumAgentImageTag,
-				Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
-			}, err
-		}
+	if err := values.applyClusterConfig(ctx, s, apiserver, network); err != nil {
+		err := fmt.Errorf("failed to apply cluster config: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
+		}, err
+	}
 
-		values["bpf"] = map[string]any{
-			"autoMount": map[string]any{
-				"enabled": false,
-			},
-			"root": bpfMnt,
-		}
-		values["cgroup"] = map[string]any{
-			"autoMount": map[string]any{
-				"enabled": false,
-			},
-			"hostRoot": cgrMnt,
-		}
-	} else {
+	if err := values.applyAnnotations(annotations); err != nil {
+		err := fmt.Errorf("failed to apply annotations: %w", err)
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
+		}, err
+	}
+
+	if !snap.Strict() {
 		pt, err := GetMountPropagationType("/sys")
 		if err != nil {
 			err = fmt.Errorf("failed to get mount propagation type for /sys: %w", err)
@@ -275,7 +137,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		}
 	}
 
-	if _, err := m.Apply(ctx, ChartCilium, helm.StatePresent, values); err != nil {
+	if _, err := m.Apply(ctx, features.Network, NETWORK_VERSION, ChartCilium, helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to enable network: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

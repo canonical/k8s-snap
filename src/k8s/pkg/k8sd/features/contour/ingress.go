@@ -8,6 +8,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 const (
@@ -25,7 +26,7 @@ const (
 // ApplyIngress returns an error if anything fails. The error is also wrapped in the .Message field of the
 // returned FeatureStatus.
 // Contour CRDS are applied through a ck-contour common chart (Overlap with gateway).
-func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
+func ApplyIngress(ctx context.Context, _ state.State, snap snap.Snap, ingress types.Ingress, _ types.Network, _ types.Annotations) (types.FeatureStatus, error) {
 	m := snap.HelmClient()
 
 	if !ingress.GetEnabled() {

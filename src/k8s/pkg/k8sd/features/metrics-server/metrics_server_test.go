@@ -67,7 +67,7 @@ func TestApplyMetricsServer(t *testing.T) {
 				},
 			}
 
-			status, err := metrics_server.ApplyMetricsServer(context.Background(), s, tc.config, nil)
+			status, err := metrics_server.ApplyMetricsServer(context.Background(), nil, s, tc.config, nil)
 			if tc.helmError == nil {
 				g.Expect(err).ToNot(HaveOccurred())
 			} else {
@@ -107,7 +107,7 @@ func TestApplyMetricsServer(t *testing.T) {
 			apiv1_annotations.AnnotationImageTag:  "custom-tag",
 		}
 
-		status, err := metrics_server.ApplyMetricsServer(context.Background(), s, cfg, annotations)
+		status, err := metrics_server.ApplyMetricsServer(context.Background(), nil, s, cfg, annotations)
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(h.ApplyCalledWith).To(ConsistOf(HaveField("Values", HaveKeyWithValue("image", SatisfyAll(
 			HaveKeyWithValue("repository", "custom-image"),

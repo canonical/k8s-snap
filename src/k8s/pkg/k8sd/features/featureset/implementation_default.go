@@ -1,6 +1,7 @@
-package features
+package featureset
 
 import (
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/features/coredns"
 	"github.com/canonical/k8s/pkg/k8sd/features/localpv"
@@ -14,7 +15,7 @@ import (
 // CoreDNS is used for DNS.
 // MetricsServer is used for metrics-server.
 // LocalPV Rawfile CSI is used for local-storage.
-var Implementation Interface = &implementation{
+var Reconcile features.ReconcileInterface = &implementation{
 	applyDNS:           coredns.ApplyDNS,
 	applyNetwork:       cilium.ApplyNetwork,
 	applyLoadBalancer:  metallb.ApplyLoadBalancer,
@@ -25,11 +26,11 @@ var Implementation Interface = &implementation{
 }
 
 // StatusChecks implements the Canonical Kubernetes built-in feature status checks.
-var StatusChecks StatusInterface = &statusChecks{
+var StatusChecks features.StatusInterface = &statusChecks{
 	checkNetwork: cilium.CheckNetwork,
 	checkDNS:     coredns.CheckDNS,
 }
 
-var Cleanup CleanupInterface = &cleanup{
+var Cleanup features.CleanupInterface = &cleanup{
 	cleanupNetwork: cilium.CleanupNetwork,
 }
