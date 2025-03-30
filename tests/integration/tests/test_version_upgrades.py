@@ -296,6 +296,8 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         config.SNAPCRAFT_STORE_CREDENTIALS is not None
     ), "SNAPCRAFT_STORE_CREDENTIALS must be set to run this test"
 
+    print(f"SNAPCRAFT_STORE_CREDENTIALS length: {len(config.SNAPCRAFT_STORE_CREDENTIALS)}", )
+
     assert config.SNAP is not None, "SNAP must be set to run this test"
 
     start_branch = "latest/edge/ci-upgrade-test-1"
