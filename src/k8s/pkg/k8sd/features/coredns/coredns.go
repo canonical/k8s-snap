@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/features/coredns/internal"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
@@ -18,6 +19,8 @@ const (
 	deployFailedMsgTmpl = "Failed to deploy DNS, the error was: %v"
 )
 
+const DNS_VERSION = "v1.0.0"
+
 // ApplyDNS manages the deployment of CoreDNS, with customization options from dns and kubelet, which are retrieved from the cluster configuration.
 // ApplyDNS will uninstall CoreDNS from the cluster if dns.Enabled is false.
 // ApplyDNS will install or refresh CoreDNS if dns.Enabled is true.
@@ -30,7 +33,7 @@ func ApplyDNS(ctx context.Context, s state.State, snap snap.Snap, dns types.DNS,
 	m := snap.HelmClient()
 
 	if !dns.GetEnabled() {
-		if _, err := m.Apply(ctx, Chart, helm.StateDeleted, nil); err != nil {
+		if _, err := m.Apply(ctx, features.DNS, DNS_VERSION, Chart, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall coredns: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -82,7 +85,7 @@ func ApplyDNS(ctx context.Context, s state.State, snap snap.Snap, dns types.DNS,
 		}, err
 	}
 
-	if _, err := m.Apply(ctx, Chart, helm.StatePresent, values); err != nil {
+	if _, err := m.Apply(ctx, features.DNS, DNS_VERSION, Chart, helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to apply coredns: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/v2/state"
@@ -22,6 +23,8 @@ const (
 	IngressOptionDefaultSecretNamespaceKubeSystem = "kube-system" // defaultSecretNamespace: "kube-system"
 	IngressOptionEnableProxyProtocol              = "enableProxyProtocol"
 )
+
+const INGRESS_VERSION = "v1.0.0"
 
 // ApplyIngress assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
 // ApplyIngress will enable Cilium's ingress controller when ingress.Enabled is true.
@@ -60,7 +63,18 @@ func ApplyIngress(ctx context.Context, _ state.State, snap snap.Snap, ingress ty
 		}
 	}
 
-	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
+	parent := helm.FeatureMeta{
+		FeatureName: features.Network,
+		Version:     NETWORK_VERSION,
+		Chart:       ChartCilium,
+	}
+
+	sub := helm.PseudoFeatureMeta{
+		FeatureName: features.Ingress,
+		Version:     INGRESS_VERSION,
+	}
+
+	changed, err := m.ApplyDependent(ctx, parent, sub, helm.StatePresentOrDeleted(ingress.GetEnabled()), values)
 	if err != nil {
 		if network.GetEnabled() {
 			err = fmt.Errorf("failed to enable ingress: %w", err)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -24,6 +25,8 @@ var (
 	GetMountPropagationType = utils.GetMountPropagationType
 )
 
+const NETWORK_VERSION = "v1.0.0"
+
 // ApplyNetwork will deploy Cilium when network.Enabled is true.
 // ApplyNetwork will remove Cilium when network.Enabled is false.
 // ApplyNetwork requires that bpf and cgroups2 are already mounted and available when running under strict snap confinement. If they are not, it will fail (since Cilium will not have the required permissions to mount them).
@@ -36,7 +39,7 @@ func ApplyNetwork(ctx context.Context, s state.State, snap snap.Snap, apiserver 
 	m := snap.HelmClient()
 
 	if !network.GetEnabled() {
-		if _, err := m.Apply(ctx, ChartCilium, helm.StateDeleted, nil); err != nil {
+		if _, err := m.Apply(ctx, features.Network, NETWORK_VERSION, ChartCilium, helm.StateDeleted, nil); err != nil {
 			err = fmt.Errorf("failed to uninstall network: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
@@ -134,7 +137,7 @@ func ApplyNetwork(ctx context.Context, s state.State, snap snap.Snap, apiserver 
 		}
 	}
 
-	if _, err := m.Apply(ctx, ChartCilium, helm.StatePresent, values); err != nil {
+	if _, err := m.Apply(ctx, features.Network, NETWORK_VERSION, ChartCilium, helm.StatePresent, values); err != nil {
 		err = fmt.Errorf("failed to enable network: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

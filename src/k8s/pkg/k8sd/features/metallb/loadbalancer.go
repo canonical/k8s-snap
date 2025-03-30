@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
@@ -17,6 +18,8 @@ const (
 	deleteFailedMsgTmpl = "Failed to delete MetalLB, the error was: %v"
 	deployFailedMsgTmpl = "Failed to deploy MetalLB, the error was: %v"
 )
+
+const LOADBALANCER_VERSION = "v1.0.0"
 
 // ApplyLoadBalancer will always return a FeatureStatus indicating the current status of the
 // deployment.
@@ -73,11 +76,11 @@ func ApplyLoadBalancer(ctx context.Context, _ state.State, snap snap.Snap, loadb
 func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Network) error {
 	m := snap.HelmClient()
 
-	if _, err := m.Apply(ctx, ChartMetalLBLoadBalancer, helm.StateDeleted, nil); err != nil {
+	if _, err := m.Apply(ctx, features.LoadBalancer, LOADBALANCER_VERSION, ChartMetalLBLoadBalancer, helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall MetalLB LoadBalancer chart: %w", err)
 	}
 
-	if _, err := m.Apply(ctx, ChartMetalLB, helm.StateDeleted, nil); err != nil {
+	if _, err := m.Apply(ctx, features.LoadBalancer, LOADBALANCER_VERSION, ChartMetalLB, helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall MetalLB chart: %w", err)
 	}
 	return nil
@@ -96,7 +99,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 		return fmt.Errorf("failed to apply images: %w", err)
 	}
 
-	if _, err := m.Apply(ctx, ChartMetalLB, helm.StatePresent, metalLBValues); err != nil {
+	if _, err := m.Apply(ctx, features.LoadBalancer, LOADBALANCER_VERSION, ChartMetalLB, helm.StatePresent, metalLBValues); err != nil {
 		return fmt.Errorf("failed to apply MetalLB configuration: %w", err)
 	}
 
@@ -122,7 +125,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 		return fmt.Errorf("failed to apply cluster config: %w", err)
 	}
 
-	if _, err := m.Apply(ctx, ChartMetalLBLoadBalancer, helm.StatePresent, values); err != nil {
+	if _, err := m.Apply(ctx, features.LoadBalancer, LOADBALANCER_VERSION, ChartMetalLBLoadBalancer, helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to apply MetalLB LoadBalancer configuration: %w", err)
 	}
 

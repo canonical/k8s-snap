@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/v2/state"
@@ -14,6 +15,8 @@ const (
 	GatewayDeleteFailedMsgTmpl = "Failed to delete Cilium Gateway, the error was %v"
 	GatewayDeployFailedMsgTmpl = "Failed to deploy Cilium Gateway, the error was %v"
 )
+
+const GATEWAY_VERSION = "v1.0.0"
 
 // ApplyGateway assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
 // ApplyGateway will deploy the Gateway API CRDs on the cluster and enable the GatewayAPI controllers on Cilium, when gateway.Enabled is true.
@@ -34,7 +37,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 	m := snap.HelmClient()
 
 	// Install Gateway API CRDs
-	if _, err := m.Apply(ctx, chartGateway, helm.StatePresent, nil); err != nil {
+	if _, err := m.Apply(ctx, features.Gateway, GATEWAY_VERSION, chartGateway, helm.StatePresent, nil); err != nil {
 		err = fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -44,7 +47,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 	}
 
 	// Apply our GatewayClass named ck-gateway
-	if _, err := m.Apply(ctx, chartGatewayClass, helm.StatePresent, nil); err != nil {
+	if _, err := m.Apply(ctx, features.Gateway, GATEWAY_VERSION, chartGatewayClass, helm.StatePresent, nil); err != nil {
 		err = fmt.Errorf("failed to install Gateway API GatewayClass: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -63,7 +66,18 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		}, err
 	}
 
-	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnly, values)
+	parent := helm.FeatureMeta{
+		FeatureName: features.Network,
+		Version:     NETWORK_VERSION,
+		Chart:       ChartCilium,
+	}
+
+	sub := helm.PseudoFeatureMeta{
+		FeatureName: features.Gateway,
+		Version:     GATEWAY_VERSION,
+	}
+
+	changed, err := m.ApplyDependent(ctx, parent, sub, helm.StatePresent, values)
 	if err != nil {
 		err = fmt.Errorf("failed to upgrade Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{
@@ -101,7 +115,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 	m := snap.HelmClient()
 
 	// Delete our GatewayClass named ck-gateway
-	if _, err := m.Apply(ctx, chartGatewayClass, helm.StateDeleted, nil); err != nil {
+	if _, err := m.Apply(ctx, features.Gateway, GATEWAY_VERSION, chartGatewayClass, helm.StateDeleted, nil); err != nil {
 		err = fmt.Errorf("failed to delete Gateway API GatewayClass: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
@@ -120,7 +134,18 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 		}, err
 	}
 
-	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values)
+	parent := helm.FeatureMeta{
+		FeatureName: features.Network,
+		Version:     NETWORK_VERSION,
+		Chart:       ChartCilium,
+	}
+
+	sub := helm.PseudoFeatureMeta{
+		FeatureName: features.Gateway,
+		Version:     GATEWAY_VERSION,
+	}
+
+	changed, err := m.ApplyDependent(ctx, parent, sub, helm.StateDeleted, values)
 	if err != nil {
 		err = fmt.Errorf("failed to delete Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{
@@ -132,7 +157,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 
 	// Remove Gateway CRDs if the Gateway feature is disabled.
 	// This is done after the Cilium update as cilium requires the CRDs to be present for cleanups.
-	if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
+	if _, err := m.Apply(ctx, features.Gateway, GATEWAY_VERSION, chartGateway, helm.StateDeleted, nil); err != nil {
 		err = fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,

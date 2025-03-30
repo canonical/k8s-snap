@@ -42,11 +42,18 @@ func (v *metricsServerValues) applyImages() error {
 func (v *metricsServerValues) applyAnnotations(annotation types.Annotations) error {
 	config := internalConfig(annotation)
 
+	image := map[string]any{}
+
+	if config.imageRepo != "" {
+		image["repository"] = config.imageRepo
+	}
+
+	if config.imageTag != "" {
+		image["tag"] = config.imageTag
+	}
+
 	values := metricsServerValues{
-		"image": map[string]any{
-			"repository": config.imageRepo,
-			"tag":        config.imageTag,
-		},
+		"image": image,
 	}
 
 	if err := mergo.Merge(v, values, mergo.WithOverride); err != nil {

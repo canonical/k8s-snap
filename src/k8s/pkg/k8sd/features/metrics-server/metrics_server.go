@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/v2/state"
@@ -16,6 +17,8 @@ const (
 	deleteFailedMsgTmpl = "Failed to delete Metrics Server, the error was: %v"
 	deployFailedMsgTmpl = "Failed to deploy Metrics Server, the error was: %v"
 )
+
+const METRICS_SERVER_VERSION = "v1.0.0"
 
 // ApplyMetricsServer deploys metrics-server when cfg.Enabled is true.
 // ApplyMetricsServer removes metrics-server when cfg.Enabled is false.
@@ -55,7 +58,7 @@ func ApplyMetricsServer(ctx context.Context, _ state.State, snap snap.Snap, cfg 
 		}, err
 	}
 
-	_, err := m.Apply(ctx, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
+	_, err := m.Apply(ctx, features.MetricsServer, METRICS_SERVER_VERSION, chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values)
 	if err != nil {
 		if cfg.GetEnabled() {
 			err = fmt.Errorf("failed to install metrics server chart: %w", err)

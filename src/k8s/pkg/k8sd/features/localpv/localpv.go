@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/v2/state"
@@ -16,6 +17,8 @@ const (
 	deployFailedMsgTmpl = "Failed to deploy Local Storage, the error was: %v"
 	deleteFailedMsgTmpl = "Failed to delete Local Storage, the error was: %v"
 )
+
+const LOCAL_STORAGE_VERSION = "v1.0.0"
 
 // ApplyLocalStorage deploys the rawfile-localpv CSI driver on the cluster based on the given configuration, when cfg.Enabled is true.
 // ApplyLocalStorage removes the rawfile-localpv when cfg.Enabled is false.
@@ -55,7 +58,7 @@ func ApplyLocalStorage(ctx context.Context, _ state.State, snap snap.Snap, cfg t
 		}, err
 	}
 
-	if _, err := m.Apply(ctx, Chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values); err != nil {
+	if _, err := m.Apply(ctx, features.LocalStorage, LOCAL_STORAGE_VERSION, Chart, helm.StatePresentOrDeleted(cfg.GetEnabled()), values); err != nil {
 		if cfg.GetEnabled() {
 			err = fmt.Errorf("failed to install rawfile-csi helm package: %w", err)
 			return types.FeatureStatus{

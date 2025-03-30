@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
@@ -16,6 +17,8 @@ const (
 	LbDeleteFailedMsgTmpl = "Failed to delete Cilium Load Balancer, the error was: %v"
 	LbDeployFailedMsgTmpl = "Failed to deploy Cilium Load Balancer, the error was: %v"
 )
+
+const LOADBALANCER_VERSION = "v1.0.0"
 
 // ApplyLoadBalancer assumes that the managed Cilium CNI is already installed on the cluster. It will fail if that is not the case.
 // ApplyLoadBalancer will configure Cilium to enable L2 or BGP mode, and deploy necessary CRs for announcing the LoadBalancer external IPs when loadbalancer.Enabled is true.
@@ -76,7 +79,7 @@ func ApplyLoadBalancer(ctx context.Context, _ state.State, snap snap.Snap, loadb
 func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Network) error {
 	m := snap.HelmClient()
 
-	if _, err := m.Apply(ctx, ChartCiliumLoadBalancer, helm.StateDeleted, nil); err != nil {
+	if _, err := m.Apply(ctx, features.LoadBalancer, LOADBALANCER_VERSION, ChartCiliumLoadBalancer, helm.StateDeleted, nil); err != nil {
 		return fmt.Errorf("failed to uninstall LoadBalancer manifests: %w", err)
 	}
 
@@ -98,7 +101,18 @@ func disableLoadBalancer(ctx context.Context, snap snap.Snap, network types.Netw
 		},
 	}
 
-	if _, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), values); err != nil {
+	parent := helm.FeatureMeta{
+		FeatureName: features.Network,
+		Version:     NETWORK_VERSION,
+		Chart:       ChartCilium,
+	}
+
+	sub := helm.PseudoFeatureMeta{
+		FeatureName: features.LoadBalancer,
+		Version:     LOADBALANCER_VERSION,
+	}
+
+	if _, err := m.ApplyDependent(ctx, parent, sub, helm.StateDeleted, values); err != nil {
 		return fmt.Errorf("failed to refresh network to apply LoadBalancer configuration: %w", err)
 	}
 	return nil
@@ -125,7 +139,18 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 		},
 	}
 
-	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnlyOrDeleted(network.GetEnabled()), networkValues)
+	parent := helm.FeatureMeta{
+		FeatureName: features.Network,
+		Version:     NETWORK_VERSION,
+		Chart:       ChartCilium,
+	}
+
+	sub := helm.PseudoFeatureMeta{
+		FeatureName: features.LoadBalancer,
+		Version:     LOADBALANCER_VERSION,
+	}
+
+	changed, err := m.ApplyDependent(ctx, parent, sub, helm.StatePresent, networkValues)
 	if err != nil {
 		return fmt.Errorf("failed to update Cilium configuration for LoadBalancer: %w", err)
 	}
@@ -163,7 +188,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 			},
 		},
 	}
-	if _, err := m.Apply(ctx, ChartCiliumLoadBalancer, helm.StatePresent, values); err != nil {
+	if _, err := m.Apply(ctx, features.LoadBalancer, LOADBALANCER_VERSION, ChartCiliumLoadBalancer, helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to apply LoadBalancer configuration: %w", err)
 	}
 
