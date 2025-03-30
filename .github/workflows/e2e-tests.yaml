@@ -87,6 +87,10 @@ jobs:
         with:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
+      - name: Install snapcraft
+        run: |
+          # Required for test_feature_upgrades to create separate snaps.
+          sudo snap install snapcraft --classic
       - name: Install lxd
         uses: ./.github/actions/install-lxd
       - name: Install tox
