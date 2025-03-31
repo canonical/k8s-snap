@@ -47,6 +47,8 @@ jobs:
     with:
       channel: ${{ matrix.channel }}
       checkout-ref: ${{ matrix.branch }}
+      upload-reports-to-jira: true
+    secrets: inherit
 
   Mattermost:
     name: Notify Mattermost
