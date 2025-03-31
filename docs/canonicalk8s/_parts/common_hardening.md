@@ -1,12 +1,5 @@
 ### Control plane nodes
 
-#### Control Plane Security
-
-Kubernetes documentation on [controlling access][controlling_access] to the API informs on topics
-such as **Transport Security**, **AAA (Authentication,Authorization,Auditing)**,
-and **Admission Control**. Much of this discusses how to limit access to
-authorized users and disable access to unauthorized users.
-
 #### Encrypt secrets at rest
 Encrypt key-value store secrets rather than leaving it as base64 encoded values
 as described in the upstream Kubernetes documentation on
