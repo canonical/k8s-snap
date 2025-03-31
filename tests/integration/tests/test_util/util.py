@@ -341,7 +341,6 @@ def is_node_ready(
         LOG.info(f"Node not ready yet: {node_name}, failed to retrieve node info: {ex}")
         return False
 
-
     LOG.info(f"Node ready: {node_name}")
     return True
 
