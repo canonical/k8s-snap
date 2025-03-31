@@ -84,7 +84,7 @@ def test_worker_nodes(instances: List[harness.Instance]):
     assert "worker" in util.get_local_node_status(joining_node)
     assert "worker" in util.get_local_node_status(other_joining_node)
 
-    # Excpect all snap services to be up and running. Add a little sleep to
+    # Expect all snap services to be up and running. Add a little sleep to
     # ensure that services not just started but are also stable.
     time.sleep(5)
     for instance in instances:
