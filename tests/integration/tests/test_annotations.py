@@ -75,10 +75,9 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     )
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "cp node should have been removed from the cluster"
-    util.check_snap_services(joining_cp)
+    util.check_snap_services_ready(joining_cp)
 
     cluster_node.exec(["k8s", "remove-node", worker.id])
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "worker node should have been removed from the cluster"
-
-    util.check_snap_services(worker)
+    util.check_snap_services_ready(worker)

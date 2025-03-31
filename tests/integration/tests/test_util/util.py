@@ -287,7 +287,8 @@ def wait_until_k8s_ready(
             stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)
         ):
             with attempt:
-                assert is_node_ready(control_node, instance, node_name)
+                assert is_node_ready(control_node, node_name)
+                check_snap_services_ready(instance)
 
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
@@ -295,7 +296,6 @@ def wait_until_k8s_ready(
 
 
 def is_node_ready(
-    h: harness.Harness,
     control_node: harness.Instance,
     node_name: str = "",
     node_dict: Optional[dict] = None,
@@ -337,8 +337,6 @@ def is_node_ready(
                 )
                 return False
 
-        node_to_check = next((i for i in h.instances if i.id == node_name), None)
-        check_snap_services(node_to_check)
     except Exception as ex:
         LOG.info(f"Node not ready yet: {node_name}, failed to retrieve node info: {ex}")
         return False
@@ -715,10 +713,11 @@ def sonobuoy_tar_gz(architecture: str) -> str:
     return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1:]}_linux_{architecture}.tar.gz"  # noqa
 
 
-def check_snap_services(instance: harness.Instance):
+def check_snap_services_ready(instance: harness.Instance):
     """Check that the snap services are active on the given harness instance.
 
     The expected services differ between control-plane and worker nodes.
+    The function will determine the node type by checking the local node status.
     """
 
     expected_worker_services = {
