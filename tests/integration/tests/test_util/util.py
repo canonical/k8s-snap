@@ -35,6 +35,9 @@ MAIN_BRANCH = "main"
 # SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
 SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
 
+# SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
+SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
+
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     """Log and run command."""
