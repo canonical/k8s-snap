@@ -9,10 +9,9 @@ posture.
 server and kubelets. By default, {{product}} uses self-signed certificates, but
 users are able to use an intermediate CA instead.
 
-{{product}} uses TLS 1.2 and 1.3 for encryption of data in transit. AES-256-GCM
-is used to ensure confidentiality and integrity of the data. In addition,
-{{product}} uses RSA-2048 and RSA-4096 for key exchanges and digital
-signatures. For resource-constrained deployments, {{product}} supports ECDSA.
+All communications between core components, such as the API server and
+kubelets, are encrypted with TLS (Transport Layer Security), providing robust
+protection for sensitive data in transit.
 
 ### Dqlite encryption at rest
 
@@ -22,14 +21,67 @@ protecting sensitive configurations and credentials stored within the cluster.
 
 ### Digital signatures
 
-To authenticate API clients securely, Canonical Kubernetes supports X.509
-certificates, leveraging both RSA and ECDSA (Elliptic Curve Digital Signature
-Algorithm) for digital signatures, ensuring robust authentication mechanisms.
+To securely authenticate API clients, Canonical Kubernetes uses X.509 certificates with support for both RSA-2048 and ECDSA (Elliptic Curve Digital Signature Algorithm). This ensures strong, standards-based authentication with options suited for both general-purpose and resource-constrained environments.
 
-### Technologies in use
+## Configure cryptography in {{product}}
 
-{{product}} uses a variety of open source libraries to implement encryption and
-authentication features. OpenSSL is used for certificate management and key
-exchange. At the kernel level {{product}} uses Linux kernel cryptographic
-modules such as IPsec. Finally, {{product}} relies on the Go standard library's
-cryptographic modules for RSA, ECDSA and AES implementations.
+Canonical Kubernetes provides various cryptographic tools that users can
+leverage to implement security controls for their workloads:
+
+* Kubernetes Secrets Encryption: Users are empowered to configure encryption
+providers for Secrets at rest, with AES-GCM as the preferred encryption
+algorithm for data confidentiality.
+
+* Configurable Providers: Canonical Kubernetes supports integration with
+various Key Management Services (KMS) to centralize and control key management.
+Kubernetes API Authentication: For secure API access, users can configure X.509
+certificates, allowing them to implement secure, certificate-based
+authentication with support for RSA 2048 and ECDSA keys.
+
+* Service Mesh Encryption (Optional): When deploying service meshes like Istio
+with Canonical Kubernetes, users can enable mutual TLS (mTLS) to protect
+inter-service communications, ensuring data privacy and authenticity in
+multi-service environments.
+
+  * Supported Algorithms for mTLS:
+
+    * RSA-2048 or ECDSA: These options enable
+    secure certificate-based authentication between services.
+    * AES-GCM: Used for encrypted service-to-service communication.
+
+
+## Third party cryptographic packages and libraries
+
+Canonical Kubernetes depends on a suite of cryptographic libraries and packages
+to implement its security functions:
+
+* OpenSSL: Canonical Kubernetes utilizes OpenSSL for a broad range of c
+ryptographic operations, including TLS, certificate management, and secure key
+exchange. OpenSSL’s extensive cryptographic functionality and secure algorithms
+provide a reliable foundation for TLS and encryption operations.
+
+  Source: Ubuntu Archive (Package: openssl)
+
+* Linux Kernel Cryptographic Modules: For network security and cryptographic
+operations at the kernel level, Canonical Kubernetes leverages cryptographic
+modules in the Linux kernel, such as IPsec for secure network communications.
+
+  Source: Ubuntu Kernel (Package: linux-generic)
+
+* Go Cryptography Library: Since Kubernetes is written in Go, Canonical
+Kubernetes relies on the Go standard library's cryptographic functions,
+implementing secure algorithms such as RSA, ECDSA, and AES, which are necessary
+for the secure operation of Kubernetes components.
+
+  Source: Go Standard Library
+
+## Recommended usage and settings
+
+{{product}} ships with a secure-by-default security posture, so users can rest assured that the default configuration is appropriate for most uses cases. If your security needs are not met by the default configuration, we recommend you [deploy an intermediate CA fine-tuned to your liking][intermediate-ca].
+
+See [certificates] for a list of certificates used in {{product}}.
+
+<!-- LINKS -->
+
+[certificates]: certificates.md
+[intermediate-ca]: /snap/howto/security/intermediate-ca.md
