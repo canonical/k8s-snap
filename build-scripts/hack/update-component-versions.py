@@ -16,6 +16,7 @@ import sys
 import yaml
 from packaging.version import Version
 from pathlib import Path
+from typing import Callable
 import re
 import util
 import urllib.request
@@ -53,6 +54,38 @@ CONTOUR_CHART_VERSION = "17.0.4"
 # MetalLB Helm repository and chart version
 METALLB_REPO = "https://metallb.github.io/metallb"
 METALLB_CHART_VERSION = "0.14.8"
+
+
+def is_valid_version(pinned_ver: None | Version) -> Callable[[None | Version], bool]:
+    """filter function to check if version is valid
+
+    Valid version is defined as:
+
+    1.  Check if version is not None
+    2.  Check if version is not a pre-release or dev-release
+    3.  Check if version is not outside the scope of the optionally pinned version
+    """
+
+    def _validate(version: None | Version) -> bool:
+        return (
+            version is not None
+            and not version.is_prerelease
+            and not version.is_devrelease
+            and (
+                not pinned_ver
+                or (version.major, version.minor)
+                == (pinned_ver.major, pinned_ver.minor)
+            )
+        )
+
+    return _validate
+
+
+def parse_version(version: str) -> Version | None:
+    try:
+        return Version(version.removeprefix("v"))
+    except ValueError:
+        return None
 
 
 def get_kubernetes_version() -> str:
@@ -111,34 +144,17 @@ def get_runc_version() -> str:
 def get_helm_version() -> str:
     """Get latest version of helm"""
 
-    def helm_release_tags(version: None | Version) -> bool:
-        """Only include non-prerelease and non-devrelease versions."""
-        return (
-            version is not None
-            and not version.is_prerelease
-            and not version.is_devrelease
-            and (
-                not HELM_RELEASE_SEMVER
-                or (version.major, version.minor)
-                == (HELM_RELEASE_SEMVER.major, HELM_RELEASE_SEMVER.minor)
-            )
-        )
-
     helm_repo = util.read_file(COMPONENTS / "helm/repository")
     with util.git_repo(helm_repo, HELM_BRANCH, shallow=False) as dir:
         tags = util.parse_output(["git", "tag"], cwd=dir).split()
-        releases = sorted(filter(helm_release_tags, map(parse_version, tags)))
+        # Parse tag strings to Version objects, then use by_helm_releases
+        # to filter conditionally.
+        by_helm_releases = is_valid_version(HELM_RELEASE_SEMVER)
+        releases = sorted(filter(by_helm_releases, map(parse_version, tags)))
         if not releases:
             raise ValueError("No valid helm releases found")
 
         return f"v{releases[-1]}"
-
-
-def parse_version(version: str) -> Version | None:
-    try:
-        return Version(version.removeprefix("v"))
-    except ValueError:
-        return None
 
 
 def pull_metallb_chart() -> None:
