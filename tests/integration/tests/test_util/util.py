@@ -339,6 +339,11 @@ def is_node_ready(
         LOG.info(f"Node not ready yet: {node_name}, failed to retrieve node info: {ex}")
         return False
 
+    # Expect all snap services to be up and running. Add a little sleep to
+    # ensure that services not just started but are also stable.
+    time.sleep(5)
+    check_snap_services(node_name)
+
     LOG.info(f"Node ready: {node_name}")
     return True
 

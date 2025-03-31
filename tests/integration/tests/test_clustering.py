@@ -6,7 +6,6 @@ import logging
 import os
 import subprocess
 import tempfile
-import time
 from typing import List
 
 import pytest
@@ -83,12 +82,6 @@ def test_worker_nodes(instances: List[harness.Instance]):
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "worker" in util.get_local_node_status(joining_node)
     assert "worker" in util.get_local_node_status(other_joining_node)
-
-    # Expect all snap services to be up and running. Add a little sleep to
-    # ensure that services not just started but are also stable.
-    time.sleep(5)
-    for instance in instances:
-        util.check_snap_services(instance)
 
     cluster_node.exec(["k8s", "remove-node", joining_node.id])
     nodes = util.ready_nodes(cluster_node)
