@@ -287,7 +287,7 @@ def wait_until_k8s_ready(
             stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)
         ):
             with attempt:
-                assert is_node_ready(control_node, node_name)
+                assert is_node_ready(control_node, instance, node_name)
 
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
@@ -295,6 +295,7 @@ def wait_until_k8s_ready(
 
 
 def is_node_ready(
+    h: harness.Harness,
     control_node: harness.Instance,
     node_name: str = "",
     node_dict: Optional[dict] = None,
@@ -336,7 +337,8 @@ def is_node_ready(
                 )
                 return False
 
-        check_snap_services(node_name)
+        node_to_check = next((i for i in h.instances if i.id == node_name), None)
+        check_snap_services(node_to_check)
     except Exception as ex:
         LOG.info(f"Node not ready yet: {node_name}, failed to retrieve node info: {ex}")
         return False
