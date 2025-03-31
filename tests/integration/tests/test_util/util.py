@@ -31,6 +31,9 @@ LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
 TRACK_RE = re.compile(r"^(\d+)\.(\d+)(\S*)$")
 
+# SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
+SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
+
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     """Log and run command."""
@@ -701,3 +704,8 @@ def wait_for_daemonset(
         f"Daemonset '{name}' failed to have at least one pod ready after "
         f"{retry_times} x {retry_delay_s} seconds."
     )
+
+
+# sonobuoy_tar_gz returns the download URL of sonobuoy.
+def sonobuoy_tar_gz(architecture: str) -> str:
+    return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1:]}_linux_{architecture}.tar.gz"  # noqa
