@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
@@ -69,6 +70,15 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}); err != nil {
 				cmd.PrintErrf("Error: k8sd did not come up in time: %v\n", err)
 				env.Exit(1)
+			}
+
+			response, initialized, err := client.NodeStatus(cmd.Context())
+			if !initialized {
+				cmd.PrintErrln("Warning: Node not initialized, skipping reconcile actions")
+				return
+			} else if response.NodeStatus.ClusterRole == apiv1.ClusterRoleWorker {
+				cmd.PrintErrln("Warning: skipping reconcile actions, not allowed on worker nodes")
+				return
 			}
 
 			switch mode.Orb {
