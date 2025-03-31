@@ -51,30 +51,30 @@ def _harness_clean(h: harness.Harness):
 def _generate_inspection_report(h: harness.Harness, instance_id: str):
     LOG.debug("Generating inspection report for %s", instance_id)
 
-    inspection_path = Path(config.INSPECTION_REPORTS_DIR)
-    result = h.exec(
-        instance_id,
-        [
-            "/snap/k8s/current/k8s/scripts/inspect.sh",
-            "--all-namespaces",
-            "--core-dump-dir",
-            config.CORE_DUMP_DIR,
-            "/inspection-report.tar.gz",
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
-    report_log = inspection_path / instance_id / "inspection_report_logs.txt"
-    with report_log.open("w") as f:
-        f.write("stdout:\n")
-        f.write(result.stdout)
-        f.write("stderr:\n")
-        f.write(result.stderr)
-
     try:
+        inspection_path = Path(config.INSPECTION_REPORTS_DIR)
+        result = h.exec(
+            instance_id,
+            [
+                "/snap/k8s/current/k8s/scripts/inspect.sh",
+                "--all-namespaces",
+                "--core-dump-dir",
+                config.CORE_DUMP_DIR,
+                "/inspection-report.tar.gz",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
+        report_log = inspection_path / instance_id / "inspection_report_logs.txt"
+        with report_log.open("w") as f:
+            f.write("stdout:\n")
+            f.write(result.stdout)
+            f.write("stderr:\n")
+            f.write(result.stderr)
+
         h.pull_file(
             instance_id,
             "/inspection-report.tar.gz",
@@ -106,6 +106,18 @@ def h() -> harness.Harness:
             _generate_inspection_report(h, instance_id)
 
     _harness_clean(h)
+
+
+@pytest.fixture(autouse=True)
+def log_environment_info(h: harness.Harness):
+    """Log any relevant environment information before and after each test.
+    This allows us to identify leaked resources.
+    """
+    LOG.info("Environment info before test:")
+    h.log_environment_info()
+    yield
+    LOG.info("Environment info after test:")
+    h.log_environment_info()
 
 
 @pytest.fixture(scope="session")
@@ -277,6 +289,9 @@ def instances(
         for instance in instances:
             LOG.debug("Generating inspection reports for test instances")
             _generate_inspection_report(h, instance.id)
+
+    LOG.info("Environment info before cleanup:")
+    h.log_environment_info()
 
     # Cleanup after each test.
     # We cannot execute _harness_clean() here as this would also

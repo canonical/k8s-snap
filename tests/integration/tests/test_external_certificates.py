@@ -218,8 +218,6 @@ def test_vault_intermediate_ca(instances: List[harness.Instance]):
     util.join_cluster(worker_node, join_token)
 
     util.wait_until_k8s_ready(instance, instances)
-    nodes = util.ready_nodes(instance)
-    assert len(nodes) == 3, "node should have joined cluster"
     util.wait_for_dns(instance)
 
     # If we deploy a Pod and it becomes Active, the cluster should be functional.
@@ -366,8 +364,6 @@ def test_vault_certificates(instances: List[harness.Instance]):
     )
 
     util.wait_until_k8s_ready(instance, instances)
-    nodes = util.ready_nodes(instance)
-    assert len(nodes) == 3, "node should have joined cluster"
     util.wait_for_dns(instance)
 
     # If we deploy a Pod and it becomes Active, the cluster should be functional.

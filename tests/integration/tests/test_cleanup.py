@@ -110,8 +110,6 @@ containerd-base-dir: /home/ubuntu
 
     # Ensure that the cluster actually becomes available.
     util.wait_until_k8s_ready(main, instances)
-    nodes = util.ready_nodes(main)
-    assert len(nodes) == 2, "nodes should have joined cluster"
 
     for instance in instances:
         util.remove_k8s_snap(instance)
