@@ -6,7 +6,9 @@ posture.
 ### TLS certificates
 
 All communications between core components, such as the API server and
-kubelets, are encrypted with TLS 1.3 (Transport Layer Security), providing robust protection for sensitive data in transit. By default, {{product}} uses self-signed certificates, but users are able to use an intermediate CA instead.
+kubelets, are encrypted with TLS 1.3 (Transport Layer Security), providing
+robust protection for sensitive data in transit. By default, {{product}} uses
+self-signed certificates, but users are able to use an intermediate CA instead.
 
 ### Dqlite encryption at rest
 
@@ -15,7 +17,10 @@ Mode) to encrypt cluster data at rest.
 
 ### Digital signatures
 
-To securely authenticate API clients, Canonical Kubernetes uses X.509 certificates with support for both RSA-2048 and ECDSA (Elliptic Curve Digital Signature Algorithm). This ensures strong, standards-based authentication with options suited for both general-purpose and resource-constrained environments.
+To securely authenticate API clients, Canonical Kubernetes uses X.509
+certificates with support for both RSA-2048 and ECDSA (Elliptic Curve Digital
+Signature Algorithm). This ensures strong, standards-based authentication with
+options suited for both general-purpose and resource-constrained environments.
 
 ## Configure cryptography in {{product}}
 
@@ -29,7 +34,8 @@ algorithm for data confidentiality.
 * Configurable Providers: Canonical Kubernetes supports integration with
 various Key Management Services (KMS) to centralize and control key management.
 
-* Kubernetes API Authentication: For secure API access, users can configure X.509 certificates, allowing them to implement secure, certificate-based
+* Kubernetes API Authentication: For secure API access, users can configure
+X.509 certificates, allowing them to implement secure, certificate-based
 authentication with support for RSA 2048 and ECDSA keys.
 
 * Service Mesh Encryption (Optional): When deploying service meshes like Istio
@@ -39,8 +45,8 @@ multi-service environments.
 
   * Supported Algorithms for mTLS:
 
-    * RSA-2048 or ECDSA: These options enable
-    secure certificate-based authentication between services.
+    * RSA-2048 or ECDSA: These options enable secure certificate-based
+    authentication between services.
     * AES-GCM: Used for encrypted service-to-service communication.
 
 
@@ -49,7 +55,8 @@ multi-service environments.
 Canonical Kubernetes depends on a suite of cryptographic libraries and packages
 to implement its security functions:
 
-* OpenSSL: Canonical Kubernetes utilizes OpenSSL for a broad range of cryptographic operations, including TLS, certificate management, and secure key
+* OpenSSL: Canonical Kubernetes utilizes OpenSSL for a broad range of
+cryptographic operations, including TLS, certificate management, and secure key
 exchange. OpenSSL’s extensive cryptographic functionality and secure algorithms
 provide a reliable foundation for TLS and encryption operations.
 
@@ -70,7 +77,10 @@ for the secure operation of Kubernetes components.
 
 ## Recommended usage and settings
 
-{{product}} ships with a secure-by-default security posture, so users can rest assured that the default configuration is appropriate for most uses cases. If your security needs are not met by the default configuration, we recommend you [deploy an intermediate CA fine-tuned to your liking][intermediate-ca].
+{{product}} ships with a secure-by-default security posture, so users can rest
+assured that the default configuration is appropriate for most uses cases. If
+your security needs are not met by the default configuration, we recommend you
+[deploy an intermediate CA fine-tuned to your liking][intermediate-ca].
 
 See [certificates] for a list of certificates used in {{product}}.
 
