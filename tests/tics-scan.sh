@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
+set -ex
+
+PROJECT_BASE_DIR=$1
 SCRIPT_DIR=$(realpath $(dirname "$BASH_SOURCE"))
 
-set -ex
-cd "${SCRIPT_DIR}/.."
+if [[ -z $PROJECT_BASE_DIR ]]; then
+    PROJECT_BASE_DIR="$SCRIPT_DIR/.."
+fi
+
+cd "${PROJECT_BASE_DIR}"
 
 sudo apt-get update
 sudo apt-get install -y python3-venv
@@ -44,4 +50,4 @@ sudo apt-get install -y dqlite-tools-v2 libdqlite1.17-dev
 sudo make clean
 go build -a ./...
 
-TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $SCRIPT_DIR/..
+TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $PROJECT_BASE_DIR
