@@ -6,6 +6,7 @@ import (
 
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/log"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/canonical/microcluster/v2/state"
 )
@@ -17,6 +18,16 @@ import (
 func (a *App) postRefreshHook(ctx context.Context, s state.State) error {
 	log := log.FromContext(ctx).WithValues("hook", "post-refresh")
 	log.Info("Running post-refresh hook")
+
+	isWorker, err := snaputil.IsWorker(a.snap)
+	if err != nil {
+		return fmt.Errorf("failed to check if node is a worker: %w", err)
+	}
+
+	if isWorker {
+		log.Info("Node is a worker, skipping post-refresh hook")
+		return nil
+	}
 
 	config, err := databaseutil.GetClusterConfig(ctx, s)
 	if err != nil {

@@ -709,3 +709,59 @@ def wait_for_daemonset(
 # sonobuoy_tar_gz returns the download URL of sonobuoy.
 def sonobuoy_tar_gz(architecture: str) -> str:
     return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1:]}_linux_{architecture}.tar.gz"  # noqa
+
+
+def check_snap_services(instance: harness.Instance):
+    """Check that the snap services are active on the given harness instance.
+
+    The expected services differ between control-plane and worker nodes.
+    """
+
+    expected_worker_services = {
+        "containerd",
+        "k8sd",
+        "kubelet",
+        "kube-proxy",
+        "k8s-apiserver-proxy",
+    }
+    expected_control_plane_services = {
+        "containerd",
+        "k8s-dqlite",
+        "k8sd",
+        "kubelet",
+        "kube-proxy",
+        "kube-apiserver",
+        "kube-controller-manager",
+        "kube-scheduler",
+    }
+
+    is_control_plane = "control-plane" in get_local_node_status(instance)
+    expected_active_services = (
+        expected_control_plane_services
+        if is_control_plane
+        else expected_worker_services
+    )
+
+    result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
+    services_output = result.stdout.split("\n")[1:-1]  # Skip the header line
+
+    service_status = {}
+    for line in services_output:
+        parts = line.split()
+        if len(parts) >= 3:  # Ensure there are enough columns
+            service_name = parts[0].replace("k8s.", "", 1)
+            service_status[service_name] = parts[2]  # "active" or "inactive"
+
+    for service in expected_active_services:
+        assert (
+            service in service_status
+        ), f"Service {service} is missing from 'snap services' output"
+        assert (
+            service_status[service] == "active"
+        ), f"Service {service} should be active, but it is {service_status[service]}"
+
+    for service, status in service_status.items():
+        if service not in expected_active_services:
+            assert (
+                status == "inactive"
+            ), f"Unexpected service {service} is {status} but should be inactive"
