@@ -54,7 +54,7 @@ jobs:
     # We don't want to ping people of failed PRs.
     if: ${{ always() && github.event_name == 'schedule' }}
     # Note: Update results check below if you change the "needs" list.
-    needs: [test-integration, Trivy, TICS]
+    needs: [test-integration, Trivy]
     runs-on: ubuntu-latest
     steps:
       - name: Set current formatted date as env variable
