@@ -56,7 +56,6 @@ jobs:
     strategy:
       matrix:
         include:
-          # Latest branches
           - { branch: main }
     steps:
       - name: Checking out repo
@@ -84,6 +83,7 @@ jobs:
         run: |
           export TICSAUTHTOKEN=${{ secrets.TICSAUTHTOKEN }}
           /tmp/tics-scan.sh `pwd`
+
   Mattermost:
     name: Notify Mattermost
     # Notify on success or failure but only if the event is a scheduled run.
