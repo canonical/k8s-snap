@@ -72,3 +72,4 @@ jobs:
           jira-url: ${{ secrets.CVE_JIRA_WEBHOOK_URL }}
           jira-auth-token: ${{ secrets.CVE_JIRA_WEBHOOK_TOKEN }}
           minimum-level: "HIGH"
+          bump-cisa-cves: true
