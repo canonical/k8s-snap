@@ -7,23 +7,12 @@ such as **Transport Security**, **AAA (Authentication,Authorization,Auditing)**,
 and **Admission Control**. Much of this discusses how to limit access to
 authorized users and disable access to unauthorized users.
 
-#### Role Based Access Control
+#### Encrypt secrets at rest
+Encrypt key-value store secrets rather than leaving it as base64 encoded values
+as described in the upstream Kubernetes documentation on
+[encrypting secrets][encryption_at_rest].
 
-Kubernetes documentation on [rbac][access_authn_authz] informs how to
-enforce RBAC policies to limit access to cluster resources, and define roles
-and permissions aligned with the principle of least privilege to prevent
-unauthorized access to critical operations.
-
-#### Secrets Encryption at Rest
-Kubernetes documentation on [encrypting secrets][encryption_at_rest] informs how
-to ensure that the key-value store encrypts secrets rather than leaving it as
-base64 encoded values.
-
-this guide indicates one should set the `--encryption-provider-config` file
-as an argument to the kubernetes apiserver.
-
-Create the `EncryptionConfiguration` file under `/var/snap/k8s/common/etc/encryption/`
-and update the kube-apiserver arguments.
+Create the `EncryptionConfiguration` file under `/var/snap/k8s/common/etc/encryption/`.
 
 ```
 sudo sh -c '
@@ -41,22 +30,24 @@ resources:
   - identity: {}
 EOL
 chmod 600 /var/snap/k8s/common/etc/encryption/enc.yaml
+```
+
+Set the `--encryption-provider-config` file as an argument to the kubernetes
+apiserver.
+
+```
+sudo sh -c '
 cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
 --encyrption-provider-config=/var/snap/k8s/common/etc/enc.yaml
 EOL'
 ```
 
-This ensures that cluster `secrets` resources are encrypted in the key-value
-store. Securing the contents of this key file is left as a separate exercise.
+Securing the contents of this key file is left as a separate exercise.
 
 
-#### Configuring Authorization Modes
-Enforce RBAC (Role-Based Access Control) policies to limit access to cluster
-resources. Define roles and permissions aligned with the principle of least
-privilege to prevent unauthorized access to critical operations.
-
-Confirm the value of the apiserver [`authorization-mode`][authorization_mode]
-value
+#### Configure authorization modes
+Enforce RBAC (Role-Based Access Control) policies and confirm the value of the
+apiserver [`authorization-mode`][authorization_mode]:
 * includes `RBAC`
 * doesn't include `AlwaysAllow`
 
@@ -71,6 +62,9 @@ By default, the value is `Node,RBAC`
 * `Node`: 
   A special-purpose authorization mode that grants permissions
   to kubelets based on the pods they are scheduled to run.
+
+ To apply RBAC to other cluster resources, see the upstream Kubernetes
+ [RBAC guide][access_authn_authz].
 
 
 #### Configure log auditing

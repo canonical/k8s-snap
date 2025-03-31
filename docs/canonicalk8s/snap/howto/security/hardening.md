@@ -15,7 +15,7 @@ comprehensive list of manual tests.
 
 Please evaluate the implications of each configuration before applying it.
 
-## Platform Hardening Recommendations
+## Platform hardening recommendations
 
 These steps are common to the hardening process for not only CIS and DISA STIG
 compliance, but also good suggestions if one is willing to incur the performance
