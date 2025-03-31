@@ -2068,6 +2068,11 @@ The final line of the output will be `PASS`.
 >
 > The k8s-snap does not configure auditing by default.
 >
+> The default posture of the kube-apiserver actually disables auditing
+> when the configuration is left unset, despite what [V-242402] states.
+> the audit log is only sent to **stdout** (not studio) if the value is set to
+> '-'
+>
 > Please review the [post-deployment hardening] guide for a full description on
 > how to enable auditing for the kube-apiserver.
 >
