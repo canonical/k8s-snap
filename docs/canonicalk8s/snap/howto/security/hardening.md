@@ -15,10 +15,11 @@ comprehensive list of manual tests.
 
 Please evaluate the implications of each configuration before applying it.
 
-## Post-deployment hardening steps
+## Platform hardening recommendations
 
-These steps are common to the hardening process for both CIS and DISA STIG
-compliance.
+These steps are common to the hardening process for not only CIS and DISA STIG
+compliance, but also good suggestions if one is willing to incur the performance
+costs for the benefit of an increased security posture.
 
 ```{include} /_parts/common_hardening.md
 ```
