@@ -323,3 +323,6 @@ def etcd_cluster(
     cluster = EtcdCluster(h, initial_node_count=etcd_count)
 
     yield cluster
+
+    LOG.info(f"Cleaning up {etcd_count} etcd instances")
+    cluster.cleanup()
