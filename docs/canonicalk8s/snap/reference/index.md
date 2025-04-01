@@ -66,6 +66,7 @@ annotations
 
 ```{toctree}
 :titlesonly:
+certificates
 proxy
 ports-and-services
 ```
@@ -78,14 +79,6 @@ Common issues faced by users and their solutions.
 :titlesonly:
 troubleshooting
 inspection-reports
-```
-
-## Security
-
-```{toctree}
-:titlesonly:
-certificates
-crypto
 ```
 
 ## Networking

@@ -1,14 +1,17 @@
 # Cryptography
 
-This reference page provides an overview of the {{product}} cryptography
-posture.
+This explanation page provides an overview of the {{product}} cryptography
+posture. From a high-level, {{product}} uses industry-standard cryptographic
+algorithms to ensure authentication between components, secure data transfer,
+and data encryption at rest.
 
 ### TLS certificates
 
 All communications between core components, such as the API server and
 kubelets, are encrypted with TLS 1.3 (Transport Layer Security), providing
 robust protection for sensitive data in transit. By default, {{product}} uses
-self-signed certificates, but users are able to use an intermediate CA instead.
+self-signed certificates, but users are able to use an intermediate CA or
+provide their own certificates instead.
 
 ### Dqlite encryption at rest
 
