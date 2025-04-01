@@ -282,7 +282,7 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 		return fmt.Errorf("failed to execute onNodeReady hook: %w", err)
 	}
 
-	log.V(1).Info("Marking node as ready")
+	log.Info("Marking node as ready")
 	a.readyWg.Done()
 	return nil
 }
