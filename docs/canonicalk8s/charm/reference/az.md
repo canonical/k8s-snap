@@ -1,11 +1,11 @@
 # Availability Zones
 
-An availability zone determines the specific location where Juju 
-provisions hardware, enhancing redundancy and resilience in case 
+An availability zone determines the specific location where Juju
+provisions hardware, enhancing redundancy and resilience in case
 of an outage.
 
 When using Juju with a cloud that supports availability zones, the [zone]
-can be specified either via a [placement directive], a [constraint], or 
+can be specified either via a [placement directive], a [constraint], or
 will be automatically selected by Juju.
 
 In the following example, the {{product}} charm is deployed on AWS in the
@@ -41,10 +41,10 @@ This label is applied by the charm operator only if the node is not already
 labeled with `topology.kubernetes.io/zone`. This means:
 
 - If the node is labeled with `topology.kubernetes.io/zone` by a component or
-controller other than the charm operator, the operator will not overwrite 
+controller other than the charm operator, the operator will not overwrite
 this label.
-- Even if the node is already labeled by the charm operator, in case the 
-underlying AZ changes from the Juju POV, the operator will not update the 
+- Even if the node is already labeled by the charm operator, in case the
+underlying AZ changes from the Juju POV, the operator will not update the
 label to reflect this new AZ.
 
 <!-- LINKS -->
