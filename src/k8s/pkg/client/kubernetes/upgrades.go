@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/canonical/k8s/pkg/log"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -74,7 +75,7 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 		return nil, fmt.Errorf("failed to create REST client for k8sd.io group: %w", err)
 	}
 
-	upgrades, err := restClient.Get().AbsPath("/apis/k8sd.io/v1alpha/upgrades").DoRaw(ctx)
+	upgrades, err := restClient.Get().AbsPath(fmt.Sprintf("/apis/%s/%s/upgrades", group, version)).DoRaw(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upgrades: %w", err)
 	}
@@ -86,12 +87,25 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 		return nil, fmt.Errorf("failed to unmarshal upgrades: %w", err)
 	}
 
+	var matches []Upgrade
 	for _, upgrade := range result.Items {
 		if upgrade.Status.Phase != UpgradePhaseFailed && upgrade.Status.Phase != UpgradePhaseCompleted {
-			return &upgrade, nil
+			matches = append(matches, upgrade)
 		}
 	}
-	return nil, nil
+	if len(matches) == 0 {
+		return nil, nil
+	}
+	if len(matches) > 1 {
+		log.Info("Warning: Found multiple in-progress upgrades", "inprogress upgrades", len(matches))
+	}
+	// Sort matches by name
+	sort.Slice(matches, func(i, j int) bool {
+		return matches[i].Metadata.Name < matches[j].Metadata.Name
+	})
+
+	// Return the latest
+	return &matches[len(matches)-1], nil
 }
 
 // CreateUpgrade creates a new upgrade CR.
@@ -109,7 +123,7 @@ func (c *Client) CreateUpgrade(ctx context.Context, upgrade Upgrade) error {
 
 	log.Info("Creating upgrade", "upgrade", upgrade)
 	result := restClient.Post().
-		AbsPath("/apis/k8sd.io/v1alpha/upgrades").
+		AbsPath(fmt.Sprintf("/apis/%s/%s/upgrades", group, version)).
 		Body(body).
 		Do(ctx)
 	if result.Error() != nil {
@@ -146,7 +160,7 @@ func (c *Client) PatchUpgradeStatus(ctx context.Context, upgradeName string, sta
 
 	log.WithValues("upgrade", upgrade).Info("Patching upgrade")
 	result := restClient.Patch(types.MergePatchType).
-		AbsPath("/apis/k8sd.io/v1alpha/upgrades/" + upgradeName + "/status").
+		AbsPath(fmt.Sprintf("/apis/%s/%s/upgrades/%s/status", group, version, upgradeName)).
 		Body(body).
 		Do(ctx)
 	if result.Error() != nil {
