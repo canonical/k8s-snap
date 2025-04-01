@@ -45,14 +45,6 @@ notes for each version.
 releases
 ```
 
-## Security
-
-```{toctree}
-:titlesonly:
-Security <security>
-certificates
-```
-
 ## Annotations
 
 A list of annotations that can be applied to a node on cluster bootstrap.
