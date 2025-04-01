@@ -165,7 +165,6 @@ parts:
       - hostname
       - iproute2
       - ipset
-      - jq
       - kmod
       - libatm1
       - libnss-resolve

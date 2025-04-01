@@ -302,7 +302,8 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
 
     assert config.SNAP is not None, "SNAP must be set to run this test"
 
-    # Note(ben): No need to make this configurable/overly complicated for now as we will merge/refactor this test soon anyway (see docstring).
+    # Note(ben): No need to make this configurable/overly complicated for now as
+    # we will merge/refactor this test soon anyway (see docstring).
     start_branch = "1.32-classic/stable"
     target_branch = "latest/edge/ci-upgrade-test"
 
@@ -315,7 +316,7 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     # create a random dummy file to ensure the snap is unique
     dummy_file = unsquash_path / f"{time.time()}"
     util.run(f"touch {dummy_file}".split())
-    modified_snap_path = tmp_path / f"k8s-snap-modified.snap"
+    modified_snap_path = tmp_path / "k8s-snap-modified.snap"
     util.run(f"snapcraft pack {unsquash_path} -o {modified_snap_path}".split())
     util.run(f"snapcraft upload {modified_snap_path} --release={target_branch}".split())
 
