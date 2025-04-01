@@ -3,11 +3,12 @@
 #
 import itertools
 import logging
+import sys
 from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
-import test_util.config as test_config
+from test_util import config as test_config
 from test_util import harness, tags, util
 from test_util.etcd import EtcdCluster
 from test_util.registry import Registry
@@ -19,6 +20,25 @@ pytest_plugins = ("pytest_tagging",)
 # The following snaps will be downloaded once per test run and preloaded
 # into the harness instances to reduce the number of downloads.
 PRELOADED_SNAPS = ["snapd", "core20"]
+
+
+class StreamToLogger:
+    """Redirects stdout/stderr to a logger."""
+
+    def __init__(self, logger, level):
+        self.logger = logger
+        self.level = level
+        self.line_buffer = ""
+
+    def write(self, message):
+        if message.strip():  # Avoid logging empty lines
+            self.logger.log(self.level, message.strip())
+
+    def flush(self):
+        pass  # No need to flush explicitly, logger handles it
+
+    def isatty(self):
+        return False  # Make sure that the logger does not try to use ANSI escape codes
 
 
 def pytest_itemcollected(item):
@@ -52,38 +72,15 @@ def _harness_clean(h: harness.Harness):
 def _generate_inspection_report(h: harness.Harness, instance_id: str):
     LOG.debug("Generating inspection report for %s", instance_id)
 
-    inspection_path = Path(test_config.INSPECTION_REPORTS_DIR)
-    result = h.exec(
-        instance_id,
-        [
-            "/snap/k8s/current/k8s/scripts/inspect.sh",
-            "--all-namespaces",
-            "--core-dump-dir",
-            test_config.CORE_DUMP_DIR,
-            "/inspection-report.tar.gz",
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
-    report_log = inspection_path / instance_id / "inspection_report_logs.txt"
-    with report_log.open("w") as f:
-        f.write("stdout:\n")
-        f.write(result.stdout)
-        f.write("stderr:\n")
-        f.write(result.stderr)
-
     try:
-        inspection_path = Path(config.INSPECTION_REPORTS_DIR)
+        inspection_path = Path(test_config.INSPECTION_REPORTS_DIR)
         result = h.exec(
             instance_id,
             [
                 "/snap/k8s/current/k8s/scripts/inspect.sh",
                 "--all-namespaces",
                 "--core-dump-dir",
-                config.CORE_DUMP_DIR,
+                test_config.CORE_DUMP_DIR,
                 "/inspection-report.tar.gz",
             ],
             capture_output=True,
@@ -184,22 +181,30 @@ def pytest_configure(config):
         "node_count: Mark a test to specify how many instance nodes need to be created\n"
         "snap_versions: Mark a test to specify snap_versions for each node\n",
     )
+    # Get logger
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)  # Capture all logs, handlers will filter
 
-    # Set up CLI logging
-    logging.basicConfig(
-        level=logging._nameToLevel[test_config.LOG_CLI_LEVEL],
-        format="%(asctime)s - %(levelname)s - %(message)s",
+    # Set up CLI logging (INFO level)
+    cli_handler = logging.StreamHandler()
+    cli_handler.setLevel(test_config.LOG_CLI_LEVEL)
+    cli_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     )
+    logger.addHandler(cli_handler)
 
-    # Set up file logging
+    # Set up file logging (DEBUG level)
     if test_config.LOG_FILE_PATH is not None:
         file_handler = logging.FileHandler(test_config.LOG_FILE_PATH)
-        file_handler.setLevel(logging._nameToLevel[test_config.LOG_FILE_LEVEL])
+        file_handler.setLevel(logging.DEBUG)  # Capture all logs in file
         file_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
         )
+        logger.addHandler(file_handler)
 
-        logging.getLogger().addHandler(file_handler)
+        # Redirect stdout & stderr to logger
+        sys.stdout = StreamToLogger(logger, logging.INFO)
+        sys.stderr = StreamToLogger(logger, logging.ERROR)
 
 
 @pytest.fixture(scope="function")

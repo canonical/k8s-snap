@@ -74,8 +74,8 @@ on:
         default: "DEBUG"
         type: string
       log-cli-level:
-        description: Log file logging level
-        default: "INFO"
+        description: Log CLI logging level
+        default: "ERROR"
         type: string
 
 jobs:
