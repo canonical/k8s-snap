@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/canonical/k8s/pkg/log"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -77,8 +78,13 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 
 	upgrades, err := restClient.Get().AbsPath(fmt.Sprintf("/apis/%s/%s/upgrades", group, version)).DoRaw(ctx)
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			// No upgrade in progress.
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to get upgrades: %w", err)
 	}
+
 	log.Info("Got upgrades", "upgrades", string(upgrades))
 	var result struct {
 		Items []Upgrade `json:"items"`
