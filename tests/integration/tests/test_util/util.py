@@ -713,7 +713,9 @@ def sonobuoy_tar_gz(architecture: str) -> str:
     return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1:]}_linux_{architecture}.tar.gz"  # noqa
 
 
-def check_snap_services_ready(instance: harness.Instance, node_type: Optional[str] = None):
+def check_snap_services_ready(
+    instance: harness.Instance, node_type: Optional[str] = None
+):
     """Check that the snap services are active on the given harness instance.
 
     The expected services differ between control-plane and worker nodes.
@@ -752,7 +754,11 @@ def check_snap_services_ready(instance: harness.Instance, node_type: Optional[st
             else expected_worker_services
         )
     else:
-        node_type = "control-plane" if "control-plane" in get_local_node_status(instance) else "worker"
+        node_type = (
+            "control-plane"
+            if "control-plane" in get_local_node_status(instance)
+            else "worker"
+        )
 
     expected_active_services = (
         expected_control_plane_services
