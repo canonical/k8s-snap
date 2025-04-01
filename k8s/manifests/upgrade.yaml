@@ -1,4 +1,0 @@
-apiVersion: k8sd.io/v1alpha
-kind: Upgrade
-metadata:
-  name: {{CLUSTER_UPGRADE_NAME}}

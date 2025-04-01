@@ -15,7 +15,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-// TODO: If the upgrade CRD grows, consider using kubebuilder.type Metadata struct {
+// TODO: If the upgrade CRD grows, consider using kubebuilder.
 const (
 	UpgradePhaseNodeUpgrade    = "NodeUpgrade"
 	UpgradePhaseFeatureUpgrade = "FeatureUpgrade"
