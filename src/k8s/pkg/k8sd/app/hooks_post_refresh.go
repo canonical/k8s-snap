@@ -76,7 +76,13 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 
 	if upgrade == nil {
 		log.Info("No upgrade is in progress - creating a new one.")
-		newUpgrade := kubernetes.NewUpgrade(s.Name())
+		rev, err := a.snap.Revision(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get revision: %w", err)
+		}
+		// TODO(ben): Add more metadata to the upgrade.
+		// e.g. initial revision, target revision, name of the node that started the upgrade, etc.
+		newUpgrade := kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%d", rev))
 		upgrade = &newUpgrade
 		if err := k8sClient.CreateUpgrade(ctx, *upgrade); err != nil {
 			return fmt.Errorf("failed to create upgrade: %w", err)

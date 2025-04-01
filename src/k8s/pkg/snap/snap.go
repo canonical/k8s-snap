@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
@@ -370,6 +371,32 @@ func (s *snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
 
 func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
 	return s.runCommand(ctx, append([]string{"snapctl", "set"}, args...))
+}
+
+func (s *snap) Revision(ctx context.Context) (int, error) {
+	var b bytes.Buffer
+	err := s.runCommand(ctx, []string{"snap", "list", "k8s"}, func(c *exec.Cmd) { c.Stdout = &b })
+	if err != nil {
+		return 0, fmt.Errorf("failed to get revision: %w", err)
+	}
+
+	out := b.String()
+
+	lines := strings.Split(out, "\n")
+	if len(lines) < 2 {
+		return 0, fmt.Errorf("unexpected output from snap list: %q", out)
+	}
+
+	fields := strings.Fields(lines[1]) // The second line contains the details
+	if len(fields) < 3 {
+		return 0, fmt.Errorf("unexpected format in snap list output: %q", lines[1])
+	}
+
+	rev, err := strconv.Atoi(fields[2])
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse revision number %q: %w", fields[2], err)
+	}
+	return rev, nil
 }
 
 func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig, serviceConfigs types.K8sServiceConfigs, isControlPlane bool) error {

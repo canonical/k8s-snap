@@ -296,28 +296,28 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         config.SNAPCRAFT_STORE_CREDENTIALS is not None
     ), "SNAPCRAFT_STORE_CREDENTIALS must be set to run this test"
 
-    print(f"SNAPCRAFT_STORE_CREDENTIALS length: {len(config.SNAPCRAFT_STORE_CREDENTIALS)}", )
+    print(
+        f"SNAPCRAFT_STORE_CREDENTIALS length: {len(config.SNAPCRAFT_STORE_CREDENTIALS)}",
+    )
 
     assert config.SNAP is not None, "SNAP must be set to run this test"
 
-    start_branch = "latest/edge/ci-upgrade-test-1"
-    target_branch = "latest/edge/ci-upgrade-test-2"
+    # Note(ben): No need to make this configurable/overly complicated for now as we will merge/refactor this test soon anyway (see docstring).
+    start_branch = "1.32-classic/stable"
+    target_branch = "latest/edge/ci-upgrade-test"
 
     os.environ["SNAPCRAFT_STORE_CREDENTIALS"] = config.SNAPCRAFT_STORE_CREDENTIALS
 
-    # unsquash, add dummy change to ensure uniqueness in store, squash, upload to branches
-    # note: we also add a dummy change to the first branch as the test would otherwise
+    # unsquash, add dummy change to ensure uniqueness in store the test would otherwise
     # fail if a PR only introduces test changes.
-    #unsquash_path = tmp_path / "k8s-snap-unsquashed"
-    #util.run(f"unsquashfs -d {unsquash_path} {config.SNAP}".split())
-    #for idx, branch in enumerate([start_branch, target_branch]):
-    #    # create a random dummy file to ensure the snap is unique
-    #    dummy_file = unsquash_path / f"{time.time()}"
-    #    util.run(f"touch {dummy_file}".split())
-    #    modified_snap_path = tmp_path / f"k8s-snap-modified-{idx+1}.snap"
-    #    util.run(f"snapcraft pack {unsquash_path} -o {modified_snap_path}".split())
-    #    util.run(f"snapcraft upload {modified_snap_path} --release={branch}".split())
-    #util.run(f"snapcraft upload {config.SNAP} --release={target_branch}".split())
+    unsquash_path = tmp_path / "k8s-snap-unsquashed"
+    util.run(f"unsquashfs -d {unsquash_path} {config.SNAP}".split())
+    # create a random dummy file to ensure the snap is unique
+    dummy_file = unsquash_path / f"{time.time()}"
+    util.run(f"touch {dummy_file}".split())
+    modified_snap_path = tmp_path / f"k8s-snap-modified.snap"
+    util.run(f"snapcraft pack {unsquash_path} -o {modified_snap_path}".split())
+    util.run(f"snapcraft upload {modified_snap_path} --release={target_branch}".split())
 
     main = instances[0]
 
@@ -330,9 +330,6 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         instance.exec(["k8s", "join-cluster", token])
 
     util.wait_until_k8s_ready(instance, instances)
-
-    # Verify that the UpgradeCRD is known to the cluster
-    main.exec("k8s kubectl get crd upgrades.k8sd.io".split())
 
     # Refresh each node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
