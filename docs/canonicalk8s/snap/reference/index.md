@@ -66,7 +66,6 @@ annotations
 
 ```{toctree}
 :titlesonly:
-certificates
 proxy
 ports-and-services
 ```
