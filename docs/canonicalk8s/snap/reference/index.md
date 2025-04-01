@@ -80,14 +80,6 @@ troubleshooting
 inspection-reports
 ```
 
-## Networking
-
-```{toctree}
-:titlesonly:
-proxy
-ports-and-services
-```
-
 ## Contributing
 
 ```{toctree}
