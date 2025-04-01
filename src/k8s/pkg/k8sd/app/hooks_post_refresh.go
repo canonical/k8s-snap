@@ -40,6 +40,30 @@ func (a *App) postRefreshHook(ctx context.Context, s state.State) error {
 		return fmt.Errorf("failed to set snapd configuration from k8sd: %w", err)
 	}
 
+	status, err := a.MicroCluster().Status(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get boostrap status: %w", err)
+	}
+
+	// We don't want to run the upgrade if the cluster is not ready.
+	// The post-refresh hook is run after snap refresh AND install, so we need to make sure the cluster is ready.
+	if status.Ready {
+		log.Info("Cluster is ready, running post-upgrade.")
+		if err := a.performPostUpgrade(ctx, s); err != nil {
+			return fmt.Errorf("failed to perform post-upgrade: %w", err)
+		}
+	} else {
+		log.Info("Node is not yet bootstrapped (was freshly installed), skipping upgrade steps.")
+	}
+
+	return nil
+}
+
+// performPostUpgrade performs the post-upgrade steps.
+// It marks the node as upgraded and checks if all nodes have been upgraded.
+// If all nodes have been upgraded, it triggers the feature upgrade.
+func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
+	log := log.FromContext(ctx).WithValues("step", "post-upgrade")
 	k8sClient, err := a.snap.KubernetesClient("")
 	if err != nil {
 		return fmt.Errorf("failed to get Kubernetes client: %w", err)
@@ -50,29 +74,38 @@ func (a *App) postRefreshHook(ctx context.Context, s state.State) error {
 		return fmt.Errorf("failed to get in progress upgrade: %w", err)
 	}
 
-	if upgrade != nil {
-		log.Info("Upgrade in progress.", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
-		log.Info("Marking node as upgraded.", "node", s.Name())
-
-		if err := k8sClient.MarkNodeUpgradeDone(ctx, s.Name()); err != nil {
-			return fmt.Errorf("failed to mark node as upgraded: %w", err)
-		}
-
-		clusterUpgradeDone, err := allNodesUpgraded(ctx, s, k8sClient)
-		if err != nil {
-			return fmt.Errorf("failed to check if all nodes have been upgraded: %w", err)
-		}
-
-		if clusterUpgradeDone {
-			log.Info("All nodes have been upgraded.")
-			if err := k8sClient.SetUpgradePhase(ctx, "FeatureUpgrade"); err != nil {
-				return fmt.Errorf("failed to set upgrade phase: %w", err)
-			}
-
-			// TODO: Trigger feature upgrade and unlock feature controllers afterwards.
+	if upgrade == nil {
+		log.Info("No upgrade is in progress - creating a new one.")
+		newUpgrade := kubernetes.NewUpgrade(s.Name())
+		upgrade = &newUpgrade
+		if err := k8sClient.CreateUpgrade(ctx, *upgrade); err != nil {
+			return fmt.Errorf("failed to create upgrade: %w", err)
 		}
 	} else {
-		log.Info("No upgrade is in progress.")
+		log.Info("Upgrade in progress.", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
+	}
+
+	log.Info("Marking node as upgraded.", "node", s.Name())
+
+	upgradedNodes := upgrade.Status.UpgradedNodes
+	upgradedNodes = append(upgradedNodes, s.Name())
+
+	if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Metadata.Name, kubernetes.Status{UpgradedNodes: upgradedNodes}); err != nil {
+		return fmt.Errorf("failed to mark node as upgraded: %w", err)
+	}
+
+	clusterUpgradeDone, err := allNodesUpgraded(ctx, s, k8sClient)
+	if err != nil {
+		return fmt.Errorf("failed to check if all nodes have been upgraded: %w", err)
+	}
+
+	if clusterUpgradeDone {
+		log.Info("All nodes have been upgraded.")
+		if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Metadata.Name, kubernetes.Status{Phase: kubernetes.UpgradePhaseFeatureUpgrade}); err != nil {
+			return fmt.Errorf("failed to set upgrade phase: %w", err)
+		}
+
+		// TODO: Trigger feature upgrade and unlock feature controllers afterwards.
 	}
 
 	return nil
@@ -93,13 +126,13 @@ func allNodesUpgraded(ctx context.Context, s state.State, k8sClient *kubernetes.
 		return false, fmt.Errorf("failed to get cluster members: %w", err)
 	}
 
-	upgradedNodes, err := k8sClient.GetUpgradedNodes(ctx)
+	upgrade, err := k8sClient.GetInProgressUpgrade(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to get upgraded nodes: %w", err)
 	}
 
-	if len(clusterMembers) != len(upgradedNodes) {
-		log.Info("Not all nodes have been upgraded.", "clusterMembers", len(clusterMembers), "upgradedNodes", len(upgradedNodes))
+	if len(clusterMembers) != len(upgrade.Status.UpgradedNodes) {
+		log.Info("Not all nodes have been upgraded.", "clusterMembers", len(clusterMembers), "upgradedNodes", len(upgrade.Status.UpgradedNodes))
 		return false, nil
 	}
 
@@ -108,7 +141,7 @@ func allNodesUpgraded(ctx context.Context, s state.State, k8sClient *kubernetes.
 		clusterMembersMap[member.Name] = struct{}{}
 	}
 
-	for _, node := range upgradedNodes {
+	for _, node := range upgrade.Status.UpgradedNodes {
 		if _, ok := clusterMembersMap[node]; !ok {
 			log.Info("Node has been upgraded but is not part of the cluster.", "node", node)
 			return false, nil

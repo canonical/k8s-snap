@@ -7,6 +7,3 @@ k8s::common::setup_env
 # the sync will be enabled again after the refresh.
 echo "Disabling snapd config sync during snap refresh"
 k8s::cmd::k8s x-snapd-config disable
-
-echo "Preparing for upgrade"
-k8s::upgrade::prepare
