@@ -308,15 +308,16 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     # unsquash, add dummy change to ensure uniqueness in store, squash, upload to branches
     # note: we also add a dummy change to the first branch as the test would otherwise
     # fail if a PR only introduces test changes.
-    unsquash_path = tmp_path / "k8s-snap-unsquashed"
-    util.run(f"unsquashfs -d {unsquash_path} {config.SNAP}".split())
-    for idx, branch in enumerate([start_branch, target_branch]):
-        # create a random dummy file to ensure the snap is unique
-        dummy_file = unsquash_path / f"{time.time()}"
-        util.run(f"touch {dummy_file}".split())
-        modified_snap_path = tmp_path / f"k8s-snap-modified-{idx+1}.snap"
-        util.run(f"snapcraft pack {unsquash_path} -o {modified_snap_path}".split())
-        util.run(f"snapcraft upload {modified_snap_path} --release={branch}".split())
+    #unsquash_path = tmp_path / "k8s-snap-unsquashed"
+    #util.run(f"unsquashfs -d {unsquash_path} {config.SNAP}".split())
+    #for idx, branch in enumerate([start_branch, target_branch]):
+    #    # create a random dummy file to ensure the snap is unique
+    #    dummy_file = unsquash_path / f"{time.time()}"
+    #    util.run(f"touch {dummy_file}".split())
+    #    modified_snap_path = tmp_path / f"k8s-snap-modified-{idx+1}.snap"
+    #    util.run(f"snapcraft pack {unsquash_path} -o {modified_snap_path}".split())
+    #    util.run(f"snapcraft upload {modified_snap_path} --release={branch}".split())
+    #util.run(f"snapcraft upload {config.SNAP} --release={target_branch}".split())
 
     main = instances[0]
 

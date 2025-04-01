@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"slices"
 
 	"github.com/canonical/k8s/pkg/log"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,20 +13,48 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-// TODO: If the upgrade CRD grows, consider using kubebuilder.
+// TODO: If the upgrade CRD grows, consider using kubebuilder.type Metadata struct {
+const (
+	UpgradePhaseNodeUpgrade    = "NodeUpgrade"
+	UpgradePhaseFeatureUpgrade = "FeatureUpgrade"
+	UpgradePhaseFailed         = "Failed"
+	UpgradePhaseCompleted      = "Completed"
+)
+
+const (
+	kind    = "Upgrade"
+	group   = "k8sd.io"
+	version = "v1alpha"
+)
+
+type Metadata struct {
+	Name string `json:"name,omitempty"`
+}
+
+type Status struct {
+	Phase         string   `json:"phase,omitempty"`
+	UpgradedNodes []string `json:"upgradedNodes,omitempty"`
+}
+
 type Upgrade struct {
-	Metadata struct {
-		Name string `json:"name"`
-	} `json:"metadata"`
-	Status struct {
-		Phase         string   `json:"phase"`
-		UpgradedNodes []string `json:"upgradedNodes"`
-	} `json:"status"`
+	APIVersion string   `json:"apiVersion,omitempty"`
+	Kind       string   `json:"kind,omitempty"`
+	Metadata   Metadata `json:"metadata,omitempty"`
+	Status     Status   `json:"status,omitempty"`
+}
+
+func NewUpgrade(name string) Upgrade {
+	return Upgrade{
+		APIVersion: group + "/" + version,
+		Kind:       kind,
+		Metadata:   Metadata{Name: name},
+		Status:     Status{Phase: UpgradePhaseNodeUpgrade, UpgradedNodes: []string{}},
+	}
 }
 
 func (c *Client) K8sdIoRestClient() (*rest.RESTClient, error) {
 	k8sdConfig := c.RESTConfig()
-	k8sdConfig.GroupVersion = &schema.GroupVersion{Group: "k8sd.io", Version: "v1alpha"}
+	k8sdConfig.GroupVersion = &schema.GroupVersion{Group: group, Version: version}
 	k8sdConfig.NegotiatedSerializer = serializer.NewCodecFactory(runtime.NewScheme())
 
 	restClient, err := rest.RESTClientFor(k8sdConfig)
@@ -37,6 +64,8 @@ func (c *Client) K8sdIoRestClient() (*rest.RESTClient, error) {
 	return restClient, nil
 }
 
+// GetInProgressUpgrade returns the upgrade CR that is currently in progress.
+// TODO(ben): Maybe make this more generic, e.g. GetUpgrade(filterFunc func(Upgrade) bool) (*Upgrade, error)
 func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 	log := log.FromContext(ctx).WithValues("upgrades", "GetInProgressUpgrade")
 
@@ -58,111 +87,72 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 	}
 
 	for _, upgrade := range result.Items {
-		if upgrade.Status.Phase != "Failed" && upgrade.Status.Phase != "Completed" {
+		if upgrade.Status.Phase != UpgradePhaseFailed && upgrade.Status.Phase != UpgradePhaseCompleted {
 			return &upgrade, nil
 		}
 	}
 	return nil, nil
 }
 
-// GetUpgradedNodes returns the list of upgraded nodes or an error.
-func (c *Client) GetUpgradedNodes(ctx context.Context) ([]string, error) {
-	upgrade, err := c.GetInProgressUpgrade(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get in-progress upgrade: %w", err)
-	}
-
-	if upgrade == nil {
-		return nil, fmt.Errorf("no upgrade in progress")
-	}
-
-	return upgrade.Status.UpgradedNodes, nil
-}
-
-// MarkNodeUpgradeDone marks the current node as upgraded in the Upgrade CRD.
-func (c *Client) MarkNodeUpgradeDone(ctx context.Context, nodeName string) error {
-	log := log.FromContext(ctx).WithValues("upgrades", "markNodeUpgradeDone", "node", nodeName)
-
-	upgrade, err := c.GetInProgressUpgrade(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get in-progress upgrade: %w", err)
-	}
-
-	if upgrade == nil {
-		return fmt.Errorf("no upgrade in progress")
-	}
-
-	if slices.Contains(upgrade.Status.UpgradedNodes, nodeName) {
-		log.Info("Node is already marked as upgraded", "node", nodeName)
-		return nil
-	}
-
-	// Append the node to the existing list
-	updatedNodes := upgrade.Status.UpgradedNodes
-	updatedNodes = append(updatedNodes, nodeName)
-
-	// Create a patch with only the updated nodes
-	patch := map[string]interface{}{
-		"status": map[string]interface{}{
-			"upgradedNodes": updatedNodes,
-		},
-	}
-
-	updatedUpgrade, err := json.Marshal(patch)
-	if err != nil {
-		return fmt.Errorf("failed to marshal upgrade body: %w", err)
-	}
-
-	log.Info("Marking node as upgraded", "patch", patch)
-
+// CreateUpgrade creates a new upgrade CR.
+func (c *Client) CreateUpgrade(ctx context.Context, upgrade Upgrade) error {
+	log := log.FromContext(ctx).WithValues("upgrades", "createUpgrade")
 	restClient, err := c.K8sdIoRestClient()
 	if err != nil {
 		return fmt.Errorf("failed to create REST client for k8sd.io group: %w", err)
 	}
-	result := restClient.Patch(types.MergePatchType).
-		AbsPath("/apis/k8sd.io/v1alpha/upgrades/" + upgrade.Metadata.Name + "/status").
-		Body(updatedUpgrade).
+
+	body, err := json.Marshal(upgrade)
+	if err != nil {
+		return fmt.Errorf("failed to marshal upgrade: %w", err)
+	}
+
+	log.Info("Creating upgrade", "upgrade", upgrade)
+	result := restClient.Post().
+		AbsPath("/apis/k8sd.io/v1alpha/upgrades").
+		Body(body).
 		Do(ctx)
 	if result.Error() != nil {
 		responseBody, _ := result.Raw()
-		log.Error(result.Error(), "failed to update upgrade status", "response", string(responseBody))
-		return fmt.Errorf("failed to update upgrade status: %w", result.Error())
+		log.Error(result.Error(), "failed to create upgrade", "response", string(responseBody))
+		return fmt.Errorf("failed to create upgrade: %w", result.Error())
+	}
+
+	// The status field needs to be patches separatly since it is a subresource.
+	if err := c.PatchUpgradeStatus(ctx, upgrade.Metadata.Name, upgrade.Status); err != nil {
+		return fmt.Errorf("failed to patch upgrade status: %w", err)
 	}
 
 	return nil
 }
 
-// It returns an error if there is no upgrade in progress.
-func (c *Client) SetUpgradePhase(ctx context.Context, phase string) error {
-	log := log.FromContext(ctx).WithValues("upgrades", "SetUpgradePhase", "phase", phase)
-
-	upgrade, err := c.GetInProgressUpgrade(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get in-progress upgrade: %w", err)
-	}
-
-	if upgrade == nil {
-		return fmt.Errorf("no upgrade in progress")
-	}
-
-	upgrade.Status.Phase = phase
-	updatedUpgrade, err := json.Marshal(upgrade)
-	if err != nil {
-		return fmt.Errorf("failed to marshal upgrade body: %w", err)
-	}
+// PatchUpgradeStatus patches the status of an upgrade CR.
+func (c *Client) PatchUpgradeStatus(ctx context.Context, upgradeName string, status Status) error {
+	log := log.FromContext(ctx).WithValues("upgrades", "PatchUpgrade", "upgrade", upgradeName, "status", status)
 
 	restClient, err := c.K8sdIoRestClient()
 	if err != nil {
 		return fmt.Errorf("failed to create REST client for k8sd.io group: %w", err)
 	}
+
+	// Wrap the status in a struct to match the CRD definition.
+	upgrade := NewUpgrade(upgradeName)
+	upgrade.Status = status
+
+	body, err := json.Marshal(upgrade)
+	if err != nil {
+		return fmt.Errorf("failed to marshal status: %w", err)
+	}
+
+	log.WithValues("upgrade", upgrade).Info("Patching upgrade")
 	result := restClient.Patch(types.MergePatchType).
-		AbsPath("/apis/k8sd.io/v1alpha/upgrades/" + upgrade.Metadata.Name + "/status").
-		Body(updatedUpgrade).
+		AbsPath("/apis/k8sd.io/v1alpha/upgrades/" + upgradeName + "/status").
+		Body(body).
 		Do(ctx)
 	if result.Error() != nil {
 		responseBody, _ := result.Raw()
-		log.Error(result.Error(), "failed to update upgrade status phase", "response", string(responseBody))
-		return fmt.Errorf("failed to update upgrade status phase: %w", result.Error())
+		log.Error(result.Error(), "failed to update upgrade status", "response", string(responseBody))
+		return fmt.Errorf("failed to update upgrade status: %w", result.Error())
 	}
 
 	return nil
