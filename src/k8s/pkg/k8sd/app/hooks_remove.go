@@ -155,6 +155,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 			log.Error(err, "Failed to stop k8s-dqlite service")
 		}
 
+		log.Info("Cleaning up containerd paths")
 		tryCleanupContainerdPaths(log, snap)
 	} else {
 		log.Info("Skipping service stop and certificate cleanup")
@@ -169,6 +170,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 func tryCleanupContainerdPaths(log log.Logger, s snap.Snap) {
 	for lockpath, dirpath := range setup.ContainerdLockPathsForSnap(s) {
 		// Ensure lockfile exists:
+		log.Info("Cleaning up containerd data directory", "directory", dirpath)
 		if _, err := os.Stat(lockpath); os.IsNotExist(err) {
 			log.Info("WARN: failed to find containerd lockfile, no cleanup will be perfomed", "lockfile", lockpath, "directory", dirpath)
 			continue
