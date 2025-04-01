@@ -156,6 +156,8 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		}
 
 		tryCleanupContainerdPaths(log, snap)
+	} else {
+		log.Info("Skipping service stop and certificate cleanup")
 	}
 
 	return nil

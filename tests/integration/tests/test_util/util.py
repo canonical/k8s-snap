@@ -713,11 +713,18 @@ def sonobuoy_tar_gz(architecture: str) -> str:
     return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1:]}_linux_{architecture}.tar.gz"  # noqa
 
 
-def check_snap_services_ready(instance: harness.Instance):
+def check_snap_services_ready(instance: harness.Instance, node_type: Optional[str] = None):
     """Check that the snap services are active on the given harness instance.
 
     The expected services differ between control-plane and worker nodes.
     The function will determine the node type by checking the local node status.
+
+    Args:
+        instance: the harness instance to check the snap services on
+        node_type: the node type to check the services for. If not provided, the
+            function will determine the node type by checking the local node status.
+            This is not always possible (e.g. if a node was already removed from the cluster).
+            So, the user can provide the node type explicitly.
     """
 
     expected_worker_services = {
@@ -737,11 +744,19 @@ def check_snap_services_ready(instance: harness.Instance):
         "kube-controller-manager",
         "kube-scheduler",
     }
+    if node_type:
+        assert node_type in ("control-plane", "worker"), "Invalid node type provided"
+        expected_active_services = (
+            expected_control_plane_services
+            if node_type == "control-plane"
+            else expected_worker_services
+        )
+    else:
+        node_type = "control-plane" if "control-plane" in get_local_node_status(instance) else "worker"
 
-    is_control_plane = "control-plane" in get_local_node_status(instance)
     expected_active_services = (
         expected_control_plane_services
-        if is_control_plane
+        if node_type == "control-plane"
         else expected_worker_services
     )
 

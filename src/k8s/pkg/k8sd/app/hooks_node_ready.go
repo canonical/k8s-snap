@@ -19,11 +19,13 @@ func (a *App) onNodeReady(ctx context.Context, s state.State) error {
 	log := log.FromContext(ctx).WithValues("hook", "onNodeReady")
 
 	// Check if a refresh was performed and if so, run the custom post-refresh hook
+	log.Info("Checking if snap is post-refresh")
 	isPostRefresh, err := utils.FileExists(a.snap.PostRefreshLockPath())
 	if err != nil {
 		return fmt.Errorf("failed to check if snap is post-refresh: %w", err)
 	}
 	if isPostRefresh {
+		log.Info("Snap is post-refresh - running post-refresh hook")
 		if err := a.postRefreshHook(ctx, s); err != nil {
 			return fmt.Errorf("failed to run post-refresh hook: %w", err)
 		}
@@ -32,6 +34,8 @@ func (a *App) onNodeReady(ctx context.Context, s state.State) error {
 		if err := os.Remove(a.snap.PostRefreshLockPath()); err != nil {
 			return fmt.Errorf("failed to remove post-refresh lock file: %w", err)
 		}
+	} else {
+		log.Info("Snap is not post-refresh")
 	}
 
 	return nil
