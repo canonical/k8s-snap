@@ -4,12 +4,12 @@
 from typing import List
 
 import pytest
-from test_util import harness, util
+from test_util import harness, tags, util
 
 
 # Note(ben): Commented out as otherwise the setup would still happen for xfail tests.
 # @pytest.mark.node_count(3)
-# @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_wrong_token_race(instances: List[harness.Instance]):
     # Note(ben): k8s-dqlite sometimes takes very long to shutdown (to be investigated) and
     # since microcluster has a 30s fixed timeout for the remove hooks this test sometimes fails.
