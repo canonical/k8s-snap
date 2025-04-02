@@ -131,7 +131,7 @@ func newControlPlaneCertificateMarker(pki *pki.ControlPlanePKI) *controlPlaneCer
 }
 
 // markCertificatesForRefresh clears the string values pointed to for the
-// specified certs
+// specified certs.
 func (c *controlPlaneCertificateMarker) markCertificatesForRefresh(certificates []string) error {
 	for _, cert := range certificates {
 		certValuePtr, found := c.certificates[cert]
