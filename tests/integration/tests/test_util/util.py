@@ -18,6 +18,7 @@ from typing import Any, Callable, List, Mapping, Optional, Union
 import pytest
 from tenacity import (
     RetryCallState,
+    Retrying,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -30,6 +31,8 @@ LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
 TRACK_RE = re.compile(r"^(\d+)\.(\d+)(\S*)$")
 
+# SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
+SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     """Log and run command."""
@@ -280,19 +283,66 @@ def wait_until_k8s_ready(
         if node_name is None:
             node_name = hostname(instance)
 
-        result = (
-            stubbornly(retries=retries, delay_s=delay_s)
-            .on(control_node)
-            .until(lambda p: " Ready" in p.stdout.decode())
-            .exec(["k8s", "kubectl", "get", "node", node_name, "--no-headers"])
-        )
-        LOG.info(f"Kubelet registered successfully on instance '{instance.id}'")
-        LOG.info("%s", result.stdout.decode())
-        instance_id_node_name_map[instance.id] = node_name
-    LOG.info(
-        "Successfully checked Kubelet registered on all harness instances: "
-        f"{instance_id_node_name_map}"
-    )
+        for attempt in Retrying(
+            stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)
+        ):
+            with attempt:
+                assert is_node_ready(control_node, node_name)
+                check_snap_services_ready(instance)
+
+    LOG.info("Successfully checked Kubelet registered on all harness instances.")
+    result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
+    LOG.info("%s", result.stdout.decode().strip())
+
+
+def is_node_ready(
+    control_node: harness.Instance,
+    node_name: str = "",
+    node_dict: Optional[dict] = None,
+) -> bool:
+    if not (node_name or node_dict):
+        raise ValueError("No node name or dict specified.")
+
+    try:
+        if not node_dict:
+            out = control_node.exec(
+                [
+                    "k8s",
+                    "kubectl",
+                    "get",
+                    "node",
+                    node_name,
+                    "-o",
+                    "json",
+                    "--no-headers",
+                ],
+                capture_output=True,
+            )
+            node_dict = json.loads(out.stdout.decode())
+        if not node_name:
+            node_name = node_dict["metadata"]["name"]
+
+        for condition in node_dict["status"]["conditions"]:
+            # TODO: consider having a map that explicitly defines the state
+            # of each condition. Another option would be to rely solely on the
+            # "Ready" condition.
+            if condition["type"] == "Ready":
+                exp_status = "True"
+            else:
+                exp_status = "False"
+            if condition["status"] != exp_status:
+                LOG.info(
+                    f"Node not ready yet: {node_name}, "
+                    f"condition {condition['type']}={condition['status']}"
+                )
+                return False
+
+    except Exception as ex:
+        LOG.info(f"Node not ready yet: {node_name}, failed to retrieve node info: {ex}")
+        return False
+
+    LOG.info(f"Node ready: {node_name}")
+    return True
 
 
 def wait_for_dns(instance: harness.Instance):
@@ -660,3 +710,86 @@ def wait_for_daemonset(
         f"Daemonset '{name}' failed to have at least one pod ready after "
         f"{retry_times} x {retry_delay_s} seconds."
     )
+
+
+# sonobuoy_tar_gz returns the download URL of sonobuoy.
+def sonobuoy_tar_gz(architecture: str) -> str:
+    return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1:]}_linux_{architecture}.tar.gz"  # noqa
+
+
+def check_snap_services_ready(
+    instance: harness.Instance, node_type: Optional[str] = None
+):
+    """Check that the snap services are active on the given harness instance.
+
+    The expected services differ between control-plane and worker nodes.
+    The function will determine the node type by checking the local node status.
+
+    Args:
+        instance: the harness instance to check the snap services on
+        node_type: the node type to check the services for. If not provided, the
+            function will determine the node type by checking the local node status.
+            This is not always possible (e.g. if a node was already removed from the cluster).
+            So, the user can provide the node type explicitly.
+    """
+
+    expected_worker_services = {
+        "containerd",
+        "k8sd",
+        "kubelet",
+        "kube-proxy",
+        "k8s-apiserver-proxy",
+    }
+    expected_control_plane_services = {
+        "containerd",
+        "k8s-dqlite",
+        "k8sd",
+        "kubelet",
+        "kube-proxy",
+        "kube-apiserver",
+        "kube-controller-manager",
+        "kube-scheduler",
+    }
+    if node_type:
+        assert node_type in ("control-plane", "worker"), "Invalid node type provided"
+        expected_active_services = (
+            expected_control_plane_services
+            if node_type == "control-plane"
+            else expected_worker_services
+        )
+    else:
+        node_type = (
+            "control-plane"
+            if "control-plane" in get_local_node_status(instance)
+            else "worker"
+        )
+
+    expected_active_services = (
+        expected_control_plane_services
+        if node_type == "control-plane"
+        else expected_worker_services
+    )
+
+    result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
+    services_output = result.stdout.split("\n")[1:-1]  # Skip the header line
+
+    service_status = {}
+    for line in services_output:
+        parts = line.split()
+        if len(parts) >= 3:  # Ensure there are enough columns
+            service_name = parts[0].replace("k8s.", "", 1)
+            service_status[service_name] = parts[2]  # "active" or "inactive"
+
+    for service in expected_active_services:
+        assert (
+            service in service_status
+        ), f"Service {service} is missing from 'snap services' output"
+        assert (
+            service_status[service] == "active"
+        ), f"Service {service} should be active, but it is {service_status[service]}"
+
+    for service, status in service_status.items():
+        if service not in expected_active_services:
+            assert (
+                status == "inactive"
+            ), f"Unexpected service {service} is {status} but should be inactive"
