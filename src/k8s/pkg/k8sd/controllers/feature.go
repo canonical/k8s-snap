@@ -179,7 +179,6 @@ func (c *FeatureController) reconcileLoop(
 				log.Error(err, "failed to check for in-progress upgrade")
 				continue
 			}
-			log.Info("Upgrade in progress", "upgrade", upgrade)
 			if upgrade != nil {
 				if upgrade.Status.Phase != kubernetes.UpgradePhaseFeatureUpgrade {
 					log.Info("Upgrade in progress - feature controller blocked", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)

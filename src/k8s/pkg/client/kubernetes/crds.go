@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/log"
+	"github.com/canonical/k8s/pkg/utils/control"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -86,7 +87,35 @@ func (c *Client) ApplyCRD(ctx context.Context, filePath string) error {
 	}
 
 	log.V(1).Info("Applied CRD", "name", crd.Name, "version", crd.APIVersion, "kind", crd.Kind)
+
+	waitErr := control.WaitUntilReady(ctx, func() (bool, error) {
+		return c.CRDExists(ctx, crd.Name)
+	})
+	if waitErr != nil {
+		return fmt.Errorf("failed to wait for CRD to be ready: %w", waitErr)
+	}
+
+	log.Info("CRD is now available", "name", crd.Name)
 	return nil
+}
+
+// CRDExists checks if a given CRD exists in the cluster.
+func (c *Client) CRDExists(ctx context.Context, crdName string) (bool, error) {
+	apiExtClient, err := apiextensionsclient.NewForConfig(c.RESTConfig())
+	if err != nil {
+		return false, fmt.Errorf("failed to create API extensions client: %w", err)
+	}
+
+	_, err = apiExtClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, crdName, v1.GetOptions{})
+	if err == nil {
+		return true, nil // CRD exists
+	}
+
+	if apierrors.IsNotFound(err) {
+		return false, nil // CRD does not exist
+	}
+
+	return false, fmt.Errorf("failed to check CRD existence: %w", err)
 }
 
 // convertUnstructuredToCRD converts an unstructured object to a CRD object.
