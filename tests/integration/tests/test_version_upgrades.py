@@ -248,10 +248,6 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
 
     # Refresh each node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
-        # Fake the pre-refresh hook for this test (see docstring above)
-        if idx == 0:
-            instance.exec("k8s kubectl apply -f -".split(), input=config.MANIFESTS_DIR / "upgrade.yaml")
-            instance.exec('k8s kubectl patch upgrade "cluster-upgrade" --type=merge -p \'{"status":{"phase":"NodeUpgrade", "upgradedNodes": []}}\' --subresource status'.split())
         instance.exec(f"snap refresh k8s --channel={target_branch}".split())
 
         # TODO(ben): Check if this wait is really required, if yes - why?
@@ -275,7 +271,7 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         if idx == len(instances) - 1:
             assert (
                 phase == "FeatureUpgrade"
-            ), f"After the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
+            ), f"Right after the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
 
             # Feature version should eventually be upgraded.
             util.stubbornly(retries=15, delay_s=5).on(instance).until(
