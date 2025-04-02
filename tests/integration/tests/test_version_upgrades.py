@@ -316,6 +316,7 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     env = os.environ.copy()
     env["LANG"] = "C.UTF-8"
     env["LC_ALL"] = "C.UTF-8"
+    env["PYTHONIOENCODING"] = 'utf-8'
     util.run(f"snapcraft pack {unsquash_path} -o {modified_snap_path}".split(), env=env)
     util.run(f"snapcraft upload {modified_snap_path} --release={target_branch}".split())
 
