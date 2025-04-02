@@ -320,7 +320,7 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         if idx == len(instances) - 1:
             assert (
                 phase == "FeatureUpgrade"
-            ), f"After the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
+            ), f"Right after the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
 
             # Feature version should eventually be upgraded.
             util.stubbornly(retries=15, delay_s=5).on(instance).until(

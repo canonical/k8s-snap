@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
@@ -180,8 +181,7 @@ func (c *FeatureController) reconcileLoop(
 			}
 			log.Info("Upgrade in progress", "upgrade", upgrade)
 			if upgrade != nil {
-				// TODO(ben): Move those phase names to types.
-				if upgrade.Status.Phase != "FeatureUpgrade" {
+				if upgrade.Status.Phase != kubernetes.UpgradePhaseFeatureUpgrade {
 					log.Info("Upgrade in progress - feature controller blocked", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
 					continue
 				}
