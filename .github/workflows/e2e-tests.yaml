@@ -78,6 +78,9 @@ jobs:
           TEST_SNAPCRAFT_STORE_CREDENTIALS: '{{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}'
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} -k "test_feature_upgrades"
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: canonical/action-tmate@main
       - name: Prepare inspection reports
         if: failure()
         run: |
