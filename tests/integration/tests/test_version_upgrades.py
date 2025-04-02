@@ -4,6 +4,8 @@
 import json
 import logging
 import os
+import random
+import string
 import time
 from pathlib import Path
 from typing import List
@@ -301,7 +303,9 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     # Note(ben): No need to make this configurable/overly complicated for now as
     # we will merge/refactor this test soon anyway (see docstring).
     start_branch = "1.32-classic/stable"
-    target_branch = "latest/edge/ci-upgrade-test"
+    # Create a random branch name to avoid conflicts with other tests that might run in parallel.
+    random_chars = "".join(random.choices(string.ascii_lowercase, k=4))
+    target_branch = f"latest/edge/ci-upgrade-test-{random_chars}"
 
     os.environ["SNAPCRAFT_STORE_CREDENTIALS"] = config.SNAPCRAFT_STORE_CREDENTIALS
 
@@ -317,8 +321,16 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     env["LANG"] = "C.UTF-8"
     env["LC_ALL"] = "C.UTF-8"
     env["PYTHONIOENCODING"] = "utf-8"
-    util.run(f"cd {tmp_path} && snapcraft pack k8s-snap-unsquashed -o {modified_snap_path}".split(), env=env)
-    util.run(f"cd {tmp_path} && snapcraft upload {modified_snap_path} --release={target_branch}".split())
+    util.run(
+        f"snapcraft pack k8s-snap-unsquashed -o {modified_snap_path}".split(),
+        env=env,
+        cwd=tmp_path,
+    )
+    util.run(
+        f"snapcraft upload {modified_snap_path} --release={target_branch}".split(),
+        env=env,
+        cwd=tmp_path,
+    )
 
     main = instances[0]
 
