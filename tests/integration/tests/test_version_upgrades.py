@@ -296,10 +296,6 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         config.SNAPCRAFT_STORE_CREDENTIALS is not None
     ), "SNAPCRAFT_STORE_CREDENTIALS must be set to run this test"
 
-    print(
-        f"SNAPCRAFT_STORE_CREDENTIALS length: {len(config.SNAPCRAFT_STORE_CREDENTIALS)}",
-    )
-
     assert config.SNAP is not None, "SNAP must be set to run this test"
 
     # Note(ben): No need to make this configurable/overly complicated for now as
@@ -317,7 +313,10 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     dummy_file = unsquash_path / f"{time.time()}"
     util.run(f"touch {dummy_file}".split())
     modified_snap_path = tmp_path / "k8s-snap-modified.snap"
-    util.run(f"snapcraft pack {unsquash_path} -o {modified_snap_path}".split())
+    env = os.environ.copy()
+    env["LANG"] = "C.UTF-8"
+    env["LC_ALL"] = "C.UTF-8"
+    util.run(f"snapcraft pack {unsquash_path} -o {modified_snap_path}".split(), env=env)
     util.run(f"snapcraft upload {modified_snap_path} --release={target_branch}".split())
 
     main = instances[0]
