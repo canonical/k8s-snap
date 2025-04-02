@@ -330,14 +330,13 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
                 capture_output=True,
                 text=True,
             )
-            phase = instance.exec(
+            util.stubbornly(retries=15, delay_s=5).on(instance).until(
+                lambda p: p.stdout == "Completed",
+            ).exec(
                 "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
                 capture_output=True,
                 text=True,
-            ).stdout
-            assert (
-                phase == "Completed"
-            ), f"After the feature upgrade, expected phase to be Completed but got {phase}"
+            )
         else:
             assert (
                 phase == "NodeUpgrade"
