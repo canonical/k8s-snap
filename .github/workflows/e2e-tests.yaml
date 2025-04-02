@@ -16,17 +16,48 @@ on:
         type: string
       # Download k8s-snap using either a GH action artifact or a snap channel.
       artifact:
-        description: The name of a GH action artifact.
+        description: The name of a GH action artifact
         type: string
       channel:
-        description: k8s snap channel.
+        description: k8s snap channel
         type: string
       test-tags:
         description: Integration test filter tags (e.g. pull_request, up_to_weekly)
         default: pull_request
         type: string
       flavor:
-        description: Test flavor (e.g. moonray or strict)
+        description: Test flavor (e.g. moonray or strict), leave empty for classic
+        default: ""
+        type: string
+      extra-test-args:
+        description: |
+          Additional pytest arguments, use "-k <test_name>" to run a specific test
+        default: ""
+        type: string
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: Job runner architecture (amd64 or arm64)
+        default: amd64
+        type: string
+      os:
+        description: LXD image to use when running e2e tests
+        default: ubuntu:24.04
+        type: string
+      channel:
+        description: k8s snap channel
+        type: string
+        default: latest/edge
+      test-tags:
+        description: Integration test filter tags (e.g. pull_request, up_to_weekly)
+        default: pull_request
+        type: string
+      flavor:
+        description: Test flavor (e.g. moonray or strict). Leave empty for classic
+        default: ""
+        type: string
+      extra-test-args:
+        description: Additional pytest arguments
         default: ""
         type: string
 
@@ -72,7 +103,7 @@ jobs:
           TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
           TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
         run: |
-          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }}
+          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
       - name: Prepare inspection reports
         if: failure()
         run: |
