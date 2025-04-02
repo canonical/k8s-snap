@@ -114,6 +114,7 @@ func TestStopK8sDqliteServices(t *testing.T) {
 		g.Expect(StopK8sDqliteServices(context.Background(), mock)).NotTo(Succeed())
 	})
 }
+
 func TestStopK8sServices(t *testing.T) {
 	mock := &mock.Snap{
 		Mock: mock.Mock{},
@@ -134,6 +135,7 @@ func TestStopK8sServices(t *testing.T) {
 		g.Expect(StopK8sDqliteServices(context.Background(), mock)).NotTo(Succeed())
 	})
 }
+
 func TestServiceArgsFromMap(t *testing.T) {
 	tests := []struct {
 		name     string
