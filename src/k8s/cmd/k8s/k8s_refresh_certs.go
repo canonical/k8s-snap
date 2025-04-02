@@ -16,6 +16,7 @@ import (
 
 func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	var opts struct {
+		certificates  []string
 		externalCerts string
 		extraSANs     []string
 		expiresIn     string
@@ -26,15 +27,18 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Short: "Refresh the certificates of the running node",
 		Args:  cobra.NoArgs,
 		PreRun: chainPreRunHooks(hookRequireRoot(env), func(cmd *cobra.Command, args []string) {
-			if opts.externalCerts == "" && opts.expiresIn == "" {
-				cmd.PrintErrln("Error: the --expires-in flag is required unless --external-certificates is specified.")
-				env.Exit(1)
-				return
-			}
-			if opts.externalCerts != "" && (opts.expiresIn != "" || len(opts.extraSANs) > 0) {
-				cmd.PrintErrln("Error: --external-certificates cannot be used together with --expires-in or --extra-sans.")
-				env.Exit(1)
-				return
+			if opts.externalCerts == "" {
+				if opts.expiresIn == "" {
+					cmd.PrintErrln("Error: the --expires-in flag is required when not using --external-certificates.")
+					env.Exit(1)
+					return
+				}
+			} else {
+				if opts.expiresIn != "" || len(opts.extraSANs) > 0 || len(opts.certificates) > 0 {
+					cmd.PrintErrln("Error: --external-certificates cannot be used together with --expires-in, --extra-sans, or --certificates.")
+					env.Exit(1)
+					return
+				}
 			}
 		}),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -81,7 +85,9 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				cmd.PrintErrf("Error: Failed to parse TTL. \n\nThe error was: %v\n", err)
 			}
 
-			plan, err := client.RefreshCertificatesPlan(ctx, apiv1.RefreshCertificatesPlanRequest{})
+			plan, err := client.RefreshCertificatesPlan(ctx, apiv1.RefreshCertificatesPlanRequest{
+				Certificates: opts.certificates,
+			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to get the certificates refresh plan.\n\nThe error was: %v\n", err)
 				env.Exit(1)
@@ -96,6 +102,7 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			runRequest := apiv1.RefreshCertificatesRunRequest{
+				Certificates:      opts.certificates,
 				Seed:              plan.Seed,
 				ExpirationSeconds: ttl,
 				ExtraSANs:         opts.extraSANs,
@@ -113,6 +120,7 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.Printf("Certificates have been successfully refreshed, and will expire at %v.\n", expiryTimeUNIX)
 		},
 	}
+	cmd.Flags().StringArrayVar(&opts.certificates, "certificates", []string{}, "List of certificates to renew in the cluster (only used with --expires-in). Allowed values:\n  Worker nodes: kubelet, kubelet.conf, proxy.conf\n  Control plane nodes: admin.conf, front-proxy-client, apiserver-kubelet-client, scheduler.conf, controller.conf, apiserver, kubelet.conf, kubelet, proxy.conf")
 	cmd.Flags().StringVar(&opts.externalCerts, "external-certificates", "", "path to a YAML file containing external certificate data in PEM format. If the cluster was bootstrapped with external certificates, the certificates will be updated. Use '-' to read from stdin.")
 	cmd.Flags().StringVar(&opts.expiresIn, "expires-in", "", "the time until the certificates expire, e.g., 1h, 2d, 4mo, 5y. Aditionally, any valid time unit for ParseDuration is accepted.")
 	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
