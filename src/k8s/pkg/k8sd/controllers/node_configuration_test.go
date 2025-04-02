@@ -202,7 +202,7 @@ func TestConfigPropagation(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			s.RestartServiceCalledWith = nil
+			s.RestartServicesCalledWith = nil
 
 			g := NewWithT(t)
 
@@ -229,9 +229,9 @@ func TestConfigPropagation(t *testing.T) {
 			}
 
 			if tc.expectRestart {
-				g.Expect(s.RestartServiceCalledWith).To(Equal([]string{"kubelet"}))
+				g.Expect(s.RestartServicesCalledWith[0]).To(Equal([]string{"kubelet"}))
 			} else {
-				g.Expect(s.RestartServiceCalledWith).To(BeEmpty())
+				g.Expect(s.RestartServicesCalledWith).To(BeEmpty())
 			}
 		})
 	}

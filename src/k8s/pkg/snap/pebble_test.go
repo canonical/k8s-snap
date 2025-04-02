@@ -20,7 +20,7 @@ func TestPebble(t *testing.T) {
 			RunCommand:    mockRunner.Run,
 		})
 
-		err := snap.StartService(context.Background(), "test-service")
+		err := snap.StartServices(context.Background(), []string{"test-service"})
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("testdir/bin/pebble start test-service"))
 
@@ -28,7 +28,7 @@ func TestPebble(t *testing.T) {
 			g := NewWithT(t)
 			mockRunner.Err = fmt.Errorf("some error")
 
-			err := snap.StartService(context.Background(), "test-service")
+			err := snap.StartServices(context.Background(), []string{"test-service"})
 			g.Expect(err).To(HaveOccurred())
 		})
 	})
@@ -41,7 +41,7 @@ func TestPebble(t *testing.T) {
 			SnapCommonDir: "testdir",
 			RunCommand:    mockRunner.Run,
 		})
-		err := snap.StopService(context.Background(), "test-service")
+		err := snap.StopServices(context.Background(), []string{"test-service"})
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("testdir/bin/pebble stop test-service"))
 
@@ -49,7 +49,7 @@ func TestPebble(t *testing.T) {
 			g := NewWithT(t)
 			mockRunner.Err = fmt.Errorf("some error")
 
-			err := snap.StartService(context.Background(), "test-service")
+			err := snap.StartServices(context.Background(), []string{"test-service"})
 			g.Expect(err).To(HaveOccurred())
 		})
 	})
@@ -63,7 +63,7 @@ func TestPebble(t *testing.T) {
 			RunCommand:    mockRunner.Run,
 		})
 
-		err := snap.RestartService(context.Background(), "test-service")
+		err := snap.RestartServices(context.Background(), []string{"test-service"})
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("testdir/bin/pebble restart test-service"))
 
@@ -71,7 +71,7 @@ func TestPebble(t *testing.T) {
 			g := NewWithT(t)
 			mockRunner.Err = fmt.Errorf("some error")
 
-			err := snap.StartService(context.Background(), "service")
+			err := snap.StartServices(context.Background(), []string{"service"})
 			g.Expect(err).To(HaveOccurred())
 		})
 	})

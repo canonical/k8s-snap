@@ -90,7 +90,7 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 		}
 
 		if certificatesChanged || argsChanged {
-			if err := c.snap.RestartService(ctx, "kube-apiserver"); err != nil {
+			if err := c.snap.RestartServices(ctx, []string{"kube-apiserver"}); err != nil {
 				return fmt.Errorf("failed to restart kube-apiserver to apply configuration: %w", err)
 			}
 		}
@@ -104,7 +104,7 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 		}
 
 		if mustRestart {
-			if err := c.snap.RestartService(ctx, "kube-controller-manager"); err != nil {
+			if err := c.snap.RestartServices(ctx, []string{"kube-controller-manager"}); err != nil {
 				return fmt.Errorf("failed to restart kube-controller-manager to apply configuration: %w", err)
 			}
 		}

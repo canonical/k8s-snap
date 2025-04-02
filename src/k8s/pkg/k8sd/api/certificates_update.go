@@ -180,11 +180,11 @@ func refreshCertsUpdateWorker(s state.State, r *http.Request, snap snap.Snap) re
 	}
 
 	restartFn := func(ctx context.Context) error {
-		if err := snap.RestartService(ctx, "kubelet"); err != nil {
+		if err := snap.RestartServices(ctx, []string{"kubelet"}); err != nil {
 			return fmt.Errorf("failed to restart kubelet: %w", err)
 		}
 
-		if err := snap.RestartService(ctx, "kube-proxy"); err != nil {
+		if err := snap.RestartServices(ctx, []string{"kube-proxy"}); err != nil {
 			return fmt.Errorf("failed to restart kube-proxy: %w", err)
 		}
 		return nil
