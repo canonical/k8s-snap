@@ -21,7 +21,7 @@ func TestStartWorkerServices(t *testing.T) {
 	t.Run("AllServicesStartSuccess", func(t *testing.T) {
 		mock.StartServicesErr = nil
 		g.Expect(StartWorkerServices(context.Background(), mock)).To(Succeed())
-		g.Expect(len(mock.StartServicesCalledWith)).To(Equal(1))
+		g.Expect(len(mock.StartServicesCalledWith)).To(HaveLen(1))
 		g.Expect(mock.StartServicesCalledWith[0]).To(ConsistOf(workerServices))
 	})
 
@@ -42,7 +42,7 @@ func TestStartControlPlaneServices(t *testing.T) {
 	t.Run("AllServicesStartSuccess", func(t *testing.T) {
 		mock.StartServicesErr = nil
 		g.Expect(StartControlPlaneServices(context.Background(), mock)).To(Succeed())
-		g.Expect(len(mock.StartServicesCalledWith)).To(Equal(1))
+		g.Expect(len(mock.StartServicesCalledWith)).To(HaveLen(1))
 		g.Expect(mock.StartServicesCalledWith[0]).To(ConsistOf(controlPlaneServices))
 	})
 
@@ -63,7 +63,7 @@ func TestStartK8sDqliteServices(t *testing.T) {
 	t.Run("ServiceStartSuccess", func(t *testing.T) {
 		mock.StartServicesErr = nil
 		g.Expect(StartK8sDqliteServices(context.Background(), mock)).To(Succeed())
-		g.Expect(len(mock.StartServicesCalledWith)).To(Equal(1))
+		g.Expect(len(mock.StartServicesCalledWith)).To(HaveLen(1))
 		g.Expect(mock.StartServicesCalledWith[0]).To(ConsistOf("k8s-dqlite"))
 	})
 
@@ -84,7 +84,7 @@ func TestStopControlPlaneServices(t *testing.T) {
 	t.Run("AllServicesStopSuccess", func(t *testing.T) {
 		mock.StopServicesErr = nil
 		g.Expect(StopControlPlaneServices(context.Background(), mock)).To(Succeed())
-		g.Expect(len(mock.StopServicesCalledWith)).To(Equal(1))
+		g.Expect(len(mock.StopServicesCalledWith)).To(HaveLen(1))
 		g.Expect(mock.StopServicesCalledWith[0]).To(ConsistOf(controlPlaneServices))
 	})
 
@@ -105,7 +105,7 @@ func TestStopK8sDqliteServices(t *testing.T) {
 	t.Run("ServiceStopSuccess", func(t *testing.T) {
 		mock.StopServicesErr = nil
 		g.Expect(StopK8sDqliteServices(context.Background(), mock)).To(Succeed())
-		g.Expect(len(mock.StopServicesCalledWith)).To(Equal(1))
+		g.Expect(len(mock.StopServicesCalledWith)).To(HaveLen(1))
 		g.Expect(mock.StopServicesCalledWith[0]).To(ConsistOf("k8s-dqlite"))
 	})
 
@@ -125,7 +125,7 @@ func TestStopK8sServices(t *testing.T) {
 	t.Run("ServiceStopSuccess", func(t *testing.T) {
 		mock.StopServicesErr = nil
 		g.Expect(StopK8sServices(context.Background(), mock)).To(Succeed())
-		g.Expect(len(mock.StopServicesCalledWith)).To(Equal(1))
+		g.Expect(len(mock.StopServicesCalledWith)).To(HaveLen(1))
 		g.Expect(mock.StopServicesCalledWith[0]).To(ConsistOf(k8sServices))
 	})
 
