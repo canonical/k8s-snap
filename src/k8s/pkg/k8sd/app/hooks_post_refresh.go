@@ -171,7 +171,7 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 
 			log.Info("All feature have reconciled.")
 
-			if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Metadata.Name, kubernetes.Status{Phase: kubernetes.UpgradePhaseFeatureUpgrade}); err != nil {
+			if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Metadata.Name, kubernetes.Status{Phase: kubernetes.UpgradePhaseCompleted}); err != nil {
 				log.Error(err, "failed to set upgrade phase after successful feature upgrade")
 				return
 			}
