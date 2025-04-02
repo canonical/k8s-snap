@@ -71,22 +71,37 @@ func NewSnap(opts SnapOpts) *snap {
 	return s
 }
 
-// StartService starts a k8s service. The name can be either prefixed or not.
-func (s *snap) StartService(ctx context.Context, name string) error {
-	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Starting service", "service", name)
-	return s.runCommand(ctx, []string{"snapctl", "start", "--enable", serviceName(name)})
+// StartServices starts k8s services. The names can be either prefixed or not.
+func (s *snap) StartServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
+	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Starting services", "services", names)
+	cmd := []string{"snap", "start", "--enable"}
+	for _, name := range names {
+		cmd = append(cmd, serviceName(name))
+	}
+	cmd = append(cmd, extraSnapArgs...)
+	return s.runCommand(ctx, cmd)
 }
 
-// StopService stops a k8s service. The name can be either prefixed or not.
-func (s *snap) StopService(ctx context.Context, name string) error {
-	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Stopping service", "service", name)
-	return s.runCommand(ctx, []string{"snapctl", "stop", "--disable", serviceName(name)})
+// StopServices stops k8s services. The names can be either prefixed or not.
+func (s *snap) StopServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
+	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Stopping services", "services", names)
+	cmd := []string{"snap", "stop", "--disable"}
+	for _, name := range names {
+		cmd = append(cmd, serviceName(name))
+	}
+	cmd = append(cmd, extraSnapArgs...)
+	return s.runCommand(ctx, cmd)
 }
 
-// RestartService restarts a k8s service. The name can be either prefixed or not.
-func (s *snap) RestartService(ctx context.Context, name string) error {
-	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Restarting service", "service", name)
-	return s.runCommand(ctx, []string{"snapctl", "restart", serviceName(name)})
+// RestartServices restarts k8s services. The names can be either prefixed or not.
+func (s *snap) RestartServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
+	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Restarting services", "services", names)
+	cmd := []string{"snap", "restart"}
+	for _, name := range names {
+		cmd = append(cmd, serviceName(name))
+	}
+	cmd = append(cmd, extraSnapArgs...)
+	return s.runCommand(ctx, cmd)
 }
 
 // Refresh refreshes the snap to a different track, revision or custom snap.

@@ -24,76 +24,86 @@ var (
 		"kubelet",
 		"kube-apiserver",
 	}
+
+	// k8sServices contains all k8s services except of k8sd.
+	k8sServices = []string{
+		"containerd",
+		"kube-apiserver",
+		"kube-controller-manager",
+		"kube-scheduler",
+		"kube-proxy",
+		"kubelet",
+		"k8s-dqlite",
+		"k8s-apiserver-proxy",
+	}
 )
 
 // RestartControlPlaneServices restarts the control plane services.
 // RestartControlPlaneServices will return on the first failing service.
-func RestartControlPlaneServices(ctx context.Context, snap snap.Snap) error {
-	for _, service := range controlPlaneServices {
-		if err := snap.RestartService(ctx, service); err != nil {
-			return fmt.Errorf("failed to restart service %s: %w", service, err)
-		}
+func RestartControlPlaneServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
+	if err := snap.RestartServices(ctx, controlPlaneServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to restart service %v: %w", controlPlaneServices, err)
 	}
 	return nil
 }
 
 // StartWorkerServices starts the worker services.
 // StartWorkerServices will return on the first failing service.
-func StartWorkerServices(ctx context.Context, snap snap.Snap) error {
-	for _, service := range workerServices {
-		if err := snap.StartService(ctx, service); err != nil {
-			return fmt.Errorf("failed to start service %s: %w", service, err)
-		}
+func StartWorkerServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
+	if err := snap.StartServices(ctx, workerServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to start service %v: %w", workerServices, err)
 	}
 	return nil
 }
 
 // StartControlPlaneServices starts the control plane services.
 // StartControlPlaneServices will return on the first failing service.
-func StartControlPlaneServices(ctx context.Context, snap snap.Snap) error {
-	for _, service := range controlPlaneServices {
-		if err := snap.StartService(ctx, service); err != nil {
-			return fmt.Errorf("failed to start service %s: %w", service, err)
-		}
+func StartControlPlaneServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
+	if err := snap.StartServices(ctx, controlPlaneServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to start service %v: %w", controlPlaneServices, err)
 	}
 	return nil
 }
 
 // StartK8sDqliteServices starts the k8s-dqlite datastore service.
-func StartK8sDqliteServices(ctx context.Context, snap snap.Snap) error {
-	if err := snap.StartService(ctx, "k8s-dqlite"); err != nil {
-		return fmt.Errorf("failed to start service %s: %w", "k8s-dqlite", err)
+func StartK8sDqliteServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
+	if err := snap.StartServices(ctx, []string{"k8s-dqlite"}, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to start service %v: %w", "k8s-dqlite", err)
 	}
 	return nil
 }
 
 // StopWorkerServices starts the worker services.
 // StopWorkerServices will return on the first failing service.
-func StopWorkerServices(ctx context.Context, snap snap.Snap) error {
-	for _, service := range workerServices {
-		if err := snap.StopService(ctx, service); err != nil {
-			return fmt.Errorf("failed to stop service %s: %w", service, err)
-		}
+func StopWorkerServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
+	if err := snap.StopServices(ctx, workerServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to stop service %v: %w", workerServices, err)
 	}
 	return nil
 }
 
 // StopControlPlaneServices stops the control plane services.
 // StopControlPlaneServices will return on the first failing service.
-func StopControlPlaneServices(ctx context.Context, snap snap.Snap) error {
-	for _, service := range controlPlaneServices {
-		if err := snap.StopService(ctx, service); err != nil {
-			return fmt.Errorf("failed to stop service %s: %w", service, err)
-		}
+func StopControlPlaneServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
+	if err := snap.StopServices(ctx, controlPlaneServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to stop service %v: %w", controlPlaneServices, err)
 	}
 	return nil
 }
 
 // StopK8sDqliteServices stops the control plane services.
 // StopK8sDqliteServices will return on the first failing service.
-func StopK8sDqliteServices(ctx context.Context, snap snap.Snap) error {
-	if err := snap.StopService(ctx, "k8s-dqlite"); err != nil {
-		return fmt.Errorf("failed to stop service %s: %w", "k8s-dqlite", err)
+func StopK8sDqliteServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
+	if err := snap.StopServices(ctx, []string{"k8s-dqlite"}, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to stop service %v: %w", "k8s-dqlite", err)
+	}
+	return nil
+}
+
+// StopK8sServices stops all k8s services except of k8sd.
+func StopK8sServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
+	if err := snap.StopServices(ctx, k8sServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to stop service %v: %w", k8sServices, err)
 	}
 	return nil
 }

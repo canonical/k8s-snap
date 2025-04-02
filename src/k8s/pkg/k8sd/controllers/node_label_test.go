@@ -113,7 +113,7 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			s.RestartServiceCalledWith = nil
+			s.RestartServicesCalledWith = nil
 
 			k8sDqliteFailureDomainFile := snaputil.GetDqliteFailureDomainFile(k8sDqliteStateDir)
 			k8sdFailureDomainFile := snaputil.GetDqliteFailureDomainFile(k8sdDbDir)
@@ -165,10 +165,10 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 			g.Expect(k8sdFailureDomain).To(Equal(tc.expFailureDomain))
 
 			if tc.expRestart {
-				g.Expect(s.RestartServiceCalledWith).To(ContainElement("k8sd"))
-				g.Expect(s.RestartServiceCalledWith).To(ContainElement("k8s-dqlite"))
+				g.Expect(s.RestartServicesCalledWith).To(ContainElement([]string{"k8sd"}))
+				g.Expect(s.RestartServicesCalledWith).To(ContainElement([]string{"k8s-dqlite"}))
 			} else {
-				g.Expect(s.RestartServiceCalledWith).To(BeEmpty())
+				g.Expect(s.RestartServicesCalledWith).To(BeEmpty())
 			}
 		})
 	}
