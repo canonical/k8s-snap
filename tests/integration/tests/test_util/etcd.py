@@ -250,6 +250,11 @@ class EtcdCluster:
         instance.exec(["systemctl", "enable", "etcd-s1.service"])
         instance.exec(["systemctl", "start", "etcd-s1.service"])
 
+    def cleanup(self):
+        for instance in self.instances:
+            self.harness.delete_instance(instance.id)
+        self.instances = []
+
     @property
     def ca_cert(self) -> str:
         """

@@ -202,6 +202,6 @@ to ensure that the cluster is fully functional.
 [backup-restore]:     ../../snap/howto/backup-restore
 [charmhub]:            https://charmhub.io/k8s
 [cluster-validation]: ./validate
-[juju-docs]:          https://canonical-juju.readthedocs-hosted.com/en/latest/user/howto/manage-models/#manage-models
+[juju-docs]:          https://documentation.ubuntu.com/juju/latest/howto/manage-models/#how-to-manage-models
 [release-notes]:      ../reference/releases
 [upstream-notes]:     https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG

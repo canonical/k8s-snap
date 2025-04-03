@@ -40,7 +40,7 @@ class MultipassHarness(Harness):
         if network_type:
             raise HarnessError("Currently only IPv4 is supported by Multipass harness")
 
-        instance_id = f"k8s-integration-{os.urandom(3).hex()}-{self.next_id()}"
+        instance_id = f"k8s-integration-{self.next_id()}-{os.urandom(3).hex()}"
 
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
         try:
