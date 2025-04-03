@@ -34,9 +34,6 @@ leverage to implement security controls for their workloads:
 providers for Secrets at rest, with AES-GCM as the preferred encryption
 algorithm for data confidentiality.
 
-* Configurable Providers: Canonical Kubernetes supports integration with
-various Key Management Services (KMS) to centralize and control key management.
-
 * Kubernetes API Authentication: For secure API access, users can configure
 X.509 certificates, allowing them to implement secure, certificate-based
 authentication with support for RSA 2048 and ECDSA keys.
@@ -97,3 +94,4 @@ See [certificates] for a list of certificates used in {{product}}.
 [rsa]: https://pkg.go.dev/crypto/rsa
 [sha256]: https://pkg.go.dev/crypto/sha256
 [tls]: https://pkg.go.dev/crypto/tls
+[Vault]: https://www.hashicorp.com/en/products/vault
