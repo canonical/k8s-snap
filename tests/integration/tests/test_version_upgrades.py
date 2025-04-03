@@ -295,6 +295,17 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         token = util.get_join_token(main, instance)
         instance.exec(["k8s", "join-cluster", token])
 
+    util.wait_until_k8s_ready(instance, instances)
+
+    # Get initial helm releases to track if they are updated correctly.
+    initial_releases = json.loads(
+        main.exec(
+            "k8s helm list -n kube-system -o json".split(),
+            capture_output=True,
+            text=True,
+        ).stdout
+    )
+
     # Refresh each node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
         util.setup_k8s_snap(instance, tmp_path, config.SNAP)
@@ -322,14 +333,21 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
                 phase == "FeatureUpgrade"
             ), f"Right after the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
 
-            # Feature version should eventually be upgraded.
+            # All Feature version should eventually be upgraded.
+            LOG.info("Waiting for all helm releases to upgrade")
             util.stubbornly(retries=15, delay_s=5).on(instance).until(
-                lambda p: "ghcr.io/canonical/coredns:1.11.4-ck1" in p.stdout,
+                lambda p: all(
+                    json.loads(p.stdout)[name]["updated"]
+                    == initial_releases[name]["updated"]
+                    for name in initial_releases
+                ),
             ).exec(
-                "k8s kubectl get deployment coredns -n kube-system -o jsonpath='{.spec.template.spec.containers[0].image}'".split(),
+                "k8s helm list -n kube-system -o json".split(),
                 capture_output=True,
                 text=True,
             )
+            LOG.info("All helm releases have upgraded successfully")
+
             util.stubbornly(retries=15, delay_s=5).on(instance).until(
                 lambda p: p.stdout == "Completed",
             ).exec(
@@ -341,14 +359,19 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
             assert (
                 phase == "NodeUpgrade"
             ), f"While upgrading, expected phase to be NodeUpgrade but got {phase}"
-            coredns_image = instance.exec(
-                "k8s kubectl get deployment coredns -n kube-system -o jsonpath='{.spec.template.spec.containers[0].image}'".split(),
+
+            current_helm_releases = instance.exec(
+                "k8s helm list -n kube-system -o json".split(),
                 capture_output=True,
                 text=True,
-            )
-            assert (
-                "ghcr.io/canonical/coredns:1.11.3-ck0" in coredns_image.stdout
-            ), "The feature version should not be upgraded yet"
+            ).stdout
+
+            for release in json.loads(current_helm_releases):
+                name = release["name"]
+                assert (
+                    release["updated"] == initial_releases[name]["updated"]
+                ), f"{release['name']} was updated while upgrading {instance.id} but should not \
+                    have been ({initial_releases[name]['updated']}, {release['updated']})"
 
 
 def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> True:
