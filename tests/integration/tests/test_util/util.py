@@ -560,7 +560,7 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
         return major_minor(stable)
 
 
-def _pervious_track_from_branch(branch: str) -> Optional[str]:
+def _previous_track_from_branch(branch: str) -> Optional[str]:
     """Determine the previous track from the branch.
 
     Args:
@@ -616,7 +616,7 @@ def previous_track(snap_version: str) -> str:
 
     if snap_version.startswith("/") or _as_int(snap_version) is not None:
         branch = config.GH_BASE_REF or config.GH_REF or MAIN_BRANCH
-        prev = _pervious_track_from_branch(branch)
+        prev = _previous_track_from_branch(branch)
         if prev:
             LOG.info(
                 "Previous track for %s from branch %s is %s", snap_version, branch, prev
