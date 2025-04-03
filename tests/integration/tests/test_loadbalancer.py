@@ -26,9 +26,10 @@ def test_loadbalancer_ipv4(instances: List[harness.Instance]):
     _test_loadbalancer(instances, k8s_net_type=K8sNetType.ipv4)
 
 
-@pytest.mark.node_count(2)
+# Note(ben): Commented out as otherwise the setup would still happen for xfail tests.
+# @pytest.mark.node_count(2)
+# @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.PULL_REQUEST)
-@pytest.mark.disable_k8s_bootstrapping()
 def test_loadbalancer_ipv6_only(instances: List[harness.Instance]):
     pytest.xfail(
         "Cilium ipv6 only unsupported: https://github.com/cilium/cilium/issues/15082"

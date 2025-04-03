@@ -10,8 +10,9 @@ from test_util import config, harness, snap, tags, util
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.node_count(1)
-@pytest.mark.no_setup()
+# Note(ben): Commented out as otherwise the setup would still happen for xfail tests.
+# @pytest.mark.node_count(1)
+# @pytest.mark.no_setup()
 @pytest.mark.skipif(
     not config.STRICT_INTERFACE_CHANNELS, reason="No strict channels configured"
 )

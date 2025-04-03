@@ -3,6 +3,7 @@ package setup_test
 import (
 	"net"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -266,9 +267,12 @@ func TestKubelet(t *testing.T) {
 		// Create a mock snap
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
+		taints := []string{"foo=bar:NoSchedule"}
+		taintsStr := strings.Join(taints, ",")
 		extraArgs := map[string]*string{
-			"--cluster-domain": utils.Pointer("override.local"),
-			"--cloud-provider": nil,
+			"--cluster-domain":       utils.Pointer("override.local"),
+			"--cloud-provider":       nil,
+			"--register-with-taints": utils.Pointer(taintsStr),
 		}
 
 		// Call the kubelet worker setup function
@@ -292,7 +296,7 @@ func TestKubelet(t *testing.T) {
 			{key: "--kubeconfig", expectedVal: filepath.Join(s.Mock.KubernetesConfigDir, "kubelet.conf")},
 			{key: "--node-labels", expectedVal: expectedWorkerLabels},
 			{key: "--read-only-port", expectedVal: "0"},
-			{key: "--register-with-taints", expectedVal: ""},
+			{key: "--register-with-taints", expectedVal: taintsStr},
 			{key: "--root-dir", expectedVal: s.Mock.KubeletRootDir},
 			{key: "--serialize-image-pulls", expectedVal: "false"},
 			{key: "--tls-cipher-suites", expectedVal: kubeletTLSCipherSuites},

@@ -17,7 +17,7 @@ jobs:
     name: Integration
     strategy:
       matrix:
-        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
+        os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
         channel: ["latest/edge"]
       fail-fast: false # TODO: remove once we no longer have flaky tests.
@@ -26,7 +26,7 @@ jobs:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
-      test-tags: 'up_to_nightly'
+      test-tags: 'up_to_nightly conformance_tests'
 
   Trivy:
     permissions:
@@ -47,18 +47,27 @@ jobs:
     with:
       channel: ${{ matrix.channel }}
       checkout-ref: ${{ matrix.branch }}
+      upload-reports-to-jira: true
+    secrets: inherit
 
   TICS:
+    if: ${{ always() && github.event_name == 'schedule' }}
     permissions:
       contents: read
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
-          # Latest branches
           - { branch: main }
     steps:
       - name: Checking out repo
+        uses: actions/checkout@v4
+      - name: Save tics-scan.sh script
+        run: |
+          # We'll need to scan other branches, let's create a copy of
+          # the TICS scan script.
+          cp tests/tics-scan.sh /tmp/tics-scan.sh
+      - name: Checking out tested repo branch
         uses: actions/checkout@v4
         with:
           ref: ${{matrix.branch}}
@@ -73,43 +82,9 @@ jobs:
         working-directory: src/k8s
         run: go mod download
       - name: TICS scan
-        # TODO: move the following to a script.
         run: |
           export TICSAUTHTOKEN=${{ secrets.TICSAUTHTOKEN }}
-
-          set -x
-          # Install python dependencies
-          pip install -r tests/integration/requirements-test.txt
-          pip install -r tests/integration/requirements-dev.txt
-          # Needed by pylint (TICSQServer), used in build-scripts, k8s/scripts/cis
-          pip install requests jinja2 semver
-
-          # Integration tests are importing a local test_util module. Needed for pylint.
-          export PYTHONPATH="$PYTHONPATH:$(pwd)/tests/integration/tests"
-
-          cd src/k8s
-
-          # TICS requires us to have the test results in cobertura xml format under the
-          # directory use below
-          sudo make go.unit
-          go install github.com/boumenot/gocover-cobertura@latest
-          gocover-cobertura < coverage.txt > coverage.xml
-          mkdir .coverage
-          mv ./coverage.xml ./.coverage/
-
-          # Install the TICS and staticcheck
-          go install honnef.co/go/tools/cmd/staticcheck@v0.5.1
-          . <(curl --silent --show-error 'https://canonical.tiobe.com/tiobeweb/TICS/api/public/v1/fapi/installtics/Script?cfg=default&platform=linux&url=https://canonical.tiobe.com/tiobeweb/TICS/')
-
-          # We need to have our project built
-          # We load the dqlite libs here instead of doing through make because TICS
-          # will try to build parts of the project itself
-          sudo add-apt-repository -y ppa:dqlite/dev
-          sudo apt install dqlite-tools-v2 libdqlite1.17-dev
-          sudo make clean
-          go build -a ./...
-
-          TICSQServer -project k8s-snap -tmpdir /tmp/tics -branchdir $HOME/work/k8s-snap/k8s-snap/
+          /tmp/tics-scan.sh `pwd`
 
   Mattermost:
     name: Notify Mattermost

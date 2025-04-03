@@ -119,7 +119,4 @@ def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
             ["curl", address], shell=True
         )
 
-    # This might take a while
-    util.stubbornly(retries=config.DEFAULT_WAIT_RETRIES, delay_s=20).until(
-        util.ready_nodes(main) == 3
-    )
+    util.wait_until_k8s_ready(main, instances)

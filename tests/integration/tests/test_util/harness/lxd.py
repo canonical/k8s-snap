@@ -71,7 +71,7 @@ class LXDHarness(Harness):
         )
 
     def new_instance(self, network_type: str = "IPv4") -> Instance:
-        instance_id = f"k8s-integration-{os.urandom(3).hex()}-{self.next_id()}"
+        instance_id = f"k8s-integration-{self.next_id()}-{os.urandom(3).hex()}"
 
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
         launch_lxd_command = [
@@ -253,6 +253,29 @@ class LXDHarness(Harness):
             pass
 
         self.instances.discard(instance_id)
+
+    def log_environment_info(self):
+        """Log any relevant environment information before and after each test.
+        This allows us to identify leaked resources.
+        """
+        try:
+            LOG.info("LXC containers:")
+            result = run(["lxc", "list"], capture_output=True)
+            LOG.info("\n%s", result.stdout.decode().strip())
+
+            LOG.info("Disk usage:")
+            result = run(["df", "-h"], capture_output=True)
+            LOG.info("\n%s", result.stdout.decode().strip())
+
+            if config.INSPECTION_REPORTS_DIR:
+                LOG.info("Inspection report size:")
+                result = run(
+                    ["du", "-sh", config.INSPECTION_REPORTS_DIR], capture_output=True
+                )
+                LOG.info("\n%s", result.stdout.decode().strip())
+        except Exception:
+            # Suppress any (unlikely) error.
+            LOG.exception("Failed to obtain environment info")
 
     def cleanup(self):
         for instance_id in self.instances.copy():

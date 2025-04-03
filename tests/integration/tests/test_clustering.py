@@ -26,9 +26,6 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
     util.join_cluster(joining_node, join_token)
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 2, "node should have joined cluster"
-
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "control-plane" in util.get_local_node_status(joining_node)
 
@@ -52,8 +49,6 @@ def test_mixed_version_join(instances: List[harness.Instance]):
     util.join_cluster(joining_node, join_token)
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 2, "node should have joined cluster"
 
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "control-plane" in util.get_local_node_status(joining_node)
@@ -83,8 +78,6 @@ def test_worker_nodes(instances: List[harness.Instance]):
     util.join_cluster(other_joining_node, join_token_2)
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 3, "workers should have joined cluster"
 
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "worker" in util.get_local_node_status(joining_node)
@@ -144,8 +137,6 @@ extra-sans:
     util.wait_until_k8s_ready(
         cluster_node, instances, node_names={joining_cp.id: "my-node"}
     )
-    nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 3, "nodes should have joined cluster"
 
     cluster_node.exec(["k8s", "remove-node", "my-node"])
     nodes = util.ready_nodes(cluster_node)
@@ -169,8 +160,6 @@ def test_cert_refresh(instances: List[harness.Instance]):
     util.join_cluster(joining_worker, join_token_worker)
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 2, "nodes should have joined cluster"
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "worker" in util.get_local_node_status(joining_worker)
 

@@ -16,6 +16,11 @@ on:
       checkout-ref:
         description: k8s-snap git checkout ref, optional.
         type: string
+      upload-reports-to-jira:
+        description: Whether to send the security vulnerabilities to Jira or not.
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   security-scan:
@@ -59,3 +64,11 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: "./.trivy/sarifs"
+      - name: Send vulnerability records
+        if: ${{ inputs.upload-reports-to-jira == true }}
+        uses: canonical/k8s-workflows/.github/actions/send-cve-reports@main
+        with:
+          reports: "./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif,./.trivy/sarifs/snap.sarif"
+          jira-url: ${{ secrets.CVE_JIRA_WEBHOOK_URL }}
+          jira-auth-token: ${{ secrets.CVE_JIRA_WEBHOOK_TOKEN }}
+          minimum-level: "HIGH"
