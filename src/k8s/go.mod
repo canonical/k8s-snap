@@ -16,6 +16,7 @@ require (
 	github.com/onsi/gomega v1.36.2
 	github.com/pelletier/go-toml v1.9.5
 	github.com/spf13/cobra v1.8.1
+	github.com/vishvananda/netlink v1.3.0
 	golang.org/x/mod v0.22.0
 	golang.org/x/net v0.34.0
 	golang.org/x/sync v0.10.0
@@ -32,7 +33,6 @@ require (
 )
 
 require (
-	github.com/vishvananda/netlink v1.3.0 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 )
