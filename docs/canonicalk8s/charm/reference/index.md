@@ -12,7 +12,7 @@ Overview <self>
 
 ```{toctree}
 :titlesonly:
-Architecture <architecture>
+Architecture diagrams <architecture>
 ```
 
 ## Charms

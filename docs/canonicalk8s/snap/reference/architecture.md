@@ -1,4 +1,4 @@
-# Architecture
+# Architecture diagrams
 
 A system architecture document is the starting point for many interested
 participants in a project, whether you intend contributing or simply want to
@@ -12,45 +12,28 @@ Kubernetes with users and with other systems.
 
 ![cluster5][]
 
-Two actors interact with the Kubernetes snap:
+Actors that interact with the K8s snap:
 
-- **K8s admin**: The administrator of the cluster interacts directly with the
-  Kubernetes API server. Out of the box our K8s distribution offers admin
-  access to the cluster. That initial user is able to configure the cluster to
-  match their needs and of course create other users that may or may not have
-  admin privileges. The K8s admin is also able to maintain workloads running
-  in the cluster. If you deploy {{product}} from a snap, this is how the cluster
- is manually orchestrated.
+- K8s admin - interacts directly with the Kubernetes API server. {{product}}
+provides out of the box admin access to the cluster to configure the cluster to
+their needs.
+- K8s user
 
-- **K8s user**: A user consuming the workloads hosted in the cluster. Users do
-  not have access to the Kubernetes API server. They need to access the cluster
-  through the options (nodeport, ingress, load-balancer) offered by the
-  administrator who deployed the workload they are interested in.
+Non-human users of the K8s snap:
 
-There are non-human users of the K8s snap, for example the [`k8s-operator
-charm`][K8s charm]. The K8s charm needs to drive the Kubernetes cluster and to
-orchestrate the multi-node clustering operations.
+- [`k8s-operator charm`][K8s charm].
 
-A set of external systems need to be easily integrated with our K8s
-distribution. We have identified the following:
+Although {{product}} provides its own implementation of the following services,
+external systems that can be easily integrated:
 
-- **Load Balancer**: Although the K8s snap distribution comes with a
-   load balancer we expect the end customer environment to have a load balancer
-   and thus we need to integrate with it.
-- **Storage**: Kubernetes typically expects storage to be external to the
-  cluster. The K8s snap comes with a local storage option but we still need to
-  offer proper integration with any storage solution.
-- **Identity management**: Out of the box the K8s snap offers credentials for
-  an admin user. The admin user can complete the integration with any identity
-  management system available or do user management manually.
-- **External datastore**: By default, Kubernetes uses etcd to keep track of
-  state. Our K8s snap comes with `dqlite` as its datastore. We should however
-  be able to use any end client owned datastore installation. That should
-  include an external `postgresql` or `etcd`.
+- Load Balancer
+- Storage
+- Identity management
+- External datastore
 
 ## The k8s snap
 
-Looking more closely at what is contained within the K8s snap itself:
+What is contained within the K8s snap itself:
 
 ![cluster1][]
 
@@ -75,9 +58,7 @@ needed for managing the Kubernetes cluster.
 
 ![cluster2][]
 
-At the core of the `k8sd` functionality we have the cluster manager that is
-responsible for configuring the services, workload and features we deem
-important for a Kubernetes cluster. Namely:
+Functionality provided by `k8sd` cluster manager is:
 
 - Kubernetes systemd services
 - DNS
@@ -107,8 +88,26 @@ charm] and the [`k8s-worker` charm][K8s-worker charm].
 
 ![cluster4][]
 
-Charms are instantiated on a machine as a Juju unit, and a collection of units
-constitutes an application. Both `k8s` and `k8s-worker` units are responsible
+<!-- Charms are instantiated on a machine as a Juju unit, and a collection of units
+constitutes an application. -->
+
+Roles:
+
+**`k8s`**
+
+- Installs and manages the `k8s` snap
+- Manages control plane node
+
+**`k8s-worker`**
+
+- Installs and manages the `k8s` snap
+- Manages worker node
+
+**Administrator**
+
+- Manages the cluster via the Juju client
+
+Both `k8s` and `k8s-worker` units are responsible
 for installing and managing its machine's `k8s` snap, however the charm type
 determines the node's role in the Kubernetes cluster. The `k8s` charm manages
 `control-plane` nodes, whereas the `k8s-worker` charm manages Kubernetes
