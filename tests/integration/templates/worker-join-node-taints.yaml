@@ -1,0 +1,3 @@
+# Contains the join configuration for the worker nodes in the node taints test.
+extra-node-kubelet-args:
+  "--register-with-taints": "workerTaint1=:PreferNoSchedule,workerTaint2=workerValue:PreferNoSchedule"
