@@ -1,0 +1,21 @@
+# Contains the bootstrap configuration to test user inputs edge cases
+# such as escape characters 
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+  ingress:
+    enabled: true
+  load-balancer:
+    enabled: true
+  local-storage:
+    enabled: true
+  gateway:
+    enabled: true
+  metrics-server:
+    enabled: true
+extra-node-kubelet-args:
+  --cgroup-driver: systemd
+  --hostname-override: dev
+  --eviction-hard: "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'""
