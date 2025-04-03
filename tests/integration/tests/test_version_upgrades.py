@@ -277,10 +277,9 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     Eventually, it will merge with test_version_upgrades to create a unified upgrade test.
 
     This test will spin up a three cp cluster on 1.32-classic/stable, and then upgrade to the snap.
-    The test will then verify that the upgrade CR is updated correctly and that the feature version
-    is upgraded to the latest version.
+    The test will then verify that the upgrade CR is updated correctly and that the features are upgraded
+    after the last node is upgraded.
     The test will also verify that the feature version is not upgraded until all nodes are upgraded.
-
     """
     assert config.SNAP is not None, "SNAP must be set to run this test"
 
@@ -298,13 +297,16 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     util.wait_until_k8s_ready(instance, instances)
 
     # Get initial helm releases to track if they are updated correctly.
-    initial_releases = json.loads(
-        main.exec(
-            "k8s helm list -n kube-system -o json".split(),
-            capture_output=True,
-            text=True,
-        ).stdout
-    )
+    initial_releases = {
+        release["name"]: release
+        for release in json.loads(
+            main.exec(
+                "k8s helm list -n kube-system -o json".split(),
+                capture_output=True,
+                text=True,
+            ).stdout
+        )
+    }
 
     # Refresh each node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
@@ -337,8 +339,8 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
             LOG.info("Waiting for all helm releases to upgrade")
             util.stubbornly(retries=15, delay_s=5).on(instance).until(
                 lambda p: all(
-                    json.loads(p.stdout)[name]["updated"]
-                    == initial_releases[name]["updated"]
+                    next(r for r in json.loads(p.stdout) if r["name"] == name)["updated"]
+                    != initial_releases[name]["updated"]
                     for name in initial_releases
                 ),
             ).exec(
@@ -347,6 +349,9 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
                 text=True,
             )
             LOG.info("All helm releases have upgraded successfully")
+
+            # TODO(ben): Check that new fields are set in the feature config.
+            # TODO(ben): Check that connectivity (e.g. for gateway) is working during the upgrade.
 
             util.stubbornly(retries=15, delay_s=5).on(instance).until(
                 lambda p: p.stdout == "Completed",
@@ -367,6 +372,8 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
             ).stdout
 
             for release in json.loads(current_helm_releases):
+                LOG.info(json.dumps(json.loads(current_helm_releases), indent=2))
+                LOG.info("Checking helm release %s", release["name"])
                 name = release["name"]
                 assert (
                     release["updated"] == initial_releases[name]["updated"]
