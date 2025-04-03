@@ -4,8 +4,6 @@
 import json
 import logging
 import os
-import random
-import string
 import time
 from pathlib import Path
 from typing import List
@@ -13,6 +11,8 @@ from typing import List
 import pytest
 import yaml
 from test_util import config, harness, snap, tags, util
+import random
+import string
 
 LOG = logging.getLogger(__name__)
 
@@ -242,7 +242,7 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
 
     """
     assert (
-        config.SNAPCRAFT_STORE_CREDENTIALS is not None
+        len(config.SNAPCRAFT_STORE_CREDENTIALS) > 0
     ), "SNAPCRAFT_STORE_CREDENTIALS must be set to run this test"
 
     assert config.SNAP is not None, "SNAP must be set to run this test"
@@ -264,28 +264,18 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     dummy_file = unsquash_path / f"{time.time()}"
     util.run(f"touch {dummy_file}".split())
     modified_snap_path = "k8s-snap-modified.snap"
-    env = os.environ.copy()
-    env["LANG"] = "C.UTF-8"
-    env["LC_ALL"] = "C.UTF-8"
-    env["PYTHONIOENCODING"] = "utf-8"
     util.run(
-        f"snapcraft pack k8s-snap-unsquashed -o {modified_snap_path}".split(),
-        env=env,
+        f"echo $SNAPCRAFT_STORE_CREDENTIALS | wc -m".split(),
         cwd=tmp_path,
     )
-    for attempt in range(3):  # Try up to 3 times
-        try:
-            util.run(
-                f"snapcraft upload {modified_snap_path} --release={target_branch}".split(),
-                env=env,
-                cwd=tmp_path,
-            )
-            break  # Success - exit the loop
-        except Exception as e:
-            if attempt == 2:  # Last attempt failed
-                raise  # Re-raise the exception
-            LOG.warning(f"Upload attempt {attempt + 1} failed: {e}. Retrying...")
-            time.sleep(10)  # Wait 10 seconds between attempts
+    util.run(
+        f"snapcraft pack k8s-snap-unsquashed -o {modified_snap_path}".split(),
+        cwd=tmp_path,
+    )
+    util.run(
+        f"snapcraft upload {modified_snap_path} --release={target_branch}".split(),
+        cwd=tmp_path,
+    )
 
     main = instances[0]
 

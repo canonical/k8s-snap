@@ -116,7 +116,7 @@ jobs:
           TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
-          TEST_SNAPCRAFT_STORE_CREDENTIALS: '{{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}'
+          TEST_SNAPCRAFT_STORE_CREDENTIALS: '${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}'
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }} -k "test_feature_upgrades"
       - name: Prepare inspection reports
