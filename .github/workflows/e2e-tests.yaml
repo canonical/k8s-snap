@@ -60,6 +60,11 @@ on:
         description: Additional pytest arguments
         default: ""
         type: string
+      tmate_enabled:
+        type: boolean
+        description: Start a tmate session before running the tests
+        required: false
+        default: false
 
 jobs:
   test-integration:
@@ -86,6 +91,9 @@ jobs:
         uses: ./.github/actions/install-lxd
       - name: Install tox
         run: sudo apt-get install -y tox
+      - name: Setup tmate session
+        uses: canonical/action-tmate@main
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
       - name: Run e2e tests
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
