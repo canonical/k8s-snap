@@ -4,6 +4,8 @@
 import json
 import logging
 import os
+import random
+import string
 import time
 from pathlib import Path
 from typing import List
@@ -11,8 +13,6 @@ from typing import List
 import pytest
 import yaml
 from test_util import config, harness, snap, tags, util
-import random
-import string
 
 LOG = logging.getLogger(__name__)
 
@@ -265,7 +265,7 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     util.run(f"touch {dummy_file}".split())
     modified_snap_path = "k8s-snap-modified.snap"
     util.run(
-        f"echo $SNAPCRAFT_STORE_CREDENTIALS | wc -m".split(),
+        "echo $SNAPCRAFT_STORE_CREDENTIALS | wc -m".split(),
         cwd=tmp_path,
     )
     util.run(
