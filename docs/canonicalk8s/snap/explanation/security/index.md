@@ -8,5 +8,6 @@ security in {{product}}.
 Security overview <security-overview>
 certificates
 cis
+crypto
 ```
 <!-- Add back in once we have this page complete Cryptography <cryptography> -->
