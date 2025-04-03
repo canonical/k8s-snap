@@ -3,11 +3,13 @@
 #
 import itertools
 import logging
+import sys
 from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
-from test_util import config, harness, tags, util
+from test_util import config as test_config
+from test_util import harness, tags, util
 from test_util.etcd import EtcdCluster
 from test_util.registry import Registry
 
@@ -18,6 +20,25 @@ pytest_plugins = ("pytest_tagging",)
 # The following snaps will be downloaded once per test run and preloaded
 # into the harness instances to reduce the number of downloads.
 PRELOADED_SNAPS = ["snapd", "core20"]
+
+
+class StreamToLogger:
+    """Redirects stdout/stderr to a logger."""
+
+    def __init__(self, logger, level):
+        self.logger = logger
+        self.level = level
+        self.line_buffer = ""
+
+    def write(self, message):
+        if message.strip():  # Avoid logging empty lines
+            self.logger.log(self.level, message.strip())
+
+    def flush(self):
+        pass  # No need to flush explicitly, logger handles it
+
+    def isatty(self):
+        return False  # Make sure that the logger does not try to use ANSI escape codes
 
 
 def pytest_itemcollected(item):
@@ -38,7 +59,7 @@ def pytest_itemcollected(item):
 def _harness_clean(h: harness.Harness):
     "Clean up created instances within the test harness."
 
-    if config.SKIP_CLEANUP:
+    if test_config.SKIP_CLEANUP:
         LOG.warning(
             "Skipping harness cleanup. "
             "It is your job now to clean up cloud resources"
@@ -52,14 +73,14 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
     LOG.debug("Generating inspection report for %s", instance_id)
 
     try:
-        inspection_path = Path(config.INSPECTION_REPORTS_DIR)
+        inspection_path = Path(test_config.INSPECTION_REPORTS_DIR)
         result = h.exec(
             instance_id,
             [
                 "/snap/k8s/current/k8s/scripts/inspect.sh",
                 "--all-namespaces",
                 "--core-dump-dir",
-                config.CORE_DUMP_DIR,
+                test_config.CORE_DUMP_DIR,
                 "/inspection-report.tar.gz",
             ],
             capture_output=True,
@@ -86,12 +107,12 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 
 @pytest.fixture(scope="session")
 def h() -> harness.Harness:
-    LOG.debug("Create harness for %s", config.SUBSTRATE)
-    if config.SUBSTRATE == "lxd":
+    LOG.debug("Create harness for %s", test_config.SUBSTRATE)
+    if test_config.SUBSTRATE == "lxd":
         h = harness.LXDHarness()
-    elif config.SUBSTRATE == "multipass":
+    elif test_config.SUBSTRATE == "multipass":
         h = harness.MultipassHarness()
-    elif config.SUBSTRATE == "juju":
+    elif test_config.SUBSTRATE == "juju":
         h = harness.JujuHarness()
     else:
         raise harness.HarnessError(
@@ -100,7 +121,7 @@ def h() -> harness.Harness:
 
     yield h
 
-    if config.INSPECTION_REPORTS_DIR:
+    if test_config.INSPECTION_REPORTS_DIR:
         for instance_id in h.instances:
             LOG.debug("Generating inspection reports for session instances")
             _generate_inspection_report(h, instance_id)
@@ -127,7 +148,7 @@ def registry(h: harness.Harness) -> Optional[Registry]:
 
 @pytest.fixture(scope="session", autouse=True)
 def snapd_preload() -> None:
-    if not config.PRELOAD_SNAPS:
+    if not test_config.PRELOAD_SNAPS:
         LOG.info("Snap preloading disabled, skipping...")
         return
 
@@ -156,6 +177,30 @@ def pytest_configure(config):
         "node_count: Mark a test to specify how many instance nodes need to be created\n"
         "snap_versions: Mark a test to specify snap_versions for each node\n",
     )
+    # Get logger
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)  # Capture all logs, handlers will filter
+
+    # Set up CLI logging (INFO level)
+    cli_handler = logging.StreamHandler()
+    cli_handler.setLevel(test_config.LOG_CLI_LEVEL)
+    cli_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    )
+    logger.addHandler(cli_handler)
+
+    # Set up file logging (DEBUG level)
+    if test_config.LOG_FILE_PATH is not None:
+        file_handler = logging.FileHandler(test_config.LOG_FILE_PATH)
+        file_handler.setLevel(logging.DEBUG)  # Capture all logs in file
+        file_handler.setFormatter(
+            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        )
+        logger.addHandler(file_handler)
+
+        # Redirect stdout & stderr to logger
+        sys.stdout = StreamToLogger(logger, logging.INFO)
+        sys.stderr = StreamToLogger(logger, logging.ERROR)
 
 
 @pytest.fixture(scope="function")
@@ -241,7 +286,7 @@ def instances(
         instance = h.new_instance(network_type=network_type)
         instances.append(instance)
 
-        if config.PRELOAD_SNAPS:
+        if test_config.PRELOAD_SNAPS:
             for preloaded_snap in PRELOADED_SNAPS:
                 ack_file = f"{preloaded_snap}.assert"
                 remote_path = (tmp_path / ack_file).as_posix()
@@ -263,7 +308,7 @@ def instances(
             util.setup_core_dumps(instance)
             util.setup_k8s_snap(instance, tmp_path, snap)
 
-            if config.USE_LOCAL_MIRROR:
+            if test_config.USE_LOCAL_MIRROR:
                 registry.apply_configuration(instance, containerd_cfgdir)
 
     if not disable_k8s_bootstrapping and not no_setup:
@@ -279,13 +324,13 @@ def instances(
 
     yield instances
 
-    if config.SKIP_CLEANUP:
+    if test_config.SKIP_CLEANUP:
         LOG.warning("Skipping clean-up of instances, delete them on your own")
         return
 
     # Collect all the reports before initiating the cleanup so that we won't
     # affect the state of the observed cluster.
-    if config.INSPECTION_REPORTS_DIR:
+    if test_config.INSPECTION_REPORTS_DIR:
         for instance in instances:
             LOG.debug("Generating inspection reports for test instances")
             _generate_inspection_report(h, instance.id)
