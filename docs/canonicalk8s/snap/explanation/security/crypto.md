@@ -78,7 +78,7 @@ for the secure operation of Kubernetes components.
 ## Recommended usage and settings
 
 {{product}} ships with a secure-by-default security posture, so users can rest
-assured that the default configuration is appropriate for most uses cases. If
+assured that the default configuration is appropriate for most use-cases. If
 your security needs are not met by the default configuration, we recommend you
 [deploy an intermediate CA fine-tuned to your liking][intermediate-ca].
 
