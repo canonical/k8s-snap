@@ -24,10 +24,10 @@ type config struct {
 	vlanBPFBypass       []int
 	cniExclusive        bool
 	sctpEnabled         bool
-	tunnelPort          uint16
+	tunnelPort          int
 }
 
-func validatePort(portStr string) (uint16, error) {
+func validatePort(portStr string) (int, error) {
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
 		return 0, errors.New("invalid port: not a number")
@@ -35,7 +35,7 @@ func validatePort(portStr string) (uint16, error) {
 	if port < 1 || port > 65535 {
 		return 0, errors.New("invalid port: out of range")
 	}
-	return uint16(port), nil
+	return int(port), nil
 }
 
 func validateVLANBPFBypass(vlanList string) ([]int, error) {
