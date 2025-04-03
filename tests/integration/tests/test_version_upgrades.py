@@ -4,14 +4,14 @@
 import json
 import logging
 import os
+import random
+import string
 import time
 from pathlib import Path
 from typing import List
 
 import pytest
 from test_util import config, harness, snap, tags, util
-import random
-import string
 
 LOG = logging.getLogger(__name__)
 
