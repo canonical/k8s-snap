@@ -5,7 +5,7 @@ import collections
 import itertools
 import logging
 import time
-from typing import List
+from typing import Iterable, List
 
 import hvac
 import pytest
@@ -41,7 +41,7 @@ APISERVER_DNS_NAMES = [
     "kubernetes",
     "kubernetes.default",
     "kubernetes.default.svc",
-    "kukubernetes.default.svc.cluster",
+    "kubernetes.default.svc.cluster",
     "kubernetes.default.svc.cluster.local",
 ]
 APISERVER_IP_SANS = ["127.0.0.1", "10.152.183.1"]
@@ -144,6 +144,15 @@ def create_certificate(client: hvac.Client, opts: CertOpts):
     return cert, private_key
 
 
+def create_and_assign_certs(
+    client: hvac.Client, cert_opts: Iterable, config_dict: dict
+):
+    for prefix, options in cert_opts:
+        cert, key = create_certificate(client, options)
+        config_dict[f"{prefix}-crt"] = cert
+        config_dict[f"{prefix}-key"] = key
+
+
 def check_nginx_pod_runs(instance: harness.Instance):
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
     instance.exec(
@@ -164,6 +173,11 @@ def check_nginx_pod_runs(instance: harness.Instance):
             "180s",
         ]
     )
+
+
+def delete_nginx_pod(instance: harness.Instance):
+    manifest = MANIFESTS_DIR / "nginx-pod.yaml"
+    instance.exec(["k8s", "kubectl", "delete", "-f", "-"], input=manifest.read_bytes())
 
 
 @pytest.mark.node_count(3)
@@ -300,10 +314,7 @@ def test_vault_certificates(instances: List[harness.Instance]):
     bootstrap_certs.update(cp_certs)
     bootstrap_certs.update(worker_certs)
 
-    for prefix, options in bootstrap_certs.items():
-        cert, key = create_certificate(client, options)
-        bootstrap_config[f"{prefix}-crt"] = cert
-        bootstrap_config[f"{prefix}-key"] = key
+    create_and_assign_certs(client, bootstrap_certs.items(), bootstrap_config)
 
     # For BootstrapConfig, only this key has a different format.
     bootstrap_config["kube-ControllerManager-client-key"] = bootstrap_config[
@@ -329,10 +340,9 @@ def test_vault_certificates(instances: List[harness.Instance]):
         role=NODES_ROLE,
     )
     cp_join_config = {}
-    for prefix, options in itertools.chain(cp_certs.items(), worker_certs.items()):
-        cert, key = create_certificate(client, options)
-        cp_join_config[f"{prefix}-crt"] = cert
-        cp_join_config[f"{prefix}-key"] = key
+    create_and_assign_certs(
+        client, itertools.chain(cp_certs.items(), worker_certs.items()), cp_join_config
+    )
 
     join_token = util.get_join_token(instance, cp_node)
     cp_node.exec(
@@ -352,10 +362,7 @@ def test_vault_certificates(instances: List[harness.Instance]):
         role=NODES_ROLE,
     )
     worker_config = {}
-    for prefix, options in worker_certs.items():
-        cert, key = create_certificate(client, options)
-        worker_config[f"{prefix}-crt"] = cert
-        worker_config[f"{prefix}-key"] = key
+    create_and_assign_certs(client, worker_certs.items(), worker_config)
 
     join_token = util.get_join_token(instance, worker_node, "--worker")
     worker_node.exec(
@@ -367,4 +374,68 @@ def test_vault_certificates(instances: List[harness.Instance]):
     util.wait_for_dns(instance)
 
     # If we deploy a Pod and it becomes Active, the cluster should be functional.
+    check_nginx_pod_runs(instance)
+    delete_nginx_pod(instance)
+
+    # Refresh all cluster's nodes PKI.
+    leader_cp_certs = {}
+    cp_certs["apiserver-kubelet-client"] = CertOpts(
+        common_name="apiserver-kubelet-client",
+        role=MASTERS_ROLE,
+    )
+    worker_certs["kubelet"] = CertOpts(
+        common_name=f"system:node:{bootstrap_node_hostname}",
+        role=NODES_ROLE,
+        alt_names=[bootstrap_node_hostname],
+        ip_sans=["127.0.0.1", bootstrap_node_ip],
+    )
+    worker_certs["kubelet-client"] = CertOpts(
+        common_name=f"system:node:{bootstrap_node_hostname}",
+        role=NODES_ROLE,
+    )
+    create_and_assign_certs(
+        client, itertools.chain(cp_certs.items(), worker_certs.items()), leader_cp_certs
+    )
+    instance.exec(
+        ["k8s", "refresh-certs", "--external-certificates", "-"],
+        input=str.encode(yaml.dump(leader_cp_certs)),
+    )
+
+    new_cp_certs = {}
+    worker_certs["kubelet"] = CertOpts(
+        common_name=f"system:node:{cp_node_hostname}",
+        role=NODES_ROLE,
+        alt_names=[cp_node_hostname],
+        ip_sans=["127.0.0.1", cp_node_ip],
+    )
+    worker_certs["kubelet-client"] = CertOpts(
+        common_name=f"system:node:{cp_node_hostname}",
+        role=NODES_ROLE,
+    )
+    create_and_assign_certs(
+        client, itertools.chain(cp_certs.items(), worker_certs.items()), new_cp_certs
+    )
+    cp_node.exec(
+        ["k8s", "refresh-certs", "--external-certificates", "-"],
+        input=str.encode(yaml.dump(new_cp_certs)),
+    )
+
+    new_worker_certs = {}
+    worker_certs["kubelet"] = CertOpts(
+        common_name=f"system:node:{worker_hostname}",
+        role=NODES_ROLE,
+        alt_names=[worker_hostname],
+        ip_sans=["127.0.0.1", worker_ip],
+    )
+    worker_certs["kubelet-client"] = CertOpts(
+        common_name=f"system:node:{worker_hostname}",
+        role=NODES_ROLE,
+    )
+    create_and_assign_certs(client, worker_certs.items(), new_worker_certs)
+    worker_node.exec(
+        ["k8s", "refresh-certs", "--external-certificates", "-"],
+        input=str.encode(yaml.dump(new_worker_certs)),
+    )
+
+    # Deploy the Pod again to verify the cluster functionality.
     check_nginx_pod_runs(instance)
