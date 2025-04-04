@@ -288,6 +288,7 @@ def wait_until_k8s_ready(
         ):
             with attempt:
                 assert is_node_ready(control_node, node_name)
+                check_snap_services_ready(instance)
 
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
@@ -335,6 +336,7 @@ def is_node_ready(
                     f"condition {condition['type']}={condition['status']}"
                 )
                 return False
+
     except Exception as ex:
         LOG.info(f"Node not ready yet: {node_name}, failed to retrieve node info: {ex}")
         return False
@@ -410,8 +412,15 @@ def get_join_token(
 
 
 # Join an existing cluster.
-def join_cluster(instance: harness.Instance, join_token: str):
-    instance.exec(["k8s", "join-cluster", join_token])
+def join_cluster(
+    instance: harness.Instance, join_token: str, cfg: Optional[str] = None
+):
+    if cfg:
+        instance.exec(
+            ["k8s", "join-cluster", join_token, "--file", "-"], input=str.encode(cfg)
+        )
+    else:
+        instance.exec(["k8s", "join-cluster", join_token])
 
 
 def is_ipv6(ip: str) -> bool:
@@ -709,3 +718,81 @@ def wait_for_daemonset(
 # sonobuoy_tar_gz returns the download URL of sonobuoy.
 def sonobuoy_tar_gz(architecture: str) -> str:
     return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1:]}_linux_{architecture}.tar.gz"  # noqa
+
+
+def check_snap_services_ready(
+    instance: harness.Instance, node_type: Optional[str] = None
+):
+    """Check that the snap services are active on the given harness instance.
+
+    The expected services differ between control-plane and worker nodes.
+    The function will determine the node type by checking the local node status.
+
+    Args:
+        instance: the harness instance to check the snap services on
+        node_type: the node type to check the services for. If not provided, the
+            function will determine the node type by checking the local node status.
+            This is not always possible (e.g. if a node was already removed from the cluster).
+            So, the user can provide the node type explicitly.
+    """
+
+    expected_worker_services = {
+        "containerd",
+        "k8sd",
+        "kubelet",
+        "kube-proxy",
+        "k8s-apiserver-proxy",
+    }
+    expected_control_plane_services = {
+        "containerd",
+        "k8s-dqlite",
+        "k8sd",
+        "kubelet",
+        "kube-proxy",
+        "kube-apiserver",
+        "kube-controller-manager",
+        "kube-scheduler",
+    }
+    if node_type:
+        assert node_type in ("control-plane", "worker"), "Invalid node type provided"
+        expected_active_services = (
+            expected_control_plane_services
+            if node_type == "control-plane"
+            else expected_worker_services
+        )
+    else:
+        node_type = (
+            "control-plane"
+            if "control-plane" in get_local_node_status(instance)
+            else "worker"
+        )
+
+    expected_active_services = (
+        expected_control_plane_services
+        if node_type == "control-plane"
+        else expected_worker_services
+    )
+
+    result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
+    services_output = result.stdout.split("\n")[1:-1]  # Skip the header line
+
+    service_status = {}
+    for line in services_output:
+        parts = line.split()
+        if len(parts) >= 3:  # Ensure there are enough columns
+            service_name = parts[0].replace("k8s.", "", 1)
+            service_status[service_name] = parts[2]  # "active" or "inactive"
+
+    for service in expected_active_services:
+        assert (
+            service in service_status
+        ), f"Service {service} is missing from 'snap services' output"
+        assert (
+            service_status[service] == "active"
+        ), f"Service {service} should be active, but it is {service_status[service]}"
+
+    for service, status in service_status.items():
+        if service not in expected_active_services:
+            assert (
+                status == "inactive"
+            ), f"Unexpected service {service} is {status} but should be inactive"
