@@ -172,3 +172,9 @@ DEFAULT_MIRROR_LIST = [
 
 # Local mirror configuration.
 MIRROR_LIST = json.loads(os.getenv("TEST_MIRROR_LIST", "{}")) or DEFAULT_MIRROR_LIST
+
+# The GitHub ref_name.
+GH_REF = os.getenv("TEST_GH_REF")
+
+# The GitHub base_ref.
+GH_BASE_REF = os.getenv("TEST_GH_BASE_REF")
