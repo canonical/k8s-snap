@@ -34,13 +34,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type NodeRole = string
-
-const (
-	Worker       NodeRole = "worker"
-	ControlPlane NodeRole = "control-plane"
-)
-
 const (
 	CertFrontProxyClient        = "front-proxy-client"
 	CertAPIServerKubeletClient  = "apiserver-kubelet-client"
@@ -74,13 +67,13 @@ type csrDefinition struct {
 }
 
 // Map roles to the set of valid certificate names for that role.
-var certsByRole = map[NodeRole]map[string]struct{}{
-	Worker: {
+var certsByRole = map[apiv1.ClusterRole]map[string]struct{}{
+	apiv1.ClusterRoleWorker: {
 		CertKubelet:       {},
 		CertKubeletClient: {},
 		CertProxyClient:   {},
 	},
-	ControlPlane: {
+	apiv1.ClusterRoleControlPlane: {
 		CertAdminClient:             {},
 		CertFrontProxyClient:        {},
 		CertAPIServerKubeletClient:  {},
@@ -150,7 +143,7 @@ func (c *controlPlaneCertificateMarker) markCertificatesForRefresh(certificates 
 
 // validateCertificatesByRole checks if the requested certs are valid for the
 // given role.
-func validateCertificatesByRole(role NodeRole, certs []string) error {
+func validateCertificatesByRole(role apiv1.ClusterRole, certs []string) error {
 	validCerts, ok := certsByRole[role]
 	if !ok {
 		return fmt.Errorf("unknown role: %s", role)
@@ -182,17 +175,17 @@ func (e *Endpoints) postRefreshCertsPlan(s state.State, r *http.Request) respons
 		return response.InternalError(fmt.Errorf("failed to check if node is a worker: %w", err))
 	}
 
-	var role NodeRole
+	var role apiv1.ClusterRole
 	var certsToPlan []string
 	if isWorker {
-		role = Worker
+		role = apiv1.ClusterRoleWorker
 		if len(req.Certificates) > 0 {
 			certsToPlan = req.Certificates
 		} else {
-			certsToPlan = getAllCertsForRole(Worker)
+			certsToPlan = getAllCertsForRole(apiv1.ClusterRoleWorker)
 		}
 	} else {
-		role = ControlPlane
+		role = apiv1.ClusterRoleControlPlane
 		if len(req.Certificates) > 0 {
 			certsToPlan = req.Certificates
 		}
@@ -249,11 +242,11 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 
 	certsToRefresh := req.Certificates
 	if len(certsToRefresh) > 0 {
-		if err := validateCertificatesByRole(ControlPlane, certsToRefresh); err != nil {
+		if err := validateCertificatesByRole(apiv1.ClusterRoleControlPlane, certsToRefresh); err != nil {
 			return response.BadRequest(fmt.Errorf("failed to validate requested certificates: %w", err))
 		}
 	} else {
-		certsToRefresh = getAllCertsForRole(ControlPlane)
+		certsToRefresh = getAllCertsForRole(apiv1.ClusterRoleControlPlane)
 	}
 
 	clusterConfig, err := databaseutil.GetClusterConfig(r.Context(), s)
@@ -362,9 +355,9 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 
 	certsToRefresh := req.Certificates
 	if len(certsToRefresh) == 0 {
-		certsToRefresh = getAllCertsForRole(Worker)
+		certsToRefresh = getAllCertsForRole(apiv1.ClusterRoleWorker)
 	} else {
-		if err := validateCertificatesByRole(Worker, certsToRefresh); err != nil {
+		if err := validateCertificatesByRole(apiv1.ClusterRoleWorker, certsToRefresh); err != nil {
 			return response.BadRequest(fmt.Errorf("failed to validate requested certificates: %w", err))
 		}
 	}
@@ -561,7 +554,7 @@ func refreshCertsRunWorker(s state.State, r *http.Request, snap snap.Snap) respo
 }
 
 // getAllCertsForRole returns a slice of all certificate names for a given role.
-func getAllCertsForRole(role NodeRole) []string {
+func getAllCertsForRole(role apiv1.ClusterRole) []string {
 	if roleCerts, ok := certsByRole[role]; ok {
 		certs := make([]string, 0, len(roleCerts))
 		for certName := range roleCerts {
