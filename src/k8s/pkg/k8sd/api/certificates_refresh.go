@@ -84,6 +84,8 @@ var certsByRole = map[apiv1.ClusterRole]map[string]struct{}{
 		CertKubelet:                 {},
 		CertProxyClient:             {},
 	},
+	// NOTE: Required due to exhaustive check
+	apiv1.ClusterRoleUnknown: {},
 }
 
 // newControlPlaneCertificateMarker initializes the marker with pointers to
