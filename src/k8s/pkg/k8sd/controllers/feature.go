@@ -154,7 +154,7 @@ func (c *FeatureController) reconcileLoop(
 	setFeatureStatus func(ctx context.Context, name types.FeatureName, status types.FeatureStatus) error,
 	featureName types.FeatureName,
 	triggerCh chan struct{},
-	reconciledCh chan<- struct{},
+	reconciledCh chan struct{},
 	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
 ) {
 	for {
@@ -162,6 +162,9 @@ func (c *FeatureController) reconcileLoop(
 		case <-ctx.Done():
 			return
 		case <-triggerCh:
+			// reset "reconciled" state before reconciling
+			utils.MaybeReceive(reconciledCh)
+
 			if err := c.reconcile(ctx, getClusterConfig, apply, func(ctx context.Context, status types.FeatureStatus) error {
 				return setFeatureStatus(ctx, featureName, status)
 			}); err != nil {
