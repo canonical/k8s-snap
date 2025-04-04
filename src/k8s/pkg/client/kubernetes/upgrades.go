@@ -29,32 +29,32 @@ const (
 	version = "v1alpha"
 )
 
-type Metadata struct {
+type UpgradeMetadata struct {
 	Name string `json:"name,omitempty"`
 }
 
-type Status struct {
+type UpgradeStatus struct {
 	Phase         string   `json:"phase,omitempty"`
 	UpgradedNodes []string `json:"upgradedNodes,omitempty"`
 }
 
 type Upgrade struct {
-	APIVersion string   `json:"apiVersion,omitempty"`
-	Kind       string   `json:"kind,omitempty"`
-	Metadata   Metadata `json:"metadata,omitempty"`
-	Status     Status   `json:"status,omitempty"`
+	APIVersion string          `json:"apiVersion,omitempty"`
+	Kind       string          `json:"kind,omitempty"`
+	Metadata   UpgradeMetadata `json:"metadata,omitempty"`
+	Status     UpgradeStatus   `json:"status,omitempty"`
 }
 
 func NewUpgrade(name string) Upgrade {
 	return Upgrade{
 		APIVersion: group + "/" + version,
 		Kind:       kind,
-		Metadata:   Metadata{Name: name},
-		Status:     Status{Phase: UpgradePhaseNodeUpgrade, UpgradedNodes: []string{}},
+		Metadata:   UpgradeMetadata{Name: name},
+		Status:     UpgradeStatus{Phase: UpgradePhaseNodeUpgrade, UpgradedNodes: []string{}},
 	}
 }
 
-func (c *Client) K8sdIoRestClient() (*rest.RESTClient, error) {
+func (c *Client) k8sdIoRestClient() (*rest.RESTClient, error) {
 	k8sdConfig := c.RESTConfig()
 	k8sdConfig.GroupVersion = &schema.GroupVersion{Group: group, Version: version}
 	k8sdConfig.NegotiatedSerializer = serializer.NewCodecFactory(runtime.NewScheme())
@@ -71,7 +71,7 @@ func (c *Client) K8sdIoRestClient() (*rest.RESTClient, error) {
 func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 	log := log.FromContext(ctx).WithValues("upgrades", "GetInProgressUpgrade")
 
-	restClient, err := c.K8sdIoRestClient()
+	restClient, err := c.k8sdIoRestClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create REST client for k8sd.io group: %w", err)
 	}
@@ -117,7 +117,7 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 // CreateUpgrade creates a new upgrade CR.
 func (c *Client) CreateUpgrade(ctx context.Context, upgrade Upgrade) error {
 	log := log.FromContext(ctx).WithValues("upgrades", "createUpgrade")
-	restClient, err := c.K8sdIoRestClient()
+	restClient, err := c.k8sdIoRestClient()
 	if err != nil {
 		return fmt.Errorf("failed to create REST client for k8sd.io group: %w", err)
 	}
@@ -147,10 +147,10 @@ func (c *Client) CreateUpgrade(ctx context.Context, upgrade Upgrade) error {
 }
 
 // PatchUpgradeStatus patches the status of an upgrade CR.
-func (c *Client) PatchUpgradeStatus(ctx context.Context, upgradeName string, status Status) error {
+func (c *Client) PatchUpgradeStatus(ctx context.Context, upgradeName string, status UpgradeStatus) error {
 	log := log.FromContext(ctx).WithValues("upgrades", "PatchUpgrade", "upgrade", upgradeName, "status", status)
 
-	restClient, err := c.K8sdIoRestClient()
+	restClient, err := c.k8sdIoRestClient()
 	if err != nil {
 		return fmt.Errorf("failed to create REST client for k8sd.io group: %w", err)
 	}
