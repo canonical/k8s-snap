@@ -104,7 +104,7 @@ programmatically drive the Kubernetes cluster.
 
 ## Canonical K8s charms
 
-Canonical `k8s` Charms encompass two primary components: the [`k8s` charm][K8s
+Canonical `k8s` charms encompass two primary components: the [`k8s` charm][K8s
 charm] and the [`k8s-worker` charm][K8s-worker charm].
 
 ![cluster4][]

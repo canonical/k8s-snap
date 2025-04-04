@@ -86,8 +86,6 @@ charm] and the [`k8s-worker` charm][K8s-worker charm].
 
 ![cluster4][]
 
-<!-- Charms are instantiated on a machine as a Juju unit, and a collection of units
-constitutes an application. -->
 The {{product}} charms include the following:
 
 - **`k8s`** : installs and manages the `k8s` snap on control plane node. Also
