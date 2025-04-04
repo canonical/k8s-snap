@@ -20,15 +20,18 @@ type ControlPlaneConfigurationController struct {
 	snap      snap.Snap
 	waitReady func()
 	triggerCh <-chan time.Time
+	// reconciledCh is used to notify that the controller has finished its reconciliation loop.
+	reconciledCh chan struct{}
 }
 
 // NewControlPlaneConfigurationController creates a new controller.
 // triggerCh is typically a `time.NewTicker(<duration>).C`.
 func NewControlPlaneConfigurationController(snap snap.Snap, waitReady func(), triggerCh <-chan time.Time) *ControlPlaneConfigurationController {
 	return &ControlPlaneConfigurationController{
-		snap:      snap,
-		waitReady: waitReady,
-		triggerCh: triggerCh,
+		snap:         snap,
+		waitReady:    waitReady,
+		triggerCh:    triggerCh,
+		reconciledCh: make(chan struct{}, 1),
 	}
 }
 
@@ -65,6 +68,11 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 
 		if err := c.reconcile(ctx, config); err != nil {
 			log.Error(err, "Failed to reconcile control plane configuration")
+		}
+
+		select {
+		case c.reconciledCh <- struct{}{}:
+		default:
 		}
 	}
 }
@@ -118,4 +126,9 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 	}
 
 	return nil
+}
+
+// ReconciledCh returns the channel where the controller pushes when a reconciliation loop is finished.
+func (c *ControlPlaneConfigurationController) ReconciledCh() <-chan struct{} {
+	return c.reconciledCh
 }

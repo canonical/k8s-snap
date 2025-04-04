@@ -1,4 +1,4 @@
-package controllers
+package controllers_test
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap/mock"
@@ -193,7 +194,7 @@ func TestConfigPropagation(t *testing.T) {
 
 	g.Expect(setup.EnsureAllDirectories(s)).To(Succeed())
 
-	ctrl := NewNodeConfigurationController(s, func() {})
+	ctrl := controllers.NewNodeConfigurationController(s, func() {})
 
 	keyCh := make(chan *rsa.PublicKey)
 
@@ -218,9 +219,11 @@ func TestConfigPropagation(t *testing.T) {
 
 			keyCh <- tc.pubKey
 
-			// TODO: this is to ensure that the controller has handled the event. This should ideally
-			// be replaced with something like a "<-sentCh" instead
-			time.Sleep(100 * time.Millisecond)
+			select {
+			case <-ctrl.ReconciledCh():
+			case <-time.After(channelSendTimeout):
+				g.Fail("Time out while waiting for the reconcile to complete")
+			}
 
 			for ekey, evalue := range tc.expectArgs {
 				val, err := snaputil.GetServiceArgument(s, "kubelet", ekey)

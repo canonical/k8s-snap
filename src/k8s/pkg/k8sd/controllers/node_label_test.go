@@ -1,4 +1,4 @@
-package controllers
+package controllers_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
@@ -105,7 +106,7 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 	g.Expect(os.MkdirAll(k8sDqliteStateDir, 0o700)).To(Succeed())
 	g.Expect(os.MkdirAll(k8sdDbDir, 0o700)).To(Succeed())
 
-	ctrl := NewNodeLabelController(s, func() {})
+	ctrl := controllers.NewNodeLabelController(s, func() {})
 
 	go ctrl.Run(ctx)
 	defer watcher.Stop()
@@ -149,9 +150,11 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 			}
 			watcher.Add(node)
 
-			// TODO: this is to ensure that the controller has handled the event. This should ideally
-			// be replaced with something like a "<-sentCh" instead
-			time.Sleep(100 * time.Millisecond)
+			select {
+			case <-ctrl.ReconciledCh():
+			case <-time.After(channelSendTimeout):
+				g.Fail("Time out while waiting for the reconcile to complete")
+			}
 
 			k8sdFailureDomain, err := snaputil.GetDqliteFailureDomain(k8sdDbDir)
 			g.Expect(err).ToNot(HaveOccurred())
