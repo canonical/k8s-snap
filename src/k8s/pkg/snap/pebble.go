@@ -51,19 +51,22 @@ func NewPebble(opts PebbleOpts) *pebble {
 	return s
 }
 
-// StartService starts a k8s service. The name can be either prefixed or not.
-func (s *pebble) StartService(ctx context.Context, name string) error {
-	return s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", "pebble"), "start", name})
+// StartServices starts a k8s service. The name can be either prefixed or not.
+func (s *pebble) StartServices(ctx context.Context, names []string, extraPebbleArgs ...string) error {
+	cmd := append([]string{filepath.Join(s.snapDir, "bin", "pebble"), "start"}, append(names, extraPebbleArgs...)...)
+	return s.runCommand(ctx, cmd)
 }
 
-// StopService stops a k8s service. The name can be either prefixed or not.
-func (s *pebble) StopService(ctx context.Context, name string) error {
-	return s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", "pebble"), "stop", name})
+// StopServices stops a k8s service. The name can be either prefixed or not.
+func (s *pebble) StopServices(ctx context.Context, names []string, extraPebbleArgs ...string) error {
+	cmd := append([]string{filepath.Join(s.snapDir, "bin", "pebble"), "stop"}, append(names, extraPebbleArgs...)...)
+	return s.runCommand(ctx, cmd)
 }
 
-// RestartService restarts a k8s service. The name can be either prefixed or not.
-func (s *pebble) RestartService(ctx context.Context, name string) error {
-	return s.runCommand(ctx, []string{filepath.Join(s.snapDir, "bin", "pebble"), "restart", name})
+// RestartServices restarts a k8s service. The name can be either prefixed or not.
+func (s *pebble) RestartServices(ctx context.Context, names []string, extraPebbleArgs ...string) error {
+	cmd := append([]string{filepath.Join(s.snapDir, "bin", "pebble"), "restart"}, append(names, extraPebbleArgs...)...)
+	return s.runCommand(ctx, cmd)
 }
 
 func (s *pebble) Refresh(ctx context.Context, to types.RefreshOpts) (string, error) {
@@ -86,10 +89,9 @@ func (s *pebble) Refresh(ctx context.Context, to types.RefreshOpts) (string, err
 				log.FromContext(ctx).Error(err, "Warning: failed to update the kubernetes binary")
 			}
 			// restart services if already running.
-			for _, service := range []string{"kube-apiserver", "kubelet", "kube-controller-manager", "kube-proxy", "kube-scheduler"} {
-				if err := s.RestartService(ctx, service); err != nil {
-					log.FromContext(ctx).WithValues("service", service).Error(err, "Warning: failed to restart after updating kubernetes binary")
-				}
+			services := []string{"kube-apiserver", "kubelet", "kube-controller-manager", "kube-proxy", "kube-scheduler"}
+			if err := s.RestartServices(ctx, services); err != nil {
+				log.FromContext(ctx).WithValues("services", services).Error(err, "Warning: failed to restart after updating kubernetes binary")
 			}
 		}()
 		return "0", nil
