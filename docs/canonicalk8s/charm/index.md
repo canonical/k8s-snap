@@ -83,7 +83,7 @@ and constructive feedback.
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
 [community]: reference/community
 [contribute]: /snap/howto/contribute
-[releases]: /snap/reference/releases
+[releases]: /charm/reference/releases
 [overview page]: /charm/explanation/about
 [arch]: /charm/explanation/architecture
 [Juju]: https://juju.is
