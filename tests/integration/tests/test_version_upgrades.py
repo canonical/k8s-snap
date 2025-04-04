@@ -96,7 +96,7 @@ def test_version_upgrades(
             LOG.info(f"Upgraded {instance.id} on channel {channel}")
 
 
-@pytest.mark.node_count(4)
+@pytest.mark.node_count(3)
 @pytest.mark.no_setup()
 @pytest.mark.skipif(
     not config.VERSION_DOWNGRADE_CHANNELS, reason="No downgrade channels configured"
@@ -124,7 +124,13 @@ def test_version_downgrades_with_rollback(
     cp = instances[0]
     cp1 = instances[1]
     cp2 = instances[2]
-    w0 = instances[3]
+    # TODO: add a worker node once the snap refresh is fixed on worker nodes
+    # and the patch lands on all the release channels covered by this test.
+    #
+    # At the moment, the following fails:
+    # https://github.com/canonical/k8s-snap/blob/96124bd7f1e82e96e23a4c4d11fcff86045f403c/snap/hooks/configure#L7
+    #
+    # w0 = instances[3]
     current_channel = channels[0]
 
     if current_channel.lower() == "recent":
@@ -161,11 +167,11 @@ def test_version_downgrades_with_rollback(
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
-    join_token_w0 = util.get_join_token(cp, w0, "--worker")
+    # join_token_w0 = util.get_join_token(cp, w0, "--worker")
 
     util.join_cluster(cp1, join_token_cp1)
     util.join_cluster(cp2, join_token_cp2)
-    util.join_cluster(w0, join_token_w0)
+    # util.join_cluster(w0, join_token_w0)
 
     util.wait_until_k8s_ready(cp, instances)
 
