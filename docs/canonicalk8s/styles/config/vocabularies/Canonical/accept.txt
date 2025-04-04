@@ -139,6 +139,8 @@ CSRs
 cyclictest
 daemonset
 DaemonSet
+databags
+Databags
 datastore
 datastores
 dbus
