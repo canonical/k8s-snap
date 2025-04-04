@@ -80,9 +80,9 @@ and constructive feedback.
 <!-- LINKS -->
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
-[community]: ./reference/community
-[contribute]: ./howto/contribute
-[releases]: ./reference/releases
-[overview page]: ./explanation/about
-[architecture documentation]: ./reference/architecture
-[Juju charm]: ../charm/index
+[community]: /snap/reference/community
+[contribute]: /snap/howto/contribute
+[releases]: /snap/reference/releases
+[overview page]: /snap/explanation/about
+[architecture documentation]: /snap/explanation/architecture
+[Juju charm]: /charm/index
