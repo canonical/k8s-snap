@@ -5,6 +5,7 @@ import logging
 from typing import List
 
 import pytest
+import yaml
 from test_util import config, harness, snap, tags, util
 from test_util.registry import Registry
 
@@ -52,6 +53,32 @@ def test_version_upgrades(
             )
         current_channel = channels[0]
 
+    # Copy the current snap into the instances.
+    snap_path = (tmp_path / "k8s.snap").as_posix()
+    for instance in instances:
+        instance.send_file(config.SNAP, snap_path)
+
+    # Figure out where to add the current snap into the channels array.
+    # Upgrades should be in order.
+    out = cp.exec(["snap", "info", snap_path], capture_output=True)
+    info = yaml.safe_load(out.stdout)
+
+    # expected: "v1.32.2 classic"
+    ver = info["version"].lstrip("v").split()[0].split(".")
+    added = False
+    for i in range(len(channels)):
+        # e.g.: 1.32-classic/stable
+        chan_ver = channels[i].split("-")[0].split(".")
+        if len(chan_ver) > 1 and (ver[0], ver[1]) < (chan_ver[0], chan_ver[1]):
+            channels.insert(i, snap_path)
+            added = True
+            break
+
+    if not added:
+        # if not added yet, config.SNAP should be at the end.
+        channels.append(snap_path)
+
+    LOG.info(f"Testing upgrades for snaps: {channels}")
     LOG.info(
         f"Bootstrap node on {current_channel} and upgrade through channels: {channels[1:]}"
     )
@@ -78,9 +105,7 @@ def test_version_upgrades(
 
     for channel in channels[1:]:
         for instance in instances:
-            LOG.info(
-                f"Upgrading {instance.id} from {current_channel} to channel {channel}"
-            )
+            LOG.info(f"Upgrading {instance.id} from {current_channel} to {channel}")
 
             # Log the current snap version on the node.
             out = instance.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
@@ -88,9 +113,19 @@ def test_version_upgrades(
             LOG.info(f"Current snap version: {latest_version}")
 
             # note: the `--classic` flag will be ignored by snapd for strict snaps.
-            instance.exec(
-                ["snap", "refresh", config.SNAP_NAME, "--channel", channel, "--classic"]
-            )
+            cmd = [
+                "snap",
+                "refresh",
+                config.SNAP_NAME,
+                "--channel",
+                channel,
+                "--classic",
+            ]
+            if channel.startswith("/"):
+                LOG.info("Refreshing k8s snap by path")
+                cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
+
+            instance.exec(cmd)
             util.wait_until_k8s_ready(cp, instances)
             current_channel = channel
             LOG.info(f"Upgraded {instance.id} on channel {channel}")
