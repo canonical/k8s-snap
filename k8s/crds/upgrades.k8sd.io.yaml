@@ -8,7 +8,6 @@ spec:
     kind: Upgrade
     plural: upgrades
     singular: upgrade
-  # The Upgrade CRD is only relevant for the internal upgrade controller.
   scope: Cluster
   versions:
     - name: v1alpha
@@ -36,4 +35,4 @@ spec:
                 phase:
                   description: "Current upgrade phase."
                   type: string
-                  enum: ["Preparation", "NodeUpgrade", "FeatureUpgrade", "Completed", "Failed"]
+                  enum: ["NodeUpgrade", "FeatureUpgrade", "Completed", "Failed"]
