@@ -2,7 +2,7 @@ name: Nightly
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Runs every midnight
+    - cron: "0 0 * * *" # Runs every midnight.
   pull_request:
     paths:
       - .github/workflows/nightly-test.yaml
