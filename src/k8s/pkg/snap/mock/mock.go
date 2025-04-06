@@ -13,7 +13,7 @@ import (
 )
 
 type Mock struct {
-	Revision                    int
+	Revision                    string
 	RevisionErr                 error
 	Strict                      bool
 	OnLXD                       bool
@@ -131,7 +131,7 @@ func (s *Snap) PostRefreshLockPath() string {
 	return s.Mock.PostRefreshLockPath
 }
 
-func (s *Snap) Revision(ctx context.Context) (int, error) {
+func (s *Snap) Revision(ctx context.Context) (string, error) {
 	return s.Mock.Revision, s.Mock.RevisionErr
 }
 

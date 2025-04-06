@@ -372,15 +372,19 @@ func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
 	return s.runCommand(ctx, append([]string{"snapctl", "set"}, args...))
 }
 
-func (s *snap) Revision(ctx context.Context) (int, error) {
+func (s *snap) Revision(ctx context.Context) (string, error) {
 	client, err := snapd.NewClient()
 	if err != nil {
-		return 0, fmt.Errorf("failed to create snapd client: %w", err)
+		return "", fmt.Errorf("failed to create snapd client: %w", err)
 	}
 
 	snap, err := client.GetSnapInfo(s.snapInstanceName)
-	if err != nil || snap.StatusCode != 200 {
-		return 0, fmt.Errorf("failed to get snap info (%d): %w", snap.StatusCode, err)
+	if err != nil {
+		return "", fmt.Errorf("failed to get snap info: %w", err)
+	}
+	log.FromContext(ctx).Info("Snap info", "snap", snap)
+	if snap.StatusCode != 200 {
+		return "", fmt.Errorf("failed to get snap info: snapd returned with error code %d", err)
 	}
 
 	return snap.Result.Revision, nil

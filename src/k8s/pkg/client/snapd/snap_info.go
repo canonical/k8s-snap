@@ -9,7 +9,7 @@ import (
 
 type SnapInfoResult struct {
 	InstallDate time.Time `json:"install-date"`
-	Revision    int       `json:"revision"`
+	Revision    string    `json:"revision"`
 }
 
 type SnapInfoResponse struct {

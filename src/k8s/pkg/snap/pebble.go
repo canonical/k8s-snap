@@ -111,8 +111,8 @@ func (s *pebble) RefreshStatus(ctx context.Context, changeID string) (*types.Ref
 	}, nil
 }
 
-func (s *pebble) Revision(ctx context.Context) (int, error) {
-	return 0, nil
+func (s *pebble) Revision(ctx context.Context) (string, error) {
+	return "", nil
 }
 
 func (s *pebble) Strict() bool {

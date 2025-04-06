@@ -82,7 +82,7 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 		}
 		// TODO(ben): Add more metadata to the upgrade.
 		// e.g. initial revision, target revision, name of the node that started the upgrade, etc.
-		newUpgrade := kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%d", rev))
+		newUpgrade := kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev))
 		upgrade = &newUpgrade
 		if err := k8sClient.CreateUpgrade(ctx, *upgrade); err != nil {
 			return fmt.Errorf("failed to create upgrade: %w", err)
@@ -133,7 +133,7 @@ func allNodesUpgraded(ctx context.Context, s state.State, upgradedNodes []string
 	}
 
 	if len(clusterMembers) != len(upgradedNodes) {
-		log.Info("Not all nodes have been upgraded.", "clusterMembers", len(clusterMembers), "upgradedNodes", len(upgrade.Status.UpgradedNodes))
+		log.Info("Not all nodes have been upgraded.", "clusterMembers", len(clusterMembers), "upgradedNodes", len(upgradedNodes))
 		return false, nil
 	}
 

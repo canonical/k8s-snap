@@ -85,7 +85,6 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 		return nil, fmt.Errorf("failed to get upgrades: %w", err)
 	}
 
-	log.Info("Got upgrades", "upgrades", string(upgrades))
 	var result struct {
 		Items []Upgrade `json:"items"`
 	}
