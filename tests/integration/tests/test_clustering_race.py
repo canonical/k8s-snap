@@ -7,6 +7,10 @@ import pytest
 from test_util import harness, tags, util
 
 
+# Note(ben): k8s-dqlite sometimes takes very long to shutdown (to be investigated) and
+# since microcluster has a 30s fixed timeout for the remove hooks this test sometimes fails.
+# The timeout will be configurable in https://github.com/canonical/microcluster/pull/365)
+# The k8s-dqlite issue will be investigated separately.
 @pytest.mark.xfail(
     run=False,
     reason="This test is currently flaky because of a k8s-dqlite shutdown issue.",
@@ -14,10 +18,6 @@ from test_util import harness, tags, util
 @pytest.mark.node_count(3)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_wrong_token_race(instances: List[harness.Instance]):
-    # Note(ben): k8s-dqlite sometimes takes very long to shutdown (to be investigated) and
-    # since microcluster has a 30s fixed timeout for the remove hooks this test sometimes fails.
-    # The timeout will be configurable in https://github.com/canonical/microcluster/pull/365)
-    # The k8s-dqlite issue will be investigated separately.
     cluster_node = instances[0]
 
     join_token = util.get_join_token(cluster_node, instances[1])

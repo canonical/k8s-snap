@@ -126,7 +126,7 @@ def registry(h: harness.Harness) -> Optional[Registry]:
         yield Registry(h)
     else:
         LOG.info("Local registry mirror disabled!")
-        yield False
+        yield None
 
 
 @pytest.fixture(scope="session", autouse=True)
