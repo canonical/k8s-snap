@@ -4,10 +4,15 @@
 great way, for example, to test out clustered {{product}} without the
 need for multiple physical hosts.
 
-Why an LXD virtual machine and not a container? LXD privileged containers are
-no longer supported and some Kubernetes services, such as the Cilium CNI,
-cannot run inside unprivileged containers. Furthermore, by using virtual
-machine we ensure that the Kubernetes environment is well isolated.
+Why an LXD virtual machine and not a container?
+In order to run certain Kubernetes services, such as the Cilium CNI, the LXD
+container would need to be a [privileged container]. While this is possible, it
+is not the recommended pattern as it allows the root
+user in the container to be the root user on the host. Also, newer versions of
+Ubuntu and systemd require operations (such as mounting to the `/proc`
+directory) that cannot be safely handled with privileged containers. By using
+virtual machines, we ensure that the Kubernetes environment remains well
+isolated.
 
 ## Install LXD
 
@@ -163,3 +168,4 @@ lxc delete k8s-vm
 [default-bridged-networking]: https://ubuntu.com/blog/lxd-networking-lxdbr0-explained
 [Microbot]: https://github.com/dontrebootme/docker-microbot
 [channels]: ../../explanation/channels
+[privileged container]: https://documentation.ubuntu.com/server/how-to/containers/lxd-containers/index.html#uid-mappings-and-privileged-containers
