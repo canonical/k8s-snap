@@ -127,23 +127,18 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 
 			// Trigger all feature controllers
 			// This intentionally blocks until the feature controllers are available.
-			a.triggerFeatureControllerNetworkCh <- struct{}{}
-			a.triggerFeatureControllerGatewayCh <- struct{}{}
-			a.triggerFeatureControllerIngressCh <- struct{}{}
-			a.triggerFeatureControllerDNSCh <- struct{}{}
-			a.triggerFeatureControllerLoadBalancerCh <- struct{}{}
-			a.triggerFeatureControllerLocalStorageCh <- struct{}{}
-			a.triggerFeatureControllerMetricsServerCh <- struct{}{}
+			<-a.featureController.ReadyCh()
+			a.NotifyFeatureController(true, true, true, true, true, true, true)
 
 			log.Info("Waiting for feature controllers to reconcile.")
 			pending := map[string]<-chan struct{}{
-				"Network":       a.featureController.ReconciledNetworkCh,
-				"Gateway":       a.featureController.ReconciledGatewayCh,
-				"Ingress":       a.featureController.ReconciledIngressCh,
-				"DNS":           a.featureController.ReconciledDNSCh,
-				"LoadBalancer":  a.featureController.ReconciledLoadBalancerCh,
-				"LocalStorage":  a.featureController.ReconciledLocalStorageCh,
-				"MetricsServer": a.featureController.ReconciledMetricsServerCh,
+				"Network":       a.featureController.ReconciledNetworkCh(),
+				"Gateway":       a.featureController.ReconciledGatewayCh(),
+				"Ingress":       a.featureController.ReconciledIngressCh(),
+				"DNS":           a.featureController.ReconciledDNSCh(),
+				"LoadBalancer":  a.featureController.ReconciledLoadBalancerCh(),
+				"LocalStorage":  a.featureController.ReconciledLocalStorageCh(),
+				"MetricsServer": a.featureController.ReconciledMetricsServerCh(),
 			}
 
 			for len(pending) > 0 {

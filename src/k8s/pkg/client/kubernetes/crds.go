@@ -88,10 +88,9 @@ func (c *Client) ApplyCRD(ctx context.Context, filePath string) error {
 
 	log.V(1).Info("Applied CRD", "name", crd.Name, "version", crd.APIVersion, "kind", crd.Kind)
 
-	waitErr := control.WaitUntilReady(ctx, func() (bool, error) {
+	if waitErr := control.WaitUntilReady(ctx, func() (bool, error) {
 		return c.CRDExists(ctx, crd.Name)
-	})
-	if waitErr != nil {
+	}); waitErr != nil {
 		return fmt.Errorf("failed to wait for CRD to be ready: %w", waitErr)
 	}
 
