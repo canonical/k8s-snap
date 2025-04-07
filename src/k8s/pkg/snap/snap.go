@@ -71,36 +71,35 @@ func NewSnap(opts SnapOpts) *snap {
 	return s
 }
 
-// StartServices starts k8s services. The names can be either prefixed or not.
-func (s *snap) StartServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
-	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Starting services", "services", names)
-	cmd := []string{"snap", "start", "--enable"}
+// buildServiceCommand creates a snap command for managing services
+func (s *snap) buildServiceCommand(action string, names []string, extraSnapArgs ...string) []string {
+	cmd := []string{"snap", action}
 	for _, name := range names {
 		cmd = append(cmd, serviceName(name))
 	}
-	cmd = append(cmd, extraSnapArgs...)
+	return append(cmd, extraSnapArgs...)
+}
+
+// StartServices starts k8s services. The names can be either prefixed or not.
+func (s *snap) StartServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
+	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Starting services", "services", names)
+	extraSnapArgs = append([]string{"--enable"}, extraSnapArgs...)
+	cmd := s.buildServiceCommand("start", names, extraSnapArgs...)
 	return s.runCommand(ctx, cmd)
 }
 
 // StopServices stops k8s services. The names can be either prefixed or not.
 func (s *snap) StopServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
 	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Stopping services", "services", names)
-	cmd := []string{"snap", "stop", "--disable"}
-	for _, name := range names {
-		cmd = append(cmd, serviceName(name))
-	}
-	cmd = append(cmd, extraSnapArgs...)
+	extraSnapArgs = append([]string{"--disable"}, extraSnapArgs...)
+	cmd := s.buildServiceCommand("stop", names, extraSnapArgs...)
 	return s.runCommand(ctx, cmd)
 }
 
 // RestartServices restarts k8s services. The names can be either prefixed or not.
 func (s *snap) RestartServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
 	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Restarting services", "services", names)
-	cmd := []string{"snap", "restart"}
-	for _, name := range names {
-		cmd = append(cmd, serviceName(name))
-	}
-	cmd = append(cmd, extraSnapArgs...)
+	cmd := s.buildServiceCommand("restart", names, extraSnapArgs...)
 	return s.runCommand(ctx, cmd)
 }
 

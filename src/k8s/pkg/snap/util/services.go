@@ -8,15 +8,15 @@ import (
 )
 
 var (
-	// WorkerServices contains all k8s services that run on a worker node except of k8sd.
-	workerServices = []string{
+	// workerK8sServices contains all k8s services that run on a worker node except of k8sd.
+	workerK8sServices = []string{
 		"containerd",
 		"k8s-apiserver-proxy",
 		"kubelet",
 		"kube-proxy",
 	}
-	// controlPlaneServices contains all k8s services that run on a control plane except of k8sd.
-	controlPlaneServices = []string{
+	// controlPlaneK8sServices contains all k8s services that run on a control plane except of k8sd.
+	controlPlaneK8sServices = []string{
 		"containerd",
 		"kube-controller-manager",
 		"kube-proxy",
@@ -25,7 +25,7 @@ var (
 		"kube-apiserver",
 	}
 
-	// k8sServices contains all k8s services except of k8sd.
+	// k8sServices contains all k8s services except k8sd.
 	k8sServices = []string{
 		"containerd",
 		"kube-apiserver",
@@ -41,8 +41,8 @@ var (
 // RestartControlPlaneServices restarts the control plane services.
 // RestartControlPlaneServices will return on the first failing service.
 func RestartControlPlaneServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
-	if err := snap.RestartServices(ctx, controlPlaneServices, extraSnapArgs...); err != nil {
-		return fmt.Errorf("failed to restart service %v: %w", controlPlaneServices, err)
+	if err := snap.RestartServices(ctx, controlPlaneK8sServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to restart service %v: %w", controlPlaneK8sServices, err)
 	}
 	return nil
 }
@@ -50,8 +50,8 @@ func RestartControlPlaneServices(ctx context.Context, snap snap.Snap, extraSnapA
 // StartWorkerServices starts the worker services.
 // StartWorkerServices will return on the first failing service.
 func StartWorkerServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
-	if err := snap.StartServices(ctx, workerServices, extraSnapArgs...); err != nil {
-		return fmt.Errorf("failed to start service %v: %w", workerServices, err)
+	if err := snap.StartServices(ctx, workerK8sServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to start service %v: %w", workerK8sServices, err)
 	}
 	return nil
 }
@@ -59,8 +59,8 @@ func StartWorkerServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...s
 // StartControlPlaneServices starts the control plane services.
 // StartControlPlaneServices will return on the first failing service.
 func StartControlPlaneServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
-	if err := snap.StartServices(ctx, controlPlaneServices, extraSnapArgs...); err != nil {
-		return fmt.Errorf("failed to start service %v: %w", controlPlaneServices, err)
+	if err := snap.StartServices(ctx, controlPlaneK8sServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to start service %v: %w", controlPlaneK8sServices, err)
 	}
 	return nil
 }
@@ -76,8 +76,8 @@ func StartK8sDqliteServices(ctx context.Context, snap snap.Snap, extraSnapArgs .
 // StopWorkerServices starts the worker services.
 // StopWorkerServices will return on the first failing service.
 func StopWorkerServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
-	if err := snap.StopServices(ctx, workerServices, extraSnapArgs...); err != nil {
-		return fmt.Errorf("failed to stop service %v: %w", workerServices, err)
+	if err := snap.StopServices(ctx, workerK8sServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to stop service %v: %w", workerK8sServices, err)
 	}
 	return nil
 }
@@ -85,8 +85,8 @@ func StopWorkerServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...st
 // StopControlPlaneServices stops the control plane services.
 // StopControlPlaneServices will return on the first failing service.
 func StopControlPlaneServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
-	if err := snap.StopServices(ctx, controlPlaneServices, extraSnapArgs...); err != nil {
-		return fmt.Errorf("failed to stop service %v: %w", controlPlaneServices, err)
+	if err := snap.StopServices(ctx, controlPlaneK8sServices, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to stop service %v: %w", controlPlaneK8sServices, err)
 	}
 	return nil
 }

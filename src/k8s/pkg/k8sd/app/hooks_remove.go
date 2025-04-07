@@ -140,9 +140,9 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 			log.Error(err, "failed to cleanup control plane certificates")
 		}
 
-		log.Info("Stopping all services except of k8sd")
+		log.Info("Stopping all services except k8sd")
 		if err := snaputil.StopK8sServices(ctx, snap, "--no-wait"); err != nil {
-			log.Error(err, "failed to stop k8sd service")
+			log.Error(err, "failed to stop k8s services")
 		}
 
 		log.Info("Cleaning up containerd paths")

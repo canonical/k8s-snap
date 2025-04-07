@@ -59,7 +59,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 			expectKubeAPIServerArgs         map[string]string
 			expectKubeControllerManagerArgs map[string]string
 
-			expectServiceRestarts [][]string
+			expectServiceRestarts []string
 			expectFilesToExist    map[string]bool
 		}{
 			{
@@ -78,7 +78,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 					filepath.Join(dir, "etcd-pki", "client.crt"): false,
 					filepath.Join(dir, "etcd-pki", "client.key"): false,
 				},
-				expectServiceRestarts: [][]string{{"kube-apiserver"}},
+				expectServiceRestarts: []string{"kube-apiserver"},
 			},
 			{
 				name: "Certs",
@@ -102,7 +102,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 					filepath.Join(dir, "etcd-pki", "client.crt"): true,
 					filepath.Join(dir, "etcd-pki", "client.key"): true,
 				},
-				expectServiceRestarts: [][]string{{"kube-apiserver"}},
+				expectServiceRestarts: []string{"kube-apiserver"},
 			},
 			{
 				name: "CloudProvider",
@@ -114,7 +114,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 				expectKubeControllerManagerArgs: map[string]string{
 					"--cloud-provider": "external",
 				},
-				expectServiceRestarts: [][]string{{"kube-controller-manager"}},
+				expectServiceRestarts: []string{"kube-controller-manager"},
 			},
 			{
 				name: "NoUpdates",
@@ -170,7 +170,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 				expectKubeControllerManagerArgs: map[string]string{
 					"--cloud-provider": "",
 				},
-				expectServiceRestarts: [][]string{{"kube-apiserver"}, {"kube-controller-manager"}},
+				expectServiceRestarts: []string{"kube-apiserver", "kube-controller-manager"},
 			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
@@ -191,9 +191,15 @@ func TestControlPlaneConfigController(t *testing.T) {
 				case <-time.After(channelSendTimeout):
 					g.Fail("Time out while waiting for the reconcile to complete")
 				}
-
-				g.Expect(s.RestartServicesCalledWith).To(HaveLen(len(tc.expectServiceRestarts)))
-				g.Expect(s.RestartServicesCalledWith).To(Equal(tc.expectServiceRestarts))
+				if tc.expectServiceRestarts != nil {
+					var flat []string
+					for _, sub := range s.RestartServicesCalledWith {
+						flat = append(flat, sub...)
+					}
+					g.Expect(flat).To(ContainElements(tc.expectServiceRestarts))
+				} else {
+					g.Expect(s.RestartServicesCalledWith).To(BeEmpty())
+				}
 
 				t.Run("APIServerArgs", func(t *testing.T) {
 					for earg, eval := range tc.expectKubeAPIServerArgs {

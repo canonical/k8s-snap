@@ -51,22 +51,24 @@ func NewPebble(opts PebbleOpts) *pebble {
 	return s
 }
 
+// buildPebbleCommand builds a pebble command with the given subcommand and names.
+func (s *pebble) buildPebbleCommand(subcommand string, names []string, extraPebbleArgs ...string) []string {
+	return append([]string{filepath.Join(s.snapDir, "bin", "pebble"), subcommand}, append(names, extraPebbleArgs...)...)
+}
+
 // StartServices starts a k8s service. The name can be either prefixed or not.
 func (s *pebble) StartServices(ctx context.Context, names []string, extraPebbleArgs ...string) error {
-	cmd := append([]string{filepath.Join(s.snapDir, "bin", "pebble"), "start"}, append(names, extraPebbleArgs...)...)
-	return s.runCommand(ctx, cmd)
+	return s.runCommand(ctx, s.buildPebbleCommand("start", names, extraPebbleArgs...))
 }
 
 // StopServices stops a k8s service. The name can be either prefixed or not.
 func (s *pebble) StopServices(ctx context.Context, names []string, extraPebbleArgs ...string) error {
-	cmd := append([]string{filepath.Join(s.snapDir, "bin", "pebble"), "stop"}, append(names, extraPebbleArgs...)...)
-	return s.runCommand(ctx, cmd)
+	return s.runCommand(ctx, s.buildPebbleCommand("stop", names, extraPebbleArgs...))
 }
 
 // RestartServices restarts a k8s service. The name can be either prefixed or not.
 func (s *pebble) RestartServices(ctx context.Context, names []string, extraPebbleArgs ...string) error {
-	cmd := append([]string{filepath.Join(s.snapDir, "bin", "pebble"), "restart"}, append(names, extraPebbleArgs...)...)
-	return s.runCommand(ctx, cmd)
+	return s.runCommand(ctx, s.buildPebbleCommand("restart", names, extraPebbleArgs...))
 }
 
 func (s *pebble) Refresh(ctx context.Context, to types.RefreshOpts) (string, error) {
