@@ -53,7 +53,7 @@ class JujuHarness(Harness):
                 self.constraints,
             )
 
-    def new_instance(self, network_type: str = "IPv4") -> Instance:
+    def new_instance(self, network_type: str = "IPv4", name_suffix: str = "") -> Instance:
         if network_type:
             raise HarnessError("Currently only IPv4 is supported by Juju harness")
 

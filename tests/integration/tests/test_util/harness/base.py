@@ -48,11 +48,12 @@ class Harness:
 
     name: str
 
-    def new_instance(self, network_type: str = "IPv4") -> Instance:
+    def new_instance(self, network_type: str = "IPv4", name_suffix: str = "") -> Instance:
         """Creates a new instance on the infrastructure and returns an object
         which can be used to interact with it.
 
-        dualstack: If True, the instance will be created with dualstack support.
+        network_type: ipv4, ipv6 or dualstack.
+        name_suffix: a suffix to be appended to the instance name.
 
         If the operation fails, a HarnessError is raised.
         """
