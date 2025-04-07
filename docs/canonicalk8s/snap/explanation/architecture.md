@@ -24,29 +24,28 @@ is manually orchestrated.
 
 - **K8s user**: A user consuming the workloads hosted in the cluster. Users do
 not have access to the Kubernetes API server. They need to access the cluster
-through the options (nodeport, ingress, load-balancer) offered by the
+through the options (NodePort, Ingress, load-balancer) offered by the
 administrator who deployed the workload they are interested in.
 
 There are non-human users of the K8s snap, for example the [`k8s-operator
-charm`][K8s charm]. The K8s charm needs to drive the Kubernetes cluster and to
-orchestrate the multi-node clustering operations.
+charm`][K8s charm]. The K8s charm uses the snap to drive the Kubernetes cluster
+and orchestrates multi-node clustering operations.
 
-A set of external systems need to be easily integrated with our K8s
-distribution. We have identified the following:
+A set of external systems are easily integrated with our K8s
+distribution:
 
 - **Load Balancer**: Although the K8s snap distribution comes with a
-load balancer, we expect the end customer environment will have a load balancer
-and thus we need to integrate with it.
+load balancer, we allow the end customer environment to bring their own load
+balancer solution.
 - **Storage**: Kubernetes typically expects storage to be external to the
-cluster. The K8s snap comes with a local storage option but we still need to
-offer integration with any storage solution.
+cluster. The K8s snap comes with a local storage option but also
+allows integrations with alternative storage solutions.
 - **Identity management**: Out of the box the K8s snap offers credentials for
 an admin user. The admin user can complete the integration with any identity
 management system available or do user management manually.
 - **External datastore**: By default, Kubernetes uses etcd to keep track of
-state. Our K8s snap comes with `dqlite` as its datastore. We should however
-be able to use any end client owned datastore installation. That should
-include an external `etcd`.
+state. Our K8s snap comes with [Dqlite] as its datastore. However, we permit
+end client owned datastore installation such as the use of an external `etcd`.
 
 ## The k8s snap
 
@@ -60,12 +59,12 @@ The `k8s` snap distribution includes the following:
 and drive the cluster operations.
 - **K8s control plane**: These are all the Kubernetes services as well as core
 workloads built from upstream and shipped in the snap.
-- **Kubernetes datastore**: uses dqlite to store data on the state of the
+- **Kubernetes datastore**: uses Dqlite to store data on the state of the
 cluster. It can be replaced by an external datastore.
-- **Cluster datastore**: uses dqlite as a replicated database to store cluster
-configuration. It is used
+- **Cluster datastore**: uses Dqlite managed by [Microcluster] as a replicated
+database to store cluster configuration. It is used
 by `k8sd` in order to carry out the orchestration of the additional Kubernetes
-components included in {{product}} we deem important.
+components included in {{product}} such as cluster membership management.
 - **Runtime**: `containerd` is the shipped container runtime.
 - **K8sd**: implements the operations logic and exposes that
 functionality via CLIs and APIs.
@@ -78,14 +77,14 @@ needed for managing the Kubernetes cluster.
 ![cluster2][]
 
 At the core of the `k8sd` functionality we have the cluster manager that is
-responsible for configuring the services, workload and features we deem
+responsible for configuring the services, workloads and features we deem
 important for a Kubernetes cluster. Namely:
 
 - Kubernetes systemd services
 - DNS
 - CNI
-- ingress
-- gateway API
+- Ingress
+- Gateway API
 - load-balancer
 - local-storage
 - metrics-server
@@ -152,3 +151,5 @@ and flexible {{product}} deployment managed through Juju.
 [K8s-Worker charm]:   https://charmhub.io/k8s-worker
 [Juju docs]:          https://juju.is/docs/juju
 [COS docs]:           https://ubuntu.com/observability
+[Dqlite]:             https://github.com/canonical/k8s-dqlite
+[Microcluster]:       https://github.com/canonical/microcluster

@@ -1,9 +1,7 @@
 # Architecture diagrams
 
-A system architecture document is the starting point for many interested
-participants in a project, whether you intend contributing or simply want to
-understand how the software is structured. This documentation lays out the
-current design of {{product}}, following the [C4 model].
+This documentation lays out the
+current architecture diagrams of {{product}}, following the [C4 model].
 
 ## System context
 
@@ -20,11 +18,11 @@ provides out of the box admin access to configure the cluster.
 
 Non-human users of the K8s snap:
 
-- [`k8s-operator charm`][K8s charm]: drives the Kubernetes cluster and
-orchestrates multi-node clustering operations.
+- [`k8s-operator charm`][K8s charm]: uses the snap to drive the Kubernetes
+cluster and orchestrate multi-node clustering operations.
 
 Although {{product}} provides its own implementation of the following services,
-external systems that can be easily integrated:
+external systems can be easily integrated:
 
 - **Load Balancer**
 - **Storage**
@@ -43,9 +41,9 @@ The `k8s` snap distribution includes the following:
 and drive the cluster operations.
 - **K8s control plane**: the Kubernetes services, as well as core
 workloads built from upstream and shipped in the snap.
-- **Kubernetes datastore**: uses dqlite to store data on the state of the
+- **Kubernetes datastore**: uses [Dqlite] to store data on the state of the
 cluster. It can be replaced by an external datastore.
-- **Cluster datastore**: uses dqlite as a replicated database to store cluster
+- **Cluster datastore**: uses Dqlite as a replicated database to store cluster
 configuration.
 - **Runtime**: `containerd` is the shipped container runtime.
 - **K8sd**: implements the operations logic and exposes that
@@ -63,8 +61,8 @@ Functionality provided by `k8sd` cluster manager is:
 - Kubernetes systemd services
 - DNS
 - CNI
-- ingress
-- gateway API
+- Ingress
+- Gateway API
 - load-balancer
 - local-storage
 - metrics-server
@@ -74,10 +72,10 @@ Functionality provided by `k8sd` cluster manager is:
 This functionality is exposed via the following interfaces:
 
 - The **CLI**: The CLI is available to only the root user on the K8s snap and
-  all CLI commands are mapped to respective REST calls.
+all CLI commands are mapped to respective REST calls.
 
 - The **API**: The API over HTTP serves the CLI and is also used to
-  programmatically drive the Kubernetes cluster.
+programmatically drive the Kubernetes cluster.
 
 ## Canonical K8s charms
 
@@ -88,9 +86,9 @@ charm] and the [`k8s-worker` charm][K8s-worker charm].
 
 The {{product}} charms include the following:
 
-- **`k8s`** : installs and manages the `k8s` snap on control plane node. Also
-supports integration with other compatible charms.
-- **`k8s-worker`**: installs and manages the `k8s` snap on worker node.
+- **`k8s`** : installs and manages the `k8s` snap on control plane nodes. The
+charm also supports integrations with other compatible charms.
+- **`k8s-worker`**: installs and manages the `k8s` snap on worker nodes.
 - **Administrator**: manages the cluster via the Juju client.
 - **K8sd API Manager**: Makes API calls to the `k8s` snap
 - **Relation Databags for `k8s` and `k8s-worker`**: Juju databags for sharing
@@ -109,3 +107,4 @@ information between the `k8s` and `k8s-worker` charms
 [K8s-Worker charm]:   https://charmhub.io/k8s-worker
 [Juju docs]:          https://juju.is/docs/juju
 [COS docs]:           https://ubuntu.com/observability
+[Dqlite]:             https://github.com/canonical/k8s-dqlite
