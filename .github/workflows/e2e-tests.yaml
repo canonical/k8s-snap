@@ -117,9 +117,8 @@ jobs:
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
           TEST_SNAPCRAFT_STORE_CREDENTIALS: '${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}'
-          TEST_SKIP_CLEANUP: "1"
         run: |
-          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }} -k "test_feature_upgrades"
+          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
       - name: Prepare inspection reports
         if: failure()
         run: |
