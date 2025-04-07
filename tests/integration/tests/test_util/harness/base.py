@@ -48,7 +48,9 @@ class Harness:
 
     name: str
 
-    def new_instance(self, network_type: str = "IPv4", name_suffix: str = "") -> Instance:
+    def new_instance(
+        self, network_type: str = "IPv4", name_suffix: str = ""
+    ) -> Instance:
         """Creates a new instance on the infrastructure and returns an object
         which can be used to interact with it.
 
