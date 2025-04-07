@@ -71,7 +71,7 @@ func NewSnap(opts SnapOpts) *snap {
 	return s
 }
 
-// buildServiceCommand creates a snap command for managing services
+// buildServiceCommand creates a snap command for managing services.
 func (s *snap) buildServiceCommand(action string, names []string, extraSnapArgs ...string) []string {
 	cmd := []string{"snap", action}
 	for _, name := range names {
