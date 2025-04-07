@@ -339,7 +339,9 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
             LOG.info("Waiting for all helm releases to upgrade")
             util.stubbornly(retries=15, delay_s=5).on(instance).until(
                 lambda p: all(
-                    next(r for r in json.loads(p.stdout) if r["name"] == name)["updated"]
+                    next(r for r in json.loads(p.stdout) if r["name"] == name)[
+                        "updated"
+                    ]
                     != initial_releases[name]["updated"]
                     for name in initial_releases
                 ),
