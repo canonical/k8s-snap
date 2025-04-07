@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
+	"strings"
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
@@ -120,13 +122,34 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			cmd.Printf("Certificates have been successfully refreshed, and will expire at %v.\n", expiryTimeUNIX)
 		},
 	}
-	cmd.Flags().StringArrayVar(&opts.certificates, "certificates", []string{}, "List of certificates to renew in the cluster (only used with --expires-in). Allowed values:\n  Worker nodes: kubelet, kubelet.conf, proxy.conf\n  Control plane nodes: admin.conf, front-proxy-client, apiserver-kubelet-client, scheduler.conf, controller.conf, apiserver, kubelet.conf, kubelet, proxy.conf")
+
+	certificateOpts := fmt.Sprintf("Worker nodes: %s\nControl Plane nodes: %s",
+		formatCertificatesList(apiv1.ClusterRoleWorker),
+		formatCertificatesList(apiv1.ClusterRoleControlPlane),
+	)
+	cmd.Flags().StringArrayVar(&opts.certificates, "certificates", []string{}, fmt.Sprintf("List of certificates to renew in the cluster (only used with --expires-in). Defaults to all certificates.\nAllowed values:\n%s", certificateOpts))
 	cmd.Flags().StringVar(&opts.externalCerts, "external-certificates", "", "path to a YAML file containing external certificate data in PEM format. If the cluster was bootstrapped with external certificates, the certificates will be updated. Use '-' to read from stdin.")
 	cmd.Flags().StringVar(&opts.expiresIn, "expires-in", "", "the time until the certificates expire, e.g., 1h, 2d, 4mo, 5y. Aditionally, any valid time unit for ParseDuration is accepted.")
 	cmd.Flags().DurationVar(&opts.timeout, "timeout", 90*time.Second, "the max time to wait for the command to execute")
 	cmd.Flags().StringArrayVar(&opts.extraSANs, "extra-sans", []string{}, "extra SANs to add to the certificates.")
 
 	return cmd
+}
+
+// formatCertificatesList returns a comma separated string of the certificates
+// names for a specific cluster role.
+func formatCertificatesList(nodeRole apiv1.ClusterRole) string {
+	certs, found := apiv1.CertificatesByRole[nodeRole]
+	if !found {
+		return ""
+	}
+
+	var parts []string
+	for cert := range certs {
+		parts = append(parts, string(cert))
+	}
+	slices.Sort(parts)
+	return strings.Join(parts, ", ")
 }
 
 func getCertificatesFromYAML(env cmdutil.ExecutionEnvironment, filePath string) (apiv1.RefreshCertificatesUpdateRequest, error) {
