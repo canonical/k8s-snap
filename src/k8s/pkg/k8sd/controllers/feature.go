@@ -197,7 +197,7 @@ func (c *FeatureController) reconcileLoop(
 	setFeatureStatus func(ctx context.Context, name types.FeatureName, status types.FeatureStatus) error,
 	featureName types.FeatureName,
 	triggerCh chan struct{},
-	reconciledCh chan<- struct{},
+	reconciledCh chan struct{},
 	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
 ) {
 	for {
