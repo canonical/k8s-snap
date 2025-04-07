@@ -15,12 +15,15 @@ import (
 type NodeLabelController struct {
 	snap      snap.Snap
 	waitReady func()
+	// reconciledCh is used to notify that the controller has finished its reconciliation loop.
+	reconciledCh chan struct{}
 }
 
 func NewNodeLabelController(snap snap.Snap, waitReady func()) *NodeLabelController {
 	return &NodeLabelController{
-		snap:      snap,
-		waitReady: waitReady,
+		snap:         snap,
+		waitReady:    waitReady,
+		reconciledCh: make(chan struct{}, 1),
 	}
 }
 
@@ -42,7 +45,11 @@ func (c *NodeLabelController) Run(ctx context.Context) {
 		}
 
 		if err := client.WatchNode(
-			ctx, hostname, func(node *v1.Node) error { return c.reconcile(ctx, node) }); err != nil {
+			ctx, hostname, func(node *v1.Node) error {
+				err := c.reconcile(ctx, node)
+				c.notifyReconciled()
+				return err
+			}); err != nil {
 			// The watch may fail during bootstrap or service start-up.
 			log.WithValues("node name", hostname).Error(err, "Failed to watch node")
 		}
@@ -117,4 +124,16 @@ func (c *NodeLabelController) reconcile(ctx context.Context, node *v1.Node) erro
 	}
 
 	return nil
+}
+
+// ReconciledCh returns the channel where the controller pushes when a reconciliation loop is finished.
+func (c *NodeLabelController) ReconciledCh() <-chan struct{} {
+	return c.reconciledCh
+}
+
+func (c *NodeLabelController) notifyReconciled() {
+	select {
+	case c.reconciledCh <- struct{}{}:
+	default:
+	}
 }
