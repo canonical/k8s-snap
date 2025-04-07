@@ -7,7 +7,7 @@ have security implications on {{product}}.
 
 - [Security overview explanation]
 - [Cryptography in Canonical Kubernetes explanation]
-<!-- - [How to report a security issue] -->
+- [How to report a security issue]
 
 ## Authentication
 
@@ -45,3 +45,4 @@ and much more.
 [Charm configurations]: /charm/reference/charm-configurations.md
 [Cryptography in Canonical Kubernetes explanation]: /snap/explanation/security/crypto.md
 [Certificates explanation]: /snap/explanation/security/certificates
+[How to report a security issue]: /charm/howto/report-security-issue.md

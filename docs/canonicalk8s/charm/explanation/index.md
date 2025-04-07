@@ -58,7 +58,7 @@ Understand how security plays a vital role in Canonical Kubernetes.
 
 ```{toctree}
 :titlesonly:
-security
+Security overview <security.md>
 ```
 
 ---
