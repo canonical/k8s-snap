@@ -15,7 +15,6 @@ import yaml
 from test_util import config, harness, snap, tags, util
 from test_util.registry import Registry
 
-
 LOG = logging.getLogger(__name__)
 
 

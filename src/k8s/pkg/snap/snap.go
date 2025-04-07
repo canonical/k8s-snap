@@ -382,9 +382,9 @@ func (s *snap) Revision(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get snap info: %w", err)
 	}
-	log.FromContext(ctx).Info("Snap info", "snap", snap)
+
 	if snap.StatusCode != 200 {
-		return "", fmt.Errorf("failed to get snap info: snapd returned with error code %d", err)
+		return "", fmt.Errorf("failed to get snap info: snapd returned with error code %d", snap.StatusCode)
 	}
 
 	return snap.Result.Revision, nil
