@@ -50,6 +50,7 @@ type Snap interface {
 	ContainerdSocketPath() string        // classic confinement: /run/containerd/containerd.sock, strict confinement: /var/snap/k8s/common/run/containerd/containerd.sock
 	ContainerdStateDir() string          // classic confinement: /run/containerd, strict confinement: /var/snap/k8s/common/run/containerd
 
+	K8sCRDDir() string            //  /snap/k8s/current/k8s/crds
 	K8sScriptsDir() string        //  /snap/k8s/current/k8s/scripts
 	K8sInspectScriptPath() string //  /snap/k8s/current/k8s/scripts/inspect.sh
 
