@@ -20,7 +20,7 @@ type FeatureController struct {
 	snap      snap.Snap
 	waitReady func()
 
-	controllerReadyCh chan struct{}
+	readyCh chan struct{}
 
 	triggerNetworkCh       chan struct{}
 	triggerGatewayCh       chan struct{}
@@ -39,10 +39,10 @@ type FeatureController struct {
 	reconciledMetricsServerCh chan struct{}
 }
 
-// ControllerReadyCh returns a channel that is closed when the controller is ready.
+// ReadyCh returns a channel that is closed when the controller is ready.
 // This is used to signal to other components that they can start using the controller.
-func (c *FeatureController) ControllerReadyCh() <-chan struct{} {
-	return c.controllerReadyCh
+func (c *FeatureController) ReadyCh() <-chan struct{} {
+	return c.readyCh
 }
 
 func (c *FeatureController) ReconciledNetworkCh() <-chan struct{} {
@@ -90,7 +90,7 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 	return &FeatureController{
 		snap:                      opts.Snap,
 		waitReady:                 opts.WaitReady,
-		controllerReadyCh:         make(chan struct{}),
+		readyCh:                   make(chan struct{}),
 		triggerNetworkCh:          opts.TriggerNetworkCh,
 		triggerGatewayCh:          opts.TriggerGatewayCh,
 		triggerIngressCh:          opts.TriggerIngressCh,
@@ -163,7 +163,7 @@ func (c *FeatureController) Run(
 		return featureStatus, nil
 	})
 
-	close(c.controllerReadyCh)
+	close(c.readyCh)
 	log.Info("Feature controller ready")
 }
 
