@@ -35,6 +35,13 @@ Ports and services <ports-and-services>
 proxy
 ```
 
+## Security
+
+```{toctree}
+:titlesonly:
+Security <security>
+```
+
 ## Release notes
 
 New features, bug fixes, deprecations and more are included in the release
