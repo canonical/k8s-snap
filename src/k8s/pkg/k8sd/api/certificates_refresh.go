@@ -591,21 +591,17 @@ func isCertificateSigningRequestApprovedAndIssued(csr *certv1.CertificateSigning
 	var denyReason, denyMessage string
 
 	for _, condition := range csr.Status.Conditions {
-		switch condition.Type {
-		case certv1.CertificateDenied:
-			if condition.Status == corev1.ConditionTrue {
+		if condition.Status == corev1.ConditionTrue {
+			switch condition.Type {
+			case certv1.CertificateDenied:
 				denied = true
 				denyReason = condition.Reason
 				denyMessage = condition.Message
-			}
-		case certv1.CertificateFailed:
-			if condition.Status == corev1.ConditionTrue {
+			case certv1.CertificateFailed:
 				failed = true
 				failReason = condition.Reason
 				failMessage = condition.Message
-			}
-		case certv1.CertificateApproved:
-			if condition.Status == corev1.ConditionTrue {
+			case certv1.CertificateApproved:
 				approved = true
 			}
 		}
