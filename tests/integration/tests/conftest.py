@@ -125,58 +125,6 @@ def log_environment_info(h: harness.Harness):
 
 
 @pytest.fixture(scope="session")
-def snapstore_branch(tmp_path_factory: pytest.TempPathFactory) -> str:
-    """
-    Create and upload the config.Snap on a snapstore branch.
-    Subsequent calls during the session will use the same branch.
-    """
-    # Create a temporary directory for the snap upload process.
-    tmp_path = tmp_path_factory.mktemp("snap-upload")
-
-    # Ensure the necessary credentials are set.
-    assert (
-        len(config.SNAPCRAFT_STORE_CREDENTIALS) > 0
-    ), "SNAPCRAFT_STORE_CREDENTIALS must be set to upload the snap to the store"
-    assert config.SNAP is not None, "SNAP must be set to upload it to the store"
-
-    random_chars = "".join(random.choices(string.ascii_lowercase, k=4))
-    branch = f"latest/edge/ci-test-{random_chars}"
-
-    os.environ["SNAPCRAFT_STORE_CREDENTIALS"] = config.SNAPCRAFT_STORE_CREDENTIALS
-
-    unsquash_path = tmp_path / "k8s-snap-unsquashed"
-    util.run(f"unsquashfs -d {unsquash_path} {config.SNAP}".split())
-
-    # Create a dummy file to force uniqueness of the snap.
-    dummy_file = unsquash_path / f"{time.time()}"
-    util.run(f"touch {dummy_file}".split())
-
-    modified_snap_path = "k8s-snap-modified.snap"
-    util.run(
-        f"snapcraft pack {unsquash_path} -o {modified_snap_path}".split(), cwd=tmp_path
-    )
-    util.run(
-        f"snapcraft upload {modified_snap_path} --release={branch}".split(),
-        cwd=tmp_path,
-    )
-
-    return branch
-
-
-@pytest.fixture()
-def snap_in_snapstore(
-    snapstore_branch: Path,
-) -> str:
-    """A regular (function-scoped) fixture that simply returns the session snapstore branch"""
-
-    # TODO(ben): Instead of random identifiers, we could create a unique hash for the state of the repository.
-    # including the current commit and staged changes. Then, we could use that hash as the branch name suffix.
-    # Subsequent runs would then be able to use the same branch name and avoid
-    # creating a new branch each time.
-    return snapstore_branch
-
-
-@pytest.fixture(scope="session")
 def registry(h: harness.Harness) -> Optional[Registry]:
     if config.USE_LOCAL_MIRROR:
         yield Registry(h)

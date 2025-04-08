@@ -3,6 +3,7 @@
 #
 import json
 import logging
+from pathlib import Path
 from typing import List
 
 import pytest
@@ -93,7 +94,8 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
 )
 @pytest.mark.tags(tags.NIGHTLY)
 def test_disable_separate_feature_upgrades(
-    instances: List[harness.Instance], snap_in_snapstore: str
+    instances: List[harness.Instance],
+    tmp_path: Path
 ):
     cluster_node = instances[0]
     joining_cp = instances[1]
@@ -102,7 +104,7 @@ def test_disable_separate_feature_upgrades(
     util.join_cluster(joining_cp, join_token)
 
     # Refresh first node, no upgrade CRD should be created.
-    cluster_node.exec(f"snap refresh k8s --amend --channel={snap_in_snapstore}".split())
+    util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP_NAME)
     util.wait_until_k8s_ready(cluster_node, instances)
 
     upgrades = json.loads(
