@@ -6,8 +6,6 @@ import (
 	"net"
 	"slices"
 	"syscall"
-
-	"github.com/vishvananda/netlink"
 )
 
 // IsLocalPortOpen checks if the given local port is already open or not.
@@ -107,34 +105,4 @@ func parseIPAddresses(addrs []net.Addr) ([]net.IP, error) {
 	}
 
 	return ips, nil
-}
-
-func VxlanDevices() ([]netlink.Vxlan, error) {
-	var vxlanDevices []netlink.Vxlan
-
-	links, err := netlink.LinkList()
-	if err != nil {
-		return vxlanDevices, fmt.Errorf("failed to list network links: %w", err)
-	}
-
-	for _, link := range links {
-		if vxlan, ok := link.(*netlink.Vxlan); ok {
-			vxlanDevices = append(vxlanDevices, *vxlan)
-		}
-	}
-
-	return vxlanDevices, nil
-}
-
-func RemoveLink(name string) error {
-	link, err := netlink.LinkByName(name)
-	if err != nil {
-		return fmt.Errorf("failed to find the link %s: %w", name, err)
-	}
-
-	if err := netlink.LinkDel(link); err != nil {
-		return fmt.Errorf("failed to remove the link %s: %w", name, err)
-	}
-
-	return nil
 }
