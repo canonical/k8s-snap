@@ -68,9 +68,6 @@ Environment="NO_PROXY=10.1.0.0/16,10.152.183.0/24,192.168.0.0/16,127.0.0.1,172.1
     )
 
 
-@pytest.mark.xfail(
-    run=False, reason="airgapped tests are currently failing on Github runners"
-)
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
@@ -107,9 +104,6 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(instance, [instance])
 
 
-@pytest.mark.xfail(
-    run=False, reason="airgapped tests are currently failing on Github runners"
-)
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
