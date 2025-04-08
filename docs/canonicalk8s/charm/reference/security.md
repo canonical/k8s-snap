@@ -26,8 +26,8 @@ your cluster.
 ## Reference material
 
 Our reference material contains technical information that can be used to
-understand the security posture of {{product}} such as what ports are exposed,
-what are the different security configuration options available during bootstrap
+understand the security posture of {{product}}, such as which ports are 
+exposed, the available security configuration options during bootstrap, 
 and much more.
 
 - [Architecture]
