@@ -3,9 +3,8 @@
 This page outlines the annotations that can be configured during cluster
 [bootstrap] or when setting cluster configuration later on.
 
-For example you can specify annotations during the bootstrap process. 
-To do this, set the `cluster-config.annotations` parameter in the bootstrap 
-configuration:
+To specify annotations during the bootstrap process, set the 
+`cluster-config.annotations` parameter in the bootstrap configuration:
 
 ```yaml
 cluster-config:
@@ -87,7 +86,7 @@ v1alpha annotations are experimental and subject to change or removal in future 
 
 |   |   |
 |---|---|
-|**Values**| (integer value port number)|
+|**Values**| integer value port number|
 |**Description**|The port number cilium will for its VXLAN encapsulation protocol 
 destination port.|
 
@@ -117,4 +116,4 @@ for(var i=0;i<el.length;i++){
 <!-- Links -->
 
 [Kubernetes website]:https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-[bootstrap]: bootstrap-config-reference
+[bootstrap]: /snap/reference/config-files/bootstrap-config.md
