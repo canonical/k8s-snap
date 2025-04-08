@@ -94,8 +94,7 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
 )
 @pytest.mark.tags(tags.NIGHTLY)
 def test_disable_separate_feature_upgrades(
-    instances: List[harness.Instance],
-    tmp_path: Path
+    instances: List[harness.Instance], tmp_path: Path
 ):
     cluster_node = instances[0]
     joining_cp = instances[1]
