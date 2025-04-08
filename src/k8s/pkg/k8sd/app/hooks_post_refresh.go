@@ -147,18 +147,13 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 					log.Error(ctx.Err(), "Context canceled while waiting for feature controllers to reconcile.")
 					return
 
-				default:
+				case <-time.After(100 * time.Millisecond):
 					for name, ch := range pending {
 						select {
 						case <-ch:
 							log.Info(fmt.Sprintf("%s feature controller reconciled.", name))
 							delete(pending, name)
-						// TODO(ben): Maybe add a timeout here. We don't want to wait forever in this loop.
-						//     		  If we run into the timeout, set the upgrade to failed.
-						// 			  What would be a reasonable timeout here? How could users configure this?
 						default:
-							// Avoid tight looping
-							time.Sleep(100 * time.Millisecond)
 						}
 					}
 				}

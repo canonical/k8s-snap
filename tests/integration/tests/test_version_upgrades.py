@@ -301,7 +301,16 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         release["name"]: release
         for release in json.loads(
             main.exec(
-                "k8s helm list -n kube-system -o json".split(),
+                [
+                    "/snap/k8s/current/bin/helm",
+                    "--kubeconfig",
+                    "/etc/kubernetes/admin.conf",
+                    "list",
+                    "-n",
+                    "kube-system",
+                    "-o",
+                    "json",
+                ],
                 capture_output=True,
                 text=True,
             ).stdout
@@ -346,7 +355,16 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
                     for name in initial_releases
                 ),
             ).exec(
-                "k8s helm list -n kube-system -o json".split(),
+                [
+                    "/snap/k8s/current/bin/helm",
+                    "--kubeconfig",
+                    "/etc/kubernetes/admin.conf",
+                    "list",
+                    "-n",
+                    "kube-system",
+                    "-o",
+                    "json",
+                ],
                 capture_output=True,
                 text=True,
             )
@@ -368,7 +386,16 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
             ), f"While upgrading, expected phase to be NodeUpgrade but got {phase}"
 
             current_helm_releases = instance.exec(
-                "k8s helm list -n kube-system -o json".split(),
+                [
+                    "/snap/k8s/current/bin/helm",
+                    "--kubeconfig",
+                    "/etc/kubernetes/admin.conf",
+                    "list",
+                    "-n",
+                    "kube-system",
+                    "-o",
+                    "json",
+                ],
                 capture_output=True,
                 text=True,
             ).stdout
