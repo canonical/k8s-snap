@@ -305,6 +305,10 @@ func (s *snap) ContainerdRegistryConfigDir() string {
 	return filepath.Join(s.containerdBaseDir, "etc", "containerd", "hosts.d")
 }
 
+func (s *snap) K8sCRDDir() string {
+	return filepath.Join(s.snapDir, "k8s", "crds")
+}
+
 func (s *snap) K8sScriptsDir() string {
 	return filepath.Join(s.snapDir, "k8s", "scripts")
 }

@@ -122,7 +122,11 @@ def log_environment_info(h: harness.Harness):
 
 @pytest.fixture(scope="session")
 def registry(h: harness.Harness) -> Optional[Registry]:
-    yield Registry(h)
+    if config.USE_LOCAL_MIRROR:
+        yield Registry(h)
+    else:
+        LOG.info("Local registry mirror disabled!")
+        yield None
 
 
 @pytest.fixture(scope="session", autouse=True)
