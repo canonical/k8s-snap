@@ -1,0 +1,7 @@
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+  annotations:
+    k8sd/v1alpha/lifecycle/disable-separate-feature-upgrades: true

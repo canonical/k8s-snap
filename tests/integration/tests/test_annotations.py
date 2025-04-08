@@ -1,6 +1,7 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
+import json
 import logging
 from typing import List
 
@@ -82,3 +83,50 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "worker node should have been removed from the cluster"
     util.check_snap_services_ready(worker, node_type="worker")
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.bootstrap_config(
+    (
+        config.MANIFESTS_DIR / "bootstrap-disable-separate-feature-upgrade.yaml"
+    ).read_text()
+)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_disable_separate_feature_upgrades(
+    instances: List[harness.Instance], snap_in_snapstore: str
+):
+    cluster_node = instances[0]
+    joining_cp = instances[1]
+
+    join_token = util.get_join_token(cluster_node, joining_cp)
+    util.join_cluster(joining_cp, join_token)
+
+    # Refresh first node, no upgrade CRD should be created.
+    cluster_node.exec(f"snap refresh k8s --amend --channel={snap_in_snapstore}".split())
+    util.wait_until_k8s_ready(cluster_node, instances)
+
+    upgrades = json.loads(
+        cluster_node.exec(
+            "k8s kubectl get upgrade -o=jsonpath={.items}".split(),
+            capture_output=True,
+            text=True,
+        ).stdout
+    )
+    assert len(upgrades) == 0, "upgrade CRD should not be created"
+
+    # The feature controller should not be blocked.
+    # Disable gateway feature
+    cluster_node.exec("k8s set gateway.enabled=false".split())
+
+    def is_gateway_disabled(process):
+        gateway_status = json.loads(process.stdout)
+        return not gateway_status.get("enabled", None)
+
+    # Wait until gateway is disabled
+    util.stubbornly(retries=3, delay_s=5).on(cluster_node).until(
+        is_gateway_disabled
+    ).exec(
+        ["k8s", "get", "gateway", "--output-format=json"],
+        text=True,
+        capture_output=True,
+    )
