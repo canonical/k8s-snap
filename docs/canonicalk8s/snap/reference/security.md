@@ -8,8 +8,7 @@ have security implications on {{product}}.
 - [Security overview explanation]
 - [How to report a security issue]
 - [How to harden your cluster]
-
-<!-- Add back in once we have this page complete Cryptography <cryptography> -->
+- [Cryptography in Canonical Kubernetes explanation]
 
 ## Authentication
 
@@ -66,5 +65,5 @@ and much more.
 [How to install in air-gapped environments]:/snap/howto/install/offline/
 [How to harden your cluster]: /snap/howto/security/hardening.md
 [Security overview explanation]: /snap/explanation/security/security-overview
-[Certificates]: /snap/explanation/security/certificates
 [CIS hardening]: /snap/explanation/security/cis
+[Cryptography in Canonical Kubernetes explanation]: /snap/explanation/security/crypto.md
