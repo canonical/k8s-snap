@@ -31,7 +31,7 @@ var (
 // only interface using the default vxlan port. Otherwise, Cilium might conflict with
 // other tools such as fan-netwotking, which use the same vxlan destination port.
 func checkAndSanitizeCiliumVXLAN(port int) error {
-	vxlanDevices, err := utils.VxlanDevices()
+	vxlanDevices, err := utils.ListVXLANInterfaces()
 	if err != nil {
 		return err
 	}

@@ -7,12 +7,12 @@ import (
 	"os/exec"
 )
 
-type Vxlan struct {
+type VXLANInterface struct {
 	net.Interface
 	Port int
 }
 
-var ipCmdLinks []struct {
+var ipLinks []struct {
 	IfName   string `json:"ifname"`
 	LinkInfo struct {
 		InfoData struct {
@@ -21,8 +21,8 @@ var ipCmdLinks []struct {
 	} `json:"linkinfo"`
 }
 
-func VxlanDevices() ([]Vxlan, error) {
-	vxlanDevices := []Vxlan{}
+func ListVXLANInterfaces() ([]VXLANInterface, error) {
+	vxlanDevices := []VXLANInterface{}
 
 	cmd := exec.Command("ip", "-d", "-j", "link", "show", "type", "vxlan")
 	out, err := cmd.CombinedOutput()
@@ -30,16 +30,16 @@ func VxlanDevices() ([]Vxlan, error) {
 		return vxlanDevices, fmt.Errorf("running ip command failed: %s", string(out))
 	}
 
-	if err := json.Unmarshal(out, &ipCmdLinks); err != nil {
+	if err := json.Unmarshal(out, &ipLinks); err != nil {
 		return vxlanDevices, fmt.Errorf("unmarshaling ip command output failed: %w", err)
 	}
 
-	for _, link := range ipCmdLinks {
+	for _, link := range ipLinks {
 		iface, err := net.InterfaceByName(link.IfName)
 		if err != nil {
 			return vxlanDevices, fmt.Errorf("returning interface by name failed: %w", err)
 		}
-		vxlanDevices = append(vxlanDevices, Vxlan{
+		vxlanDevices = append(vxlanDevices, VXLANInterface{
 			Interface: *iface,
 			Port:      link.LinkInfo.InfoData.Port,
 		})
