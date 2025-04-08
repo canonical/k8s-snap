@@ -113,7 +113,7 @@ func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *
 	if mustRestartKubelet {
 		// This may fail if other controllers try to restart the services at the same time, hence the retry.
 		if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
-			if err := c.snap.RestartService(ctx, "kubelet"); err != nil {
+			if err := c.snap.RestartServices(ctx, []string{"kubelet"}); err != nil {
 				return fmt.Errorf("failed to restart kubelet to apply node configuration: %w", err)
 			}
 			return nil

@@ -140,19 +140,9 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 			log.Error(err, "failed to cleanup control plane certificates")
 		}
 
-		log.Info("Stopping worker services")
-		if err := snaputil.StopWorkerServices(ctx, snap); err != nil {
-			log.Error(err, "Failed to stop worker services")
-		}
-
-		log.Info("Stopping control plane services")
-		if err := snaputil.StopControlPlaneServices(ctx, snap); err != nil {
-			log.Error(err, "Failed to stop control-plane services")
-		}
-
-		log.Info("Stopping k8s-dqlite")
-		if err := snaputil.StopK8sDqliteServices(ctx, snap); err != nil {
-			log.Error(err, "Failed to stop k8s-dqlite service")
+		log.Info("Stopping all services except k8sd")
+		if err := snaputil.StopK8sServices(ctx, snap, "--no-wait"); err != nil {
+			log.Error(err, "failed to stop k8s services")
 		}
 
 		log.Info("Cleaning up containerd paths")

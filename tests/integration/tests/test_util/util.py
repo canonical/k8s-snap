@@ -34,6 +34,7 @@ TRACK_RE = re.compile(r"^(\d+)\.(\d+)(\S*)$")
 # SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
 SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
 
+
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     """Log and run command."""
     kwargs.setdefault("check", True)
@@ -277,7 +278,6 @@ def wait_until_k8s_ready(
     If the instance name is different from the hostname, the instance name should be passed to the
     node_names dictionary, e.g. {"instance_id": "node_name"}.
     """
-    instance_id_node_name_map = {}
     for instance in instances:
         node_name = node_names.get(instance.id)
         if node_name is None:

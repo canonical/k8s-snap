@@ -7,8 +7,7 @@ import pytest
 from test_util import harness, tags, util
 
 
-# Note(ben): Commented out as otherwise the setup would still happen for xfail tests.
-# @pytest.mark.node_count(3)
+@pytest.mark.node_count(3)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_wrong_token_race(instances: List[harness.Instance]):
     # Note(ben): k8s-dqlite sometimes takes very long to shutdown (to be investigated) and
