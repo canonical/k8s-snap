@@ -95,7 +95,7 @@ func (c *NodeLabelController) updateDqliteFailureDomain(ctx context.Context, fai
 
 	if modified {
 		log.Info("Updated k8s-dqlite failure domain", "failure domain", failureDomain, "availability zone", availabilityZone)
-		if err = c.snap.RestartService(ctx, "k8s-dqlite"); err != nil {
+		if err = c.snap.RestartServices(ctx, []string{"k8s-dqlite"}); err != nil {
 			return fmt.Errorf("failed to restart k8s-dqlite to apply failure domain: %w", err)
 		}
 	}
@@ -109,7 +109,7 @@ func (c *NodeLabelController) updateDqliteFailureDomain(ctx context.Context, fai
 	// prevent a service restart, at the moment k8sd needs to restart itself.
 	if modified {
 		log.Info("Updated k8sd failure domain", "failure domain", failureDomain, "availability zone", availabilityZone)
-		if err := c.snap.RestartService(ctx, "k8sd"); err != nil {
+		if err := c.snap.RestartServices(ctx, []string{"k8sd"}); err != nil {
 			return fmt.Errorf("failed to restart k8sd to apply failure domain: %w", err)
 		}
 		// We shouldn't actually get here.

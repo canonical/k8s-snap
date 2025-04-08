@@ -55,12 +55,12 @@ type Mock struct {
 
 // Snap is a mock implementation for snap.Snap.
 type Snap struct {
-	StartServiceCalledWith   []string
-	StartServiceErr          error
-	StopServiceCalledWith    []string
-	StopServiceErr           error
-	RestartServiceCalledWith []string
-	RestartServiceErr        error
+	StartServicesCalledWith   [][]string
+	StartServicesErr          error
+	StopServicesCalledWith    [][]string
+	StopServicesErr           error
+	RestartServicesCalledWith [][]string
+	RestartServicesErr        error
 
 	RefreshCalledWith []types.RefreshOpts
 	RefreshErr        error
@@ -76,31 +76,40 @@ type Snap struct {
 	Mock Mock
 }
 
-func (s *Snap) StartService(ctx context.Context, name string) error {
-	if len(s.StartServiceCalledWith) == 0 {
-		s.StartServiceCalledWith = []string{name}
+func (s *Snap) StartServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
+	if len(s.StartServicesCalledWith) == 0 {
+		s.StartServicesCalledWith = [][]string{names}
 	} else {
-		s.StartServiceCalledWith = append(s.StartServiceCalledWith, name)
+		s.StartServicesCalledWith = append(s.StartServicesCalledWith, names)
 	}
-	return s.StartServiceErr
+	if len(extraSnapArgs) > 0 {
+		s.StartServicesCalledWith = append(s.StartServicesCalledWith, extraSnapArgs)
+	}
+	return s.StartServicesErr
 }
 
-func (s *Snap) StopService(ctx context.Context, name string) error {
-	if len(s.StopServiceCalledWith) == 0 {
-		s.StopServiceCalledWith = []string{name}
+func (s *Snap) StopServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
+	if len(s.StopServicesCalledWith) == 0 {
+		s.StopServicesCalledWith = [][]string{names}
 	} else {
-		s.StopServiceCalledWith = append(s.StopServiceCalledWith, name)
+		s.StopServicesCalledWith = append(s.StopServicesCalledWith, names)
 	}
-	return s.StopServiceErr
+	if len(extraSnapArgs) > 0 {
+		s.StopServicesCalledWith = append(s.StopServicesCalledWith, extraSnapArgs)
+	}
+	return s.StopServicesErr
 }
 
-func (s *Snap) RestartService(ctx context.Context, name string) error {
-	if len(s.RestartServiceCalledWith) == 0 {
-		s.RestartServiceCalledWith = []string{name}
+func (s *Snap) RestartServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
+	if len(s.RestartServicesCalledWith) == 0 {
+		s.RestartServicesCalledWith = [][]string{names}
 	} else {
-		s.RestartServiceCalledWith = append(s.RestartServiceCalledWith, name)
+		s.RestartServicesCalledWith = append(s.RestartServicesCalledWith, names)
 	}
-	return s.RestartServiceErr
+	if len(extraSnapArgs) > 0 {
+		s.RestartServicesCalledWith = append(s.RestartServicesCalledWith, extraSnapArgs)
+	}
+	return s.RestartServicesErr
 }
 
 func (s *Snap) Refresh(ctx context.Context, opts types.RefreshOpts) (string, error) {
