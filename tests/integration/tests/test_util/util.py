@@ -29,7 +29,7 @@ from test_util import config, harness
 
 LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
-TRACK_RE = re.compile(r"^(\d+)\.(\d+)(\S*)$")
+TRACK_RE = re.compile(r"^v?(\d+)\.(\d+)(.\d+)?(\S*)$")
 MAIN_BRANCH = "main"
 
 # SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
@@ -538,9 +538,12 @@ def major_minor(version: str) -> Optional[tuple]:
     Returns:
         a tuple containing the major and minor version or None if the version string is invalid
     """
+    LOG.info("Parsing version %s", version)
     if match := TRACK_RE.match(version):
-        maj, min, _ = match.groups()
+        LOG.info("Version %s matches regex", version)
+        maj, min, _, _ = match.groups()
         return int(maj), int(min)
+    LOG.info("Version %s does not match regex", version)
     return None
 
 
@@ -580,22 +583,28 @@ def _previous_track_from_branch(branch: str) -> Optional[str]:
         # NOTE(Hue): `latest/stable` is not populated at the moment.
         # When it is, we should return `latest` instead.
         LOG.info("Getting current version from upstream k8s")
+        # For the main branch, the previous track is the latest release-branch, e.g.
+        # `1.32/stable` for `main` branch which matches the current upstream version.
         maj_min = _major_minor_from_stable_upstream()
+        if not maj_min:
+            LOG.info("Failed to determine upstream version")
+            return None
+
     elif branch.startswith("release-"):
         LOG.info("Getting current version from branch %s", branch)
         maj_min = major_minor(branch.lstrip("release-"))
+        # Get the previous version from the branch, e.g. for branch `release-1.32` we want `1.31`
+        if maj_min:
+            _maj, _min = maj_min[0], maj_min[1]
+            if _min == 0:
+                maj_min = _major_minor_from_stable_upstream(_maj - 1)
+            else:
+                maj_min = (_maj, _min - 1)
     else:
         LOG.info(
             "Branch is neither `main` nor `release-X.Y`. Can't determine previous track."
         )
         return None
-
-    if maj_min:
-        _maj, _min = maj_min[0], maj_min[1]
-        if _min == 0:
-            maj_min = _major_minor_from_stable_upstream(_maj - 1)
-        else:
-            maj_min = (_maj, _min - 1)
 
     flavor = _get_flavor()
     return f"{maj_min[0]}.{maj_min[1]}" + (flavor and f"-{flavor}") if maj_min else None

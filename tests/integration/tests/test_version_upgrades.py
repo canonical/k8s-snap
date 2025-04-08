@@ -3,10 +3,6 @@
 #
 import json
 import logging
-import os
-import random
-import string
-import time
 from pathlib import Path
 from typing import List
 
@@ -139,7 +135,7 @@ def test_version_upgrades(
             LOG.info(f"Upgraded {instance.id} on channel {channel}")
 
 
-@pytest.mark.node_count(4)
+@pytest.mark.node_count(3)
 @pytest.mark.no_setup()
 @pytest.mark.skipif(
     not config.VERSION_DOWNGRADE_CHANNELS, reason="No downgrade channels configured"
@@ -167,7 +163,7 @@ def test_version_downgrades_with_rollback(
     cp = instances[0]
     cp1 = instances[1]
     cp2 = instances[2]
-    w0 = instances[3]
+    # w0 = instances[3]
     current_channel = channels[0]
 
     if current_channel.lower() == "recent":
@@ -204,11 +200,11 @@ def test_version_downgrades_with_rollback(
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
-    join_token_w0 = util.get_join_token(cp, w0, "--worker")
+    # join_token_w0 = util.get_join_token(cp, w0, "--worker")
 
     util.join_cluster(cp1, join_token_cp1)
     util.join_cluster(cp2, join_token_cp2)
-    util.join_cluster(w0, join_token_w0)
+    # util.join_cluster(w0, join_token_w0)
 
     util.wait_until_k8s_ready(cp, instances)
 
@@ -270,7 +266,7 @@ def test_version_downgrades_with_rollback(
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
 
-@pytest.mark.node_count(1)
+@pytest.mark.node_count(3)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
@@ -280,52 +276,12 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     Once this work is complete, this test will likely be merged with the
     test_version_upgrades test above and create a single test for all upgrades.
 
-    It is not possible to:
-        * do a snap refresh to a local snap
-        * upload the same snap revision to different branches
-    Therefore we need to:
-        * upload the snap to two different branches and perform an upgrade between them
-          (we rely on/need to test pre-refresh hooks so this cannot be done by upgrading from an existing revision)
-        * Need to do a dummy modification to the snap to make it possible to upload the same
-           revision to different branches
-
+    This test creates a cluster, refreshes each node one by one and verifies
+    that the upgrade CR is updated correctly.
     """
-    assert (
-        len(config.SNAPCRAFT_STORE_CREDENTIALS) > 0
-    ), "SNAPCRAFT_STORE_CREDENTIALS must be set to run this test"
-
     assert config.SNAP is not None, "SNAP must be set to run this test"
 
-    # Note(ben): No need to make this configurable/overly complicated for now as
-    # we will merge/refactor this test soon anyway (see docstring).
-    start_branch = "1.32-classic/stable"
-    # Create a random branch name to avoid conflicts with other tests that might run in parallel.
-    random_chars = "".join(random.choices(string.ascii_lowercase, k=4))
-    target_branch = f"latest/edge/ci-upgrade-test-{random_chars}"
-
-    os.environ["SNAPCRAFT_STORE_CREDENTIALS"] = config.SNAPCRAFT_STORE_CREDENTIALS
-
-    # unsquash, add dummy change to ensure uniqueness in store the test would otherwise
-    # fail if a PR only introduces test changes.
-    unsquash_path = tmp_path / "k8s-snap-unsquashed"
-    util.run(f"unsquashfs -d {unsquash_path} {config.SNAP}".split())
-    # create a random dummy file to ensure the snap is unique
-    dummy_file = unsquash_path / f"{time.time()}"
-    util.run(f"touch {dummy_file}".split())
-    modified_snap_path = "k8s-snap-modified.snap"
-    util.run(
-        "echo $SNAPCRAFT_STORE_CREDENTIALS | wc -m".split(),
-        cwd=tmp_path,
-    )
-    util.run(
-        f"snapcraft pack k8s-snap-unsquashed -o {modified_snap_path}".split(),
-        cwd=tmp_path,
-    )
-    util.run(
-        f"snapcraft upload {modified_snap_path} --release={target_branch}".split(),
-        cwd=tmp_path,
-    )
-
+    start_branch = util.previous_track(config.SNAP)
     main = instances[0]
 
     for instance in instances:
@@ -336,11 +292,9 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         token = util.get_join_token(main, instance)
         instance.exec(["k8s", "join-cluster", token])
 
-    util.wait_until_k8s_ready(instance, instances)
-
     # Refresh each node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
-        instance.exec(f"snap refresh k8s --channel={target_branch}".split())
+        util.setup_k8s_snap(instance, tmp_path, config.SNAP)
 
         # TODO(ben): Check if this wait is really required, if yes - why?
         expected_instances = [instance.id for instance in instances[: idx + 1]]

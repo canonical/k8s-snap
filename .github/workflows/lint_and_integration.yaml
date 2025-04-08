@@ -110,7 +110,6 @@ jobs:
         os: ["ubuntu:24.04"]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
-    secrets: inherit
     with:
       arch: amd64
       os: ${{ matrix.os }}
@@ -127,7 +126,6 @@ jobs:
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     if: success() && github.event_name == 'pull_request'
     uses: ./.github/workflows/e2e-tests.yaml
-    secrets: inherit
     with:
       arch: amd64
       os: ${{ matrix.os }}

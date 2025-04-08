@@ -24,9 +24,11 @@ const (
 )
 
 const (
-	kind    = "Upgrade"
-	group   = "k8sd.io"
-	version = "v1alpha"
+	kind            = "Upgrade"
+	group           = "k8sd.io"
+	version         = "v1alpha"
+	apiVersion      = group + "/" + version
+	upgradesAPIPath = "/apis/" + group + "/" + version + "/upgrades"
 )
 
 type UpgradeMetadata struct {
@@ -47,7 +49,7 @@ type Upgrade struct {
 
 func NewUpgrade(name string) Upgrade {
 	return Upgrade{
-		APIVersion: group + "/" + version,
+		APIVersion: apiVersion,
 		Kind:       kind,
 		Metadata:   UpgradeMetadata{Name: name},
 		Status:     UpgradeStatus{Phase: UpgradePhaseNodeUpgrade, UpgradedNodes: []string{}},
@@ -76,7 +78,7 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 		return nil, fmt.Errorf("failed to create REST client for k8sd.io group: %w", err)
 	}
 
-	upgrades, err := restClient.Get().AbsPath(fmt.Sprintf("/apis/%s/%s/upgrades", group, version)).DoRaw(ctx)
+	upgrades, err := restClient.Get().AbsPath(upgradesAPIPath).DoRaw(ctx)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			// No upgrade in progress.
@@ -98,10 +100,11 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 			matches = append(matches, upgrade)
 		}
 	}
-	if len(matches) == 0 {
+	lenMatches := len(matches)
+	if lenMatches == 0 {
 		return nil, nil
 	}
-	if len(matches) > 1 {
+	if lenMatches > 1 {
 		log.Info("Warning: Found multiple in-progress upgrades", "inprogress upgrades", len(matches))
 	}
 	// Sort matches by name
@@ -110,7 +113,7 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 	})
 
 	// Return the latest
-	return &matches[len(matches)-1], nil
+	return &matches[lenMatches-1], nil
 }
 
 // CreateUpgrade creates a new upgrade CR.
@@ -128,7 +131,7 @@ func (c *Client) CreateUpgrade(ctx context.Context, upgrade Upgrade) error {
 
 	log.Info("Creating upgrade", "upgrade", upgrade)
 	result := restClient.Post().
-		AbsPath(fmt.Sprintf("/apis/%s/%s/upgrades", group, version)).
+		AbsPath(upgradesAPIPath).
 		Body(body).
 		Do(ctx)
 	if result.Error() != nil {
