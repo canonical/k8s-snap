@@ -538,12 +538,9 @@ def major_minor(version: str) -> Optional[tuple]:
     Returns:
         a tuple containing the major and minor version or None if the version string is invalid
     """
-    LOG.info("Parsing version %s", version)
     if match := TRACK_RE.match(version):
-        LOG.info("Version %s matches regex", version)
         maj, min, _, _ = match.groups()
         return int(maj), int(min)
-    LOG.info("Version %s does not match regex", version)
     return None
 
 

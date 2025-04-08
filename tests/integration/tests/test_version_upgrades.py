@@ -163,6 +163,12 @@ def test_version_downgrades_with_rollback(
     cp = instances[0]
     cp1 = instances[1]
     cp2 = instances[2]
+    # TODO: add a worker node once the snap refresh is fixed on worker nodes
+    # and the patch lands on all the release channels covered by this test.
+    #
+    # At the moment, the following fails:
+    # https://github.com/canonical/k8s-snap/blob/96124bd7f1e82e96e23a4c4d11fcff86045f403c/snap/hooks/configure#L7
+    #
     # w0 = instances[3]
     current_channel = channels[0]
 
