@@ -35,7 +35,7 @@ func validatePort(portStr string) (int, error) {
 	if port < 1 || port > 65535 {
 		return 0, errors.New("invalid port: out of range")
 	}
-	return int(port), nil
+	return port, nil
 }
 
 func validateVLANBPFBypass(vlanList string) ([]int, error) {
@@ -98,6 +98,10 @@ func internalConfig(annotations types.Annotations) (config, error) {
 		tunnelPort, err := validatePort(v)
 		if err != nil {
 			return config{}, fmt.Errorf("failed to parse Tunnel encapsulation port: %w", err)
+		}
+
+		if tunnelPort == 0 {
+			tunnelPort = ciliumDefaultVXLANPort
 		}
 
 		c.tunnelPort = tunnelPort

@@ -166,12 +166,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		ciliumNodePortValues["directRoutingDevice"] = config.directRoutingDevice
 	}
 
-	vxlanPort := ciliumDefaultVXLANPort
-	if config.tunnelPort != 0 {
-		vxlanPort = int(config.tunnelPort)
-	}
-
-	if err := checkAndSanitizeCiliumVXLAN(vxlanPort); err != nil {
+	if err := checkAndSanitizeCiliumVXLAN(config.tunnelPort); err != nil {
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
@@ -241,7 +236,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 				"enabled": true,
 			},
 		},
-		"tunnelPort": vxlanPort,
+		"tunnelPort": config.tunnelPort,
 	}
 
 	// If we are deploying with IPv6 only, we need to set the routing mode to native

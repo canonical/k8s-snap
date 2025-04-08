@@ -12,6 +12,15 @@ type Vxlan struct {
 	Port int
 }
 
+var ipCmdLinks []struct {
+	IfName   string `json:"ifname"`
+	LinkInfo struct {
+		InfoData struct {
+			Port int `json:"port"`
+		} `json:"info_data"`
+	} `json:"linkinfo"`
+}
+
 func VxlanDevices() ([]Vxlan, error) {
 	vxlanDevices := []Vxlan{}
 
@@ -21,26 +30,17 @@ func VxlanDevices() ([]Vxlan, error) {
 		return vxlanDevices, fmt.Errorf("running ip command failed: %s", string(out))
 	}
 
-	var ipCmdLinks []struct {
-		IfName   string `json:"ifname"`
-		LinkInfo struct {
-			InfoData struct {
-				Port int `json:"port"`
-			} `json:"info_data"`
-		} `json:"linkinfo"`
-	}
-
 	if err := json.Unmarshal(out, &ipCmdLinks); err != nil {
 		return vxlanDevices, fmt.Errorf("unmarshaling ip command output failed: %w", err)
 	}
 
 	for _, link := range ipCmdLinks {
-		ifi, err := net.InterfaceByName(link.IfName)
+		iface, err := net.InterfaceByName(link.IfName)
 		if err != nil {
 			return vxlanDevices, fmt.Errorf("returning interface by name failed: %w", err)
 		}
 		vxlanDevices = append(vxlanDevices, Vxlan{
-			Interface: *ifi,
+			Interface: *iface,
 			Port:      link.LinkInfo.InfoData.Port,
 		})
 	}
