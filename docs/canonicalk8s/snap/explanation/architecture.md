@@ -57,7 +57,7 @@ The `k8s` snap distribution includes the following:
 
 - **Kubectl**: through which users and other systems interact with Kubernetes
 and drive the cluster operations.
-- **K8s control plane**: These are all the Kubernetes services as well as core
+- **K8s core components**: These are all the Kubernetes services as well as core
 workloads built from upstream and shipped in the snap.
 - **Kubernetes datastore**: uses Dqlite to store data on the state of the
 cluster. It can be replaced by an external datastore.
@@ -65,7 +65,7 @@ cluster. It can be replaced by an external datastore.
 database to store cluster configuration. It is used
 by `k8sd` in order to carry out the orchestration of the additional Kubernetes
 components included in {{product}} such as cluster membership management.
-- **Runtime**: `containerd` is the shipped container runtime.
+- **Container runtime**: `containerd` is the shipped container runtime.
 - **K8sd**: implements the operations logic and exposes that
 functionality via CLIs and APIs.
 
