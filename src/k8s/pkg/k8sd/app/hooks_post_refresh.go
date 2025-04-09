@@ -59,7 +59,7 @@ func (a *App) postRefreshHook(ctx context.Context, s state.State) error {
 			log.Info("Node is not yet bootstrapped (was freshly installed), skipping upgrade steps.")
 		}
 	} else {
-		log.Info("Skipping post-upgrade steps as per user annotation.")
+		log.Info("Post-upgrade steps skipped due to user annotation override.")
 	}
 
 	return nil
