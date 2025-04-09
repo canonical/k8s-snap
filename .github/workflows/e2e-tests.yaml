@@ -69,9 +69,13 @@ on:
         description: Log file logging level
         default: "DEBUG"
         type: string
+      log-cli:
+        description: Enable logs to the console
+        default: false
+        type: boolean
       log-cli-level:
         description: Log CLI logging level
-        default: "ERROR"
+        default: "DEBUG"
         type: string
 
 jobs:
@@ -104,6 +108,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
       - name: Run e2e tests
         env:
+          TEST_LOG_CLI: ${{ inputs.log-cli }}
           TEST_LOG_CLI_LEVEL: ${{ inputs.log-cli-level }}
           TEST_LOG_FILE_PATH: ${{ github.workspace }}/e2e.log
           TEST_LOG_FILE_LEVEL: ${{ inputs.log-file-level }}
