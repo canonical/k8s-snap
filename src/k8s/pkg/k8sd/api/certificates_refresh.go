@@ -586,9 +586,11 @@ func getWorkerCSRDefinitions(hostname string) map[apiv1.CertificateName]*csrDefi
 // approved and issued, false if it is pending, and an error if it is denied
 // or failed.
 func isCertificateSigningRequestApprovedAndIssued(csr *certv1.CertificateSigningRequest) (bool, error) {
-	var approved, failed, denied bool
-	var failReason, failMessage string
-	var denyReason, denyMessage string
+	var (
+		approved, failed, denied bool
+		failReason, failMessage  string
+		denyReason, denyMessage  string
+	)
 
 	for _, condition := range csr.Status.Conditions {
 		if condition.Status == corev1.ConditionTrue {
