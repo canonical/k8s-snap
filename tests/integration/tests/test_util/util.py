@@ -29,7 +29,8 @@ from test_util import config, harness
 
 LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
-TRACK_RE = re.compile(r"^(\d+)\.(\d+)(\S*)$")
+TRACK_RE = re.compile(r"^v?(\d+)\.(\d+)(.\d+)?(\S*)$")
+MAIN_BRANCH = "main"
 
 # SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
 SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
@@ -538,9 +539,72 @@ def major_minor(version: str) -> Optional[tuple]:
         a tuple containing the major and minor version or None if the version string is invalid
     """
     if match := TRACK_RE.match(version):
-        maj, min, _ = match.groups()
+        maj, min, _, _ = match.groups()
         return int(maj), int(min)
     return None
+
+
+def _get_flavor() -> str:
+    """Determine the flavor of the snap."""
+    return {"": "classic", "strict": ""}.get(config.FLAVOR, config.FLAVOR)
+
+
+def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tuple]:
+    """Determine the major and minor version of the latest stable upstream release.
+
+    Args:
+        maj: the major version to use for the URL
+
+    Returns:
+        a tuple containing the major and minor version or None if the version string is invalid
+    """
+    addr = "https://dl.k8s.io/release/stable{dash_maj}.txt".format(
+        dash_maj=f"-{maj}" if maj else ""
+    )
+    LOG.info("Getting upstream version from %s", addr)
+    with urllib.request.urlopen(addr) as r:
+        stable = r.read().decode().strip()
+        return major_minor(stable)
+
+
+def _previous_track_from_branch(branch: str) -> Optional[str]:
+    """Determine the previous track from the branch.
+
+    Args:
+        branch: the branch to determine the previous track for
+
+    Returns:
+        the previous track or None if fails to determine
+    """
+    if branch == MAIN_BRANCH:
+        # NOTE(Hue): `latest/stable` is not populated at the moment.
+        # When it is, we should return `latest` instead.
+        LOG.info("Getting current version from upstream k8s")
+        # For the main branch, the previous track is the latest release-branch, e.g.
+        # `1.32/stable` for `main` branch which matches the current upstream version.
+        maj_min = _major_minor_from_stable_upstream()
+        if not maj_min:
+            LOG.info("Failed to determine upstream version")
+            return None
+
+    elif branch.startswith("release-"):
+        LOG.info("Getting current version from branch %s", branch)
+        maj_min = major_minor(branch.lstrip("release-"))
+        # Get the previous version from the branch, e.g. for branch `release-1.32` we want `1.31`
+        if maj_min:
+            _maj, _min = maj_min[0], maj_min[1]
+            if _min == 0:
+                maj_min = _major_minor_from_stable_upstream(_maj - 1)
+            else:
+                maj_min = (_maj, _min - 1)
+    else:
+        LOG.info(
+            "Branch is neither `main` nor `release-X.Y`. Can't determine previous track."
+        )
+        return None
+
+    flavor = _get_flavor()
+    return f"{maj_min[0]}.{maj_min[1]}" + (flavor and f"-{flavor}") if maj_min else None
 
 
 def previous_track(snap_version: str) -> str:
@@ -564,26 +628,29 @@ def previous_track(snap_version: str) -> str:
         return assumed
 
     if snap_version.startswith("/") or _as_int(snap_version) is not None:
-        assumed = "latest"
-        LOG.info(
-            "Cannot determine previous track for %s -- assume %s", snap_version, assumed
-        )
-        return assumed
+        branch = config.GH_BASE_REF or config.GH_REF or MAIN_BRANCH
+        prev = _previous_track_from_branch(branch)
+        if prev:
+            LOG.info(
+                "Previous track for %s from branch %s is %s", snap_version, branch, prev
+            )
+            return prev
+        else:
+            LOG.info(
+                "Previous track for %s from branch %s is not found -- assume latest",
+                snap_version,
+                branch,
+            )
+            return "latest"
 
     if maj_min := major_minor(snap_version):
         maj, min = maj_min
         if min == 0:
-            with urllib.request.urlopen(
-                f"https://dl.k8s.io/release/stable-{maj - 1}.txt"
-            ) as r:
-                stable = r.read().decode().strip()
-                maj_min = major_minor(stable)
+            maj_min = _major_minor_from_stable_upstream(maj - 1)
         else:
             maj_min = (maj, min - 1)
     elif snap_version.startswith("latest") or "/" not in snap_version:
-        with urllib.request.urlopen("https://dl.k8s.io/release/stable.txt") as r:
-            stable = r.read().decode().strip()
-            maj_min = major_minor(stable)
+        maj_min = _major_minor_from_stable_upstream()
 
     if not maj_min:
         raise ValueError(
@@ -591,7 +658,7 @@ def previous_track(snap_version: str) -> str:
             f"current version: {snap_version}"
         )
 
-    flavor_track = {"": "classic", "strict": ""}.get(config.FLAVOR, config.FLAVOR)
+    flavor_track = _get_flavor()
     track = f"{maj_min[0]}.{maj_min[1]}" + (flavor_track and f"-{flavor_track}")
     LOG.info("Previous track for %s is from track: %s", snap_version, track)
     return track

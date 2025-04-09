@@ -1,10 +1,13 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
+import json
 import logging
+from pathlib import Path
 from typing import List
 
 import pytest
+import yaml
 from test_util import config, harness, snap, tags, util
 from test_util.registry import Registry
 
@@ -52,6 +55,32 @@ def test_version_upgrades(
             )
         current_channel = channels[0]
 
+    # Copy the current snap into the instances.
+    snap_path = (tmp_path / "k8s.snap").as_posix()
+    for instance in instances:
+        instance.send_file(config.SNAP, snap_path)
+
+    # Figure out where to add the current snap into the channels array.
+    # Upgrades should be in order.
+    out = cp.exec(["snap", "info", snap_path], capture_output=True)
+    info = yaml.safe_load(out.stdout)
+
+    # expected: "v1.32.2 classic"
+    ver = info["version"].lstrip("v").split()[0].split(".")
+    added = False
+    for i in range(len(channels)):
+        # e.g.: 1.32-classic/stable
+        chan_ver = channels[i].split("-")[0].split(".")
+        if len(chan_ver) > 1 and (ver[0], ver[1]) < (chan_ver[0], chan_ver[1]):
+            channels.insert(i, snap_path)
+            added = True
+            break
+
+    if not added:
+        # if not added yet, config.SNAP should be at the end.
+        channels.append(snap_path)
+
+    LOG.info(f"Testing upgrades for snaps: {channels}")
     LOG.info(
         f"Bootstrap node on {current_channel} and upgrade through channels: {channels[1:]}"
     )
@@ -88,15 +117,25 @@ def test_version_upgrades(
             LOG.info(f"Current snap version: {latest_version}")
 
             # note: the `--classic` flag will be ignored by snapd for strict snaps.
-            instance.exec(
-                ["snap", "refresh", config.SNAP_NAME, "--channel", channel, "--classic"]
-            )
+            cmd = [
+                "snap",
+                "refresh",
+                config.SNAP_NAME,
+                "--channel",
+                channel,
+                "--classic",
+            ]
+            if channel.startswith("/"):
+                LOG.info("Refreshing k8s snap by path")
+                cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
+
+            instance.exec(cmd)
             util.wait_until_k8s_ready(cp, instances)
             current_channel = channel
             LOG.info(f"Upgraded {instance.id} on channel {channel}")
 
 
-@pytest.mark.node_count(4)
+@pytest.mark.node_count(3)
 @pytest.mark.no_setup()
 @pytest.mark.skipif(
     not config.VERSION_DOWNGRADE_CHANNELS, reason="No downgrade channels configured"
@@ -124,7 +163,13 @@ def test_version_downgrades_with_rollback(
     cp = instances[0]
     cp1 = instances[1]
     cp2 = instances[2]
-    w0 = instances[3]
+    # TODO: add a worker node once the snap refresh is fixed on worker nodes
+    # and the patch lands on all the release channels covered by this test.
+    #
+    # At the moment, the following fails:
+    # https://github.com/canonical/k8s-snap/blob/96124bd7f1e82e96e23a4c4d11fcff86045f403c/snap/hooks/configure#L7
+    #
+    # w0 = instances[3]
     current_channel = channels[0]
 
     if current_channel.lower() == "recent":
@@ -161,11 +206,11 @@ def test_version_downgrades_with_rollback(
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
-    join_token_w0 = util.get_join_token(cp, w0, "--worker")
+    # join_token_w0 = util.get_join_token(cp, w0, "--worker")
 
     util.join_cluster(cp1, join_token_cp1)
     util.join_cluster(cp2, join_token_cp2)
-    util.join_cluster(w0, join_token_w0)
+    # util.join_cluster(w0, join_token_w0)
 
     util.wait_until_k8s_ready(cp, instances)
 
@@ -225,3 +270,66 @@ def test_version_downgrades_with_rollback(
             LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
 
     LOG.info("Rollback test complete. All downgrade segments verified.")
+
+
+@pytest.mark.node_count(3)
+@pytest.mark.no_setup()
+@pytest.mark.tags(tags.NIGHTLY)
+def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
+    """Test the feature upgrades work
+    Note(ben): This test is a work in progress and will
+    be expanded with new tests as the feature upgrades work takes shape.
+    Once this work is complete, this test will likely be merged with the
+    test_version_upgrades test above and create a single test for all upgrades.
+
+    This test creates a cluster, refreshes each node one by one and verifies
+    that the upgrade CR is updated correctly.
+    """
+    assert config.SNAP is not None, "SNAP must be set to run this test"
+
+    start_branch = util.previous_track(config.SNAP)
+    main = instances[0]
+
+    for instance in instances:
+        instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
+
+    main.exec(["k8s", "bootstrap"])
+    for instance in instances[1:]:
+        token = util.get_join_token(main, instance)
+        instance.exec(["k8s", "join-cluster", token])
+
+    # Refresh each node after each other and verify that the upgrade CR is updated correctly.
+    for idx, instance in enumerate(instances):
+        util.setup_k8s_snap(instance, tmp_path, config.SNAP)
+
+        # TODO(ben): Check if this wait is really required, if yes - why?
+        expected_instances = [instance.id for instance in instances[: idx + 1]]
+        util.stubbornly(retries=15, delay_s=5).on(instance).until(
+            lambda p: _waiting_for_upgraded_nodes(
+                json.loads(p.stdout), expected_instances
+            ),
+        ).exec(
+            "k8s kubectl get upgrade -o=jsonpath={.items[0].status.upgradedNodes}".split(),
+            capture_output=True,
+            text=True,
+        )
+
+        phase = instance.exec(
+            "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
+            capture_output=True,
+            text=True,
+        ).stdout
+
+        if idx == len(instances) - 1:
+            assert (
+                phase == "FeatureUpgrade"
+            ), f"After the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
+        else:
+            assert (
+                phase == "NodeUpgrade"
+            ), f"While upgrading, expected phase to be NodeUpgrade but got {phase}"
+
+
+def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> True:
+    LOG.info("Waiting for upgraded nodes %s to be: %s", upgraded_nodes, expected_nodes)
+    return set(upgraded_nodes) == set(expected_nodes)

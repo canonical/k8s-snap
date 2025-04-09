@@ -17,7 +17,7 @@ import (
 )
 
 // channelSendTimeout is the timeout for pushing to channels for TestControlPlaneConfigController.
-const channelSendTimeout = 100 * time.Millisecond
+const channelSendTimeout = 500 * time.Millisecond
 
 type configProvider struct {
 	config types.ClusterConfig
@@ -176,7 +176,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				g := NewWithT(t)
 
-				s.RestartServiceCalledWith = nil
+				s.RestartServicesCalledWith = nil
 
 				configProvider.config = tc.config
 
@@ -186,10 +186,20 @@ func TestControlPlaneConfigController(t *testing.T) {
 					g.Fail("Timed out while attempting to trigger controller reconcile loop")
 				}
 
-				// TODO: this should be changed to call g.Eventually()
-				<-time.After(50 * time.Millisecond)
-
-				g.Expect(s.RestartServiceCalledWith).To(ConsistOf(tc.expectServiceRestarts))
+				select {
+				case <-ctrl.ReconciledCh():
+				case <-time.After(channelSendTimeout):
+					g.Fail("Time out while waiting for the reconcile to complete")
+				}
+				if tc.expectServiceRestarts != nil {
+					var flat []string
+					for _, sub := range s.RestartServicesCalledWith {
+						flat = append(flat, sub...)
+					}
+					g.Expect(flat).To(ContainElements(tc.expectServiceRestarts))
+				} else {
+					g.Expect(s.RestartServicesCalledWith).To(BeEmpty())
+				}
 
 				t.Run("APIServerArgs", func(t *testing.T) {
 					for earg, eval := range tc.expectKubeAPIServerArgs {
@@ -283,7 +293,7 @@ func TestControlPlaneConfigController(t *testing.T) {
 		// TODO: this should be changed to call g.Eventually()
 		<-time.After(50 * time.Millisecond)
 
-		g.Expect(s.RestartServiceCalledWith).To(BeEmpty())
+		g.Expect(s.RestartServicesCalledWith).To(BeEmpty())
 
 		t.Run("APIServerArgs", func(t *testing.T) {
 			for _, arg := range []string{"--etcd-servers", "--etcd-cafile", "--etcd-certfile", "--etcd-keyfile"} {

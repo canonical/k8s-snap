@@ -15,12 +15,15 @@ import (
 type NodeLabelController struct {
 	snap      snap.Snap
 	waitReady func()
+	// reconciledCh is used to notify that the controller has finished its reconciliation loop.
+	reconciledCh chan struct{}
 }
 
 func NewNodeLabelController(snap snap.Snap, waitReady func()) *NodeLabelController {
 	return &NodeLabelController{
-		snap:      snap,
-		waitReady: waitReady,
+		snap:         snap,
+		waitReady:    waitReady,
+		reconciledCh: make(chan struct{}, 1),
 	}
 }
 
@@ -42,7 +45,11 @@ func (c *NodeLabelController) Run(ctx context.Context) {
 		}
 
 		if err := client.WatchNode(
-			ctx, hostname, func(node *v1.Node) error { return c.reconcile(ctx, node) }); err != nil {
+			ctx, hostname, func(node *v1.Node) error {
+				err := c.reconcile(ctx, node)
+				c.notifyReconciled()
+				return err
+			}); err != nil {
 			// The watch may fail during bootstrap or service start-up.
 			log.WithValues("node name", hostname).Error(err, "Failed to watch node")
 		}
@@ -88,7 +95,7 @@ func (c *NodeLabelController) updateDqliteFailureDomain(ctx context.Context, fai
 
 	if modified {
 		log.Info("Updated k8s-dqlite failure domain", "failure domain", failureDomain, "availability zone", availabilityZone)
-		if err = c.snap.RestartService(ctx, "k8s-dqlite"); err != nil {
+		if err = c.snap.RestartServices(ctx, []string{"k8s-dqlite"}); err != nil {
 			return fmt.Errorf("failed to restart k8s-dqlite to apply failure domain: %w", err)
 		}
 	}
@@ -102,7 +109,7 @@ func (c *NodeLabelController) updateDqliteFailureDomain(ctx context.Context, fai
 	// prevent a service restart, at the moment k8sd needs to restart itself.
 	if modified {
 		log.Info("Updated k8sd failure domain", "failure domain", failureDomain, "availability zone", availabilityZone)
-		if err := c.snap.RestartService(ctx, "k8sd"); err != nil {
+		if err := c.snap.RestartServices(ctx, []string{"k8sd"}); err != nil {
 			return fmt.Errorf("failed to restart k8sd to apply failure domain: %w", err)
 		}
 		// We shouldn't actually get here.
@@ -117,4 +124,16 @@ func (c *NodeLabelController) reconcile(ctx context.Context, node *v1.Node) erro
 	}
 
 	return nil
+}
+
+// ReconciledCh returns the channel where the controller pushes when a reconciliation loop is finished.
+func (c *NodeLabelController) ReconciledCh() <-chan struct{} {
+	return c.reconciledCh
+}
+
+func (c *NodeLabelController) notifyReconciled() {
+	select {
+	case c.reconciledCh <- struct{}{}:
+	default:
+	}
 }

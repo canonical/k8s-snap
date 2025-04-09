@@ -71,22 +71,36 @@ func NewSnap(opts SnapOpts) *snap {
 	return s
 }
 
-// StartService starts a k8s service. The name can be either prefixed or not.
-func (s *snap) StartService(ctx context.Context, name string) error {
-	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Starting service", "service", name)
-	return s.runCommand(ctx, []string{"snapctl", "start", "--enable", serviceName(name)})
+// buildServiceCommand creates a snap command for managing services.
+func (s *snap) buildServiceCommand(action string, names []string, extraSnapArgs ...string) []string {
+	cmd := []string{"snap", action}
+	for _, name := range names {
+		cmd = append(cmd, serviceName(name))
+	}
+	return append(cmd, extraSnapArgs...)
 }
 
-// StopService stops a k8s service. The name can be either prefixed or not.
-func (s *snap) StopService(ctx context.Context, name string) error {
-	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Stopping service", "service", name)
-	return s.runCommand(ctx, []string{"snapctl", "stop", "--disable", serviceName(name)})
+// StartServices starts k8s services. The names can be either prefixed or not.
+func (s *snap) StartServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
+	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Starting services", "services", names)
+	extraSnapArgs = append([]string{"--enable"}, extraSnapArgs...)
+	cmd := s.buildServiceCommand("start", names, extraSnapArgs...)
+	return s.runCommand(ctx, cmd)
 }
 
-// RestartService restarts a k8s service. The name can be either prefixed or not.
-func (s *snap) RestartService(ctx context.Context, name string) error {
-	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Restarting service", "service", name)
-	return s.runCommand(ctx, []string{"snapctl", "restart", serviceName(name)})
+// StopServices stops k8s services. The names can be either prefixed or not.
+func (s *snap) StopServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
+	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Stopping services", "services", names)
+	extraSnapArgs = append([]string{"--disable"}, extraSnapArgs...)
+	cmd := s.buildServiceCommand("stop", names, extraSnapArgs...)
+	return s.runCommand(ctx, cmd)
+}
+
+// RestartServices restarts k8s services. The names can be either prefixed or not.
+func (s *snap) RestartServices(ctx context.Context, names []string, extraSnapArgs ...string) error {
+	log.FromContext(ctx).V(1).WithCallDepth(1).Info("Restarting services", "services", names)
+	cmd := s.buildServiceCommand("restart", names, extraSnapArgs...)
+	return s.runCommand(ctx, cmd)
 }
 
 // Refresh refreshes the snap to a different track, revision or custom snap.
@@ -291,6 +305,10 @@ func (s *snap) ContainerdRegistryConfigDir() string {
 	return filepath.Join(s.containerdBaseDir, "etc", "containerd", "hosts.d")
 }
 
+func (s *snap) K8sCRDDir() string {
+	return filepath.Join(s.snapDir, "k8s", "crds")
+}
+
 func (s *snap) K8sScriptsDir() string {
 	return filepath.Join(s.snapDir, "k8s", "scripts")
 }
@@ -352,6 +370,24 @@ func (s *snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
 
 func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
 	return s.runCommand(ctx, append([]string{"snapctl", "set"}, args...))
+}
+
+func (s *snap) Revision(ctx context.Context) (string, error) {
+	client, err := snapd.NewClient()
+	if err != nil {
+		return "", fmt.Errorf("failed to create snapd client: %w", err)
+	}
+
+	snap, err := client.GetSnapInfo(s.snapInstanceName)
+	if err != nil {
+		return "", fmt.Errorf("failed to get snap info: %w", err)
+	}
+
+	if snap.StatusCode != 200 {
+		return "", fmt.Errorf("failed to get snap info: snapd returned with error code %d", snap.StatusCode)
+	}
+
+	return snap.Result.Revision, nil
 }
 
 func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig, serviceConfigs types.K8sServiceConfigs, isControlPlane bool) error {

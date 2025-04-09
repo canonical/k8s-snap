@@ -1,4 +1,4 @@
-package controllers
+package controllers_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/snap/mock"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
@@ -105,14 +106,14 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 	g.Expect(os.MkdirAll(k8sDqliteStateDir, 0o700)).To(Succeed())
 	g.Expect(os.MkdirAll(k8sdDbDir, 0o700)).To(Succeed())
 
-	ctrl := NewNodeLabelController(s, func() {})
+	ctrl := controllers.NewNodeLabelController(s, func() {})
 
 	go ctrl.Run(ctx)
 	defer watcher.Stop()
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			s.RestartServiceCalledWith = nil
+			s.RestartServicesCalledWith = nil
 
 			k8sDqliteFailureDomainFile := snaputil.GetDqliteFailureDomainFile(k8sDqliteStateDir)
 			k8sdFailureDomainFile := snaputil.GetDqliteFailureDomainFile(k8sdDbDir)
@@ -149,9 +150,11 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 			}
 			watcher.Add(node)
 
-			// TODO: this is to ensure that the controller has handled the event. This should ideally
-			// be replaced with something like a "<-sentCh" instead
-			time.Sleep(100 * time.Millisecond)
+			select {
+			case <-ctrl.ReconciledCh():
+			case <-time.After(channelSendTimeout):
+				g.Fail("Time out while waiting for the reconcile to complete")
+			}
 
 			k8sdFailureDomain, err := snaputil.GetDqliteFailureDomain(k8sdDbDir)
 			g.Expect(err).ToNot(HaveOccurred())
@@ -162,10 +165,10 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 			g.Expect(k8sdFailureDomain).To(Equal(tc.expFailureDomain))
 
 			if tc.expRestart {
-				g.Expect(s.RestartServiceCalledWith).To(ContainElement("k8sd"))
-				g.Expect(s.RestartServiceCalledWith).To(ContainElement("k8s-dqlite"))
+				g.Expect(s.RestartServicesCalledWith).To(ContainElement([]string{"k8sd"}))
+				g.Expect(s.RestartServicesCalledWith).To(ContainElement([]string{"k8s-dqlite"}))
 			} else {
-				g.Expect(s.RestartServiceCalledWith).To(BeEmpty())
+				g.Expect(s.RestartServicesCalledWith).To(BeEmpty())
 			}
 		})
 	}

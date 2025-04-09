@@ -12,16 +12,17 @@ import (
 
 // Snap abstracts file system paths and interacting with the k8s services.
 type Snap interface {
-	Strict() bool                        // Strict returns true if the snap is installed with strict confinement.
-	OnLXD(context.Context) (bool, error) // OnLXD returns true if the host runs on LXD.
+	Revision(ctx context.Context) (string, error) // Revision returns the snap revision.
+	Strict() bool                                 // Strict returns true if the snap is installed with strict confinement.
+	OnLXD(context.Context) (bool, error)          // OnLXD returns true if the host runs on LXD.
 
 	UID() int         // UID is the user ID to set on config files.
 	GID() int         // GID is the group ID to set on config files.
 	Hostname() string // Hostname is the name of the node.
 
-	StartService(ctx context.Context, serviceName string) error   // snapctl start $service
-	StopService(ctx context.Context, serviceName string) error    // snapctl stop $service
-	RestartService(ctx context.Context, serviceName string) error // snapctl restart $service
+	StartServices(ctx context.Context, services []string, extraSnapArgs ...string) error   // snap start $service
+	StopServices(ctx context.Context, services []string, extraSnapArgs ...string) error    // snap stop $service
+	RestartServices(ctx context.Context, services []string, extraSnapArgs ...string) error // snap restart $service
 
 	SnapctlGet(ctx context.Context, args ...string) ([]byte, error) // snapctl get $args...
 	SnapctlSet(ctx context.Context, args ...string) error           // snapctl set $args...
@@ -50,6 +51,7 @@ type Snap interface {
 	ContainerdSocketPath() string        // classic confinement: /run/containerd/containerd.sock, strict confinement: /var/snap/k8s/common/run/containerd/containerd.sock
 	ContainerdStateDir() string          // classic confinement: /run/containerd, strict confinement: /var/snap/k8s/common/run/containerd
 
+	K8sCRDDir() string            //  /snap/k8s/current/k8s/crds
 	K8sScriptsDir() string        //  /snap/k8s/current/k8s/scripts
 	K8sInspectScriptPath() string //  /snap/k8s/current/k8s/scripts/inspect.sh
 

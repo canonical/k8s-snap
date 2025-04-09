@@ -77,6 +77,13 @@ Validate the cluster <validate>
 Integrate with COS Lite <cos-lite>
 ```
 
+## Security
+
+```{toctree}
+:titlesonly:
+Report a security issue <report-security-issue>
+```
+
 ## Contribute
 
 Contribute to the {{product}} project! Add to the code, documentation or both!
