@@ -271,7 +271,9 @@ class LXDHarness(Harness):
             result = run(["df", "-h"], capture_output=True)
             LOG.info("\n%s", result.stdout.decode().strip())
 
-            if config.INSPECTION_REPORTS_DIR:
+            if config.INSPECTION_REPORTS_DIR and os.path.exists(
+                config.INSPECTION_REPORTS_DIR
+            ):
                 LOG.info("Inspection report size:")
                 result = run(
                     ["du", "-sh", config.INSPECTION_REPORTS_DIR], capture_output=True
