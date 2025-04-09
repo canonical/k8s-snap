@@ -24,7 +24,7 @@ var ipLinks []struct {
 func ListVXLANInterfaces() ([]VXLANInterface, error) {
 	vxlanDevices := []VXLANInterface{}
 
-	cmd := exec.Command("ip", "-d", "-j", "link", "show", "type", "vxlan")
+	cmd := exec.Command("ip", "-d", "-j", "link", "list", "type", "vxlan")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return vxlanDevices, fmt.Errorf("running ip command failed: %s", string(out))
@@ -35,6 +35,12 @@ func ListVXLANInterfaces() ([]VXLANInterface, error) {
 	}
 
 	for _, link := range ipLinks {
+
+		// running ip -d -j link show
+		if link.IfName == "" {
+			continue
+		}
+
 		iface, err := net.InterfaceByName(link.IfName)
 		if err != nil {
 			return vxlanDevices, fmt.Errorf("returning interface by name failed: %w", err)

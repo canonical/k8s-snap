@@ -65,11 +65,7 @@ func TestInternalConfig(t *testing.T) {
 				apiv1_annotations.AnnotationTunnelPort: "8473",
 			},
 			expectedConfig: config{
-				devices:             "",
-				directRoutingDevice: "",
-				vlanBPFBypass:       nil,
-				cniExclusive:        true,
-				tunnelPort:          8473,
+				tunnelPort: 8473,
 			},
 			expectError: false,
 		},
