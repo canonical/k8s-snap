@@ -6,3 +6,4 @@ tenacity==8.2.3
 pylint==3.2.5
 cryptography==44.0.1
 hvac==2.3.0
+pytest-xdist==3.6.1
