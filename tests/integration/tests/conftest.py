@@ -15,10 +15,6 @@ LOG = logging.getLogger(__name__)
 
 pytest_plugins = ("pytest_tagging",)
 
-# The following snaps will be downloaded once per test run and preloaded
-# into the harness instances to reduce the number of downloads.
-PRELOADED_SNAPS = ["snapd", "core20"]
-
 
 def pytest_itemcollected(item):
     """
@@ -129,23 +125,16 @@ def registry(h: harness.Harness) -> Optional[Registry]:
         yield None
 
 
+@pytest.fixture(scope="function")
+def function_scoped_registry(h: harness.Harness) -> Registry:
+    registry = Registry(h)
+    yield Registry(h)
+    registry.cleanup()
+
+
 @pytest.fixture(scope="session", autouse=True)
 def snapd_preload() -> None:
-    if not config.PRELOAD_SNAPS:
-        LOG.info("Snap preloading disabled, skipping...")
-        return
-
-    LOG.info(f"Downloading snaps for preloading: {PRELOADED_SNAPS}")
-    for snap in PRELOADED_SNAPS:
-        util.run(
-            [
-                "snap",
-                "download",
-                snap,
-                f"--basename={snap}",
-                "--target-directory=/tmp",
-            ]
-        )
+    util.download_preloaded_snaps()
 
 
 def pytest_configure(config):
@@ -245,23 +234,7 @@ def instances(
         instance = h.new_instance(network_type=network_type)
         instances.append(instance)
 
-        if config.PRELOAD_SNAPS:
-            for preloaded_snap in PRELOADED_SNAPS:
-                ack_file = f"{preloaded_snap}.assert"
-                remote_path = (tmp_path / ack_file).as_posix()
-                instance.send_file(
-                    source=f"/tmp/{ack_file}",
-                    destination=remote_path,
-                )
-                instance.exec(["snap", "ack", remote_path])
-
-                snap_file = f"{preloaded_snap}.snap"
-                remote_path = (tmp_path / snap_file).as_posix()
-                instance.send_file(
-                    source=f"/tmp/{snap_file}",
-                    destination=remote_path,
-                )
-                instance.exec(["snap", "install", remote_path])
+        util.preload_snaps(instance)
 
         if not no_setup:
             util.setup_core_dumps(instance)

@@ -108,11 +108,13 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
 def test_airgapped_with_image_mirror(
-    h: harness.Harness, instances: List[harness.Instance]
+    h: harness.Harness,
+    instances: List[harness.Instance],
+    function_scoped_registry: reg.Registry,
 ):
     proxy, instance = instances
     proxy_ip = util.get_default_ip(proxy)
-    registry = reg.Registry(h)
+    registry = function_scoped_registry
     registry_ip = util.get_default_ip(registry.instance)
 
     setup_proxy(proxy)

@@ -8,9 +8,8 @@ from pathlib import Path
 from string import Template
 from typing import List, Optional
 
-from test_util import config
+from test_util import config, util
 from test_util.harness import Harness, Instance
-from test_util.util import get_default_ip, setup_k8s_snap
 
 LOG = logging.getLogger(__name__)
 
@@ -52,10 +51,9 @@ class Registry:
         """
         self.registry_url = config.REGISTRY_URL
         self.registry_version = config.REGISTRY_VERSION
-        self.instance: Instance = None
         self.harness: Harness = h
         self._mirrors: List[Mirror] = self.get_configured_mirrors()
-        self.instance = self.harness.new_instance(name_suffix="-registry")
+        self.instance: Instance = self.harness.new_instance(name_suffix="-registry")
 
         arch = self.instance.arch
         self.instance.exec(
@@ -79,15 +77,18 @@ class Registry:
             ],
         )
 
-        self._ip = get_default_ip(self.instance)
+        self._ip = util.get_default_ip(self.instance)
 
         self.add_mirrors()
 
         # Setup the k8s snap on the instance.
-        # Use the latest/edge/classic channel as this version is only used to collect logs.
+        # Default to latest/edge/classic channel as this version is only needed to collect logs.
         # This would fail if the `TEST_SNAP` environment variable is not set which however has
         # valid use cases, e.g. in the promotion scenarios.
-        setup_k8s_snap(self.instance, Path("/"), "latest/edge/classic")
+        util.preload_snaps(self.instance)
+        util.setup_k8s_snap(
+            self.instance, Path("/"), config.SNAP or "latest/edge/classic"
+        )
 
     def get_configured_mirrors(self) -> List[Mirror]:
         mirrors: List[Mirror] = []
@@ -196,3 +197,8 @@ class Registry:
                     ],
                     input=str.encode(src.substitute(substitutes)),
                 )
+
+    def cleanup(self):
+        if self.instance:
+            self.harness.delete_instance(self.instance.id)
+            self.instance = None
