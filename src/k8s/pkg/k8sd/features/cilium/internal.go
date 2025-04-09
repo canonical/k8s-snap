@@ -100,11 +100,9 @@ func internalConfig(annotations types.Annotations) (config, error) {
 			return config{}, fmt.Errorf("failed to parse Tunnel encapsulation port: %w", err)
 		}
 
-		if tunnelPort == 0 {
-			tunnelPort = ciliumDefaultVXLANPort
-		}
-
 		c.tunnelPort = tunnelPort
+	} else {
+		c.tunnelPort = ciliumDefaultVXLANPort
 	}
 
 	return c, nil
