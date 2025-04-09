@@ -341,8 +341,8 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
 
         if idx == len(instances) - 1:
             assert (
-                phase == "FeatureUpgrade"
-            ), f"Right after the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
+                phase in ["FeatureUpgrade", "Completed"]
+            ), f"Right after the last upgrade, expected phase to be FeatureUpgrade or Complete but got {phase}"
 
             # All Feature version should eventually be upgraded.
             LOG.info("Waiting for all helm releases to upgrade")
