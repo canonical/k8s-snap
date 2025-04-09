@@ -561,7 +561,7 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     addr = "https://dl.k8s.io/release/stable{dash_maj}.txt".format(
         dash_maj=f"-{maj}" if maj else ""
     )
-    LOG.info("Getting upstream version from %s", addr)
+    LOG.debug("Getting upstream version from %s", addr)
     with urllib.request.urlopen(addr) as r:
         stable = r.read().decode().strip()
         return major_minor(stable)
@@ -579,7 +579,7 @@ def _previous_track_from_branch(branch: str) -> Optional[str]:
     if branch == MAIN_BRANCH:
         # NOTE(Hue): `latest/stable` is not populated at the moment.
         # When it is, we should return `latest` instead.
-        LOG.info("Getting current version from upstream k8s")
+        LOG.debug("Getting current version from upstream k8s")
         # For the main branch, the previous track is the latest release-branch, e.g.
         # `1.32/stable` for `main` branch which matches the current upstream version.
         maj_min = _major_minor_from_stable_upstream()
@@ -588,7 +588,7 @@ def _previous_track_from_branch(branch: str) -> Optional[str]:
             return None
 
     elif branch.startswith("release-"):
-        LOG.info("Getting current version from branch %s", branch)
+        LOG.debug("Getting current version from branch %s", branch)
         maj_min = major_minor(branch.lstrip("release-"))
         # Get the previous version from the branch, e.g. for branch `release-1.32` we want `1.31`
         if maj_min:

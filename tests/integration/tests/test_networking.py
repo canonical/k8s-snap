@@ -15,7 +15,6 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
 )
-@pytest.mark.dualstack()
 @pytest.mark.tags(tags.NIGHTLY)
 def test_dualstack(instances: List[harness.Instance]):
     main = instances[0]

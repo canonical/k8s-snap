@@ -263,20 +263,20 @@ class LXDHarness(Harness):
         This allows us to identify leaked resources.
         """
         try:
-            LOG.info("LXC containers:")
+            LOG.debug("LXC containers:")
             result = run(["lxc", "list"], capture_output=True)
-            LOG.info("\n%s", result.stdout.decode().strip())
+            LOG.debug("\n%s", result.stdout.decode().strip())
 
-            LOG.info("Disk usage:")
+            LOG.debug("Disk usage:")
             result = run(["df", "-h"], capture_output=True)
-            LOG.info("\n%s", result.stdout.decode().strip())
+            LOG.debug("\n%s", result.stdout.decode().strip())
 
             if config.INSPECTION_REPORTS_DIR:
-                LOG.info("Inspection report size:")
+                LOG.debug("Inspection report size:")
                 result = run(
                     ["du", "-sh", config.INSPECTION_REPORTS_DIR], capture_output=True
                 )
-                LOG.info("\n%s", result.stdout.decode().strip())
+                LOG.debug("\n%s", result.stdout.decode().strip())
         except Exception:
             # Suppress any (unlikely) error.
             LOG.exception("Failed to obtain environment info")

@@ -65,10 +65,6 @@ on:
         description: Start a tmate session before running the tests
         required: false
         default: false
-      log-file-path:
-        description: Log file to upload on failure
-        default: ""
-        type: string
       log-file-level:
         description: Log file logging level
         default: "DEBUG"

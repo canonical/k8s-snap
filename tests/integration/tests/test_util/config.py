@@ -7,6 +7,7 @@ from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
 
+LOG_CLI = os.getenv("TEST_LOG_CLI", "true").lower() == "true"
 LOG_CLI_LEVEL = os.getenv("TEST_LOG_CLI_LEVEL") or "DEBUG"
 LOG_FILE_PATH = os.getenv("TEST_LOG_FILE_PATH") or None
 LOG_FILE_LEVEL = os.getenv("TEST_LOG_FILE_LEVEL") or "DEBUG"

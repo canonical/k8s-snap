@@ -3,7 +3,6 @@
 #
 import itertools
 import logging
-import sys
 from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
 
@@ -20,25 +19,6 @@ pytest_plugins = ("pytest_tagging",)
 # The following snaps will be downloaded once per test run and preloaded
 # into the harness instances to reduce the number of downloads.
 PRELOADED_SNAPS = ["snapd", "core20"]
-
-
-class StreamToLogger:
-    """Redirects stdout/stderr to a logger."""
-
-    def __init__(self, logger, level):
-        self.logger = logger
-        self.level = level
-        self.line_buffer = ""
-
-    def write(self, message):
-        if message.strip():  # Avoid logging empty lines
-            self.logger.log(self.level, message.strip())
-
-    def flush(self):
-        pass  # No need to flush explicitly, logger handles it
-
-    def isatty(self):
-        return False  # Make sure that the logger does not try to use ANSI escape codes
 
 
 def pytest_itemcollected(item):
@@ -134,16 +114,16 @@ def log_environment_info(h: harness.Harness):
     """Log any relevant environment information before and after each test.
     This allows us to identify leaked resources.
     """
-    LOG.info("Environment info before test:")
+    LOG.debug("Environment info before test:")
     h.log_environment_info()
     yield
-    LOG.info("Environment info after test:")
+    LOG.debug("Environment info after test:")
     h.log_environment_info()
 
 
 @pytest.fixture(scope="session")
 def registry(h: harness.Harness) -> Optional[Registry]:
-    if config.USE_LOCAL_MIRROR:
+    if test_config.USE_LOCAL_MIRROR:
         yield Registry(h)
     else:
         LOG.info("Local registry mirror disabled!")
@@ -153,10 +133,10 @@ def registry(h: harness.Harness) -> Optional[Registry]:
 @pytest.fixture(scope="session", autouse=True)
 def snapd_preload() -> None:
     if not test_config.PRELOAD_SNAPS:
-        LOG.info("Snap preloading disabled, skipping...")
+        LOG.debug("Snap preloading disabled, skipping...")
         return
 
-    LOG.info(f"Downloading snaps for preloading: {PRELOADED_SNAPS}")
+    LOG.debug(f"Downloading snaps for preloading: {PRELOADED_SNAPS}")
     for snap in PRELOADED_SNAPS:
         util.run(
             [
@@ -172,39 +152,53 @@ def snapd_preload() -> None:
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
-        "bootstrap_config: Provide a custom bootstrap config to the bootstrapping node.\n"
-        "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.\n"
-        "no_setup: No setup steps (pushing snap, bootstrapping etc.) are performed on any node for this test.\n"
-        "containerd_cfgdir: The instance containerd config directory, defaults to /etc/containerd."
-        "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).\n"
-        "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
-        "node_count: Mark a test to specify how many instance nodes need to be created\n"
-        "snap_versions: Mark a test to specify snap_versions for each node\n",
+        "bootstrap_config: Provide a custom bootstrap config to the bootstrapping node.",
     )
-    # Get logger
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)  # Capture all logs, handlers will filter
-
-    # Set up CLI logging (INFO level)
-    cli_handler = logging.StreamHandler()
-    cli_handler.setLevel(test_config.LOG_CLI_LEVEL)
-    cli_handler.setFormatter(
-        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    config.addinivalue_line(
+        "markers",
+        "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.",
     )
-    logger.addHandler(cli_handler)
+    config.addinivalue_line(
+        "markers",
+        "no_setup: No setup steps (pushing snap, bootstrapping etc.) are performed on any node for this test.",
+    )
+    config.addinivalue_line(
+        "markers",
+        "containerd_cfgdir: The instance containerd config directory, defaults to /etc/containerd.",
+    )
+    config.addinivalue_line(
+        "markers",
+        "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).",
+    )
+    config.addinivalue_line(
+        "markers",
+        "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)",
+    )
+    config.addinivalue_line(
+        "markers",
+        "node_count: Mark a test to specify how many instance nodes need to be created",
+    )
+    config.addinivalue_line(
+        "markers", "snap_versions: Mark a test to specify snap_versions for each node"
+    )
 
-    # Set up file logging (DEBUG level)
-    if test_config.LOG_FILE_PATH is not None:
-        file_handler = logging.FileHandler(test_config.LOG_FILE_PATH)
-        file_handler.setLevel(logging.DEBUG)  # Capture all logs in file
-        file_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    config.option.showcapture = "no"
+    # Set up CLI logging
+    if test_config.LOG_CLI:
+        config.option.log_cli_level = test_config.LOG_CLI_LEVEL
+        config.option.log_cli_format = (
+            "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
         )
-        logger.addHandler(file_handler)
+        config.option.log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
-        # Redirect stdout & stderr to logger
-        sys.stdout = StreamToLogger(logger, logging.INFO)
-        sys.stderr = StreamToLogger(logger, logging.ERROR)
+    # Set up file logging
+    if test_config.LOG_FILE_PATH is not None:
+        config.option.log_file = test_config.LOG_FILE_PATH
+        config.option.log_file_level = test_config.LOG_FILE_LEVEL
+        config.option.log_file_format = (
+            "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+        )
+        config.option.log_file_date_format = "%Y-%m-%d %H:%M:%S"
 
 
 @pytest.fixture(scope="function")
