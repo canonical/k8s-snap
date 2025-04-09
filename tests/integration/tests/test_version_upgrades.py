@@ -1,6 +1,7 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
+import json
 import logging
 from pathlib import Path
 from typing import List
@@ -106,7 +107,9 @@ def test_version_upgrades(
 
     for channel in channels[1:]:
         for instance in instances:
-            LOG.info(f"Upgrading {instance.id} from {current_channel} to {channel}")
+            LOG.info(
+                f"Upgrading {instance.id} from {current_channel} to channel {channel}"
+            )
 
             # Log the current snap version on the node.
             out = instance.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
@@ -269,22 +272,64 @@ def test_version_downgrades_with_rollback(
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
 
+@pytest.mark.node_count(3)
+@pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_feature_upgrades(instances: List[harness.Instance]):
+def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     """Test the feature upgrades work
     Note(ben): This test is a work in progress and will
     be expanded with new tests as the feature upgrades work takes shape.
     Once this work is complete, this test will likely be merged with the
-    test_version_upgrades test above and create a single test for all upgrades."""
+    test_version_upgrades test above and create a single test for all upgrades.
 
-    cp = instances[0]
+    This test creates a cluster, refreshes each node one by one and verifies
+    that the upgrade CR is updated correctly.
+    """
+    assert config.SNAP is not None, "SNAP must be set to run this test"
 
-    # Verify that the UpgradeCRD is known to the cluster
-    cp.exec("k8s kubectl get crd upgrades.k8sd.io".split())
+    start_branch = util.previous_track(config.SNAP)
+    main = instances[0]
 
-    # Test that the UpgradeCRD can be created.
-    cp.exec(
-        "k8s kubectl apply -f -".split(),
-        input=str.encode(Path(config.MANIFESTS_DIR / "upgrade.yaml").read_text()),
-    )
-    cp.exec("k8s kubectl get upgrade cluster-upgrade".split())
+    for instance in instances:
+        instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
+
+    main.exec(["k8s", "bootstrap"])
+    for instance in instances[1:]:
+        token = util.get_join_token(main, instance)
+        instance.exec(["k8s", "join-cluster", token])
+
+    # Refresh each node after each other and verify that the upgrade CR is updated correctly.
+    for idx, instance in enumerate(instances):
+        util.setup_k8s_snap(instance, tmp_path, config.SNAP)
+
+        # TODO(ben): Check if this wait is really required, if yes - why?
+        expected_instances = [instance.id for instance in instances[: idx + 1]]
+        util.stubbornly(retries=15, delay_s=5).on(instance).until(
+            lambda p: _waiting_for_upgraded_nodes(
+                json.loads(p.stdout), expected_instances
+            ),
+        ).exec(
+            "k8s kubectl get upgrade -o=jsonpath={.items[0].status.upgradedNodes}".split(),
+            capture_output=True,
+            text=True,
+        )
+
+        phase = instance.exec(
+            "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
+            capture_output=True,
+            text=True,
+        ).stdout
+
+        if idx == len(instances) - 1:
+            assert (
+                phase == "FeatureUpgrade"
+            ), f"After the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
+        else:
+            assert (
+                phase == "NodeUpgrade"
+            ), f"While upgrading, expected phase to be NodeUpgrade but got {phase}"
+
+
+def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> True:
+    LOG.info("Waiting for upgraded nodes %s to be: %s", upgraded_nodes, expected_nodes)
+    return set(upgraded_nodes) == set(expected_nodes)
