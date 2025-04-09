@@ -26,13 +26,14 @@ def test_loadbalancer_ipv4(instances: List[harness.Instance]):
     _test_loadbalancer(instances, k8s_net_type=K8sNetType.ipv4)
 
 
+@pytest.mark.xfail(
+    run=False,
+    reason="Cilium ipv6 only unsupported: https://github.com/cilium/cilium/issues/15082",
+)
 @pytest.mark.node_count(2)
-@pytest.mark.tags(tags.PULL_REQUEST)
 @pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.tags(tags.PULL_REQUEST)
 def test_loadbalancer_ipv6_only(instances: List[harness.Instance]):
-    pytest.xfail(
-        "Cilium ipv6 only unsupported: https://github.com/cilium/cilium/issues/15082"
-    )
     _test_loadbalancer(instances, k8s_net_type=K8sNetType.ipv6)
 
 

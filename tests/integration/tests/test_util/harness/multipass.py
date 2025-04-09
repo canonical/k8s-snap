@@ -36,11 +36,15 @@ class MultipassHarness(Harness):
 
         LOG.debug("Configured Multipass substrate (image %s)", self.image)
 
-    def new_instance(self, network_type: str = "IPv4") -> Instance:
+    def new_instance(
+        self, network_type: str = "IPv4", name_suffix: str = ""
+    ) -> Instance:
         if network_type:
             raise HarnessError("Currently only IPv4 is supported by Multipass harness")
 
-        instance_id = f"k8s-integration-{os.urandom(3).hex()}-{self.next_id()}"
+        instance_id = (
+            f"k8s-integration-{self.next_id()}-{os.urandom(3).hex()}{name_suffix}"
+        )
 
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
         try:

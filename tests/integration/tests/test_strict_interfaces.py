@@ -10,6 +10,7 @@ from test_util import config, harness, snap, tags, util
 LOG = logging.getLogger(__name__)
 
 
+@pytest.mark.xfail(run=False, reason="Strict channel tests are currently skipped.")
 @pytest.mark.node_count(1)
 @pytest.mark.no_setup()
 @pytest.mark.skipif(
@@ -17,8 +18,6 @@ LOG = logging.getLogger(__name__)
 )
 @pytest.mark.tags(tags.WEEKLY)
 def test_strict_interfaces(instances: List[harness.Instance], tmp_path):
-    pytest.xfail("Strict channel tests are currently skipped.")
-
     channels = config.STRICT_INTERFACE_CHANNELS
     cp = instances[0]
     current_channel = channels[0]

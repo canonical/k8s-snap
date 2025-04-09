@@ -113,8 +113,7 @@ def registry(h: harness.Harness) -> Optional[Registry]:
     if config.USE_LOCAL_MIRROR:
         yield Registry(h)
     else:
-        # local image mirror disabled, avoid initializing the
-        # registry mirror instance.
+        LOG.info("Local registry mirror disabled!")
         yield None
 
 

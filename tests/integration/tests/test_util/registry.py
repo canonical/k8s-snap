@@ -54,7 +54,7 @@ class Registry:
         self.instance: Instance = None
         self.harness: Harness = h
         self._mirrors: List[Mirror] = self.get_configured_mirrors()
-        self.instance = self.harness.new_instance()
+        self.instance = self.harness.new_instance(name_suffix="-registry")
 
         arch = self.instance.arch
         self.instance.exec(

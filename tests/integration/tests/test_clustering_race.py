@@ -17,6 +17,7 @@ def test_wrong_token_race(instances: List[harness.Instance]):
 
     new_join_token = util.get_join_token(cluster_node, instances[2])
 
+    util.wait_until_k8s_ready(cluster_node, instances[:2])
     cluster_node.exec(["k8s", "remove-node", instances[1].id])
 
     another_join_token = util.get_join_token(cluster_node, instances[2])

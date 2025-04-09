@@ -77,32 +77,10 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     )
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "cp node should have been removed from the cluster"
-    services = joining_cp.exec(
-        ["snap", "services", "k8s"], capture_output=True, text=True
-    ).stdout.split("\n")[1:-1]
-    for service in services:
-        if "k8s-apiserver-proxy" in service:
-            assert (
-                " inactive " in service
-            ), "apiserver proxy should be inactive on control-plane"
-        else:
-            assert " active " in service, f"'{service}' should be active"
+    # We cannot determine the node type of the removed node, so we need to set it explicitly here.
+    util.check_snap_services_ready(joining_cp, node_type="control-plane")
 
     cluster_node.exec(["k8s", "remove-node", worker.id])
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "worker node should have been removed from the cluster"
-    services = worker.exec(
-        ["snap", "services", "k8s"], capture_output=True, text=True
-    ).stdout.split("\n")[1:-1]
-    for service in services:
-        for expected_active_service in [
-            "containerd",
-            "k8sd",
-            "kubelet",
-            "kube-proxy",
-            "k8s-apiserver-proxy",
-        ]:
-            if expected_active_service in service:
-                assert (
-                    " active " in service
-                ), f"{expected_active_service} should be active on worker"
+    util.check_snap_services_ready(worker, node_type="worker")

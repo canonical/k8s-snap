@@ -71,15 +71,20 @@ func TestSnap(t *testing.T) {
 			RunCommand:    mockRunner.Run,
 		})
 
-		err := snap.StartService(context.Background(), "test-service")
+		err := snap.StartServices(context.Background(), []string{"test-service"})
 		g.Expect(err).To(Not(HaveOccurred()))
-		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snapctl start --enable k8s.test-service"))
+		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snap start k8s.test-service --enable"))
+
+		mockRunner.CalledWithCommand = []string{}
+		err = snap.StartServices(context.Background(), []string{"test-service"}, "--no-wait")
+		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snap start k8s.test-service --enable --no-wait"))
 
 		t.Run("Fail", func(t *testing.T) {
 			g := NewWithT(t)
 			mockRunner.Err = fmt.Errorf("some error")
 
-			err := snap.StartService(context.Background(), "test-service")
+			err := snap.StartServices(context.Background(), []string{"test-service"})
 			g.Expect(err).To(HaveOccurred())
 		})
 	})
@@ -92,15 +97,20 @@ func TestSnap(t *testing.T) {
 			SnapCommonDir: "testdir",
 			RunCommand:    mockRunner.Run,
 		})
-		err := snap.StopService(context.Background(), "test-service")
+		err := snap.StopServices(context.Background(), []string{"test-service"})
 		g.Expect(err).To(Not(HaveOccurred()))
-		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snapctl stop --disable k8s.test-service"))
+		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snap stop k8s.test-service --disable"))
+
+		mockRunner.CalledWithCommand = []string{}
+		err = snap.StopServices(context.Background(), []string{"test-service"}, "--no-wait")
+		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snap stop k8s.test-service --disable --no-wait"))
 
 		t.Run("Fail", func(t *testing.T) {
 			g := NewWithT(t)
 			mockRunner.Err = fmt.Errorf("some error")
 
-			err := snap.StartService(context.Background(), "test-service")
+			err := snap.StartServices(context.Background(), []string{"test-service"})
 			g.Expect(err).To(HaveOccurred())
 		})
 	})
@@ -114,15 +124,20 @@ func TestSnap(t *testing.T) {
 			RunCommand:    mockRunner.Run,
 		})
 
-		err := snap.RestartService(context.Background(), "test-service")
+		err := snap.RestartServices(context.Background(), []string{"test-service"})
 		g.Expect(err).To(Not(HaveOccurred()))
-		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snapctl restart k8s.test-service"))
+		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snap restart k8s.test-service"))
+
+		mockRunner.CalledWithCommand = []string{}
+		err = snap.RestartServices(context.Background(), []string{"test-service"}, "--no-wait")
+		g.Expect(err).To(Not(HaveOccurred()))
+		g.Expect(mockRunner.CalledWithCommand).To(ConsistOf("snap restart k8s.test-service --no-wait"))
 
 		t.Run("Fail", func(t *testing.T) {
 			g := NewWithT(t)
 			mockRunner.Err = fmt.Errorf("some error")
 
-			err := snap.StartService(context.Background(), "service")
+			err := snap.StartServices(context.Background(), []string{"service"})
 			g.Expect(err).To(HaveOccurred())
 		})
 	})

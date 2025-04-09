@@ -70,8 +70,12 @@ class LXDHarness(Harness):
             "Configured LXD substrate (profile %s, image %s)", self.profile, self.image
         )
 
-    def new_instance(self, network_type: str = "IPv4") -> Instance:
-        instance_id = f"k8s-integration-{os.urandom(3).hex()}-{self.next_id()}"
+    def new_instance(
+        self, network_type: str = "IPv4", name_suffix: str = ""
+    ) -> Instance:
+        instance_id = (
+            f"k8s-integration-{self.next_id()}-{os.urandom(3).hex()}{name_suffix}"
+        )
 
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
         launch_lxd_command = [
