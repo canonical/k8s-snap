@@ -372,6 +372,24 @@ func (s *snap) SnapctlSet(ctx context.Context, args ...string) error {
 	return s.runCommand(ctx, append([]string{"snapctl", "set"}, args...))
 }
 
+func (s *snap) Revision(ctx context.Context) (string, error) {
+	client, err := snapd.NewClient()
+	if err != nil {
+		return "", fmt.Errorf("failed to create snapd client: %w", err)
+	}
+
+	snap, err := client.GetSnapInfo(s.snapInstanceName)
+	if err != nil {
+		return "", fmt.Errorf("failed to get snap info: %w", err)
+	}
+
+	if snap.StatusCode != 200 {
+		return "", fmt.Errorf("failed to get snap info: snapd returned with error code %d", snap.StatusCode)
+	}
+
+	return snap.Result.Revision, nil
+}
+
 func (s *snap) PreInitChecks(ctx context.Context, config types.ClusterConfig, serviceConfigs types.K8sServiceConfigs, isControlPlane bool) error {
 	if err := checks.CheckK8sServicePorts(config, serviceConfigs, isControlPlane); err != nil {
 		return fmt.Errorf("Encountered error(s) while verifying port availability for Kubernetes services: %w", err)
