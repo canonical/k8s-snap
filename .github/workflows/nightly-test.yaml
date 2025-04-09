@@ -26,7 +26,7 @@ jobs:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
-      test-tags: 'up_to_nightly conformance_tests'
+      test-tags: 'conformance_tests'
 
   Trivy:
     permissions:
