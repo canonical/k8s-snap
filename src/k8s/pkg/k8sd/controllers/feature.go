@@ -247,8 +247,8 @@ func (c *FeatureController) isBlocked(ctx context.Context, getClusterConfig func
 	if err != nil {
 		return false, fmt.Errorf("failed to retrieve cluster configuration: %w", err)
 	}
-	// Skip feature reconciliation during upgrades to prevent conflicts if cluster configuration
-	// is modified while the upgrade is in progress.
+	// Skip feature reconciliation while an upgrade is in progress to avoid conflicting cluster
+	// configuration changes.
 	if _, ok := clusterConfig.Annotations.Get(apiv1_annotations.AnnotationDisableSeparateFeatureUpgrades); !ok {
 		k8sClient, err := c.snap.KubernetesClient("")
 		if err != nil {

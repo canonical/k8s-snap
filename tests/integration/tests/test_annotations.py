@@ -121,7 +121,7 @@ def test_disable_separate_feature_upgrades(
 
     def is_gateway_disabled(process):
         gateway_status = json.loads(process.stdout)
-        return not gateway_status.get("enabled", None)
+        return gateway_status.get("enabled") is False
 
     # Wait until gateway is disabled
     util.stubbornly(retries=3, delay_s=5).on(cluster_node).until(
