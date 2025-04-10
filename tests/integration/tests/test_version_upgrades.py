@@ -99,8 +99,6 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         token = util.get_join_token(main, instance)
         instance.exec(["k8s", "join-cluster", token])
 
-    util.wait_until_k8s_ready(instance, instances)
-
     # Get initial helm releases to track if they are updated correctly.
     initial_releases = {
         release["name"]: release
@@ -126,7 +124,7 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     for idx, instance in enumerate(instances):
         util.setup_k8s_snap(instance, tmp_path, config.SNAP)
 
-        # TODO(ben): Check if this wait is really required, if yes - why?
+        # The crd will be created once the node is up and ready, so we might need to wait for it.
         expected_instances = [instance.id for instance in instances[: idx + 1]]
         util.stubbornly(retries=15, delay_s=5).on(instance).until(
             lambda p: _waiting_for_upgraded_nodes(
