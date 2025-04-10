@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
@@ -18,6 +19,8 @@ import (
 type FeatureController struct {
 	snap      snap.Snap
 	waitReady func()
+
+	readyCh chan struct{}
 
 	triggerNetworkCh       chan struct{}
 	triggerGatewayCh       chan struct{}
@@ -34,6 +37,40 @@ type FeatureController struct {
 	reconciledDNSCh           chan struct{}
 	reconciledLocalStorageCh  chan struct{}
 	reconciledMetricsServerCh chan struct{}
+}
+
+// ReadyCh returns a channel that is closed when the controller is ready.
+// This is used to signal to other components that they can start using the controller.
+func (c *FeatureController) ReadyCh() <-chan struct{} {
+	return c.readyCh
+}
+
+func (c *FeatureController) ReconciledNetworkCh() <-chan struct{} {
+	return c.reconciledNetworkCh
+}
+
+func (c *FeatureController) ReconciledGatewayCh() <-chan struct{} {
+	return c.reconciledGatewayCh
+}
+
+func (c *FeatureController) ReconciledIngressCh() <-chan struct{} {
+	return c.reconciledIngressCh
+}
+
+func (c *FeatureController) ReconciledLoadBalancerCh() <-chan struct{} {
+	return c.reconciledLoadBalancerCh
+}
+
+func (c *FeatureController) ReconciledDNSCh() <-chan struct{} {
+	return c.reconciledDNSCh
+}
+
+func (c *FeatureController) ReconciledLocalStorageCh() <-chan struct{} {
+	return c.reconciledLocalStorageCh
+}
+
+func (c *FeatureController) ReconciledMetricsServerCh() <-chan struct{} {
+	return c.reconciledMetricsServerCh
 }
 
 type FeatureControllerOpts struct {
@@ -53,6 +90,7 @@ func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 	return &FeatureController{
 		snap:                      opts.Snap,
 		waitReady:                 opts.WaitReady,
+		readyCh:                   make(chan struct{}),
 		triggerNetworkCh:          opts.TriggerNetworkCh,
 		triggerGatewayCh:          opts.TriggerGatewayCh,
 		triggerIngressCh:          opts.TriggerIngressCh,
@@ -77,8 +115,10 @@ func (c *FeatureController) Run(
 	notifyDNSChangedIP func(ctx context.Context, dnsIP string) error,
 	setFeatureStatus func(ctx context.Context, name types.FeatureName, featureStatus types.FeatureStatus) error,
 ) {
-	c.waitReady()
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
+	log := log.FromContext(ctx)
+	log.Info("Starting feature controller")
+	c.waitReady()
 
 	s := getState()
 
@@ -122,6 +162,9 @@ func (c *FeatureController) Run(
 		}
 		return featureStatus, nil
 	})
+
+	close(c.readyCh)
+	log.Info("Feature controller ready")
 }
 
 func (c *FeatureController) reconcile(
@@ -162,13 +205,27 @@ func (c *FeatureController) reconcileLoop(
 		case <-ctx.Done():
 			return
 		case <-triggerCh:
+			log := log.FromContext(ctx).WithValues("feature", featureName)
+
 			// reset "reconciled" state before reconciling
 			utils.MaybeReceive(reconciledCh)
+
+			blocked, err := c.isBlocked(ctx)
+			if err != nil {
+				log.Error(err, "Failed to check if feature controller is blocked")
+				// notify triggerCh after 5 seconds to retry
+				time.AfterFunc(5*time.Second, func() { utils.MaybeNotify(triggerCh) })
+				continue
+			}
+
+			if blocked {
+				continue
+			}
 
 			if err := c.reconcile(ctx, getClusterConfig, apply, func(ctx context.Context, status types.FeatureStatus) error {
 				return setFeatureStatus(ctx, featureName, status)
 			}); err != nil {
-				log.FromContext(ctx).WithValues("feature", featureName).Error(err, "Failed to apply feature configuration")
+				log.Error(err, "Failed to apply feature configuration")
 
 				// notify triggerCh after 5 seconds to retry
 				time.AfterFunc(5*time.Second, func() { utils.MaybeNotify(triggerCh) })
@@ -178,4 +235,31 @@ func (c *FeatureController) reconcileLoop(
 
 		}
 	}
+}
+
+// isBlocked checks if the feature controller is blocked by an in-progress upgrade.
+// If an upgrade is in progress, the feature controller will not apply any configuration changes.
+func (c *FeatureController) isBlocked(ctx context.Context) (bool, error) {
+	log := log.FromContext(ctx)
+	k8sClient, err := c.snap.KubernetesClient("")
+	if err != nil {
+		return false, fmt.Errorf("failed to get Kubernetes client: %w", err)
+	}
+
+	upgrade, err := k8sClient.GetInProgressUpgrade(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to check for in-progress upgrade: %w", err)
+	}
+
+	if upgrade == nil {
+		return false, nil
+	}
+
+	if upgrade.Status.Phase == kubernetes.UpgradePhaseFeatureUpgrade {
+		log.Info("Upgrade in progress - but in feature upgrade phase - applying configuration", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
+		return false, nil
+	}
+
+	log.Info("Upgrade in progress - feature controller blocked", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
+	return true, nil
 }

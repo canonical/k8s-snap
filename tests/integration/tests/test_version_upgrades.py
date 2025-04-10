@@ -273,14 +273,15 @@ def test_version_downgrades_with_rollback(
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
-    """Test the feature upgrades work
-    Note(ben): This test is a work in progress and will
-    be expanded with new tests as the feature upgrades work takes shape.
-    Once this work is complete, this test will likely be merged with the
-    test_version_upgrades test above and create a single test for all upgrades.
+    """Verify that feature upgrades function correctly.
 
-    This test creates a cluster, refreshes each node one by one and verifies
-    that the upgrade CR is updated correctly.
+    Note: This is an interim test that will be expanded as feature upgrades mature.
+    Eventually, it will merge with test_version_upgrades to create a unified upgrade test.
+
+    This test will spin up a three cp cluster on 1.32-classic/stable, and then upgrade to the snap.
+    The test will then verify that the upgrade CR is updated correctly and that the features are upgraded
+    after the last node is upgraded.
+    The test will also verify that the feature version is not upgraded until all nodes are upgraded.
     """
     assert config.SNAP is not None, "SNAP must be set to run this test"
 
@@ -294,6 +295,29 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     for instance in instances[1:]:
         token = util.get_join_token(main, instance)
         instance.exec(["k8s", "join-cluster", token])
+
+    util.wait_until_k8s_ready(instance, instances)
+
+    # Get initial helm releases to track if they are updated correctly.
+    initial_releases = {
+        release["name"]: release
+        for release in json.loads(
+            main.exec(
+                [
+                    "/snap/k8s/current/bin/helm",
+                    "--kubeconfig",
+                    "/etc/kubernetes/admin.conf",
+                    "list",
+                    "-n",
+                    "kube-system",
+                    "-o",
+                    "json",
+                ],
+                capture_output=True,
+                text=True,
+            ).stdout
+        )
+    }
 
     # Refresh each node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
@@ -318,13 +342,75 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         ).stdout
 
         if idx == len(instances) - 1:
-            assert (
-                phase == "FeatureUpgrade"
-            ), f"After the last upgrade, expected phase to be FeatureUpgrade but got {phase}"
+            assert phase in [
+                "FeatureUpgrade",
+                "Completed",
+            ], f"Right after the last upgrade, expected phase to be FeatureUpgrade or Complete but got {phase}"
+
+            # All Feature version should eventually be upgraded.
+            LOG.info("Waiting for all helm releases to upgrade")
+            util.stubbornly(retries=15, delay_s=5).on(instance).until(
+                lambda p: all(
+                    next(r for r in json.loads(p.stdout) if r["name"] == name)[
+                        "updated"
+                    ]
+                    != initial_releases[name]["updated"]
+                    for name in initial_releases
+                ),
+            ).exec(
+                [
+                    "/snap/k8s/current/bin/helm",
+                    "--kubeconfig",
+                    "/etc/kubernetes/admin.conf",
+                    "list",
+                    "-n",
+                    "kube-system",
+                    "-o",
+                    "json",
+                ],
+                capture_output=True,
+                text=True,
+            )
+            LOG.info("All helm releases have upgraded successfully")
+
+            # TODO(ben): Check that new fields are set in the feature config.
+            # TODO(ben): Check that connectivity (e.g. for gateway) is working during the upgrade.
+
+            util.stubbornly(retries=15, delay_s=5).on(instance).until(
+                lambda p: p.stdout == "Completed",
+            ).exec(
+                "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
+                capture_output=True,
+                text=True,
+            )
         else:
             assert (
                 phase == "NodeUpgrade"
             ), f"While upgrading, expected phase to be NodeUpgrade but got {phase}"
+
+            current_helm_releases = instance.exec(
+                [
+                    "/snap/k8s/current/bin/helm",
+                    "--kubeconfig",
+                    "/etc/kubernetes/admin.conf",
+                    "list",
+                    "-n",
+                    "kube-system",
+                    "-o",
+                    "json",
+                ],
+                capture_output=True,
+                text=True,
+            ).stdout
+
+            for release in json.loads(current_helm_releases):
+                LOG.info(json.dumps(json.loads(current_helm_releases), indent=2))
+                LOG.info("Checking helm release %s", release["name"])
+                name = release["name"]
+                assert (
+                    release["updated"] == initial_releases[name]["updated"]
+                ), f"{release['name']} was updated while upgrading {instance.id} but should not \
+                    have been ({initial_releases[name]['updated']}, {release['updated']})"
 
 
 def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> True:
