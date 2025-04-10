@@ -227,8 +227,6 @@ class LXDHarness(Harness):
         if instance_id not in self.instances:
             raise HarnessError(f"unknown instance {instance_id}")
 
-        LOG.debug("Execute command %s in instance %s", command, instance_id)
-
         if ">" in " ".join(command) or "&&" in " ".join(command):
             command_str = " ".join(command)
         else:
