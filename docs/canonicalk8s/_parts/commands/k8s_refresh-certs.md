@@ -9,7 +9,7 @@ k8s refresh-certs [flags]
 ### Options
 
 ```
-      --certificates stringArray       List of certificates to renew in the cluster (only used with --expires-in). Defaults to all certificates.
+      --certificates strings           List of certificates to renew in the cluster (only used with --expires-in). Defaults to all certificates.
                                        Allowed values:
                                        Worker nodes: kubelet, kubelet.conf, proxy.conf
                                        Control Plane nodes: admin.conf, apiserver, apiserver-kubelet-client, controller.conf, front-proxy-client, kubelet, kubelet.conf, proxy.conf, scheduler.conf
