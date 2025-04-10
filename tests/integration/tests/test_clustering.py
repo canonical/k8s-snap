@@ -43,7 +43,7 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
 def test_mixed_version_join(instances: List[harness.Instance]):
     """Test n versioned node joining a n-1 versioned cluster."""
     LOG.info(
-        "Joining a {} versioned node to a {} versioned cluster.",
+        "Joining a %s versioned node to a %s versioned cluster.",
         config.SNAP,
         util.previous_track(config.SNAP),
     )
