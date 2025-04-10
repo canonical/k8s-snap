@@ -37,12 +37,14 @@ def test_version_upgrades(
         if len(channels) != 2:
             pytest.fail("'recent' requires the number of releases as second argument")
         _, num_channels = channels
+        ref = config.GH_BASE_REF or config.GH_REF
         channels = snap.get_most_stable_channels(
             int(num_channels),
             config.FLAVOR,
             cp.arch,
-            include_latest=False,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+            # Include `latest/edge/<flavor>` only if this is not a release branch.
+            include_latest=ref == util.MAIN_BRANCH,
         )
         current_channel = channels[0]
 
