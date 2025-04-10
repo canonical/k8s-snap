@@ -71,11 +71,11 @@ on:
         type: string
       log-cli:
         description: Enable logs to the console
-        default: false
+        default: true
         type: boolean
       log-cli-level:
         description: Log CLI logging level
-        default: "DEBUG"
+        default: "INFO"
         type: string
 
 jobs:

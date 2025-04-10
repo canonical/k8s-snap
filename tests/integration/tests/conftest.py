@@ -186,9 +186,7 @@ def pytest_configure(config):
     # Set up CLI logging
     if test_config.LOG_CLI:
         config.option.log_cli_level = test_config.LOG_CLI_LEVEL
-        config.option.log_cli_format = (
-            "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
-        )
+        config.option.log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s"
         config.option.log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
     # Set up file logging
@@ -276,7 +274,7 @@ def instances(
     if node_count <= 0:
         pytest.xfail("Test requested 0 or fewer instances, skip this test.")
 
-    LOG.info(f"Creating {node_count} instances")
+    LOG.debug(f"Creating {node_count} instances")
     instances: List[harness.Instance] = []
 
     for _, snap in zip(range(node_count), snap_versions(request)):
@@ -333,7 +331,7 @@ def instances(
             LOG.debug("Generating inspection reports for test instances")
             _generate_inspection_report(h, instance.id)
 
-    LOG.info("Environment info before cleanup:")
+    LOG.debug("Environment info before cleanup:")
     h.log_environment_info()
 
     # Cleanup after each test.
@@ -361,11 +359,11 @@ def etcd_cluster(
     h: harness.Harness, etcd_count: int
 ) -> Generator[EtcdCluster, None, None]:
     """Construct etcd instances for a cluster."""
-    LOG.info(f"Creating {etcd_count} etcd instances")
+    LOG.debug(f"Creating {etcd_count} etcd instances")
 
     cluster = EtcdCluster(h, initial_node_count=etcd_count)
 
     yield cluster
 
-    LOG.info(f"Cleaning up {etcd_count} etcd instances")
+    LOG.debug(f"Cleaning up {etcd_count} etcd instances")
     cluster.cleanup()
