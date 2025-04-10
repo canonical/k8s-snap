@@ -34,25 +34,16 @@ def test_version_upgrades(
     current_channel = channels[0]
 
     if current_channel.lower() == "recent":
-        if len(channels) != 3:
-            pytest.fail(
-                "'recent' requires the number of releases as second argument and the flavour as third argument"
-            )
-        _, num_channels, flavour = channels
-        # Currently, it fails to refresh the snap to the 1.33 channel or newer.
-        # Just test upgrade to at most 1.32.
+        if len(channels) != 2:
+            pytest.fail("'recent' requires the number of releases as second argument")
+        _, num_channels = channels
         channels = snap.get_most_stable_channels(
             int(num_channels),
-            flavour,
+            config.FLAVOR,
             cp.arch,
             include_latest=False,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
-            max_release="1.32",
         )
-        if len(channels) < 2:
-            pytest.fail(
-                f"Need at least 2 channels to upgrade, got {len(channels)} for flavour {flavour}"
-            )
         current_channel = channels[0]
 
     # Copy the current snap into the instances.
@@ -80,6 +71,10 @@ def test_version_upgrades(
         # if not added yet, config.SNAP should be at the end.
         channels.append(snap_path)
 
+    if len(channels) < 2:
+        pytest.fail(
+            f"Need at least 2 channels to upgrade, got {len(channels)} for flavor {config.FLAVOR}"
+        )
     LOG.info(f"Testing upgrades for snaps: {channels}")
     LOG.info(
         f"Bootstrap node on {current_channel} and upgrade through channels: {channels[1:]}"
