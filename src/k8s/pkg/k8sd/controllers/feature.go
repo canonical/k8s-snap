@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -210,7 +211,7 @@ func (c *FeatureController) reconcileLoop(
 			// reset "reconciled" state before reconciling
 			utils.MaybeReceive(reconciledCh)
 
-			blocked, err := c.isBlocked(ctx)
+			blocked, err := c.isBlocked(ctx, getClusterConfig)
 			if err != nil {
 				log.Error(err, "Failed to check if feature controller is blocked")
 				// notify triggerCh after 5 seconds to retry
@@ -239,27 +240,38 @@ func (c *FeatureController) reconcileLoop(
 
 // isBlocked checks if the feature controller is blocked by an in-progress upgrade.
 // If an upgrade is in progress, the feature controller will not apply any configuration changes.
-func (c *FeatureController) isBlocked(ctx context.Context) (bool, error) {
+func (c *FeatureController) isBlocked(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) (bool, error) {
 	log := log.FromContext(ctx)
-	k8sClient, err := c.snap.KubernetesClient("")
+
+	clusterConfig, err := getClusterConfig(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to get Kubernetes client: %w", err)
+		return false, fmt.Errorf("failed to retrieve cluster configuration: %w", err)
+	}
+	// Skip feature reconciliation while an upgrade is in progress to avoid conflicting cluster
+	// configuration changes.
+	if _, ok := clusterConfig.Annotations.Get(apiv1_annotations.AnnotationDisableSeparateFeatureUpgrades); !ok {
+		k8sClient, err := c.snap.KubernetesClient("")
+		if err != nil {
+			return false, fmt.Errorf("failed to get Kubernetes client: %w", err)
+		}
+
+		upgrade, err := k8sClient.GetInProgressUpgrade(ctx)
+		if err != nil {
+			return false, fmt.Errorf("failed to check for in-progress upgrade: %w", err)
+		}
+
+		if upgrade == nil {
+			return false, nil
+		}
+
+		if upgrade.Status.Phase == kubernetes.UpgradePhaseFeatureUpgrade {
+			log.Info("Upgrade in progress - but in feature upgrade phase - applying configuration", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
+			return false, nil
+		}
+
+		log.Info("Upgrade in progress - feature controller blocked", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
+		return true, nil
 	}
 
-	upgrade, err := k8sClient.GetInProgressUpgrade(ctx)
-	if err != nil {
-		return false, fmt.Errorf("failed to check for in-progress upgrade: %w", err)
-	}
-
-	if upgrade == nil {
-		return false, nil
-	}
-
-	if upgrade.Status.Phase == kubernetes.UpgradePhaseFeatureUpgrade {
-		log.Info("Upgrade in progress - but in feature upgrade phase - applying configuration", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
-		return false, nil
-	}
-
-	log.Info("Upgrade in progress - feature controller blocked", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
-	return true, nil
+	return false, nil
 }
