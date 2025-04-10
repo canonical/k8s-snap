@@ -99,7 +99,15 @@ def test_disable_separate_feature_upgrades(
     for instance in instances:
         instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
 
-    cluster_node.exec("k8s bootstrap -f -", input=str.encode(config.MANIFESTS_DIR/ "bootstrap-disable-separate-feature-upgrades.yaml"))
+    cluster_node.exec(
+        "k8s bootstrap --file -".split(),
+        input=str.encode(
+            (
+                config.MANIFESTS_DIR
+                / "bootstrap-disable-separate-feature-upgrades.yaml"
+            ).read_text()
+        ),
+    )
 
     join_token = util.get_join_token(cluster_node, joining_cp)
     util.join_cluster(joining_cp, join_token)
