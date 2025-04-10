@@ -12,7 +12,9 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	certv1 "k8s.io/api/certificates/v1"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -116,6 +118,11 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 		if caKey == nil {
 			log.Error(err, "Cannot sign certificate as CA private key is not available")
+			setFailedCSR(obj, missingKeyFailedReason, missingKeyFailedMessage)
+			if err := r.Client.Status().Update(ctx, obj); err != nil {
+				log.Error(err, "Failed to update failed CSR")
+				return ctrl.Result{}, err
+			}
 			return ctrl.Result{}, nil
 		}
 		cert := &x509.Certificate{
@@ -151,6 +158,11 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 		if caKey == nil {
 			log.Error(err, "Cannot sign certificate as client CA private key is not available")
+			setFailedCSR(obj, missingKeyFailedReason, missingKeyFailedMessage)
+			if err := r.Client.Status().Update(ctx, obj); err != nil {
+				log.Error(err, "Failed to update failed CSR")
+				return ctrl.Result{}, err
+			}
 			return ctrl.Result{}, nil
 		}
 		cert := &x509.Certificate{
@@ -184,6 +196,11 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 		if caKey == nil {
 			log.Error(err, "Cannot sign certificate as client CA private key is not available")
+			setFailedCSR(obj, missingKeyFailedReason, missingKeyFailedMessage)
+			if err := r.Client.Status().Update(ctx, obj); err != nil {
+				log.Error(err, "Failed to update failed CSR")
+				return ctrl.Result{}, err
+			}
 			return ctrl.Result{}, nil
 		}
 		cert := &x509.Certificate{
@@ -222,4 +239,16 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	log.Info("CSR signed")
 	return ctrl.Result{}, nil
+}
+
+func setFailedCSR(csr *certv1.CertificateSigningRequest, reason string, message string) {
+	failedCondition := certv1.CertificateSigningRequestCondition{
+		Type:           certv1.CertificateFailed,
+		Status:         corev1.ConditionTrue,
+		Reason:         reason,
+		Message:        message,
+		LastUpdateTime: metav1.Now(),
+	}
+
+	csr.Status.Conditions = append(csr.Status.Conditions, failedCondition)
 }

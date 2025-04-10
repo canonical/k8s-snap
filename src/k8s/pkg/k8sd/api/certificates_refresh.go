@@ -586,17 +586,39 @@ func getWorkerCSRDefinitions(hostname string) map[apiv1.CertificateName]*csrDefi
 // approved and issued, false if it is pending, and an error if it is denied
 // or failed.
 func isCertificateSigningRequestApprovedAndIssued(csr *certv1.CertificateSigningRequest) (bool, error) {
+	var (
+		approved, failed, denied bool
+		failReason, failMessage  string
+		denyReason, denyMessage  string
+	)
+
 	for _, condition := range csr.Status.Conditions {
-		if condition.Type == certv1.CertificateApproved && condition.Status == corev1.ConditionTrue {
-			return len(csr.Status.Certificate) > 0, nil
-		}
-		if condition.Type == certv1.CertificateDenied && condition.Status == corev1.ConditionTrue {
-			return false, fmt.Errorf("CSR %s was denied: %s", csr.Name, condition.Reason)
-		}
-		if condition.Type == certv1.CertificateFailed && condition.Status == corev1.ConditionTrue {
-			return false, fmt.Errorf("CSR %s failed: %s", csr.Name, condition.Reason)
+		if condition.Status == corev1.ConditionTrue {
+			switch condition.Type {
+			case certv1.CertificateDenied:
+				denied = true
+				denyReason = condition.Reason
+				denyMessage = condition.Message
+			case certv1.CertificateFailed:
+				failed = true
+				failReason = condition.Reason
+				failMessage = condition.Message
+			case certv1.CertificateApproved:
+				approved = true
+			}
 		}
 	}
+
+	if denied {
+		return false, fmt.Errorf("CSR %q was denied: %s - %s", csr.Name, denyReason, denyMessage)
+	}
+	if failed {
+		return false, fmt.Errorf("CSR %q failed: %s - %s", csr.Name, failReason, failMessage)
+	}
+	if approved {
+		return len(csr.Status.Certificate) > 0, nil
+	}
+
 	return false, nil
 }
 
