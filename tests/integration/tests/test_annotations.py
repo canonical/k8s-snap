@@ -1,7 +1,9 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
+import json
 import logging
+from pathlib import Path
 from typing import List
 
 import pytest
@@ -82,3 +84,60 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "worker node should have been removed from the cluster"
     util.check_snap_services_ready(worker, node_type="worker")
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.no_setup()
+@pytest.mark.tags(tags.NIGHTLY)
+def test_disable_separate_feature_upgrades(
+    instances: List[harness.Instance], tmp_path: Path
+):
+    cluster_node = instances[0]
+    joining_cp = instances[1]
+
+    start_branch = util.previous_track(config.SNAP)
+    for instance in instances:
+        instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
+
+    cluster_node.exec(
+        "k8s bootstrap --file -".split(),
+        input=str.encode(
+            (
+                config.MANIFESTS_DIR
+                / "bootstrap-disable-separate-feature-upgrades.yaml"
+            ).read_text()
+        ),
+    )
+
+    join_token = util.get_join_token(cluster_node, joining_cp)
+    util.join_cluster(joining_cp, join_token)
+
+    # Refresh first node, no upgrade CRD should be created.
+    util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP)
+    util.wait_until_k8s_ready(cluster_node, instances)
+
+    upgrades = json.loads(
+        cluster_node.exec(
+            "k8s kubectl get upgrade -o=jsonpath={.items}".split(),
+            capture_output=True,
+            text=True,
+        ).stdout
+    )
+    assert len(upgrades) == 0, "upgrade CRD should not be created"
+
+    # The feature controller should not be blocked.
+    # Disable gateway feature
+    cluster_node.exec("k8s set gateway.enabled=false".split())
+
+    def is_gateway_disabled(process):
+        gateway_status = json.loads(process.stdout)
+        return gateway_status.get("enabled") is False
+
+    # Wait until gateway is disabled
+    util.stubbornly(retries=3, delay_s=5).on(cluster_node).until(
+        is_gateway_disabled
+    ).exec(
+        ["k8s", "get", "gateway", "--output-format=json"],
+        text=True,
+        capture_output=True,
+    )

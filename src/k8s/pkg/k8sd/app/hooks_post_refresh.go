@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
 
+	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/log"
@@ -45,15 +47,19 @@ func (a *App) postRefreshHook(ctx context.Context, s state.State) error {
 		return fmt.Errorf("failed to get boostrap status: %w", err)
 	}
 
-	// We don't want to run the upgrade if the cluster is not ready.
-	// The post-refresh hook is run after snap refresh AND install, so we need to make sure the cluster is ready.
-	if status.Ready {
-		log.Info("Cluster is ready, running post-upgrade.")
-		if err := a.performPostUpgrade(ctx, s); err != nil {
-			return fmt.Errorf("failed to perform post-upgrade: %w", err)
+	if _, ok := config.Annotations.Get(apiv1_annotations.AnnotationDisableSeparateFeatureUpgrades); !ok {
+		// We don't want to run the upgrade if the cluster is not ready.
+		// The post-refresh hook is run after snap refresh AND install, so we need to make sure the cluster is ready.
+		if status.Ready {
+			log.Info("Cluster is ready, running post-upgrade.")
+			if err := a.performPostUpgrade(ctx, s); err != nil {
+				return fmt.Errorf("failed to perform post-upgrade: %w", err)
+			}
+		} else {
+			log.Info("Node is not yet bootstrapped (was freshly installed), skipping upgrade steps.")
 		}
 	} else {
-		log.Info("Node is not yet bootstrapped (was freshly installed), skipping upgrade steps.")
+		log.Info("Post-upgrade steps skipped due to user annotation override.")
 	}
 
 	return nil
@@ -71,7 +77,7 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 
 	upgrade, err := k8sClient.GetInProgressUpgrade(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get in progress upgrade: %w", err)
+		return fmt.Errorf("failed to check for in-progress upgrade: %w", err)
 	}
 
 	if upgrade == nil {
@@ -87,6 +93,7 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 		if err := k8sClient.CreateUpgrade(ctx, *upgrade); err != nil {
 			return fmt.Errorf("failed to create upgrade: %w", err)
 		}
+
 	} else {
 		log.Info("Upgrade in progress.", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
 	}
@@ -111,9 +118,60 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 			return fmt.Errorf("failed to set upgrade phase: %w", err)
 		}
 
-		// TODO: Trigger feature upgrade and unlock feature controllers afterwards.
-	}
+		log.Info("Triggering feature upgrades in background")
 
+		// TODO(ben): This is a bit ugly. We cannot wait here for the feature controllers to finish because
+		// the controllers are blocked until the node is marked as ready. For this phase, we can just run a separate
+		// goroutine to trigger the feature controllers and wait for them to finish.
+		// Once we have a separate feature upgrade controller, this should be much cleaner.
+		go func() {
+			log.Info("Triggering feature controllers in separate go routine.")
+			// TODO: Do we need to handle dependencies between features?
+			// If yes, a new features/interface/upgrades should be created that takes all trigger and reconciled channels.
+			// The custom dependencies could then be handled in the flavor feature implementation.
+
+			// Trigger all feature controllers
+			// This intentionally blocks until the feature controllers are available.
+			<-a.featureController.ReadyCh()
+			a.NotifyFeatureController(true, true, true, true, true, true, true)
+
+			log.Info("Waiting for feature controllers to reconcile.")
+			pending := map[string]<-chan struct{}{
+				"Network":       a.featureController.ReconciledNetworkCh(),
+				"Gateway":       a.featureController.ReconciledGatewayCh(),
+				"Ingress":       a.featureController.ReconciledIngressCh(),
+				"DNS":           a.featureController.ReconciledDNSCh(),
+				"LoadBalancer":  a.featureController.ReconciledLoadBalancerCh(),
+				"LocalStorage":  a.featureController.ReconciledLocalStorageCh(),
+				"MetricsServer": a.featureController.ReconciledMetricsServerCh(),
+			}
+
+			for len(pending) > 0 {
+				select {
+				case <-ctx.Done():
+					log.Error(ctx.Err(), "Context canceled while waiting for feature controllers to reconcile.")
+					return
+
+				case <-time.After(100 * time.Millisecond):
+					for name, ch := range pending {
+						select {
+						case <-ch:
+							log.Info(fmt.Sprintf("%s feature controller reconciled.", name))
+							delete(pending, name)
+						default:
+						}
+					}
+				}
+			}
+
+			log.Info("All feature have reconciled.")
+
+			if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Metadata.Name, kubernetes.UpgradeStatus{Phase: kubernetes.UpgradePhaseCompleted}); err != nil {
+				log.Error(err, "failed to set upgrade phase after successful feature upgrade")
+				return
+			}
+		}()
+	}
 	return nil
 }
 

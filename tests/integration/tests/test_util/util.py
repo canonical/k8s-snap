@@ -641,7 +641,7 @@ def previous_track(snap_version: str) -> str:
                 snap_version,
                 branch,
             )
-            return "latest"
+            return f"latest/edge/{_get_flavor()}"
 
     if maj_min := major_minor(snap_version):
         maj, min = maj_min
