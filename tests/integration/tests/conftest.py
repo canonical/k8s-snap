@@ -128,7 +128,7 @@ def registry(h: harness.Harness) -> Optional[Registry]:
 @pytest.fixture(scope="function")
 def function_scoped_registry(h: harness.Harness) -> Registry:
     registry = Registry(h)
-    yield Registry(h)
+    yield registry
     registry.cleanup()
 
 
