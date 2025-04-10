@@ -53,8 +53,8 @@ github.com/bugsnag/panicwrap v0.0.0-20151223152923-e2c28503fcd0 h1:nvj0OLI3YqYXe
 github.com/bugsnag/panicwrap v0.0.0-20151223152923-e2c28503fcd0/go.mod h1:D/8v3kj0zr8ZAKg1AQ6crr+5VwKN5eIywRkfhyM/+dE=
 github.com/canonical/go-dqlite/v2 v2.0.0 h1:RNFcFVhHMh70muKKErbW35rSzqmAFswheHdAgxW0Ddw=
 github.com/canonical/go-dqlite/v2 v2.0.0/go.mod h1:IaIC8u4Z1UmPjuAqPzA2r83YMaMHRLoKZdHKI5uHCJI=
-github.com/canonical/k8s-snap-api v1.0.25-0.20250407170936-27d4cd375357 h1:RnK2EkTnXf1vpmvpcvteY7LR2NPgs7FQrUAGh5MhbGY=
-github.com/canonical/k8s-snap-api v1.0.25-0.20250407170936-27d4cd375357/go.mod h1:kdXBgGo5TF93NJYHfa1bfKIzEIgE1oQriFHcVoVQUX8=
+github.com/canonical/k8s-snap-api v1.0.26-0.20250410180338-7477c531a84c h1:xCs8/vMwVz0Un74GWwy74JXq44KiD0NMmBCRkfWeBX4=
+github.com/canonical/k8s-snap-api v1.0.26-0.20250410180338-7477c531a84c/go.mod h1:kdXBgGo5TF93NJYHfa1bfKIzEIgE1oQriFHcVoVQUX8=
 github.com/canonical/lxd v0.0.0-20250113143058-52441d41dab7 h1:lZCOt9/1KowNdnWXjfA1/51Uj7+R0fKtByos9EVrYn4=
 github.com/canonical/lxd v0.0.0-20250113143058-52441d41dab7/go.mod h1:4Ssm3YxIz8wyazciTLDR9V0aR2GPlGIHb+S0182T5pA=
 github.com/canonical/microcluster/v2 v2.1.1-0.20250127104725-631889214b18 h1:h5VJaUnE4gAKPolBTJ11HMRTEN5JyA+oR4gHkoK//6o=
