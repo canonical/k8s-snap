@@ -32,13 +32,6 @@ RISKS = ["stable", "candidate", "beta", "edge"]
 TRACK_RE = re.compile(r"^(\d+)\.(\d+)(\S*)$")
 MAIN_BRANCH = "main"
 
-# SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
-SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
-
-# The following snaps will be downloaded once per test run and preloaded
-# into the harness instances to reduce the number of downloads.
-PRELOADED_SNAPS = ["snapd", "core20"]
-
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     """Log and run command."""
@@ -176,8 +169,8 @@ def download_preloaded_snaps():
         LOG.info("Snap preloading disabled, skipping...")
         return
 
-    LOG.info(f"Downloading snaps for preloading: {PRELOADED_SNAPS}")
-    for snap in PRELOADED_SNAPS:
+    LOG.info(f"Downloading snaps for preloading: {config.PRELOADED_SNAPS}")
+    for snap in config.PRELOADED_SNAPS:
         run(
             [
                 "snap",
@@ -194,7 +187,7 @@ def preload_snaps(instance: harness.Instance):
         LOG.info("Snap preloading disabled.")
         return
 
-    for preloaded_snap in PRELOADED_SNAPS:
+    for preloaded_snap in config.PRELOADED_SNAPS:
         ack_file = f"{preloaded_snap}.assert"
         remote_path = os.path.join("/tmp", ack_file)
         instance.send_file(
@@ -823,7 +816,8 @@ def wait_for_daemonset(
 
 # sonobuoy_tar_gz returns the download URL of sonobuoy.
 def sonobuoy_tar_gz(architecture: str) -> str:
-    return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1:]}_linux_{architecture}.tar.gz"  # noqa
+    version = config.SONOBUOY_VERSION
+    return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{version}/sonobuoy_{version[1:]}_linux_{architecture}.tar.gz"  # noqa
 
 
 def check_snap_services_ready(
