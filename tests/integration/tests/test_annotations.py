@@ -87,11 +87,7 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
 
 
 @pytest.mark.node_count(2)
-@pytest.mark.bootstrap_config(
-    (
-        config.MANIFESTS_DIR / "bootstrap-disable-separate-feature-upgrade.yaml"
-    ).read_text()
-)
+@pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 def test_disable_separate_feature_upgrades(
     instances: List[harness.Instance], tmp_path: Path
@@ -99,11 +95,17 @@ def test_disable_separate_feature_upgrades(
     cluster_node = instances[0]
     joining_cp = instances[1]
 
+    start_branch = util.previous_track(config.SNAP)
+    for instance in instances:
+        instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
+
+    cluster_node.exec("k8s bootstrap -f -", input=str.encode(config.MANIFESTS_DIR/ "bootstrap-disable-separate-feature-upgrades.yaml"))
+
     join_token = util.get_join_token(cluster_node, joining_cp)
     util.join_cluster(joining_cp, join_token)
 
     # Refresh first node, no upgrade CRD should be created.
-    util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP_NAME)
+    util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP)
     util.wait_until_k8s_ready(cluster_node, instances)
 
     upgrades = json.loads(
