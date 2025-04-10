@@ -200,5 +200,8 @@ class Registry:
 
     def cleanup(self):
         if self.instance:
+            LOG.info("Cleaning up registry instance: %s", self.instance.id)
             self.harness.delete_instance(self.instance.id)
             self.instance = None
+        else:
+            LOG.info("Registry instance already cleaned up.")
