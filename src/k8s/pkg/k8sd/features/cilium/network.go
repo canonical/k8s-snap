@@ -33,7 +33,7 @@ var (
 func checkAndSanitizeCiliumVXLAN(port int) error {
 	vxlanDevices, err := utils.ListVXLANInterfaces()
 	if err != nil {
-		return err
+		return fmt.Errorf("listing vxlan interfaces failed: %w", err)
 	}
 
 	for _, vxlanDevice := range vxlanDevices {
