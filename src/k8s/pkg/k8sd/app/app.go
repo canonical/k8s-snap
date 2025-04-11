@@ -12,6 +12,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning"
+	"github.com/canonical/k8s/pkg/k8sd/controllers/upgrade"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -45,6 +46,8 @@ type Config struct {
 	DisableFeatureController bool
 	// DisableCSRSigningController is a bool flag to disable csrsigning controller.
 	DisableCSRSigningController bool
+	// DisableUpgradeController is a bool flag to disable upgrade controller.
+	DisableUpgradeController bool
 	// DrainConnectionsTimeout is the amount of time to allow for all connections to drain when shutting down.
 	DrainConnectionsTimeout time.Duration
 }
@@ -66,6 +69,7 @@ type App struct {
 	nodeLabelController          *controllers.NodeLabelController
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
 	csrsigningController         *csrsigning.Controller
+	upgradeController            *upgrade.Controller
 
 	// updateNodeConfigController
 	triggerUpdateNodeConfigControllerCh chan struct{}
@@ -179,6 +183,16 @@ func New(cfg Config) (*App, error) {
 		})
 	} else {
 		log.L().Info("csrsigning-controller disabled via config")
+	}
+
+	if !cfg.DisableUpgradeController {
+		app.upgradeController = upgrade.New(upgrade.Options{
+			Snap:           cfg.Snap,
+			WaitReady:      app.readyWg.Wait,
+			LeaderElection: true,
+		})
+	} else {
+		log.L().Info("upgrade-controller disabled via config")
 	}
 
 	return app, nil
