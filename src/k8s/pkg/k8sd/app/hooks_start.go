@@ -114,5 +114,25 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		)
 	}
 
+	// start upgrade controller
+	if a.upgradeController != nil {
+		go a.upgradeController.Run(
+			ctx,
+			func() state.State { return s },
+			a.featureController.ReadyCh(),
+			func() {
+				a.NotifyFeatureController(true, true, true,
+					true, true, true, true)
+			},
+			a.featureController.ReconciledNetworkCh(),
+			a.featureController.ReconciledGatewayCh(),
+			a.featureController.ReconciledIngressCh(),
+			a.featureController.ReconciledDNSCh(),
+			a.featureController.ReconciledLoadBalancerCh(),
+			a.featureController.ReconciledLocalStorageCh(),
+			a.featureController.ReconciledMetricsServerCh(),
+		)
+	}
+
 	return nil
 }
