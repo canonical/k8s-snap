@@ -7,3 +7,11 @@ func MaybeNotify(ch chan<- struct{}) {
 	default:
 	}
 }
+
+// MaybeReceive tries to receive from a channel, but does not block if that fails.
+func MaybeReceive(ch <-chan struct{}) {
+	select {
+	case <-ch:
+	default:
+	}
+}
