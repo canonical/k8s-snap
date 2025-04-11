@@ -14,7 +14,7 @@ Container(K8sSnapDistribution.Runtime, "Runtime", $techn="", $descr="Containerd 
 System(CharmK8s, "Charm K8s", $descr="Orchestrating the lifecycle management of K8s", $tags="", $link="")
 Container(K8sSnapDistribution.ClusterDatastore, "Cluster datastore", $techn="", $descr="Uses dqlite to store cluster configuration", $tags="", $link="")
 Container(K8sSnapDistribution.KubernetesDatastore, "Kubernetes datastore", $techn="", $descr="Uses k8s-dqlite or etcd to store cluster data", $tags="", $link="")
-Container(K8sSnapDistribution.KubernetesControlPlane, "Kubernetes Control Plane", $techn="", $descr="API server, kubelet, kube-proxy, scheduler, kube-controller", $tags="", $link="")
+Container(K8sSnapDistribution.KubernetesCoreComponents, "Kubernetes Core Components", $techn="", $descr="API server, kubelet, kube-proxy, scheduler, kube-controller", $tags="", $link="")
 
 Container_Boundary("K8sSnapDistribution.K8sd_boundary", "K8sd", $tags="") {
   Component(K8sSnapDistribution.K8sd.CLI, "CLI", $techn="CLI", $descr="The CLI offered", $tags="", $link="")
@@ -24,10 +24,10 @@ Container_Boundary("K8sSnapDistribution.K8sd_boundary", "K8sd", $tags="") {
 
 Rel(K8sAdmin, K8sSnapDistribution.K8sd.CLI, "Sets up and configured the cluster", $techn="", $tags="", $link="")
 Rel(CharmK8s, K8sSnapDistribution.K8sd.APIviaHTTP, "Orchestrates the lifecycle management of K8s when deployed with Juju", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd.CLustermanagement, K8sSnapDistribution.KubernetesControlPlane, "Configures", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.KubernetesControlPlane, K8sSnapDistribution.KubernetesDatastore, "Keeps state in", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd.CLustermanagement, K8sSnapDistribution.KubernetesCoreComponents, "Configures", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.KubernetesCoreComponents, K8sSnapDistribution.KubernetesDatastore, "Keeps state in", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd.CLustermanagement, K8sSnapDistribution.ClusterDatastore, "Keeps state in", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd.APIviaHTTP, K8sSnapDistribution.KubernetesControlPlane, "Configures", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd.APIviaHTTP, K8sSnapDistribution.KubernetesCoreComponents, "Configures", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd.APIviaHTTP, K8sSnapDistribution.Runtime, "Configures", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd.APIviaHTTP, K8sSnapDistribution.K8sd.CLustermanagement, "Uses", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd.CLI, K8sSnapDistribution.K8sd.APIviaHTTP, "CLI is based on the API primitives", $techn="", $tags="", $link="")

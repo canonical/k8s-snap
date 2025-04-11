@@ -14,7 +14,7 @@ System(CharmK8s, "Charm K8s", $descr="Orchestrating the lifecycle management of 
 System(Externaldatastore, "External datastore", $descr="etcd", $tags="", $link="")
 
 System_Boundary("K8sSnapDistribution_boundary", "K8s Snap Distribution", $tags="") {
-  Container(K8sSnapDistribution.KubernetesControlPlane, "Kubernetes Control Plane", $techn="", $descr="API server, kubelet, kube-proxy, scheduler, kube-controller", $tags="", $link="")
+  Container(K8sSnapDistribution.KubernetesCoreComponents, "Kubernetes Core Components", $techn="", $descr="API server, kubelet, kube-proxy, scheduler, kube-controller", $tags="", $link="")
   Container(K8sSnapDistribution.ContainerRuntime, "Container Runtime", $techn="", $descr="Containerd", $tags="", $link="")
   Container(K8sSnapDistribution.K8sd, "K8sd", $techn="", $descr="Daemon implementing the features available in the k8s snap", $tags="", $link="")
   Container(K8sSnapDistribution.K8sddatastore, "Cluster Datastore", $techn="", $descr="Uses dqlite to store cluster configuration", $tags="", $link="")
@@ -27,11 +27,11 @@ Rel(K8sAdmin, K8sSnapDistribution.Kubectl, "Uses to manage the cluster", $techn=
 Rel(K8sUser, K8sSnapDistribution.Kubectl, "Interacts with workloads hosted in K8s", $techn="", $tags="", $link="")
 Rel(CharmK8s, K8sSnapDistribution.K8sd, "Orchestrates the lifecycle management of K8s", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.K8sddatastore, "Stores data in", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.KubernetesControlPlane, K8sSnapDistribution.Kubernetesdatastore, "Stores data in", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.KubernetesCoreComponents, K8sSnapDistribution.Kubernetesdatastore, "Stores data in", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.Kubernetesdatastore, Externaldatastore, "May be replaced by", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.KubernetesControlPlane, "Configures", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.KubernetesControlPlane, K8sSnapDistribution.ContainerRuntime, "Uses", $techn="", $tags="", $link="")
-Rel(K8sSnapDistribution.Kubectl, K8sSnapDistribution.KubernetesControlPlane, "Sends API requests", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.KubernetesCoreComponents, "Configures", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.KubernetesCoreComponents, K8sSnapDistribution.ContainerRuntime, "Uses", $techn="", $tags="", $link="")
+Rel(K8sSnapDistribution.Kubectl, K8sSnapDistribution.KubernetesCoreComponents, "Sends API requests", $techn="", $tags="", $link="")
 Rel(K8sSnapDistribution.K8sd, K8sSnapDistribution.ContainerRuntime, "Configures", $techn="", $tags="", $link="")
 
 SHOW_LEGEND(true)
