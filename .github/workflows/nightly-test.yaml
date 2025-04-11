@@ -6,8 +6,8 @@ on:
   pull_request:
     paths:
       - .github/workflows/e2e-tests.yaml
-      - .github/workflows/nightly-test.yaml
       - .github/workflows/security-scan.yaml
+      - .github/workflows/nightly-test.yaml
 
 permissions:
   contents: read
