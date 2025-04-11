@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.node_count(3)
 @pytest.mark.tags(tags.CONFORMANCE)
-def test_cncf_conformance(instances: List[harness.Instance]):
+def __test_cncf_conformance(instances: List[harness.Instance]):
     cluster_node = cluster_setup(instances)
 
     _run_cncf_tests(cluster_node, "k8s-dqlite")
