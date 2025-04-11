@@ -31,6 +31,11 @@ type FeatureController struct {
 	triggerLocalStorageCh  chan struct{}
 	triggerMetricsServerCh chan struct{}
 
+	// TODO(Hue): (KU-3219) Change these with an atomic bool or something similar.
+	// Because we don't close them when the feature is reconciled, we simply
+	// put something into them. And that thing is going to be gone as soon as we
+	// read from these channels. So "checking to see if a feature is reconciled",
+	// will technically cause it to be considered "not-reconciled" immediately.
 	reconciledNetworkCh       chan struct{}
 	reconciledGatewayCh       chan struct{}
 	reconciledIngressCh       chan struct{}
@@ -265,11 +270,11 @@ func (c *FeatureController) isBlocked(ctx context.Context, getClusterConfig func
 		}
 
 		if upgrade.Status.Phase == kubernetes.UpgradePhaseFeatureUpgrade {
-			log.Info("Upgrade in progress - but in feature upgrade phase - applying configuration", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
+			log.Info("Upgrade in progress - but in feature upgrade phase - applying configuration", "upgrade", upgrade.Name, "phase", upgrade.Status.Phase)
 			return false, nil
 		}
 
-		log.Info("Upgrade in progress - feature controller blocked", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
+		log.Info("Upgrade in progress - feature controller blocked", "upgrade", upgrade.Name, "phase", upgrade.Status.Phase)
 		return true, nil
 	}
 
