@@ -77,7 +77,7 @@ def test_version_upgrades(
         pytest.fail(
             f"Need at least 2 channels to upgrade, got {len(channels)} for flavor {config.FLAVOR}"
         )
-    LOG.info(f"Testing upgrades for snaps: {channels}")
+    LOG.debug(f"Testing upgrades for snaps: {channels}")
     LOG.info(
         f"Bootstrap node on {current_channel} and upgrade through channels: {channels[1:]}"
     )
@@ -100,18 +100,18 @@ def test_version_upgrades(
 
     util.wait_until_k8s_ready(cp, instances)
 
-    LOG.info(f"Installed {len(instances)} nodes on channel {current_channel}")
+    LOG.debug(f"Installed {len(instances)} nodes on channel {current_channel}")
 
     for channel in channels[1:]:
         for instance in instances:
-            LOG.info(
+            LOG.debug(
                 f"Upgrading {instance.id} from {current_channel} to channel {channel}"
             )
 
             # Log the current snap version on the node.
             out = instance.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
             latest_version = out.stdout.decode().strip().split("\n")[-1]
-            LOG.info(f"Current snap version: {latest_version}")
+            LOG.debug(f"Current snap version: {latest_version}")
 
             # note: the `--classic` flag will be ignored by snapd for strict snaps.
             cmd = [
@@ -123,13 +123,13 @@ def test_version_upgrades(
                 "--classic",
             ]
             if channel.startswith("/"):
-                LOG.info("Refreshing k8s snap by path")
+                LOG.debug("Refreshing k8s snap by path")
                 cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
 
             instance.exec(cmd)
             util.wait_until_k8s_ready(cp, instances)
             current_channel = channel
-            LOG.info(f"Upgraded {instance.id} on channel {channel}")
+            LOG.debug(f"Upgraded {instance.id} on channel {channel}")
 
 
 @pytest.mark.node_count(3)
@@ -213,13 +213,13 @@ def test_version_downgrades_with_rollback(
 
     for channel in channels[1:]:
         for instance in instances:
-            LOG.info(
+            LOG.debug(
                 "Initiating downgrade + rollback segment from "
                 f"{current_channel} → {channel} - {instance.id}"
             )
             out = instance.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
             latest_version = out.stdout.decode().strip().split("\n")[-1]
-            LOG.info(f"Current snap version: {latest_version}")
+            LOG.debug(f"Current snap version: {latest_version}")
 
             LOG.debug(
                 f"Step 1. Downgrade {instance.id} from {current_channel} → {channel}"
@@ -264,9 +264,11 @@ def test_version_downgrades_with_rollback(
             )
             util.wait_until_k8s_ready(cp, instances)
 
-            LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
+            LOG.debug(
+                "Rollback segment complete. Proceeding to next downgrade segment."
+            )
 
-    LOG.info("Rollback test complete. All downgrade segments verified.")
+    LOG.debug("Rollback test complete. All downgrade segments verified.")
 
 
 @pytest.mark.node_count(3)
@@ -412,5 +414,5 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
 
 
 def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> True:
-    LOG.info("Waiting for upgraded nodes %s to be: %s", upgraded_nodes, expected_nodes)
+    LOG.debug("Waiting for upgraded nodes %s to be: %s", upgraded_nodes, expected_nodes)
     return set(upgraded_nodes) == set(expected_nodes)
