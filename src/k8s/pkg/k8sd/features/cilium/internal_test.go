@@ -22,6 +22,7 @@ func TestInternalConfig(t *testing.T) {
 				directRoutingDevice: "",
 				vlanBPFBypass:       nil,
 				cniExclusive:        false,
+				tunnelPort:          ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},
@@ -40,6 +41,7 @@ func TestInternalConfig(t *testing.T) {
 				vlanBPFBypass:       []int{1, 2, 3},
 				cniExclusive:        true,
 				sctpEnabled:         true,
+				tunnelPort:          ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},
@@ -53,6 +55,17 @@ func TestInternalConfig(t *testing.T) {
 				directRoutingDevice: "",
 				vlanBPFBypass:       nil,
 				cniExclusive:        true,
+				tunnelPort:          ciliumDefaultVXLANPort,
+			},
+			expectError: false,
+		},
+		{
+			name: "Cilum custom VXLAN port",
+			annotations: map[string]string{
+				apiv1_annotations.AnnotationTunnelPort: "8473",
+			},
+			expectedConfig: config{
+				tunnelPort: 8473,
 			},
 			expectError: false,
 		},
@@ -67,6 +80,7 @@ func TestInternalConfig(t *testing.T) {
 				vlanBPFBypass:       nil,
 				cniExclusive:        false,
 				sctpEnabled:         true,
+				tunnelPort:          ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},
@@ -77,6 +91,7 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1},
+				tunnelPort:    ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},
@@ -87,6 +102,7 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3, 4, 5},
+				tunnelPort:    ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},
@@ -97,6 +113,7 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{0},
+				tunnelPort:    ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},
@@ -128,6 +145,7 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3},
+				tunnelPort:    ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},
@@ -138,6 +156,7 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3, 4, 5},
+				tunnelPort:    ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},
@@ -149,10 +168,12 @@ func TestInternalConfig(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name:           "Nil annotations",
-			annotations:    nil,
-			expectedConfig: config{},
-			expectError:    false,
+			name:        "Nil annotations",
+			annotations: nil,
+			expectedConfig: config{
+				tunnelPort: ciliumDefaultVXLANPort,
+			},
+			expectError: false,
 		},
 		{
 			name: "VLAN with curly braces",
@@ -161,6 +182,7 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				vlanBPFBypass: []int{1, 2, 3},
+				tunnelPort:    ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},

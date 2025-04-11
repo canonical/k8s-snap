@@ -32,9 +32,6 @@ RISKS = ["stable", "candidate", "beta", "edge"]
 TRACK_RE = re.compile(r"^v?(\d+)\.(\d+)(.\d+)?(\S*)$")
 MAIN_BRANCH = "main"
 
-# SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
-SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
-
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     """Log and run command."""
@@ -165,6 +162,47 @@ def _as_int(value: Optional[str]) -> Optional[int]:
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def download_preloaded_snaps():
+    if not config.PRELOAD_SNAPS:
+        LOG.info("Snap preloading disabled, skipping...")
+        return
+
+    LOG.info(f"Downloading snaps for preloading: {config.PRELOADED_SNAPS}")
+    for snap in config.PRELOADED_SNAPS:
+        run(
+            [
+                "snap",
+                "download",
+                snap,
+                f"--basename={snap}",
+                "--target-directory=/tmp",
+            ]
+        )
+
+
+def preload_snaps(instance: harness.Instance):
+    if not config.PRELOAD_SNAPS:
+        LOG.info("Snap preloading disabled.")
+        return
+
+    for preloaded_snap in config.PRELOADED_SNAPS:
+        ack_file = f"{preloaded_snap}.assert"
+        remote_path = os.path.join("/tmp", ack_file)
+        instance.send_file(
+            source=f"/tmp/{ack_file}",
+            destination=remote_path,
+        )
+        instance.exec(["snap", "ack", remote_path])
+
+        snap_file = f"{preloaded_snap}.snap"
+        remote_path = os.path.join("/tmp", snap_file)
+        instance.send_file(
+            source=f"/tmp/{snap_file}",
+            destination=remote_path,
+        )
+        instance.exec(["snap", "install", remote_path])
 
 
 def setup_core_dumps(instance: harness.Instance):
@@ -784,7 +822,8 @@ def wait_for_daemonset(
 
 # sonobuoy_tar_gz returns the download URL of sonobuoy.
 def sonobuoy_tar_gz(architecture: str) -> str:
-    return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1:]}_linux_{architecture}.tar.gz"  # noqa
+    version = config.SONOBUOY_VERSION
+    return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{version}/sonobuoy_{version[1:]}_linux_{architecture}.tar.gz"  # noqa
 
 
 def check_snap_services_ready(

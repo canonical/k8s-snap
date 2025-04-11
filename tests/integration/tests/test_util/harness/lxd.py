@@ -221,7 +221,7 @@ class LXDHarness(Harness):
                 stdout=subprocess.DEVNULL,
             )
         except subprocess.CalledProcessError as e:
-            raise HarnessError("lxc file push command failed") from e
+            raise HarnessError("lxc file pull command failed") from e
 
     def exec(self, instance_id: str, command: list, **kwargs):
         if instance_id not in self.instances:
@@ -271,7 +271,9 @@ class LXDHarness(Harness):
             result = run(["df", "-h"], capture_output=True)
             LOG.info("\n%s", result.stdout.decode().strip())
 
-            if config.INSPECTION_REPORTS_DIR:
+            if config.INSPECTION_REPORTS_DIR and os.path.exists(
+                config.INSPECTION_REPORTS_DIR
+            ):
                 LOG.info("Inspection report size:")
                 result = run(
                     ["du", "-sh", config.INSPECTION_REPORTS_DIR], capture_output=True

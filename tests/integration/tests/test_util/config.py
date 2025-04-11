@@ -156,6 +156,13 @@ STRICT_INTERFACE_CHANNELS = (
 # for every test instance. Note that k8s-snap is currently based on core20.
 PRELOAD_SNAPS = (os.getenv("TEST_PRELOAD_SNAPS") or "1") == "1"
 
+# The following snaps will be downloaded once per test run and preloaded
+# into the harness instances to reduce the number of downloads.
+DEFAULT_PRELOADED_SNAPS = ["snapd", "core20"]
+PRELOADED_SNAPS = (
+    os.getenv("TEST_PRELOADED_SNAPS", "").strip().split() or DEFAULT_PRELOADED_SNAPS
+)
+
 # Setup a local image mirror to reduce the number of image pulls. The mirror
 # will be configured to run in a session scoped harness instance (e.g. LXD container)
 USE_LOCAL_MIRROR = (os.getenv("TEST_USE_LOCAL_MIRROR") or "1") == "1"
@@ -178,3 +185,6 @@ GH_REF = os.getenv("TEST_GH_REF")
 
 # The GitHub base_ref.
 GH_BASE_REF = os.getenv("TEST_GH_BASE_REF")
+
+# SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
+SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
