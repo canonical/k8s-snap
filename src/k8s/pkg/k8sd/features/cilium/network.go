@@ -26,6 +26,39 @@ var (
 	GetMountPropagationType = utils.GetMountPropagationType
 )
 
+// Cilium uses vxlan encapsulation protocol by default. Since we are using the default
+// cilium tunnel encapsulation protocol, we have to make sure that Cilium's vxlan is the
+// only interface using the default vxlan port. Otherwise, Cilium might conflict with
+// other tools such as fan-netwotking, which use the same vxlan destination port.
+func checkAndSanitizeCiliumVXLAN(port int) error {
+	vxlanDevices, err := utils.ListVXLANInterfaces()
+	if err != nil {
+		return fmt.Errorf("listing vxlan interfaces failed: %w", err)
+	}
+
+	for _, vxlanDevice := range vxlanDevices {
+		if vxlanDevice.Name == ciliumVXLANDeviceName {
+			// Note(Reza): Currently Cilium tries to bring up the vxlan interface before applying
+			// any configuration changes. If the Cilium vxlan interface has any conflicts with other
+			// interfaces that makes it unable to brought up, Cilium fails to apply configuration
+			// changes. Removing the interface before applying the new manifests is a temporary
+			// workaround. We can remove this block when the following issue gets settled:
+			// https://github.com/cilium/cilium/issues/38581
+			if err := utils.RemoveLink(vxlanDevice.Name); err != nil {
+				return err
+			}
+
+			continue
+		}
+
+		if vxlanDevice.Port == port {
+			return fmt.Errorf("interface %s uses the same destination port as cilium", vxlanDevice.Name)
+		}
+	}
+
+	return nil
+}
+
 // ApplyNetwork will deploy Cilium when network.Enabled is true.
 // ApplyNetwork will remove Cilium when network.Enabled is false.
 // ApplyNetwork requires that bpf and cgroups2 are already mounted and available when running under strict snap confinement. If they are not, it will fail (since Cilium will not have the required permissions to mount them).
@@ -133,6 +166,14 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		ciliumNodePortValues["directRoutingDevice"] = config.directRoutingDevice
 	}
 
+	if err := checkAndSanitizeCiliumVXLAN(config.tunnelPort); err != nil {
+		return types.FeatureStatus{
+			Enabled: false,
+			Version: CiliumAgentImageTag,
+			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
+		}, err
+	}
+
 	bpfValues := map[string]any{}
 	if config.vlanBPFBypass != nil {
 		bpfValues["vlanBypass"] = config.vlanBPFBypass
@@ -195,6 +236,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 				"enabled": true,
 			},
 		},
+		"tunnelPort": config.tunnelPort,
 	}
 
 	// If we are deploying with IPv6 only, we need to set the routing mode to native
