@@ -625,20 +625,11 @@ def previous_track(snap_version: str) -> str:
         return assumed
 
     if snap_version.startswith("/") or _as_int(snap_version) is not None:
-        branch = config.GH_BASE_REF or config.GH_REF or MAIN_BRANCH
-        prev = _previous_track_from_branch(branch)
-        if prev:
-            LOG.info(
-                "Previous track for %s from branch %s is %s", snap_version, branch, prev
-            )
-            return prev
-        else:
-            LOG.info(
-                "Previous track for %s from branch %s is not found -- assume latest",
-                snap_version,
-                branch,
-            )
-            return f"latest/edge/{_get_flavor()}"
+        assumed = "1.32-classic"
+        LOG.info(
+            "Cannot determine previous track for %s -- assume %s", snap_version, assumed
+        )
+        return assumed
 
     if maj_min := major_minor(snap_version):
         maj, min = maj_min
