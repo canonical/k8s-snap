@@ -616,7 +616,7 @@ def previous_track(snap_version: str) -> str:
     LOG.debug("Determining previous track for %s", snap_version)
 
     if not snap_version:
-        assumed = "1.32-classic"
+        assumed = f"1.32-{_get_flavor()}"
         LOG.info(
             "Cannot determine previous track for undefined snap -- assume %s",
             snap_version,
@@ -625,7 +625,7 @@ def previous_track(snap_version: str) -> str:
         return assumed
 
     if snap_version.startswith("/") or _as_int(snap_version) is not None:
-        assumed = "1.32-classic"
+        assumed = f"1.32-{_get_flavor()}"
         LOG.info(
             "Cannot determine previous track for %s -- assume %s", snap_version, assumed
         )
