@@ -10,9 +10,24 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-// Reconcile is the main reconciliation loop for the upgrade controller.
+// Reconcile implements the Reconciler interface and wraps the reconcile method.
 func (c *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := c.logger.WithValues("req.Name", req.Name)
+	res, err := c.reconcile(ctx)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to reconcile: %w", err)
+	}
+
+	bareResult := res == ctrl.Result{}
+	if bareResult {
+		return ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
+	}
+
+	return res, nil
+}
+
+// reconcile is the main reconciliation loop for the upgrade controller.
+func (c *Controller) reconcile(ctx context.Context) (ctrl.Result, error) {
+	log := c.logger.WithValues("step", "reconcile")
 
 	// TODO(Hue): (KU-3215) Use mgr.Client when Upgrade CRD is created with kubebuilder.
 	k8sClient, err := c.snap.KubernetesClient("")
@@ -51,10 +66,7 @@ func (c *Controller) reconcileNodeUpgrade(ctx context.Context, client *kubernete
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to check if all nodes have been upgraded: %w", err)
 	} else if !allNodesUpgraded {
-		// NOTE(Hue): In case a node left the cluster during an upgrade
-		// and the upgrade is finished sooner than expected. We need this requeue
-		// since nothing will change the upgrade CR again.
-		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+		return ctrl.Result{}, nil
 	}
 
 	log.Info("All nodes have been upgraded.")
@@ -92,6 +104,7 @@ func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, client *kubern
 		case <-ctx.Done():
 			return ctrl.Result{}, fmt.Errorf("context done while waiting for features to get reconciled: %w", ctx.Err())
 		case <-timeout:
+			// TODO(Hue): (KU-3227) Do something about failed feature reconciliations.
 			return ctrl.Result{}, fmt.Errorf("timed out waiting for feature %q to get reconciled", name)
 		case <-ch:
 			log.Info(fmt.Sprintf("feature %q have reconciled.", name))

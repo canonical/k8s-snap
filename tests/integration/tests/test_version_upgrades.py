@@ -345,10 +345,13 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
         sleep(10)
 
         if idx == len(instances) - 1:
-            assert phase in [
-                "FeatureUpgrade",
-                "Completed",
-            ], f"After the last upgrade, expected phase to be FeatureUpgrade or Complete but got {phase}"
+            util.stubbornly(retries=15, delay_s=5).on(instance).until(
+                lambda p: p.stdout in ["FeatureUpgrade", "Completed"],
+            ).exec(
+                "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
+                capture_output=True,
+                text=True,
+            )
 
             # All Feature version should eventually be upgraded.
             LOG.info("Waiting for all helm releases to upgrade")
