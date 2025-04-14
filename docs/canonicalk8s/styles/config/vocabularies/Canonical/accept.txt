@@ -51,6 +51,7 @@ Terraform
 TLS
 Traefik
 Transport Layer Security
+Trivy
 Ubuntu Core
 Ubuntu Pro
 Ubuntu Server
@@ -127,6 +128,7 @@ Commenter
 config
 configMap
 ConfigMap
+ConfigMaps
 containerd
 CoreDNS
 Corosync
@@ -149,6 +151,7 @@ deallocation
 deployable
 discoverable
 DMA
+dmesg
 dns
 DNS
 DPDK
@@ -160,6 +163,7 @@ EasyRSA
 eBPF
 enp
 enum
+env
 etcd
 eth
 EventRateLimit
@@ -334,6 +338,8 @@ sys
 systemd
 taskset
 Telco
+test_ingress
+test_mixed_versions_join
 throughs
 tickless
 TLB
