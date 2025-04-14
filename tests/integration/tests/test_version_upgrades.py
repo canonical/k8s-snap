@@ -4,7 +4,6 @@
 import json
 import logging
 from pathlib import Path
-from time import sleep
 from typing import List
 
 import pytest
