@@ -53,7 +53,7 @@ def test_node_cleanup(instances: List[harness.Instance], tmp_path):
 
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.containerd_cfgdir("/home/ubuntu/etc/containerd")
+@pytest.mark.containerd_cfgdir("/home/ubuntu/k8s-containerd/etc/containerd")
 @pytest.mark.tags(tags.NIGHTLY)
 def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
     main = instances[0]
