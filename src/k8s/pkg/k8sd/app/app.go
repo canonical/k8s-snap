@@ -186,10 +186,20 @@ func New(cfg Config) (*App, error) {
 	}
 
 	if !cfg.DisableUpgradeController {
-		app.upgradeController = upgrade.New(upgrade.Options{
-			Snap:           cfg.Snap,
-			WaitReady:      app.readyWg.Wait,
-			LeaderElection: true,
+		app.upgradeController = upgrade.NewController(upgrade.ControllerOptions{
+			Snap:                     cfg.Snap,
+			WaitReady:                app.readyWg.Wait,
+			FeatureControllerReadyCh: app.featureController.ReadyCh(),
+			NotifyFeatureController:  app.NotifyFeatureController,
+			FeatureToReconciledCh: map[string]<-chan struct{}{
+				"network":        app.featureController.ReconciledNetworkCh(),
+				"gateway":        app.featureController.ReconciledGatewayCh(),
+				"ingress":        app.featureController.ReconciledIngressCh(),
+				"dns":            app.featureController.ReconciledDNSCh(),
+				"load-balancer":  app.featureController.ReconciledLoadBalancerCh(),
+				"local-storage":  app.featureController.ReconciledLocalStorageCh(),
+				"metrics-server": app.featureController.ReconciledMetricsServerCh(),
+			},
 		})
 	} else {
 		log.L().Info("upgrade-controller disabled via config")

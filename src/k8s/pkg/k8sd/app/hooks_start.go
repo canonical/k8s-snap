@@ -118,19 +118,10 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 	if a.upgradeController != nil {
 		go a.upgradeController.Run(
 			ctx,
-			func() state.State { return s },
-			a.featureController.ReadyCh(),
-			func() {
-				a.NotifyFeatureController(true, true, true,
-					true, true, true, true)
+			func(ctx context.Context) (types.ClusterConfig, error) {
+				return databaseutil.GetClusterConfig(ctx, s)
 			},
-			a.featureController.ReconciledNetworkCh(),
-			a.featureController.ReconciledGatewayCh(),
-			a.featureController.ReconciledIngressCh(),
-			a.featureController.ReconciledDNSCh(),
-			a.featureController.ReconciledLoadBalancerCh(),
-			a.featureController.ReconciledLocalStorageCh(),
-			a.featureController.ReconciledMetricsServerCh(),
+			func() state.State { return s },
 		)
 	}
 

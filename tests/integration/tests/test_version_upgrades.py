@@ -4,6 +4,7 @@
 import json
 import logging
 from pathlib import Path
+from time import sleep
 from typing import List
 
 import pytest
@@ -339,11 +340,15 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
             text=True,
         ).stdout
 
+        # NOTE(Hue): Since changing the upgrade phase is handled by the upgrade controller,
+        # we wait here a bit to reduce flakiness.
+        sleep(10)
+
         if idx == len(instances) - 1:
             assert phase in [
                 "FeatureUpgrade",
                 "Completed",
-            ], f"Right after the last upgrade, expected phase to be FeatureUpgrade or Complete but got {phase}"
+            ], f"After the last upgrade, expected phase to be FeatureUpgrade or Complete but got {phase}"
 
             # All Feature version should eventually be upgraded.
             LOG.info("Waiting for all helm releases to upgrade")
