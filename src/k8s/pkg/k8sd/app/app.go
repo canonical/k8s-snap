@@ -200,6 +200,8 @@ func New(cfg Config) (*App, error) {
 				"local-storage":  app.featureController.ReconciledLocalStorageCh(),
 				"metrics-server": app.featureController.ReconciledMetricsServerCh(),
 			},
+			FeatureControllerReadyTimeout:     10 * time.Minute,
+			FeatureControllerReconcileTimeout: 10 * time.Minute,
 		})
 	} else {
 		log.L().Info("upgrade-controller disabled via config")

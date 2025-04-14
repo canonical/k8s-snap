@@ -26,12 +26,11 @@ const (
 )
 
 type Controller struct {
-	snap                     snap.Snap
-	waitReady                func()
-	featureControllerReadyCh <-chan struct{}
-	notifyFeatureController  func(network, gateway, ingress, dns, loadBalancer, localStorage, metricsServer bool)
-	featureToReconciledCh    map[string]<-chan struct{}
-
+	snap                              snap.Snap
+	waitReady                         func()
+	featureControllerReadyCh          <-chan struct{}
+	notifyFeatureController           func(network, gateway, ingress, dns, loadBalancer, localStorage, metricsServer bool)
+	featureToReconciledCh             map[string]<-chan struct{}
 	featureControllerReadyTimeout     time.Duration
 	featureControllerReconcileTimeout time.Duration
 
@@ -52,18 +51,21 @@ type ControllerOptions struct {
 	// FeatureToReconciledCh is a map of feature names to channels that are full
 	// when the feature controller has reconciled the feature.
 	FeatureToReconciledCh map[string]<-chan struct{}
+	// FeatureControllerReadyTimeout is the timeout for the feature controller to be ready.
+	FeatureControllerReadyTimeout time.Duration
+	// FeatureControllerReconcileTimeout is the timeout for the feature controller to reconcile.
+	FeatureControllerReconcileTimeout time.Duration
 }
 
 func NewController(opts ControllerOptions) *Controller {
 	return &Controller{
-		snap:                     opts.Snap,
-		waitReady:                opts.WaitReady,
-		featureControllerReadyCh: opts.FeatureControllerReadyCh,
-		notifyFeatureController:  opts.NotifyFeatureController,
-		featureToReconciledCh:    opts.FeatureToReconciledCh,
-
-		featureControllerReadyTimeout:     defaultFeatureControllerReadyTimeout,
-		featureControllerReconcileTimeout: defaultFeatureControllerReconcileTimeout,
+		snap:                              opts.Snap,
+		waitReady:                         opts.WaitReady,
+		featureControllerReadyCh:          opts.FeatureControllerReadyCh,
+		notifyFeatureController:           opts.NotifyFeatureController,
+		featureToReconciledCh:             opts.FeatureToReconciledCh,
+		featureControllerReadyTimeout:     opts.FeatureControllerReadyTimeout,
+		featureControllerReconcileTimeout: opts.FeatureControllerReconcileTimeout,
 	}
 }
 
