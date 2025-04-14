@@ -39,7 +39,7 @@ CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
 KUBERNETES_VERSION_MARKER = "https://dl.k8s.io/release/stable.txt"
 
 # Containerd release branch to track. The most recent tag in the branch will be used.
-CONTAINERD_RELEASE_BRANCH = "release/1.6"
+CONTAINERD_RELEASE_BRANCH = "release/1.7"
 
 # Helm release semver limit
 #
