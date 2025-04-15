@@ -33,8 +33,7 @@ func TestDatastoreToKubeAPIServerArguments(t *testing.T) {
 				Type: utils.Pointer("k8s-dqlite"),
 			},
 			expectUpdateArgs: map[string]string{
-				"--etcd-servers":  "unix:///k8s-dqlite/k8s-dqlite.sock",
-				"--feature-gates": "WatchList=false",
+				"--etcd-servers": "unix:///k8s-dqlite/k8s-dqlite.sock",
 			},
 			expectDeleteArgs: []string{"--etcd-cafile", "--etcd-certfile", "--etcd-keyfile"},
 		},
