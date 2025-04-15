@@ -309,6 +309,7 @@ def wait_until_k8s_ready(
     retries: int = config.DEFAULT_WAIT_RETRIES,
     delay_s: int = config.DEFAULT_WAIT_DELAY_S,
     node_names: Mapping[str, str] = {},
+    exclude_services: Optional[List[str]] = None,
 ):
     """
     Validates that the K8s node is in Ready state.
@@ -327,7 +328,7 @@ def wait_until_k8s_ready(
         ):
             with attempt:
                 assert is_node_ready(control_node, node_name)
-                check_snap_services_ready(instance)
+                check_snap_services_ready(instance, exclude_services=exclude_services)
 
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
@@ -827,7 +828,9 @@ def sonobuoy_tar_gz(architecture: str) -> str:
 
 
 def check_snap_services_ready(
-    instance: harness.Instance, node_type: Optional[str] = None
+    instance: harness.Instance,
+    node_type: Optional[str] = None,
+    exclude_services: Optional[List[str]] = None,
 ):
     """Check that the snap services are active on the given harness instance.
 
@@ -878,6 +881,11 @@ def check_snap_services_ready(
         if node_type == "control-plane"
         else expected_worker_services
     )
+
+    if exclude_services:
+        expected_active_services = [
+            s for s in expected_active_services if s not in exclude_services
+        ]
 
     result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
     services_output = result.stdout.split("\n")[1:-1]  # Skip the header line
