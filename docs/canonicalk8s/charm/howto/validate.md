@@ -30,8 +30,8 @@ version your cluster is set to by running:
 juju status k8s
 ```
 
-The output will be in the form of `version.number/risk`, e.g `1.31/stable`. You should set
-the `kubernetes-e2e` channel to the same value.
+The output will be in the form of `version.number/risk`, e.g `1.31/stable`. You
+should set the `kubernetes-e2e` channel to the same value.
 
 ```
 juju config kubernetes-e2e channel=1.31/stable
@@ -178,7 +178,8 @@ fill up storage.
 
 ## Upgrade the e2e tests
 
-When an update is available, the `kubernetes-e2e` charm can be upgraded with the command:
+When an update is available, the `kubernetes-e2e` charm can be upgraded with the
+command:
 
 ```bash
 juju refresh kubernetes-e2e --channel=${release}

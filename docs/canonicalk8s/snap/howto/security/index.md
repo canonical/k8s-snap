@@ -5,8 +5,8 @@
 Hardening <self>
 ```
 
-Administrators are provided with detailed instructions and compliance guidance to
-harden their clusters in accordance with DISA STIG and CIS recommendations.
+Administrators are provided with detailed instructions and compliance guidance
+to harden their clusters in accordance with DISA STIG and CIS recommendations.
 
 ```{toctree}
 :glob:

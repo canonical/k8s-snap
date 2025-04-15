@@ -12,6 +12,7 @@ myst:
 <!-- vale off -->
 
 (cheat-sheet-myst)=
+
 # Markdown/MyST cheat sheet
 
 <!-- vale on -->
@@ -19,9 +20,15 @@ myst:
 This file contains the syntax for commonly used Markdown and MyST markup.
 Open it in your text editor to quickly copy and paste the markup you need.
 
-See the [MyST style guide](https://canonical-documentation-with-sphinx-and-readthedocscom.readthedocs-hosted.com/style-guide-myst/) for detailed information and conventions.
+See the
+[MyST style guide](https://canonical-documentation-with-sphinx-and-readthedocscom.readthedocs-hosted.com/style-guide-myst/)
+for detailed information and conventions.
 
-Also see the [MyST documentation](https://myst-parser.readthedocs.io/en/latest/index.html) for detailed information on MyST, and the [Canonical Documentation Style Guide](https://docs.ubuntu.com/styleguide/en) for general style conventions.
+Also see the
+[MyST documentation](https://myst-parser.readthedocs.io/en/latest/index.html)
+for detailed information on MyST, and the
+[Canonical Documentation Style Guide](https://docs.ubuntu.com/styleguide/en) for
+general style conventions.
 
 ## H2 heading
 
@@ -60,6 +67,7 @@ code:
 ```
 
 (a_section_target_myst)=
+
 ## Links
 
 - [Canonical website](https://canonical.com/)
@@ -178,7 +186,8 @@ This might damage your hardware!
 
 ### Keys
 
-Keys can be defined at the top of a file, or in a `myst_substitutions` option in `conf.py`.
+Keys can be defined at the top of a file, or in a `myst_substitutions` option in
+`conf.py`.
 
 {{reuse_key}}
 
@@ -228,7 +237,8 @@ Related links at the top of the page (surrounded by `---`):
     relatedlinks: https://github.com/canonical/lxd-sphinx-extensions, [RTFM](https://www.google.com)
     discourse: 12345
 
-Terms that should not be checked by the spelling checker: {spellexception}`PurposelyWrong`
+Terms that should not be checked by the spelling checker:
+{spellexception}`PurposelyWrong`
 
 A single-line terminal view that separates input from output:
 

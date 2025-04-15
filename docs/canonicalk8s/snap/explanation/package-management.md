@@ -10,15 +10,15 @@ Please check out the upstream documentation for [installing Helm CLI][].
 
 ## Charts
 
-[Charts][] are the packaging format used by Helm. A chart is a collection of 
-Kubernetes resource manifests related to an application or to a group of 
-applications that can be packaged into versioned archives. 
-Charts utilize templating and template variables called "values" to enable 
+[Charts][] are the packaging format used by Helm. A chart is a collection of
+Kubernetes resource manifests related to an application or to a group of
+applications that can be packaged into versioned archives.
+Charts utilize templating and template variables called "values" to enable
 customization of the resources.
 
 ## Chart repository
 
-The [Chart repository][] is a web server that usually consists of an index and 
+The [Chart repository][] is a web server that usually consists of an index and
 packaged charts. Repositories are the preferred way of distributing charts.
 
 A Helm repository can be added to the local client with:
@@ -26,6 +26,7 @@ A Helm repository can be added to the local client with:
 ```
 helm repo add <repository-name> <repository-url>
 ```
+
 This command fetches the index from the repository and
 stores it in a cache directory.
 This index is used when doing an installation or performing an upgrade.
