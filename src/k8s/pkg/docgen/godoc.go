@@ -7,6 +7,7 @@ import (
 	"go/parser"
 	"go/token"
 	"reflect"
+	"strings"
 )
 
 var packageDocCache = make(map[string]*doc.Package)
@@ -53,11 +54,18 @@ func parsePackageDir(packageDir string) (*ast.Package, error) {
 		return nil, fmt.Errorf("couldn't parse go package: %s", packageDir)
 	}
 
+	for key := range packages {
+		// Ignore test packages.
+		if strings.HasSuffix(key, "_test") {
+			delete(packages, key)
+		}
+	}
+
 	if len(packages) == 0 {
 		return nil, fmt.Errorf("no go package found: %s", packageDir)
 	}
 	if len(packages) > 1 {
-		return nil, fmt.Errorf("multiple go package found: %s", packageDir)
+		return nil, fmt.Errorf("multiple go packages found: %s", packageDir)
 	}
 
 	// We have a map containing a single entry and we need to return it.
