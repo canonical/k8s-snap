@@ -101,23 +101,33 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 
 	// start csrsigning controller
 	if a.csrsigningController != nil {
-		go a.csrsigningController.Run(
-			ctx,
-			func(ctx context.Context) (types.ClusterConfig, error) {
-				return databaseutil.GetClusterConfig(ctx, s)
-			},
-		)
+		go func() {
+			if err := a.csrsigningController.Run(
+				ctx,
+				func(ctx context.Context) (types.ClusterConfig, error) {
+					return databaseutil.GetClusterConfig(ctx, s)
+				},
+			); err != nil {
+				log.FromContext(ctx).Error(err, "Failed to start csrsigning controller")
+			}
+			log.FromContext(ctx).Info("csrsigning controller started")
+		}()
 	}
 
 	// start upgrade controller
 	if a.upgradeController != nil {
-		go a.upgradeController.Run(
-			ctx,
-			func(ctx context.Context) (types.ClusterConfig, error) {
-				return databaseutil.GetClusterConfig(ctx, s)
-			},
-			func() state.State { return s },
-		)
+		go func() {
+			if err := a.upgradeController.Run(
+				ctx,
+				func(ctx context.Context) (types.ClusterConfig, error) {
+					return databaseutil.GetClusterConfig(ctx, s)
+				},
+				func() state.State { return s },
+			); err != nil {
+				log.FromContext(ctx).Error(err, "Failed to start upgrade controller")
+			}
+			log.FromContext(ctx).Info("upgrade controller started")
+		}()
 	}
 
 	return nil
