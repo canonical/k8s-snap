@@ -8,6 +8,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/log"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -31,28 +32,44 @@ const (
 	upgradesAPIPath = "/apis/" + group + "/" + version + "/upgrades"
 )
 
-type UpgradeMetadata struct {
-	Name string `json:"name,omitempty"`
-}
-
 type UpgradeStatus struct {
 	Phase         string   `json:"phase,omitempty"`
 	UpgradedNodes []string `json:"upgradedNodes,omitempty"`
 }
 
+// TODO(Hue): (KU-3033) Use kubebuilder to generate the CRD .
 type Upgrade struct {
-	APIVersion string          `json:"apiVersion,omitempty"`
-	Kind       string          `json:"kind,omitempty"`
-	Metadata   UpgradeMetadata `json:"metadata,omitempty"`
-	Status     UpgradeStatus   `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Status UpgradeStatus `json:"status,omitempty"`
+}
+
+func (u *Upgrade) DeepCopyObject() runtime.Object {
+	if u == nil {
+		return nil
+	}
+	cp := *u
+	cp.ObjectMeta = *u.ObjectMeta.DeepCopy()
+	cp.Status.Phase = u.Status.Phase
+	if u.Status.UpgradedNodes != nil {
+		nodesCopy := make([]string, len(u.Status.UpgradedNodes))
+		copy(nodesCopy, u.Status.UpgradedNodes)
+		cp.Status.UpgradedNodes = nodesCopy
+	}
+	return &cp
 }
 
 func NewUpgrade(name string) Upgrade {
 	return Upgrade{
-		APIVersion: apiVersion,
-		Kind:       kind,
-		Metadata:   UpgradeMetadata{Name: name},
-		Status:     UpgradeStatus{Phase: UpgradePhaseNodeUpgrade, UpgradedNodes: []string{}},
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: apiVersion,
+			Kind:       kind,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Status: UpgradeStatus{Phase: UpgradePhaseNodeUpgrade, UpgradedNodes: []string{}},
 	}
 }
 
@@ -69,7 +86,7 @@ func (c *Client) k8sdIoRestClient() (*rest.RESTClient, error) {
 }
 
 // GetInProgressUpgrade returns the upgrade CR that is currently in progress.
-// TODO(ben): Maybe make this more generic, e.g. GetUpgrade(filterFunc func(Upgrade) bool) (*Upgrade, error)
+// TODO(ben): (KU-3218) Maybe make this more generic, e.g. GetUpgrade(filterFunc func(Upgrade) bool) (*Upgrade, error)
 func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 	log := log.FromContext(ctx).WithValues("upgrades", "GetInProgressUpgrade")
 
@@ -109,7 +126,7 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 	}
 	// Sort matches by name
 	sort.Slice(matches, func(i, j int) bool {
-		return matches[i].Metadata.Name < matches[j].Metadata.Name
+		return matches[i].Name < matches[j].Name
 	})
 
 	// Return the latest
@@ -141,7 +158,7 @@ func (c *Client) CreateUpgrade(ctx context.Context, upgrade Upgrade) error {
 	}
 
 	// The status field needs to be patches separatly since it is a subresource.
-	if err := c.PatchUpgradeStatus(ctx, upgrade.Metadata.Name, upgrade.Status); err != nil {
+	if err := c.PatchUpgradeStatus(ctx, upgrade.Name, upgrade.Status); err != nil {
 		return fmt.Errorf("failed to patch upgrade status: %w", err)
 	}
 

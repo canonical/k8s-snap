@@ -95,7 +95,7 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 		}
 
 	} else {
-		log.Info("Upgrade in progress.", "upgrade", upgrade.Metadata.Name, "phase", upgrade.Status.Phase)
+		log.Info("Upgrade in progress.", "upgrade", upgrade.Name, "phase", upgrade.Status.Phase)
 	}
 
 	log.Info("Marking node as upgraded.", "node", s.Name())
@@ -103,7 +103,7 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 	upgradedNodes := upgrade.Status.UpgradedNodes
 	upgradedNodes = append(upgradedNodes, s.Name())
 
-	if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Metadata.Name, kubernetes.UpgradeStatus{UpgradedNodes: upgradedNodes}); err != nil {
+	if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{UpgradedNodes: upgradedNodes}); err != nil {
 		return fmt.Errorf("failed to mark node as upgraded: %w", err)
 	}
 
@@ -114,7 +114,7 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 
 	if clusterUpgradeDone {
 		log.Info("All nodes have been upgraded.")
-		if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Metadata.Name, kubernetes.UpgradeStatus{Phase: kubernetes.UpgradePhaseFeatureUpgrade}); err != nil {
+		if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{Phase: kubernetes.UpgradePhaseFeatureUpgrade}); err != nil {
 			return fmt.Errorf("failed to set upgrade phase: %w", err)
 		}
 
@@ -166,7 +166,7 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 
 			log.Info("All feature have reconciled.")
 
-			if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Metadata.Name, kubernetes.UpgradeStatus{Phase: kubernetes.UpgradePhaseCompleted}); err != nil {
+			if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{Phase: kubernetes.UpgradePhaseCompleted}); err != nil {
 				log.Error(err, "failed to set upgrade phase after successful feature upgrade")
 				return
 			}

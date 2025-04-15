@@ -114,5 +114,16 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		)
 	}
 
+	// start upgrade controller
+	if a.upgradeController != nil {
+		go a.upgradeController.Run(
+			ctx,
+			func(ctx context.Context) (types.ClusterConfig, error) {
+				return databaseutil.GetClusterConfig(ctx, s)
+			},
+			func() state.State { return s },
+		)
+	}
+
 	return nil
 }
