@@ -81,7 +81,12 @@ func (ul *UpgradeList) DeepCopyObject() runtime.Object {
 	cp.ListMeta = *ul.ListMeta.DeepCopy()
 	cp.Items = make([]Upgrade, len(ul.Items))
 	for i, u := range ul.Items {
-		cp.Items[i] = *u.DeepCopyObject().(*Upgrade)
+		uCp, ok := u.DeepCopyObject().(*Upgrade)
+		if !ok {
+			log.L().Error(fmt.Errorf("type assertion failed for upgrade deepcopy"), "upgrade", u)
+			continue
+		}
+		cp.Items[i] = *uCp
 	}
 	return &cp
 }
