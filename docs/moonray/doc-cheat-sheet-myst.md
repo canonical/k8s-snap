@@ -1,4 +1,3 @@
-<!-- markdownlint-disable -->
 ---
 orphan: true
 myst:
@@ -260,4 +259,3 @@ A link to a YouTube video:
 ```{youtube} https://www.youtube.com/watch?v=iMLiK1fX4I0
    :title: Demo
 ```
-<!-- markdownlint-restore -->
