@@ -8,3 +8,4 @@ cryptography==44.0.1
 hvac==2.3.0
 python-subunit>=1.2
 os-testr
+kubernetes==v32.0.1
