@@ -32,6 +32,12 @@ const (
 	upgradesAPIPath = "/apis/" + group + "/" + version + "/upgrades"
 )
 
+var (
+	schemeGroupVersion = schema.GroupVersion{Group: group, Version: version}
+	schemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes)
+	AddToScheme        = schemeBuilder.AddToScheme
+)
+
 type UpgradeStatus struct {
 	Phase         string   `json:"phase,omitempty"`
 	UpgradedNodes []string `json:"upgradedNodes,omitempty"`
@@ -60,6 +66,41 @@ func (u *Upgrade) DeepCopyObject() runtime.Object {
 	return &cp
 }
 
+// UpgradeList contains a list of Upgrade resources.
+type UpgradeList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []Upgrade `json:"items"`
+}
+
+func (ul *UpgradeList) DeepCopyObject() runtime.Object {
+	if ul == nil {
+		return nil
+	}
+	cp := *ul
+	cp.ListMeta = *ul.ListMeta.DeepCopy()
+	cp.Items = make([]Upgrade, len(ul.Items))
+	for i, u := range ul.Items {
+		uCp, ok := u.DeepCopyObject().(*Upgrade)
+		if !ok {
+			log.L().Error(fmt.Errorf("type assertion failed for upgrade deepcopy"), "upgrade", u)
+			continue
+		}
+		cp.Items[i] = *uCp
+	}
+	return &cp
+}
+
+// addKnownTypes registers upgrade types into the scheme.
+func addKnownTypes(scheme *runtime.Scheme) error {
+	scheme.AddKnownTypes(schemeGroupVersion,
+		&Upgrade{},
+		&UpgradeList{},
+	)
+	metav1.AddToGroupVersion(scheme, schemeGroupVersion)
+	return nil
+}
+
 func NewUpgrade(name string) Upgrade {
 	return Upgrade{
 		TypeMeta: metav1.TypeMeta{
@@ -75,7 +116,7 @@ func NewUpgrade(name string) Upgrade {
 
 func (c *Client) k8sdIoRestClient() (*rest.RESTClient, error) {
 	k8sdConfig := c.RESTConfig()
-	k8sdConfig.GroupVersion = &schema.GroupVersion{Group: group, Version: version}
+	k8sdConfig.GroupVersion = &schemeGroupVersion
 	k8sdConfig.NegotiatedSerializer = serializer.NewCodecFactory(runtime.NewScheme())
 
 	restClient, err := rest.RESTClientFor(k8sdConfig)
