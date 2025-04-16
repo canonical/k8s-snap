@@ -77,9 +77,16 @@ class Retriable:
         try:
             resp = self._run(command_args, **command_kwds)
         except subprocess.CalledProcessError as e:
+            stdout = e.stdout or ""
+            stderr = e.stderr or ""
+            if not command_kwds.get("text"):
+                # The output will be in bytes if text is not set / is False.
+                stdout = e.stdout.decode() if e.stdout else ""
+                stderr = e.stderr.decode() if e.stderr else ""
+
             LOG.warning(f"  rc={e.returncode}")
-            LOG.warning(f"  stdout={e.stdout.decode()}")
-            LOG.warning(f"  stderr={e.stderr.decode()}")
+            LOG.warning(f"  stdout={stdout}")
+            LOG.warning(f"  stderr={stderr}")
             raise
         if self._condition:
             assert self._condition(resp), "Failed to meet condition"
