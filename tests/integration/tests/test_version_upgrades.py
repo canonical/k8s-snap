@@ -48,7 +48,7 @@ def test_version_upgrades(
         )
         current_channel = channels[0]
 
-    if config.SNAP is not None:
+    if config.SNAP:
         # Copy the current snap into the instances.
         snap_path = (tmp_path / "k8s.snap").as_posix()
         for instance in instances:

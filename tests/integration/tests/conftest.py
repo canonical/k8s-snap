@@ -80,6 +80,13 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
         LOG.warning("Failed to pull inspection report: %s", e)
 
 
+@pytest.fixture(scope="session", autouse=True)
+def validate_test_config():
+    """Validate the configuration before running tests."""
+    if config.SNAP:
+        assert Path(config.SNAP).exists(), f"Snap path {config.SNAP} does not exist."
+
+
 @pytest.fixture(scope="session")
 def h() -> harness.Harness:
     LOG.debug("Create harness for %s", config.SUBSTRATE)
