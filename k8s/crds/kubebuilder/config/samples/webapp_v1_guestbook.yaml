@@ -1,0 +1,9 @@
+apiVersion: webapp.my.domain/v1
+kind: Guestbook
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: guestbook-sample
+spec:
+  # TODO(user): Add fields here
