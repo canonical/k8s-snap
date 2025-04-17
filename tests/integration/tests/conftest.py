@@ -7,14 +7,14 @@ from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
+from pytest_subunit import SubunitTerminalReporter
 from test_util import config, harness, tags, util
 from test_util.etcd import EtcdCluster
 from test_util.registry import Registry
-from pytest_subunit import SubunitTerminalReporter
 
 LOG = logging.getLogger(__name__)
 
-pytest_plugins = ("pytest_tagging", )
+pytest_plugins = ("pytest_tagging",)
 
 
 def pytest_itemcollected(item):
@@ -140,8 +140,11 @@ def snapd_preload() -> None:
 
 def pytest_addoption(parser):
     parser.addoption(
-        '--subunit-path', dest="subunit", default=None,
-        help="Stream subunit results to the specified file.")
+        "--subunit-path",
+        dest="subunit",
+        default=None,
+        help="Stream subunit results to the specified file.",
+    )
 
 
 @pytest.hookimpl(trylast=True)
@@ -160,12 +163,14 @@ def pytest_configure(config):
 
     if config.option.subunit:
         # Get the standard terminal reporter plugin and replace it with ours.
-        standard_reporter = config.pluginmanager.getplugin('terminalreporter')
+        standard_reporter = config.pluginmanager.getplugin("terminalreporter")
         if not standard_reporter:
             raise Exception("Unable to retrieve 'terminalreporter' pytest plugin.")
-        subunit_reporter = SubunitTerminalReporter(standard_reporter, config.option.subunit)
+        subunit_reporter = SubunitTerminalReporter(
+            standard_reporter, config.option.subunit
+        )
         config.pluginmanager.unregister(standard_reporter)
-        config.pluginmanager.register(subunit_reporter, 'terminalreporter')
+        config.pluginmanager.register(subunit_reporter, "terminalreporter")
 
 
 @pytest.fixture(scope="function")

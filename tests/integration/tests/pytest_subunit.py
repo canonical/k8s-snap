@@ -1,3 +1,7 @@
+#
+# Copyright 2025 Canonical, Ltd.
+#
+
 # Based on:
 # * https://pypi.org/project/pytest-subunit/
 # * https://github.com/jelmer/pytest-subunit
@@ -5,13 +9,10 @@
 
 import datetime
 import io
-import os
-import re
-
-from subunit import StreamResultToBytes
 
 from _pytest._io import TerminalWriter
 from _pytest.terminal import TerminalReporter
+from subunit import StreamResultToBytes
 
 
 # We're extending TerminalReporter to also write a subunit stream to a file.
@@ -43,55 +44,59 @@ class SubunitTerminalReporter(TerminalReporter):
 {report.capstdout}
 ------------------------------ captured stderr -------------------------------
 {report.capstderr}
-"""
+"""  # noqa
 
         result = StreamResultToBytes(self.subunit_file)
         result.startTestRun()
         result.status(
             test_id=test_id,
             timestamp=datetime.datetime.fromtimestamp(
-                report.start, datetime.timezone.utc))
+                report.start, datetime.timezone.utc
+            ),
+        )
         result.status(
             test_id=test_id,
             test_status=status,
             timestamp=datetime.datetime.fromtimestamp(
-                report.stop, datetime.timezone.utc),
+                report.stop, datetime.timezone.utc
+            ),
             file_name="summary",
-            file_bytes=out_report.encode('utf8'),
-            mime_type="text/plain; charset=utf8")
+            file_bytes=out_report.encode("utf8"),
+            mime_type="text/plain; charset=utf8",
+        )
         result.stopTestRun()
 
     def pytest_runtest_logreport(self, report):
         super().pytest_runtest_logreport(report)
 
         test_id = report.nodeid
-        if report.when in ['setup', 'session']:
-            self._status(report, 'exists')
-            if report.outcome == 'passed':
+        if report.when in ["setup", "session"]:
+            self._status(report, "exists")
+            if report.outcome == "passed":
                 # Avoid reporting successful initialization twice.
                 # self._status(report, 'inprogress')
                 pass
-            elif report.outcome == 'failed':
-                self._status(report, 'fail')
-            elif report.outcome == 'skipped':
-                self._status(report, 'skip')
-        elif report.when in ['call']:
+            elif report.outcome == "failed":
+                self._status(report, "fail")
+            elif report.outcome == "skipped":
+                self._status(report, "skip")
+        elif report.when in ["call"]:
             if hasattr(report, "wasxfail"):
                 if report.skipped:
-                    self._status(report, 'xfail')
+                    self._status(report, "xfail")
                 elif report.failed:
-                    self._status(report, 'uxsuccess')
-            elif report.outcome == 'failed':
-                self._status(report, 'fail')
+                    self._status(report, "uxsuccess")
+            elif report.outcome == "failed":
+                self._status(report, "fail")
                 self.failed.append(test_id)
-            elif report.outcome == 'skipped':
-                self._status(report, 'skip')
+            elif report.outcome == "skipped":
+                self._status(report, "skip")
                 self.skipped.append(test_id)
-        elif report.when in ['teardown']:
+        elif report.when in ["teardown"]:
             if test_id not in self.skipped and test_id not in self.failed:
-                if report.outcome == 'passed':
-                    self._status(report, 'success')
-                elif report.outcome == 'failed':
-                    self._status(report, 'fail')
+                if report.outcome == "passed":
+                    self._status(report, "success")
+                elif report.outcome == "failed":
+                    self._status(report, "fail")
         else:
             raise Exception("Unknown pytest phase: %s" % report)
