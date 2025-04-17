@@ -151,6 +151,7 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Info("Skipping service stop and certificate cleanup")
 	}
 
+	log.Info("Remove hook completed ")
 	return nil
 }
 
