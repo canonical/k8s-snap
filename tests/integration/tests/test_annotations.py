@@ -78,12 +78,17 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "cp node should have been removed from the cluster"
     # We cannot determine the node type of the removed node, so we need to set it explicitly here.
-    util.check_snap_services_ready(joining_cp, node_type="control-plane")
+    # NOTE: We're not expecting the k8sd service to be active after the node was removed.
+    # microcluster removes the k8sd state folder, and without the "daemon.yaml" file in it,
+    # k8sd fails to start.
+    util.check_snap_services_ready(
+        joining_cp, node_type="control-plane", skip_services=["k8sd"]
+    )
 
     cluster_node.exec(["k8s", "remove-node", worker.id])
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "worker node should have been removed from the cluster"
-    util.check_snap_services_ready(worker, node_type="worker")
+    util.check_snap_services_ready(worker, node_type="worker", skip_services=["k8sd"])
 
 
 @pytest.mark.node_count(2)

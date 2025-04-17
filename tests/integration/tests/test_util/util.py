@@ -827,7 +827,9 @@ def sonobuoy_tar_gz(architecture: str) -> str:
 
 
 def check_snap_services_ready(
-    instance: harness.Instance, node_type: Optional[str] = None
+    instance: harness.Instance,
+    node_type: Optional[str] = None,
+    skip_services: Optional[List[str]] = None,
 ):
     """Check that the snap services are active on the given harness instance.
 
@@ -840,7 +842,9 @@ def check_snap_services_ready(
             function will determine the node type by checking the local node status.
             This is not always possible (e.g. if a node was already removed from the cluster).
             So, the user can provide the node type explicitly.
+        skip_services: a list of services to ignore when checking for service readiness.
     """
+    skip_services = skip_services or []
 
     expected_worker_services = {
         "containerd",
@@ -879,6 +883,11 @@ def check_snap_services_ready(
         else expected_worker_services
     )
 
+    if skip_services:
+        expected_active_services = [
+            s for s in expected_active_services if s not in skip_services
+        ]
+
     result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
     services_output = result.stdout.split("\n")[1:-1]  # Skip the header line
 
@@ -898,6 +907,8 @@ def check_snap_services_ready(
         ), f"Service {service} should be active, but it is {service_status[service]}"
 
     for service, status in service_status.items():
+        if service in skip_services:
+            continue
         if service not in expected_active_services:
             assert (
                 status == "inactive"
