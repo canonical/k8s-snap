@@ -297,6 +297,24 @@ func (s *snap) NodeTokenFile() string {
 	return filepath.Join(s.snapCommonDir, "node-token")
 }
 
+func (s *snap) NodeKubernetesVersion(ctx context.Context) (string, error) {
+	client, err := snapd.NewClient()
+	if err != nil {
+		return "", fmt.Errorf("failed to create snapd client: %w", err)
+	}
+
+	snap, err := client.GetSnapInfo(s.snapInstanceName)
+	if err != nil {
+		return "", fmt.Errorf("failed to get snap info: %w", err)
+	}
+
+	if snap.StatusCode != 200 {
+		return "", fmt.Errorf("failed to get snap info: snapd returned with error code %d", snap.StatusCode)
+	}
+
+	return snap.Result.Version, nil
+}
+
 func (s *snap) ContainerdExtraConfigDir() string {
 	return filepath.Join(s.containerdBaseDir, "etc", "containerd", "conf.d")
 }

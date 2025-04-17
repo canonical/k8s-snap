@@ -47,6 +47,8 @@ type Mock struct {
 	LockFilesDir                string
 	PostRefreshLockPath         string
 	NodeTokenFile               string
+	NodeKubernetesVersion       string
+	NodeKubernetesVersionErr    error
 	KubernetesClient            *kubernetes.Client
 	KubernetesNodeClient        *kubernetes.Client
 	HelmClient                  helm.Client
@@ -257,6 +259,10 @@ func (s *Snap) LockFilesDir() string {
 
 func (s *Snap) NodeTokenFile() string {
 	return s.Mock.NodeTokenFile
+}
+
+func (s *Snap) NodeKubernetesVersion(context.Context) (string, error) {
+	return s.Mock.NodeKubernetesVersion, s.Mock.NodeKubernetesVersionErr
 }
 
 func (s *Snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {

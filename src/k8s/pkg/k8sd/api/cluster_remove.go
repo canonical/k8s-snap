@@ -79,7 +79,6 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 		if err := c.DeleteClusterMember(deleteCtx, req.Name, req.Force); err != nil {
 			return response.InternalError(fmt.Errorf("failed to delete cluster member %s: %w", req.Name, err))
 		}
-
 		return response.SyncResponse(true, &apiv1.RemoveNodeResponse{})
 	}
 
