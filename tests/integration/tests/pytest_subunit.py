@@ -5,10 +5,10 @@
 # Based on:
 # * https://pypi.org/project/pytest-subunit/
 # * https://github.com/jelmer/pytest-subunit
-# * https://github.com/Frozenball/pytest-sugar
 
 import datetime
 import io
+import re
 
 from _pytest._io import TerminalWriter
 from _pytest.terminal import TerminalReporter
@@ -19,6 +19,10 @@ from subunit import StreamResultToBytes
 # This approach is much easier than having a standalone plugin for subunit
 # reports. By doing so, we avoid maintaining a lot of pytest reporter boilerplate.
 class SubunitTerminalReporter(TerminalReporter):
+    ansi_escape_re = re.compile(
+        r"(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~])"
+    )
+
     def __init__(self, reporter, subunit_path):
         super().__init__(reporter.config)
         self.writer = self._tw
@@ -45,6 +49,10 @@ class SubunitTerminalReporter(TerminalReporter):
 ------------------------------ captured stderr -------------------------------
 {report.capstderr}
 """  # noqa
+
+        # Remove ANSI color codes for now.
+        # TODO: consider handling color codes in subunit2html.py.
+        out_report = self.ansi_escape_re.sub("", out_report)
 
         result = StreamResultToBytes(self.subunit_file)
         result.startTestRun()
