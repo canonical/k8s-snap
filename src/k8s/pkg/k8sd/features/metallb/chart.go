@@ -11,7 +11,7 @@ var (
 	ChartMetalLB = helm.InstallableChart{
 		Name:         "metallb",
 		Namespace:    "metallb-system",
-		ManifestPath: filepath.Join("charts", "metallb-0.14.8.tgz"),
+		ManifestPath: filepath.Join("charts", "metallb-0.14.9.tgz"),
 	}
 
 	// ChartMetalLBLoadBalancer represents manifests to deploy MetalLB L2 or BGP resources.
@@ -25,17 +25,17 @@ var (
 	controllerImageRepo = "ghcr.io/canonical/metallb-controller"
 
 	// ControllerImageTag is the tag to use for metallb-controller.
-	ControllerImageTag = "v0.14.8-ck0"
+	ControllerImageTag = "v0.14.9-ck0"
 
 	// speakerImageRepo is the image to use for metallb-speaker.
 	speakerImageRepo = "ghcr.io/canonical/metallb-speaker"
 
 	// speakerImageTag is the tag to use for metallb-speaker.
-	speakerImageTag = "v0.14.8-ck0"
+	speakerImageTag = "v0.14.9-ck0"
 
 	// frrImageRepo is the image to use for frrouting.
 	frrImageRepo = "ghcr.io/canonical/frr"
 
 	// frrImageTag is the tag to use for frrouting.
-	frrImageTag = "9.1.0"
+	frrImageTag = "9.1.3"
 )
