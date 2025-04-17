@@ -1,6 +1,7 @@
 package cilium
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strconv"
@@ -22,6 +23,18 @@ type config struct {
 	directRoutingDevice string
 	vlanBPFBypass       []int
 	cniExclusive        bool
+	tunnelPort          int
+}
+
+func validatePort(portStr string) (int, error) {
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return 0, errors.New("invalid port: not a number")
+	}
+	if port < 1 || port > 65535 {
+		return 0, errors.New("invalid port: out of range")
+	}
+	return port, nil
 }
 
 func validateVLANBPFBypass(vlanList string) ([]int, error) {
@@ -74,6 +87,17 @@ func internalConfig(annotations types.Annotations) (config, error) {
 
 	if _, ok := annotations.Get(apiv1_annotations.AnnotationCNIExclusive); ok {
 		c.cniExclusive = true
+	}
+
+	if v, ok := annotations.Get(apiv1_annotations.AnnotationTunnelPort); ok {
+		tunnelPort, err := validatePort(v)
+		if err != nil {
+			return config{}, fmt.Errorf("failed to parse Tunnel encapsulation port: %w", err)
+		}
+
+		c.tunnelPort = tunnelPort
+	} else {
+		c.tunnelPort = ciliumDefaultVXLANPort
 	}
 
 	return c, nil

@@ -46,4 +46,8 @@ var (
 
 	// ciliumOperatorImageTag is the tag to use for the cilium-operator image.
 	ciliumOperatorImageTag = "1.16.3-ck0"
+
+	ciliumDefaultVXLANPort = 8472
+
+	ciliumVXLANDeviceName = "cilium_vxlan"
 )
