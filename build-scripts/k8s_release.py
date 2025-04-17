@@ -6,7 +6,7 @@ import logging
 import os
 import re
 import subprocess
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import requests
 from packaging.version import Version
@@ -18,65 +18,117 @@ LOG = logging.getLogger(__name__)
 
 
 def _url_get(url: str) -> str:
-    r = requests.get(url, timeout=5)
-    r.raise_for_status()
-    return r.text
+    """Make a GET request to the given URL and return the response text."""
+    response = requests.get(url, timeout=5)
+    response.raise_for_status()
+    return response.text
+
+
+def is_stable_release(release: str) -> bool:
+    """Check if a Kubernetes release tag is stable (no pre-release suffix).
+
+    Args:
+        release: A Kubernetes release tag (e.g. 'v1.30.1', 'v1.30.0-alpha.1').
+
+    Returns:
+        True if the release is stable, False otherwise.
+    """
+    return "-" not in release
 
 
 def get_k8s_tags() -> List[str]:
-    """Retrieve semantically ordered k8s releases, newest to oldest."""
+    """Retrieve semantically ordered Kubernetes release tags from GitHub.
+
+    Returns:
+        A list of release tag strings sorted from newest to oldest.
+
+    Raises:
+        ValueError: If no tags are retrieved.
+    """
     response = _url_get(K8S_TAGS_URL)
     tags_json = json.loads(response)
-    if len(tags_json) == 0:
+    if not tags_json:
         raise ValueError("No k8s tags retrieved.")
     tag_names = [tag["name"] for tag in tags_json]
-    # Github already sorts the tags semantically but let's not rely on that.
     tag_names.sort(key=lambda x: Version(x), reverse=True)
     return tag_names
 
 
-# k8s release naming:
-# * alpha:  v{major}.{minor}.{patch}-alpha.{version}
-# * beta:   v{major}.{minor}.{patch}-beta.{version}
-# * rc:     v{major}.{minor}.{patch}-rc.{version}
-# * stable: v{major}.{minor}.{patch}
-def is_stable_release(release: str):
-    return "-" not in release
-
-
 def get_latest_stable() -> str:
-    k8s_tags = get_k8s_tags()
-    for tag in k8s_tags:
+    """Get the latest stable Kubernetes release tag.
+
+    Returns:
+        The latest stable release tag string (e.g., 'v1.30.1').
+
+    Raises:
+        ValueError: If no stable release is found.
+    """
+    for tag in get_k8s_tags():
         if is_stable_release(tag):
             return tag
-    raise ValueError("Couldn't find stable release, received tags: %s" % k8s_tags)
+    raise ValueError("Couldn't find a stable release.")
 
 
-def get_latest_release() -> str:
-    k8s_tags = get_k8s_tags()
-    return k8s_tags[0]
+def get_latest_releases_by_minor() -> Dict[str, str]:
+    """Map each minor Kubernetes version to its latest release tag.
+
+    Returns:
+        A dictionary mapping minor versions (e.g. '1.30') to the
+        latest (pre-)release tag (e.g. 'v1.30.1').
+    """
+    latest_by_minor: Dict[str, str] = {}
+    version_regex = re.compile(r"^v?(\d+)\.(\d+)\..+")
+
+    for tag in get_k8s_tags():
+        match = version_regex.match(tag)
+        if not match:
+            continue
+        major, minor = match.groups()
+        key = f"{major}.{minor}"
+        if key not in latest_by_minor:
+            latest_by_minor[key] = tag
+
+    return latest_by_minor
 
 
-def get_outstanding_prerelease() -> Optional[str]:
-    latest_release = get_latest_release()
-    if not is_stable_release(latest_release):
-        return latest_release
-    # The latest release is a stable release, no outstanding pre-release.
-    return None
+def get_outstanding_prereleases(as_git_branch: bool = False) -> List[str]:
+    """Return outstanding K8s pre-releases.
+
+    Args:
+        as_git_branch: If True, return the git branch name for the pre-release.
+    """
+    latest_release = get_latest_releases_by_minor()
+    prereleases = []
+    for tag in latest_release.values():
+        if not is_stable_release(tag):
+            prereleases.append(tag)
+
+    if as_git_branch:
+        return [get_prerelease_git_branch(tag) for tag in prereleases]
+
+    return prereleases
 
 
 def get_obsolete_prereleases() -> List[str]:
     """Return obsolete K8s pre-releases.
 
-    We only keep the latest pre-release if there is no corresponding stable
+    We only keep the latest pre-release(s) if there is no corresponding stable
     release. All previous pre-releases are discarded.
     """
     k8s_tags = get_k8s_tags()
-    if not is_stable_release(k8s_tags[0]):
-        # Valid pre-release
-        k8s_tags = k8s_tags[1:]
-    # Discard all other pre-releases.
-    return [tag for tag in k8s_tags if not is_stable_release(tag)]
+    seen_stable_minors = set()
+    obsolete = []
+
+    for tag in k8s_tags:
+        if is_stable_release(tag):
+            version = Version(tag.lstrip("v"))
+            seen_stable_minors.add((version.major, version.minor))
+        else:
+            version = Version(tag.lstrip("v").split("-")[0])
+            if (version.major, version.minor) in seen_stable_minors:
+                obsolete.append(tag)
+
+    return obsolete
 
 
 def _exec(cmd: List[str], check=True, timeout=EXEC_TIMEOUT, cwd=None):
@@ -95,7 +147,7 @@ def _branch_exists(
     if remote:
         cmd += ["-r"]
 
-    stdout, stderr = _exec(cmd, cwd=project_basedir)
+    stdout, _ = _exec(cmd, cwd=project_basedir)
     return branch_name in stdout
 
 
@@ -121,51 +173,38 @@ def _update_prerelease_k8s_component(project_basedir: str, k8s_version: str):
         f.write(k8s_version)
 
 
-def prepare_prerelease_git_branch(project_basedir: str, remote: str = "origin"):
-    prerelease = get_outstanding_prerelease()
-    if not prerelease:
-        LOG.info("No outstanding k8s pre-release.")
+def prepare_prerelease_git_branches(project_basedir: str, remote: str = "origin"):
+    prereleases = get_outstanding_prereleases()
+    if not prereleases:
+        LOG.info("No outstanding k8s pre-releases.")
         return
 
-    _update_prerelease_k8s_component(project_basedir, str(prerelease))
+    for prerelease in prereleases:
+        branch = get_prerelease_git_branch(str(prerelease))
+        LOG.info("Preparing pre-release branch: %s", branch)
+        _exec(["git", "checkout", "-B", branch], cwd=project_basedir)
 
-    _exec(
-        ["git", "add", "./build-scripts/components/kubernetes/version"],
-        cwd=project_basedir,
-    )
-    _exec(
-        ["git", "commit", "-m", f"Update k8s version to {prerelease}"],
-        cwd=project_basedir,
-    )
+        _update_prerelease_k8s_component(project_basedir, str(prerelease))
+        _exec(
+            ["git", "add", "./build-scripts/components/kubernetes/version"],
+            cwd=project_basedir,
+        )
+        _exec(
+            ["git", "commit", "-m", f"Update k8s version to {prerelease}"],
+            cwd=project_basedir,
+        )
 
-    branch = get_prerelease_git_branch(str(prerelease))
-    _exec(["git", "checkout", "-b", branch])
-    _exec(["git", "push", remote, branch, "--force"])
+        _exec(["git", "push", remote, branch, "--force"], cwd=project_basedir)
 
 
 def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
-    """Remove obsolete pre-release git branches."""
-    # e.g. 1.XX.0-alpha.0
-    latest_release = get_latest_release()
-    LOG.info("Latest k8s release: %s", latest_release)
+    """Remove obsolete pre-release git branches.
 
-    latest_risk_level = None
-    if not is_stable_release(latest_release):
-        # e.g. 1.XX.0-alpha
-        latest_risk_level = latest_release.rsplit(".", 1)[0]
-
-    _exec(["git", "fetch", remote], cwd=project_basedir)
-
+    All risk levels will be removed once the latest release is stable.
+    """
     obsolete_prereleases = get_obsolete_prereleases()
     for outstanding_prerelease in obsolete_prereleases:
         branch = get_prerelease_git_branch(outstanding_prerelease)
-
-        if latest_risk_level and latest_risk_level in branch:
-            # The git branch corresponds to the latest risk-level, keep it.
-            # e.g. the autoupdate/v1.33.0-alpha should not be removed if the
-            #      latest release is v1.33.0-alpha.1
-            LOG.info("Keeping current risk-level branch: %s", branch)
-            continue
 
         if _branch_exists(
             f"{remote}/{branch}", remote=True, project_basedir=project_basedir
@@ -173,7 +212,7 @@ def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
             LOG.info("Cleaning up obsolete pre-release branch: %s", branch)
             _exec(["git", "push", remote, "--delete", branch], cwd=project_basedir)
         else:
-            LOG.info("Obsolete branch not found, skipping: %s", branch)
+            LOG.debug("Obsolete branch not found, skipping: %s", branch)
 
 
 if __name__ == "__main__":
@@ -191,7 +230,7 @@ if __name__ == "__main__":
     )
     cmd.add_argument("--remote", dest="remote", help="Git remote.", default="origin")
 
-    cmd = subparsers.add_parser("prepare_prerelease_git_branch")
+    cmd = subparsers.add_parser("prepare_prerelease_git_branches")
     cmd.add_argument(
         "--project-basedir",
         dest="project_basedir",
@@ -200,7 +239,7 @@ if __name__ == "__main__":
     )
     cmd.add_argument("--remote", dest="remote", help="Git remote.", default="origin")
 
-    subparsers.add_parser("get_outstanding_prerelease")
+    subparsers.add_parser("get_outstanding_prereleases")
     subparsers.add_parser("get_obsolete_prereleases")
     subparsers.add_parser("remove_obsolete_prereleases")
 

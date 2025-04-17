@@ -39,7 +39,7 @@ jobs:
           git config --global user.email "worker@org.com"
       - name: 'Prepare pre-release git branch'
         run: |
-          python3 ./build-scripts/k8s_release.py prepare_prerelease_git_branch
+          python3 ./build-scripts/k8s_release.py prepare_prerelease_git_branches
       - name: Clean obsolete branches
         run: |
           python3 ./build-scripts/k8s_release.py clean_obsolete_git_branches
