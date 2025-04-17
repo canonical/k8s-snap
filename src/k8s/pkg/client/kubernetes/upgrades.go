@@ -115,6 +115,7 @@ func NewUpgrade(name string) Upgrade {
 }
 
 func (c *Client) k8sdIoRestClient() (*rest.RESTClient, error) {
+	// TODO(Hue): use controller-runtime client and add the known times scheme to it
 	k8sdConfig := c.RESTConfig()
 	k8sdConfig.GroupVersion = &schemeGroupVersion
 	k8sdConfig.NegotiatedSerializer = serializer.NewCodecFactory(runtime.NewScheme())

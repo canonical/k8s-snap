@@ -17,6 +17,7 @@ import (
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
@@ -38,6 +39,7 @@ type Controller struct {
 	getState func() state.State
 	manager  manager.Manager
 	logger   logr.Logger
+	client   client.Client
 }
 
 type ControllerOptions struct {
@@ -122,6 +124,7 @@ func (c *Controller) Run(
 	c.getState = getState
 	c.manager = mgr
 	c.logger = mgr.GetLogger()
+	c.client = mgr.GetClient()
 
 	if err := c.SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("failed to setup controller with manager: %w", err)
