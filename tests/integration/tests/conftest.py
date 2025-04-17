@@ -10,6 +10,7 @@ import pytest
 from test_util import config, harness, tags, util
 from test_util.etcd import EtcdCluster
 from test_util.registry import Registry
+from pytest_subunit import *
 
 LOG = logging.getLogger(__name__)
 
