@@ -48,30 +48,31 @@ def test_version_upgrades(
         )
         current_channel = channels[0]
 
-    # Copy the current snap into the instances.
-    snap_path = (tmp_path / "k8s.snap").as_posix()
-    for instance in instances:
-        instance.send_file(config.SNAP, snap_path)
+    if config.SNAP:
+        # Copy the current snap into the instances.
+        snap_path = (tmp_path / "k8s.snap").as_posix()
+        for instance in instances:
+            instance.send_file(config.SNAP, snap_path)
 
-    # Figure out where to add the current snap into the channels array.
-    # Upgrades should be in order.
-    out = cp.exec(["snap", "info", snap_path], capture_output=True)
-    info = yaml.safe_load(out.stdout)
+        # Figure out where to add the current snap into the channels array.
+        # Upgrades should be in order.
+        out = cp.exec(["snap", "info", snap_path], capture_output=True)
+        info = yaml.safe_load(out.stdout)
 
-    # expected: "v1.32.2 classic"
-    ver = info["version"].lstrip("v").split()[0].split(".")
-    added = False
-    for i in range(len(channels)):
-        # e.g.: 1.32-classic/stable
-        chan_ver = channels[i].split("-")[0].split(".")
-        if len(chan_ver) > 1 and (ver[0], ver[1]) < (chan_ver[0], chan_ver[1]):
-            channels.insert(i, snap_path)
-            added = True
-            break
+        # expected: "v1.32.2 classic"
+        ver = info["version"].lstrip("v").split()[0].split(".")
+        added = False
+        for i in range(len(channels)):
+            # e.g.: 1.32-classic/stable
+            chan_ver = channels[i].split("-")[0].split(".")
+            if len(chan_ver) > 1 and (ver[0], ver[1]) < (chan_ver[0], chan_ver[1]):
+                channels.insert(i, snap_path)
+                added = True
+                break
 
-    if not added:
-        # if not added yet, config.SNAP should be at the end.
-        channels.append(snap_path)
+        if not added:
+            # if not added yet, config.SNAP should be at the end.
+            channels.append(snap_path)
 
     if len(channels) < 2:
         pytest.fail(
@@ -283,7 +284,9 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     after the last node is upgraded.
     The test will also verify that the feature version is not upgraded until all nodes are upgraded.
     """
-    assert config.SNAP is not None, "SNAP must be set to run this test"
+    if not config.SNAP:
+        # TODO(Adam): use TEST_VERSION_UPGRADE_CHANNELS if not set
+        pytest.skip("Feature upgrades currently require a local snap file")
 
     start_branch = util.previous_track(config.SNAP)
     main = instances[0]
