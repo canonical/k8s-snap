@@ -284,7 +284,8 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
     after the last node is upgraded.
     The test will also verify that the feature version is not upgraded until all nodes are upgraded.
     """
-    assert config.SNAP is not None, "SNAP must be set to run this test"
+    if not config.SNAP:
+        pytest.skip("Feature upgrades currently require a local snap file")
 
     start_branch = util.previous_track(config.SNAP)
     main = instances[0]
