@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
-	"github.com/canonical/k8s/pkg/log"
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -111,7 +110,7 @@ func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, upgrade *kuber
 
 // allNodesUpgraded checks if all nodes in the cluster have been upgraded.
 func (c *Controller) allNodesUpgraded(ctx context.Context, upgradedNodes []string) (bool, error) {
-	log := log.FromContext(ctx)
+	log := c.logger.WithValues("step", "all-nodes-upgraded")
 
 	leader, err := c.getState().Leader()
 	if err != nil {
@@ -164,7 +163,7 @@ func (c *Controller) waitForFeatureReconciliations(ctx context.Context, log logr
 }
 
 func (c *Controller) transitionTo(ctx context.Context, upgrade *kubernetes.Upgrade, phase string) error {
-	p := ctrlclient.MergeFrom(upgrade)
+	p := ctrlclient.MergeFrom(upgrade.DeepCopy())
 	upgrade.Status.Phase = phase
 	if err := c.client.Status().Patch(ctx, upgrade, p); err != nil {
 		return fmt.Errorf("failed to patch: %w", err)

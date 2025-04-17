@@ -51,19 +51,29 @@ type Upgrade struct {
 	Status UpgradeStatus `json:"status,omitempty"`
 }
 
-func (u *Upgrade) DeepCopyObject() runtime.Object {
-	if u == nil {
+func (in *Upgrade) DeepCopyInto(out *Upgrade) {
+	*out = *in
+	out.TypeMeta = in.TypeMeta
+	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
+	out.Status.Phase = in.Status.Phase
+	out.Status.UpgradedNodes = make([]string, len(in.Status.UpgradedNodes))
+	copy(out.Status.UpgradedNodes, in.Status.UpgradedNodes)
+}
+
+func (in *Upgrade) DeepCopy() *Upgrade {
+	if in == nil {
 		return nil
 	}
-	cp := *u
-	cp.ObjectMeta = *u.ObjectMeta.DeepCopy()
-	cp.Status.Phase = u.Status.Phase
-	if u.Status.UpgradedNodes != nil {
-		nodesCopy := make([]string, len(u.Status.UpgradedNodes))
-		copy(nodesCopy, u.Status.UpgradedNodes)
-		cp.Status.UpgradedNodes = nodesCopy
+	out := new(Upgrade)
+	in.DeepCopyInto(out)
+	return out
+}
+
+func (in *Upgrade) DeepCopyObject() runtime.Object {
+	if c := in.DeepCopy(); c != nil {
+		return c
 	}
-	return &cp
+	return nil
 }
 
 // UpgradeList contains a list of Upgrade resources.
@@ -73,22 +83,33 @@ type UpgradeList struct {
 	Items           []Upgrade `json:"items"`
 }
 
-func (ul *UpgradeList) DeepCopyObject() runtime.Object {
-	if ul == nil {
+func (in *UpgradeList) DeepCopyInto(out *UpgradeList) {
+	*out = *in
+	out.TypeMeta = in.TypeMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
+	if in.Items != nil {
+		in, out := &in.Items, &out.Items
+		*out = make([]Upgrade, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+}
+
+func (in *UpgradeList) DeepCopy() *UpgradeList {
+	if in == nil {
 		return nil
 	}
-	cp := *ul
-	cp.ListMeta = *ul.ListMeta.DeepCopy()
-	cp.Items = make([]Upgrade, len(ul.Items))
-	for i, u := range ul.Items {
-		uCp, ok := u.DeepCopyObject().(*Upgrade)
-		if !ok {
-			log.L().Error(fmt.Errorf("type assertion failed for upgrade deepcopy"), "upgrade", u)
-			continue
-		}
-		cp.Items[i] = *uCp
+	out := new(UpgradeList)
+	in.DeepCopyInto(out)
+	return out
+}
+
+func (in *UpgradeList) DeepCopyObject() runtime.Object {
+	if c := in.DeepCopy(); c != nil {
+		return c
 	}
-	return &cp
+	return nil
 }
 
 // addKnownTypes registers upgrade types into the scheme.
