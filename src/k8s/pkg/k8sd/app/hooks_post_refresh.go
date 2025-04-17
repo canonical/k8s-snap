@@ -11,6 +11,7 @@ import (
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/canonical/microcluster/v2/state"
+	"k8s.io/utils/ptr"
 )
 
 // postRefreshHook is executed after the node is ready after a `snap refresh` operation
@@ -85,22 +86,22 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 		}
 		// TODO(ben): Add more metadata to the upgrade.
 		// e.g. initial revision, target revision, name of the node that started the upgrade, etc.
-		newUpgrade := kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev))
-		upgrade = &newUpgrade
-		if err := k8sClient.CreateUpgrade(ctx, *upgrade); err != nil {
+		upgrade = ptr.To(kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev)))
+		if err := k8sClient.Create(ctx, upgrade); err != nil {
 			return fmt.Errorf("failed to create upgrade: %w", err)
 		}
-
 	} else {
 		log.Info("Upgrade in progress.", "upgrade", upgrade.Name, "phase", upgrade.Status.Phase)
 	}
 
 	log.Info("Marking node as upgraded.", "node", s.Name())
 
-	upgradedNodes := upgrade.Status.UpgradedNodes
-	upgradedNodes = append(upgradedNodes, s.Name())
+	status := kubernetes.UpgradeStatus{
+		UpgradedNodes: append(upgrade.Status.UpgradedNodes, s.Name()),
+		Phase:         kubernetes.UpgradePhaseNodeUpgrade,
+	}
 
-	if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{UpgradedNodes: upgradedNodes}); err != nil {
+	if err := k8sClient.PatchUpgradeStatus(ctx, upgrade, status); err != nil {
 		return fmt.Errorf("failed to mark node as upgraded: %w", err)
 	}
 
