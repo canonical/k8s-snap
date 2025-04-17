@@ -7,9 +7,11 @@ Anbox Cloud
 Canonical Observability Stack
 Ceph
 COS
+Charmcraft
 Charmed
 Charmed Kubeflow
 Charmhub
+cosl
 CRDs
 Data Integrator
 Grafana
@@ -128,10 +130,12 @@ config
 configMap
 ConfigMap
 containerd
+containerd_base
 CoreDNS
 Corosync
 CPUs
 cpuset
+cron
 crt
 csi
 CSI
@@ -223,6 +227,7 @@ libcontainer
 lifecycle
 linux
 Lite's
+LightKube
 LoadBalancer
 localhost
 logfile
@@ -290,6 +295,7 @@ provisioner
 Pre
 PRs
 PV
+Pydantic
 qdisc
 qlen
 QoS
@@ -336,6 +342,7 @@ taskset
 Telco
 throughs
 tickless
+Tiobe
 TLB
 tls
 TLS
@@ -349,6 +356,7 @@ unix
 unschedulable
 unsquashed
 uuid
+UV
 Velero
 vf
 VF
