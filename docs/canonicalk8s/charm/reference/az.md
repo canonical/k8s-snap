@@ -49,6 +49,6 @@ label to reflect this new AZ.
 
 <!-- LINKS -->
 [zone]: https://documentation.ubuntu.com/juju/latest/reference/zone/
-[placement directive]: https://documentation.ubuntu.com/juju/latest/reference/placement-directive/#zone-zone
+[placement directive]: https://documentation.ubuntu.com/juju/latest/reference/placement-directive/
 [constraint]: https://documentation.ubuntu.com/juju/latest/reference/constraint/#zones
 [Kubernetes well-known topology label]: https://kubernetes.io/docs/reference/labels-annotations-taints/#topologykubernetesiozone
