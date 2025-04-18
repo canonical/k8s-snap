@@ -239,9 +239,9 @@ def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
     All risk levels will be removed once the latest release is stable.
     """
     obsolete_prereleases = get_obsolete_prereleases()
-    for outstanding_prerelease in obsolete_prereleases:
-        branch = get_prerelease_git_branch(outstanding_prerelease)
-
+    for prerelease in obsolete_prereleases:
+        branch = get_prerelease_git_branch(prerelease)
+        LOG.info("Checking for obsolete pre-release %s branch: %s", prerelease, branch)
         if _branch_exists(
             f"{remote}/{branch}", remote=True, project_basedir=project_basedir
         ):
