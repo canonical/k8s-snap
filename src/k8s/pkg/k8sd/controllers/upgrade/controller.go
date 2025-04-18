@@ -13,10 +13,10 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/microcluster/v2/state"
 	"github.com/go-logr/logr"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
@@ -38,6 +38,7 @@ type Controller struct {
 	getState func() state.State
 	manager  manager.Manager
 	logger   logr.Logger
+	client   client.Client
 }
 
 type ControllerOptions struct {
@@ -95,9 +96,9 @@ func (c *Controller) Run(
 		return fmt.Errorf("failed to get Kubernetes REST config: %w", err)
 	}
 
-	scheme := runtime.NewScheme()
-	if err := kubernetes.AddToScheme(scheme); err != nil {
-		return fmt.Errorf("failed to add scheme: %w", err)
+	scheme, err := kubernetes.NewScheme()
+	if err != nil {
+		return fmt.Errorf("failed to create scheme: %w", err)
 	}
 
 	// TODO(Hue): (KU-3216) use a single manager for upgrade and csrsigning controllers.
@@ -122,6 +123,7 @@ func (c *Controller) Run(
 	c.getState = getState
 	c.manager = mgr
 	c.logger = mgr.GetLogger()
+	c.client = mgr.GetClient()
 
 	if err := c.SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("failed to setup controller with manager: %w", err)
