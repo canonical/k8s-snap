@@ -189,26 +189,45 @@ def prepare_prerelease_git_branches(project_basedir: str, remote: str = "origin"
     for prerelease in prereleases:
         branch = get_prerelease_git_branch(str(prerelease))
         LOG.info("Preparing pre-release branch: %s", branch)
+
+        # Reset branch to remote main
         _exec(
-            ["git", "checkout", "-B", branch],
+            ["git", "fetch", remote],
+            cwd=project_basedir,
+            capture_output=False,
+        )
+        _exec(
+            ["git", "checkout", "-B", branch, f"{remote}/main"],
             cwd=project_basedir,
             capture_output=False,
         )
 
+        # Update the k8s version and commit
         _update_prerelease_k8s_component(project_basedir, str(prerelease))
         _exec(
             ["git", "add", "./build-scripts/components/kubernetes/version"],
             cwd=project_basedir,
             capture_output=False,
         )
-        _exec(
-            ["git", "commit", "-m", f"Update k8s version to {prerelease}"],
-            cwd=project_basedir,
-            capture_output=False,
-        )
 
+        # Only commit if there are actual changes
+        result = _exec(
+            ["git", "status", "--porcelain"],
+            cwd=project_basedir,
+            capture_output=True,
+        )
+        if result[0]:
+            _exec(
+                ["git", "commit", "-m", f"Update k8s version to {prerelease}"],
+                cwd=project_basedir,
+                capture_output=False,
+            )
+        else:
+            LOG.info("Nothing to commit for %s", branch)
+
+        # Force-push branch to remote
         _exec(
-            ["git", "push", remote, branch, "--force"],
+            ["git", "push", "-u", remote, branch, "--force"],
             cwd=project_basedir,
             capture_output=False,
         )
