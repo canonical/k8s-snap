@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
+from pytest_subunit import SubunitTerminalReporter
 from test_util import config, harness, tags, util
 from test_util.etcd import EtcdCluster
 from test_util.registry import Registry
@@ -144,6 +145,16 @@ def snapd_preload() -> None:
     util.download_preloaded_snaps()
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--subunit-path",
+        dest="subunit",
+        default=None,
+        help="Stream subunit results to the specified file.",
+    )
+
+
+@pytest.hookimpl(trylast=True)
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
@@ -156,6 +167,17 @@ def pytest_configure(config):
         "node_count: Mark a test to specify how many instance nodes need to be created\n"
         "snap_versions: Mark a test to specify snap_versions for each node\n",
     )
+
+    if config.option.subunit:
+        # Get the standard terminal reporter plugin and replace it with ours.
+        standard_reporter = config.pluginmanager.getplugin("terminalreporter")
+        if not standard_reporter:
+            raise Exception("Unable to retrieve 'terminalreporter' pytest plugin.")
+        subunit_reporter = SubunitTerminalReporter(
+            standard_reporter, config.option.subunit
+        )
+        config.pluginmanager.unregister(standard_reporter)
+        config.pluginmanager.register(subunit_reporter, "terminalreporter")
 
 
 @pytest.fixture(scope="function")
