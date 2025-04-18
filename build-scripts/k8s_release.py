@@ -131,11 +131,18 @@ def get_obsolete_prereleases() -> List[str]:
     return obsolete
 
 
-def _exec(cmd: List[str], check=True, timeout=EXEC_TIMEOUT, cwd=None):
+def _exec(
+    cmd: List[str], check=True, capture_output=True, timeout=EXEC_TIMEOUT, cwd=None
+):
     """Run the specified command and return the stdout/stderr output as a tuple."""
     LOG.debug("Executing: %s, cwd: %s.", cmd, cwd)
     proc = subprocess.run(
-        cmd, check=check, timeout=timeout, cwd=cwd, capture_output=True, text=True
+        cmd,
+        check=check,
+        timeout=timeout,
+        cwd=cwd,
+        capture_output=capture_output,
+        text=True,
     )
     return proc.stdout, proc.stderr
 
@@ -182,19 +189,29 @@ def prepare_prerelease_git_branches(project_basedir: str, remote: str = "origin"
     for prerelease in prereleases:
         branch = get_prerelease_git_branch(str(prerelease))
         LOG.info("Preparing pre-release branch: %s", branch)
-        _exec(["git", "checkout", "-B", branch], cwd=project_basedir)
+        _exec(
+            ["git", "checkout", "-B", branch],
+            cwd=project_basedir,
+            capture_output=False,
+        )
 
         _update_prerelease_k8s_component(project_basedir, str(prerelease))
         _exec(
             ["git", "add", "./build-scripts/components/kubernetes/version"],
             cwd=project_basedir,
+            capture_output=False,
         )
         _exec(
             ["git", "commit", "-m", f"Update k8s version to {prerelease}"],
             cwd=project_basedir,
+            capture_output=False,
         )
 
-        _exec(["git", "push", remote, branch, "--force"], cwd=project_basedir)
+        _exec(
+            ["git", "push", remote, branch, "--force"],
+            cwd=project_basedir,
+            capture_output=False,
+        )
 
 
 def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
