@@ -48,7 +48,7 @@ underlying AZ changes from the Juju POV, the operator will not update the
 label to reflect this new AZ.
 
 <!-- LINKS -->
-[zone]: https://documentation.ubuntu.com/juju/latest/reference/zone/
-[placement directive]: https://documentation.ubuntu.com/juju/latest/reference/placement-directive/#zone-zone
-[constraint]: https://documentation.ubuntu.com/juju/latest/reference/constraint/#zones
+[zone]: https://documentation.ubuntu.com/juju/3.6/reference/zone/
+[placement directive]: https://documentation.ubuntu.com/juju/3.6/reference/placement-directive/#zone-zone
+[constraint]: https://documentation.ubuntu.com/juju/3.6/reference/constraint/#zones
 [Kubernetes well-known topology label]: https://kubernetes.io/docs/reference/labels-annotations-taints/#topologykubernetesiozone
