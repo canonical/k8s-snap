@@ -123,7 +123,7 @@ ghcr.io/canonical/k8s-snap/sig-storage/csi-provisioner:v5.0.1
 ghcr.io/canonical/k8s-snap/sig-storage/csi-resizer:v1.11.1
 ghcr.io/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.1
 ghcr.io/canonical/metrics-server:0.7.0-ck2
-ghcr.io/canonical/rawfile-localpv:0.8.1
+ghcr.io/canonical/rawfile-localpv:0.8.2
 ```
 
 A list of images can also be found in the `images.txt` file when the
