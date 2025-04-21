@@ -131,12 +131,12 @@ def get_obsolete_prereleases() -> List[str]:
     return obsolete
 
 
-def _exec(
-    cmd: List[str], check=True, capture_output=True, timeout=EXEC_TIMEOUT, cwd=None
-):
+def _exec(*args, **kwargs) -> tuple[str, str]:
     """Run the specified command and return the stdout/stderr output as a tuple."""
     LOG.debug("Executing: %s, cwd: %s.", cmd, cwd)
-    proc = subprocess.run(
+    kwargs["text"]=True
+    proc = subprocess.run(*args, **kwargs)
+    return proc.stdout, proc.stderr
         cmd,
         check=check,
         timeout=timeout,
