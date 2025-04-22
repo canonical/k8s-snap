@@ -204,4 +204,65 @@ func TestSnap(t *testing.T) {
 			g.Expect(err).To(HaveOccurred())
 		})
 	})
+
+	t.Run("NodeKubernetesVersion", func(t *testing.T) {
+		t.Run("returns version from bom.json", func(t *testing.T) {
+			g := NewWithT(t)
+
+			tmpDir, err := os.MkdirTemp("", "test-bom-k8s")
+			g.Expect(err).To(Not(HaveOccurred()))
+			defer os.RemoveAll(tmpDir)
+
+			bomContent := `{
+				"components": {
+					"kubernetes": {
+						"version": "v1.32.3"
+					}
+				}
+			}`
+			err = os.WriteFile(filepath.Join(tmpDir, "bom.json"), []byte(bomContent), 0o644)
+			g.Expect(err).To(Not(HaveOccurred()))
+
+			snap := snap.NewSnap(snap.SnapOpts{
+				SnapDir: tmpDir,
+			})
+
+			version, err := snap.NodeKubernetesVersion(context.Background())
+			g.Expect(err).To(Not(HaveOccurred()))
+			g.Expect(version).To(Equal("v1.32.3"))
+		})
+
+		t.Run("fails when bom.json is missing", func(t *testing.T) {
+			g := NewWithT(t)
+
+			tmpDir, err := os.MkdirTemp("", "test-bom-missing")
+			g.Expect(err).To(Not(HaveOccurred()))
+			defer os.RemoveAll(tmpDir)
+
+			snap := snap.NewSnap(snap.SnapOpts{
+				SnapDir: tmpDir,
+			})
+
+			_, err = snap.NodeKubernetesVersion(context.Background())
+			g.Expect(err).To(HaveOccurred())
+		})
+
+		t.Run("fails when bom.json is malformed", func(t *testing.T) {
+			g := NewWithT(t)
+
+			tmpDir, err := os.MkdirTemp("", "test-bom-bad")
+			g.Expect(err).To(Not(HaveOccurred()))
+			defer os.RemoveAll(tmpDir)
+
+			err = os.WriteFile(filepath.Join(tmpDir, "bom.json"), []byte("not-json"), 0o644)
+			g.Expect(err).To(Not(HaveOccurred()))
+
+			snap := snap.NewSnap(snap.SnapOpts{
+				SnapDir: tmpDir,
+			})
+
+			_, err = snap.NodeKubernetesVersion(context.Background())
+			g.Expect(err).To(HaveOccurred())
+		})
+	})
 }

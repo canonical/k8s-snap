@@ -3,6 +3,7 @@ package snap
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -298,21 +299,29 @@ func (s *snap) NodeTokenFile() string {
 }
 
 func (s *snap) NodeKubernetesVersion(ctx context.Context) (string, error) {
-	client, err := snapd.NewClient()
+	bomPath := filepath.Join(s.snapDir, "bom.json")
+	data, err := os.ReadFile(bomPath)
 	if err != nil {
-		return "", fmt.Errorf("failed to create snapd client: %w", err)
+		return "", fmt.Errorf("failed to read bom.json: %w", err)
 	}
 
-	snap, err := client.GetSnapInfo(s.snapInstanceName)
-	if err != nil {
-		return "", fmt.Errorf("failed to get snap info: %w", err)
+	var bom struct {
+		Components struct {
+			Kubernetes struct {
+				Version string `json:"version"`
+			} `json:"kubernetes"`
+		} `json:"components"`
 	}
 
-	if snap.StatusCode != 200 {
-		return "", fmt.Errorf("failed to get snap info: snapd returned with error code %d", snap.StatusCode)
+	if err := json.Unmarshal(data, &bom); err != nil {
+		return "", fmt.Errorf("failed to unmarshal bom.json: %w", err)
 	}
 
-	return snap.Result.Version, nil
+	if bom.Components.Kubernetes.Version == "" {
+		return "", fmt.Errorf("kubernetes version not found in bom.json")
+	}
+
+	return bom.Components.Kubernetes.Version, nil
 }
 
 func (s *snap) ContainerdExtraConfigDir() string {
