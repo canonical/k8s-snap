@@ -15,8 +15,9 @@ from test_util import config, etcd, harness, tags, util
 LOG = logging.getLogger(__name__)
 
 
+# NOTE: tags.CONFORMANCE is used for testing the current PR.
 @pytest.mark.node_count(3)
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.CONFORMANCE)
 def test_stress(instances: List[harness.Instance]):
     _cluster_setup(instances)
     util.wait_for_dns(instances[0])
@@ -24,10 +25,11 @@ def test_stress(instances: List[harness.Instance]):
     _run_tests(instances)
 
 
+# NOTE: tags.CONFORMANCE is used for testing the current PR.
 @pytest.mark.node_count(3)
 @pytest.mark.etcd_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.CONFORMANCE)
 def test_stress_etcd(instances: List[harness.Instance], etcd_cluster: etcd.EtcdCluster):
     cp_node = instances[0]
 
