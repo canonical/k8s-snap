@@ -259,5 +259,6 @@ custom_linkcheck_anchors_ignore_for_url = [
     'https://canonical.com/multipass/docs/tutorial',
     'https://microk8s.io/docs/how-to-cis-harden',
     'https://registry.terraform.io/providers/juju/juju/latest/docs',
-    'https://snapcraft.io/docs/managing-updates'
+    'https://snapcraft.io/docs/managing-updates',
+    'https://documentation.ubuntu.com/juju/latest/reference/constraint/'
 ]
