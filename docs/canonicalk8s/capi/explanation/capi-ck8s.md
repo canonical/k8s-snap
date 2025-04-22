@@ -26,7 +26,7 @@ distribution that seamlessly integrates with Cluster API.
 With {{product}} CAPI you can:
 
 - Provision a cluster that meets your needs
-  - Choose Kubernetes version 1.31 onwards
+  - Choose a {{product}} version
   - Choose the risk level of the track (Kubernetes version) you want to follow -
   stable, candidate, beta or edge
   - Deploy behind proxies
@@ -41,13 +41,12 @@ deployment.
 ## CAPI architecture
 
 Being a cloud-native framework, CAPI implements all its components as
-controllers that run within a Kubernetes cluster. There is a separate controller
-, called a ‘provider’, for each supported
-infrastructure substrate.
+controllers that run within a Kubernetes cluster.
 
 ### Infrastructure provider
 
-The infrastructure providers are responsible for
+There is a separate controller, called a ‘provider’, for each supported
+infrastructure substrate. The infrastructure providers are responsible for
 provisioning physical or virtual nodes and setting up networking elements such
 as load balancers and
 virtual networks.
@@ -55,11 +54,12 @@ virtual networks.
 ### Kubernetes distributions
 
 In a similar way, each Kubernetes distribution that
-integrates with ClusterAPI is managed by two providers:
+integrates with ClusterAPI is managed by either the control plane provider,
+the bootstrap provider, or both.
 
 - **Control plane provider**: handles the control plane’s specific lifecycle.
-- **Bootstrap provider**: responsible for
-delivering and managing Kubernetes on the nodes.
+- **Bootstrap provider**: responsible for delivering and managing Kubernetes on
+the nodes.
 
 ### Management cluster
 
@@ -84,7 +84,7 @@ Read more about this in the [upstream docs around pivoting].
 The {{product}} team maintains the two providers required for integrating
 with CAPI:
 
-### CABPCK
+### Cluster API Bootstrap Provider {{product}}
 
 The Cluster API Bootstrap Provider {{product}} (**CABPCK**) is responsible for
 provisioning the nodes in the cluster and preparing them to be joined to the
@@ -97,7 +97,7 @@ the desired state. Under the hood, the Bootstrap Provider uses cloud-init to
 configure the nodes in the cluster. This includes setting up SSH keys,
 configuring the network, and installing necessary software packages.
 
-### CACPCK
+### Cluster API Control Plane Provider {{product}}
 
 The Cluster API Control Plane Provider {{product}} (**CACPCK**) enables the
 creation and management of Kubernetes control planes using {{product}} as the
