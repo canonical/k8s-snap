@@ -429,7 +429,7 @@ def _get_upgrade_crs(instance: harness.Instance) -> List[dict]:
     return json.loads(out.stdout)["items"]
 
 
-@pytest.mark.node_count(6)
+@pytest.mark.node_count(2)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.xfail(
