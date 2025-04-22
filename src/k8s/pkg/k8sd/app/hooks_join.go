@@ -275,8 +275,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	return nil
 }
 
-// handleRollOutUpgrade checks this join is part of a rolling upgrade and will create/modify the upgrade CRD
-// accordingly. It will also check if the node version is compatible with the cluster version.
 func handleRollOutUpgrade(ctx context.Context, snap snap.Snap, s state.State, k8sClient *kubernetes.Client) error {
 	log := log.FromContext(ctx).WithValues("step", "rollout-upgrade")
 
@@ -286,100 +284,116 @@ func handleRollOutUpgrade(ctx context.Context, snap snap.Snap, s state.State, k8
 		return fmt.Errorf("failed to check for in-progress upgrade: %w", err)
 	}
 
-	thisNodeVersionStr, err := snap.NodeKubernetesVersion(ctx)
+	thisNodeVersion, err := getNodeVersion(ctx, snap)
 	if err != nil {
 		return fmt.Errorf("failed to get node Kubernetes version: %w", err)
 	}
 
-	thisNodeVersion, err := versionutil.Parse(thisNodeVersionStr)
-	if err != nil {
-		return fmt.Errorf("failed to parse node Kubernetes version %q: %w", thisNodeVersionStr, err)
-	}
-
 	nodeVersions, err := k8sClient.NodeVersions(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get node Kubernetes versions: %w", err)
+		return fmt.Errorf("failed to get Kubernetes versions of cluster: %w", err)
 	}
 
-	nodeName := s.Name()
 	if upgrade == nil {
-		// Check that all nodes in the cluster are running the same version of Kubernetes.
-		var clusterK8sVersion *versionutil.Version
-		for node, version := range nodeVersions {
-			if node == s.Name() {
-				// The joining node might be already part of the cluster since we
-				// configured and started the kube-apiserver already right before this steps.
-				// If this is the case, skip the node version check.
-				continue
-			}
-			if clusterK8sVersion == nil {
-				clusterK8sVersion = version
-			}
-			if !clusterK8sVersion.EqualTo(version) {
-				return fmt.Errorf("the cluster has nodes with different Kubernetes versions %q and %q - upgrade all nodes to the same version before joining a new one", clusterK8sVersion, version)
-			}
+		return handleNoUpgradeInProgress(ctx, snap, s, k8sClient, thisNodeVersion, nodeVersions)
+	}
+
+	return handleUpgradeInProgress(ctx, s, k8sClient, upgrade, thisNodeVersion, nodeVersions)
+}
+
+func getNodeVersion(ctx context.Context, snap snap.Snap) (*versionutil.Version, error) {
+	versionStr, err := snap.NodeKubernetesVersion(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get node Kubernetes version: %w", err)
+	}
+
+	version, err := versionutil.Parse(versionStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse node Kubernetes version %q: %w", versionStr, err)
+	}
+
+	return version, nil
+}
+
+func handleNoUpgradeInProgress(ctx context.Context, snap snap.Snap, s state.State, k8sClient *kubernetes.Client, thisNodeVersion *versionutil.Version, nodeVersions map[string]*versionutil.Version) error {
+	var clusterK8sVersion *versionutil.Version
+	for node, version := range nodeVersions {
+		if node == s.Name() {
+			continue
 		}
 		if clusterK8sVersion == nil {
-			// we should never get here
-			return fmt.Errorf("the cluster has no nodes - cannot determine cluster Kubernetes version")
+			clusterK8sVersion = version
 		}
-		for node, version := range nodeVersions {
-			log.Info("Checking node version", "this", thisNodeVersion, "other", node, "version", version)
-
-			if thisNodeVersion.EqualTo(version) {
-				continue
-			}
-
-			if thisNodeVersion.Major() == version.Major() && thisNodeVersion.Minor() == version.Minor() && thisNodeVersion.Patch() != version.Patch() {
-				return fmt.Errorf("the joining node %q has a different Kubernetes patch version %q than cluster node %q (%q) - refresh upgrade the cluster nodes first", nodeName, thisNodeVersion, node, version)
-			}
-
-			if thisNodeVersion.Major() == version.Major() && thisNodeVersion.Minor() != version.Minor() {
-				log.Info("The joining node %q has a different Kubernetes minor version %q than cluster node %q (%q)", nodeName, thisNodeVersion, node, version)
-				rev, err := snap.Revision(ctx)
-				if err != nil {
-					return fmt.Errorf("failed to get snap revision: %w", err)
-				}
-				var strategy kubernetes.UpgradeStrategy
-				if thisNodeVersion.GreaterThan(version) {
-					log.Info("Joining node has a greater version - rolling upgrade")
-					strategy = kubernetes.UpgradeStrategyRollingUpgrade
-				} else {
-					log.Info("Joining node has a lower version - downgrade")
-					strategy = kubernetes.UpgradeStrategyRollingDowngrade
-				}
-
-				newUpgrade := kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev), strategy)
-				newUpgrade.Status.UpgradedNodes = []string{s.Name()}
-				return k8sClient.CreateUpgrade(ctx, newUpgrade)
-			}
+		if !clusterK8sVersion.EqualTo(version) {
+			return fmt.Errorf("the cluster has nodes with different Kubernetes versions %q and %q - upgrade all nodes to the same version before joining a new one", clusterK8sVersion, version)
 		}
-	} else {
-		lowest, highest := lowestHighestK8sVersions(nodeVersions)
-		switch upgrade.Status.Strategy {
-		case kubernetes.UpgradeStrategyRollingUpgrade:
-			log.Info("Rolling upgrade in progress")
-			if !thisNodeVersion.EqualTo(highest) {
-				return fmt.Errorf("joining node version %q need to be at the same version as the highest version in the cluster %q", thisNodeVersion, highest)
-			}
-		case kubernetes.UpgradeStrategyRollingDowngrade:
-			log.Info("Rolling downgrade in progress")
-			if !thisNodeVersion.EqualTo(lowest) {
-				return fmt.Errorf("joining node version %q need to be at the same version as the lowest version in the cluster %q", thisNodeVersion, lowest)
-			}
-		default:
-			return fmt.Errorf("upgrade already in progress but strategy is not rolling")
-		}
-		log.Info("Marking node as upgraded", "node", nodeName)
-		upgradedNodes := upgrade.Status.UpgradedNodes
-		upgradedNodes = append(upgradedNodes, s.Name())
+	}
 
-		if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{UpgradedNodes: upgradedNodes}); err != nil {
-			return fmt.Errorf("failed to mark node as upgraded: %w", err)
-		}
+	if clusterK8sVersion == nil {
+		return fmt.Errorf("the cluster has no nodes - cannot determine cluster Kubernetes version")
+	}
+
+	if thisNodeVersion.EqualTo(clusterK8sVersion) {
+		return nil // Normal join
+	}
+
+	if thisNodeVersion.Major() == clusterK8sVersion.Major() && thisNodeVersion.Minor() == clusterK8sVersion.Minor() {
+		return fmt.Errorf("the joining node has a different patch version than cluster nodes")
+	}
+
+	if thisNodeVersion.Major() == clusterK8sVersion.Major() && thisNodeVersion.Minor() != clusterK8sVersion.Minor() {
+		return initiateRollingUpgrade(ctx, snap, s, k8sClient, thisNodeVersion, clusterK8sVersion)
 	}
 
 	return nil
+}
+
+func initiateRollingUpgrade(ctx context.Context, snap snap.Snap, s state.State, k8sClient *kubernetes.Client, thisNodeVersion, clusterK8sVersion *versionutil.Version) error {
+	log := log.FromContext(ctx)
+	log.Info("Minor version mismatch between joining node and cluster")
+
+	rev, err := snap.Revision(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get snap revision: %w", err)
+	}
+
+	var strategy kubernetes.UpgradeStrategy
+	if thisNodeVersion.GreaterThan(clusterK8sVersion) {
+		log.Info("Joining node has a greater version - rolling upgrade")
+		strategy = kubernetes.UpgradeStrategyRollingUpgrade
+	} else {
+		log.Info("Joining node has a lower version - downgrade")
+		strategy = kubernetes.UpgradeStrategyRollingDowngrade
+	}
+
+	newUpgrade := kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev), strategy)
+	newUpgrade.Status.UpgradedNodes = []string{s.Name()}
+	return k8sClient.CreateUpgrade(ctx, newUpgrade)
+}
+
+func handleUpgradeInProgress(ctx context.Context, s state.State, k8sClient *kubernetes.Client, upgrade *kubernetes.Upgrade, thisNodeVersion *versionutil.Version, nodeVersions map[string]*versionutil.Version) error {
+	log := log.FromContext(ctx)
+	nodeName := s.Name()
+	lowest, highest := lowestHighestK8sVersions(nodeVersions)
+
+	switch upgrade.Status.Strategy {
+	case kubernetes.UpgradeStrategyRollingUpgrade:
+		log.Info("Rolling upgrade in progress")
+		if !thisNodeVersion.EqualTo(highest) {
+			return fmt.Errorf("joining node version %q needs to match highest version %q", thisNodeVersion, highest)
+		}
+	case kubernetes.UpgradeStrategyRollingDowngrade:
+		log.Info("Rolling downgrade in progress")
+		if !thisNodeVersion.EqualTo(lowest) {
+			return fmt.Errorf("joining node version %q needs to match lowest version %q", thisNodeVersion, lowest)
+		}
+	default:
+		return fmt.Errorf("unknown upgrade strategy in progress: %q", upgrade.Status.Strategy)
+	}
+
+	log.Info("Marking node as upgraded", "node", nodeName)
+	upgradedNodes := append(upgrade.Status.UpgradedNodes, nodeName)
+	return k8sClient.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{UpgradedNodes: upgradedNodes})
 }
 
 // lowestHighestK8sVersions returns the lowest and highest Kubernetes versions from the given map.
