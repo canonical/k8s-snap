@@ -58,6 +58,11 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 	if err := client.WaitKubernetesEndpointAvailable(r.Context()); err != nil {
 		return response.InternalError(fmt.Errorf("kubernetes endpoints not ready yet: %w", err))
 	}
+
+	if err := client.CheckNodeNameAvailable(r.Context(), workerName); err != nil {
+		return response.BadRequest(fmt.Errorf("worker node name %s is invalid: %w", workerName, err))
+	}
+
 	servers, err := client.GetKubeAPIServerEndpoints(r.Context())
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve list of known kube-apiserver endpoints: %w", err))
