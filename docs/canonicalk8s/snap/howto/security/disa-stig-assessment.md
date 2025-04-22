@@ -40,8 +40,6 @@ administrator or a user policy needs to be followed.
 | `Not Applicable` (13) | V-242386, V-242393, V-242394, V-242395, V-242396, V-242398, V-242399, V-242413, V-242437, V-242442, V-242443, V-242454, V-242455 |
 | `Manual` (8) | V-242383, V-242410, V-242411, V-242412, V-242414, V-242415, V-242417, V-254800 |
 
-<!-- TODO Re-enable once report is formatted >
-<!-- markdownlint-disable MD013 -->
 ### [V-242381]: The Kubernetes Controller Manager must create unique service accounts for each work payload
 
 #### Severity: High
@@ -633,8 +631,7 @@ The final line of the output will be `PASS`.
 > Please review the hardening guide for information on how to properly
 > configure the Node's Operating System for Kubelet.
 >
-> <!-- TODO: link to dedicated K8s hardening doc. -->
-> https://microk8s.io/docs/how-to-cis-harden#check-426
+> https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/security/hardening/
 >
 
 
@@ -1151,7 +1148,8 @@ The final line of the output will be `PASS`.
 > unauthorized versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation
+of
 > users or services from the container platform runtime, registry, and key
 > store. To enable the minimum version of TLS to be used by the Kubernetes
 > Controller Manager, the setting "tls-min-version" must be set.
@@ -1212,7 +1210,8 @@ The final line of the output will be `PASS`.
 > versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation
+of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "tls-min-version" must be set.
@@ -1272,7 +1271,8 @@ The final line of the output will be `PASS`.
 > versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation
+of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "tls-min-version" must be set.
@@ -1329,7 +1329,8 @@ The final line of the output will be `PASS`.
 > protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation
+of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "--auto-tls" must be set.
@@ -1469,7 +1470,8 @@ The final line of the output will be `PASS`.
 > versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation
+of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "--peer-auto-tls" must be set.
@@ -6214,5 +6216,3 @@ The final line of the output will be `PASS`.
 [V-242466]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242466
 [V-242467]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242467
 [V-245541]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245541
-
-<!-- markdownlint-enable MD013 -->
