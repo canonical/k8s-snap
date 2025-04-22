@@ -36,7 +36,7 @@ for example after joining a different wi-fi network.
 In this case, you may configure {{product}} to use the ``localhost`` address:
 
 ```bash
-sudo k8s boostrap --address=127.0.0.1
+sudo k8s bootstrap --address=127.0.0.1
 ```
 
 ## Conflicting Docker iptables rules
