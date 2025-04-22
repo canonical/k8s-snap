@@ -77,14 +77,11 @@ def get_latest_releases_by_minor() -> Dict[str, str]:
         latest (pre-)release tag (e.g. 'v1.30.1').
     """
     latest_by_minor: Dict[str, str] = {}
-    version_regex = re.compile(r"^v?(\d+)\.(\d+)\..+")
 
     for tag in get_k8s_tags():
-        match = version_regex.match(tag)
-        if not match:
-            continue
-        major, minor = match.groups()
-        key = f"{major}.{minor}"
+        # Strip leading 'v' if present since Version expects numeric first char
+        version = Version(tag.lstrip("v"))
+        key = f"{version.major}.{version.minor}"
         if key not in latest_by_minor:
             latest_by_minor[key] = tag
 
@@ -133,17 +130,9 @@ def get_obsolete_prereleases() -> List[str]:
 
 def _exec(*args, **kwargs) -> tuple[str, str]:
     """Run the specified command and return the stdout/stderr output as a tuple."""
-    LOG.debug("Executing: %s, cwd: %s.", cmd, cwd)
-    kwargs["text"]=True
+    LOG.debug("Executing: %s, args: %s, kwargs: %s", cmd, args, kwargs)
+    kwargs["text"] = True
     proc = subprocess.run(*args, **kwargs)
-    return proc.stdout, proc.stderr
-        cmd,
-        check=check,
-        timeout=timeout,
-        cwd=cwd,
-        capture_output=capture_output,
-        text=True,
-    )
     return proc.stdout, proc.stderr
 
 
