@@ -75,13 +75,13 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
 @pytest.mark.node_count(3)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
+def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
     """Verify that feature upgrades function correctly.
 
     Note: This is an interim test that will be expanded as feature upgrades mature.
     Eventually, it will merge with test_version_upgrades to create a unified upgrade test.
 
-    This test will spin up a three cp cluster on 1.32-classic/stable, and then upgrade to the snap.
+    This test will spin up a three cp cluster on the previous track of the snap, and then upgrade to the snap.
     The test will then verify that the upgrade CR is updated correctly and that the features are upgraded
     after the last node is upgraded.
     The test will also verify that the feature version is not upgraded until all nodes are upgraded.
@@ -220,3 +220,116 @@ def test_feature_upgrades(instances: List[harness.Instance], tmp_path: Path):
 def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> True:
     LOG.info("Waiting for upgraded nodes %s to be: %s", upgraded_nodes, expected_nodes)
     return set(upgraded_nodes) == set(expected_nodes)
+
+
+def _get_upgrade_crs(instance: harness.Instance) -> List[dict]:
+    """Get the upgrade CRs of the cluster"""
+    out = instance.exec(
+        "k8s kubectl get upgrade -o=json".split(),
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(out.stdout)["items"]
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.no_setup()
+@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.xfail(
+    reason="The node removal does not work consistently due to a microcluster bug."
+)
+def test_feature_upgrades_rollout_upgrade(
+    instances: List[harness.Instance], tmp_path: Path
+):
+    """ """
+    # TODO: Ensure that this test only runs on different k8s versions.
+    start_snap = util.previous_track(config.SNAP)
+    main_old = instances[0]
+    main_new = instances[3]
+
+    # Setup the first half of nodes up on the old version.
+    for instance in instances[:3]:
+        instance.exec(f"snap install k8s --classic --channel={start_snap}".split())
+
+    instance.exec(f"snap install k8s --classic --channel={start_snap}".split())
+
+    main_old.exec(["k8s", "bootstrap"])
+    for instance in instances[1:3]:
+        token = util.get_join_token(main_old, instance)
+        instance.exec(["k8s", "join-cluster", token])
+
+    # Get initial helm releases to track if they are updated correctly.
+    initial_releases = {
+        release["name"]: release
+        for release in json.loads(
+            main_old.exec(
+                [
+                    "/snap/k8s/current/bin/helm",
+                    "--kubeconfig",
+                    "/etc/kubernetes/admin.conf",
+                    "list",
+                    "-n",
+                    "kube-system",
+                    "-o",
+                    "json",
+                ],
+                capture_output=True,
+                text=True,
+            ).stdout
+        )
+    }
+
+    # Add node with new version to the cluster
+    # and remove an old one.
+    for idx in range(3):
+        new_instance = instances[3 + idx]
+        cluster_node = instances[idx]
+
+        util.setup_k8s_snap(new_instance, tmp_path, config.SNAP)
+        token = util.get_join_token(cluster_node, new_instance)
+        new_instance.exec(["k8s", "join-cluster", token])
+        nodes_in_cluster = instances[idx : idx + 3]  # noqa
+        util.wait_until_k8s_ready(new_instance, nodes_in_cluster)
+
+        # An upgrade CRD should exist and be in NodeUpgrade phase.
+        crs = _get_upgrade_crs(new_instance)
+        assert len(crs) == 1, f"Expected one upgrade CR but got {crs}"
+        assert (
+            crs[0]["status"]["phase"] == "NodeUpgrade"
+        ), f"Expected NodeUpgrade but got {crs[0]['status']['phase']}"
+
+        # Remove old node from cluster
+        new_instance.exec(["k8s", "remove-node", cluster_node.id])
+
+    # After all nodes are upgraded, the phase should be FeatureUpgrade/Completed
+    # and the helm releases should be updated.
+    util.stubbornly(retries=15, delay_s=5).on(main_new).until(
+        lambda p: p.stdout == "Completed",
+    ).exec(
+        "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
+        capture_output=True,
+        text=True,
+    )
+
+    # # All Feature version should eventually be upgraded.
+    LOG.info("Waiting for all helm releases to upgrade")
+    util.stubbornly(retries=15, delay_s=5).on(main_new).until(
+        lambda p: all(
+            next(r for r in json.loads(p.stdout) if r["name"] == name)["updated"]
+            != initial_releases[name]["updated"]
+            for name in initial_releases
+        ),
+    ).exec(
+        [
+            "/snap/k8s/current/bin/helm",
+            "--kubeconfig",
+            "/etc/kubernetes/admin.conf",
+            "list",
+            "-n",
+            "kube-system",
+            "-o",
+            "json",
+        ],
+        capture_output=True,
+        text=True,
+    )

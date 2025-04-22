@@ -17,11 +17,21 @@ import (
 )
 
 // TODO: If the upgrade CRD grows, consider using kubebuilder.
+type UpgradePhase string
+
 const (
 	UpgradePhaseNodeUpgrade    = "NodeUpgrade"
 	UpgradePhaseFeatureUpgrade = "FeatureUpgrade"
 	UpgradePhaseFailed         = "Failed"
 	UpgradePhaseCompleted      = "Completed"
+)
+
+type UpgradeStrategy string
+
+const (
+	UpgradeStrategyRollingUpgrade   = "RollingUpgrade"
+	UpgradeStrategyRollingDowngrade = "RollingDowngrade"
+	UpgradeStrategyInPlace          = "InPlace"
 )
 
 const (
@@ -39,8 +49,9 @@ var (
 )
 
 type UpgradeStatus struct {
-	Phase         string   `json:"phase,omitempty"`
-	UpgradedNodes []string `json:"upgradedNodes,omitempty"`
+	Strategy      UpgradeStrategy `json:"strategy,omitempty"`
+	Phase         UpgradePhase    `json:"phase,omitempty"`
+	UpgradedNodes []string        `json:"upgradedNodes,omitempty"`
 }
 
 // TODO(Hue): (KU-3033) Use kubebuilder to generate the CRD .
@@ -101,7 +112,7 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 	return nil
 }
 
-func NewUpgrade(name string) Upgrade {
+func NewUpgrade(name string, strategy UpgradeStrategy) Upgrade {
 	return Upgrade{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: apiVersion,
@@ -110,7 +121,11 @@ func NewUpgrade(name string) Upgrade {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
-		Status: UpgradeStatus{Phase: UpgradePhaseNodeUpgrade, UpgradedNodes: []string{}},
+		Status: UpgradeStatus{
+			Strategy:      strategy,
+			Phase:         UpgradePhaseNodeUpgrade,
+			UpgradedNodes: []string{},
+		},
 	}
 }
 
@@ -216,7 +231,7 @@ func (c *Client) PatchUpgradeStatus(ctx context.Context, upgradeName string, sta
 	}
 
 	// Wrap the status in a struct to match the CRD definition.
-	upgrade := NewUpgrade(upgradeName)
+	upgrade := NewUpgrade(upgradeName, status.Strategy)
 	upgrade.Status = status
 
 	body, err := json.Marshal(upgrade)

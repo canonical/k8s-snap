@@ -3,6 +3,7 @@ package snap
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -295,6 +296,32 @@ func (s *snap) LockFilesDir() string {
 
 func (s *snap) NodeTokenFile() string {
 	return filepath.Join(s.snapCommonDir, "node-token")
+}
+
+func (s *snap) NodeKubernetesVersion(ctx context.Context) (string, error) {
+	bomPath := filepath.Join(s.snapDir, "bom.json")
+	data, err := os.ReadFile(bomPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read bom.json: %w", err)
+	}
+
+	var bom struct {
+		Components struct {
+			Kubernetes struct {
+				Version string `json:"version"`
+			} `json:"kubernetes"`
+		} `json:"components"`
+	}
+
+	if err := json.Unmarshal(data, &bom); err != nil {
+		return "", fmt.Errorf("failed to unmarshal bom.json: %w", err)
+	}
+
+	if bom.Components.Kubernetes.Version == "" {
+		return "", fmt.Errorf("kubernetes version not found in bom.json")
+	}
+
+	return bom.Components.Kubernetes.Version, nil
 }
 
 func (s *snap) ContainerdExtraConfigDir() string {
