@@ -16,6 +16,10 @@ spec:
       subresources:
         status: {}  # Allows `status` updates separately
       additionalPrinterColumns:
+        - name: Strategy
+          type: string
+          description: "The strategy for this upgrade."
+          jsonPath: ".status.strategy"
         - name: Phase
           type: string
           description: "Current upgrade phase."
@@ -27,6 +31,10 @@ spec:
             status:
               type: object
               properties:
+                strategy:
+                  description: "The strategy for this upgrade."
+                  type: string
+                  enum: ["RollingUpgrade", "RollingDowngrade", "InPlace"]
                 upgradedNodes:
                   description: "List of nodes that have been upgraded."
                   type: array

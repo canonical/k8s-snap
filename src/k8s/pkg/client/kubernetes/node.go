@@ -8,6 +8,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	versionutil "k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/client-go/util/retry"
 )
 
@@ -48,4 +49,23 @@ func (c *Client) WatchNode(ctx context.Context, name string, reconcile func(node
 			}
 		}
 	}
+}
+
+// NodeVersions returns a map of node names to their parsed Kubernetes versions.
+func (c *Client) NodeVersions(ctx context.Context) (map[string]*versionutil.Version, error) {
+	nodes, err := c.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list nodes: %w", err)
+	}
+
+	nodeVersions := make(map[string]*versionutil.Version)
+	for _, node := range nodes.Items {
+		v, err := versionutil.ParseGeneric(node.Status.NodeInfo.KubeletVersion)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse version for node %s: %w", node.Name, err)
+		}
+		nodeVersions[node.Name] = v
+	}
+
+	return nodeVersions, nil
 }

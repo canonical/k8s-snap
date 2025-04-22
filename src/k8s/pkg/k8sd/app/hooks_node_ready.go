@@ -22,7 +22,7 @@ func (a *App) onNodeReady(ctx context.Context, s state.State) error {
 	// Apply all custom CRDs on startup
 	log.Info("Applying custom CRDs")
 	if err := a.applyCustomCRDs(ctx); err != nil {
-		return fmt.Errorf("failed to apply custom CRDs: %w", err)
+		log.Error(err, "failed to apply custom CRDs: %w")
 	}
 
 	// Check if a refresh was performed and if so, run the custom post-refresh hook
