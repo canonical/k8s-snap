@@ -82,6 +82,7 @@ Integrate with COS Lite <cos-lite>
 ```{toctree}
 :titlesonly:
 Report a security issue <report-security-issue>
+Harden the cluster <hardening>
 ```
 
 ## Contribute
