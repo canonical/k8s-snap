@@ -386,7 +386,8 @@ The final line of the output will be `PASS`.
 
 ## [V-242391]
 
-**Guideline:** The Kubernetes Kubelet must have anonymous authentication disabled
+**Guideline:** The Kubernetes Kubelet must have anonymous authentication
+disabled
 
 **Severity:** High
 
@@ -3668,7 +3669,8 @@ The final line of the output will be `PASS`.
 
 ## [V-242426]
 
-**Guideline:** Kubernetes etcd must enable client authentication to secure service
+**Guideline:** Kubernetes etcd must enable client authentication to secure
+service
 
 **Severity:** Medium
 
@@ -4465,7 +4467,8 @@ The final line of the output will be `PASS`.
 
 ## [V-242432]
 
-**Guideline:** Kubernetes etcd must have peer-cert-file set for secure communication
+**Guideline:** Kubernetes etcd must have peer-cert-file set for secure
+communication
 
 **Severity:** Medium
 
@@ -4541,7 +4544,8 @@ The final line of the output will be `PASS`.
 
 ## [V-242433]
 
-**Guideline:** Kubernetes etcd must have a peer-key-file set for secure communication
+**Guideline:** Kubernetes etcd must have a peer-key-file set for secure
+communication
 
 **Severity:** Medium
 
@@ -4614,7 +4618,8 @@ The final line of the output will be `PASS`.
 
 ## [V-242438]
 
-**Guideline:** Kubernetes API Server must configure timeouts to limit attack surface
+**Guideline:** Kubernetes API Server must configure timeouts to limit attack
+surface
 
 **Severity:** Medium
 
@@ -5217,7 +5222,8 @@ The final line of the output will be `PASS`.
 
 ## [V-242450]
 
-**Guideline:** The Kubernetes Kubelet certificate authority must be owned by root
+**Guideline:** The Kubernetes Kubelet certificate authority must be owned by
+root
 
 **Severity:** Medium
 
