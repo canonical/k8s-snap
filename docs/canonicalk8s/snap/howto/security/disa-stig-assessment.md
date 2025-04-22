@@ -6353,6 +6353,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 The final line of the output will be `PASS`.
 
+
 <!-- Links -->
 [getting started]: ../../tutorial/getting-started
 [post-deployment hardening]: hardening.md
