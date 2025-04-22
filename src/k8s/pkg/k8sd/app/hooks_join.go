@@ -264,7 +264,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 
 	// This is required for backwards compatibility.
 	log.Info("Applying custom CRDs")
-	// TODO(ben): This sometimes collides with the CRD application in the node.
 	if err := k8sClient.ApplyCRDs(ctx, a.snap.K8sCRDDir()); err != nil {
 		log.Error(err, "Failed to apply custom CRDs")
 	}
@@ -383,6 +382,7 @@ func handleRollOutUpgrade(ctx context.Context, snap snap.Snap, s state.State, k8
 	return nil
 }
 
+// lowestHighestK8sVersions returns the lowest and highest Kubernetes versions from the given map.
 func lowestHighestK8sVersions(k8sVersionMap map[string]*versionutil.Version) (lowest, highest *versionutil.Version) {
 	for _, version := range k8sVersionMap {
 		if lowest == nil || version.LessThan(lowest) {
