@@ -77,6 +77,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Generate job UUID
+        # Use this UUID to ensure that the artifact names are unique.
+        run: echo UUID=$(uuidgen) >> $GITHUB_ENV
       - name: Apply patches
         if: inputs.flavor != ''
         run: |
@@ -128,3 +131,9 @@ jobs:
         with:
          name: sonobuoy-e2e-${{ env.artifact_name }}
          path: tests/integration/sonobuoy_e2e.tar.gz
+      - name: Upload html test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+         name: subunit-${{ env.UUID }}.html
+         path: tests/integration/subunit.html
