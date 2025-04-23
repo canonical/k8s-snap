@@ -40,15 +40,16 @@ administrator or a user policy needs to be followed.
 | `Not Applicable` (13) | V-242386, V-242393, V-242394, V-242395, V-242396, V-242398, V-242399, V-242413, V-242437, V-242442, V-242443, V-242454, V-242455 |
 | `Manual` (8) | V-242383, V-242410, V-242411, V-242412, V-242414, V-242415, V-242417, V-254800 |
 
-<!-- TODO Re-enable once report is formatted >
-<!-- markdownlint-disable MD013 -->
-### [V-242381]: The Kubernetes Controller Manager must create unique service accounts for each work payload
+## [V-242381]
 
-#### Severity: High
+**Guideline:** The Kubernetes Controller Manager must create unique service
+accounts for each work payload
 
-#### Class: Deployment
+**Severity**: High
 
-#### Upstream finding description:
+**Class**: Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes Controller Manager is a background process that embeds core
 > control loops regulating cluster system state through the API Server. Every
@@ -60,7 +61,7 @@ administrator or a user policy needs to be followed.
 > instance.
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes Controller Manager in the
 > k8s-snap are defined in the following file:
@@ -69,7 +70,7 @@ administrator or a user policy needs to be followed.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the
 argument `--use-service-account-credentials` for service
@@ -85,7 +86,7 @@ Afterwards restart the `kube-controller-manager` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--use-service-account-credentials` for service
 `kube-controller-manager` is set as appropriate in the service's argument file
@@ -103,13 +104,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242383]: User-managed resources must be created in dedicated namespaces
+## [V-242383]
 
-#### Severity: High
+**Guideline:** User-managed resources must be created in dedicated namespaces
 
-#### Class: Manual
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Manual
+
+**Upstream finding description:**
 
 > Creating namespaces for user-managed resources is important when implementing
 > Role-Based Access Controls (RBAC). RBAC allows for the authorization of users
@@ -122,7 +125,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The Kubernetes System Administrators must manually inspect the services in
 > all of the default namespaces to ensure there are no user-created resources
@@ -135,13 +138,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242386]: The Kubernetes API server must have the insecure port flag disabled
+## [V-242386]
 
-#### Severity: High
+**Guideline:** The Kubernetes API server must have the insecure port flag
+disabled
 
-#### Class: Not Applicable
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > By default, the API server will listen on two ports. One port is the secure
 > port and the other port is called the "localhost port". This port is also
@@ -158,7 +164,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to the `--insecure-port` command line argument for the
 > Kubernetes API Server service.
@@ -172,13 +178,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242387]: The Kubernetes Kubelet must have the "readOnlyPort" flag disabled
+## [V-242387]
 
-#### Severity: High
+**Guideline:** The Kubernetes Kubelet must have the "readOnlyPort" flag disabled
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubelet serves a small REST API with read access to port 10255. The read-only
 > port for Kubernetes provides no authentication or authorization security
@@ -190,7 +198,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service, but does explicitly pass `--read-only-port=0` as a command line
@@ -203,7 +211,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--read-only-port` for service `kubelet` as appropriate.
@@ -218,7 +226,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--read-only-port` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -237,13 +245,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242388]: The Kubernetes API server must have the insecure bind address not set
+## [V-242388]
 
-#### Severity: High
+**Guideline:** The Kubernetes API server must have the insecure bind address
+not set
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > By default, the API server will listen on two ports and addresses. One
 > address is the secure address and the other address is called the "insecure
@@ -261,7 +272,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -270,7 +281,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--insecure-bind-address` for service `kube-apiserver` as appropriate.
@@ -285,7 +296,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--insecure-bind-address` for service `kube-apiserver`
 is set as appropriate in the service's argument file
@@ -305,13 +316,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242390]: The Kubernetes API server must have anonymous authentication disabled
+## [V-242390]
 
-#### Severity: High
+**Guideline:** The Kubernetes API server must have anonymous authentication
+disabled
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes API Server controls Kubernetes via an API interface. A user
 > who has access to the API essentially has root access to the entire
@@ -331,7 +345,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -340,7 +354,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--anonymous-auth` for service `kube-apiserver` as appropriate.
@@ -355,7 +369,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--anonymous-auth` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -370,13 +384,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242391]: The Kubernetes Kubelet must have anonymous authentication disabled
+## [V-242391]
 
-#### Severity: High
+**Guideline:** The Kubernetes Kubelet must have anonymous authentication
+disabled
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > A user who has access to the Kubelet essentially has root access to the nodes
 > contained within the Kubernetes Control Plane. To control access, users must
@@ -395,7 +412,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service, but does explicitly pass `--anonymous-auth=0` as a command line
@@ -408,7 +425,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--anonymous-auth` for service `kubelet` as appropriate.
@@ -423,7 +440,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--anonymous-auth` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -440,13 +457,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242392]: The Kubernetes kubelet must enable explicit authorization
+## [V-242392]
 
-#### Severity: High
+**Guideline:** The Kubernetes kubelet must enable explicit authorization
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubelet is the primary agent on each node. The API server communicates with
 > each kubelet to perform tasks such as starting/stopping pods. By default,
@@ -460,7 +479,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service, but does explicitly pass `--authorization-mode=Webhook` as a command
@@ -473,7 +492,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--authorization-mode` for service `kubelet` as appropriate.
@@ -488,7 +507,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--authorization-mode` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -507,13 +526,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242397]: The Kubernetes kubelet staticPodPath must not enable static pods
+## [V-242397]
 
-#### Severity: High
+**Guideline:** The Kubernetes kubelet staticPodPath must not enable static pods
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Allowing kubelet to set a staticPodPath gives containers with root access
 > permissions to traverse the hosting filesystem. The danger comes when the
@@ -529,7 +550,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The Finding refers to checking the 'staticPodPath' in kubectl's `--config`
 > file is not set.
@@ -544,7 +565,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--pod-manifest-path` for service `kubelet` as appropriate.
@@ -559,7 +580,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--pod-manifest-path` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -578,13 +599,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242415]: Secrets in Kubernetes must not be stored as environment variables
+## [V-242415]
 
-#### Severity: High
+**Guideline:** Secrets in Kubernetes must not be stored as environment variables
 
-#### Class: Manual
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Manual
+
+**Upstream finding description:**
 
 > Secrets, such as passwords, keys, tokens, and certificates should not be
 > stored as environment variables. These environment variables are accessible
@@ -596,7 +619,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The Kubernetes System Administrator must manually inspect the Environment of
 > each user-created Pod to ensure there are no Pods passing information which
@@ -606,13 +629,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242434]: Kubernetes Kubelet must enable kernel protection
+## [V-242434]
 
-#### Severity: High
+**Guideline:** Kubernetes Kubelet must enable kernel protection
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > System kernel is responsible for memory, disk, and task management. The
 > kernel provides a gateway between the system hardware and software.
@@ -622,7 +647,7 @@ The final line of the output will be `PASS`.
 > through Kubernetes components to reduce the attack surface.
 
 
-#### Comments:
+**Comments:**
 
 > The Finding stipulates that `--protect-kernel-defaults` must be set on the
 > Kubelet service.
@@ -633,12 +658,11 @@ The final line of the output will be `PASS`.
 > Please review the hardening guide for information on how to properly
 > configure the Node's Operating System for Kubelet.
 >
-> <!-- TODO: link to dedicated K8s hardening doc. -->
-> https://microk8s.io/docs/how-to-cis-harden#check-426
+> https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/security/hardening/
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--protect-kernel-defaults` for service `kubelet` as appropriate.
@@ -653,7 +677,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--protect-kernel-defaults` for service `kubelet` is
 set as appropriate in the service's argument file
@@ -673,13 +697,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242436]: The Kubernetes API server must have the ValidatingAdmissionWebhook enabled
+## [V-242436]
 
-#### Severity: High
+**Guideline:** The Kubernetes API server must have the
+ValidatingAdmissionWebhook enabled
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Enabling the admissions webhook allows for Kubernetes to apply policies
 > against objects that are to be created, read, updated, or deleted. By
@@ -694,7 +721,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This Finding stipulates that the `ValidatingAdmissionWebhook` Admission
 > Plugin should be enabled.
@@ -708,7 +735,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--disable-admission-plugins` for service `kube-apiserver` as appropriate.
@@ -723,7 +750,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--disable-admission-plugins` for service
 `kube-apiserver` is set as appropriate in the service's argument file
@@ -743,13 +770,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242437]: Kubernetes must have a pod security policy set
+## [V-242437]
 
-#### Severity: High
+**Guideline:** Kubernetes must have a pod security policy set
 
-#### Class: Not Applicable
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > Enabling the admissions webhook allows for Kubernetes to apply policies
 > against objects that are to be created, read, updated, or deleted. By
@@ -764,7 +793,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This Finding stipulates some checks on the Pod Security Policy object which
 > was deprecated in 1.21 and removed in 1.25, so it is Not Applicable to any
@@ -775,13 +804,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-245542]: Kubernetes API Server must disable basic authentication to protect information in transit
+## [V-245542]
 
-#### Severity: High
+**Guideline:** Kubernetes API Server must disable basic authentication to
+protect information in transit
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes basic authentication sends and receives request containing
 > username, uid, groups, and other fields over a clear text HTTP communication.
@@ -794,7 +826,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -803,7 +835,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--basic-auth-file` for service `kube-apiserver` as appropriate.
@@ -818,7 +850,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--basic-auth-file` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -838,13 +870,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-245543]: Kubernetes API Server must disable token authentication to protect information in transit
+## [V-245543]
 
-#### Severity: High
+**Guideline:** Kubernetes API Server must disable token authentication to
+protect information in transit
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes token authentication uses password known as secrets in a plain
 > text file. This file contains sensitive information such as token, username
@@ -858,7 +893,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -867,7 +902,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--token-auth-file` for service `kube-apiserver` as appropriate.
@@ -884,7 +919,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--token-auth-file` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -904,13 +939,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-245544]: Kubernetes endpoints must use approved organizational certificate and key pair to protect information in transit
+## [V-245544]
 
-#### Severity: High
+**Guideline:** Kubernetes endpoints must use approved organizational certificate
+and key pair to protect information in transit
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes control plane and external communication is managed by API Server.
 > The main implementation of the API Server is to manage hardware resources for
@@ -933,10 +971,10 @@ The final line of the output will be `PASS`.
 
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -945,7 +983,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--kubelet-client-certificate` for service `kube-apiserver` as appropriate.
@@ -961,7 +999,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure that the argument `--kubelet-client-certificate` for service
 `kube-apiserver` is set as appropriate in the service's argument file
@@ -981,10 +1019,10 @@ The final line of the output will be `PASS`.
 
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -993,7 +1031,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--kubelet-client-key` for service `kube-apiserver` as appropriate.
@@ -1009,7 +1047,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--kubelet-client-key` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -1029,13 +1067,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-254800]: Kubernetes must have a Pod Security Admission control file configured
+## [V-254800]
 
-#### Severity: High
+**Guideline:** Kubernetes must have a Pod Security Admission control file
+configured
 
-#### Class: Manual
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Manual
+
+**Upstream finding description:**
 
 > An admission controller intercepts and processes requests to the Kubernetes
 > API prior to persistence of the object, but after the request is
@@ -1053,7 +1094,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This Finding stipulates the presence of a Pod Security Admission Control File
 > which will need to be manually configured by the Kubernetes System
@@ -1065,13 +1106,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-254801]: Kubernetes must enable PodSecurity admission controller on static pods and Kubelets
+## [V-254801]
 
-#### Severity: High
+**Guideline:** Kubernetes must enable PodSecurity admission controller on static
+pods and Kubelets
 
-#### Class: Deployment
+**Severity:** High
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > PodSecurity admission controller is a component that validates and enforces
 > security policies for pods running within a Kubernetes cluster. It is
@@ -1091,7 +1135,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to setting the `--feature-gates=PodSecurity=true` feature
 > gate for the Kubernetes API Server.
@@ -1105,7 +1149,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--feature-gates` for service `kubelet` as appropriate.
@@ -1120,7 +1164,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--feature-gates` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -1139,19 +1183,23 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242376]: The Kubernetes Controller Manager must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
+## [V-242376]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes Controller Manager must use TLS 1.2, at a minimum,
+to protect the confidentiality of sensitive data during electronic dissemination
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes Controller Manager will prohibit the use of SSL and
 > unauthorized versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation
+of
 > users or services from the container platform runtime, registry, and key
 > store. To enable the minimum version of TLS to be used by the Kubernetes
 > Controller Manager, the setting "tls-min-version" must be set.
@@ -1160,7 +1208,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes Controller Manager in the
 > k8s-snap are defined in the following file:
@@ -1169,7 +1217,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the
 argument `--tls-min-version` for service `kube-controller-manager` as
@@ -1185,7 +1233,7 @@ Afterwards restart the `kube-controller-manager` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--tls-min-version` for service
 `kube-controller-manager` is set as appropriate in the service's argument file
@@ -1200,19 +1248,23 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242377]: The Kubernetes Scheduler must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
+## [V-242377]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes Scheduler must use TLS 1.2, at a minimum, to
+protect the confidentiality of sensitive data during electronic dissemination
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes Scheduler will prohibit the use of SSL and unauthorized
 > versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation
+of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "tls-min-version" must be set.
@@ -1221,7 +1273,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes Scheduler in the k8s-snap are
 > defined in the following file:
@@ -1230,7 +1282,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-scheduler` in order to set the argument
 `--tls-min-version` for service `kube-scheduler` as appropriate.
@@ -1245,7 +1297,7 @@ Afterwards restart the `kube-scheduler` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--tls-min-version` for service `kube-scheduler` is
 set as appropriate in the service's argument file
@@ -1260,25 +1312,29 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242378]: The Kubernetes API Server must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination
+## [V-242378]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API Server must use TLS 1.2, at a minimum, to
+protect the confidentiality of sensitive data during electronic dissemination
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes API Server will prohibit the use of SSL and unauthorized
 > versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation
+of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "tls-min-version" must be set.
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes Scheduler in the k8s-snap are
 > defined in the following file:
@@ -1287,7 +1343,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--tls-min-version` for service `kube-apiserver` as appropriate.
@@ -1302,7 +1358,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--tls-min-version` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -1317,28 +1373,32 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242379]: The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination
+## [V-242379]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes etcd must use TLS to protect the confidentiality
+of sensitive data during electronic dissemination
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes etcd will prohibit the use of SSL and unauthorized versions of TLS
 > protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation
+of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "--auto-tls" must be set.
 
 
-#### Step 1/3
+### Step 1/3
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--auto-tls` command line argument for the etcd
 > service.
@@ -1354,7 +1414,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -1363,7 +1423,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -1378,15 +1438,15 @@ start with `PASS`.
 
 
 
-#### Step 2/3
+### Step 2/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -1395,7 +1455,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure all required files have permissions '600' (or stricter):
 
@@ -1410,17 +1470,17 @@ start with `PASS`.
 
 
 
-#### Step 3/3
+### Step 3/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server is as
 > expected.
 >
 
 
-#### Remediation for Step 3
+### Remediation for Step 3
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--etcd-servers` for service `kube-apiserver` as appropriate.
@@ -1437,7 +1497,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root) for Step 3
+### Auditing (as root) for Step 3
 
 Ensure that the argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -1457,19 +1517,23 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242380]: The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination
+## [V-242380]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes etcd must use TLS to protect the confidentiality
+of sensitive data during electronic dissemination
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes API Server will prohibit the use of SSL and unauthorized
 > versions of TLS protocols to properly secure communication.
 >
 > The use of unsupported protocol exposes vulnerabilities to the Kubernetes by
-> rogue traffic interceptions, person-in-the-middle attacks, and impersonation of
+> rogue traffic interceptions, person-in-the-middle attacks, and impersonation
+of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "--peer-auto-tls" must be set.
@@ -1478,7 +1542,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--peer-auto-tls` command line argument for the
 > etcd service.
@@ -1493,7 +1557,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/k8s-dqlite` in order to set the argument
 `--enable-tls` for service `k8s-dqlite` as appropriate.
@@ -1508,7 +1572,7 @@ Afterwards restart the `k8s-dqlite` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--enable-tls` for service `k8s-dqlite` is set as
 appropriate in the service's argument file
@@ -1528,13 +1592,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242382]: The Kubernetes API Server must enable Node,RBAC as the authorization mode
+## [V-242382]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API Server must enable Node,RBAC as the
+authorization mode
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > To mitigate the risk of unauthorized access to sensitive information by
 > entities that have been issued certificates by DOD-approved PKIs, all DOD
@@ -1558,7 +1625,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -1569,7 +1636,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--authorization-mode` for service `kube-apiserver` as appropriate.
@@ -1584,7 +1651,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--authorization-mode` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -1602,13 +1669,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242384]: The Kubernetes Scheduler must have secure binding
+## [V-242384]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes Scheduler must have secure binding
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Limiting the number of attack vectors and implementing authentication and
 > encryption on the endpoints available to external sources is paramount when
@@ -1624,7 +1693,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes Scheduler in the k8s-snap are
 > defined in the following file:
@@ -1633,7 +1702,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-scheduler` in order to set the argument
 `--bind-address` for service `kube-scheduler` as appropriate.
@@ -1648,7 +1717,7 @@ Afterwards restart the `kube-scheduler` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--bind-address` for service `kube-scheduler` is set
 as appropriate in the service's argument file
@@ -1663,13 +1732,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242385]: The Kubernetes Controller Manager must have secure binding
+## [V-242385]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes Controller Manager must have secure binding
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Limiting the number of attack vectors and implementing authentication and
 > encryption on the endpoints available to external sources is paramount when
@@ -1682,7 +1753,7 @@ The final line of the output will be `PASS`.
 > information can access the Control Manager API.
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes Controller Manager in the
 > k8s-snap are defined in the following file:
@@ -1691,7 +1762,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the
 argument `--bind-address` for service `kube-controller-manager` as appropriate.
@@ -1706,7 +1777,7 @@ Afterwards restart the `kube-controller-manager` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--bind-address` for service `kube-controller-manager`
 is set as appropriate in the service's argument file
@@ -1721,13 +1792,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242389]: The Kubernetes API server must have the secure port set
+## [V-242389]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API server must have the secure port set
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > By default, the API server will listen on what is rightfully called the
 > secure port, port 6443. Any requests to this port will perform authentication
@@ -1742,7 +1815,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -1751,7 +1824,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--secure-port` for service `kube-apiserver` as appropriate.
@@ -1766,7 +1839,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--secure-port` for service `kube-apiserver` is set as
 appropriate in the service's argument file
@@ -1786,13 +1859,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242393]: Kubernetes Worker Nodes must not have sshd service running
+## [V-242393]
 
-#### Severity: Medium
+**Guideline:** Kubernetes Worker Nodes must not have sshd service running
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > Worker Nodes are maintained and monitored by the Control Plane. Direct access
 > and manipulation of the nodes should not take place by administrators. Worker
@@ -1803,7 +1878,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This Finding aims to completely prohibit the *running* of SSHD on all worker
 > Nodes, and must be assessed by the Kubernetes System Administrator as
@@ -1815,13 +1890,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242394]: Kubernetes Worker Nodes must not have the sshd service enabled
+## [V-242394]
 
-#### Severity: Medium
+**Guideline:** Kubernetes Worker Nodes must not have the sshd service enabled
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > Worker Nodes are maintained and monitored by the Control Plane. Direct access
 > and manipulation of the nodes must not take place by administrators. Worker
@@ -1832,7 +1909,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This Finding aims to prohibit the *enabling of the service* for SSHD on all
 > worker Nodes, and must be assessed by the Kubernetes System Administrator as
@@ -1844,13 +1921,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242395]: Kubernetes dashboard must not be enabled
+## [V-242395]
 
-#### Severity: Medium
+**Guideline:** Kubernetes dashboard must not be enabled
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > While the Kubernetes dashboard is not inherently insecure on its own, it is
 > often coupled with a misconfiguration of Role-Based Access control (RBAC)
@@ -1863,7 +1942,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The k8s-snap does not automatically deploy or configure the Kubernetes
 > Dashboard, so this finding is Not Applicable.
@@ -1876,13 +1955,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242396]: Kubernetes Kubectl cp command must give expected access and results
+## [V-242396]
 
-#### Severity: Medium
+**Guideline:** Kubernetes Kubectl cp command must give expected access and
+results
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > One of the tools heavily used to interact with containers in the Kubernetes
 > cluster is kubectl. The command is the tool System Administrators used to
@@ -1898,7 +1980,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to checking the `kubectl version --client` to avoid a
 > known security issue with `kubectl cp`.
@@ -1911,13 +1993,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242398]: Kubernetes DynamicAuditing must not be enabled
+## [V-242398]
 
-#### Severity: Medium
+**Guideline:** Kubernetes DynamicAuditing must not be enabled
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > Protecting the audit data from change or deletion is important when an attack
 > occurs. One way an attacker can cover their tracks is to change or delete
@@ -1935,7 +2019,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This finding relates to the `--feature-gate=DynamicAuditing` feature gate
 > flag.
@@ -1948,13 +2032,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242399]: Kubernetes DynamicKubeletConfig must not be enabled
+## [V-242399]
 
-#### Severity: Medium
+**Guideline:** Kubernetes DynamicKubeletConfig must not be enabled
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > Kubernetes allows a user to configure kubelets with dynamic configurations.
 > When dynamic configuration is used, the kubelet will watch for changes to the
@@ -1968,7 +2054,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > Checks related to the `--feature-gate=DynamicKubeletConfig` feature gate
 > flag.
@@ -1981,13 +2067,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242400]: The Kubernetes API server must have Alpha APIs disabled
+## [V-242400]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API server must have Alpha APIs disabled
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes allows alpha API calls within the API server. The alpha features
 > are disabled by default since they are not ready for production and likely to
@@ -1999,13 +2087,13 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The k8s-snap does not set the `--feature-gate` flag on the `kube-apiserver`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--feature-gate` for service `kube-apiserver` as appropriate.
@@ -2023,7 +2111,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--feature-gate` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -2043,13 +2131,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242402]: The Kubernetes API Server must have an audit log path set
+## [V-242402]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API Server must have an audit log path set
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > When Kubernetes is started, components and user services are started for
 > auditing startup events, and events for components and services, it is
@@ -2061,7 +2151,7 @@ The final line of the output will be `PASS`.
 > audit data is sent to studio.
 
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to the `--audit-log-path` argument of the Kubernetes API
 > Service.
@@ -2080,7 +2170,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-log-path` for service `kube-apiserver` as appropriate.
@@ -2095,7 +2185,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--audit-log-path` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -2110,13 +2200,18 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242403]: Kubernetes API Server must generate audit records that identify what type of event has occurred, identify the source of the event, contain the event results, identify any users, and identify any containers associated with the event
+## [V-242403]
 
-#### Severity: Medium
+**Guideline:** Kubernetes API Server must generate audit records that identify
+what type of event has occurred, identify the source of the event, contain the
+event results, identify any users, and identify any containers associated with
+the event
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Within Kubernetes, audit data for all components is generated by the API
 > server. This audit data is important when there are issues, to include
@@ -2149,7 +2244,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to the `--audit-policy-file` argument of the Kubernetes
 > API Service.
@@ -2161,7 +2256,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-policy-file` for service `kube-apiserver` as appropriate.
@@ -2176,7 +2271,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--audit-policy-file` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -2191,13 +2286,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242404]: Kubernetes Kubelet must deny hostname override
+## [V-242404]
 
-#### Severity: Medium
+**Guideline:** Kubernetes Kubelet must deny hostname override
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes allows for the overriding of hostnames. Allowing this feature to
 > be implemented within the kubelets may break the TLS setup between the
@@ -2210,7 +2307,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of Kubelet in the k8s-snap are defined in the
 > following file:
@@ -2219,7 +2316,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--hostname-override` for service `kubelet` as appropriate.
@@ -2234,7 +2331,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--hostname-override` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -2250,13 +2347,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242405]: The Kubernetes manifests must be owned by root
+## [V-242405]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes manifests must be owned by root
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The manifest files contain the runtime configuration of the API server,
 > proxy, scheduler, controller, and etcd. If an attacker can gain access to
@@ -2267,7 +2366,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The manifest files for the Kubernetes services in the k8s-snap are located in
 > the following directories:
@@ -2277,7 +2376,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -2285,7 +2384,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown -R 0:0 /etc/containerd /etc/containerd/config.toml
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure all files exist and have the correct ownership.
 
@@ -2320,13 +2419,15 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-### [V-242406]: The Kubernetes KubeletConfiguration file must be owned by root
+## [V-242406]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes KubeletConfiguration file must be owned by root
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The kubelet configuration file contains the runtime configuration of the
 > kubelet service. If an attacker can gain access to this file, changes can be
@@ -2336,10 +2437,10 @@ start with `PASS`.
 
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > This Finding relates to the ownership of Kubelet's `--config` file.
 >
@@ -2355,7 +2456,7 @@ start with `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -2364,7 +2465,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/args/kubelet
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -2379,17 +2480,17 @@ start with `PASS`.
 
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > This check is defined to ensure that Kubelet is not passed a `--config` file
 > argument in the k8s-snap.
 >
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--config` for service `kubelet` as appropriate.
@@ -2405,7 +2506,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -2426,13 +2527,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242407]: The Kubernetes KubeletConfiguration files must have file permissions set to 644 or more restrictive
+## [V-242407]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes KubeletConfiguration files must have file
+permissions set to 644 or more restrictive
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The kubelet configuration file contains the runtime configuration of the
 > kubelet service. If an attacker can gain access to this file, changes can be
@@ -2442,10 +2546,10 @@ The final line of the output will be `PASS`.
 
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > This Finding relates to the permissions on Kubelet's `--config` file.
 >
@@ -2462,7 +2566,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -2471,7 +2575,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 644 /var/snap/k8s/common/args/kubelet
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all required files have permissions '644' (or stricter):
 
@@ -2486,17 +2590,17 @@ start with `PASS`.
 
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > This check is defined to ensure that Kubelet is not passed a `--config` file
 > argument in the k8s-snap.
 >
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--config` for service `kubelet` as appropriate.
@@ -2512,7 +2616,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -2533,13 +2637,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242408]: The Kubernetes manifest files must have least privileges
+## [V-242408]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes manifest files must have least privileges
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The manifest files contain the runtime configuration of the API server,
 > scheduler, controller, and etcd. If an attacker can gain access to these
@@ -2553,7 +2659,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The Finding requires checking the permissions of the files within the
 > `/etc/kubernetes/manifests` directory, but the k8s-snap does not use it.
@@ -2564,7 +2670,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -2572,7 +2678,7 @@ Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/k8s-dqlite /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure all required files have permissions '644' (or stricter):
 
@@ -2595,13 +2701,15 @@ start with `PASS`.
 
 
 
-### [V-242409]: Kubernetes Controller Manager must disable profiling
+## [V-242409]
 
-#### Severity: Medium
+**Guideline:** Kubernetes Controller Manager must disable profiling
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes profiling provides the ability to analyze and troubleshoot
 > Controller Manager events over a web interface on a host port. Enabling this
@@ -2612,7 +2720,7 @@ start with `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes Controller Manager in the
 > k8s-snap are defined in the following file:
@@ -2621,7 +2729,7 @@ start with `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the
 argument `--profiling` for service `kube-controller-manager` as appropriate.
@@ -2636,7 +2744,7 @@ Afterwards restart the `kube-controller-manager` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--profiling` for service `kube-controller-manager` is
 set as appropriate in the service's argument file
@@ -2654,13 +2762,17 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242410]: The Kubernetes API Server must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
+## [V-242410]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API Server must enforce ports, protocols, and
+services (PPS) that adhere to the Ports, Protocols, and Services Management
+Category Assurance List (PPSM CAL)
 
-#### Class: Manual
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Manual
+
+**Upstream finding description:**
 
 > Kubernetes API Server PPSs must be controlled and conform to the PPSM CAL.
 > Those PPS that fall outside the PPSM CAL must be blocked. Instructions on the
@@ -2670,7 +2782,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This STIG Finding relates to implementing PPSM CAL for kube-apiserver, and
 > must be assessed manually by the Auditor.
@@ -2680,13 +2792,17 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242411]: The Kubernetes Scheduler must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
+## [V-242411]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes Scheduler must enforce ports, protocols, and
+services (PPS) that adhere to the Ports, Protocols, and Services Management
+Category Assurance List (PPSM CAL)
 
-#### Class: Manual
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Manual
+
+**Upstream finding description:**
 
 > Kubernetes Scheduler PPS must be controlled and conform to the PPSM CAL.
 > Those ports, protocols, and services that fall outside the PPSM CAL must be
@@ -2697,7 +2813,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This STIG Finding relates to implementing PPSM CAL for kube-scheduler, and
 > must be assessed manually by the Auditor.
@@ -2707,13 +2823,17 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242412]: The Kubernetes Controllers must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
+## [V-242412]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes Controllers must enforce ports, protocols, and
+services (PPS) that adhere to the Ports, Protocols, and Services Management
+Category Assurance List (PPSM CAL)
 
-#### Class: Manual
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Manual
+
+**Upstream finding description:**
 
 > Kubernetes Controller ports, protocols, and services must be controlled and
 > conform to the PPSM CAL. Those PPS that fall outside the PPSM CAL must be
@@ -2724,7 +2844,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This STIG Finding relates to implementing PPSM CAL for
 > kube-controller-manager, and must be assessed manually by the Auditor.
@@ -2734,13 +2854,17 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242413]: The Kubernetes etcd must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL)
+## [V-242413]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes etcd must enforce ports, protocols, and services
+(PPS) that adhere to the Ports, Protocols, and Services Management Category
+Assurance List (PPSM CAL)
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > Kubernetes etcd PPS must be controlled and conform to the PPSM CAL. Those PPS
 > that fall outside the PPSM CAL must be blocked. Instructions on the PPSM can
@@ -2750,7 +2874,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This STIG Finding relates to implementing PPSM CAL for etcd.
 >
@@ -2763,13 +2887,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242414]: The Kubernetes cluster must use non-privileged host ports for user pods
+## [V-242414]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes cluster must use non-privileged host ports for
+user pods
 
-#### Class: Manual
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Manual
+
+**Upstream finding description:**
 
 > Privileged ports are those ports below 1024 and that require system
 > privileges for their use. If containers can use these ports, the container
@@ -2783,7 +2910,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The Kubernetes System Administrators must manually inspect the Pods in all of
 > the default namespaces to ensure there are no user-created Pods with
@@ -2795,13 +2922,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242417]: Kubernetes must separate user functionality
+## [V-242417]
 
-#### Severity: Medium
+**Guideline:** Kubernetes must separate user functionality
 
-#### Class: Manual
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Manual
+
+**Upstream finding description:**
 
 > Separating user functionality from management functionality is a requirement
 > for all the components within the Kubernetes Control Plane. Without the
@@ -2814,7 +2943,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The Kubernetes System Administrators must manually inspect the Pods in all of
 > the default namespaces to ensure there are no user-created Pods within them,
@@ -2827,13 +2956,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242418]: The Kubernetes API server must use approved cipher suites
+## [V-242418]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API server must use approved cipher suites
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes API server communicates to the kubelet service on the nodes to
 > deploy, update, and delete resources. If an attacker were able to get between
@@ -2846,7 +2977,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -2855,7 +2986,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--tls-cipher-suites` for service `kube-apiserver` as appropriate.
@@ -2873,7 +3004,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--tls-cipher-suites` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -2891,13 +3022,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242419]: Kubernetes API Server must have the SSL Certificate Authority set
+## [V-242419]
 
-#### Severity: Medium
+**Guideline:** Kubernetes API Server must have the SSL Certificate Authority set
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes control plane and external communication are managed by API
 > Server. The main implementation of the API Server is to manage hardware
@@ -2919,7 +3052,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -2928,7 +3061,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--client-ca-file` for service `kube-apiserver` as appropriate.
@@ -2943,7 +3076,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--client-ca-file` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -2961,13 +3094,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242420]: Kubernetes Kubelet must have the SSL Certificate Authority set
+## [V-242420]
 
-#### Severity: Medium
+**Guideline:** Kubernetes Kubelet must have the SSL Certificate Authority set
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes container and pod configuration are maintained by Kubelet. Kubelet
 > agents register nodes with the API Server, mount volume storage, and perform
@@ -2989,7 +3124,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service, but does explicitly pass the `--client-ca-file` argument as a
@@ -3002,7 +3137,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--client-ca-file` for service `kubelet` as appropriate.
@@ -3017,7 +3152,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--client-ca-file` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -3034,13 +3169,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242421]: Kubernetes Controller Manager must have the SSL Certificate Authority set
+## [V-242421]
 
-#### Severity: Medium
+**Guideline:** Kubernetes Controller Manager must have the SSL Certificate
+Authority set
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes Controller Manager is responsible for creating service
 > accounts and tokens for the API Server, maintaining the correct number of
@@ -3062,7 +3200,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes Controller Manager in the
 > k8s-snap are defined in the following file:
@@ -3071,7 +3209,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the
 argument `--root-ca-file` for service `kube-controller-manager` as appropriate.
@@ -3086,7 +3224,7 @@ Afterwards restart the `kube-controller-manager` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--root-ca-file` for service `kube-controller-manager`
 is set as appropriate in the service's argument file
@@ -3104,13 +3242,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242422]: Kubernetes API Server must have a certificate for communication
+## [V-242422]
 
-#### Severity: Medium
+**Guideline:** Kubernetes API Server must have a certificate for communication
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes control plane and external communication is managed by API Server.
 > The main implementation of the API Server is to manage hardware resources for
@@ -3131,10 +3271,10 @@ The final line of the output will be `PASS`.
 
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -3143,7 +3283,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--tls-cert-file` for service `kube-apiserver` as appropriate.
@@ -3159,7 +3299,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure that the argument `--tls-cert-file` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -3179,10 +3319,10 @@ The final line of the output will be `PASS`.
 
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
 > defined in the following file:
@@ -3191,7 +3331,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--tls-private-key-file` for service `kube-apiserver` as appropriate.
@@ -3207,7 +3347,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--tls-private-key-file` for service `kube-apiserver`
 is set as appropriate in the service's argument file
@@ -3227,13 +3367,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242423]: Kubernetes etcd must enable client authentication to secure service
+## [V-242423]
 
-#### Severity: Medium
+**Guideline:** Kubernetes etcd must enable client authentication to secure
+service
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes container and pod configuration are maintained by Kubelet. Kubelet
 > agents register nodes with the API Server, mount volume storage, and perform
@@ -3254,10 +3397,10 @@ The final line of the output will be `PASS`.
 
 
 
-#### Step 1/3
+### Step 1/3
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--cert-file` command line argument for the etcd
 > service.
@@ -3273,7 +3416,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -3282,7 +3425,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -3297,15 +3440,15 @@ start with `PASS`.
 
 
 
-#### Step 2/3
+### Step 2/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -3314,7 +3457,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure all required files have permissions '600' (or stricter):
 
@@ -3329,17 +3472,17 @@ start with `PASS`.
 
 
 
-#### Step 3/3
+### Step 3/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server is as
 > expected.
 >
 
 
-#### Remediation for Step 3
+### Remediation for Step 3
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--etcd-servers` for service `kube-apiserver` as appropriate.
@@ -3356,7 +3499,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root) for Step 3
+### Auditing (as root) for Step 3
 
 Ensure that the argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -3376,13 +3519,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242424]: Kubernetes Kubelet must enable tlsPrivateKeyFile for client authentication to secure service
+## [V-242424]
 
-#### Severity: Medium
+**Guideline:** Kubernetes Kubelet must enable tlsPrivateKeyFile for client
+authentication to secure service
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes container and pod configuration are maintained by Kubelet. Kubelet
 > agents register nodes with the API Server, mount volume storage, and perform
@@ -3404,7 +3550,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service, but does explicitly pass
@@ -3418,7 +3564,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--tls-private-key-file` for service `kubelet` as appropriate.
@@ -3433,7 +3579,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--tls-private-key-file` for service `kubelet` is set
 as appropriate in the service's argument file
@@ -3448,13 +3594,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242425]: Kubernetes Kubelet must enable tlsCertFile for client authentication to secure service
+## [V-242425]
 
-#### Severity: Medium
+**Guideline:** Kubernetes Kubelet must enable tlsCertFile for client
+authentication to secure service
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes container and pod configuration are maintained by Kubelet. Kubelet
 > agents register nodes with the API Server, mount volume storage, and perform
@@ -3476,7 +3625,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service, but does explicitly pass
@@ -3489,7 +3638,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--tls-cert-file` for service `kubelet` as appropriate.
@@ -3504,7 +3653,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--tls-cert-file` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -3518,13 +3667,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242426]: Kubernetes etcd must enable client authentication to secure service
+## [V-242426]
 
-#### Severity: Medium
+**Guideline:** Kubernetes etcd must enable client authentication to secure
+service
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes container and pod configuration are maintained by Kubelet. Kubelet
 > agents register nodes with the API Server, mount volume storage, and perform
@@ -3549,7 +3701,7 @@ The final line of the output will be `PASS`.
 
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--peer-client-cert-auth` command line argument
 > for the etcd service.
@@ -3564,7 +3716,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/k8s-dqlite` in order to set the argument
 `--enable-tls` for service `k8s-dqlite` as appropriate.
@@ -3579,7 +3731,7 @@ Afterwards restart the `k8s-dqlite` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--enable-tls` for service `k8s-dqlite` is set as
 appropriate in the service's argument file
@@ -3599,13 +3751,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242427]: Kubernetes etcd must have a key file for secure communication
+## [V-242427]
 
-#### Severity: Medium
+**Guideline:** Kubernetes etcd must have a key file for secure communication
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes stores configuration and state information in a distributed
 > key-value store called etcd. Anyone who can write to etcd can effectively
@@ -3626,10 +3780,10 @@ The final line of the output will be `PASS`.
 
 
 
-#### Step 1/3
+### Step 1/3
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--key-file` command line argument for the etcd
 > service.
@@ -3645,7 +3799,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -3654,7 +3808,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -3666,16 +3820,16 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-#### Step 2/3
+### Step 2/3
 
 
-#### Comments:
+**Comments:**
 
 
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -3684,7 +3838,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure all required files have permissions '600' (or stricter):
 
@@ -3696,17 +3850,17 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-#### Step 3/3
+### Step 3/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server is as
 > expected.
 >
 
 
-#### Remediation for Step 3
+### Remediation for Step 3
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--etcd-servers` for service `kube-apiserver` as appropriate.
@@ -3723,7 +3877,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root) for Step 3
+### Auditing (as root) for Step 3
 
 Ensure that the argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -3743,13 +3897,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242428]: Kubernetes etcd must have a certificate for communication
+## [V-242428]
 
-#### Severity: Medium
+**Guideline:** Kubernetes etcd must have a certificate for communication
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes stores configuration and state information in a distributed
 > key-value store called etcd. Anyone who can write to etcd can effectively
@@ -3770,10 +3926,10 @@ The final line of the output will be `PASS`.
 
 
 
-#### Step 1/3
+### Step 1/3
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--cert-file` command line argument for the etcd
 > service.
@@ -3789,7 +3945,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -3798,7 +3954,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -3810,15 +3966,15 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-#### Step 2/3
+### Step 2/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -3827,7 +3983,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure all required files have permissions '600' (or stricter):
 
@@ -3840,17 +3996,17 @@ start with `PASS`.
 
 
 
-#### Step 3/3
+### Step 3/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server is as
 > expected.
 >
 
 
-#### Remediation for Step 3
+### Remediation for Step 3
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--etcd-servers` for service `kube-apiserver` as appropriate.
@@ -3867,7 +4023,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root) for Step 3
+### Auditing (as root) for Step 3
 
 Ensure that the argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -3884,13 +4040,15 @@ start with `PASS`.
 The final line of the output will be `PASS`.
 
 
-### [V-242429]: Kubernetes etcd must have the SSL Certificate Authority set
+## [V-242429]
 
-#### Severity: Medium
+**Guideline:** Kubernetes etcd must have the SSL Certificate Authority set
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes stores configuration and state information in a distributed
 > key-value store called etcd. Anyone who can write to etcd can effectively
@@ -3909,10 +4067,10 @@ The final line of the output will be `PASS`.
 > Authority file used to secure etcd communication.
 
 
-#### Step 1/3
+### Step 1/3
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--etcd-cafile` command line argument for the Kube
 > API Service.
@@ -3928,7 +4086,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -3937,7 +4095,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -3949,15 +4107,15 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-#### Step 2/3
+### Step 2/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -3966,7 +4124,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure all required files have permissions '600' (or stricter):
 
@@ -3978,17 +4136,17 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-#### Step 3/3
+### Step 3/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server is as
 > expected.
 >
 
 
-#### Remediation for Step 3
+### Remediation for Step 3
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--etcd-servers` for service `kube-apiserver` as appropriate.
@@ -4002,7 +4160,7 @@ Afterwards restart the `kube-apiserver` service with:
 
     sudo systemctl restart snap.k8s.kube-apiserver
 
-#### Auditing (as root) for Step 3
+### Auditing (as root) for Step 3
 
 Ensure that the argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -4020,13 +4178,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242430]: Kubernetes etcd must have a certificate for communication
+## [V-242430]
 
-#### Severity: Medium
+**Guideline:** Kubernetes etcd must have a certificate for communication
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes stores configuration and state information in a distributed
 > key-value store called etcd. Anyone who can write to etcd can effectively
@@ -4047,10 +4207,10 @@ The final line of the output will be `PASS`.
 
 
 
-#### Step 1/3
+### Step 1/3
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--etcd-certfile` command line argument for the
 > Kube API Service.
@@ -4066,7 +4226,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4075,7 +4235,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -4087,15 +4247,15 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-#### Step 2/3
+### Step 2/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -4104,7 +4264,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure all required files have permissions '600' (or stricter):
 
@@ -4117,17 +4277,17 @@ start with `PASS`.
 
 
 
-#### Step 3/3
+### Step 3/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server is as
 > expected.
 >
 
 
-#### Remediation for Step 3
+### Remediation for Step 3
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--etcd-servers` for service `kube-apiserver` as appropriate.
@@ -4144,7 +4304,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root) for Step 3
+### Auditing (as root) for Step 3
 
 Ensure that the argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -4162,13 +4322,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242431]: Kubernetes etcd must have a key file for secure communication
+## [V-242431]
 
-#### Severity: Medium
+**Guideline:** Kubernetes etcd must have a key file for secure communication
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes stores configuration and state information in a distributed
 > key-value store called etcd. Anyone who can write to etcd can effectively
@@ -4189,10 +4351,10 @@ The final line of the output will be `PASS`.
 
 
 
-#### Step 1/3
+### Step 1/3
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--etcd-keyfile` command line argument for the
 > Kube API Service.
@@ -4208,7 +4370,7 @@ The final line of the output will be `PASS`.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4217,7 +4379,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -4229,14 +4391,14 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-#### Step 2/3
+### Step 2/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the permissions on the k8s-dqlite socket.
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -4245,7 +4407,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure all required files have permissions '600' (or stricter):
 
@@ -4258,17 +4420,17 @@ start with `PASS`.
 
 
 
-#### Step 3/3
+### Step 3/3
 
 
-#### Comments:
+**Comments:**
 
 > This check ensures the `--etcd-servers` argument of the Kube API Server is as
 > expected.
 >
 
 
-#### Remediation for Step 3
+### Remediation for Step 3
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--etcd-servers` for service `kube-apiserver` as appropriate.
@@ -4285,7 +4447,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root) for Step 3
+### Auditing (as root) for Step 3
 
 Ensure that the argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -4303,13 +4465,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242432]: Kubernetes etcd must have peer-cert-file set for secure communication
+## [V-242432]
 
-#### Severity: Medium
+**Guideline:** Kubernetes etcd must have peer-cert-file set for secure
+communication
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes stores configuration and state information in a distributed
 key-value store called etcd. Anyone who can write to etcd can effectively
@@ -4327,7 +4492,7 @@ be set. This parameter gives the location of the SSL certification file used to
 secure etcd communication.
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--peer-cert-file` command line argument for the
 > etcd service.
@@ -4344,7 +4509,7 @@ secure etcd communication.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/k8s-dqlite` in order to set the argument
 `--storage-dir` for service `k8s-dqlite` as appropriate.
@@ -4359,7 +4524,7 @@ Afterwards restart the `k8s-dqlite` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--storage-dir` for service `k8s-dqlite` is set as
 appropriate in the service's argument file
@@ -4377,13 +4542,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242433]: Kubernetes etcd must have a peer-key-file set for secure communication
+## [V-242433]
 
-#### Severity: Medium
+**Guideline:** Kubernetes etcd must have a peer-key-file set for secure
+communication
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes stores configuration and state information in a distributed
 key-value store called etcd. Anyone who can write to etcd can effectively
@@ -4401,7 +4569,7 @@ be set. This parameter gives the location of the SSL certification file used to
 secure etcd communication.
 
 
-#### Comments:
+**Comments:**
 
 > This finding refers to the `--peer-key-file` command line argument for the
 > etcd service.
@@ -4418,7 +4586,7 @@ secure etcd communication.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/k8s-dqlite` in order to set the argument
 `--storage-dir` for service `k8s-dqlite` as appropriate.
@@ -4430,7 +4598,7 @@ Afterwards restart the `k8s-dqlite` service with:
     sudo systemctl restart snap.k8s.k8s-dqlite
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--storage-dir` for service `k8s-dqlite` is set as
 appropriate in the service's argument file
@@ -4448,13 +4616,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242438]: Kubernetes API Server must configure timeouts to limit attack surface
+## [V-242438]
 
-#### Severity: Medium
+**Guideline:** Kubernetes API Server must configure timeouts to limit attack
+surface
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes API Server request timeouts sets the duration a request stays open
 before timing out. Since the API Server is the central component in the
@@ -4467,13 +4638,13 @@ set to "0". This disables the request-timeout feature. (By default, the
 "--request-timeout" is set to "1 minute".)
 
 
-#### Comments:
+**Comments:**
 
 > The Finding also allows for setting a timeout larger than 300s.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--request-timeout` for service `kube-apiserver` as appropriate.
@@ -4488,7 +4659,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--request-timeout` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -4503,13 +4674,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242442]: Kubernetes must remove old components after updated versions have been installed
+## [V-242442]
 
-#### Severity: Medium
+**Guideline:** Kubernetes must remove old components after updated versions
+have been installed
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > Previous versions of Kubernetes components that are not removed after updates
 have been installed may be exploited by adversaries by allowing the
@@ -4518,7 +4692,7 @@ Kubernetes to remove old pods when newer pods are created using new images to
 always be at the desired security state.
 
 
-#### Comments:
+**Comments:**
 
 > This Finding recommends checking that no residual versions of Kubernetes
 > components are left running following upgrades of the Kubernetes cluster.
@@ -4529,13 +4703,16 @@ always be at the desired security state.
 
 
 
-### [V-242443]: Kubernetes must contain the latest updates as authorized by IAVMs, CTOs, DTMs, and STIGs
+## [V-242443]
 
-#### Severity: Medium
+**Guideline:** Kubernetes must contain the latest updates as authorized by
+IAVMs, CTOs, DTMs, and STIGs
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > Kubernetes software must stay up to date with the latest patches, service
 packs, and hot fixes. Not updating the Kubernetes control plane will expose the
@@ -4568,7 +4745,7 @@ images are current. The specific time period will be defined by an
 authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 
 
-#### Comments:
+**Comments:**
 
 > This Finding recommends checking all Kubernetes component versions are
 > actively supported.
@@ -4581,13 +4758,15 @@ authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 
 
 
-### [V-242444]: The Kubernetes component manifests must be owned by root
+## [V-242444]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes component manifests must be owned by root
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes manifests are those files that contain the arguments and
 settings for the Control Plane services. These services are etcd, the api
@@ -4599,7 +4778,7 @@ settings within the document are implemented through these manifests.
 
 
 
-#### Comments:
+**Comments:**
 
 > The manifest files for the Kubernetes services in the k8s-snap are located in
 > the following directories:
@@ -4608,7 +4787,7 @@ settings within the document are implemented through these manifests.
 >
 
 
-#### Remediation
+### Remediation
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4616,7 +4795,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown -R 0:0 /etc/kubernetes /etc/kubernetes/pki /etc/kubernetes/kubelet.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/proxy.conf /etc/kubernetes/admin.conf /etc/kubernetes/controller.conf /etc/kubernetes/pki/etcd /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure all files exist and have the correct ownership.
 
@@ -4650,13 +4829,15 @@ start with `PASS`.
 
 
 
-### [V-242445]: The Kubernetes component etcd must be owned by etcd
+## [V-242445]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes component etcd must be owned by etcd
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes etcd key-value store provides a way to store data to the
 Control Plane. If these files can be changed, data to API object and the
@@ -4665,7 +4846,7 @@ immediately. Many of the security settings within the document are implemented
 through this file.
 
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to checking the ownership of all etcd-related files under
 > /var/lib/etcd/*.
@@ -4681,7 +4862,7 @@ through this file.
 >
 
 
-#### Remediation
+### Remediation
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4689,7 +4870,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure all files exist and have the correct ownership.
 
@@ -4707,13 +4888,15 @@ start with `PASS`.
 
 
 
-### [V-242446]: The Kubernetes conf files must be owned by root
+## [V-242446]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes conf files must be owned by root
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes conf files contain the arguments and settings for the Control
 Plane services. These services are controller and scheduler. If these files can
@@ -4721,7 +4904,7 @@ be changed, the scheduler will be implementing the changes immediately. Many of
 the security settings within the document are implemented through this file.
 
 
-#### Comments:
+**Comments:**
 
 > Note that the original Finding references 'controller-manager.conf', but the
 > k8s-snap uses 'controller.conf'.
@@ -4730,7 +4913,7 @@ the security settings within the document are implemented through this file.
 >
 
 
-#### Remediation
+### Remediation
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4738,7 +4921,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown -R 0:0 /etc/kubernetes/admin.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/controller.conf
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure all files exist and have the correct ownership.
 
@@ -4752,13 +4935,16 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-### [V-242447]: The Kubernetes Kube Proxy kubeconfig must have file permissions set to 644 or more restrictive
+## [V-242447]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes Kube Proxy kubeconfig must have file permissions
+set to 644 or more restrictive
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes Kube Proxy kubeconfig contain the argument and setting for the
 Control Planes. These settings contain network rules for restricting network
@@ -4769,10 +4955,10 @@ implemented through this file.
 
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > Finding stipulates that permission mask should be at most 644, but they can
 > also be set to be more restrictive.
@@ -4781,7 +4967,7 @@ implemented through this file.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -4790,7 +4976,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 644 /etc/kubernetes/proxy.conf
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all required files have permissions '644' (or stricter):
 
@@ -4802,17 +4988,17 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > This check was added to ensure the Kubernetes Proxy configuration file path
 > is set as expected.
 >
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kube-proxy` in order to set the argument
 `--kubeconfig` for service `kube-proxy` as appropriate.
@@ -4828,7 +5014,7 @@ Afterwards restart the `kube-proxy` service with:
 
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--kubeconfig` for service `kube-proxy` is set as
 appropriate in the service's argument file
@@ -4846,13 +5032,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242448]: The Kubernetes Kube Proxy kubeconfig must be owned by root
+## [V-242448]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes Kube Proxy kubeconfig must be owned by root
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes Kube Proxy kubeconfig contain the argument and setting for the
 Control Planes. These settings contain network rules for restricting network
@@ -4864,10 +5052,10 @@ implemented through this file.
 
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > Finding stipulates the file should be owned by the root user/group.
 >
@@ -4875,7 +5063,7 @@ implemented through this file.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4883,7 +5071,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /etc/kubernetes/proxy.conf
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -4896,16 +5084,16 @@ start with `PASS`.
 
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > This check was added to ensure the proxy config is as expected.
 >
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kube-proxy` in order to set the argument
 `--kubeconfig` for service `kube-proxy` as appropriate.
@@ -4917,7 +5105,7 @@ Afterwards restart the `kube-proxy` service with:
     sudo systemctl restart snap.k8s.kube-proxy
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--kubeconfig` for service `kube-proxy` is set as
 appropriate in the service's argument file
@@ -4935,13 +5123,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242449]: The Kubernetes Kubelet certificate authority file must have file permissions set to 644 or more restrictive
+## [V-242449]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes Kubelet certificate authority file must have file
+permissions set to 644 or more restrictive
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes kubelet certificate authority file contains settings for the
 Kubernetes Node TLS certificate authority. Any request presenting a client
@@ -4952,10 +5143,10 @@ compromised. The scheduler will implement the changes immediately. Many of the
 security settings within the document are implemented through this file.
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 >
 > Finding stipulates that permission mask should be at most 644, but they can
 > also be set to be more restrictive.
@@ -4965,7 +5156,7 @@ security settings within the document are implemented through this file.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -4974,7 +5165,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod 644 /etc/kubernetes/pki/client-ca.crt
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all required files have permissions '644' (or stricter):
 
@@ -4987,16 +5178,16 @@ start with `PASS`.
 
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > This check was added to ensure the `--client-ca-file` is as expected.
 >
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--client-ca-file` for service `kubelet` as appropriate.
@@ -5012,7 +5203,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--client-ca-file` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -5029,13 +5220,16 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242450]: The Kubernetes Kubelet certificate authority must be owned by root
+## [V-242450]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes Kubelet certificate authority must be owned by
+root
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes kube proxy kubeconfig contain the argument and setting for the
 Control Planes. These settings contain network rules for restricting network
@@ -5045,10 +5239,10 @@ be compromised. Many of the security settings within the document are
 implemented through this file.
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > Finding stipulates the file should be owned by the root user/group.
 >
@@ -5056,7 +5250,7 @@ implemented through this file.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -5065,7 +5259,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /etc/kubernetes/pki/client-ca.crt
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -5078,16 +5272,16 @@ start with `PASS`.
 
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > This check was added to ensure the `--client-ca-file` is as expected.
 >
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--client-ca-file` for service `kubelet` as appropriate.
@@ -5101,7 +5295,7 @@ Afterwards restart the `kubelet` service with:
     sudo systemctl restart snap.k8s.kubelet
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--client-ca-file` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -5118,13 +5312,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242451]: The Kubernetes component PKI must be owned by root
+## [V-242451]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes component PKI must be owned by root
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes PKI directory contains all certificates (.crt files)
 supporting secure network communications in the Kubernetes Control Plane. If
@@ -5133,7 +5329,7 @@ would become insecure and compromised. Many of the security settings within the
 document are implemented through this file.
 
 
-#### Comments:
+**Comments:**
 
 > The k8s-snap stores PKI-related files in the following directory:
 >
@@ -5143,7 +5339,7 @@ document are implemented through this file.
 >
 
 
-#### Remediation
+### Remediation
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -5151,7 +5347,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown -R 0:0 /etc/kubernetes/pki /etc/kubernetes/pki/etcd /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure all files exist and have the correct ownership.
 
@@ -5179,13 +5375,16 @@ start with `PASS`.
 
 
 
-### [V-242452]: The Kubernetes kubelet KubeConfig must have file permissions set to 644 or more restrictive
+## [V-242452]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes kubelet KubeConfig must have file permissions set
+to 644 or more restrictive
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes kubelet agent registers nodes with the API Server, mounts
 volume storage for pods, and performs health checks to containers within pods.
@@ -5194,24 +5393,24 @@ or container degradation. Many of the security settings within the document are
 implemented through this file.
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > Finding stipulates that permission mask should be at most 644, but they can
 > also be set to be more restrictive.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /etc/kubernetes/kubelet.conf
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all required files have permissions '644' (or stricter):
 
@@ -5224,15 +5423,15 @@ start with `PASS`.
 
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > This check was added to ensure Kubelet's `--kubeconfig` is as expected.
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--kubeconfig` for service `kubelet` as appropriate.
@@ -5246,7 +5445,7 @@ Afterwards restart the `kubelet` service with:
     sudo systemctl restart snap.k8s.kubelet
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--kubeconfig` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -5263,13 +5462,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242453]: The Kubernetes kubelet KubeConfig file must be owned by root
+## [V-242453]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes kubelet KubeConfig file must be owned by root
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes kubelet agent registers nodes with the API server and performs
 health checks to containers within pods. If these files can be modified, the
@@ -5277,15 +5478,15 @@ information system would be unaware of pod or container degradation. Many of
 the security settings within the document are implemented through this file.
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > Finding stipulates the file should be owned by the root user/group.
 >
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -5294,7 +5495,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /etc/kubernetes/kubelet.conf
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all files exist and have the correct ownership.
 
@@ -5307,15 +5508,15 @@ start with `PASS`.
 
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > This check was added to ensure Kubelet's `--kubeconfig` is as expected.
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--kubeconfig` for service `kubelet` as appropriate.
@@ -5329,7 +5530,7 @@ Afterwards restart the `kubelet` service with:
     sudo systemctl restart snap.k8s.kubelet
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--kubeconfig` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -5346,13 +5547,15 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242454]: The Kubernetes kubeadm.conf must be owned by root
+## [V-242454]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes kubeadm.conf must be owned by root
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > The Kubernetes kubeeadm.conf contains sensitive information regarding the
 cluster nodes configuration. If this file can be modified, the Kubernetes
@@ -5360,7 +5563,7 @@ Platform Plane would be degraded or compromised for malicious intent. Many of
 the security settings within the document are implemented through this file.
 
 
-#### Comments:
+**Comments:**
 
 > This Finding stipulates the file ownership of the kubeadm executable, which
 > does not ship as part of the k8s-snap.
@@ -5374,13 +5577,16 @@ the security settings within the document are implemented through this file.
 
 
 
-### [V-242455]: The Kubernetes kubeadm.conf must have file permissions set to 644 or more restrictive
+## [V-242455]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes kubeadm.conf must have file permissions set to
+644 or more restrictive
 
-#### Class: Not Applicable
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Not Applicable
+
+**Upstream finding description:**
 
 > The Kubernetes kubeadm.conf contains sensitive information regarding the
 cluster nodes configuration. If this file can be modified, the Kubernetes
@@ -5388,7 +5594,7 @@ Platform Plane would be degraded or compromised for malicious intent. Many of
 the security settings within the document are implemented through this file.
 
 
-#### Comments:
+**Comments:**
 
 > This Finding stipulates the file ownership of the kubeadm executable, which
 > does not ship as part of the k8s-snap.
@@ -5402,23 +5608,26 @@ the security settings within the document are implemented through this file.
 
 
 
-### [V-242456]: The Kubernetes kubelet config must have file permissions set to 644 or more restrictive
+## [V-242456]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes kubelet config must have file permissions set to
+644 or more restrictive
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes kubelet agent registers nodes with the API server and performs
 health checks to containers within pods. If this file can be modified, the
 information system would be unaware of pod or container degradation.
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > This Finding relates to the permissions on the `/var/lib/kubelet/config.yaml`
 > file.
@@ -5436,7 +5645,7 @@ information system would be unaware of pod or container degradation.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -5445,7 +5654,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 644 /var/snap/k8s/common/args/kubelet
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all required files have permissions '644' (or stricter):
 
@@ -5460,17 +5669,17 @@ start with `PASS`.
 
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > This check is defined to ensure that Kubelet is not passed a `--config` file
 > argument in the k8s-snap.
 >
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--config` for service `kubelet` as appropriate.
@@ -5486,7 +5695,7 @@ Afterwards restart the `kubelet` service with:
 
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -5505,23 +5714,25 @@ The final line of the output will be `PASS`.
 
 
 
-### [V-242457]: The Kubernetes kubelet config must be owned by root
+## [V-242457]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes kubelet config must be owned by root
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes kubelet agent registers nodes with the API Server and performs
 health checks to containers within pods. If this file can be modified, the
 information system would be unaware of pod or container degradation.
 
 
-#### Step 1/2
+### Step 1/2
 
 
-#### Comments:
+**Comments:**
 
 > This Finding relates to the permissions on the `/var/lib/kubelet/config.yaml`
 > file in relation to it being used by `kubeadm`.
@@ -5539,7 +5750,7 @@ information system would be unaware of pod or container degradation.
 >
 
 
-#### Remediation for Step 1
+### Remediation for Step 1
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -5547,7 +5758,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 644 /var/snap/k8s/common/args/kubelet
 
 
-#### Auditing (as root) for Step 1
+### Auditing (as root) for Step 1
 
 Ensure all required files have permissions '644' (or stricter):
 
@@ -5559,17 +5770,17 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-#### Step 2/2
+### Step 2/2
 
 
-#### Comments:
+**Comments:**
 
 > This check is defined to ensure that Kubelet is not passed a `--config` file
 > argument in the k8s-snap.
 >
 
 
-#### Remediation for Step 2
+### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--config` for service `kubelet` as appropriate.
@@ -5583,7 +5794,7 @@ Afterwards restart the `kubelet` service with:
     sudo systemctl restart snap.k8s.kubelet
 
 
-#### Auditing (as root) for Step 2
+### Auditing (as root) for Step 2
 
 Ensure that the argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -5601,20 +5812,23 @@ start with `UNSET`.
 The final line of the output will be `PASS`.
 
 
-### [V-242459]: The Kubernetes etcd must have file permissions set to 644 or more restrictive
+## [V-242459]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes etcd must have file permissions set to 644 or
+more restrictive
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes etcd key-value store provides a way to store data to the
 Control Plane. If these files can be changed, data to API object and Control
 Plane would be compromised.
 
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to checking the ownership of all etcd-related files under
 > /var/lib/etcd/*.
@@ -5630,7 +5844,7 @@ Plane would be compromised.
 >
 
 
-#### Remediation
+### Remediation
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -5638,7 +5852,7 @@ Ensure all of the following paths have correct permissions by running:
 
     chmod 644 /var/snap/k8s/common/var/lib/k8s-dqlite /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure all required files have permissions '644' (or stricter):
 
@@ -5656,13 +5870,16 @@ start with `PASS`.
 
 
 
-### [V-242460]: The Kubernetes admin kubeconfig must have file permissions set to 644 or more restrictive
+## [V-242460]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes admin kubeconfig must have file permissions set
+to 644 or more restrictive
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes admin kubeconfig files contain the arguments and settings for
 the Control Plane services. These services are controller and scheduler. If
@@ -5670,7 +5887,7 @@ these files can be changed, the scheduler will be implementing the changes
 immediately.
 
 
-#### Comments:
+**Comments:**
 
 > Note that the original Finding references 'controller-manager.conf', but the
 > k8s-snap uses 'controller.conf'.
@@ -5679,13 +5896,13 @@ immediately.
 >
 
 
-#### Remediation
+### Remediation
 
 Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /etc/kubernetes/admin.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/controller.conf
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure all required files have permissions '644' (or stricter):
 
@@ -5699,13 +5916,15 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-### [V-242461]: Kubernetes API Server audit logs must be enabled
+## [V-242461]
 
-#### Severity: Medium
+**Guideline:** Kubernetes API Server audit logs must be enabled
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes API Server validates and configures pods and services for the API
 object. The REST operation provides frontend functionality to the cluster share
@@ -5715,7 +5934,7 @@ in the case the Kubernetes API Server is compromised requiring a cybersecurity
 investigation.
 
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to the `--audit-policy-file` argument of the Kubernetes
 > API Service.
@@ -5727,7 +5946,7 @@ investigation.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-policy-file` for service `kube-apiserver` as appropriate.
@@ -5742,7 +5961,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--audit-policy-file` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -5756,13 +5975,15 @@ test $? -eq 0 && echo PASS || echo FAIL
 The final line of the output will be `PASS`.
 
 
-### [V-242462]: The Kubernetes API Server must be set to audit log max size
+## [V-242462]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API Server must be set to audit log max size
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes API Server must be set for enough storage to retain log
 information over the period required. When audit logs are large in size, the
@@ -5770,7 +5991,7 @@ monitoring service for events becomes degraded. The function of the maximum log
 file size is to set these limits.
 
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to the `--audit-log-maxsize` argument of the Kubernetes
 > API Service.
@@ -5782,7 +6003,7 @@ file size is to set these limits.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-log-maxsize` for service `kube-apiserver` as appropriate.
@@ -5797,7 +6018,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--audit-log-maxsize` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -5811,19 +6032,21 @@ The output should indicate that `audit-log-maxsize` is set to a value less or
 equal to `100`.
 
 
-### [V-242463]: The Kubernetes API Server must be set to audit log maximum backup
+## [V-242463]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API Server must be set to audit log maximum backup
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes API Server must set enough storage to retain logs for
 monitoring suspicious activity and system misconfiguration, and provide
 evidence for cybersecurity investigations.
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to the `--audit-log-maxbackup` argument of the Kubernetes
 > API Service.
@@ -5835,7 +6058,7 @@ evidence for cybersecurity investigations.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-log-maxbackup` for service `kube-apiserver` as appropriate.
@@ -5850,7 +6073,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--audit-log-maxbackup` for service `kube-apiserver`
 is set as appropriate in the service's argument file
@@ -5865,19 +6088,21 @@ equal to `10`.
 
 
 
-### [V-242464]: The Kubernetes API Server audit log retention must be set
+## [V-242464]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API Server audit log retention must be set
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes API Server must set enough storage to retain logs for
 monitoring suspicious activity and system misconfiguration, and provide
 evidence for cybersecurity investigations.
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to the `--audit-log-maxage` argument of the Kubernetes
 > API Service.
@@ -5889,7 +6114,7 @@ evidence for cybersecurity investigations.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-log-maxage` for service `kube-apiserver` as appropriate.
@@ -5903,7 +6128,7 @@ Afterwards restart the `kube-apiserver` service with:
 
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--audit-log-maxage` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -5916,13 +6141,15 @@ grep -E '\-\-audit-log-maxage=' '/var/snap/k8s/common/args/kube-apiserver'
 The output should indicate a `audit-log-maxage` value of 30.
 
 
-### [V-242465]: The Kubernetes API Server audit log path must be set
+## [V-242465]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes API Server audit log path must be set
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Kubernetes API Server validates and configures pods and services for the API
 object. The REST operation provides frontend functionality to the cluster share
@@ -5930,7 +6157,7 @@ state. Audit logs are necessary to provide evidence in the case the Kubernetes
 API Server is compromised requiring cybersecurity investigation. To record
 events in the audit log the log path value must be set.
 
-#### Comments:
+**Comments:**
 
 > This Finding refers to the `--audit-log-path` argument of the Kubernetes API
 > Service.
@@ -5944,7 +6171,7 @@ events in the audit log the log path value must be set.
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-log-path` for service `kube-apiserver` as appropriate.
@@ -5956,7 +6183,7 @@ Afterwards restart the `kube-apiserver` service with:
     sudo systemctl restart snap.k8s.kube-apiserver
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--audit-log-path` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -5970,20 +6197,23 @@ test $? -eq 0 && echo PASS || echo FAIL
 The final line of the output will be `PASS`.
 
 
-### [V-242466]: The Kubernetes PKI CRT must have file permissions set to 644 or more restrictive
+## [V-242466]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes PKI CRT must have file permissions set to
+644 or more restrictive
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes PKI directory contains all certificates (.crt files)
 supporting secure network communications in the Kubernetes Control Plane. If
 these files can be modified, data traversing within the architecture components
 would become insecure and compromised.
 
-#### Comments:
+**Comments:**
 
 > Finding stipulates that permission mask of all the '*.crt' files should be at
 > most 644, but they can also be set to be more restrictive.
@@ -5992,13 +6222,13 @@ would become insecure and compromised.
 >
 
 
-#### Remediation
+### Remediation
 
 Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-client.crt
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure all required files have permissions '644' (or stricter):
 
@@ -6016,20 +6246,23 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-### [V-242467]: The Kubernetes PKI keys must have file permissions set to 600 or more restrictive
+## [V-242467]
 
-#### Severity: Medium
+**Guideline:** The Kubernetes PKI keys must have file permissions set to 600 or
+more restrictive
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > The Kubernetes PKI directory contains all certificate key files supporting
 secure network communications in the Kubernetes Control Plane. If these files
 can be modified, data traversing within the architecture components would
 become insecure and compromised.
 
-#### Comments:
+**Comments:**
 
 > Finding stipulates that permission mask of all the '*.key' files should be
 > 600.
@@ -6038,14 +6271,14 @@ become insecure and compromised.
 >
 
 
-#### Remediation
+### Remediation
 
 Ensure all of the following paths have correct permissions by running:
 
 
     chmod -R 600 /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/kubelet.key
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure all required files have permissions '600' (or stricter):
 
@@ -6064,13 +6297,15 @@ start with `PASS`.
 
 
 
-### [V-245541]: Kubernetes Kubelet must not disable timeouts
+## [V-245541]
 
-#### Severity: Medium
+**Guideline:** Kubernetes Kubelet must not disable timeouts
 
-#### Class: Deployment
+**Severity:** Medium
 
-#### Upstream finding description:
+**Class:** Deployment
+
+**Upstream finding description:**
 
 > Idle connections from the Kubelet can be used by unauthorized users to
 perform malicious activity to the nodes, pods, containers, and cluster within
@@ -6080,7 +6315,7 @@ Setting the value to "0" never disconnects any idle sessions. Idle timeouts
 must never be set to "0" and should be defined at "5m" (the default is 4hr).
 
 
-#### Comments:
+**Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service, nor does it explicitly pass `--streaming-connection-idle-timeout=5m`
@@ -6093,7 +6328,7 @@ must never be set to "0" and should be defined at "5m" (the default is 4hr).
 >
 
 
-#### Remediation
+### Remediation
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--streaming-connection-idle-timeout` for service `kubelet` as appropriate.
@@ -6105,7 +6340,7 @@ Afterwards restart the `kubelet` service with:
     sudo systemctl restart snap.k8s.kubelet
 
 
-#### Auditing (as root)
+### Auditing (as root)
 
 Ensure that the argument `--streaming-connection-idle-timeout` for service
 `kubelet` is set as appropriate in the service's argument file
@@ -6117,6 +6352,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 ```
 
 The final line of the output will be `PASS`.
+
 
 <!-- Links -->
 [getting started]: ../../tutorial/getting-started
@@ -6214,5 +6450,3 @@ The final line of the output will be `PASS`.
 [V-242466]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242466
 [V-242467]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242467
 [V-245541]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245541
-
-<!-- markdownlint-enable MD013 -->
