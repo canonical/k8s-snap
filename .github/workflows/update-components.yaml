@@ -2,6 +2,7 @@ name: Check for component upgrades
 
 on:
   workflow_dispatch:
+  pull_request:
   schedule:
     - cron: "0 10 * * *"
 
@@ -39,6 +40,12 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install -r ./build-scripts/hack/requirements.txt
+
+      - name: Define git credentials
+        run: |
+          # Needed to create commits.
+          git config --global user.name "CDK bot"
+          git config --global user.email "cdkbot@canonical.com"
 
       - name: Check for new component versions
         run: |
