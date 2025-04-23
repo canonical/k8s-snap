@@ -43,6 +43,9 @@ func ParseArgumentLine(line string) (key string, value string) {
 	key = line[:splitIndex]
 	value = strings.TrimSpace(line[splitIndex+1:]) // Remove any leading space in value
 
+	// Remove extra surrounding quotations from the value
+	value = strings.Trim(value, "\"")
+
 	return key, value
 }
 
