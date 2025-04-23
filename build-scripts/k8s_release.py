@@ -131,7 +131,9 @@ def get_obsolete_prereleases() -> List[str]:
 def _exec(*args, **kwargs) -> tuple[str, str]:
     """Run the specified command and return the stdout/stderr output as a tuple."""
     LOG.debug("Executing: %s, args: %s, kwargs: %s", cmd, args, kwargs)
-    kwargs["text"] = True
+    kwargs.setdefault("text", True)
+    kwargs.setdefault("check", True)
+    kwargs.setdefault("timeout", EXEC_TIMEOUT)
     proc = subprocess.run(*args, **kwargs)
     return proc.stdout, proc.stderr
 
