@@ -1,0 +1,9 @@
+{
+    "extends": [
+      "config:go"
+    ],
+    "go": {
+      "enabled": true,
+      "baseDir": "src/k8s"
+    }
+}
