@@ -7,13 +7,81 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	versionutil "k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
 )
+
+func TestGetNodeName(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	testCases := []struct {
+		name          string
+		nodeName      string
+		existingNodes []*corev1.Node // Use a slice of *corev1.Node to represent existing nodes
+		expectedError string
+	}{
+		{
+			name:          "node name is empty",
+			nodeName:      "",
+			existingNodes: []*corev1.Node{},
+			expectedError: apierrors.NewNotFound(schema.GroupResource{Group: "", Resource: "nodes"}, "").Error(),
+		},
+		{
+			name:          "node name does not exist",
+			nodeName:      "new-node-name",
+			existingNodes: []*corev1.Node{},
+			expectedError: apierrors.NewNotFound(schema.GroupResource{Group: "", Resource: "nodes"}, "new-node-name").Error(),
+		},
+		{
+			name:     "node name exists",
+			nodeName: "existing-node-name",
+			existingNodes: []*corev1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "existing-node-name",
+					},
+				},
+			},
+			expectedError: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a slice of runtime.Object to hold the existing nodes
+			var runtimeObjects []runtime.Object
+			for _, node := range tc.existingNodes {
+				runtimeObjects = append(runtimeObjects, node)
+			}
+
+			// Create a fake clientset and add the existing nodes
+			clientset := fake.NewSimpleClientset(runtimeObjects...)
+
+			// Create a new k8s client with the fake clientset
+			client := &Client{
+				Interface: clientset,
+			}
+
+			// Call the GetNode method
+			n, err := client.GetNode(context.Background(), tc.nodeName)
+			if tc.expectedError != "" {
+				g.Expect(err).To(HaveOccurred())
+				g.Expect(err.Error()).To(Equal(tc.expectedError))
+			} else {
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(n).NotTo(BeNil())
+				g.Expect(n.Name).To(Equal(tc.nodeName))
+			}
+		})
+	}
+}
 
 func TestDeleteNode(t *testing.T) {
 	g := NewWithT(t)
