@@ -12,6 +12,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning"
+	"github.com/canonical/k8s/pkg/k8sd/controllers/upgrade"
 	"github.com/canonical/k8s/pkg/k8sd/database"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -43,6 +44,8 @@ type Config struct {
 	DisableFeatureController bool
 	// DisableCSRSigningController is a bool flag to disable csrsigning controller.
 	DisableCSRSigningController bool
+	// DisableUpgradeController is a bool flag to disable upgrade controller.
+	DisableUpgradeController bool
 }
 
 // App is the k8sd microcluster instance.
@@ -61,6 +64,7 @@ type App struct {
 	nodeConfigController         *controllers.NodeConfigurationController
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
 	csrsigningController         *csrsigning.Controller
+	upgradeController            *upgrade.Controller
 
 	// updateNodeConfigController
 	triggerUpdateNodeConfigControllerCh chan struct{}
@@ -167,6 +171,28 @@ func New(cfg Config) (*App, error) {
 		log.L().Info("csrsigning-controller disabled via config")
 	}
 
+	if !cfg.DisableUpgradeController {
+		app.upgradeController = upgrade.NewController(upgrade.ControllerOptions{
+			Snap:                     cfg.Snap,
+			WaitReady:                app.readyWg.Wait,
+			FeatureControllerReadyCh: app.featureController.ReadyCh(),
+			NotifyFeatureController:  app.NotifyFeatureController,
+			FeatureToReconciledCh: map[string]<-chan struct{}{
+				"network":        app.featureController.ReconciledNetworkCh(),
+				"gateway":        app.featureController.ReconciledGatewayCh(),
+				"ingress":        app.featureController.ReconciledIngressCh(),
+				"dns":            app.featureController.ReconciledDNSCh(),
+				"load-balancer":  app.featureController.ReconciledLoadBalancerCh(),
+				"local-storage":  app.featureController.ReconciledLocalStorageCh(),
+				"metrics-server": app.featureController.ReconciledMetricsServerCh(),
+			},
+			FeatureControllerReadyTimeout:     10 * time.Minute,
+			FeatureControllerReconcileTimeout: 10 * time.Minute,
+		})
+	} else {
+		log.L().Info("upgrade-controller disabled via config")
+	}
+
 	return app, nil
 }
 
@@ -269,5 +295,6 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 
 	log.Info("Marking node as ready")
 	a.readyWg.Done()
+
 	return nil
 }

@@ -9,6 +9,8 @@ import (
 
 type SnapInfoResult struct {
 	InstallDate time.Time `json:"install-date"`
+	Revision    string    `json:"revision"`
+	Version     string    `json:"version"`
 }
 
 type SnapInfoResponse struct {
@@ -16,6 +18,7 @@ type SnapInfoResponse struct {
 	Result     SnapInfoResult `json:"result"`
 }
 
+// GetSnapInfo retrieves information about a snap from the snapd API.
 func (c *Client) GetSnapInfo(snap string) (*SnapInfoResponse, error) {
 	resp, err := c.client.Get(fmt.Sprintf("http://localhost/v2/snaps/%s", snap))
 	if err != nil {
@@ -36,6 +39,8 @@ func (c *Client) GetSnapInfo(snap string) (*SnapInfoResponse, error) {
 	return &snapInfoResponse, nil
 }
 
+// HasInstallDate checks if the InstallDate field is set in the SnapInfoResult.
+// It returns true if the InstallDate is not zero, indicating that the snap is installed.
 func (s SnapInfoResponse) HasInstallDate() bool {
 	return !s.Result.InstallDate.IsZero()
 }

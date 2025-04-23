@@ -12,8 +12,9 @@ import (
 
 // Snap abstracts file system paths and interacting with the k8s services.
 type Snap interface {
-	Strict() bool                        // Strict returns true if the snap is installed with strict confinement.
-	OnLXD(context.Context) (bool, error) // OnLXD returns true if the host runs on LXD.
+	Revision(ctx context.Context) (string, error) // Revision returns the snap revision.
+	Strict() bool                                 // Strict returns true if the snap is installed with strict confinement.
+	OnLXD(context.Context) (bool, error)          // OnLXD returns true if the host runs on LXD.
 
 	UID() int         // UID is the user ID to set on config files.
 	GID() int         // GID is the group ID to set on config files.
@@ -50,6 +51,7 @@ type Snap interface {
 	ContainerdSocketPath() string        // classic confinement: /run/containerd/containerd.sock, strict confinement: /var/snap/k8s/common/run/containerd/containerd.sock
 	ContainerdStateDir() string          // classic confinement: /run/containerd, strict confinement: /var/snap/k8s/common/run/containerd
 
+	K8sCRDDir() string            //  /snap/k8s/current/k8s/crds
 	K8sScriptsDir() string        //  /snap/k8s/current/k8s/scripts
 	K8sInspectScriptPath() string //  /snap/k8s/current/k8s/scripts/inspect.sh
 
@@ -61,7 +63,8 @@ type Snap interface {
 
 	LockFilesDir() string // /var/snap/k8s/common/lock
 
-	NodeTokenFile() string // /var/snap/k8s/common/node-token
+	NodeTokenFile() string                                     // /var/snap/k8s/common/node-token
+	NodeKubernetesVersion(ctx context.Context) (string, error) // The Kubernetes version of the node as set in the snap. Can be queried without running k8s services.
 
 	KubernetesClient(namespace string) (*kubernetes.Client, error)     // admin kubernetes client
 	KubernetesNodeClient(namespace string) (*kubernetes.Client, error) // node kubernetes client

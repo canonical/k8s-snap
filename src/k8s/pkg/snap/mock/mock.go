@@ -13,6 +13,8 @@ import (
 )
 
 type Mock struct {
+	Revision                    string
+	RevisionErr                 error
 	Strict                      bool
 	OnLXD                       bool
 	OnLXDErr                    error
@@ -35,6 +37,7 @@ type Mock struct {
 	ContainerdSocketDir         string
 	ContainerdSocketPath        string
 	ContainerdStateDir          string
+	K8sCRDDir                   string
 	K8sScriptsDir               string
 	K8sInspectScriptPath        string
 	K8sdStateDir                string
@@ -44,6 +47,8 @@ type Mock struct {
 	LockFilesDir                string
 	PostRefreshLockPath         string
 	NodeTokenFile               string
+	NodeKubernetesVersion       string
+	NodeKubernetesVersionErr    error
 	KubernetesClient            *kubernetes.Client
 	KubernetesNodeClient        *kubernetes.Client
 	HelmClient                  helm.Client
@@ -128,6 +133,10 @@ func (s *Snap) PostRefreshLockPath() string {
 	return s.Mock.PostRefreshLockPath
 }
 
+func (s *Snap) Revision(ctx context.Context) (string, error) {
+	return s.Mock.Revision, s.Mock.RevisionErr
+}
+
 func (s *Snap) Strict() bool {
 	return s.Mock.Strict
 }
@@ -182,6 +191,10 @@ func (s *Snap) ContainerdExtraConfigDir() string {
 
 func (s *Snap) ContainerdRegistryConfigDir() string {
 	return s.Mock.ContainerdRegistryConfigDir
+}
+
+func (s *Snap) K8sCRDDir() string {
+	return s.Mock.K8sCRDDir
 }
 
 func (s *Snap) K8sScriptsDir() string {
@@ -246,6 +259,10 @@ func (s *Snap) LockFilesDir() string {
 
 func (s *Snap) NodeTokenFile() string {
 	return s.Mock.NodeTokenFile
+}
+
+func (s *Snap) NodeKubernetesVersion(context.Context) (string, error) {
+	return s.Mock.NodeKubernetesVersion, s.Mock.NodeKubernetesVersionErr
 }
 
 func (s *Snap) KubernetesClient(namespace string) (*kubernetes.Client, error) {
