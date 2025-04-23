@@ -451,7 +451,7 @@ def test_vault_certificates(instances: List[harness.Instance]):
     check_nginx_pod_runs(instance)
 
 
-@pytest.mark.node_count(3)
+@pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
 def test_partial_refresh(instances: List[harness.Instance]):
