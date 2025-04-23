@@ -8,7 +8,6 @@ from typing import Generator, Iterator, List, Optional, Union
 
 import pytest
 from pytest_subunit import SubunitTerminalReporter
-from test_util import harness, tags, util
 from test_util import config as test_config
 from test_util import harness, tags, util
 from test_util.etcd import EtcdCluster
@@ -86,8 +85,10 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 @pytest.fixture(scope="session", autouse=True)
 def validate_test_config():
     """Validate the configuration before running tests."""
-    if config.SNAP:
-        assert Path(config.SNAP).exists(), f"Snap path {config.SNAP} does not exist."
+    if test_config.SNAP:
+        assert Path(
+            test_config.SNAP
+        ).exists(), f"Snap path {test_config.SNAP} does not exist."
 
 
 @pytest.fixture(scope="session")
