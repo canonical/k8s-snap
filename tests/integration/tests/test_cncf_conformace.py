@@ -55,12 +55,21 @@ def test_cncf_conformance_etcd(
 def _run_cncf_tests(instance: harness.Instance, suffix: str):
     install_sonobuoy(instance)
 
-    # TODO: Remove the test skip once the following issue has been resolved,
-    # and if sonobuoy version has been updated if the test was changed:
-    # https://github.com/kubernetes/kubernetes/issues/131150
-    skipped = "validates resource limits of pods that are allowed to run"
+    label_focus = "validates resource limits of pods that are allowed to run"
+    taint_focus = "removing taint cancels eviction|ConfigMap should be consumable from pods in volume"
+
+    for i in range(200):
+        LOG.info(f"Attempt {i} with {label_focus=}")
+        _run_scenario(instance, label_focus, suffix)
+
+    for i in range(200):
+        LOG.info(f"Attempt {i} with {taint_focus=}")
+        _run_scenario(instance, taint_focus, suffix)
+
+
+def _run_scenario(instance: harness.Instance, focus: str, suffix: str):
     cmds = [
-        ["./sonobuoy", "run", "--plugin", "e2e", "--e2e-skip", skipped, "--wait"],
+        ["./sonobuoy", "run", "--plugin", "e2e", "--e2e-focus", focus, "--wait"],
         ["./sonobuoy", "retrieve", "-f", "sonobuoy_e2e.tar.gz"],
         ["tar", "-xf", "sonobuoy_e2e.tar.gz", "--one-top-level"],
     ]
@@ -71,13 +80,18 @@ def _run_cncf_tests(instance: harness.Instance, suffix: str):
         ["./sonobuoy", "results", "sonobuoy_e2e.tar.gz"],
         capture_output=True,
     )
+    output = resp.stdout.decode()
+
+    # Clean up namespace, so it can be used again.
+    instance.exec(["k8s", "kubectl", "delete", "ns", "sonobuoy"])
+
+    failed_tests = int(re.search("Failed: (\\d+)", output).group(1))
+    if not failed_tests:
+        return
 
     instance.pull_file("/root/sonobuoy_e2e.tar.gz", f"sonobuoy_e2e_{suffix}.tar.gz")
-
-    output = resp.stdout.decode()
     LOG.info(output)
-    failed_tests = int(re.search("Failed: (\\d+)", output).group(1))
-    assert failed_tests == 0, f"{failed_tests} tests failed"
+    assert False, f"{focus=} test(s) failed"
 
 
 def cluster_setup(
