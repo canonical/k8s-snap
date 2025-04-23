@@ -27,3 +27,6 @@ k8s_*.txt
 *.assert
 .trivy
 squashfs-root
+
+subunit.html
+subunit.out
