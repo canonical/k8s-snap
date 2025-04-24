@@ -84,6 +84,15 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 				},
 			},
 		},
+		// TODO(berkayoz): Adjust the rock to support a stricter security context
+		// Below is the workaround to revert https://github.com/coredns/helm/pull/184/
+		"securityContext": map[string]any{
+			"allowPrivilegeEscalation": true,
+			"readOnlyRootFilesystem":   false,
+			"capabilities": map[string]any{
+				"drop": []string{},
+			},
+		},
 	}
 
 	if _, err := m.Apply(ctx, Chart, helm.StatePresent, values); err != nil {
