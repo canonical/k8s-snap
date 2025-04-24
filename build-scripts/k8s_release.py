@@ -130,10 +130,10 @@ def get_obsolete_prereleases() -> List[str]:
 
 def _exec(*args, **kwargs) -> tuple[str, str]:
     """Run the specified command and return the stdout/stderr output as a tuple."""
-    LOG.debug("Executing: %s, args: %s, kwargs: %s", cmd, args, kwargs)
     kwargs.setdefault("text", True)
     kwargs.setdefault("check", True)
     kwargs.setdefault("timeout", EXEC_TIMEOUT)
+    LOG.debug("Executing: %s, args: %s, kwargs: %s", cmd, args, kwargs)
     proc = subprocess.run(*args, **kwargs)
     return proc.stdout, proc.stderr
 
@@ -145,7 +145,7 @@ def _branch_exists(
     if remote:
         cmd += ["-r"]
 
-    stdout, _ = _exec(cmd, cwd=project_basedir)
+    stdout, _ = _exec(cmd, cwd=project_basedir, capture_output=True)
     return branch_name in stdout
 
 
