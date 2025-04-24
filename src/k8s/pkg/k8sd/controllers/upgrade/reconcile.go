@@ -7,63 +7,63 @@ import (
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features"
-	"github.com/canonical/k8s/pkg/log"
+	"github.com/go-logr/logr"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // Reconcile implements the Reconciler interface and wraps the reconcile method.
+// Reconcile ensures that the reconciliation is requeued unless the reconciled resource is not found.
 func (c *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	res, err := c.reconcile(ctx)
+	log := c.logger.WithValues("scope", "reconcile wrapper")
+
+	res, err := c.reconcile(ctx, req)
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info(fmt.Sprintf("Upgrade %q not found, ignoring.", req.NamespacedName))
+			return ctrl.Result{}, nil
+		}
 		return ctrl.Result{}, fmt.Errorf("failed to reconcile: %w", err)
 	}
 
 	bareResult := res == ctrl.Result{}
 	if bareResult {
-		return ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
+		res = ctrl.Result{RequeueAfter: 5 * time.Minute}
 	}
 
+	if res.RequeueAfter > 0 {
+		log.Info(fmt.Sprintf("Requeuing after %f seconds.", res.RequeueAfter.Seconds()))
+	} else if res.Requeue {
+		log.Info("Requeuing.")
+	}
 	return res, nil
 }
 
 // reconcile is the main reconciliation loop for the upgrade controller.
-func (c *Controller) reconcile(ctx context.Context) (ctrl.Result, error) {
-	log := c.logger.WithValues("step", "reconcile")
-
-	// TODO(Hue): (KU-3215) Use mgr.Client when Upgrade CRD is created with kubebuilder.
-	k8sClient, err := c.snap.KubernetesClient("")
-	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get Kubernetes client: %w", err)
-	}
-
-	upgrade, err := k8sClient.GetInProgressUpgrade(ctx)
-	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to check for in-progress upgrade: %w", err)
-	}
-
-	if upgrade == nil {
-		log.Info("No in-progress upgrade found, ignoring")
-		return ctrl.Result{}, nil
+func (c *Controller) reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	var upgrade kubernetes.Upgrade
+	if err := c.client.Get(ctx, req.NamespacedName, &upgrade); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to get upgrade %q: %w", req.NamespacedName, err)
 	}
 
 	c.logger.WithValues("upgrade", upgrade.Name, "phase", upgrade.Status.Phase).Info("Reconciling upgrade.")
 
 	switch {
 	case upgrade.Status.Phase == kubernetes.UpgradePhaseNodeUpgrade:
-		return c.reconcileNodeUpgrade(ctx, k8sClient, upgrade)
+		return c.reconcileNodeUpgrade(ctx, &upgrade)
 	case upgrade.Status.Phase == kubernetes.UpgradePhaseFeatureUpgrade:
-		return c.reconcileFeatureUpgrade(ctx, k8sClient, upgrade)
-	default:
-		// NOTE(Hue): This should never happen, but even then we don't want to return an error.
-		log.Info("Unknown upgrade phase", "phase", upgrade.Status.Phase)
-		return ctrl.Result{}, nil
+		return c.reconcileFeatureUpgrade(ctx, &upgrade)
 	}
+
+	return ctrl.Result{}, nil
 }
 
 // reconcileNodeUpgrade checks if all nodes have been upgraded.
 // If so, it transitions to the feature upgrade phase and notifies the feature controller.
-func (c *Controller) reconcileNodeUpgrade(ctx context.Context, client *kubernetes.Client, upgrade *kubernetes.Upgrade) (ctrl.Result, error) {
+func (c *Controller) reconcileNodeUpgrade(ctx context.Context, upgrade *kubernetes.Upgrade) (ctrl.Result, error) {
 	log := c.logger.WithValues("upgrade", upgrade.Name, "step", "node-upgrade")
+	log.Info("Checking if all nodes have been upgraded.")
 
 	allNodesUpgraded, err := c.allNodesUpgraded(ctx, upgrade.Status.UpgradedNodes)
 	if err != nil {
@@ -74,22 +74,20 @@ func (c *Controller) reconcileNodeUpgrade(ctx context.Context, client *kubernete
 
 	log.Info("All nodes have been upgraded.")
 
-	// This will trigger another reconciliation for the upgrade object.
-	if err := client.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{Phase: kubernetes.UpgradePhaseFeatureUpgrade}); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to set upgrade phase: %w", err)
+	if err := c.transitionTo(ctx, upgrade, kubernetes.UpgradePhaseFeatureUpgrade); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to transition to %q phase: %w", kubernetes.UpgradePhaseFeatureUpgrade, err)
 	}
 
-	log.Info("Transitioned to feature-upgrade phase.")
-
+	log.Info(fmt.Sprintf("Transitioned to %q phase.", kubernetes.UpgradePhaseFeatureUpgrade))
 	return ctrl.Result{}, nil
 }
 
 // reconcileFeatureUpgrade triggers feature controllers to reconcile
 // and waits for them to finish.
-func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, client *kubernetes.Client, upgrade *kubernetes.Upgrade) (ctrl.Result, error) {
+func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, upgrade *kubernetes.Upgrade) (ctrl.Result, error) {
 	log := c.logger.WithValues("upgrade", upgrade.Name, "step", "feature-upgrade")
-	log.Info("Triggering feature controllers")
 
+	log.Info("Waiting for feature controllers to be ready.")
 	select {
 	case <-c.featureControllerReadyCh:
 	case <-time.After(c.featureControllerReadyTimeout):
@@ -131,18 +129,23 @@ func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, client *kubern
 		}
 	}
 
-	log.Info("All feature have reconciled.")
-
-	if err := client.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{Phase: kubernetes.UpgradePhaseCompleted}); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to set upgrade phase after successful feature upgrade: %w", err)
+	log.Info("Waiting for feature controllers to reconcile.")
+	if err := c.waitForFeatureReconciliations(ctx, log); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to wait for feature reconciliations: %w", err)
 	}
 
+	log.Info("All feature have reconciled. Transitioning to completed phase.")
+	if err := c.transitionTo(ctx, upgrade, kubernetes.UpgradePhaseCompleted); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to transition to %q phase: %w", kubernetes.UpgradePhaseCompleted, err)
+	}
+
+	log.Info(fmt.Sprintf("Transitioned to %q phase.", kubernetes.UpgradePhaseCompleted))
 	return ctrl.Result{}, nil
 }
 
 // allNodesUpgraded checks if all nodes in the cluster have been upgraded.
 func (c *Controller) allNodesUpgraded(ctx context.Context, upgradedNodes []string) (bool, error) {
-	log := log.FromContext(ctx)
+	log := c.logger.WithValues("step", "all-nodes-upgraded")
 
 	leader, err := c.getState().Leader()
 	if err != nil {
@@ -175,4 +178,30 @@ func (c *Controller) allNodesUpgraded(ctx context.Context, upgradedNodes []strin
 	}
 
 	return true, nil
+}
+
+func (c *Controller) waitForFeatureReconciliations(ctx context.Context, log logr.Logger) error {
+	timeout := time.After(c.featureControllerReconcileTimeout)
+	for name, ch := range c.featureToReconciledCh {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-timeout:
+			// TODO(Hue): (KU-3227) Do something about failed feature reconciliations.
+			return fmt.Errorf("timed out waiting for feature %q to get reconciled", name)
+		case <-ch:
+			log.Info(fmt.Sprintf("feature %q have reconciled.", name))
+		}
+	}
+
+	return nil
+}
+
+func (c *Controller) transitionTo(ctx context.Context, upgrade *kubernetes.Upgrade, phase kubernetes.UpgradePhase) error {
+	p := ctrlclient.MergeFrom(upgrade.DeepCopy())
+	upgrade.Status.Phase = phase
+	if err := c.client.Status().Patch(ctx, upgrade, p); err != nil {
+		return fmt.Errorf("failed to patch: %w", err)
+	}
+	return nil
 }
