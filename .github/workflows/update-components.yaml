@@ -41,12 +41,6 @@ jobs:
         run: |
           pip3 install -r ./build-scripts/hack/requirements.txt
 
-      - name: Define git credentials
-        run: |
-          # Needed to create commits.
-          git config --global user.name "CDK bot"
-          git config --global user.email "cdkbot@canonical.com"
-
       - name: Check for new component versions
         run: |
           ./build-scripts/hack/update-component-versions.py
@@ -63,3 +57,5 @@ jobs:
           delete-branch: true
           base: ${{ matrix.branch }}
           token: ${{ secrets.BOT_TOKEN }}
+          author: CDK bot <cdkbot@canonical.com>
+          committer: CDK bot <cdkbot@canonical.com>
