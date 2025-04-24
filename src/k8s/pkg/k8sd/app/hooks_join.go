@@ -367,8 +367,20 @@ func initiateRollingUpgrade(ctx context.Context, snap snap.Snap, s state.State, 
 	}
 
 	newUpgrade := kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev), strategy)
-	newUpgrade.Status.UpgradedNodes = []string{s.Name()}
-	return k8sClient.CreateUpgrade(ctx, newUpgrade)
+	if err := k8sClient.Create(ctx, newUpgrade); err != nil {
+		return fmt.Errorf("failed to create upgrade: %w", err)
+	}
+
+	status := kubernetes.UpgradeStatus{
+		UpgradedNodes: []string{s.Name()},
+		Phase:         kubernetes.UpgradePhaseNodeUpgrade,
+		Strategy:      strategy,
+	}
+	if err := k8sClient.PatchUpgradeStatus(ctx, newUpgrade, status); err != nil {
+		return fmt.Errorf("failed to patch upgrade status: %w", err)
+	}
+
+	return nil
 }
 
 func handleUpgradeInProgress(ctx context.Context, s state.State, k8sClient *kubernetes.Client, upgrade *kubernetes.Upgrade, thisNodeVersion *versionutil.Version, nodeVersions map[string]*versionutil.Version) error {
@@ -387,6 +399,8 @@ func handleUpgradeInProgress(ctx context.Context, s state.State, k8sClient *kube
 		if !thisNodeVersion.EqualTo(lowest) {
 			return fmt.Errorf("joining node version %q needs to match lowest version %q", thisNodeVersion, lowest)
 		}
+	case kubernetes.UpgradeStrategyInPlace:
+		return fmt.Errorf("can not join a new node while an in-place upgrade is in progress")
 	default:
 		return fmt.Errorf("unknown upgrade strategy in progress: %q", upgrade.Status.Strategy)
 	}
@@ -394,7 +408,7 @@ func handleUpgradeInProgress(ctx context.Context, s state.State, k8sClient *kube
 	log.Info("Marking node as upgraded", "node", nodeName)
 	upgradedNodes := upgrade.Status.UpgradedNodes
 	upgradedNodes = append(upgradedNodes, nodeName)
-	return k8sClient.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{UpgradedNodes: upgradedNodes})
+	return k8sClient.PatchUpgradeStatus(ctx, upgrade, kubernetes.UpgradeStatus{UpgradedNodes: upgradedNodes})
 }
 
 // lowestHighestK8sVersions returns the lowest and highest Kubernetes versions from the given map.
