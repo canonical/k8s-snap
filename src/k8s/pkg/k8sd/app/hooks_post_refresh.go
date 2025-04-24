@@ -86,12 +86,11 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 		}
 		// TODO(ben): Add more metadata to the upgrade.
 		// e.g. initial revision, target revision, name of the node that started the upgrade, etc.
-		newUpgrade := kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev), kubernetes.UpgradeStrategyInPlace)
-		upgrade = &newUpgrade
-		if err := k8sClient.CreateUpgrade(ctx, *upgrade); err != nil {
+		upgrade = kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev), kubernetes.UpgradeStrategyInPlace)
+		if err := k8sClient.Create(ctx, upgrade); err != nil {
 			return fmt.Errorf("failed to create upgrade: %w", err)
 		}
-
+		log.Info("Created new upgrade CR.", "upgrade", *upgrade)
 	} else {
 		log.Info("Upgrade in progress.", "upgrade", upgrade.Name, "phase", upgrade.Status.Phase)
 	}
@@ -102,10 +101,17 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 	if !slices.Contains(upgradedNodes, s.Name()) {
 		upgradedNodes = append(upgradedNodes, s.Name())
 	}
+	status := kubernetes.UpgradeStatus{
+		UpgradedNodes: upgradedNodes,
+		Phase:         kubernetes.UpgradePhaseNodeUpgrade,
+		Strategy:      kubernetes.UpgradeStrategyInPlace,
+	}
 
-	if err := k8sClient.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{UpgradedNodes: upgradedNodes}); err != nil {
+	if err := k8sClient.PatchUpgradeStatus(ctx, upgrade, status); err != nil {
 		return fmt.Errorf("failed to mark node as upgraded: %w", err)
 	}
+
+	log.Info("Marked node as upgraded.", "status", upgrade.Status)
 
 	return nil
 }
