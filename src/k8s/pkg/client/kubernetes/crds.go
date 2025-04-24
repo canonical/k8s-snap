@@ -19,6 +19,7 @@ import (
 
 // ApplyCRDs applies all CRD YAML files in the specified directory.
 // TODO(ben): Add unittests
+// TODO(Hue): (KU-3289) Maybe use embedded files instead of reading from disk?
 func (c *Client) ApplyCRDs(ctx context.Context, crdsDir string) error {
 	log := log.FromContext(ctx).WithValues("kubernetes", "ApplyCRDs", "dir", crdsDir)
 

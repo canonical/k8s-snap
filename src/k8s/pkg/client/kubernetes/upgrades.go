@@ -5,150 +5,18 @@ import (
 	"fmt"
 	"sort"
 
+	crdsv1 "github.com/canonical/k8s/pkg/k8sd/crds/api/v1alpha"
 	"github.com/canonical/k8s/pkg/log"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// TODO: If the upgrade CRD grows, consider using kubebuilder.
-type UpgradePhase string
-
-const (
-	UpgradePhaseNodeUpgrade    = "NodeUpgrade"
-	UpgradePhaseFeatureUpgrade = "FeatureUpgrade"
-	UpgradePhaseFailed         = "Failed"
-	UpgradePhaseCompleted      = "Completed"
-)
-
-type UpgradeStrategy string
-
-const (
-	UpgradeStrategyRollingUpgrade   = "RollingUpgrade"
-	UpgradeStrategyRollingDowngrade = "RollingDowngrade"
-	UpgradeStrategyInPlace          = "InPlace"
-)
-
-const (
-	kind       = "Upgrade"
-	group      = "k8sd.io"
-	version    = "v1alpha"
-	apiVersion = group + "/" + version
-)
-
-var schemeGroupVersion = schema.GroupVersion{Group: group, Version: version}
-
-type UpgradeStatus struct {
-	Strategy      UpgradeStrategy `json:"strategy,omitempty"`
-	Phase         UpgradePhase    `json:"phase,omitempty"`
-	UpgradedNodes []string        `json:"upgradedNodes,omitempty"`
-}
-
-// TODO(Hue): (KU-3033) Use kubebuilder to generate the CRD .
-type Upgrade struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Status UpgradeStatus `json:"status,omitempty"`
-}
-
-func (in *Upgrade) DeepCopyInto(out *Upgrade) {
-	*out = *in
-	out.TypeMeta = in.TypeMeta
-	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	out.Status.Phase = in.Status.Phase
-	out.Status.Strategy = in.Status.Strategy
-	out.Status.UpgradedNodes = make([]string, len(in.Status.UpgradedNodes))
-	copy(out.Status.UpgradedNodes, in.Status.UpgradedNodes)
-}
-
-func (in *Upgrade) DeepCopy() *Upgrade {
-	if in == nil {
-		return nil
-	}
-	out := new(Upgrade)
-	in.DeepCopyInto(out)
-	return out
-}
-
-func (in *Upgrade) DeepCopyObject() runtime.Object {
-	if c := in.DeepCopy(); c != nil {
-		return c
-	}
-	return nil
-}
-
-// UpgradeList contains a list of Upgrade resources.
-type UpgradeList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Upgrade `json:"items"`
-}
-
-func (in *UpgradeList) DeepCopyInto(out *UpgradeList) {
-	*out = *in
-	out.TypeMeta = in.TypeMeta
-	in.ListMeta.DeepCopyInto(&out.ListMeta)
-	if in.Items != nil {
-		in, out := &in.Items, &out.Items
-		*out = make([]Upgrade, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
-	}
-}
-
-func (in *UpgradeList) DeepCopy() *UpgradeList {
-	if in == nil {
-		return nil
-	}
-	out := new(UpgradeList)
-	in.DeepCopyInto(out)
-	return out
-}
-
-func (in *UpgradeList) DeepCopyObject() runtime.Object {
-	if c := in.DeepCopy(); c != nil {
-		return c
-	}
-	return nil
-}
-
-// addKnownTypes registers upgrade types into the scheme.
-func addKnownTypes(scheme *runtime.Scheme) error {
-	scheme.AddKnownTypes(schemeGroupVersion,
-		&Upgrade{},
-		&UpgradeList{},
-	)
-	metav1.AddToGroupVersion(scheme, schemeGroupVersion)
-	return nil
-}
-
-func NewUpgrade(name string, strategy UpgradeStrategy) *Upgrade {
-	return &Upgrade{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: apiVersion,
-			Kind:       kind,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		Status: UpgradeStatus{
-			Strategy:      strategy,
-			Phase:         UpgradePhaseNodeUpgrade,
-			UpgradedNodes: []string{},
-		},
-	}
-}
-
 // GetInProgressUpgrade returns the upgrade CR that is currently in progress.
 // TODO(ben): (KU-3218) Maybe make this more generic, e.g. GetUpgrade(filterFunc func(Upgrade) bool) (*Upgrade, error)
-func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
+func (c *Client) GetInProgressUpgrade(ctx context.Context) (*crdsv1.Upgrade, error) {
 	log := log.FromContext(ctx).WithValues("upgrades", "GetInProgressUpgrade")
 
-	result := &UpgradeList{}
+	result := &crdsv1.UpgradeList{}
 	if err := c.List(ctx, result); err != nil {
 		if apierrors.IsNotFound(err) {
 			// No upgrade in progress.
@@ -157,9 +25,9 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 		return nil, fmt.Errorf("failed to get upgrades: %w", err)
 	}
 
-	var matches []Upgrade
+	var matches []crdsv1.Upgrade
 	for _, upgrade := range result.Items {
-		if upgrade.Status.Phase != UpgradePhaseFailed && upgrade.Status.Phase != UpgradePhaseCompleted {
+		if upgrade.Status.Phase != crdsv1.UpgradePhaseFailed && upgrade.Status.Phase != crdsv1.UpgradePhaseCompleted {
 			matches = append(matches, upgrade)
 		}
 	}
@@ -180,7 +48,7 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*Upgrade, error) {
 }
 
 // PatchUpgradeStatus patches the status of an upgrade CR.
-func (c *Client) PatchUpgradeStatus(ctx context.Context, u *Upgrade, status UpgradeStatus) error {
+func (c *Client) PatchUpgradeStatus(ctx context.Context, u *crdsv1.Upgrade, status crdsv1.UpgradeStatus) error {
 	p := ctrlclient.MergeFrom(u.DeepCopy())
 	u.Status = status
 	if err := c.Status().Patch(ctx, u, p); err != nil {
