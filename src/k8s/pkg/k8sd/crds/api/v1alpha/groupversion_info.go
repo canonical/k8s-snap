@@ -1,6 +1,6 @@
 // Package v1alpha contains API Schema definitions for the crds v1alpha API group.
 // +kubebuilder:object:generate=true
-// +groupName=crds.k8sd.io
+// +groupName=k8sd.io
 
 package v1alpha
 
@@ -11,7 +11,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects.
-	GroupVersion = schema.GroupVersion{Group: "crds.k8sd.io", Version: "v1alpha"}
+	GroupVersion = schema.GroupVersion{Group: "k8sd.io", Version: "v1alpha"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme.
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}

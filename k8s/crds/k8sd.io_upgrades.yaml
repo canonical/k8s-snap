@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.2
-  name: upgrades.crds.k8sd.io
+  name: upgrades.k8sd.io
 spec:
-  group: crds.k8sd.io
+  group: k8sd.io
   names:
     kind: Upgrade
     listKind: UpgradeList
