@@ -171,22 +171,22 @@ def test_version_downgrades_with_rollback(
     current_channel = channels[0]
 
     if current_channel.lower() == "recent":
-        if len(channels) != 3:
-            pytest.fail(
-                "'recent' requires the number of releases as second argument and the flavour as third argument"
-            )
-        _, num_channels, flavour = channels
+        if len(channels) != 2:
+            pytest.fail("'recent' requires the number of releases as second argument")
+        _, num_channels = channels
+        ref = config.GH_BASE_REF or config.GH_REF
         channels = snap.get_most_stable_channels(
             int(num_channels),
-            flavour,
+            config.FLAVOR,
             cp.arch,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
             reverse=True,
-            include_latest=False,
+            # Include `latest/edge/<flavor>` only if this is not a release branch.
+            include_latest=ref == util.MAIN_BRANCH,
         )
         if len(channels) < 2:
             pytest.fail(
-                f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {flavour}"
+                f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
             )
         current_channel = channels[0]
 
