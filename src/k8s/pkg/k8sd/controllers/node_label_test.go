@@ -106,9 +106,10 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 	g.Expect(os.MkdirAll(k8sDqliteStateDir, 0o700)).To(Succeed())
 	g.Expect(os.MkdirAll(k8sdDbDir, 0o700)).To(Succeed())
 
+	nodeName := "test-node-name"
 	ctrl := controllers.NewNodeLabelController(s, func() {})
 
-	go ctrl.Run(ctx)
+	go ctrl.Run(ctx, nodeName)
 	defer watcher.Stop()
 
 	for _, tc := range tests {
@@ -142,7 +143,7 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 
 			node := &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: s.Hostname(),
+					Name: nodeName,
 					Labels: map[string]string{
 						"topology.kubernetes.io/zone": tc.availabilityZone,
 					},

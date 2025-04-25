@@ -24,6 +24,12 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		}
 	}()
 
+	serverStatus, err := a.cluster.Status(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve microcluster status: %w", err)
+	}
+	nodeName := serverStatus.Name
+
 	// start node config controller
 	if a.nodeConfigController != nil {
 		go a.nodeConfigController.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) {
@@ -42,7 +48,7 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 
 	// start node label controller
 	if a.nodeLabelController != nil {
-		go a.nodeLabelController.Run(ctx)
+		go a.nodeLabelController.Run(ctx, nodeName)
 	}
 
 	// start control plane config controller
