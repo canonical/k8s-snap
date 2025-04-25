@@ -71,19 +71,20 @@ def _cluster_setup(instances: List[harness.Instance], skip_k8s_dqlite: bool = Fa
 
     for instance in instances:
         assert "control-plane" in util.get_local_node_status(instance)
-
-    config = cluster_node.exec(["k8s", "config"], capture_output=True)
-    cluster_node.exec(["dd", "of=/root/.kube/config"], input=config.stdout)
+        instance.exec(["mkdir", "-p", "/root/.kube"])
+        config = instance.exec(["k8s", "config"], capture_output=True)
+        instance.exec(["dd", "of=/root/.kube/config"], input=config.stdout)
 
 
 def _run_tests(instances: List[harness.Instance]):
-    instance = instances[0]
+    # The first node may be the leader.
+    instance = instances[-1]
 
     # Install kubectl in the instance, it's faster.
     instance.exec(["snap", "install", "kubectl", "--classic"])
 
     # Taint the other nodes, so Pods do not schedule on them.
-    for node in instances[1:]:
+    for node in instances[:-1]:
         instance.exec(["kubectl", "cordon", node.id])
 
     yaml_bytes = (config.MANIFESTS_DIR / "nginx-pod.yaml").read_bytes()
@@ -95,14 +96,20 @@ def _run_tests(instances: List[harness.Instance]):
     _wait_pod(instance, pod_name)
     instance.exec(["kubectl", "delete", "pod", pod_name])
 
-    # Initialize kubernetes client.
+    # Initialize kubernetes clients.
     proc = instance.exec(["k8s", "config"], capture_output=True)
     config_dict = yaml.safe_load(proc.stdout)
     kubernetes.config.load_kube_config_from_dict(config_dict)
+    v1 = kubernetes.client.CoreV1Api()
+
+    proc = instances[0].exec(["k8s", "config"], capture_output=True)
+    config_dict = yaml.safe_load(proc.stdout)
+    kubernetes.config.load_kube_config_from_dict(config_dict)
+    other_v1 = kubernetes.client.CoreV1Api()
 
     # Run scenarios.
-    aff_errors, aff_non_running = _check_node_affinity(instance)
-    taint_errors, taint_non_running = _check_node_taint(instance)
+    aff_errors, aff_non_running = _check_node_affinity(instance, v1, other_v1)
+    taint_errors, taint_non_running = _check_node_taint(instance, v1, other_v1)
 
     assert aff_errors == 0, "label: encountered errors while testing."
     assert aff_non_running == 0, "label: pods didn't always enter a running state."
@@ -130,8 +137,7 @@ def _wait_pod(
     )
 
 
-def _check_node_affinity(instance: harness.Instance):
-    v1 = kubernetes.client.CoreV1Api()
+def _check_node_affinity(instance: harness.Instance, v1, other_v1):
     yaml_bytes = (config.MANIFESTS_DIR / "nginx-pod-selector.yaml").read_bytes()
     pod_spec = yaml.safe_load(yaml_bytes)
     affinity = pod_spec["spec"]["affinity"]["nodeAffinity"]
@@ -156,7 +162,7 @@ def _check_node_affinity(instance: harness.Instance):
         # Label the node and create Pod.
         v1.patch_node(instance.id, label_dict)
         affinity_expression["key"] = label
-        v1.create_namespaced_pod(body=pod_spec, namespace="default")
+        other_v1.create_namespaced_pod(body=pod_spec, namespace="default")
 
         yield pod_name
 
@@ -171,8 +177,7 @@ def _check_node_affinity(instance: harness.Instance):
     return _check_scenario(instance, _run_scenario)
 
 
-def _check_node_taint(instance: harness.Instance):
-    v1 = kubernetes.client.CoreV1Api()
+def _check_node_taint(instance: harness.Instance, v1, other_v1):
     yaml_bytes = (config.MANIFESTS_DIR / "nginx-pod.yaml").read_bytes()
     pod_spec = yaml.safe_load(yaml_bytes)
 
@@ -206,7 +211,7 @@ def _check_node_taint(instance: harness.Instance):
 
         # Untaint the node, create Pod, and wait for it to become Running.
         v1.patch_node(instance.id, remove_taint)
-        v1.create_namespaced_pod(body=pod_spec, namespace="default")
+        other_v1.create_namespaced_pod(body=pod_spec, namespace="default")
 
         yield pod_name
 
