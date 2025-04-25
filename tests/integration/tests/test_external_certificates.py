@@ -27,6 +27,17 @@ DEFAULT_BOOTSTRAP_CONFIG = {
     },
 }
 
+CONTROL_PLANE_INTERNAL_CERT_NAMES = {
+    "front-proxy-client",
+    "apiserver-kubelet-client",
+    "admin.conf",
+    "scheduler.conf",
+    "controller.conf",
+    "kubelet.conf",
+    "proxy.conf",
+}
+
+
 K8S_ROLE = "k8s"
 MASTERS_ROLE = "k8s-masters"
 NODES_ROLE = "k8s-nodes"
@@ -36,7 +47,6 @@ ROLES = {
     MASTERS_ROLE: "system:masters",
     NODES_ROLE: "system:nodes",
 }
-
 APISERVER_DNS_NAMES = [
     "kubernetes",
     "kubernetes.default",
@@ -435,6 +445,148 @@ def test_vault_certificates(instances: List[harness.Instance]):
     worker_node.exec(
         ["k8s", "refresh-certs", "--external-certificates", "-"],
         input=str.encode(yaml.dump(new_worker_certs)),
+    )
+
+    # Deploy the Pod again to verify the cluster functionality.
+    check_nginx_pod_runs(instance)
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.tags(tags.NIGHTLY)
+def test_partial_refresh(instances: List[harness.Instance]):
+    instance = instances[0]
+    bootstrap_node_ip = util.get_default_ip(instance)
+    bootstrap_node_hostname = util.hostname(instance)
+
+    cp_node = instances[1]
+    cp_node_ip = util.get_default_ip(cp_node)
+    cp_node_hostname = util.hostname(cp_node)
+
+    client = setup_vault(instance, bootstrap_node_ip)
+    LOG.info("Vault setup is ready. Creating certificates.")
+
+    # Enable and tune PKI.
+    client.sys.enable_secrets_engine("pki", config={"max_lease_ttl": "6h"})
+
+    # Generate root CA.
+    gen_root_resp = client.secrets.pki.generate_root("internal", common_name="vault")
+    root_ca_cert = gen_root_resp["data"]["certificate"]
+
+    # Create roles for generating certificates.
+    create_roles(client, ROLES)
+
+    bootstrap_config = dict(DEFAULT_BOOTSTRAP_CONFIG)
+    bootstrap_config.update(
+        {
+            "ca-crt": root_ca_cert,
+        }
+    )
+
+    cp_certs = {
+        "apiserver": CertOpts(
+            common_name="kube-apiserver",
+            alt_names=APISERVER_DNS_NAMES,
+            ip_sans=APISERVER_IP_SANS + [bootstrap_node_ip, cp_node_ip],
+        ),
+    }
+    worker_certs = {
+        "kubelet": CertOpts(
+            common_name=f"system:node:{bootstrap_node_hostname}",
+            role=NODES_ROLE,
+            alt_names=[bootstrap_node_hostname],
+            ip_sans=["127.0.0.1", bootstrap_node_ip],
+        ),
+    }
+
+    bootstrap_certs = {}
+    bootstrap_certs.update(cp_certs)
+    bootstrap_certs.update(worker_certs)
+
+    create_and_assign_certs(client, bootstrap_certs.items(), bootstrap_config)
+
+    LOG.info("Certificates are ready. Bootstrapping.")
+    instance.exec(
+        ["k8s", "bootstrap", "--file", "-"],
+        input=str.encode(yaml.dump(bootstrap_config)),
+    )
+
+    # Add a control plane node.
+    worker_certs["kubelet"] = CertOpts(
+        common_name=f"system:node:{cp_node_hostname}",
+        role=NODES_ROLE,
+        alt_names=[cp_node_hostname],
+        ip_sans=["127.0.0.1", cp_node_ip],
+    )
+    cp_join_config = {}
+    create_and_assign_certs(
+        client, itertools.chain(cp_certs.items(), worker_certs.items()), cp_join_config
+    )
+
+    join_token = util.get_join_token(instance, cp_node)
+    cp_node.exec(
+        ["k8s", "join-cluster", join_token, "--file", "-"],
+        input=str.encode(yaml.dump(cp_join_config)),
+    )
+
+    util.wait_until_k8s_ready(instance, instances)
+    util.wait_for_dns(instance)
+
+    # If we deploy a Pod and it becomes Active, the cluster should be functional.
+    check_nginx_pod_runs(instance)
+    delete_nginx_pod(instance)
+
+    # Refresh all cluster's nodes PKI.
+    leader_cp_certs = {}
+    worker_certs["kubelet"] = CertOpts(
+        common_name=f"system:node:{bootstrap_node_hostname}",
+        role=NODES_ROLE,
+        alt_names=[bootstrap_node_hostname],
+        ip_sans=["127.0.0.1", bootstrap_node_ip],
+    )
+    create_and_assign_certs(
+        client, itertools.chain(cp_certs.items(), worker_certs.items()), leader_cp_certs
+    )
+    # Refresh External PKI
+    instance.exec(
+        ["k8s", "refresh-certs", "--external-certificates", "-"],
+        input=str.encode(yaml.dump(leader_cp_certs)),
+    )
+
+    instance.exec(
+        [
+            "k8s",
+            "refresh-certs",
+            "--certificates",
+            ",".join(CONTROL_PLANE_INTERNAL_CERT_NAMES),
+            "--expires-in",
+            "1y",
+        ]
+    )
+
+    new_cp_certs = {}
+    worker_certs["kubelet"] = CertOpts(
+        common_name=f"system:node:{cp_node_hostname}",
+        role=NODES_ROLE,
+        alt_names=[cp_node_hostname],
+        ip_sans=["127.0.0.1", cp_node_ip],
+    )
+    create_and_assign_certs(
+        client, itertools.chain(cp_certs.items(), worker_certs.items()), new_cp_certs
+    )
+    cp_node.exec(
+        ["k8s", "refresh-certs", "--external-certificates", "-"],
+        input=str.encode(yaml.dump(new_cp_certs)),
+    )
+    cp_node.exec(
+        [
+            "k8s",
+            "refresh-certs",
+            "--certificates",
+            ",".join(CONTROL_PLANE_INTERNAL_CERT_NAMES),
+            "--expires-in",
+            "1y",
+        ]
     )
 
     # Deploy the Pod again to verify the cluster functionality.

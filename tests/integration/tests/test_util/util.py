@@ -753,7 +753,7 @@ def check_file_paths_exist(
     """
     process = instance.exec(["ls", *paths], capture_output=True, text=True, check=False)
     return {
-        p: not (f"cannot access '{p}': No such file or directory" in process.stderr)
+        p: f"cannot access '{p}': No such file or directory" not in process.stderr
         for p in paths
     }
 

@@ -85,6 +85,8 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ttl, err := utils.TTLToSeconds(opts.expiresIn)
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to parse TTL. \n\nThe error was: %v\n", err)
+				env.Exit(1)
+				return
 			}
 
 			plan, err := client.RefreshCertificatesPlan(ctx, apiv1.RefreshCertificatesPlanRequest{
