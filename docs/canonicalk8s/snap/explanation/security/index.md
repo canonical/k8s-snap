@@ -6,6 +6,7 @@ security in {{product}}.
 ```{toctree}
 :titlesonly:
 Security overview <security-overview>
+auth
 certificates
 cis
 crypto
