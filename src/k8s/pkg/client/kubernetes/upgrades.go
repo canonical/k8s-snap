@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	crdsv1 "github.com/canonical/k8s/pkg/k8sd/crds/api/v1alpha"
+	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
 	"github.com/canonical/k8s/pkg/log"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -13,10 +13,10 @@ import (
 
 // GetInProgressUpgrade returns the upgrade CR that is currently in progress.
 // TODO(ben): (KU-3218) Maybe make this more generic, e.g. GetUpgrade(filterFunc func(Upgrade) bool) (*Upgrade, error)
-func (c *Client) GetInProgressUpgrade(ctx context.Context) (*crdsv1.Upgrade, error) {
+func (c *Client) GetInProgressUpgrade(ctx context.Context) (*upgradesv1alpha.Upgrade, error) {
 	log := log.FromContext(ctx).WithValues("upgrades", "GetInProgressUpgrade")
 
-	result := &crdsv1.UpgradeList{}
+	result := &upgradesv1alpha.UpgradeList{}
 	if err := c.List(ctx, result); err != nil {
 		if apierrors.IsNotFound(err) {
 			// No upgrade in progress.
@@ -25,9 +25,9 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*crdsv1.Upgrade, err
 		return nil, fmt.Errorf("failed to get upgrades: %w", err)
 	}
 
-	var matches []crdsv1.Upgrade
+	var matches []upgradesv1alpha.Upgrade
 	for _, upgrade := range result.Items {
-		if upgrade.Status.Phase != crdsv1.UpgradePhaseFailed && upgrade.Status.Phase != crdsv1.UpgradePhaseCompleted {
+		if upgrade.Status.Phase != upgradesv1alpha.UpgradePhaseFailed && upgrade.Status.Phase != upgradesv1alpha.UpgradePhaseCompleted {
 			matches = append(matches, upgrade)
 		}
 	}
@@ -48,7 +48,7 @@ func (c *Client) GetInProgressUpgrade(ctx context.Context) (*crdsv1.Upgrade, err
 }
 
 // PatchUpgradeStatus patches the status of an upgrade CR.
-func (c *Client) PatchUpgradeStatus(ctx context.Context, u *crdsv1.Upgrade, status crdsv1.UpgradeStatus) error {
+func (c *Client) PatchUpgradeStatus(ctx context.Context, u *upgradesv1alpha.Upgrade, status upgradesv1alpha.UpgradeStatus) error {
 	p := ctrlclient.MergeFrom(u.DeepCopy())
 	u.Status = status
 	if err := c.Status().Patch(ctx, u, p); err != nil {

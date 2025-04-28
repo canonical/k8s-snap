@@ -7,7 +7,7 @@ import (
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
-	crdsv1 "github.com/canonical/k8s/pkg/k8sd/crds/api/v1alpha"
+	upgradesv1alpha1 "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -135,7 +135,7 @@ func (c *Controller) Run(
 // SetupWithManager sets up the controller with the Manager.
 func (c *Controller) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&crdsv1.Upgrade{}).
+		For(&upgradesv1alpha1.Upgrade{}).
 		Complete(c)
 }
 
