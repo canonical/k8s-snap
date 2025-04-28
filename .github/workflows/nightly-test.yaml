@@ -43,6 +43,7 @@ jobs:
           - { branch: release-1.30, channel: 1.30-classic/edge }
           - { branch: release-1.31, channel: 1.31-classic/edge }
           - { branch: release-1.32, channel: 1.32-classic/edge }
+          - { branch: release-1.33, channel: 1.33-classic/edge }
     uses: ./.github/workflows/security-scan.yaml
     with:
       channel: ${{ matrix.channel }}
