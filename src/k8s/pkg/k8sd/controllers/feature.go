@@ -6,7 +6,7 @@ import (
 	"time"
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
-	"github.com/canonical/k8s/pkg/client/kubernetes"
+	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
 	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
@@ -269,7 +269,7 @@ func (c *FeatureController) isBlocked(ctx context.Context, getClusterConfig func
 			return false, nil
 		}
 
-		if upgrade.Status.Phase == kubernetes.UpgradePhaseFeatureUpgrade {
+		if upgrade.Status.Phase == upgradesv1alpha.UpgradePhaseFeatureUpgrade {
 			log.Info("Upgrade in progress - but in feature upgrade phase - applying configuration", "upgrade", upgrade.Name, "phase", upgrade.Status.Phase)
 			return false, nil
 		}

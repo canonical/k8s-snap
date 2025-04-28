@@ -7,6 +7,7 @@ import (
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	upgradesv1alpha1 "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -19,11 +20,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
-)
-
-const (
-	defaultFeatureControllerReadyTimeout     = 30 * time.Second
-	defaultFeatureControllerReconcileTimeout = 30 * time.Second
 )
 
 type Controller struct {
@@ -139,7 +135,7 @@ func (c *Controller) Run(
 // SetupWithManager sets up the controller with the Manager.
 func (c *Controller) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&kubernetes.Upgrade{}).
+		For(&upgradesv1alpha1.Upgrade{}).
 		Complete(c)
 }
 

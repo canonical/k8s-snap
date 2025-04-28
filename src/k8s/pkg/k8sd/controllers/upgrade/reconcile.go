@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/canonical/k8s/pkg/client/kubernetes"
+	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -41,15 +41,15 @@ func (c *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 // reconcile is the main reconciliation loop for the upgrade controller.
 func (c *Controller) reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	var upgrade kubernetes.Upgrade
+	var upgrade upgradesv1alpha.Upgrade
 	if err := c.client.Get(ctx, req.NamespacedName, &upgrade); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to get upgrade %q: %w", req.NamespacedName, err)
 	}
 
 	switch {
-	case upgrade.Status.Phase == kubernetes.UpgradePhaseNodeUpgrade:
+	case upgrade.Status.Phase == upgradesv1alpha.UpgradePhaseNodeUpgrade:
 		return c.reconcileNodeUpgrade(ctx, &upgrade)
-	case upgrade.Status.Phase == kubernetes.UpgradePhaseFeatureUpgrade:
+	case upgrade.Status.Phase == upgradesv1alpha.UpgradePhaseFeatureUpgrade:
 		return c.reconcileFeatureUpgrade(ctx, &upgrade)
 	}
 
@@ -58,7 +58,7 @@ func (c *Controller) reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 // reconcileNodeUpgrade checks if all nodes have been upgraded.
 // If so, it transitions to the feature upgrade phase and notifies the feature controller.
-func (c *Controller) reconcileNodeUpgrade(ctx context.Context, upgrade *kubernetes.Upgrade) (ctrl.Result, error) {
+func (c *Controller) reconcileNodeUpgrade(ctx context.Context, upgrade *upgradesv1alpha.Upgrade) (ctrl.Result, error) {
 	log := c.logger.WithValues("upgrade", upgrade.Name, "step", "node-upgrade")
 	log.Info("Checking if all nodes have been upgraded.")
 
@@ -71,17 +71,17 @@ func (c *Controller) reconcileNodeUpgrade(ctx context.Context, upgrade *kubernet
 
 	log.Info("All nodes have been upgraded.")
 
-	if err := c.transitionTo(ctx, upgrade, kubernetes.UpgradePhaseFeatureUpgrade); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to transition to %q phase: %w", kubernetes.UpgradePhaseFeatureUpgrade, err)
+	if err := c.transitionTo(ctx, upgrade, upgradesv1alpha.UpgradePhaseFeatureUpgrade); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to transition to %q phase: %w", upgradesv1alpha.UpgradePhaseFeatureUpgrade, err)
 	}
 
-	log.Info(fmt.Sprintf("Transitioned to %q phase.", kubernetes.UpgradePhaseFeatureUpgrade))
+	log.Info(fmt.Sprintf("Transitioned to %q phase.", upgradesv1alpha.UpgradePhaseFeatureUpgrade))
 	return ctrl.Result{}, nil
 }
 
 // reconcileFeatureUpgrade triggers feature controllers to reconcile
 // and waits for them to finish.
-func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, upgrade *kubernetes.Upgrade) (ctrl.Result, error) {
+func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, upgrade *upgradesv1alpha.Upgrade) (ctrl.Result, error) {
 	log := c.logger.WithValues("upgrade", upgrade.Name, "step", "feature-upgrade")
 
 	log.Info("Waiting for feature controllers to be ready.")
@@ -100,11 +100,11 @@ func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, upgrade *kuber
 	}
 
 	log.Info("All feature have reconciled. Transitioning to completed phase.")
-	if err := c.transitionTo(ctx, upgrade, kubernetes.UpgradePhaseCompleted); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to transition to %q phase: %w", kubernetes.UpgradePhaseCompleted, err)
+	if err := c.transitionTo(ctx, upgrade, upgradesv1alpha.UpgradePhaseCompleted); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to transition to %q phase: %w", upgradesv1alpha.UpgradePhaseCompleted, err)
 	}
 
-	log.Info(fmt.Sprintf("Transitioned to %q phase.", kubernetes.UpgradePhaseCompleted))
+	log.Info(fmt.Sprintf("Transitioned to %q phase.", upgradesv1alpha.UpgradePhaseCompleted))
 	return ctrl.Result{}, nil
 }
 
@@ -162,7 +162,7 @@ func (c *Controller) waitForFeatureReconciliations(ctx context.Context, log logr
 	return nil
 }
 
-func (c *Controller) transitionTo(ctx context.Context, upgrade *kubernetes.Upgrade, phase kubernetes.UpgradePhase) error {
+func (c *Controller) transitionTo(ctx context.Context, upgrade *upgradesv1alpha.Upgrade, phase upgradesv1alpha.UpgradePhase) error {
 	p := ctrlclient.MergeFrom(upgrade.DeepCopy())
 	upgrade.Status.Phase = phase
 	if err := c.client.Status().Patch(ctx, upgrade, p); err != nil {
