@@ -37,7 +37,16 @@ go install honnef.co/go/tools/cmd/staticcheck@v0.5.1
 # We need to have our project built
 # We load the dqlite libs here instead of doing through make because TICS
 # will try to build parts of the project itself
-sudo add-apt-repository -y ppa:dqlite/dev
+#
+# NOTE: Running add-apt-repository -y ppa:dqlite/dev may flake with a 504 Gateway Time-out from Launchpad.
+# Avoid this by adding the apt source lists manually.
+# GPG signing key from: https://launchpad.net/~dqlite/+archive/ubuntu/dev
+release="$(lsb_release --codename --short)"
+wget -qO- "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x392A47B5A84EACA9B2C43CDA06CD096F50FB3D04" | sudo tee /etc/apt/trusted.gpg.d/dqlite-dev.asc
+echo "deb-src https://ppa.launchpadcontent.net/dqlite/dev/ubuntu $release main" | sudo tee /etc/apt/sources.list.d/dqlite-dev.list
+echo "deb https://ppa.launchpadcontent.net/dqlite/dev/ubuntu $release main" | sudo tee /etc/apt/sources.list.d/dqlite-dev.list
+sudo apt-get update
+
 sudo apt-get install -y dqlite-tools-v2 libdqlite1.17-dev
 sudo make clean
 go build -a ./...
